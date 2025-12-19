@@ -1,0 +1,167 @@
+import { getCreation } from "./service/creation-filter.service"
+import { useEffect, useState } from 'react';
+import toast from 'react-hot-toast';
+import { Button } from '@/components/ui/button';
+import CreateEntityDialog from "@/components/creationDialog"
+import { capitalizeFirstLetter } from '@/lib/utils';
+import Loader from '@/components/Loader/Loader';
+import type { Icreations, ICreation } from "./types/types"
+import { useNavigate, useParams } from "react-router-dom";
+
+export default function HotelsPage() {
+  const { superId } = useParams<{ superId: string }>();
+  const [isLoading, setIsLoading] = useState(false)
+  const [creations, setCreations] = useState<Icreations>({
+    brands: [],
+    groups: [],
+    properties: [],
+  })
+  const navigate = useNavigate();
+  const [currentTab, setCurrentTab] = useState<"group" | "brand" | "property">("group")
+
+  const fetchProperties = async () => {
+    try {
+      setIsLoading(true)
+      const response = await getCreation();
+      if (response.success) {
+        // Assuming response.data contains the creations object
+        setCreations(response.data || {
+          brands: [],
+          groups: [],
+          properties: [],
+        });
+        // toast.success('Properties fetched successfully');
+      } else {
+        toast.error(response.message || 'Failed to fetch');
+      }
+    } catch (error) {
+      console.error('Error fetching properties:', error);
+      toast.error('Failed to fetch properties');
+    } finally {
+      setIsLoading(false)
+    }
+  };
+
+  useEffect(() => {
+    fetchProperties();
+  }, []);
+
+  // Get current data based on selected tab
+  const getCurrentData = (): ICreation[] => {
+    switch (currentTab) {
+      case "group":
+        return creations.groups;
+      case "brand":
+        return creations.brands;
+      case "property":
+        return creations.properties;
+      default:
+        return [];
+    }
+  };
+
+  // Get tab display name
+  const getTabDisplayName = (tab: string): string => {
+    const pluralMap: { [key: string]: string } = {
+      group: "groups",
+      brand: "brands",
+      property: "properties"
+    };
+    return pluralMap[tab] || tab;
+  };
+
+  if (isLoading) {
+    return (
+      <div className='min-h-screen w-full flex justify-center items-center'>
+        <Loader text={`Loading your ${capitalizeFirstLetter(currentTab)}s ...`} />
+      </div>
+    )
+  }
+
+  const currentData = getCurrentData();
+
+  return (
+    <div className="space-y-6 p-4">
+      <div className="flex justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Hotels & Properties</h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Manage all your hotel properties and their performance
+          </p>
+        </div>
+        <CreateEntityDialog currentTab={currentTab} creationId={superId?superId:""} level={4} fetchProperties={fetchProperties} />
+      </div>
+
+      <div className="flex space-x-2 border-b">
+        {(["group", "brand", "property"] as const).map((tab) => (
+          <Button
+            key={tab}
+            variant={currentTab === tab ? "secondary" : "ghost"}
+            onClick={() => setCurrentTab(tab)}
+            className={`px-4 py-2 rounded-t-lg border-b-2 ${currentTab === tab
+                ? "border-blue-500 bg-blue-50 text-blue-600"
+                : "border-transparent hover:border-gray-300"
+              }`}
+          >
+            {capitalizeFirstLetter(getTabDisplayName(tab))} ({
+              tab === "group" ? creations.groups?.length :
+                tab === "brand" ? creations.brands?.length :
+                  creations.properties?.length
+            })
+          </Button>
+        ))}
+      </div>
+
+
+      <div className="bg-white p-6 rounded-lg shadow">
+
+        {/* Data Grid */}
+        {currentData?.length === 0 ? (
+          <div className="text-center py-12">
+            <div className="mx-auto h-24 w-24 text-gray-300">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1}
+                  d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H9m0 0H5m0 0h2M9 21h4"
+                />
+              </svg>
+            </div>
+            <h3 className="mt-4 text-lg font-medium text-gray-900">
+              No {getTabDisplayName(currentTab)} found
+            </h3>
+            <p className="mt-2 text-sm text-gray-500">
+              Get started by creating your first {currentTab}.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {currentData.map((item: ICreation) => (
+              <div
+                key={item.id}
+                className="border rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
+              >
+                <img src={item.images[0]} alt={item.name} width={400} height={200} className="rounded-lg mb-3" />
+                <div className="flex justify-between items-start mb-3">
+                  <h3 className="font-semibold text-lg text-gray-900 truncate">
+                    {item.name}
+                  </h3>
+                </div>
+
+
+                {/* Actions */}
+                <div className="mt-4 flex space-x-2">
+                  <Button variant="outline" size="sm" className="flex-1"
+                    onClick={() => { navigate(`/app/property/${currentTab}/${item.id}`) }}>
+                    View Details
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

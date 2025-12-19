@@ -1,0 +1,45 @@
+import type  {ICTaxGroup,
+    ICTaxGroupRule,
+    IDTaxGroup,
+    IDTaxGroupRule,
+    IFTaxGroup,
+IFTaxGroupRule,
+ITaxGroup,
+ITaxGroupRule,
+ITaxGroupRuleWithRelations,
+// ITaxRuleWithRelations,
+IUTaxGroup,
+IUTaxGroupRule} from "./tax-group.type";
+import type {ICTaxRule,
+    IDTaxRule,
+    IFTaxRule,
+    ITaxRule,
+    IUTaxRule,
+    TaxApplicableOn,
+    TaxType,
+} from "./tax-rule.type";
+import type {RatePlan} from "../../rate-plan/interfaces";
+
+export type {
+ ICTaxGroup,
+    ICTaxGroupRule,
+    IDTaxGroup,
+    IDTaxGroupRule,
+    IFTaxGroup,
+IFTaxGroupRule,
+ITaxGroup,
+ITaxGroupRule,
+ITaxGroupRuleWithRelations  ,
+ICTaxRule,
+    IDTaxRule,
+    IFTaxRule,
+    ITaxRule,
+    IUTaxRule,
+    TaxApplicableOn,
+    TaxType, 
+    
+// ITaxRuleWithRelations,
+IUTaxGroup,
+IUTaxGroupRule,
+RatePlan
+}
