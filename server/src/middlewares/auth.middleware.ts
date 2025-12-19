@@ -16,11 +16,11 @@ export const protect = async (
   const token = req.cookies.accessToken;
   try {
     const decoded = await decodeToken(token, process.env.JWT_SECRET_KEY_DEV!);
-    console.log( decoded ,
-      decoded.id ,
-      decoded.role,
-      decoded.email,
-      decoded.level)
+    // console.log( decoded ,
+    //   decoded.id ,
+    //   decoded.role,
+    //   decoded.email,
+    //   decoded.level)
     if (
       !decoded ||
       !decoded.id ||

@@ -1,7 +1,10 @@
 export interface IBookingEngineConfig {
-    propertyId: string;
-    primaryColor:string;
-    secondaryColor:string;
-    bannerImage:string;
-    logo:string;
+  id?: string;
+  propertyId: string;
+  primaryColor: string;
+  secondaryColor: string;
+  tertiaryColor: string;
+  buttonTextColor: string; // new field
+  bannerImage: string;
+  logo: string;
 }

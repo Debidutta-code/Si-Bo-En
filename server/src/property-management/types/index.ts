@@ -35,7 +35,9 @@ export interface PropertyQueryOptions {
   populate?: string[] | Record<string, any>;
 }
 import type {IUPropertyConfig} from "./property-config.type"
+import type {IBookingEngineConfig} from "./bokingEngine.types"
 export type {
-  IUPropertyConfig
+  IUPropertyConfig,
+  IBookingEngineConfig
 }
 
