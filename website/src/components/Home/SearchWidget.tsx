@@ -1,19 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Calendar, Users, Search } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { Users, Menu, X, Calendar, User, Key, ChevronRight } from "lucide-react";
 import GuestSelector from "../GuestModals/GuestSelector";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import "./styles/custom-datepicker.css";
 import { usePathname, useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
 import { setBookingContext } from "../../store/bookingSlice";
 import toast from "react-hot-toast";
 import { RootState } from "@/src/store/store";
-import { useRef } from "react";
 import { useBookingColors } from "../../hooks/useBookingColors";
-
-// Inside the component
+import React from "react";
 
 interface SearchWidgetProps {
   onSearchStart?: (payload: {
@@ -24,6 +23,80 @@ interface SearchWidgetProps {
   }) => void;
 }
 
+// Custom wrapper component for DatePicker with hover support
+const DatePickerWithHover = ({
+  checkIn,
+  checkOut,
+  temporaryCheckOut,
+  onDateSelect,
+  onDayMouseEnter,
+  onDayMouseLeave,
+  isSelectingRange
+}: {
+  checkIn: Date | null;
+  checkOut: Date | null;
+  temporaryCheckOut: Date | null;
+  onDateSelect: (date: Date) => void;
+  onDayMouseEnter: (date: Date) => void;
+  onDayMouseLeave: () => void;
+  isSelectingRange: boolean;
+}) => {
+  const [hoverDate, setHoverDate] = useState<Date | null>(null);
+
+  // Custom day component to handle hover events
+  const renderDayContents = (day: number, date: Date) => {
+    return (
+      <div
+        className="react-datepicker__day-wrapper"
+        onMouseEnter={() => {
+          setHoverDate(date);
+          onDayMouseEnter(date);
+        }}
+        onMouseLeave={() => {
+          setHoverDate(null);
+          onDayMouseLeave();
+        }}
+      >
+        {day}
+      </div>
+    );
+  };
+
+  // Custom day class name function
+  const getDayClassName = (date: Date) => {
+    const baseClass = "terra-solis-day";
+    const isInRange =
+      checkIn &&
+      date > checkIn &&
+      (temporaryCheckOut ? date <= temporaryCheckOut : checkOut ? date <= checkOut : false);
+
+    if (isInRange) {
+      return `${baseClass} terra-solis-day-in-range`;
+    }
+
+    return baseClass;
+  };
+
+  return (
+    <DatePicker
+      selected={checkIn}
+      onChange={(date) => {
+        if (date) onDateSelect(date);
+      }}
+      minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
+      startDate={checkIn}
+      endDate={temporaryCheckOut || checkOut}
+      selectsStart
+      selectsEnd
+      monthsShown={2}
+      inline
+      calendarClassName="terra-solis-calendar"
+      popperClassName="terra-solis-popper"
+      dayClassName={getDayClassName}
+      renderDayContents={renderDayContents}
+    />
+  );
+};
 
 const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   const dispatch = useDispatch();
@@ -32,19 +105,18 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
     "1 adults - 0 children - 1 room"
   );
   const userTriggeredSearch = useRef(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   interface GuestInfo {
     adults: number;
     children: number;
     rooms: number;
-    // childAges: number[];
   }
 
   const [guestInfo, setGuestInfo] = useState<GuestInfo>({
     adults: 1,
     children: 0,
     rooms: 1,
-    // childAges: [],
   });
 
   const today = new Date();
@@ -56,19 +128,26 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
 
   const [checkIn, setCheckIn] = useState<Date | null>(tomorrow);
   const [checkOut, setCheckOut] = useState<Date | null>(dayAfterTomorrow);
-
   const [loading, setLoading] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [temporaryCheckOut, setTemporaryCheckOut] = useState<Date | null>(null);
+  const [isSelectingRange, setIsSelectingRange] = useState(false);
+  const [selectionMode, setSelectionMode] = useState<'checkin' | 'checkout'>('checkin');
 
-
-  // Inside your SearchWidget component, replace the hardcoded hotelcode with:
   const bookingContext = useSelector((state: RootState) => state.booking);
   const hotelcode = bookingContext?.PropertyCode || "WOQDD3";
   const PathName = usePathname();
+
+  console.log("guestInfo", guestInfo);
+
+  // Calculate total guests
+  const totalGuests = guestInfo.adults + guestInfo.children;
+
   useEffect(() => {
     if (bookingContext) {
-      // console.log("the searchWigettriggeredd")
       if (bookingContext.startDate) {
         setCheckIn(new Date(bookingContext.startDate));
+        setSelectionMode('checkout');
       }
       if (bookingContext.endDate) {
         setCheckOut(new Date(bookingContext.endDate));
@@ -112,14 +191,14 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
       checkOut > checkIn
     ) {
       handleSearch();
-      userTriggeredSearch.current = false; // reset the flag
+      userTriggeredSearch.current = false;
     }
-  }, [checkIn, checkOut, guestInfo]); // ✅ include guestInfo
+  }, [checkIn, checkOut, guestInfo]);
 
   const handleGuestSelection = (summary: string, data: any) => {
     setGuestSummary(summary);
     setGuestInfo(data);
-    userTriggeredSearch.current = true; // ✅ Mark guest change
+    userTriggeredSearch.current = true;
   };
 
   const router = useRouter();
@@ -137,6 +216,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
     }
 
     setLoading(true);
+    setIsMobileMenuOpen(false);
 
     const payload = {
       startDate: checkIn.toISOString().split("T")[0],
@@ -165,23 +245,22 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
         toast.error(msg);
         return;
       }
-      const hotelName = data?.propertyName || "Hotel";
+
       const fullContext = {
-        ...bookingContext, // keep previous data
+        ...bookingContext,
         ...payload,
         hotelName: data?.propertyName || "Hotel",
         PropertyDetails: data.propertyDetails,
         bookingEngineColor: data.bookingEngineColor,
       };
-      dispatch(setBookingContext(fullContext)); // ✅ full context in Redux
+      dispatch(setBookingContext(fullContext));
 
-      // Subset to save in localStorage
       const localContext = {
         startDate: payload.startDate,
         endDate: payload.endDate,
         guests: payload.guests,
         PropertyCode: payload.PropertyCode,
-        hotelName: fullContext.hotelName, // only what you want locally
+        hotelName: fullContext.hotelName,
       };
 
       localStorage.setItem("bookingContext", JSON.stringify(localContext));
@@ -190,7 +269,6 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
       const queryParams = new URLSearchParams({ code: hotelcode });
       if (PathName === "/") {
         router.push(`Rooms/?${queryParams.toString()}`);
-
       }
     } catch (err: any) {
       console.error(err);
@@ -200,7 +278,6 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
     }
   };
 
-
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedContext = window.localStorage.getItem("bookingContext");
@@ -209,144 +286,694 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
       }
     }
   }, [dispatch]);
+
   const { buttonBgColor } = useBookingColors();
+
+  const handleDateSelect = (date: Date) => {
+    if (selectionMode === 'checkin') {
+      // First click - set check-in
+      setCheckIn(date);
+      setCheckOut(null);
+      setSelectionMode('checkout');
+      setIsSelectingRange(true);
+    } else if (selectionMode === 'checkout') {
+      // Second click - set check-out
+      if (date > checkIn!) {
+        setCheckOut(date);
+        setIsSelectingRange(false);
+        // Close the calendar automatically after selecting check-out
+        setTimeout(() => {
+          setIsCalendarOpen(false);
+          setSelectionMode('checkin'); // Reset for next time
+          setTemporaryCheckOut(null);
+        }, 300);
+      } else if (date < checkIn!) {
+        // If user selects a date before current check-in, start over
+        setCheckIn(date);
+        setCheckOut(null);
+        setSelectionMode('checkout');
+        setIsSelectingRange(true);
+      }
+    }
+  };
+
+  const handleDateMouseEnter = (date: Date) => {
+    if (isSelectingRange && checkIn && date > checkIn) {
+      setTemporaryCheckOut(date);
+    }
+  };
+
+  const handleDateMouseLeave = () => {
+    setTemporaryCheckOut(null);
+  };
+
+  const openCalendar = () => {
+    setIsCalendarOpen(true);
+    // If we have both dates already selected, start fresh
+    if (checkIn && checkOut) {
+      setSelectionMode('checkin');
+      setIsSelectingRange(false);
+      setTemporaryCheckOut(null);
+    }
+    // If we only have check-in, we're ready to select check-out
+    else if (checkIn && !checkOut) {
+      setSelectionMode('checkout');
+      setIsSelectingRange(true);
+    }
+    // If we have nothing, start with check-in
+    else {
+      setSelectionMode('checkin');
+      setIsSelectingRange(false);
+    }
+  };
+
+  const closeCalendar = () => {
+    setIsCalendarOpen(false);
+    setTemporaryCheckOut(null);
+    // Reset to check-in mode for next time
+    if (!checkOut) {
+      setSelectionMode('checkin');
+      setIsSelectingRange(false);
+    }
+  };
+
   return (
-    <div className="w-full bg-[#F4EFE6] border-b border-[#E2DACB]">
-      <div className="max-w-7xl mx-auto px-6 py-4 grid grid-cols-3 items-center">
+    <>
+      {/* Backdrop Overlay */}
+      {isCalendarOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9998]"
+          onClick={closeCalendar}
+        />
+      )}
 
-        {/* LEFT: LOGO */}
-        <div className="flex items-center gap-2 text-xl font-semibold tracking-widest">
-          <span>TERRA</span>
-          <span className="font-light">SOLIS</span>
-        </div>
+      {/* Mobile Menu Backdrop */}
+      {isMobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9998] md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
 
-        {/* CENTER: BOOKING CONTROLS */}
-        <div className="flex justify-center">
-          <div className="flex items-center gap-4">
-
-            {/* CHECK-IN / CHECK-OUT */}
-            {/* CHECK-IN / CHECK-OUT (IMAGE MATCHED UI) */}
-            <div className="flex items-center bg-[#F3EEDD] border border-[#5B543F] rounded-[28px] px-8 py-4 gap-8">
-
-              {/* CHECK-IN */}
-              <div
-                onClick={() => document.getElementById("checkin")?.click()}
-                className="cursor-pointer text-center min-w-[90px]"
-              >
-                <p className="text-[11px] tracking-widest text-[#5B543F]">
-                  CHECK-IN
-                </p>
-
-                <p className="text-[34px] font-medium leading-none text-[#2F2A1F]">
-                  {checkIn?.getDate()}
-                </p>
-
-                <p className="text-[11px] uppercase tracking-wide text-[#5B543F]">
-                  {checkIn?.toLocaleDateString("en-US", {
-                    month: "short",
-                    year: "numeric",
-                  })}
-                </p>
-
-                <DatePicker
-                  id="checkin"
-                  selected={checkIn}
-                  onChange={(date) => setCheckIn(date)}
-                  minDate={tomorrow}
-                  className="hidden"
-                />
+      <div className="w-full bg-[#F4EFE6] border-b border-[#D4CABA]">
+        {/* Desktop Header */}
+        <div className="hidden lg:block">
+          <div className="max-w-[1400px] mx-auto px-6 py-3">
+            <div className="flex items-center justify-between gap-8">
+              {/* LEFT: LOGO */}
+              <div className="flex items-center gap-3 min-w-[280px]">
+                {/* Sun Logo */}
+                <div className="w-12 h-12 flex items-center justify-center">
+                  <svg viewBox="0 0 100 100" className="w-full h-full">
+                    <circle cx="50" cy="50" r="20" fill="#2F2A1F" />
+                    {[...Array(12)].map((_, i) => {
+                      const angle = (i * 30 * Math.PI) / 180;
+                      const x1 = 50 + Math.cos(angle) * 25;
+                      const y1 = 50 + Math.sin(angle) * 25;
+                      const x2 = 50 + Math.cos(angle) * 35;
+                      const y2 = 50 + Math.sin(angle) * 35;
+                      return (
+                        <line
+                          key={i}
+                          x1={x1}
+                          y1={y1}
+                          x2={x2}
+                          y2={y2}
+                          stroke="#2F2A1F"
+                          strokeWidth="3"
+                        />
+                      );
+                    })}
+                  </svg>
+                </div>
+                {/* Brand Name */}
+                <div className="flex items-center gap-2 text-lg tracking-[0.3em]">
+                  <span className="font-semibold text-[#2F2A1F]">TERRA</span>
+                  <span className="font-light text-[#2F2A1F]">SOLIS</span>
+                </div>
               </div>
 
-              {/* ARROW */}
-              <span className="text-[28px] text-[#5B543F] leading-none">
-                ›
-              </span>
+              {/* CENTER: BOOKING CONTROLS */}
+              <div className="flex items-center gap-3 flex-1 justify-center">
+                {/* CHECK-IN / CHECK-OUT CONTAINER */}
+                <div className="bg-white border-2 border-[#9B8B6F] rounded-[40px] px-6 py-3 flex items-center gap-6 shadow-sm">
+                  {/* CHECK-IN */}
+                  <div
+                    onClick={openCalendar}
+                    className="cursor-pointer text-center min-w-[100px]"
+                  >
+                    <p className="text-[9px] tracking-[0.15em] text-[#7D7566] font-medium mb-1">
+                      CHECK-IN
+                    </p>
+                    <p className="text-[40px] font-semibold leading-none text-[#2F2A1F] mb-1">
+                      {checkIn?.getDate()}
+                    </p>
+                    <p className="text-[10px] uppercase tracking-wider text-[#7D7566] font-medium">
+                      {checkIn?.toLocaleDateString("en-US", {
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
 
-              {/* CHECK-OUT */}
-              <div
-                onClick={() => document.getElementById("checkout")?.click()}
-                className="cursor-pointer text-center min-w-[90px]"
-              >
-                <p className="text-[11px] tracking-widest text-[#5B543F]">
-                  CHECK-OUT
-                </p>
+                  {/* ARROW SEPARATOR */}
+                  <div className="text-[32px] text-[#9B8B6F] font-light leading-none px-2">
+                    ›
+                  </div>
 
-                <p className="text-[34px] font-medium leading-none text-[#2F2A1F]">
-                  {checkOut?.getDate() ?? "--"}
-                </p>
+                  {/* CHECK-OUT */}
+                  <div
+                    onClick={openCalendar}
+                    className="cursor-pointer text-center min-w-[100px]"
+                  >
+                    <p className="text-[9px] tracking-[0.15em] text-[#7D7566] font-medium mb-1">
+                      CHECK-OUT
+                    </p>
+                    <p className="text-[40px] font-semibold leading-none text-[#2F2A1F] mb-1">
+                      {checkOut?.getDate() ?? "--"}
+                    </p>
+                    <p className="text-[10px] uppercase tracking-wider text-[#7D7566] font-medium">
+                      {checkOut
+                        ? checkOut.toLocaleDateString("en-US", {
+                          month: "short",
+                          year: "numeric",
+                        })
+                        : "Select"}
+                    </p>
+                  </div>
+                </div>
 
-                <p className="text-[11px] uppercase tracking-wide text-[#5B543F]">
-                  {checkOut
-                    ? checkOut.toLocaleDateString("en-US", {
-                      month: "short",
-                      year: "numeric",
-                    })
-                    : "Select"}
-                </p>
+                {/* OCCUPANCY */}
+                <button
+                  onClick={() => setIsGuestSelectorOpen(true)}
+                  className="bg-white border border-[#C4BAA5] rounded-lg px-4 py-3 min-w-[140px] hover:bg-[#FAFAF8] transition-colors shadow-sm"
+                >
+                  <p className="text-[9px] tracking-[0.15em] text-[#7D7566] font-medium mb-2">
+                    OCCUPANCY
+                  </p>
+                  <div className="flex items-center justify-center gap-3">
+                    {/* Rooms */}
+                    <div className="flex items-center gap-1">
+                      <div className="w-5 h-5 bg-[#F4EFE6] rounded-full flex items-center justify-center">
+                        <svg
+                          width="10"
+                          height="10"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="#5B543F"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                          <polyline points="9 22 9 12 15 12 15 22" />
+                        </svg>
+                      </div>
+                      <span className="text-xs font-bold text-[#2F2A1F]">
+                        {Array.isArray(guestInfo.rooms) ? guestInfo.rooms.length : guestInfo.rooms || 1}
+                      </span>
+                    </div>
 
-                <DatePicker
-                  id="checkout"
-                  selected={checkOut}
-                  onChange={(date) => setCheckOut(date)}
-                  minDate={checkIn || tomorrow}
-                  className="hidden"
-                />
+                    {/* Adults */}
+                    <div className="flex items-center gap-1">
+                      <div className="w-5 h-5 bg-[#F4EFE6] rounded-full flex items-center justify-center">
+                        <Users className="w-2.5 h-2.5 text-[#5B543F]" />
+                      </div>
+                      <span className="text-xs font-bold text-[#2F2A1F]">
+                        {Array.isArray(guestInfo.rooms)
+                          ? guestInfo.rooms.reduce((sum, room) => sum + (room.adults || 0), 0)
+                          : guestInfo.adults || 1}
+                      </span>
+                    </div>
+
+                    {/* Children */}
+                    <div className="flex items-center gap-1">
+                      <div className="w-5 h-5 bg-[#F4EFE6] rounded-full flex items-center justify-center">
+                        <svg
+                          width="10"
+                          height="10"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="#5B543F"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M9 12h.01M15 12h.01M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5" />
+                          <circle cx="12" cy="12" r="10" />
+                        </svg>
+                      </div>
+                      <span className="text-xs font-bold text-[#2F2A1F]">
+                        {Array.isArray(guestInfo.rooms)
+                          ? guestInfo.rooms.reduce((sum, room) => sum + (room.children || 0), 0)
+                          : guestInfo.children || 0}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+
+                {/* PROMOTIONAL CODE */}
+                <div className="flex flex-col min-w-[180px]">
+                  <input
+                    type="text"
+                    placeholder="PROMOTIONAL CODE"
+                    className="bg-transparent border-b-2 border-[#9B8B6F] pb-2 text-[10px] tracking-[0.15em] text-[#7D7566] placeholder-[#9B8B6F] focus:outline-none focus:border-[#7D7566] transition-colors"
+                  />
+                </div>
+
+                {/* BOOK BUTTON */}
+                <button
+                  onClick={handleSearch}
+                  disabled={loading}
+                  className="bg-[#E8DFC9] hover:bg-[#D8CFBF] px-10 py-4 rounded-full text-[11px] font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm"
+                >
+                  {loading ? "LOADING..." : "BOOK"}
+                </button>
               </div>
 
+              {/* RIGHT: MY BOOKING */}
+              <div className="min-w-[140px] flex justify-end">
+                <button className="text-[11px] font-semibold tracking-[0.1em] text-[#2F2A1F] hover:text-[#5B543F] transition-colors">
+                  MY BOOKING
+                </button>
+              </div>
             </div>
-
-
-            {/* OCCUPANCY */}
-            <button
-              onClick={() => setIsGuestSelectorOpen(true)}
-              className="border border-[#D8CFBF] rounded-full px-6 py-3 text-left"
-            >
-              <p className="text-[11px] tracking-widest text-gray-600">
-                OCCUPANCY
-              </p>
-              <p className="flex items-center gap-2 font-medium">
-                <Users className="w-4 h-4" />
-                {guestSummary}
-              </p>
-            </button>
-
-            {/* PROMO CODE */}
-            <div className="border-b border-gray-400 w-40 pb-1 text-sm text-gray-500">
-              PROMOTIONAL CODE
-            </div>
-
-            {/* BOOK BUTTON */}
-            <button
-              onClick={handleSearch}
-              disabled={loading}
-              className="bg-[#E8DFC9] hover:bg-[#DED3B8] px-8 py-3 rounded-full text-sm font-medium tracking-wide disabled:opacity-60"
-            >
-              {loading ? "LOADING..." : "BOOK"}
-            </button>
-
           </div>
         </div>
 
-        {/* RIGHT: MY BOOKING */}
-        <div className="flex justify-end text-sm font-medium cursor-pointer">
-          MY BOOKING
+        {/* Tablet Header (768px - 1024px) */}
+        <div className="hidden md:block lg:hidden">
+          <div className="max-w-[1400px] mx-auto px-6 py-4">
+            <div className="flex flex-col gap-6">
+              {/* Top Row: Logo + My Booking */}
+              <div className="flex items-center justify-between">
+                {/* Logo */}
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 flex items-center justify-center">
+                    <svg viewBox="0 0 100 100" className="w-full h-full">
+                      <circle cx="50" cy="50" r="18" fill="#2F2A1F" />
+                      {[...Array(12)].map((_, i) => {
+                        const angle = (i * 30 * Math.PI) / 180;
+                        const x1 = 50 + Math.cos(angle) * 22;
+                        const y1 = 50 + Math.sin(angle) * 22;
+                        const x2 = 50 + Math.cos(angle) * 30;
+                        const y2 = 50 + Math.sin(angle) * 30;
+                        return (
+                          <line
+                            key={i}
+                            x1={x1}
+                            y1={y1}
+                            x2={x2}
+                            y2={y2}
+                            stroke="#2F2A1F"
+                            strokeWidth="2.5"
+                          />
+                        );
+                      })}
+                    </svg>
+                  </div>
+                  <div className="flex items-center gap-2 text-base tracking-[0.25em]">
+                    <span className="font-semibold text-[#2F2A1F]">TERRA</span>
+                    <span className="font-light text-[#2F2A1F]">SOLIS</span>
+                  </div>
+                </div>
+
+                {/* My Booking */}
+                <button className="text-[11px] font-semibold tracking-[0.1em] text-[#2F2A1F] hover:text-[#5B543F] transition-colors">
+                  MY BOOKING
+                </button>
+              </div>
+
+              {/* Booking Controls */}
+              <div className="grid grid-cols-2 gap-4">
+                {/* Dates */}
+                <div className="bg-white border-2 border-[#9B8B6F] rounded-2xl p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-[#7D7566]" />
+                      <span className="text-xs font-semibold tracking-[0.1em] text-[#2F2A1F]">
+                        DATES
+                      </span>
+                    </div>
+                    <button
+                      onClick={openCalendar}
+                      className="text-xs text-[#9B8B6F] hover:text-[#7D7566] transition-colors"
+                    >
+                      Edit
+                    </button>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-center">
+                      <p className="text-[12px] text-[#7D7566] mb-1">Check-in</p>
+                      <p className="text-2xl font-bold text-[#2F2A1F]">
+                        {checkIn?.getDate()}
+                      </p>
+                      <p className="text-xs text-[#7D7566]">
+                        {checkIn?.toLocaleDateString("en-US", {
+                          month: "short",
+                        })}
+                      </p>
+                    </div>
+                    <ChevronRight className="w-6 h-6 text-[#9B8B6F]" />
+                    <div className="text-center">
+                      <p className="text-[12px] text-[#7D7566] mb-1">Check-out</p>
+                      <p className="text-2xl font-bold text-[#2F2A1F]">
+                        {checkOut?.getDate() ?? "--"}
+                      </p>
+                      <p className="text-xs text-[#7D7566]">
+                        {checkOut
+                          ? checkOut.toLocaleDateString("en-US", {
+                            month: "short",
+                          })
+                          : "Select"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Occupancy & Promo Code */}
+                <div className="flex flex-col gap-4">
+                  <div className="bg-white border border-[#C4BAA5] rounded-2xl p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Users className="w-4 h-4 text-[#7D7566]" />
+                      <span className="text-xs font-semibold tracking-[0.1em] text-[#2F2A1F]">
+                        OCCUPANCY
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => setIsGuestSelectorOpen(true)}
+                      className="w-full flex items-center justify-between hover:opacity-80 transition-opacity"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1">
+                          <div className="w-6 h-6 bg-[#F4EFE6] rounded-full flex items-center justify-center">
+                            <svg
+                              width="12"
+                              height="12"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="#5B543F"
+                              strokeWidth="2"
+                            >
+                              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                              <polyline points="9 22 9 12 15 12 15 22" />
+                            </svg>
+                          </div>
+                          <span className="text-sm font-bold text-[#2F2A1F]">
+                            {Array.isArray(guestInfo.rooms) ? guestInfo.rooms.length : guestInfo.rooms || 1}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <div className="w-6 h-6 bg-[#F4EFE6] rounded-full flex items-center justify-center">
+                            <User className="w-3 h-3 text-[#5B543F]" />
+                          </div>
+                          <span className="text-sm font-bold text-[#2F2A1F]">
+                            {Array.isArray(guestInfo.rooms)
+                              ? guestInfo.rooms.reduce((sum, room) => sum + (room.adults || 0), 0)
+                              : guestInfo.adults || 1}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <div className="w-6 h-6 bg-[#F4EFE6] rounded-full flex items-center justify-center">
+                            <svg
+                              width="12"
+                              height="12"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="#5B543F"
+                              strokeWidth="2"
+                            >
+                              <path d="M9 12h.01M15 12h.01M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5" />
+                              <circle cx="12" cy="12" r="10" />
+                            </svg>
+                          </div>
+                          <span className="text-sm font-bold text-[#2F2A1F]">
+                            {Array.isArray(guestInfo.rooms)
+                              ? guestInfo.rooms.reduce((sum, room) => sum + (room.children || 0), 0)
+                              : guestInfo.children || 0}
+                          </span>
+                        </div>
+                      </div>
+                      <ChevronRight className="w-4 h-4 text-[#9B8B6F]" />
+                    </button>
+                  </div>
+
+                  <div className="bg-white border border-[#C4BAA5] rounded-2xl p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Key className="w-4 h-4 text-[#7D7566]" />
+                      <span className="text-xs font-semibold tracking-[0.1em] text-[#2F2A1F]">
+                        PROMO CODE
+                      </span>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Enter code"
+                      className="w-full bg-transparent text-sm placeholder-[#9B8B6F] focus:outline-none"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Book Button */}
+              <button
+                onClick={handleSearch}
+                disabled={loading}
+                className="w-full bg-[#E8DFC9] hover:bg-[#D8CFBF] py-4 rounded-full text-sm font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm"
+              >
+                {loading ? "LOADING..." : "BOOK NOW"}
+              </button>
+            </div>
+          </div>
         </div>
 
-        {/* GUEST MODAL */}
-        {/* {isGuestSelectorOpen && (
-          <GuestSelector onClose={() => setIsGuestSelectorOpen(false)} />
-        )} */}
+        {/* Mobile Header (Below 768px) */}
+        <div className="md:hidden">
+          {/* Top Bar */}
+          <div className="px-4 py-3 flex items-center justify-between">
+            {/* Logo */}
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 flex items-center justify-center">
+                <svg viewBox="0 0 100 100" className="w-full h-full">
+                  <circle cx="50" cy="50" r="15" fill="#2F2A1F" />
+                  {[...Array(8)].map((_, i) => {
+                    const angle = (i * 45 * Math.PI) / 180;
+                    const x1 = 50 + Math.cos(angle) * 20;
+                    const y1 = 50 + Math.sin(angle) * 20;
+                    const x2 = 50 + Math.cos(angle) * 27;
+                    const y2 = 50 + Math.sin(angle) * 27;
+                    return (
+                      <line
+                        key={i}
+                        x1={x1}
+                        y1={y1}
+                        x2={x2}
+                        y2={y2}
+                        stroke="#2F2A1F"
+                        strokeWidth="2"
+                      />
+                    );
+                  })}
+                </svg>
+              </div>
+              <div className="flex items-center gap-1 text-sm tracking-[0.2em]">
+                <span className="font-semibold text-[#2F2A1F]">TERRA</span>
+                <span className="font-light text-[#2F2A1F]">SOLIS</span>
+              </div>
+            </div>
 
+            {/* Menu Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2"
+            >
+              {isMobileMenuOpen ? (
+                <X className="w-6 h-6 text-[#2F2A1F]" />
+              ) : (
+                <Menu className="w-6 h-6 text-[#2F2A1F]" />
+              )}
+            </button>
+          </div>
+
+          {/* Mobile Menu Panel */}
+          {isMobileMenuOpen && (
+            <div className="fixed top-[73px] left-0 right-0 bg-white border-t border-[#D4CABA] z-[9999] shadow-lg max-h-[calc(100vh-73px)] overflow-y-auto">
+              <div className="p-4 space-y-6">
+                {/* Dates Section */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-5 h-5 text-[#7D7566]" />
+                    <span className="text-sm font-semibold text-[#2F2A1F]">
+                      SELECT DATES
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div
+                      onClick={openCalendar}
+                      className="bg-[#F4EFE6] border border-[#D4CABA] rounded-xl p-4 text-center cursor-pointer"
+                    >
+                      <p className="text-xs text-[#7D7566] mb-1">Check-in</p>
+                      <p className="text-2xl font-bold text-[#2F2A1F]">
+                        {checkIn?.getDate()}
+                      </p>
+                      <p className="text-xs text-[#7D7566]">
+                        {checkIn?.toLocaleDateString("en-US", {
+                          month: "short",
+                        })}
+                      </p>
+                    </div>
+                    <div
+                      onClick={openCalendar}
+                      className="bg-[#F4EFE6] border border-[#D4CABA] rounded-xl p-4 text-center cursor-pointer"
+                    >
+                      <p className="text-xs text-[#7D7566] mb-1">Check-out</p>
+                      <p className="text-2xl font-bold text-[#2F2A1F]">
+                        {checkOut?.getDate() ?? "--"}
+                      </p>
+                      <p className="text-xs text-[#7D7566]">
+                        {checkOut
+                          ? checkOut.toLocaleDateString("en-US", {
+                            month: "short",
+                          })
+                          : "Select"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Occupancy Section */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-5 h-5 text-[#7D7566]" />
+                    <span className="text-sm font-semibold text-[#2F2A1F]">
+                      OCCUPANCY
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      setIsGuestSelectorOpen(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="w-full bg-[#F4EFE6] border border-[#D4CABA] rounded-xl p-4 flex items-center justify-between"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-1">
+                        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="#5B543F"
+                            strokeWidth="2"
+                          >
+                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                            <polyline points="9 22 9 12 15 12 15 22" />
+                          </svg>
+                        </div>
+                        <div className="text-left">
+                          <p className="text-xs text-[#7D7566]">Rooms</p>
+                          <p className="text-sm font-bold text-[#2F2A1F]">
+                            {Array.isArray(guestInfo.rooms) ? guestInfo.rooms.length : guestInfo.rooms || 1}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
+                          <User className="w-4 h-4 text-[#5B543F]" />
+                        </div>
+                        <div className="text-left">
+                          <p className="text-xs text-[#7D7566]">Adults</p>
+                          <p className="text-sm font-bold text-[#2F2A1F]">
+                            {Array.isArray(guestInfo.rooms)
+                              ? guestInfo.rooms.reduce((sum, room) => sum + (room.adults || 0), 0)
+                              : guestInfo.adults || 1}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="#5B543F"
+                            strokeWidth="2"
+                          >
+                            <path d="M9 12h.01M15 12h.01M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5" />
+                            <circle cx="12" cy="12" r="10" />
+                          </svg>
+                        </div>
+                        <div className="text-left">
+                          <p className="text-xs text-[#7D7566]">Children</p>
+                          <p className="text-sm font-bold text-[#2F2A1F]">
+                            {Array.isArray(guestInfo.rooms)
+                              ? guestInfo.rooms.reduce((sum, room) => sum + (room.children || 0), 0)
+                              : guestInfo.children || 0}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-5 h-5 text-[#9B8B6F]" />
+                  </button>
+                </div>
+
+                {/* Promo Code Section */}
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Key className="w-5 h-5 text-[#7D7566]" />
+                    <span className="text-sm font-semibold text-[#2F2A1F]">
+                      PROMO CODE
+                    </span>
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Enter promotional code"
+                    className="w-full bg-[#F4EFE6] border border-[#D4CABA] rounded-xl p-4 text-sm placeholder-[#9B8B6F] focus:outline-none focus:border-[#7D7566]"
+                  />
+                </div>
+
+                {/* My Booking */}
+                <button className="w-full text-center text-sm font-semibold tracking-[0.1em] text-[#2F2A1F] py-3 border-t border-[#D4CABA]">
+                  MY BOOKING
+                </button>
+
+                {/* Book Button */}
+                <button
+                  onClick={handleSearch}
+                  disabled={loading}
+                  className="w-full bg-[#E8DFC9] hover:bg-[#D8CFBF] py-4 rounded-full text-sm font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm"
+                >
+                  {loading ? "LOADING..." : "BOOK NOW"}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* CALENDAR MODAL */}
+        {isCalendarOpen && (
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[9999]">
+            <DatePickerWithHover
+              checkIn={checkIn}
+              checkOut={checkOut}
+              temporaryCheckOut={temporaryCheckOut}
+              onDateSelect={handleDateSelect}
+              onDayMouseEnter={handleDateMouseEnter}
+              onDayMouseLeave={handleDateMouseLeave}
+              isSelectingRange={isSelectingRange}
+            />
+          </div>
+        )}
+
+        <GuestSelector
+          isOpen={isGuestSelectorOpen}
+          onClose={() => setIsGuestSelectorOpen(false)}
+          onApply={handleGuestSelection}
+        />
       </div>
-
-      <GuestSelector
-        isOpen={isGuestSelectorOpen}
-        onClose={() => setIsGuestSelectorOpen(false)}
-        onApply={handleGuestSelection}
-      />
-    </div>
+    </>
   );
-
 };
 
 export default SearchWidget;
