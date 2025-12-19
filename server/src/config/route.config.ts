@@ -12,6 +12,7 @@ import { promoCodeRoutes } from '../promocode/routes';
 import { TaxSystemRouter } from '../tax-system/routes';
 import {AddonsRoute} from '../add-on/routes';
 import {pmsRoute} from "../pms/routes";
+import {BookingEngineRoutes} from "../booking-engine/routes"
 // import {dashboardRouter} from "../dashboard/routes"
 export async function initializeExpressRoutes({ app }: { app: Express }) {
   // Health check
@@ -39,7 +40,7 @@ export async function initializeExpressRoutes({ app }: { app: Express }) {
   apiV1Router.use('/tax-system', TaxSystemRouter);
   apiV1Router.use('/addon', AddonsRoute);
   apiV1Router.use("/pms",pmsRoute)
-
+  apiV1Router.use("/booking-engine",BookingEngineRoutes)
   // Handle 404 for any undefined route under /api/v1
   app.all('/api/v1/*', (req: Request, _res: Response, next: NextFunction) => {
     next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));

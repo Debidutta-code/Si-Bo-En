@@ -18,6 +18,7 @@ import {
 
 
 import {PropertyConfigService} from "./property-config.service";
+import { BookingEngineService } from "./bookingEngine.service";
 export {
     PropertyConfigService,
     BankService,
@@ -30,5 +31,6 @@ export {
     RoomService,
     DestinationTypeService,
     PropertyTypeService,
-    RoomAmenityServices
+    RoomAmenityServices,
+    BookingEngineService
 }

@@ -8,6 +8,7 @@ import {paymentDetailsRoute} from "./paymentDetails.route";
 import {propertyRoomRoute} from "./room.route";
 import {roomAminityRoute} from "./roomAmenity.route";
 import {managementRoute} from "./management.route";
+import { bookingEngineRoute } from './bookingEngine.routes';
 
 export const propertyRouter = Router();
 propertyRouter
@@ -46,6 +47,6 @@ propertyRouter.use('/:id/room/aminity/:roomId', roomAminityRoute);
 propertyRouter.use('/management', managementRoute);
 
 // Amenity Management
-
+propertyRouter.use('/booking-engine',bookingEngineRoute)
 
 export default propertyRouter;

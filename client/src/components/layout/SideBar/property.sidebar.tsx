@@ -53,6 +53,7 @@ useEffect(() => {
         { name: 'Promo Code', href: `/property/promo-code/${propertyId}`, icon: FileText, userLevels: [0, 1, 2, 3, 4] },
         { name: 'Add On', href: `/property/add-on/${propertyId}`, icon: Users, userLevels: [4, 3, 2, 1] },
         { name: 'Tax System', href: `/property/tax-system/${propertyId}`, icon: Shield, userLevels: [4] },
+        {name:"C Panel", href: `/property/booking-engine-config/${propertyId}`, icon: FileText, userLevels: [0, 1, 2, 3, 4] },
     ];
 
     items.forEach(item => {
