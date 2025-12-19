@@ -291,7 +291,7 @@ const Rooms = () => {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/pms/room/rooms_by_propertyId2?code=${bookingCtx.PropertyCode}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/fetch-rooms`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

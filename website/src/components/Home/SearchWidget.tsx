@@ -135,7 +135,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   const [selectionMode, setSelectionMode] = useState<'checkin' | 'checkout'>('checkin');
 
   const bookingContext = useSelector((state: RootState) => state.booking);
-  const hotelcode = bookingContext?.PropertyCode || "WOQDD3";
+  const hotelcode = bookingContext?.PropertyCode || "KY8PQX";
   const PathName = usePathname();
 
   console.log("guestInfo", guestInfo);
@@ -231,7 +231,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
       }
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/pms/room/rooms_by_propertyId2?code=${hotelcode}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/fetch-rooms`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -376,8 +376,8 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
       )}
 
       <div className="w-full bg-[#F4EFE6] border-b border-[#D4CABA]">
-        {/* Desktop Header */}
-        <div className="hidden lg:block">
+        {/* BREAKPOINT 1: Desktop (1280px and above) - Original full design */}
+        <div className="hidden xl:block">
           <div className="max-w-[1400px] mx-auto px-6 py-3">
             <div className="flex items-center justify-between gap-8">
               {/* LEFT: LOGO */}
@@ -561,19 +561,158 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
           </div>
         </div>
 
-        {/* Tablet Header (768px - 1024px) */}
+        {/* BREAKPOINT 2: Laptop (1024px - 1279px) - Compact desktop design */}
+        <div className="hidden lg:block xl:hidden">
+          <div className="max-w-[1400px] mx-auto px-6 py-3">
+            <div className="flex items-center justify-between gap-6">
+              {/* LEFT: LOGO - Compact */}
+              <div className="flex items-center gap-3 min-w-[200px]">
+                <div className="w-10 h-10">
+                  <svg viewBox="0 0 100 100" className="w-full h-full">
+                    <circle cx="50" cy="50" r="18" fill="#2F2A1F" />
+                    {[...Array(8)].map((_, i) => {
+                      const angle = (i * 45 * Math.PI) / 180;
+                      const x1 = 50 + Math.cos(angle) * 22;
+                      const y1 = 50 + Math.sin(angle) * 22;
+                      const x2 = 50 + Math.cos(angle) * 32;
+                      const y2 = 50 + Math.sin(angle) * 32;
+                      return (
+                        <line
+                          key={i}
+                          x1={x1}
+                          y1={y1}
+                          x2={x2}
+                          y2={y2}
+                          stroke="#2F2A1F"
+                          strokeWidth="2.5"
+                        />
+                      );
+                    })}
+                  </svg>
+                </div>
+                <div className="text-[17px] tracking-[0.25em]">
+                  <span className="font-semibold text-[#2F2A1F]">TERRA</span>
+                  <span className="font-light text-[#2F2A1F]"> SOLIS</span>
+                </div>
+              </div>
+
+              {/* CENTER: COMPACT BOOKING CONTROLS */}
+              <div className="flex items-center gap-3 flex-1 justify-center max-w-[850px]">
+                {/* COMPACT DATES */}
+                <div
+                  onClick={openCalendar}
+                  className="bg-white border-2 border-[#9B8B6F] rounded-[32px] px-5 py-2.5 flex items-center gap-4 shadow-sm cursor-pointer hover:border-[#7D7566] transition-colors"
+                >
+                  <div className="text-center min-w-[85px]">
+                    <p className="text-[9px] tracking-[0.15em] text-[#7D7566] font-medium mb-1">
+                      CHECK-IN
+                    </p>
+                    <p className="text-[28px] font-semibold leading-none text-[#2F2A1F] mb-1">
+                      {checkIn?.getDate()}
+                    </p>
+                    <p className="text-[9px] uppercase tracking-wider text-[#7D7566] font-medium">
+                      {checkIn?.toLocaleDateString("en-US", {
+                        month: "short",
+                      })}
+                    </p>
+                  </div>
+
+                  <div className="text-[24px] text-[#9B8B6F] font-light leading-none">
+                    ›
+                  </div>
+
+                  <div className="text-center min-w-[85px]">
+                    <p className="text-[9px] tracking-[0.15em] text-[#7D7566] font-medium mb-1">
+                      CHECK-OUT
+                    </p>
+                    <p className="text-[28px] font-semibold leading-none text-[#2F2A1F] mb-1">
+                      {checkOut?.getDate() ?? "--"}
+                    </p>
+                    <p className="text-[9px] uppercase tracking-wider text-[#7D7566] font-medium">
+                      {checkOut
+                        ? checkOut.toLocaleDateString("en-US", {
+                          month: "short",
+                        })
+                        : "Select"}
+                    </p>
+                  </div>
+                </div>
+
+                {/* COMPACT OCCUPANCY */}
+                <button
+                  onClick={() => setIsGuestSelectorOpen(true)}
+                  className="bg-white border border-[#C4BAA5] rounded-lg px-3 py-2 min-w-[120px] hover:bg-[#FAFAF8] transition-colors shadow-sm"
+                >
+                  <p className="text-[9px] tracking-[0.15em] text-[#7D7566] font-medium mb-2">
+                    OCCUPANCY
+                  </p>
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="flex items-center gap-1">
+                      <div className="w-4 h-4 bg-[#F4EFE6] rounded-full flex items-center justify-center">
+                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#5B543F" strokeWidth="2">
+                          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                          <polyline points="9 22 9 12 15 12 15 22" />
+                        </svg>
+                      </div>
+                      <span className="text-xs font-bold text-[#2F2A1F]">
+                        {Array.isArray(guestInfo.rooms) ? guestInfo.rooms.length : guestInfo.rooms || 1}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <div className="w-4 h-4 bg-[#F4EFE6] rounded-full flex items-center justify-center">
+                        <Users className="w-2 h-2 text-[#5B543F]" />
+                      </div>
+                      <span className="text-xs font-bold text-[#2F2A1F]">
+                        {Array.isArray(guestInfo.rooms)
+                          ? guestInfo.rooms.reduce((sum, room) => sum + (room.adults || 0), 0)
+                          : guestInfo.adults || 1}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+
+                {/* COMPACT PROMO CODE */}
+                <div className="flex flex-col min-w-[140px]">
+                  <input
+                    type="text"
+                    placeholder="PROMO CODE"
+                    className="bg-transparent border-b-2 border-[#9B8B6F] pb-1.5 text-[9px] tracking-[0.15em] text-[#7D7566] placeholder-[#9B8B6F] focus:outline-none focus:border-[#7D7566]"
+                  />
+                </div>
+
+                {/* COMPACT BOOK BUTTON */}
+                <button
+                  onClick={handleSearch}
+                  disabled={loading}
+                  className="bg-[#E8DFC9] hover:bg-[#D8CFBF] px-6 py-3 rounded-full text-[10px] font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm min-w-[90px]"
+                >
+                  {loading ? "LOADING..." : "BOOK"}
+                </button>
+              </div>
+
+              {/* RIGHT: MY BOOKING - Compact */}
+              <div className="min-w-[100px] flex justify-end">
+                <button className="text-[10px] font-semibold tracking-[0.1em] text-[#2F2A1F] hover:text-[#5B543F] transition-colors">
+                  MY BOOKING
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* BREAKPOINT 3: Tablet (768px - 1023px) - Grid layout */}
         <div className="hidden md:block lg:hidden">
           <div className="max-w-[1400px] mx-auto px-6 py-4">
-            <div className="flex flex-col gap-6">
-              {/* Top Row: Logo + My Booking */}
+            <div className="flex flex-col gap-4">
+              {/* Top Row */}
               <div className="flex items-center justify-between">
                 {/* Logo */}
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 flex items-center justify-center">
+                  <div className="w-10 h-10">
                     <svg viewBox="0 0 100 100" className="w-full h-full">
                       <circle cx="50" cy="50" r="18" fill="#2F2A1F" />
-                      {[...Array(12)].map((_, i) => {
-                        const angle = (i * 30 * Math.PI) / 180;
+                      {[...Array(8)].map((_, i) => {
+                        const angle = (i * 45 * Math.PI) / 180;
                         const x1 = 50 + Math.cos(angle) * 22;
                         const y1 = 50 + Math.sin(angle) * 22;
                         const x2 = 50 + Math.cos(angle) * 30;
@@ -592,22 +731,24 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                       })}
                     </svg>
                   </div>
-                  <div className="flex items-center gap-2 text-base tracking-[0.25em]">
+                  <div className="text-base tracking-[0.25em]">
                     <span className="font-semibold text-[#2F2A1F]">TERRA</span>
-                    <span className="font-light text-[#2F2A1F]">SOLIS</span>
+                    <span className="font-light text-[#2F2A1F]"> SOLIS</span>
                   </div>
                 </div>
 
-                {/* My Booking */}
-                <button className="text-[11px] font-semibold tracking-[0.1em] text-[#2F2A1F] hover:text-[#5B543F] transition-colors">
+                <button className="text-xs font-semibold tracking-[0.1em] text-[#2F2A1F] hover:text-[#5B543F] transition-colors">
                   MY BOOKING
                 </button>
               </div>
 
-              {/* Booking Controls */}
-              <div className="grid grid-cols-2 gap-4">
+              {/* Booking Controls Grid */}
+              <div className="grid grid-cols-2 gap-3">
                 {/* Dates */}
-                <div className="bg-white border-2 border-[#9B8B6F] rounded-2xl p-4">
+                <div
+                  onClick={openCalendar}
+                  className="bg-white border-2 border-[#9B8B6F] rounded-2xl p-4 cursor-pointer hover:border-[#7D7566] transition-colors col-span-2"
+                >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <Calendar className="w-4 h-4 text-[#7D7566]" />
@@ -615,12 +756,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                         DATES
                       </span>
                     </div>
-                    <button
-                      onClick={openCalendar}
-                      className="text-xs text-[#9B8B6F] hover:text-[#7D7566] transition-colors"
-                    >
-                      Edit
-                    </button>
+                    <span className="text-xs text-[#9B8B6F]">Edit</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="text-center">
@@ -651,90 +787,39 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   </div>
                 </div>
 
-                {/* Occupancy & Promo Code */}
-                <div className="flex flex-col gap-4">
-                  <div className="bg-white border border-[#C4BAA5] rounded-2xl p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Users className="w-4 h-4 text-[#7D7566]" />
-                      <span className="text-xs font-semibold tracking-[0.1em] text-[#2F2A1F]">
-                        OCCUPANCY
-                      </span>
-                    </div>
-                    <button
-                      onClick={() => setIsGuestSelectorOpen(true)}
-                      className="w-full flex items-center justify-between hover:opacity-80 transition-opacity"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-1">
-                          <div className="w-6 h-6 bg-[#F4EFE6] rounded-full flex items-center justify-center">
-                            <svg
-                              width="12"
-                              height="12"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="#5B543F"
-                              strokeWidth="2"
-                            >
-                              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                              <polyline points="9 22 9 12 15 12 15 22" />
-                            </svg>
-                          </div>
-                          <span className="text-sm font-bold text-[#2F2A1F]">
-                            {Array.isArray(guestInfo.rooms) ? guestInfo.rooms.length : guestInfo.rooms || 1}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <div className="w-6 h-6 bg-[#F4EFE6] rounded-full flex items-center justify-center">
-                            <User className="w-3 h-3 text-[#5B543F]" />
-                          </div>
-                          <span className="text-sm font-bold text-[#2F2A1F]">
-                            {Array.isArray(guestInfo.rooms)
-                              ? guestInfo.rooms.reduce((sum, room) => sum + (room.adults || 0), 0)
-                              : guestInfo.adults || 1}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <div className="w-6 h-6 bg-[#F4EFE6] rounded-full flex items-center justify-center">
-                            <svg
-                              width="12"
-                              height="12"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="#5B543F"
-                              strokeWidth="2"
-                            >
-                              <path d="M9 12h.01M15 12h.01M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5" />
-                              <circle cx="12" cy="12" r="10" />
-                            </svg>
-                          </div>
-                          <span className="text-sm font-bold text-[#2F2A1F]">
-                            {Array.isArray(guestInfo.rooms)
-                              ? guestInfo.rooms.reduce((sum, room) => sum + (room.children || 0), 0)
-                              : guestInfo.children || 0}
-                          </span>
-                        </div>
-                      </div>
-                      <ChevronRight className="w-4 h-4 text-[#9B8B6F]" />
-                    </button>
+                {/* Occupancy */}
+                <button
+                  onClick={() => setIsGuestSelectorOpen(true)}
+                  className="bg-white border border-[#C4BAA5] rounded-2xl p-4 text-left hover:border-[#9B8B6F] transition-colors"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <Users className="w-4 h-4 text-[#7D7566]" />
+                    <span className="text-xs font-semibold text-[#2F2A1F]">
+                      GUESTS
+                    </span>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-[#2F2A1F]">
+                      {totalGuests} guest{totalGuests !== 1 ? 's' : ''}
+                    </span>
+                    <ChevronRight className="w-4 h-4 text-[#7D7566] ml-auto" />
+                  </div>
+                </button>
 
-                  <div className="bg-white border border-[#C4BAA5] rounded-2xl p-4">
-                    <div className="flex items-center gap-2 mb-3">
-                      <Key className="w-4 h-4 text-[#7D7566]" />
-                      <span className="text-xs font-semibold tracking-[0.1em] text-[#2F2A1F]">
-                        PROMO CODE
-                      </span>
-                    </div>
-                    <input
-                      type="text"
-                      placeholder="Enter code"
-                      className="w-full bg-transparent text-sm placeholder-[#9B8B6F] focus:outline-none"
-                    />
+                {/* Promo Code */}
+                <div className="bg-white border border-[#C4BAA5] rounded-2xl p-4 hover:border-[#9B8B6F] transition-colors">
+                  <div className="text-xs font-semibold text-[#2F2A1F] mb-2">
+                    PROMO CODE
                   </div>
+                  <input
+                    type="text"
+                    placeholder="Enter code"
+                    className="w-full bg-transparent text-sm placeholder-[#9B8B6F] focus:outline-none"
+                  />
                 </div>
               </div>
 
-              {/* Book Button */}
+              {/* Search Button */}
               <button
                 onClick={handleSearch}
                 disabled={loading}
@@ -746,13 +831,13 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
           </div>
         </div>
 
-        {/* Mobile Header (Below 768px) */}
+        {/* BREAKPOINT 4: Mobile (Below 768px) */}
         <div className="md:hidden">
           {/* Top Bar */}
           <div className="px-4 py-3 flex items-center justify-between">
             {/* Logo */}
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 flex items-center justify-center">
+              <div className="w-8 h-8">
                 <svg viewBox="0 0 100 100" className="w-full h-full">
                   <circle cx="50" cy="50" r="15" fill="#2F2A1F" />
                   {[...Array(8)].map((_, i) => {
@@ -775,13 +860,12 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   })}
                 </svg>
               </div>
-              <div className="flex items-center gap-1 text-sm tracking-[0.2em]">
+              <div className="text-sm tracking-[0.2em]">
                 <span className="font-semibold text-[#2F2A1F]">TERRA</span>
-                <span className="font-light text-[#2F2A1F]">SOLIS</span>
+                <span className="font-light text-[#2F2A1F]"> SOLIS</span>
               </div>
             </div>
 
-            {/* Menu Button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="p-2"
@@ -890,29 +974,6 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                           </p>
                         </div>
                       </div>
-                      <div className="flex items-center gap-1">
-                        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="#5B543F"
-                            strokeWidth="2"
-                          >
-                            <path d="M9 12h.01M15 12h.01M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5" />
-                            <circle cx="12" cy="12" r="10" />
-                          </svg>
-                        </div>
-                        <div className="text-left">
-                          <p className="text-xs text-[#7D7566]">Children</p>
-                          <p className="text-sm font-bold text-[#2F2A1F]">
-                            {Array.isArray(guestInfo.rooms)
-                              ? guestInfo.rooms.reduce((sum, room) => sum + (room.children || 0), 0)
-                              : guestInfo.children || 0}
-                          </p>
-                        </div>
-                      </div>
                     </div>
                     <ChevronRight className="w-5 h-5 text-[#9B8B6F]" />
                   </button>
@@ -921,20 +982,19 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 {/* Promo Code Section */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <Key className="w-5 h-5 text-[#7D7566]" />
                     <span className="text-sm font-semibold text-[#2F2A1F]">
                       PROMO CODE
                     </span>
                   </div>
                   <input
                     type="text"
-                    placeholder="Enter promotional code"
+                    placeholder="Enter code"
                     className="w-full bg-[#F4EFE6] border border-[#D4CABA] rounded-xl p-4 text-sm placeholder-[#9B8B6F] focus:outline-none focus:border-[#7D7566]"
                   />
                 </div>
 
                 {/* My Booking */}
-                <button className="w-full text-center text-sm font-semibold tracking-[0.1em] text-[#2F2A1F] py-3 border-t border-[#D4CABA]">
+                <button className="w-full text-center text-sm font-semibold text-[#2F2A1F] py-3 border-t border-[#D4CABA]">
                   MY BOOKING
                 </button>
 
@@ -942,7 +1002,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 <button
                   onClick={handleSearch}
                   disabled={loading}
-                  className="w-full bg-[#E8DFC9] hover:bg-[#D8CFBF] py-4 rounded-full text-sm font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm"
+                  className="w-full bg-[#E8DFC9] hover:bg-[#D8CFBF] py-4 rounded-full text-sm font-semibold disabled:opacity-60 transition-all shadow-sm"
                 >
                   {loading ? "LOADING..." : "BOOK NOW"}
                 </button>
