@@ -245,7 +245,7 @@ function StatCard({ title, value, change }: StatCardProps) {
 
 export default function AnalyticsPage() {
   return (
-    <div className="p-6 bg-slate-100 min-h-screen">
+    <div className="p-4 min-h-screen">
       {/* Page Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-semibold">Analytics</h1>

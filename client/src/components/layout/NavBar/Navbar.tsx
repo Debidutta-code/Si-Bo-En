@@ -46,66 +46,62 @@ export default function Navbar({ isOpen }: { isOpen: boolean }) {
     ? `${user.firstName?.[0] || ''}`.toUpperCase()
     : 'U';
 
+  const displayName = user?.firstName || 'User';
+
   return (
     <header className="sticky top-0 z-40 w-full bg-white  shadow-sm border-b">
-      <div className="container h-16 flex items-center justify-around ">
-        <div className="flex items-start  w-1/3">
-          {
-            !isOpen && (
-
-              <Link to="/app" className="font-bold text-xl text-gray-900 ">
-                <img src='/swiftrooms.jpeg' alt="Swiftrooms" className='w-1/4' />
-              </Link>
-            )
-          }
-
+      <div className="container h-16 flex items-center justify-between px-4">
+        <div className="flex items-center">
+          {!isOpen && (
+            <Link to="/app" className="font-bold text-xl text-gray-900">
+              <img src='/swiftrooms.jpeg' alt="Swiftrooms" className='h-14 w-auto' />
+            </Link>
+          )}
         </div>
 
-        <div className="flex flex-col space-x-4 w-1/3 items-end">
-
-
-          <div className="flex items-center space-x-2 ">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 rounded-full p-0" >
+        <div className="flex items-center">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-auto rounded-full px-3 py-1.5 hover:bg-gray-100" >
+                <div className="flex items-center gap-2">
                   <Avatar className="h-8 w-8 border cursor-pointer">
                     <AvatarFallback className='text-black bg-gray-100'>{avatarFallback}</AvatarFallback>
                   </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-72">
-                <DropdownMenuLabel className="font-normal flex ">
-                  <div>
-                    <Avatar className="h-8 w-8 border cursor-pointer">
-                      <AvatarFallback className='text-black bg-gray-100'>{avatarFallback}</AvatarFallback>
-                    </Avatar>
-                  </div>
-                  <div className="flex flex-col space-y-1 ml-2">
-                    <p className="text-sm font-medium leading-none">
-                      {user?.firstName} {user?.lastName}
-                    </p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {user?.email}
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
+                  <span className="text-sm font-medium text-gray-900">{displayName}</span>
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-72">
+              <DropdownMenuLabel className="font-normal flex ">
+                <div>
+                  <Avatar className="h-8 w-8 border cursor-pointer">
+                    <AvatarFallback className='text-black bg-gray-100'>{avatarFallback}</AvatarFallback>
+                  </Avatar>
+                </div>
+                <div className="flex flex-col space-y-1 ml-2">
+                  <p className="text-sm font-medium leading-none">
+                    {user?.firstName} {user?.lastName}
+                  </p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {user?.email}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
 
-                {user?.role && (
-                  <DropdownMenuItem className="cursor-default focus:bg-transparent">
-                    <Shield className="mr-2 h-4 w-4" />
-                    <span className="text-sm capitalize">{user.role.replace('_', ' ')}</span>
-                  </DropdownMenuItem>
-                )}
+              {user?.role && (
                 <DropdownMenuItem className="cursor-default focus:bg-transparent">
-                  <RotateCcwKey className="mr-2 h-4 w-4" />
-                  <span className="text-sm capitalize" >Change Password</span>
+                  <Shield className="mr-2 h-4 w-4" />
+                  <span className="text-sm capitalize">{user.role.replace('_', ' ')}</span>
                 </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+              )}
+              <DropdownMenuItem className="cursor-default focus:bg-transparent">
+                <RotateCcwKey className="mr-2 h-4 w-4" />
+                <span className="text-sm capitalize" >Change Password</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
-
       </div>
     </header>
   );

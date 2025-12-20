@@ -92,7 +92,7 @@ export default function LoginForm() {
   return (
     <div className="min-h-screen flex bg-background">
       {/* Left Side - Hero Section */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-primary overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 relative bg-primary overflow-hidden" style={{ backgroundImage: "url('/swiftrooms-bg.jpg')", backgroundSize: 'cover', backgroundPosition: 'center', backgroundColor: 'hsl(var(--primary))' }}>
         {/* Animated Background Pattern */}
         <div className="absolute inset-0 opacity-5">
           <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full filter blur-3xl animate-blob"></div>
@@ -106,6 +106,9 @@ export default function LoginForm() {
         {/* Diagonal Line Accent */}
         <div className="absolute top-0 right-0 w-1 h-full bg-gradient-to-b from-transparent via-white/20 to-transparent"></div>
 
+        {/* Grayish Overlay */}
+        <div className="absolute inset-0 bg-gray-900/50 z-5"></div>
+
         {/* Content */}
         <div className="relative z-10 flex flex-col justify-between p-12 text-primary-foreground w-full">
           {/* Logo & Brand */}
@@ -116,7 +119,7 @@ export default function LoginForm() {
                 alt="SwiftRooms Logo" 
                 className="h-12 w-auto object-contain"
               />
-              <h1 className="text-2xl font-bold tracking-tight">Property Management System</h1>
+              {/* <h1 className="text-2xl font-bold tracking-tight">Property Management System</h1> */}
             </div>
           </div>
 
@@ -131,7 +134,7 @@ export default function LoginForm() {
                   <span className="absolute bottom-1 left-0 w-full h-3 bg-white/20"></span>
                 </span>
               </h2>
-              <p className="text-muted-foreground text-lg leading-relaxed max-w-md">
+              <p className="text-lg leading-relaxed max-w-md">
                 Streamline operations, maximize revenue, and deliver exceptional guest experiences all in one place.
               </p>
             </div>
@@ -158,7 +161,7 @@ export default function LoginForm() {
           </div>
 
           {/* Footer */}
-          <div className="text-sm text-muted-foreground/60 animate-fade-in">
+          <div className="text-sm animate-fade-in">
             © {new Date().getFullYear()} SwiftRooms. All rights reserved.
           </div>
         </div>

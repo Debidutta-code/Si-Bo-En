@@ -205,7 +205,7 @@ export default function AccessControlPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="px-4 py-6 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+      <div className="p-4 max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="bg-card border border-border rounded-xl p-5 sm:p-6 mb-6">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">

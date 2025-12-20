@@ -88,32 +88,35 @@ useEffect(() => {
             </div>
 
             <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-                {filteredNavigation.map((item) => (
-                    <Link
-                        key={item.name}
-                        to={item.href === `/app/property` ? (
-                            user?.userLevel === 4 ? `/app/property/super/${user.creation}` :
-                                user?.userLevel === 3 ? `/app/property/group/${user.creation}` :
-                                    user?.userLevel === 2 ? `/app/property/brand/${user.creation}` :
-                                        user?.userLevel === 1 ? `/app/property/property/${user.creation}` :
-                                            user?.userLevel === 0 ? `/app/property/property/${user.creation}` :
-                                                item.href
-                        ) : item.href}
-                        title={item.name}
-                        className={cn(
-                            'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                            location.pathname === item.href
-                                ? 'bg-blue-100 text-blue-700'
-                                : 'text-gray-700 hover:bg-gray-50',
-                            !isSidebarOpen && 'justify-center'
-                        )}
-                    >
-                        <item.icon className='h-5 w-5 flex-shrink-0' />
-                        <span className={cn('whitespace-nowrap', !isSidebarOpen && 'hidden')}>
-                            {item.name}
-                        </span>
-                    </Link>
-                ))}
+                {filteredNavigation.map((item) => {
+                    const targetHref = item.href === `/app/property` ? (
+                        user?.userLevel === 4 ? `/app/property/super/${user.creation}` :
+                            user?.userLevel === 3 ? `/app/property/group/${user.creation}` :
+                                user?.userLevel === 2 ? `/app/property/brand/${user.creation}` :
+                                    user?.userLevel === 1 ? `/app/property/property/${user.creation}` :
+                                        user?.userLevel === 0 ? `/app/property/property/${user.creation}` :
+                                            item.href
+                    ) : item.href;
+                    return (
+                        <Link
+                            key={item.name}
+                            to={targetHref}
+                            title={item.name}
+                            className={cn(
+                                'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                                location.pathname === targetHref
+                                    ? 'bg-primary/10 text-primary'
+                                    : 'text-gray-700 hover:bg-gray-50',
+                                !isSidebarOpen && 'justify-center'
+                            )}
+                        >
+                            <item.icon className='h-5 w-5 flex-shrink-0' />
+                            <span className={cn('whitespace-nowrap', !isSidebarOpen && 'hidden')}>
+                                {item.name}
+                            </span>
+                        </Link>
+                    );
+                })}
             </nav>
 
             <div className="p-4 border-t border-gray-200">
