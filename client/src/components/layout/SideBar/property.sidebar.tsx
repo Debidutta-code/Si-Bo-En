@@ -13,11 +13,11 @@ import {
     ChevronLeft,
     ChevronRight,
     CalendarClock,
-    // HeadsetIcon,
-    // BrushCleaning
+    ChevronDown,
+    DollarSign
 } from 'lucide-react';
 import { useAppSelector } from '@/redux/hooks';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 interface NavItem {
     name: string;
@@ -40,39 +40,50 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) 
     const { user } = useAppSelector((state) => state.user);
     const location = useLocation();
     const navigate = useNavigate();
+    const [isPriceManagementOpen, setIsPriceManagementOpen] = useState(false);
+
     const handleLogout = () => {
         localStorage.removeItem('isAuthenticated');
         navigate('/');
     };
-useEffect(() => {
-    const items = [
-        { name: 'RatePlan', href: `/property/rate-plan/${propertyId}`, icon: Home, userLevels: [0, 1, 2, 3, 4] },
-        { name: 'Rate Plan Allortment', href: `/property/rate-plan/map/${propertyId}`, icon: Building, userLevels: [2, 3, 4] },
-        { name: "Inventory", href: `/property/inventory/${propertyId}`, icon: Building, userLevels: [1, 0,2,3,4] },
-        { name: "Policy", href: `/property/policy/${propertyId}`, icon: CalendarClock, userLevels: [0, 1, 2, 3, 4] },
-        { name: 'Promo Code', href: `/property/promo-code/${propertyId}`, icon: FileText, userLevels: [0, 1, 2, 3, 4] },
-        { name: 'Add On', href: `/property/add-on/${propertyId}`, icon: Users, userLevels: [4, 3, 2, 1] },
-        { name: 'Tax System', href: `/property/tax-system/${propertyId}`, icon: Shield, userLevels: [4] },
-        {name:"C Panel", href: `/property/booking-engine-config/${propertyId}`, icon: FileText, userLevels: [0, 1, 2, 3, 4] },
+
+    useEffect(() => {
+        const items = [
+            { name: 'RatePlan', href: `/property/rate-plan/${propertyId}`, icon: Home, userLevels: [0, 1, 2, 3, 4] },
+            { name: 'Rate Plan Allortment', href: `/property/rate-plan/map/${propertyId}`, icon: Building, userLevels: [2, 3, 4] },
+            { name: "Inventory", href: `/property/inventory/${propertyId}`, icon: Building, userLevels: [1, 0, 2, 3, 4] },
+            { name: "Policy", href: `/property/policy/${propertyId}`, icon: CalendarClock, userLevels: [0, 1, 2, 3, 4] },
+            { name: 'Promo Code', href: `/property/promo-code/${propertyId}`, icon: FileText, userLevels: [0, 1, 2, 3, 4] },
+            { name: 'Add On', href: `/property/add-on/${propertyId}`, icon: Users, userLevels: [4, 3, 2, 1] },
+            { name: 'Tax System', href: `/property/tax-system/${propertyId}`, icon: Shield, userLevels: [4] },
+            { name: "C Panel", href: `/property/booking-engine-config/${propertyId}`, icon: FileText, userLevels: [0, 1, 2, 3, 4] },
+        ];
+
+        items.forEach(item => {
+            const exists = navigation.some(
+                nav => nav.name === item.name && nav.href === item.href
+            );
+
+            if (!exists) {
+                navigation.push(item);
+            }
+        });
+    }, [propertyId]);
+
+    // Price Management sub-items
+    const priceManagementItems = [
+        { name: 'Seasons', href: `/property/price-management/seasons/${propertyId}` },
+        { name: 'Calendar', href: `/property/price-management/calendar/${propertyId}` },
+        { name: 'Periods', href: `/property/price-management/periods/${propertyId}` },
+        { name: 'Table', href: `/property/price-management/table/${propertyId}` },
     ];
-
-    items.forEach(item => {
-        const exists = navigation.some(
-            nav => nav.name === item.name && nav.href === item.href
-        );
-
-        if (!exists) {
-            navigation.push(item);
-        }
-    });
-}, []);
 
     const filteredNavigation = navigation.filter(item => user && item.userLevels.includes(user.userLevel));
 
     // Reusable component for the sidebar's content
     const SidebarContent = () => (
         <div className='flex flex-col h-full bg-white border-r w-full'>
-            <div className="flex justify-around items-center h-16 px-2 border-b border-gray-200" >
+            <div className="flex justify-around items-center h-16 px-2 border-b border-gray-200">
                 <Button onClick={toggleSidebar} variant="ghost" size="icon" className={`hidden sm:flex justify-center items-center`}>
                     {isSidebarOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
                 </Button>
@@ -82,7 +93,6 @@ useEffect(() => {
                 )}>
                 </h1>
                 {isSidebarOpen && (
-
                     <img src='/swiftrooms.jpeg' alt="Swiftrooms" className='w-2/3' />
                 )}
             </div>
@@ -117,6 +127,48 @@ useEffect(() => {
                         </Link>
                     );
                 })}
+
+                {/* Price Management Dropdown */}
+                <div>
+                    <button
+                        onClick={() => setIsPriceManagementOpen(!isPriceManagementOpen)}
+                        title="Price Management"
+                        className={cn(
+                            'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50',
+                            !isSidebarOpen && 'justify-center'
+                        )}
+                    >
+                        <DollarSign className='h-5 w-5 flex-shrink-0' />
+                        <span className={cn('whitespace-nowrap flex-1 text-left', !isSidebarOpen && 'hidden')}>
+                            Price Management
+                        </span>
+                        <ChevronDown className={cn(
+                            'h-4 w-4 transition-transform',
+                            isPriceManagementOpen && 'rotate-180',
+                            !isSidebarOpen && 'hidden'
+                        )} />
+                    </button>
+
+                    {/* Dropdown Items */}
+                    {isPriceManagementOpen && isSidebarOpen && (
+                        <div className="ml-8 mt-1 space-y-1">
+                            {priceManagementItems.map((subItem) => (
+                                <Link
+                                    key={subItem.name}
+                                    to={subItem.href}
+                                    className={cn(
+                                        'flex items-center px-3 py-2 rounded-lg text-sm transition-colors',
+                                        location.pathname === subItem.href
+                                            ? 'bg-primary/10 text-primary font-medium'
+                                            : 'text-gray-600 hover:bg-gray-50'
+                                    )}
+                                >
+                                    {subItem.name}
+                                </Link>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </nav>
 
             <div className="p-4 border-t border-gray-200">
@@ -153,7 +205,7 @@ useEffect(() => {
 
             {/* Desktop Sidebar (Permanent Flex Item) */}
             <aside className={cn(
-                'hidden md:flex flex-col   border-gray-200 transition-all duration-300 ease-in-out',
+                'hidden md:flex flex-col border-gray-200 transition-all duration-300 ease-in-out',
                 isSidebarOpen ? 'w-52' : 'w-20'
             )}>
                 <SidebarContent />
