@@ -199,7 +199,7 @@ export default function Rooms({ propertyId }: PropertyId) {
     }
   }
   return (
-    <div className="bg-white text-black font-sans p-8  mx-auto">
+    <div className="bg-white text-black font-sans p-4 mx-auto">
       {rooms.length > 0 ? (
         <div className="space-y-6">
           {rooms.map((room) => (

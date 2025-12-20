@@ -27,7 +27,7 @@ export default function StatCard({
     'from-purple-400 to-purple-600',
     'from-pink-400 to-pink-600',
     'from-orange-400 to-orange-600',
-    'from-teal-400 to-teal-600',
+    'from-primary to-primary',
   ];
   
   const randomGradient = gradients[Math.floor(Math.random() * gradients.length)];

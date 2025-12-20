@@ -39,7 +39,7 @@ function PropertyCreateView() {
           {index < steps.length - 1 && (
             <div
               className={`absolute h-full left-3.5 top-7 w-0.5  transition-all ${
-                index < currentStep ? "bg-black" : "bg-gray-300"
+                index < currentStep ? "bg-primary" : "bg-gray-300"
               }`}
             />
           )}
@@ -52,9 +52,9 @@ function PropertyCreateView() {
             <div
               className={`w-7 h-7 rounded-full flex items-center justify-center text-sm font-medium border-2 transition-all bg-white ${
                 index < currentStep
-                  ? "border-black  bg-black text-white"
+                  ? "border-primary bg-primary text-primary-foreground"
                   : index === currentStep
-                  ? "border-black text-black"
+                  ? "border-primary text-primary"
                   : "border-gray-300 text-gray-400"
               }`}
             >

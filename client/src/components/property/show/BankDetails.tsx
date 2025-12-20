@@ -116,7 +116,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
   );
 
   return (
-    <div className="bg-white text-black font-sans p-8 mx-auto">
+    <div className="bg-white text-black font-sans p-4 mx-auto">
       <Card className="shadow-none border-none md:rounded-lg">
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-xl">Bank & Payment Details</CardTitle>

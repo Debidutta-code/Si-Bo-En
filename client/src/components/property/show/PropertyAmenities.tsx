@@ -77,7 +77,7 @@ export default function PropertyAmenities({ propertyId }: PropertyId) {
 
   }
   return (
-    <div className="bg-white text-black font-sans p-8  mx-auto">
+    <div className="bg-white text-black font-sans p-4 mx-auto">
       <Card className="shadow-none border-none md:rounded-lg">
         <CardHeader className="flex justify-between w-full flex-row">
           <CardTitle className="text-xl">Property Amenities</CardTitle>

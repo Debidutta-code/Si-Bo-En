@@ -76,7 +76,7 @@ export default function RatePlans() {
   }
 
   return (
-    <div className="bg-white text-black font-sans p-8 border-black mx-auto">
+    <div className="bg-white text-black font-sans p-4 border-black mx-auto">
       {ratePlans.length > 0 ? (
         <Card className="shadow-none border-none md:rounded-lg">
           <CardHeader>

@@ -12,10 +12,10 @@ export default function HousekeepingStats({ data }: HousekeepingStatsProps) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <div className="p-2 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-lg shadow-lg">
+        <div className="p-2 bg-gradient-to-br from-primary to-primary rounded-lg shadow-lg">
           <Sparkles className="h-5 w-5 text-white" />
         </div>
-        <h2 className="text-2xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+        <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary bg-clip-text text-transparent">
           Housekeeping Analytics
         </h2>
       </div>

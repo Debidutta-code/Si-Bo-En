@@ -426,11 +426,11 @@ export default function RatePlan() {
                     {/* Availability Status */}
                     <div className="flex gap-3 mb-2">
                       <div className="flex items-center gap-1.5">
-                        <div className={`h-2 w-2 rounded-full ${ratePlan.b2bAvailable ? 'bg-blue-500' : 'bg-gray-300'}`} />
+                        <div className={`h-2 w-2 rounded-full ${ratePlan.b2bAvailable ? 'bg-primary' : 'bg-gray-300'}`} />
                         <span className="text-xs text-gray-600">B2B</span>
                       </div>
                       <div className="flex items-center gap-1.5">
-                        <div className={`h-2 w-2 rounded-full ${ratePlan.b2cAvailable ? 'bg-blue-500' : 'bg-gray-300'}`} />
+                        <div className={`h-2 w-2 rounded-full ${ratePlan.b2cAvailable ? 'bg-primary' : 'bg-gray-300'}`} />
                         <span className="text-xs text-gray-600">B2C</span>
                       </div>
                     </div>
