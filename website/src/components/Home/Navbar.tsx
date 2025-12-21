@@ -73,104 +73,102 @@ const Navbar = () => {
     }
   };
 
-const handleHomeClick = () => {
-  let url = senderUrl;
+  const handleHomeClick = () => {
+    let url = senderUrl;
 
-  // If Redux is empty (page reload), read from sessionStorage
-  if (!url) {
-    url = sessionStorage.getItem("senderUrl") || undefined;
-    if (url) dispatch(setSenderUrl(url)); // sync back to Redux
-  }
+    // If Redux is empty (page reload), read from sessionStorage
+    if (!url) {
+      url = sessionStorage.getItem("senderUrl") || undefined;
+      if (url) dispatch(setSenderUrl(url)); // sync back to Redux
+    }
 
-  if (url) {
-    window.location.href = url;
-  } else {
-    router.push("/");
-  }
+    if (url) {
+      window.location.href = url;
+    } else {
+      router.push("/");
+    }
 
-  setIsMenuOpen(false); // close mobile menu if open
-};
+    setIsMenuOpen(false); // close mobile menu if open
+  };
 
 
   return (
     <nav
-      className={`fixed top-0 left-0 right-0 z-50 ${
-        isHomePage ? "bg-black text-white" : "bg-white text-black shadow"
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 ${isHomePage ? "bg-black text-white" : "bg-white text-black shadow"
+        }`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-20 lg:h-24">
 
-<div className="flex-shrink-0">
-  <button
-    onClick={handleHomeClick}
-    className="flex items-center focus:outline-none"
-  >
-    <Image
-      src={isHomePage ? ZLogo : SLogo}
-      alt="Logo"
-      width={isHomePage ? 120 : 160}
-      height={isHomePage ? 40 : 70}
-      className="object-contain"
-    />
-  </button>
-</div>
+          <div className="flex-shrink-0">
+            <button
+              onClick={handleHomeClick}
+              className="flex items-center focus:outline-none"
+            >
+              <Image
+                src={isHomePage ? ZLogo : SLogo}
+                alt="Logo"
+                width={isHomePage ? 120 : 160}
+                height={isHomePage ? 40 : 70}
+                className="object-contain"
+              />
+            </button>
+          </div>
 
 
           {/* Desktop Nav */}
-         <div className="hidden lg:flex items-center md:space-x-4 lg:space-x-6 text-sm font-medium">
-  <button onClick={handleHomeClick} className="hover:text-amber-400">
-    Home
-  </button>
+          <div className="hidden lg:flex items-center md:space-x-4 lg:space-x-6 text-sm font-medium">
+            <button onClick={handleHomeClick} className="hover:text-amber-400">
+              Home
+            </button>
 
-  <p
-    onClick={() => document.querySelector("#service")?.scrollIntoView({ behavior: "smooth" })}
-    className="cursor-pointer hover:text-amber-400"
-  >
-    Services
-  </p>
-  <p
-    onClick={() => document.querySelector("#facilities")?.scrollIntoView({ behavior: "smooth" })}
-    className="cursor-pointer hover:text-amber-400"
-  >
-    Facilities
-  </p>
-  <p
-    onClick={() => document.querySelector("#testimonials")?.scrollIntoView({ behavior: "smooth" })}
-    className="cursor-pointer hover:text-amber-400"
-  >
-    Testimonials
-  </p>
-  <p
-    onClick={() => document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" })}
-    className="cursor-pointer hover:text-amber-400"
-  >
-    Contact Us
-  </p>
+            <p
+              onClick={() => document.querySelector("#service")?.scrollIntoView({ behavior: "smooth" })}
+              className="cursor-pointer hover:text-amber-400"
+            >
+              Services
+            </p>
+            <p
+              onClick={() => document.querySelector("#facilities")?.scrollIntoView({ behavior: "smooth" })}
+              className="cursor-pointer hover:text-amber-400"
+            >
+              Facilities
+            </p>
+            <p
+              onClick={() => document.querySelector("#testimonials")?.scrollIntoView({ behavior: "smooth" })}
+              className="cursor-pointer hover:text-amber-400"
+            >
+              Testimonials
+            </p>
+            <p
+              onClick={() => document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" })}
+              className="cursor-pointer hover:text-amber-400"
+            >
+              Contact Us
+            </p>
 
-  <div className="hidden lg:flex items-center space-x-4">
-    {isHomePage && (
-      <button
-        onClick={handleBookNowClick}
-        className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm"
-      >
-        View Room
-      </button>
-    )}
-    <div className="flex items-center space-x-2 bg-amber-500 px-3 py-1 rounded-full">
-      <Phone className="w-4 h-4" />
-      <span className="no-underline">+91 9777403555</span>
-    </div>
-  </div>
-</div>
+            <div className="hidden lg:flex items-center space-x-4">
+              {isHomePage && (
+                <button
+                  onClick={handleBookNowClick}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm"
+                >
+                  View Room
+                </button>
+              )}
+              <div className="flex items-center space-x-2 bg-amber-500 px-3 py-1 rounded-full">
+                <Phone className="w-4 h-4" />
+                <span className="no-underline">+91 9777403555</span>
+              </div>
+            </div>
+          </div>
 
           {/* Mobile Toggle */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             aria-label="Toggle menu"
-            className={`lg:hidden ${
-              isHomePage ? "text-white" : "text-black"
-            } hover:opacity-80 transition duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded`}
+            className={`lg:hidden ${isHomePage ? "text-white" : "text-black"
+              } hover:opacity-80 transition duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded`}
           >
             {isMenuOpen ? (
               <X className="w-6 h-6" />
@@ -181,67 +179,66 @@ const handleHomeClick = () => {
         </div>
 
         {/* Mobile Menu */}
-       {isMenuOpen && (
-  <div
-    className={`lg:hidden ${
-      isHomePage
-        ? "bg-black bg-opacity-90 text-white"
-        : "bg-white text-black"
-    } rounded-md mt-2 py-4 px-4 space-y-3 text-sm`}
-  >
-    <button
-      onClick={() => {
-        setIsMenuOpen(false);
-        handleHomeClick();
-      }}
-      className="block w-full text-left"
-    >
-      Home
-    </button>
- <p
-    onClick={() => { setIsMenuOpen(false); document.querySelector("#service")?.scrollIntoView({ behavior: "smooth" })}}
-    className="cursor-pointer hover:text-amber-400"
-  >
-    Services
-  </p>
-  <p
-    onClick={() => { setIsMenuOpen(false) ;document.querySelector("#facilities")?.scrollIntoView({ behavior: "smooth" })}}
-    className="cursor-pointer hover:text-amber-400"
-  >
-    Facilities
-  </p>
-  <p
-    onClick={() =>{setIsMenuOpen(false); document.querySelector("#testimonials")?.scrollIntoView({ behavior: "smooth" })}}
-    className="cursor-pointer hover:text-amber-400"
-  >
-    Testimonials
-  </p>
-    <p
-      onClick={() => {
-        setIsMenuOpen(false);
-        document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" });
-      }}
-      className="block w-full text-left cursor-pointer"
-    >
-      Contact Us
-    </p>
+        {isMenuOpen && (
+          <div
+            className={`lg:hidden ${isHomePage
+                ? "bg-black bg-opacity-90 text-white"
+                : "bg-white text-black"
+              } rounded-md mt-2 py-4 px-4 space-y-3 text-sm`}
+          >
+            <button
+              onClick={() => {
+                setIsMenuOpen(false);
+                handleHomeClick();
+              }}
+              className="block w-full text-left"
+            >
+              Home
+            </button>
+            <p
+              onClick={() => { setIsMenuOpen(false); document.querySelector("#service")?.scrollIntoView({ behavior: "smooth" }) }}
+              className="cursor-pointer hover:text-amber-400"
+            >
+              Services
+            </p>
+            <p
+              onClick={() => { setIsMenuOpen(false); document.querySelector("#facilities")?.scrollIntoView({ behavior: "smooth" }) }}
+              className="cursor-pointer hover:text-amber-400"
+            >
+              Facilities
+            </p>
+            <p
+              onClick={() => { setIsMenuOpen(false); document.querySelector("#testimonials")?.scrollIntoView({ behavior: "smooth" }) }}
+              className="cursor-pointer hover:text-amber-400"
+            >
+              Testimonials
+            </p>
+            <p
+              onClick={() => {
+                setIsMenuOpen(false);
+                document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" });
+              }}
+              className="block w-full text-left cursor-pointer"
+            >
+              Contact Us
+            </p>
 
-    <button
-      onClick={() => {
-        setIsMenuOpen(false);
-        handleBookNowClick();
-      }}
-      className="w-full bg-indigo-600 text-white py-2 rounded"
-    >
-      View Room
-    </button>
+            <button
+              onClick={() => {
+                setIsMenuOpen(false);
+                handleBookNowClick();
+              }}
+              className="w-full bg-indigo-600 text-white py-2 rounded"
+            >
+              View Room
+            </button>
 
-    <div className="flex items-center space-x-2 mt-4">
-      <Phone className="w-4 h-4" />
-      <span>+91 9777403555</span>
-    </div>
-  </div>
-)}
+            <div className="flex items-center space-x-2 mt-4">
+              <Phone className="w-4 h-4" />
+              <span>+91 9777403555</span>
+            </div>
+          </div>
+        )}
 
       </div>
     </nav>

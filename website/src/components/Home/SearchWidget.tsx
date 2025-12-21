@@ -8,7 +8,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import "./styles/custom-datepicker.css";
 import { usePathname, useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import { setBookingContext } from "../../store/bookingSlice";
+import { setBookingContext, setSenderUrl } from "../../store/bookingSlice";
 import toast from "react-hot-toast";
 import { RootState } from "@/src/store/store";
 import { useBookingColors } from "../../hooks/useBookingColors";
@@ -99,6 +99,7 @@ const DatePickerWithHover = ({
 };
 
 const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
+  const senderUrl = useSelector((state: RootState) => state.booking.senderUrl);
   const dispatch = useDispatch();
   const [isGuestSelectorOpen, setIsGuestSelectorOpen] = useState(false);
   const [guestSummary, setGuestSummary] = useState(
@@ -357,6 +358,25 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
     }
   };
 
+
+  const handleHomeClick = () => {
+    let url = senderUrl;
+
+    // If Redux is empty (page reload), read from sessionStorage
+    if (!url) {
+      url = sessionStorage.getItem("senderUrl") || undefined;
+      if (url) dispatch(setSenderUrl(url)); // sync back to Redux
+    }
+
+    if (url) {
+      window.location.href = url;
+    } else {
+      router.push("/");
+    }
+
+    // setIsMenuOpen(false); // close mobile menu if open
+  };
+
   return (
     <>
       {/* Backdrop Overlay */}
@@ -381,37 +401,42 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
           <div className="max-w-[1400px] mx-auto px-6 py-3">
             <div className="flex items-center justify-between gap-8">
               {/* LEFT: LOGO */}
-              <div className="flex items-center gap-3 min-w-[280px]">
-                {/* Sun Logo */}
-                <div className="w-12 h-12 flex items-center justify-center">
-                  <svg viewBox="0 0 100 100" className="w-full h-full">
-                    <circle cx="50" cy="50" r="20" fill="#2F2A1F" />
-                    {[...Array(12)].map((_, i) => {
-                      const angle = (i * 30 * Math.PI) / 180;
-                      const x1 = 50 + Math.cos(angle) * 25;
-                      const y1 = 50 + Math.sin(angle) * 25;
-                      const x2 = 50 + Math.cos(angle) * 35;
-                      const y2 = 50 + Math.sin(angle) * 35;
-                      return (
-                        <line
-                          key={i}
-                          x1={x1}
-                          y1={y1}
-                          x2={x2}
-                          y2={y2}
-                          stroke="#2F2A1F"
-                          strokeWidth="3"
-                        />
-                      );
-                    })}
-                  </svg>
+              <button
+                onClick={handleHomeClick}
+                className="flex items-center focus:outline-none"
+              >
+                <div className="flex items-center gap-3 min-w-[280px]">
+                  {/* Sun Logo */}
+                  <div className="w-12 h-12 flex items-center justify-center">
+                    <svg viewBox="0 0 100 100" className="w-full h-full">
+                      <circle cx="50" cy="50" r="20" fill="#2F2A1F" />
+                      {[...Array(12)].map((_, i) => {
+                        const angle = (i * 30 * Math.PI) / 180;
+                        const x1 = 50 + Math.cos(angle) * 25;
+                        const y1 = 50 + Math.sin(angle) * 25;
+                        const x2 = 50 + Math.cos(angle) * 35;
+                        const y2 = 50 + Math.sin(angle) * 35;
+                        return (
+                          <line
+                            key={i}
+                            x1={x1}
+                            y1={y1}
+                            x2={x2}
+                            y2={y2}
+                            stroke="#2F2A1F"
+                            strokeWidth="3"
+                          />
+                        );
+                      })}
+                    </svg>
+                  </div>
+                  {/* Brand Name */}
+                  <div className="flex items-center gap-2 text-lg tracking-[0.3em]">
+                    <span className="font-semibold text-[#2F2A1F]">TERRA</span>
+                    <span className="font-light text-[#2F2A1F]">SOLIS</span>
+                  </div>
                 </div>
-                {/* Brand Name */}
-                <div className="flex items-center gap-2 text-lg tracking-[0.3em]">
-                  <span className="font-semibold text-[#2F2A1F]">TERRA</span>
-                  <span className="font-light text-[#2F2A1F]">SOLIS</span>
-                </div>
-              </div>
+              </button>
 
               {/* CENTER: BOOKING CONTROLS */}
               <div className="flex items-center gap-3 flex-1 justify-center">
@@ -566,35 +591,40 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
           <div className="max-w-[1400px] mx-auto px-6 py-3">
             <div className="flex items-center justify-between gap-6">
               {/* LEFT: LOGO - Compact */}
-              <div className="flex items-center gap-3 min-w-[200px]">
-                <div className="w-10 h-10">
-                  <svg viewBox="0 0 100 100" className="w-full h-full">
-                    <circle cx="50" cy="50" r="18" fill="#2F2A1F" />
-                    {[...Array(8)].map((_, i) => {
-                      const angle = (i * 45 * Math.PI) / 180;
-                      const x1 = 50 + Math.cos(angle) * 22;
-                      const y1 = 50 + Math.sin(angle) * 22;
-                      const x2 = 50 + Math.cos(angle) * 32;
-                      const y2 = 50 + Math.sin(angle) * 32;
-                      return (
-                        <line
-                          key={i}
-                          x1={x1}
-                          y1={y1}
-                          x2={x2}
-                          y2={y2}
-                          stroke="#2F2A1F"
-                          strokeWidth="2.5"
-                        />
-                      );
-                    })}
-                  </svg>
+              <button
+                onClick={handleHomeClick}
+                className="flex items-center focus:outline-none"
+              >
+                <div className="flex items-center gap-3 min-w-[200px]">
+                  <div className="w-10 h-10">
+                    <svg viewBox="0 0 100 100" className="w-full h-full">
+                      <circle cx="50" cy="50" r="18" fill="#2F2A1F" />
+                      {[...Array(8)].map((_, i) => {
+                        const angle = (i * 45 * Math.PI) / 180;
+                        const x1 = 50 + Math.cos(angle) * 22;
+                        const y1 = 50 + Math.sin(angle) * 22;
+                        const x2 = 50 + Math.cos(angle) * 32;
+                        const y2 = 50 + Math.sin(angle) * 32;
+                        return (
+                          <line
+                            key={i}
+                            x1={x1}
+                            y1={y1}
+                            x2={x2}
+                            y2={y2}
+                            stroke="#2F2A1F"
+                            strokeWidth="2.5"
+                          />
+                        );
+                      })}
+                    </svg>
+                  </div>
+                  <div className="text-[17px] tracking-[0.25em]">
+                    <span className="font-semibold text-[#2F2A1F]">TERRA</span>
+                    <span className="font-light text-[#2F2A1F]"> SOLIS</span>
+                  </div>
                 </div>
-                <div className="text-[17px] tracking-[0.25em]">
-                  <span className="font-semibold text-[#2F2A1F]">TERRA</span>
-                  <span className="font-light text-[#2F2A1F]"> SOLIS</span>
-                </div>
-              </div>
+              </button>
 
               {/* CENTER: COMPACT BOOKING CONTROLS */}
               <div className="flex items-center gap-3 flex-1 justify-center max-w-[850px]">
@@ -707,35 +737,40 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
               {/* Top Row */}
               <div className="flex items-center justify-between">
                 {/* Logo */}
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10">
-                    <svg viewBox="0 0 100 100" className="w-full h-full">
-                      <circle cx="50" cy="50" r="18" fill="#2F2A1F" />
-                      {[...Array(8)].map((_, i) => {
-                        const angle = (i * 45 * Math.PI) / 180;
-                        const x1 = 50 + Math.cos(angle) * 22;
-                        const y1 = 50 + Math.sin(angle) * 22;
-                        const x2 = 50 + Math.cos(angle) * 30;
-                        const y2 = 50 + Math.sin(angle) * 30;
-                        return (
-                          <line
-                            key={i}
-                            x1={x1}
-                            y1={y1}
-                            x2={x2}
-                            y2={y2}
-                            stroke="#2F2A1F"
-                            strokeWidth="2.5"
-                          />
-                        );
-                      })}
-                    </svg>
+                <button
+                  onClick={handleHomeClick}
+                  className="flex items-center focus:outline-none"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10">
+                      <svg viewBox="0 0 100 100" className="w-full h-full">
+                        <circle cx="50" cy="50" r="18" fill="#2F2A1F" />
+                        {[...Array(8)].map((_, i) => {
+                          const angle = (i * 45 * Math.PI) / 180;
+                          const x1 = 50 + Math.cos(angle) * 22;
+                          const y1 = 50 + Math.sin(angle) * 22;
+                          const x2 = 50 + Math.cos(angle) * 30;
+                          const y2 = 50 + Math.sin(angle) * 30;
+                          return (
+                            <line
+                              key={i}
+                              x1={x1}
+                              y1={y1}
+                              x2={x2}
+                              y2={y2}
+                              stroke="#2F2A1F"
+                              strokeWidth="2.5"
+                            />
+                          );
+                        })}
+                      </svg>
+                    </div>
+                    <div className="text-base tracking-[0.25em]">
+                      <span className="font-semibold text-[#2F2A1F]">TERRA</span>
+                      <span className="font-light text-[#2F2A1F]"> SOLIS</span>
+                    </div>
                   </div>
-                  <div className="text-base tracking-[0.25em]">
-                    <span className="font-semibold text-[#2F2A1F]">TERRA</span>
-                    <span className="font-light text-[#2F2A1F]"> SOLIS</span>
-                  </div>
-                </div>
+                </button>
 
                 <button className="text-xs font-semibold tracking-[0.1em] text-[#2F2A1F] hover:text-[#5B543F] transition-colors">
                   MY BOOKING
@@ -836,35 +871,40 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
           {/* Top Bar */}
           <div className="px-4 py-3 flex items-center justify-between">
             {/* Logo */}
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8">
-                <svg viewBox="0 0 100 100" className="w-full h-full">
-                  <circle cx="50" cy="50" r="15" fill="#2F2A1F" />
-                  {[...Array(8)].map((_, i) => {
-                    const angle = (i * 45 * Math.PI) / 180;
-                    const x1 = 50 + Math.cos(angle) * 20;
-                    const y1 = 50 + Math.sin(angle) * 20;
-                    const x2 = 50 + Math.cos(angle) * 27;
-                    const y2 = 50 + Math.sin(angle) * 27;
-                    return (
-                      <line
-                        key={i}
-                        x1={x1}
-                        y1={y1}
-                        x2={x2}
-                        y2={y2}
-                        stroke="#2F2A1F"
-                        strokeWidth="2"
-                      />
-                    );
-                  })}
-                </svg>
+            <button
+              onClick={handleHomeClick}
+              className="flex items-center focus:outline-none"
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8">
+                  <svg viewBox="0 0 100 100" className="w-full h-full">
+                    <circle cx="50" cy="50" r="15" fill="#2F2A1F" />
+                    {[...Array(8)].map((_, i) => {
+                      const angle = (i * 45 * Math.PI) / 180;
+                      const x1 = 50 + Math.cos(angle) * 20;
+                      const y1 = 50 + Math.sin(angle) * 20;
+                      const x2 = 50 + Math.cos(angle) * 27;
+                      const y2 = 50 + Math.sin(angle) * 27;
+                      return (
+                        <line
+                          key={i}
+                          x1={x1}
+                          y1={y1}
+                          x2={x2}
+                          y2={y2}
+                          stroke="#2F2A1F"
+                          strokeWidth="2"
+                        />
+                      );
+                    })}
+                  </svg>
+                </div>
+                <div className="text-sm tracking-[0.2em]">
+                  <span className="font-semibold text-[#2F2A1F]">TERRA</span>
+                  <span className="font-light text-[#2F2A1F]"> SOLIS</span>
+                </div>
               </div>
-              <div className="text-sm tracking-[0.2em]">
-                <span className="font-semibold text-[#2F2A1F]">TERRA</span>
-                <span className="font-light text-[#2F2A1F]"> SOLIS</span>
-              </div>
-            </div>
+            </button>
 
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}

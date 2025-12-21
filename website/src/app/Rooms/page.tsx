@@ -26,9 +26,9 @@ interface Addon {
   date: string;
   price: number;
   quantity: number;
-  type: "PER_STAY" | "PER_NIGHT"|"ONCE";
+  type: "PER_STAY" | "PER_NIGHT" | "ONCE";
   name: string;
-  code:string;
+  code: string;
 }
 
 interface DailyBreakdown {
@@ -71,7 +71,7 @@ interface PriceSummaryData {
   selectedAddons: any[];
   basePrice: number;
   totalAddonsPrice: number;
-  finalprice?:any
+  finalprice?: any
 }
 
 
@@ -100,29 +100,29 @@ const Rooms = () => {
   const [roomsData, setRoomsData] = useState<any[]>([]);
   const [addons, setAddons] = useState<any[]>([]);
   const [propertyDetails, setPropertyDetails] = useState<any>(null);
-  
+
   // Price summary sidebar state
   const [showPriceSummary, setShowPriceSummary] = useState(false);
   const [priceSummaryData, setPriceSummaryData] = useState<PriceSummaryData | null>(null);
 
- const [finalPrice, setFinalPrice] = useState<FinalPrice | null>({
-  totalAmount: 0,
-  numberOfNights: 0,
-  baseRatePerNight: 0,
-  additionalGuestCharges: 0,
-  breakdown: {
-    totalBaseAmount: 0,
-    totalAdditionalCharges: 0,
+  const [finalPrice, setFinalPrice] = useState<FinalPrice | null>({
     totalAmount: 0,
     numberOfNights: 0,
-    averagePerNight: 0,
-    totalAddonAmount: 0,
-  },
-  dailyBreakdown: [],
-  availableRooms: 0,
-  requestedRooms: 0,
-  addons: [],
-});
+    baseRatePerNight: 0,
+    additionalGuestCharges: 0,
+    breakdown: {
+      totalBaseAmount: 0,
+      totalAdditionalCharges: 0,
+      totalAmount: 0,
+      numberOfNights: 0,
+      averagePerNight: 0,
+      totalAddonAmount: 0,
+    },
+    dailyBreakdown: [],
+    availableRooms: 0,
+    requestedRooms: 0,
+    addons: [],
+  });
 
   const handlePriceUpdate = (data: PriceSummaryData) => {
     setPriceSummaryData(data);
@@ -203,10 +203,10 @@ const Rooms = () => {
         availabilityId: addon.availabilityId,
         date: addon.date,
         price: addon.price,
-        quantity:addon.quantity,
-        type:addon.type,
-        name:addon.addonName,
-        code:addon.addonCode,
+        quantity: addon.quantity,
+        type: addon.type,
+        name: addon.addonName,
+        code: addon.addonCode,
       }));
     }
 
@@ -234,7 +234,7 @@ const Rooms = () => {
       setBookingRoom(room);
       setCurrentRatePlan(ratePlan);
       setSelectedAddons(selectedAddonsList);
-      
+
       // Hide price summary when showing guest modal
       setShowPriceSummary(false);
     } catch (error: any) {
@@ -278,7 +278,7 @@ const Rooms = () => {
     setRoomsData([]);
     setAddons([]);
     setPropertyDetails(null);
-    
+
     // Reset price summary when new search
     setShowPriceSummary(false);
     setPriceSummaryData(null);
@@ -305,7 +305,7 @@ const Rooms = () => {
         dispatch({ type: "rooms/setRooms", payload: [] });
         return;
       }
-      
+
       const updatedContext = {
         ...bookingCtx,
         hotelName: data.propertyName,
@@ -313,9 +313,9 @@ const Rooms = () => {
         bookingEngineColor: data.bookingEngineColor,
       };
       dispatch(setBookingContext(updatedContext));
-      
+
       dispatch({ type: "rooms/setRooms", payload: data.data || [] });
-      setRoomsData(data.data || []);
+      setRoomsData(data.data?.rooms || []);
       setAddons(data.addons || []);
       setPropertyDetails(data.propertyDetails || null);
     } catch (err: any) {
@@ -401,14 +401,15 @@ const Rooms = () => {
         </div>
       )}
       <div
-        className={`min-h-screen bg-cover pt-24 bg-center bg-no-repeat transition-opacity duration-700 ${
-          loaded ? "opacity-100" : "opacity-0"
-        }`}
+        className={`min-h-screen bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${loaded ? "opacity-100" : "opacity-0"
+          }`}
         style={{ backgroundImage: `url(${bgImage})` }}
         onLoad={() => setLoaded(true)}
       >
-        <SearchWidget onSearchStart={handleSearchStart} />
-        
+        <div className="sticky top-0 z-40 bg-white/90 backdrop-blur shadow-sm">
+          <SearchWidget onSearchStart={handleSearchStart} />
+        </div>
+
         <div className="px-4 pb-2">
           <div className="max-w-7xl mx-auto mt-10">
             <div className="flex gap-6">
@@ -507,7 +508,7 @@ const Rooms = () => {
           handleContactChange={handleContactChange}
           onSubmit={() => {
             if (!bookingRoom || !currentRatePlan) return;
-            
+
             const bookingData = {
               PropertyCode: bookingContext.PropertyCode,
               startDate: bookingContext.startDate,
