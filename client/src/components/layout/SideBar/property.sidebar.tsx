@@ -3,7 +3,6 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import {
-    Home,
     FileText,
     Building,
     Users,
@@ -40,7 +39,9 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) 
     const { user } = useAppSelector((state) => state.user);
     const location = useLocation();
     const navigate = useNavigate();
+    const [isManagementOpen, setIsManagementOpen] = useState(false);
     const [isPriceManagementOpen, setIsPriceManagementOpen] = useState(false);
+    const [isRatesOpen, setIsRatesOpen] = useState(false);
 
     const handleLogout = () => {
         localStorage.removeItem('isAuthenticated');
@@ -49,8 +50,6 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) 
 
     useEffect(() => {
         const items = [
-            { name: 'RatePlan', href: `/property/rate-plan/${propertyId}`, icon: Home, userLevels: [0, 1, 2, 3, 4] },
-            { name: 'Rate Plan Allortment', href: `/property/rate-plan/map/${propertyId}`, icon: Building, userLevels: [2, 3, 4] },
             { name: "Inventory", href: `/property/inventory/${propertyId}`, icon: Building, userLevels: [1, 0, 2, 3, 4] },
             { name: "Policy", href: `/property/policy/${propertyId}`, icon: CalendarClock, userLevels: [0, 1, 2, 3, 4] },
             { name: 'Promo Code', href: `/property/promo-code/${propertyId}`, icon: FileText, userLevels: [0, 1, 2, 3, 4] },
@@ -78,26 +77,74 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) 
         { name: 'Table', href: `/property/price-management/table/${propertyId}` },
     ];
 
+    // Rates sub-items
+    const ratesItems = [
+        { name: 'RatePlan', href: `/property/rate-plan/${propertyId}` },
+        { name: 'Rate Plan Allortment', href: `/property/rate-plan/map/${propertyId}` },
+    ];
+
     const filteredNavigation = navigation.filter(item => user && item.userLevels.includes(user.userLevel));
 
     // Reusable component for the sidebar's content
     const SidebarContent = () => (
         <div className='flex flex-col h-full bg-white border-r w-full'>
             <div className="flex justify-around items-center h-16 px-2 border-b border-gray-200">
-                <Button onClick={toggleSidebar} variant="ghost" size="icon" className={`hidden sm:flex justify-center items-center`}>
-                    {isSidebarOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
-                </Button>
                 <h1 className={cn(
                     'font-bold text-xl ml-2 whitespace-nowrap transition-opacity duration-300',
                     isSidebarOpen ? 'block' : 'hidden'
                 )}>
                 </h1>
                 {isSidebarOpen && (
-                    <img src='/swiftrooms.jpeg' alt="Swiftrooms" className='w-2/3' />
+                    <img src='/swiftrooms.jpeg' alt="Swiftrooms" className='w-1/2' />
                 )}
+                <Button onClick={toggleSidebar} variant="ghost" size="icon" className={`hidden sm:flex justify-center items-center`}>
+                    {isSidebarOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+                </Button>
             </div>
 
             <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+                {/* Rates Dropdown */}
+                <div>
+                    <button
+                        onClick={() => setIsRatesOpen(!isRatesOpen)}
+                        title="Rates"
+                        className={cn(
+                            'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50',
+                            !isSidebarOpen && 'justify-center'
+                        )}
+                    >
+                        <DollarSign className='h-5 w-5 flex-shrink-0' />
+                        <span className={cn('whitespace-nowrap flex-1 text-left', !isSidebarOpen && 'hidden')}>
+                            Rates
+                        </span>
+                        <ChevronDown className={cn(
+                            'h-4 w-4 transition-transform',
+                            isRatesOpen && 'rotate-180',
+                            !isSidebarOpen && 'hidden'
+                        )} />
+                    </button>
+
+                    {/* Rates Dropdown Items */}
+                    {isRatesOpen && isSidebarOpen && (
+                        <div className="ml-8 mt-1 space-y-1">
+                            {ratesItems.map((subItem) => (
+                                <Link
+                                    key={subItem.name}
+                                    to={subItem.href}
+                                    className={cn(
+                                        'flex items-center px-3 py-2 rounded-lg text-sm transition-colors',
+                                        location.pathname === subItem.href
+                                            ? 'bg-primary/10 text-primary font-medium'
+                                            : 'text-gray-600 hover:bg-gray-50'
+                                    )}
+                                >
+                                    {subItem.name}
+                                </Link>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
                 {filteredNavigation.map((item) => {
                     const targetHref = item.href === `/app/property` ? (
                         user?.userLevel === 4 ? `/app/property/super/${user.creation}` :
@@ -127,6 +174,89 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) 
                         </Link>
                     );
                 })}
+
+                {/* Management Dropdown */}
+                <div>
+                    <button
+                        onClick={() => setIsManagementOpen(!isManagementOpen)}
+                        title="Management"
+                        className={cn(
+                            'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50',
+                            !isSidebarOpen && 'justify-center'
+                        )}
+                    >
+                        <Building className='h-5 w-5 flex-shrink-0' />
+                        <span className={cn('whitespace-nowrap flex-1 text-left', !isSidebarOpen && 'hidden')}>
+                            Management
+                        </span>
+                        <ChevronDown className={cn(
+                            'h-4 w-4 transition-transform',
+                            isManagementOpen && 'rotate-180',
+                            !isSidebarOpen && 'hidden'
+                        )} />
+                    </button>
+
+                    {/* Management Dropdown Items */}
+                    {isManagementOpen && isSidebarOpen && (
+                        <div className="ml-8 mt-1 space-y-1">
+                            <Link
+                                to={`/property/${propertyId}?tab=property`}
+                                className={cn(
+                                    'flex items-center px-3 py-2 rounded-lg text-sm transition-colors',
+                                    location.search === '?tab=property'
+                                        ? 'bg-primary/10 text-primary font-medium'
+                                        : 'text-gray-600 hover:bg-gray-50'
+                                )}
+                            >
+                                Property Details
+                            </Link>
+                            <Link
+                                to={`/property/${propertyId}?tab=address`}
+                                className={cn(
+                                    'flex items-center px-3 py-2 rounded-lg text-sm transition-colors',
+                                    location.search === '?tab=address'
+                                        ? 'bg-primary/10 text-primary font-medium'
+                                        : 'text-gray-600 hover:bg-gray-50'
+                                )}
+                            >
+                                Address
+                            </Link>
+                            <Link
+                                to={`/property/${propertyId}?tab=amenities`}
+                                className={cn(
+                                    'flex items-center px-3 py-2 rounded-lg text-sm transition-colors',
+                                    location.search === '?tab=amenities'
+                                        ? 'bg-primary/10 text-primary font-medium'
+                                        : 'text-gray-600 hover:bg-gray-50'
+                                )}
+                            >
+                                Amenities
+                            </Link>
+                            <Link
+                                to={`/property/${propertyId}?tab=rooms`}
+                                className={cn(
+                                    'flex items-center px-3 py-2 rounded-lg text-sm transition-colors',
+                                    location.search === '?tab=rooms'
+                                        ? 'bg-primary/10 text-primary font-medium'
+                                        : 'text-gray-600 hover:bg-gray-50'
+                                )}
+                            >
+                                Rooms
+                            </Link>
+                            <Link
+                                to={`/property/${propertyId}?tab=bank-details`}
+                                className={cn(
+                                    'flex items-center px-3 py-2 rounded-lg text-sm transition-colors',
+                                    location.search === '?tab=bank-details'
+                                        ? 'bg-primary/10 text-primary font-medium'
+                                        : 'text-gray-600 hover:bg-gray-50'
+                                )}
+                            >
+                                Bank Details
+                            </Link>
+                        </div>
+                    )}
+                </div>
 
                 {/* Price Management Dropdown */}
                 <div>
@@ -206,7 +336,7 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) 
             {/* Desktop Sidebar (Permanent Flex Item) */}
             <aside className={cn(
                 'hidden md:flex flex-col border-gray-200 transition-all duration-300 ease-in-out',
-                isSidebarOpen ? 'w-52' : 'w-20'
+                isSidebarOpen ? 'w-64' : 'w-20'
             )}>
                 <SidebarContent />
             </aside>

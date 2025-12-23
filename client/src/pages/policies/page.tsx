@@ -48,7 +48,12 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger
+} from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { createPolicyService, getPoliciesService, fetchRatePlansService, addPolicyToRatePlanService, deletePolicyService } from "./services";
 import type { IPolicy, PolicyTypes, ICPolicy, RatePlan } from "./interfaces";
@@ -215,13 +220,13 @@ export default function PoliciesPage() {
     const getPolicyColor = (type: PolicyTypes) => {
         switch (type) {
             case "cancellation":
-                return "bg-red-100 text-red-800 hover:bg-red-200";
+                return "bg-red-50 text-red-700 hover:bg-red-100 border border-red-200";
             case "deposit":
-                return "bg-primary/10 text-primary hover:bg-primary/20";
+                return "bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200";
             case "guarantee":
-                return "bg-green-100 text-green-800 hover:bg-green-200";
+                return "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200";
             default:
-                return "bg-gray-100 text-gray-800 hover:bg-gray-200";
+                return "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200";
         }
     };
 
@@ -249,7 +254,7 @@ export default function PoliciesPage() {
                     </div>
                     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button className="bg-black text-white hover:bg-gray-800">
+                            <Button className="bg-primary text-white hover:bg-gray-800">
                                 <Plus className="mr-2 h-4 w-4" /> Add New Policy
                             </Button>
                         </DialogTrigger>

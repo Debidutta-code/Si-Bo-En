@@ -77,18 +77,17 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) 
   const SidebarContent = () => (
     <div className='flex flex-col h-full bg-white border-r w-full'>
       <div className="flex justify-around items-center h-16 px-2 border-b border-gray-200" >
-        <Button onClick={toggleSidebar} variant="ghost" size="icon" className={`hidden sm:flex justify-center items-center`}>
-          {isSidebarOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
-        </Button>
         <h1 className={cn(
           'font-bold text-xl ml-2 whitespace-nowrap transition-opacity duration-300',
           isSidebarOpen ? 'block' : 'hidden'
         )}>
         </h1>
-        {isSidebarOpen&&(
-
-          <img src='/swiftrooms.jpeg' alt="Swiftrooms" className='w-2/3' />
+        {isSidebarOpen && (
+          <img src='/swiftrooms.jpeg' alt="Swiftrooms" className='w-1/2' />
         )}
+        <Button onClick={toggleSidebar} variant="ghost" size="icon" className={`hidden sm:flex justify-center items-center`}>
+          {isSidebarOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+        </Button>
       </div>
 
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
@@ -114,13 +113,13 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) 
                 !isSidebarOpen && 'justify-center'
               )}
             >
-            <item.icon className='h-5 w-5 flex-shrink-0' />
-            <span className={cn('whitespace-nowrap', !isSidebarOpen && 'hidden')}>
-              {item.name}
-            </span>
-          </Link>
-        );
-      })}
+              <item.icon className='h-5 w-5 flex-shrink-0' />
+              <span className={cn('whitespace-nowrap', !isSidebarOpen && 'hidden')}>
+                {item.name}
+              </span>
+            </Link>
+          );
+        })}
       </nav>
 
       <div className="p-4 border-t border-gray-200">
@@ -158,7 +157,7 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) 
       {/* Desktop Sidebar (Permanent Flex Item) */}
       <aside className={cn(
         'hidden md:flex flex-col   border-gray-200 transition-all duration-300 ease-in-out',
-        isSidebarOpen ? 'w-48' : 'w-20'
+        isSidebarOpen ? 'w-64' : 'w-20'
       )}>
         <SidebarContent />
       </aside>
