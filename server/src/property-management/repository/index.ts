@@ -3,7 +3,7 @@ import { UserDao } from "./hierarchy.repository";
 import {
     PropertyDao,
     PropertyAddressDao,
-    PropertyAmenityDao
+    PropertyAmenityDao,
 } from "./property.repository";
 import {PropertyConfigRepo} from "./property-config.repository"
 import { RoomAmenityDao, RoomDao } from "./room.repository";
@@ -37,5 +37,5 @@ export{
     PropertyTypeSelectionDao,
     PropertyTypesDao,
     RoomAminityDao,
-    PropertyConfigRepo
+    PropertyConfigRepo,
 }

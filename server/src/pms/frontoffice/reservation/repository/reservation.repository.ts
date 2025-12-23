@@ -1,59 +1,49 @@
 import { prisma } from "../../../../config";
-
+import { BookingStatus, Reservation } from "../../../../generated/prisma";
 import {
-    BookingSource, ICReservation,
+    ICReservation,
     IReservation,
     IReservationWithAllDetails,
-    ReservationStatus,
-    ICPartialReservationRoom,
-    IPartialReservationRoom,
     IReservationPriceBrakeDownR,
     IAriManulupulation
 } from "../types";
 
 export class ReservationRepository {
-    public async createReservation(reservationData: ICReservation, guestIds?: string[]): Promise<IReservation | Error> {
+    public async createReservation(data: ICReservation) {
         try {
-            const result = await prisma.reservation.create({
-                data: {
-                    ...reservationData,
-                    ...(guestIds && guestIds.length > 0 && {
-                        Guests: {
-                            connect: guestIds.map(id => ({ id }))
-                        }
-                    })
-                },
+            return await prisma.reservation.create({
+                data,
                 include: {
-                    Guests: true,
+                    primaryGuest: true,
+                    priceBreakdowns: true
                 }
-            })
-            return result ;
+            });
         } catch (error) {
             if (error instanceof Error) {
-                throw new Error(error.message)
+                throw new Error(`Failed to create reservation: ${error.message}`);
             }
-            throw new Error("Failed to create Reservations")
+            throw new Error("Failed to create reservation");
         }
     }
-    public async getReservationForADate(propertyCode: string, date: Date): Promise<IReservationWithAllDetails[] | Error> {
+
+    public async getReservationForADate(propertyId: string, date: Date): Promise<IReservationWithAllDetails[]> {
         try {
             const start = new Date(date);
             start.setHours(0, 0, 0, 0);
-            const end = this.getNextDate(start)
+            const end = this.getNextDate(start);
 
             return await prisma.reservation.findMany({
                 where: {
-                    propertyCode,
-                    from: {
+                    propertyId,
+                    checkInDate: {
                         gte: start,
-                        lt: end // exclusive upper bound
+                        lt: end
                     }
                 },
                 orderBy: { createdAt: 'desc' },
-
                 include: {
-                    Guests: true,
-                   
+                    primaryGuest: true,
+                    priceBreakdowns: true,
                     addOns: true,
                 }
             });
@@ -64,249 +54,237 @@ export class ReservationRepository {
             throw new Error("Failed to fetch reservations");
         }
     }
-    public async getArrivals(propertyCode: string, arrivalDate: Date): Promise<IReservationWithAllDetails[] | Error> {
 
+    public async getArrivals(propertyId: string, arrivalDate: Date): Promise<IReservationWithAllDetails[]> {
         try {
             const start = new Date(arrivalDate);
             start.setHours(0, 0, 0, 0);
-            const end = this.getNextDate(start)
+            const end = this.getNextDate(start);
+
             return await prisma.reservation.findMany({
                 where: {
-                    propertyCode,
-                    from: {
+                    propertyId,
+                    checkInDate: {
                         gte: start,
-                        lt: end //debug here
+                        lt: end
                     },
-                    reservationStatus: "reserved"
-                }, orderBy: { createdAt: 'desc' },
+                    bookingStatus: "confirmed"
+                },
+                orderBy: { createdAt: 'desc' },
                 include: {
-                    Guests: true,
-                    
+                    primaryGuest: true,
+                    priceBreakdowns: true,
                     addOns: true,
                 }
-            })
+            });
         } catch (error) {
             if (error instanceof Error) {
-                throw new Error(`getReservationForADate failed: ${error.message}`);
+                throw new Error(`getArrivals failed: ${error.message}`);
             }
             throw new Error("Failed to fetch Arrivals");
         }
     }
-    public async getDepartures(propertyCode: string, departureDate: Date): Promise<IReservationWithAllDetails[] | Error> {
 
+    public async getDepartures(propertyId: string, departureDate: Date): Promise<IReservationWithAllDetails[]> {
         try {
             const start = new Date(departureDate);
             start.setHours(0, 0, 0, 0);
-            const end = this.getNextDate(start)
+            const end = this.getNextDate(start);
+
             return await prisma.reservation.findMany({
                 where: {
-                    propertyCode,
-                    to: {
+                    propertyId,
+                    checkOutDate: {
                         gte: start,
-                        lt: end //debug here
+                        lt: end
                     },
-                    reservationStatus: "checked_in"
-                }, 
+                    bookingStatus: "confirmed"
+                },
                 orderBy: { createdAt: 'desc' },
                 include: {
-                    Guests: true,
+                    primaryGuest: true,
+                    priceBreakdowns: true,
                     addOns: true,
                 }
-            })
+            });
         } catch (error) {
             if (error instanceof Error) {
-                throw new Error(`getReservationForADate failed: ${error.message}`);
+                throw new Error(`getDepartures failed: ${error.message}`);
             }
-            throw new Error("Failed to fetch Arrivals");
+            throw new Error("Failed to fetch Departures");
         }
     }
-    public async getCheckIns(propertyCode: string, checkInDate: Date): Promise<IReservationWithAllDetails[] | Error> {
 
+    public async getCheckIns(propertyId: string, checkInDate: Date): Promise<IReservationWithAllDetails[]> {
         try {
             const start = new Date(checkInDate);
             start.setHours(0, 0, 0, 0);
-            const end = this.getNextDate(start)
+            const end = this.getNextDate(start);
+
             return await prisma.reservation.findMany({
                 where: {
-                    propertyCode,
-                    from: {
+                    propertyId,
+                    checkInDate: {
                         gte: start,
-                        lt: end //debug here
+                        lt: end
                     },
-                    reservationStatus: "checked_in"
-                }, 
-                                orderBy: { createdAt: 'desc' },
-
+                    bookingStatus: "confirmed"
+                },
+                orderBy: { createdAt: 'desc' },
                 include: {
-                    Guests: true,
-                    
+                    primaryGuest: true,
+                    priceBreakdowns: true,
                     addOns: true,
                 }
-            })
+            });
         } catch (error) {
             if (error instanceof Error) {
-                throw new Error(`getReservationForADate failed: ${error.message}`);
+                throw new Error(`getCheckIns failed: ${error.message}`);
             }
-            throw new Error("Failed to fetch Arrivals");
+            throw new Error("Failed to fetch Check-ins");
         }
     }
-    public async getCheckouts(propertyCode: string, checOutDate: Date): Promise<IReservationWithAllDetails[] | Error> {
 
+    public async getCheckouts(propertyId: string, checkOutDate: Date): Promise<IReservationWithAllDetails[]> {
         try {
-            const start = new Date(checOutDate);
+            const start = new Date(checkOutDate);
             start.setHours(0, 0, 0, 0);
-            const end = this.getNextDate(start)
+            const end = this.getNextDate(start);
+
             return await prisma.reservation.findMany({
                 where: {
-                    propertyCode,
-                    to: {
+                    propertyId,
+                    checkOutDate: {
                         gte: start,
-                        lt: end //debug here
+                        lt: end
                     },
-                    reservationStatus: "checked_out"
-                },         
-                       orderBy: { createdAt: 'desc' },
-
- include: {
-                    Guests: true,
-                    
+                    bookingStatus: "confirmed"
+                },
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    primaryGuest: true,
+                    priceBreakdowns: true,
                     addOns: true,
                 }
-            })
+            });
         } catch (error) {
             if (error instanceof Error) {
-                throw new Error(`getReservationForADate failed: ${error.message}`);
+                throw new Error(`getCheckouts failed: ${error.message}`);
             }
-            throw new Error("Failed to fetch Arrivals");
+            throw new Error("Failed to fetch Check-outs");
         }
     }
+
     private getNextDate(currentDate: Date): Date {
         const start = new Date(currentDate);
         start.setHours(0, 0, 0, 0);
         const end = new Date(start);
         end.setDate(end.getDate() + 1);
-        return end
+        return end;
     }
-    public async amendReservation(reservationId: string, newCheckoutDate: Date): Promise<IReservation | Error> {
+
+    public async amendReservation(reservationId: string, newCheckoutDate: Date): Promise<IReservation> {
         try {
             return await prisma.reservation.update({
-                where: {
-                    id: reservationId
-                }, data: {
-                    to: newCheckoutDate
-                }, include: {
-                    Guests: true,
+                where: { id: reservationId },
+                data: { checkOutDate: newCheckoutDate },
+                include: { 
+                    primaryGuest: true,
+                    priceBreakdowns: true
                 }
-            })
+            });
         } catch (error) {
             if (error instanceof Error) {
-                throw new Error(error.message)
+                throw new Error(`Failed to amend reservation: ${error.message}`);
             }
-            throw new Error("Failed to extend ReservationDate")
+            throw new Error("Failed to extend ReservationDate");
         }
     }
-    public async deleteReservation(reservationId: string): Promise<IReservation | Error> {
+
+    public async deleteReservation(reservationId: string): Promise<IReservation> {
         try {
             return await prisma.reservation.update({
-                where: {
-                    id: reservationId
-                }, data: {
-                    reservationStatus: "cancelled"
-                }, include: {
-                    Guests: true,
+                where: { id: reservationId },
+                data: { bookingStatus: "cancelled" },
+                include: {
+                    primaryGuest: true,
+                    priceBreakdowns: true
                 }
-            })
+            });
         } catch (error) {
             if (error instanceof Error) {
-                throw new Error(error.message)
+                throw new Error(`Failed to cancel reservation: ${error.message}`);
             }
-            throw new Error("Failed to delete ReservationDate")
+            throw new Error("Failed to delete ReservationDate");
         }
     }
-    public async getReservaltionByCode(reservationCode: string): Promise<IReservationWithAllDetails | null | Error> {
+
+    public async getReservaltionByCode(reservationCode: string): Promise<IReservationWithAllDetails | null> {
         try {
             return await prisma.reservation.findUnique({
-                where: {
-                    bookingCode: reservationCode
-                },
+                where: { bookingCode: reservationCode },
                 include: {
-                    Guests: true,
+                    primaryGuest: true,
+                    priceBreakdowns: true,
                     addOns: true,
                 },
-            })
+            });
         } catch (error) {
             if (error instanceof Error) {
-                throw new Error(error.message)
+                throw new Error(`Failed to fetch reservation: ${error.message}`);
             }
-            throw new Error("Failed to fetch reservation by code")
+            throw new Error("Failed to fetch reservation by code");
         }
     }
 
-    public async updateReservationStatus(reservationId: string, status: ReservationStatus): Promise<IReservation | Error> {
+    public async updateReservationStatus(reservationId: string, status: BookingStatus): Promise<IReservation> {
         try {
             return await prisma.reservation.update({
-                where: {
-                    id: reservationId
-                },
-                data: {
-                    reservationStatus: status
-                },
+                where: { id: reservationId },
+                data: { bookingStatus: status },
                 include: {
-                    Guests: true,
+                    primaryGuest: true,
+                    priceBreakdowns: true
                 }
-            })
+            });
         } catch (error) {
             if (error instanceof Error) {
-                throw new Error(error.message)
+                throw new Error(`Failed to update status: ${error.message}`);
             }
-            throw new Error("Failed to update reservation status")
+            throw new Error("Failed to update reservation status");
         }
     }
-    public async getReservationById(resvationId: string): Promise<IReservationWithAllDetails | null | Error> {
+
+    public async getReservationById(reservationId: string): Promise<IReservationWithAllDetails | null> {
         try {
             return await prisma.reservation.findUnique({
-                where: {
-                    id: resvationId
-                },
-
+                where: { id: reservationId },
                 include: {
-                    Guests: true,
-                    
+                    primaryGuest: true,
+                    priceBreakdowns: true,
                     addOns: true
                 }
-            })
+            });
         } catch (error) {
             if (error instanceof Error) {
-                throw new Error(error.message)
+                throw new Error(`Failed to fetch reservation: ${error.message}`);
             }
-            throw new Error("Failed to fetch reservation by Id")
+            throw new Error("Failed to fetch reservation by Id");
         }
     }
 }
 
-
-// export class PartialReservationRoomsRepository {
-//     public async createPartialReservationRooms(partialReservationRoomsData: ICPartialReservationRoom[]): Promise<IPartialReservationRoom[] | any | Error> {
-//         try {
-//             return await prisma.partialReservationRoom.createMany({
-//                 data: partialReservationRoomsData
-//             })
-//         } catch (error) {
-//             throw new Error("Failed to create Partial Reservation Rooms")
-//         }
-//     }
-// }
-
 export class PriceBrakeDownRepo {
     public async createpriceBrakeDowns(priceBrakeDowns: IReservationPriceBrakeDownR[]) {
-        // console.log("Creating Price Brake Downs:", priceBrakeDowns);
         try {
             return await prisma.reservationPriceBrakeDown.createMany({
                 data: priceBrakeDowns
-            })
+            });
         } catch (error) {
-            // console.log(error)
-            throw new Error("Failed to create Price Brake Downs")
+            if (error instanceof Error) {
+                throw new Error(`Failed to create price breakdowns: ${error.message}`);
+            }
+            throw new Error("Failed to create Price Brake Downs");
         }
     }
 }
@@ -323,23 +301,25 @@ export class AriManupulationRepo {
                             date: {
                                 in: ariManupulationRooms.dates
                             }
-                        }, data: {
+                        },
+                        data: {
                             availability: {
                                 decrement: room.numberOfRooms
                             }
                         }
-                    })
-                    console.log(`Decreased availability for ${room.roomTypeCode} in ${ariManupulationRooms.propertyCode} where dates: ${ariManupulationRooms.dates}: ${result.count} records updated`);
+                    });
+                    console.log(`Decreased availability for ${room.roomTypeCode} in ${ariManupulationRooms.propertyCode}: ${result.count} records updated`);
                 }
-            })
+            });
         } catch (error) {
             if (error instanceof Error) {
                 console.error("Failed to decrease Available Rooms:", error.message);
                 throw new Error(`Failed to decrease Available Rooms: ${error.message}`);
             }
-            throw new Error("Failed to decrease Available Rooms")
+            throw new Error("Failed to decrease Available Rooms");
         }
     }
+
     public async increaseAvailableRooms(ariManupulationRooms: IAriManulupulation) {
         try {
             return await prisma.$transaction(async (tx) => {
@@ -351,21 +331,51 @@ export class AriManupulationRepo {
                             date: {
                                 in: ariManupulationRooms.dates
                             }
-                        }, data: {
+                        },
+                        data: {
                             availability: {
                                 increment: room.numberOfRooms
                             }
                         }
-                    })
+                    });
                     console.log(`Increased availability for ${room.roomTypeCode}: ${result.count} records updated`);
                 }
-            })
+            });
         } catch (error) {
             if (error instanceof Error) {
                 console.error("Failed to increase Available Rooms:", error.message);
                 throw new Error(`Failed to increase Available Rooms: ${error.message}`);
             }
-            throw new Error("Failed to increase Available Rooms")
+            throw new Error("Failed to increase Available Rooms");
+        }
+    }
+}
+
+// Guest Repository
+export class GuestRepository {
+    public async getGuestByEmail(email: string) {
+        try {
+            return await prisma.guests.findFirst({
+                where: { email }
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`Failed to fetch guest: ${error.message}`);
+            }
+            throw new Error("Failed to fetch guest by email");
+        }
+    }
+
+    public async createGuest(data: any) {
+        try {
+            return await prisma.guests.create({
+                data
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`Failed to create guest: ${error.message}`);
+            }
+            throw new Error("Failed to create guest");
         }
     }
 }

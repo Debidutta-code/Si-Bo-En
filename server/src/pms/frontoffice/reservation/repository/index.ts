@@ -1,10 +1,12 @@
 import {ReservationRepository,
     PriceBrakeDownRepo,
-    AriManupulationRepo
+    AriManupulationRepo,
+    GuestRepository
 } from "./reservation.repository";
 
 export{
     ReservationRepository,
     PriceBrakeDownRepo,
-    AriManupulationRepo
+    AriManupulationRepo,
+    GuestRepository
 }

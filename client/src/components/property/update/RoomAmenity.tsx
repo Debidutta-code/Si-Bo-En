@@ -78,7 +78,7 @@ export default function RoomAmenities({
   }
 
   return (
-    <div className="max-h-[80vh] overflow-y-auto px-2 py-1">
+    <div className="max-h-[90vh] w-full overflow-y-auto px-2 py-1">
       {/* Amenity Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
         {availableAmenities.map((name) => {
@@ -89,7 +89,7 @@ export default function RoomAmenities({
               type="button"
               onClick={() => handleToggle(name)}
               className={cn(
-                "relative flex flex-col items-center p-4 rounded-xl border-2 transition-all",
+                "relative flex flex-col items-center px-10 py-4 rounded-xl border-2 transition-all",
                 isSelected
                   ? "bg-black text-white border-black shadow-md"
                   : "bg-white border-gray-300 hover:border-black hover:shadow-md"
