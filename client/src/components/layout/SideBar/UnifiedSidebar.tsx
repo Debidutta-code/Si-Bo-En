@@ -42,11 +42,6 @@ const navigation: NavItem[] = [
 
 // Property-specific navigation items
 const propertyNavigation: NavItem[] = [
-  { name: "Inventory", href: `/property/inventory/`, icon: Building, userLevels: [1, 0, 2, 3, 4], isPropertySpecific: true },
-  { name: "Policy", href: `/property/policy/`, icon: CalendarClock, userLevels: [0, 1, 2, 3, 4], isPropertySpecific: true },
-  { name: 'Promo Code', href: `/property/promo-code/`, icon: FileText, userLevels: [0, 1, 2, 3, 4], isPropertySpecific: true },
-  { name: 'Add On', href: `/property/add-on/`, icon: Users, userLevels: [4, 3, 2, 1], isPropertySpecific: true },
-  { name: 'Tax System', href: `/property/tax-system/`, icon: Shield, userLevels: [4], isPropertySpecific: true },
   { name: "C Panel", href: `/property/booking-engine-config/`, icon: FileText, userLevels: [0, 1, 2, 3, 4], isPropertySpecific: true },
 ];
 
@@ -107,11 +102,25 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
     { name: 'Rate Plan Allortment', href: `/property/rate-plan/map/${propertyId}` },
   ];
 
+  // Management sub-items
+  const managementItems = [
+    { name: 'Inventory', href: `/property/inventory/${propertyId}`, icon: Building, userLevels: [1, 0, 2, 3, 4] },
+    { name: 'Policy', href: `/property/policy/${propertyId}`, icon: CalendarClock, userLevels: [0, 1, 2, 3, 4] },
+    { name: 'Promo Code', href: `/property/promo-code/${propertyId}`, icon: FileText, userLevels: [0, 1, 2, 3, 4] },
+    { name: 'Add On', href: `/property/add-on/${propertyId}`, icon: Users, userLevels: [4, 3, 2, 1] },
+    { name: 'Tax System', href: `/property/tax-system/${propertyId}`, icon: Shield, userLevels: [4] },
+  ];
+
   // Filter navigation based on user level
   const filteredNavigation = navigation.filter(item => user && item.userLevels.includes(user.userLevel));
   
   // Filter property navigation if we're in a property context
   const filteredPropertyNavigation = propertyNavigation.filter(item => 
+    user && item.userLevels.includes(user.userLevel)
+  );
+
+  // Filter management items based on user level
+  const filteredManagementItems = managementItems.filter(item => 
     user && item.userLevels.includes(user.userLevel)
   );
 
@@ -315,6 +324,22 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
                 >
                   Bank Details
                 </Link>
+                
+                {/* New Management Items */}
+                {filteredManagementItems.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={cn(
+                      'flex items-center px-3 py-2 rounded-lg text-sm transition-colors',
+                      location.pathname.startsWith(item.href)
+                        ? 'bg-primary/10 text-primary font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    )}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
               </div>
             )}
           </div>

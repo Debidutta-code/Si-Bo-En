@@ -20,7 +20,7 @@ import AccessControlPage from "./pages/access-control/page.tsx";
 import NotFound from "./pages/not-found/Page.tsx";
 import GroupId from "./pages/property/group/page.tsx";
 import BrandId from "./pages/property/brand/page.tsx";
-import PropertyId from "./pages/property/property/page.tsx";
+import PropertyId from "./pages/property/id/page.tsx";
 import MappedRatePlans from "./pages/map-rate-plan/page.tsx";
 import Policies from "./pages/policies/page.tsx";
 import PromoCode from "./pages/promocode/page.tsx";
@@ -75,7 +75,7 @@ export const router = createBrowserRouter(
         <Route path="promo-code/:propertyId" element={<PromoCode />} />
         <Route path="add-on/:propertyId" element={<AddOn />} />
         <Route path="tax-system/:propertyId" element={<TaxSystem />} />
-        <Route path="booking-engine-config/:propertyId" element={<BookingEngineConfig/>} />
+        <Route path="booking-engine-config/:propertyId" element={<BookingEngineConfig />} />
         <Route path="price-management/seasons/:propertyId" element={<SeasonsManagement />} />
         <Route path="price-management/calendar/:propertyId" element={<CalendarView />} />
         <Route path="price-management/periods/:propertyId" element={<PeriodsManagement />} />

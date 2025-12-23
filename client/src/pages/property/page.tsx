@@ -1,4 +1,4 @@
-import { getCreation } from "./service/creation-filter.service"
+import { getCreation, getPropertyCreationId } from "./service/creation-filter.service"
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
@@ -153,7 +153,25 @@ export default function HotelsPage() {
                 {/* Actions */}
                 <div className="mt-4 flex space-x-2">
                   <Button variant="outline" size="sm" className="flex-1"
-                    onClick={() => { navigate(`/app/property/${currentTab}/${item.id}`) }}>
+                    onClick={async () => {
+                      if (currentTab === "property") {
+                        try {
+                          // Fetch the property creation data to get the actual property ID
+                          const response = await getPropertyCreationId(item.id);
+                          if (response.success && response.data?.propertyDetails?.id) {
+                            // Navigate directly to PropertyDetailsPage with the actual property ID
+                            navigate(`/property/${response.data.propertyDetails.id}`);
+                          } else {
+                            toast.error("Property details not found");
+                          }
+                        } catch (error) {
+                          console.error("Error fetching property details:", error);
+                          toast.error("Failed to fetch property details");
+                        }
+                      } else {
+                        navigate(`/app/property/${currentTab}/${item.id}`);
+                      }
+                    }}>
                     View Details
                   </Button>
                 </div>
