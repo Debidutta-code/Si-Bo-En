@@ -431,6 +431,8 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   // Calculate button text color - use provided buttonTextColor or get contrast color
   const calculatedButtonTextColor = buttonTextColor || getContrastTextColor(secondaryColor);
 
+  console.log("Rendering SearchWidget with colors:", { primaryColor, secondaryColor, tertiaryColor, buttonTextColor }, bookingContext);
+
   return (
     <>
       {/* Backdrop Overlay */}
@@ -692,7 +694,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 <button
                   className="text-[11px] font-semibold tracking-[0.1em] hover:opacity-80 transition-colors"
                   style={{ color: primaryColor }}
-                  onClick={() => router.push(`/my-trip?code=${bookingContext.bookingCode}`)}
+                  onClick={() => router.push(`/my-trip?code=${bookingContext.PropertyCode}`)}
                 >
                   MY BOOKING
                 </button>
@@ -892,7 +894,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 <button
                   className="text-[10px] font-semibold tracking-[0.1em] hover:opacity-80 transition-colors"
                   style={{ color: primaryColor }}
-                  onClick={() => router.push(`/my-trip?code=${bookingContext.bookingCode}`)}
+                  onClick={() => router.push(`/my-trip?code=${bookingContext.PropertyCode}`)}
                 >
                   MY BOOKING
                 </button>
@@ -958,7 +960,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 <button
                   className="text-xs font-semibold tracking-[0.1em] hover:opacity-80 transition-colors"
                   style={{ color: primaryColor }}
-                  onClick={() => router.push(`/my-trip?code=${bookingContext.bookingCode}`)}
+                  onClick={() => router.push(`/my-trip?code=${bookingContext.PropertyCode}`)}
                 >
                   MY BOOKING
                 </button>
@@ -1302,7 +1304,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 <button
                   className="w-full text-center text-sm font-semibold py-3 border-t border-[#D4CABA]"
                   style={{ color: primaryColor }}
-                  onClick={() => router.push(`/my-trip?code=${bookingContext.bookingCode}`)}
+                  onClick={() => router.push(`/my-trip?code=${bookingContext.PropertyCode}`)}
                 >
                   MY BOOKING
                 </button>

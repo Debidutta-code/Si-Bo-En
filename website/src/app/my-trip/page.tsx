@@ -28,7 +28,7 @@ export default function MyTripPage() {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const dispatch = useDispatch();
-  
+
 
   const handleSearch = async () => {
     if (!bookingCode.trim()) {
@@ -41,7 +41,7 @@ export default function MyTripPage() {
 
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking/my-trip?code=${bookingCode}`
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/pms/front-office/reservations/${bookingCode}`
       );
       const data = await res.json();
 
@@ -83,7 +83,7 @@ export default function MyTripPage() {
 
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking/my-trip?code=${codeFromUrl}`
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/pms/front-office/reservations/${codeFromUrl}`
         );
         const data = await res.json();
         console.log(data)
@@ -103,170 +103,170 @@ export default function MyTripPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-const handleDownloadPDF = () => {
-  if (!bookingData) return;
+  const handleDownloadPDF = () => {
+    if (!bookingData) return;
 
-  const doc = new jsPDF();
-  const pageWidth = doc.internal.pageSize.getWidth();
-  const centerX = pageWidth / 2;
-  let y = 15;
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const centerX = pageWidth / 2;
+    let y = 15;
 
-  // === HEADER BAR ===
-  doc.setFillColor(25, 85, 150);
-  doc.rect(0, 0, pageWidth, 25, "F");
-  doc.setTextColor(255, 255, 255);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(16);
-  doc.text("Booking Confirmation", centerX, 15, { align: "center" });
+    // === HEADER BAR ===
+    doc.setFillColor(25, 85, 150);
+    doc.rect(0, 0, pageWidth, 25, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text("Booking Confirmation", centerX, 15, { align: "center" });
 
-  y = 35;
+    y = 35;
 
-  // === STATUS BADGE ===
-  doc.setFontSize(10);
-  let statusColor: [number, number, number] = [34, 197, 94]; // green
-  if (bookingData.status === "Cancelled") statusColor = [239, 68, 68]; // red
-  if (bookingData.status === "Modified") statusColor = [234, 179, 8]; // yellow
+    // === STATUS BADGE ===
+    doc.setFontSize(10);
+    let statusColor: [number, number, number] = [34, 197, 94]; // green
+    if (bookingData.status === "Cancelled") statusColor = [239, 68, 68]; // red
+    if (bookingData.status === "Modified") statusColor = [234, 179, 8]; // yellow
 
-  doc.setTextColor(...statusColor);
-  doc.setFont("helvetica", "bold");
-  doc.text(`STATUS: ${bookingData.status}`, 20, y);
+    doc.setTextColor(...statusColor);
+    doc.setFont("helvetica", "bold");
+    doc.text(`STATUS: ${bookingData.status}`, 20, y);
 
-  doc.setTextColor(100);
-  doc.setFont("helvetica", "normal");
-  doc.text(`Booking Code: ${bookingCode || "N/A"}`, pageWidth - 20, y, {
-    align: "right",
-  });
+    doc.setTextColor(100);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Booking Code: ${bookingCode || "N/A"}`, pageWidth - 20, y, {
+      align: "right",
+    });
 
-  y += 15;
+    y += 15;
 
-  // === SPLIT INTO TWO COLUMNS (HOTEL INFO + STAY DETAILS) ===
-  const colLeftX = 20;
-  const colRightX = pageWidth / 2 + 10;
-  let yLeft = y;
-  let yRight = y;
+    // === SPLIT INTO TWO COLUMNS (HOTEL INFO + STAY DETAILS) ===
+    const colLeftX = 20;
+    const colRightX = pageWidth / 2 + 10;
+    let yLeft = y;
+    let yRight = y;
 
-  // --- LEFT: HOTEL INFO ---
-  doc.setTextColor(25, 85, 150);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
-  doc.text("HOTEL INFORMATION", colLeftX, yLeft);
-  doc.line(colLeftX, yLeft + 2, colLeftX + 70, yLeft + 2);
+    // --- LEFT: HOTEL INFO ---
+    doc.setTextColor(25, 85, 150);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text("HOTEL INFORMATION", colLeftX, yLeft);
+    doc.line(colLeftX, yLeft + 2, colLeftX + 70, yLeft + 2);
 
-  yLeft += 10;
-  doc.setTextColor(50);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  doc.text(`Hotel: ${bookingData.hotelName || bookingData.property?.name}`, colLeftX, yLeft);
-  yLeft += 6;
-  doc.text(`Room Type: ${bookingData.roomTypeCode}`, colLeftX, yLeft);
-
-  // --- RIGHT: STAY DETAILS ---
-  doc.setTextColor(25, 85, 150);
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(12);
-  doc.text("STAY DETAILS", colRightX, yRight);
-  doc.line(colRightX, yRight + 2, colRightX + 60, yRight + 2);
-
-  yRight += 10;
-  doc.setTextColor(50);
-  doc.setFont("helvetica", "normal");
-  doc.setFontSize(10);
-  doc.text(`Check-In: ${new Date(bookingData.checkInDate).toDateString()}`, colRightX, yRight);
-  yRight += 6;
-  doc.text(`Check-Out: ${new Date(bookingData.checkOutDate).toDateString()}`, colRightX, yRight);
-  yRight += 6;
-  doc.text(`Rooms: ${bookingData.finalPrice?.requestedRooms || 1}`, colRightX, yRight);
-
-  // Start second row
-  y = Math.max(yLeft, yRight) + 15;
-
-  // === SPLIT INTO TWO COLUMNS (GUEST INFO + PAYMENT INFO) ===
-  yLeft = y;
-  yRight = y;
-
-  // --- LEFT: GUEST INFO ---
-  doc.setTextColor(25, 85, 150);
-  doc.setFont("helvetica", "bold");
-  doc.text("GUEST INFORMATION", colLeftX, yLeft);
-  doc.line(colLeftX, yLeft + 2, colLeftX + 75, yLeft + 2);
-
-  yLeft += 10;
-  doc.setTextColor(50);
-  doc.setFont("helvetica", "normal");
-  bookingData.guests.forEach((guest: any, index: number) => {
-    doc.text(
-      `${index + 1}. ${guest.firstName} ${guest.lastName} (${guest.type})`,
-      colLeftX + 5,
-      yLeft
-    );
+    yLeft += 10;
+    doc.setTextColor(50);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`Hotel: ${bookingData.hotelName || bookingData.property?.name}`, colLeftX, yLeft);
     yLeft += 6;
-  });
+    doc.text(`Room Type: ${bookingData.roomTypeCode}`, colLeftX, yLeft);
 
-  yLeft += 8;
-  doc.text(`Phone: +91${bookingData.bookingUserPhone}`, colLeftX, yLeft);
-  yLeft += 6;
-  doc.text(`Email: ${bookingData.bookingUserEmail}`, colLeftX, yLeft);
+    // --- RIGHT: STAY DETAILS ---
+    doc.setTextColor(25, 85, 150);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(12);
+    doc.text("STAY DETAILS", colRightX, yRight);
+    doc.line(colRightX, yRight + 2, colRightX + 60, yRight + 2);
 
-  // --- RIGHT: PAYMENT INFO ---
-  doc.setTextColor(25, 85, 150);
-  doc.setFont("helvetica", "bold");
-  doc.text("PAYMENT INFORMATION", colRightX, yRight);
-  doc.line(colRightX, yRight + 2, colRightX + 80, yRight + 2);
-
-  yRight += 10;
-  doc.setTextColor(50);
-  doc.setFont("helvetica", "normal");
-
-  // helper for payment rows
-  const addPaymentRow = (label: string, value: string, bold = false) => {
-    doc.setFont("helvetica", bold ? "bold" : "normal");
-    doc.text(label, colRightX, yRight);
-    doc.text(value, pageWidth - 20, yRight, { align: "right" });
+    yRight += 10;
+    doc.setTextColor(50);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    doc.text(`Check-In: ${new Date(bookingData.checkInDate).toDateString()}`, colRightX, yRight);
     yRight += 6;
+    doc.text(`Check-Out: ${new Date(bookingData.checkOutDate).toDateString()}`, colRightX, yRight);
+    yRight += 6;
+    doc.text(`Rooms: ${bookingData.finalPrice?.requestedRooms || 1}`, colRightX, yRight);
+
+    // Start second row
+    y = Math.max(yLeft, yRight) + 15;
+
+    // === SPLIT INTO TWO COLUMNS (GUEST INFO + PAYMENT INFO) ===
+    yLeft = y;
+    yRight = y;
+
+    // --- LEFT: GUEST INFO ---
+    doc.setTextColor(25, 85, 150);
+    doc.setFont("helvetica", "bold");
+    doc.text("GUEST INFORMATION", colLeftX, yLeft);
+    doc.line(colLeftX, yLeft + 2, colLeftX + 75, yLeft + 2);
+
+    yLeft += 10;
+    doc.setTextColor(50);
+    doc.setFont("helvetica", "normal");
+    bookingData.guests.forEach((guest: any, index: number) => {
+      doc.text(
+        `${index + 1}. ${guest.firstName} ${guest.lastName} (${guest.type})`,
+        colLeftX + 5,
+        yLeft
+      );
+      yLeft += 6;
+    });
+
+    yLeft += 8;
+    doc.text(`Phone: +91${bookingData.bookingUserPhone}`, colLeftX, yLeft);
+    yLeft += 6;
+    doc.text(`Email: ${bookingData.bookingUserEmail}`, colLeftX, yLeft);
+
+    // --- RIGHT: PAYMENT INFO ---
+    doc.setTextColor(25, 85, 150);
+    doc.setFont("helvetica", "bold");
+    doc.text("PAYMENT INFORMATION", colRightX, yRight);
+    doc.line(colRightX, yRight + 2, colRightX + 80, yRight + 2);
+
+    yRight += 10;
+    doc.setTextColor(50);
+    doc.setFont("helvetica", "normal");
+
+    // helper for payment rows
+    const addPaymentRow = (label: string, value: string, bold = false) => {
+      doc.setFont("helvetica", bold ? "bold" : "normal");
+      doc.text(label, colRightX, yRight);
+      doc.text(value, pageWidth - 20, yRight, { align: "right" });
+      yRight += 6;
+    };
+
+    addPaymentRow("Method:", bookingData.paymenttype || "N/A");
+    addPaymentRow("Booking Date:", new Date(bookingData.bookingdates).toDateString());
+    addPaymentRow("Total Amount:", `${bookingData.amount.toLocaleString("en-IN")}`, true);
+    addPaymentRow("Amount Paid:", `${bookingData.paidamount.toLocaleString("en-IN")}`, true);
+    addPaymentRow("Extra amount to be Paid(Check-in):", `${bookingData.extraamounttopay.toLocaleString("en-IN")}`);
+    addPaymentRow("Refundable Amount:", `${bookingData.refundamount.toLocaleString("en-IN")}`, true);
+
+    // === FOOTER ===
+    const footerY = doc.internal.pageSize.getHeight() - 15;
+    doc.setDrawColor(200);
+    doc.line(20, footerY - 5, pageWidth - 20, footerY - 5);
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    doc.setFont("helvetica", "normal");
+    doc.text(
+      "Thank you for booking with SwiftRooms. We look forward to hosting you!",
+      centerX,
+      footerY,
+      { align: "center" }
+    );
+
+    doc.save(`booking-itinerary-${bookingData.bookingCode || "trip"}.pdf`);
   };
 
-  addPaymentRow("Method:", bookingData.paymenttype || "N/A");
-  addPaymentRow("Booking Date:", new Date(bookingData.bookingdates).toDateString());
-  addPaymentRow("Total Amount:", `${bookingData.amount.toLocaleString("en-IN")}`, true);
-  addPaymentRow("Amount Paid:", `${bookingData.paidamount.toLocaleString("en-IN")}`, true);
-  addPaymentRow("Extra amount to be Paid(Check-in):", `${bookingData.extraamounttopay.toLocaleString("en-IN")}`);
-  addPaymentRow("Refundable Amount:", `${bookingData.refundamount.toLocaleString("en-IN")}`, true);
-
-  // === FOOTER ===
-  const footerY = doc.internal.pageSize.getHeight() - 15;
-  doc.setDrawColor(200);
-  doc.line(20, footerY - 5, pageWidth - 20, footerY - 5);
-  doc.setFontSize(9);
-  doc.setTextColor(120);
-  doc.setFont("helvetica", "normal");
-  doc.text(
-    "Thank you for booking with SwiftRooms. We look forward to hosting you!",
-    centerX,
-    footerY,
-    { align: "center" }
-  );
-
-  doc.save(`booking-itinerary-${bookingData.bookingCode || "trip"}.pdf`);
-};
 
 
 
+  useEffect(() => {
+    const isAnyModalOpen = showModal || showCancelModal || showUpdateModal;
 
-useEffect(() => {
-  const isAnyModalOpen = showModal || showCancelModal || showUpdateModal;
+    if (isAnyModalOpen) {
+      document.body.classList.add("overflow-hidden");
+    } else {
+      document.body.classList.remove("overflow-hidden");
+    }
 
-  if (isAnyModalOpen) {
-    document.body.classList.add("overflow-hidden");
-  } else {
-    document.body.classList.remove("overflow-hidden");
-  }
+    return () => {
+      document.body.classList.remove("overflow-hidden");
+    };
+  }, [showModal, showCancelModal, showUpdateModal]);
 
-  return () => {
-    document.body.classList.remove("overflow-hidden");
-  };
-}, [showModal, showCancelModal, showUpdateModal]);
-
-console.log("bookingdata",bookingData)
+  console.log("bookingdata", bookingData)
 
   return (
     <div className="min-h-screen bg-gray-100 px-4 pt-32 py-12 flex flex-col items-center">
@@ -473,7 +473,7 @@ console.log("bookingdata",bookingData)
                         </p>
                       </div>
                       <div>
-                      <p className="text-gray-800 font-medium">{guest.type.charAt(0).toUpperCase() + guest.type.slice(1)}</p>
+                        <p className="text-gray-800 font-medium">{guest.type.charAt(0).toUpperCase() + guest.type.slice(1)}</p>
                       </div>
                     </div>
                   ))}
@@ -561,7 +561,7 @@ console.log("bookingdata",bookingData)
               <div className="w-full sm:w-auto flex-1">
                 <button
                   onClick={handleDownloadPDF}
-                className="bg-gray-700 text-white px-4 py-2 rounded-md hover:bg-gray-800 w-full">
+                  className="bg-gray-700 text-white px-4 py-2 rounded-md hover:bg-gray-800 w-full">
                   <FaPrint className="inline mr-1 mb-1" /> Print Itinerary
                 </button>
               </div>

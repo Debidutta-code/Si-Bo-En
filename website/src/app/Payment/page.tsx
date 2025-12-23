@@ -53,7 +53,7 @@ const BookingReviewPage = () => {
   const currencyCode = finalPrice?.dailyBreakdown?.[0]?.currencyCode || "INR";
   const roomTypeCode = bookingDetails.roomTypeCode;
   const propertyCode = bookingDetails.PropertyCode;
-
+  const PropertyId=bookingDetails.PropertyDetails?.id;
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -96,7 +96,7 @@ const BookingReviewPage = () => {
         setBankDetailsLoading(true);
 
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/bank/getDetails/${propertyCode}`,
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/property-management/property/${PropertyId}/payment-details`,
           {
             method: "GET",
             headers: {
@@ -306,7 +306,7 @@ const BookingReviewPage = () => {
       };
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking/create-reservation-with-website`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/pms/front-office/reservations`,
         {
           method: "POST",
           headers: {
