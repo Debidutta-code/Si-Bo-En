@@ -1,8 +1,19 @@
 "use client";
 import { useState, useEffect } from "react";
-import { Minus, Plus, X } from "lucide-react";
+import { Minus, Plus } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
+
+// Shadcn UI Components
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "../ui/dialog";
+import { Button } from "../ui/button";
+import { Label } from "../ui/label";
 
 interface Room {
   adults: number;
@@ -29,11 +40,11 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
   useEffect(() => {
     if (bookingContext.guests && Array.isArray(bookingContext.guests.rooms)) {
       setRooms(
-  bookingContext.guests.rooms.map((room: any, idx: number) => ({
-    adults: idx === 0 ? room.adults || 1 : room.adults || 0,
-    children: room.children || 0,
-  }))
-);
+        bookingContext.guests.rooms.map((room: any, idx: number) => ({
+          adults: idx === 0 ? room.adults || 1 : room.adults || 0,
+          children: room.children || 0,
+        }))
+      );
       setTotalRooms(bookingContext.guests.rooms.length);
     }
   }, [bookingContext.guests]);
@@ -42,7 +53,7 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
     if (totalRooms > rooms.length) {
       const newRooms = [...rooms];
       while (newRooms.length < totalRooms) {
-        newRooms.push({ adults: 0, children: 0 }); // ✅ new room starts at 0 adults
+        newRooms.push({ adults: 0, children: 0 });
       }
       setRooms(newRooms);
     } else if (totalRooms < rooms.length) {
@@ -77,7 +88,6 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
       newRooms.push(room);
     }
 
-    // ✅ Ensure first room has at least 1 adult
     if (newRooms.length > 0 && newRooms[0].adults === 0) {
       newRooms[0].adults = 1;
       if (newRooms[0].children > 0) {
@@ -106,10 +116,8 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
     } else {
       if (field === "adults") {
         if (roomIndex === 0) {
-          // ✅ Room 1: minimum 1 adult
           room.adults = Math.max(1, room.adults - 1);
         } else {
-          // ✅ Other rooms: allow 0 adults
           room.adults = Math.max(0, room.adults - 1);
         }
       } else if (field === "children") {
@@ -135,62 +143,51 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
     onClose();
   };
 
-  useEffect(() => {
-    document.body.style.overflow = isOpen ? "hidden" : "auto";
-    return () => {
-      document.body.style.overflow = "auto";
-    };
-  }, [isOpen]);
-
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2 sm:p-4">
-      <div className="bg-white mt-20 rounded-2xl shadow-2xl w-full max-w-lg sm:max-w-xl md:max-w-2xl max-h-[80vh] overflow-y-auto">
-        <div className="p-4 sm:p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-              Select Occupancy
-            </h2>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors duration-200"
-            >
-              <X className="w-6 h-6" />
-            </button>
-          </div>
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="bg-white max-w-lg sm:max-w-xl md:max-w-2xl max-h-[80vh] overflow-y-auto p-0 rounded-2xl shadow-2xl">
+        {/* Dialog Header */}
+        <DialogHeader className="p-4 sm:p-6 border-b border-gray-200">
+          <DialogTitle className="text-xl sm:text-2xl font-bold text-gray-900 text-left">
+            Select Occupancy
+          </DialogTitle>
+        </DialogHeader>
 
+        {/* Dialog Body */}
+        <div className="p-4 sm:p-6 space-y-4">
           {/* Number of Rooms */}
-          <div className="mb-4">
-            <div className="bg-gray-50 rounded-xl px-4 py-3">
-              <div className="flex items-center justify-between">
-                <span className="text-base sm:text-lg font-semibold text-gray-900">
-                  Number of Rooms:
+          <div className="bg-gray-50 rounded-xl px-4 py-3">
+            <div className="flex items-center justify-between">
+              <Label className="text-base sm:text-lg font-semibold text-gray-900">
+                Number of Rooms:
+              </Label>
+              <div className="flex items-center space-x-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setTotalRooms(Math.max(1, totalRooms - 1))}
+                  disabled={totalRooms <= 1}
+                  className={`w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center transition-colors duration-200
+                    ${totalRooms <= 1
+                      ? "bg-gray-300 cursor-not-allowed opacity-50"
+                      : "bg-white hover:bg-gray-100"
+                    }`}
+                >
+                  <Minus className="w-5 h-5" />
+                </Button>
+                <span className="text-xl font-bold text-gray-900 w-8 text-center">
+                  {totalRooms}
                 </span>
-                <div className="flex items-center space-x-3">
-                  <button
-                    onClick={() => setTotalRooms(Math.max(1, totalRooms - 1))}
-                    className={`w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center  transition-colors duration-200
-                      ${
-                        totalRooms <= 1
-                          ? "bg-gray-300 cursor-not-allowed"
-                          : "hover:bg-gray-100 bg-white"
-                      }
-                      `}
-                    disabled={totalRooms <= 1}
-                  >
-                    <Minus className="w-5 h-5" />
-                  </button>
-                  <span className="text-xl font-bold text-gray-900 w-8 text-center">
-                    {totalRooms}
-                  </span>
-                  <button
-                    onClick={() => setTotalRooms(totalRooms + 1)} // ✅ no limit
-                    className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center transition-colors duration-200 bg-white hover:bg-gray-100"
-                  >
-                    <Plus className="w-5 h-5" />
-                  </button>
-                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setTotalRooms(totalRooms + 1)}
+                  className="w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center transition-colors duration-200 bg-white hover:bg-gray-100"
+                >
+                  <Plus className="w-5 h-5" />
+                </Button>
               </div>
             </div>
           </div>
@@ -210,37 +207,41 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
                   {/* Adults */}
                   <div className="bg-gray-50 rounded-lg px-3 py-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium text-gray-700">
+                      <Label className="text-sm font-medium text-gray-700">
                         Adults
-                      </span>
+                      </Label>
                       <div className="flex items-center space-x-2">
-                        <button
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
                           onClick={() => updateRoom(index, "adults", false)}
-                          className={`w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center transition-colors duration-200
-                            ${
-                              index === 0 && room.adults <= 1
-                                ? "bg-gray-300 cursor-not-allowed"
-                                : "bg-white hover:bg-gray-100"
-                            }`}
                           disabled={index === 0 && room.adults <= 1}
+                          className={`w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center transition-colors duration-200
+                            ${index === 0 && room.adults <= 1
+                              ? "bg-gray-300 cursor-not-allowed opacity-50"
+                              : "bg-white hover:bg-gray-100"
+                            }`}
                         >
                           <Minus className="w-4 h-4" />
-                        </button>
+                        </Button>
                         <span className="text-lg font-bold text-gray-900 w-6 text-center">
                           {room.adults}
                         </span>
-                        <button
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
                           onClick={() => updateRoom(index, "adults", true)}
-                          className={`w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center transition-colors duration-200
-                            ${
-                              room.adults >= 8
-                                ? "bg-gray-300 cursor-not-allowed"
-                                : "bg-white hover:bg-gray-100"
-                            }`}
                           disabled={room.adults >= 8}
+                          className={`w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center transition-colors duration-200
+                            ${room.adults >= 8
+                              ? "bg-gray-300 cursor-not-allowed opacity-50"
+                              : "bg-white hover:bg-gray-100"
+                            }`}
                         >
                           <Plus className="w-4 h-4" />
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   </div>
@@ -249,53 +250,61 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
                   <div className="bg-gray-50 rounded-lg px-3 py-3">
                     <div className="flex items-center justify-between">
                       <div>
-                        <span className="text-sm font-medium text-gray-700">
+                        <Label className="text-sm font-medium text-gray-700">
                           Children
-                        </span>
+                        </Label>
                         <p className="text-[0.65rem] text-gray-500">
                           Ages 0 - 17
                         </p>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <button
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
                           onClick={() => updateRoom(index, "children", false)}
                           className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center transition-colors duration-200 bg-white hover:bg-gray-100"
                         >
                           <Minus className="w-4 h-4" />
-                        </button>
+                        </Button>
                         <span className="text-lg font-bold text-gray-900 w-6 text-center">
                           {room.children}
                         </span>
-                        <button
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
                           onClick={() => updateRoom(index, "children", true)}
-                          className={`w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center transition-colors duration-200
-                            ${
-                              room.children >= 6
-                                ? "bg-gray-300 cursor-not-allowed"
-                                : "bg-white hover:bg-gray-100"
-                            }`}
                           disabled={room.children >= 6}
+                          className={`w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center transition-colors duration-200
+                            ${room.children >= 6
+                              ? "bg-gray-300 cursor-not-allowed opacity-50"
+                              : "bg-white hover:bg-gray-100"
+                            }`}
                         >
                           <Plus className="w-4 h-4" />
-                        </button>
+                        </Button>
                       </div>
                     </div>
                   </div>
                 </div>
               </div>
             ))}
-
-            {/* Apply Button */}
-            <button
-              onClick={handleApply}
-              className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg  transition-colors duration-200 mt-6 sm:mt-8"
-            >
-              Apply
-            </button>
           </div>
         </div>
-      </div>
-    </div>
+
+        {/* Dialog Footer - Apply Button */}
+        <DialogFooter className="p-4 sm:p-6 border-t border-gray-200">
+          <Button
+            type="button"
+            onClick={handleApply}
+            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg transition-colors duration-200"
+          >
+            Apply
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

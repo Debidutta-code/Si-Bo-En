@@ -1,5 +1,32 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
+
+interface BookingEngineConfig {
+  id: string;
+  propertyId: string;
+  primaryColor: string;
+  secondaryColor: string;
+  tertiaryColor: string;
+  buttonTextColor: string;
+  bannerImage: string;
+  logo: string;
+}
+
+interface PropertyAddress {
+  id: string;
+  addressLine1: string;
+  addressLine2: string;
+  country: string;
+  state: string;
+  city: string;
+  location: string;
+  landmark: string;
+  zipCode: string;
+  latitude: number;
+  longitude: number;
+  propertyId: string;
+}
+
 interface Guests {
   adults: number;
   children: number;
@@ -14,6 +41,12 @@ interface GuestDetail {
   dateOfBirth: string;
 }
 interface PropertyDetails {
+  id: string;
+  propertyName: string;
+  propertyCode: string;
+  starRating: number;
+  bookingEngineConfig: BookingEngineConfig;
+  address: PropertyAddress;
   _id: string;
   user_id: string;
   property_name: string;
@@ -35,12 +68,10 @@ interface PropertyDetails {
   room_Aminity: string;
 }
 export interface BookingEngineColor {
-  primaryColour: string;
-  secondaryColour: string;
-  TextColour: string;
-  ButtonbgColor: string;
-  buttonTextColour: string;
-  buttonHover: string;
+  primaryColor: string;  // Note: "colour" vs "color" - be consistent
+  secondaryColor: string;
+  tertiaryColor: string;
+  buttonTextColor: string;
   bgImage?: string;
   logo?: string;
 }
@@ -78,14 +109,14 @@ interface BookingState {
   ratePlanCode?: string;
   guestDetails?: GuestDetail[];
   finalPrice?: FinalPrice;
-  bookingStatus?:string;
+  bookingStatus?: string;
 
   numberOfRooms: number | null;
   bookingCode?: string;
   roomTypeCode?: string;
-    senderUrl?: string;
-    PropertyDetails?:PropertyDetails
-    bookingEngineColor?:BookingEngineColor
+  senderUrl?: string;
+  PropertyDetails?: PropertyDetails
+  bookingEngineColor?: BookingEngineColor
 }
 
 const initialState: BookingState = {
@@ -110,26 +141,26 @@ const initialState: BookingState = {
   roomTypeCode: undefined,
   guestDetails: undefined,
   numberOfRooms: null,
-  bookingCode: undefined, 
-  PropertyDetails:undefined,
+  bookingCode: undefined,
+  PropertyDetails: undefined,
 };
 
 const bookingSlice = createSlice({
   name: "booking",
   initialState,
   reducers: {
- setBookingContext(state, action: PayloadAction<BookingState>) {
-  return {
-    ...state,
-    ...action.payload,
-  };
-},
+    setBookingContext(state, action: PayloadAction<BookingState>) {
+      return {
+        ...state,
+        ...action.payload,
+      };
+    },
 
     setFullBookingDetails(state, action: PayloadAction<BookingState>) {
-      return  {
-    ...state,
-    ...action.payload,
-  };
+      return {
+        ...state,
+        ...action.payload,
+      };
     },
     clearBookingContext() {
       return initialState;
@@ -140,10 +171,10 @@ const bookingSlice = createSlice({
     setBookingStatus(state, action: PayloadAction<string>) {
       state.bookingStatus = action.payload;
     },
-        setSenderUrl(state, action: PayloadAction<string>) {
+    setSenderUrl(state, action: PayloadAction<string>) {
       state.senderUrl = action.payload;
     },
-     clearSenderUrl(state) {
+    clearSenderUrl(state) {
       state.senderUrl = undefined;
     },
   },
@@ -155,7 +186,7 @@ export const {
   clearBookingContext,
   setBookingCode,
   setBookingStatus,
-   setSenderUrl,
+  setSenderUrl,
   clearSenderUrl,
 } = bookingSlice.actions;
 export default bookingSlice.reducer;

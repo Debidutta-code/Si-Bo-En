@@ -6,7 +6,7 @@ export class RoomRentCalculationController {
   public static async getRoomRentController(req: CustomRequest, res: Response) {
     try {
       const {
-        propertyId,
+        propertyCode,
         invTypeCode,
         startDate,
         endDate,
@@ -17,7 +17,7 @@ export class RoomRentCalculationController {
       } = req.body;
 
       // Validate required fields
-      if (!propertyId) {
+      if (!propertyCode) {
         return res.status(400).json(errorResponse('Property is not chosen'));
       }
       if (!invTypeCode) {
@@ -49,7 +49,7 @@ export class RoomRentCalculationController {
       }
 
       const response = await RoomRentCalculationService.getRoomRentService(
-        propertyId,
+        propertyCode,
         invTypeCode,
         new Date(startDate),
         new Date(endDate),

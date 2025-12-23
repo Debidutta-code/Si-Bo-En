@@ -12,6 +12,8 @@ import RoomCard from "@/src/components/RoomPage/RoomCard";
 import PriceSummarySidebar from "../../components/RoomPage/Pricesummerysidebar";
 import { Room } from "@/src/store/roomsSlice";
 import GuestFormModal from "../../components/GuestModals/GuestFormModal";
+import { Building2, Calendar, MessageCircle, Moon, Plus } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 
 interface Guest {
   type: "adult" | "child";
@@ -76,6 +78,9 @@ interface PriceSummaryData {
 
 
 const Rooms = () => {
+  const [selectedBoardType, setSelectedBoardType] = useState("all");
+  const [selectedCurrency, setSelectedCurrency] = useState("USD");
+  const [showUrgencyBanner, setShowUrgencyBanner] = useState(true);
   const dispatch = useDispatch();
   const router = useRouter();
   const rooms = useSelector((state: RootState) => state.rooms.rooms);
@@ -212,7 +217,7 @@ const Rooms = () => {
 
     try {
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/rate-plan/getRoomRentPrice`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/ari/price/get-price`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -299,6 +304,7 @@ const Rooms = () => {
         }
       );
       const data = await response.json();
+
       if (!response.ok || data.status === "fail") {
         const msg = data.message || "Failed to load rooms.";
         toast.error(msg);
@@ -306,18 +312,33 @@ const Rooms = () => {
         return;
       }
 
+      // Extract property details from API response
+      const propertyDetails = data.data?.propertyDetails;
+
+      // Create booking engine color object from config
+      const bookingEngineColor = propertyDetails?.bookingEngineConfig ? {
+        primaryColor: propertyDetails.bookingEngineConfig.primaryColor,
+        secondaryColor: propertyDetails.bookingEngineConfig.secondaryColor,
+        tertiaryColor: propertyDetails.bookingEngineConfig.tertiaryColor,
+        buttonTextColor: propertyDetails.bookingEngineConfig.buttonTextColor,
+        bgImage: propertyDetails.bookingEngineConfig.bannerImage,
+        logo: propertyDetails.bookingEngineConfig.logo
+      } : undefined;
+
       const updatedContext = {
         ...bookingCtx,
-        hotelName: data.propertyName,
-        PropertyDetails: data.propertyDetails,
-        bookingEngineColor: data.bookingEngineColor,
+        hotelName: data.propertyName || propertyDetails?.propertyName,
+        PropertyDetails: propertyDetails,
+        bookingEngineColor: bookingEngineColor,
       };
+
       dispatch(setBookingContext(updatedContext));
 
       dispatch({ type: "rooms/setRooms", payload: data.data || [] });
       setRoomsData(data.data?.rooms || []);
       setAddons(data.addons || []);
-      setPropertyDetails(data.propertyDetails || null);
+      setPropertyDetails(propertyDetails || null);
+
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || "Something went wrong while fetching rooms.");
@@ -393,6 +414,43 @@ const Rooms = () => {
 
   const { primaryColor } = useBookingColors();
 
+  // Close handler for urgency banner
+  const handleCloseUrgencyBanner = () => {
+    setShowUrgencyBanner(false);
+
+    // Optional: Save to localStorage so it doesn't show again
+    localStorage.setItem('urgencyBannerDismissed', 'true');
+  };
+
+  // Optional: Initialize banner visibility from localStorage
+  useEffect(() => {
+    const isDismissed = localStorage.getItem('urgencyBannerDismissed');
+    if (isDismissed === 'true') {
+      setShowUrgencyBanner(true);
+      localStorage.setItem('urgencyBannerDismissed', 'false');
+    }
+  }, []);
+
+  console.log("Rooms data:", roomsData);
+  console.log("Booking context:", bookingContext);
+  console.log("Property details:", propertyDetails);
+  console.log("Addons:", addons);
+  console.log("Final price:", finalPrice);
+  console.log("Price summary data:", priceSummaryData);
+  console.log("Selected board type:", selectedBoardType);
+  console.log("Selected currency:", selectedCurrency);
+
+  // Extract unique board types from all rooms
+  const availableBoardTypes = Array.from(
+    new Set(
+      roomsData
+        .filter((room: Room) => room.has_valid_rate)
+        .flatMap((room: Room) =>
+          room.room_price.map((rp: any) => rp.ratePlanName)
+        )
+    )
+  );
+
   return (
     <div className="w-full">
       {!loaded && (
@@ -403,11 +461,12 @@ const Rooms = () => {
       <div
         className={`min-h-screen bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${loaded ? "opacity-100" : "opacity-0"
           }`}
-        style={{ backgroundImage: `url(${bgImage})` }}
+        // style={{ backgroundImage: `url(${bgImage})` }}
         onLoad={() => setLoaded(true)}
       >
         <div className="sticky top-0 z-40 bg-white/90 backdrop-blur shadow-sm">
-          <SearchWidget onSearchStart={handleSearchStart} />
+          <SearchWidget
+            onSearchStart={handleSearchStart} />
         </div>
 
         <div className="px-4 pb-2">
@@ -415,7 +474,123 @@ const Rooms = () => {
             <div className="flex gap-6">
               {/* Main Content - Rooms List */}
               <div className={`flex-1 ${showPriceSummary ? 'lg:w-2/3' : 'w-full'} transition-all duration-300`}>
-                <div className="px-4 sm:px-6 py-2 bg-gray-200 rounded-xl">
+                {/* Urgency Banner */}
+                {showUrgencyBanner && (
+                  <div className="relative mb-8">
+                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+                      <div className="relative">
+                        {/* Close button */}
+                        <button
+                          className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors z-10"
+                          onClick={handleCloseUrgencyBanner}
+                          aria-label="Close urgency message"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+
+                        {/* Main Text - moved up to make room for the clock icon */}
+                        <div className="text-center px-6 pt-12 pb-4">
+                          <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
+                            YOU WILL GET THE BEST AVAILABLE PRICE IF YOU BOOK NOW!
+                          </h3>
+                          <p className="text-sm md:text-base text-gray-600 font-medium">
+                            THE PRICES CAN RISE AT ANY MOMENT. DON'T WAIT ANY LONGER!
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Clock Icon positioned above the plus icon */}
+                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-20">
+                      <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center shadow-md border border-amber-200">
+                        <MessageCircle />
+                      </div>
+                    </div>
+
+                    {/* Plus Icon */}
+                    <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 z-10">
+                      <div className="w-7 h-7 rounded-full border-2 border-gray-800 flex items-center justify-center bg-white shadow-lg">
+                        <Plus size={15} />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Filter Section */}
+                <div className="mb-6 bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+                  <div className="flex flex-col md:flex-row md:items-center gap-4">
+                    {/* Room Types Info */}
+                    <div className="flex items-center gap-2 flex-1">
+                      <Building2 className="w-5 h-5 text-gray-700" />
+                      <span className="text-sm md:text-base font-medium text-gray-900">
+                        {roomsData.filter((room: Room) => room.has_valid_rate).length} Types of rooms available at {bookingContext?.hotelName || 'this hotel'}
+                      </span>
+                    </div>
+
+                    {/* Date and Night Info */}
+                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        <span>From {bookingContext.startDate} to {bookingContext.endDate}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Moon className="w-4 h-4" />
+                        <span>{(() => {
+                          const start = new Date(bookingContext.startDate);
+                          const end = new Date(bookingContext.endDate);
+                          const nights = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+                          return `${nights} night${nights > 1 ? 's' : ''}`;
+                        })()}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Filter Dropdowns */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                    {/* Board Type Filter */}
+                    <Select value={selectedBoardType} onValueChange={setSelectedBoardType}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select board type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All board types</SelectItem>
+
+                        {availableBoardTypes.map((boardType) => {
+                          // Create a slug-like value for filtering (you'll use this later in RoomCard filtering)
+                          const value = boardType
+                            .toLowerCase()
+                            .replace(/ & /g, "-")
+                            .replace(/[^a-z0-9-]/g, "-")
+                            .replace(/-+/g, "-");
+
+                          return (
+                            <SelectItem key={boardType} value={value}>
+                              {boardType}
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+
+                    {/* Currency Filter */}
+                    {/* <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select currency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="AED">United Arab Emirates dirham (د.إ)</SelectItem>
+                        <SelectItem value="USD">United States Dollar ($)</SelectItem>
+                        <SelectItem value="EUR">Euro (€)</SelectItem>
+                        <SelectItem value="GBP">British Pound (£)</SelectItem>
+                        <SelectItem value="INR">Indian Rupee (₹)</SelectItem>
+                      </SelectContent>
+                    </Select> */}
+                  </div>
+                </div>
+
+                <div className="px-4 sm:px-4 py-4 bg-white border border-gray-200 rounded-xl">
                   {loadingRooms ? (
                     <div className="text-center py-20">
                       <div
@@ -438,13 +613,14 @@ const Rooms = () => {
                     </div>
                   ) : (
                     <div>
-                      <h1
+                      {/* <h1
                         className="text-2xl font-semibold mb-6 mt-6"
                         style={{ color: primaryColor }}
                       >
                         Available Rooms
-                      </h1>
-                      <div className="space-y-8 bg-gray-100 rounded-xl md:p-4">
+                      </h1> */}
+
+                      <div className="space-y-8  rounded-xl md:p-4">
                         {roomsData
                           .filter((room: Room) => room.has_valid_rate)
                           .map((room: Room) => (
@@ -457,6 +633,7 @@ const Rooms = () => {
                               onBookNow={handleBookNow}
                               loadingBookNow={loadingBookNow}
                               onPriceUpdate={handlePriceUpdate}
+                              selectedBoardType={selectedBoardType}
                             />
                           ))}
                       </div>

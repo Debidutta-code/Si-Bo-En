@@ -13,6 +13,9 @@ import toast from "react-hot-toast";
 import { RootState } from "@/src/store/store";
 import { useBookingColors } from "../../hooks/useBookingColors";
 import React from "react";
+import Image from "next/image";
+import { createPortal } from "react-dom";
+import { useBookingStorage } from "@/src/hooks/useBookingStorage";
 
 interface SearchWidgetProps {
   onSearchStart?: (payload: {
@@ -136,10 +139,24 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   const [selectionMode, setSelectionMode] = useState<'checkin' | 'checkout'>('checkin');
 
   const bookingContext = useSelector((state: RootState) => state.booking);
-  const hotelcode = bookingContext?.PropertyCode || "KY8PQX";
+
+  // Get colors from Redux booking context with fallbacks
+  // const primaryColor = bookingContext?.bookingEngineColor?.primaryColor || "#2F2A1F";
+  // const secondaryColor = bookingContext?.bookingEngineColor?.primaryColor || "#E8DFC9";
+  // const tertiaryColor = bookingContext?.bookingEngineColor?.tertiaryColor || "#7D7566";
+  // const buttonTextColor = bookingContext?.bookingEngineColor?.buttonTextColor || "#2F2A1F";
+
+  // // Get logo from booking context
+  // const logoIcon = bookingContext?.PropertyDetails?.bookingEngineConfig?.logo ||
+  //   bookingContext?.bookingEngineColor?.logo;
+
+  const { colors, logoIcon } = useBookingStorage(bookingContext);
+  const { primaryColor, secondaryColor, tertiaryColor, buttonTextColor } = colors;
+  const hotelcode = bookingContext?.PropertyCode || "4B4SM2";
   const PathName = usePathname();
 
   console.log("guestInfo", guestInfo);
+  // console.log("Booking colors:", { primaryColor, secondaryColor, tertiaryColor, buttonTextColor });
 
   // Calculate total guests
   const totalGuests = guestInfo.adults + guestInfo.children;
@@ -197,8 +214,32 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   }, [checkIn, checkOut, guestInfo]);
 
   const handleGuestSelection = (summary: string, data: any) => {
+    console.log("Selected guest data:", data);
+    console.log("Selected guest summary:", summary);
+
     setGuestSummary(summary);
-    setGuestInfo(data);
+
+    // Transform the data from GuestSelector to match the expected format
+    if (Array.isArray(data.rooms)) {
+      // Calculate totals from rooms array
+      const totalAdults = data.rooms.reduce((sum: number, room: any) => sum + (room.adults || 0), 0);
+      const totalChildren = data.rooms.reduce((sum: number, room: any) => sum + (room.children || 0), 0);
+      const roomsCount = data.rooms.length;
+
+      const transformedData = {
+        adults: totalAdults,
+        children: totalChildren,
+        rooms: roomsCount,
+        // Keep the original rooms array for display purposes if needed
+        roomsArray: data.rooms
+      };
+
+      setGuestInfo(transformedData);
+    } else {
+      // If data is already in the correct format, use it as is
+      setGuestInfo(data);
+    }
+
     userTriggeredSearch.current = true;
   };
 
@@ -288,8 +329,6 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
     }
   }, [dispatch]);
 
-  const { buttonBgColor } = useBookingColors();
-
   const handleDateSelect = (date: Date) => {
     if (selectionMode === 'checkin') {
       // First click - set check-in
@@ -358,7 +397,6 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
     }
   };
 
-
   const handleHomeClick = () => {
     let url = senderUrl;
 
@@ -373,9 +411,25 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
     } else {
       router.push("/");
     }
-
-    // setIsMenuOpen(false); // close mobile menu if open
   };
+
+  // Function to get text color that contrasts with background
+  const getContrastTextColor = (bgColor: string) => {
+    // Convert hex to RGB
+    const hex = bgColor.replace('#', '');
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+
+    // Calculate luminance
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+    // Return black or white based on luminance
+    return luminance > 0.5 ? '#2F2A1F' : '#FFFFFF';
+  };
+
+  // Calculate button text color - use provided buttonTextColor or get contrast color
+  const calculatedButtonTextColor = buttonTextColor || getContrastTextColor(secondaryColor);
 
   return (
     <>
@@ -398,62 +452,86 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
       <div className="w-full bg-[#F4EFE6] border-b border-[#D4CABA]">
         {/* BREAKPOINT 1: Desktop (1280px and above) - Original full design */}
         <div className="hidden xl:block">
-          <div className="max-w-[1400px] mx-auto px-6 py-3">
+          <div className="max-w-[1400px] mx-auto px-6">
             <div className="flex items-center justify-between gap-8">
               {/* LEFT: LOGO */}
               <button
                 onClick={handleHomeClick}
                 className="flex items-center focus:outline-none"
               >
-                <div className="flex items-center gap-3 min-w-[280px]">
-                  {/* Sun Logo */}
-                  <div className="w-12 h-12 flex items-center justify-center">
-                    <svg viewBox="0 0 100 100" className="w-full h-full">
-                      <circle cx="50" cy="50" r="20" fill="#2F2A1F" />
-                      {[...Array(12)].map((_, i) => {
-                        const angle = (i * 30 * Math.PI) / 180;
-                        const x1 = 50 + Math.cos(angle) * 25;
-                        const y1 = 50 + Math.sin(angle) * 25;
-                        const x2 = 50 + Math.cos(angle) * 35;
-                        const y2 = 50 + Math.sin(angle) * 35;
-                        return (
-                          <line
-                            key={i}
-                            x1={x1}
-                            y1={y1}
-                            x2={x2}
-                            y2={y2}
-                            stroke="#2F2A1F"
-                            strokeWidth="3"
-                          />
-                        );
-                      })}
-                    </svg>
+                {logoIcon ? (
+                  <div className="relative w-32 h-32">
+                    <Image
+                      src={logoIcon}
+                      alt="Hotel Logo"
+                      fill
+                      className="object-contain"
+                      unoptimized
+                    />
                   </div>
-                  {/* Brand Name */}
-                  <div className="flex items-center gap-2 text-lg tracking-[0.3em]">
-                    <span className="font-semibold text-[#2F2A1F]">TERRA</span>
-                    <span className="font-light text-[#2F2A1F]">SOLIS</span>
+                ) : (
+                  <div className="flex items-center h-32 gap-3 min-w-[280px]">
+                    {/* Sun Logo */}
+                    <div className="w-12 h-12 flex items-center justify-center">
+                      <svg viewBox="0 0 100 100" className="w-full h-full">
+                        <circle cx="50" cy="50" r="20" fill={primaryColor} />
+                        {[...Array(12)].map((_, i) => {
+                          const angle = (i * 30 * Math.PI) / 180;
+                          const x1 = 50 + Math.cos(angle) * 25;
+                          const y1 = 50 + Math.sin(angle) * 25;
+                          const x2 = 50 + Math.cos(angle) * 35;
+                          const y2 = 50 + Math.sin(angle) * 35;
+                          return (
+                            <line
+                              key={i}
+                              x1={x1}
+                              y1={y1}
+                              x2={x2}
+                              y2={y2}
+                              stroke={primaryColor}
+                              strokeWidth="3"
+                            />
+                          );
+                        })}
+                      </svg>
+                    </div>
+                    {/* Brand Name */}
+                    <div className="flex items-center gap-2 text-lg tracking-[0.3em]">
+                      <span className="font-semibold" style={{ color: primaryColor }}>TERRA</span>
+                      <span className="font-light" style={{ color: primaryColor }}>SOLIS</span>
+                    </div>
                   </div>
-                </div>
+                )}
               </button>
 
               {/* CENTER: BOOKING CONTROLS */}
               <div className="flex items-center gap-3 flex-1 justify-center">
                 {/* CHECK-IN / CHECK-OUT CONTAINER */}
-                <div className="bg-white border-2 border-[#9B8B6F] rounded-[40px] px-6 py-3 flex items-center gap-6 shadow-sm">
+                <div
+                  className="bg-white border-2 rounded-[40px] px-6 py-3 flex items-center gap-6 shadow-sm"
+                  style={{ borderColor: tertiaryColor }}
+                >
                   {/* CHECK-IN */}
                   <div
                     onClick={openCalendar}
                     className="cursor-pointer text-center min-w-[100px]"
                   >
-                    <p className="text-[9px] tracking-[0.15em] text-[#7D7566] font-medium mb-1">
+                    <p
+                      className="text-[9px] tracking-[0.15em] font-medium mb-1"
+                      style={{ color: tertiaryColor }}
+                    >
                       CHECK-IN
                     </p>
-                    <p className="text-[40px] font-semibold leading-none text-[#2F2A1F] mb-1">
+                    <p
+                      className="text-[40px] font-semibold leading-none mb-1"
+                      style={{ color: primaryColor }}
+                    >
                       {checkIn?.getDate()}
                     </p>
-                    <p className="text-[10px] uppercase tracking-wider text-[#7D7566] font-medium">
+                    <p
+                      className="text-[10px] uppercase tracking-wider font-medium"
+                      style={{ color: tertiaryColor }}
+                    >
                       {checkIn?.toLocaleDateString("en-US", {
                         month: "short",
                         year: "numeric",
@@ -462,7 +540,10 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   </div>
 
                   {/* ARROW SEPARATOR */}
-                  <div className="text-[32px] text-[#9B8B6F] font-light leading-none px-2">
+                  <div
+                    className="text-[32px] font-light leading-none px-2"
+                    style={{ color: tertiaryColor }}
+                  >
                     ›
                   </div>
 
@@ -471,13 +552,22 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                     onClick={openCalendar}
                     className="cursor-pointer text-center min-w-[100px]"
                   >
-                    <p className="text-[9px] tracking-[0.15em] text-[#7D7566] font-medium mb-1">
+                    <p
+                      className="text-[9px] tracking-[0.15em] font-medium mb-1"
+                      style={{ color: tertiaryColor }}
+                    >
                       CHECK-OUT
                     </p>
-                    <p className="text-[40px] font-semibold leading-none text-[#2F2A1F] mb-1">
+                    <p
+                      className="text-[40px] font-semibold leading-none mb-1"
+                      style={{ color: primaryColor }}
+                    >
                       {checkOut?.getDate() ?? "--"}
                     </p>
-                    <p className="text-[10px] uppercase tracking-wider text-[#7D7566] font-medium">
+                    <p
+                      className="text-[10px] uppercase tracking-wider font-medium"
+                      style={{ color: tertiaryColor }}
+                    >
                       {checkOut
                         ? checkOut.toLocaleDateString("en-US", {
                           month: "short",
@@ -491,9 +581,13 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 {/* OCCUPANCY */}
                 <button
                   onClick={() => setIsGuestSelectorOpen(true)}
-                  className="bg-white border border-[#C4BAA5] rounded-lg px-4 py-3 min-w-[140px] hover:bg-[#FAFAF8] transition-colors shadow-sm"
+                  className="bg-white border rounded-lg px-4 py-3 min-w-[140px] hover:bg-[#FAFAF8] transition-colors shadow-sm"
+                  style={{ borderColor: '#C4BAA5' }}
                 >
-                  <p className="text-[9px] tracking-[0.15em] text-[#7D7566] font-medium mb-2">
+                  <p
+                    className="text-[9px] tracking-[0.15em] font-medium mb-2"
+                    style={{ color: tertiaryColor }}
+                  >
                     OCCUPANCY
                   </p>
                   <div className="flex items-center justify-center gap-3">
@@ -514,7 +608,10 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                           <polyline points="9 22 9 12 15 12 15 22" />
                         </svg>
                       </div>
-                      <span className="text-xs font-bold text-[#2F2A1F]">
+                      <span
+                        className="text-xs font-bold"
+                        style={{ color: primaryColor }}
+                      >
                         {Array.isArray(guestInfo.rooms) ? guestInfo.rooms.length : guestInfo.rooms || 1}
                       </span>
                     </div>
@@ -522,9 +619,12 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                     {/* Adults */}
                     <div className="flex items-center gap-1">
                       <div className="w-5 h-5 bg-[#F4EFE6] rounded-full flex items-center justify-center">
-                        <Users className="w-2.5 h-2.5 text-[#5B543F]" />
+                        <Users className="w-2.5 h-2.5" style={{ color: '#5B543F' }} />
                       </div>
-                      <span className="text-xs font-bold text-[#2F2A1F]">
+                      <span
+                        className="text-xs font-bold"
+                        style={{ color: primaryColor }}
+                      >
                         {Array.isArray(guestInfo.rooms)
                           ? guestInfo.rooms.reduce((sum, room) => sum + (room.adults || 0), 0)
                           : guestInfo.adults || 1}
@@ -548,7 +648,10 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                           <circle cx="12" cy="12" r="10" />
                         </svg>
                       </div>
-                      <span className="text-xs font-bold text-[#2F2A1F]">
+                      <span
+                        className="text-xs font-bold"
+                        style={{ color: primaryColor }}
+                      >
                         {Array.isArray(guestInfo.rooms)
                           ? guestInfo.rooms.reduce((sum, room) => sum + (room.children || 0), 0)
                           : guestInfo.children || 0}
@@ -562,7 +665,11 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   <input
                     type="text"
                     placeholder="PROMOTIONAL CODE"
-                    className="bg-transparent border-b-2 border-[#9B8B6F] pb-2 text-[10px] tracking-[0.15em] text-[#7D7566] placeholder-[#9B8B6F] focus:outline-none focus:border-[#7D7566] transition-colors"
+                    className="bg-transparent border-b-2 pb-2 text-[10px] tracking-[0.15em] placeholder-[#9B8B6F] focus:outline-none transition-colors"
+                    style={{
+                      borderColor: tertiaryColor,
+                      color: tertiaryColor
+                    }}
                   />
                 </div>
 
@@ -570,7 +677,11 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 <button
                   onClick={handleSearch}
                   disabled={loading}
-                  className="bg-[#E8DFC9] hover:bg-[#D8CFBF] px-10 py-4 rounded-full text-[11px] font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm"
+                  className="px-10 py-4 rounded-full text-[11px] font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm hover:opacity-90"
+                  style={{
+                    backgroundColor: secondaryColor,
+                    color: calculatedButtonTextColor
+                  }}
                 >
                   {loading ? "LOADING..." : "BOOK"}
                 </button>
@@ -578,7 +689,11 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
 
               {/* RIGHT: MY BOOKING */}
               <div className="min-w-[140px] flex justify-end">
-                <button className="text-[11px] font-semibold tracking-[0.1em] text-[#2F2A1F] hover:text-[#5B543F] transition-colors">
+                <button
+                  className="text-[11px] font-semibold tracking-[0.1em] hover:opacity-80 transition-colors"
+                  style={{ color: primaryColor }}
+                  onClick={() => router.push(`/my-trip?code=${bookingContext.bookingCode}`)}
+                >
                   MY BOOKING
                 </button>
               </div>
@@ -595,35 +710,47 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 onClick={handleHomeClick}
                 className="flex items-center focus:outline-none"
               >
-                <div className="flex items-center gap-3 min-w-[200px]">
-                  <div className="w-10 h-10">
-                    <svg viewBox="0 0 100 100" className="w-full h-full">
-                      <circle cx="50" cy="50" r="18" fill="#2F2A1F" />
-                      {[...Array(8)].map((_, i) => {
-                        const angle = (i * 45 * Math.PI) / 180;
-                        const x1 = 50 + Math.cos(angle) * 22;
-                        const y1 = 50 + Math.sin(angle) * 22;
-                        const x2 = 50 + Math.cos(angle) * 32;
-                        const y2 = 50 + Math.sin(angle) * 32;
-                        return (
-                          <line
-                            key={i}
-                            x1={x1}
-                            y1={y1}
-                            x2={x2}
-                            y2={y2}
-                            stroke="#2F2A1F"
-                            strokeWidth="2.5"
-                          />
-                        );
-                      })}
-                    </svg>
+                {logoIcon ? (
+                  <div className="relative w-28 h-20">
+                    <Image
+                      src={logoIcon}
+                      alt="Hotel Logo"
+                      fill
+                      className="object-contain"
+                      unoptimized
+                    />
                   </div>
-                  <div className="text-[17px] tracking-[0.25em]">
-                    <span className="font-semibold text-[#2F2A1F]">TERRA</span>
-                    <span className="font-light text-[#2F2A1F]"> SOLIS</span>
+                ) : (
+                  <div className="flex items-center gap-3 min-w-[200px]">
+                    <div className="w-10 h-10">
+                      <svg viewBox="0 0 100 100" className="w-full h-full">
+                        <circle cx="50" cy="50" r="18" fill={primaryColor} />
+                        {[...Array(8)].map((_, i) => {
+                          const angle = (i * 45 * Math.PI) / 180;
+                          const x1 = 50 + Math.cos(angle) * 22;
+                          const y1 = 50 + Math.sin(angle) * 22;
+                          const x2 = 50 + Math.cos(angle) * 32;
+                          const y2 = 50 + Math.sin(angle) * 32;
+                          return (
+                            <line
+                              key={i}
+                              x1={x1}
+                              y1={y1}
+                              x2={x2}
+                              y2={y2}
+                              stroke={primaryColor}
+                              strokeWidth="2.5"
+                            />
+                          );
+                        })}
+                      </svg>
+                    </div>
+                    <div className="text-[17px] tracking-[0.25em]">
+                      <span className="font-semibold" style={{ color: primaryColor }}>TERRA</span>
+                      <span className="font-light" style={{ color: primaryColor }}> SOLIS</span>
+                    </div>
                   </div>
-                </div>
+                )}
               </button>
 
               {/* CENTER: COMPACT BOOKING CONTROLS */}
@@ -631,34 +758,56 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 {/* COMPACT DATES */}
                 <div
                   onClick={openCalendar}
-                  className="bg-white border-2 border-[#9B8B6F] rounded-[32px] px-5 py-2.5 flex items-center gap-4 shadow-sm cursor-pointer hover:border-[#7D7566] transition-colors"
+                  className="bg-white border-2 rounded-[32px] px-5 py-2.5 flex items-center gap-4 shadow-sm cursor-pointer hover:border-[#7D7566] transition-colors"
+                  style={{ borderColor: tertiaryColor }}
                 >
                   <div className="text-center min-w-[85px]">
-                    <p className="text-[9px] tracking-[0.15em] text-[#7D7566] font-medium mb-1">
+                    <p
+                      className="text-[9px] tracking-[0.15em] font-medium mb-1"
+                      style={{ color: tertiaryColor }}
+                    >
                       CHECK-IN
                     </p>
-                    <p className="text-[28px] font-semibold leading-none text-[#2F2A1F] mb-1">
+                    <p
+                      className="text-[28px] font-semibold leading-none mb-1"
+                      style={{ color: primaryColor }}
+                    >
                       {checkIn?.getDate()}
                     </p>
-                    <p className="text-[9px] uppercase tracking-wider text-[#7D7566] font-medium">
+                    <p
+                      className="text-[9px] uppercase tracking-wider font-medium"
+                      style={{ color: tertiaryColor }}
+                    >
                       {checkIn?.toLocaleDateString("en-US", {
                         month: "short",
                       })}
                     </p>
                   </div>
 
-                  <div className="text-[24px] text-[#9B8B6F] font-light leading-none">
+                  <div
+                    className="text-[24px] font-light leading-none"
+                    style={{ color: tertiaryColor }}
+                  >
                     ›
                   </div>
 
                   <div className="text-center min-w-[85px]">
-                    <p className="text-[9px] tracking-[0.15em] text-[#7D7566] font-medium mb-1">
+                    <p
+                      className="text-[9px] tracking-[0.15em] font-medium mb-1"
+                      style={{ color: tertiaryColor }}
+                    >
                       CHECK-OUT
                     </p>
-                    <p className="text-[28px] font-semibold leading-none text-[#2F2A1F] mb-1">
+                    <p
+                      className="text-[28px] font-semibold leading-none mb-1"
+                      style={{ color: primaryColor }}
+                    >
                       {checkOut?.getDate() ?? "--"}
                     </p>
-                    <p className="text-[9px] uppercase tracking-wider text-[#7D7566] font-medium">
+                    <p
+                      className="text-[9px] uppercase tracking-wider font-medium"
+                      style={{ color: tertiaryColor }}
+                    >
                       {checkOut
                         ? checkOut.toLocaleDateString("en-US", {
                           month: "short",
@@ -671,9 +820,13 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 {/* COMPACT OCCUPANCY */}
                 <button
                   onClick={() => setIsGuestSelectorOpen(true)}
-                  className="bg-white border border-[#C4BAA5] rounded-lg px-3 py-2 min-w-[120px] hover:bg-[#FAFAF8] transition-colors shadow-sm"
+                  className="bg-white border rounded-lg px-3 py-2 min-w-[120px] hover:bg-[#FAFAF8] transition-colors shadow-sm"
+                  style={{ borderColor: '#C4BAA5' }}
                 >
-                  <p className="text-[9px] tracking-[0.15em] text-[#7D7566] font-medium mb-2">
+                  <p
+                    className="text-[9px] tracking-[0.15em] font-medium mb-2"
+                    style={{ color: tertiaryColor }}
+                  >
                     OCCUPANCY
                   </p>
                   <div className="flex items-center justify-center gap-2">
@@ -684,15 +837,21 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                           <polyline points="9 22 9 12 15 12 15 22" />
                         </svg>
                       </div>
-                      <span className="text-xs font-bold text-[#2F2A1F]">
+                      <span
+                        className="text-xs font-bold"
+                        style={{ color: primaryColor }}
+                      >
                         {Array.isArray(guestInfo.rooms) ? guestInfo.rooms.length : guestInfo.rooms || 1}
                       </span>
                     </div>
                     <div className="flex items-center gap-1">
                       <div className="w-4 h-4 bg-[#F4EFE6] rounded-full flex items-center justify-center">
-                        <Users className="w-2 h-2 text-[#5B543F]" />
+                        <Users className="w-2 h-2" style={{ color: '#5B543F' }} />
                       </div>
-                      <span className="text-xs font-bold text-[#2F2A1F]">
+                      <span
+                        className="text-xs font-bold"
+                        style={{ color: primaryColor }}
+                      >
                         {Array.isArray(guestInfo.rooms)
                           ? guestInfo.rooms.reduce((sum, room) => sum + (room.adults || 0), 0)
                           : guestInfo.adults || 1}
@@ -706,7 +865,11 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   <input
                     type="text"
                     placeholder="PROMO CODE"
-                    className="bg-transparent border-b-2 border-[#9B8B6F] pb-1.5 text-[9px] tracking-[0.15em] text-[#7D7566] placeholder-[#9B8B6F] focus:outline-none focus:border-[#7D7566]"
+                    className="bg-transparent border-b-2 pb-1.5 text-[9px] tracking-[0.15em] placeholder-[#9B8B6F] focus:outline-none"
+                    style={{
+                      borderColor: tertiaryColor,
+                      color: tertiaryColor
+                    }}
                   />
                 </div>
 
@@ -714,7 +877,11 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 <button
                   onClick={handleSearch}
                   disabled={loading}
-                  className="bg-[#E8DFC9] hover:bg-[#D8CFBF] px-6 py-3 rounded-full text-[10px] font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm min-w-[90px]"
+                  className="px-6 py-3 rounded-full text-[10px] font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm min-w-[90px] hover:opacity-90"
+                  style={{
+                    backgroundColor: secondaryColor,
+                    color: calculatedButtonTextColor
+                  }}
                 >
                   {loading ? "LOADING..." : "BOOK"}
                 </button>
@@ -722,7 +889,11 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
 
               {/* RIGHT: MY BOOKING - Compact */}
               <div className="min-w-[100px] flex justify-end">
-                <button className="text-[10px] font-semibold tracking-[0.1em] text-[#2F2A1F] hover:text-[#5B543F] transition-colors">
+                <button
+                  className="text-[10px] font-semibold tracking-[0.1em] hover:opacity-80 transition-colors"
+                  style={{ color: primaryColor }}
+                  onClick={() => router.push(`/my-trip?code=${bookingContext.bookingCode}`)}
+                >
                   MY BOOKING
                 </button>
               </div>
@@ -741,38 +912,54 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   onClick={handleHomeClick}
                   className="flex items-center focus:outline-none"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10">
-                      <svg viewBox="0 0 100 100" className="w-full h-full">
-                        <circle cx="50" cy="50" r="18" fill="#2F2A1F" />
-                        {[...Array(8)].map((_, i) => {
-                          const angle = (i * 45 * Math.PI) / 180;
-                          const x1 = 50 + Math.cos(angle) * 22;
-                          const y1 = 50 + Math.sin(angle) * 22;
-                          const x2 = 50 + Math.cos(angle) * 30;
-                          const y2 = 50 + Math.sin(angle) * 30;
-                          return (
-                            <line
-                              key={i}
-                              x1={x1}
-                              y1={y1}
-                              x2={x2}
-                              y2={y2}
-                              stroke="#2F2A1F"
-                              strokeWidth="2.5"
-                            />
-                          );
-                        })}
-                      </svg>
+                  {logoIcon ? (
+                    <div className="relative w-24 h-8">
+                      <Image
+                        src={logoIcon}
+                        alt="Hotel Logo"
+                        fill
+                        className="object-contain"
+                        unoptimized
+                      />
                     </div>
-                    <div className="text-base tracking-[0.25em]">
-                      <span className="font-semibold text-[#2F2A1F]">TERRA</span>
-                      <span className="font-light text-[#2F2A1F]"> SOLIS</span>
+                  ) : (
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10">
+                        <svg viewBox="0 0 100 100" className="w-full h-full">
+                          <circle cx="50" cy="50" r="18" fill={primaryColor} />
+                          {[...Array(8)].map((_, i) => {
+                            const angle = (i * 45 * Math.PI) / 180;
+                            const x1 = 50 + Math.cos(angle) * 22;
+                            const y1 = 50 + Math.sin(angle) * 22;
+                            const x2 = 50 + Math.cos(angle) * 30;
+                            const y2 = 50 + Math.sin(angle) * 30;
+                            return (
+                              <line
+                                key={i}
+                                x1={x1}
+                                y1={y1}
+                                x2={x2}
+                                y2={y2}
+                                stroke={primaryColor}
+                                strokeWidth="2.5"
+                              />
+                            );
+                          })}
+                        </svg>
+                      </div>
+                      <div className="text-base tracking-[0.25em]">
+                        <span className="font-semibold" style={{ color: primaryColor }}>TERRA</span>
+                        <span className="font-light" style={{ color: primaryColor }}> SOLIS</span>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </button>
 
-                <button className="text-xs font-semibold tracking-[0.1em] text-[#2F2A1F] hover:text-[#5B543F] transition-colors">
+                <button
+                  className="text-xs font-semibold tracking-[0.1em] hover:opacity-80 transition-colors"
+                  style={{ color: primaryColor }}
+                  onClick={() => router.push(`/my-trip?code=${bookingContext.bookingCode}`)}
+                >
                   MY BOOKING
                 </button>
               </div>
@@ -782,36 +969,62 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 {/* Dates */}
                 <div
                   onClick={openCalendar}
-                  className="bg-white border-2 border-[#9B8B6F] rounded-2xl p-4 cursor-pointer hover:border-[#7D7566] transition-colors col-span-2"
+                  className="bg-white border-2 rounded-2xl p-4 cursor-pointer hover:border-[#7D7566] transition-colors col-span-2"
+                  style={{ borderColor: tertiaryColor }}
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-[#7D7566]" />
-                      <span className="text-xs font-semibold tracking-[0.1em] text-[#2F2A1F]">
+                      <Calendar className="w-4 h-4" style={{ color: tertiaryColor }} />
+                      <span
+                        className="text-xs font-semibold tracking-[0.1em]"
+                        style={{ color: primaryColor }}
+                      >
                         DATES
                       </span>
                     </div>
-                    <span className="text-xs text-[#9B8B6F]">Edit</span>
+                    <span className="text-xs" style={{ color: tertiaryColor }}>Edit</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="text-center">
-                      <p className="text-[12px] text-[#7D7566] mb-1">Check-in</p>
-                      <p className="text-2xl font-bold text-[#2F2A1F]">
+                      <p
+                        className="text-[12px] mb-1"
+                        style={{ color: tertiaryColor }}
+                      >
+                        Check-in
+                      </p>
+                      <p
+                        className="text-2xl font-bold"
+                        style={{ color: primaryColor }}
+                      >
                         {checkIn?.getDate()}
                       </p>
-                      <p className="text-xs text-[#7D7566]">
+                      <p
+                        className="text-xs"
+                        style={{ color: tertiaryColor }}
+                      >
                         {checkIn?.toLocaleDateString("en-US", {
                           month: "short",
                         })}
                       </p>
                     </div>
-                    <ChevronRight className="w-6 h-6 text-[#9B8B6F]" />
+                    <ChevronRight className="w-6 h-6" style={{ color: tertiaryColor }} />
                     <div className="text-center">
-                      <p className="text-[12px] text-[#7D7566] mb-1">Check-out</p>
-                      <p className="text-2xl font-bold text-[#2F2A1F]">
+                      <p
+                        className="text-[12px] mb-1"
+                        style={{ color: tertiaryColor }}
+                      >
+                        Check-out
+                      </p>
+                      <p
+                        className="text-2xl font-bold"
+                        style={{ color: primaryColor }}
+                      >
                         {checkOut?.getDate() ?? "--"}
                       </p>
-                      <p className="text-xs text-[#7D7566]">
+                      <p
+                        className="text-xs"
+                        style={{ color: tertiaryColor }}
+                      >
                         {checkOut
                           ? checkOut.toLocaleDateString("en-US", {
                             month: "short",
@@ -825,31 +1038,45 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 {/* Occupancy */}
                 <button
                   onClick={() => setIsGuestSelectorOpen(true)}
-                  className="bg-white border border-[#C4BAA5] rounded-2xl p-4 text-left hover:border-[#9B8B6F] transition-colors"
+                  className="bg-white border rounded-2xl p-4 text-left hover:border-[#9B8B6F] transition-colors"
+                  style={{ borderColor: '#C4BAA5' }}
                 >
                   <div className="flex items-center gap-2 mb-2">
-                    <Users className="w-4 h-4 text-[#7D7566]" />
-                    <span className="text-xs font-semibold text-[#2F2A1F]">
+                    <Users className="w-4 h-4" style={{ color: tertiaryColor }} />
+                    <span
+                      className="text-xs font-semibold"
+                      style={{ color: primaryColor }}
+                    >
                       GUESTS
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-[#2F2A1F]">
+                    <span
+                      className="text-sm font-semibold"
+                      style={{ color: primaryColor }}
+                    >
                       {totalGuests} guest{totalGuests !== 1 ? 's' : ''}
                     </span>
-                    <ChevronRight className="w-4 h-4 text-[#7D7566] ml-auto" />
+                    <ChevronRight className="w-4 h-4 ml-auto" style={{ color: tertiaryColor }} />
                   </div>
                 </button>
 
                 {/* Promo Code */}
-                <div className="bg-white border border-[#C4BAA5] rounded-2xl p-4 hover:border-[#9B8B6F] transition-colors">
-                  <div className="text-xs font-semibold text-[#2F2A1F] mb-2">
+                <div
+                  className="bg-white border rounded-2xl p-4 hover:border-[#9B8B6F] transition-colors"
+                  style={{ borderColor: '#C4BAA5' }}
+                >
+                  <div
+                    className="text-xs font-semibold mb-2"
+                    style={{ color: primaryColor }}
+                  >
                     PROMO CODE
                   </div>
                   <input
                     type="text"
                     placeholder="Enter code"
                     className="w-full bg-transparent text-sm placeholder-[#9B8B6F] focus:outline-none"
+                    style={{ color: primaryColor }}
                   />
                 </div>
               </div>
@@ -858,7 +1085,11 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
               <button
                 onClick={handleSearch}
                 disabled={loading}
-                className="w-full bg-[#E8DFC9] hover:bg-[#D8CFBF] py-4 rounded-full text-sm font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm"
+                className="w-full py-4 rounded-full text-sm font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm hover:opacity-90"
+                style={{
+                  backgroundColor: secondaryColor,
+                  color: calculatedButtonTextColor
+                }}
               >
                 {loading ? "LOADING..." : "BOOK NOW"}
               </button>
@@ -875,35 +1106,47 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
               onClick={handleHomeClick}
               className="flex items-center focus:outline-none"
             >
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8">
-                  <svg viewBox="0 0 100 100" className="w-full h-full">
-                    <circle cx="50" cy="50" r="15" fill="#2F2A1F" />
-                    {[...Array(8)].map((_, i) => {
-                      const angle = (i * 45 * Math.PI) / 180;
-                      const x1 = 50 + Math.cos(angle) * 20;
-                      const y1 = 50 + Math.sin(angle) * 20;
-                      const x2 = 50 + Math.cos(angle) * 27;
-                      const y2 = 50 + Math.sin(angle) * 27;
-                      return (
-                        <line
-                          key={i}
-                          x1={x1}
-                          y1={y1}
-                          x2={x2}
-                          y2={y2}
-                          stroke="#2F2A1F"
-                          strokeWidth="2"
-                        />
-                      );
-                    })}
-                  </svg>
+              {logoIcon ? (
+                <div className="relative w-20 h-6">
+                  <Image
+                    src={logoIcon}
+                    alt="Hotel Logo"
+                    fill
+                    className="object-contain"
+                    unoptimized
+                  />
                 </div>
-                <div className="text-sm tracking-[0.2em]">
-                  <span className="font-semibold text-[#2F2A1F]">TERRA</span>
-                  <span className="font-light text-[#2F2A1F]"> SOLIS</span>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8">
+                    <svg viewBox="0 0 100 100" className="w-full h-full">
+                      <circle cx="50" cy="50" r="15" fill={primaryColor} />
+                      {[...Array(8)].map((_, i) => {
+                        const angle = (i * 45 * Math.PI) / 180;
+                        const x1 = 50 + Math.cos(angle) * 20;
+                        const y1 = 50 + Math.sin(angle) * 20;
+                        const x2 = 50 + Math.cos(angle) * 27;
+                        const y2 = 50 + Math.sin(angle) * 27;
+                        return (
+                          <line
+                            key={i}
+                            x1={x1}
+                            y1={y1}
+                            x2={x2}
+                            y2={y2}
+                            stroke={primaryColor}
+                            strokeWidth="2"
+                          />
+                        );
+                      })}
+                    </svg>
+                  </div>
+                  <div className="text-sm tracking-[0.2em]">
+                    <span className="font-semibold" style={{ color: primaryColor }}>TERRA</span>
+                    <span className="font-light" style={{ color: primaryColor }}> SOLIS</span>
+                  </div>
                 </div>
-              </div>
+              )}
             </button>
 
             <button
@@ -911,9 +1154,9 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
               className="p-2"
             >
               {isMobileMenuOpen ? (
-                <X className="w-6 h-6 text-[#2F2A1F]" />
+                <X className="w-6 h-6" style={{ color: primaryColor }} />
               ) : (
-                <Menu className="w-6 h-6 text-[#2F2A1F]" />
+                <Menu className="w-6 h-6" style={{ color: primaryColor }} />
               )}
             </button>
           </div>
@@ -925,8 +1168,11 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 {/* Dates Section */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-5 h-5 text-[#7D7566]" />
-                    <span className="text-sm font-semibold text-[#2F2A1F]">
+                    <Calendar className="w-5 h-5" style={{ color: tertiaryColor }} />
+                    <span
+                      className="text-sm font-semibold"
+                      style={{ color: primaryColor }}
+                    >
                       SELECT DATES
                     </span>
                   </div>
@@ -936,7 +1182,10 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                       className="bg-[#F4EFE6] border border-[#D4CABA] rounded-xl p-4 text-center cursor-pointer"
                     >
                       <p className="text-xs text-[#7D7566] mb-1">Check-in</p>
-                      <p className="text-2xl font-bold text-[#2F2A1F]">
+                      <p
+                        className="text-2xl font-bold"
+                        style={{ color: primaryColor }}
+                      >
                         {checkIn?.getDate()}
                       </p>
                       <p className="text-xs text-[#7D7566]">
@@ -950,7 +1199,10 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                       className="bg-[#F4EFE6] border border-[#D4CABA] rounded-xl p-4 text-center cursor-pointer"
                     >
                       <p className="text-xs text-[#7D7566] mb-1">Check-out</p>
-                      <p className="text-2xl font-bold text-[#2F2A1F]">
+                      <p
+                        className="text-2xl font-bold"
+                        style={{ color: primaryColor }}
+                      >
                         {checkOut?.getDate() ?? "--"}
                       </p>
                       <p className="text-xs text-[#7D7566]">
@@ -967,8 +1219,11 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 {/* Occupancy Section */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <Users className="w-5 h-5 text-[#7D7566]" />
-                    <span className="text-sm font-semibold text-[#2F2A1F]">
+                    <Users className="w-5 h-5" style={{ color: tertiaryColor }} />
+                    <span
+                      className="text-sm font-semibold"
+                      style={{ color: primaryColor }}
+                    >
                       OCCUPANCY
                     </span>
                   </div>
@@ -996,18 +1251,24 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                         </div>
                         <div className="text-left">
                           <p className="text-xs text-[#7D7566]">Rooms</p>
-                          <p className="text-sm font-bold text-[#2F2A1F]">
+                          <p
+                            className="text-sm font-bold"
+                            style={{ color: primaryColor }}
+                          >
                             {Array.isArray(guestInfo.rooms) ? guestInfo.rooms.length : guestInfo.rooms || 1}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
                         <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-                          <User className="w-4 h-4 text-[#5B543F]" />
+                          <User className="w-4 h-4" style={{ color: '#5B543F' }} />
                         </div>
                         <div className="text-left">
                           <p className="text-xs text-[#7D7566]">Adults</p>
-                          <p className="text-sm font-bold text-[#2F2A1F]">
+                          <p
+                            className="text-sm font-bold"
+                            style={{ color: primaryColor }}
+                          >
                             {Array.isArray(guestInfo.rooms)
                               ? guestInfo.rooms.reduce((sum, room) => sum + (room.adults || 0), 0)
                               : guestInfo.adults || 1}
@@ -1015,14 +1276,17 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                         </div>
                       </div>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-[#9B8B6F]" />
+                    <ChevronRight className="w-5 h-5" style={{ color: tertiaryColor }} />
                   </button>
                 </div>
 
                 {/* Promo Code Section */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-[#2F2A1F]">
+                    <span
+                      className="text-sm font-semibold"
+                      style={{ color: primaryColor }}
+                    >
                       PROMO CODE
                     </span>
                   </div>
@@ -1030,11 +1294,16 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                     type="text"
                     placeholder="Enter code"
                     className="w-full bg-[#F4EFE6] border border-[#D4CABA] rounded-xl p-4 text-sm placeholder-[#9B8B6F] focus:outline-none focus:border-[#7D7566]"
+                    style={{ color: primaryColor }}
                   />
                 </div>
 
                 {/* My Booking */}
-                <button className="w-full text-center text-sm font-semibold text-[#2F2A1F] py-3 border-t border-[#D4CABA]">
+                <button
+                  className="w-full text-center text-sm font-semibold py-3 border-t border-[#D4CABA]"
+                  style={{ color: primaryColor }}
+                  onClick={() => router.push(`/my-trip?code=${bookingContext.bookingCode}`)}
+                >
                   MY BOOKING
                 </button>
 
@@ -1042,7 +1311,11 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 <button
                   onClick={handleSearch}
                   disabled={loading}
-                  className="w-full bg-[#E8DFC9] hover:bg-[#D8CFBF] py-4 rounded-full text-sm font-semibold disabled:opacity-60 transition-all shadow-sm"
+                  className="w-full py-4 rounded-full text-sm font-semibold disabled:opacity-60 transition-all shadow-sm hover:opacity-90"
+                  style={{
+                    backgroundColor: secondaryColor,
+                    color: calculatedButtonTextColor
+                  }}
                 >
                   {loading ? "LOADING..." : "BOOK NOW"}
                 </button>
@@ -1052,19 +1325,66 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
         </div>
 
         {/* CALENDAR MODAL */}
-        {isCalendarOpen && (
-          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[9999]">
-            <DatePickerWithHover
-              checkIn={checkIn}
-              checkOut={checkOut}
-              temporaryCheckOut={temporaryCheckOut}
-              onDateSelect={handleDateSelect}
-              onDayMouseEnter={handleDateMouseEnter}
-              onDayMouseLeave={handleDateMouseLeave}
-              isSelectingRange={isSelectingRange}
-            />
-          </div>
-        )}
+        {/* CALENDAR MODAL - Rendered via Portal at root level */}
+        {isCalendarOpen &&
+          createPortal(
+            <>
+
+              <div
+                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9998]"
+                onClick={() => setIsCalendarOpen(false)}
+              />
+
+              <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-auto" >
+
+                <button
+                  onClick={() => setIsCalendarOpen(false)}
+                  className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/80 hover:bg-white transition-colors shadow-md"
+                >
+                  <X className="w-5 h-5" style={{ color: primaryColor }} />
+                </button>
+
+
+                <div className="p-6 md:p-8">
+                  <DatePickerWithHover
+                    checkIn={checkIn}
+                    checkOut={checkOut}
+                    temporaryCheckOut={temporaryCheckOut}
+                    onDateSelect={(date: Date) => {
+
+                      if (selectionMode === 'checkin') {
+                        setCheckIn(date);
+                        setCheckOut(null);
+                        setSelectionMode('checkout');
+                        setIsSelectingRange(true);
+                      } else {
+                        if (date > checkIn!) {
+                          setCheckOut(date);
+                          setIsSelectingRange(false);
+                          setTimeout(() => setIsCalendarOpen(false), 300);
+                          setSelectionMode('checkin');
+                          setTemporaryCheckOut(null);
+                        } else {
+                          setCheckIn(date);
+                          setCheckOut(null);
+                          setSelectionMode('checkout');
+                          setIsSelectingRange(true);
+                        }
+                      }
+                    }}
+                    onDayMouseEnter={(date: Date) => {
+                      if (isSelectingRange && checkIn && date > checkIn) {
+                        setTemporaryCheckOut(date);
+                      }
+                    }}
+                    onDayMouseLeave={() => setTemporaryCheckOut(null)}
+                    isSelectingRange={isSelectingRange}
+                  />
+                </div>
+              </div>
+            </>,
+            document.body 
+          )}
 
         <GuestSelector
           isOpen={isGuestSelectorOpen}
