@@ -1,195 +1,145 @@
-import { Request, Response } from 'express';
-import OtpModel from '../model/otp';
-import sgMail from '@sendgrid/mail';
+import { Request, Response } from "express";
+import nodemailer from "nodemailer";
+import OtpModel from "../model/otp";
 
-// Setup SendGrid
-sgMail.setApiKey(process.env.SENDGRID_API_KEY!);
+// Setup Nodemailer transporter
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT),
+  secure: Number(process.env.SMTP_PORT) === 465,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
 
+/**
+ * SEND OTP
+ */
 export const sendOtp = async (req: Request, res: Response) => {
   const { email } = req.body;
 
   if (!email) {
-    return res.status(400).json({ message: 'Email is required.' });
+    return res.status(400).json({ message: "Email is required." });
   }
 
   try {
     const existingOtp = await OtpModel.findOne({ email });
+    const now = new Date();
 
     if (existingOtp) {
-      if (existingOtp.attemptCount >= 3) {
+      const otpAge = now.getTime() - existingOtp.createdAt.getTime();
+
+      // OTP expired (2 minutes)
+      if (otpAge > 2 * 60 * 1000) {
+        await OtpModel.deleteOne({ email });
+      } else {
+        // OTP still valid
+        if (existingOtp.attemptCount >= 3) {
+          return res.status(429).json({
+            message: "Too many attempts. Please check your email address.",
+          });
+        }
+
+        existingOtp.attemptCount += 1;
+        await existingOtp.save();
+
         return res.status(429).json({
-          message: 'Too many attempts. Please check your email address.',
+          message: "OTP already sent. Please wait 2 minutes before retrying.",
         });
       }
-
-      existingOtp.attemptCount += 1;
-      await existingOtp.save();
-
-      return res.status(429).json({
-        message: 'OTP already sent. Please wait 2 minutes before retrying.',
-      });
     }
 
-    // If in development mode, use static OTP
+    // Generate OTP
     const otp =
-      process.env.MODE_ENV === 'development'
-        ? '123456'
+      process.env.MODE_ENV === "development"
+        ? "123456"
         : Math.floor(100000 + Math.random() * 900000).toString();
 
+    // Save OTP
     await OtpModel.create({
       email,
       otp,
       attemptCount: 1,
       verified: false,
+      createdAt: new Date(),
     });
 
-    // Only send mail if in production
-    if (process.env.MODE_ENV === 'production') {
-      const msg = {
+    // Send email only in production
+    if (process.env.MODE_ENV === "production") {
+      const mailOptions = {
+        from: `"${process.env.SENDER_NAME || "YourApp"}" <${process.env.SMTP_USER}>`,
         to: email,
-        from: {
-          email: process.env.SENDER_EMAIL!,
-          name: process.env.SENDER_NAME || 'YourApp',
-        },
-        subject: 'Your OTP Code',
+        subject: "Your OTP Code",
         text: `Your OTP code is: ${otp}`,
         html: `
-          <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 500px; margin: 0 auto; background-color: #f4f6f8; padding: 30px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+          <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 500px; margin: 0 auto; background-color: #f4f6f8; padding: 30px; border-radius: 10px;">
             <div style="background-color: #4f46e5; color: white; text-align: center; padding: 16px; border-radius: 8px 8px 0 0;">
-              <h2 style="margin: 0; font-size: 20px;">Verify Your Email</h2>
+              <h2 style="margin: 0;">Verify Your Email</h2>
             </div>
 
-            <div style="padding: 24px; background-color: white; border-radius: 0 0 8px 8px;">
-              <p style="font-size: 16px; margin-bottom: 16px;">
-                Hello 👋,
-                <br />
-                Use the OTP below to verify your email address:
-              </p>
+            <div style="padding: 24px; background-color: white;">
+              <p>Hello 👋,<br/>Use the OTP below to verify your email:</p>
 
-              <div style="text-align: center; font-size: 28px; font-weight: bold; letter-spacing: 4px; color: #111827; margin: 20px 0;">
+              <div style="text-align: center; font-size: 28px; font-weight: bold; letter-spacing: 4px; margin: 20px 0;">
                 ${otp}
               </div>
 
-              <p style="font-size: 14px; color: #6b7280; text-align: center; margin-bottom: 16px;">
-                This OTP is valid for <strong>2 minutes</strong>. Do not share it with anyone.
+              <p style="font-size: 14px; color: #6b7280; text-align: center;">
+                This OTP is valid for <strong>2 minutes</strong>.
               </p>
 
-              <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
+              <hr style="margin: 24px 0;" />
 
               <p style="font-size: 12px; color: #9ca3af; text-align: center;">
-                If you did not request this, please ignore this email or contact support.
+                If you didn’t request this, please ignore this email.
               </p>
             </div>
           </div>
         `,
       };
 
-      await sgMail.send(msg);
+      await transporter.sendMail(mailOptions);
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       message:
-        process.env.MODE_ENV === 'development'
-          ? 'Otp send Succsessfully'
-          : 'OTP sent successfully.',
+        process.env.MODE_ENV === "development"
+          ? "OTP sent successfully (dev mode)"
+          : "OTP sent successfully.",
     });
   } catch (error: any) {
-    console.error('Error sending OTP:', error.response?.body || error.message);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error("Error sending OTP:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
 
+/**
+ * VERIFY OTP
+ */
 export const verifyOtp = async (req: Request, res: Response) => {
   const { email, otp } = req.body;
 
   if (!email || !otp) {
-    return res.status(400).json({ message: 'Email and OTP are required.' });
+    return res.status(400).json({ message: "Email and OTP are required." });
   }
 
   try {
     const existing = await OtpModel.findOne({ email });
 
     if (!existing) {
-      return res.status(400).json({ message: 'OTP has expired or not found.' });
+      return res.status(400).json({ message: "OTP has expired or not found." });
     }
 
     if (existing.otp !== otp) {
-      return res.status(400).json({ message: 'Invalid OTP.' });
+      return res.status(400).json({ message: "Invalid OTP." });
     }
 
     await OtpModel.deleteOne({ email });
 
-    res.status(200).json({ message: 'OTP verified successfully.' });
+    return res.status(200).json({ message: "OTP verified successfully." });
   } catch (error) {
-    console.error('Error verifying OTP:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error("Error verifying OTP:", error);
+    return res.status(500).json({ message: "Internal server error" });
   }
 };
-
-// //dummy for checking
-// import { Request, Response } from "express";
-// import OtpModel from "../model/otp";
-
-// export const sendOtp = async (req: Request, res: Response) => {
-//   const { email } = req.body;
-
-//   if (!email) return res.status(400).json({ message: "Email is required." });
-
-//   try {
-//     const existingOtp = await OtpModel.findOne({ email });
-
-//     if (existingOtp) {
-//       if (existingOtp.attemptCount >= 3) {
-//         return res.status(429).json({
-//           message: "Too many attempts. Please check your email address.",
-//         });
-//       }
-
-//       // increment attemptCount
-//       existingOtp.attemptCount += 1;
-//       await existingOtp.save();
-
-//       return res.status(429).json({
-//         message: "OTP already sent. Please wait 2 minutes before retrying.",
-//       });
-//     }
-
-//     const otp = Math.floor(100000 + Math.random() * 900000).toString();
-
-//     await OtpModel.create({
-//       email,
-//       otp,
-//       attemptCount: 1,
-//       verified: false,
-//     });
-
-//     // TODO: Replace with real email service
-//     console.log(`OTP sent to ${email}: ${otp}`);
-
-//     res.status(200).json({ message: "OTP sent successfully." });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: "Internal server error" });
-//   }
-// };
-
-// export const verifyOtp = async (req: Request, res: Response) => {
-//   const { email, otp } = req.body;
-
-//   if (!email || !otp) {
-//     return res.status(400).json({ message: "Email and OTP are required." });
-//   }
-
-//   const existing = await OtpModel.findOne({ email });
-//   if (!existing) {
-//     return res.status(400).json({ message: "OTP has expired or not found." });
-//   }
-
-//   if (existing.otp !== otp) {
-//     return res.status(400).json({ message: "Invalid OTP." });
-//   }
-
-//   await OtpModel.deleteOne({ email });
-
-//   res.status(200).json({ message: "OTP verified successfully." });
-// };

@@ -156,7 +156,7 @@ export default function PropertyInfo() {
             },
             destinationType: {
               masterDestinationType: {
-                id:  "d3345526-4c21-489f-9475-1a2f242d9c66",
+                id:  "39b60d48-74a0-46a5-9cad-bb178de4cbc3",
                 destinationTypeName:  "Villa",
                 destinationDescription:  "A private luxury house, often with a garden, pool, and exclusive amenities, ideal for families or groups.",
               }

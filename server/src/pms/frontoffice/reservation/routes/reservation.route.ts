@@ -8,9 +8,9 @@ const reservationRoute = Router();
 const reservationController = new ReservationController();
 
 reservationRoute.route("/")
-    .post(protect, reservationController.createReservation.bind(reservationController));
+    .post( reservationController.createReservation.bind(reservationController));
 reservationRoute.route("/:reservationCode")
-    .get(protect, reservationController.getReservationByCode.bind(reservationController));
+    .get( reservationController.getReservationByCode.bind(reservationController));
 
 reservationRoute.route("/reservationsForDate/:propertyId")
     .get(protect, reservationController.getReservationsForADate.bind(reservationController));
@@ -25,14 +25,14 @@ reservationRoute.route("/checkout/:propertyId")
     .get(protect, reservationController.getCheckOutsForADate.bind(reservationController));
 
 reservationRoute.route("/amend/:reservationId")
-    .patch(protect, reservationController.amendReservation.bind(reservationController));
+    .patch( reservationController.amendReservation.bind(reservationController));
 reservationRoute.route("/cancel/:reservationId")
-    .put(protect, reservationController.cancelReservation.bind(reservationController));
+    .put( reservationController.cancelReservation.bind(reservationController));
 reservationRoute.route("/available-rooms/:bookingCode")
-    .get(protect, reservationController.getAvailableRoomsForReservation.bind(reservationController));
+//     .get(protect, reservationController.getAvailableRoomsForReservation.bind(reservationController));
 
-reservationRoute.route("/check-in/:reservationCode")
-    .post(protect, reservationController.checkInReservation.bind(reservationController));
-reservationRoute.route("/check-out/:reservationCode")
-    .post(protect, reservationController.checkOutReservation.bind(reservationController));
+// // reservationRoute.route("/check-in/:reservationCode")
+//     .post(protect, reservationController.checkInReservation.bind(reservationController));
+// reservationRoute.route("/check-out/:reservationCode")
+//     .post(protect, reservationController.checkOutReservation.bind(reservationController));
 export { reservationRoute };

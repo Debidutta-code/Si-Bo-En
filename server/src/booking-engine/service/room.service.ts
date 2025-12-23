@@ -1,10 +1,6 @@
 import dayjs from "dayjs";
-import isSameOrBefore from "dayjs/plugin/isSameOrBefore"; // 🔹 import plugin
 import { RoomBookingRepository } from "../repository";
-import { IBookingSearchPayload, IRoom } from "../types";
-
-// Extend dayjs with the plugin
-dayjs.extend(isSameOrBefore);
+import { IBookingSearchPayload, IRoom, IRoomPrice } from "../types";
 
 export class RoomBookingService {
   public static async fetchRooms(payload: IBookingSearchPayload) {
@@ -15,15 +11,15 @@ export class RoomBookingService {
       return {
         success: false,
         message: "Property not available",
-        data: null
       };
     }
 
+    // Build date array
     const dates: string[] = [];
     let current = dayjs(startDate);
     const last = dayjs(endDate);
 
-    while (current.isSameOrBefore(last, "day")) {
+    while (current.isBefore(last) || current.isSame(last, "day")) {
       dates.push(current.format("YYYY-MM-DD"));
       current = current.add(1, "day");
     }
@@ -32,6 +28,7 @@ export class RoomBookingService {
     const rooms: IRoom[] = [];
 
     for (const room of property.propertyRooms) {
+      // Check inventory for all dates
       const inventory = await RoomBookingRepository.getInventoryByProperty(
         PropertyCode,
         room.roomType,
@@ -40,7 +37,7 @@ export class RoomBookingService {
 
       if (inventory.length !== dates.length) continue;
 
-      const room_price = [];
+      const room_price: IRoomPrice[] = [];
 
       for (const ratePlan of property.ratePlans) {
         const charges = await RoomBookingRepository.getCharges(
@@ -53,22 +50,37 @@ export class RoomBookingService {
         if (!charges.length) continue;
 
         const charge = charges[0];
+
+        // Sort base guest amounts
         const sortedBase = [...charge.baseGuestAmounts].sort(
           (a, b) => a.numberOfGuests - b.numberOfGuests
         );
 
+        // Pick base amount for total guests
         const base =
           sortedBase.find(b => b.numberOfGuests >= totalGuests) ||
           sortedBase[sortedBase.length - 1];
 
+        // Initialize totalAmount
         let totalAmount = Number(base.amountBeforeTax);
 
+        // Calculate additional charges
         if (totalGuests > base.numberOfGuests) {
-          const extraGuests = totalGuests - base.numberOfGuests;
+          const remainingGuests = totalGuests - base.numberOfGuests;
+
+          // Separate remaining adults and children
+          const remainingAdults = Math.max(guests.adults - base.numberOfGuests, 0);
+          const remainingChildren = Math.max(guests.children - base.numberOfGuests, 0);
+
           const adultExtra = charge.additionalGuestAmounts.find(
-            a => a.ageQualifyingCode === "adult"
+            a => Number(a.ageQualifyingCode) === 10
           );
-          if (adultExtra) totalAmount += Number(adultExtra.amount) * extraGuests;
+          const childExtra = charge.additionalGuestAmounts.find(
+            a => Number(a.ageQualifyingCode) === 8
+          );
+
+          if (adultExtra) totalAmount += Number(adultExtra.amount) * remainingAdults;
+          if (childExtra) totalAmount += Number(childExtra.amount) * remainingChildren;
         }
 
         room_price.push({
