@@ -65,9 +65,60 @@ export class ReservationService {
         return methodMap[method] || "pay_at_hotel";
     }
 
-    public async createReservation(payload: ICreateReservationPayload["data"]): Promise<IApiResponse> {
+    // Normalize/transform incoming payload to match expected format
+    private normalizePayload(payload: any): ICreateReservationPayload["data"] {
+        const { bookingDetails, guestDetails } = payload;
+        const { finalPrice } = bookingDetails;
+
+        // Fix tax/taxes field mismatch
+        if (finalPrice.tax && !finalPrice.taxes) {
+            finalPrice.taxes = finalPrice.tax;
+            delete finalPrice.tax;
+        }
+
+        // Add missing totalTaxAmount if not present
+        if (finalPrice.totalTaxAmount === undefined) {
+            finalPrice.totalTaxAmount = finalPrice.totalTax || 0;
+        }
+
+        // Add missing subtotal if not present
+        if (finalPrice.subtotal === undefined) {
+            finalPrice.subtotal = finalPrice.totalAmount || finalPrice.priceAfterTax || 0;
+        }
+
+        // Add missing taxBreakdown if not present
+        if (!finalPrice.taxBreakdown) {
+            finalPrice.taxBreakdown = {
+                totalBaseAmount: finalPrice.breakdown?.totalBaseAmount || 0,
+                totalAdditionalCharges: finalPrice.breakdown?.totalAdditionalCharges || 0,
+                totalAmount: finalPrice.breakdown?.totalAmount || finalPrice.totalAmount || 0,
+                numberOfNights: finalPrice.numberOfNights || 1,
+                averagePerNight: finalPrice.breakdown?.averagePerNight || finalPrice.totalAmount || 0,
+                totalTax: finalPrice.totalTax || 0
+            };
+        }
+
+        // Fix empty dateOfBirth in guestDetails
+        const normalizedGuestDetails = guestDetails.map((guest: any) => ({
+            ...guest,
+            dateOfBirth: guest.dateOfBirth || null
+        }));
+
+        return {
+            bookingDetails: {
+                ...bookingDetails,
+                finalPrice
+            },
+            guestDetails: normalizedGuestDetails,
+            bankDetails: payload.bankDetails
+        };
+    }
+
+    public async createReservation(payload: any): Promise<IApiResponse> {
         try {
-            const { bookingDetails, guestDetails } = payload;
+            // Normalize the payload first
+            const normalizedPayload = this.normalizePayload(payload);
+            const { bookingDetails, guestDetails } = normalizedPayload;
 
             const {
                 startDate,
@@ -325,7 +376,7 @@ export class ReservationService {
                     dates: reservationDates,
                     roomInfos: [{
                         roomTypeCode: reservation.roomTypeCode,
-                        numberOfRooms: 1
+                        numberOfRooms: reservation.finalPrice?.requestedRooms
                     }]
                 });
             }
