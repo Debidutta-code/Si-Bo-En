@@ -44,7 +44,7 @@ const PolicySection = ({
   const [expanded, setExpanded] = useState(false);
   const displayText = content?.trim() || "Not Available";
   const shouldTruncate = displayText.length > 200;
-console.log()
+// console.log()
   return (
     <div>
       <h4 className="font-semibold mb-1">{title}</h4>
@@ -78,7 +78,7 @@ const RoomDetails: React.FC<Props> = ({ room, onClose, selectedRatePlan }) => {
     "https://via.placeholder.com/300x200?text=No+Image+Available";
 
   const policy = selectedRatePlan?.policy;
-console.log(selectedRatePlan)
+// console.log(selectedRatePlan)
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 overflow-y-auto px-4 py-6">
       <div className="bg-white rounded-2xl p-6 w-full max-w-2xl relative shadow-lg max-h-[90vh] overflow-y-auto">

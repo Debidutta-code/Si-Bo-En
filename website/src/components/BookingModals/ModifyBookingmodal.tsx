@@ -91,7 +91,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
   const [previousRooms, setPreviousRooms] = useState(
     bookingData.finalprice?.requestedRooms || 1
   );
-  console.log("previous room", previousRooms);
+  // console.log("previous room", previousRooms);
   // Ensure rooms state has children count and childAges properly set from bookingData.rooms
   const initializeRooms = (roomsData: Room[] | undefined): Room[] => {
     if (!roomsData || roomsData.length === 0) {
@@ -132,7 +132,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
     children: number;
   }>(countGuests(normalizeGuests(bookingData.guests)));
   const [priceFetchError, setPriceFetchError] = useState(false);
-  console.log(bookingData);
+  // console.log(bookingData);
   useEffect(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Normalize today's date for comparison
@@ -144,7 +144,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
     }
   }, [checkInDate, checkOutDate, rooms, guestCounts, requestedRooms]);
 
-  console.log("booked datas ", bookingData);
+  // console.log("booked datas ", bookingData);
   const fetchUpdatedPrice = async () => {
     try {
       setPriceFetchError(false);
@@ -183,11 +183,11 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
         toast.error(data.message || "Failed to fetch updated price");
         return; // Prevent further execution
       }
-      console.log("data", data);
+      // console.log("data", data);
 
       // ✅ On success
       const updatedAmount = Number(data?.data?.totalAmount);
-      console.log("data", data);
+      // console.log("data", data);
       setFinalPrice(data.data);
       setAmount(updatedAmount);
     } catch (error: unknown) {
@@ -375,7 +375,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
     setDeleteIndex(null);
     setShowDeleteModal(false);
   };
-  console.log("final Price", finalPrice);
+  // console.log("final Price", finalPrice);
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-50  flex items-center justify-center z-50 px-4">

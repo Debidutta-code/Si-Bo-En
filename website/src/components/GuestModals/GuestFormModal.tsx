@@ -188,6 +188,8 @@ const GuestFormModal: React.FC<Props> = ({
     }
   };
 
+  console.log("Final price", finalPrice);
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
       <Card className="w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl">
@@ -488,7 +490,7 @@ const GuestFormModal: React.FC<Props> = ({
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span>Total Base Amount:</span>
-                    <span>₹{finalPrice.breakdown.totalBaseAmount}</span>
+                    <span>₹{finalPrice.currency}{finalPrice.breakdown.totalBaseAmount}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Additional Charges:</span>

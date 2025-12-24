@@ -155,7 +155,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   const hotelcode = bookingContext?.PropertyCode || "4B4SM2";
   const PathName = usePathname();
 
-  console.log("guestInfo", guestInfo);
+  // console.log("guestInfo", guestInfo);
   // console.log("Booking colors:", { primaryColor, secondaryColor, tertiaryColor, buttonTextColor });
 
   // Calculate total guests
@@ -214,8 +214,8 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   }, [checkIn, checkOut, guestInfo]);
 
   const handleGuestSelection = (summary: string, data: any) => {
-    console.log("Selected guest data:", data);
-    console.log("Selected guest summary:", summary);
+    // console.log("Selected guest data:", data);
+    // console.log("Selected guest summary:", summary);
 
     setGuestSummary(summary);
 
@@ -431,7 +431,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   // Calculate button text color - use provided buttonTextColor or get contrast color
   const calculatedButtonTextColor = buttonTextColor || getContrastTextColor(secondaryColor);
 
-  console.log("Rendering SearchWidget with colors:", { primaryColor, secondaryColor, tertiaryColor, buttonTextColor }, bookingContext);
+  // console.log("Rendering SearchWidget with colors:", { primaryColor, secondaryColor, tertiaryColor, buttonTextColor }, bookingContext);
 
   return (
     <>

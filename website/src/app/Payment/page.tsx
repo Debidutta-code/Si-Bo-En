@@ -49,7 +49,7 @@ const BookingReviewPage = () => {
     hotelName,
     PropertyDetails
   } = bookingDetails;
-  console.log("wsdfs", bookingDetails)
+  // console.log("wsdfs", bookingDetails)
   const ratePlanCode = finalPrice?.dailyBreakdown?.[0]?.ratePlanCode;
   const currencyCode = finalPrice?.dailyBreakdown?.[0]?.currencyCode || "INR";
   const roomTypeCode = bookingDetails.roomTypeCode;
@@ -112,14 +112,14 @@ const BookingReviewPage = () => {
         );
 
         const data = await response.json();
-        console.log("💡 Bank Details Response:", data);
+        // console.log("💡 Bank Details Response:", data);
 
         if (!response.ok) {
           throw new Error(data?.message || "Failed to fetch bank details");
         }
 
         setBankDetails(data?.data);
-        console.log("✅ Bank details fetched successfully");
+        // console.log("✅ Bank details fetched successfully");
       } catch (error) {
         console.error("❌ Error fetching bank details:", error);
         toast.error(

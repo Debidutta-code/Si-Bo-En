@@ -245,6 +245,8 @@ const Rooms = () => {
         return;
       }
 
+      console.log("Price fetch response data:", data);
+
       setFinalPrice(data.data);
       setPrice(data?.data?.totalAmount || null);
       setBookingRoom(room);
@@ -442,14 +444,14 @@ const Rooms = () => {
     }
   }, []);
 
-  console.log("Rooms data:", roomsData);
-  console.log("Booking context:", bookingContext);
-  console.log("Property details:", propertyDetails);
-  console.log("Addons:", addons);
-  console.log("Final price:", finalPrice);
-  console.log("Price summary data:", priceSummaryData);
-  console.log("Selected board type:", selectedBoardType);
-  console.log("Selected currency:", selectedCurrency);
+  // console.log("Rooms data:", roomsData);
+  // console.log("Booking context:", bookingContext);
+  // console.log("Property details:", propertyDetails);
+  // console.log("Addons:", addons);
+  // console.log("Final price:", finalPrice);
+  // console.log("Price summary data:", priceSummaryData);
+  // console.log("Selected board type:", selectedBoardType);
+  // console.log("Selected currency:", selectedCurrency);
 
   // Extract unique board types from all rooms
   const availableBoardTypes = Array.from(

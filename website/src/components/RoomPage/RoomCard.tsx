@@ -418,7 +418,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
             const basePrice = ratePlan.baseByGuestAmts?.[0]?.amountBeforeTax || 0;
             const currency = ratePlan.currencyCode || 'INR';
 
-            console.log(ratePlan, 'ratePlan');
+            // console.log(ratePlan, 'ratePlan');
 
             // const { convertedAmount } = useCurrencyConverter(basePrice);
 

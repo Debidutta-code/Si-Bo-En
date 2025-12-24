@@ -51,8 +51,8 @@ const totalChildren = roomsArray.reduce((sum: number, room: any) => sum + (room.
 
 
   const nights = calculateNights();
-console.log(bookingContext)
-console.log(finalPrice)
+// console.log(bookingContext)
+// console.log(finalPrice)
 // Use backend-calculated finalPrice if available
 const backendBaseRatePerNight = finalPrice?.baseRatePerNight || basePrice;
 const backendAdditionalGuestCharges = finalPrice?.additionalGuestCharges || 0;
@@ -60,7 +60,7 @@ const backendNumberOfNights = finalPrice?.numberOfNights || nights;
 const backendTotalAmount = finalPrice?.totalAmount || (backendBaseRatePerNight * backendNumberOfNights * totalRooms + backendAdditionalGuestCharges);
 const grandTotal = backendTotalAmount + totalAddonsPrice;
 const taxAmount = finalPrice?.totalTaxAmount ||0;
-console.log(taxAmount)
+// console.log(taxAmount)
   return (
     <div className="bg-white  rounded-xl shadow-xl border-2 border-orange-400 sticky top-24 overflow-hidden">
       {/* Header */}

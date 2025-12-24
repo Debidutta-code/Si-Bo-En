@@ -22,7 +22,7 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
     amount,
     currencyCode,
   } = bookingData;
-  console.log("bookingdatsdfsjdfhcdsa", bookingData)
+  // console.log("bookingdatsdfsjdfhcdsa", bookingData)
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -54,7 +54,7 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Cancellation failed");
 
-      toast.success("Booking cancelled successfully! Please check Your Email ");
+      // toast.success("Booking cancelled successfully! Please check Your Email ");
       onCancel();
     } catch (err: any) {
       toast.error(err.message || "Something went wrong");
