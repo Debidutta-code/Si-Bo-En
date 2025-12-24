@@ -36,7 +36,7 @@ const navigation: NavItem[] = [
   { name: 'Properties', href: '/app/property', icon: Building, userLevels: [2, 3, 4] },
   { name: "My Property", href: `/app/property`, icon: Building, userLevels: [1, 0] },
   { name: "Reservations", href: "/app/bookings", icon: CalendarClock, userLevels: [0, 1, 2, 3, 4] },
-  { name: 'Logs', href: '/app/logs', icon: FileText, userLevels: [0, 1, 2, 3, 4] },
+  // { name: 'Logs', href: '/app/logs', icon: FileText, userLevels: [0, 1, 2, 3, 4] },
   { name: 'Manage Members', href: '/app/members', icon: Users, userLevels: [4, 3, 2, 1] },
   { name: 'Access Control', href: '/app/access-control', icon: Shield, userLevels: [4] },
 ];
