@@ -126,8 +126,8 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
     user && item.userLevels.includes(user.userLevel)
   );
 
-  // Check if we're in a property context
-  const isPropertyContext = !!propertyId;
+  // Check if we're in a property context (only for /property/* routes, not /app/property/*)
+  const isPropertyContext = !!propertyId && location.pathname.startsWith('/property/');
 
   // Restrictions sub-items (defined inside component to access propertyId)
   const restrictionsItems = [
