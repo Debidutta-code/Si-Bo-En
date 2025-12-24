@@ -208,7 +208,7 @@ export default function Rooms({ propertyId }: PropertyId) {
               className={`overflow-hidden transition-all ${!room.available ? "border-l-4 border-l-red-500" : ""
                 }`}
             >
-              <CardHeader className="border-b bg-gray-50/50">
+              <CardHeader className="border-b bg-primary/5">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
                     <div className="flex items-center gap-3">
@@ -244,7 +244,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                           setPanoramaRoomName(room.roomName);
                           setIsPanoramaViewerOpen(true);
                         }}
-                        className="gap-2"
+                        className="gap-2 bg-primary hover:bg-primary/90"
                       >
                         <Rotate3d className="w-4 h-4" />
                         360° View
@@ -437,9 +437,9 @@ export default function Rooms({ propertyId }: PropertyId) {
                     {room.image && room.image.length > 0 ? (
                       <ImageSlider images={room.image} height="h-64" />
                     ) : (
-                      <div className="h-64 bg-gradient-to-br from-gray-100 to-gray-200 flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-300">
-                        <Bed className="h-12 w-12 text-gray-400 mb-2" />
-                        <p className="text-sm text-gray-500 font-medium">No images uploaded</p>
+                      <div className="h-64 bg-gradient-to-br from-primary/10 to-primary/20 flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-primary/30">
+                        <Bed className="h-12 w-12 text-primary-400 mb-2" />
+                        <p className="text-sm text-primary-600 font-medium">No images uploaded</p>
                       </div>
                     )}
                   </div>
@@ -504,14 +504,14 @@ export default function Rooms({ propertyId }: PropertyId) {
 
                   {/* Room Amenities */}
                   <div className="lg:col-span-3">
-                    <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center justify-between mb-3 border-b border-primary/20 pb-2">
                       <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
                         Room Amenities
                       </label>
                       {room.roomAmenities && room.roomAmenities.length > 0 ? (
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-7 gap-1">
+                            <Button variant="ghost" size="sm" className="h-7 gap-1 text-primary-600 hover:text-primary-700">
                               <PenTool className="h-3.5 w-3.5" />
                               Edit
                             </Button>
@@ -554,7 +554,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                       ) : (
                         <AlertDialog>
                           <AlertDialogTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-7 gap-1">
+                            <Button variant="ghost" size="sm" className="h-7 gap-1 text-primary-600 hover:text-primary-700">
                               <Plus className="h-3.5 w-3.5" />
                               Add
                             </Button>
@@ -602,7 +602,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                             key={selection.id}
                             className="flex items-center gap-2 text-sm text-gray-700 bg-gray-50 px-3 py-2 rounded-md"
                           >
-                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary-500 flex-shrink-0" />
                             <span className="capitalize">
                               {selection.amenity.amenityName}
                             </span>
@@ -629,18 +629,18 @@ export default function Rooms({ propertyId }: PropertyId) {
           ))}
         </div>
       ) : (
-        <Card className="border-dashed">
+        <Card className="border-dashed border-primary/30">
           <CardContent className="flex flex-col items-center justify-center py-16">
-            <div className="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-4">
-              <Bed className="h-10 w-10 text-gray-400" />
+            <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+              <Bed className="h-10 w-10 text-primary-400" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-1">
+            <h3 className="text-lg font-semibold text-primary-900 mb-1">
               No Rooms Configured
             </h3>
-            <p className="text-sm text-gray-500 mb-4 text-center max-w-sm">
+            <p className="text-sm text-primary-600 mb-4 text-center max-w-sm">
               Start by creating your first room type to showcase your property's accommodations
             </p>
-            <Button className="gap-2">
+            <Button className="gap-2 bg-primary hover:bg-primary/90">
               <Plus className="h-4 w-4" />
               Create First Room
             </Button>

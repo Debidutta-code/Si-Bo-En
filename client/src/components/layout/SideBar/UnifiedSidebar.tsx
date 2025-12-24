@@ -16,7 +16,8 @@ import {
   HeadsetIcon,
   BrushCleaning,
   DollarSign,
-  ChevronDown
+  ChevronDown,
+  Ban
 } from 'lucide-react';
 import { useAppSelector } from '@/redux/hooks';
 import { useEffect, useState } from 'react';
@@ -59,6 +60,7 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
   const [isManagementOpen, setIsManagementOpen] = useState(false);
   const [isPriceManagementOpen, setIsPriceManagementOpen] = useState(false);
   const [isRatesOpen, setIsRatesOpen] = useState(false);
+  const [isRestrictionsOpen, setIsRestrictionsOpen] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem('isAuthenticated');
@@ -126,6 +128,11 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
 
   // Check if we're in a property context
   const isPropertyContext = !!propertyId;
+
+  // Restrictions sub-items (defined inside component to access propertyId)
+  const restrictionsItems = [
+    { name: 'Start/Stop Sell', href: `/property/start-stop-sell/${propertyId}` },
+  ];
 
   // Reusable component for the sidebar's content
   const SidebarContent = () => (
@@ -371,6 +378,50 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
             {isPriceManagementOpen && isSidebarOpen && (
               <div className="ml-8 mt-1 space-y-1">
                 {priceManagementItems.map((subItem) => (
+                  <Link
+                    key={subItem.name}
+                    to={subItem.href}
+                    className={cn(
+                      'flex items-center px-3 py-2 rounded-lg text-sm transition-colors',
+                      location.pathname === subItem.href
+                        ? 'bg-primary/10 text-primary font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    )}
+                  >
+                    {subItem.name}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Restrictions Dropdown (only show when in property context) */}
+        {isPropertyContext && (
+          <div>
+            <button
+              onClick={() => setIsRestrictionsOpen(!isRestrictionsOpen)}
+              title="Restrictions"
+              className={cn(
+                'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50',
+                !isSidebarOpen && 'justify-center'
+              )}
+            >
+              <Ban className='h-5 w-5 flex-shrink-0' />
+              <span className={cn('whitespace-nowrap flex-1 text-left', !isSidebarOpen && 'hidden')}>
+                Restrictions
+              </span>
+              <ChevronDown className={cn(
+                'h-4 w-4 transition-transform',
+                isRestrictionsOpen && 'rotate-180',
+                !isSidebarOpen && 'hidden'
+              )} />
+            </button>
+
+            {/* Restrictions Dropdown Items */}
+            {isRestrictionsOpen && isSidebarOpen && (
+              <div className="ml-8 mt-1 space-y-1">
+                {restrictionsItems.map((subItem) => (
                   <Link
                     key={subItem.name}
                     to={subItem.href}

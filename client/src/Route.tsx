@@ -27,6 +27,7 @@ import PromoCode from "./pages/promocode/page.tsx";
 import AddOn from "./pages/add-on/page.tsx";
 import TaxSystem from "./pages/tax-system/page.tsx";
 import BookingEngineConfig from "./pages/property/booking-engine-config/page.tsx";
+import StartStopSell from "./pages/start-stop-sell/page.tsx";
 import SeasonsManagement from "./pages/price-management/seasons/SeasonsManagement.tsx";
 import CalendarView from "./pages/price-management/calendar/CalendarView.tsx";
 import PeriodsManagement from "./pages/price-management/periods/PeriodsManagement.tsx";
@@ -75,6 +76,7 @@ export const router = createBrowserRouter(
         <Route path="promo-code/:propertyId" element={<PromoCode />} />
         <Route path="add-on/:propertyId" element={<AddOn />} />
         <Route path="tax-system/:propertyId" element={<TaxSystem />} />
+        <Route path="start-stop-sell/:propertyId" element={<StartStopSell />} />
         <Route path="booking-engine-config/:propertyId" element={<BookingEngineConfig />} />
         <Route path="price-management/seasons/:propertyId" element={<SeasonsManagement />} />
         <Route path="price-management/calendar/:propertyId" element={<CalendarView />} />

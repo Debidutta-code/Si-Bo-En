@@ -122,7 +122,7 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
 
   return (
     <Card className="w-full">
-      <CardHeader className="border-b bg-gray-50/50">
+      <CardHeader className="border-b bg-primary/5">
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-2xl font-semibold text-gray-900">
@@ -134,7 +134,7 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
           </div>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button size="sm" className="gap-2">
+              <Button size="sm" className="gap-2 bg-primary hover:bg-primary/90">
                 <PenTool className="h-4 w-4" />
                 Edit Address
               </Button>

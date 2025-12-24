@@ -78,7 +78,7 @@ export default function PropertyAmenities({ propertyId }: PropertyId) {
   }
   return (
     <Card className="w-full">
-      <CardHeader className="border-b bg-gray-50/50">
+      <CardHeader className="border-b bg-primary/5">
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-2xl font-semibold text-gray-900">
@@ -90,7 +90,7 @@ export default function PropertyAmenities({ propertyId }: PropertyId) {
           </div>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button size="sm" className="gap-2">
+              <Button size="sm" className="gap-2 bg-primary hover:bg-primary/90">
                 <PenTool className="h-4 w-4" />
                 Edit Amenities
               </Button>
@@ -140,7 +140,7 @@ export default function PropertyAmenities({ propertyId }: PropertyId) {
                 key={amenity}
                 className="flex items-center gap-2 px-4 py-3 bg-gradient-to-br from-gray-50 to-gray-100/50 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors group"
               >
-                <div className="flex-shrink-0 w-2 h-2 rounded-full bg-blue-500 group-hover:bg-blue-600 transition-colors" />
+                <div className="flex-shrink-0 w-2 h-2 rounded-full bg-primary-500 group-hover:bg-primary-600 transition-colors" />
                 <span className="text-sm font-medium text-gray-700 capitalize">
                   {amenity.replace(/_/g, " ")}
                 </span>

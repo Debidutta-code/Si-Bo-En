@@ -2,18 +2,15 @@ import { useParams } from "react-router-dom";
 import { useState } from "react";
 import Loader from "@/components/Loader/Loader";
 import BackButton from "@/components/shared/BackButton";
-import { MapPin, Ban } from "lucide-react";
-import { FilterSection, MappingsTable, UpdatePriceDialog, CreateMappingDialog, StartStopSellDialog } from "./components";
+import { MapPin } from "lucide-react";
+import { FilterSection, MappingsTable, UpdatePriceDialog, CreateMappingDialog } from "./components";
 import { useMapRatePlan } from "./hooks";
-import { useStartStopSellService } from "./services";
-import type { Charges, ICStartStopSell } from "./types";
-import { Button } from "@/components/ui/button";
-import toast from "react-hot-toast";
+import type { Charges } from "./types";
 
 export default function MapRatePlan() {
     const { propertyId } = useParams<{ propertyId: string }>();
     const [editingMapping, setEditingMapping] = useState<Charges | null>(null);
-    const [isStartStopSellDialogOpen, setIsStartStopSellDialogOpen] = useState(false);
+    // const [isStartStopSellDialogOpen, setIsStartStopSellDialogOpen] = useState(false);
 
     const {
         charges,
@@ -38,23 +35,23 @@ export default function MapRatePlan() {
         handlePageChange,
     } = useMapRatePlan(propertyId);
 
-    const handleStartStopSell = async (data: ICStartStopSell & { isSellStop: boolean }) => {
-        try {
-            if (!propertyId) {
-                return { success: false, message: "Property ID is required" };
-            }
-            const response = await useStartStopSellService(propertyId, data);
-            if (response.success) {
-                handleSearch(currentPage); // Refresh current page
-            } else {
-                toast.error(response.message || "Failed to process start/stop sell");
-            }
-            return response;
-        } catch (error) {
-            console.error("Start/Stop Sell Error:", error);
-            toast.error("An error occurred");
-        }
-    };
+    // const handleStartStopSell = async (data: ICStartStopSell & { isSellStop: boolean }) => {
+    //     try {
+    //         if (!propertyId) {
+    //             return { success: false, message: "Property ID is required" };
+    //         }
+    //         const response = await useStartStopSellService(propertyId, data);
+    //         if (response.success) {
+    //             handleSearch(currentPage); // Refresh current page
+    //         } else {
+    //             toast.error(response.message || "Failed to process start/stop sell");
+    //         }
+    //         return response;
+    //     } catch (error) {
+    //         console.error("Start/Stop Sell Error:", error);
+    //         toast.error("An error occurred");
+    //     }
+    // };
 
     if (isLoading && charges.length === 0) {
         return (
@@ -83,14 +80,14 @@ export default function MapRatePlan() {
                                 <p className="text-gray-600">Connect rate plans with room types and set pricing</p>
                             </div>
                         </div>
-                        <Button
+                        {/* <Button
                             onClick={() => setIsStartStopSellDialogOpen(true)}
                             variant="outline"
                             className="flex items-center gap-2"
                         >
                             <Ban className="w-4 h-4" />
                             Start/Stop Sell
-                        </Button>
+                        </Button> */}
                     </div>
                 </div>
 
@@ -137,13 +134,13 @@ export default function MapRatePlan() {
                 />
 
                 {/* Start/Stop Sell Dialog */}
-                <StartStopSellDialog
+                {/* <StartStopSellDialog
                     open={isStartStopSellDialogOpen}
                     onOpenChange={setIsStartStopSellDialogOpen}
                     onSave={handleStartStopSell}
                     ratePlans={ratePlans}
                     roomTypes={roomTypes.map(rt => ({ id:rt.id, roomTypeCode: rt.roomType, roomTypeName: rt.roomName }))}
-                />
+                /> */}
             </div>
         </div>
     );

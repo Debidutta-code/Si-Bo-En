@@ -153,12 +153,12 @@ export default function PropertyDetails({
               <h1 className="text-2xl font-bold text-gray-900">
                 {propertyDetails.propertyName}
               </h1>
-              <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full flex items-center gap-1">
+              <span className="px-3 py-1 bg-success/10 text-success-700 text-xs font-semibold rounded-full flex items-center gap-1">
                 <CheckCircle className="h-3 w-3" />
                 Active
               </span>
               {propertyDetails.propertyCategory?.masterCategory?.categoryName && (
-                <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full flex items-center gap-1">
+                <span className="px-3 py-1 bg-primary/10 text-primary-700 text-xs font-semibold rounded-full flex items-center gap-1">
                   <Tag className="h-3 w-3" />
                   {propertyDetails.propertyCategory.masterCategory.categoryName}
                 </span>
@@ -168,7 +168,7 @@ export default function PropertyDetails({
           </div>
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button className="ml-4 shadow-sm hover:shadow-md transition-shadow">
+              <Button className="ml-4 shadow-sm hover:shadow-md transition-shadow bg-primary hover:bg-primary/90">
                 <PenTool className="h-4 w-4 mr-2" />
                 Edit Details
               </Button>
@@ -212,8 +212,8 @@ export default function PropertyDetails({
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-2 mb-4">
-              <div className="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                <Mail className="h-5 w-5 text-blue-600" />
+              <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                <Mail className="h-5 w-5 text-primary-600" />
               </div>
               <h2 className="text-lg font-semibold text-gray-900">Contact & Details</h2>
             </div>
@@ -246,8 +246,8 @@ export default function PropertyDetails({
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center gap-2 mb-4">
-              <div className="h-10 w-10 bg-indigo-100 rounded-lg flex items-center justify-center">
-                <House className="h-5 w-5 text-indigo-600" />
+              <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                <House className="h-5 w-5 text-primary-600" />
               </div>
               <h2 className="text-lg font-semibold text-gray-900">Property Information</h2>
             </div>

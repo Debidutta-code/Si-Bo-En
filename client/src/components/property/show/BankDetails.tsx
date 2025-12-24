@@ -105,7 +105,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
 
   return (
     <Card className="w-full">
-      <CardHeader className="border-b bg-gray-50/50">
+      <CardHeader className="border-b bg-primary/5">
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-2xl font-semibold text-gray-900">
@@ -124,8 +124,8 @@ export default function BankDetails({ propertyId }: PropertyId) {
           <div className="space-y-6">
             <div className="flex items-center justify-between pb-3 border-b">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                  <Landmark className="h-4 w-4 text-blue-600" />
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Landmark className="h-4 w-4 text-primary-600" />
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900">
                   Bank Account Details
@@ -133,7 +133,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
               </div>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="sm" className="gap-2">
+                  <Button variant="ghost" size="sm" className="gap-2 text-primary-600 hover:text-primary-700">
                     <PenTool className="h-3.5 w-3.5" />
                     Edit
                   </Button>
@@ -227,7 +227,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
           <div className="space-y-6">
             <div className="flex items-center justify-between pb-3 border-b">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-green/100 flex items-center justify-center">
                   <svg
                     className="h-4 w-4 text-green-600"
                     fill="none"
@@ -248,7 +248,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
               </div>
               <AlertDialog>
                 <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="sm" className="gap-2">
+                  <Button variant="ghost" size="sm" className="gap-2 text-primary-600 hover:text-primary-700">
                     <PenTool className="h-3.5 w-3.5" />
                     Edit
                   </Button>
@@ -292,7 +292,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
             <div className="space-y-3">
               <div
                 className={`flex items-center justify-between px-4 py-3 rounded-lg border-2 transition-all ${paymentMethods.upi
-                  ? "bg-green-50 border-green-200"
+                  ? "bg-success/10 border-success/20"
                   : "bg-gray-50 border-gray-200"
                   }`}
               >
@@ -311,7 +311,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
                 </div>
                 <span
                   className={`text-xs font-medium px-2 py-1 rounded-full ${paymentMethods.upi
-                    ? "bg-green-100 text-green-700"
+                    ? "bg-success/20 text-success-700"
                     : "bg-gray-200 text-gray-600"
                     }`}
                 >
