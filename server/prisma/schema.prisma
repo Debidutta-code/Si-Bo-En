@@ -102,18 +102,15 @@ enum PostingRhythm {
 }
 
 enum PaymentMethod {
-  credit_card
-  debit_card
+  pay_at_hotel
   net_banking
   upi
-  wallet
-  cash
+  payment_gateway
 }
 
 enum BookingSource {
   ota
-  walk_in
-  corporate
+  travel_agency
 }
 
 enum FolioStatus {
@@ -301,6 +298,7 @@ model Property {
   propertyAddress   PropertyAddress?
   propertyAmenities PropertyAmenitySelection[]
   bankDetails       BankDetails?
+  reservations Reservation[]
 
   // Children
   propertyRooms            Room[]
@@ -769,6 +767,7 @@ model PromoCode {
   isDeleted           Boolean  @default(false) @map("is_deleted")
   createdAt           DateTime @default(now()) @map("created_at")
   updatedAt           DateTime @updatedAt @map("updated_at")
+  reservations Reservation[]
 
   @@index([propertyId, code])
   @@index([id, code])
@@ -923,45 +922,115 @@ model AddonAvailability {
 
 // Pms Models
 
+// model Reservation {
+//   id          String @id @default(uuid())
+//   bookingCode String @unique @map("booking_code")
+
+//   bookedAt          DateTime          @map("booked_at")
+//   reservationStatus ReservationStatus @default(reserved) @map("reservation_status")
+//   noOfAdults        Int               @map("no_of_adults")
+//   noOfChildren      Int               @map("no_of_children")
+//   noOfInfants       Int               @map("no_of_infants")
+
+//   isDeleted Boolean @default(false) @map("is_deleted")
+
+//   checkedInDate   DateTime? @map("checked_in_date")
+//   checkedOutDate  DateTime? @map("checked_out_date")
+//   from            DateTime
+//   to              DateTime
+//   additionalNotes String?   @map("additional_notes")
+
+//   // primaryGuestId String @map("primary_guest_id")
+
+//   source BookingSource @default(walk_in) @map("source")
+
+//   propertyCode String  @map("property_code")
+//   propertyName String  @map("property_name")
+//   folioId      String? @map("folio_id")
+//   // folio        Folio?  @relation("ReservationFolio")
+
+//   // Guests       Guests[]
+//   Guests       Guests[] @relation("ReservationGuests")
+//   // PrimaryGuest Guests   @relation("ReservationPrimaryGuest", fields: [primaryGuestId], references: [id])
+
+//   // ReservationRooms ReservationRoom[]
+//   addOns           BookingAddon[]
+//   // partialRooms     PartialReservationRoom[]
+//   amountPaid       ReservationPriceBrakeDown[]
+//   createdAt        DateTime                    @default(now())
+//   updatedAt        DateTime                    @updatedAt
+
+//   @@index([propertyCode])
+//   @@map("reservations")
+// }
 model Reservation {
-  id          String @id @default(uuid())
-  bookingCode String @unique @map("booking_code")
+  id                 String   @id @default(uuid()) @db.VarChar(36) @map("id")
 
-  bookedAt          DateTime          @map("booked_at")
-  reservationStatus ReservationStatus @default(reserved) @map("reservation_status")
-  noOfAdults        Int               @map("no_of_adults")
-  noOfChildren      Int               @map("no_of_children")
-  noOfInfants       Int               @map("no_of_infants")
+  // Property & Room
+  propertyId         String   @db.VarChar(36) @map("property_id")
+  propertyCode       String?  @db.VarChar(50) @map("property_code")
+  hotelName          String?  @db.VarChar(150) @map("hotel_name")
 
-  isDeleted Boolean @default(false) @map("is_deleted")
+  roomTypeCode       String?  @db.VarChar(50) @map("room_type_code")
+  ratePlanCode       String?  @db.VarChar(50) @map("rate_plan_code")
 
-  checkedInDate   DateTime? @map("checked_in_date")
-  checkedOutDate  DateTime? @map("checked_out_date")
-  from            DateTime
-  to              DateTime
-  additionalNotes String?   @map("additional_notes")
+  // Booking Identity
+  bookingCode        String   @unique @db.VarChar(50) @map("booking_code")
 
-  // primaryGuestId String @map("primary_guest_id")
+  // Dates
+  bookedAt           DateTime @default(now()) @map("booked_at")
+  checkInDate        DateTime @map("check_in_date")
+  checkOutDate       DateTime @map("check_out_date")
+  // Primary Guest Relation (one-to-many: one guest can have multiple reservations)
+  primaryGuestId     String   @db.VarChar(36) @map("primary_guest_id")
+  primaryGuest       Guests   @relation("ReservationPrimaryGuest", fields: [primaryGuestId], references: [id])
+  
+  // Guest Data
+  guests             Json     @map("guests")
+  bookingUserEmail   String   @db.VarChar(150) @map("booking_user_email")
+  bookingUserPhone   String?  @db.VarChar(50) @map("booking_user_phone")
 
-  source BookingSource @default(walk_in) @map("source")
+  // Pricing
+  amount             Float    @map("amount")
+  currencyCode       CurrencyCode @default(INR) @map("currency_code")
+  finalPrice         Json?    @map("final_price")
 
-  propertyCode String  @map("property_code")
-  propertyName String  @map("property_name")
-  folioId      String? @map("folio_id")
-  // folio        Folio?  @relation("ReservationFolio")
+  paidAmount         Float    @default(0) @map("paid_amount")
+  extraAmountToPay   Float    @default(0) @map("extra_amount_to_pay")
+  refundAmount       Float    @default(0) @map("refund_amount")
 
-  // Guests       Guests[]
-  Guests       Guests[] @relation("ReservationGuests")
-  // PrimaryGuest Guests   @relation("ReservationPrimaryGuest", fields: [primaryGuestId], references: [id])
+  // Payment
+  paymentMethod      PaymentMethod @default(pay_at_hotel) @map("payment_method")
+  paymentImages      Json?    @map("payment_images")
 
-  // ReservationRooms ReservationRoom[]
-  addOns           BookingAddon[]
-  // partialRooms     PartialReservationRoom[]
-  amountPaid       ReservationPriceBrakeDown[]
-  createdAt        DateTime                    @default(now())
-  updatedAt        DateTime                    @updatedAt
+  // Booking Status
+  bookingStatus      BookingStatus @default(confirmed) @map("booking_status")
+  cancellationReason String?  @db.VarChar(255) @map("cancellation_reason")
+
+  // Booking Source
+  bookingSource      BookingSource @default(ota) @map("source")
+
+  // Promo
+  isPromoUsed        Boolean  @default(false) @map("is_promo_used")
+  promoId            String?  @db.VarChar(36) @map("promo_id")
+
+  // Audit
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  property           Property   @relation(fields: [propertyId], references: [id])
+  promo              PromoCode? @relation(fields: [promoId], references: [id])
+  addOns             BookingAddon[]
+  priceBreakdowns ReservationPriceBrakeDown[]
 
   @@index([propertyCode])
+  @@index([propertyId])
+  @@index([roomTypeCode])
+  @@index([ratePlanCode])
+  @@index([bookingStatus])
+  @@index([bookingSource])
+  @@index([primaryGuestId])
   @@map("reservations")
 }
 
@@ -1047,8 +1116,8 @@ model Guests {
   lastName             String                @map("last_name")
   email                String?
   phoneNumber          String?               @map("phone_number")
-  reservations         Reservation[]         @relation("ReservationGuests")
-  // primaryReservations  Reservation[]         @relation("ReservationPrimaryGuest")
+  // reservations         Reservation[]         @relation("ReservationGuests")
+  primaryReservations  Reservation[]         @relation("ReservationPrimaryGuest")
   userType             GuestType             @default(adult) @map("user_type")
   propertyId           String                @map("property_id")
   property             Property              @relation(fields: [propertyId], references: [id])

@@ -32,6 +32,7 @@ import SeasonsManagement from "./pages/price-management/seasons/SeasonsManagemen
 import CalendarView from "./pages/price-management/calendar/CalendarView.tsx";
 import PeriodsManagement from "./pages/price-management/periods/PeriodsManagement.tsx";
 import TableView from "./pages/price-management/table/TableView.tsx";
+import Bookings from "./pages/bookings/page.tsx";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -62,7 +63,7 @@ export const router = createBrowserRouter(
         <Route path="members" element={<MembersPage />} />
         <Route path="logs" element={<LogsPage />} />
         <Route path="access-control" element={<AccessControlPage />} />
-        <Route path="bookings" element={<AccessControlPage />} />
+        <Route path="bookings" element={<Bookings />} />
 
       </Route>
       <Route path="/property" element={<PropertyLayout />}>

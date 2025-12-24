@@ -62,7 +62,7 @@ interface TaxDetail {
 
 export class RoomRentCalculationService {
   public static async getRoomRentService(
-    propertyId: string,
+    propertyCode: string,
     invTypeCode: string,
     startDate: Date,
     endDate: Date,
@@ -73,7 +73,6 @@ export class RoomRentCalculationService {
   ): Promise<RateCalculationResult> {
     try {
       // Input validation
-      const propertyCode = await getPropertyCode(propertyId);
       if (!propertyCode) {
         return errorResponse('Invalid property ID');
       }
@@ -517,7 +516,7 @@ export class RoomRentCalculationService {
           additionalCharges: rateCalculation.additionalGuestCharges,
           totalPerRoom: rateCalculation.totalPerRoom,
           totalForAllRooms: rateCalculation.totalAmountForDay,
-          currencyCode: "INR",
+          currencyCode: "USD",
           breakdown: rateCalculation.breakdown,
         });
 

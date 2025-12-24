@@ -13,7 +13,8 @@ import { TaxSystemRouter } from '../tax-system/routes';
 import {AddonsRoute} from '../add-on/routes';
 import {pmsRoute} from "../pms/routes";
 import {BookingEngineRoutes} from "../booking-engine/routes"
-// import {dashboardRouter} from "../dashboard/routes"
+import {EmailRoutes} from "../sms-email-service/routs/notification.route"
+import {dashboardRouter} from "../dashboard/routes"
 export async function initializeExpressRoutes({ app }: { app: Express }) {
   // Health check
   app.head('/status', (_, res: Response) => res.status(200).end());
@@ -27,7 +28,7 @@ export async function initializeExpressRoutes({ app }: { app: Express }) {
   apiV1Router.use('/user', UserRouter);
   apiV1Router.use("/create", CreationRouter);
 
-  // apiV1Router.use("/dash",dashboardRouter)
+  apiV1Router.use("/dash",dashboardRouter)
 
   apiV1Router.use('/access', AccessControlRoutes);
 
@@ -41,6 +42,7 @@ export async function initializeExpressRoutes({ app }: { app: Express }) {
   apiV1Router.use('/addon', AddonsRoute);
   apiV1Router.use("/pms",pmsRoute)
   apiV1Router.use("/booking-engine",BookingEngineRoutes)
+  apiV1Router.use("/email-service",EmailRoutes)
   // Handle 404 for any undefined route under /api/v1
   app.all('/api/v1/*', (req: Request, _res: Response, next: NextFunction) => {
     next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));

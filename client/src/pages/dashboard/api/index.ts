@@ -1,8 +1,10 @@
 import {fetchAnalytics,
-    fetchProperties
+    fetchProperties,
+    fetchStatisticsComparison
 } from "./dash.api";
 
 export {
     fetchAnalytics,
-    fetchProperties
+    fetchProperties,
+    fetchStatisticsComparison
 }

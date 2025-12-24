@@ -1,5 +1,5 @@
-// import {DashBoardController} from "./dash.controller";
+import {DashBoardController} from "./dash.controller";
 
-// export {
-// DashBoardController
-// }
+export {
+DashBoardController
+}

@@ -1,5 +1,5 @@
-import {GuestRepository} from "./guest.repository";
+// import {GuestRepository} from "./guest.repository";
 
-export{
-    GuestRepository
-}
+// export{
+//     GuestRepository
+// }

@@ -31,7 +31,6 @@ managementRoute.use('/amenity', aminityRouter);
 managementRoute.use('/type', propertyTypeRouter);
 managementRoute.use('/destination-type', destinationRouter);
 
-
 categoryRouter
   .route('/get')
   .get(

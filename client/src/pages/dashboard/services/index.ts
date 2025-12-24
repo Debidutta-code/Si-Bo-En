@@ -1,10 +1,12 @@
 import {fetchAnaltyticsService,
 
-    fetchPropertiesService
+    fetchPropertiesService,
+    fetchStatisticsComparisonService
 } from "./dash.service";
 
 
 export {
     fetchAnaltyticsService,
-    fetchPropertiesService
+    fetchPropertiesService,
+    fetchStatisticsComparisonService
 }

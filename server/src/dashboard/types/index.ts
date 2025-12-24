@@ -5,12 +5,12 @@ import {
     IBookingSourceAnalytics,
     IGuestAnalytics,
     IGuestTypeBreakdown,
-    IHousekeepingAnalytics,
+    // IHousekeepingAnalytics,
     IPaymentMethodAnalytics,
     IPaymentMethodBreakdown,
     IPaymentStatusBreakdown,
     IPopularAddon,
-    IPriorityBreakdown,
+    // IPriorityBreakdown,
     IReservationAnalytics,
     IReservationStatusBreakdown,
     IRevenueAnalytics,
@@ -18,13 +18,15 @@ import {
     IRoomStatusBreakdown,
     IRoomTypeStats,
     ISourceBreakdown,
-    ITaskStatusBreakdown,
+    // ITaskStatusBreakdown,
     ITopPerformingProperties,
     ITopPropertyByBookings,
     ITopPropertyByOccupancy,
     ITopPropertyByRevenue,
     ICountryBreakdown,
-    IRoomTypeOccupancy
+    IRoomTypeOccupancy,
+    IComparisonPeriod,
+    IStatisticsComparison
 } from "./dash.type";
 
 
@@ -35,12 +37,12 @@ export {
     IBookingSourceAnalytics,
     IGuestAnalytics,
     IGuestTypeBreakdown,
-    IHousekeepingAnalytics,
+    // IHousekeepingAnalytics,
     IPaymentMethodAnalytics,
     IPaymentMethodBreakdown,
     IPaymentStatusBreakdown,
     IPopularAddon,
-    IPriorityBreakdown,
+    // IPriorityBreakdown,
     IReservationAnalytics,
     IReservationStatusBreakdown,
     IRevenueAnalytics,
@@ -48,11 +50,13 @@ export {
     IRoomStatusBreakdown,
     IRoomTypeStats,
     ISourceBreakdown,
-    ITaskStatusBreakdown,
+    // ITaskStatusBreakdown,
     ITopPerformingProperties,
     ITopPropertyByBookings,
     ITopPropertyByOccupancy,
     ITopPropertyByRevenue,
     ICountryBreakdown,
-    IRoomTypeOccupancy
+    IRoomTypeOccupancy,
+    IComparisonPeriod,
+    IStatisticsComparison
 }
