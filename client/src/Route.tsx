@@ -27,6 +27,7 @@ import PromoCode from "./pages/promocode/page.tsx";
 import AddOn from "./pages/add-on/page.tsx";
 import TaxSystem from "./pages/tax-system/page.tsx";
 import BookingEngineConfig from "./pages/property/booking-engine-config/page.tsx";
+import Bookings from "./pages/bookings/page.tsx";
 
 
 
@@ -59,7 +60,7 @@ export const router = createBrowserRouter(
         <Route path="members" element={<MembersPage />} />
         <Route path="logs" element={<LogsPage />} />
         <Route path="access-control" element={<AccessControlPage />} />
-        <Route path="bookings" element={<AccessControlPage />} />
+        <Route path="bookings" element={<Bookings />} />
 
       </Route>
       <Route path="/property" element={<PropertyLayout />}>

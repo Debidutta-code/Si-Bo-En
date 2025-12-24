@@ -16,18 +16,21 @@ import {
 import { Decimal } from "../../../../generated/prisma/runtime/library";
 import { getPropertyCode } from "../../../../ari/utils";
 import { prisma } from "../../../../config";
+import { IPropertyCodeAndIds } from "../../../../dashboard/types";
+import { DashUtilsRepo } from "../../../../dashboard/repository";
 
 export class ReservationService {
     reservationRepository: ReservationRepository;
     priceBrakeDownRepo: PriceBrakeDownRepo;
     ariManupulationRepo: AriManupulationRepo;
     guestRepository: GuestRepository;
-
+    dashUtils: DashUtilsRepo;
     constructor() {
         this.reservationRepository = new ReservationRepository();
         this.priceBrakeDownRepo = new PriceBrakeDownRepo();
         this.ariManupulationRepo = new AriManupulationRepo();
         this.guestRepository = new GuestRepository();
+                this.dashUtils = new DashUtilsRepo();
     }
 
     private async generateBookingCode(): Promise<string> {
@@ -292,22 +295,252 @@ export class ReservationService {
         }
     }
 
-    public async getReservationsForADate(propertyId: string, date: Date): Promise<IApiResponse> {
+    // public async getReservationsForADate(propertyId: string, date: Date): Promise<IApiResponse> {
+    //     try {
+    //         const reservations = await this.reservationRepository.getReservationForADate(propertyId, date);
+    //         return successResponse("Reservations fetched successfully", reservations);
+    //     } catch (error) {
+    //         if (error instanceof Error) {
+    //             return errorResponse("Failed to fetch reservations", error.message);
+    //         }
+    //         return errorResponse("Failed to fetch reservations");
+    //     }
+    // }
+    private async getAccessiblePropertyIds(
+        creationId: string, 
+        userLevel: number,
+        specificPropertyId?: string,
+        specificPropertyCode?: string
+    ): Promise<{ success: boolean; propertyIds: string[]; message?: string }> {
         try {
-            const reservations = await this.reservationRepository.getReservationForADate(propertyId, date);
-            return successResponse("Reservations fetched successfully", reservations);
-        } catch (error) {
-            if (error instanceof Error) {
-                return errorResponse("Failed to fetch reservations", error.message);
+            // If specific property requested, validate access first
+            if (specificPropertyId || specificPropertyCode) {
+                // First get all accessible properties for validation
+                let allAccessibleProperties: IPropertyCodeAndIds[] = [];
+                let daoRes: any;
+
+                switch (userLevel) {
+                    case 4:
+                        daoRes = await this.dashUtils.getPropertyIdsAndCodesForLevel4(creationId);
+                        break;
+                    case 3:
+                        daoRes = await this.dashUtils.getPropertyIdsAndCodesForLevel3(creationId);
+                        break;
+                    case 2:
+                        daoRes = await this.dashUtils.getPropertyIdsAndCodesForLevel2(creationId);
+                        break;
+                    case 1:
+                    case 0:
+                        daoRes = await this.dashUtils.getPropertyIdAndCodeForLevel0And1(creationId);
+                        break;
+                    default:
+                        return { success: false, propertyIds: [], message: "Invalid user level" };
+                }
+
+                if (!daoRes.success) {
+                    return { success: false, propertyIds: [], message: daoRes.message };
+                }
+
+                allAccessibleProperties = daoRes.data;
+
+                // Validate access to specific property
+                const hasAccess = allAccessibleProperties.some(p => 
+                    p.id === specificPropertyId || p.code === specificPropertyCode
+                );
+
+                if (!hasAccess) {
+                    return { success: false, propertyIds: [], message: "Access denied to this property" };
+                }
+
+                // Return only the specific property ID
+                const specificProperty = allAccessibleProperties.find(p => 
+                    p.id === specificPropertyId || p.code === specificPropertyCode
+                );
+                return { success: true, propertyIds: [specificProperty!.id] };
             }
-            return errorResponse("Failed to fetch reservations");
+
+            // Get all accessible properties
+            let daoRes: any;
+            switch (userLevel) {
+                case 4:
+                    daoRes = await this.dashUtils.getPropertyIdsAndCodesForLevel4(creationId);
+                    break;
+                case 3:
+                    daoRes = await this.dashUtils.getPropertyIdsAndCodesForLevel3(creationId);
+                    break;
+                case 2:
+                    daoRes = await this.dashUtils.getPropertyIdsAndCodesForLevel2(creationId);
+                    break;
+                case 1:
+                case 0:
+                    daoRes = await this.dashUtils.getPropertyIdAndCodeForLevel0And1(creationId);
+                    break;
+                default:
+                    return { success: false, propertyIds: [], message: "Invalid user level" };
+            }
+
+            if (!daoRes.success) {
+                return { success: false, propertyIds: [], message: daoRes.message };
+            }
+
+            const propertyIds = daoRes.data.map((p: IPropertyCodeAndIds) => p.id);
+            return { success: true, propertyIds };
+
+        } catch (error) {
+            return { 
+                success: false, 
+                propertyIds: [], 
+                message: error instanceof Error ? error.message : "Unknown error" 
+            };
         }
     }
+public async getReservationsForDateRange(
+    creationId: string,
+    userLevel: number,
+    startDate: Date, 
+    endDate: Date,
+    page: number,
+    limit: number,
+    specificPropertyId?: string,
+    specificPropertyCode?: string,
+    bookingStatus?: string // <-- Add this parameter
+): Promise<IApiResponse> {
+    try {
+        // Get accessible property IDs
+        const accessResult = await this.getAccessiblePropertyIds(
+            creationId, 
+            userLevel, 
+            specificPropertyId, 
+            specificPropertyCode
+        );
 
-    public async getArrivals(propertyId: string, arrivalDate: Date): Promise<IApiResponse> {
+        if (!accessResult.success) {
+            return errorResponse(accessResult.message || "Failed to get accessible properties");
+        }
+
+        if (accessResult.propertyIds.length === 0) {
+            return successResponse("No reservations found", [], {
+                currentPage: page,
+                totalPages: 0,
+                totalResults: 0,
+                hasNextPage: false,
+                hasPreviousPage: false,
+                resultsPerPage: limit
+            });
+        }
+
+        const result = await this.reservationRepository.getReservationsForDateRange(
+            accessResult.propertyIds,
+            startDate, 
+            endDate,
+            page,
+            limit,
+            bookingStatus // <-- Add this parameter
+        );
+        
+        return successResponse(
+            "Reservations fetched successfully", 
+            result.data,
+            result.pagination
+        );
+    } catch (error) {
+        if (error instanceof Error) {
+            return errorResponse("Failed to fetch reservations", error.message);
+        }
+        return errorResponse("Failed to fetch reservations");
+    }
+}
+    // public async getArrivals(propertyId: string, arrivalDate: Date): Promise<IApiResponse> {
+    //     try {
+    //         const arrivals = await this.reservationRepository.getArrivals(propertyId, arrivalDate);
+    //         return successResponse("Arrivals fetched successfully", arrivals);
+    //     } catch (error) {
+    //         if (error instanceof Error) {
+    //             return errorResponse("Failed to fetch arrivals", error.message);
+    //         }
+    //         return errorResponse("Failed to fetch arrivals");
+    //     }
+    // }
+
+    // public async getDepartures(propertyId: string, departureDate: Date): Promise<IApiResponse> {
+    //     try {
+    //         const departures = await this.reservationRepository.getDepartures(propertyId, departureDate);
+    //         return successResponse("Departures fetched successfully", departures);
+    //     } catch (error) {
+    //         if (error instanceof Error) {
+    //             return errorResponse("Failed to fetch departures", error.message);
+    //         }
+    //         return errorResponse("Failed to fetch departures");
+    //     }
+    // }
+
+    // public async getCheckedInReservations(propertyId: string, date: Date): Promise<IApiResponse> {
+    //     try {
+    //         const checkIns = await this.reservationRepository.getCheckIns(propertyId, date);
+    //         return successResponse("Checked-in reservations fetched successfully", checkIns);
+    //     } catch (error) {
+    //         if (error instanceof Error) {
+    //             return errorResponse("Failed to fetch checked-in reservations", error.message);
+    //         }
+    //         return errorResponse("Failed to fetch checked-in reservations");
+    //     }
+    // }
+
+    // public async getCheckedOutReservations(propertyId: string, date: Date): Promise<IApiResponse> {
+    //     try {
+    //         const checkOuts = await this.reservationRepository.getCheckouts(propertyId, date);
+    //         return successResponse("Checked-out reservations fetched successfully", checkOuts);
+    //     } catch (error) {
+    //         if (error instanceof Error) {
+    //             return errorResponse("Failed to fetch checked-out reservations", error.message);
+    //         }
+    //         return errorResponse("Failed to fetch checked-out reservations");
+    //     }
+    // }
+public async getArrivals(
+        creationId: string,
+        userLevel: number,
+        startDate: Date,
+        endDate: Date,
+        page: number,
+        limit: number,
+        specificPropertyId?: string,
+        specificPropertyCode?: string,
+        bookingStatus?: string
+    ): Promise<IApiResponse> {
         try {
-            const arrivals = await this.reservationRepository.getArrivals(propertyId, arrivalDate);
-            return successResponse("Arrivals fetched successfully", arrivals);
+            const accessResult = await this.getAccessiblePropertyIds(
+                creationId, 
+                userLevel, 
+                specificPropertyId, 
+                specificPropertyCode
+            );
+
+            if (!accessResult.success) {
+                return errorResponse(accessResult.message || "Failed to get accessible properties");
+            }
+
+            if (accessResult.propertyIds.length === 0) {
+                return successResponse("No arrivals found", [], {
+                    currentPage: page,
+                    totalPages: 0,
+                    totalResults: 0,
+                    hasNextPage: false,
+                    hasPreviousPage: false,
+                    resultsPerPage: limit
+                });
+            }
+
+            const result = await this.reservationRepository.getArrivals(
+                accessResult.propertyIds,
+                startDate,
+                endDate,
+                page,
+                limit,
+                bookingStatus
+            );
+            
+            return successResponse("Arrivals fetched successfully", result.data, result.pagination);
         } catch (error) {
             if (error instanceof Error) {
                 return errorResponse("Failed to fetch arrivals", error.message);
@@ -316,10 +549,50 @@ export class ReservationService {
         }
     }
 
-    public async getDepartures(propertyId: string, departureDate: Date): Promise<IApiResponse> {
+    public async getDepartures(
+        creationId: string,
+        userLevel: number,
+        startDate: Date,
+        endDate: Date,
+        page: number,
+        limit: number,
+        specificPropertyId?: string,
+        specificPropertyCode?: string,
+bookingStatus?: string
+    ): Promise<IApiResponse> {
         try {
-            const departures = await this.reservationRepository.getDepartures(propertyId, departureDate);
-            return successResponse("Departures fetched successfully", departures);
+            const accessResult = await this.getAccessiblePropertyIds(
+                creationId, 
+                userLevel, 
+                specificPropertyId, 
+                specificPropertyCode
+            );
+
+            if (!accessResult.success) {
+                return errorResponse(accessResult.message || "Failed to get accessible properties");
+            }
+
+            if (accessResult.propertyIds.length === 0) {
+                return successResponse("No departures found", [], {
+                    currentPage: page,
+                    totalPages: 0,
+                    totalResults: 0,
+                    hasNextPage: false,
+                    hasPreviousPage: false,
+                    resultsPerPage: limit
+                });
+            }
+
+            const result = await this.reservationRepository.getDepartures(
+                accessResult.propertyIds,
+                startDate,
+                endDate,
+                page,
+                limit,
+                bookingStatus
+            );
+            
+            return successResponse("Departures fetched successfully", result.data, result.pagination);
         } catch (error) {
             if (error instanceof Error) {
                 return errorResponse("Failed to fetch departures", error.message);
@@ -328,10 +601,48 @@ export class ReservationService {
         }
     }
 
-    public async getCheckedInReservations(propertyId: string, date: Date): Promise<IApiResponse> {
+    public async getCheckedInReservations(
+        creationId: string,
+        userLevel: number,
+        startDate: Date,
+        endDate: Date,
+        page: number,
+        limit: number,
+        specificPropertyId?: string,
+        specificPropertyCode?: string
+    ): Promise<IApiResponse> {
         try {
-            const checkIns = await this.reservationRepository.getCheckIns(propertyId, date);
-            return successResponse("Checked-in reservations fetched successfully", checkIns);
+            const accessResult = await this.getAccessiblePropertyIds(
+                creationId, 
+                userLevel, 
+                specificPropertyId, 
+                specificPropertyCode
+            );
+
+            if (!accessResult.success) {
+                return errorResponse(accessResult.message || "Failed to get accessible properties");
+            }
+
+            if (accessResult.propertyIds.length === 0) {
+                return successResponse("No check-ins found", [], {
+                    currentPage: page,
+                    totalPages: 0,
+                    totalResults: 0,
+                    hasNextPage: false,
+                    hasPreviousPage: false,
+                    resultsPerPage: limit
+                });
+            }
+
+            const result = await this.reservationRepository.getCheckIns(
+                accessResult.propertyIds,
+                startDate,
+                endDate,
+                page,
+                limit
+            );
+            
+            return successResponse("Checked-in reservations fetched successfully", result.data, result.pagination);
         } catch (error) {
             if (error instanceof Error) {
                 return errorResponse("Failed to fetch checked-in reservations", error.message);
@@ -340,10 +651,48 @@ export class ReservationService {
         }
     }
 
-    public async getCheckedOutReservations(propertyId: string, date: Date): Promise<IApiResponse> {
+    public async getCheckedOutReservations(
+        creationId: string,
+        userLevel: number,
+        startDate: Date,
+        endDate: Date,
+        page: number,
+        limit: number,
+        specificPropertyId?: string,
+        specificPropertyCode?: string
+    ): Promise<IApiResponse> {
         try {
-            const checkOuts = await this.reservationRepository.getCheckouts(propertyId, date);
-            return successResponse("Checked-out reservations fetched successfully", checkOuts);
+            const accessResult = await this.getAccessiblePropertyIds(
+                creationId, 
+                userLevel, 
+                specificPropertyId, 
+                specificPropertyCode
+            );
+
+            if (!accessResult.success) {
+                return errorResponse(accessResult.message || "Failed to get accessible properties");
+            }
+
+            if (accessResult.propertyIds.length === 0) {
+                return successResponse("No check-outs found", [], {
+                    currentPage: page,
+                    totalPages: 0,
+                    totalResults: 0,
+                    hasNextPage: false,
+                    hasPreviousPage: false,
+                    resultsPerPage: limit
+                });
+            }
+
+            const result = await this.reservationRepository.getCheckouts(
+                accessResult.propertyIds,
+                startDate,
+                endDate,
+                page,
+                limit
+            );
+            
+            return successResponse("Checked-out reservations fetched successfully", result.data, result.pagination);
         } catch (error) {
             if (error instanceof Error) {
                 return errorResponse("Failed to fetch checked-out reservations", error.message);

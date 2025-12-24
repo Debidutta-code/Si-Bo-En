@@ -516,7 +516,7 @@ export class RoomRentCalculationService {
           additionalCharges: rateCalculation.additionalGuestCharges,
           totalPerRoom: rateCalculation.totalPerRoom,
           totalForAllRooms: rateCalculation.totalAmountForDay,
-          currencyCode: "INR",
+          currencyCode: "USD",
           breakdown: rateCalculation.breakdown,
         });
 
