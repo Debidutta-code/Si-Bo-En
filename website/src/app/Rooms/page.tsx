@@ -594,7 +594,7 @@ const Rooms = () => {
                     </Select>
 
                     {/* Currency Filter */}
-                    <Select value={selectedCurrency} onValueChange={(value) => {
+                    {/* <Select value={selectedCurrency} onValueChange={(value) => {
                       setSelectedCurrency(value);
                       dispatch(setCurrency(value));
                     }}>
@@ -608,7 +608,7 @@ const Rooms = () => {
                         <SelectItem value="GBP">British Pound (£)</SelectItem>
                         <SelectItem value="INR">Indian Rupee (₹)</SelectItem>
                       </SelectContent>
-                    </Select>
+                    </Select> */}
                   </div>
                 </div>
 
