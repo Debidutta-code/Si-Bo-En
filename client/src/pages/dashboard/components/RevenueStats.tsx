@@ -94,37 +94,43 @@ export default function RevenueStats({ data }: RevenueStatsProps) {
 
       {/* Payment Status Breakdown */}
       <Card className="bg-gradient-to-br from-purple-50 to-pink-50">
-        <CardHeader>
-          <CardTitle className="text-xl font-bold">Payment Status Breakdown</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {data?.paymentStatusBreakdown.map((payment) => (
-              <div key={payment.status} className="space-y-1">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="capitalize font-medium">{payment.status}</span>
-                  <span className="font-semibold">{formatCurrency(payment.amount)}</span>
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  {payment.count} payments
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className={`h-2 rounded-full transition-all duration-1000 ${
-                      payment.status === 'confirmed' ? 'bg-gradient-to-r from-green-500 to-green-600' : 
-                      payment.status === 'pending' ? 'bg-gradient-to-r from-orange-500 to-orange-600' : 
-                      'bg-gradient-to-r from-red-500 to-red-600'
-                    }`}
-                    style={{ 
-                      width: `${(payment.amount / data?.totalRevenue * 100)}%` 
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
+  <CardHeader>
+    <CardTitle className="text-xl font-bold">Payment Status Breakdown</CardTitle>
+  </CardHeader>
+  <CardContent>
+    <div className="space-y-3">
+      {data?.paymentStatusBreakdown.map((payment) => {
+        // Calculate max amount to normalize bar widths
+        const maxAmount = Math.max(...(data?.paymentStatusBreakdown.map(p => p.amount) || [0]));
+        const percentage = maxAmount > 0 ? (payment.amount / maxAmount * 100) : 0;
+        
+        return (
+          <div key={payment.status} className="space-y-1">
+            <div className="flex items-center justify-between text-sm">
+              <span className="capitalize font-medium">{payment.status}</span>
+              <span className="font-semibold">{formatCurrency(payment.amount)}</span>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {payment.count} payments
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-2">
+              <div 
+                className={`h-2 rounded-full transition-all duration-1000 ${
+                  payment.status === 'confirmed' ? 'bg-gradient-to-r from-green-500 to-green-600' : 
+                  payment.status === 'pending' ? 'bg-gradient-to-r from-orange-500 to-orange-600' : 
+                  'bg-gradient-to-r from-red-500 to-red-600'
+                }`}
+                style={{ 
+                  width: `${percentage}%` 
+                }}
+              />
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        );
+      })}
+    </div>
+  </CardContent>
+</Card>
     </div>
   );
 }
