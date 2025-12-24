@@ -91,7 +91,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
   activeRatePlan,
   selectedBoardType
 }) => {
-  const { currency: selectedCurrency } = useSelector((state: RootState) => state.booking);
+  // const { currency: selectedCurrency } = useSelector((state: RootState) => state.booking);
   const [loadingPriceFor, setLoadingPriceFor] = useState<string | null>(null);
   const isLoadingForRatePlan = (ratePlanCode: string) => {
     return loadingPriceFor === ratePlanCode || loadingBookNow === `${room.id}-${ratePlanCode}`;
@@ -416,9 +416,11 @@ const RoomCard: React.FC<RoomCardProps> = ({
             const isExpanded = expandedRatePlan === ratePlan.ratePlanCode;
             const isCollapsed = collapsedRatePlans.has(ratePlan.ratePlanCode);
             const basePrice = ratePlan.baseByGuestAmts?.[0]?.amountBeforeTax || 0;
-            const currency = selectedCurrency || 'INR';
+            const currency = ratePlan.currencyCode || 'INR';
 
-            const { convertedAmount } = useCurrencyConverter(basePrice);
+            console.log(ratePlan, 'ratePlan');
+
+            // const { convertedAmount } = useCurrencyConverter(basePrice);
 
             return (
               <div
