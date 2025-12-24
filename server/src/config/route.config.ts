@@ -14,7 +14,7 @@ import {AddonsRoute} from '../add-on/routes';
 import {pmsRoute} from "../pms/routes";
 import {BookingEngineRoutes} from "../booking-engine/routes"
 import {EmailRoutes} from "../sms-email-service/routs/notification.route"
-// import {dashboardRouter} from "../dashboard/routes"
+import {dashboardRouter} from "../dashboard/routes"
 export async function initializeExpressRoutes({ app }: { app: Express }) {
   // Health check
   app.head('/status', (_, res: Response) => res.status(200).end());
@@ -28,7 +28,7 @@ export async function initializeExpressRoutes({ app }: { app: Express }) {
   apiV1Router.use('/user', UserRouter);
   apiV1Router.use("/create", CreationRouter);
 
-  // apiV1Router.use("/dash",dashboardRouter)
+  apiV1Router.use("/dash",dashboardRouter)
 
   apiV1Router.use('/access', AccessControlRoutes);
 

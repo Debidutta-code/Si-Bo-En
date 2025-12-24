@@ -1,9 +1,9 @@
 import createAxiosInstance from "@/components/axiosInstance";
-const axiosInstance=createAxiosInstance()
+const axiosInstance = createAxiosInstance()
 
-export const fetchAnalytics=async(selectedPropertyId?:string,propertyCode?:string,propertyName?:string)=>{
+export const fetchAnalytics = async(selectedPropertyId?: string, propertyCode?: string, propertyName?: string) => {
     try {
-        const response=await axiosInstance.get(`/dash/get-analytics?${selectedPropertyId&&"propertyId="+selectedPropertyId}&&${propertyCode&&"propertyCode"+propertyCode}&&${propertyName&&"propertyName"+propertyName}`)
+        const response = await axiosInstance.get(`/dash/get-analytics?${selectedPropertyId && "propertyId=" + selectedPropertyId}&&${propertyCode && "propertyCode=" + propertyCode}&&${propertyName && "propertyName=" + propertyName}`)
         return response.data
     } catch (error: any) {
         if (error?.response?.data) {
@@ -16,9 +16,10 @@ export const fetchAnalytics=async(selectedPropertyId?:string,propertyCode?:strin
         }
     }
 }
-export const fetchProperties=async()=>{
+
+export const fetchProperties = async() => {
     try {
-        const response=await axiosInstance.get("/dash/properties")
+        const response = await axiosInstance.get("/dash/properties")
         return response.data
     } catch (error: any) {
         if (error?.response?.data) {
@@ -31,3 +32,34 @@ export const fetchProperties=async()=>{
         }
     }
 }
+
+// 🆕 ADD THIS NEW API FUNCTION
+export const fetchStatisticsComparison = async(
+    comparisonType: 'date' | 'month' | 'year',
+    selectedDate: string,
+    propertyId?: string,
+    propertyCode?: string,
+    propertyName?: string
+) => {
+    try {
+        const params = new URLSearchParams({
+            comparisonType,
+            selectedDate,
+            ...(propertyId && { propertyId }),
+            ...(propertyCode && { propertyCode }),
+            ...(propertyName && { propertyName })
+        });
+
+        const response = await axiosInstance.get(`/dash/statistics-comparison?${params.toString()}`);
+        return response.data;
+    } catch (error: any) {
+        if (error?.response?.data) {
+            return error.response.data;
+        } else {
+            return {
+                success: false,
+                message: error?.message
+            };
+        }
+    }
+};
