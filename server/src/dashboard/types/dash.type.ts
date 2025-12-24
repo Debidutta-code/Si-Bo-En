@@ -1,7 +1,7 @@
 export interface IPropertyCodeAndIds {
     id: string;
     code: string;
-    name:string;
+    name: string;
 }
 
 // Reservation Analytics Interfaces
@@ -50,17 +50,17 @@ export interface IRevenueAnalytics {
     }>;
 }
 
-// Room Analytics Interfaces
+// Room Analytics Interfaces - UPDATED
 export interface IRoomStatusBreakdown {
     status: string;
     count: number;
 }
 
+// UPDATED: Removed IndividualRooms since that model no longer exists
 export interface IRoomTypeStats {
     roomType: string;
     roomName: string;
     totalRoom: number;
-    IndividualRooms: { roomStatus: string }[];
 }
 
 export interface IRoomTypeOccupancy {
@@ -76,10 +76,10 @@ export interface IRoomAnalytics {
     totalRooms: number;
     occupiedRooms: number;
     availableRooms: number;
-    dirtyRooms: number;
+    dirtyRooms: number; // Will always be 0 now
     reservedRooms: number;
     checkedInRooms: number;
-    tentativeRooms: number;
+    tentativeRooms: number; // Will always be 0 now
     occupancyRate: string;
     roomStatusBreakdown: IRoomStatusBreakdown[];
     roomTypeStats: IRoomTypeStats[];
@@ -106,27 +106,6 @@ export interface IGuestAnalytics {
     recentGuests: number;
     verifiedGuests: number;
     verificationRate: string;
-}
-
-// Housekeeping Analytics Interfaces
-export interface ITaskStatusBreakdown {
-    status: string;
-    count: number;
-}
-
-export interface IPriorityBreakdown {
-    priority: string;
-    count: number;
-}
-
-export interface IHousekeepingAnalytics {
-    totalTasks: number;
-    taskStatusBreakdown: ITaskStatusBreakdown[];
-    priorityBreakdown: IPriorityBreakdown[];
-    completedTasks: number;
-    completionRate: string;
-    averageCompletionTimeMinutes: number;
-    todayTasks: number;
 }
 
 // Addon Analytics Interfaces
@@ -194,15 +173,57 @@ export interface ITopPerformingProperties {
     topByOccupancy: ITopPropertyByOccupancy[];
 }
 
-// Combined Analytics Response Interface
+// Combined Analytics Response Interface - UPDATED: Removed housekeeping
 export interface IAnalyticsData {
     reservation: IReservationAnalytics;
     revenue: IRevenueAnalytics;
-    room: IRoomAnalytics;
+    // room: IRoomAnalytics;
     guest: IGuestAnalytics;
-    housekeeping: IHousekeepingAnalytics;
     addon: IAddonAnalytics;
     bookingSource: IBookingSourceAnalytics;
     paymentMethod: IPaymentMethodAnalytics;
     topPerformingProperties?: ITopPerformingProperties;
+}
+// Add these to your existing types file
+
+export interface IComparisonPeriod {
+  current: {
+    start: Date;
+    end: Date;
+    label: string;
+  };
+  previous: {
+    start: Date;
+    end: Date;
+    label: string;
+  };
+}
+
+export interface IStatisticsComparison {
+  bookings: {
+    current: number;
+    previous: number;
+    percentageChange: number;
+  };
+  cancelledBookings: {
+    current: number;
+    previous: number;
+    percentageChange: number;
+  };
+  revenue: {
+    current: number;
+    previous: number;
+    percentageChange: number;
+  };
+  averageBookingValue: {
+    current: number;
+    previous: number;
+    percentageChange: number;
+  };
+  roomNights: {
+    current: number;
+    previous: number;
+    percentageChange: number;
+  };
+  period: IComparisonPeriod;
 }
