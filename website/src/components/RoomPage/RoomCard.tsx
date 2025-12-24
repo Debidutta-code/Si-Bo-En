@@ -3,6 +3,9 @@ import { Users, Ruler, Eye, Wifi, Coffee, Tv, Wind, Phone, Utensils, ChevronRigh
 import RoomDetails from './RoomDetails';
 import { Room } from "../../store/roomsSlice";
 import { useBookingStorage } from '../../hooks/useBookingStorage'; // Adjust path as needed
+import { useSelector } from 'react-redux';
+import { RootState } from '@/src/store/store';
+import { useCurrencyConverter } from '@/src/hooks/useCurrencyConverter';
 
 interface RoomCardProps {
   room: Room;
@@ -88,6 +91,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
   activeRatePlan,
   selectedBoardType
 }) => {
+  const { currency: selectedCurrency } = useSelector((state: RootState) => state.booking);
   const [loadingPriceFor, setLoadingPriceFor] = useState<string | null>(null);
   const isLoadingForRatePlan = (ratePlanCode: string) => {
     return loadingPriceFor === ratePlanCode || loadingBookNow === `${room.id}-${ratePlanCode}`;
@@ -290,6 +294,11 @@ const RoomCard: React.FC<RoomCardProps> = ({
   const totalAddonsPrice = Object.values(selectedAddons).reduce((sum: number, addon: any) => sum + addon.totalPrice, 0);
   const totalAddonsCount = Object.values(selectedAddons).reduce((sum: number, addon: any) => sum + addon.quantity, 0);
 
+  const convertCurrency = (amount: number) => {
+    const { convertedAmount } = useCurrencyConverter(amount);
+    return convertedAmount;
+  };
+
   return (
     <div className="space-y-4">
       {/* Room Header Card */}
@@ -412,7 +421,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
             const isExpanded = expandedRatePlan === ratePlan.ratePlanCode;
             const isCollapsed = collapsedRatePlans.has(ratePlan.ratePlanCode);
             const basePrice = ratePlan.baseByGuestAmts?.[0]?.amountBeforeTax || 0;
-            const currency = ratePlan.currencyCode || 'INR';
+            const currency = selectedCurrency || 'INR';
 
             return (
               <div
@@ -466,7 +475,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                         <div className="text-left sm:text-right">
                           <div className="flex items-baseline gap-1.5">
                             <span className="text-xl md:text-2xl font-bold text-orange-600">
-                              {currency === 'INR' ? '₹' : currency} {basePrice.toLocaleString()}
+                              {currency === 'INR' ? '₹' : currency} {convertCurrency(basePrice).toLocaleString()}
                             </span>
                           </div>
                           <span className="text-xs text-gray-500">per night</span>

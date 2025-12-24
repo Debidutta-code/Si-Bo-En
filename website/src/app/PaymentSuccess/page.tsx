@@ -5,11 +5,15 @@ import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { useRouter } from "next/navigation";
 import { Loader2 } from "lucide-react";
+import { useBookingStorage } from "@/src/hooks/useBookingStorage"; // Add this import
 
 const PaymentSuccessPage = () => {
   const bookingData = useSelector((state: RootState) => state.booking);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+
+  // Add the hook usage at the component level
+  const { colors } = useBookingStorage({}); // You may need to pass actual bookingContext if available
 
   // ✅ Clear cookie + block back navigation
   useEffect(() => {
@@ -66,11 +70,18 @@ const PaymentSuccessPage = () => {
     router.push(`/my-trip?code=${bookingData.bookingCode}`);
   };
 
-  return bookingStatus === "Confirmed" ? (
+  return bookingStatus === "confirmed" ? (
     <div className="min-h-screen bg-gray-100 pt-28 pb-8 px-4">
       <div className="max-w-5xl mx-auto bg-white shadow-xl rounded-2xl p-8 sm:p-10">
         {/* Success Banner */}
-        <div className="bg-orange-50 border border-orange-300 text-orange-700 px-6 py-4 rounded-xl mb-8 text-center">
+        <div
+          className="border px-6 py-4 rounded-xl mb-8 text-center"
+          style={{
+            backgroundColor: `${colors.secondaryColor}10`,
+            borderColor: colors.primaryColor,
+            color: colors.primaryColor
+          }}
+        >
           <h1 className="text-2xl font-bold mb-1">Booking Confirmed!</h1>
           <p>Your reservation has been successfully completed.</p>
         </div>
@@ -79,7 +90,7 @@ const PaymentSuccessPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-6">
           {/* Booking Summary */}
           <div>
-            <h2 className="text-lg font-semibold text-orange-600 mb-3">
+            <h2 className="text-lg font-semibold mb-3" style={{ color: colors.primaryColor }}>
               Booking Summary
             </h2>
             <div className="space-y-2 text-sm text-gray-800">
@@ -104,7 +115,7 @@ const PaymentSuccessPage = () => {
 
           {/* Guest Info */}
           <div>
-            <h2 className="text-lg font-semibold text-orange-600 mb-3">
+            <h2 className="text-lg font-semibold mb-3" style={{ color: colors.primaryColor }}>
               Guest Information
             </h2>
             <div className="space-y-2 text-sm text-gray-800">
@@ -124,7 +135,7 @@ const PaymentSuccessPage = () => {
               </p>
               <p>
                 <strong>Payment Method:</strong>{" "}
-                <span className="text-orange-600 font-semibold">
+                <span className="font-semibold" style={{ color: colors.primaryColor }}>
                   Pay at Hotel
                 </span>
               </p>
@@ -135,10 +146,10 @@ const PaymentSuccessPage = () => {
         {/* Payment Details & Buttons */}
         <div className="flex border-t md:flex-row flex-col justify-start items-start pt-6">
           <div className="md:w-1/2">
-            <h2 className="text-lg font-semibold text-orange-600 mb-2">
+            <h2 className="text-lg font-semibold mb-2" style={{ color: colors.primaryColor }}>
               Payment Details
             </h2>
-            <div className="text-orange-600 font-bold text-2xl">
+            <div className="font-bold text-2xl" style={{ color: colors.primaryColor }}>
               INR {totalAmount}
             </div>
             <p className="text-sm text-gray-500">
@@ -148,19 +159,24 @@ const PaymentSuccessPage = () => {
 
           <div className="mt-6 md:mt-0 flex flex-col sm:flex-row gap-4 md:w-1/2">
             <button
-        onClick={handleViewBookings}
-        disabled={loading}
-        className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg shadow transition-all flex items-center justify-center gap-2 disabled:opacity-70"
-      >
-        {loading ? (
-          <>
-            <Loader2 className="h-5 w-5 animate-spin" />
-            Redirecting...
-          </>
-        ) : (
-          "View My Bookings"
-        )}
-      </button>
+              onClick={handleViewBookings}
+              disabled={loading}
+              className="text-white px-6 py-2 rounded-lg shadow transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+              style={{
+                backgroundColor: colors.secondaryColor,
+                color: colors.buttonTextColor,
+                // '&:hover': { backgroundColor: colors.primaryColor }
+              }}
+            >
+              {loading ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin" />
+                  Redirecting...
+                </>
+              ) : (
+                "View My Bookings"
+              )}
+            </button>
             <button
               onClick={() => router.push("/")}
               className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg shadow transition-all"
@@ -172,28 +188,36 @@ const PaymentSuccessPage = () => {
 
         {/* Additional Info */}
         <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-          <div className="bg-orange-50 p-4 rounded-xl shadow">
-            <h3 className="font-semibold mb-2 text-orange-600">What’s Next?</h3>
+          <div
+            className="p-4 rounded-xl shadow"
+            style={{
+              backgroundColor: `${colors.secondaryColor}10`,
+            }}
+          >
+            <h3 className="font-semibold mb-2" style={{ color: colors.primaryColor }}>What's Next?</h3>
             <ul className="list-disc list-inside text-gray-800 space-y-1">
               <li>A confirmation email has been sent.</li>
               <li>You can view or cancel bookings anytime.</li>
               <li>Need changes? Contact us 24/7.</li>
             </ul>
-            {/* <button className="mt-3 text-orange-600 hover:underline font-medium">
-              Download Confirmation
-            </button> */}
           </div>
-          <div className="bg-orange-50 p-4 rounded-xl shadow">
-            <h3 className="font-semibold mb-2 text-orange-600">Need Help?</h3>
+          <div
+            className="p-4 rounded-xl shadow"
+            style={{
+              backgroundColor: `${colors.secondaryColor}10`,
+            }}
+          >
+            <h3 className="font-semibold mb-2" style={{ color: colors.primaryColor }}>Need Help?</h3>
             <p className="text-gray-800">
               Our support team is available 24/7 for anything you need.
             </p>
-              <a
-  href="https://mail.google.com/mail/?view=cm&fs=1&to=info@swiftrooms.ai&su=Support%20Request&body=Hi%20Swiftrooms%20Team,"
-  target="_blank"
-  rel="noopener noreferrer"
-            className="mt-3 text-orange-600 hover:underline font-medium">
-
+            <a
+              href="https://mail.google.com/mail/?view=cm&fs=1&to=info@swiftrooms.ai&su=Support%20Request&body=Hi%20Swiftrooms%20Team,"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-3 font-medium hover:underline"
+              style={{ color: colors.primaryColor }}
+            >
               Contact Support
             </a>
           </div>
@@ -202,12 +226,19 @@ const PaymentSuccessPage = () => {
     </div>
   ) : (
     // 🚫 Pending UI
-    <div className="min-h-screen bg-yellow-50 pt-28 pb-8 px-4">
+    <div className="min-h-screen bg-gray-100 pt-28 pb-8 px-4">
       <div className="max-w-3xl mx-auto bg-white shadow-xl rounded-2xl p-8 text-center">
-        <div className="flex flex-col items-center bg-yellow-100 border border-yellow-300 text-yellow-800 px-6 py-5 rounded-xl mb-6">
+        <div
+          className="flex flex-col items-center border px-6 py-5 rounded-xl mb-6"
+          style={{
+            backgroundColor: `${colors.secondaryColor}10`,
+            borderColor: colors.primaryColor,
+            color: colors.primaryColor
+          }}
+        >
           <svg
             xmlns="http://www.w3.org/2000/svg"
-            className="h-10 w-10 mb-2 text-yellow-600"
+            className="h-10 w-10 mb-2"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -221,17 +252,23 @@ const PaymentSuccessPage = () => {
           </svg>
           <h1 className="text-2xl font-bold mb-1">Booking Pending</h1>
           <p className="text-sm sm:text-base">
-            We’ve received your booking request and it's currently being
+            We've received your booking request and it's currently being
             processed.
           </p>
         </div>
 
         <p className="text-gray-700 mb-4">
-          You will receive a confirmation email shortly. If you don’t hear from
+          You will receive a confirmation email shortly. If you don't hear from
           us within 10 minutes, please contact our support team.
         </p>
 
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-left text-sm text-gray-700 mb-6">
+        <div
+          className="border rounded-lg p-4 text-left text-sm text-gray-700 mb-6"
+          style={{
+            backgroundColor: `${colors.secondaryColor}10`,
+            borderColor: colors.primaryColor
+          }}
+        >
           <h2 className="font-semibold text-gray-800 mb-2">Next Steps</h2>
           <ul className="list-disc list-inside space-y-1">
             <li>Make sure you have completed the payment if required.</li>
@@ -246,20 +283,24 @@ const PaymentSuccessPage = () => {
         </div>
 
         <div className="flex justify-center gap-4 mt-6 flex-wrap">
-        <button
-        onClick={handleViewBookings}
-        disabled={loading}
-        className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-2 rounded-lg shadow transition-all flex items-center justify-center gap-2 disabled:opacity-70"
-      >
-        {loading ? (
-          <>
-            <Loader2 className="h-5 w-5 animate-spin" />
-            Redirecting...
-          </>
-        ) : (
-          "View My Bookings"
-        )}
-      </button>
+          <button
+            onClick={handleViewBookings}
+            disabled={loading}
+            className="text-white px-6 py-2 rounded-lg shadow transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+            style={{
+              backgroundColor: colors.secondaryColor,
+              color: colors.buttonTextColor,
+            }}
+          >
+            {loading ? (
+              <>
+                <Loader2 className="h-5 w-5 animate-spin" />
+                Redirecting...
+              </>
+            ) : (
+              "View My Bookings"
+            )}
+          </button>
           <button
             onClick={() => router.push("/")}
             className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg shadow"

@@ -18,6 +18,7 @@ import { setBookingCode, setBookingStatus, setFullBookingDetails } from "@/src/s
 import { QRCodeCanvas } from "qrcode.react";
 import PriceDetails from "@/src/components/payment/PriceDetails";
 import HelpBox from "@/src/components/payment/HelpBox";
+import { useBookingStorage } from "@/src/hooks/useBookingStorage"; // Add this import
 
 // Define the type of bankDetails
 interface BankDetails {
@@ -48,12 +49,12 @@ const BookingReviewPage = () => {
     hotelName,
     PropertyDetails
   } = bookingDetails;
-  console.log("wsdfs",bookingDetails)
+  console.log("wsdfs", bookingDetails)
   const ratePlanCode = finalPrice?.dailyBreakdown?.[0]?.ratePlanCode;
   const currencyCode = finalPrice?.dailyBreakdown?.[0]?.currencyCode || "INR";
   const roomTypeCode = bookingDetails.roomTypeCode;
   const propertyCode = bookingDetails.PropertyCode;
-  const PropertyId=bookingDetails.PropertyDetails?.id;
+  const PropertyId = bookingDetails.PropertyDetails?.id;
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -73,17 +74,22 @@ const BookingReviewPage = () => {
   const [cloudinaryImageUrl, setCloudinaryImageUrl] = useState<string | null>(
     null
   );
-    const dispatch = useDispatch();
+  const dispatch = useDispatch();
   const nights = finalPrice?.numberOfNights || 0;
   const totalAmount = finalPrice?.totalAmount || 0;
-    const [updatedPrice, setUpdatedPrice] = useState(totalAmount);
+  const [updatedPrice, setUpdatedPrice] = useState(totalAmount);
   const [promoDetails, setPromoDetails] = useState<any>(null);
   const [discount, setDiscount] = useState(0);
+
+  // Add the hook usage at the component level
+  const { colors } = useBookingStorage({}); // You may need to pass actual bookingContext if available
+
   useEffect(() => {
     if (finalPrice?.totalAmount) {
       setUpdatedPrice(finalPrice.totalAmount - discount);
     }
   }, [finalPrice?.totalAmount, discount]);
+
   useEffect(() => {
     const fetchBankDetails = async () => {
       if (!propertyCode) {
@@ -247,7 +253,7 @@ const BookingReviewPage = () => {
     return (
       <div className="max-w-6xl pt-32 mx-auto p-6 flex justify-center items-center min-h-[400px]">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderColor: colors.primaryColor }}></div>
           <p className="mt-4 text-gray-600">Loading payment details...</p>
         </div>
       </div>
@@ -285,17 +291,17 @@ const BookingReviewPage = () => {
             hotelName,
             roomTypeCode,
             numberOfRooms: bookingDetails.numberOfRooms || 1,
- finalPrice: {
-        ...finalPrice,
-        totalAmount: updatedPrice,   // <-- send discounted price
-      },
+            finalPrice: {
+              ...finalPrice,
+              totalAmount: updatedPrice,   // <-- send discounted price
+            },
             promoCode: promoDetails || null, // <-- send applied promo code
             currency: currencyCode,
             email,
             phone: bookingDetails.phone,
             guests: guests,
             guestDetails: guest,
-            ratePlanCode:bookingDetails.ratePlanCode,
+            ratePlanCode: bookingDetails.ratePlanCode,
             paymentMethod: selectedPayment,
             // Include payment proof URL if available
             ...(cloudinaryImageUrl && { paymentProof: cloudinaryImageUrl }),
@@ -329,9 +335,10 @@ const BookingReviewPage = () => {
         throw new Error(data.message || "Booking failed");
       }
 
-      dispatch(setBookingCode(data.bookingCode));
-      dispatch(setBookingStatus(data.status));
-      dispatch(setFullBookingDetails(data.booking));
+
+      dispatch(setBookingCode(data.data.bookingCode));
+      dispatch(setBookingStatus(data.data.bookingStatus));
+      dispatch(setFullBookingDetails(data.data));
       document.cookie = "can_access_payment=true; path=/";
 
       toast.success("Booking confirmed! Please check your email for details.", {
@@ -358,8 +365,11 @@ const BookingReviewPage = () => {
     switch (paymentType) {
       case "bankTransfer":
         return (
-          <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <h4 className="font-medium text-blue-900 mb-3">
+          <div className="mt-4 p-4 border rounded-lg" style={{
+            backgroundColor: `${colors.secondaryColor}10`,
+            borderColor: colors.primaryColor
+          }}>
+            <h4 className="font-medium mb-3" style={{ color: colors.primaryColor }}>
               Bank Transfer Details
             </h4>
             <div className="space-y-3 text-sm">
@@ -429,8 +439,11 @@ const BookingReviewPage = () => {
                   </button>
                 </div>
               </div>
-              <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded">
-                <p className="text-xs text-yellow-800">
+              <div className="mt-3 p-3 rounded" style={{
+                backgroundColor: `${colors.secondaryColor}20`,
+                borderColor: colors.primaryColor
+              }}>
+                <p className="text-xs" style={{ color: colors.primaryColor }}>
                   <strong>Important:</strong> Open your banking app and complete
                   the transfer using the details above. Your booking will be
                   confirmed once the payment is received.
@@ -442,8 +455,11 @@ const BookingReviewPage = () => {
 
       case "upi":
         return (
-          <div className="mt-4 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-            <h4 className="font-medium text-purple-900 mb-3 text-lg sm:text-xl">
+          <div className="mt-4 p-4 border rounded-lg" style={{
+            backgroundColor: `${colors.secondaryColor}10`,
+            borderColor: colors.primaryColor
+          }}>
+            <h4 className="font-medium mb-3 text-lg sm:text-xl" style={{ color: colors.primaryColor }}>
               UPI Payment Details
             </h4>
 
@@ -477,7 +493,7 @@ const BookingReviewPage = () => {
                 <p className="text-sm text-gray-600 mb-2">
                   Scan QR Code to Pay:
                 </p>
-                <div className="inline-block sm:p-2   bg-white rounded-lg border">
+                <div className="inline-block sm:p-2 bg-white rounded-lg border" style={{ borderColor: colors.tertiaryColor }}>
                   <QRCodeCanvas
                     value={`upi://pay?pa=${bankDetails?.upiId}&am=${updatedPrice}&cu=INR&tn=Hotel Booking Payment`}
                     size={150}
@@ -493,8 +509,11 @@ const BookingReviewPage = () => {
               </div>
 
               {/* Payment Note */}
-              <div className="p-3 bg-green-50 border border-green-200 rounded text-center">
-                <p className="text-sm text-green-800">
+              <div className="p-3 rounded text-center" style={{
+                backgroundColor: `${colors.secondaryColor}20`,
+                borderColor: colors.primaryColor
+              }}>
+                <p className="text-sm" style={{ color: colors.primaryColor }}>
                   <strong>Quick Payment:</strong> Open any UPI app, scan the QR
                   code, and complete the payment. Your booking will be confirmed
                   once the payment is received.
@@ -506,14 +525,17 @@ const BookingReviewPage = () => {
 
       case "payAtHotel":
         return (
-          <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-            <h4 className="font-medium text-green-900 mb-2">Pay at Hotel</h4>
-            <p className="text-sm text-green-800">
+          <div className="mt-4 p-4 border rounded-lg" style={{
+            backgroundColor: `${colors.secondaryColor}10`,
+            borderColor: colors.primaryColor
+          }}>
+            <h4 className="font-medium mb-2" style={{ color: colors.primaryColor }}>Pay at Hotel</h4>
+            <p className="text-sm" style={{ color: colors.primaryColor }}>
               Your booking will be confirmed and you can pay directly at the
               hotel during check-in. We accept cash, cards, and digital payments
               at the property.
             </p>
-            <div className="mt-3 flex items-center gap-2 text-xs text-green-700">
+            <div className="mt-3 flex items-center gap-2 text-xs" style={{ color: colors.primaryColor }}>
               <span>✓ No advance payment required</span>
               <span>✓ Flexible payment options</span>
             </div>
@@ -522,11 +544,14 @@ const BookingReviewPage = () => {
 
       case "gateway":
         return (
-          <div className="mt-4 p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
-            <h4 className="font-medium text-indigo-900 mb-2">
+          <div className="mt-4 p-4 border rounded-lg" style={{
+            backgroundColor: `${colors.secondaryColor}10`,
+            borderColor: colors.primaryColor
+          }}>
+            <h4 className="font-medium mb-2" style={{ color: colors.primaryColor }}>
               Online Payment Gateway
             </h4>
-            <p className="text-sm text-indigo-800">
+            <p className="text-sm" style={{ color: colors.primaryColor }}>
               You'll be redirected to a secure payment gateway where you can pay
               using your credit/debit card, net banking, or UPI.
             </p>
@@ -558,7 +583,7 @@ const BookingReviewPage = () => {
       <div className="md:col-span-2 space-y-6">
         {/* Booking Summary */}
         <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-5">
-          <h2 className="text-lg font-semibold text-orange-600 mb-4">
+          <h2 className="text-lg font-semibold mb-4" style={{ color: colors.primaryColor }}>
             Booking Summary
           </h2>
           <div className="text-sm text-gray-800 space-y-1">
@@ -588,12 +613,15 @@ const BookingReviewPage = () => {
 
         {/* Payment Method */}
         <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-5">
-          <h2 className="text-lg font-semibold text-orange-600 mb-4">
+          <h2 className="text-lg font-semibold mb-4" style={{ color: colors.primaryColor }}>
             Choose Payment Method
           </h2>
 
           {noAvailablePayment ? (
-            <div className="bg-orange-50 text-orange-700 px-4 py-3 rounded-lg mb-4 text-sm">
+            <div className="px-4 py-3 rounded-lg mb-4 text-sm" style={{
+              backgroundColor: `${colors.secondaryColor}20`,
+              color: colors.primaryColor
+            }}>
               <strong>No payment methods available</strong>
               <p className="mt-1">
                 Please contact the hotel directly for payment arrangements.
@@ -634,25 +662,27 @@ const BookingReviewPage = () => {
               ].map(({ key, label, icon, description, color }) => {
                 const isActive =
                   bankDetails?.activatedPaymentMethod?.[
-                    key as keyof typeof bankDetails.activatedPaymentMethod
+                  key as keyof typeof bankDetails.activatedPaymentMethod
                   ];
                 const isSelected = selectedPayment === key;
 
                 return (
                   <div
                     key={key}
-                    className={`border-2 rounded-xl transition-all ${
-                      isActive
-                        ? isSelected
-                          ? `border-${color}-600 bg-${color}-50`
-                          : "border-gray-200 hover:border-gray-300 bg-white"
-                        : "border-gray-100 bg-gray-50 opacity-60 cursor-not-allowed"
-                    }`}
+                    className={`border-2 rounded-xl transition-all ${isActive
+                      ? isSelected
+                        ? `bg-${color}-50`
+                        : "border-gray-200 hover:border-gray-300 bg-white"
+                      : "border-gray-100 bg-gray-50 opacity-60 cursor-not-allowed"
+                      }`}
+                    style={isActive && isSelected ? {
+                      borderColor: colors.primaryColor,
+                      backgroundColor: `${colors.secondaryColor}10`
+                    } : {}}
                   >
                     <label
-                      className={`block p-4 ${
-                        isActive ? "cursor-pointer" : "cursor-not-allowed"
-                      }`}
+                      className={`block p-4 ${isActive ? "cursor-pointer" : "cursor-not-allowed"
+                        }`}
                     >
                       <div className="flex items-start space-x-3">
                         <input
@@ -661,7 +691,8 @@ const BookingReviewPage = () => {
                           disabled={!isActive}
                           checked={isSelected}
                           onChange={() => isActive && setSelectedPayment(key)}
-                          className="mt-1 h-4 w-4 accent-orange-600"
+                          className="mt-1 h-4 w-4"
+                          style={{ accentColor: colors.primaryColor }}
                         />
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
@@ -689,97 +720,105 @@ const BookingReviewPage = () => {
           {/* Image Upload Section */}
           {(selectedPayment === "bankTransfer" ||
             selectedPayment === "upi") && (
-            <div className="mt-6 p-4 bg-orange-50 border border-orange-200 rounded-xl">
-              <div className="flex items-center gap-2 mb-2">
-                <Camera className="h-5 w-5 text-orange-600" />
-                <h5 className="font-medium text-orange-900">
-                  Payment Screenshot Required *
-                </h5>
-              </div>
-              <p className="text-sm text-orange-800 mb-4">
-                Please upload a screenshot of your payment confirmation.
-              </p>
+              <div className="mt-6 p-4 border rounded-xl" style={{
+                backgroundColor: `${colors.secondaryColor}10`,
+                borderColor: colors.primaryColor
+              }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Camera className="h-5 w-5" style={{ color: colors.primaryColor }} />
+                  <h5 className="font-medium" style={{ color: colors.primaryColor }}>
+                    Payment Screenshot Required *
+                  </h5>
+                </div>
+                <p className="text-sm mb-4" style={{ color: colors.primaryColor }}>
+                  Please upload a screenshot of your payment confirmation.
+                </p>
 
-              {!paymentProofPreview ? (
-                <div>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                    id="payment-proof"
-                    disabled={imageUploading}
-                  />
-                  <label
-                    htmlFor="payment-proof"
-                    className={`block w-full p-4 border-2 border-dashed border-orange-300 rounded-xl text-center cursor-pointer hover:border-orange-400 transition-colors ${
-                      imageUploading ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
-                  >
-                    <div className="flex flex-col items-center gap-2">
-                      {imageUploading ? (
-                        <>
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600"></div>
-                          <span className="text-orange-600 text-sm">
-                            Uploading...
-                          </span>
-                        </>
+                {!paymentProofPreview ? (
+                  <div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      id="payment-proof"
+                      disabled={imageUploading}
+                    />
+                    <label
+                      htmlFor="payment-proof"
+                      className={`block w-full p-4 border-2 border-dashed rounded-xl text-center cursor-pointer transition-colors ${imageUploading ? "opacity-50 cursor-not-allowed" : ""
+                        }`}
+                      style={{
+                        borderColor: colors.tertiaryColor
+                      }}
+                    >
+                      <div className="flex flex-col items-center gap-2">
+                        {imageUploading ? (
+                          <>
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: colors.primaryColor }}></div>
+                            <span className="text-sm" style={{ color: colors.primaryColor }}>
+                              Uploading...
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="h-8 w-8" style={{ color: colors.primaryColor }} />
+                            <span className="font-medium" style={{ color: colors.primaryColor }}>
+                              Click to upload payment screenshot
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              PNG, JPG up to 5MB
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </label>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <div className="border rounded-xl p-2 bg-white" style={{ borderColor: colors.tertiaryColor }}>
+                      <img
+                        src={paymentProofPreview}
+                        alt="Payment proof"
+                        className="w-full max-w-sm mx-auto rounded object-contain"
+                        style={{ maxHeight: "200px" }}
+                      />
+                    </div>
+                    <button
+                      onClick={removeImage}
+                      className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 transition-colors"
+                      title="Remove image"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                    <div className="mt-2 flex items-center justify-center gap-2 text-sm">
+                      {cloudinaryImageUrl ? (
+                        <span className="text-green-600 flex items-center gap-1">
+                          <Check className="h-4 w-4" />
+                          Image uploaded successfully
+                        </span>
                       ) : (
-                        <>
-                          <Upload className="h-8 w-8 text-orange-600" />
-                          <span className="text-orange-600 font-medium">
-                            Click to upload payment screenshot
-                          </span>
-                          <span className="text-xs text-gray-500">
-                            PNG, JPG up to 5MB
-                          </span>
-                        </>
+                        <span className="text-orange-600">Processing...</span>
                       )}
                     </div>
-                  </label>
-                </div>
-              ) : (
-                <div className="relative">
-                  <div className="border border-orange-300 rounded-xl p-2 bg-white">
-                    <img
-                      src={paymentProofPreview}
-                      alt="Payment proof"
-                      className="w-full max-w-sm mx-auto rounded object-contain"
-                      style={{ maxHeight: "200px" }}
-                    />
                   </div>
-                  <button
-                    onClick={removeImage}
-                    className="absolute top-1 right-1 bg-red-500 hover:bg-red-600 text-white rounded-full p-1 transition-colors"
-                    title="Remove image"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                  <div className="mt-2 flex items-center justify-center gap-2 text-sm">
-                    {cloudinaryImageUrl ? (
-                      <span className="text-green-600 flex items-center gap-1">
-                        <Check className="h-4 w-4" />
-                        Image uploaded successfully
-                      </span>
-                    ) : (
-                      <span className="text-orange-600">Processing...</span>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+                )}
+              </div>
+            )}
 
           <button
             onClick={handleConfirmBooking}
-            className={`mt-6 w-full py-3 px-4 rounded-xl font-medium transition-all transform ${
-              loading ||
+            className={`mt-6 w-full py-3 px-4 rounded-xl font-medium transition-all transform ${loading ||
               noAvailablePayment ||
               !selectedPayment ||
               !hasRequiredImage
-                ? "bg-gray-400 cursor-not-allowed opacity-50"
-                : "bg-orange-600 hover:bg-orange-700 text-white hover:scale-[1.02]"
-            }`}
+              ? "bg-gray-400 cursor-not-allowed opacity-50"
+              : "text-white hover:scale-[1.02]"
+              }`}
+            style={!(loading || noAvailablePayment || !selectedPayment || !hasRequiredImage) ? {
+              backgroundColor: colors.secondaryColor,
+              color: colors.buttonTextColor
+            } : {}}
             disabled={
               loading ||
               noAvailablePayment ||
@@ -812,13 +851,13 @@ const BookingReviewPage = () => {
       {/* Right Side */}
       <div className="space-y-6">
         <PriceDetails
-  bookingDetails={bookingDetails}
-  onPriceUpdate={(total, discountAmount, promo) => {
-    setUpdatedPrice(total);
-    setDiscount(discountAmount);
-    setPromoDetails(promo);
-  }}
-/>
+          bookingDetails={bookingDetails}
+          onPriceUpdate={(total, discountAmount, promo) => {
+            setUpdatedPrice(total);
+            setDiscount(discountAmount);
+            setPromoDetails(promo);
+          }}
+        />
 
         <HelpBox />
       </div>

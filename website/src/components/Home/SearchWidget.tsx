@@ -694,7 +694,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 <button
                   className="text-[11px] font-semibold tracking-[0.1em] hover:opacity-80 transition-colors"
                   style={{ color: primaryColor }}
-                  onClick={() => router.push(`/my-trip?code=${bookingContext.PropertyCode}`)}
+                  onClick={() => router.push(`/my-trip`)}
                 >
                   MY BOOKING
                 </button>
@@ -894,7 +894,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 <button
                   className="text-[10px] font-semibold tracking-[0.1em] hover:opacity-80 transition-colors"
                   style={{ color: primaryColor }}
-                  onClick={() => router.push(`/my-trip?code=${bookingContext.PropertyCode}`)}
+                  onClick={() => router.push(`/my-trip`)}
                 >
                   MY BOOKING
                 </button>
@@ -960,7 +960,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 <button
                   className="text-xs font-semibold tracking-[0.1em] hover:opacity-80 transition-colors"
                   style={{ color: primaryColor }}
-                  onClick={() => router.push(`/my-trip?code=${bookingContext.PropertyCode}`)}
+                  onClick={() => router.push(`/my-trip`)}
                 >
                   MY BOOKING
                 </button>
@@ -1304,7 +1304,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 <button
                   className="w-full text-center text-sm font-semibold py-3 border-t border-[#D4CABA]"
                   style={{ color: primaryColor }}
-                  onClick={() => router.push(`/my-trip?code=${bookingContext.PropertyCode}`)}
+                  onClick={() => router.push(`/my-trip`)}
                 >
                   MY BOOKING
                 </button>
@@ -1385,7 +1385,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 </div>
               </div>
             </>,
-            document.body 
+            document.body
           )}
 
         <GuestSelector

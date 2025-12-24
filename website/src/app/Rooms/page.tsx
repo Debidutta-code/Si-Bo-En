@@ -6,7 +6,7 @@ import { RootState } from "../../store/store";
 import SearchWidget from "../../components/Home/SearchWidget";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
-import { setBookingContext, setSenderUrl } from "../../store/bookingSlice";
+import { setBookingContext, setCurrency, setSenderUrl } from "../../store/bookingSlice";
 import { useBookingColors } from "../../hooks/useBookingColors";
 import RoomCard from "@/src/components/RoomPage/RoomCard";
 import PriceSummarySidebar from "../../components/RoomPage/Pricesummerysidebar";
@@ -14,6 +14,13 @@ import { Room } from "@/src/store/roomsSlice";
 import GuestFormModal from "../../components/GuestModals/GuestFormModal";
 import { Building2, Calendar, MessageCircle, Moon, Plus } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/src/components/ui/dialog";
 
 interface Guest {
   type: "adult" | "child";
@@ -78,8 +85,12 @@ interface PriceSummaryData {
 
 
 const Rooms = () => {
+  const { currency } = useSelector(
+    (state: RootState) => state.booking
+  );
+  const [urgencyModalOpen, setUrgencyModalOpen] = useState(false);
   const [selectedBoardType, setSelectedBoardType] = useState("all");
-  const [selectedCurrency, setSelectedCurrency] = useState("USD");
+  const [selectedCurrency, setSelectedCurrency] = useState(currency || "USD");
   const [showUrgencyBanner, setShowUrgencyBanner] = useState(true);
   const dispatch = useDispatch();
   const router = useRouter();
@@ -451,6 +462,11 @@ const Rooms = () => {
     )
   );
 
+  // Add this function
+  const handleOpenUrgencyModal = () => {
+    setUrgencyModalOpen(true);
+  };
+
   return (
     <div className="w-full">
       {!loaded && (
@@ -509,9 +525,12 @@ const Rooms = () => {
                       </div>
                     </div>
 
-                    {/* Plus Icon */}
-                    <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 z-10">
-                      <div className="w-7 h-7 rounded-full border-2 border-gray-800 flex items-center justify-center bg-white shadow-lg">
+                    {/* Plus Icon - Clickable */}
+                    <div
+                      className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 z-10 cursor-pointer"
+                      onClick={handleOpenUrgencyModal}
+                    >
+                      <div className="w-7 h-7 rounded-full border-2 border-gray-800 flex items-center justify-center bg-white shadow-lg hover:bg-gray-50 transition-colors">
                         <Plus size={15} />
                       </div>
                     </div>
@@ -575,7 +594,10 @@ const Rooms = () => {
                     </Select>
 
                     {/* Currency Filter */}
-                    {/* <Select value={selectedCurrency} onValueChange={setSelectedCurrency}>
+                    <Select value={selectedCurrency} onValueChange={(value) => {
+                      setSelectedCurrency(value);
+                      dispatch(setCurrency(value));
+                    }}>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select currency" />
                       </SelectTrigger>
@@ -586,7 +608,7 @@ const Rooms = () => {
                         <SelectItem value="GBP">British Pound (£)</SelectItem>
                         <SelectItem value="INR">Indian Rupee (₹)</SelectItem>
                       </SelectContent>
-                    </Select> */}
+                    </Select>
                   </div>
                 </div>
 
@@ -664,6 +686,61 @@ const Rooms = () => {
           </div>
         </div>
       </div>
+
+      {/* Urgency Conditions Modal */}
+      <Dialog open={urgencyModalOpen} onOpenChange={setUrgencyModalOpen}>
+        <DialogContent className="sm:max-w-md md:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold text-gray-900">
+              Conditions
+            </DialogTitle>
+            <DialogDescription className="text-gray-600">
+              Exclusive advantage for bookings made on the official website
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="mt-4 space-y-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h4 className="font-semibold text-blue-800 mb-2">Best Price Guarantee</h4>
+              <p className="text-blue-700 text-sm">
+                We guarantee that you won't find a lower price for the same room, dates, and conditions anywhere else online.
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="font-semibold text-gray-800">Key Conditions:</h4>
+              <ul className="space-y-2 text-gray-700">
+                <li className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 flex-shrink-0"></div>
+                  <span>Prices are subject to change and may increase at any time</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 flex-shrink-0"></div>
+                  <span>Early booking discounts are only available through our official website</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 flex-shrink-0"></div>
+                  <span>Limited availability - rooms may sell out quickly</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 flex-shrink-0"></div>
+                  <span>Special promotions are exclusive to direct bookings</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 flex-shrink-0"></div>
+                  <span>Flexible cancellation policies only apply to official website bookings</span>
+                </li>
+              </ul>
+            </div>
+
+            <div className="pt-4 border-t border-gray-200">
+              <p className="text-sm text-gray-600">
+                <strong>Note:</strong> Booking through third-party websites or agents may result in higher prices and fewer benefits.
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Guest Form Modal */}
       {bookingRoom && price && (

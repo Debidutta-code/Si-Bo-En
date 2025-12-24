@@ -149,6 +149,9 @@ const bookingSlice = createSlice({
   name: "booking",
   initialState,
   reducers: {
+    setCurrency(state, action: PayloadAction<string>) {
+      state.currency = action.payload;
+    },
     setBookingContext(state, action: PayloadAction<BookingState>) {
       return {
         ...state,
@@ -188,5 +191,6 @@ export const {
   setBookingStatus,
   setSenderUrl,
   clearSenderUrl,
+  setCurrency
 } = bookingSlice.actions;
 export default bookingSlice.reducer;
