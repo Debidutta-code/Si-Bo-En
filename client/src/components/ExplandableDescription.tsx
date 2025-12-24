@@ -23,7 +23,7 @@ const ExpandableDescription = ({ description }:{description:string}) => {
         <Button
         variant={'ghost'}
           onClick={toggleReadMore}
-          className="text-blue-600 hover:underline text-sm font-semibold p-0"
+          className="text-primary hover:underline text-sm font-semibold p-0"
         >
           {isExpanded ? 'Show less' : 'Read more...'}
         </Button>

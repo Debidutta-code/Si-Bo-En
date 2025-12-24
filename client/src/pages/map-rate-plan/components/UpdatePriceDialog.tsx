@@ -119,7 +119,7 @@ export default function UpdatePriceDialog({
                         <CardHeader className="pb-3">
                             <div className="flex items-center justify-between">
                                 <CardTitle className="text-lg flex items-center gap-2">
-                                    <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                                    <span className="w-2 h-2 bg-primary rounded-full"></span>
                                     Base Guest Amounts
                                 </CardTitle>
                                 <Button

@@ -27,7 +27,7 @@ export default function RevenueChart({ data }: RevenueChartProps) {
               'bg-gradient-to-t from-purple-600 to-purple-400',
               'bg-gradient-to-t from-pink-600 to-pink-400',
               'bg-gradient-to-t from-orange-600 to-orange-400',
-              'bg-gradient-to-t from-teal-600 to-teal-400',
+              'bg-gradient-to-t from-primary to-primary/80',
               'bg-gradient-to-t from-indigo-600 to-indigo-400',
             ];
             

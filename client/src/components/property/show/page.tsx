@@ -11,7 +11,7 @@ import PropertyAddress from "@/components/property/show/Address";
 import PropertyDetails from "@/components/property/show/PropertyDetails";
 import PropertyAmenities from "@/components/property/show/PropertyAmenities";
 import Rooms from "@/components/property/show/Rooms";
-import RatePlans from "@/components/property/show/RatePlans";
+// import RatePlans from "@/components/property/show/RatePlans";
 import BankDetails from "@/components/property/show/BankDetails";
 import Loader from "@/components/Loader/Loader";
 import { useParams, useNavigate } from "react-router-dom";
@@ -179,7 +179,7 @@ export default function PropertyDetailsPage() {
             <TabsTrigger value="address">Address</TabsTrigger>
             <TabsTrigger value="amenities">Amenities</TabsTrigger>
             <TabsTrigger value="rooms">Rooms</TabsTrigger>
-            <TabsTrigger value="rate-plans">Rate Plans</TabsTrigger>
+            {/* <TabsTrigger value="rate-plans">Rate Plans</TabsTrigger> */}
             <TabsTrigger value="bank-details">Bank Details</TabsTrigger>
           </TabsList>
           <TabsContent value="property" className="space-y-6">
@@ -194,9 +194,9 @@ export default function PropertyDetailsPage() {
           <TabsContent value="rooms" className="space-y-6">
             <Rooms propertyId={propertyId!} />
           </TabsContent>
-          <TabsContent value="rate-plans">
+          {/* <TabsContent value="rate-plans">
             <RatePlans  />
-          </TabsContent>
+          </TabsContent> */}
           <TabsContent value="bank-details">
             <BankDetails propertyId={propertyId!} />
           </TabsContent>

@@ -103,141 +103,312 @@ export default function BankDetails({ propertyId }: PropertyId) {
     );
   }
 
-  // Helper component to render a payment method status
-  const PaymentMethodBadge = ({ method, status }: { method: string; status: boolean }) => (
-    <div className="flex items-center space-x-2">
-      {status ? (
-        <Check className="h-4 w-4 text-white bg-green-500 rounded-full p-0.5" />
-      ) : (
-        <X className="h-4 w-4 text-white bg-gray-500 rounded-full p-0.5" />
-      )}
-      <span className="font-medium">{method}</span>
-    </div>
-  );
-
   return (
-    <div className="bg-white text-black font-sans p-8 mx-auto">
-      <Card className="shadow-none border-none md:rounded-lg">
-        <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle className="text-xl">Bank & Payment Details</CardTitle>
+    <Card className="w-full">
+      <CardHeader className="border-b bg-primary/5">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-2xl font-semibold text-gray-900">
+              Bank & Payment Details
+            </CardTitle>
+            <p className="text-sm text-gray-500 mt-1">
+              Manage your banking information and accepted payment methods
+            </p>
+          </div>
+        </div>
+      </CardHeader>
 
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-6">
-            {/* Bank Details Section */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold border-b flex justify-between item-center border-gray-200 pb-2 mb-2 flex items-center space-x-2">
-                <span className='flex items-center'>
-                  <Landmark className='h-5 w-5' />
+      <CardContent className="p-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Bank Details Section */}
+          <div className="space-y-6">
+            <div className="flex items-center justify-between pb-3 border-b">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Landmark className="h-4 w-4 text-primary-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">
                   Bank Account Details
-                </span>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button size="sm"
-                      variant="ghost"
-                    >
-                      <PenTool className='h-4 w-4 mr-2' /> Update
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
-                    <AlertDialogHeader>
-                      <div className="flex w-full justify-between">
-                        <AlertDialogTitle>Update Bank Details</AlertDialogTitle>
-                        <AlertDialogCancel className="rounded-full h-10 w-10 p-0">
-                          <X className="h-4 w-4 " />
-                        </AlertDialogCancel>
-                      </div>
-                      <UpdateBankDetailsUi bankDetails={bankDetails} setBankDetails={setBankDetails} />
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={(e: any) => {
-                          e.preventDefault();
-                          updateBankDetailsQ(propertyId,bankDetails)
-                        }}
-                      >
-                        {loading
-                          ? "Updating Bank Details ..."
-                          : "Update Bank Details"}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-
-              </h3>
-              <div className="space-y-3 text-sm">
-                <div className="flex justify-between items-start">
-                  <span className="font-medium text-gray-700">Account Holder:</span>
-                  <span>{bankDetails.accountHolder || '-'}</span>
-                </div>
-                <div className="flex justify-between items-start">
-                  <span className="font-medium text-gray-700">Account Number:</span>
-                  <span>{bankDetails.accountNumber || '-'}</span>
-                </div>
-                <div className="flex justify-between items-start">
-                  <span className="font-medium text-gray-700">IFSC Code:</span>
-                  <span>{bankDetails.ifsc || '-'}</span>
-                </div>
-                <div className="flex justify-between items-start">
-                  <span className="font-medium text-gray-700">UPI ID:</span>
-                  <span>{bankDetails.upiId || '-'}</span>
-                </div>
+                </h3>
               </div>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="sm" className="gap-2 text-primary-600 hover:text-primary-700">
+                    <PenTool className="h-3.5 w-3.5" />
+                    Edit
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
+                  <AlertDialogHeader>
+                    <div className="flex w-full justify-between items-start">
+                      <div>
+                        <AlertDialogTitle className="text-xl">
+                          Update Bank Details
+                        </AlertDialogTitle>
+                        <p className="text-sm text-gray-500 mt-1">
+                          Modify your banking information for transactions
+                        </p>
+                      </div>
+                      <AlertDialogCancel className="rounded-full h-8 w-8 p-0 border-0 hover:bg-gray-100">
+                        <X className="h-4 w-4" />
+                      </AlertDialogCancel>
+                    </div>
+                    <UpdateBankDetailsUi
+                      bankDetails={bankDetails}
+                      setBankDetails={setBankDetails}
+                    />
+                  </AlertDialogHeader>
+                  <AlertDialogFooter className="border-t pt-4">
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={(e: any) => {
+                        e.preventDefault();
+                        updateBankDetailsQ(propertyId, bankDetails);
+                      }}
+                      disabled={loading}
+                    >
+                      {loading ? "Updating..." : "Update Details"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
 
-            {/* Payment Methods Section */}
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold border-b flex justify-between item-center border-gray-200 pb-2 mb-2 flex items-center space-x-2">
-                <span className='flex items-center'>
-                  <Landmark className='h-5 w-5' />
-                  Activated Payment Methods
-                </span>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button size="sm"
-                      variant="ghost"
-                    >
-                      <PenTool className='h-4 w-4 mr-2' /> Update
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
-                    <AlertDialogHeader>
-                      <div className="flex w-full justify-between">
-                        <AlertDialogTitle>Update Payment Method</AlertDialogTitle>
-                        <AlertDialogCancel className="rounded-full h-10 w-10 p-0">
-                          <X className="h-4 w-4 " />
-                        </AlertDialogCancel>
-                      </div>
-                      <PaymentMethodUi paymentMethod={paymentMethods} setPaymentMethods={setPaymentMethods} />
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={(e: any) => {
-                          e.preventDefault();
-                          updatePaymentMethodsQ(propertyId,paymentMethods)
-                        }}
-                      >
-                        {loading
-                          ? "Updating Payment Method..."
-                          : "Update Payment Method"}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </h3>
-              <div className="space-y-3 text-sm">
-                <PaymentMethodBadge method="UPI" status={paymentMethods.upi || false} />
-                <PaymentMethodBadge method="Bank Transfer" status={paymentMethods.bankTransfer || false} />
-                <PaymentMethodBadge method="Online Gateway" status={paymentMethods.gateway || false} />
-                <PaymentMethodBadge method="Pay at Hotel" status={paymentMethods.payAtHotel || false} />
+            <div className="space-y-5">
+              <div className="group">
+                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block">
+                  Account Holder Name
+                </label>
+                <p className="text-base text-gray-900">
+                  {bankDetails.accountHolder || (
+                    <span className="text-gray-400 italic">Not specified</span>
+                  )}
+                </p>
               </div>
 
+              <div className="group">
+                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block">
+                  Account Number
+                </label>
+                <p className="text-base text-gray-900 font-mono">
+                  {bankDetails.accountNumber || (
+                    <span className="text-gray-400 italic font-sans">Not specified</span>
+                  )}
+                </p>
+              </div>
+
+              <div className="group">
+                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block">
+                  IFSC Code
+                </label>
+                <p className="text-base text-gray-900 font-mono uppercase">
+                  {bankDetails.ifsc || (
+                    <span className="text-gray-400 italic font-sans normal-case">
+                      Not specified
+                    </span>
+                  )}
+                </p>
+              </div>
+
+              <div className="group">
+                <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block">
+                  UPI ID
+                </label>
+                <p className="text-base text-gray-900 font-mono">
+                  {bankDetails.upiId || (
+                    <span className="text-gray-400 italic font-sans">Not specified</span>
+                  )}
+                </p>
+              </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+
+          {/* Payment Methods Section */}
+          <div className="space-y-6">
+            <div className="flex items-center justify-between pb-3 border-b">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-green/100 flex items-center justify-center">
+                  <svg
+                    className="h-4 w-4 text-green-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Payment Methods
+                </h3>
+              </div>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="sm" className="gap-2 text-primary-600 hover:text-primary-700">
+                    <PenTool className="h-3.5 w-3.5" />
+                    Edit
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
+                  <AlertDialogHeader>
+                    <div className="flex w-full justify-between items-start">
+                      <div>
+                        <AlertDialogTitle className="text-xl">
+                          Update Payment Methods
+                        </AlertDialogTitle>
+                        <p className="text-sm text-gray-500 mt-1">
+                          Select which payment methods you accept
+                        </p>
+                      </div>
+                      <AlertDialogCancel className="rounded-full h-8 w-8 p-0 border-0 hover:bg-gray-100">
+                        <X className="h-4 w-4" />
+                      </AlertDialogCancel>
+                    </div>
+                    <PaymentMethodUi
+                      paymentMethod={paymentMethods}
+                      setPaymentMethods={setPaymentMethods}
+                    />
+                  </AlertDialogHeader>
+                  <AlertDialogFooter className="border-t pt-4">
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={(e: any) => {
+                        e.preventDefault();
+                        updatePaymentMethodsQ(propertyId, paymentMethods);
+                      }}
+                      disabled={loading}
+                    >
+                      {loading ? "Updating..." : "Update Methods"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </div>
+
+            <div className="space-y-3">
+              <div
+                className={`flex items-center justify-between px-4 py-3 rounded-lg border-2 transition-all ${paymentMethods.upi
+                  ? "bg-success/10 border-success/20"
+                  : "bg-gray-50 border-gray-200"
+                  }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-5 h-5 rounded-full flex items-center justify-center ${paymentMethods.upi ? "bg-green-500" : "bg-gray-400"
+                      }`}
+                  >
+                    {paymentMethods.upi ? (
+                      <Check className="h-3.5 w-3.5 text-white" />
+                    ) : (
+                      <X className="h-3.5 w-3.5 text-white" />
+                    )}
+                  </div>
+                  <span className="font-medium text-gray-900">UPI</span>
+                </div>
+                <span
+                  className={`text-xs font-medium px-2 py-1 rounded-full ${paymentMethods.upi
+                    ? "bg-success/20 text-success-700"
+                    : "bg-gray-200 text-gray-600"
+                    }`}
+                >
+                  {paymentMethods.upi ? "Active" : "Inactive"}
+                </span>
+              </div>
+
+              <div
+                className={`flex items-center justify-between px-4 py-3 rounded-lg border-2 transition-all ${paymentMethods.bankTransfer
+                  ? "bg-green-50 border-green-200"
+                  : "bg-gray-50 border-gray-200"
+                  }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-5 h-5 rounded-full flex items-center justify-center ${paymentMethods.bankTransfer ? "bg-green-500" : "bg-gray-400"
+                      }`}
+                  >
+                    {paymentMethods.bankTransfer ? (
+                      <Check className="h-3.5 w-3.5 text-white" />
+                    ) : (
+                      <X className="h-3.5 w-3.5 text-white" />
+                    )}
+                  </div>
+                  <span className="font-medium text-gray-900">Bank Transfer</span>
+                </div>
+                <span
+                  className={`text-xs font-medium px-2 py-1 rounded-full ${paymentMethods.bankTransfer
+                    ? "bg-green-100 text-green-700"
+                    : "bg-gray-200 text-gray-600"
+                    }`}
+                >
+                  {paymentMethods.bankTransfer ? "Active" : "Inactive"}
+                </span>
+              </div>
+
+              <div
+                className={`flex items-center justify-between px-4 py-3 rounded-lg border-2 transition-all ${paymentMethods.gateway
+                  ? "bg-green-50 border-green-200"
+                  : "bg-gray-50 border-gray-200"
+                  }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-5 h-5 rounded-full flex items-center justify-center ${paymentMethods.gateway ? "bg-green-500" : "bg-gray-400"
+                      }`}
+                  >
+                    {paymentMethods.gateway ? (
+                      <Check className="h-3.5 w-3.5 text-white" />
+                    ) : (
+                      <X className="h-3.5 w-3.5 text-white" />
+                    )}
+                  </div>
+                  <span className="font-medium text-gray-900">Online Gateway</span>
+                </div>
+                <span
+                  className={`text-xs font-medium px-2 py-1 rounded-full ${paymentMethods.gateway
+                    ? "bg-green-100 text-green-700"
+                    : "bg-gray-200 text-gray-600"
+                    }`}
+                >
+                  {paymentMethods.gateway ? "Active" : "Inactive"}
+                </span>
+              </div>
+
+              <div
+                className={`flex items-center justify-between px-4 py-3 rounded-lg border-2 transition-all ${paymentMethods.payAtHotel
+                  ? "bg-green-50 border-green-200"
+                  : "bg-gray-50 border-gray-200"
+                  }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className={`w-5 h-5 rounded-full flex items-center justify-center ${paymentMethods.payAtHotel ? "bg-green-500" : "bg-gray-400"
+                      }`}
+                  >
+                    {paymentMethods.payAtHotel ? (
+                      <Check className="h-3.5 w-3.5 text-white" />
+                    ) : (
+                      <X className="h-3.5 w-3.5 text-white" />
+                    )}
+                  </div>
+                  <span className="font-medium text-gray-900">Pay at Hotel</span>
+                </div>
+                <span
+                  className={`text-xs font-medium px-2 py-1 rounded-full ${paymentMethods.payAtHotel
+                    ? "bg-green-100 text-green-700"
+                    : "bg-gray-200 text-gray-600"
+                    }`}
+                >
+                  {paymentMethods.payAtHotel ? "Active" : "Inactive"}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

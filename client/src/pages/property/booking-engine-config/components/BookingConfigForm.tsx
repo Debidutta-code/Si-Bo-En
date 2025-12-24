@@ -22,7 +22,7 @@ export default function BookingConfigForm({
   onSave, 
   isUpdate 
 }: BookingConfigFormProps) {
-  const [primaryColor, setPrimaryColor] = React.useState(initialConfig?.primaryColor || '#3B82F6');
+  const [primaryColor, setPrimaryColor] = React.useState(initialConfig?.primaryColor || '#02438D');
   const [secondaryColor, setSecondaryColor] = React.useState(initialConfig?.secondaryColor || '#10B981');
   const [tertiaryColor, setTertiaryColor] = React.useState(initialConfig?.tertiaryColor || '#F59E0B');
   const [buttonTextColor, setButtonTextColor] = React.useState(initialConfig?.buttonTextColor || '#FFFFFF');
@@ -154,7 +154,7 @@ export default function BookingConfigForm({
         <Button
           onClick={handleSave}
           disabled={isSaving || !bannerImage || !logo}
-          className="w-full bg-black text-white hover:bg-gray-800"
+          className="w-full bg-primary text-white hover:bg-gray-800"
           size="lg"
         >
           {isSaving ? (

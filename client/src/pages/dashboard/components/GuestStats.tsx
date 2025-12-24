@@ -63,10 +63,10 @@ export default function GuestStats({ data }: GuestStatsProps) {
         />
 
         {/* Top Countries */}
-        <Card className="bg-gradient-to-br from-teal-50 to-cyan-50">
+        <Card className="bg-gradient-to-br from-primary/10 to-primary/5">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Globe className="h-5 w-5 text-teal-600" />
+              <Globe className="h-5 w-5 text-primary" />
               Top Guest Countries
             </CardTitle>
           </CardHeader>
@@ -83,13 +83,13 @@ export default function GuestStats({ data }: GuestStatsProps) {
                         index === 0 ? 'bg-yellow-500 text-white' :
                         index === 1 ? 'bg-gray-400 text-white' :
                         index === 2 ? 'bg-orange-600 text-white' :
-                        'bg-teal-100 text-teal-700'
+                        'bg-primary/10 text-primary'
                       }`}>
                         {index + 1}
                       </span>
                       <span className="text-sm font-medium">{country.country}</span>
                     </div>
-                    <span className="font-bold text-teal-600">{country.count}</span>
+                    <span className="font-bold text-primary">{country.count}</span>
                   </div>
                 ))
               ) : (

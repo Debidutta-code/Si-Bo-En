@@ -119,9 +119,9 @@ export default function MappingsTable({
                                                             variant="ghost"
                                                             size="sm"
                                                             onClick={() => setViewPriceDetails(mapping)}
-                                                            className="h-7 w-7 p-0 hover:bg-blue-50"
+                                                            className="h-7 w-7 p-0 hover:bg-primary/10"
                                                         >
-                                                            <Eye className="w-4 h-4 text-blue-600" />
+                                                            <Eye className="w-4 h-4 text-primary" />
                                                         </Button>
                                                     </div>
                                                 </TableCell>
@@ -240,7 +240,7 @@ export default function MappingsTable({
                             {viewPriceDetails.baseGuestAmounts && viewPriceDetails.baseGuestAmounts.length > 0 && (
                                 <div>
                                     <h4 className="font-semibold mb-3 flex items-center gap-2">
-                                        <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                                        <span className="w-2 h-2 bg-primary rounded-full"></span>
                                         Base Guest Amounts
                                     </h4>
                                     <div className="rounded-md border">
