@@ -454,15 +454,15 @@ const GuestFormModal: React.FC<Props> = ({
                               <div className="space-y-1">
                                 <div className="flex justify-between">
                                   <span>Base Rate:</span>
-                                  <span>₹{day.baseRate}</span>
+                                  <span>${day.baseRate}</span>
                                 </div>
                                 <div className="flex justify-between">
                                   <span>Additional Charges:</span>
-                                  <span>₹{day.additionalCharges}</span>
+                                  <span>${day.additionalCharges}</span>
                                 </div>
                                 <div className="flex justify-between font-semibold">
                                   <span>Total:</span>
-                                  <span>₹{day.totalPerRoom}</span>
+                                  <span>${day.totalPerRoom}</span>
                                 </div>
                               </div>
                             </div>
@@ -471,11 +471,11 @@ const GuestFormModal: React.FC<Props> = ({
                           <div className="space-y-1">
                             <div className="flex justify-between">
                               <span>Base Rate:</span>
-                              <span>₹{finalPrice.dailyBreakdown.baseRate}</span>
+                              <span>${finalPrice.dailyBreakdown.baseRate}</span>
                             </div>
                             <div className="flex justify-between">
                               <span>Additional Charges:</span>
-                              <span>₹{finalPrice.dailyBreakdown.additionalCharges}</span>
+                              <span>${finalPrice.dailyBreakdown.additionalCharges}</span>
                             </div>
                           </div>
                         )}
@@ -490,11 +490,11 @@ const GuestFormModal: React.FC<Props> = ({
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span>Total Base Amount:</span>
-                    <span>₹{finalPrice.currency}{finalPrice.breakdown.totalBaseAmount}</span>
+                    <span>${finalPrice.currency}{finalPrice.breakdown.totalBaseAmount}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Additional Charges:</span>
-                    <span>₹{finalPrice.breakdown.totalAdditionalCharges}</span>
+                    <span>${finalPrice.breakdown.totalAdditionalCharges}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Number of Nights:</span>
@@ -502,11 +502,11 @@ const GuestFormModal: React.FC<Props> = ({
                   </div>
                   <div className="flex justify-between">
                     <span>Tax:</span>
-                    <span>₹{finalPrice.totalTaxAmount || 0}</span>
+                    <span>${finalPrice.totalTaxAmount || 0}</span>
                   </div>
                   <div className="flex justify-between items-center pt-2 border-t-2 font-bold text-lg">
                     <span>Total Amount:</span>
-                    <span style={{ color: colors.primaryColor }}>₹{finalPrice.totalAmount}</span>
+                    <span style={{ color: colors.primaryColor }}>${finalPrice.totalAmount}</span>
                   </div>
                 </div>
               )}

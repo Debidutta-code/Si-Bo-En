@@ -20,6 +20,8 @@ export default function Home() {
 
     // ✅ Optionally remove persisted booking state from localStorage (if used)
     localStorage.removeItem("bookingContext");
+    localStorage.removeItem("bookingstorage");
+
   }, []);
 
   return (

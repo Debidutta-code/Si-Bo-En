@@ -46,11 +46,13 @@ export default function Dashboard() {
   }, []);
 
   // 🆕 NEW: Fetch statistics when comparison type or date changes
-  useEffect(() => {
-    if (selectedProperty.id || allProperties.length === 0) {
-      fetchStatistics(selectedProperty?.id, selectedProperty?.code, selectedProperty?.name);
-    }
-  }, [comparisonType, selectedDate]);
+useEffect(() => {
+  // Always fetch statistics when comparison type or date changes
+  // regardless of property selection
+  if (allProperties.length > 0 || !selectedProperty.id) {
+    fetchStatistics(selectedProperty?.id, selectedProperty?.code, selectedProperty?.name);
+  }
+}, [comparisonType, selectedDate, selectedProperty.id]);
 
 const handlePropertyChange = (propertyId: string) => {
   if (propertyId === "all") {
