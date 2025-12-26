@@ -2,7 +2,7 @@ import { Express, NextFunction, Request, Response, Router } from 'express';
 import { AppError } from '../utils/error.util';
 
 // // Route imports
-import { AuthRouter, CreationRouter, UserRouter } from "../auth/routes";
+import { AuthRouter, CreationRouter, UserRouter ,initRouter} from "../auth/routes";
 import { AccessControlRoutes } from '../access-control/routes';
 import PropertyManagement from '../property-management/routes/index.route';
 import { AriRouter } from '../ari/routes';
@@ -14,7 +14,7 @@ import {AddonsRoute} from '../add-on/routes';
 import {pmsRoute} from "../pms/routes";
 import {BookingEngineRoutes} from "../booking-engine/routes"
 import {EmailRoutes} from "../sms-email-service/routs/notification.route"
-import {dashboardRouter} from "../dashboard/routes"
+import {dashboardRouter} from "../dashboard/routes";
 export async function initializeExpressRoutes({ app }: { app: Express }) {
   // Health check
   app.head('/status', (_, res: Response) => res.status(200).end());
@@ -27,6 +27,7 @@ export async function initializeExpressRoutes({ app }: { app: Express }) {
   apiV1Router.use('/auth', AuthRouter);
   apiV1Router.use('/user', UserRouter);
   apiV1Router.use("/create", CreationRouter);
+  apiV1Router.use("/init", initRouter);
 
   apiV1Router.use("/dash",dashboardRouter)
 

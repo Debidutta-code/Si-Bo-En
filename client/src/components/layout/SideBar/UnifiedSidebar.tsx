@@ -13,14 +13,14 @@ import {
   ChevronLeft,
   ChevronRight,
   CalendarClock,
-  HeadsetIcon,
-  BrushCleaning,
+  // HeadsetIcon,
+  // BrushCleaning,
   DollarSign,
   ChevronDown,
   Ban
 } from 'lucide-react';
 import { useAppSelector } from '@/redux/hooks';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 interface NavItem {
   name: string;
@@ -67,28 +67,28 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
     navigate('/');
   };
 
-  useEffect(() => {
-    // Add conditional navigation items based on user role
-    if (user?.role === "hotel_manager" && user?.propertyId) {
-      const frontDeskExists = navigation.some(item => item.name === 'Front Desk');
-      const housekeepingExists = navigation.some(item => item.name === 'House Keeping');
+  // useEffect(() => {
+  //   // Add conditional navigation items based on user role
+  //   if (user?.role === "hotel_manager" && user?.propertyId) {
+  //     const frontDeskExists = navigation.some(item => item.name === 'Front Desk');
+  //     const housekeepingExists = navigation.some(item => item.name === 'House Keeping');
 
-      if (!frontDeskExists) {
-        navigation.push({ name: 'Front Desk', href: `/property/${user.propertyId}/frontdesk`, icon: HeadsetIcon, userLevels: [0, 1, 2, 3, 4] });
-      }
-      if (!housekeepingExists) {
-        navigation.push({ name: 'House Keeping', href: `/property/${user.propertyId}/housekeeping`, icon: BrushCleaning, userLevels: [0, 1, 2, 3, 4] });
-      }
-    }
+  //     if (!frontDeskExists) {
+  //       navigation.push({ name: 'Front Desk', href: `/property/${user.propertyId}/frontdesk`, icon: HeadsetIcon, userLevels: [0, 1, 2, 3, 4] });
+  //     }
+  //     if (!housekeepingExists) {
+  //       navigation.push({ name: 'House Keeping', href: `/property/${user.propertyId}/housekeeping`, icon: BrushCleaning, userLevels: [0, 1, 2, 3, 4] });
+  //     }
+  //   }
 
-    // Redirect users to their appropriate property pages
-    if (user?.role === "front_desk" && user?.propertyId) {
-      navigate(`/property/${user.propertyId}/frontdesk`);
-    }
-    if (user?.role === "housekeeping" && user?.propertyId) {
-      navigate(`/property/${user.propertyId}/housekeeping`);
-    }
-  }, [user, navigate, propertyId]);
+  //   // Redirect users to their appropriate property pages
+  //   if (user?.role === "front_desk" && user?.propertyId) {
+  //     navigate(`/property/${user.propertyId}/frontdesk`);
+  //   }
+  //   if (user?.role === "housekeeping" && user?.propertyId) {
+  //     navigate(`/property/${user.propertyId}/housekeeping`);
+  //   }
+  // }, [user, navigate, propertyId]);
 
   // Price Management sub-items
   const priceManagementItems = [

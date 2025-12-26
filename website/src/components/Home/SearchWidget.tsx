@@ -151,6 +151,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   //   bookingContext?.bookingEngineColor?.logo;
 
   const { colors, logoIcon } = useBookingStorage(bookingContext);
+  const [currentLogo, setCurrentLogo] = useState<string | null>(logoIcon);
   const { primaryColor, secondaryColor, tertiaryColor, buttonTextColor } = colors;
   const hotelcode = bookingContext?.PropertyCode || "4B4SM2";
   const PathName = usePathname();
@@ -212,7 +213,54 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
       userTriggeredSearch.current = false;
     }
   }, [checkIn, checkOut, guestInfo]);
+// ✅ ADD THIS ENTIRE useEffect
+// ✅ REPLACE the useEffect you added with THIS improved version
+useEffect(() => {
+  const updateLogoFromStorage = () => {
+    // Priority 1: Check bookingContext first
+    const logoFromContext = 
+      bookingContext?.bookingEngineColor?.logo || 
+      bookingContext?.PropertyDetails?.bookingEngineConfig?.logo;
+    
+    if (logoFromContext) {
+      setCurrentLogo(logoFromContext);
+      return;
+    }
 
+    // Priority 2: Check localStorage
+    try {
+      const stored = localStorage.getItem('bookingstorage');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.logoIcon) {
+          setCurrentLogo(parsed.logoIcon);
+        } else {
+          setCurrentLogo(null); // Reset if no logo
+        }
+      }
+    } catch (error) {
+      console.error('Error reading logo from storage:', error);
+    }
+  };
+
+  // Run on mount and when dependencies change
+  updateLogoFromStorage();
+
+  // ✅ CRITICAL: Listen for storage changes (custom event)
+  const handleStorageUpdate = () => {
+    updateLogoFromStorage();
+  };
+
+  window.addEventListener('storage', handleStorageUpdate);
+  
+  // ✅ Also listen for a custom event we'll dispatch from Rooms
+  window.addEventListener('bookingStorageUpdated', handleStorageUpdate);
+
+  return () => {
+    window.removeEventListener('storage', handleStorageUpdate);
+    window.removeEventListener('bookingStorageUpdated', handleStorageUpdate);
+  };
+}, [bookingContext?.bookingEngineColor?.logo, bookingContext?.PropertyDetails?.bookingEngineConfig?.logo, logoIcon]);
   const handleGuestSelection = (summary: string, data: any) => {
     // console.log("Selected guest data:", data);
     // console.log("Selected guest summary:", summary);
@@ -461,10 +509,10 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 onClick={handleHomeClick}
                 className="flex items-center focus:outline-none"
               >
-                {logoIcon ? (
+                {currentLogo ? (
                   <div className="relative w-32 h-32">
                     <Image
-                      src={logoIcon}
+                      src={currentLogo}
                       alt="Hotel Logo"
                       fill
                       className="object-contain"
@@ -712,10 +760,10 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 onClick={handleHomeClick}
                 className="flex items-center focus:outline-none"
               >
-                {logoIcon ? (
+                {currentLogo ? (
                   <div className="relative w-28 h-20">
                     <Image
-                      src={logoIcon}
+                      src={currentLogo}
                       alt="Hotel Logo"
                       fill
                       className="object-contain"
@@ -914,10 +962,10 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   onClick={handleHomeClick}
                   className="flex items-center focus:outline-none"
                 >
-                  {logoIcon ? (
+                  {currentLogo ? (
                     <div className="relative w-24 h-8">
                       <Image
-                        src={logoIcon}
+                        src={currentLogo}
                         alt="Hotel Logo"
                         fill
                         className="object-contain"
@@ -1108,10 +1156,10 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
               onClick={handleHomeClick}
               className="flex items-center focus:outline-none"
             >
-              {logoIcon ? (
+              {currentLogo ? (
                 <div className="relative w-20 h-6">
                   <Image
-                    src={logoIcon}
+                    src={currentLogo}
                     alt="Hotel Logo"
                     fill
                     className="object-contain"

@@ -289,77 +289,106 @@ const Rooms = () => {
     setContactInfo((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSearchStart = async (payload: any) => {
-    setLoadingRooms(true);
-    setErrorRooms("");
-    dispatch({ type: "rooms/setRooms", payload: [] });
-    setRoomsData([]);
-    setAddons([]);
-    setPropertyDetails(null);
+const handleSearchStart = async (payload: any) => {
+  setLoadingRooms(true);
+  setErrorRooms("");
+  dispatch({ type: "rooms/setRooms", payload: [] });
+  setRoomsData([]);
+  setAddons([]);
+  setPropertyDetails(null);
 
-    // Reset price summary when new search
-    setShowPriceSummary(false);
-    setPriceSummaryData(null);
+  // Reset price summary when new search
+  setShowPriceSummary(false);
+  setPriceSummaryData(null);
 
-    const bookingCtx = payload || bookingContext;
-    if (!bookingCtx?.PropertyCode) {
-      setLoadingRooms(false);
+  const bookingCtx = payload || bookingContext;
+  if (!bookingCtx?.PropertyCode) {
+    setLoadingRooms(false);
+    return;
+  }
+
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/fetch-rooms`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(bookingCtx),
+      }
+    );
+    const data = await response.json();
+
+    if (!response.ok || data.status === "fail") {
+      const msg = data.message || "Failed to load rooms.";
+      toast.error(msg);
+      dispatch({ type: "rooms/setRooms", payload: [] });
       return;
     }
 
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/fetch-rooms`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(bookingCtx),
-        }
-      );
-      const data = await response.json();
+    // Extract property details from API response
+    const propertyDetails = data.data?.propertyDetails;
 
-      if (!response.ok || data.status === "fail") {
-        const msg = data.message || "Failed to load rooms.";
-        toast.error(msg);
-        dispatch({ type: "rooms/setRooms", payload: [] });
-        return;
-      }
+    // Create booking engine color object from config
+    const bookingEngineColor = propertyDetails?.bookingEngineConfig ? {
+      primaryColor: propertyDetails.bookingEngineConfig.primaryColor,
+      secondaryColor: propertyDetails.bookingEngineConfig.secondaryColor,
+      tertiaryColor: propertyDetails.bookingEngineConfig.tertiaryColor,
+      buttonTextColor: propertyDetails.bookingEngineConfig.buttonTextColor,
+      bgImage: propertyDetails.bookingEngineConfig.bannerImage,
+      logo: propertyDetails.bookingEngineConfig.logo
+    } : undefined;
 
-      // Extract property details from API response
-      const propertyDetails = data.data?.propertyDetails;
+    const updatedContext = {
+      ...bookingCtx,
+      hotelName: data.propertyName || propertyDetails?.propertyName,
+      PropertyDetails: propertyDetails,
+      bookingEngineColor: bookingEngineColor,
+    };
 
-      // Create booking engine color object from config
-      const bookingEngineColor = propertyDetails?.bookingEngineConfig ? {
-        primaryColor: propertyDetails.bookingEngineConfig.primaryColor,
-        secondaryColor: propertyDetails.bookingEngineConfig.secondaryColor,
-        tertiaryColor: propertyDetails.bookingEngineConfig.tertiaryColor,
-        buttonTextColor: propertyDetails.bookingEngineConfig.buttonTextColor,
-        bgImage: propertyDetails.bookingEngineConfig.bannerImage,
-        logo: propertyDetails.bookingEngineConfig.logo
-      } : undefined;
+    dispatch(setBookingContext(updatedContext));
+    localStorage.setItem("bookingContext", JSON.stringify(updatedContext));
 
-      const updatedContext = {
-        ...bookingCtx,
-        hotelName: data.propertyName || propertyDetails?.propertyName,
-        PropertyDetails: propertyDetails,
-        bookingEngineColor: bookingEngineColor,
+    // ✅ UPDATE bookingstorage with new colors OR set to defaults if no config
+    if (bookingEngineColor) {
+      const bookingStorage = {
+        colors: {
+          primaryColor: bookingEngineColor.primaryColor,
+          secondaryColor: bookingEngineColor.secondaryColor,
+          tertiaryColor: bookingEngineColor.tertiaryColor,
+          buttonTextColor: bookingEngineColor.buttonTextColor,
+          logoIcon: null
+        },
+        logoIcon: bookingEngineColor.logo
       };
-
-      dispatch(setBookingContext(updatedContext));
-
-      dispatch({ type: "rooms/setRooms", payload: data.data || [] });
-      setRoomsData(data.data?.rooms || []);
-      setAddons(data.addons || []);
-      setPropertyDetails(propertyDetails || null);
-
-    } catch (err: any) {
-      console.error(err);
-      toast.error(err.message || "Something went wrong while fetching rooms.");
-      dispatch({ type: "rooms/setRooms", payload: [] });
-    } finally {
-      setLoadingRooms(false);
+      localStorage.setItem("bookingstorage", JSON.stringify(bookingStorage));
+    } else {
+      // ✅ Set to default colors if no config
+      const defaultBookingStorage = {
+        colors: {
+          primaryColor: "#2F2A1F",
+          secondaryColor: "#E8DFC9",
+          tertiaryColor: "#7D7566",
+  buttonTextColor: "#FFFFFF",  // ✅ White text for better contrast
+          logoIcon: null
+        },
+        logoIcon: null
+      };
+      localStorage.setItem("bookingstorage", JSON.stringify(defaultBookingStorage));
     }
-  };
+
+    dispatch({ type: "rooms/setRooms", payload: data.data || [] });
+    setRoomsData(data.data?.rooms || []);
+    setAddons(data.addons || []);
+    setPropertyDetails(propertyDetails || null);
+
+  } catch (err: any) {
+    console.error(err);
+    toast.error(err.message || "Something went wrong while fetching rooms.");
+    dispatch({ type: "rooms/setRooms", payload: [] });
+  } finally {
+    setLoadingRooms(false);
+  }
+};
 
   const searchParams = useSearchParams();
 
@@ -443,7 +472,29 @@ const Rooms = () => {
       localStorage.setItem('urgencyBannerDismissed', 'false');
     }
   }, []);
+useEffect(() => {
+  const urlCode = searchParams.get("code");
+  
+  // Skip if no code or it's the same as current
+  if (!urlCode || urlCode === bookingContext.PropertyCode) {
+    return;
+  }
 
+  console.log("🔄 Property code changed in URL:", urlCode);
+
+  const storedContext = localStorage.getItem("bookingContext");
+  const parsedContext = storedContext ? JSON.parse(storedContext) : {};
+
+  const updatedContext = {
+    ...parsedContext,
+    ...bookingContext, // Keep current context data
+    PropertyCode: urlCode, // Update only the property code
+  };
+
+  dispatch(setBookingContext(updatedContext));
+  localStorage.setItem("bookingContext", JSON.stringify(updatedContext));
+  handleSearchStart(updatedContext);
+}, [searchParams.get("code")]);
   // console.log("Rooms data:", roomsData);
   // console.log("Booking context:", bookingContext);
   // console.log("Property details:", propertyDetails);

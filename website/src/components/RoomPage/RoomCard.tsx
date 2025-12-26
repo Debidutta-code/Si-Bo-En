@@ -484,10 +484,10 @@ const RoomCard: React.FC<RoomCardProps> = ({
                       <button
                         onClick={() => handleBookNowClick(ratePlan)}
                         disabled={isLoadingForRatePlan(ratePlan.ratePlanCode) || isExpanded}
-                        style={{
-                          backgroundColor: primaryColor,
-                          color: buttonTextColor
-                        }}
+                       style={{
+    backgroundColor: primaryColor || '#FF6B35',  // ✅ Add fallback
+    color: buttonTextColor || '#FFFFFF'  // ✅ Add fallback
+  }}
                         className="px-4 md:px-5 py-2 rounded-lg font-semibold text-sm md:text-base transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg whitespace-nowrap hover:opacity-90"
                       >
                         {isLoadingForRatePlan(ratePlan.ratePlanCode) ? (

@@ -52,14 +52,21 @@ export default function Dashboard() {
     }
   }, [comparisonType, selectedDate]);
 
-  const handlePropertyChange = (propertyId: string) => {
+const handlePropertyChange = (propertyId: string) => {
+  if (propertyId === "all") {
+    // Reset to show all properties
+    setSelectedProperty({ id: "", code: "", name: "" });
+    fetchAnalytics();
+    fetchStatistics();
+  } else {
     const property = allProperties.find(p => p.id === propertyId);
     if (property) {
       setSelectedProperty(property);
       fetchAnalytics(property?.id, property?.code, property?.name);
-      fetchStatistics(property?.id, property?.code, property?.name); // 🆕 NEW
+      fetchStatistics(property?.id, property?.code, property?.name);
     }
-  };
+  }
+};
 
   // 🆕 NEW FUNCTION: Fetch Statistics Comparison
   const fetchStatistics = async (propertyId?: string, propertyCode?: string, propertyName?: string) => {
@@ -112,38 +119,32 @@ export default function Dashboard() {
     }
   };
   
-  const fetchProperties = async () => {
-    try {
-      setLoader({ isLoading: true, message: "Fetching Property Names ..." });
-      setError(null);
+const fetchProperties = async () => {
+  try {
+    setLoader({ isLoading: true, message: "Fetching Property Names ..." });
+    setError(null);
 
-      const response = await fetchPropertiesService();
+    const response = await fetchPropertiesService();
 
-      if (response.success) {
-        setAllProperties(response.data);
-        
-        if (response.data.length > 0) {
-          const firstProperty = response.data[0];
-          setSelectedProperty(firstProperty);
-          await fetchAnalytics(firstProperty.id, firstProperty.code, firstProperty.name);
-          await fetchStatistics(firstProperty.id, firstProperty.code, firstProperty.name); // 🆕 NEW
-        } else {
-          await fetchAnalytics();
-          await fetchStatistics(); // 🆕 NEW
-        }
-      } else {
-        setError(response.message || "Failed to fetch properties");
-        toast.error(response.message || "Failed to fetch properties");
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
-      setError(errorMessage);
-      toast.error(errorMessage);
-      console.error("Error fetching properties:", err);
-    } finally {
-      setLoader({ isLoading: false, message: "" });
+    if (response.success) {
+      setAllProperties(response.data);
+      
+      // ✅ Fetch analytics without property filter
+      await fetchAnalytics();
+      await fetchStatistics();
+    } else {
+      setError(response.message || "Failed to fetch properties");
+      toast.error(response.message || "Failed to fetch properties");
     }
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
+    setError(errorMessage);
+    toast.error(errorMessage);
+    console.error("Error fetching properties:", err);
+  } finally {
+    setLoader({ isLoading: false, message: "" });
   }
+}
 
   if (loader.isLoading) {
     return (
@@ -233,25 +234,26 @@ export default function Dashboard() {
             />
 
             {allProperties.length > 1 && (
-              <Select
-                value={selectedProperty.id}
-                onValueChange={handlePropertyChange}
-              >
-                <SelectTrigger className="w-[200px]">
-                  <Building2 className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Select Property" />
-                </SelectTrigger>
-                <SelectContent>
-                  {allProperties.map((property) => (
-                    <SelectItem key={property.id} value={property.id}>
-                      <div className="flex flex-col">
-                        <span className="font-medium">{property.name}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+  <Select
+    value={selectedProperty.id || "all"}
+    onValueChange={handlePropertyChange}
+  >
+    <SelectTrigger className="w-[200px]">
+      <Building2 className="h-4 w-4 mr-2" />
+      <SelectValue placeholder="Select All" />
+    </SelectTrigger>
+    <SelectContent>
+      <SelectItem value="all">Select All</SelectItem>
+      {allProperties.map((property) => (
+        <SelectItem key={property.id} value={property.id}>
+          <div className="flex flex-col">
+            <span className="font-medium">{property.name}</span>
+          </div>
+        </SelectItem>
+      ))}
+    </SelectContent>
+  </Select>
+)}
             <Button
               onClick={()=>{
                 if (selectedProperty.id) {
