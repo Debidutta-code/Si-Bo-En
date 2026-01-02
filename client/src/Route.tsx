@@ -33,6 +33,8 @@ import CalendarView from "./pages/price-management/calendar/CalendarView.tsx";
 import PeriodsManagement from "./pages/price-management/periods/PeriodsManagement.tsx";
 import TableView from "./pages/price-management/table/TableView.tsx";
 import Bookings from "./pages/bookings/page.tsx";
+import RestrictionsPageWrapper from "./pages/cta-ctd/page.tsx";
+import InventoryPage from "./pages/calender-view/page.tsx";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -70,12 +72,14 @@ export const router = createBrowserRouter(
         <Route path=":propertyId" element={<PropertyById />} />
         <Route path="rate-plan/:propertyId" element={<RatePlan />} />
         <Route path="rate-plan/map/:propertyId" element={<MappedRatePlans />} />
+        <Route path="calender-view/:propertyId" element={<InventoryPage />} />
         <Route path="inventory/:propertyId" element={<Inventory />} />
         <Route path="policy/:propertyId" element={<Policies />} />
         <Route path="promo-code/:propertyId" element={<PromoCode />} />
         <Route path="add-on/:propertyId" element={<AddOn />} />
         <Route path="tax-system/:propertyId" element={<TaxSystem />} />
         <Route path="start-stop-sell/:propertyId" element={<StartStopSell />} />
+        <Route path="cta-ctd/:propertyId" element={<RestrictionsPageWrapper />} />
         <Route path="booking-engine-config/:propertyId" element={<BookingEngineConfig />} />
         <Route path="price-management/seasons/:propertyId" element={<SeasonsManagement />} />
         <Route path="price-management/calendar/:propertyId" element={<CalendarView />} />

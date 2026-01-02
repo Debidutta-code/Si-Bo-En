@@ -125,7 +125,7 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
             </div>
             <div className="flex items-center gap-2">
               <FaRupeeSign style={{ color: colors.primaryColor }} />
-              <span>Total: ₹{amount.toLocaleString()}</span>
+              <span>Total: ${amount.toLocaleString()}</span>
             </div>
           </div>
         </div>
@@ -169,19 +169,19 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
             <p className="flex justify-between">
               <span>Original Payment Amount:</span>
               <span className="font-semibold text-gray-800">
-                ₹{amount.toLocaleString()}
+                ${amount.toLocaleString()}
               </span>
             </p>
             <p className="flex justify-between">
               <span>Refund Amount:</span>
               <span className="font-semibold text-green-600">
-                ₹{Math.round((amount * refundInfo.refund) / 100).toLocaleString()}
+                ${Math.round((amount * refundInfo.refund) / 100).toLocaleString()}
               </span>
             </p>
             <p className="flex justify-between">
               <span>Cancellation Fee:</span>
               <span className="font-semibold text-red-500">
-                ₹{Math.round(amount - (amount * refundInfo.refund) / 100).toLocaleString()}
+                ${Math.round(amount - (amount * refundInfo.refund) / 100).toLocaleString()}
               </span>
             </p>
           </div>

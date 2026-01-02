@@ -299,7 +299,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                                   updateRoomDetails={setRoomDetails}
                                 />
                               </AlertDialogHeader>
-                              <AlertDialogFooter className="border-t pt-4">
+                              <AlertDialogFooter className="border-t ">
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                                 <AlertDialogAction
                                   onClick={() => createRoomQ(propertyId, roomDetails)}

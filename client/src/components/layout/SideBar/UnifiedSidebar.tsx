@@ -102,6 +102,7 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
   const ratesItems = [
     { name: 'RatePlan', href: `/property/rate-plan/${propertyId}` },
     { name: 'Rate Plan Allortment', href: `/property/rate-plan/map/${propertyId}` },
+    { name: 'Calender-View', href: `/property/calender-view/${propertyId}` },
   ];
 
   // Management sub-items
@@ -132,6 +133,7 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
   // Restrictions sub-items (defined inside component to access propertyId)
   const restrictionsItems = [
     { name: 'Start/Stop Sell', href: `/property/start-stop-sell/${propertyId}` },
+    { name: 'CTA-CTD', href: `/property/cta-ctd/${propertyId}` },
   ];
 
   // Reusable component for the sidebar's content

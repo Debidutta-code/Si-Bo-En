@@ -157,7 +157,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
       });
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/rate-plan/getRoomRentPrice`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/ari/price/get-price`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

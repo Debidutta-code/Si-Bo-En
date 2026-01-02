@@ -601,6 +601,9 @@ model Charge {
   friApplicable Boolean @default(true) @map("fri_applicable")
   satApplicable Boolean @default(true) @map("sat_applicable")
   sunApplicable Boolean @default(true) @map("sun_applicable")
+  isClosedToArrival   Boolean @default(false) @map("is_closed_to_arrival")
+  isClosedToDeparture Boolean @default(false) @map("is_closed_to_departure")
+  restrictionNotes    String? @map("restriction_notes")
 
   // Relations
   baseGuestAmounts       ChargeBaseByGuest[]

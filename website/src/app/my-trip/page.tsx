@@ -358,15 +358,15 @@ export default function MyTripPage() {
             <div className="absolute sm:top-3 top-10 sm:right-4 right-2">
               <span
                 className={`text-xs font-semibold px-3 py-1 rounded-full
-        ${bookingData.status === "cancelled"
+        ${bookingData.bookingStatus === "cancelled"
                     ? "bg-red-100 text-red-600"
-                    : bookingData.status === "Modified"
+                    : bookingData.bookingStatus === "modified"
                       ? "bg-yellow-100 text-yellow-600"
                       : "bg-green-100 text-green-600"
                   }
       `}
               >
-                {bookingData.status}
+                {bookingData.bookingStatus}
               </span>
             </div>
           </div>
@@ -423,8 +423,8 @@ export default function MyTripPage() {
               Details
             </button>
             {/* Modify & Cancel Buttons */}
-            {(bookingData.status === "Confirmed" ||
-              bookingData.status === "Modified") && (
+            {(bookingData.bookingStatus === "confirmed" ||
+              bookingData.bookingStatus === "modified") && (
                 <div className="flex flex-col sm:flex-row gap-4">
                   <button
                     onClick={() => setShowUpdateModal(true)}
