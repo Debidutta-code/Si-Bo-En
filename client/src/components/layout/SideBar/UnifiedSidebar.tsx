@@ -103,11 +103,12 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
     { name: 'RatePlan', href: `/property/rate-plan/${propertyId}` },
     { name: 'Rate Plan Allortment', href: `/property/rate-plan/map/${propertyId}` },
     { name: 'Calender-View', href: `/property/calender-view/${propertyId}` },
+    { name: 'Inventory', href: `/property/inventory/${propertyId}`, icon: Building, userLevels: [1, 0, 2, 3, 4] },
+
   ];
 
   // Management sub-items
   const managementItems = [
-    { name: 'Inventory', href: `/property/inventory/${propertyId}`, icon: Building, userLevels: [1, 0, 2, 3, 4] },
     { name: 'Policy', href: `/property/policy/${propertyId}`, icon: CalendarClock, userLevels: [0, 1, 2, 3, 4] },
     { name: 'Promo Code', href: `/property/promo-code/${propertyId}`, icon: FileText, userLevels: [0, 1, 2, 3, 4] },
     { name: 'Add On', href: `/property/add-on/${propertyId}`, icon: Users, userLevels: [4, 3, 2, 1] },
