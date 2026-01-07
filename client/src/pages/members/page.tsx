@@ -97,7 +97,7 @@ export default function MembersPage() {
       }
 
       const res = await createUser(validation.data);
-      console.log('Create user response:', res);
+      // console.log('Create user response:', res);
       if (res.success) {
         toast.success("User created successfully");
         setIsCreateDialogOpen(false);
@@ -197,7 +197,7 @@ export default function MembersPage() {
 
 
   const confirmDeleteUser = async () => {
-    console.log(userToDelete)
+    // console.log(userToDelete)
     if (!userToDelete) {
       toast.error("User Not Found")
       return

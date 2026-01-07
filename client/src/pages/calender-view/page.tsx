@@ -13,6 +13,7 @@ import {
 import type{  DayData,  RoomTypeWithRatePlans } from './interfaces/inventory.interfaces';
 import dayjs from 'dayjs';
 import toast from 'react-hot-toast';
+import Loader from '@/components/Loader/Loader';
 
 export default function InventoryPage() {
   // Get propertyId from URL params
@@ -28,7 +29,12 @@ export default function InventoryPage() {
   const [roomTypes, setRoomTypes] = useState<RoomTypeWithRatePlans[]>([]);
   const [selectedRoomTypes, setSelectedRoomTypes] = useState<string[]>([]);
   const [isLoadingRoomTypes, setIsLoadingRoomTypes] = useState(false);
-  
+  const [roomSetupData, setRoomSetupData] = useState<Array<{
+  id: string;
+  roomName: string;
+  roomType: string;
+  totalRoom: number;
+}>>([]);
   // Date range state
   const [dateRange, setDateRange] = useState<{
     startDate: string | null;
@@ -41,7 +47,7 @@ export default function InventoryPage() {
   // Inventory data state
   const [isLoadingInventory, setIsLoadingInventory] = useState(false);
   const [inventoryData, setInventoryData] = useState<DayData[]>([]);
-  const [error, setError] = useState<string | null>(null);
+  const [_error, setError] = useState<string | null>(null);
 
   // Hotel info from API response
   const [hotelCode, setHotelCode] = useState<string>('');
@@ -64,21 +70,24 @@ useEffect(() => {
         throw new Error(response.message || 'Failed to load room types');
       }
 
+      // ✅ Store the complete room setup data
+      setRoomSetupData(response.data || []);
+
       // ✅ Transform API response to match your interface
       const transformedRoomTypes: RoomTypeWithRatePlans[] = (response.data || []).map((room: any) => ({
-        invTypeCode: room.roomType,  // ← Map roomType to invTypeCode
+        invTypeCode: room.roomType,
         name: room.roomName,
         ratePlans: []
       }));
 
-      console.log('✅ Transformed room types:', transformedRoomTypes);
+      // console.log('✅ Transformed room types:', transformedRoomTypes);
       
       setRoomTypes(transformedRoomTypes);
       
       // Initialize with all room types selected
       if (transformedRoomTypes.length > 0) {
         const roomTypeCodes = transformedRoomTypes.map(rt => rt.invTypeCode);
-        console.log('✅ Setting selected room types:', roomTypeCodes);
+        // console.log('✅ Setting selected room types:', roomTypeCodes);
         setSelectedRoomTypes(roomTypeCodes);
       }
     } catch (error: any) {
@@ -92,8 +101,6 @@ useEffect(() => {
 
   fetchRoomTypes();
 }, [propertyId]);
-
-
   // ============================================
   // FETCH INVENTORY DATA
   // ============================================
@@ -126,13 +133,13 @@ useEffect(() => {
         ? undefined 
         : selectedRoomTypes[0]; // Send first selected room type
 
-      console.log('🚀 Fetching inventory with:', {
-        propertyId,
-        startDate: startDate.format('YYYY-MM-DD'),
-        endDate: endDate.format('YYYY-MM-DD'),
-        selectedRoomTypes,
-        roomTypeCode: roomTypeCode || 'ALL'
-      });
+      // console.log('🚀 Fetching inventory with:', {
+      //   propertyId,
+      //   startDate: startDate.format('YYYY-MM-DD'),
+      //   endDate: endDate.format('YYYY-MM-DD'),
+      //   selectedRoomTypes,
+      //   roomTypeCode: roomTypeCode || 'ALL'
+      // });
 
       const response = await fetchInventoryAnalysisService(propertyId, {
         startDate: startDate.format('YYYY-MM-DD'),
@@ -149,7 +156,7 @@ useEffect(() => {
       setHotelCode(response.data?.hotelCode || '');
       setHotelName(response.data?.hotelName || '');
       
-      console.log('✅ Inventory data fetched:', response.data?.days?.length || 0, 'days');
+      // console.log('✅ Inventory data fetched:', response.data?.days?.length || 0, 'days');
     } catch (error: any) {
       console.error('❌ Failed to fetch inventory data:', error);
       setError(error.message || 'Failed to load inventory data');
@@ -208,12 +215,12 @@ useEffect(() => {
   // HANDLER: Room Type Change
   // ============================================
   const handleRoomTypeChange = async (newSelectedRoomTypes: string[]) => {
-    console.log('🎯 handleRoomTypeChange called with:', newSelectedRoomTypes);
+    // console.log('🎯 handleRoomTypeChange called with:', newSelectedRoomTypes);
     
     setSelectedRoomTypes(newSelectedRoomTypes);
     
     if (!propertyId || newSelectedRoomTypes.length === 0) {
-      console.log('⚠️ Cannot fetch: missing requirements');
+      // console.log('⚠️ Cannot fetch: missing requirements');
       return;
     }
 
@@ -237,10 +244,10 @@ useEffect(() => {
         ? undefined 
         : newSelectedRoomTypes[0];
 
-      console.log('🚀 Fetching with NEW room types:', {
-        newSelectedRoomTypes,
-        roomTypeCode: roomTypeCode || 'ALL'
-      });
+      // console.log('🚀 Fetching with NEW room types:', {
+      //   newSelectedRoomTypes,
+      //   roomTypeCode: roomTypeCode || 'ALL'
+      // });
 
       const response = await fetchInventoryAnalysisService(propertyId, {
         startDate: startDate.format('YYYY-MM-DD'),
@@ -255,7 +262,7 @@ useEffect(() => {
       setInventoryData(response.data?.days || []);
       setHotelCode(response.data?.hotelCode || '');
       setHotelName(response.data?.hotelName || '');
-      console.log('✅ Inventory data fetched with new room types');
+      // console.log('✅ Inventory data fetched with new room types');
     } catch (error: any) {
       console.error('❌ Failed to fetch inventory data:', error);
       setError(error.message || 'Failed to load inventory data');
@@ -269,12 +276,12 @@ useEffect(() => {
   // HANDLER: Date Range Apply
   // ============================================
   const handleDateRangeApply = async (newStartDate: string | null, newEndDate: string | null) => {
-    console.log('🎯 handleDateRangeApply called with:', { newStartDate, newEndDate });
+    // console.log('🎯 handleDateRangeApply called with:', { newStartDate, newEndDate });
     
     setDateRange({ startDate: newStartDate, endDate: newEndDate });
     
     if (!propertyId || selectedRoomTypes.length === 0) {
-      console.log('⚠️ Cannot fetch: missing requirements');
+      // console.log('⚠️ Cannot fetch: missing requirements');
       return;
     }
 
@@ -298,11 +305,11 @@ useEffect(() => {
         ? undefined 
         : selectedRoomTypes[0];
 
-      console.log('🚀 Fetching with NEW dates:', {
-        startDate: startDate.format('YYYY-MM-DD'),
-        endDate: endDate.format('YYYY-MM-DD'),
-        roomTypeCode: roomTypeCode || 'ALL'
-      });
+      // console.log('🚀 Fetching with NEW dates:', {
+      //   startDate: startDate.format('YYYY-MM-DD'),
+      //   endDate: endDate.format('YYYY-MM-DD'),
+      //   roomTypeCode: roomTypeCode || 'ALL'
+      // });
 
       const response = await fetchInventoryAnalysisService(propertyId, {
         startDate: startDate.format('YYYY-MM-DD'),
@@ -317,7 +324,7 @@ useEffect(() => {
       setInventoryData(response.data?.days || []);
       setHotelCode(response.data?.hotelCode || '');
       setHotelName(response.data?.hotelName || '');
-      console.log('✅ Inventory data fetched with new dates');
+      // console.log('✅ Inventory data fetched with new dates');
     } catch (error: any) {
       console.error('❌ Failed to fetch inventory data:', error);
       setError(error.message || 'Failed to load inventory data');
@@ -483,19 +490,19 @@ const convertToInventoryDay = (apiDay: DayData): InventoryDay => {
             onNext={handleNext}
           />
 
-          {error && (
+          {/* {error && (
             <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded text-red-600 text-xs">
               {error}
             </div>
-          )}
+          )} */}
 
           {/* LOADING STATE */}
-          {(isLoadingInventory || isLoadingRoomTypes) && (
-            <div className="text-center py-8">
-              <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-              <p className="mt-1 text-xs text-gray-500">
-                {isLoadingRoomTypes ? 'Loading room types...' : 'Loading inventory data...'}
-              </p>
+             {(isLoadingInventory || isLoadingRoomTypes) && (
+            <div className="flex items-center justify-center py-12">
+              <Loader 
+                text={isLoadingRoomTypes ? 'Loading room types...' : 'Loading inventory data...'} 
+                textStyle="text-blue-600 mt-4 text-sm font-medium"
+              />
             </div>
           )}
 
@@ -526,7 +533,9 @@ const convertToInventoryDay = (apiDay: DayData): InventoryDay => {
             <div className="relative">
               <InventoryTable
                 days={inventoryData.map(convertToInventoryDay)}
-                hotelCode={hotelCode || propertyId}
+                hotelCode={hotelCode}
+                propertyId={propertyId}
+                roomSetupData={roomSetupData} // ✅ ADD THIS
                 onMouseEnter={(index) => setHoveredDay(index)}
                 onMouseLeave={() => setHoveredDay(null)}
                 onDataUpdate={() => fetchInventoryData(true)}

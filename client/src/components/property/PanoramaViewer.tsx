@@ -40,8 +40,8 @@ export default function PanoramaViewer({ imageUrl }: PanoramaViewerProps) {
 
     // Convert to secure URL
     const secureImageUrl = getSecureCloudinaryUrl(imageUrl);
-    console.log('Original URL:', imageUrl);
-    console.log('Secure URL:', secureImageUrl);
+    // console.log('Original URL:', imageUrl);
+    // console.log('Secure URL:', secureImageUrl);
 
     // Pre-validate image URL by preloading
     const img = new Image();
@@ -84,7 +84,7 @@ export default function PanoramaViewer({ imageUrl }: PanoramaViewerProps) {
         sphereViewerRef.current.addEventListener('ready', () => {
           if (mounted && isMountedRef.current) {
             setIsLoading(false);
-            console.log('Panorama viewer ready');
+            // console.log('Panorama viewer ready');
           }
         });
 
@@ -92,7 +92,7 @@ export default function PanoramaViewer({ imageUrl }: PanoramaViewerProps) {
         sphereViewerRef.current.addEventListener('panorama-loaded', () => {
           if (mounted && isMountedRef.current) {
             setIsLoading(false);
-            console.log('Panorama loaded successfully');
+            // console.log('Panorama loaded successfully');
           }
         });
 
@@ -113,7 +113,7 @@ export default function PanoramaViewer({ imageUrl }: PanoramaViewerProps) {
     };
 
     img.onload = () => {
-      console.log('Image preloaded successfully, dimensions:', img.width, 'x', img.height);
+      // console.log('Image preloaded successfully, dimensions:', img.width, 'x', img.height);
       if (!mounted || !isMountedRef.current) return;
       
       // Validate image dimensions (should be 2:1 ratio for equirectangular)

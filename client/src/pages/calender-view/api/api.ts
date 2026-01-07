@@ -57,56 +57,28 @@ export async function getAllRoomTypesWithRatePlans(
   }
 }
 
-export async function createCommission(payload: {
+
+export async function updateRatePlanCharges(payload: {
   propertyCode: string;
-  type: string;
-  value: number;
-  isActive: boolean;
+  roomTypeCode: string;
+  ratePlanCode: string;
+  startDate: string; // YYYY-MM-DD format
+  endDate: string;   // YYYY-MM-DD format
+  baseGuestAmounts: Array<{
+    numberOfGuests: number;
+    amountBeforeTax: number;
+  }>;
+  additionalGuestAmounts?: Array<{
+    ageQualifyingCode: string;
+    amount: number;
+  }>;
 }) {
   const axiosInstance = createAxiosInstance();
   try {
-    const response = await axiosInstance.post('/commissions', payload);
-    return response.data;
-  } catch (error: any) {
-    if (!error?.response?.data?.success) {
-      return error.response.data;
-    } else {
-      return {
-        success: false,
-        message: error?.message
-      };
-    }
-  }
-}
-
-export async function getCommissionByPropertyCode(propertyCode: string) {
-  const axiosInstance = createAxiosInstance();
-  try {
-    const response = await axiosInstance.get(`/commissions/${propertyCode}`);
-    return response.data;
-  } catch (error: any) {
-    if (!error?.response?.data?.success) {
-      return error.response.data;
-    } else {
-      return {
-        success: false,
-        message: error?.message
-      };
-    }
-  }
-}
-
-export async function updateCommission(
-  commissionId: string,
-  payload: {
-    type: string;
-    value: number;
-    isActive: boolean;
-  }
-) {
-  const axiosInstance = createAxiosInstance();
-  try {
-    const response = await axiosInstance.put(`/commissions/${commissionId}`, payload);
+    const response = await axiosInstance.post(
+      '/ari/inventory/update-or-create/charges',
+      payload
+    );
     return response.data;
   } catch (error: any) {
     if (!error?.response?.data?.success) {

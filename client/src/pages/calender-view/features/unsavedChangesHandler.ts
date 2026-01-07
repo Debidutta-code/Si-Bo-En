@@ -52,6 +52,13 @@ export const handleSaveAndContinue = async (
   priceEdits: Map<string, PriceEdit>,
   days: any[],
   hotelCode: string,
+  propertyId: string,
+  roomSetupData: Array<{
+    id: string;
+    roomName: string;
+    roomType: string;
+    totalRoom: number;
+  }>,
   setLosEdits: (edits: Map<string, LOSEdit>) => void,
   setAvailabilityEdits: (edits: Map<string, AvailabilityEdit>) => void,
   setPriceEdits: (edits: Map<string, PriceEdit>) => void,
@@ -103,6 +110,7 @@ export const handleSaveAndContinue = async (
         losEdits,
         new Set(),
         hotelCode,
+        "", // ✅ FIXED: Added ratePlanCode parameter (null for room type)
         setLosEdits,
         setPendingChanges,
         onDataUpdate
@@ -118,7 +126,7 @@ export const handleSaveAndContinue = async (
           losEdits,
           new Set(),
           hotelCode,
-          
+          rp, // ✅ FIXED: Added ratePlanCode parameter
           setLosEdits,
           setPendingChanges,
           onDataUpdate
@@ -132,7 +140,8 @@ export const handleSaveAndContinue = async (
         days,
         availabilityEdits,
         new Set(),
-        // hotelCode,
+        propertyId,
+        roomSetupData,
         setAvailabilityEdits,
         setPendingChanges,
         onDataUpdate
@@ -149,7 +158,7 @@ export const handleSaveAndContinue = async (
           new Set(),
           expandedOccupancy,
           customTiers,
-          // hotelCode,
+          hotelCode,
           setPriceEdits,
           setPendingChanges,
           onDataUpdate

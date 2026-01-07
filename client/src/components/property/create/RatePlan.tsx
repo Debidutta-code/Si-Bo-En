@@ -33,7 +33,7 @@ export default function RatePlan() {
       setErrors(newErrors)
     } else {
       setErrors({})
-      console.log("✅ Valid data:", result.data)
+      // console.log("✅ Valid data:", result.data)
     }
   }
 

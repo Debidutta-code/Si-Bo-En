@@ -112,7 +112,7 @@ export default function PropertyInfo() {
           getAllDestinationType(),
           getAllPropertyType(),
         ]);
-        console.log(categoryRes.data, destRes.data, typeRes.data);
+        // console.log(categoryRes.data, destRes.data, typeRes.data);
         if (categoryRes.success) setPropertyCategories(categoryRes.data);
         if (destRes.success) setDestinationTypes(destRes.data);
         if (typeRes.success) setPropertyTypes(typeRes.data);
@@ -136,7 +136,7 @@ export default function PropertyInfo() {
       try {
         const response = await getPropertyDetails(propertyId);
         if (response.success && response.data) {
-          console.log(response.data.propertyCategory);
+          // console.log(response.data.propertyCategory);
           setPropertyDetails({
             ...response.data,
             // Ensure nested objects are not null
@@ -240,7 +240,7 @@ export default function PropertyInfo() {
     const result = propertyInfoSchema.safeParse(propertyDetails);
 
     if (!result.success) {
-      console.log(result)
+      // console.log(result)
       setErrors(result.error.format());
       toast.error("Please fix the errors before continuing.");
       return;
@@ -251,13 +251,13 @@ export default function PropertyInfo() {
       let response;
       // KEY CHANGE: Use internal state to decide which API to call
       if (isExistingData) {
-        console.log(result.data)
+        // console.log(result.data)
         response = await updatePropertyById(propertyId!, result.data);
       } else {
         response = await createProperty(result.data, creationId!);
         // If creating, we get a new ID back that we must set in the context
         if (response.success && response.data.id) {
-          console.log("response", response.data)
+          // console.log("response", response.data)
           setPropertyIdAndUrl(response.data.id);
         }
       }

@@ -4,6 +4,7 @@
 import toast from "react-hot-toast";
 import { formatDateForAPI, generateKey, getRatePlanDetails } from "../utils/inventoryUtils";
 import type { InventoryDay } from "../types/inventory";
+import { updateRatePlanChargesService } from "../services/inventory.service";
 
 interface PriceEdit {
   roomType: string;
@@ -270,9 +271,7 @@ export const validatePricingBeforeSave = (
   return { isValid: true };
 };
 
-/**
- * Save price changes
- */
+
 export const savePriceChanges = async (
   roomType: string,
   ratePlan: string,
@@ -281,7 +280,7 @@ export const savePriceChanges = async (
   pendingChanges: Set<string>,
   expandedOccupancy: Set<string>,
   customTiers: Map<string, { baseGuests: number[]; additionalCharges: Array<{ ageCode: string; id: string }> }>,
-  // hotelCode: string,
+  hotelCode: string,
   setPriceEdits: (edits: Map<string, PriceEdit>) => void,
   setPendingChanges: (changes: Set<string>) => void,
   onDataUpdate?: () => void
@@ -295,7 +294,7 @@ export const savePriceChanges = async (
     return;
   }
 
-  const isExpanded = expandedOccupancy.has(`${roomType}-${ratePlan}`);
+  // const isExpanded = expandedOccupancy.has(`${roomType}-${ratePlan}`);
 
   // Validate before saving
   const validation = validatePricingBeforeSave(
@@ -313,217 +312,265 @@ export const savePriceChanges = async (
   }
 
   try {
-    const occupancyEdits = new Map<number, Map<number, number>>();
-    const simpleEdits = new Map<number, number>();
-    const additionalChargeEdits = new Map<number, Map<string, number>>();
+    // Group edits by date
+    const editsByDate = new Map<number, {
+      baseGuests: Map<number, number>;
+      additionalCharges: Map<string, number>;
+    }>();
 
     relevantEdits.forEach(([_key, edit]) => {
+      if (!editsByDate.has(edit.dayIndex)) {
+        editsByDate.set(edit.dayIndex, {
+          baseGuests: new Map(),
+          additionalCharges: new Map()
+        });
+      }
+
+      const dayData = editsByDate.get(edit.dayIndex)!;
+
       if (edit.ageQualifyingCode) {
-        if (!additionalChargeEdits.has(edit.dayIndex)) {
-          additionalChargeEdits.set(edit.dayIndex, new Map());
-        }
+        // ✅ FIXED: Extract actual age code properly
+        const ageCode = extractAgeCode(edit.ageQualifyingCode);
         const amount = edit.value === "" ? 0 : parseFloat(edit.value) || 0;
-        additionalChargeEdits.get(edit.dayIndex)!.set(edit.ageQualifyingCode, amount);
+        dayData.additionalCharges.set(ageCode, amount);
       } else if (edit.numberOfGuests) {
-        if (!occupancyEdits.has(edit.dayIndex)) {
-          occupancyEdits.set(edit.dayIndex, new Map());
-        }
         const price = edit.value === "" ? 0 : parseFloat(edit.value) || 0;
-        occupancyEdits.get(edit.dayIndex)!.set(edit.numberOfGuests, price);
-      } else {
-        const price = edit.value === "" ? 0 : parseFloat(edit.value) || 0;
-        simpleEdits.set(edit.dayIndex, price);
+        dayData.baseGuests.set(edit.numberOfGuests, price);
       }
     });
 
-    const isOccupancyBased = occupancyEdits.size > 0;
-    const dateDataList: any[] = [];
+    const propertyCode = hotelCode;
 
-    // Build payload based on pricing type
-    if (isExpanded && isOccupancyBased) {
-      // Expanded view - full occupancy structure
-      dateDataList.push(...buildExpandedPayload(
-        roomType,
-        ratePlan,
-        days,
-        occupancyEdits,
-        additionalChargeEdits,
-        customTiers
-      ));
-    } else if (!isExpanded && isOccupancyBased) {
-      // Collapsed view - first tier only
-      dateDataList.push(...buildCollapsedPayload(days, occupancyEdits));
-    } else {
-      // Simple pricing
-      dateDataList.push(...buildSimplePayload(roomType, ratePlan, days, simpleEdits));
+    // Find continuous date ranges with same pricing
+    const sortedIndices = Array.from(editsByDate.keys()).sort((a, b) => a - b);
+    const dateRanges: Array<{
+      startIndex: number;
+      endIndex: number;
+      data: { baseGuests: Map<number, number>; additionalCharges: Map<string, number> };
+    }> = [];
+
+    let currentRange: typeof dateRanges[0] | null = null;
+
+    for (const dayIndex of sortedIndices) {
+      const dayData = editsByDate.get(dayIndex)!;
+
+      if (!currentRange) {
+        currentRange = {
+          startIndex: dayIndex,
+          endIndex: dayIndex,
+          data: dayData
+        };
+      } else {
+        const isSameStructure = 
+          areMapsEqual(currentRange.data.baseGuests, dayData.baseGuests) &&
+          areMapsEqual(currentRange.data.additionalCharges, dayData.additionalCharges);
+
+        if (dayIndex === currentRange.endIndex + 1 && isSameStructure) {
+          currentRange.endIndex = dayIndex;
+        } else {
+          dateRanges.push(currentRange);
+          currentRange = {
+            startIndex: dayIndex,
+            endIndex: dayIndex,
+            data: dayData
+          };
+        }
+      }
     }
 
-    if (dateDataList.length === 0) {
-      toast.error("No valid dates to update");
-      return;
+    if (currentRange) {
+      dateRanges.push(currentRange);
     }
 
-    // const payload = {
-    //   hotelCode: hotelCode,
-    //   invTypeCode: roomType,
-    //   ratePlanCode: ratePlan,
-    //   isOccupancyBased: isOccupancyBased,
-    //   dateDataList: dateDataList,
-    // };
+    // console.log(`📊 Grouped into ${dateRanges.length} date range(s)`, dateRanges);
 
-    // await ratePlanPush(payload, accessToken);
-    toast.success(`Updated ${dateDataList.length} date(s) for ${ratePlan}`);
+    // Process each date range
+    const promises = dateRanges.map(async (range) => {
+      const startDay = days[range.startIndex];
+      const endDay = days[range.endIndex];
 
-    // Clear saved edits
-    const newEdits = new Map(priceEdits);
-    const newPending = new Set(pendingChanges);
+      // ✅ Get complete tier information
+      const customKey = generateKey.customTier(roomType, ratePlan);
+      const customData = customTiers.get(customKey) || { baseGuests: [], additionalCharges: [] };
+      
+      const firstDayData = getRatePlanDetails(startDay, roomType, ratePlan);
+      const existingTiers = firstDayData?.ratePlan?.prices?.[0]?.baseByGuestAmts || [];
+      const existingAdditional = firstDayData?.ratePlan?.prices?.[0]?.additionalGuestAmounts || [];
 
-    relevantEdits.forEach(([key]) => {
-      newEdits.delete(key);
-      newPending.delete(key);
+      // ✅ Build complete list of all guest tiers
+      const allTierNumbers = new Set<number>();
+      existingTiers.forEach((t: any) => allTierNumbers.add(t.numberOfGuests));
+      customData.baseGuests.forEach((num: number) => allTierNumbers.add(num));
+      range.data.baseGuests.forEach((_, num) => allTierNumbers.add(num));
+
+      const allTiers = Array.from(allTierNumbers).sort((a, b) => a - b);
+
+      // console.log(`👥 All guest tiers for this range:`, allTiers);
+
+      // ✅ Build base guest amounts - MUST include ALL tiers
+      const baseGuestAmounts = allTiers.map(numberOfGuests => {
+        // First check if we have an edit for this tier
+        const editedPrice = range.data.baseGuests.get(numberOfGuests);
+        if (editedPrice !== undefined) {
+          // console.log(`✏️ Using edited price for ${numberOfGuests} guests: $${editedPrice}`);
+          return { numberOfGuests, amountBeforeTax: editedPrice };
+        }
+        
+        // Otherwise, use existing tier data
+        const existingTier = existingTiers.find((t: any) => t.numberOfGuests === numberOfGuests);
+        if (existingTier) {
+          // console.log(`📋 Using existing price for ${numberOfGuests} guests: $${existingTier.amountBeforeTax}`);
+          return {
+            numberOfGuests,
+            amountBeforeTax: existingTier.amountBeforeTax
+          };
+        }
+
+        // If neither exists (new tier), use 0
+        // console.log(`🆕 New tier ${numberOfGuests} guests with default price: $0`);
+        return {
+          numberOfGuests,
+          amountBeforeTax: 0
+        };
+      });
+
+      // ✅ Build additional guest amounts
+      const allAdditionalCodes = new Set<string>();
+      existingAdditional.forEach((a: any) => allAdditionalCodes.add(a.ageQualifyingCode));
+      customData.additionalCharges.forEach((charge: any) => {
+        const ageCode = extractAgeCode(charge.id);
+        allAdditionalCodes.add(ageCode);
+      });
+      range.data.additionalCharges.forEach((_, code) => allAdditionalCodes.add(code));
+
+      const additionalGuestAmounts: Array<{
+        ageQualifyingCode: string;
+        amount: number;
+      }> = [];
+
+      allAdditionalCodes.forEach(ageCode => {
+        // First check if we have an edit
+        const editedAmount = range.data.additionalCharges.get(ageCode);
+        if (editedAmount !== undefined) {
+          // console.log(` Using edited additional charge for age ${ageCode}: $${editedAmount}`);
+          additionalGuestAmounts.push({
+            ageQualifyingCode: ageCode,
+            amount: editedAmount
+          });
+          return;
+        }
+
+        // Otherwise use existing
+        const existing = existingAdditional.find((a: any) => a.ageQualifyingCode === ageCode);
+        if (existing) {
+          // console.log(` Using existing additional charge for age ${ageCode}: $${existing.amount}`);
+          additionalGuestAmounts.push({
+            ageQualifyingCode: ageCode,
+            amount: existing.amount
+          });
+        }
+      });
+
+      // ✅ Format dates properly (YYYY-MM-DD)
+      const startDate = formatDateForAPI(startDay);
+      const endDate = formatDateForAPI(endDay);
+
+      // console.log(`💾 API Payload:`, {
+      //   propertyCode,
+      //   roomTypeCode: roomType,
+      //   ratePlanCode: ratePlan,
+      //   startDate,
+      //   endDate,
+      //   baseGuestAmounts,
+      //   additionalGuestAmounts
+      // });
+
+      // Call API
+      return updateRatePlanChargesService({
+        propertyCode,
+        roomTypeCode: roomType,
+        ratePlanCode: ratePlan,
+        startDate,
+        endDate,
+        baseGuestAmounts,
+        additionalGuestAmounts: additionalGuestAmounts.length > 0 ? additionalGuestAmounts : undefined
+      });
     });
 
-    setPriceEdits(newEdits);
-    setPendingChanges(newPending);
+    const results = await Promise.all(promises);
 
-    if (onDataUpdate) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      await onDataUpdate();
+    // Check results
+    const allSucceeded = results.every(r => r.success);
+    const failedResults = results.filter(r => !r.success);
+
+    if (allSucceeded) {
+      const totalDates = results.reduce((sum, r) => {
+        return sum + ((r.data?.updated || 0) + (r.data?.created || 0));
+      }, 0);
+
+      toast.success(` Successfully updated ${totalDates} date(s) for ${ratePlan}`);
+
+      // Clear saved edits
+      const newEdits = new Map(priceEdits);
+      const newPending = new Set(pendingChanges);
+
+      relevantEdits.forEach(([key]) => {
+        newEdits.delete(key);
+        newPending.delete(key);
+      });
+
+      setPriceEdits(newEdits);
+      setPendingChanges(newPending);
+
+      if (onDataUpdate) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        await onDataUpdate();
+      }
+    } else {
+      console.error(" Failed results:", failedResults);
+      
+      // Show detailed error messages
+      failedResults.forEach((result, index) => {
+        console.error(`Failed API call ${index + 1}:`, result);
+      });
+
+      toast.error(
+        `Failed to update ${failedResults.length} date range(s): ${failedResults[0]?.message || 'Unknown error'}`,
+        { duration: 5000 }
+      );
     }
   } catch (error: any) {
-    console.error("Failed to update pricing:", error);
+    console.error("❌ Failed to update pricing:", error);
     toast.error(error.message || "Failed to update pricing");
   }
 };
 
-// Helper functions for building payloads
-function buildExpandedPayload(
-  roomType: string,
-  ratePlan: string,
-  days: InventoryDay[],
-  occupancyEdits: Map<number, Map<number, number>>,
-  additionalChargeEdits: Map<number, Map<string, number>>,
-  _customTiers: Map<string, { baseGuests: number[]; additionalCharges: Array<{ ageCode: string; id: string }> }>
-) {
-  const dateDataList: any[] = [];
+// ✅ Helper function to extract age code from charge ID
+function extractAgeCode(chargeId: string): string {
+  // Handle formats like:
+  // "existing-10-0" -> "10"
+  // "10-1234567890-0.123" -> "10"
+  // "10" -> "10"
   
-  for (const [dayIndex, guestPrices] of occupancyEdits.entries()) {
-    const day = days[dayIndex];
-    if (!day) continue;
-
-    const formattedDate = formatDateForAPI(day);
-    const ratePlanDetails = getRatePlanDetails(day, roomType, ratePlan);
-    
-    const existingTiers = ratePlanDetails?.ratePlan?.prices?.[0]?.baseByGuestAmts || [];
-    const existingAdditional = ratePlanDetails?.ratePlan?.prices?.[0]?.additionalGuestAmounts || [];
-
-    const allTierNumbers = new Set<number>();
-    existingTiers.forEach((t: any) => allTierNumbers.add(t.numberOfGuests));
-    guestPrices.forEach((_, num) => allTierNumbers.add(num));
-
-    const baseByGuestAmts = Array.from(allTierNumbers).sort((a, b) => a - b).map(numberOfGuests => {
-      const editedPrice = guestPrices.get(numberOfGuests);
-      if (editedPrice !== undefined) {
-        return { numberOfGuests, amountBeforeTax: editedPrice };
-      }
-      
-      const existingTier = existingTiers.find((t: any) => t.numberOfGuests === numberOfGuests);
-      if (existingTier) {
-        return { numberOfGuests, amountBeforeTax: existingTier.amountBeforeTax };
-      }
-      
-      return { numberOfGuests, amountBeforeTax: 0 };
-    });
-
-    const additionalMap = additionalChargeEdits.get(dayIndex);
-    const allAdditionalCodes = new Set<string>();
-    existingAdditional.forEach((a: any) => allAdditionalCodes.add(a.ageQualifyingCode));
-    if (additionalMap) {
-      additionalMap.forEach((_, code) => {
-        const actualAgeCode = code.startsWith('existing-') 
-          ? code.split('-')[1]
-          : code;
-        allAdditionalCodes.add(actualAgeCode);
-      });
-    }
-
-    const additionalGuestAmounts = Array.from(allAdditionalCodes).map(ageCode => {
-      const editedAmount = additionalMap?.get(ageCode);
-      if (editedAmount !== undefined) {
-        return { ageQualifyingCode: ageCode, amount: editedAmount };
-      }
-      
-      const existing = existingAdditional.find((a: any) => a.ageQualifyingCode === ageCode);
-      if (existing) {
-        return { ageQualifyingCode: ageCode, amount: existing.amount };
-      }
-      
-      return { ageQualifyingCode: ageCode, amount: 0 };
-    });
-
-    dateDataList.push({
-      date: formattedDate,
-      baseByGuestAmts,
-      additionalGuestAmounts: additionalGuestAmounts.length > 0 ? additionalGuestAmounts : undefined
-    });
+  if (chargeId.startsWith('existing-')) {
+    // Format: "existing-10-0"
+    return chargeId.split('-')[1];
   }
-
-  return dateDataList;
+  
+  // Format: "10-1234567890-0.123" or just "10"
+  return chargeId.split('-')[0];
 }
 
-function buildCollapsedPayload(
-  days: InventoryDay[],
-  occupancyEdits: Map<number, Map<number, number>>
-) {
-  const dateDataList: any[] = [];
-
-  for (const [dayIndex, guestPrices] of occupancyEdits.entries()) {
-    const day = days[dayIndex];
-    if (!day) continue;
-
-    const formattedDate = formatDateForAPI(day);
-    const firstTierPrice = guestPrices.get(1);
-
-    if (firstTierPrice !== undefined) {
-      dateDataList.push({
-        date: formattedDate,
-        baseByGuestAmts: [{ numberOfGuests: 1, amountBeforeTax: firstTierPrice }]
-      });
+// Helper function to compare Maps
+function areMapsEqual<K, V>(map1: Map<K, V>, map2: Map<K, V>): boolean {
+  if (map1.size !== map2.size) return false;
+  
+  for (const [key, value] of map1) {
+    if (!map2.has(key) || map2.get(key) !== value) {
+      return false;
     }
   }
-
-  return dateDataList;
+  
+  return true;
 }
 
-function buildSimplePayload(
-  roomType: string,
-  ratePlan: string,
-  days: InventoryDay[],
-  simpleEdits: Map<number, number>
-) {
-  const dateDataList: any[] = [];
-
-  for (const [dayIndex, price] of simpleEdits.entries()) {
-    const day = days[dayIndex];
-    if (!day) continue;
-
-    const formattedDate = formatDateForAPI(day);
-    const ratePlanDetails = getRatePlanDetails(day, roomType, ratePlan);
-    const hasOccupancyStructure = ratePlanDetails?.ratePlan?.prices?.[0]?.baseByGuestAmts;
-
-    if (hasOccupancyStructure) {
-      dateDataList.push({
-        date: formattedDate,
-        baseByGuestAmts: [{ numberOfGuests: 1, amountBeforeTax: price }],
-        additionalGuestAmounts: []
-      });
-    } else {
-      dateDataList.push({
-        date: formattedDate,
-        price: price
-      });
-    }
-  }
-
-  return dateDataList;
-}

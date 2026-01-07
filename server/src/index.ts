@@ -9,7 +9,7 @@ initializeExpressRoutes({ app }).then(async () => {
 
 
     app.listen(config.port, () => {
-      console.log(`🏡 Server is running on port ${config.port}`);
+      // console.log(`🏡 Server is running on port ${config.port}`);
     });
   } catch (err) {
     console.log(`Error: ${err}`);

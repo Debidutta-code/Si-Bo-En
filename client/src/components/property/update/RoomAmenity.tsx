@@ -36,7 +36,7 @@ export default function RoomAmenities({
           const allAmenities = res.data
           const cleanedAmenities = allAmenities
             .map((name: {amenityName:string}) => name.amenityName)
-            console.log("Cleaned Amenities:", cleanedAmenities);
+            // console.log("Cleaned Amenities:", cleanedAmenities);
           setAvailableAmenities(cleanedAmenities);
           
           propAvailableAmenities.forEach((selectedName: string) => {

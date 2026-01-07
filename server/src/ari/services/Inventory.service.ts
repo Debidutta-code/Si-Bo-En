@@ -52,7 +52,8 @@ class InventoryServices {
     roomType: string,
     startDate: string,
     endDate: string,
-    availableRooms: number
+    availableRooms: number,
+    pushFromCalender?:boolean
   ) {
     try {
       const property = await InventoryDao.isPropertyExists(propertyCode);
@@ -96,7 +97,7 @@ class InventoryServices {
           availability: availableRooms,
         });
       }
-      const response = await InventoryDao.createInventory(invTOCreated);
+      const response = await InventoryDao.createInventory(invTOCreated , pushFromCalender);
       if (response) {
         return successResponse(
           'Availability added/updated successfully',

@@ -192,7 +192,7 @@ const response = await fetchRatePlansService(propertyId);
         if (!propertyId) return;
         try {
             const response = await getTaxGroupsByPropertyIdService(propertyId);
-            console.log(response)
+            // console.log(response)
             if (response.success) {
                 setTaxGroups(response.data || []);
             } else {

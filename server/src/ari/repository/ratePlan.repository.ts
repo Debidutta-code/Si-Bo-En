@@ -343,6 +343,171 @@ export class RatePlanRepository {
       throw new Error('Unknown error occurred while adding tax group to rate plan');
     }
   }
+  // ✅ Updated RatePlanRepository.updateOrCreateChargesForDateRange
+public static async updateOrCreateChargesForDateRange(
+  propertyCode: string,
+  roomTypeCode: string,
+  ratePlanCode: string,
+  startDate: Date,
+  endDate: Date,
+  baseGuestAmounts: any[],
+  additionalGuestAmounts: any[]
+): Promise<{ updated: number; created: number; dates: string[] }> {
+  try {
+    // First, fetch the rate plan and room type names
+    const ratePlan = await prisma.ratePlan.findUnique({
+      where: { ratePlanCode },
+      select: { ratePlanName: true },
+    });
+
+    const room = await prisma.room.findFirst({
+      where: { 
+        roomType: roomTypeCode,
+        property: { propertyCode }
+      },
+      select: { roomName: true },
+    });
+
+    if (!ratePlan) {
+      throw new Error(`Rate plan with code ${ratePlanCode} not found`);
+    }
+
+    if (!room) {
+      throw new Error(`Room type with code ${roomTypeCode} not found`);
+    }
+
+    const ratePlanName = ratePlan.ratePlanName;
+    const roomTypeName = room.roomName;
+
+    // Generate all dates in the range
+    const dates: Date[] = [];
+    const currentDate = new Date(startDate);
+    const end = new Date(endDate);
+
+    while (currentDate <= end) {
+      dates.push(new Date(currentDate));
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    console.log(`Processing ${dates.length} dates from ${startDate} to ${endDate}`);
+
+    // Find existing charges for these dates
+    const existingCharges = await prisma.charge.findMany({
+      where: {
+        propertyCode,
+        roomTypeCode,
+        ratePlanCode,
+        date: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      select: {
+        id: true,
+        date: true,
+      },
+    });
+
+    console.log(`Found ${existingCharges.length} existing charges`);
+
+    // Create a map of existing charge dates
+    const existingDatesMap = new Map(
+      existingCharges.map((charge) => [
+        formatDateToYYYYMMDD(charge.date),
+        charge.id,
+      ])
+    );
+
+    let updatedCount = 0;
+    let createdCount = 0;
+    const processedDates: string[] = [];
+
+    // Process each date
+    for (const date of dates) {
+      const dateString = formatDateToYYYYMMDD(date);
+      const existingChargeId = existingDatesMap.get(dateString);
+
+      if (existingChargeId) {
+        // Update existing charge
+        await prisma.chargeBaseByGuest.deleteMany({
+          where: { chargeId: existingChargeId },
+        });
+
+        await prisma.chargeAdditionalGuest.deleteMany({
+          where: { chargeId: existingChargeId },
+        });
+
+        await prisma.charge.update({
+          where: { id: existingChargeId },
+          data: {
+            baseGuestAmounts: {
+              create: baseGuestAmounts.map((guest) => ({
+                numberOfGuests: guest.numberOfGuests,
+                amountBeforeTax: guest.amountBeforeTax,
+              })),
+            },
+            additionalGuestAmounts: {
+              create: additionalGuestAmounts.map((guest) => ({
+                ageQualifyingCode: guest.ageQualifyingCode,
+                amount: guest.amount,
+              })),
+            },
+          },
+        });
+
+        updatedCount++;
+        processedDates.push(dateString);
+        console.log(`Updated charge for ${dateString}`);
+      } else {
+        // Create new charge
+        await prisma.charge.create({
+          data: {
+            propertyCode,
+            roomTypeCode,
+            ratePlanCode,
+            ratePlanName, // ✅ Added
+            roomTypeName, // ✅ Added
+            date: new Date(date),
+            baseGuestAmounts: {
+              create: baseGuestAmounts.map((guest) => ({
+                numberOfGuests: guest.numberOfGuests,
+                amountBeforeTax: guest.amountBeforeTax,
+              })),
+            },
+            additionalGuestAmounts: {
+              create: additionalGuestAmounts.map((guest) => ({
+                ageQualifyingCode: guest.ageQualifyingCode,
+                amount: guest.amount,
+              })),
+            },
+          },
+        });
+
+        createdCount++;
+        processedDates.push(dateString);
+        console.log(`Created charge for ${dateString}`);
+      }
+    }
+
+    console.log(`Total: Updated ${updatedCount}, Created ${createdCount}`);
+
+    return {
+      updated: updatedCount,
+      created: createdCount,
+      dates: processedDates,
+    };
+  } catch (error) {
+    console.error('Error in updateOrCreateChargesForDateRange:', error);
+    if (error instanceof Error) {
+      throw new Error(
+        `Failed to update/create charges for date range: ${error.message}`
+      );
+    }
+    throw new Error(
+      'Unknown error occurred while updating/creating charges for date range'
+    );
+  }
+}
 }
 
 

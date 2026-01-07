@@ -16,14 +16,14 @@ import {
 import {
   handleAvailabilityInputChange,
   applyAvailabilityToRow,
-  // saveAvailabilityChanges,
-  handleLOSInputChange,
-  applyLOSToRow,
   saveLOSChanges,
-  // handleRestrictionToggle,
 } from "../features";
 import { Switch } from "@/components/ui/switch";
 import type { InventoryDay } from "../types/inventory";
+import {
+  handleBulkRoomRestrictionToggle,
+  handleRoomRestrictionToggle,
+} from "../features/restrictionHandlers";
 // import {
 //   removeCTAorCTDRestriction,
 //   updateCTAorCTDRestriction,
@@ -34,6 +34,14 @@ interface RoomTypeSectionProps {
   days: InventoryDay[];
   state: any;
   hotelCode: string;
+  propertyId: string;
+  roomSetupData: Array<{
+    // ✅ ADD THIS
+    id: string;
+    roomName: string;
+    roomType: string;
+    totalRoom: number;
+  }>;
   onMouseEnter: (index: number) => void;
   onMouseLeave: () => void;
   onDataUpdate?: () => void;
@@ -44,6 +52,8 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
   days,
   state,
   hotelCode,
+  propertyId,
+  // roomSetupData,
   onMouseEnter,
   onMouseLeave,
   onDataUpdate,
@@ -117,7 +127,6 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                 <div className="w-40 flex items-center justify-center px-2 bg-blue-50">
                   <Switch
                     checked={(() => {
-                      // Check if ALL days have CTA enabled
                       return days.every((day, idx) => {
                         const uniqueKey = generateKey.restriction(
                           "CTA",
@@ -130,134 +139,18 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                           : ctaValue;
                       });
                     })()}
-                    // onCheckedChange={async (checked) => {
-                    //   const datesToChange: string[] = [];
-                    //   const monthNames = [
-                    //     "January",
-                    //     "February",
-                    //     "March",
-                    //     "April",
-                    //     "May",
-                    //     "June",
-                    //     "July",
-                    //     "August",
-                    //     "September",
-                    //     "October",
-                    //     "November",
-                    //     "December",
-                    //   ];
-
-                    //   // ✅ NEW: Get all rate plans for this room type
-                    //   const ratePlansForRoom = getRatePlansForRoomType(
-                    //     roomType,
-                    //     days
-                    //   );
-
-                    //   // Collect dates and update optimistic state
-                    //   days.forEach((day, idx) => {
-                    //     const uniqueKey = generateKey.restriction(
-                    //       "CTA",
-                    //       idx,
-                    //       roomType
-                    //     );
-                    //     const currentValue = day.restrictions?.CTA || false;
-                    //     const effectiveValue = state.optimisticRestrictions.has(
-                    //       uniqueKey
-                    //     )
-                    //       ? state.optimisticRestrictions.get(uniqueKey)!
-                    //       : currentValue;
-
-                    //     if (effectiveValue !== checked) {
-                    //       const monthNumber = monthNames.indexOf(day.month) + 1;
-                    //       const formattedDate = `${day.year}-${String(
-                    //         monthNumber
-                    //       ).padStart(2, "0")}-${String(day.date).padStart(
-                    //         2,
-                    //         "0"
-                    //       )}`;
-                    //       datesToChange.push(formattedDate);
-
-                    //       const newRestrictions = new Map(
-                    //         state.optimisticRestrictions
-                    //       );
-                    //       newRestrictions.set(uniqueKey, checked);
-                    //       state.setOptimisticRestrictions(newRestrictions);
-                    //     }
-                    //   });
-
-                    //   if (datesToChange.length === 0) {
-                    //     toast("All dates are already in the desired state");
-                    //     return;
-                    //   }
-
-                    //   try {
-                    //     if (checked) {
-                    //       // Enable CTA - single API call
-                    //       const payload = {
-                    //         propertyCode: hotelCode,
-                    //         restrictionType: "CTA" as const,
-                    //         dates: datesToChange,
-                    //         notes: "",
-                    //         isActive: true,
-                    //         roomRestrictions: [
-                    //           {
-                    //             roomTypeCode: roomType,
-                    //             ratePlanCodes: ratePlansForRoom, // ✅ Send all rate plans
-                    //           },
-                    //         ],
-                    //         globalRatePlans: [],
-                    //       };
-
-                    //       await updateCTAorCTDRestriction(payload);
-                    //       toast.success(
-                    //         `CTA enabled for ${datesToChange.length} dates`
-                    //       );
-                    //     } else {
-                    //       // Disable CTA - single API call
-                    //       const payload = {
-                    //         propertyCode: hotelCode,
-                    //         restrictionType: "CTA" as const,
-                    //         dates: datesToChange,
-                    //         notes: "",
-                    //         isActive: false,
-                    //         roomRestrictions: [
-                    //           {
-                    //             roomTypeCode: roomType,
-                    //             ratePlanCodes: ratePlansForRoom, // ✅ Send all rate plans
-                    //           },
-                    //         ],
-                    //         globalRatePlans: [],
-                    //       };
-
-                    //       await removeCTAorCTDRestriction(payload, accessToken);
-                    //       toast.success(
-                    //         `CTA disabled for ${datesToChange.length} dates`
-                    //       );
-                    //     }
-
-                    //     if (onDataUpdate) {
-                    //       onDataUpdate();
-                    //     }
-                    //   } catch (error: any) {
-                    //     console.error("Failed to update bulk CTA:", error);
-                    //     toast.error(error.message || "Failed to update CTA");
-
-                    //     // Revert optimistic state
-                    //     days.forEach((day, idx) => {
-                    //       const uniqueKey = generateKey.restriction(
-                    //         "CTA",
-                    //         idx,
-                    //         roomType
-                    //       );
-                    //       const currentValue = day.restrictions?.CTA || false;
-                    //       const newRestrictions = new Map(
-                    //         state.optimisticRestrictions
-                    //       );
-                    //       newRestrictions.set(uniqueKey, currentValue);
-                    //       state.setOptimisticRestrictions(newRestrictions);
-                    //     });
-                    //   }
-                    // }}
+                    onCheckedChange={async (checked) => {
+                      await handleBulkRoomRestrictionToggle(
+                        roomType,
+                        "CTA",
+                        checked,
+                        days,
+                        hotelCode,
+                        state.optimisticRestrictions,
+                        state.setOptimisticRestrictions,
+                        onDataUpdate
+                      );
+                    }}
                     className={`${(() => {
                       const allEnabled = days.every((day, idx) => {
                         const uniqueKey = generateKey.restriction(
@@ -287,7 +180,6 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                 <div className="w-40 flex items-center justify-center px-2 bg-blue-50">
                   <Switch
                     checked={(() => {
-                      // Check if ALL days have CTD enabled
                       return days.every((day, idx) => {
                         const uniqueKey = generateKey.restriction(
                           "CTD",
@@ -300,134 +192,18 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                           : ctdValue;
                       });
                     })()}
-                    // onCheckedChange={async (checked) => {
-                    //   const datesToChange: string[] = [];
-                    //   const monthNames = [
-                    //     "January",
-                    //     "February",
-                    //     "March",
-                    //     "April",
-                    //     "May",
-                    //     "June",
-                    //     "July",
-                    //     "August",
-                    //     "September",
-                    //     "October",
-                    //     "November",
-                    //     "December",
-                    //   ];
-
-                    //   // ✅ NEW: Get all rate plans for this room type
-                    //   const ratePlansForRoom = getRatePlansForRoomType(
-                    //     roomType,
-                    //     days
-                    //   );
-
-                    //   // Collect dates and update optimistic state
-                    //   days.forEach((day, idx) => {
-                    //     const uniqueKey = generateKey.restriction(
-                    //       "CTD",
-                    //       idx,
-                    //       roomType
-                    //     );
-                    //     const currentValue = day.restrictions?.CTD || false;
-                    //     const effectiveValue = state.optimisticRestrictions.has(
-                    //       uniqueKey
-                    //     )
-                    //       ? state.optimisticRestrictions.get(uniqueKey)!
-                    //       : currentValue;
-
-                    //     if (effectiveValue !== checked) {
-                    //       const monthNumber = monthNames.indexOf(day.month) + 1;
-                    //       const formattedDate = `${day.year}-${String(
-                    //         monthNumber
-                    //       ).padStart(2, "0")}-${String(day.date).padStart(
-                    //         2,
-                    //         "0"
-                    //       )}`;
-                    //       datesToChange.push(formattedDate);
-
-                    //       const newRestrictions = new Map(
-                    //         state.optimisticRestrictions
-                    //       );
-                    //       newRestrictions.set(uniqueKey, checked);
-                    //       state.setOptimisticRestrictions(newRestrictions);
-                    //     }
-                    //   });
-
-                    //   if (datesToChange.length === 0) {
-                    //     toast("All dates are already in the desired state");
-                    //     return;
-                    //   }
-
-                    //   try {
-                    //     if (checked) {
-                    //       // Enable CTD - single API call
-                    //       const payload = {
-                    //         propertyCode: hotelCode,
-                    //         restrictionType: "CTD" as const,
-                    //         dates: datesToChange,
-                    //         notes: "",
-                    //         isActive: true,
-                    //         roomRestrictions: [
-                    //           {
-                    //             roomTypeCode: roomType,
-                    //             ratePlanCodes: ratePlansForRoom, // ✅ Send all rate plans
-                    //           },
-                    //         ],
-                    //         globalRatePlans: [],
-                    //       };
-
-                    //       await updateCTAorCTDRestriction(payload, accessToken);
-                    //       toast.success(
-                    //         `CTD enabled for ${datesToChange.length} dates`
-                    //       );
-                    //     } else {
-                    //       // Disable CTD - single API call
-                    //       const payload = {
-                    //         propertyCode: hotelCode,
-                    //         restrictionType: "CTD" as const,
-                    //         dates: datesToChange,
-                    //         notes: "",
-                    //         isActive: false,
-                    //         roomRestrictions: [
-                    //           {
-                    //             roomTypeCode: roomType,
-                    //             ratePlanCodes: ratePlansForRoom, // ✅ Send all rate plans
-                    //           },
-                    //         ],
-                    //         globalRatePlans: [],
-                    //       };
-
-                    //       await removeCTAorCTDRestriction(payload, accessToken);
-                    //       toast.success(
-                    //         `CTD disabled for ${datesToChange.length} dates`
-                    //       );
-                    //     }
-
-                    //     if (onDataUpdate) {
-                    //       onDataUpdate();
-                    //     }
-                    //   } catch (error: any) {
-                    //     console.error("Failed to update bulk CTD:", error);
-                    //     toast.error(error.message || "Failed to update CTD");
-
-                    //     // Revert optimistic state
-                    //     days.forEach((day, idx) => {
-                    //       const uniqueKey = generateKey.restriction(
-                    //         "CTD",
-                    //         idx,
-                    //         roomType
-                    //       );
-                    //       const currentValue = day.restrictions?.CTD || false;
-                    //       const newRestrictions = new Map(
-                    //         state.optimisticRestrictions
-                    //       );
-                    //       newRestrictions.set(uniqueKey, currentValue);
-                    //       state.setOptimisticRestrictions(newRestrictions);
-                    //     });
-                    //   }
-                    // }}
+                    onCheckedChange={async (checked) => {
+                      await handleBulkRoomRestrictionToggle(
+                        roomType,
+                        "CTD",
+                        checked,
+                        days,
+                        hotelCode,
+                        state.optimisticRestrictions,
+                        state.setOptimisticRestrictions,
+                        onDataUpdate
+                      );
+                    }}
                     className={`${(() => {
                       const allEnabled = days.every((day, idx) => {
                         const uniqueKey = generateKey.restriction(
@@ -483,7 +259,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                         });
                         state.setLosEdits(newEdits);
                         state.setPendingChanges(newPending);
-                        toast.success("Bulk Min LOS applied to all dates");
+                        // toast.success("Bulk Min LOS applied to all dates");
                       }
                     }}
                   />
@@ -525,7 +301,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                         });
                         state.setLosEdits(newEdits);
                         state.setPendingChanges(newPending);
-                        toast.success("Bulk Max LOS applied to all dates");
+                        // toast.success("Bulk Max LOS applied to all dates");
                       }
                     }}
                   />
@@ -556,6 +332,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                 ratePlanType={ratePlanType}
                 days={days}
                 state={state}
+                propertyId={propertyId}
                 hotelCode={hotelCode}
                 onDataUpdate={onDataUpdate}
                 renderMode="labels"
@@ -726,21 +503,19 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                       >
                         <Switch
                           checked={effectiveValue}
-                          // onCheckedChange={() =>
-                          //   handleRestrictionToggle(
-                          //     roomType,
-                          //     index,
-                          //     "CTA",
-                          //     effectiveValue,
-                          //     days,
-                          //     hotelCode,
-                             
-                          //     state.optimisticRestrictions,
-                          //     state.setOptimisticRestrictions,
-                              
-                          //     // onDataUpdate
-                          //   )
-                          // }
+                          onCheckedChange={() =>
+                            handleRoomRestrictionToggle(
+                              roomType,
+                              index,
+                              "CTA",
+                              effectiveValue,
+                              days,
+                              hotelCode,
+                              state.optimisticRestrictions,
+                              state.setOptimisticRestrictions,
+                              onDataUpdate
+                            )
+                          }
                           className={`${
                             effectiveValue
                               ? "data-[state=checked]:bg-red-500"
@@ -774,21 +549,19 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                       >
                         <Switch
                           checked={effectiveValue}
-                          // onCheckedChange={() =>
-                          //   handleRestrictionToggle(
-                          //     roomType,
-                          //     index,
-                          //     "CTD",
-                          //     effectiveValue,
-                          //     days,
-                          //     hotelCode,
-                              
-                          //     state.optimisticRestrictions,
-                          //     state.setOptimisticRestrictions,
-                          //     undefined,
-                          //     onDataUpdate
-                          //   )
-                          // }
+                          onCheckedChange={() =>
+                            handleRoomRestrictionToggle(
+                              roomType,
+                              index,
+                              "CTD",
+                              effectiveValue,
+                              days,
+                              hotelCode,
+                              state.optimisticRestrictions,
+                              state.setOptimisticRestrictions,
+                              onDataUpdate
+                            )
+                          }
                           className={`${
                             effectiveValue
                               ? "data-[state=checked]:bg-red-500"
@@ -800,143 +573,52 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                   })}
                 </div>
 
-                {/* Min LOS Row */}
+               {/* Min LOS Row - READ ONLY */}
                 <div className="flex h-12 border-b border-gray-300">
                   {days.map((day, index) => {
-                    const key = generateKey.los(roomType, null, index, "min");
-                    const edit = state.losEdits.get(key);
                     // Find the rate plan that has prices for this room type
-                    const ratePlanForRoom = day.ratePlans?.find((rp:any ) =>
-                      rp.prices?.some((p:any) => p.invTypeCode === roomType)
+                    const ratePlanForRoom = day.ratePlans?.find((rp: any) =>
+                      rp.prices?.some((p: any) => p.invTypeCode === roomType)
                     );
                     const currentValue = ratePlanForRoom?.minLengthOfStay || 0;
-                    const displayValue =
-                      edit !== undefined ? edit.value : currentValue || "";
-                    const hasChanges = state.pendingChanges.has(key);
 
                     return (
                       <div
                         key={index}
-                        className="h-12 w-32 flex-shrink-0 flex items-center justify-center gap-1 border-r border-b border-gray-300 bg-blue-50 px-2"
+                        className="h-12 w-32 flex-shrink-0 flex items-center justify-center border-r border-b border-gray-300 bg-blue-50 px-2"
                       >
-                        <input
-                          type="number"
-                          min="0"
-                          value={displayValue}
-                          onChange={(e) =>
-                            handleLOSInputChange(
-                              roomType,
-                              null,
-                              index,
-                              "min",
-                              e.target.value,
-                              state.losEdits,
-                              state.pendingChanges,
-                              state.setLosEdits,
-                              state.setPendingChanges
-                            )
-                          }
-                          className={`w-12 h-7 text-center text-sm rounded border ${
-                            hasChanges
-                              ? "border-orange-400 bg-orange-50"
-                              : "border-gray-300"
-                          } focus:outline-none focus:ring-2 focus:ring-blue-400`}
-                        />
-                        {edit && (
-                          <button
-                            onClick={() =>
-                              applyLOSToRow(
-                                roomType,
-                                null,
-                                index,
-                                "min",
-                                days,
-                                state.losEdits,
-                                state.pendingChanges,
-                                state.setLosEdits,
-                                state.setPendingChanges
-                              )
-                            }
-                            className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                            title="Apply to entire row"
-                          >
-                            <ArrowRight className="w-3 h-3" />
-                          </button>
-                        )}
+                        <span className="text-sm font-medium text-gray-700">
+                          {currentValue}
+                        </span>
                       </div>
                     );
                   })}
                 </div>
 
-                {/* Max LOS Row */}
+                {/* Max LOS Row - READ ONLY */}
                 <div className="flex h-12 border-b border-gray-300">
                   {days.map((day, index) => {
-                    const key = generateKey.los(roomType, null, index, "max");
-                    const edit = state.losEdits.get(key);
                     // Find the rate plan that has prices for this room type
-                    const ratePlanForRoom = day.ratePlans?.find((rp:any) =>
-                      rp.prices?.some((p:any) => p.invTypeCode === roomType)
+                    const ratePlanForRoom = day.ratePlans?.find((rp: any) =>
+                      rp.prices?.some((p: any) => p.invTypeCode === roomType)
                     );
                     const currentValue = ratePlanForRoom?.maxLengthOfStay || 0;
-                    const displayValue =
-                      edit !== undefined ? edit.value : currentValue || "";
-                    const hasChanges = state.pendingChanges.has(key);
 
                     return (
                       <div
                         key={index}
-                        className="h-12 w-32 flex-shrink-0 flex items-center justify-center gap-1 border-r border-b border-gray-300 bg-blue-50 px-2"
+                        className="h-12 w-32 flex-shrink-0 flex items-center justify-center border-r border-b border-gray-300 bg-blue-50 px-2"
                       >
-                        <input
-                          type="number"
-                          min="0"
-                          value={displayValue}
-                          onChange={(e) =>
-                            handleLOSInputChange(
-                              roomType,
-                              null,
-                              index,
-                              "max",
-                              e.target.value,
-                              state.losEdits,
-                              state.pendingChanges,
-                              state.setLosEdits,
-                              state.setPendingChanges
-                            )
-                          }
-                          className={`w-12 h-7 text-center text-sm rounded border ${
-                            hasChanges
-                              ? "border-orange-400 bg-orange-50"
-                              : "border-gray-300"
-                          } focus:outline-none focus:ring-2 focus:ring-blue-400`}
-                        />
-                        {edit && (
-                          <button
-                            onClick={() =>
-                              applyLOSToRow(
-                                roomType,
-                                null,
-                                index,
-                                "max",
-                                days,
-                                state.losEdits,
-                                state.pendingChanges,
-                                state.setLosEdits,
-                                state.setPendingChanges
-                              )
-                            }
-                            className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                            title="Apply to entire row"
-                          >
-                            <ArrowRight className="w-3 h-3" />
-                          </button>
-                        )}
+                        <span className="text-sm font-medium text-gray-700">
+                          {currentValue}
+                        </span>
                       </div>
                     );
                   })}
                 </div>
 
                 {/* Save Button Row */}
+              {/* Save Button Row */}
                 {(Array.from(state.pendingChanges) as string[]).some(
                   (k) =>
                     k.includes(`${roomType}-roomtype-`) &&
@@ -959,7 +641,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                             state.losEdits,
                             state.pendingChanges,
                             hotelCode,
-                           
+                            null, // ✅ FIXED: Added ratePlanCode parameter (null for room type)
                             state.setLosEdits,
                             state.setPendingChanges,
                             onDataUpdate
@@ -986,6 +668,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                   days={days}
                   state={state}
                   hotelCode={hotelCode}
+                  propertyId={propertyId}
                   onDataUpdate={onDataUpdate}
                   renderMode="data"
                 />

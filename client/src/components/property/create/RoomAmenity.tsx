@@ -119,7 +119,7 @@ export default function RoomAmenities() {
 
         // Fetch current room's selected amenities
         const selectedRes = await getRoomAmenities(propertyId, roomId);
-        console.log("🔧 Selected Amenities Response:", selectedRes);
+        // console.log("🔧 Selected Amenities Response:", selectedRes);
 
         if (selectedRes.success && Array.isArray(selectedRes.data)) {
           const selectedMap = { ...defaultState };
@@ -128,7 +128,7 @@ export default function RoomAmenities() {
               selectedMap[label] = true;
             }
           });
-          console.log("Selected Amenities Map:", selectedMap);
+          // console.log("Selected Amenities Map:", selectedMap);
           setSelectedAmenities(selectedMap);
           setIsExistingData(true);
         } else {

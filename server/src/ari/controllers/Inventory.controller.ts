@@ -53,47 +53,47 @@ class InventoryController {
     }
   }
   public static async createNewInventory(req: CustomRequest, res: Response) {
-    try {
+  try {
+    const { roomType, startDate, endDate, availableRooms, pushFromCalender } = req.body;
+    const propertyId = req.params.propertyId;
+    const propertyCode = await getPropertyCode(propertyId);
 
-      const { roomType, startDate, endDate, availableRooms } = req.body;
-      const propertyId=req.params.propertyId;
-      const propertyCode=await getPropertyCode(propertyId);
-
-      if (
-        !propertyCode ||
-        !roomType ||
-        !startDate ||
-        !endDate ||
-        !availableRooms
-      ) {
-        return res
-          .status(400)
-          .json(
-            errorResponse(
-              'Missing required fields to create an inventory record'
-            )
-          );
-      }
-      if (new Date(startDate) > new Date(endDate)) {
-        return res
-          .status(400)
-          .json(errorResponse('Start Date comes must after end Date'));
-      }
-      const serRes = await InventoryServices.createInventoryService(
-        propertyCode,
-          roomType,
-        startDate,
-        endDate,
-        availableRooms
-      );
-      const resStatus = serRes?.success ? 200 : 400;
-      return res.status(resStatus).json(serRes);
-    } catch (error: any) {
+    if (
+      !propertyCode ||
+      !roomType ||
+      !startDate ||
+      !endDate ||
+      !availableRooms
+    ) {
       return res
-        .status(500)
-        .json(errorResponse('Internal Server Error', error?.message));
+        .status(400)
+        .json(
+          errorResponse(
+            'Missing required fields to create an inventory record'
+          )
+        );
     }
+    if (new Date(startDate) > new Date(endDate)) {
+      return res
+        .status(400)
+        .json(errorResponse('Start Date must come before end Date'));
+    }
+    const serRes = await InventoryServices.createInventoryService(
+      propertyCode,
+      roomType,
+      startDate,
+      endDate,
+      availableRooms,
+      pushFromCalender
+    );
+    const resStatus = serRes?.success ? 200 : 400;
+    return res.status(resStatus).json(serRes);
+  } catch (error: any) {
+    return res
+      .status(500)
+      .json(errorResponse('Internal Server Error', error?.message));
   }
+}
   public static async mapRatePlans(req: CustomRequest, res: Response) {
     try {
       const {

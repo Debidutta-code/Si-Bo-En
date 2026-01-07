@@ -1,8 +1,11 @@
 // features/availabilityAndLosHandlers.ts
 
+import { addRoomInventoryService } from "@/pages/inventory/services";
 import type { InventoryDay } from "../types/inventory";
 import { formatDateForAPI, generateKey } from "../utils/inventoryUtils";
 import toast from "react-hot-toast";
+import type { SelectedRoom } from "@/pages/inventory/types";
+import { updateRatePlanService } from "@/pages/rate-plan/services";
 
 interface LOSEdit {
   roomType: string;
@@ -82,14 +85,20 @@ export const applyAvailabilityToRow = (
 };
 
 /**
- * Save availability changes
+ * Save availability changes - OPTIMIZED VERSION
  */
 export const saveAvailabilityChanges = async (
   roomType: string,
   days: InventoryDay[],
   availabilityEdits: Map<string, AvailabilityEdit>,
   pendingChanges: Set<string>,
-  // hotelCode: string,
+  propertyId: string,
+  roomSetupData: Array<{
+    id: string;
+    roomName: string;
+    roomType: string;
+    totalRoom: number;
+  }>,
   setAvailabilityEdits: (edits: Map<string, AvailabilityEdit>) => void,
   setPendingChanges: (changes: Set<string>) => void,
   onDataUpdate?: () => void
@@ -99,44 +108,104 @@ export const saveAvailabilityChanges = async (
   );
 
   if (relevantEdits.length === 0) {
+    toast.error("No changes to save");
     return;
   }
 
   try {
-    const dateDataList = relevantEdits
-      .map(([_key, edit]) => {
-        const day = days[edit.dayIndex];
-        if (!day) return null;
+    const roomData = roomSetupData.find(
+      (room) => room.roomType === roomType
+    );
 
-        const formattedDate = formatDateForAPI(day);
-        const roomData = day.roomTypes?.find(room => room.invTypeCode === roomType);
-        const sold = roomData?.sold || 0;
-        const newAvailable = edit.value === "" ? 0 : parseInt(edit.value) || 0;
+    if (!roomData) {
+      toast.error(`Room type "${roomType}" not found in property setup`);
+      return;
+    }
 
-        return {
-          date: formattedDate,
-          sold: sold,
-          newInventory: newAvailable,
+    for (const [_key, edit] of relevantEdits) {
+      const requestedAvailability = edit.value === "" ? 0 : parseInt(edit.value) || 0;
+      
+      if (requestedAvailability > roomData.totalRoom) {
+        toast.error(
+          `Cannot set availability to ${requestedAvailability}. Maximum available rooms for ${roomType} is ${roomData.totalRoom}`
+        );
+        return;
+      }
+    }
+
+    const dateRanges: Array<{
+      startDate: string;
+      endDate: string;
+      availableRooms: number;
+    }> = [];
+
+    const sortedEdits = relevantEdits.sort(([, a], [, b]) => a.dayIndex - b.dayIndex);
+
+    let currentRange: {
+      startDate: string;
+      endDate: string;
+      availableRooms: number;
+    } | null = null;
+
+    sortedEdits.forEach(([_key, edit]) => {
+      const day = days[edit.dayIndex];
+      if (!day) return;
+
+      const formattedDate = formatDateForAPI(day);
+      const newAvailable = edit.value === "" ? 0 : parseInt(edit.value) || 0;
+
+      if (!currentRange || currentRange.availableRooms !== newAvailable) {
+        if (currentRange) {
+          dateRanges.push(currentRange);
+        }
+        currentRange = {
+          startDate: formattedDate,
+          endDate: formattedDate,
+          availableRooms: newAvailable,
         };
-      })
-      .filter(Boolean) as { date: string; sold: number; newInventory: number; }[];
+      } else {
+        currentRange.endDate = formattedDate;
+      }
+    });
 
-    if (dateDataList.length === 0) {
+    if (currentRange) {
+      dateRanges.push(currentRange);
+    }
+
+    if (dateRanges.length === 0) {
       toast.error("No valid dates to update");
       return;
     }
 
-    // const ratePlanCodes = getRatePlans(days);
+    toast.loading(`Updating ${dateRanges.length} date range(s)...`);
+    
+    const updatePromises = dateRanges.map(async (range) => {
+      const payload: SelectedRoom = {
+        id: roomData.id,
+        roomName: roomData.roomName,
+        roomType: roomData.roomType,
+        totalRoom: roomData.totalRoom,
+        availableRooms: range.availableRooms,
+        startDate: range.startDate,
+        endDate: range.endDate,
+        pushFromCalender: true,
+      };
 
-    // const payload = {
-    //   hotelCode: hotelCode,
-    //   invTypeCode: roomType,
-    //   ratePlanCode: ratePlanCodes,
-    //   dateDataList: dateDataList,
-    // };
+      return addRoomInventoryService(propertyId, payload);
+    });
 
-    // await inventoryPush(payload, accessToken);
-    toast.success(`Updated ${dateDataList.length} date(s) for ${roomType}`);
+    const results = await Promise.all(updatePromises);
+
+    const failedUpdates = results.filter((r) => !r.success);
+    
+    toast.dismiss();
+
+    if (failedUpdates.length > 0) {
+      toast.error(`${failedUpdates.length} update(s) failed: ${failedUpdates[0].message}`);
+      return;
+    }
+
+    toast.success(`Successfully updated ${dateRanges.length} date range(s) for ${roomType}`);
 
     const newEdits = new Map(availabilityEdits);
     const newPending = new Set(pendingChanges);
@@ -154,6 +223,7 @@ export const saveAvailabilityChanges = async (
     }
   } catch (error: any) {
     console.error("Failed to update availability:", error);
+    toast.dismiss();
     toast.error(error.message || "Failed to update availability");
   }
 };
@@ -210,9 +280,8 @@ export const applyLOSToRow = (
   const newEdits = new Map(losEdits);
   const newPending = new Set(pendingChanges);
 
-  // Only apply from dayIndex onwards (forward direction)
   days.forEach((_, index) => {
-    if (index >= dayIndex) {  // <-- THIS IS THE KEY CHANGE
+    if (index >= dayIndex) {
       const rowKey = generateKey.los(roomType, ratePlan, index, type);
       newEdits.set(rowKey, {
         roomType,
@@ -232,7 +301,28 @@ export const applyLOSToRow = (
 };
 
 /**
- * Save LOS changes
+ * ✅ UPDATED: Helper function to get all rate plans for a room type
+ */
+const getRatePlansForRoomType = (roomType: string, days: InventoryDay[]): string[] => {
+  const ratePlansSet = new Set<string>();
+  
+  days.forEach(day => {
+    day.ratePlans?.forEach(ratePlan => {
+      // Check if this rate plan has prices for this room type
+      const hasRoomType = ratePlan.prices?.some(
+        (price: any) => price.invTypeCode === roomType
+      );
+      if (hasRoomType) {
+        ratePlansSet.add(ratePlan.ratePlanCode);
+      }
+    });
+  });
+  
+  return Array.from(ratePlansSet);
+};
+
+/**
+ * ✅ UPDATED: Save LOS changes - Handles both Room Type and Rate Plan level
  */
 export const saveLOSChanges = async (
   roomType: string,
@@ -240,7 +330,8 @@ export const saveLOSChanges = async (
   days: InventoryDay[],
   losEdits: Map<string, LOSEdit>,
   pendingChanges: Set<string>,
-  hotelCode: string,
+  _hotelCode: string,
+  ratePlanCode: string | null,
   setLosEdits: (edits: Map<string, LOSEdit>) => void,
   setPendingChanges: (changes: Set<string>) => void,
   onDataUpdate?: () => void
@@ -254,67 +345,105 @@ export const saveLOSChanges = async (
     return;
   }
 
-  const dateGroups = new Map<
-    string,
-    { min: number | null; max: number | null; dates: string[] }
-  >();
-
-  relevantEdits.forEach(([_key, edit]) => {
-    const day = days[edit.dayIndex];
-    if (!day) return;
-
-    const formattedDate = formatDateForAPI(day);
-    const groupKey = `${edit.roomType}-${edit.ratePlan || "roomtype"}`;
-    
-    if (!dateGroups.has(groupKey)) {
-      dateGroups.set(groupKey, { min: null, max: null, dates: [] });
-    }
-
-    const group = dateGroups.get(groupKey)!;
-    group.dates.push(formattedDate);
-
-    if (edit.type === "min") {
-      group.min = parseInt(edit.value) || null;
-    } else {
-      group.max = parseInt(edit.value) || null;
-    }
-  });
-
   try {
-    for (const [_groupKey, group] of dateGroups.entries()) {
-      if (group.dates.length === 0) continue;
+    // ✅ Collect min and max values
+    let minimumLOS: number | undefined;
+    let maximumLOS: number | undefined;
 
-      const sortedDates = group.dates.sort();
-      const startDate = sortedDates[0];
-      const endDate = sortedDates[sortedDates.length - 1];
+    relevantEdits.forEach(([_key, edit]) => {
+      const value = parseInt(edit.value) || 0;
+      if (edit.type === "min") {
+        minimumLOS = value;
+      } else {
+        maximumLOS = value;
+      }
+    });
 
-      const endDateObj = new Date(endDate);
-      endDateObj.setDate(endDateObj.getDate() + 1);
+    // ✅ ROOM TYPE LEVEL: Update all connected rate plans
+    if (!ratePlan && ratePlanCode === null) {
+      const connectedRatePlans = getRatePlansForRoomType(roomType, days);
+      
+      if (connectedRatePlans.length === 0) {
+        toast.error(`No rate plans found for room type ${roomType}`);
+        return;
+      }
 
+      // console.log(`🔄 Updating ${connectedRatePlans.length} rate plans for room type ${roomType}:`, connectedRatePlans);
+
+      toast.loading(`Updating ${connectedRatePlans.length} rate plan(s)...`);
+
+      // ✅ Update all rate plans in parallel
+      const updatePromises = connectedRatePlans.map(async (rpCode) => {
+        const payload: any = {
+          ratePlanName: rpCode,
+          b2bAvailable: true,
+          b2cAvailable: true,
+        };
+
+        if (minimumLOS !== undefined) {
+          payload.minimumLengthOfStay = minimumLOS;
+        }
+
+        if (maximumLOS !== undefined) {
+          payload.maximumLengthOfStay = maximumLOS;
+        }
+
+        return updateRatePlanService(rpCode, payload);
+      });
+
+      const results = await Promise.all(updatePromises);
+
+      toast.dismiss();
+
+      // ✅ Check for failures
+      const failedUpdates = results.filter((r) => !r.success);
+      
+      if (failedUpdates.length > 0) {
+        toast.error(
+          `${failedUpdates.length} rate plan(s) failed to update: ${failedUpdates[0].message}`
+        );
+        return;
+      }
+
+      // ✅ Show single success message
+      toast.success(
+        `Successfully updated Min/Max LOS for ${roomType} (${connectedRatePlans.length} rate plan${connectedRatePlans.length > 1 ? 's' : ''})`
+      );
+    } 
+    // ✅ RATE PLAN LEVEL: Update single rate plan
+    else if (ratePlan && ratePlanCode) {
       const payload: any = {
-        hotelCode,
-        roomTypeCode: roomType,
-        startDate,
-        endDate: endDateObj.toISOString().split("T")[0],
+        ratePlanName: ratePlanCode,
+        b2bAvailable: true,
+        b2cAvailable: true,
       };
 
-      if (ratePlan) {
-        payload.ratePlanCode = ratePlan;
+      if (minimumLOS !== undefined) {
+        payload.minimumLengthOfStay = minimumLOS;
       }
 
-      if (group.min !== null) {
-        payload.minLengthOfStay = group.min;
+      if (maximumLOS !== undefined) {
+        payload.maximumLengthOfStay = maximumLOS;
       }
 
-      if (group.max !== null) {
-        payload.maxLengthOfStay = group.max;
+      toast.loading("Updating rate plan length of stay...");
+
+      const result = await updateRatePlanService(ratePlanCode, payload);
+
+      toast.dismiss();
+
+      if (!result.success) {
+        toast.error(result.message || "Failed to update rate plan");
+        return;
       }
 
-      // await updateMinMaxLengthOfStay(payload, accessToken);
+      toast.success(`Rate plan ${ratePlanCode} updated successfully`);
+    } else {
+      toast.error("Invalid parameters for LOS update");
+      return;
     }
 
-    toast.success("Length of stay updated successfully");
-
+    // ✅ Clear the edits from state
     const newEdits = new Map(losEdits);
     const newPending = new Set(pendingChanges);
 
@@ -326,11 +455,13 @@ export const saveLOSChanges = async (
     setLosEdits(newEdits);
     setPendingChanges(newPending);
 
+    // ✅ Refresh data
     if (onDataUpdate) {
       onDataUpdate();
     }
   } catch (error: any) {
     console.error("Failed to update length of stay:", error);
+    toast.dismiss();
     toast.error(error.message || "Failed to update length of stay");
   }
 };

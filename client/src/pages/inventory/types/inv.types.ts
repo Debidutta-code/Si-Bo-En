@@ -15,6 +15,8 @@ export interface SelectedRoom {
     availableRooms: number;
     startDate: string;
     endDate: string;
+    pushFromCalender?: boolean; // Add this
+
 }
 
 

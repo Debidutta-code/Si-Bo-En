@@ -80,8 +80,8 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
     setLoading(true);
     try {
       const countryISO = getCountryISO(payload.country);
-      console.log(payload.country)
-      console.log(countryISO)
+      // console.log(payload.country)
+      // console.log(countryISO)
       if (!countryISO) {
         toast.error("Invalid country");
         return;
@@ -89,7 +89,7 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
 
       // Normalize state
       const stateISO = getStateISO(payload.state, countryISO);
-      console.log(stateISO);
+      // console.log(stateISO);
       if (!stateISO) {
         toast.error("Invalid state for selected country");
         return;

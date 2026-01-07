@@ -23,6 +23,13 @@ interface InventoryTableProps {
   onMouseLeave: () => void;
   hotelCode: string;
   accessToken?: string;
+  propertyId:string,
+  roomSetupData: Array<{ // ✅ ADD THIS
+    id: string;
+    roomName: string;
+    roomType: string;
+    totalRoom: number;
+  }>;
   onDataUpdate?: () => void;
 }
 
@@ -31,6 +38,8 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
   onMouseEnter,
   onMouseLeave,
   hotelCode,
+  propertyId,
+  roomSetupData,
   onDataUpdate,
 }) => {
   const state = useInventoryState(days);
@@ -44,14 +53,15 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
       state.setShowUnsavedDialog
     );
   };
-
-  const handleSave = async () => {
+ const handleSave = async () => {
     await handleSaveAndContinue(
       state.losEdits,
       state.availabilityEdits,
       state.priceEdits,
       days,
       hotelCode,
+      propertyId,
+      roomSetupData, // ✅ ADD THIS
       state.setLosEdits,
       state.setAvailabilityEdits,
       state.setPriceEdits,
@@ -64,6 +74,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
       onDataUpdate
     );
   };
+
 
   const handleDiscard = () => {
     handleDiscardAndContinue(
@@ -78,27 +89,29 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
     );
   };
 
-  // Save all availability changes
-  const saveAllAvailability = () => {
-    const roomTypesWithAvailability = new Set<string>();
-    state.availabilityEdits.forEach((edit) => {
-      roomTypesWithAvailability.add(edit.roomType);
-    });
-    Promise.all(
-      Array.from(roomTypesWithAvailability).map((rt) =>
-        saveAvailabilityChanges(
-          rt,
-          days,
-          state.availabilityEdits,
-          state.pendingChanges,
-          // hotelCode,
-          state.setAvailabilityEdits,
-          state.setPendingChanges,
-          onDataUpdate
-        )
+
+
+const saveAllAvailability = () => {
+  const roomTypesWithAvailability = new Set<string>();
+  state.availabilityEdits.forEach((edit) => {
+    roomTypesWithAvailability.add(edit.roomType);
+  });
+  Promise.all(
+    Array.from(roomTypesWithAvailability).map((rt) =>
+      saveAvailabilityChanges(
+        rt,
+        days,
+        state.availabilityEdits,
+        state.pendingChanges,
+        propertyId, // ✅ CHANGED: Pass propertyId instead of hotelCode
+        roomSetupData,
+        state.setAvailabilityEdits,
+        state.setPendingChanges,
+        onDataUpdate
       )
-    );
-  };
+    )
+  );
+};
 
   // Save all pricing changes
   const saveAllPricing = () => {
@@ -120,7 +133,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
             state.pendingChanges,
             state.expandedOccupancy,
             state.customTiers,
-            // hotelCode,
+            hotelCode,
             state.setPriceEdits,
             state.setPendingChanges,
             onDataUpdate
@@ -234,11 +247,13 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
   <div className="min-w-max">
     {roomTypes.map((roomType) => (
       <RoomTypeSection
+        roomSetupData={roomSetupData} // ✅ ADD THIS
         key={roomType}
         roomType={roomType}
         days={days}
         state={state}
         hotelCode={hotelCode}
+        propertyId={propertyId}
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
         onDataUpdate={onDataUpdate}

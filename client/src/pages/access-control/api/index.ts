@@ -40,7 +40,7 @@ export const getAllRoles=async()=>{
     try {
         const axiosInstance = createAxiosInstance();
         const response = await axiosInstance.get(`/access/get-all-roles`);
-        console.log(response)
+        // console.log(response)
         return response.data
     } catch (error: any) {
         return error?.response?.data

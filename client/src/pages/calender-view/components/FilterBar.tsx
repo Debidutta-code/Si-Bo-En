@@ -37,7 +37,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
   // Sync temp room types when selectedRoomTypes changes from parent
   React.useEffect(() => {
-    console.log('🔄 Syncing temp room types with parent:', selectedRoomTypes);
+    // console.log('🔄 Syncing temp room types with parent:', selectedRoomTypes);
     setTempSelectedRoomTypes(selectedRoomTypes);
   }, [selectedRoomTypes]);
 
@@ -63,11 +63,11 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       
       if (isSelected) {
         const newSelection = prev.filter(rt => rt !== invTypeCode);
-        console.log('❌ Deselected:', invTypeCode, '| New selection:', newSelection);
+        // console.log('❌ Deselected:', invTypeCode, '| New selection:', newSelection);
         return newSelection;
       } else {
         const newSelection = [...prev, invTypeCode];
-        console.log('✅ Selected:', invTypeCode, '| New selection:', newSelection);
+        // console.log('✅ Selected:', invTypeCode, '| New selection:', newSelection);
         return newSelection;
       }
     });
@@ -75,9 +75,9 @@ export const FilterBar: React.FC<FilterBarProps> = ({
 
   // Handle room type apply button
   const handleApplyRoomTypes = () => {
-    console.log('🚀 Applying room types:', tempSelectedRoomTypes);
-    console.log('🚀 Array length:', tempSelectedRoomTypes.length);
-    console.log('🚀 Array contents:', JSON.stringify(tempSelectedRoomTypes));
+    // console.log('🚀 Applying room types:', tempSelectedRoomTypes);
+    // console.log('🚀 Array length:', tempSelectedRoomTypes.length);
+    // console.log('🚀 Array contents:', JSON.stringify(tempSelectedRoomTypes));
     
     onRoomTypeChange(tempSelectedRoomTypes);
     setShowRoomTypeDropdown(false);
@@ -320,7 +320,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                     <button
                       onClick={() => {
                         const newSelection = selectedRoomTypes.filter(rt => rt !== roomType);
-                        console.log('🗑️ Removing filter badge:', roomType, '| New selection:', newSelection);
+                        // console.log('🗑️ Removing filter badge:', roomType, '| New selection:', newSelection);
                         setTempSelectedRoomTypes(newSelection); // Update temp state
                         onRoomTypeChange(newSelection); // Trigger API with new selection
                       }}

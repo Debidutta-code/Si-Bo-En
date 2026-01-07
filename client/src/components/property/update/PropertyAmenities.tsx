@@ -50,7 +50,7 @@ export default function UpdatePropertyAmenity({
       setIsLoading(true);
       try {
         const amenitiesRes = await getAmenities();
-        console.log("Amenities Response:", amenitiesRes);
+        // console.log("Amenities Response:", amenitiesRes);
 
         if (!amenitiesRes.success) throw new Error("Failed to fetch amenities");
 

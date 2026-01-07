@@ -206,4 +206,48 @@ export class RatePlanController {
         .json(errorResponse('Internal server Error', error?.message));
     }
   }
+  // ✅ Add to RatePlanController
+public static async updateOrCreateRatePlanCharges(req: CustomRequest, res: Response) {
+  try {
+    const { 
+      propertyCode, 
+      roomTypeCode, 
+      ratePlanCode, 
+      startDate, 
+      endDate,
+      baseGuestAmounts,
+      additionalGuestAmounts 
+    } = req.body;
+
+    // Validation
+    if (!propertyCode || !roomTypeCode || !ratePlanCode || !startDate || !endDate) {
+      return res.status(400).json(
+        errorResponse('Property code, room type, rate plan, start date and end date are required')
+      );
+    }
+
+    if (!baseGuestAmounts || baseGuestAmounts.length === 0) {
+      return res.status(400).json(
+        errorResponse('Base guest amounts are required')
+      );
+    }
+
+    const response = await RatePlanServices.updateOrCreateRatePlanCharges(
+      propertyCode,
+      roomTypeCode,
+      ratePlanCode,
+      new Date(startDate),
+      new Date(endDate),
+      baseGuestAmounts,
+      additionalGuestAmounts || []
+    );
+
+    const statusCode = response.success ? 200 : 400;
+    return res.status(statusCode).json(response);
+  } catch (error: any) {
+    return res
+      .status(500)
+      .json(errorResponse('Internal server Error', error?.message));
+  }
+}
 }

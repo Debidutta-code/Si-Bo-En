@@ -8,7 +8,7 @@ export const getCountryISO = (input: string): string | null => {
     (c) =>
       c.isoCode.toLowerCase() === input.toLowerCase()
   );
-  console.log(country)
+  // console.log(country)
   return country?.name || null;
 };
 
@@ -20,6 +20,6 @@ export const getStateISO = (input: string, countryISO: string): string | null =>
     (s) =>
       s.isoCode.toLowerCase() === input.toLowerCase()
   );
-  console.log(state)
+  // console.log(state)
   return state?.name || null;
 };

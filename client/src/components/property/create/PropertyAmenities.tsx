@@ -96,7 +96,7 @@ export default function PropertyAmenities() {
       try {
         // Fetch list of all available amenity keys
         const amenitiesResponse = await getAmenities();
-        console.log("amenitiesResponse",amenitiesResponse);
+        // console.log("amenitiesResponse",amenitiesResponse);
         if (!amenitiesResponse.success) throw new Error("Failed to load amenities.");
 
         const amenityKeys = amenitiesResponse.data || [];

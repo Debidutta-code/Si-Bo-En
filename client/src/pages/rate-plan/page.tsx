@@ -78,7 +78,7 @@ export default function RatePlan() {
       if (ratePlans.success) {
 
         toast.success(ratePlans.message || "Rate Plans fetched successfully");
-        console.log("Fetched Rate Plans:", ratePlans);
+        // console.log("Fetched Rate Plans:", ratePlans);
         setAllRatePlans(ratePlans.data || []);
       } else {
         toast.error(ratePlans.message || "Failed to fetch Rate Plans");
@@ -105,7 +105,7 @@ export default function RatePlan() {
       if (response.success) {
 
         toast.success(response.message || "Rate Plan created successfully");
-        console.log("Created Rate Plan:", response);
+        // console.log("Created Rate Plan:", response);
         setNewRatePlan({ ratePlanName: "", b2bAvailable: false, b2cAvailable: true, minimumLengthOfStay: 1, maximumLengthOfStay: undefined });
         setCreateDialogOpen(false);
         fetchRatePlans();
@@ -130,7 +130,7 @@ export default function RatePlan() {
       if (response.success) {
 
         toast.success(response.message || "Rate Plan deleted successfully");
-        console.log("Deleted Rate Plan:", response);
+        // console.log("Deleted Rate Plan:", response);
         fetchRatePlans();
       } else {
         toast.error(response.message || "Failed to delete Rate Plan");

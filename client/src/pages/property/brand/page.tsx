@@ -68,7 +68,7 @@ export default function page() {
                 toast.error(response.message || "Failed to fetch")
             }
         } catch (error) {
-            console.log(error)
+            // console.log(error)
         } finally {
             setIsLoading(false)
         }
@@ -87,7 +87,7 @@ export default function page() {
         try {
             const response = await getUsersForMapping();
             if (response.success) {
-                console.log("Fetched users for mapping:", response.data);
+                // console.log("Fetched users for mapping:", response.data);
                 const data = response.data;
                 setBrandManagers(data);
             } else {

@@ -42,3 +42,11 @@ inventoryRouter
     checkRoleBased('canUpdateRoomPrice'),
     RatePlanController.updateMappedRatePlan
   );
+  // ✅ Add route to inventoryRouter
+inventoryRouter
+  .route('/update-or-create/charges')
+  .post(
+    protect,
+    checkRoleBased('canUpdateRoomPrice'),
+    RatePlanController.updateOrCreateRatePlanCharges
+  );

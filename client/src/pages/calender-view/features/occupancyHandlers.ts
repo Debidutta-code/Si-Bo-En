@@ -206,8 +206,8 @@ export const addAdditionalCharge = (
   setPriceEdits(newEdits);
   setPendingChanges(newPending);
 
-  const ageLabels: { [key: string]: string } = { "10": "Adult", "8": "Child", "7": "Infant" };
-  toast.success(`Added new ${ageLabels[ageCode] || "Guest"} charge row with copied pricing`);
+  // const ageLabels: { [key: string]: string } = { "10": "Adult", "8": "Child", "7": "Infant" };
+  // toast.success(`Added new ${ageLabels[ageCode] || "Guest"} charge row with copied pricing`);
 };
 
 /**

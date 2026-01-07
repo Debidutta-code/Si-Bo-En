@@ -55,9 +55,9 @@ export class AddonDateWiseDao {
         try {
             // Match any records where the `date` falls within the provided calendar day
             const start = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1);
-            console.log(start)
+            // console.log(start)
             const end = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 2);
-            console.log(end)
+            // console.log(end)
             return await prisma.addonAvailability.findMany({
                 where: {
                     addonId: addonId,

@@ -101,7 +101,7 @@ export default function BankDetails() {
     setIsSubmitting(true);
 
     try {
-      console.log("Submitting bank details:", result.data);
+      // console.log("Submitting bank details:", result.data);
       const res=await addBankDetails(propertyId,result.data)
       if(res.success){
 

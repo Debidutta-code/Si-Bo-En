@@ -169,4 +169,40 @@ export class RatePlanServices {
       );
     }
   }
+  // ✅ Add to RatePlanServices
+public static async updateOrCreateRatePlanCharges(
+  propertyCode: string,
+  roomTypeCode: string,
+  ratePlanCode: string,
+  startDate: Date,
+  endDate: Date,
+  baseGuestAmounts: any[],
+  additionalGuestAmounts: any[]
+) {
+  try {
+    const result = await RatePlanRepository.updateOrCreateChargesForDateRange(
+      propertyCode,
+      roomTypeCode,
+      ratePlanCode,
+      startDate,
+      endDate,
+      baseGuestAmounts,
+      additionalGuestAmounts
+    );
+
+    if (result) {
+      return successResponse(
+        `Successfully updated/created charges for ${result.updated} existing dates and created ${result.created} new dates`,
+        result
+      );
+    } else {
+      return errorResponse('Failed to update/create rate plan charges');
+    }
+  } catch (error: any) {
+    return errorResponse(
+      'Failed to update/create rate plan charges',
+      error?.message
+    );
+  }
+}
 }

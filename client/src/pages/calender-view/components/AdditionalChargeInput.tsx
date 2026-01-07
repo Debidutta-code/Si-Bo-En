@@ -114,18 +114,18 @@ export const AdditionalChargeInput: React.FC<AdditionalChargeInputProps> = ({
       </div>
 
       {/* Commission (Read-only) - Only show if exists */}
-      {commissionAmount > 0 && (
+      {/* {commissionAmount > 0 && (
         <span className="text-[10px] text-blue-600 font-medium">
           Comm: +{commissionAmount.toFixed(2)}
         </span>
-      )}
+      )} */}
 
       {/* Total (Read-only) - Only show if commission exists */}
-      {totalAfterCommission > 0 && commissionAmount > 0 && (
+      {/* {totalAfterCommission > 0 && commissionAmount > 0 && (
         <span className="text-[10px] text-green-700 font-semibold">
           Sale Rate: {totalAfterCommission.toFixed(2)}
         </span>
-      )}
+      )} */}
     </div>
   );
 };

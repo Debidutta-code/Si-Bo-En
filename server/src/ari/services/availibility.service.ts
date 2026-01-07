@@ -6,6 +6,8 @@ import {
   getDay,
   isSameDay,
   isWithinInterval,
+  startOfDay,
+  subDays,
 } from 'date-fns';
 import type { ICalendarResponse } from '../types/availability.types';
 
@@ -34,8 +36,12 @@ export class AvailabilityServices {
         ? property.propertyRooms.filter(room => roomTypeCodes.includes(room.roomType))
         : property.propertyRooms;
 
-      // Get all dates in range
-      const dates = eachDayOfInterval({ start: startDate, end: endDate });
+      // Get all dates in range (exclusive of end date - standard hotel logic)
+      // If requesting Jan 6 to Jan 9, return [Jan 6, Jan 7, Jan 8]
+      const dates = eachDayOfInterval({ 
+        start: startDate, 
+        end: subDays(endDate, 1) // Exclude end date
+      });
 
       // Calculate sold rooms per day per room type
       const soldRoomsMap = this.calculateSoldRooms(reservations, dates);
@@ -74,12 +80,20 @@ export class AvailabilityServices {
       const dateKey = format(date, 'yyyy-MM-dd');
       soldMap.set(dateKey, new Map());
 
-      reservations.forEach((reservation) => {
-        const checkIn = new Date(reservation.checkInDate);
-        const checkOut = new Date(reservation.checkOutDate);
+      // Normalize the current date to start of day (removes time component)
+      const normalizedDate = startOfDay(date);
 
-        // Check if this date falls within the reservation
-        if (isWithinInterval(date, { start: checkIn, end: checkOut }) && !isSameDay(date, checkOut)) {
+      reservations.forEach((reservation) => {
+        // Normalize reservation dates to start of day in local timezone
+        const checkIn = startOfDay(new Date(reservation.checkInDate));
+        const checkOut = startOfDay(new Date(reservation.checkOutDate));
+
+        // Check if this date falls within the reservation period
+        // A room is occupied from check-in day (inclusive) to check-out day (exclusive)
+        const isWithin = isWithinInterval(normalizedDate, { start: checkIn, end: checkOut });
+        const isSameCheckout = isSameDay(normalizedDate, checkOut);
+
+        if (isWithin && !isSameCheckout) {
           const roomTypeCode = reservation.roomTypeCode;
           const currentSold = soldMap.get(dateKey)!.get(roomTypeCode) || 0;
           soldMap.get(dateKey)!.set(roomTypeCode, currentSold + 1);
@@ -111,20 +125,33 @@ export class AvailabilityServices {
     });
 
     // Build room types data
-    const roomTypes = property.propertyRooms.map((room: any) => {
-      const inventory = dayInventories.find((inv) => inv.roomTypeCode === room.roomType);
-      const sold = soldMap.get(room.roomType) || 0;
-      const available = (inventory?.availability || 0) - sold;
-      const hasCharges = dayCharges.some((c) => c.roomTypeCode === room.roomType && !c.isSaleStopped);
+ const roomTypes = property.propertyRooms.map((room: any) => {
+  // Physical rooms from Room table
+  const totalInventory = room.totalRoom || 0;
+  
+  // Find inventory for this specific room type on this date
+  const dayInventory = dayInventories.find((inv) => inv.roomTypeCode === room.roomType);
+  
+  // Inventory availability for this date (if no inventory record, use 0)
+  const inventoryAvailable = dayInventory?.availability ?? 0;
+  
+  // Sold rooms for this date
+  const sold = soldMap.get(room.roomType) || 0;
+  
+  // Available = inventory available - sold (not totalRoom - sold)
+  const available = Math.max(0, inventoryAvailable);
+  
+  const hasCharges = dayCharges.some((c) => c.roomTypeCode === room.roomType && !c.isSaleStopped);
 
-      return {
-        invTypeCode: room.roomType,
-        available: Math.max(0, available),
-        sold,
-        occupancy: inventory?.availability ? (sold / inventory.availability) * 100 : 0,
-        status: hasCharges && available > 0 ? 'open' : 'close',
-      };
-    });
+  return {
+    invTypeCode: room.roomType,
+    available,
+    sold,
+    occupancy: totalInventory > 0 ? (sold / totalInventory) * 100 : 0,
+    status: hasCharges && available > 0 ? 'open' : 'close',
+    _totalInventory: totalInventory, // This is the physical room count
+  };
+});
 
     // Build rate plans data
     const ratePlanMap = new Map<string, any>();
@@ -169,9 +196,12 @@ export class AvailabilityServices {
     const ratePlans = Array.from(ratePlanMap.values());
 
     // Calculate totals
-    const totalAvailable = roomTypes.reduce((sum: number, rt: any) => sum + rt.available, 0);
+    const totalInventory = roomTypes.reduce((sum: number, rt: any) => sum + rt._totalInventory, 0);
     const totalSold = roomTypes.reduce((sum: number, rt: any) => sum + rt.sold, 0);
-    const totalRooms = totalAvailable + totalSold;
+    const totalAvailable = roomTypes.reduce((sum: number, rt: any) => sum + rt.available, 0);
+
+    // Remove temp field before returning
+    roomTypes.forEach((rt: any) => delete rt._totalInventory);
 
     return {
       date: date.getDate(),
@@ -181,10 +211,10 @@ export class AvailabilityServices {
       fullDate: dateKey,
       roomTypes,
       ratePlans,
-      total: totalRooms,
+      total: totalInventory,
       sold: totalSold,
       available: totalAvailable,
-      occupancyPercent: totalRooms > 0 ? (totalSold / totalRooms) * 100 : 0,
+      occupancyPercent: totalInventory > 0 ? (totalSold / totalInventory) * 100 : 0,
       restrictions: {
         CTA: dayCharges.some((c) => c.isClosedToArrival),
         CTD: dayCharges.some((c) => c.isClosedToDeparture),
@@ -200,7 +230,7 @@ export class AvailabilityServices {
       totalRooms,
       totalSold,
       occupancy: totalRooms > 0 ? (totalSold / totalRooms) * 100 : 0,
-      totalRevenue: 0, // You can calculate this if needed
+      totalRevenue: 0,
     };
   }
 }

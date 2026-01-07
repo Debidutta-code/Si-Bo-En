@@ -68,7 +68,7 @@ export async function getBrandCreationId(id: string) {
             return response
         }
         const data = response.data;
-        console.log("Brand Data:", data);
+        // console.log("Brand Data:", data);
         const properties = data?.brandChildren?.filter((creation: ICreation) => creation.type === "property")
         return {
             success: true,
@@ -88,7 +88,7 @@ export async function getBrandCreationId(id: string) {
             }
         }
     } catch (error: any) {
-        console.log(error)
+        // console.log(error)
         return {
             success: false,
             message: "Failed to Fetch Brand Details"

@@ -90,7 +90,7 @@ export function useMapRatePlan(propertyId: string | undefined) {
             setIsLoading(true);
             const response = await getMappedRatePlansService(propertyId, filters, page);
             
-            console.log("API Response:", response);
+            // console.log("API Response:", response);
 
             if (response.success && response.data) {
                 setCharges(response.data.data || []);
@@ -120,7 +120,7 @@ export function useMapRatePlan(propertyId: string | undefined) {
     };
 
     const handlePageChange = (page: number) => {
-        console.log("Page change requested:", page);
+        // console.log("Page change requested:", page);
         setCurrentPage(page);
         handleSearch(page);
         // Scroll to top of table

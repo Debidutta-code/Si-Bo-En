@@ -98,7 +98,7 @@ export default function page() {
         try {
             const response = await getUsersForMapping();
             if (response.success) {
-                console.log("Fetched users for mapping:", response.data);
+                // console.log("Fetched users for mapping:", response.data);
                 const data = response.data;
                 setGroupManagers(data);
             } else {

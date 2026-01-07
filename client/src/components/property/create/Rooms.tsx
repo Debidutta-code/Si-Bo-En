@@ -55,7 +55,7 @@ export default function Rooms() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    console.log("Use Effect")
+    // console.log("Use Effect")
     const fetchRoomData = async () => {
       // Only fetch if we have a propertyId AND a roomId, indicating an update.
       if (propertyId && roomId) {

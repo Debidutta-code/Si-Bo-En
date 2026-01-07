@@ -47,7 +47,7 @@ const CreateEntityDialog = ({ currentTab, creationId, level ,fetchProperties}: {
         }
         try {
             const res = await createEntity(newGBP)
-            console.log(res)
+            // console.log(res)
             if (res.success) {
                 toast.success("Created successfully")
                 setNewGBP({
