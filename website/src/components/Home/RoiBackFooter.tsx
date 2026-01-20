@@ -6,8 +6,8 @@ import { useSelector } from "react-redux";
 import { RootState } from "@/src/store/store";
 
 // Fallback logos
-import SLogo from "../assets/SLogo.png";
-import ZLogo from "../assets/ZLogo.png";
+import SLogo from "../assets/revchilli.png";
+import ZLogo from "../assets/revchilli.png";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage";
 
 const Footer = () => {
@@ -71,8 +71,7 @@ const Footer = () => {
                             className="text-sm md:text-base leading-relaxed font-light"
                             style={{ color: "#2F2A1F" }} // Dark color for better readability
                         >
-                            Arena-3, 3rd Floor, STPI ELITE Building, Gothapatna, Khordha, Odisha - 751003
-                        </p>
+Dubai, United Arab Emirates                        </p>
                     </div>
 
                     {/* Social Media Icons */}
@@ -156,13 +155,13 @@ const Footer = () => {
                     >
                         Powered by{" "}
                         <a
-                            href="https://swiftrooms.com"
+                            href="https://www.revchill.com/"
                             target="_blank"
                             rel="noopener noreferrer"
                             className="font-medium hover:underline"
                             style={{ color: "#1A0DAB" }}
                         >
-                            SwiftRooms
+                            Revchill
                         </a>
                     </p>
 

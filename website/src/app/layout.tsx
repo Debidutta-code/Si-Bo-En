@@ -2,14 +2,15 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import Navbar from '@/src/components/Home/Navbar';
-// import Footer from '@/src/components/Home/Footer';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'swiftrooms - Find Your Next Adventure',
+  title: 'Revchill - Find Your Next Adventure',
   description: 'Discover amazing places at exclusive deals. Book hotels, tours, activities and more.',
+  icons: {
+    icon: "/revchilliicon.svg",
+  },
 };
 
 import ReduxProviderWrapper from '@/src/hooks/ReduxProviderWrapper';

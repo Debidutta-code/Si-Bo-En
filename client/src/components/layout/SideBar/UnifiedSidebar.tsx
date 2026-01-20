@@ -147,7 +147,7 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
         )}>
         </h1>
         {isSidebarOpen && (
-          <img src='/swiftrooms.jpeg' alt="Swiftrooms" className='w-1/2' />
+          <img src='/revchill.png' alt="Revchill" className='w-1/2' />
         )}
         <Button onClick={toggleSidebar} variant="ghost" size="icon" className={`hidden sm:flex justify-center items-center`}>
           {isSidebarOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}

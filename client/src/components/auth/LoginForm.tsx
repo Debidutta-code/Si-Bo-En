@@ -112,21 +112,12 @@ export default function LoginForm() {
         {/* Content */}
         <div className="relative z-10 flex flex-col justify-between p-12 text-primary-foreground w-full">
           {/* Logo & Brand */}
-          <div className="animate-fade-in">
-            <div className="flex items-center space-x-3 mb-2">
-              <img 
-                src="/swiftrooms.jpeg" 
-                alt="SwiftRooms Logo" 
-                className="h-12 w-auto object-contain"
-              />
-              {/* <h1 className="text-2xl font-bold tracking-tight">Property Management System</h1> */}
-            </div>
-          </div>
+         
 
           {/* Main Content */}
           <div className="space-y-8 animate-fade-in-delay">
             <div>
-              <h2 className="text-4xl font-bold mb-4 leading-tight">
+              <h2 className="text-4xl mt-10 font-bold mb-4 leading-tight">
                 Manage your properties
                 <br />
                 <span className="relative inline-block">
@@ -162,7 +153,7 @@ export default function LoginForm() {
 
           {/* Footer */}
           <div className="text-sm animate-fade-in">
-            © {new Date().getFullYear()} SwiftRooms. All rights reserved.
+            © {new Date().getFullYear()} Revchill. All rights reserved.
           </div>
         </div>
       </div>
@@ -176,14 +167,19 @@ export default function LoginForm() {
           {/* Mobile Logo */}
           <div className="lg:hidden flex items-center justify-center mb-8">
             <img 
-              src="/swiftrooms.jpeg" 
-              alt="SwiftRooms Logo" 
+              src="/revchill.png" 
+              alt="Revchill Logo" 
               className="h-16 w-auto object-contain"
             />
           </div>
 
           <Card className="border shadow-xl">
             <CardHeader className="space-y-2 text-center pb-8">
+               <img 
+                src="/revchill.png" 
+                alt="Revchill Logo" 
+                className="h-12 w-auto hidden lg:block object-contain"
+              />
               <CardTitle className="text-3xl font-bold">Welcome Back</CardTitle>
               <CardDescription className="text-base">
                 Sign in to access your dashboard

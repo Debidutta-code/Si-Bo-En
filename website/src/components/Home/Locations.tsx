@@ -13,7 +13,7 @@ const Location = () => {
           </h2>
           
           <p className="text-xl md:text-2xl font-light mb-8">
-            Ratan Rd, Badasirei, Puri, Odisha 752002, India
+Dubai, United Arab Emirates       
           </p>
           
           <div className="bg-white/10 backdrop-blur-sm rounded-lg p-8 inline-block">

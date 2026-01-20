@@ -3,21 +3,21 @@ import React from 'react';
 const NearbyPlaces = () => {
   const places = [
     {
-      name: 'Puri',
-      description: 'Puri is beautiful city situated in the state of Odisha in Eastern India, well the Cafe away from the capital of the state along the Bay of Bengal. It is an important pilgrimage center on the shoreline.',
-      image: 'https://images.pexels.com/photos/1450360/pexels-photo-1450360.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop',
+      name: 'Burj Khalifa',
+      description: 'The world\'s tallest building standing at 828 meters, offering breathtaking views of Dubai from its observation decks. Experience luxury shopping, fine dining, and the spectacular Dubai Fountain show at its base.',
+      image: 'https://images.pexels.com/photos/10885330/pexels-photo-10885330.jpeg',
       link: 'Read More'
     },
     {
-      name: 'Shree Jagannath Temple',
-      description: 'The temple is an important Hindu temple dedicated to Jagannath. The Jagannath Temple is an important Hindu temple dedicated to Jagannath, a form of Vishnu, in Puri in the state of Odisha on the eastern coast of India.',
-      image: 'https://images.pexels.com/photos/2166553/pexels-photo-2166553.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop',
+      name: 'Sheikh Zayed Grand Mosque',
+      description: 'One of the largest mosques in the world located in Abu Dhabi, featuring stunning white marble domes and intricate Islamic architecture. A masterpiece showcasing traditional craftsmanship with modern design elements.',
+      image: 'https://images.pexels.com/photos/31027802/pexels-photo-31027802.jpeg',
       link: 'Read More'
     },
     {
-      name: 'Konark',
-      description: 'The temple is famous for the last places in Odisha, one on the Bay of Bengal coastline in the Eastern of Puri. Konark is an important heritage site and is one of the most visited places in East India.',
-      image: 'https://images.pexels.com/photos/3581368/pexels-photo-3581368.jpeg?auto=compress&cs=tinysrgb&w=400&h=300&fit=crop',
+      name: 'Dubai Marina',
+      description: 'A stunning waterfront district with luxurious yachts, world-class restaurants, and vibrant nightlife. Enjoy a leisurely walk along the promenade or take a traditional dhow cruise to experience Dubai\'s modern skyline.',
+      image: 'https://images.pexels.com/photos/30063500/pexels-photo-30063500.jpeg',
       link: 'Read More'
     }
   ];

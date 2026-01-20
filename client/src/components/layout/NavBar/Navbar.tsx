@@ -54,7 +54,7 @@ export default function Navbar({ isOpen }: { isOpen: boolean }) {
         <div className="flex items-center">
           {!isOpen && (
             <Link to="/app" className="font-bold text-xl text-gray-900">
-              <img src='/swiftrooms.jpeg' alt="Swiftrooms" className='h-14 w-auto' />
+              <img src='/revchill.png' alt="Revchill" className='h-14 w-auto' />
             </Link>
           )}
         </div>

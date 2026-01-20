@@ -1,13 +1,13 @@
 {
-  "name": "nextjs",
+  "name": "revchill-website",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "npm run build && pm2 start node_modules/next/dist/bin/next --name=swiftrooms-website -- start -p 3036",
+    "start": "npm run build && pm2 start node_modules/next/dist/bin/next --name=revchill-website -- start -p 3036",
     "lint": "next lint",
-    "restart:pm2": "pm2 restart swiftrooms-website"
+    "restart:pm2": "pm2 restart revchill-website"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",

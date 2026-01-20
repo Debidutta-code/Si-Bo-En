@@ -16,7 +16,7 @@ import React from "react";
 import Image from "next/image";
 import { createPortal } from "react-dom";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage";
-
+import defaultLogo from "../assets/revchilli.png";
 interface SearchWidgetProps {
   onSearchStart?: (payload: {
     startDate: string;
@@ -509,49 +509,27 @@ useEffect(() => {
                 onClick={handleHomeClick}
                 className="flex items-center focus:outline-none"
               >
-                {currentLogo ? (
-                  <div className="relative w-32 h-32">
-                    <Image
-                      src={currentLogo}
-                      alt="Hotel Logo"
-                      fill
-                      className="object-contain"
-                      unoptimized
-                    />
-                  </div>
-                ) : (
-                  <div className="flex items-center h-32 gap-3 min-w-[280px]">
-                    {/* Sun Logo */}
-                    <div className="w-12 h-12 flex items-center justify-center">
-                      <svg viewBox="0 0 100 100" className="w-full h-full">
-                        <circle cx="50" cy="50" r="20" fill={primaryColor} />
-                        {[...Array(12)].map((_, i) => {
-                          const angle = (i * 30 * Math.PI) / 180;
-                          const x1 = 50 + Math.cos(angle) * 25;
-                          const y1 = 50 + Math.sin(angle) * 25;
-                          const x2 = 50 + Math.cos(angle) * 35;
-                          const y2 = 50 + Math.sin(angle) * 35;
-                          return (
-                            <line
-                              key={i}
-                              x1={x1}
-                              y1={y1}
-                              x2={x2}
-                              y2={y2}
-                              stroke={primaryColor}
-                              strokeWidth="3"
-                            />
-                          );
-                        })}
-                      </svg>
-                    </div>
-                    {/* Brand Name */}
-                    <div className="flex items-center gap-2 text-lg tracking-[0.3em]">
-                      <span className="font-semibold" style={{ color: primaryColor }}>TERRA</span>
-                      <span className="font-light" style={{ color: primaryColor }}>SOLIS</span>
-                    </div>
-                  </div>
-                )}
+               {currentLogo ? (
+  <div className="relative w-32 h-32">
+    <Image
+      src={currentLogo}
+      alt="Hotel Logo"
+      fill
+      className="object-contain"
+      unoptimized
+    />
+  </div>
+) : (
+  <div className="relative w-32 h-32">
+    <Image
+      src={defaultLogo}
+      alt="Hotel Logo"
+      fill
+      className="object-contain"
+      unoptimized
+    />
+  </div>
+)}
               </button>
 
               {/* CENTER: BOOKING CONTROLS */}
@@ -761,46 +739,26 @@ useEffect(() => {
                 className="flex items-center focus:outline-none"
               >
                 {currentLogo ? (
-                  <div className="relative w-28 h-20">
-                    <Image
-                      src={currentLogo}
-                      alt="Hotel Logo"
-                      fill
-                      className="object-contain"
-                      unoptimized
-                    />
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-3 min-w-[200px]">
-                    <div className="w-10 h-10">
-                      <svg viewBox="0 0 100 100" className="w-full h-full">
-                        <circle cx="50" cy="50" r="18" fill={primaryColor} />
-                        {[...Array(8)].map((_, i) => {
-                          const angle = (i * 45 * Math.PI) / 180;
-                          const x1 = 50 + Math.cos(angle) * 22;
-                          const y1 = 50 + Math.sin(angle) * 22;
-                          const x2 = 50 + Math.cos(angle) * 32;
-                          const y2 = 50 + Math.sin(angle) * 32;
-                          return (
-                            <line
-                              key={i}
-                              x1={x1}
-                              y1={y1}
-                              x2={x2}
-                              y2={y2}
-                              stroke={primaryColor}
-                              strokeWidth="2.5"
-                            />
-                          );
-                        })}
-                      </svg>
-                    </div>
-                    <div className="text-[17px] tracking-[0.25em]">
-                      <span className="font-semibold" style={{ color: primaryColor }}>TERRA</span>
-                      <span className="font-light" style={{ color: primaryColor }}> SOLIS</span>
-                    </div>
-                  </div>
-                )}
+  <div className="relative w-28 h-20">
+    <Image
+      src={currentLogo}
+      alt="Hotel Logo"
+      fill
+      className="object-contain"
+      unoptimized
+    />
+  </div>
+) : (
+  <div className="relative w-28 h-20">
+    <Image
+      src={defaultLogo}
+      alt="Hotel Logo"
+      fill
+      className="object-contain"
+      unoptimized
+    />
+  </div>
+)}
               </button>
 
               {/* CENTER: COMPACT BOOKING CONTROLS */}
@@ -962,47 +920,27 @@ useEffect(() => {
                   onClick={handleHomeClick}
                   className="flex items-center focus:outline-none"
                 >
-                  {currentLogo ? (
-                    <div className="relative w-24 h-8">
-                      <Image
-                        src={currentLogo}
-                        alt="Hotel Logo"
-                        fill
-                        className="object-contain"
-                        unoptimized
-                      />
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10">
-                        <svg viewBox="0 0 100 100" className="w-full h-full">
-                          <circle cx="50" cy="50" r="18" fill={primaryColor} />
-                          {[...Array(8)].map((_, i) => {
-                            const angle = (i * 45 * Math.PI) / 180;
-                            const x1 = 50 + Math.cos(angle) * 22;
-                            const y1 = 50 + Math.sin(angle) * 22;
-                            const x2 = 50 + Math.cos(angle) * 30;
-                            const y2 = 50 + Math.sin(angle) * 30;
-                            return (
-                              <line
-                                key={i}
-                                x1={x1}
-                                y1={y1}
-                                x2={x2}
-                                y2={y2}
-                                stroke={primaryColor}
-                                strokeWidth="2.5"
-                              />
-                            );
-                          })}
-                        </svg>
-                      </div>
-                      <div className="text-base tracking-[0.25em]">
-                        <span className="font-semibold" style={{ color: primaryColor }}>TERRA</span>
-                        <span className="font-light" style={{ color: primaryColor }}> SOLIS</span>
-                      </div>
-                    </div>
-                  )}
+                 {currentLogo ? (
+  <div className="relative w-24 h-16">
+    <Image
+      src={currentLogo}
+      alt="Hotel Logo"
+      fill
+      className="object-contain"
+      unoptimized
+    />
+  </div>
+) : (
+  <div className="relative w-24 h-16">
+    <Image
+      src={defaultLogo}
+      alt="Hotel Logo"
+      fill
+      className="object-contain"
+      unoptimized
+    />
+  </div>
+)}
                 </button>
 
                 <button
@@ -1157,46 +1095,26 @@ useEffect(() => {
               className="flex items-center focus:outline-none"
             >
               {currentLogo ? (
-                <div className="relative w-20 h-6">
-                  <Image
-                    src={currentLogo}
-                    alt="Hotel Logo"
-                    fill
-                    className="object-contain"
-                    unoptimized
-                  />
-                </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8">
-                    <svg viewBox="0 0 100 100" className="w-full h-full">
-                      <circle cx="50" cy="50" r="15" fill={primaryColor} />
-                      {[...Array(8)].map((_, i) => {
-                        const angle = (i * 45 * Math.PI) / 180;
-                        const x1 = 50 + Math.cos(angle) * 20;
-                        const y1 = 50 + Math.sin(angle) * 20;
-                        const x2 = 50 + Math.cos(angle) * 27;
-                        const y2 = 50 + Math.sin(angle) * 27;
-                        return (
-                          <line
-                            key={i}
-                            x1={x1}
-                            y1={y1}
-                            x2={x2}
-                            y2={y2}
-                            stroke={primaryColor}
-                            strokeWidth="2"
-                          />
-                        );
-                      })}
-                    </svg>
-                  </div>
-                  <div className="text-sm tracking-[0.2em]">
-                    <span className="font-semibold" style={{ color: primaryColor }}>TERRA</span>
-                    <span className="font-light" style={{ color: primaryColor }}> SOLIS</span>
-                  </div>
-                </div>
-              )}
+  <div className="relative w-20 h-12">
+    <Image
+      src={currentLogo}
+      alt="Hotel Logo"
+      fill
+      className="object-contain"
+      unoptimized
+    />
+  </div>
+) : (
+  <div className="relative w-20 h-12">
+    <Image
+      src={defaultLogo}
+      alt="Hotel Logo"
+      fill
+      className="object-contain"
+      unoptimized
+    />
+  </div>
+)}
             </button>
 
             <button
