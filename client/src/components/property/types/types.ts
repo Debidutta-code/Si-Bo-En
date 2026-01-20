@@ -2,6 +2,7 @@ export interface IPropertyDetails {
   propertyName: string;
   propertyEmail: string;
   propertyContact: string;
+  propertyCode: string;
   propertyCategory: {
     masterCategory: {
 

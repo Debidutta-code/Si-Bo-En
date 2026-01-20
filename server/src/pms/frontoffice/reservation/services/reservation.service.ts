@@ -13,11 +13,10 @@ import {
     ICreateReservationPayload,
     ICGuest
 } from "../types";
-import { Decimal } from "../../../../generated/prisma/runtime/library";
-import { getPropertyCode } from "../../../../ari/utils";
 import { prisma } from "../../../../config";
 import { IPropertyCodeAndIds } from "../../../../dashboard/types";
 import { DashUtilsRepo } from "../../../../dashboard/repository";
+import { Decimal } from "@prisma/client/runtime/library";
 
 export class ReservationService {
     reservationRepository: ReservationRepository;

@@ -1,4 +1,4 @@
-import { AmenityType } from "../../generated/prisma";
+import { AmenityType } from "@prisma/client";
 import {prisma} from "../../config";
 
 export class RoomAminityDao {

@@ -174,7 +174,7 @@ export default function ReservationsTable({
   };
 
   const handleAmend = (reservationId: string) => {
-    // console.log("Amend reservation:", reservationId);
+    console.log("Amend reservation:", reservationId);
   };
 
   const handleCancelClick = (reservation: IReservation) => {

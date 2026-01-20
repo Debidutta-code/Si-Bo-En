@@ -35,12 +35,17 @@ import TableView from "./pages/price-management/table/TableView.tsx";
 import Bookings from "./pages/bookings/page.tsx";
 import RestrictionsPageWrapper from "./pages/cta-ctd/page.tsx";
 import InventoryPage from "./pages/calender-view/page.tsx";
+import ForgotPasswordForm from "./components/auth/ForgotPasswordForm.tsx";
+import LinkVerification from "./components/auth/LinkVerification.tsx";
+import ContactSupport from "./pages/contact-support/ContactSupport.tsx";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
     <>
       <Route path="/">
         <Route path="login" element={<Login />} />
+        <Route path="forgot-password" element={<ForgotPasswordForm />} />
+        <Route path="reset-password" element={<LinkVerification />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
         <Route path="/property/create" element={<CreateProperty />} />
       </Route>
@@ -91,6 +96,7 @@ export const router = createBrowserRouter(
       <Route path="logs" element={<LogsPage />} />
       <Route path="access-control" element={<AccessControlPage />} />
       <Route path="bookings" element={<AccessControlPage />} />
+      <Route path="contact-support" element={<ContactSupport />} />
 
       <Route path="*" element={<NotFound />} />
 

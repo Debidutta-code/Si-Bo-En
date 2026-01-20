@@ -266,6 +266,7 @@ export default function LoginForm() {
                 </div>
                 <button
                   type="button"
+                  onClick={() => navigate('/forgot-password')}
                   className="text-sm hover:underline font-medium transition-colors"
                   disabled={isLoading}
                 >
@@ -289,13 +290,6 @@ export default function LoginForm() {
                 )}
               </Button>
 
-              {/* Help Text */}
-              <p className="text-center text-sm text-muted-foreground pt-2">
-                Need help?{' '}
-                <button className="hover:underline font-medium transition-colors">
-                  Contact support
-                </button>
-              </p>
             </CardContent>
           </Card>
         </div>

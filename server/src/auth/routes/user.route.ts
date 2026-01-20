@@ -4,6 +4,11 @@ import { UserController } from '../controller/user.controller';
 import { addRoleBasedDetails } from '../../middlewares/checkRole.middleware';
 const router = Router();
 
+
+router.route("/forgot-password").post(UserController.forgotPassword );
+router.route("/verify-reset-otp").post(UserController.verifyResetOTP );
+router.route("/reset-password").post(UserController.resetPassword );
+
 router.route("/")
   .get(protect, addRoleBasedDetails(), UserController.getUsersController);
 router

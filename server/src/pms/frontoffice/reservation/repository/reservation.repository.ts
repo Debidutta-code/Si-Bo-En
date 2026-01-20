@@ -1,5 +1,4 @@
 import { prisma } from "../../../../config";
-import { BookingStatus, Reservation } from "../../../../generated/prisma";
 import { IPaginatedResponse } from "../../../../utils/return";
 import {
     ICReservation,
@@ -8,6 +7,7 @@ import {
     IReservationPriceBrakeDownR,
     IAriManulupulation
 } from "../types";
+import { BookingStatus } from "../types/reservation.type";
 
 export class ReservationRepository {
     public async createReservation(data: ICReservation) {

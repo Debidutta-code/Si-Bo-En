@@ -1,5 +1,5 @@
-import { Decimal } from "../../../../generated/prisma/runtime/library";
-import { BookingStatus, BookingSource, PaymentMethod, CurrencyCode } from "../../../../generated/prisma";
+import { BookingSource, BookingStatus, CurrencyCode, PaymentMethod } from "@prisma/client";
+import { Decimal } from "@prisma/client/runtime/library";
 
 // ==================== PAYLOAD TYPES ====================
 export interface ICreateReservationPayload {

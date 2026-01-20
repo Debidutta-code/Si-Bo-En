@@ -1,6 +1,5 @@
 import createAxiosInstance from "@/components/axiosInstance";
 import type { IAddonCreate, IAddonUpdate } from "../interface"
-import { data } from "react-router-dom";
 const axiosInstance = createAxiosInstance();
 export const fetchAddOns = async (propertyId: string) => {
     try {

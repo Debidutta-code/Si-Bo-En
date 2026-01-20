@@ -207,4 +207,61 @@ export class UserController {
         .json(errorResponse('Internal Server Error', error?.message));
     }
   }
+
+    public static async forgotPassword(req: CustomRequest, res: Response) {
+    try {
+      const { email, useLinkMethod } = req.body;
+      
+      if (!email) {
+        return res.status(400).json(errorResponse('Email is required'));
+      }
+
+      let result;
+      
+      // Check if user wants link-based reset or OTP-based reset
+      if (useLinkMethod) {
+        result = await AuthService.sendPasswordResetLink(email);
+      } else {
+        result = await AuthService.sendPasswordResetOTP(email);
+      }
+      
+      return res.status(result.success ? 200 : 400).json(result);
+    } catch (error: any) {
+      return res.status(500).json(errorResponse('Internal Server Error', error?.message));
+    }
+  }
+
+  // Verify OTP
+  public static async verifyResetOTP(req: CustomRequest, res: Response) {
+    try {
+      const { email, otp } = req.body;
+      
+      if (!email || !otp) {
+        return res.status(400).json(errorResponse('Email and OTP are required'));
+      }
+
+      const result = await AuthService.verifyPasswordResetOTP(email, otp);
+      
+      return res.status(result.success ? 200 : 400).json(result);
+    } catch (error: any) {
+      return res.status(500).json(errorResponse('Internal Server Error', error?.message));
+    }
+  }
+
+  // Reset Password
+  public static async resetPassword(req: CustomRequest, res: Response) {
+    try {
+      const { email, otp, newPassword } = req.body;
+      
+      if (!email || !otp || !newPassword) {
+        return res.status(400).json(errorResponse('Email, OTP, and new password are required'));
+      }
+
+      const result = await AuthService.resetPassword(email, newPassword);
+      
+      return res.status(result.success ? 200 : 400).json(result);
+    } catch (error: any) {
+      return res.status(500).json(errorResponse('Internal Server Error', error?.message));
+    }
+  }
 }

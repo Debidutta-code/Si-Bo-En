@@ -1,4 +1,4 @@
-import { Decimal } from "../../../../generated/prisma/runtime/library";
+import { Decimal } from "@prisma/client/runtime/library";
 import {IFolioLine} from "./folio-line.type";
 import {IPayment} from "./payment.type";
 export type FolioStatus="open"|"closed";

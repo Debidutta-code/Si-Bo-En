@@ -1,5 +1,5 @@
+import { PrismaClient } from "@prisma/client";
 import { connect } from "mongoose";
-import { PrismaClient } from "../generated/prisma";
 
 export async function connectMongo() {
   try {

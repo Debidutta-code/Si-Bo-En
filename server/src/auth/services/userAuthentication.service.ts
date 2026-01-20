@@ -4,7 +4,9 @@ import { assignToken, Role } from '../utills/jwtHelper';
 import { LoginBody, RegisterBody } from '../types/index';
 import { Types } from 'mongoose';
 import { errorResponse, successResponse } from '../../utils/return';
+import {emailService}  from '../../sms-email-service/service';
 import CreationService from './creation.service';
+import passwordResetTokenRepository from '../../sms-email-service/reposititory/password-reset-token.repository';
 export class AuthService {
   public static async loginUser(logInInfo: LoginBody) {
     try {
@@ -212,6 +214,91 @@ export class AuthService {
       }
     } catch (error: any) {
       return errorResponse("Error occur while mapping user", error?.message)
+    }
+  }
+    public static async sendPasswordResetOTP(email: string) {
+    try {
+      // Check if user exists
+      const user = await UserAuthRepository.findUserByEmail(email);
+      if (!user) {
+        return errorResponse('No user found with this email address');
+      }
+
+      // Send OTP via email service
+      const result = await emailService.sendOTPEmail(email, 'password_reset');
+      
+      if (result.success) {
+        return successResponse('OTP sent successfully to your email');
+      } else {
+        return errorResponse(result.message);
+      }
+    } catch (error: any) {
+      return errorResponse('Failed to send OTP', error?.message);
+    }
+  }
+
+  public static async sendPasswordResetLink(email: string) {
+    try {
+      // Check if user exists
+      const user = await UserAuthRepository.findUserByEmail(email);
+      if (!user) {
+        return errorResponse('No user found with this email address');
+      }
+
+      // Generate reset token
+      const resetToken = await passwordResetTokenRepository.createResetToken(email);
+
+      // Send reset link via email service
+      const result = await emailService.sendPasswordResetLink(email, resetToken);
+      
+      if (result.success) {
+        return successResponse('Password reset link sent successfully to your email');
+      } else {
+        return errorResponse(result.message);
+      }
+    } catch (error: any) {
+      return errorResponse('Failed to send password reset link', error?.message);
+    }
+  }
+
+  public static async verifyPasswordResetOTP(email: string, otp: string) {
+    try {
+      const result = await emailService.verifyOTP(email, otp, 'password_reset');
+      
+      if (result.success) {
+        return successResponse('OTP verified successfully');
+      } else {
+        return errorResponse(result.message);
+      }
+    } catch (error: any) {
+      return errorResponse('Failed to verify OTP', error?.message);
+    }
+  }
+
+  public static async resetPassword(email: string, newPassword: string) {
+    try {
+      
+      // Get user
+      const user = await UserAuthRepository.findUserByEmail(email);
+      if (!user) {
+        return errorResponse('User not found');
+      }
+
+      // Check if new password is same as old password
+      const isOldPassword = await compareHash(newPassword, user.password);
+      if (isOldPassword) {
+        return errorResponse('New password cannot be the same as your current password');
+      }
+
+      // Hash new password
+      const hashedPassword = await createHash(newPassword);
+
+      // Update password
+      await UserAuthRepository.updateUser(user.id, { password: hashedPassword });
+
+      return successResponse('Password updated successfully');
+    } catch (error: any) {
+      return errorResponse('Failed to reset password', error?.message);
     }
   }
 }

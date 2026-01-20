@@ -22,5 +22,9 @@ const config={
     cloudinaryName:process.env.CLOUDINARY_NAME,
     cloudinaryKey:process.env.CLOUDINARY_KEY,
     cloudinarySecrete:process.env.CLOUDINARY_SECRETE,
+
+    senderEmail:process.env.EMAIL_USER,
+    senderName:process.env.SENDER_NAME,
+    senderEmailPassword:process.env.EMAIL_SERVICE_PASSWORD,
 }
 export default config;

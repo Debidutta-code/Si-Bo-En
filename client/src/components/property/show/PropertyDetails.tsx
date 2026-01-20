@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { type IPropertyDetails } from "../types/types";
 import { getPropertyDetails } from "../api/show/propertyDetails";
 import { Button } from "../../ui/button";
-import { PenTool, X, AlertCircle, CheckCircle, Mail, Phone, MapPin, Tag, House } from "lucide-react";
+import { PenTool, X, AlertCircle, CheckCircle, Mail, Phone, Tag, House } from "lucide-react";
 import ExpandableDescription from "@/components/ExplandableDescription";
 import {
   AlertDialog,
@@ -34,6 +34,7 @@ export default function PropertyDetails({
     propertyName: "",
     description: "",
     propertyEmail: "",
+    propertyCode: "",
     destinationType: {
       masterDestinationType: {
         id: "",
@@ -77,6 +78,7 @@ export default function PropertyDetails({
         setPropertyDetails({
           propertyName: data.propertyName,
           description: data.description,
+          propertyCode: data.propertyCode,
           destinationType: data.destinationType,
           propertyCategory: data.propertyCategory,
           propertyContact: data.propertyContact,
@@ -262,7 +264,15 @@ export default function PropertyDetails({
                   {propertyDetails.propertyType?.masterPropertyType?.propertyTypeName || "Not specified"}
                 </span>
               </div>
-              
+              <div className="flex items-start justify-between py-3 border-b border-gray-100 last:border-0">
+                <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                  <House className="h-4 w-4 text-gray-400" />
+                  Property Code
+                </span>
+                <span className="text-sm text-gray-900 font-medium text-right">
+                  {propertyDetails.propertyCode}
+                </span>
+              </div>
               <div className="flex items-start justify-between py-3 border-b border-gray-100 last:border-0">
                 <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
                   <Tag className="h-4 w-4 text-gray-400" />
@@ -270,16 +280,6 @@ export default function PropertyDetails({
                 </span>
                 <span className="text-sm text-gray-900 font-medium text-right">
                   {propertyDetails.propertyCategory?.masterCategory?.categoryName || "Not specified"}
-                </span>
-              </div>
-              
-              <div className="flex items-start justify-between py-3 border-b border-gray-100 last:border-0">
-                <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                  <MapPin className="h-4 w-4 text-gray-400" />
-                  Destination
-                </span>
-                <span className="text-sm text-gray-900 font-medium text-right">
-                  {propertyDetails.destinationType?.masterDestinationType?.destinationTypeName || "Not specified"}
                 </span>
               </div>
             </div>
