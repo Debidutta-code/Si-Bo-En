@@ -92,6 +92,8 @@ const Rooms = () => {
   const [selectedBoardType, setSelectedBoardType] = useState("all");
   const [selectedCurrency, setSelectedCurrency] = useState(currency || "USD");
   const [showUrgencyBanner, setShowUrgencyBanner] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true); // NEW: For initial page load
+  const [isExternalRequest, setIsExternalRequest] = useState(false); // Track if loading from external source
   const dispatch = useDispatch();
   const router = useRouter();
   const rooms = useSelector((state: RootState) => state.rooms.rooms);
@@ -112,10 +114,13 @@ const Rooms = () => {
   const [errorRooms, setErrorRooms] = useState<string | null>(null);
   const [loadingRooms, setLoadingRooms] = useState<boolean>(false);
   const [loadingBookNow, setLoadingBookNow] = useState<string | null>(null);
-  const postMessageHandledRef = useRef(false);
+  const initializedRef = useRef(false); // Prevent double initialization
   const [roomsData, setRoomsData] = useState<any[]>([]);
   const [addons, setAddons] = useState<any[]>([]);
   const [propertyDetails, setPropertyDetails] = useState<any>(null);
+
+  // Ref to track if we're loading from external source
+  const isLoadingFromExternal = useRef(false);
 
   // Price summary sidebar state
   const [showPriceSummary, setShowPriceSummary] = useState(false);
@@ -144,12 +149,13 @@ const Rooms = () => {
     setPriceSummaryData(data);
     setShowPriceSummary(true);
   };
+
   const handleBookNow = async (room: Room, ratePlan: any, selectedAddonsList: any[]) => {
     setLoadingBookNow(`${room.id}-${ratePlan.ratePlanCode}`);
     setLoadingPrice(true);
     setErrorPrice(null);
 
-    const rawRooms = bookingContext.guests?.rooms;
+    const rawRooms = bookingContext.numberOfRooms || bookingContext.guests?.rooms;
     let allGuests: Guest[] = [];
     let noOfAdults = 1;
     let noOfChildrens = 0;
@@ -212,7 +218,6 @@ const Rooms = () => {
       noOfRooms,
     };
 
-    // Add addons to payload if selected
     if (selectedAddonsList && selectedAddonsList.length > 0) {
       payload.addons = selectedAddonsList.map(addon => ({
         addonId: addon.addonId,
@@ -245,15 +250,11 @@ const Rooms = () => {
         return;
       }
 
-      console.log("Price fetch response data:", data);
-
       setFinalPrice(data.data);
       setPrice(data?.data?.totalAmount || null);
       setBookingRoom(room);
       setCurrentRatePlan(ratePlan);
       setSelectedAddons(selectedAddonsList);
-
-      // Hide price summary when showing guest modal
       setShowPriceSummary(false);
     } catch (error: any) {
       const errMsg =
@@ -289,153 +290,318 @@ const Rooms = () => {
     setContactInfo((prev) => ({ ...prev, [field]: value }));
   };
 
-const handleSearchStart = async (payload: any) => {
-  setLoadingRooms(true);
-  setErrorRooms("");
-  dispatch({ type: "rooms/setRooms", payload: [] });
-  setRoomsData([]);
-  setAddons([]);
-  setPropertyDetails(null);
-
-  // Reset price summary when new search
-  setShowPriceSummary(false);
-  setPriceSummaryData(null);
-
-  const bookingCtx = payload || bookingContext;
-  if (!bookingCtx?.PropertyCode) {
-    setLoadingRooms(false);
-    return;
-  }
-
-  try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/fetch-rooms`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(bookingCtx),
-      }
-    );
-    const data = await response.json();
-
-    if (!response.ok || data.status === "fail") {
-      const msg = data.message || "Failed to load rooms.";
-      toast.error(msg);
-      dispatch({ type: "rooms/setRooms", payload: [] });
+  const handleSearchStart = async (payload: any) => {
+    const bookingCtx = payload || bookingContext;
+    
+    // ✅ Validate required fields before making API call
+    if (!bookingCtx?.PropertyCode) {
+      console.error("❌ Missing PropertyCode");
+      setInitialLoading(false);
+      return;
+    }
+    
+    if (!bookingCtx?.startDate || !bookingCtx?.endDate) {
+      console.error("❌ Missing dates");
+      setInitialLoading(false);
+      return;
+    }
+    
+    if (!bookingCtx?.guests || typeof bookingCtx.guests.rooms !== 'number') {
+      console.error("❌ Invalid guests data");
+      setInitialLoading(false);
       return;
     }
 
-    // Extract property details from API response
-    const propertyDetails = data.data?.propertyDetails;
-
-    // Create booking engine color object from config
-    const bookingEngineColor = propertyDetails?.bookingEngineConfig ? {
-      primaryColor: propertyDetails.bookingEngineConfig.primaryColor,
-      secondaryColor: propertyDetails.bookingEngineConfig.secondaryColor,
-      tertiaryColor: propertyDetails.bookingEngineConfig.tertiaryColor,
-      buttonTextColor: propertyDetails.bookingEngineConfig.buttonTextColor,
-      bgImage: propertyDetails.bookingEngineConfig.bannerImage,
-      logo: propertyDetails.bookingEngineConfig.logo
-    } : undefined;
-
-    const updatedContext = {
-      ...bookingCtx,
-      hotelName: data.propertyName || propertyDetails?.propertyName,
-      PropertyDetails: propertyDetails,
-      bookingEngineColor: bookingEngineColor,
-    };
-
-    dispatch(setBookingContext(updatedContext));
-    localStorage.setItem("bookingContext", JSON.stringify(updatedContext));
-
-    // ✅ UPDATE bookingstorage with new colors OR set to defaults if no config
-    if (bookingEngineColor) {
-      const bookingStorage = {
-        colors: {
-          primaryColor: bookingEngineColor.primaryColor,
-          secondaryColor: bookingEngineColor.secondaryColor,
-          tertiaryColor: bookingEngineColor.tertiaryColor,
-          buttonTextColor: bookingEngineColor.buttonTextColor,
-          logoIcon: null
-        },
-        logoIcon: bookingEngineColor.logo
-      };
-      localStorage.setItem("bookingstorage", JSON.stringify(bookingStorage));
-    } else {
-      // ✅ Set to default colors if no config
-      const defaultBookingStorage = {
-        colors: {
-          primaryColor: "#2F2A1F",
-          secondaryColor: "#E8DFC9",
-          tertiaryColor: "#7D7566",
-  buttonTextColor: "#FFFFFF",  // ✅ White text for better contrast
-          logoIcon: null
-        },
-        logoIcon: null
-      };
-      localStorage.setItem("bookingstorage", JSON.stringify(defaultBookingStorage));
-    }
-
-    dispatch({ type: "rooms/setRooms", payload: data.data || [] });
-    setRoomsData(data.data?.rooms || []);
-    setAddons(data.addons || []);
-    setPropertyDetails(propertyDetails || null);
-
-  } catch (err: any) {
-    console.error(err);
-    toast.error(err.message || "Something went wrong while fetching rooms.");
+    setLoadingRooms(true);
+    setErrorRooms("");
     dispatch({ type: "rooms/setRooms", payload: [] });
-  } finally {
-    setLoadingRooms(false);
-  }
-};
+    setRoomsData([]);
+    setAddons([]);
+    setPropertyDetails(null);
+    setShowPriceSummary(false);
+    setPriceSummaryData(null);
+
+    console.log("🚀 Sending API request with:", bookingCtx);
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/fetch-rooms`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(bookingCtx),
+        }
+      );
+      const data = await response.json();
+
+      if (!response.ok || data.status === "fail") {
+        const msg = data.message || "Failed to load rooms.";
+        toast.error(msg);
+        dispatch({ type: "rooms/setRooms", payload: [] });
+        return;
+      }
+
+      const propertyDetails = data.data?.propertyDetails;
+
+      const bookingEngineColor = propertyDetails?.bookingEngineConfig ? {
+        primaryColor: propertyDetails.bookingEngineConfig.primaryColor,
+        secondaryColor: propertyDetails.bookingEngineConfig.secondaryColor,
+        tertiaryColor: propertyDetails.bookingEngineConfig.tertiaryColor,
+        buttonTextColor: propertyDetails.bookingEngineConfig.buttonTextColor,
+        bgImage: propertyDetails.bookingEngineConfig.bannerImage,
+        logo: propertyDetails.bookingEngineConfig.logo
+      } : undefined;
+
+      const updatedContext = {
+        ...bookingCtx,
+        hotelName: data.propertyName || propertyDetails?.propertyName,
+        PropertyDetails: propertyDetails,
+        bookingEngineColor: bookingEngineColor,
+      };
+
+      dispatch(setBookingContext(updatedContext));
+      localStorage.setItem("bookingContext", JSON.stringify(updatedContext));
+
+      if (bookingEngineColor) {
+        const bookingStorage = {
+          colors: {
+            primaryColor: bookingEngineColor.primaryColor,
+            secondaryColor: bookingEngineColor.secondaryColor,
+            tertiaryColor: bookingEngineColor.tertiaryColor,
+            buttonTextColor: bookingEngineColor.buttonTextColor,
+            logoIcon: null
+          },
+          logoIcon: bookingEngineColor.logo
+        };
+        localStorage.setItem("bookingstorage", JSON.stringify(bookingStorage));
+      } else {
+        const defaultBookingStorage = {
+          colors: {
+            primaryColor: "#2F2A1F",
+            secondaryColor: "#E8DFC9",
+            tertiaryColor: "#7D7566",
+            buttonTextColor: "#FFFFFF",
+            logoIcon: null
+          },
+          logoIcon: null
+        };
+        localStorage.setItem("bookingstorage", JSON.stringify(defaultBookingStorage));
+      }
+
+      dispatch({ type: "rooms/setRooms", payload: data.data || [] });
+      setRoomsData(data.data?.rooms || []);
+      setAddons(data.addons || []);
+      setPropertyDetails(propertyDetails || null);
+
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.message || "Something went wrong while fetching rooms.");
+      dispatch({ type: "rooms/setRooms", payload: [] });
+    } finally {
+      setLoadingRooms(false);
+      setInitialLoading(false); // ✅ Always turn off loader after API call
+    }
+  };
 
   const searchParams = useSearchParams();
 
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data.type === "bookingData") {
-        const payload = event.data.payload;
-        postMessageHandledRef.current = true;
-        dispatch(setBookingContext(payload));
-        dispatch(setSenderUrl(event.origin));
-        sessionStorage.setItem("senderUrl", event.origin);
-        localStorage.setItem("bookingContext", JSON.stringify(payload));
-        handleSearchStart(payload);
-      }
-    };
+  // NEW: Get booking data from URL params
+  const getBookingDataFromParams = () => {
+    const code = searchParams.get("code");
+    const checkin = searchParams.get("checkin");
+    const checkout = searchParams.get("checkout");
+    const adults = searchParams.get("adults");
+    const children = searchParams.get("children");
+    const rooms = searchParams.get("rooms");
 
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, [dispatch]);
-
-  useEffect(() => {
-    if (postMessageHandledRef.current) return;
-
-    const initBookingContext = async () => {
-      const urlCode = searchParams.get("code") || "WOQDD3";
-      const storedContext = localStorage.getItem("bookingContext");
-      const parsedContext = storedContext ? JSON.parse(storedContext) : {};
-
+    // Check if we have external params (checkin/checkout indicates external source)
+    const hasExternalParams = !!(code && (checkin || checkout || adults || children || rooms));
+    
+    if (hasExternalParams) {
+      // Will be set in the initialization useEffect
       const today = new Date();
       today.setDate(today.getDate() + 1);
       const tomorrow = new Date(today);
       tomorrow.setDate(today.getDate() + 1);
 
+      const defaultStartDate = today.toISOString().split("T")[0];
+      const defaultEndDate = tomorrow.toISOString().split("T")[0];
+
+      // Parse rooms data from localStorage if available
+      let roomsArray = [];
+      const numRooms = parseInt(rooms || "1");
+      
+      try {
+        const storedContext = localStorage.getItem("bookingContext");
+        if (storedContext) {
+          const parsed = JSON.parse(storedContext);
+          if (parsed.guests?.rooms && Array.isArray(parsed.guests.rooms)) {
+            roomsArray = parsed.guests.rooms;
+          } else if (parsed.roomsDetail && Array.isArray(parsed.roomsDetail)) {
+            roomsArray = parsed.roomsDetail;
+          }
+        }
+      } catch (e) {
+        console.error("Error parsing localStorage:", e);
+      }
+
+      // If no rooms array, create default structure
+      if (roomsArray.length === 0) {
+        const totalAdults = parseInt(adults || "1");
+        const totalChildren = parseInt(children || "0");
+        
+        // Distribute guests across rooms
+        for (let i = 0; i < numRooms; i++) {
+          roomsArray.push({
+            adults: i === 0 ? totalAdults : 0,
+            children: i === 0 ? totalChildren : 0
+          });
+        }
+      }
+
+      return {
+        PropertyCode: code,
+        startDate: checkin || defaultStartDate,
+        endDate: checkout || defaultEndDate,
+        guests: {
+          rooms: numRooms, // ✅ Always send as number for API
+          adults: parseInt(adults || "1"),
+          children: parseInt(children || "0")
+        },
+        roomsDetail: roomsArray, // ✅ Keep detailed array separately
+        location: "",
+        numberOfRooms: numRooms,
+        isExternal: true // Mark this as external request
+      };
+    }
+
+    return null;
+  };
+
+  // NEW: Initialize booking context from URL params or localStorage
+  useEffect(() => {
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+
+    const initBookingContext = async () => {
+      // Get default dates
+      const today = new Date();
+      today.setDate(today.getDate() + 1);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+
+      const defaultStartDate = today.toISOString().split("T")[0];
+      const defaultEndDate = tomorrow.toISOString().split("T")[0];
+
+      // First, try to get data from URL params
+      const paramsData = getBookingDataFromParams();
+      
+      if (paramsData) {
+        // Data from external source (URL params)
+        console.log("📥 Loading from URL params:", paramsData);
+        
+        // Mark as external and show loader
+        setIsExternalRequest(true);
+        setInitialLoading(true);
+        isLoadingFromExternal.current = true; // Prevent SearchWidget from triggering
+        
+        // Ensure dates are set
+        const contextWithDates = {
+          ...paramsData,
+          startDate: paramsData.startDate || defaultStartDate,
+          endDate: paramsData.endDate || defaultEndDate,
+          numberOfRooms: paramsData.numberOfRooms || 1,
+          location: paramsData.location || ""
+        };
+        
+        dispatch(setBookingContext(contextWithDates));
+        localStorage.setItem("bookingContext", JSON.stringify(contextWithDates));
+        await handleSearchStart(contextWithDates);
+        isLoadingFromExternal.current = false; // Allow SearchWidget after initial load
+      } else {
+        // No URL params, check localStorage
+        const storedContext = localStorage.getItem("bookingContext");
+        
+        if (storedContext) {
+          const parsedContext = JSON.parse(storedContext);
+          
+          // Validate stored context has required fields
+          const validatedContext = {
+            ...parsedContext,
+            PropertyCode: parsedContext.PropertyCode || searchParams.get("code") || "WOQDD3",
+            startDate: parsedContext.startDate || defaultStartDate,
+            endDate: parsedContext.endDate || defaultEndDate,
+            guests: parsedContext.guests || {
+              rooms: 1,
+              adults: 1,
+              children: 0
+            },
+            location: parsedContext.location || "",
+            numberOfRooms: parsedContext.numberOfRooms || parsedContext.guests?.rooms || 1
+          };
+          
+          console.log("💾 Loading from localStorage:", validatedContext);
+          dispatch(setBookingContext(validatedContext));
+          localStorage.setItem("bookingContext", JSON.stringify(validatedContext));
+          await handleSearchStart(validatedContext);
+        } else {
+          // No data at all, create default
+          const urlCode = searchParams.get("code") || "WOQDD3";
+
+          const defaultContext = {
+            PropertyCode: urlCode,
+            startDate: defaultStartDate,
+            endDate: defaultEndDate,
+            guests: {
+              rooms: 1,
+              adults: 1,
+              children: 0
+            },
+            location: "",
+            numberOfRooms: 1
+          };
+
+          console.log("🆕 Creating default context:", defaultContext);
+          dispatch(setBookingContext(defaultContext));
+          localStorage.setItem("bookingContext", JSON.stringify(defaultContext));
+          await handleSearchStart(defaultContext);
+        }
+      }
+    };
+
+    initBookingContext();
+  }, []);
+
+  // Handle property code changes
+  useEffect(() => {
+    if (!initializedRef.current) return; // Only run after initialization
+    if (isLoadingFromExternal.current) return; // Don't run during external load
+    
+    const urlCode = searchParams.get("code");
+    
+    if (urlCode && urlCode !== bookingContext.PropertyCode) {
+      console.log("🔄 Property code changed in URL:", urlCode);
+      
+      // Ensure we have valid dates
+      const today = new Date();
+      today.setDate(today.getDate() + 1);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+      
       const updatedContext = {
-        ...parsedContext,
+        ...bookingContext,
         PropertyCode: urlCode,
-        startDate: parsedContext.startDate || today.toISOString().split("T")[0],
-        endDate: parsedContext.endDate || tomorrow.toISOString().split("T")[0],
+        startDate: bookingContext.startDate || today.toISOString().split("T")[0],
+        endDate: bookingContext.endDate || tomorrow.toISOString().split("T")[0],
+        numberOfRooms: bookingContext.numberOfRooms || bookingContext.guests?.rooms || 1,
+        location: bookingContext.location || ""
       };
 
       dispatch(setBookingContext(updatedContext));
       localStorage.setItem("bookingContext", JSON.stringify(updatedContext));
-      await handleSearchStart(updatedContext);
-    };
-
-    initBookingContext();
-  }, [dispatch, searchParams]);
+      handleSearchStart(updatedContext);
+    }
+  }, [searchParams.get("code")]);
 
   const bgImage =
     bookingContext?.bookingEngineColor?.bgImage ||
@@ -456,15 +622,11 @@ const handleSearchStart = async (payload: any) => {
 
   const { primaryColor } = useBookingColors();
 
-  // Close handler for urgency banner
   const handleCloseUrgencyBanner = () => {
     setShowUrgencyBanner(false);
-
-    // Optional: Save to localStorage so it doesn't show again
     localStorage.setItem('urgencyBannerDismissed', 'true');
   };
 
-  // Optional: Initialize banner visibility from localStorage
   useEffect(() => {
     const isDismissed = localStorage.getItem('urgencyBannerDismissed');
     if (isDismissed === 'true') {
@@ -472,39 +634,7 @@ const handleSearchStart = async (payload: any) => {
       localStorage.setItem('urgencyBannerDismissed', 'false');
     }
   }, []);
-useEffect(() => {
-  const urlCode = searchParams.get("code");
-  
-  // Skip if no code or it's the same as current
-  if (!urlCode || urlCode === bookingContext.PropertyCode) {
-    return;
-  }
 
-  console.log("🔄 Property code changed in URL:", urlCode);
-
-  const storedContext = localStorage.getItem("bookingContext");
-  const parsedContext = storedContext ? JSON.parse(storedContext) : {};
-
-  const updatedContext = {
-    ...parsedContext,
-    ...bookingContext, // Keep current context data
-    PropertyCode: urlCode, // Update only the property code
-  };
-
-  dispatch(setBookingContext(updatedContext));
-  localStorage.setItem("bookingContext", JSON.stringify(updatedContext));
-  handleSearchStart(updatedContext);
-}, [searchParams.get("code")]);
-  // console.log("Rooms data:", roomsData);
-  // console.log("Booking context:", bookingContext);
-  // console.log("Property details:", propertyDetails);
-  // console.log("Addons:", addons);
-  // console.log("Final price:", finalPrice);
-  // console.log("Price summary data:", priceSummaryData);
-  // console.log("Selected board type:", selectedBoardType);
-  // console.log("Selected currency:", selectedCurrency);
-
-  // Extract unique board types from all rooms
   const availableBoardTypes = Array.from(
     new Set(
       roomsData
@@ -515,10 +645,21 @@ useEffect(() => {
     )
   );
 
-  // Add this function
   const handleOpenUrgencyModal = () => {
     setUrgencyModalOpen(true);
   };
+
+  // NEW: Simple spinner loader for external requests only
+  if (initialLoading && isExternalRequest) {
+    return (
+      <div className="fixed inset-0 flex items-center justify-center bg-white z-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-300 border-t-blue-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600 text-lg">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full">
@@ -530,25 +671,27 @@ useEffect(() => {
       <div
         className={`min-h-screen bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${loaded ? "opacity-100" : "opacity-0"
           }`}
-        // style={{ backgroundImage: `url(${bgImage})` }}
         onLoad={() => setLoaded(true)}
       >
         <div className="sticky top-0 z-40 bg-white/90 backdrop-blur shadow-sm">
-          <SearchWidget
-            onSearchStart={handleSearchStart} />
+          <SearchWidget 
+            onSearchStart={(payload) => {
+              // Don't trigger if we're loading from external source
+              if (!isLoadingFromExternal.current) {
+                handleSearchStart(payload);
+              }
+            }} 
+          />
         </div>
 
         <div className="px-4 pb-2">
           <div className="max-w-7xl mx-auto mt-10">
             <div className="flex gap-6">
-              {/* Main Content - Rooms List */}
               <div className={`flex-1 ${showPriceSummary ? 'lg:w-2/3' : 'w-full'} transition-all duration-300`}>
-                {/* Urgency Banner */}
                 {showUrgencyBanner && (
                   <div className="relative mb-8">
                     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
                       <div className="relative">
-                        {/* Close button */}
                         <button
                           className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors z-10"
                           onClick={handleCloseUrgencyBanner}
@@ -559,7 +702,6 @@ useEffect(() => {
                           </svg>
                         </button>
 
-                        {/* Main Text - moved up to make room for the clock icon */}
                         <div className="text-center px-6 pt-12 pb-4">
                           <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
                             YOU WILL GET THE BEST AVAILABLE PRICE IF YOU BOOK NOW!
@@ -571,14 +713,12 @@ useEffect(() => {
                       </div>
                     </div>
 
-                    {/* Clock Icon positioned above the plus icon */}
                     <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-20">
                       <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center shadow-md border border-amber-200">
                         <MessageCircle />
                       </div>
                     </div>
 
-                    {/* Plus Icon - Clickable */}
                     <div
                       className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 z-10 cursor-pointer"
                       onClick={handleOpenUrgencyModal}
@@ -590,10 +730,8 @@ useEffect(() => {
                   </div>
                 )}
 
-                {/* Filter Section */}
                 <div className="mb-6 bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
                   <div className="flex flex-col md:flex-row md:items-center gap-4">
-                    {/* Room Types Info */}
                     <div className="flex items-center gap-2 flex-1">
                       <Building2 className="w-5 h-5 text-gray-700" />
                       <span className="text-sm md:text-base font-medium text-gray-900">
@@ -601,7 +739,6 @@ useEffect(() => {
                       </span>
                     </div>
 
-                    {/* Date and Night Info */}
                     <div className="flex items-center gap-4 text-sm text-gray-600">
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4" />
@@ -619,18 +756,14 @@ useEffect(() => {
                     </div>
                   </div>
 
-                  {/* Filter Dropdowns */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    {/* Board Type Filter */}
                     <Select value={selectedBoardType} onValueChange={setSelectedBoardType}>
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="Select board type" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="all">All board types</SelectItem>
-
                         {availableBoardTypes.map((boardType) => {
-                          // Create a slug-like value for filtering (you'll use this later in RoomCard filtering)
                           const value = boardType
                             .toLowerCase()
                             .replace(/ & /g, "-")
@@ -645,23 +778,6 @@ useEffect(() => {
                         })}
                       </SelectContent>
                     </Select>
-
-                    {/* Currency Filter */}
-                    {/* <Select value={selectedCurrency} onValueChange={(value) => {
-                      setSelectedCurrency(value);
-                      dispatch(setCurrency(value));
-                    }}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select currency" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="AED">United Arab Emirates dirham (د.إ)</SelectItem>
-                        <SelectItem value="USD">United States Dollar ($)</SelectItem>
-                        <SelectItem value="EUR">Euro (€)</SelectItem>
-                        <SelectItem value="GBP">British Pound (£)</SelectItem>
-                        <SelectItem value="INR">Indian Rupee (₹)</SelectItem>
-                      </SelectContent>
-                    </Select> */}
                   </div>
                 </div>
 
@@ -688,14 +804,7 @@ useEffect(() => {
                     </div>
                   ) : (
                     <div>
-                      {/* <h1
-                        className="text-2xl font-semibold mb-6 mt-6"
-                        style={{ color: primaryColor }}
-                      >
-                        Available Rooms
-                      </h1> */}
-
-                      <div className="space-y-8  rounded-xl md:p-4">
+                      <div className="space-y-8 rounded-xl md:p-4">
                         {roomsData
                           .filter((room: Room) => room.has_valid_rate)
                           .map((room: Room) => (
@@ -717,7 +826,6 @@ useEffect(() => {
                 </div>
               </div>
 
-              {/* Price Summary Sidebar */}
               {showPriceSummary && priceSummaryData && (
                 <div className="hidden lg:block lg:w-82 xl:w-96">
                   <PriceSummarySidebar

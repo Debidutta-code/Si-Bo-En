@@ -95,7 +95,7 @@ const CreateEntityDialog = ({ currentTab, creationId, level ,fetchProperties}: {
                         </label>
                         <Input
                             id="entity-name"
-                            placeholder={`Enter ${newGBP.type.slice(0, -1)} name`}
+                            placeholder={`Enter ${newGBP.type} name`}
                             value={newGBP.name}
                             onChange={(e) => setNewGBP({ ...newGBP, name: e.target.value })}
                             className="mt-1"

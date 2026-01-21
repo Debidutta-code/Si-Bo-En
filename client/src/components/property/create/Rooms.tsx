@@ -156,7 +156,7 @@ export default function Rooms() {
   }
   return (
     <>
-<div className="bg-gradient-to-br from-gray-50 via-white to-gray-100">
+<div className="bg-gradient-to-br from-gray-50 via-white to-gray-100 max-h-[90vh] overflow-y-auto">
         <div className="max-w-7xl mx-auto">
           <div className="bg-white rounded-3xl shadow-xl border border-gray-200">
             <div className="p-8 sm:p-12 bg-white">

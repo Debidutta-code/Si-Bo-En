@@ -101,7 +101,7 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
   // Rates sub-items
   const ratesItems = [
     { name: 'RatePlan', href: `/property/rate-plan/${propertyId}` },
-    { name: 'Rate Plan Allortment', href: `/property/rate-plan/map/${propertyId}` },
+    { name: 'Rate Plan Allotment', href: `/property/rate-plan/map/${propertyId}` },
     { name: 'Calender-View', href: `/property/calender-view/${propertyId}` },
     { name: 'Inventory', href: `/property/inventory/${propertyId}`, icon: Building, userLevels: [1, 0, 2, 3, 4] },
 
