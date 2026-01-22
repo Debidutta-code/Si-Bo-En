@@ -54,27 +54,38 @@ export class ReservationController {
         }
     }
 
-    // public async getReservationsForADate(req: CustomRequest, res: Response): Promise<Response> {
-    //     try {
-    //         const propertyId = req.params.propertyId;
-    //         const date = req.query.date as string;
+   public async updateReservation(req: CustomRequest, res: Response): Promise<Response> {
+    try {
+        const reservationCode = req.params.reservationCode;
+        const updateData = req.body;
 
-    //         if (!propertyId) {
-    //             return res.status(400).json(errorResponse("Property id is required"));
-    //         }
-    //         if (!date) {
-    //             return res.status(400).json(errorResponse("Date is required"));
-    //         }
+        if (!reservationCode) {
+            return res.status(400).json(errorResponse("Reservation code is required"));
+        }
 
-    //         const serRes = await this.reservationService.getReservationsForADate(propertyId, new Date(date));
-    //         return res.status(serRes.success ? 200 : 400).json(serRes);
-    //     } catch (error) {
-    //         if (error instanceof Error) {
-    //             return res.status(500).json(errorResponse("Failed to fetch Reservations", error.message));
-    //         }
-    //         return res.status(500).json(errorResponse("Internal server Error"));
-    //     }
-    // }
+        if (!updateData) {
+            return res.status(400).json(errorResponse("Update data is required"));
+        }
+
+        // Validate required fields
+        if (!updateData.propertyCode || !updateData.checkInDate || !updateData.checkOutDate) {
+            return res.status(400).json(errorResponse("Missing required fields: propertyCode, checkInDate, checkOutDate"));
+        }
+
+        console.log("Updating reservation:", reservationCode, "with data:", JSON.stringify(updateData, null, 2));
+
+        const serviceRes = await this.reservationService.updateReservation(reservationCode, updateData);
+
+        return res.status(serviceRes.success ? 200 : 400).json(serviceRes);
+    } catch (error) {
+        console.error("Controller error updating reservation:", error);
+        if (error instanceof Error) {
+            return res.status(500).json(errorResponse("Failed to update reservation", error.message));
+        }
+        return res.status(500).json(errorResponse("Failed to update reservation"));
+    }
+} 
+
 public async getReservationsForADate(req: CustomRequest, res: Response): Promise<Response> {
     try {
         // Check user authentication and creation assignment
@@ -127,94 +138,6 @@ public async getReservationsForADate(req: CustomRequest, res: Response): Promise
         return res.status(500).json(errorResponse("Internal server Error"));
     }
 }
-
-    // public async getArrivalsForADate(req: CustomRequest, res: Response): Promise<Response> {
-    //     try {
-    //         const propertyId = req.params.propertyId as string;
-    //         const date = req.query.date as string;
-
-    //         if (!propertyId) {
-    //             return res.status(400).json(errorResponse("Property id is required"));
-    //         }
-    //         if (!date) {
-    //             return res.status(400).json(errorResponse("Date is required"));
-    //         }
-
-    //         const serRes = await this.reservationService.getArrivals(propertyId, new Date(date));
-    //         return res.status(serRes.success ? 200 : 400).json(serRes);
-    //     } catch (error) {
-    //         if (error instanceof Error) {
-    //             return res.status(500).json(errorResponse("Failed to fetch Arrivals", error.message));
-    //         }
-    //         return res.status(500).json(errorResponse("Internal server Error"));
-    //     }
-    // }
-
-    // public async getDeparturesForADate(req: CustomRequest, res: Response): Promise<Response> {
-    //     try {
-    //         const propertyId = req.params.propertyId;
-    //         const date = req.query.date as string;
-
-    //         if (!propertyId) {
-    //             return res.status(400).json(errorResponse("Property id is required"));
-    //         }
-    //         if (!date) {
-    //             return res.status(400).json(errorResponse("Date is required"));
-    //         }
-
-    //         const serRes = await this.reservationService.getDepartures(propertyId, new Date(date));
-    //         return res.status(serRes.success ? 200 : 400).json(serRes);
-    //     } catch (error) {
-    //         if (error instanceof Error) {
-    //             return res.status(500).json(errorResponse("Failed to fetch Departures", error.message));
-    //         }
-    //         return res.status(500).json(errorResponse("Internal server Error"));
-    //     }
-    // }
-
-    // public async getCheckInsForADate(req: CustomRequest, res: Response): Promise<Response> {
-    //     try {
-    //         const propertyId = req.params.propertyId as string;
-    //         const date = req.query.date as string;
-
-    //         if (!propertyId) {
-    //             return res.status(400).json(errorResponse("Property id is required"));
-    //         }
-    //         if (!date) {
-    //             return res.status(400).json(errorResponse("Date is required"));
-    //         }
-
-    //         const serRes = await this.reservationService.getCheckedInReservations(propertyId, new Date(date));
-    //         return res.status(serRes.success ? 200 : 400).json(serRes);
-    //     } catch (error) {
-    //         if (error instanceof Error) {
-    //             return res.status(500).json(errorResponse("Failed to fetch Check-Ins", error.message));
-    //         }
-    //         return res.status(500).json(errorResponse("Internal server Error"));
-    //     }
-    // }
-
-    // public async getCheckOutsForADate(req: CustomRequest, res: Response): Promise<Response> {
-    //     try {
-    //         const propertyId = req.params.propertyId as string;
-    //         const date = req.query.date as string;
-
-    //         if (!propertyId) {
-    //             return res.status(400).json(errorResponse("Property id is required"));
-    //         }
-    //         if (!date) {
-    //             return res.status(400).json(errorResponse("Date is required"));
-    //         }
-
-    //         const serRes = await this.reservationService.getCheckedOutReservations(propertyId, new Date(date));
-    //         return res.status(serRes.success ? 200 : 400).json(serRes);
-    //     } catch (error) {
-    //         if (error instanceof Error) {
-    //             return res.status(500).json(errorResponse("Failed to fetch Check-Outs", error.message));
-    //         }
-    //         return res.status(500).json(errorResponse("Internal server Error"));
-    //     }
-    // }
 
 public async getArrivalsForADate(req: CustomRequest, res: Response): Promise<Response> {
     try {

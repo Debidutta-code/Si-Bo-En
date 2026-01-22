@@ -18,13 +18,16 @@ import {
     IGuests,
     IPriceBreakdown,
     ITax,
-    ITaxBreakdown
+    ITaxBreakdown,
+IReservationModification,
+IReservationUpdatePayload,
+IUpdateReservationResult
 } from "./reservation.type";
 
 
 
 export{
-       BookingSource,
+    BookingSource,
     ICReservation,
     IReservation,
     IReservationWithAllDetails,
@@ -43,5 +46,8 @@ export{
     IGuests,
     IPriceBreakdown,
     ITax,
-    ITaxBreakdown
+    ITaxBreakdown,
+    IReservationModification,
+    IReservationUpdatePayload,
+    IUpdateReservationResult
 }

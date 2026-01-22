@@ -106,6 +106,9 @@ export class AuthService {
 
       } = data;
       password = await createHash(password);
+      if(role === "super_admin"){
+        return errorResponse("Cannot create Super Admin user")
+      }
       const existingUser = await UserAuthRepository.findUserByEmail(email);
       if (existingUser) {
         return errorResponse('User with this email already exists');

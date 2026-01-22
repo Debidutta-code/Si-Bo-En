@@ -27,34 +27,90 @@ export class ReservationRepository {
         }
     }
 
-    // public async getReservationForADate(propertyId: string, date: Date): Promise<IReservationWithAllDetails[]> {
-    //     try {
-    //         const start = new Date(date);
-    //         start.setHours(0, 0, 0, 0);
-    //         const end = this.getNextDate(start);
+  public async updateReservation(
+    reservationId: string, 
+    updateData: Partial<ICReservation>
+): Promise<IReservation> {
+    try {
+        return await prisma.reservation.update({
+            where: { id: reservationId },
+            data: updateData,
+            include: {
+                primaryGuest: true,
+                priceBreakdowns: true
+            }
+        });
+    } catch (error) {
+        if (error instanceof Error) {
+            throw new Error(`Failed to update reservation: ${error.message}`);
+        }
+        throw new Error("Failed to update reservation");
+    }
+}
 
-    //         return await prisma.reservation.findMany({
-    //             where: {
-    //                 propertyId,
-    //                 checkInDate: {
-    //                     gte: start,
-    //                     lt: end
-    //                 }
-    //             },
-    //             orderBy: { createdAt: 'desc' },
-    //             include: {
-    //                 primaryGuest: true,
-    //                 priceBreakdowns: true,
-    //                 addOns: true,
-    //             }
-    //         });
-    //     } catch (error) {
-    //         if (error instanceof Error) {
-    //             throw new Error(`getReservationForADate failed: ${error.message}`);
-    //         }
-    //         throw new Error("Failed to fetch reservations");
-    //     }
-    // }
+public async updateReservationWithTransaction(
+    reservationId: string,
+    updateData: Partial<ICReservation>,
+    priceBreakdownData?: Partial<IReservationPriceBrakeDownR>
+): Promise<IReservation> {
+    try {
+        return await prisma.$transaction(async (tx) => {
+            // Update reservation
+            const updatedReservation = await tx.reservation.update({
+                where: { id: reservationId },
+                data: updateData,
+                include: {
+                    primaryGuest: true,
+                    priceBreakdowns: true
+                }
+            });
+
+            // Update price breakdown if provided
+            if (priceBreakdownData) {
+                await tx.reservationPriceBrakeDown.updateMany({
+                    where: { reservationId },
+                    data: priceBreakdownData
+                });
+            }
+
+            return updatedReservation;
+        });
+    } catch (error) {
+        if (error instanceof Error) {
+            throw new Error(`Failed to update reservation in transaction: ${error.message}`);
+        }
+        throw new Error("Failed to update reservation in transaction");
+    }
+}
+
+public async checkRoomAvailability(
+    propertyCode: string,
+    roomTypeCode: string,
+    dates: string[],
+    requiredRooms: number
+): Promise<boolean> {
+    try {
+        const inventories = await prisma.inventory.findMany({
+            where: {
+                propertyCode,
+                roomTypeCode,
+                date: { in: dates }
+            }
+        });
+
+        // Check if all dates have enough availability
+        for (const inventory of inventories) {
+            if (inventory.availability < requiredRooms) {
+                return false;
+            }
+        }
+
+        return inventories.length === dates.length; // All dates must exist
+    } catch (error) {
+        console.error("Error checking room availability:", error);
+        return false;
+    }
+}
 public async getReservationsForDateRange(
     propertyIds: string[],
     startDate: Date, 

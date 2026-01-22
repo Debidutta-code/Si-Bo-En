@@ -222,7 +222,106 @@ export interface AriManupulationRooms {
   roomTypeCode: string;
   numberOfRooms: number;
 }
+// Add these interfaces to your existing types file
 
+export interface IReservationUpdatePayload {
+  propertyCode: string;
+  checkInDate: string;  // ISO string
+  checkOutDate: string; // ISO string
+  requestedRooms: number;
+  rooms: Array<{
+    adults: number;
+    children: number;
+    childAges: number[];
+  }>;
+  previousRooms: number;
+  guests: Array<{
+    type: "adult" | "child" | "infant";
+    firstName: string;
+    lastName: string;
+    dob: string;
+  }>;
+  roomTypeCode: string;
+  ratePlanCode: string;
+  amount: number;
+  finalPrice: {
+    totalAmount: number;
+    numberOfNights: number;
+    baseRatePerNight: number;
+    additionalGuestCharges: number;
+    breakdown: {
+      totalBaseAmount: number;
+      totalAdditionalCharges: number;
+      totalAmount: number;
+      numberOfNights: number;
+      averagePerNight: number;
+    };
+    dailyBreakdown: Array<{
+      date: string;
+      dayOfWeek: string;
+      ratePlanCode: string;
+      baseRate: number;
+      additionalCharges: number;
+      totalPerRoom: number;
+      totalForAllRooms: number;
+      currencyCode: string;
+      breakdown: any;
+    }>;
+    availableRooms: number;
+    requestedRooms: number;
+    tax: Array<{
+      name: string;
+      amount: number;
+      type: string;
+    }>;
+    totalTax: number;
+    priceAfterTax: number;
+    booking: {
+      finalPayable: number;
+      refundAmount: number;
+      discount: number;
+    };
+  };
+  currencyCode: "USD" | "EUR" | "INR";
+  bookingUserEmail: string;
+  bookingUserPhone: string;
+  status: "Modified";
+  extraAmountToPay: number;
+  refundAmount: number;
+}
+
+export interface IReservationModification {
+  reservationId: string;
+  oldCheckIn: Date;
+  oldCheckOut: Date;
+  oldRooms: number;
+  oldPrice: number;
+  newCheckIn: Date;
+  newCheckOut: Date;
+  newRooms: number;
+  newPrice: number;
+  extraAmountToPay: number;
+  refundAmount: number;
+  modifiedAt: Date;
+}
+
+export interface IUpdateReservationResult {
+  success: boolean;
+  reservation: IReservationWithAllDetails;
+  ariChanges: {
+    datesFreed: string[];
+    datesReserved: string[];
+    roomsFreed: number;
+    roomsReserved: number;
+  };
+  financialSummary: {
+    oldAmount: number;
+    newAmount: number;
+    difference: number;
+    extraAmountToPay: number;
+    refundAmount: number;
+  };
+}
 // ==================== ENUMS ====================
 export type ReservationStatus = "pending" | "confirmed" | "cancelled" | "modified";
 export { BookingStatus, BookingSource, PaymentMethod, CurrencyCode };

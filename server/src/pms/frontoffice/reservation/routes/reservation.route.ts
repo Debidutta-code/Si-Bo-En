@@ -36,5 +36,7 @@ reservationRoute.route("/available-rooms/:bookingCode")
 //     .post(protect, reservationController.checkOutReservation.bind(reservationController));
 reservationRoute.route("/:reservationCode")
     .get( reservationController.getReservationByCode.bind(reservationController));
+reservationRoute.route("/update/:reservationCode")
+    .patch( reservationController.updateReservation.bind(reservationController));
 
 export { reservationRoute };

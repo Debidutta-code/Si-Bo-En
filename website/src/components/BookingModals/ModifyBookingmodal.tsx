@@ -279,9 +279,9 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
     try {
       setLoading(true);
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking/update/${bookingData.bookingCode}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/pms/front-office/reservations/update/${bookingData.bookingCode}`,
         {
-          method: "PUT",
+          method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             propertyCode: bookingData?.propertyCode,
