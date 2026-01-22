@@ -121,7 +121,7 @@ export default function FilterSection({
                                     {dateRange.from ? format(dateRange.from, "MMM dd, yyyy") : "Select date"}
                                 </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-[8rem] sm:w-[10rem] md:w-[14rem] p-0" align="start">
+                            <PopoverContent className=" p-0" align="start">
                                 <CalendarComponent
                                     className="rounded-md border w-full"
                                     mode="single"
@@ -150,7 +150,7 @@ export default function FilterSection({
                                     {dateRange.to ? format(dateRange.to, "MMM dd, yyyy") : "Select date"}
                                 </Button>
                             </PopoverTrigger>
-                            <PopoverContent className="w-[8rem] sm:w-[10rem] md:w-[14rem] p-0" align="start">
+                            <PopoverContent className=" p-0" align="start">
                                 <CalendarComponent
                                     className="rounded-md border w-full"
 

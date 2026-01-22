@@ -111,50 +111,59 @@ class InventoryServices {
     }
   }
   public static async mapRatePlanService(
-    propertyId: string,
-    propertyCode: string,
-    roomTypeName: string,
-    roomTypeCode: string,
-    ratePlanName: string,
-    ratePlanCode: string,
-    baseGuestAmounts: BaseGuestAmount[],
-    additionalGuestAmounts: AdditionalGuestAmount[],
-    currencyCode: string,
-    startDate: string,
-    endDate: string
-  ) {
-    try {
-      const room = await InventoryDao.getRoom(propertyId, roomTypeCode);
-      if (!room) {
-        return errorResponse('No room found');
-      }
+  propertyId: string,
+  propertyCode: string,
+  roomTypeName: string,
+  roomTypeCode: string,
+  ratePlanName: string,
+  ratePlanCode: string,
+  baseGuestAmounts: BaseGuestAmount[],
+  additionalGuestAmounts: AdditionalGuestAmount[],
+  currencyCode: string,
+  startDate: string,
+  endDate: string
+) {
+  try {
+    const room = await InventoryDao.getRoom(propertyId, roomTypeCode);
+    if (!room) {
+      return errorResponse('No room found');
+    }
 
-      // Validate date range
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-        return errorResponse('Invalid startDate or endDate');
-      }
-      if (end < start) {
-        return errorResponse('endDate cannot be earlier than startDate');
-      }
+    // Validate date range
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return errorResponse('Invalid startDate or endDate');
+    }
+    if (end < start) {
+      return errorResponse('endDate cannot be earlier than startDate');
+    }
 
-      // Create ICharges object for each date in the range
+    // ✅ Check inventory availability for the date range
+    const inventoryCheck = await InventoryDao.checkInventoryAvailability(
+      propertyCode,
+      roomTypeCode,
+      startDate,
+      endDate
+    );
+
+    // If no inventory at all for the entire range
+    if (inventoryCheck.availableDates.length === 0) {
+      return errorResponse(
+        `Please add your inventory before mapping rate plans for this room `
+      );
+    }
+
+    // If some dates are missing inventory
+    if (inventoryCheck.missingDates.length > 0) {
+      // Create charges only for dates with inventory
       const mappedRI: ICharges[] = [];
-      for (
-        let d = new Date(start.getTime());
-        d.getTime() <= end.getTime();
-        d.setDate(d.getDate() + 1)
-      ) {
-        const yyyyMmDd = new Date(d.getTime()).toISOString().split('T')[0];
-
-        // Convert BaseGuestAmount to IBaseGuestAmounts
+      for (const dateStr of inventoryCheck.availableDates) {
         const convertedBaseGuestAmounts = baseGuestAmounts.map(bg => ({
           noOfGuests: bg.numberOfGuests,
           amount: bg.amountBeforeTax
         }));
 
-        // Convert AdditionalGuestAmount to IAdditionalGuestAmount
         const convertedAdditionalGuestAmounts = additionalGuestAmounts.map(ag => ({
           ageCode: ag.ageQualifyingCode as "10" | "8" | "5",
           amount: ag.amount
@@ -169,21 +178,77 @@ class InventoryServices {
           baseGuestAmounts: convertedBaseGuestAmounts,
           additionalGuestAmounts: convertedAdditionalGuestAmounts,
           currencyCode,
-          date: yyyyMmDd,
+          date: dateStr,
         });
       }
 
       const daoRes = await InventoryDao.mapRatePlans(mappedRI);
+      
       if (daoRes) {
-        return successResponse('Mapping successful', daoRes);
+        // Format the missing dates for better readability
+        const firstMissing = inventoryCheck.missingDates[0];
+        const lastMissing = inventoryCheck.missingDates[inventoryCheck.missingDates.length - 1];
+        
+        return successResponse(
+          `Rate plan mapped successfully for available dates. WARNING: Please update your inventory from ${firstMissing} to ${lastMissing} to map rate plans for the remaining dates.`,
+          {
+            ...daoRes,
+            warning: {
+              message: 'Inventory missing for some dates',
+              missingDates: inventoryCheck.missingDates,
+              missingDateRange: `${firstMissing} to ${lastMissing}`,
+              mappedDates: inventoryCheck.availableDates
+            }
+          }
+        );
       } else {
-        return errorResponse('Failed to map ');
+        return errorResponse('Failed to map rate plans');
       }
-    } catch (error: any) {
-      console.log('Error', error?.message);
-      return errorResponse('Failed to map room with rateplan');
     }
+
+    // If all dates have inventory, proceed normally
+    const mappedRI: ICharges[] = [];
+    for (
+      let d = new Date(start.getTime());
+      d.getTime() <= end.getTime();
+      d.setDate(d.getDate() + 1)
+    ) {
+      const yyyyMmDd = new Date(d.getTime()).toISOString().split('T')[0];
+
+      const convertedBaseGuestAmounts = baseGuestAmounts.map(bg => ({
+        noOfGuests: bg.numberOfGuests,
+        amount: bg.amountBeforeTax
+      }));
+
+      const convertedAdditionalGuestAmounts = additionalGuestAmounts.map(ag => ({
+        ageCode: ag.ageQualifyingCode as "10" | "8" | "5",
+        amount: ag.amount
+      }));
+
+      mappedRI.push({
+        propertyCode,
+        roomTypeName,
+        roomTypeCode,
+        ratePlanName,
+        ratePlanCode,
+        baseGuestAmounts: convertedBaseGuestAmounts,
+        additionalGuestAmounts: convertedAdditionalGuestAmounts,
+        currencyCode,
+        date: yyyyMmDd,
+      });
+    }
+
+    const daoRes = await InventoryDao.mapRatePlans(mappedRI);
+    if (daoRes) {
+      return successResponse('Rate plan mapped successfully', daoRes);
+    } else {
+      return errorResponse('Failed to map rate plans');
+    }
+  } catch (error: any) {
+    console.log('Error', error?.message);
+    return errorResponse('Failed to map room with rate plan');
   }
+}
 }
 
 export { InventoryServices };

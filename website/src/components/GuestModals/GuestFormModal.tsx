@@ -417,101 +417,146 @@ const GuestFormModal: React.FC<Props> = ({
           </Card>
 
           {/* Price Details */}
-          <Card className="border-2">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <CardTitle className="text-lg">Price Details</CardTitle>
-                <div className="relative" ref={tooltipRef}>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 rounded-full"
-                    onClick={() => setShowTooltip(!showTooltip)}
-                  >
-                    <Info className="h-4 w-4" />
-                  </Button>
+          {/* Price Details */}
+<Card className="border-2">
+  <CardHeader>
+    <div className="flex items-center gap-2">
+      <CardTitle className="text-lg">Price Details</CardTitle>
+      <div className="relative" ref={tooltipRef}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 rounded-full"
+          onClick={() => setShowTooltip(!showTooltip)}
+        >
+          <Info className="h-4 w-4" />
+        </Button>
 
-                  {finalPrice?.dailyBreakdown && showTooltip && (
-                    <Card className="absolute top-8 left-0 z-50 w-80 shadow-xl">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-sm">Daily Breakdown</CardTitle>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-5 w-5"
-                            onClick={() => setShowTooltip(false)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="max-h-60 overflow-y-auto space-y-3 text-xs">
-                        {Array.isArray(finalPrice.dailyBreakdown) ? (
-                          finalPrice.dailyBreakdown.map((day: any, idx: number) => (
-                            <div key={idx} className="border-b pb-2 last:border-0">
-                              <div className="font-semibold mb-1">{day.date}</div>
-                              <div className="space-y-1">
-                                <div className="flex justify-between">
-                                  <span>Base Rate:</span>
-                                  <span>${day.baseRate}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                  <span>Additional Charges:</span>
-                                  <span>${day.additionalCharges}</span>
-                                </div>
-                                <div className="flex justify-between font-semibold">
-                                  <span>Total:</span>
-                                  <span>${day.totalPerRoom}</span>
-                                </div>
-                              </div>
-                            </div>
-                          ))
-                        ) : (
-                          <div className="space-y-1">
-                            <div className="flex justify-between">
-                              <span>Base Rate:</span>
-                              <span>${finalPrice.dailyBreakdown.baseRate}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Additional Charges:</span>
-                              <span>${finalPrice.dailyBreakdown.additionalCharges}</span>
-                            </div>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
+        {finalPrice?.dailyBreakdown && showTooltip && (
+          <Card className="absolute top-8 left-0 z-50 w-80 shadow-xl">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm">Daily Breakdown</CardTitle>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5"
+                  onClick={() => setShowTooltip(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
               </div>
             </CardHeader>
-            <CardContent>
-              {finalPrice && (
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>Total Base Amount:</span>
-                    <span>${finalPrice.currency}{finalPrice.breakdown.totalBaseAmount}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Additional Charges:</span>
-                    <span>${finalPrice.breakdown.totalAdditionalCharges}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Number of Nights:</span>
-                    <span>{finalPrice.numberOfNights}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Tax:</span>
-                    <span>${finalPrice.totalTaxAmount || 0}</span>
-                  </div>
-                  <div className="flex justify-between items-center pt-2 border-t-2 font-bold text-lg">
-                    <span>Total Amount:</span>
-                    <span style={{ color: colors.primaryColor }}>${finalPrice.totalAmount}</span>
-                  </div>
-                </div>
-              )}
-            </CardContent>
+            {/* Inside the tooltip CardContent - replace the existing mapping logic */}
+<CardContent className="max-h-60 overflow-y-auto space-y-3 text-xs">
+  {Array.isArray(finalPrice.dailyBreakdown) && (
+    <>
+      {finalPrice.dailyBreakdown.map((day: any, idx: number) => {
+        // Calculate tax proportion for this day
+        const dayProportion = day.totalPerRoom / finalPrice.breakdown.totalBaseAmount;
+        const dayTax = (finalPrice.totalTax || 0) * dayProportion;
+        const dayTotalWithTax = day.totalPerRoom + dayTax;
+        
+        return (
+          <div key={idx} className="border-b pb-2 last:border-0">
+            <div className="font-semibold mb-1">{day.date}</div>
+            <div className="space-y-1">
+              <div className="flex justify-between">
+                <span>Base Rate:</span>
+                <span>${day.baseRate}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Additional Charges:</span>
+                <span>${day.additionalCharges}</span>
+              </div>
+              <div className="flex justify-between text-gray-600">
+                <span>Tax & Fees:</span>
+                <span>${dayTax.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between font-semibold pt-1 border-t">
+                <span>Total for Day:</span>
+                <span>${dayTotalWithTax.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+      <div className="pt-2 border-t mt-2">
+        <div className="flex justify-between font-semibold">
+          <span>Subtotal:</span>
+          <span>${finalPrice.breakdown.totalBaseAmount}</span>
+        </div>
+        <div className="flex justify-between font-semibold">
+          <span>Total Tax:</span>
+          <span>${finalPrice.totalTax || 0}</span>
+        </div>
+        <div className="flex justify-between font-bold text-base pt-1 border-t">
+          <span>Grand Total:</span>
+          <span>${finalPrice.totalAmount || finalPrice.priceAfterTax}</span>
+        </div>
+      </div>
+    </>
+  )}
+</CardContent>
           </Card>
+        )}
+      </div>
+    </div>
+  </CardHeader>
+  <CardContent>
+    {finalPrice && (
+      <div className="space-y-2 text-sm">
+        <div className="flex justify-between">
+          <span>Total Base Amount:</span>
+          <span>${finalPrice.breakdown.totalBaseAmount}</span>
+        </div>
+        <div className="flex justify-between">
+          <span>Additional Charges:</span>
+          <span>${finalPrice.breakdown.totalAdditionalCharges}</span>
+        </div>
+        
+        {/* Show each tax individually */}
+        {finalPrice.tax && Array.isArray(finalPrice.tax) && finalPrice.tax.length > 0 && (
+          <>
+            <div className="border-t pt-2 mt-2">
+              <div className="font-medium text-gray-700 mb-1">Taxes & Fees:</div>
+              {finalPrice.tax.map((taxItem: any, index: number) => (
+                <div key={index} className="flex justify-between text-gray-600 pl-4">
+                  <span>{taxItem.name}:</span>
+                  <span>
+                    ${(taxItem.amount).toFixed(2)}
+                  </span>
+                </div>
+              ))}
+              <div className="flex justify-between font-medium pt-1 border-t mt-1">
+                <span>Total Tax:</span>
+                <span>${finalPrice.totalTax || 0}</span>
+              </div>
+            </div>
+          </>
+        )}
+        
+        <div className="flex justify-between">
+          <span>Number of Nights:</span>
+          <span>{finalPrice.numberOfNights}</span>
+        </div>
+        
+        {/* Grand Total Section */}
+        <div className="border-t-2 pt-3 mt-2">
+          <div className="flex justify-between items-center font-bold text-lg">
+            <span>Grand Total:</span>
+            <span style={{ color: colors.primaryColor }}>
+              ${finalPrice.totalAmount || finalPrice.priceAfterTax}
+            </span>
+          </div>
+          <div className="text-xs text-gray-500 mt-1">
+            Includes all taxes and fees
+          </div>
+        </div>
+      </div>
+    )}
+  </CardContent>
+</Card>
 
           {submitError && (
             <Alert variant="destructive">

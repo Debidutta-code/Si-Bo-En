@@ -58,7 +58,7 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
   const location = useLocation();
   const navigate = useNavigate();
   const [isManagementOpen, setIsManagementOpen] = useState(false);
-  const [isPriceManagementOpen, setIsPriceManagementOpen] = useState(false);
+  // const [isPriceManagementOpen, setIsPriceManagementOpen] = useState(false);
   const [isRatesOpen, setIsRatesOpen] = useState(false);
   const [isRestrictionsOpen, setIsRestrictionsOpen] = useState(false);
 
@@ -91,12 +91,12 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
   // }, [user, navigate, propertyId]);
 
   // Price Management sub-items
-  const priceManagementItems = [
-    { name: 'Seasons', href: `/property/price-management/seasons/${propertyId}` },
-    { name: 'Calendar', href: `/property/price-management/calendar/${propertyId}` },
-    { name: 'Periods', href: `/property/price-management/periods/${propertyId}` },
-    { name: 'Table', href: `/property/price-management/table/${propertyId}` },
-  ];
+  // const priceManagementItems = [
+  //   { name: 'Seasons', href: `/property/price-management/seasons/${propertyId}` },
+  //   { name: 'Calendar', href: `/property/price-management/calendar/${propertyId}` },
+  //   { name: 'Periods', href: `/property/price-management/periods/${propertyId}` },
+  //   { name: 'Table', href: `/property/price-management/table/${propertyId}` },
+  // ];
 
   // Rates sub-items
   const ratesItems = [
@@ -355,8 +355,8 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
           </div>
         )}
 
-        {/* Price Management Dropdown (only show when in property context) */}
-        {isPropertyContext && (
+        
+        {/* {isPropertyContext && (
           <div>
             <button
               onClick={() => setIsPriceManagementOpen(!isPriceManagementOpen)}
@@ -377,7 +377,7 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
               )} />
             </button>
 
-            {/* Dropdown Items */}
+            
             {isPriceManagementOpen && isSidebarOpen && (
               <div className="ml-8 mt-1 space-y-1">
                 {priceManagementItems.map((subItem) => (
@@ -397,7 +397,7 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
               </div>
             )}
           </div>
-        )}
+        )} */}
 
         {/* Restrictions Dropdown (only show when in property context) */}
         {isPropertyContext && (

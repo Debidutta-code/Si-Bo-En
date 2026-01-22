@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { toast } from "react-hot-toast";
-import { Plus, X } from "lucide-react";
+import { Plus, X, Loader2 } from "lucide-react";
 import {
     Dialog,
     DialogContent,
@@ -25,7 +25,7 @@ import type { ICreateCharges, RatePlan, RoomTypes, IBaseGuestAmounts, IAdditiona
 interface CreateMappingDialogProps {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onSave: (mapping: ICreateCharges) => void;
+    onSave: (mapping: ICreateCharges) => Promise<void>;
     ratePlans: RatePlan[];
     roomTypes: RoomTypes[];
     filters: {
@@ -53,6 +53,7 @@ export default function CreateMappingDialog({
         baseByGuestAmounts: [{ numberOfGuests: 1, amountBeforeTax: "" }],
         additionalGuestAmounts: [],
     });
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const handleAddBaseGuestAmount = () => {
         const nextGuestNumber = formData.baseByGuestAmounts.length + 1;
@@ -105,7 +106,7 @@ export default function CreateMappingDialog({
         setFormData({ ...formData, additionalGuestAmounts: updated });
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         // Validation
         if (!formData.ratePlanCode) {
             toast.error("Please select a rate plan");
@@ -131,11 +132,33 @@ export default function CreateMappingDialog({
             return;
         }
 
-        onSave(formData);
-        handleClose();
+        setIsSubmitting(true);
+        try {
+            await onSave(formData);
+            
+            // Reset form on success
+            setFormData({
+                ratePlanCode: filters.ratePlanCode || "",
+                roomTypeCode: filters.roomTypeCode || "",
+                startDate: filters.startDate || "",
+                endDate: filters.endDate || "",
+                currencyCode: "USD",
+                baseByGuestAmounts: [{ numberOfGuests: 1, amountBeforeTax: "" }],
+                additionalGuestAmounts: [],
+            });
+        } catch (error) {
+            // Error is handled by parent, modal stays open
+            console.error("Failed to create mapping:", error);
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleClose = () => {
+        if (isSubmitting) {
+            toast.error("Please wait while mapping is being created");
+            return;
+        }
         setFormData({
             ratePlanCode: filters.ratePlanCode || "",
             roomTypeCode: filters.roomTypeCode || "",
@@ -149,7 +172,13 @@ export default function CreateMappingDialog({
     };
 
     return (
-        <Dialog open={open} onOpenChange={handleClose}>
+        <Dialog open={open} onOpenChange={(open) => {
+            if (!open && isSubmitting) {
+                toast.error("Please wait while mapping is being created");
+                return;
+            }
+            if (!open) handleClose();
+        }}>
             <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="text-2xl">Create New Mapping</DialogTitle>
@@ -161,26 +190,27 @@ export default function CreateMappingDialog({
                 <div className="space-y-6 py-4">
                     {/* Basic Information */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <Label>Room Type *</Label>
-                        <Select
-                            value={formData.roomTypeCode}
-                            onValueChange={(value) =>
-                                setFormData({ ...formData, roomTypeCode: value })
-                            }
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Select room type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {roomTypes.map((room) => (
-                                    <SelectItem key={room.id} value={room.roomType}>
-                                        {room.roomName} ({room.roomType})
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+                        <div className="space-y-2">
+                            <Label>Room Type *</Label>
+                            <Select
+                                value={formData.roomTypeCode}
+                                onValueChange={(value) =>
+                                    setFormData({ ...formData, roomTypeCode: value })
+                                }
+                                disabled={isSubmitting}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Select room type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {roomTypes.map((room) => (
+                                        <SelectItem key={room.id} value={room.roomType}>
+                                            {room.roomName} ({room.roomType})
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                         <div className="space-y-2">
                             <Label>Rate Plan *</Label>
                             <Select
@@ -188,6 +218,7 @@ export default function CreateMappingDialog({
                                 onValueChange={(value) =>
                                     setFormData({ ...formData, ratePlanCode: value })
                                 }
+                                disabled={isSubmitting}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Select rate plan" />
@@ -202,8 +233,6 @@ export default function CreateMappingDialog({
                             </Select>
                         </div>
 
-
-
                         <div className="space-y-2">
                             <Label>Start Date *</Label>
                             <Input
@@ -213,6 +242,7 @@ export default function CreateMappingDialog({
                                     setFormData({ ...formData, startDate: e.target.value })
                                 }
                                 min={new Date().toISOString().split("T")[0]}
+                                disabled={isSubmitting}
                             />
                         </div>
 
@@ -223,6 +253,7 @@ export default function CreateMappingDialog({
                                 value={formData.endDate}
                                 onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
                                 min={formData.startDate || new Date().toISOString().split("T")[0]}
+                                disabled={isSubmitting}
                             />
                         </div>
 
@@ -234,6 +265,7 @@ export default function CreateMappingDialog({
                                     setFormData({ ...formData, currencyCode: e.target.value })
                                 }
                                 placeholder="USD"
+                                disabled={isSubmitting}
                             />
                         </div>
                     </div>
@@ -262,6 +294,7 @@ export default function CreateMappingDialog({
                                                     parseInt(e.target.value) || 0
                                                 )
                                             }
+                                            disabled={isSubmitting}
                                         />
                                     </div>
                                     <div className="flex-1 space-y-2">
@@ -278,6 +311,7 @@ export default function CreateMappingDialog({
                                                     parseFloat(e.target.value) || 0
                                                 )
                                             }
+                                            disabled={isSubmitting}
                                         />
                                     </div>
                                     <Button
@@ -285,7 +319,7 @@ export default function CreateMappingDialog({
                                         variant="outline"
                                         size="icon"
                                         onClick={() => handleRemoveBaseGuestAmount(index)}
-                                        disabled={formData.baseByGuestAmounts.length <= 1}
+                                        disabled={formData.baseByGuestAmounts.length <= 1 || isSubmitting}
                                     >
                                         <X className="w-4 h-4" />
                                     </Button>
@@ -296,6 +330,7 @@ export default function CreateMappingDialog({
                                 variant="outline"
                                 onClick={handleAddBaseGuestAmount}
                                 className="w-full"
+                                disabled={isSubmitting}
                             >
                                 <Plus className="w-4 h-4 mr-2" />
                                 Add Guest Amount
@@ -321,6 +356,7 @@ export default function CreateMappingDialog({
                                             onValueChange={(value) =>
                                                 handleAdditionalGuestAmountChange(index, "ageQualifyingCode", value)
                                             }
+                                            disabled={isSubmitting}
                                         >
                                             <SelectTrigger>
                                                 <SelectValue />
@@ -346,6 +382,7 @@ export default function CreateMappingDialog({
                                                     parseFloat(e.target.value) || 0
                                                 )
                                             }
+                                            disabled={isSubmitting}
                                         />
                                     </div>
                                     <Button
@@ -353,6 +390,7 @@ export default function CreateMappingDialog({
                                         variant="outline"
                                         size="icon"
                                         onClick={() => handleRemoveAdditionalGuestAmount(index)}
+                                        disabled={isSubmitting}
                                     >
                                         <X className="w-4 h-4" />
                                     </Button>
@@ -363,6 +401,7 @@ export default function CreateMappingDialog({
                                 variant="outline"
                                 onClick={handleAddAdditionalGuestAmount}
                                 className="w-full"
+                                disabled={isSubmitting}
                             >
                                 <Plus className="w-4 h-4 mr-2" />
                                 Add Additional Guest Amount
@@ -372,10 +411,29 @@ export default function CreateMappingDialog({
                 </div>
 
                 <DialogFooter>
-                    <Button variant="outline" onClick={handleClose}>
+                    <Button 
+                        variant="outline" 
+                        onClick={handleClose}
+                        disabled={isSubmitting}
+                    >
                         Cancel
                     </Button>
-                    <Button onClick={handleSubmit}>Create Mapping</Button>
+                    <Button 
+                        onClick={handleSubmit}
+                        disabled={isSubmitting}
+                    >
+                        {isSubmitting ? (
+                            <>
+                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                Creating Mapping...
+                            </>
+                        ) : (
+                            <>
+                                <Plus className="w-4 h-4 mr-2" />
+                                Create Mapping
+                            </>
+                        )}
+                    </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

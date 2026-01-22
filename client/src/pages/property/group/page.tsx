@@ -407,26 +407,31 @@ export default function page() {
                             </Button>
 
                             {/* Image Preview Grid */}
-                            {updateGroupDetails.images.length > 0 && (
-                                <div className="grid grid-cols-3 gap-2 mt-2">
-                                    {updateGroupDetails.images.map((url, index) => (
-                                        <div key={index} className="relative group">
-                                            <img
-                                                src={url}
-                                                alt={`Preview ${index + 1}`}
-                                                className="w-full h-24 object-cover rounded border"
-                                            />
-                                            <button
-                                                type="button"
-                                                onClick={() => handleRemoveImage(index)}
-                                                className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                                            >
-                                                <Trash2 className="h-3 w-3" />
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+                            {/* In the Update Group Dialog - Image Preview Grid */}
+{updateGroupDetails.images.length > 0 && (
+  <div className="grid grid-cols-3 gap-2 mt-2">
+    {updateGroupDetails.images.map((url, index) => (
+      <div key={index} className="relative group aspect-square"> {/* Fixed aspect ratio */}
+        <img
+          src={url}
+          alt={`Preview ${index + 1}`}
+          className="w-full h-full object-cover rounded border"
+          onError={(e) => {
+            e.currentTarget.src = 'https://via.placeholder.com/150?text=Error';
+            e.currentTarget.className = 'w-full h-full object-contain rounded border bg-gray-100 p-2';
+          }}
+        />
+        <button
+          type="button"
+          onClick={() => handleRemoveImage(index)}
+          className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+        >
+          <Trash2 className="h-3 w-3" />
+        </button>
+      </div>
+    ))}
+  </div>
+)}
                         </div>
 
                         <div className="flex items-center gap-3">
@@ -494,29 +499,48 @@ export default function page() {
                             Get started by creating your first {currentTab}.
                         </p>
                     </div>
-                ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {currentData?.map((item: ICreation) => (
-                            <div
-                                key={item.id}
-                                className="border rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
-                            >
-                                <img src={item.images[0]} alt={item.name} width={400} height={200} className="rounded-lg mb-3" />
-                                <div className="flex justify-between items-start mb-3">
-                                    <h3 className="font-semibold text-lg text-gray-900 truncate">
-                                        {item.name}
-                                    </h3>
-                                </div>
+                ) :  (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {currentData?.map((item: ICreation) => (
+      <div
+        key={item.id}
+        className="border rounded-lg p-4 hover:shadow-md transition-shadow duration-200 flex flex-col"
+      >
+        {/* Image with fixed aspect ratio container */}
+        <div className="relative w-full h-48 mb-3 overflow-hidden rounded-lg">
+          <img 
+            src={item.images[0]} 
+            alt={item.name} 
+            className="w-full h-full object-cover rounded-lg hover:scale-105 transition-transform duration-300"
+            onError={(e) => {
+              // Fallback for broken images
+              e.currentTarget.src = 'https://via.placeholder.com/400x200?text=No+Image';
+              e.currentTarget.className = 'w-full h-full object-contain rounded-lg bg-gray-100 p-4';
+            }}
+          />
+        </div>
+        
+        <div className="flex-1"> {/* This pushes button to bottom */}
+          <div className="flex justify-between items-start mb-3">
+            <h3 className="font-semibold text-lg text-gray-900 line-clamp-2">
+              {item.name}
+            </h3>
+          </div>
+        </div>
 
-                                {/* Actions */}
-                                <div className="mt-4 flex space-x-2">
-                                    <Button variant="outline" size="sm" className="flex-1"
-                                        onClick={() => { navigate(`/app/property/${currentTab}/${item.id}`) }}>
-                                        View Details
-                                    </Button>
-                                </div>
-                            </div>
-                        ))}
+        {/* Actions */}
+        <div className="mt-4 flex space-x-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="flex-1"
+            onClick={() => { navigate(`/app/property/${currentTab}/${item.id}`) }}
+          >
+            View Details
+          </Button>
+        </div>
+      </div>
+    ))}
                     </div>
                 )}
             </div>

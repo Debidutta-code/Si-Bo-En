@@ -248,7 +248,7 @@ export default function Inventory() {
                           )}
                         </Button>
                       </PopoverTrigger>
-                            <PopoverContent className="w-[8rem] sm:w-[10rem] md:w-[14rem] p-0" align="start">
+                            <PopoverContent className="p-0" align="start">
                         <CalendarComponent
                           mode="single"
                           selected={dateRange.from}
@@ -281,7 +281,7 @@ export default function Inventory() {
                           )}
                         </Button>
                       </PopoverTrigger>
-                            <PopoverContent className="w-[8rem] sm:w-[10rem] md:w-[14rem] p-0" align="start">
+                            <PopoverContent className=" p-0" align="start">
                         <CalendarComponent
                           mode="single"
                           selected={dateRange.to}

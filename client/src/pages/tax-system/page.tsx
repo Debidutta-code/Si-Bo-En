@@ -174,6 +174,7 @@ const response = await fetchRatePlansService(propertyId);
             toast.error("Failed to fetch rate plans");
         }
     }
+    console.log("Rate Plans:", ratePlans);
     const fetchTaxRules = async () => {
         if (!propertyId) return;
         try {
@@ -1160,42 +1161,44 @@ const response = await fetchRatePlansService(propertyId);
                 </AlertDialog>
 
                 {/* Rate Plan Action Confirmation Dialog */}
-                <AlertDialog
-                    open={ratePlanActionDialog.open}
-                    onOpenChange={(open) =>
-                        setRatePlanActionDialog({
-                            open,
-                            action: null,
-                            ratePlanId: null,
-                            selectedGroupId: null,
-                        })
-                    }
-                >
-                    <AlertDialogContent>
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>
-                                {ratePlanActionDialog.action === "add" ? "Add Rate Plan to Tax Group" : "Remove Rate Plan from Tax Group"}
-                            </AlertDialogTitle>
-                            <AlertDialogDescription>
-                                {ratePlanActionDialog.action === "add"
-                                    ? `Add "${ratePlans.find((rp) => rp.id === ratePlanActionDialog.ratePlanId)?.ratePlanName}" to "${taxGroups.find((g) => g.id === ratePlanActionDialog.selectedGroupId)?.name}"?`
-                                    : `Remove "${ratePlans.find((rp) => rp.id === ratePlanActionDialog.ratePlanId)?.ratePlanName}" from "${taxGroups.find((g) => g.id === ratePlanActionDialog.selectedGroupId)?.name}"?`}
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction
-                                onClick={
-                                    ratePlanActionDialog.action === "add"
-                                        ? handleAddRatePlanToGroup
-                                        : handleRemoveRatePlanFromGroup
-                                }
-                            >
-                                {ratePlanActionDialog.action === "add" ? "Add" : "Remove"}
-                            </AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
+<AlertDialog
+    open={ratePlanActionDialog.open}
+    onOpenChange={(open) =>
+        setRatePlanActionDialog({
+            open,
+            action: null,
+            ratePlanId: null,
+            selectedGroupId: null,
+        })
+    }
+>
+    <AlertDialogContent>
+        <AlertDialogHeader>
+            <AlertDialogTitle>
+                {ratePlanActionDialog.action === "add" 
+                    ? "Add Rate Plan to Tax Group" 
+                    : "Remove Rate Plan from Tax Group"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+                {ratePlanActionDialog.action === "add"
+                    ? `Add "${ratePlans.find((rp) => rp.ratePlanCode === ratePlanActionDialog.ratePlanId)?.ratePlanName || 'Unknown'}" to "${taxGroups.find((g) => g.id === ratePlanActionDialog.selectedGroupId)?.name}"?`
+                    : `Remove "${ratePlans.find((rp) => rp.ratePlanCode === ratePlanActionDialog.ratePlanId)?.ratePlanName || 'Unknown'}" from "${taxGroups.find((g) => g.id === ratePlanActionDialog.selectedGroupId)?.name}"?`}
+            </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+                onClick={
+                    ratePlanActionDialog.action === "add"
+                        ? handleAddRatePlanToGroup
+                        : handleRemoveRatePlanFromGroup
+                }
+            >
+                {ratePlanActionDialog.action === "add" ? "Add" : "Remove"}
+            </AlertDialogAction>
+        </AlertDialogFooter>
+    </AlertDialogContent>
+</AlertDialog>
             </div>
         </div>
     );

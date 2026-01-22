@@ -149,7 +149,7 @@ export function useMapRatePlan(propertyId: string | undefined) {
             );
 
             if (response.success) {
-                toast.success("Mapping created successfully!");
+                toast.success(response.message || "Mapping created successfully!");
                 setIsCreateDialogOpen(false);
                 // Refresh current page after creating
                 handleSearch(currentPage);
