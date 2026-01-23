@@ -316,7 +316,7 @@ export default function PromoCodePage() {
                                     </div>
                                     <div className="space-y-2">
                                         <Label htmlFor="discountValue">
-                                            Discount Value {formData.discountType === "percentage" ? "(%)" : "(₹)"}
+                                            Discount Value {formData.discountType === "percentage" ? "(%)" : "($)"}
                                         </Label>
                                         <Input
                                             id="discountValue"
@@ -329,7 +329,7 @@ export default function PromoCodePage() {
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="minBookingAmount">Min Booking Amount (₹)</Label>
+                                        <Label htmlFor="minBookingAmount">Min Booking Amount ($)</Label>
                                         <Input
                                             id="minBookingAmount"
                                             type="number"
@@ -339,7 +339,7 @@ export default function PromoCodePage() {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="maxDiscountAmount">Max Discount Amount (₹)</Label>
+                                        <Label htmlFor="maxDiscountAmount">Max Discount Amount ($)</Label>
                                         <Input
                                             id="maxDiscountAmount"
                                             type="number"
@@ -642,7 +642,7 @@ export default function PromoCodePage() {
                                                 ) : (
                                                     <>
                                                         <DollarSign className="h-4 w-4 mr-1" />
-                                                        ₹{promoCode.discountValue}
+                                                        ${promoCode.discountValue}
                                                     </>
                                                 )}
                                             </div>

@@ -416,7 +416,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
             const isExpanded = expandedRatePlan === ratePlan.ratePlanCode;
             const isCollapsed = collapsedRatePlans.has(ratePlan.ratePlanCode);
             const basePrice = ratePlan.baseByGuestAmts?.[0]?.amountBeforeTax || 0;
-            const currency = ratePlan.currencyCode || 'INR';
+            const currency = ratePlan.currencyCode || 'USD';
 
             // console.log(ratePlan, 'ratePlan');
 
@@ -474,7 +474,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                         <div className="text-left sm:text-right">
                           <div className="flex items-baseline gap-1.5">
                             <span className="text-xl md:text-2xl font-bold text-orange-600">
-                              {currency === 'INR' ? '₹' : currency} {basePrice.toLocaleString()}
+                              {currency === 'USD' ? '$' : currency} {basePrice.toLocaleString()}
                             </span>
                           </div>
                           <span className="text-xs text-gray-500">per night</span>
@@ -577,13 +577,13 @@ const RoomCard: React.FC<RoomCardProps> = ({
                                               day: 'numeric'
                                             })}
                                           </p>
-                                          <p className="text-xs text-gray-600">₹{availability.price} each</p>
+                                          <p className="text-xs text-gray-600">${availability.price} each</p>
                                         </div>
 
                                         <div className="flex flex-wrap items-center gap-1.5">
                                           {currentQuantity > 0 && (
                                             <span className="text-xs font-semibold text-orange-600">
-                                              ₹{(availability.price * currentQuantity).toLocaleString()}
+                                              ${(availability.price * currentQuantity).toLocaleString()}
                                             </span>
                                           )}
                                           <div className="flex items-center">

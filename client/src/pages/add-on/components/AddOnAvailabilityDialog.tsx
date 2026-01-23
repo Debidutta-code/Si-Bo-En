@@ -49,7 +49,7 @@ export default function AddOnAvailabilityDialog({
         from: new Date(),
         to: new Date(),
         price: 0,
-        currencyCode: "INR",
+        currencyCode: "USD",
         isAvailable: true,
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -81,7 +81,7 @@ export default function AddOnAvailabilityDialog({
             from: new Date(),
             to: new Date(),
             price: 0,
-            currencyCode: "INR",
+            currencyCode: "USD",
             isAvailable: true,
         });
     };

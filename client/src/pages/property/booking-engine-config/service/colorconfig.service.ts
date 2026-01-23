@@ -36,10 +36,10 @@ export async function createBookingEngineConfigService(
       message: "All color fields are required",
     };
   }
-  if (!payload.bannerImage || !payload.logo) {
+  if (!payload.logo) {
     return {
       success: false,
-      message: "Banner image and logo are required",
+      message: "Logo is required",
     };
   }
   const result = await createBookingEngineConfig(propertyId, payload);
@@ -62,10 +62,10 @@ export async function updateBookingEngineConfigService(
       message: "All color fields are required",
     };
   }
-  if (!payload.bannerImage || !payload.logo) {
+  if (!payload.logo) {
     return {
       success: false,
-      message: "Banner image and logo are required",
+      message: "Logo is required",
     };
   }
   const result = await updateBookingEngineConfig(propertyId, payload);

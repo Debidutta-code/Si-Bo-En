@@ -200,7 +200,7 @@ export default function TaxGroupDialog({
                                                     <Badge variant="outline" className="text-xs">
                                                         {rule.type === "percentage"
                                                             ? `${rule.value}%`
-                                                            : `₹${rule.value}`}
+                                                            : `$${rule.value}`}
                                                     </Badge>
                                                     <span>•</span>
                                                     <span>

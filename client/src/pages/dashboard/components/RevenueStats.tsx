@@ -1,6 +1,6 @@
 import { DollarSign, TrendingUp, CreditCard, AlertCircle } from 'lucide-react';
 import StatCard from './StatCard';
-import RevenueChart from './RevenueChart';
+// import RevenueChart from './RevenueChart';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { IRevenueAnalytics } from '../interface';
 
@@ -90,7 +90,7 @@ export default function RevenueStats({ data }: RevenueStatsProps) {
       </div>
 
       {/* Last 7 Days Revenue Trend with Chart */}
-      <RevenueChart data={data?.last7DaysTrend} />
+      {/* <RevenueChart data={data?.last7DaysTrend} /> */}
 
       {/* Payment Status Breakdown */}
       <Card className="bg-gradient-to-br from-purple-50 to-pink-50">

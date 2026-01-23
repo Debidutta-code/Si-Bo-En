@@ -54,7 +54,7 @@ export default function AddOnAvailabilityTable({
         price: number;
         currencyCode: string;
         isAvailable: boolean;
-    }>({ price: 0, currencyCode: "INR", isAvailable: true });
+    }>({ price: 0, currencyCode: "USD", isAvailable: true });
     const [deleteDialog, setDeleteDialog] = useState<{
         open: boolean;
         availability: IAddonAvailability | null;
@@ -76,7 +76,7 @@ export default function AddOnAvailabilityTable({
 
     const handleCancelEdit = () => {
         setEditingId(null);
-        setEditData({ price: 0, currencyCode: "INR", isAvailable: true });
+        setEditData({ price: 0, currencyCode: "USD", isAvailable: true });
     };
 
     const handleDeleteConfirm = async () => {

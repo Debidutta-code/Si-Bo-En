@@ -768,7 +768,7 @@ const response = await fetchRatePlansService(propertyId);
                                                     <Badge variant="default">
                                                         {rule.type === "percentage"
                                                             ? `${rule.value}%`
-                                                            : `₹${rule.value}`}
+                                                            : `$${rule.value}`}
                                                     </Badge>
                                                     <Badge variant="outline">
                                                         {rule.applicableOn === "room_rate"

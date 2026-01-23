@@ -118,8 +118,8 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
         {/* Rate Plan Header */}
         <div className={`${isExpanded ? "h-14" : "h-20"} flex border-b border-gray-300`}>
           <div className="w-40 flex flex-col items-start justify-center px-2 border-r border-gray-300 bg-gray-50 gap-1">
-            <span className="font-semibold text-gray-700 text-xs truncate w-full" title={ratePlanType}>
-              {ratePlanType}
+            <span className="font-semibold text-gray-700 text-xs truncate w-full" title={ratePlanDetails?.ratePlan?.ratePlanName || ratePlanType}>
+              {ratePlanDetails?.ratePlan?.ratePlanName || ratePlanType}
             </span>
             {hasOccupancy && (
               <button

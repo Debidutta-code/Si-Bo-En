@@ -161,6 +161,7 @@ export class AvailabilityServices {
         const ratePlan = property.ratePlans.find((rp: any) => rp.ratePlanCode === charge.ratePlanCode);
         ratePlanMap.set(charge.ratePlanCode, {
           ratePlanCode: charge.ratePlanCode,
+          ratePlanName: ratePlan?.ratePlanName || '',
           minLengthOfStay: ratePlan?.minimumLenghthOfStay || 0,
           maxLengthOfStay: ratePlan?.maximumLengthOfStay || 0,
           cta: charge.isClosedToArrival,

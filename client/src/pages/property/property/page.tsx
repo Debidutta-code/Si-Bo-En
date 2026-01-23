@@ -54,7 +54,7 @@ export default function PropertyPage() {
     const [propertyDetails, setPropertyDetails] = useState<IPropertyCreations | null>(null);
     const [isCreationCompleted, setIsCreationCompleted] = useState<boolean>(false);
     const [isDrafted, setIsDrafted] = useState<boolean>(false);
-    const roles = [{ value: "hotel_manager", label: "Hotel Manager" }, { value: "staff", label: "Staff" }, { value: "revenue_manager", label: "Revenue Manager" }, { value: "front_desk", label: "Front Desk" }, { value: "housekeeping", label: "Housekeeping" }];
+    const roles = [{ value: "hotel_manager", label: "Hotel Manager" }, { value: "staff", label: "Staff" },];
     const [selectedRole, setSelectedRole] = useState<string>(roles[0].value);
     const [selectedUser, setSelectedUser] = useState<string>('');
     const [users, setUsers] = useState<HotelManagerMapping>({

@@ -250,10 +250,10 @@ export default function MyTripPage() {
 
     addPaymentRow("Method:", paymentMethod);
     addPaymentRow("Booking Date:", bookingDate);
-    addPaymentRow("Total Amount:", `${amount} ${bookingData.currencyCode || "INR"}`, true);
-    addPaymentRow("Amount Paid:", `${paidAmount} ${bookingData.currencyCode || "INR"}`, true);
-    addPaymentRow("Extra amount to be Paid:", `${extraAmountToPay} ${bookingData.currencyCode || "INR"}`);
-    addPaymentRow("Refundable Amount:", `${refundAmount} ${bookingData.currencyCode || "INR"}`, true);
+    addPaymentRow("Total Amount:", `${amount} ${bookingData.currencyCode || "USD"}`, true);
+    addPaymentRow("Amount Paid:", `${paidAmount} ${bookingData.currencyCode || "USD"}`, true);
+    addPaymentRow("Extra amount to be Paid:", `${extraAmountToPay} ${bookingData.currencyCode || "USD"}`);
+    addPaymentRow("Refundable Amount:", `${refundAmount} ${bookingData.currencyCode || "USD"}`, true);
 
     // Add subtotal and tax breakdown if available
     if (bookingData.finalPrice) {
@@ -405,7 +405,7 @@ export default function MyTripPage() {
             <div>
               <p className="text-gray-500 font-medium">Rate</p>
               <p className="text-blue-700 font-semibold">
-                INR {bookingData.amount.toLocaleString()}
+                USD {bookingData.amount.toLocaleString()}
               </p>
             </div>
           </div>
@@ -650,26 +650,26 @@ export default function MyTripPage() {
                   <div className="flex justify-between items-center">
                     <p className="text-gray-600">Subtotal</p>
                     <p className="font-medium">
-                      ₹{bookingData.finalPrice?.subtotal?.toLocaleString() || bookingData.amount.toLocaleString()}
+                      ${bookingData.finalPrice?.subtotal?.toLocaleString() || bookingData.amount.toLocaleString()}
                     </p>
                   </div>
                   <div className="flex justify-between items-center">
                     <p className="text-gray-600">Taxes</p>
                     <p className="font-medium">
-                      ₹{bookingData.finalPrice?.totalTax?.toLocaleString() || "0"}
+                      ${bookingData.finalPrice?.totalTax?.toLocaleString() || "0"}
                     </p>
                   </div>
                   <div className="flex justify-between items-center border-t pt-2">
                     <p className="text-gray-800 font-semibold">Total Amount</p>
                     <p className="text-blue-700 font-bold text-lg">
-                      ₹{bookingData.amount.toLocaleString()}
+                      ${bookingData.amount.toLocaleString()}
                     </p>
                   </div>
                   {bookingData.paidAmount !== undefined && (
                     <div className="flex justify-between items-center">
                       <p className="text-gray-600">Paid Amount</p>
                       <p className="font-medium text-green-600">
-                        ₹{bookingData.paidAmount.toLocaleString()}
+                        ${bookingData.paidAmount.toLocaleString()}
                       </p>
                     </div>
                   )}
@@ -677,7 +677,7 @@ export default function MyTripPage() {
                     <div className="flex justify-between items-center">
                       <p className="text-gray-600">Extra to Pay</p>
                       <p className="font-medium text-orange-600">
-                        ₹{bookingData.extraAmountToPay.toLocaleString()}
+                        ${bookingData.extraAmountToPay.toLocaleString()}
                       </p>
                     </div>
                   )}
@@ -685,7 +685,7 @@ export default function MyTripPage() {
                     <div className="flex justify-between items-center">
                       <p className="text-gray-600">Refundable Amount</p>
                       <p className="font-medium text-green-600">
-                        ₹{bookingData.refundAmount.toLocaleString()}
+                        ${bookingData.refundAmount.toLocaleString()}
                       </p>
                     </div>
                   )}
@@ -700,7 +700,7 @@ export default function MyTripPage() {
                           <p className="font-medium">{new Date(day.date).toLocaleDateString('en-US', { weekday: 'short' })}</p>
                           <p className="text-gray-500 text-xs">{new Date(day.date).toLocaleDateString()}</p>
                         </div>
-                        <p className="font-semibold">₹{day.baseRate.toLocaleString()}</p>
+                        <p className="font-semibold">${day.baseRate.toLocaleString()}</p>
                       </div>
                     ))}
                   </div>

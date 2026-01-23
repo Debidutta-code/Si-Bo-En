@@ -393,7 +393,7 @@ const convertToInventoryDay = (apiDay: DayData): InventoryDay => {
     // Map ratePlans - convert PriceData[] to RoomTypePricing[]
     ratePlans: apiDay.ratePlans.map(rp => ({
       ratePlanCode: rp.ratePlanCode,
-      ratePlanName: rp.ratePlanCode,
+      ratePlanName: rp.ratePlanName,
       roomTypeCode: rp.prices[0]?.invTypeCode || '',
       price: rp.prices[0]?.baseByGuestAmts[0]?.amountBeforeTax || 0,
       minLengthOfStay: rp.minLengthOfStay,

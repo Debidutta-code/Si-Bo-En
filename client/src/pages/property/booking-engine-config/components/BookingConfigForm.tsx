@@ -26,10 +26,10 @@ export default function BookingConfigForm({
   const [secondaryColor, setSecondaryColor] = React.useState(initialConfig?.secondaryColor || '#10B981');
   const [tertiaryColor, setTertiaryColor] = React.useState(initialConfig?.tertiaryColor || '#F59E0B');
   const [buttonTextColor, setButtonTextColor] = React.useState(initialConfig?.buttonTextColor || '#FFFFFF');
-  const [bannerImage, setBannerImage] = React.useState(initialConfig?.bannerImage || '');
+  // const [bannerImage, setBannerImage] = React.useState(initialConfig?.bannerImage || '');
   const [logo, setLogo] = React.useState(initialConfig?.logo || '');
   
-  const [uploadType, setUploadType] = React.useState<'banner' | 'logo' | null>(null);
+  const [uploadType, setUploadType] = React.useState<'logo' | null>(null);
   const [isSaving, setIsSaving] = React.useState(false);
 
   const config: BookingEngineConfig = {
@@ -37,7 +37,7 @@ export default function BookingConfigForm({
     secondaryColor,
     tertiaryColor,
     buttonTextColor,
-    bannerImage,
+    // bannerImage,
     logo,
   };
 
@@ -50,15 +50,22 @@ export default function BookingConfigForm({
     }
   };
 
-  const handleUploadSuccess = (urls: string[]) => {
-    if (urls.length > 0) {
-      if (uploadType === 'banner') {
-        setBannerImage(urls[0]);
-      } else if (uploadType === 'logo') {
-        setLogo(urls[0]);
-      }
-    }
-  };
+  // const handleUploadSuccess = (urls: string[]) => {
+  //   if (urls.length > 0) {
+  //     if (uploadType === 'banner') {
+  //       setBannerImage(urls[0]);
+  //     } else if (uploadType === 'logo') {
+  //       setLogo(urls[0]);
+  //     }
+  //   }
+  // };
+  // Update the handleUploadSuccess function:
+const handleUploadSuccess = (urls: string[]) => {
+  if (urls.length > 0 && uploadType === 'logo') {
+    setLogo(urls[0]);
+  }
+  setUploadType(null); // Close modal after upload
+};
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -94,7 +101,7 @@ export default function BookingConfigForm({
           <h2 className="text-xl font-bold mb-6">Images</h2>
           <div className="space-y-4">
             {/* Banner Image */}
-            <div>
+            {/* <div>
               <label className="text-sm font-medium mb-2 block">Banner Image</label>
               {bannerImage ? (
                 <div className="relative w-full h-32 bg-gray-100 rounded-lg overflow-hidden group">
@@ -119,7 +126,7 @@ export default function BookingConfigForm({
                 <Upload className="h-4 w-4 mr-2" />
                 Upload Banner
               </Button>
-            </div>
+            </div> */}
 
             {/* Logo */}
             <div>
@@ -153,7 +160,7 @@ export default function BookingConfigForm({
 
         <Button
           onClick={handleSave}
-          disabled={isSaving || !bannerImage || !logo}
+          disabled={isSaving || !logo}
           className="w-full bg-primary text-white hover:bg-gray-800"
           size="lg"
         >

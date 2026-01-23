@@ -70,6 +70,7 @@ export interface RoomTypeData {
 
 export interface RatePlanData {
   ratePlanCode: string;
+  ratePlanName: string;
   minLengthOfStay: number;
   maxLengthOfStay: number;
   cta: boolean;

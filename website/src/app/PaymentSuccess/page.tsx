@@ -150,7 +150,7 @@ const PaymentSuccessPage = () => {
               Payment Details
             </h2>
             <div className="font-bold text-2xl" style={{ color: colors.primaryColor }}>
-              INR {totalAmount}
+              USD {totalAmount}
             </div>
             <p className="text-sm text-gray-500">
               Payment will be collected at the hotel.

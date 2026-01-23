@@ -20,7 +20,7 @@ const PriceDetails: React.FC<PriceDetailsProps> = ({ bookingDetails, onPriceUpda
   const formatCurrency = (amount: number) =>
     new Intl.NumberFormat("en-IN", {
       style: "currency",
-      currency: "INR",
+      currency: "USD",
       maximumFractionDigits: 0,
     }).format(amount);
 

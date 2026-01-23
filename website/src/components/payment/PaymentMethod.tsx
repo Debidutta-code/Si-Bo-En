@@ -121,7 +121,7 @@ const PaymentMethod: React.FC<PaymentMethodProps> = ({
             </div>
             <div className="text-center mt-4">
               <QRCodeCanvas
-                value={`upi://pay?pa=${bankDetails.upiId}&am=${totalAmount}&cu=INR&tn=Hotel Booking Payment`}
+                value={`upi://pay?pa=${bankDetails.upiId}&am=${totalAmount}&cu=USD&tn=Hotel Booking Payment`}
                 size={150}
               />
             </div>

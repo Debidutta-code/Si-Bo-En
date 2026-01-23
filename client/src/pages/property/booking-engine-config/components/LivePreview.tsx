@@ -7,7 +7,7 @@ interface LivePreviewProps {
 }
 
 export default function LivePreview({ config }: LivePreviewProps) {
-  const { primaryColor, secondaryColor, tertiaryColor, buttonTextColor, bannerImage, logo } = config;
+  const { primaryColor, secondaryColor, tertiaryColor, buttonTextColor, logo } = config;
 
   return (
     <div className="w-full bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
@@ -19,13 +19,7 @@ export default function LivePreview({ config }: LivePreviewProps) {
       <div className="p-6 space-y-6">
         {/* Banner Section */}
         <div className="relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden">
-          {bannerImage ? (
-            <img src={bannerImage} alt="Banner" className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-gray-400">
-              Banner Image
-            </div>
-          )}
+       
           
           {/* Logo Overlay */}
           <div className="absolute top-4 left-4 w-20 h-20 bg-white rounded-lg shadow-md flex items-center justify-center p-2">

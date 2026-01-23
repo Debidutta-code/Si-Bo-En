@@ -5,7 +5,7 @@ import toast from 'react-hot-toast';
 import type { IAnalyticsData, IPropertyCodeAndIds, ILoader, IStatisticsComparison } from "./interface";
 import ReservationStats from './components/ReservationStats';
 import RevenueStats from './components/RevenueStats';
-import GuestStats from './components/GuestStats';
+// import GuestStats from './components/GuestStats';
 import AdditionalStats from './components/AdditionalStats';
 import TopPropertiesStats from './components/TopPropertiesStats';
 import StatisticsStats from './components/StatisticsStats'; // 🆕 NEW IMPORT
@@ -284,7 +284,7 @@ const fetchProperties = async () => {
         <RevenueStats data={analyticsData.revenue} />
 
         {/* Guest Analytics */}
-        <GuestStats data={analyticsData.guest} />
+        {/* <GuestStats data={analyticsData.guest} /> */}
 
         {/* Additional Stats */}
         <AdditionalStats

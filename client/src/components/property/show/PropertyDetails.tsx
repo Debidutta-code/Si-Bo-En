@@ -175,7 +175,7 @@ export default function PropertyDetails({
                 Edit Details
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
+            <AlertDialogContent className="max-h-[95vh] overflow-y-auto sm:max-w-3xl">
               <AlertDialogHeader>
                 <div className="flex w-full justify-between items-center">
                   <AlertDialogTitle className="text-xl font-semibold">
@@ -212,8 +212,8 @@ export default function PropertyDetails({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Contact & Details Card */}
         <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center gap-2 mb-4">
+          <CardContent className="md:p-6 p-2">
+            <div className="flex items-center gap-2 lg:mb-4">
               <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center">
                 <Mail className="h-5 w-5 text-primary-600" />
               </div>

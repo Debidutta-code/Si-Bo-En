@@ -733,7 +733,7 @@ model BookingEngineConfigurations {
   secondaryColor String   @map("secondary_color")
   tertiaryColor  String   @map("tertiary_color") 
   buttonTextColor String  @map("button_text_color")
-  bannerImage    String   @map("banner_image")
+  bannerImage    String?   @map("banner_image")
   logo           String
 
   @@map("booking_engine_configurations")

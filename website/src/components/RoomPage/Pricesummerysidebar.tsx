@@ -22,8 +22,8 @@ const PriceSummarySidebar: React.FC<PriceSummarySidebarProps> = ({
   bookingContext,
   onClose
 }) => {
-  const currency = currentRatePlan?.currencycode || 'INR';
-  const currencySymbol = currency === 'INR' ? '₹' : currency;
+  const currency = currentRatePlan?.currencycode || 'USD';
+  const currencySymbol = currency === 'USD' ? '$' : currency;
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {

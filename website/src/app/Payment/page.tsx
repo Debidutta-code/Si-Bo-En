@@ -51,7 +51,7 @@ const BookingReviewPage = () => {
   } = bookingDetails;
   // console.log("wsdfs", bookingDetails)
   const ratePlanCode = finalPrice?.dailyBreakdown?.[0]?.ratePlanCode;
-  const currencyCode = finalPrice?.dailyBreakdown?.[0]?.currencyCode || "INR";
+  const currencyCode = finalPrice?.dailyBreakdown?.[0]?.currencyCode || "USD";
   const roomTypeCode = bookingDetails.roomTypeCode;
   const propertyCode = bookingDetails.PropertyCode;
   const PropertyId = bookingDetails.PropertyDetails?.id;
@@ -495,7 +495,7 @@ const BookingReviewPage = () => {
                 </p>
                 <div className="inline-block sm:p-2 bg-white rounded-lg border" style={{ borderColor: colors.tertiaryColor }}>
                   <QRCodeCanvas
-                    value={`upi://pay?pa=${bankDetails?.upiId}&am=${updatedPrice}&cu=INR&tn=Hotel Booking Payment`}
+                    value={`upi://pay?pa=${bankDetails?.upiId}&am=${updatedPrice}&cu=USD&tn=Hotel Booking Payment`}
                     size={150}
                     bgColor="#ffffff"
                     fgColor="#000000"
@@ -504,7 +504,7 @@ const BookingReviewPage = () => {
                   />
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  Amount: ₹{updatedPrice}
+                  Amount: ${updatedPrice}
                 </p>
               </div>
 

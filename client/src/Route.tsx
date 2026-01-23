@@ -38,6 +38,7 @@ import InventoryPage from "./pages/calender-view/page.tsx";
 import ForgotPasswordForm from "./components/auth/ForgotPasswordForm.tsx";
 import LinkVerification from "./components/auth/LinkVerification.tsx";
 import ContactSupport from "./pages/contact-support/ContactSupport.tsx";
+import ManagementPage from "./pages/management/Management.tsx";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -71,6 +72,7 @@ export const router = createBrowserRouter(
         <Route path="logs" element={<LogsPage />} />
         <Route path="access-control" element={<AccessControlPage />} />
         <Route path="bookings" element={<Bookings />} />
+         <Route path="utils-management" element={<ManagementPage />} />
 
       </Route>
       <Route path="/property" element={<PropertyLayout />}>
