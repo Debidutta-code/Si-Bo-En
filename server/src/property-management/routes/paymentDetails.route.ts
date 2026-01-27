@@ -15,11 +15,6 @@ paymentDetailsRoute
     BankController.addBankDetails
   )
   .get(BankController.getBankDetailsByPropertyId)
-  .patch(
-    protect,
-    checkRoleBased('canUpdatePaymentDetails'),
-    BankController.updateBankDetailsByPropertyId
-  )
   .put(
     protect,
     checkRoleBased('canUpdatePaymentDetails'),

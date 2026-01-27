@@ -95,12 +95,27 @@ enum TaxType {
   percentage
   fixed
 }
-
+enum commissionType {
+  percentage
+  fixed
+}
+enum AgencyType {
+  travel_agency
+  corporate
+}
+enum AgentCommissionType {
+  percentage
+  fixed
+}
 enum TaxApplicableOn {
   room_rate
   total_amount
 }
-
+enum AgencyApplicationStatus {
+  pending
+  approved
+  rejected
+}
 enum PostingRhythm {
   per_night
   per_stay
@@ -291,6 +306,7 @@ model Property {
   Guests                   Guests[]
   Policy                   Policy[]
   propertyConfigs          PropertyConfigs?
+  agenticProperties        AgenticProperty[]
 
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
@@ -463,6 +479,7 @@ model Room {
 
   roomAmenities       RoomAmenitySelection[]
   roomVideos          RoomVideo?
+  agenticRooms        AgenticRoom[]
  
   createdAt                DateTime                   @default(now())
   updatedAt                DateTime                   @updatedAt
@@ -662,12 +679,9 @@ model Policy {
 
 model BankDetails {
   id                     String  @id @default(uuid())
-  accountHolder          String  @map("account_holder")
-  accountNumber          String  @map("account_number")
-  ifsc                   String
-  upiId                  String? @map("upi_id")
-  activatedPaymentMethod Json    @default("{}") @map("activated_payment_method")
-
+  payAtHotel Boolean @default(true) @map("pay_at_hotel")
+  paymentGateway  Boolean @default(false)   @map("payment_gateway")
+  
   property   Property @relation(fields: [propertyId], references: [id])
   propertyId String   @unique @map("property_id")
 
@@ -936,6 +950,8 @@ model Reservation {
   addOns             BookingAddon[]
   priceBreakdowns    ReservationPriceBrakeDown[]
   deviceType         ReservationDeviceType?
+  agency             Agency?    @relation(fields: [agencyId], references: [id])
+  agencyId           String?    @db.VarChar(36) @map("agency_id")
   @@index([propertyCode])
   @@index([propertyId])
   @@index([roomTypeCode])
@@ -1040,4 +1056,111 @@ model RatePlanRule {
   updatedAt      DateTime @updatedAt
 
   @@map("rate_plan_rules")
+}
+
+
+model Agency {
+  id                 String              @id @default(uuid())
+  agencyName         String              @map("agency_name")
+  agencyType         AgencyType          @default(travel_agency) @map("agency_type")
+  agencyEmail        String              @map("agency_email")
+  contactNo          String              @map("contact_no")
+  taxNo              String              @map("tax_no")
+  commissionType     AgentCommissionType @default(percentage) @map("commission_type")
+  commissionValue    Int             @map("commission_value")
+  commissionCurrency CurrencyCode?       @default(INR) @map("commission_currency")
+  iataCode           String              @map("iata_code")
+  address            String              @map("address")
+
+  Agents            Agents[]
+  AgenticProperties AgenticProperty[]
+  Reservations      Reservation[]
+  isDeleted         Boolean          @default(false) @map("is_deleted")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  @@map("agency")
+}
+
+model AgenticProperty {
+  id           String   @id @default(uuid())
+  agencyId     String   @map("agency_id")
+  agency       Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  propertyId   String   @map("property_id")
+  propertyCode String   @map("property_code")
+  propertyName String   @map("property_name")
+  Property     Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  AgenticRooms      AgenticRoom[]
+
+  isActive  Boolean  @default(true) @map("is_active")
+  isDeleted Boolean  @default(false) @map("is_deleted")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([agencyId])
+  @@index([propertyId])
+  @@map("agentic_property")
+}
+
+model AgenticRoom {
+  id        String @id @default(uuid())
+  agenticPropertyId  String @map("agentic_property_id")
+  AgenticProperty    AgenticProperty @relation(fields: [agenticPropertyId], references: [id], onDelete: Cascade)
+
+  roomId   String @map("room_id")
+  roomType String @map("room_type")
+  roomName String @map("room_name")
+  room     Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  isActive  Boolean  @default(true) @map("is_active")
+  isDeleted Boolean  @default(false) @map("is_deleted")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([agenticPropertyId])
+  @@index([roomId])
+  @@map("agentic_room")
+}
+model Agents {
+  id              String   @id @default(uuid())
+  agencyId       String   @map("agency_id")
+  agency         Agency   @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+
+  agentName      String   @map("agent_name")
+  agentEmail     String   @map("agent_email")
+  agentPhone     String   @map("agent_phone")
+  agentPassword  String   @map("agent_password")
+  isDeleted      Boolean  @default(false) @map("is_deleted")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([agencyId])
+  @@map("agents")
+}
+
+
+model AgentApplications {
+  id                       String                  @id @default(uuid())
+  applicationNoForThisUser Int                     @map("application_no_for_this_user")
+  status                   AgencyApplicationStatus @default(pending) @map("status")
+
+  applicantEmail     String   @unique           @map("applicant_email")
+  applicantName      String              @map("applicant_name")
+  applicantPhone     String              @map("applicant_phone")
+  applicantPassword  String              @map("applicant_password")
+  //agency application details
+  agencyName         String              @map("agency_name")
+  agencyType         AgencyType          @default(travel_agency) @map("agency_type")
+  agencyEmail        String              @map("agency_email")
+  contactNo          String              @map("contact_no")
+  taxNo              String              @map("tax_no")
+  commissionType     AgentCommissionType @default(percentage) @map("commission_type")
+  commissionValue    Int              @map("commission_value")
+  commissionCurrency CurrencyCode?       @default(INR) @map("commission_currency")
+  iataCode           String              @map("iata_code")
+  address            String              @map("address")
+
+
+  createdAt          DateTime            @default(now()) @map("created_at")
+  updatedAt          DateTime            @updatedAt @map("updated_at")
+
+  @@map("agent_applications")
 }
