@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import AxiosInstance from "@/components/axiosInstance";
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
@@ -21,18 +21,28 @@ export default function Navbar({ isOpen }: { isOpen: boolean }) {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.user);
   const axiosInstance = AxiosInstance();
-
-  useEffect(() => {
+  const navigate = useNavigate();
+useEffect(() => {
     const fetchUser = async () => {
       try {
         const response = await axiosInstance.get('/user/me');
         if (response.data.success) {
           const userData = response.data.data;
           dispatch(setUser(userData));
+        
         } else {
+          
           toast.error(response.data?.message || "Failed to fetch user data.");
         }
       } catch (error: any) {
+        if(error.response?.data?.message === "Login again to continue"){
+          navigate('/login');
+          return;
+        }
+        if(error.response?.data?.message === "Access token Not found, Login again"){
+          navigate('/login');
+          return;
+        }
         toast.error(error.response?.data?.message || "Error fetching user data.");
         dispatch(clearUser());
       }

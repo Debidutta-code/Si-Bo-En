@@ -67,6 +67,11 @@ enum DeviceType {
   tablet
   desktop
 }
+enum ReservationDeviceType {
+  mobile
+  tablet
+  desktop
+}
 
 enum DiscountType {
   percentage
@@ -78,6 +83,7 @@ enum BookingStatus {
   confirmed
   cancelled
   modified
+  no_show
 }
 
 enum AmenityType {
@@ -108,8 +114,12 @@ enum PaymentMethod {
 }
 
 enum BookingSource {
-  ota
-  travel_agency
+  direct
+  google
+  trip_adviser
+  trivago
+  social_media
+  agency
 }
 
 enum FolioStatus {
@@ -139,35 +149,6 @@ enum ReservationStatus {
   cancelled
   no_show
 }
-
-// enum IndividualRoomStatus {
-//   reserved
-//   tentive
-//   checked_in
-//   checked_out
-//   available
-//   dirty
-//   blocked
-//   checked_in_dirty
-// }
-
-// enum HouseKeepingTaskStatus {
-//   assigned
-//   in_progress
-//   completed
-//   verified
-// }
-
-// enum TaskPriority {
-//   low
-//   medium
-//   high
-// }
-
-// enum BlockedReason {
-//   maintainance
-//   management
-// }
 
 model Creation {
   id          String       @id @default(uuid())
@@ -297,7 +278,8 @@ model Property {
   propertyAddress   PropertyAddress?
   propertyAmenities PropertyAmenitySelection[]
   bankDetails       BankDetails?
-  reservations Reservation[]
+  reservations      Reservation[]
+  propertyVideos    PropertyVideo?
 
   // Children
   propertyRooms            Room[]
@@ -309,17 +291,10 @@ model Property {
   addOns                   Addon[]
   Guests                   Guests[]
   Policy                   Policy[]
-  // ReservationRooms         ReservationRoom[]            @relation("BookedRoomsForReservation")
   propertyConfigs          PropertyConfigs?
-  // SellStopedIndivdualRooms SellStopedIndivdualRooms[]   @relation("PropertySellStopedRooms")
-  // HouseKeepingTask         HouseKeepingTask[]           @relation("TasksIn The property")
 
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
-  // individualRooms IndividualRooms[]
-  // nightAudit      NightAudit?
-  // pastNightAudits PastNightAudit[]
-  // Folio           Folio[]           @relation("PropertyFolio")
 
   @@index([createdById])
   @@index([creationId])
@@ -335,7 +310,7 @@ model PropertyConfigs {
   pmsIntegrationActive            Boolean @default(true) @map("pms_integration_active")
   channelManagerIntegrationActive Boolean @default(true) @map("channel_manager_integration_active")
   selfAriActive                   Boolean @default(true) @map("self_ari_active")
-
+  
   reservationResetTime String   @default("9:30") @map("reservation_reset_time")
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
@@ -509,8 +484,9 @@ model Room {
   property   Property @relation(fields: [propertyId], references: [id])
   propertyId String   @map("property_id")
 
-  roomAmenities RoomAmenitySelection[]
-
+  roomAmenities       RoomAmenitySelection[]
+  roomVideos          RoomVideo?
+ 
   createdAt                DateTime                   @default(now())
   updatedAt                DateTime                   @updatedAt
 
@@ -657,7 +633,7 @@ model RatePlan {
   id           String @id @default(uuid())
   ratePlanName String @map("rate_plan_name")
   ratePlanCode String @unique @map("rate_plan_code")
-
+  deviceType   DeviceType[]   @map("device_type")
   // Back relation to Property
   property        Property @relation(fields: [propertyId], references: [id])
   propertyId      String   @map("property_id")
@@ -677,8 +653,7 @@ model RatePlan {
   b2bAvailable Boolean @default(false) @map("b2b_available")
   b2cAvailable Boolean @default(true) @map("b2c_available")
 
-  minimumLenghthOfStay Int  @default(1) @map("minimum_length_of_stay")
-  maximumLengthOfStay  Int? @map("maximum_length_of_stay")
+  ratePlanRules RatePlanRule?
 
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
@@ -922,49 +897,7 @@ model AddonAvailability {
   addon Addon @relation(fields: [addonId], references: [id])
 }
 
-// Pms Models
 
-// model Reservation {
-//   id          String @id @default(uuid())
-//   bookingCode String @unique @map("booking_code")
-
-//   bookedAt          DateTime          @map("booked_at")
-//   reservationStatus ReservationStatus @default(reserved) @map("reservation_status")
-//   noOfAdults        Int               @map("no_of_adults")
-//   noOfChildren      Int               @map("no_of_children")
-//   noOfInfants       Int               @map("no_of_infants")
-
-//   isDeleted Boolean @default(false) @map("is_deleted")
-
-//   checkedInDate   DateTime? @map("checked_in_date")
-//   checkedOutDate  DateTime? @map("checked_out_date")
-//   from            DateTime
-//   to              DateTime
-//   additionalNotes String?   @map("additional_notes")
-
-//   // primaryGuestId String @map("primary_guest_id")
-
-//   source BookingSource @default(walk_in) @map("source")
-
-//   propertyCode String  @map("property_code")
-//   propertyName String  @map("property_name")
-//   folioId      String? @map("folio_id")
-//   // folio        Folio?  @relation("ReservationFolio")
-
-//   // Guests       Guests[]
-//   Guests       Guests[] @relation("ReservationGuests")
-//   // PrimaryGuest Guests   @relation("ReservationPrimaryGuest", fields: [primaryGuestId], references: [id])
-
-//   // ReservationRooms ReservationRoom[]
-//   addOns           BookingAddon[]
-//   // partialRooms     PartialReservationRoom[]
-//   amountPaid       ReservationPriceBrakeDown[]
-//   createdAt        DateTime                    @default(now())
-//   updatedAt        DateTime                    @updatedAt
-
-//   @@index([propertyCode])
-//   @@map("reservations")
-// }
 model Reservation {
   id                 String   @id @default(uuid()) @db.VarChar(36) @map("id")
 
@@ -1010,7 +943,7 @@ model Reservation {
   cancellationReason String?  @db.VarChar(255) @map("cancellation_reason")
 
   // Booking Source
-  bookingSource      BookingSource @default(ota) @map("source")
+  bookingSource      BookingSource @default(direct) @map("source")
 
   // Promo
   isPromoUsed        Boolean  @default(false) @map("is_promo_used")
@@ -1024,8 +957,8 @@ model Reservation {
   property           Property   @relation(fields: [propertyId], references: [id])
   promo              PromoCode? @relation(fields: [promoId], references: [id])
   addOns             BookingAddon[]
-  priceBreakdowns ReservationPriceBrakeDown[]
-
+  priceBreakdowns    ReservationPriceBrakeDown[]
+  deviceType         ReservationDeviceType?
   @@index([propertyCode])
   @@index([propertyId])
   @@index([roomTypeCode])
@@ -1036,81 +969,6 @@ model Reservation {
   @@map("reservations")
 }
 
-// model PartialReservationRoom {
-//   id            String      @id @default(uuid())
-//   reservation   Reservation @relation(fields: [reservationId], references: [id])
-//   reservationId String      @map("reservation_id")
-
-//   roomTypeCode String @map("room_type_code")
-//   roomTypeName String @map("room_type_name")
-//   quantity     Int    @default(1) @map("quantity")
-//   ratePlanCode String @map("rate_plan_code")
-//   ratePlanName String @map("rate_plan_name")
-//   noOfAdults   Int    @map("no_of_adults")
-//   noOfChildren Int    @default(0) @map("no_of_children")
-//   noOfInfants  Int    @default(0) @map("no_of_infants")
-
-//   @@map("partial_reservation_rooms")
-// }
-
-// model ReservationRoom {
-//   id String @id @default(uuid())
-
-//   reservation   Reservation @relation(fields: [reservationId], references: [id])
-//   reservationId String      @map("reservation_id")
-
-//   isCheckedIn  Boolean @default(false) @map("is_checked_in")
-//   isCheckedOut Boolean @default(false) @map("is_checked_out")
-
-//   checkedInDate   DateTime? @map("checked_in_date")
-//   checkedOutDate  DateTime? @map("checked_out_date")
-//   reservationFrom DateTime  @map("reservation_from")
-//   reservationTo   DateTime  @map("reservation_to")
-
-//   roomTypeCode  String @map("room_type_code")
-//   Room          Room   @relation(fields: [roomTypeRefId], references: [id])
-//   roomTypeRefId String @map("room_type_ref_id")
-//   roomTypeName  String @map("room_type_name")
-
-//   individualRoomRefId  String          @map("individual_room_ref_id")
-//   IndividualRooms      IndividualRooms @relation(fields: [individualRoomRefId], references: [id])
-//   individualRoomNumber String          @map("individual_room_number")
-
-//   ratePlanCode String   @map("rate_plan_code")
-//   ratePlanName String   @map("rate_plan_name")
-//   propertyId   String   @map("property_id")
-//   Property     Property @relation("BookedRoomsForReservation", fields: [propertyId], references: [id])
-//   RatePlan     RatePlan @relation(fields: [ratePlanCode], references: [ratePlanCode])
-//   noOfAdults   Int      @map("no_of_adults")
-//   noOfChildren Int      @default(0) @map("no_of_children")
-//   noOfInfants  Int      @default(0) @map("no_of_infants")
-//   createdAt    DateTime @default(now())
-//   updatedAt    DateTime @updatedAt
-
-//   @@index([reservationId])
-//   @@map("reservation_rooms")
-// }
-
-// model SellStopedIndivdualRooms {
-//   id             String        @id @default(uuid())
-//   blockedReason  BlockedReason @default(maintainance)
-//   sellStopedDate DateTime      @map("sell_stoped_date")
-//   reason         String?
-
-//   individualRoomRefId  String          @map("individual_room_ref_id")
-//   IndividualRooms      IndividualRooms @relation(fields: [individualRoomRefId], references: [id])
-//   individualRoomNumber String          @map("individual_room_number")
-
-//   roomTypeCode  String @map("room_type_code")
-//   Room          Room   @relation(fields: [roomTypeRefId], references: [id])
-//   roomTypeRefId String @map("room_type_ref_id")
-
-//   propertyId String   @map("property_id")
-//   Property   Property @relation("PropertySellStopedRooms", fields: [propertyId], references: [id])
-
-//   @@unique([individualRoomRefId, sellStopedDate])
-//   @@map("sell_stoped_indivdual_rooms")
-// }
 
 model Guests {
   id                   String                @id @default(uuid())
@@ -1118,7 +976,6 @@ model Guests {
   lastName             String                @map("last_name")
   email                String?
   phoneNumber          String?               @map("phone_number")
-  // reservations         Reservation[]         @relation("ReservationGuests")
   primaryReservations  Reservation[]         @relation("ReservationPrimaryGuest")
   userType             GuestType             @default(adult) @map("user_type")
   propertyId           String                @map("property_id")
@@ -1136,173 +993,6 @@ model Guests {
 
   @@map("guests")
 }
-
-// model Folio {
-//   id            String      @id @default(uuid())
-//   propertyId    String      @map("property_id")
-//   Property      Property    @relation("PropertyFolio", fields: [propertyId], references: [id])
-//   reservationId String      @unique @map("reservation_id")
-//   bookingCode   String      @map("booking_code")
-//   reservation   Reservation @relation("ReservationFolio", fields: [reservationId], references: [id])
-
-//   status FolioStatus @default(open) @map("status")
-
-//   totalAmount Decimal      @default(0) @map("total_amount")
-//   currency    CurrencyCode @map("currency")
-//   createdAt   DateTime     @default(now())
-//   updatedAt   DateTime     @updatedAt
-
-//   folioLines FolioLines[]
-//   payments   Payments[]
-
-//   @@index([bookingCode])
-//   @@map("folios")
-// }
-
-// model FolioLines {
-//   id      String @id @default(uuid())
-//   folio   Folio  @relation(fields: [folioId], references: [id])
-//   folioId String @map("folio_id")
-
-//   description String @map("description")
-
-//   amount       Decimal      @map("amount")
-//   taxAmount    Decimal      @default(0) @map("tax_amount")
-//   currencyCode CurrencyCode @default(INR)
-//   createdAt    DateTime     @default(now())
-//   updatedAt    DateTime     @updatedAt
-
-//   @@index([folioId])
-//   @@map("folio_lines")
-// }
-
-// model Payments {
-//   id      String @id @default(uuid())
-//   folioId String @map("folio_id")
-//   // folio   Folio  @relation(fields: [folioId], references: [id])
-
-//   amount        Decimal
-//   paymentMethod PaymentMethod @default(cash) @map("payment_method")
-//   paymentDate   DateTime      @map("payment_date")
-//   currency      CurrencyCode  @map("currency")
-
-//   processedBy String  @map("processed_by")
-//   ProcessedBy User    @relation("PaymentProcessedBy", fields: [processedBy], references: [id])
-//   paymentNote String? @map("payment_note")
-
-//   paidAt        DateTime      @default(now()) @map("paid_at")
-//   paymentStatus PaymentStatus @default(confirmed) @map("payment_status")
-//   createdAt     DateTime      @default(now())
-//   updatedAt     DateTime      @updatedAt
-
-//   @@index([folioId])
-//   @@map("payments")
-// }
-
-// model IndividualRooms {
-//   id String @id @default(uuid())
-
-//   roomTypeCode  String @map("room_type_code")
-//   roomTypeRefId String @map("room_type_ref_id")
-//   RoomType      Room   @relation(fields: [roomTypeRefId], references: [id])
-
-//   propertyCode String               @map("property_code")
-//   propertyId   String               @map("property_id")
-//   Property     Property             @relation(fields: [propertyId], references: [id])
-//   roomStatus   IndividualRoomStatus @default(available) @map("room_status")
-//   isAvailable  Boolean              @default(true) @map("is_available")
-
-//   roomNumber String  @unique @map("room_number")
-//   floor      Int     @map("floor")
-//   building   String? @map("building")
-
-//   ReservationRooms          ReservationRoom[]
-//   HouseKeepingTasks         HouseKeepingTask[]
-//   createdAt                 DateTime                   @default(now())
-//   updatedAt                 DateTime                   @updatedAt
-//   sellStoppedIndivdualRooms SellStopedIndivdualRooms[]
-
-//   @@index([propertyId, roomTypeRefId])
-//   @@map("individual_rooms")
-// }
-
-// model HouseKeepingTask {
-//   id           String       @id @default(uuid())
-//   propertyId   String       @map("property_id")
-//   Property     Property     @relation("TasksIn The property", fields: [propertyId], references: [id])
-//   taskPriority TaskPriority @default(low) @map("task_priority")
-
-//   assignmentStatus HouseKeepingTaskStatus @default(assigned) @map("assignment_status")
-//   individualRoomId String                 @map("individual_room_id")
-//   IndividualRoom   IndividualRooms        @relation(fields: [individualRoomId], references: [id])
-
-//   assignedAt  DateTime  @default(now()) @map("assigned_at")
-//   dueAt       DateTime  @map("due_at")
-//   completedAt DateTime? @map("completed_at")
-//   notes       String?   @map("notes")
-
-//   metadata Json? @map("metadata")
-
-//   assignedById String @map("assigned_by_id")
-//   AssignedBy   User   @relation("RoomAssignedBy", fields: [assignedById], references: [id])
-
-//   assignedToId String @map("assigned_to")
-//   AssignedTo   User   @relation("RoomAssignedTo", fields: [assignedToId], references: [id])
-
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-
-//   @@index([individualRoomId])
-//   @@index([assignedById])
-//   @@map("house_keeping_tasks")
-// }
-
-// model NightAudit {
-//   id String @id @default(uuid())
-
-//   propertyId String   @unique @map("property_id")
-//   property   Property @relation(fields: [propertyId], references: [id])
-
-//   auditDate DateTime @map("audit_date")
-
-//   processedById String @map("processed_by_id")
-//   ProcessedBy   User   @relation("AuditProcessedBy", fields: [processedById], references: [id])
-
-//   processedAt DateTime? @map("processed_at")
-//   remarks     String?   @map("remarks")
-
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-
-//   @@index([propertyId])
-//   @@index([processedById])
-//   @@map("night_audits")
-// }
-
-// model PastNightAudit {
-//   id String @id @default(uuid())
-
-//   propertyId String   @map("property_id")
-//   property   Property @relation(fields: [propertyId], references: [id])
-
-//   auditedFrom DateTime @map("audited_from")
-//   auditedTo   DateTime @map("audited_to")
-
-//   reportPdfUrl String? @map("report_pdf_url")
-
-//   processedById String @map("processed_by_id")
-//   ProcessedBy   User   @relation("PastAuditProcessedBy", fields: [processedById], references: [id])
-
-//   processedAt DateTime? @map("processed_at")
-//   remarks     String?   @map("remarks")
-
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-
-//   @@index([propertyId])
-//   @@index([processedById])
-//   @@map("past_night_audits")
-// }
 
 model ReservationPriceBrakeDown {
   id                     String      @id @default(uuid())
@@ -1322,4 +1012,55 @@ model ReservationPriceBrakeDown {
   tax                    Json[]
 
   @@map("reservation_price_brake_down")
+}
+model RoomVideo {
+  id        String   @id @default(uuid())
+  roomId    String   @unique
+  url       String
+  thumbnail String?
+  createdAt DateTime @default(now())
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@map("room_videos")
+}
+
+model PropertyVideo {
+  id         String   @id @default(uuid())
+  propertyId String   @unique
+  url        String
+  thumbnail  String?
+  createdAt  DateTime @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@map("property_videos")
+}
+
+model RatePlanRule {
+  id             String   @id @default(uuid())
+
+  ratePlanId     String   @unique @map("rate_plan_id")
+  ratePlan       RatePlan @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
+
+  // Optional date range (can be NULL = always valid)
+  startDate      DateTime? @map("start_date")
+  endDate        DateTime? @map("end_date")
+
+  // Length of stay rules
+  minLos         Int       @default(1) @map("min_los")
+  maxLos         Int?      @map("max_los")
+
+  // Discount logic
+  discountType   DiscountType? @map("discount_type")
+  discountValue  Decimal?      @db.Decimal(10, 2) @map("discount_value")
+
+  // Enable / disable rule
+  isActive       Boolean @default(true)
+
+  // Audit
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("rate_plan_rules")
 }
