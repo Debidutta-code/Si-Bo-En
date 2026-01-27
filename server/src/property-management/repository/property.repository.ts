@@ -600,13 +600,20 @@ console.log(createResult);
     }
   }
 
-  public static async getActiveAmenities(propertyId: string): Promise<string[]> {
-    try {
-      const amenitySelections = await this.findByPropertyId(propertyId);
-      return amenitySelections.map(selection => selection.amenity.amenityName);
-    } catch (error: any) {
-      throw new Error(`Failed to get active amenities: ${error.message}`);
-    }
+ public static async getActiveAmenities(
+  propertyId: string
+): Promise<{ id: string; name: string }[]> {
+  try {
+    const amenitySelections = await this.findByPropertyId(propertyId);
+
+    return amenitySelections.map(selection => ({
+      id: selection.amenity.id,
+      name: selection.amenity.amenityName
+    }));
+  } catch (error: any) {
+    throw new Error(`Failed to get active amenities: ${error.message}`);
   }
+}
+
 }
 
