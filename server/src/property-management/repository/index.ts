@@ -9,8 +9,6 @@ import {PropertyConfigRepo} from "./property-config.repository"
 import { RoomAmenityDao, RoomDao } from "./room.repository";
 import {
     CategoryDao,
-    DestinationTypeDao,
-    DestinationTypeSelectionDao,
     PropertyAmenitySelectionDao,
     PropertyAminityDao,
     PropertyCategorySelectionDao,
@@ -29,8 +27,6 @@ export{
     RoomAmenityDao,
     RoomDao,
     CategoryDao,
-    DestinationTypeDao,
-    DestinationTypeSelectionDao,
     PropertyAmenitySelectionDao,
     PropertyAminityDao,
     PropertyCategorySelectionDao,

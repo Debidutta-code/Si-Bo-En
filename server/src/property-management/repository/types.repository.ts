@@ -242,62 +242,6 @@ export class PropertyTypesDao {
   }
 }
 
-export class DestinationTypeDao {
-  public static async getDestinationByName(destinationTypeName: string) {
-    try {
-      return await prisma.masterDestinationType.findFirst({
-        where: {
-          destinationTypeName: destinationTypeName,
-          isActive: true,
-        },
-      });
-    } catch (error: any) {
-      throw new Error(error?.message);
-    }
-  }
-
-  public static async createDestinationType(
-    destinationTypeName: string,
-    description: string
-  ) {
-    try {
-      return await prisma.masterDestinationType.create({
-        data: {
-          destinationTypeName: destinationTypeName,
-          destinationDescription: description,
-          isActive: true,
-        },
-      });
-    } catch (error: any) {
-      console.log(error?.message);
-      throw new Error(error?.message);
-    }
-  }
-
-  public static async getDestinationType() {
-    try {
-      return await prisma.masterDestinationType.findMany({
-        where: {
-          isActive: true,
-        },
-      });
-    } catch (error: any) {
-      throw new Error(error?.message);
-    }
-  }
-
-  public static async deleteDestinationType(destinationTypeName: string) {
-    try {
-      // Soft delete by setting isActive to false
-      return await prisma.masterDestinationType.updateMany({
-        where: { destinationTypeName: destinationTypeName },
-        data: { isActive: false },
-      });
-    } catch (error: any) {
-      throw new Error(error?.message);
-    }
-  }
-}
 
 // Additional helper DAOs for property selection/assignment
 
@@ -373,41 +317,7 @@ export class PropertyTypeSelectionDao {
   }
 }
 
-export class DestinationTypeSelectionDao {
-  public static async assignDestinationTypeToProperty(
-    propertyId: string,
-    masterDestinationTypeId: string
-  ) {
-    try {
-      return await prisma.destinationType.upsert({
-        where: { propertyId: propertyId },
-        update: { masterDestinationTypeId: masterDestinationTypeId },
-        create: {
-          propertyId: propertyId,
-          masterDestinationTypeId: masterDestinationTypeId,
-        },
-        include: {
-          masterDestinationType: true,
-        },
-      });
-    } catch (error: any) {
-      throw new Error(`Error assigning destination type to property: ${error.message}`);
-    }
-  }
 
-  public static async getDestinationType(propertyId: string) {
-    try {
-      return await prisma.destinationType.findUnique({
-        where: { propertyId: propertyId },
-        include: {
-          masterDestinationType: true,
-        },
-      });
-    } catch (error: any) {
-      throw new Error(error?.message);
-    }
-  }
-}
 
 export class PropertyAmenitySelectionDao {
   public static async assignAmenitiesToProperty(

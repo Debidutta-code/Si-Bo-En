@@ -6,7 +6,6 @@ import {Property,
 import {RoomAminityController,RoomController} from "./room.controller";
 import {AminityController,
     Category,
-    DestinationType,
     PropertyType,
     RoomAminityControllerManagement
 } from "./types.controller";
@@ -22,7 +21,6 @@ export{
     RoomController,
     AminityController,
     Category,
-    DestinationType,
     PropertyType,
     RoomAminityControllerManagement,
     uploadHandler,

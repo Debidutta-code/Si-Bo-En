@@ -249,7 +249,6 @@ export class UtilsRepository {
         include: {
           creation: true,
           propertyCategory: true,
-          destinationType: true,
           propertyType: true,
           propertyAddress: true,
           propertyAmenities: true,

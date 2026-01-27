@@ -11,7 +11,6 @@ import {
 import {
     AminityServices,
     CategoryService,
-    DestinationTypeService,
     PropertyTypeService,
     RoomAmenityServices
 } from "./types.service";
@@ -29,7 +28,6 @@ export {
     PropertyService,
     RoomAminityService,
     RoomService,
-    DestinationTypeService,
     PropertyTypeService,
     RoomAmenityServices,
     BookingEngineService

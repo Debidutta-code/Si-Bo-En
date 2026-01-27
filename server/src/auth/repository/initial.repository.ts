@@ -123,14 +123,6 @@ export class InitializeDB {
                 }
             })
 
-            await prisma.masterDestinationType.create({
-                data: {
-                    id: "39b60d48-74a0-46a5-9cad-bb178de4cbc3",
-                    destinationTypeName: "Villa",
-                    destinationDescription: "A private luxury house, often with a garden, pool, and exclusive amenities, ideal for families or groups.",
-
-                }
-            })
             return userRes
         } catch (error) {
             throw new Error("Failed to init db")

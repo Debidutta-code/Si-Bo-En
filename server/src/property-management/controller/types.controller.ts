@@ -4,7 +4,6 @@ import { errorResponse } from '../../utils/return';
 import {
   CategoryService,
   PropertyTypeService,
-  DestinationTypeService,
   AminityServices,
   RoomAmenityServices,
 } from '../services';
@@ -242,82 +241,6 @@ export class PropertyType {
       }
       const serRes =
         await PropertyTypeService.deletePropertyTypeService(propertyTypeName);
-      if (serRes.success) {
-        return res.status(200).json(serRes);
-      } else {
-        return res.status(400).json(serRes);
-      }
-    } catch (error: any) {
-      return res
-        .status(500)
-        .json(errorResponse('Internal Server Error', error?.message));
-    }
-  }
-}
-export class DestinationType {
-  public static async createDestinationTypeController(
-    req: CustomRequest,
-    res: Response
-  ) {
-    try {
-      const { destinationTypeName, description } = req.body;
-      console.log(destinationTypeName, description);
-      if (!destinationTypeName || !description) {
-        return res
-          .status(400)
-          .json(
-            errorResponse(
-              'Destination Type and description required to create category'
-            )
-          );
-      }
-      const serRes = await DestinationTypeService.createDestinationService(
-        destinationTypeName,
-        description
-      );
-      if (serRes.success) {
-        return res.status(200).json(serRes);
-      } else {
-        return res.status(400).json(serRes);
-      }
-    } catch (error: any) {
-      return res
-        .status(500)
-        .json(errorResponse('Internal Server Error', error?.message));
-    }
-  }
-  public static async getDestinationTypeController(
-    req: CustomRequest,
-    res: Response
-  ) {
-    try {
-      const serRes = await DestinationTypeService.getDestinationService();
-      if (serRes.success) {
-        return res.status(200).json(serRes);
-      } else {
-        return res.status(400).json(serRes);
-      }
-    } catch (error: any) {
-      return res
-        .status(500)
-        .json(errorResponse('Internal Server Error', error?.message));
-    }
-  }
-  public static async deleteDestinationTypeController(
-    req: CustomRequest,
-    res: Response
-  ) {
-    try {
-      const destinationTypeName = req.params.destinationTypeName;
-      if (!destinationTypeName) {
-        return res
-          .status(400)
-          .json(errorResponse('Category Name is required to delete category'));
-      }
-      const serRes =
-        await DestinationTypeService.deleteDestinationService(
-          destinationTypeName
-        );
       if (serRes.success) {
         return res.status(200).json(serRes);
       } else {

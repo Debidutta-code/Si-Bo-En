@@ -21,13 +21,6 @@ export class PropertyDao {
           createdById: data.createdById,
           creationId: data.creationId,
 
-          // Create the junction table records
-          destinationType: data.destinationType?.masterDestinationType?.id ? {
-            create: {
-              masterDestinationTypeId: data.destinationType.masterDestinationType.id
-            }
-          } : undefined,
-
           propertyCategory: data.propertyCategory?.masterCategory?.id ? {
             create: {
               masterCategoryId: data.propertyCategory.masterCategory.id
@@ -51,11 +44,6 @@ export class PropertyDao {
               masterCategory: true
             }
           },
-          destinationType: {
-            include: {
-              masterDestinationType: true
-            }
-          }
         },
       });
 
@@ -121,11 +109,6 @@ export class PropertyDao {
               
             }
 
-          },
-          destinationType: {
-            include: {
-              masterDestinationType: true,
-            },
           },
           propertyCategory: {
             include: {

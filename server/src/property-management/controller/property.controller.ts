@@ -28,7 +28,6 @@ export class Property {
         propertyContact,
         propertyType,
         propertyCategory,
-        destinationType,
         description,
         image,
       } = req.body;
@@ -37,8 +36,7 @@ export class Property {
         !propertyEmail ||
         !propertyContact ||
         !propertyType ||
-        !propertyCategory ||
-        !destinationType
+        !propertyCategory 
       ) {
         return res
           .status(400)
@@ -50,8 +48,7 @@ export class Property {
           .json(errorResponse('Must provide at least one image of property'));
       }
       console.log(propertyType,
-        propertyCategory,
-        destinationType,)
+        propertyCategory)
       const serviceRes = await PropertyService.createPropertyService(
         {
           propertyName,
@@ -59,7 +56,6 @@ export class Property {
           propertyContact,
           propertyType,
           propertyCategory,
-          destinationType,
           description,
           image,
           createdById: requestUserId,

@@ -14,7 +14,6 @@ import {
   PropertyAminityController,
   Category,
   PropertyType,
-  DestinationType,
   AminityController,
   RoomAminityControllerManagement,
 } from "../controller";
@@ -69,29 +68,7 @@ propertyTypeRouter
     checkRoleBased('canCDPropertyType'),
     PropertyType.deletePropertyTypeController
   );
-destinationRouter
-  .route('/get')
-  .get(
-    protect,
-    checkMultiplePermissions(['canCreateHotel', 'canUpdateHotel']),
-    DestinationType.getDestinationTypeController
-  );
 
-destinationRouter
-  .route('/create')
-  .post(
-    protect,
-    checkRoleBased('canCDDestinationType'),
-    DestinationType.createDestinationTypeController
-  );
-
-destinationRouter
-  .route('/delete/:destinationTypeName')
-  .delete(
-    protect,
-    checkRoleBased('canCDDestinationType'),
-    DestinationType.deleteDestinationTypeController
-  );
 aminityRouter
   .route('/get')
   .get(

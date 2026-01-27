@@ -5,7 +5,6 @@ import { z } from "zod";
 import toast from "react-hot-toast";
 import {
   getAllCategory,
-  getAllDestinationType,
   getAllPropertyType,
   uploadImages,
 } from "../api/create/propertyinfo";
@@ -23,7 +22,6 @@ import {
   Phone,
   Tag,
   House,
-  MapPin,
   Camera,
   Upload,
   X,
@@ -31,7 +29,6 @@ import {
 
 // Type Definitions
 import type {
-  IDestinationType,
   IPropertyCategory,
   
   IPropertyType,
@@ -64,11 +61,6 @@ const propertyInfoSchema = z.object({
     propertyTypeName: z.string(),
     description: z.string(),
   }),
-  destinationType: z.object({
-    id: z.string().min(1, "Please select a destination type."),
-    destinationTypeName: z.string(),
-    description: z.string(),
-  }),
   image: z.array(z.string()).min(1, "Please upload at least one image."),
 });
 
@@ -88,9 +80,6 @@ export default function PropertyInfo({
   const [propertyCategories, setPropertyCategories] = useState<
     IPropertyCategory[]
   >([]);
-  const [destinationTypes, setDestinationTypes] = useState<IDestinationType[]>(
-    []
-  );
   const [modalOpen, setModalOpen] = useState<boolean>(false);
   const [errors, _setErrors] = useState<FormErrors | null>(null);
 
@@ -105,13 +94,11 @@ export default function PropertyInfo({
   useEffect(() => {
     const fetchManagementDetails = async () => {
       try {
-        const [categoryRes, destRes, typeRes] = await Promise.all([
+        const [categoryRes,  typeRes] = await Promise.all([
           getAllCategory(),
-          getAllDestinationType(),
           getAllPropertyType(),
         ]);
         if (categoryRes.success) setPropertyCategories(categoryRes.data);
-        if (destRes.success) setDestinationTypes(destRes.data);
         if (typeRes.success) setPropertyTypes(typeRes.data);
       } catch (error: any) {
         toast.error("Failed to load property options.");
@@ -133,13 +120,9 @@ export default function PropertyInfo({
       selectedObject = propertyCategories.find(
         (cat) => cat.id === selectedValue
       );
-    } else if (fieldName === "propertyType") {
+    } else  {
       selectedObject = propertyTypes.find((type) => type.id === selectedValue);
-    } else {
-      selectedObject = destinationTypes.find(
-        (dest) => dest.id === selectedValue
-      );
-    }
+    } 
 
     if (selectedObject) {
       modifyPropertyDetails((prev) => ({
@@ -319,37 +302,6 @@ export default function PropertyInfo({
             )}
           </div>
 
-          {/* Destination */}
-          <div>
-            <Label className="flex items-center gap-1.5 text-sm font-medium text-gray-700 mb-1.5">
-              <MapPin className="w-4 h-4" /> Destination *
-            </Label>
-            <select
-              value={property.destinationType?.masterDestinationType?.id || ""}
-              onChange={(e) =>
-                handleSelectChange("destinationType", e.target.value)
-              }
-              className={cn(
-                "w-full h-10 border border-gray-300 rounded-md px-3 text-gray-900 bg-white focus:border-black focus:outline-none focus:ring-0",
-                errors?.destinationType && "border-red-500 focus:border-red-600"
-              )}
-            >
-              <option value="" disabled>
-                Choose destination
-              </option>
-              {destinationTypes.map((dest) => (
-                <option key={dest.id} value={dest.id}>
-                  {dest.destinationTypeName}
-                </option>
-              ))}
-            </select>
-            {errors?.destinationType?.id && (
-              <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
-                <AlertCircle className="w-3 h-3" />
-                {errors.destinationType.id._errors[0]}
-              </p>
-            )}
-          </div>
         </div>
       </div>
 

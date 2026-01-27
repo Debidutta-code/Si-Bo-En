@@ -273,7 +273,6 @@ model Property {
 
   // Embedded Data (1:1 relations)
   propertyCategory  PropertyCategory?
-  destinationType   DestinationType?
   propertyType      PropertyType?
   propertyAddress   PropertyAddress?
   propertyAmenities PropertyAmenitySelection[]
@@ -348,20 +347,7 @@ model MasterPropertyType {
   @@map("master_property_types")
 }
 
-model MasterDestinationType {
-  id                     String  @id @default(uuid())
-  destinationTypeName    String  @unique @map("destination_type_name")
-  destinationDescription String? @map("destination_description")
-  isActive               Boolean @default(true) @map("is_active")
 
-  // Relation to properties that selected this destination type
-  properties DestinationType[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("master_destination_types")
-}
 
 model MasterAmenity {
   id          String      @id @default(uuid())
@@ -390,16 +376,7 @@ model PropertyCategory {
   @@map("property_categories")
 }
 
-model DestinationType {
-  id                      String                @id @default(uuid())
-  masterDestinationType   MasterDestinationType @relation(fields: [masterDestinationTypeId], references: [id])
-  masterDestinationTypeId String                @map("master_destination_type_id")
 
-  property   Property @relation(fields: [propertyId], references: [id])
-  propertyId String   @unique @map("property_id")
-
-  @@map("destination_types")
-}
 
 model PropertyType {
   id                   String             @id @default(uuid())

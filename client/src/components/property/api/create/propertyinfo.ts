@@ -23,18 +23,7 @@ export const getAllPropertyType = async () => {
     return error?.response.data;
   }
 };
-export const getAllDestinationType = async () => {
-  const axiosInstance = createAxiosInstance();
-  try {
-    const response = await axiosInstance.get(
-      "property-management/property/management/destination-type/get"
-    );
 
-    return response.data;
-  } catch (error: any) {
-    return error?.response.data;
-  }
-};
 export const uploadImages = async (files: File[]) => {
   const axiosInstance = createAxiosInstance();
 
