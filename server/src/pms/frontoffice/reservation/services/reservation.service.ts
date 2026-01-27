@@ -214,7 +214,7 @@ export class ReservationService {
                 bookingStatus: "confirmed",
                 cancellationReason: null,
                 
-                bookingSource: "ota",
+                bookingSource: "direct",
                 
                 isPromoUsed: false,
                 promoId: null

@@ -24,8 +24,6 @@ export class RatePlanRepository {
           ratePlanCode,
           b2bAvailable: isB2B,
           b2cAvailable: isB2C,
-          minimumLenghthOfStay: minimumLengthOfStay,
-          maximumLengthOfStay: maximumLengthOfStay,
           property: {
             connect: {
               id: propertyId

@@ -123,17 +123,17 @@ export class RoomRentCalculationService {
       }
 
       // Check min/max length of stay
-      if (numberOfNights < ratePlan.minimumLenghthOfStay) {
-        return errorResponse(
-          `Minimum stay of ${ratePlan.minimumLenghthOfStay} nights required for this rate plan.`
-        );
-      }
+      // if (numberOfNights < ratePlan.minimumLenghthOfStay) {
+      //   return errorResponse(
+      //     `Minimum stay of ${ratePlan.minimumLenghthOfStay} nights required for this rate plan.`
+      //   );
+      // }
 
-      if (ratePlan.maximumLengthOfStay && numberOfNights > ratePlan.maximumLengthOfStay) {
-        return errorResponse(
-          `Maximum stay of ${ratePlan.maximumLengthOfStay} nights allowed for this rate plan.`
-        );
-      }
+      // if (ratePlan.maximumLengthOfStay && numberOfNights > ratePlan.maximumLengthOfStay) {
+      //   return errorResponse(
+      //     `Maximum stay of ${ratePlan.maximumLengthOfStay} nights allowed for this rate plan.`
+      //   );
+      // }
       console.log("inv ava:", start, end);
 
       // Step 2: Check inventory availability
@@ -256,18 +256,18 @@ export class RoomRentCalculationService {
       }
 
       // Check min/max length of stay
-      if (numberOfNights < ratePlan.minimumLenghthOfStay) {
-        return errorResponse(
-          `Minimum stay of ${ratePlan.minimumLenghthOfStay} nights required for this rate plan.`
-        );
-      }
+      // if (numberOfNights < ratePlan.minimumLenghthOfStay) {
+      //   return errorResponse(
+      //     `Minimum stay of ${ratePlan.minimumLenghthOfStay} nights required for this rate plan.`
+      //   );
+      // }
 
-      if (ratePlan.maximumLengthOfStay && numberOfNights > ratePlan.maximumLengthOfStay) {
-        return errorResponse(
-          `Maximum stay of ${ratePlan.maximumLengthOfStay} nights allowed for this rate plan.`
-        );
-      }
-      console.log("inv ava:", start, end);
+      // if (ratePlan.maximumLengthOfStay && numberOfNights > ratePlan.maximumLengthOfStay) {
+      //   return errorResponse(
+      //     `Maximum stay of ${ratePlan.maximumLengthOfStay} nights allowed for this rate plan.`
+      //   );
+      // }
+      // console.log("inv ava:", start, end);
 
       // Step 2: Check inventory availability
       const inventoryCheck = await this.checkInventoryAvailability(
