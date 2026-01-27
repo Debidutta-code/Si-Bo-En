@@ -26,7 +26,7 @@ export class BankController {
       const {
         payAtHotel,
         gateway
-      } = req.body;
+      } = req.body.activatedPaymentMethod;
       if (!propertyId) {
         return res
           .status(400)

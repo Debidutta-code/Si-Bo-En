@@ -94,9 +94,7 @@ export interface IRatePlans {
 }
 export interface PaymentMethods {
   payAtHotel?: boolean;
-  bankTransfer?: boolean;
-  upi?: boolean;
-  gateway?: boolean;
+  paymentGateway?: boolean;
 }
 
 export interface IBankDetails {

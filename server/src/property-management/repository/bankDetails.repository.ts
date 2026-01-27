@@ -7,13 +7,19 @@ export class BankDetailsDao {
     payAtHotel: boolean,
   ) {
     try {
-      return await prisma.bankDetails.create({
+      const bankDetailsRes = await prisma.bankDetails.create({
         data: {
           propertyId: propertyId,
           paymentGateway: paymentGateway,
           payAtHotel: payAtHotel,
         },
       });
+        await prisma.property.update({
+        where: { id: propertyId },
+        data: { isDraft: true },
+      });
+
+      return bankDetailsRes;
     } catch (error: any) {
       throw new Error(error.message);
     }
@@ -26,6 +32,7 @@ export class BankDetailsDao {
           propertyId: id,
         },
       });
+      
     } catch (error: any) {
       throw new Error(error.message);
     }
@@ -44,7 +51,7 @@ export class BankDetailsDao {
           paymentGateway: paymentGateway,
         },
       });
-
+console.log("property id ",propertyId)
       await prisma.property.update({
         where: { id: propertyId },
         data: { isDraft: true },
