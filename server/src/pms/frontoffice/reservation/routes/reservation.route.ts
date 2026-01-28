@@ -38,5 +38,6 @@ reservationRoute.route("/:reservationCode")
     .get( reservationController.getReservationByCode.bind(reservationController));
 reservationRoute.route("/update/:reservationCode")
     .patch( reservationController.updateReservation.bind(reservationController));
-
+reservationRoute.route("/no-show/:reservationId")
+    .patch( reservationController.noShowReservation.bind(reservationController));
 export { reservationRoute };

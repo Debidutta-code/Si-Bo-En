@@ -196,7 +196,20 @@ export const cancelReservation = async (reservationId: string) => {
     };
   }
 };
-
+export const noShowReservation = async (reservationId: string) => {
+  try {
+    const response = await axiosInstance.patch(`/pms/front-office/reservations/no-show/${reservationId}`);
+    return response.data;
+  } catch (error: any) {
+    if (error?.response?.data) {
+      return error.response.data;
+    }
+    return {
+      success: false,
+      message: error?.message || "Failed to no show reservation"
+    };
+  }
+};
 export const amendReservation = async (reservationId: string, newCheckoutDate: string) => {
   try {
     const response = await axiosInstance.patch(`/pms/front-office/reservations/amend/${reservationId}`, {

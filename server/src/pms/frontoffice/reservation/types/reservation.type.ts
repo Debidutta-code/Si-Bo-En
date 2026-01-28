@@ -98,18 +98,9 @@ export interface ITaxBreakdown {
 }
 
 export interface IBankDetails {
-  id: string;
-  propertyId: string;
-  accountHolder: string;
-  accountNumber: string;
-  ifsc: string;
-  upiId: string;
-  activatedPaymentMethod: {
-    upi: boolean;
-    gateway: boolean;
-    payAtHotel: boolean;
-    bankTransfer: boolean;
-  };
+  id: string
+  payAtHotel: boolean;
+  paymentGateway: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -122,32 +113,32 @@ export interface ICReservation {
   hotelName: string | null;
   roomTypeCode: string | null;
   ratePlanCode: string | null;
-  
+
   checkInDate: Date;
   checkOutDate: Date;
   bookedAt: Date;
-  
+
   primaryGuestId: string;
   guests: any; // JSON field - stores all guest details
   bookingUserEmail: string;
   bookingUserPhone: string | null;
-  
+
   amount: number;
   currencyCode: CurrencyCode;
   finalPrice: any | null; // JSON field
-  
+
   paidAmount: number;
   extraAmountToPay: number;
   refundAmount: number;
-  
+
   paymentMethod: PaymentMethod;
   paymentImages: any | null; // JSON field
-  
+
   bookingStatus: BookingStatus;
   cancellationReason: string | null;
-  
+
   bookingSource: BookingSource;
-  
+
   isPromoUsed: boolean;
   promoId: string | null;
 }

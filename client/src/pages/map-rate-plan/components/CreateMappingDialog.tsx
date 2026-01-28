@@ -20,7 +20,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import type { ICreateCharges, RatePlan, RoomTypes, IBaseGuestAmounts, IAdditionalGuestAmount } from "../types";
+import type { ICreateCharges, RatePlan, RoomTypes, IBaseGuestAmounts, IAdditionalGuestAmount, qualifyingAgeCode } from "../types";
 
 interface CreateMappingDialogProps {
     open: boolean;
@@ -80,17 +80,30 @@ export default function CreateMappingDialog({
         updated[index] = { ...updated[index], [field]: value };
         setFormData({ ...formData, baseByGuestAmounts: updated });
     };
+const availableAgeCodes: qualifyingAgeCode[] = ["10", "8", "5"]; // Add the proper type
 
-    const handleAddAdditionalGuestAmount = () => {
-        setFormData({
-            ...formData,
-            additionalGuestAmounts: [
-                ...formData.additionalGuestAmounts,
-                { ageQualifyingCode: "10", amount: 0 },
-            ],
-        });
-    };
+   const handleAddAdditionalGuestAmount = () => {
+    // Get all currently selected age codes
+    const selectedAgeCodes = formData.additionalGuestAmounts.map(item => item.ageQualifyingCode);
+    
+    // Find the first available age code not already selected
+    const nextAgeCode = availableAgeCodes.find(code => !selectedAgeCodes.includes(code));
+    
+    if (!nextAgeCode) {
+        toast.error("All age categories have been added (Adult, Child, Infant)");
+        return;
+    }
+    
+    setFormData({
+        ...formData,
+        additionalGuestAmounts: [
+            ...formData.additionalGuestAmounts,
+            { ageQualifyingCode: nextAgeCode, amount: 0 },
+        ],
+    });
+};
 
+    // Your handleRemoveAdditionalGuestAmount stays the same
     const handleRemoveAdditionalGuestAmount = (index: number) => {
         const updated = formData.additionalGuestAmounts.filter((_, i) => i !== index);
         setFormData({ ...formData, additionalGuestAmounts: updated });
@@ -135,7 +148,7 @@ export default function CreateMappingDialog({
         setIsSubmitting(true);
         try {
             await onSave(formData);
-            
+
             // Reset form on success
             setFormData({
                 ratePlanCode: filters.ratePlanCode || "",
@@ -362,9 +375,20 @@ export default function CreateMappingDialog({
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                <SelectItem value="10">Adult (10)</SelectItem>
-                                                <SelectItem value="8">Child (8)</SelectItem>
-                                                <SelectItem value="5">Infant (5)</SelectItem>
+                                                {["10", "8", "5"]
+                                                    .filter(code => {
+                                                        // Show current selection and only available codes that aren't used elsewhere
+                                                        return item.ageQualifyingCode === code ||
+                                                            !formData.additionalGuestAmounts.some((guest, i) =>
+                                                                i !== index && guest.ageQualifyingCode === code
+                                                            );
+                                                    })
+                                                    .map((code) => (
+                                                        <SelectItem key={code} value={code}>
+                                                            {code === "10" ? "Adult (10)" : code === "8" ? "Child (8)" : "Infant (5)"}
+                                                        </SelectItem>
+                                                    ))
+                                                }
                                             </SelectContent>
                                         </Select>
                                     </div>
@@ -411,14 +435,14 @@ export default function CreateMappingDialog({
                 </div>
 
                 <DialogFooter>
-                    <Button 
-                        variant="outline" 
+                    <Button
+                        variant="outline"
                         onClick={handleClose}
                         disabled={isSubmitting}
                     >
                         Cancel
                     </Button>
-                    <Button 
+                    <Button
                         onClick={handleSubmit}
                         disabled={isSubmitting}
                     >

@@ -22,6 +22,7 @@ import { Calendar, FileText, AlertCircle } from "lucide-react";
 import { ReservationFilters } from "./components";
 import Loader from "@/components/Loader/Loader";
 import ReservationsTable from "./components/ReservationsTable";
+import { noShowReservation } from "./api/reservation.api";
 
 export default function ReservationsPage() {
   const [reservations, setReservations] = useState<IReservation[]>([]);
@@ -150,7 +151,19 @@ export default function ReservationsPage() {
       toast.error(error.message || "Failed to cancel reservation");
     }
   };
-
+const handleNoShowReservation = async (reservationId: string) => {
+    try {
+      const response = await noShowReservation(reservationId);
+      if (response.success) {
+        toast.success("Reservation marked as no-show successfully");
+        loadReservations();
+      } else {
+        toast.error(response.message || "Failed to mark reservation as no-show");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to mark reservation as no-show");
+    }
+  };
   // const handleAmendReservation = (reservationId: string) => {
   //   // Navigate to amendment page or open modal
   //   // router(`/reservations/amend/${reservationId}`);
@@ -230,6 +243,7 @@ export default function ReservationsPage() {
             <ReservationsTable
               reservations={reservations}
               onCancel={handleCancelReservation}
+              onNoShow={handleNoShowReservation}
             />
 
             {/* Pagination */}

@@ -1,4 +1,4 @@
-import { createRatePlanService, fetchRatePlansService, removeRatePlanService, updateRatePlanService } from "./ratePlan.service";
+import {createRatePlanRuleService,updateRatePlanRuleService, createRatePlanService, fetchRatePlansService, removeRatePlanService, updateRatePlanService } from "./ratePlan.service";
 
 export {
     createRatePlanService,
@@ -7,5 +7,7 @@ export {
 
     removeRatePlanService,
 
-    updateRatePlanService
+    updateRatePlanService,
+    createRatePlanRuleService,
+    updateRatePlanRuleService
 }

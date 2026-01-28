@@ -3,8 +3,9 @@ import { prisma } from "../../config";
 export class BankDetailsDao {
   public static async addBankDetails(
     propertyId: string,
-    paymentGateway: boolean,
     payAtHotel: boolean,
+    paymentGateway: boolean,
+    
   ) {
     try {
       const bankDetailsRes = await prisma.bankDetails.create({
@@ -67,8 +68,9 @@ console.log("property id ",propertyId)
 
   public static async updatePaymentMethodsByPropertyId(
     propertyId: string,
-    paymentGateway: boolean,
     payAtHotel: boolean,
+    paymentGateway: boolean,
+   
   ) {
     try {
       return await prisma.bankDetails.update({

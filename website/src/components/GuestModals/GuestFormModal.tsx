@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { X, Info, Loader2, CheckCircle2, Mail, Phone, User, Calendar } from "lucide-react";
+import { X, Info, Loader2, Mail, Phone, User, Calendar } from "lucide-react";
 import { Alert, AlertDescription } from "../ui/alert";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
@@ -7,7 +7,6 @@ import { Label } from "../ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage";
-import axios from "axios"; // Add this import if axios is not already available
 
 interface Guest {
   type: "adult" | "child";
@@ -15,14 +14,12 @@ interface Guest {
   lastName: string;
   dateOfBirth: string;
 }
+
 interface Props {
   guestForms: Guest[];
   contactInfo: { email: string; phoneNumber: string };
   price: number | null;
   finalPrice: any;
-  loadingPrice: boolean;
-  errorPrice: string | null;
-  bookingRoom: any;
   bookingContext: any;
   onClose: () => void;
   handleGuestDetailChange: (
@@ -48,13 +45,8 @@ const GuestFormModal: React.FC<Props> = ({
   const { colors } = useBookingStorage(bookingContext);
   const [errors, setErrors] = useState<any>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [otpSent, setOtpSent] = useState(false);
-  const [otp, setOtp] = useState("");
-  const [emailVerified, setEmailVerified] = useState(false);
-  const [countdown, setCountdown] = useState(0);
-  const [showTooltip, setShowTooltip] = useState(false);
-  const [sendingOtp, setSendingOtp] = useState(false);
   const [paymentProcessing, setPaymentProcessing] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -73,34 +65,45 @@ const GuestFormModal: React.FC<Props> = ({
     };
   }, [showTooltip]);
 
-  useEffect(() => {
-    if (otpSent && countdown > 0) {
-      const interval = setInterval(() => {
-        setCountdown((prev) => prev - 1);
-      }, 1000);
-      return () => clearInterval(interval);
-    }
-  }, [otpSent, countdown]);
-
   const validate = (): boolean => {
     const newErrors: any = {};
     const nameRegex = /^[A-Za-z\s]+$/;
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     const phoneRegex = /^[0-9]{10}$/;
 
+    // Validate each guest
     guestForms.forEach((guest, index) => {
       const gErrors: any = {};
-      if (!guest.firstName.trim()) gErrors.firstName = "First name is required.";
-      else if (!nameRegex.test(guest.firstName)) gErrors.firstName = "Invalid name format.";
-      if (!guest.lastName.trim()) gErrors.lastName = "Last name is required.";
-      else if (!nameRegex.test(guest.lastName)) gErrors.lastName = "Invalid name format.";
-      if (Object.keys(gErrors).length > 0) newErrors[`guest-${index}`] = gErrors;
+      if (!guest.firstName.trim()) {
+        gErrors.firstName = "First name is required.";
+      } else if (!nameRegex.test(guest.firstName)) {
+        gErrors.firstName = "Invalid name format.";
+      }
+      
+      if (!guest.lastName.trim()) {
+        gErrors.lastName = "Last name is required.";
+      } else if (!nameRegex.test(guest.lastName)) {
+        gErrors.lastName = "Invalid name format.";
+      }
+      
+      if (Object.keys(gErrors).length > 0) {
+        newErrors[`guest-${index}`] = gErrors;
+      }
     });
 
-    if (!contactInfo.email.trim()) newErrors.email = "Email is required.";
-    else if (!emailRegex.test(contactInfo.email)) newErrors.email = "Invalid email address.";
-    if (!contactInfo.phoneNumber.trim()) newErrors.phoneNumber = "Phone number is required.";
-    else if (!phoneRegex.test(contactInfo.phoneNumber)) newErrors.phoneNumber = "Phone number must be exactly 10 digits.";
+    // Validate email
+    if (!contactInfo.email.trim()) {
+      newErrors.email = "Email is required.";
+    } else if (!emailRegex.test(contactInfo.email)) {
+      newErrors.email = "Invalid email address.";
+    }
+
+    // Validate phone
+    if (!contactInfo.phoneNumber.trim()) {
+      newErrors.phoneNumber = "Phone number is required.";
+    } else if (!phoneRegex.test(contactInfo.phoneNumber)) {
+      newErrors.phoneNumber = "Phone number must be exactly 10 digits.";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -127,68 +130,72 @@ const GuestFormModal: React.FC<Props> = ({
       setSubmitError("Something went wrong, please try again.");
       return;
     }
+    
     setSubmitError(null);
     const isValid = validate();
-    if (!isValid) return;
+    
+    if (!isValid) {
+      // Scroll to first error if validation fails
+      const firstErrorKey = Object.keys(errors)[0];
+      if (firstErrorKey) {
+        const element = document.getElementById(
+          firstErrorKey.startsWith('guest-') 
+            ? `first-${firstErrorKey.split('-')[1]}` 
+            : firstErrorKey
+        );
+        element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+    
     setPaymentProcessing(true);
     onSubmit();
   };
 
-  const handleVerifyEmail = async () => {
-    const email = contactInfo.email.trim();
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email || !emailRegex.test(email)) {
-      setErrors((prev: any) => ({ ...prev, email: "Invalid email address." }));
-      return;
-    }
+  // Clear specific field error when user starts typing
+  const handleFieldChange = (
+    type: 'guest' | 'contact',
+    indexOrField: number | string,
+    field: string,
+    value: string
+  ) => {
+    // Clear submit error when user starts correcting
+    if (submitError) setSubmitError(null);
 
-    try {
-      setSendingOtp(true);
-      // Call the real API
-      await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/email-service/send-otp`, { email });
-
-      setOtpSent(true);
-      setCountdown(120);
-      setEmailVerified(false);
-    } catch (err: any) {
-      console.error("OTP Request Error:", err);
-      setErrors((prev: any) => ({
-        ...prev,
-        email: err.response?.data?.message || "Failed to send OTP. Please try again.",
-      }));
-    } finally {
-      setSendingOtp(false);
-    }
-  };
-
-  const handleVerifyOtp = async () => {
-    if (!otp.trim() || otp.length !== 6) {
-      setErrors((prev: any) => ({ ...prev, otp: "Please enter a valid 6-digit OTP." }));
-      return;
-    }
-
-    try {
-      // Call the real API
-      await axios.post(`${process.env.NEXT_PUBLIC_BACKEND_URL}/email-service/verify-otp`, { email: contactInfo.email.trim(), otp });
-
-      setEmailVerified(true);
-      setOtpSent(false);
-      setCountdown(0);
-      setOtp("");
-      setErrors((prev: any) => {
-        const { email: _, otp: __, ...rest } = prev;
-        return rest;
-      });
-    } catch (err: any) {
-      console.error("OTP Verify Error:", err);
-      setErrors((prev: any) => ({
-        ...prev,
-        otp: err.response?.data?.message || "Invalid OTP. Please try again.",
-      }));
+    if (type === 'guest') {
+      const index = indexOrField as number;
+      handleGuestDetailChange(index, field as keyof Guest, value);
+      
+      // Clear guest field error
+      if (errors[`guest-${index}`]?.[field]) {
+        setErrors((prev: any) => {
+          const updated = { ...prev };
+          if (updated[`guest-${index}`]) {
+            delete updated[`guest-${index}`][field];
+            if (Object.keys(updated[`guest-${index}`]).length === 0) {
+              delete updated[`guest-${index}`];
+            }
+          }
+          return updated;
+        });
+      }
+    } else {
+      const fieldName = indexOrField as string;
+      handleContactChange(fieldName as "email" | "phoneNumber", value);
+      
+      // Clear contact field error
+      if (errors[fieldName]) {
+        setErrors((prev: any) => {
+          const updated = { ...prev };
+          delete updated[fieldName];
+          return updated;
+        });
+      }
     }
   };
 
   console.log("Final price", finalPrice);
+  console.log("Current errors:", errors); // For debugging
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -196,14 +203,14 @@ const GuestFormModal: React.FC<Props> = ({
         {/* Header */}
         <CardHeader className="border-b space-y-0 pb-4" style={{ backgroundColor: colors.secondaryColor }}>
           <div className="flex items-center justify-between">
-            <CardTitle className="text-2xl font-bold text-white" style={{}}>
+            <CardTitle className="text-2xl font-bold text-white">
               Complete Your Booking
             </CardTitle>
             <Button
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="h-8 w-8 rounded-full"
+              className="h-8 w-8 rounded-full hover:bg-white/20"
             >
               <X className="h-5 w-5" />
             </Button>
@@ -243,7 +250,7 @@ const GuestFormModal: React.FC<Props> = ({
                         placeholder="First Name"
                         value={guest.firstName}
                         onChange={(e: any) =>
-                          handleGuestDetailChange(index, "firstName", e.target.value)
+                          handleFieldChange('guest', index, "firstName", e.target.value)
                         }
                         className={gErr.firstName ? "border-red-500" : ""}
                       />
@@ -261,7 +268,7 @@ const GuestFormModal: React.FC<Props> = ({
                         placeholder="Last Name"
                         value={guest.lastName}
                         onChange={(e: any) =>
-                          handleGuestDetailChange(index, "lastName", e.target.value)
+                          handleFieldChange('guest', index, "lastName", e.target.value)
                         }
                         className={gErr.lastName ? "border-red-500" : ""}
                       />
@@ -282,13 +289,9 @@ const GuestFormModal: React.FC<Props> = ({
                         max={guest.type === "adult" ? getMaxDOBForAdult() : getMaxDOBForChild()}
                         value={guest.dateOfBirth}
                         onChange={(e: any) =>
-                          handleGuestDetailChange(index, "dateOfBirth", e.target.value)
+                          handleFieldChange('guest', index, "dateOfBirth", e.target.value)
                         }
-                        className={gErr.dateOfBirth ? "border-red-500" : ""}
                       />
-                      {gErr.dateOfBirth && (
-                        <p className="text-sm text-red-600">{gErr.dateOfBirth}</p>
-                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -296,7 +299,7 @@ const GuestFormModal: React.FC<Props> = ({
             );
           })}
 
-          {/* Contact Information */}
+          {/* Contact Information - Simplified without email verification */}
           <Card className="border-2">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -307,82 +310,19 @@ const GuestFormModal: React.FC<Props> = ({
             <CardContent className="space-y-4">
               {/* Email */}
               <div className="space-y-2">
-                <Label htmlFor="email">Email Address</Label>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Input
-                    id="email"
-                    type="email"
-                    value={contactInfo.email}
-                    onChange={(e: any) => {
-                      const newEmail = e.target.value;
-                      if (emailVerified && newEmail !== contactInfo.email) {
-                        setEmailVerified(false);
-                        setOtpSent(false);
-                      }
-                      handleContactChange("email", newEmail);
-                    }}
-                    disabled={emailVerified}
-                    placeholder="your@email.com"
-                    className={`flex-1 ${errors.email ? "border-red-500" : ""} ${emailVerified ? "bg-muted" : ""
-                      }`}
-                  />
-                  {!emailVerified && (
-                    <Button
-                      onClick={handleVerifyEmail}
-                      disabled={sendingOtp || (otpSent && countdown > 0)}
-                      style={{ backgroundColor: colors.primaryColor, color: colors.buttonTextColor }}
-                      className="whitespace-nowrap"
-                    >
-                      {sendingOtp ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Sending...
-                        </>
-                      ) : otpSent && countdown > 0 ? (
-                        `Resend (${countdown}s)`
-                      ) : (
-                        "Verify Email"
-                      )}
-                    </Button>
-                  )}
-                </div>
-
-                {otpSent && countdown > 0 && !emailVerified && (
-                  <div className="flex flex-col sm:flex-row gap-2 mt-2">
-                    <Input
-                      placeholder="Enter OTP"
-                      value={otp}
-                      maxLength={6}
-                      onChange={(e: any) => {
-                        setOtp(e.target.value.replace(/\D/g, '')); // Allow only digits
-                        setErrors((prev: any) => {
-                          const { otp: _, ...rest } = prev;
-                          return rest;
-                        });
-                      }}
-                      className={`flex-1 ${errors.otp ? "border-red-500" : ""}`}
-                    />
-                    <Button
-                      onClick={handleVerifyOtp}
-                      disabled={otp.trim().length !== 6}
-                      className="bg-green-600 hover:bg-green-700 whitespace-nowrap"
-                    >
-                      Verify OTP
-                    </Button>
-                  </div>
-                )}
-
-                {errors.otp && (
-                  <p className="text-sm text-red-600">{errors.otp}</p>
-                )}
-
-                {emailVerified && (
-                  <div className="flex items-center gap-2 text-green-600 text-sm">
-                    <CheckCircle2 className="h-4 w-4" />
-                    Email verified
-                  </div>
-                )}
-
+                <Label htmlFor="email">
+                  Email Address <span className="text-red-500">*</span>
+                </Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={contactInfo.email}
+                  onChange={(e: any) =>
+                    handleFieldChange('contact', 'email', 'email', e.target.value)
+                  }
+                  placeholder="your@email.com"
+                  className={errors.email ? "border-red-500" : ""}
+                />
                 {errors.email && (
                   <p className="text-sm text-red-600">{errors.email}</p>
                 )}
@@ -395,14 +335,16 @@ const GuestFormModal: React.FC<Props> = ({
               <div className="space-y-2">
                 <Label htmlFor="phone">
                   <Phone className="inline h-4 w-4 mr-1" />
-                  Phone Number
+                  Phone Number <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="phone"
                   type="tel"
                   value={contactInfo.phoneNumber}
                   maxLength={10}
-                  onChange={(e: any) => handleContactChange("phoneNumber", e.target.value.replace(/\D/g, ''))}
+                  onChange={(e: any) =>
+                    handleFieldChange('contact', 'phoneNumber', 'phoneNumber', e.target.value.replace(/\D/g, ''))
+                  }
                   placeholder="10-digit number"
                   className={errors.phoneNumber ? "border-red-500" : ""}
                 />
@@ -417,146 +359,139 @@ const GuestFormModal: React.FC<Props> = ({
           </Card>
 
           {/* Price Details */}
-          {/* Price Details */}
-<Card className="border-2">
-  <CardHeader>
-    <div className="flex items-center gap-2">
-      <CardTitle className="text-lg">Price Details</CardTitle>
-      <div className="relative" ref={tooltipRef}>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 rounded-full"
-          onClick={() => setShowTooltip(!showTooltip)}
-        >
-          <Info className="h-4 w-4" />
-        </Button>
+          <Card className="border-2">
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-lg">Price Details</CardTitle>
+                <div className="relative" ref={tooltipRef}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 rounded-full"
+                    onClick={() => setShowTooltip(!showTooltip)}
+                  >
+                    <Info className="h-4 w-4" />
+                  </Button>
 
-        {finalPrice?.dailyBreakdown && showTooltip && (
-          <Card className="absolute top-8 left-0 z-50 w-80 shadow-xl">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm">Daily Breakdown</CardTitle>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-5 w-5"
-                  onClick={() => setShowTooltip(false)}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
+                  {finalPrice?.dailyBreakdown && showTooltip && (
+                    <Card className="absolute top-8 left-0 z-50 w-80 shadow-xl">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-sm">Daily Breakdown</CardTitle>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-5 w-5"
+                            onClick={() => setShowTooltip(false)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="max-h-60 overflow-y-auto space-y-3 text-xs">
+                        {Array.isArray(finalPrice.dailyBreakdown) && (
+                          <>
+                            {finalPrice.dailyBreakdown.map((day: any, idx: number) => {
+                              const dayProportion = day.totalPerRoom / finalPrice.breakdown.totalBaseAmount;
+                              const dayTax = (finalPrice.totalTax || 0) * dayProportion;
+                              const dayTotalWithTax = day.totalPerRoom + dayTax;
+                              
+                              return (
+                                <div key={idx} className="border-b pb-2 last:border-0">
+                                  <div className="font-semibold mb-1">{day.date}</div>
+                                  <div className="space-y-1">
+                                    <div className="flex justify-between">
+                                      <span>Base Rate:</span>
+                                      <span>${day.baseRate}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                      <span>Additional Charges:</span>
+                                      <span>${day.additionalCharges}</span>
+                                    </div>
+                                    <div className="flex justify-between text-gray-600">
+                                      <span>Tax & Fees:</span>
+                                      <span>${dayTax.toFixed(2)}</span>
+                                    </div>
+                                    <div className="flex justify-between font-semibold pt-1 border-t">
+                                      <span>Total for Day:</span>
+                                      <span>${dayTotalWithTax.toFixed(2)}</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                            <div className="pt-2 border-t mt-2">
+                              <div className="flex justify-between font-semibold">
+                                <span>Subtotal:</span>
+                                <span>${finalPrice.breakdown.totalBaseAmount}</span>
+                              </div>
+                              <div className="flex justify-between font-semibold">
+                                <span>Total Tax:</span>
+                                <span>${finalPrice.totalTax || 0}</span>
+                              </div>
+                              <div className="flex justify-between font-bold text-base pt-1 border-t">
+                                <span>Grand Total:</span>
+                                <span>${finalPrice.totalAmount || finalPrice.priceAfterTax}</span>
+                              </div>
+                            </div>
+                          </>
+                        )}
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
               </div>
             </CardHeader>
-            {/* Inside the tooltip CardContent - replace the existing mapping logic */}
-<CardContent className="max-h-60 overflow-y-auto space-y-3 text-xs">
-  {Array.isArray(finalPrice.dailyBreakdown) && (
-    <>
-      {finalPrice.dailyBreakdown.map((day: any, idx: number) => {
-        // Calculate tax proportion for this day
-        const dayProportion = day.totalPerRoom / finalPrice.breakdown.totalBaseAmount;
-        const dayTax = (finalPrice.totalTax || 0) * dayProportion;
-        const dayTotalWithTax = day.totalPerRoom + dayTax;
-        
-        return (
-          <div key={idx} className="border-b pb-2 last:border-0">
-            <div className="font-semibold mb-1">{day.date}</div>
-            <div className="space-y-1">
-              <div className="flex justify-between">
-                <span>Base Rate:</span>
-                <span>${day.baseRate}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Additional Charges:</span>
-                <span>${day.additionalCharges}</span>
-              </div>
-              <div className="flex justify-between text-gray-600">
-                <span>Tax & Fees:</span>
-                <span>${dayTax.toFixed(2)}</span>
-              </div>
-              <div className="flex justify-between font-semibold pt-1 border-t">
-                <span>Total for Day:</span>
-                <span>${dayTotalWithTax.toFixed(2)}</span>
-              </div>
-            </div>
-          </div>
-        );
-      })}
-      <div className="pt-2 border-t mt-2">
-        <div className="flex justify-between font-semibold">
-          <span>Subtotal:</span>
-          <span>${finalPrice.breakdown.totalBaseAmount}</span>
-        </div>
-        <div className="flex justify-between font-semibold">
-          <span>Total Tax:</span>
-          <span>${finalPrice.totalTax || 0}</span>
-        </div>
-        <div className="flex justify-between font-bold text-base pt-1 border-t">
-          <span>Grand Total:</span>
-          <span>${finalPrice.totalAmount || finalPrice.priceAfterTax}</span>
-        </div>
-      </div>
-    </>
-  )}
-</CardContent>
-          </Card>
-        )}
-      </div>
-    </div>
-  </CardHeader>
-  <CardContent>
-    {finalPrice && (
-      <div className="space-y-2 text-sm">
-        <div className="flex justify-between">
-          <span>Total Base Amount:</span>
-          <span>${finalPrice.breakdown.totalBaseAmount}</span>
-        </div>
-        <div className="flex justify-between">
-          <span>Additional Charges:</span>
-          <span>${finalPrice.breakdown.totalAdditionalCharges}</span>
-        </div>
-        
-        {/* Show each tax individually */}
-        {finalPrice.tax && Array.isArray(finalPrice.tax) && finalPrice.tax.length > 0 && (
-          <>
-            <div className="border-t pt-2 mt-2">
-              <div className="font-medium text-gray-700 mb-1">Taxes & Fees:</div>
-              {finalPrice.tax.map((taxItem: any, index: number) => (
-                <div key={index} className="flex justify-between text-gray-600 pl-4">
-                  <span>{taxItem.name}:</span>
-                  <span>
-                    ${(taxItem.amount).toFixed(2)}
-                  </span>
+            <CardContent>
+              {finalPrice && (
+                <div className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span>Total Base Amount:</span>
+                    <span>${finalPrice.breakdown.totalBaseAmount}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Additional Charges:</span>
+                    <span>${finalPrice.breakdown.totalAdditionalCharges}</span>
+                  </div>
+                  
+                  {finalPrice.tax && Array.isArray(finalPrice.tax) && finalPrice.tax.length > 0 && (
+                    <>
+                      <div className="border-t pt-2 mt-2">
+                        <div className="font-medium text-gray-700 mb-1">Taxes & Fees:</div>
+                        {finalPrice.tax.map((taxItem: any, index: number) => (
+                          <div key={index} className="flex justify-between text-gray-600 pl-4">
+                            <span>{taxItem.name}:</span>
+                            <span>${(taxItem.amount).toFixed(2)}</span>
+                          </div>
+                        ))}
+                        <div className="flex justify-between font-medium pt-1 border-t mt-1">
+                          <span>Total Tax:</span>
+                          <span>${finalPrice.totalTax || 0}</span>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  
+                  <div className="flex justify-between">
+                    <span>Number of Nights:</span>
+                    <span>{finalPrice.numberOfNights}</span>
+                  </div>
+                  
+                  <div className="border-t-2 pt-3 mt-2">
+                    <div className="flex justify-between items-center font-bold text-lg">
+                      <span>Grand Total:</span>
+                      <span style={{ color: colors.primaryColor }}>
+                        ${finalPrice.totalAmount || finalPrice.priceAfterTax}
+                      </span>
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      Includes all taxes and fees
+                    </div>
+                  </div>
                 </div>
-              ))}
-              <div className="flex justify-between font-medium pt-1 border-t mt-1">
-                <span>Total Tax:</span>
-                <span>${finalPrice.totalTax || 0}</span>
-              </div>
-            </div>
-          </>
-        )}
-        
-        <div className="flex justify-between">
-          <span>Number of Nights:</span>
-          <span>{finalPrice.numberOfNights}</span>
-        </div>
-        
-        {/* Grand Total Section */}
-        <div className="border-t-2 pt-3 mt-2">
-          <div className="flex justify-between items-center font-bold text-lg">
-            <span>Grand Total:</span>
-            <span style={{ color: colors.primaryColor }}>
-              ${finalPrice.totalAmount || finalPrice.priceAfterTax}
-            </span>
-          </div>
-          <div className="text-xs text-gray-500 mt-1">
-            Includes all taxes and fees
-          </div>
-        </div>
-      </div>
-    )}
-  </CardContent>
-</Card>
+              )}
+            </CardContent>
+          </Card>
 
           {submitError && (
             <Alert variant="destructive">
@@ -570,9 +505,14 @@ const GuestFormModal: React.FC<Props> = ({
           <div className="flex flex-col sm:flex-row gap-3">
             <Button
               onClick={handleSubmit}
-              disabled={!emailVerified || paymentProcessing || Object.keys(errors).length > 0}
-              style={{ backgroundColor: colors.primaryColor, color: colors.buttonTextColor }}
-              className="flex-1"
+              disabled={paymentProcessing || Object.keys(errors).length > 0}
+              style={{ 
+                backgroundColor: paymentProcessing || Object.keys(errors).length > 0 
+                  ? '#9ca3af' 
+                  : colors.primaryColor, 
+                color: colors.buttonTextColor 
+              }}
+              className="flex-1 hover:opacity-90 transition-opacity"
               size="lg"
             >
               {paymentProcessing ? (
@@ -584,10 +524,20 @@ const GuestFormModal: React.FC<Props> = ({
                 "Proceed to Payment"
               )}
             </Button>
-            <Button onClick={onClose} variant="outline" size="lg" className="flex-1 sm:flex-none">
+            <Button 
+              onClick={onClose} 
+              variant="outline" 
+              size="lg" 
+              className="flex-1 sm:flex-none hover:bg-gray-100"
+            >
               Cancel
             </Button>
           </div>
+          {Object.keys(errors).length > 0 && (
+            <p className="text-sm text-amber-600 text-center">
+              Please fix all errors before proceeding
+            </p>
+          )}
         </div>
       </Card>
     </div>

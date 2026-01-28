@@ -930,6 +930,42 @@ bookingStatus?: string
         }
     }
 
+    public async noShowReservation(reservationId: string): Promise<IApiResponse> {
+        try {
+            const reservation = await this.reservationRepository.getReservationById(reservationId);
+            
+            if (!reservation) {
+                return errorResponse("Reservation not found");
+            }
+
+            const currentCheckout = reservation.checkOutDate;
+            const additionalDates = this.generateDateRange(
+                reservation.checkInDate.toISOString().split('T')[0],
+                currentCheckout.toISOString().split('T')[0]
+            );
+
+            const noShowReservation = await this.reservationRepository.NoShow(reservationId);
+
+            // Increase room availability back
+            if (reservation.propertyCode && reservation.roomTypeCode) {
+                await this.ariManupulationRepo.increaseAvailableRooms({
+                    propertyCode: reservation.propertyCode,
+                    dates: additionalDates,
+                    roomInfos: [{
+                        roomTypeCode: reservation.roomTypeCode,
+                        numberOfRooms: reservation.finalPrice?.requestedRooms
+                    }]
+                });
+            }
+
+            return successResponse("Status updated to No show", reservation);
+        } catch (error) {
+            if (error instanceof Error) {
+                return errorResponse("Failed to update reservation status", error.message);
+            }
+            return errorResponse("Failed to update reservation status");
+        }
+    }
     public async amendReservation(reservationId: string, newCheckoutDate: Date): Promise<IApiResponse> {
         try {
             const reservation = await this.reservationRepository.getReservationById(reservationId);

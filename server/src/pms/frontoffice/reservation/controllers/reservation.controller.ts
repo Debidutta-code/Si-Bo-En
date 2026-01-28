@@ -364,4 +364,21 @@ public async getCheckOutsForADate(req: CustomRequest, res: Response): Promise<Re
             return res.status(500).json(errorResponse("Internal server Error"));
         }
     }
+    public async noShowReservation(req: CustomRequest, res: Response): Promise<Response> {
+        try {
+            const reservationId = req.params.reservationId;
+            
+            if (!reservationId) {
+                return res.status(400).json(errorResponse("Reservation id is required"));
+            }
+
+            const serRes = await this.reservationService.noShowReservation(reservationId);
+            return res.status(serRes.success ? 200 : 400).json(serRes);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res.status(500).json(errorResponse("Failed to no show Reservation", error.message));
+            }
+            return res.status(500).json(errorResponse("Internal server Error"));
+        }
+    }
 }

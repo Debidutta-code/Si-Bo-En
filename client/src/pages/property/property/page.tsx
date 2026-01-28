@@ -29,6 +29,8 @@ import {
 import type {
     IUPropertyConfig
 } from "./types";
+import { formatTimezoneLabel, getAllTimezones } from './utils/timezone.utils';
+import { minutesToTime, timeToMinutes } from './utils/time.utils';
 export default function PropertyPage() {
     const { user } = useAppSelector((state) => state.user);
 
@@ -36,8 +38,13 @@ export default function PropertyPage() {
     const [propertyConfig, setPropertyConfig] = useState<IUPropertyConfig>({
         channelManagerIntegrationActive: false,
         pmsIntegrationActive: false,
-        reservationResetTime: "9.30",
-        selfAriActive: false
+        reservationResetMinutes: 570,
+        selfAriActive: false,
+        isB2bAvailable: false,
+        isB2cAvailable: false,
+        commission: false,
+        timezone: "Asia/Kolkata",
+        baseCurrency: "INR"
     })
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
@@ -393,76 +400,155 @@ export default function PropertyPage() {
                                         </Button>
                                     </DropdownMenuItem>
                                 </DialogTrigger>
-                                <DialogContent className='sm:max-w-[500px]'>
-                                    <DialogHeader>
-                                        <DialogTitle>Property Configuration</DialogTitle>
-                                        <DialogDescription>
-                                            Update property settings and integrations. Only Super Admin can modify these settings.
-                                        </DialogDescription>
-                                    </DialogHeader>
-                                    <div className='space-y-4 py-4'>
-                                        <div className='flex items-center justify-between space-x-2'>
-                                            <div className='space-y-0.5'>
-                                                <Label htmlFor='channelManager'>Channel Manager Integration</Label>
-                                                <p className='text-xs text-muted-foreground'>Enable channel manager integration</p>
-                                            </div>
-                                            <Switch
-                                                id='channelManager'
-                                                checked={propertyConfig.channelManagerIntegrationActive}
-                                                onCheckedChange={(checked) =>
-                                                    setPropertyConfig({ ...propertyConfig, channelManagerIntegrationActive: checked })
-                                                }
-                                            />
-                                        </div>
+                                <DialogContent className='sm:max-w-[500px] max-h-[80vh] overflow-y-auto'>
+    <DialogHeader>
+        <DialogTitle>Property Configuration</DialogTitle>
+        <DialogDescription>
+            Update property settings and integrations. Only Super Admin can modify these settings.
+        </DialogDescription>
+    </DialogHeader>
+    <div className='space-y-4 py-4'>
+        <div className='flex items-center justify-between space-x-2'>
+            <div className='space-y-0.5'>
+                <Label htmlFor='channelManager'>Channel Manager Integration</Label>
+                <p className='text-xs text-muted-foreground'>Enable channel manager integration</p>
+            </div>
+            <Switch
+                id='channelManager'
+                checked={propertyConfig.channelManagerIntegrationActive}
+                onCheckedChange={(checked) =>
+                    setPropertyConfig({ ...propertyConfig, channelManagerIntegrationActive: checked })
+                }
+            />
+        </div>
 
-                                        <div className='flex items-center justify-between space-x-2'>
-                                            <div className='space-y-0.5'>
-                                                <Label htmlFor='pmsIntegration'>PMS Integration</Label>
-                                                <p className='text-xs text-muted-foreground'>Enable PMS integration</p>
-                                            </div>
-                                            <Switch
-                                                id='pmsIntegration'
-                                                checked={propertyConfig.pmsIntegrationActive}
-                                                onCheckedChange={(checked) =>
-                                                    setPropertyConfig({ ...propertyConfig, pmsIntegrationActive: checked })
-                                                }
-                                            />
-                                        </div>
+        <div className='flex items-center justify-between space-x-2'>
+            <div className='space-y-0.5'>
+                <Label htmlFor='pmsIntegration'>PMS Integration</Label>
+                <p className='text-xs text-muted-foreground'>Enable PMS integration</p>
+            </div>
+            <Switch
+                id='pmsIntegration'
+                checked={propertyConfig.pmsIntegrationActive}
+                onCheckedChange={(checked) =>
+                    setPropertyConfig({ ...propertyConfig, pmsIntegrationActive: checked })
+                }
+            />
+        </div>
 
-                                        <div className='flex items-center justify-between space-x-2'>
-                                            <div className='space-y-0.5'>
-                                                <Label htmlFor='selfAri'>Self ARI</Label>
-                                                <p className='text-xs text-muted-foreground'>Enable self availability, rates, and inventory</p>
-                                            </div>
-                                            <Switch
-                                                id='selfAri'
-                                                checked={propertyConfig.selfAriActive}
-                                                onCheckedChange={(checked) =>
-                                                    setPropertyConfig({ ...propertyConfig, selfAriActive: checked })
-                                                }
-                                            />
-                                        </div>
+        <div className='flex items-center justify-between space-x-2'>
+            <div className='space-y-0.5'>
+                <Label htmlFor='selfAri'>Self ARI</Label>
+                <p className='text-xs text-muted-foreground'>Enable self availability, rates, and inventory</p>
+            </div>
+            <Switch
+                id='selfAri'
+                checked={propertyConfig.selfAriActive}
+                onCheckedChange={(checked) =>
+                    setPropertyConfig({ ...propertyConfig, selfAriActive: checked })
+                }
+            />
+        </div>
 
-                                        <div className='space-y-2'>
-                                            <Label htmlFor='resetTime'>Reservation Reset Time</Label>
-                                            <Input
-                                                id='resetTime'
-                                                type='text'
-                                                placeholder='e.g., 9.30'
-                                                value={propertyConfig.reservationResetTime}
-                                                onChange={(e) =>
-                                                    setPropertyConfig({ ...propertyConfig, reservationResetTime: e.target.value })
-                                                }
-                                            />
-                                            <p className='text-xs text-muted-foreground'>Format: HH.MM (24-hour format)</p>
-                                        </div>
-                                    </div>
-                                    <DialogFooter>
-                                        <Button onClick={updatePropertyConfig}>
-                                            Save Configuration
-                                        </Button>
-                                    </DialogFooter>
-                                </DialogContent>
+        <div className='flex items-center justify-between space-x-2'>
+            <div className='space-y-0.5'>
+                <Label htmlFor='isB2bAvailable'>B2B Availability</Label>
+                <p className='text-xs text-muted-foreground'>Enable B2B booking channel</p>
+            </div>
+            <Switch
+                id='isB2bAvailable'
+                checked={propertyConfig.isB2bAvailable}
+                onCheckedChange={(checked) =>
+                    setPropertyConfig({ ...propertyConfig, isB2bAvailable: checked })
+                }
+            />
+        </div>
+
+        <div className='flex items-center justify-between space-x-2'>
+            <div className='space-y-0.5'>
+                <Label htmlFor='isB2cAvailable'>B2C Availability</Label>
+                <p className='text-xs text-muted-foreground'>Enable B2C booking channel</p>
+            </div>
+            <Switch
+                id='isB2cAvailable'
+                checked={propertyConfig.isB2cAvailable}
+                onCheckedChange={(checked) =>
+                    setPropertyConfig({ ...propertyConfig, isB2cAvailable: checked })
+                }
+            />
+        </div>
+
+        <div className='flex items-center justify-between space-x-2'>
+            <div className='space-y-0.5'>
+                <Label htmlFor='commission'>Commission</Label>
+                <p className='text-xs text-muted-foreground'>Enable commission on bookings</p>
+            </div>
+            <Switch
+                id='commission'
+                checked={propertyConfig.commission}
+                onCheckedChange={(checked) =>
+                    setPropertyConfig({ ...propertyConfig, commission: checked })
+                }
+            />
+        </div>
+
+        <div className='space-y-2'>
+            <Label htmlFor='timezone'>Timezone</Label>
+            <Select 
+                value={propertyConfig.timezone} 
+                onValueChange={(value) =>
+                    setPropertyConfig({ ...propertyConfig, timezone: value })
+                }
+            >
+                <SelectTrigger>
+                    <SelectValue placeholder='Select timezone' />
+                </SelectTrigger>
+                <SelectContent>
+                    {getAllTimezones().map((tz) => (
+                        <SelectItem key={tz} value={tz}>
+                            {formatTimezoneLabel(tz)}
+                        </SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+        </div>
+
+        <div className='space-y-2'>
+            <Label htmlFor='baseCurrency'>Base Currency</Label>
+            <Input
+                id='baseCurrency'
+                type='text'
+                placeholder='e.g., INR, USD, EUR'
+                value={propertyConfig.baseCurrency}
+                onChange={(e) =>
+                    setPropertyConfig({ ...propertyConfig, baseCurrency: e.target.value })
+                }
+            />
+        </div>
+
+        <div className='space-y-2'>
+            <Label htmlFor='resetTime'>Reservation Reset Time</Label>
+            <Input
+                id='resetTime'
+                type='text'
+                placeholder='e.g., 9.30'
+                value={minutesToTime(propertyConfig.reservationResetMinutes)}
+                onChange={(e) =>
+                    setPropertyConfig({ 
+                        ...propertyConfig, 
+                        reservationResetMinutes: timeToMinutes(e.target.value) 
+                    })
+                }
+            />
+            <p className='text-xs text-muted-foreground'>Format: HH.MM (24-hour format)</p>
+        </div>
+    </div>
+    <DialogFooter>
+        <Button onClick={updatePropertyConfig}>
+            Save Configuration
+        </Button>
+    </DialogFooter>
+</DialogContent>
                             </Dialog>
                         )}
 
@@ -519,12 +605,6 @@ export default function PropertyPage() {
                                                     ))
                                                 ) : selectedRole === "revenue_manager" && users?.revenueManagers?.length > 0 ? (
                                                     users.revenueManagers.map((user) => (
-                                                        <SelectItem key={user.id} value={user.id}>
-                                                            {user.firstName} {user.lastName} {user.email && `(${user.email})`}
-                                                        </SelectItem>
-                                                    ))
-                                                ) : selectedRole === "front_desk" && users?.frontDesks?.length > 0 ? (
-                                                    users.frontDesks.map((user) => (
                                                         <SelectItem key={user.id} value={user.id}>
                                                             {user.firstName} {user.lastName} {user.email && `(${user.email})`}
                                                         </SelectItem>

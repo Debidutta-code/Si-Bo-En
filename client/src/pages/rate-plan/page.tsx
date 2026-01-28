@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import RatePlanRulesDialog from "./components/ratePlanRuleForm";
 export default function RatePlan() {
   const { propertyId } = useParams<{ propertyId: string }>();
   const [allRatePlans, setAllRatePlans] = useState<RatePlan[]>([]);
@@ -42,9 +43,7 @@ export default function RatePlan() {
     {
       ratePlanName: "",
       b2bAvailable: false,
-      b2cAvailable: true,
-      minimumLengthOfStay: 1,
-      maximumLengthOfStay: undefined
+      b2cAvailable: true
     });
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialog, setEditDialog] = useState<{ open: boolean; ratePlan: RatePlan | null }>({
@@ -54,10 +53,15 @@ export default function RatePlan() {
   const [editRatePlanData, setEditRatePlanData] = useState<CreateRatePlan>({
     ratePlanName: "",
     b2bAvailable: false,
-    b2cAvailable: true,
-    minimumLengthOfStay: 1,
-    maximumLengthOfStay: undefined
+    b2cAvailable: true
   });
+  const [rulesDialog, setRulesDialog] = useState<{ 
+  open: boolean; 
+  ratePlan: RatePlan | null 
+}>({
+  open: false,
+  ratePlan: null,
+});
   const [loader, setLoader] = useState<LoaderProps>({ isLoading: false, text: "" });
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; ratePlan: RatePlan | null }>({
     open: false,
@@ -106,7 +110,7 @@ export default function RatePlan() {
 
         toast.success(response.message || "Rate Plan created successfully");
         // console.log("Created Rate Plan:", response);
-        setNewRatePlan({ ratePlanName: "", b2bAvailable: false, b2cAvailable: true, minimumLengthOfStay: 1, maximumLengthOfStay: undefined });
+        setNewRatePlan({ ratePlanName: "", b2bAvailable: false, b2cAvailable: true });
         setCreateDialogOpen(false);
         fetchRatePlans();
       } else {
@@ -162,9 +166,7 @@ export default function RatePlan() {
     setEditRatePlanData({
       ratePlanName: ratePlan.ratePlanName,
       b2bAvailable: ratePlan.b2bAvailable,
-      b2cAvailable: ratePlan.b2cAvailable,
-      minimumLengthOfStay: ratePlan.minimumLengthOfStay || 1,
-      maximumLengthOfStay: ratePlan.maximumLengthOfStay
+      b2cAvailable: ratePlan.b2cAvailable
     });
   };
 
@@ -189,9 +191,7 @@ export default function RatePlan() {
         setEditRatePlanData({
           ratePlanName: "",
           b2bAvailable: false,
-          b2cAvailable: true,
-          minimumLengthOfStay: 1,
-          maximumLengthOfStay: undefined
+          b2cAvailable: true
         });
         fetchRatePlans();
       } else {
@@ -209,12 +209,17 @@ export default function RatePlan() {
     setEditRatePlanData({
       ratePlanName: "",
       b2bAvailable: false,
-      b2cAvailable: true,
-      minimumLengthOfStay: 1,
-      maximumLengthOfStay: undefined
+      b2cAvailable: true
     });
   };
-
+const handleAddRulesClick = (ratePlan: RatePlan) => {
+  setRulesDialog({ open: true, ratePlan });
+};
+const handleRulesSuccess = () => {
+  // Optionally refresh the rate plans to show updated rules status
+  fetchRatePlans();
+  setRulesDialog({ open: false, ratePlan: null });
+};
   if (loader.isLoading) {
     return <>
       <div className='min-h-screen w-full flex justify-center items-center'>
@@ -294,40 +299,7 @@ export default function RatePlan() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="minStay">
-                      Minimum Length of Stay <span className="text-red-500">*</span>
-                    </Label>
-                    <Input
-                      id="minStay"
-                      type="number"
-                      min="1"
-                      value={newRatePlan.minimumLengthOfStay}
-                      onChange={(e) => setNewRatePlan({ 
-                        ...newRatePlan, 
-                        minimumLengthOfStay: parseInt(e.target.value) || 1 
-                      })}
-                    />
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label htmlFor="maxStay">
-                      Maximum Length of Stay
-                    </Label>
-                    <Input
-                      id="maxStay"
-                      type="number"
-                      min="1"
-                      value={newRatePlan.maximumLengthOfStay || ''}
-                      onChange={(e) => setNewRatePlan({ 
-                        ...newRatePlan, 
-                        maximumLengthOfStay: e.target.value ? parseInt(e.target.value) : undefined 
-                      })}
-                      placeholder="Optional"
-                    />
-                  </div>
-                </div>
+                
 
                 <p className="text-xs text-gray-500">
                   Policies and tax can be configured after creation
@@ -339,7 +311,7 @@ export default function RatePlan() {
                   variant="outline"
                   onClick={() => {
                     setCreateDialogOpen(false);
-                    setNewRatePlan({ ratePlanName: "", b2bAvailable: false, b2cAvailable: true, minimumLengthOfStay: 1, maximumLengthOfStay: undefined });
+                    setNewRatePlan({ ratePlanName: "", b2bAvailable: false, b2cAvailable: true });
                   }}
                 >
                   Cancel
@@ -384,6 +356,13 @@ export default function RatePlan() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
+                          onClick={() => handleAddRulesClick(ratePlan)}
+                          className="cursor-pointer"
+                        >
+                          {ratePlan.ratePlanRules ? <Pencil className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
+                          <span>{ratePlan.ratePlanRules ? "Update Rules" : "Add Rules"}</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
                           onClick={() => handleEdit(ratePlan)}
                           className="cursor-pointer"
                         >
@@ -397,6 +376,7 @@ export default function RatePlan() {
                           <Trash2 className="mr-2 h-4 w-4" />
                           <span>Delete</span>
                         </DropdownMenuItem>
+
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -435,18 +415,6 @@ export default function RatePlan() {
                       </div>
                     </div>
 
-                    {/* Length of Stay */}
-                    <div className="flex gap-4 text-xs text-gray-600">
-                      <div>
-                        <span className="font-medium">Min Stay:</span> {ratePlan.minimumLengthOfStay || 1} night{(ratePlan.minimumLengthOfStay || 1) > 1 ? 's' : ''}
-                      </div>
-                      {ratePlan.maximumLengthOfStay && (
-                        <div>
-                          <span className="font-medium">Max Stay:</span> {ratePlan.maximumLengthOfStay} night{ratePlan.maximumLengthOfStay > 1 ? 's' : ''}
-                        </div>
-                      )}
-                    </div>
-
                     {/* Policy and Tax Status Grid */}
                     <div className="grid grid-cols-2 gap-2">
                       <div className="flex items-center gap-2">
@@ -474,6 +442,12 @@ export default function RatePlan() {
                         <div className={`h-2 w-2 rounded-full ${ratePlan.taxGroupId ? 'bg-green-500' : 'bg-gray-300'}`} />
                         <span className="text-xs text-gray-600">
                           Tax
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className={`h-2 w-2 rounded-full ${!ratePlan.ratePlanRules ? 'bg-gray-300' :ratePlan.ratePlanRules.isActive?'bg-green-500' : 'bg-orange-300'}`} />
+                        <span className="text-xs text-gray-600">
+                          MLOS Rules
                         </span>
                       </div>
                     </div>
@@ -541,41 +515,6 @@ export default function RatePlan() {
                 />
               </div>
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="edit-minStay">
-                  Minimum Length of Stay <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="edit-minStay"
-                  type="number"
-                  min="1"
-                  value={editRatePlanData.minimumLengthOfStay}
-                  onChange={(e) => setEditRatePlanData({ 
-                    ...editRatePlanData, 
-                    minimumLengthOfStay: parseInt(e.target.value) || 1 
-                  })}
-                />
-              </div>
-
-              <div className="grid gap-2">
-                <Label htmlFor="edit-maxStay">
-                  Maximum Length of Stay
-                </Label>
-                <Input
-                  id="edit-maxStay"
-                  type="number"
-                  min="1"
-                  value={editRatePlanData.maximumLengthOfStay || ''}
-                  onChange={(e) => setEditRatePlanData({ 
-                    ...editRatePlanData, 
-                    maximumLengthOfStay: e.target.value ? parseInt(e.target.value) : undefined 
-                  })}
-                  placeholder="Optional"
-                />
-              </div>
-            </div>
           </div>
           <DialogFooter>
             <Button
@@ -617,6 +556,20 @@ export default function RatePlan() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      {rulesDialog.ratePlan && (
+  <RatePlanRulesDialog
+    open={rulesDialog.open}
+    onOpenChange={(open) => {
+      if (!open) {
+        setRulesDialog({ open: false, ratePlan: null });
+      }
+    }}
+    ratePlanId={rulesDialog.ratePlan.id}
+    ratePlanName={rulesDialog.ratePlan.ratePlanName}
+    existingRule={rulesDialog.ratePlan.ratePlanRules || null}
+    onSuccess={handleRulesSuccess}
+  />
+)}
     </>
   );
 }

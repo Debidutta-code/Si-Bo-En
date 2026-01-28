@@ -2,8 +2,6 @@ export interface CreateRatePlan {
     ratePlanName: string;
     b2bAvailable: boolean;
     b2cAvailable: boolean;
-    minimumLengthOfStay: number;
-    maximumLengthOfStay?: number;
 }
 
 export interface RatePlan {
@@ -13,8 +11,6 @@ export interface RatePlan {
     ratePlanCode: string;
     b2bAvailable: boolean;
     b2cAvailable: boolean;
-    minimumLengthOfStay?: number;
-    maximumLengthOfStay?: number;
     cancellationPolicy?: string | null;
     cancellationPolicyId?: string | null;
     createdAt?: string;
@@ -24,6 +20,18 @@ export interface RatePlan {
     guaranteePolicyId?: string | null;
     taxGroupId?: string | null;
     updatedAt?: string;
+    ratePlanRules?: RatePlanRule | null;
+}
+export interface RatePlanRule {
+    id: string;
+    ratePlanId: string;
+    startDate?: string | null;
+    endDate?: string | null;
+    minLos: number;
+    maxLos?: number | null;
+    discountType?: "percentage" | "flat" | null;
+    discountValue?: number | null;
+    isActive: boolean;
 }
 export interface LoaderProps {
     isLoading: boolean;

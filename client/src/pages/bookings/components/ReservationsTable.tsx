@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MoreVertical, Eye, Edit, XCircle, X, AlertTriangle } from "lucide-react";
+import { MoreVertical, Eye, Edit, XCircle, X, AlertTriangle, EyeOff } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { IReservation } from "../types";
 import ReservationCard from "./ReservationCard";
+import NoShowConfirmationModal from "./NoShowModal";
 
 // Modal to show ReservationCard
 interface ViewDetailsModalProps {
@@ -63,7 +64,7 @@ function CancelConfirmationModal({
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
       <div className="bg-card rounded-lg shadow-xl max-w-md w-full border border-border">
         <div className="p-6">
-          <div className="flex items-start gap-4">
+          <div className="flex flex-col items-center items-start gap-4">
             <div className="flex-shrink-0">
               <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
                 <AlertTriangle className="w-6 h-6 text-destructive" />
@@ -118,16 +119,19 @@ function CancelConfirmationModal({
 interface ReservationsTableProps {
   reservations: IReservation[];
   onCancel: (reservationId: string) => Promise<void>;
+  onNoShow: (reservationId: string) => Promise<void>;
 }
 
 export default function ReservationsTable({
   reservations,
   onCancel,
+  onNoShow,
 }: ReservationsTableProps) {
   const [selectedReservation, setSelectedReservation] = useState<IReservation | null>(null);
   const [reservationToCancel, setReservationToCancel] = useState<IReservation | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
-
+  const [reservationToNoShow, setReservationToNoShow] = useState<IReservation | null>(null);
+  const [isMarkingNoShow, setIsMarkingNoShow] = useState(false);
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
@@ -140,6 +144,12 @@ export default function ReservationsTable({
       return dateString;
     }
   };
+  const formatStatusLabel = (status: string) => {
+    return status
+      ?.toLowerCase()
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (char) => char.toUpperCase());
+  };
 
   const getStatusBadge = (status: string) => {
     const statusLower = status?.toLowerCase() || "";
@@ -149,15 +159,15 @@ export default function ReservationsTable({
       pending: "bg-yellow-100 text-yellow-800",
       cancelled: "bg-red-100 text-red-800",
       modified: "bg-purple-100 text-purple-800",
+      no_show: "bg-red-100 text-red-800",
     };
 
     return (
       <span
-        className={`inline-flex px-3 py-1 text-xs font-medium rounded uppercase ${
-          variants[statusLower] || "bg-muted text-muted-foreground"
-        }`}
+        className={`inline-flex px-3 py-1 text-xs font-medium rounded uppercase ${variants[statusLower] || "bg-muted text-muted-foreground"
+          }`}
       >
-        {status}
+        {formatStatusLabel(status)}
       </span>
     );
   };
@@ -183,7 +193,7 @@ export default function ReservationsTable({
 
   const handleConfirmCancel = async () => {
     if (!reservationToCancel) return;
-    
+
     setIsCancelling(true);
     try {
       await onCancel(reservationToCancel.id);
@@ -192,6 +202,24 @@ export default function ReservationsTable({
       console.error("Failed to cancel reservation:", error);
     } finally {
       setIsCancelling(false);
+    }
+  };
+
+  const handleNoShowClick = (reservation: IReservation) => {
+    setReservationToNoShow(reservation);
+  };
+
+  const handleConfirmNoShow = async () => {
+    if (!reservationToNoShow) return;
+
+    setIsMarkingNoShow(true);
+    try {
+      await onNoShow(reservationToNoShow.id);
+      setReservationToNoShow(null);
+    } catch (error) {
+      console.error("Failed to mark reservation as no-show:", error);
+    } finally {
+      setIsMarkingNoShow(false);
     }
   };
 
@@ -276,13 +304,26 @@ export default function ReservationsTable({
                         <Edit className="w-4 h-4 mr-3" />
                         Amend
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => handleCancelClick(reservation)}
-                        className="cursor-pointer text-destructive focus:text-destructive"
-                      >
-                        <XCircle className="w-4 h-4 mr-3" />
-                        Cancel
-                      </DropdownMenuItem>
+                      {!["cancelled", "no_show"].includes(reservation.bookingStatus) && (
+                        <DropdownMenuItem
+                          onClick={() => handleNoShowClick(reservation)}
+                          className="cursor-pointer text-destructive focus:text-destructive"
+                        >
+                          <EyeOff className="w-4 h-4 mr-3" />
+                          No Show
+                        </DropdownMenuItem>
+                      )}
+                      {!["cancelled", "no_show"].includes(reservation.bookingStatus) && (
+                        <DropdownMenuItem
+                          onClick={() => handleCancelClick(reservation)}
+                          className="cursor-pointer text-destructive focus:text-destructive"
+                        >
+                          <XCircle className="w-4 h-4 mr-3" />
+                          Cancel
+                        </DropdownMenuItem>
+                      )}
+
+
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
@@ -307,6 +348,14 @@ export default function ReservationsTable({
           onConfirm={handleConfirmCancel}
           onCancel={() => setReservationToCancel(null)}
           isLoading={isCancelling}
+        />
+      )}
+      {reservationToNoShow && (
+        <NoShowConfirmationModal
+          reservation={reservationToNoShow}
+          onConfirm={handleConfirmNoShow}
+          onCancel={() => setReservationToNoShow(null)}
+          isLoading={isMarkingNoShow}
         />
       )}
     </>

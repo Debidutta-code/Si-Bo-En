@@ -44,7 +44,7 @@ export default function Rooms() {
   const [roomDetails, setRoomDetails] = useState<IRoomDetails>({
     roomName: '', roomType: '', totalRoom: 0, roomView: '', floor: 0,
     roomSize: 0, roomUnit: 'sqft', smokingPolicy: 'Non-Smoking', maxOccupancy: 0,
-    maxNumberOfAdults: 0, maxNumberOfChildren: 0, numberOfBedrooms: 0,
+    maxNumberOfAdults: 0, maxNumberOfChildren: 0, numberOfBedrooms: 1,
     numberOfLivingRoom: 0, extraBed: 0, description: '', image: [], available: true
   });
 
@@ -298,7 +298,7 @@ export default function Rooms() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                       <Label htmlFor="roomSize" className="text-gray-800 font-medium">Room Size</Label>
                       <Input
@@ -322,6 +322,18 @@ export default function Rooms() {
                           <SelectItem value="sqm" className="hover:bg-gray-100">Square Meters (sqm)</SelectItem>
                         </SelectContent>
                       </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="bedrooms" className="text-gray-800 font-medium">No.of Bedrooms</Label>
+                      <Input
+                        id="bedrooms"
+                        min={1}
+                        type="number"
+                        value={roomDetails.numberOfBedrooms || ''}
+                        onChange={(e) => updateroomDetails({ numberOfBedrooms: parseInt(e.target.value) || 1 })}
+                        placeholder="e.g., 1"
+                        className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
+                      />
                     </div>
                   </div>
                 </div>

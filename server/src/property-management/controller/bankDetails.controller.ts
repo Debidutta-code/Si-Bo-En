@@ -25,7 +25,7 @@ export class BankController {
       const propertyId: any = req.params.id;
       const {
         payAtHotel,
-        gateway
+        paymentGateway
       } = req.body.activatedPaymentMethod;
       if (!propertyId) {
         return res
@@ -33,7 +33,7 @@ export class BankController {
           .json(errorResponse('In sufficient Property details'));
       }
 
-      if (!payAtHotel && !gateway) {
+      if (!payAtHotel && !paymentGateway) {
         return res
           .status(400)
           .json(
@@ -43,7 +43,7 @@ export class BankController {
       const response = await BankService.addBankDetails(
         propertyId,
         payAtHotel,
-        gateway
+        paymentGateway
       );
       const status = response ? 200 : 400;
       return res.status(status).json(response);
@@ -66,9 +66,9 @@ export class BankController {
           .status(400)
           .json(errorResponse('In sufficient Property details'));
       }
-      const { payAtHotel, bankTransfer, upi, gateway } =
+      const { payAtHotel, paymentGateway } =
         req.body.activatedPaymentMethod;
-      if (!payAtHotel && !bankTransfer && !upi && !gateway) {
+      if (!payAtHotel && !paymentGateway) {
         return res
           .status(400)
           .json(
@@ -78,8 +78,7 @@ export class BankController {
       const response = await BankService.updatePaymentMethodsByPropertyId(
         propertyId,
         payAtHotel,
-        
-        gateway
+        paymentGateway
       );
 
       const status = response ? 200 : 400;

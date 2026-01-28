@@ -472,10 +472,10 @@ export default function Rooms({ propertyId }: PropertyId) {
 
                       <div className="space-y-1">
                         <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block">
-                          Bedrooms & Living
+                          Bedrooms
                         </label>
                         <p className="text-sm text-gray-900">
-                          {room.numberOfBedrooms} Bedroom{room.numberOfBedrooms !== 1 ? 's' : ''}, {room.numberOfLivingRoom} Living
+                          {room.numberOfBedrooms} Bedroom{room.numberOfBedrooms !== 1 ? 's' : ''}
                         </p>
                       </div>
 
@@ -492,12 +492,11 @@ export default function Rooms({ propertyId }: PropertyId) {
                         </label>
                         <p className="text-sm text-gray-900">Floor {room.floor}</p>
                       </div>
-
                       <div className="space-y-1">
                         <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block">
-                          Extra Beds
+                          Available Rooms
                         </label>
-                        <p className="text-sm text-gray-900">{room.extraBed} Available</p>
+                        <p className="text-sm text-gray-900">{room.totalRoom}</p>
                       </div>
                     </div>
                   </div>

@@ -23,13 +23,13 @@ export class BankService {
   public static async addBankDetails(
     propertyId: string,
     payAtHotel: boolean,
-    gateway: boolean
+    paymentGateway: boolean
   ) {
     try {
       const response = await BankDetailsDao.addBankDetails(
         propertyId,
         payAtHotel,
-        gateway
+        paymentGateway
       );
       if (response) {
         return successResponse('Bank details Added Successfully', response);
@@ -47,15 +47,15 @@ export class BankService {
   public static async updatePaymentMethodsByPropertyId(
     propertyId: string,
     payAtHotel: boolean,
-    
-    gateway: boolean
+    paymentGateway: boolean
   ) {
     try {
       const response = await BankDetailsDao.updatePaymentMethodsByPropertyId(
         propertyId,
         payAtHotel,
-        gateway
+        paymentGateway
       );
+      console.log("response ",response)
       if (response) {
         return successResponse(
           'Payment methods Updated Successfully',

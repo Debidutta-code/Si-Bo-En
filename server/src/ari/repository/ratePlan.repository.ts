@@ -48,6 +48,7 @@ export class RatePlanRepository {
           depositPolicy: true,
           cancellationPolicy: true,
           guaranteePolicy: true,
+          ratePlanRules: true,
         },
       });
     } catch (error) {
@@ -117,10 +118,6 @@ export class RatePlanRepository {
       const mappedData: any = { ...updateData };
       
       // Handle the typo in the database schema: minimumLenghthOfStay
-      if (updateData.minimumLengthOfStay !== undefined) {
-        mappedData.minimumLenghthOfStay = updateData.minimumLengthOfStay;
-        delete mappedData.minimumLengthOfStay;
-      }
       
       return await prisma.ratePlan.update({
         where: { ratePlanCode },
