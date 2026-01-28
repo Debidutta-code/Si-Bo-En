@@ -314,7 +314,7 @@ model Property {
   Policy              Policy[]
   propertyConfigs     PropertyConfigs?
   agenticProperties   AgenticProperty[]
-
+  Commissions         PropertyCommission?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -334,9 +334,7 @@ model PropertyConfigs {
   selfAriActive                   Boolean        @default(true) @map("self_ari_active")
   isB2bAvailable                  Boolean        @default(true) @map("is_b2b_available")
   isB2cAvailable                  Boolean        @default(true) @map("is_b2c_available")
-  commissionType                  commissionType @default(percentage) @map("commission_type")
-  commissionValue                 Float          @default(0) @map("commission_value")
-  currencyCode                    CurrencyCode?  @default(INR) @map("currency_code")
+  commission                       Boolean        @default(false)
   timezone                        String         @default("Asia/Kolkata") @map("timezone")
   baseCurrency                    CurrencyCode   @default(INR) @map("base_currency")
   reservationResetMinutes         Int            @default(570) @map("reservation_reset_minutes")
@@ -1070,6 +1068,24 @@ model RatePlanRule {
   @@map("rate_plan_rules")
 }
 
+model PropertyCommission {
+  id         String   @id @default(uuid())
+  propertyId String   @unique @map("property_id")
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  commissionType  commissionType @default(percentage) @map("commission_type")
+  commissionValue Decimal        @map("commission_value")
+  currencyCode    CurrencyCode?  @default(INR) @map("currency_code")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("property_commission")
+}
+enum CommissionOrDiscount {
+  commission
+  tax
+}
 model Agency {
   id                 String              @id @default(uuid())
   agencyName         String              @map("agency_name")
