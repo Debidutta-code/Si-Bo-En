@@ -59,7 +59,11 @@ export class PropertyDao {
           propertyId: property.id,
           channelManagerIntegrationActive:true,
           pmsIntegrationActive:true,
-          reservationResetTime:"9.30",
+          baseCurrency:"USD",
+          commission:false,
+          isB2cAvailable:true,
+          isB2bAvailable:false,
+          reservationResetMinutes:570,
           selfAriActive:true,
           
         }
