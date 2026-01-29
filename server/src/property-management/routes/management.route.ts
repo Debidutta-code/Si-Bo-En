@@ -6,12 +6,6 @@ import {
   checkMultiplePermissions,
 } from '../../middlewares/checkRole.middleware';
 import {
-  BankController,
-  RoomController,
-  RoomAminityController,
-  Property,
-  PropertyAddressController,
-  PropertyAminityController,
   Category,
   PropertyType,
   AminityController,

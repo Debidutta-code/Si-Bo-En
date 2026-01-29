@@ -87,4 +87,3 @@ propertyRouter.use('/:id/room/aminity/:roomId', protect, attachPropertyDetails({
 
 
 export default propertyRouter;
-    
