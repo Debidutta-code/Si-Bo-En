@@ -360,12 +360,12 @@ export class RoomRentCalculationService {
     endDate: Date,
     noOfRooms: number
   ): Promise<any> {
-    const stayDates: string[] = [];
+    const stayDates: Date[] = [];
     const currentDate = new Date(startDate);  // Create a copy, not a reference
     console.log(startDate, endDate)
 
     while (currentDate < endDate) {
-      stayDates.push(currentDate.toISOString().split('T')[0]);
+      stayDates.push(currentDate);
       currentDate.setDate(currentDate.getDate() + 1);
     }
     console.log("Stay dates", stayDates)

@@ -209,7 +209,7 @@ export interface IReservationPriceBrakeDown extends IReservationPriceBrakeDownR 
 export interface IAriManulupulation {
   propertyCode: string;
   roomInfos: AriManupulationRooms[];
-  dates: string[];
+  dates: Date[];
 }
 
 export interface AriManupulationRooms {

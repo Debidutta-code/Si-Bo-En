@@ -7,6 +7,7 @@ import { IPaginatedResponse } from '../../utils/return';
 import prisma from '../../config/prisma.client';
 // import { MappedRate } from "../types/mapedRate.type"
 import { IRatePlanUpdate } from '../types/rateplan.type';
+import { nowUTC, toUTC } from '../../utils';
 export class RatePlanRepository {
   public static async createRatePlan(
     ratePlanName: string,
@@ -144,12 +145,12 @@ export class RatePlanRepository {
   const skip = (page - 1) * resultsPerPage;
   
   const startDateString = startDate
-    ? formatDateToYYYYMMDD(startDate)
-    : formatDateToYYYYMMDD(new Date());
+    ? toUTC(startDate)
+    : nowUTC();
 
   const endDateString = endDate
-    ? formatDateToYYYYMMDD(endDate)
-    : formatDateToYYYYMMDD(
+    ? toUTC(endDate)
+    : toUTC(
       new Date(new Date().setFullYear(new Date().getFullYear() + 1))
     );
 
@@ -160,8 +161,8 @@ export class RatePlanRepository {
       ...(roomTypeCode && { roomTypeCode }),
       ...(ratePlanCode && { ratePlanCode }),
       date: {
-        gte: new Date(startDateString),
-        lte: new Date(endDateString),
+        gte:startDateString,
+        lte: endDateString,
       },
     };
 
@@ -193,7 +194,7 @@ export class RatePlanRepository {
           where: {
             propertyCode: charge.propertyCode,
             roomTypeCode: charge.roomTypeCode,
-            date: formatDateToYYYYMMDD(charge.date),
+            date: (charge.date),
           },
           select: {
             availability: true,

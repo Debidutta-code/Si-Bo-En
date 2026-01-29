@@ -116,14 +116,14 @@ class InventoryRepository {
         const keyOf = (d: ICreateInventoryRepo) => `${d.propertyCode}__${d.roomTypeCode}__${d.date}`;
         const inputMap = new Map<string, ICreateInventoryRepo>();
         for (const d of repoData) inputMap.set(keyOf(d), d);
-
+console.log(repoData);
         // Fetch existing inventory rows for these (propertyCode, roomTypeCode, date) triples
         const existing = await prisma.inventory.findMany({
             where: {
                 OR: repoData.map((d) => ({
                     propertyCode: d.propertyCode,
                     roomTypeCode: d.roomTypeCode,
-                    date: d.date,
+                    date:toUTC( d.date),
                 })),
             },
             select: { id: true, propertyCode: true, roomTypeCode: true, date: true },
@@ -153,7 +153,7 @@ class InventoryRepository {
                         where: {
                             propertyCode: item.propertyCode,
                             roomTypeCode: item.roomTypeCode,
-                            date: item.date,
+                            date:toUTC( item.date),
                         },
                         data: { availability: item.availability },
                     })
@@ -162,7 +162,10 @@ class InventoryRepository {
                 creates++;
                 ops.push(
                     prisma.inventory.create({
-                        data: item,
+                        data: {
+                            ...item,
+                            date:toUTC( item.date),
+                        },
                     })
                 );
             }

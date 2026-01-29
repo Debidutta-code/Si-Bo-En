@@ -6,7 +6,6 @@ import { Router } from 'express';
 export const roomRentPriceRouter = Router();
 
 roomRentPriceRouter.route('/get-price').post(
-    protect,
     attachPropertyDetails({
         identifierType: "code",
         key: "propertyCode",

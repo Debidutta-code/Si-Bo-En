@@ -16,12 +16,13 @@ export function attachPropertyDetails(
 ) {
   return async (req: PropertyCustomRequest, res: Response, next: NextFunction) => {
     try {
+      console.log("rule", rule.key)
       if (req.property?.timezone) {
         return next();
       }
 
       const resolved = resolvePropertyIdentifier(req, rule);
-
+      console.log("resolved", resolved)
       if (!resolved) {
         return res
           .status(400)
@@ -68,8 +69,28 @@ export function attachPropertyDetails(
 }
 
 
+/**
+ * Helper function to get nested value from an object using dot notation
+ * e.g., getNestedValue(obj, "data.bookingDetails.propertyCode")
+ */
+const getNestedValue = (obj: any, path: string): any => {
+  if (!obj || !path) return undefined;
+
+  const keys = path.split('.');
+  let current = obj;
+
+  for (const key of keys) {
+    if (current === null || current === undefined) {
+      return undefined;
+    }
+    current = current[key];
+  }
+
+  return current;
+};
+
 export const resolvePropertyIdentifier = (
-  req: PropertyCustomRequest|PropertyRequest,
+  req: PropertyCustomRequest | PropertyRequest,
   rule: PropertyResolveRule
 ): { type: "id" | "code"; value: string } | null => {
   let value: any;
@@ -84,7 +105,8 @@ export const resolvePropertyIdentifier = (
       break;
 
     case "body":
-      value = req.body?.[rule.key];
+      // Support nested keys like "data.bookingDetails.propertyCode"
+      value = getNestedValue(req.body, rule.key);
       break;
 
     case "headers":

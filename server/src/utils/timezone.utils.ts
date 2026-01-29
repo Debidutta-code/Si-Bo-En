@@ -1,7 +1,7 @@
 import { DateTime } from "luxon";
 
 
-export const toUTC = (date: Date | string):Date => {
+export const toUTC = (date: Date | string): Date => {
   return DateTime.fromJSDate(
     typeof date === "string" ? new Date(date) : date
   ).toUTC().toJSDate();
@@ -17,8 +17,8 @@ export const toPropertyTime = (
   ).setZone(propertyTimeZone);
 };
 
-export const nowUTC = () => {
-  return DateTime.utc();
+export const nowUTC = (): Date => {
+  return DateTime.utc().toJSDate();
 };
 
 export const nowInProperty = (propertyTimeZone: string) => {

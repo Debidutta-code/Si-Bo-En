@@ -86,7 +86,7 @@ public async updateReservationWithTransaction(
 public async checkRoomAvailability(
     propertyCode: string,
     roomTypeCode: string,
-    dates: string[],
+    dates: Date[],
     requiredRooms: number
 ): Promise<boolean> {
     try {
@@ -117,7 +117,14 @@ public async getReservationsForDateRange(
     endDate: Date,
     page: number,
     limit: number,
-    bookingStatus?: string // <-- Add this parameter
+    bookingStatus?: string,
+    bookingSource?: string,        // ← Add these
+    deviceType?: string,           // ← Add these
+    bookingCode?: string,          // ← Add these
+    guestName?: string,            // ← Add these
+    promoCode?: string,            // ← Add these
+    countryCode?: string,          // ← Add these
+    dateFilterType?: 'checkin' | 'booking' | 'modification'  // ← Add these
 ): Promise<IPaginatedResponse<IReservationWithAllDetails>> {
     try {
         const start = new Date(startDate);
@@ -126,9 +133,24 @@ public async getReservationsForDateRange(
         const end = new Date(endDate);
         end.setHours(23, 59, 59, 999);
 
-        const whereClause: any = { // <-- Change type to any for flexibility
-            propertyId: { in: propertyIds },
-            OR: [
+        const whereClause: any = {
+            propertyId: { in: propertyIds }
+        };
+
+        // Date filtering based on dateFilterType
+        if (dateFilterType === 'booking') {
+            whereClause.bookedAt = {
+                gte: start,
+                lte: end
+            };
+        } else if (dateFilterType === 'modification') {
+            whereClause.updatedAt = {
+                gte: start,
+                lte: end
+            };
+        } else {
+            // Default: checkin date
+            whereClause.OR = [
                 {
                     checkInDate: {
                         gte: start,
@@ -147,12 +169,54 @@ public async getReservationsForDateRange(
                         { checkOutDate: { gte: end } }
                     ]
                 }
-            ]
-        };
+            ];
+        }
 
-        // Add bookingStatus filter if provided
+        // Add bookingStatus filter
         if (bookingStatus) {
-            whereClause.bookingStatus = bookingStatus; // <-- Add this condition
+            whereClause.bookingStatus = bookingStatus;
+        }
+
+        // Add bookingSource filter
+        if (bookingSource) {
+            whereClause.bookingSource = bookingSource;
+        }
+
+        // Add deviceType filter
+        if (deviceType) {
+            whereClause.deviceTypes = deviceType;
+        }
+
+        // Add bookingCode filter
+        if (bookingCode) {
+            whereClause.bookingCode = {
+                contains: bookingCode,
+                mode: 'insensitive'
+            };
+        }
+
+        // Add guestName filter (search in primaryGuest or guests JSON)
+        if (guestName) {
+            whereClause.OR = whereClause.OR || [];
+            whereClause.OR.push({
+                primaryGuest: {
+                    OR: [
+                        { firstName: { contains: guestName, mode: 'insensitive' } },
+                        { lastName: { contains: guestName, mode: 'insensitive' } }
+                    ]
+                }
+            });
+        }
+
+        // Add promoCode filter (if you have a promo field)
+        if (promoCode && promoCode !== '') {
+            whereClause.isPromoUsed = true;
+            // Add promo code matching logic if you store it
+        }
+
+        // Add countryCode filter
+        if (countryCode) {
+            whereClause.countryCode = countryCode;
         }
 
         const totalResults = await prisma.reservation.count({

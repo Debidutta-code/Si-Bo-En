@@ -86,20 +86,33 @@ export class ReservationController {
     }
 } 
 
-public async getReservationsForADate(req: CustomRequest, res: Response): Promise<Response> {
+public async getAllReservations(req: CustomRequest, res: Response): Promise<Response> {
     try {
-        // Check user authentication and creation assignment
         if (!req.user?.creationId || req.user.level === undefined) {
             return res.status(400).json(errorResponse("User is not assigned to any creation", "Creation ID not found"));
         }
 
-        const { startDate, endDate, page = '1', limit = '10', propertyId, propertyCode, bookingStatus } = req.query;
+        const { 
+            startDate, 
+            endDate, 
+            page = '1', 
+            limit = '10', 
+            propertyId, 
+            propertyCode, 
+            bookingStatus,
+            bookingSource,      // ← Add these
+            deviceType,         // ← Add these
+            bookingCode,        // ← Add these
+            guestName,          // ← Add these
+            promoCode,          // ← Add these
+            countryCode,        // ← Add these
+            dateFilterType      // ← Add these
+        } = req.query;
 
         if (!startDate || !endDate) {
             return res.status(400).json(errorResponse("Start date and end date are required"));
         }
 
-        // Validate dates
         const start = new Date(startDate as string);
         const end = new Date(endDate as string);
         
@@ -127,7 +140,14 @@ public async getReservationsForADate(req: CustomRequest, res: Response): Promise
             limitNum,
             propertyId?.toString(),
             propertyCode?.toString(),
-            bookingStatus?.toString() // <-- Add this parameter
+            bookingStatus?.toString(),
+            bookingSource?.toString(),      // ← Add these
+            deviceType?.toString(),         // ← Add these
+            bookingCode?.toString(),        // ← Add these
+            guestName?.toString(),          // ← Add these
+            promoCode?.toString(),          // ← Add these
+            countryCode?.toString(),        // ← Add these
+            dateFilterType?.toString() as 'checkin' | 'booking' | 'modification' | undefined  // ← Add these
         );
         
         return res.status(serRes.success ? 200 : 400).json(serRes);

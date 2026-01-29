@@ -1,6 +1,7 @@
 import dayjs from "dayjs";
 import { RoomBookingRepository } from "../repository";
 import { IBookingSearchPayload, IRoom, IRoomPrice } from "../types";
+import { toUTC } from "../../utils";
 
 export class RoomBookingService {
   public static async fetchRooms(payload: IBookingSearchPayload) {
@@ -15,13 +16,13 @@ export class RoomBookingService {
     }
 
     // Build date array
-    const dates: string[] = [];
-    let current = dayjs(startDate);
-    const last = dayjs(endDate);
+    const dates: Date[] = [];
+    let current = toUTC(startDate);
+    const last = toUTC(endDate);
 
-    while (current.isBefore(last) || current.isSame(last, "day")) {
-      dates.push(current.format("YYYY-MM-DD"));
-      current = current.add(1, "day");
+    while (current <= last) {
+      dates.push(current);
+      current = toUTC(new Date(current.setDate(current.getDate() + 1)));
     }
 
     const totalGuests = guests.adults + guests.children;

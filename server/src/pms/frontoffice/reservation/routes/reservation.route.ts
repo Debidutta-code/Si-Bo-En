@@ -11,14 +11,14 @@ const reservationController = new ReservationController();
 reservationRoute.route("/")
     .post(attachPropertyDetails({
         identifierType: "code",
-        key: "bookingDetails.propertyCode",
+        key: "data.bookingDetails.propertyCode",
         source: "body"
     }), reservationController.createReservation.bind(reservationController));
 
 // reservationRoute.route("/reservationsForDate/:propertyId")
 //     .get(protect, reservationController.getReservationsForADate.bind(reservationController));
 reservationRoute.route("/date-range")
-.get(protect, reservationController.getReservationsForADate.bind(reservationController));
+.get(protect, reservationController.getAllReservations.bind(reservationController));
 reservationRoute.route("/arrivals")
 .get(protect, reservationController.getArrivalsForADate.bind(reservationController));
 reservationRoute.route("/departures")
