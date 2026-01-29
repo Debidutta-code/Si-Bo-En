@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { AddonDateWiseService } from "../services";
 import { successResponse,errorResponse } from "../../utils/return";
 import { ICreateAddonAvailability } from "../interfaces";
+import { PropertyCustomRequest } from "../../utils";
 export class AddonDateWiseController {
     private addonDateWiseService: AddonDateWiseService;
 
@@ -14,7 +15,7 @@ export class AddonDateWiseController {
      */
     createAddonDateWise = async (req: Request, res: Response) => {
         try {
-            const { addonId, propertyId, currencyCode, to, isAvailable, price, from } = req.body;
+            const { addonId, currencyCode, to, isAvailable, price, from } = req.body;
             const addOnArr: ICreateAddonAvailability[] = [];
 
             // Convert startDate and endDate to Date objects
@@ -133,9 +134,6 @@ export class AddonDateWiseController {
         }
     };
 
-    /**
-     * Delete addon for a particular date
-     */
     deleteAddonForParticularDate = async (req: Request, res: Response) => {
         try {
             const { id } = req.params;
@@ -153,11 +151,7 @@ export class AddonDateWiseController {
         }
     };
 
-    /**
-     * Get addon availability for a property on a specific date
-     * Query params: propertyId (required), date (YYYY-MM-DD, required)
-     */
-    getAddOnsByDate = async (req: Request, res: Response) => {
+    getAddOnsByDate = async (req: PropertyCustomRequest, res: Response) => {
         try {
             const propertyId = String(req.query.propertyId || '');
             const date = String(req.query.date || '');

@@ -207,7 +207,8 @@ export class ReservationService {
                 paidAmount: 0,
                 extraAmountToPay: 0,
                 refundAmount: 0,
-                
+                timezone: payload.timezone,
+                countryCode: payload.countryCode,
                 paymentMethod: this.mapPaymentMethod(paymentMethod),
                 paymentImages: null,
                 

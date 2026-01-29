@@ -1,7 +1,7 @@
 import { InventoryDao } from '../repository';
 import { errorResponse, successResponse } from '../../utils/return';
-import { IWeekdayCharges, IWeekdayAdditionalCharges } from '../types/utills';
 import { ICreateInventoryRepo, AdditionalGuestAmount, BaseGuestAmount, ICharges } from '../types';
+import {toUTC} from "../../utils";
 
 class InventoryServices {
   public static async getInventoryServices(
@@ -205,8 +205,6 @@ class InventoryServices {
         return errorResponse('Failed to map rate plans');
       }
     }
-
-    // If all dates have inventory, proceed normally
     const mappedRI: ICharges[] = [];
     for (
       let d = new Date(start.getTime());
@@ -234,7 +232,7 @@ class InventoryServices {
         baseGuestAmounts: convertedBaseGuestAmounts,
         additionalGuestAmounts: convertedAdditionalGuestAmounts,
         currencyCode,
-        date: yyyyMmDd,
+        date: toUTC(yyyyMmDd),
       });
     }
 

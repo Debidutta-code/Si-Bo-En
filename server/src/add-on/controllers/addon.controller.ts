@@ -3,6 +3,7 @@ import { AddonService } from "../services";
 import { successResponse,errorResponse } from "../../utils/return";
 import { generateAddOnCode } from "../utils";
 import { add } from "date-fns";
+import { PropertyCustomRequest } from "../../utils";
 export class AddonController {
     private addonService: AddonService;
 
@@ -39,7 +40,7 @@ export class AddonController {
     /**
      * Get all addons by property ID
      */
-    getAllAddonsByPropertyId = async (req: Request, res: Response) => {
+    getAllAddonsByPropertyId = async (req: PropertyCustomRequest, res: Response) => {
         try {
             const { propertyId } = req.params;
 
@@ -60,7 +61,7 @@ export class AddonController {
     /**
      * Get all active addons by property ID with populated category details for booking
      */
-    getAddonsForBooking = async (req: Request, res: Response) => {
+    getAddonsForBooking = async (req: PropertyCustomRequest, res: Response) => {
         try {
             const { propertyId } = req.params;
 

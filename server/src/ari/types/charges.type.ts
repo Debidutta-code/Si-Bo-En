@@ -22,6 +22,6 @@ export interface ICharges {
   baseGuestAmounts: IBaseGuestAmounts[];
   additionalGuestAmounts: IAdditionalGuestAmount[];
   currencyCode: string;
-  date: String;
+  date: Date;
   
 }

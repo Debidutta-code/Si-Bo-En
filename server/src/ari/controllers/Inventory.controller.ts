@@ -1,12 +1,12 @@
 import { Response } from 'express';
-import { CustomRequest } from '../../utils/customRequest';
+import { CustomRequest, PropertyCustomRequest } from '../../utils/customRequest';
 import { errorResponse } from '../../utils/return';
 import { InventoryServices } from '../services';
 import {getPropertyCode} from "../utils"
 import { ICharges } from '../types';
 class InventoryController {
   public static async getInventoryController(
-    req: CustomRequest,
+    req: PropertyCustomRequest,
     res: Response
   ) {
     try {
@@ -36,7 +36,7 @@ class InventoryController {
       };
     }
   }
-  public static async getRoomTypeController(req: CustomRequest, res: Response) {
+  public static async getRoomTypeController(req: PropertyCustomRequest, res: Response) {
     try {
       const hotelCode = req.params.hotelCode;
       if (!hotelCode) {
@@ -52,7 +52,7 @@ class InventoryController {
         .json(errorResponse('Internal Server Error', error?.message));
     }
   }
-  public static async createNewInventory(req: CustomRequest, res: Response) {
+  public static async createNewInventory(req: PropertyCustomRequest, res: Response) {
   try {
     const { roomType, startDate, endDate, availableRooms, pushFromCalender } = req.body;
     const propertyId = req.params.propertyId;
@@ -94,7 +94,7 @@ class InventoryController {
       .json(errorResponse('Internal Server Error', error?.message));
   }
 }
-  public static async mapRatePlans(req: CustomRequest, res: Response) {
+  public static async mapRatePlans(req: PropertyCustomRequest, res: Response) {
     try {
       const {
         ratePlanCode,
@@ -151,31 +151,4 @@ class InventoryController {
     }
   }
 }
-// export class AllHotelsController {
-//   static async allHotels(owner_id: string, role: string, email: string) {
-//     try {
-//       const response = await AllHotels.getAllHotelsByRole(owner_id, role, email);
-
-//       if (response) {
-//         return {
-//           success: true,
-//           message: "Data fetched successfully",
-//           data: response,
-//           count: response.length
-//         };
-//       } else {
-//         return {
-//           success: false,
-//           message: "Something error occurred while fetching data"
-//         };
-//       }
-//     } catch (error: any) {
-//       return {
-//         success: false,
-//         message: "Something error occurred while fetching data",
-//         error: error?.message
-//       };
-//     }
-//   }
-// }
 export { InventoryController };

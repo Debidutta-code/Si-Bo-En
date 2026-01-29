@@ -1,13 +1,17 @@
 import { Router } from 'express';
 import { AvailabilityController } from '../controllers';
 import { protect } from '../../middlewares/auth.middleware';
-
+import {attachPropertyDetails} from "../../middlewares/property.middleware"
 export const availabilityRouter = Router();
 
-// GET /api/availability/calendar?propertyCode=INH63954&startDate=2025-12-29&endDate=2026-01-28
 availabilityRouter
   .route('/calendar')
   .get(
     protect,
+    attachPropertyDetails({
+      identifierType: "id",
+      key: "propertyId",
+      source: "query"
+    }),
     AvailabilityController.getCalendarAvailability
   );

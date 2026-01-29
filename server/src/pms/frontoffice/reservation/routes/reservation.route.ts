@@ -1,14 +1,19 @@
 import { protect } from "../../../../middlewares/auth.middleware";
-import e, { Router } from "express";
+import  { Router } from "express";
 
 import { ReservationController } from "../controllers";
+import { attachPropertyDetails } from "../../../../middlewares/property.middleware";
 
 
 const reservationRoute = Router();
 const reservationController = new ReservationController();
 
 reservationRoute.route("/")
-    .post( reservationController.createReservation.bind(reservationController));
+    .post(attachPropertyDetails({
+        identifierType: "code",
+        key: "bookingDetails.propertyCode",
+        source: "body"
+    }), reservationController.createReservation.bind(reservationController));
 
 // reservationRoute.route("/reservationsForDate/:propertyId")
 //     .get(protect, reservationController.getReservationsForADate.bind(reservationController));
@@ -18,13 +23,13 @@ reservationRoute.route("/arrivals")
 .get(protect, reservationController.getArrivalsForADate.bind(reservationController));
 reservationRoute.route("/departures")
 .get(protect, reservationController.getDeparturesForADate.bind(reservationController));
-reservationRoute.route("/checkins")
-.get(protect, reservationController.getCheckInsForADate.bind(reservationController));
-reservationRoute.route("/checkouts")
-.get(protect, reservationController.getCheckOutsForADate.bind(reservationController));
+// reservationRoute.route("/checkins")
+// .get(protect, reservationController.getCheckInsForADate.bind(reservationController));
+// reservationRoute.route("/checkouts")
+// .get(protect, reservationController.getCheckOutsForADate.bind(reservationController));
 
-reservationRoute.route("/amend/:reservationId")
-    .patch( reservationController.amendReservation.bind(reservationController));
+// reservationRoute.route("/amend/:reservationId")
+//     .patch( reservationController.amendReservation.bind(reservationController));
 reservationRoute.route("/cancel/:reservationId")
     .put( reservationController.cancelReservation.bind(reservationController));
 reservationRoute.route("/available-rooms/:bookingCode")

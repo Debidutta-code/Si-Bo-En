@@ -1,8 +1,9 @@
 import { Request, Response } from "express";
 import { RoomBookingService } from "../service";
+import { PropertyRequest } from "../../utils";
 
 export class RoomBookingController {
-  public static async fetchRooms(req: Request, res: Response) {
+  public static async fetchRooms(req: PropertyRequest, res: Response) {
     try {
       const { PropertyCode, startDate, endDate, guests } = req.body || {};
 

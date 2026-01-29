@@ -1,5 +1,5 @@
 import { errorResponse } from "../../utils/return";
-import { CustomRequest } from "../../utils/customRequest";
+import { CustomRequest, PropertyCustomRequest } from "../../utils/customRequest";
 import { Request, Response } from "express";
 import { } from "../types";
 import { AgenticPropertyService } from "../services";
@@ -10,7 +10,7 @@ export class AgenticPropertyController {
     constructor() {
         this.agenticPropertyService = new AgenticPropertyService();
     }
-    public async createAgenticProperty(req:CustomRequest,res:Response):Promise<Response>{
+    public async createAgenticProperty(req:PropertyCustomRequest,res:Response):Promise<Response>{
         try {
             const {agencyId, propertyId, propertyCode, propertyName, isActive} = req.body;
             if (!agencyId || !propertyId || !propertyCode || !propertyName || isActive === undefined) {
@@ -62,7 +62,7 @@ export class AgenticPropertyController {
         }
     }
     
-    public async getReservationsByAgents(req:CustomRequest,res:Response):Promise<Response>{
+    public async getReservationsByAgents(req:PropertyCustomRequest,res:Response):Promise<Response>{
         try {
             const { agencyId, propertyId } = req.params;
             const { page,limit } = req.query;

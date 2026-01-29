@@ -1,5 +1,5 @@
 import { DashBoardServices } from "../services";
-import { CustomRequest } from "../../utils/customRequest";
+import { CustomRequest, PropertyCustomRequest } from "../../utils/customRequest";
 import { successResponse, errorResponse } from "../../utils/return";
 import { Response } from "express";
 export class DashBoardController {
@@ -8,7 +8,7 @@ export class DashBoardController {
         this.dashboardServices = new DashBoardServices();
 
     }
-    public async getAnalytics(req: CustomRequest, res: Response): Promise<Response> {
+    public async getAnalytics(req: PropertyCustomRequest, res: Response): Promise<Response> {
         try {
             if (!req.user?.creationId || !req.user.level) {
                 return res.status(400).json(errorResponse("user is not Assigned to any creation", "Creation Id Not found"));
@@ -37,7 +37,7 @@ export class DashBoardController {
             return res.status(500).json(errorResponse("Internal Server Error"))
         }
     }
-    public async getStatisticsComparison(req: CustomRequest, res: Response): Promise<Response> {
+    public async getStatisticsComparison(req: PropertyCustomRequest, res: Response): Promise<Response> {
   try {
     if (!req.user?.creationId || req.user.level === undefined) {
       return res.status(400).json(errorResponse("User is not assigned to any creation", "Creation ID not found"));

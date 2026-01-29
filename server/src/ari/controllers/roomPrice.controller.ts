@@ -1,9 +1,9 @@
-import { CustomRequest } from '../../utils/customRequest';
+import { PropertyCustomRequest } from '../../utils/customRequest';
 import { Response } from 'express';
 import { RoomRentCalculationService } from '../services';
 import { errorResponse } from '../../utils/return';
 export class RoomRentCalculationController {
-  public static async getRoomRentController(req: CustomRequest, res: Response) {
+  public static async getRoomRentController(req: PropertyCustomRequest, res: Response) {
     try {
       const {
         propertyCode,

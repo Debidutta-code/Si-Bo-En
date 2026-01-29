@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
 import { BookingEngineService } from "../services";
 import { errorResponse } from "../../utils/return";
+import { PropertyCustomRequest } from "../../utils";
 
 export class BookingEngineController {
-  public static async getConfigByPropertyId(req: Request, res: Response) {
+  public static async getConfigByPropertyId(req: PropertyCustomRequest, res: Response) {
     try {
       const propertyId = req.params.id;
       if (!propertyId)
@@ -21,10 +22,10 @@ export class BookingEngineController {
     }
   }
 
-  public static async addConfig(req: Request, res: Response) {
+  public static async addConfig(req: PropertyCustomRequest, res: Response) {
     try {
       const propertyId = req.params.id;
-      const { primaryColor, secondaryColor, tertiaryColor,buttonTextColor, bannerImage, logo } =
+      const { primaryColor, secondaryColor, tertiaryColor, buttonTextColor, bannerImage, logo } =
         req.body;
 
       if (!propertyId)
@@ -32,20 +33,20 @@ export class BookingEngineController {
           .status(400)
           .json(errorResponse("Insufficient property details"));
 
-      if (!primaryColor || !secondaryColor || !tertiaryColor||!buttonTextColor)
+      if (!primaryColor || !secondaryColor || !tertiaryColor || !buttonTextColor)
         return res
           .status(400)
           .json(errorResponse("All color fields are required"));
 
       const response = await BookingEngineService.addConfig({
-  propertyId,
-  primaryColor,
-  secondaryColor,
-  tertiaryColor,
-  buttonTextColor,
-  bannerImage,
-  logo,
-});
+        propertyId,
+        primaryColor,
+        secondaryColor,
+        tertiaryColor,
+        buttonTextColor,
+        bannerImage,
+        logo,
+      });
 
       const status = response.success ? 200 : 400;
       return res.status(status).json(response);
@@ -56,7 +57,7 @@ export class BookingEngineController {
     }
   }
 
-  public static async updateConfigByPropertyId(req: Request, res: Response) {
+  public static async updateConfigByPropertyId(req: PropertyCustomRequest, res: Response) {
     try {
       const propertyId = req.params.id;
       const { primaryColor, secondaryColor, tertiaryColor, bannerImage, logo } =
@@ -80,7 +81,7 @@ export class BookingEngineController {
         .json(errorResponse("Internal Server Error", error?.message));
     }
   }
-   public static async deleteByPropertyId(req: Request, res: Response) {
+  public static async deleteByPropertyId(req: PropertyCustomRequest, res: Response) {
     try {
       const propertyId = req.params.id;
       if (!propertyId)
