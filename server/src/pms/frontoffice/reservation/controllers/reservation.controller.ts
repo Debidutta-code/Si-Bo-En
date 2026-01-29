@@ -1,6 +1,6 @@
 import { errorResponse } from "../../../../utils/return";
 import { Response } from "express";
-import { CustomRequest } from "../../../../utils/customRequest";
+import { CustomRequest, PropertyRequest } from "../../../../utils/customRequest";
 import { ReservationService } from "../services";
 
 export class ReservationController {
@@ -10,7 +10,7 @@ export class ReservationController {
         this.reservationService = new ReservationService();
     }
 
-    public async createReservation(req: CustomRequest, res: Response): Promise<Response> {
+    public async createReservation(req: PropertyRequest, res: Response): Promise<Response> {
         try {
             const body = req.body;
 

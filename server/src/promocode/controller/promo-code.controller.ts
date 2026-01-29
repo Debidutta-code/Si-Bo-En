@@ -1,13 +1,14 @@
 import { PromoCodeService } from "../services";
 import { Request, Response } from "express";
 import { ICreatePromoCode } from "../types";
-import { errorResponse, successResponse } from "../../utils/return";
+import { errorResponse } from "../../utils/return";
+import { PropertyCustomRequest, PropertyRequest } from "../../utils";
 export class PromoCodeController {
     promoCodeService: PromoCodeService;
     constructor() {
         this.promoCodeService = new PromoCodeService();
     }
-    public async createPromoCode(req: Request, res: Response): Promise<Response> {
+    public async createPromoCode(req: PropertyCustomRequest, res: Response): Promise<Response> {
         try {
             const promoCodeData: ICreatePromoCode = req.body;
             const validationError = this.validatePromoCodeData(promoCodeData);
@@ -53,7 +54,7 @@ export class PromoCodeController {
             return res.status(500).json(errorResponse('An unexpected error occurred'));
         }
     }
-    public async getAllPromoCodesByPropertyId(req: Request, res: Response): Promise<Response> {
+    public async getAllPromoCodesByPropertyId(req: PropertyRequest, res: Response): Promise<Response> {
         try {
             const { propertyId } = req.params;
             if (!propertyId) {
@@ -104,7 +105,7 @@ export class PromoCodeController {
             return 'Promo code must be applicable for at least one booking source (Walk-In, OTA, Corporate)';
         }
     }
-    public async getPromoCodeByParams(req: Request, res: Response): Promise<Response> {
+    public async getPromoCodeByParams(req: PropertyRequest, res: Response): Promise<Response> {
         try {
             const { propertyId, query } = req.params;
             if (!propertyId || !query) {
@@ -150,7 +151,7 @@ export class PromoCodeController {
             return res.status(500).json(errorResponse('An unexpected error occurred'));
         }
     }
-    public async deletePromoCode(req: Request, res: Response): Promise<Response> {
+    public async deletePromoCode(req: PropertyRequest, res: Response): Promise<Response> {
         try {
             const { propertyId, id } = req.params;
             const isHardDelete = req.query.hardDelete as string;
@@ -175,7 +176,7 @@ export class PromoCodeController {
             return res.status(500).json(errorResponse('An unexpected error occurred'));
         }
     }
-    public async recoverPromoCode(req: Request, res: Response): Promise<Response> {
+    public async recoverPromoCode(req: PropertyRequest, res: Response): Promise<Response> {
         try {
             const { propertyId, id } = req.params;
             if (!propertyId || !id) {

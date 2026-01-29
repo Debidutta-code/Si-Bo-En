@@ -1,6 +1,14 @@
-import {RoomRentCalculationController} from "../controllers";
+import { protect } from "../../middlewares/auth.middleware";
+import { attachPropertyDetails } from "../../middlewares/property.middleware";
+import { RoomRentCalculationController } from "../controllers";
 import { Router } from 'express';
 
 export const roomRentPriceRouter = Router();
 
-roomRentPriceRouter.route('/get-price').post(RoomRentCalculationController.getRoomRentController)
+roomRentPriceRouter.route('/get-price').post(
+    protect,
+    attachPropertyDetails({
+        identifierType: "code",
+        key: "propertyCode",
+        source: "body"
+    }), RoomRentCalculationController.getRoomRentController)

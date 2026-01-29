@@ -6,6 +6,7 @@ export const ratePlanRouter = Router();
 
 import { protect } from '../../middlewares/auth.middleware';
 import { checkRoleBased } from "../../middlewares/checkRole.middleware";
+import { attachPropertyDetails } from "../../middlewares/property.middleware";
 
 
 ratePlanRouter
@@ -13,12 +14,22 @@ ratePlanRouter
   .post(
     protect,
     checkRoleBased('canCreateRatePlan'),
+    attachPropertyDetails({
+      identifierType: "id",
+      key: "propertyId",
+      source: "query"
+    }),
     RatePlanController.createRatePlan
   );
 ratePlanRouter
   .route('/:propertyId')
   .get(
     protect,
+    attachPropertyDetails({
+      identifierType: "id",
+      key: "propertyId",
+      source: "params"
+    }),
     RatePlanController.getRatePlansByPropertyIdController
   )
 

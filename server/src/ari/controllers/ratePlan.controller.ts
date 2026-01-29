@@ -1,10 +1,10 @@
-import { CustomRequest } from '../../utils/customRequest';
+import { CustomRequest, PropertyCustomRequest } from '../../utils/customRequest';
 import { errorResponse } from '../../utils/return';
 import { RatePlanServices } from '../services';
 import { Response } from 'express';
 import getPropertyIdFromPropertyId from "../utils/getPropertyCodeFromPropertyId"
 export class RatePlanController {
-  public static async createRatePlan(req: CustomRequest, res: Response) {
+  public static async createRatePlan(req: PropertyCustomRequest, res: Response) {
     try {
       const { ratePlanName,b2bAvailable,b2cAvailable,minimumLengthOfStay,maximumLengthOfStay } = req.body;
       const propertyId = req.query.propertyId as string;
@@ -37,7 +37,7 @@ export class RatePlanController {
     }
   }
   public static async getRatePlansByPropertyIdController(
-    req: CustomRequest,
+    req: PropertyCustomRequest,
     res: Response
   ) {
     try {

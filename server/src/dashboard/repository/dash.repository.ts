@@ -702,6 +702,7 @@ private calculateChange(current: number, previous: number) {
     /**
      * Booking Source Analytics
      */
+    
     private async getBookingSourceAnalytics(propertyIds: string[]): Promise<IBookingSourceAnalytics> {
         const sourceBreakdown = await prisma.reservation.groupBy({
             by: ['bookingSource'],

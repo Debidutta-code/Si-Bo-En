@@ -1,5 +1,6 @@
 
 import { prisma } from '../../config';
+import { toUTC } from '../../utils';
 import type { ICreateInventoryRepo, IIdInventory, IWeekdayCharges, IWeekdayAdditionalCharges, IAdditionalGuestAmount, ICharges } from "../types"
 import { formatDate, localMidnight, parseDdMmYyyy } from "../utils/date"
 
@@ -324,7 +325,7 @@ class InventoryRepository {
 ) {
   try {
     // Generate all dates in the range
-    const allDates: string[] = [];
+    const allDates: Date[] = [];
     const start = new Date(startDate);
     const end = new Date(endDate);
     
@@ -333,7 +334,7 @@ class InventoryRepository {
       d.getTime() <= end.getTime();
       d.setDate(d.getDate() + 1)
     ) {
-      allDates.push(new Date(d.getTime()).toISOString().split('T')[0]);
+      allDates.push(toUTC(d));
     }
 
     // Fetch inventory for the date range with availability > 0

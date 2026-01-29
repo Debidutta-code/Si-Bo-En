@@ -1,21 +1,21 @@
 import { Router } from "express";
 import { protect } from "../../middlewares/auth.middleware";
 import { BookingEngineController } from "../controller/bookingEngine.controller";
+import { attachPropertyDetails } from "../../middlewares/property.middleware";
 
 export const bookingEngineRoute = Router({ mergeParams: true });
 
 bookingEngineRoute
   .route("/:id")
   .post(
-    protect,
+    
     BookingEngineController.addConfig
   )
-  .get(BookingEngineController.getConfigByPropertyId)
+  .get(
+    BookingEngineController.getConfigByPropertyId)
   .patch(
-    protect,
     BookingEngineController.updateConfigByPropertyId
   )
   .delete(
-    protect,
     BookingEngineController.deleteByPropertyId
   );

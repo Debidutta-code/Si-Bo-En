@@ -1,13 +1,19 @@
 import { Router } from "express";
 import { protect } from "../../middlewares/auth.middleware";
 import { AgenticPropertyController } from "../controllers";
+import {attachPropertyDetails} from "../../middlewares/property.middleware"
 
 const agenticPropertyRouter = Router();
 const agenticPropertyController = new AgenticPropertyController();
 
 // Create agentic property
 agenticPropertyRouter.route("/")
-    .post(protect, agenticPropertyController.createAgenticProperty.bind(agenticPropertyController));
+    .post(protect,
+        attachPropertyDetails({
+        identifierType: "id",
+        key:"propertyId",
+        source:"body"
+    }), agenticPropertyController.createAgenticProperty.bind(agenticPropertyController));
 
 // Get agentic property details
 agenticPropertyRouter.route("/:id")
@@ -20,6 +26,10 @@ agenticPropertyRouter.route("/available/:agencyId")
 
 // Get reservations by agents
 agenticPropertyRouter.route("/reservations/:agencyId/:propertyId")
-    .get(protect, agenticPropertyController.getReservationsByAgents.bind(agenticPropertyController));
+    .get(protect, attachPropertyDetails({
+        identifierType: "id",
+        key:"propertyId",
+        source:"params"
+    }),agenticPropertyController.getReservationsByAgents.bind(agenticPropertyController));
 
 export { agenticPropertyRouter };

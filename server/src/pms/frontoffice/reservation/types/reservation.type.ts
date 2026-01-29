@@ -119,7 +119,7 @@ export interface ICReservation {
   bookedAt: Date;
 
   primaryGuestId: string;
-  guests: any; // JSON field - stores all guest details
+  guests: any; 
   bookingUserEmail: string;
   bookingUserPhone: string | null;
 
@@ -141,6 +141,8 @@ export interface ICReservation {
 
   isPromoUsed: boolean;
   promoId: string | null;
+  countryCode: string;
+  timezone: string;
 }
 
 export interface IReservation extends ICReservation {

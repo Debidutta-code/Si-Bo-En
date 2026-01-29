@@ -570,7 +570,7 @@ model Charge {
   roomTypeCode  String
   roomTypeName  String
   currencyCode  CurrencyCode @default(INR)
-  date          DateTime
+  date          DateTime     @db.Date
   isAvailable   Boolean      @default(true)
   // Days of week applicability
   isSaleStopped Boolean      @default(false) @map("is_sale_stopped") // for start/stop sales
@@ -623,7 +623,7 @@ model Inventory {
   id           String   @id @default(uuid())
   propertyCode String   @map("property_code")
   roomTypeCode String   @map("room_type_code")
-  date         String
+  date         DateTime @db.Date
   availability Int
   ratePlans    String[] @map("rate_plans")
 
@@ -727,6 +727,7 @@ model PromoCode {
   property          Property     @relation(fields: [propertyId], references: [id])
   discountType      DiscountType @map("discount_type")
   discountValue     Float        @map("discount_value")
+  currencyCode      CurrencyCode @default(USD) @map("currency_code")
   validFrom         DateTime     @map("valid_from")
   validTo           DateTime     @map("valid_to")
   minBookingAmount  Float?       @map("min_booking_amount")
@@ -903,7 +904,7 @@ model AddonAvailability {
   id           String   @id @default(uuid())
   addonId      String
   // propertyId   String
-  date         DateTime
+  date         DateTime @db.Date
   price        Float
   currencyCode String   @default("INR") @db.VarChar(5)
   isAvailable  Boolean  @default(true)
@@ -924,16 +925,19 @@ model Reservation {
   roomTypeCode String? @map("room_type_code") @db.VarChar(50)
   ratePlanCode String? @map("rate_plan_code") @db.VarChar(50)
 
-  // Booking Identity
   bookingCode String @unique @map("booking_code") @db.VarChar(50)
 
   // Dates
-  bookedAt       DateTime @default(now()) @map("booked_at")
-  checkInDate    DateTime @map("check_in_date")
-  checkOutDate   DateTime @map("check_out_date")
+  bookedAt DateTime @default(now()) @map("booked_at")
+
+  checkInDate  DateTime @map("check_in_date") @db.Date
+  checkOutDate DateTime @map("check_out_date") @db.Date
+  countryCode  String   @map("country_code") @db.VarChar(5)
+  timezone     String   @map("timezone") @db.VarChar(50)
+  deviceTypes DeviceType @map("device_types")
   // Primary Guest Relation (one-to-many: one guest can have multiple reservations)
-  primaryGuestId String   @map("primary_guest_id") @db.VarChar(36)
-  primaryGuest   Guests   @relation("ReservationPrimaryGuest", fields: [primaryGuestId], references: [id])
+  primaryGuestId String @map("primary_guest_id") @db.VarChar(36)
+  primaryGuest   Guests @relation("ReservationPrimaryGuest", fields: [primaryGuestId], references: [id])
 
   // Guest Data
   guests           Json    @map("guests")
@@ -961,8 +965,12 @@ model Reservation {
   bookingSource BookingSource @default(direct) @map("source")
 
   // Promo
-  isPromoUsed Boolean @default(false) @map("is_promo_used")
-  promoId     String? @map("promo_id") @db.VarChar(36)
+  isPromoUsed      Boolean   @default(false) @map("is_promo_used")
+  promoId          String?   @map("promo_id") @db.VarChar(36)
+  //store this in utc
+  actualCheckInAt  DateTime? @map("actual_check_in_at")
+  actualCheckOutAt DateTime? @map("actual_check_out_at")
+  cancelledAt      DateTime? @map("cancelled_at")
 
   // Audit
   createdAt DateTime @default(now()) @map("created_at")

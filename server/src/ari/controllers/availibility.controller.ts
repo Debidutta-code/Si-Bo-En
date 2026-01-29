@@ -1,11 +1,11 @@
 import { getPropertyCode } from '../../pms/frontoffice/room-management/utils/property.util';
-import { CustomRequest } from '../../utils/customRequest';
+import { CustomRequest ,PropertyCustomRequest} from '../../utils/customRequest';
 import { errorResponse } from '../../utils/return';
 import { AvailabilityServices } from '../services';
 import { Response } from 'express';
 
 export class AvailabilityController {
-  public static async getCalendarAvailability(req: CustomRequest, res: Response) {
+  public static async getCalendarAvailability(req: PropertyCustomRequest, res: Response) {
     try {
       const { propertyId, startDate, endDate, invTypeCodes } = req.query;
 

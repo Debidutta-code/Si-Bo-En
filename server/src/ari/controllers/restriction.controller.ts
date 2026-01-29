@@ -3,11 +3,11 @@
 import { Response } from 'express';
 import { RestrictionServices } from '../services/restriction.services';
 import { IRestrictionRequest } from '../types/restriction.types';
-import { CustomRequest } from '../../utils/customRequest';
+import { CustomRequest, PropertyCustomRequest } from '../../utils/customRequest';
 import { errorResponse } from '../../utils/return';
 
 export class RestrictionController {
-  public static async applyRestrictions(req: CustomRequest, res: Response) {
+  public static async applyRestrictions(req: PropertyCustomRequest, res: Response) {
     try {
       const restrictionData: IRestrictionRequest = req.body;
 
@@ -67,7 +67,7 @@ export class RestrictionController {
     }
   }
 
-  public static async getRestrictions(req: CustomRequest, res: Response) {
+  public static async getRestrictions(req: PropertyCustomRequest, res: Response) {
     try {
       const { propertyCode } = req.params;
       const { startDate, endDate, restrictionType } = req.query;
