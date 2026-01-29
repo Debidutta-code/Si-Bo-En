@@ -50,6 +50,7 @@ export class RatePlanRepository {
           cancellationPolicy: true,
           guaranteePolicy: true,
           ratePlanRules: true,
+          Addons: true,
         },
       });
     } catch (error) {

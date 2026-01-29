@@ -131,3 +131,68 @@ export async function deleteRatePlanRule(ratePlanId: string) {
         }
     }
 }
+
+/**
+ * Add an addon to a rate plan
+ */
+export async function addAddonToRatePlan(ratePlanCode: string, addonId: string) {
+    try {
+        const response = await axiosInstance.post('/ari/rate-plan-with-addon/', {
+            ratePlanCode,
+            addonId
+        });
+        return response.data;
+    } catch (error: any) {
+        if (error?.response?.data) {
+            return error.response.data;
+        } else {
+            return {
+                success: false,
+                message: error?.message
+            };
+        }
+    }
+}
+
+/**
+ * Remove an addon from a rate plan
+ */
+export async function removeAddonFromRatePlan(ratePlanCode: string, addonId: string) {
+    try {
+        const response = await axiosInstance.delete('/ari/rate-plan-with-addon/', {
+            data: {
+                ratePlanCode,
+                addonId
+            }
+        });
+        return response.data;
+    } catch (error: any) {
+        if (error?.response?.data) {
+            return error.response.data;
+        } else {
+            return {
+                success: false,
+                message: error?.message
+            };
+        }
+    }
+}
+
+/**
+ * Get all addons for a specific rate plan
+ */
+export async function getAddonsByRatePlanCode(ratePlanCode: string) {
+    try {
+        const response = await axiosInstance.get(`/ari/rate-plan-with-addon/${ratePlanCode}`);
+        return response.data;
+    } catch (error: any) {
+        if (error?.response?.data) {
+            return error.response.data;
+        } else {
+            return {
+                success: false,
+                message: error?.message
+            };
+        }
+    }
+}

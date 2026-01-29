@@ -1,5 +1,5 @@
 import { createRatePlan, deleteRatePlan, getRatePlans, updateRatePlan } from "../api";
-import { createRatePlanRule, updateRatePlanRule } from "../api/api";
+import { addAddonToRatePlan, createRatePlanRule, getAddonsByRatePlanCode, removeAddonFromRatePlan, updateRatePlanRule } from "../api/api";
 import type { CreateRatePlan } from "../interfaces";
 import type { RatePlanRule } from "../interfaces/ratePlan.type";
 
@@ -80,5 +80,49 @@ export async function updateRatePlanRuleService(ratePlanId: string, payload: Par
         }
     }
     const result = await updateRatePlanRule( ratePlanId,payload);
+    return result;
+}
+export async function addAddonToRatePlanService(ratePlanCode: string, addonId: string) {
+    if (!ratePlanCode) {
+        return {
+            success: false,
+            message: "Rate Plan Code is required"
+        };
+    }
+    if (!addonId) {
+        return {
+            success: false,
+            message: "Addon ID is required"
+        };
+    }
+    const result = await addAddonToRatePlan(ratePlanCode, addonId);
+    return result;
+}
+
+export async function removeAddonFromRatePlanService(ratePlanCode: string, addonId: string) {
+    if (!ratePlanCode) {
+        return {
+            success: false,
+            message: "Rate Plan Code is required"
+        };
+    }
+    if (!addonId) {
+        return {
+            success: false,
+            message: "Addon ID is required"
+        };
+    }
+    const result = await removeAddonFromRatePlan(ratePlanCode, addonId);
+    return result;
+}
+
+export async function getAddonsByRatePlanCodeService(ratePlanCode: string) {
+    if (!ratePlanCode) {
+        return {
+            success: false,
+            message: "Rate Plan Code is required"
+        };
+    }
+    const result = await getAddonsByRatePlanCode(ratePlanCode);
     return result;
 }

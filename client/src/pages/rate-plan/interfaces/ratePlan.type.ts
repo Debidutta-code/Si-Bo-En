@@ -21,6 +21,18 @@ export interface RatePlan {
     taxGroupId?: string | null;
     updatedAt?: string;
     ratePlanRules?: RatePlanRule | null;
+    Addons?: RatePlanWithAddon[] | null;
+}
+export interface RatePlanWithAddon {
+    id: string;
+    ratePlanId: string;
+    addonId: string;
+    addonName: string;
+    addonType: string;
+    addonPrice: number;
+    addonDescription: string;
+    addonImage: string;
+    addonIsActive: boolean;
 }
 export interface RatePlanRule {
     id: string;

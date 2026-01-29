@@ -981,7 +981,6 @@ model Reservation {
   promo           PromoCode?                  @relation(fields: [promoId], references: [id])
   addOns          BookingAddon[]
   priceBreakdowns ReservationPriceBrakeDown[]
-  deviceType      ReservationDeviceType?
   agency          Agency?                     @relation(fields: [agencyId], references: [id])
   agencyId        String?                     @map("agency_id") @db.VarChar(36)
 

@@ -7,7 +7,7 @@ import { createRatePlanService, fetchRatePlansService, removeRatePlanService, up
 import { toast } from "react-hot-toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { MoreVertical, Pencil, Trash2, Plus } from "lucide-react";
+import { MoreVertical, Pencil, Trash2, Plus, Package } from "lucide-react"; // ✅ ADDED Package
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,6 +36,8 @@ import {
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import RatePlanRulesDialog from "./components/ratePlanRuleForm";
+import ManageRateWithAddonsForm from "./components/ManageRateWithAddonsForm"; // ✅ ADDED
+
 export default function RatePlan() {
   const { propertyId } = useParams<{ propertyId: string }>();
   const [allRatePlans, setAllRatePlans] = useState<RatePlan[]>([]);
@@ -56,12 +58,22 @@ export default function RatePlan() {
     b2cAvailable: true
   });
   const [rulesDialog, setRulesDialog] = useState<{ 
-  open: boolean; 
-  ratePlan: RatePlan | null 
-}>({
-  open: false,
-  ratePlan: null,
-});
+    open: boolean; 
+    ratePlan: RatePlan | null 
+  }>({
+    open: false,
+    ratePlan: null,
+  });
+  
+  // ✅ ADDED: State for managing addons dialog
+  const [addonsDialog, setAddonsDialog] = useState<{ 
+    open: boolean; 
+    ratePlan: RatePlan | null 
+  }>({
+    open: false,
+    ratePlan: null,
+  });
+  
   const [loader, setLoader] = useState<LoaderProps>({ isLoading: false, text: "" });
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; ratePlan: RatePlan | null }>({
     open: false,
@@ -71,6 +83,7 @@ export default function RatePlan() {
   useEffect(() => {
     fetchRatePlans();
   }, [propertyId]);
+
   const fetchRatePlans = async () => {
     if (!propertyId) {
       toast.error("Property ID is missing");
@@ -80,9 +93,7 @@ export default function RatePlan() {
       setLoader({ isLoading: true, text: "Fetching Rate Plans..." });
       const ratePlans = await fetchRatePlansService(propertyId);
       if (ratePlans.success) {
-
         toast.success(ratePlans.message || "Rate Plans fetched successfully");
-        // console.log("Fetched Rate Plans:", ratePlans);
         setAllRatePlans(ratePlans.data || []);
       } else {
         toast.error(ratePlans.message || "Failed to fetch Rate Plans");
@@ -90,10 +101,10 @@ export default function RatePlan() {
     } catch (error) {
       toast.error("Failed to fetch Rate Plans");
     } finally {
-
       setLoader({ isLoading: false, text: "" });
     }
   };
+
   const createRatePlan = async () => {
     if (!propertyId) {
       toast.error("Property ID is missing");
@@ -107,9 +118,7 @@ export default function RatePlan() {
       setLoader({ isLoading: true, text: "Creating Rate Plan..." });
       const response = await createRatePlanService(propertyId, newRatePlan);
       if (response.success) {
-
         toast.success(response.message || "Rate Plan created successfully");
-        // console.log("Created Rate Plan:", response);
         setNewRatePlan({ ratePlanName: "", b2bAvailable: false, b2cAvailable: true });
         setCreateDialogOpen(false);
         fetchRatePlans();
@@ -119,10 +128,10 @@ export default function RatePlan() {
     } catch (error) {
       toast.error("Failed to create Rate Plan");
     } finally {
-
       setLoader({ isLoading: false, text: "" });
     }
   }
+
   const deleteRatePlan = async (ratePlanCode: string) => {
     if (!propertyId) {
       toast.error("Property ID is missing");
@@ -132,9 +141,7 @@ export default function RatePlan() {
       setLoader({ isLoading: true, text: "Deleting Rate Plan..." });
       const response = await removeRatePlanService(ratePlanCode);
       if (response.success) {
-
         toast.success(response.message || "Rate Plan deleted successfully");
-        // console.log("Deleted Rate Plan:", response);
         fetchRatePlans();
       } else {
         toast.error(response.message || "Failed to delete Rate Plan");
@@ -212,24 +219,32 @@ export default function RatePlan() {
       b2cAvailable: true
     });
   };
-const handleAddRulesClick = (ratePlan: RatePlan) => {
-  setRulesDialog({ open: true, ratePlan });
-};
-const handleRulesSuccess = () => {
-  // Optionally refresh the rate plans to show updated rules status
-  fetchRatePlans();
-  setRulesDialog({ open: false, ratePlan: null });
-};
+
+  const handleAddRulesClick = (ratePlan: RatePlan) => {
+    setRulesDialog({ open: true, ratePlan });
+  };
+
+  const handleRulesSuccess = () => {
+    fetchRatePlans();
+    setRulesDialog({ open: false, ratePlan: null });
+  };
+
+  // ✅ ADDED: Handler for managing addons
+  const handleManageAddonsClick = (ratePlan: RatePlan) => {
+    setAddonsDialog({ open: true, ratePlan });
+  };
+
   if (loader.isLoading) {
-    return <>
+    return (
       <div className='min-h-screen w-full flex justify-center items-center'>
         <Loader text={loader.text} />
       </div>
-    </>
+    )
   }
+
   return (
     <>
-      <div className="container mx-auto  px-6 max-w-7xl">
+      <div className="container mx-auto px-6 max-w-7xl">
         <BackButton />
 
         <div className="mt-6 mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -299,8 +314,6 @@ const handleRulesSuccess = () => {
                   </div>
                 </div>
 
-                
-
                 <p className="text-xs text-gray-500">
                   Policies and tax can be configured after creation
                 </p>
@@ -362,6 +375,16 @@ const handleRulesSuccess = () => {
                           {ratePlan.ratePlanRules ? <Pencil className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
                           <span>{ratePlan.ratePlanRules ? "Update Rules" : "Add Rules"}</span>
                         </DropdownMenuItem>
+                        
+                        {/* ✅ ADDED: Manage Addons menu item */}
+                        <DropdownMenuItem
+                          onClick={() => handleManageAddonsClick(ratePlan)}
+                          className="cursor-pointer"
+                        >
+                          <Package className="mr-2 h-4 w-4" />
+                          <span>Manage Addons</span>
+                        </DropdownMenuItem>
+                        
                         <DropdownMenuItem
                           onClick={() => handleEdit(ratePlan)}
                           className="cursor-pointer"
@@ -376,7 +399,6 @@ const handleRulesSuccess = () => {
                           <Trash2 className="mr-2 h-4 w-4" />
                           <span>Delete</span>
                         </DropdownMenuItem>
-
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -385,8 +407,7 @@ const handleRulesSuccess = () => {
                     {ratePlan.ratePlanName}
                   </h3>
                   <div className="space-y-3 mb-4 text-xm">
-                    <div className=" flex justify-between">
-
+                    <div className="flex justify-between">
                       <p className="text-sm text-gray-600">
                         <span className="font-medium">Code:</span> {ratePlan.ratePlanCode}
                       </p>
@@ -450,9 +471,14 @@ const handleRulesSuccess = () => {
                           MLOS Rules
                         </span>
                       </div>
+                      <div className="flex items-center gap-2">
+                        <div className={`h-2 w-2 rounded-full ${!ratePlan.Addons ? 'bg-gray-300' : 'bg-green-500'}`} />
+                        <span className="text-xs text-gray-600">
+                          Addon Included
+                        </span>
+                      </div>
                     </div>
                   </div>
-
                 </div>
               ))}
             </div>
@@ -556,20 +582,37 @@ const handleRulesSuccess = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Rate Plan Rules Dialog */}
       {rulesDialog.ratePlan && (
-  <RatePlanRulesDialog
-    open={rulesDialog.open}
-    onOpenChange={(open) => {
-      if (!open) {
-        setRulesDialog({ open: false, ratePlan: null });
-      }
-    }}
-    ratePlanId={rulesDialog.ratePlan.id}
-    ratePlanName={rulesDialog.ratePlan.ratePlanName}
-    existingRule={rulesDialog.ratePlan.ratePlanRules || null}
-    onSuccess={handleRulesSuccess}
-  />
-)}
+        <RatePlanRulesDialog
+          open={rulesDialog.open}
+          onOpenChange={(open) => {
+            if (!open) {
+              setRulesDialog({ open: false, ratePlan: null });
+            }
+          }}
+          ratePlanId={rulesDialog.ratePlan.id}
+          ratePlanName={rulesDialog.ratePlan.ratePlanName}
+          existingRule={rulesDialog.ratePlan.ratePlanRules || null}
+          onSuccess={handleRulesSuccess}
+        />
+      )}
+
+      {/* ✅ ADDED: Manage Addons Dialog */}
+      {addonsDialog.ratePlan && propertyId && (
+        <ManageRateWithAddonsForm
+          open={addonsDialog.open}
+          onOpenChange={(open) => {
+            if (!open) {
+              setAddonsDialog({ open: false, ratePlan: null });
+            }
+          }}
+          ratePlanCode={addonsDialog.ratePlan.ratePlanCode}
+          ratePlanName={addonsDialog.ratePlan.ratePlanName}
+          propertyId={propertyId}
+        />
+      )}
     </>
   );
 }

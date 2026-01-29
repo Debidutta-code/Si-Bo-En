@@ -5,6 +5,7 @@ import { StartStopSellController } from "./start-stop-sell.controller";
 import {AvailabilityController} from "./availibility.controller";
 import {RestrictionController } from "./restriction.controller";
 import {RatePlanRuleController} from "./ratePlanRule.controller";
+import {RatePlanWithAddonController} from "./Rateplanwithaddon.controller";
 export {
     InventoryController,
     RatePlanController,
@@ -12,5 +13,6 @@ export {
     StartStopSellController,
     AvailabilityController,
     RestrictionController,
-    RatePlanRuleController
+    RatePlanRuleController,
+    RatePlanWithAddonController
 };

@@ -7,11 +7,13 @@ import startStopSellRoute from './start-stop-sell.route';
 import {restrictionRouter} from "./restriction.routes";
 import {availabilityRouter} from "./availibility.route";
 import {ratePlanRuleRouter} from "./ratePlanRule.route";
+import ratePlanWithAddonRouter from './Rateplanwithaddon.routes';
 const AriRouter = Router();
 AriRouter.use('/inventory', inventoryRouter);
 
 
 AriRouter.use('/rate-plan', ratePlanRouter);
+AriRouter.use('/rate-plan-with-addon', ratePlanWithAddonRouter);
 
 
 AriRouter.use('/price', roomRentPriceRouter);
