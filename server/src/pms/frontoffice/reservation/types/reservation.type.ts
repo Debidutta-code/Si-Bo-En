@@ -21,6 +21,7 @@ export interface IBookingDetails {
   finalPrice: IFinalPrice;
   promoCode: string | null;
   currency: CurrencyCode;
+  bookingSource: BookingSource;
   email: string;
   phone: string;
   guests: {

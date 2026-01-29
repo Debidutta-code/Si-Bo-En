@@ -1,4 +1,5 @@
 import { getPropertyCode } from '../../pms/frontoffice/room-management/utils/property.util';
+import { toUTCDate } from '../../utils';
 import { CustomRequest ,PropertyCustomRequest} from '../../utils/customRequest';
 import { errorResponse } from '../../utils/return';
 import { AvailabilityServices } from '../services';
@@ -16,8 +17,8 @@ export class AvailabilityController {
       }
       const propertyCode = await getPropertyCode(propertyId as string)
       // Validate dates
-      const start = new Date(startDate as string);
-      const end = new Date(endDate as string);
+      const start = toUTCDate(startDate as string);
+      const end = toUTCDate(endDate as string);
 
       if (isNaN(start.getTime()) || isNaN(end.getTime())) {
         return res.status(400).json(errorResponse('Invalid date format. Use YYYY-MM-DD'));

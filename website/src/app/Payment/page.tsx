@@ -158,10 +158,6 @@ const BookingReviewPage = () => {
         return bankDetails.payAtHotel;
       case "gateway":
         return bankDetails.paymentGateway;
-      case "bankTransfer":
-      case "upi":
-        // These are not in the current API response
-        return false;
       default:
         return false;
     }
@@ -220,6 +216,7 @@ const BookingReviewPage = () => {
             guestDetails: guest,
             ratePlanCode: bookingDetails.ratePlanCode,
             paymentMethod: selectedPayment,
+            bookingSource: bookingDetails.bookingSource,
             // Note: No payment proof for current methods
           },
           bankDetails,
@@ -461,7 +458,7 @@ const BookingReviewPage = () => {
               : "text-white hover:scale-[1.02]"
               }`}
             style={!(loading || noAvailablePayment || !selectedPayment) ? {
-              backgroundColor: colors.secondaryColor,
+              backgroundColor: colors.primaryColor,
               color: colors.buttonTextColor
             } : {}}
             disabled={

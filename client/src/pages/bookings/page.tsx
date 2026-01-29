@@ -176,15 +176,13 @@ const handleNoShowReservation = async (reservationId: string) => {
     switch (filters.reservationType) {
       case 'arrivals': return 'Arrivals';
       case 'departures': return 'Departures';
-      case 'checkins': return 'Check-Ins';
-      case 'checkouts': return 'Check-Outs';
       default: return 'All Reservations';
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">

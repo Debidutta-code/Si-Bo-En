@@ -236,6 +236,8 @@ export default function ReservationsTable({
               <TableHead>Check-out</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Source</TableHead>
+              <TableHead>Total</TableHead>
+              <TableHead>without Taxes</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -280,8 +282,10 @@ export default function ReservationsTable({
                 <TableCell>{formatDate(reservation.checkOutDate)}</TableCell>
                 <TableCell>{getStatusBadge(reservation.bookingStatus)}</TableCell>
                 <TableCell className="uppercase text-sm">
-                  {reservation.bookingSource}
+                {reservation.bookingSource}
                 </TableCell>
+                <TableCell>{reservation.finalPrice?.totalAmount}</TableCell>
+                <TableCell>{reservation.finalPrice?.subtotal}</TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>

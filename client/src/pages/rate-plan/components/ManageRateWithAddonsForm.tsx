@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Plus } from "lucide-react";
+import { Loader2, ImageIcon } from "lucide-react";
 import {
   addAddonToRatePlanService,
   removeAddonFromRatePlanService,
@@ -27,6 +27,7 @@ interface ManageAddonsDialogProps {
   ratePlanCode: string;
   ratePlanName: string;
   propertyId: string;
+  onSuccess?: () => void;
 }
 
 export default function ManageRateWithAddonsForm({
@@ -35,6 +36,7 @@ export default function ManageRateWithAddonsForm({
   ratePlanCode,
   ratePlanName,
   propertyId,
+  onSuccess,
 }: ManageAddonsDialogProps) {
   const [allAddons, setAllAddons] = useState<IAddon[]>([]);
   const [selectedAddonIds, setSelectedAddonIds] = useState<Set<string>>(new Set());
@@ -112,6 +114,7 @@ export default function ManageRateWithAddonsForm({
         const response = await addAddonToRatePlanService(ratePlanCode, addonId);
         if (response.success) {
           successCount++;
+          onSuccess?.();  
         } else {
           errorCount++;
           console.error(`Failed to add addon ${addonId}:`, response.message);
@@ -123,6 +126,7 @@ export default function ManageRateWithAddonsForm({
         const response = await removeAddonFromRatePlanService(ratePlanCode, addonId);
         if (response.success) {
           successCount++;
+          onSuccess?.();  
         } else {
           errorCount++;
           console.error(`Failed to remove addon ${addonId}:`, response.message);
@@ -132,8 +136,10 @@ export default function ManageRateWithAddonsForm({
       if (errorCount === 0) {
         toast.success("Addons updated successfully");
         onOpenChange(false);
+        onSuccess?.();  
       } else if (successCount > 0) {
         toast.success(`Updated ${successCount} addon(s), ${errorCount} failed`);
+        onSuccess?.();  
       } else {
         toast.error("Failed to update addons");
       }
@@ -146,8 +152,8 @@ export default function ManageRateWithAddonsForm({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px] max-h-[80vh]">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[800px] max-h-[85vh] flex flex-col p-0">
+        <DialogHeader className="px-6 pt-6 pb-4">
           <DialogTitle>Manage Addons</DialogTitle>
           <DialogDescription>
             Select addons to associate with <span className="font-semibold">{ratePlanName}</span>
@@ -155,12 +161,12 @@ export default function ManageRateWithAddonsForm({
         </DialogHeader>
 
         {loading ? (
-          <div className="flex justify-center items-center py-12">
+          <div className="flex justify-center items-center py-12 px-6">
             <Loader />
           </div>
         ) : (
           <>
-            <ScrollArea className="h-[400px] pr-4">
+            <ScrollArea className="flex-1 overflow-y-auto px-6">
               {allAddons.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
                   No addons available for this property.
@@ -168,57 +174,86 @@ export default function ManageRateWithAddonsForm({
                   Create addons first to assign them to rate plans.
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="grid grid-cols-2 gap-4 pb-4">
                   {allAddons.map((addon) => (
                     <div
                       key={addon.id}
-                      className={`flex items-start space-x-3 p-4 rounded-lg border transition-colors cursor-pointer ${
+                      className={`relative flex flex-col rounded-lg border transition-all cursor-pointer overflow-hidden ${
                         selectedAddonIds.has(addon.id)
-                          ? "border-primary bg-primary/5"
-                          : "border-gray-200 hover:border-gray-300"
+                          ? "border-primary ring-2 ring-primary/20 bg-primary/5"
+                          : "border-gray-200 hover:border-gray-300 hover:shadow-sm"
                       }`}
                       onClick={() => handleToggleAddon(addon.id)}
                     >
-                      <Checkbox
-                        checked={selectedAddonIds.has(addon.id)}
-                        onCheckedChange={() => handleToggleAddon(addon.id)}
-                        className="mt-1"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-medium text-sm">{addon.name}</h4>
+                      {/* Image Section */}
+                      <div className="relative h-32 bg-gray-100 overflow-hidden">
+                        {addon.images && addon.images.length > 0 ? (
+                          <img
+                            src={addon.images[0]}
+                            alt={addon.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+                            <ImageIcon className="h-12 w-12 text-gray-400" />
+                          </div>
+                        )}
+                        {/* Checkbox overlay */}
+                        <div className="absolute top-2 left-2">
+                          <Checkbox
+                            checked={selectedAddonIds.has(addon.id)}
+                            onCheckedChange={() => handleToggleAddon(addon.id)}
+                            className="bg-white shadow-md"
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Content Section */}
+                      <div className="p-3 flex-1">
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <h4 className="font-medium text-sm line-clamp-1 flex-1">
+                            {addon.name}
+                          </h4>
                           {addon.isActive ? (
-                            <Badge variant="default" className="text-xs">
+                            <Badge variant="default" className="text-xs shrink-0">
                               Active
                             </Badge>
                           ) : (
-                            <Badge variant="secondary" className="text-xs">
+                            <Badge variant="secondary" className="text-xs shrink-0">
                               Inactive
                             </Badge>
                           )}
                         </div>
+                        
                         {addon.description && (
-                          <p className="text-xs text-gray-600 mb-2">
+                          <p className="text-xs text-gray-600 mb-2 line-clamp-2">
                             {addon.description}
                           </p>
                         )}
+                        
                         <div className="flex items-center gap-2 text-xs text-gray-500">
                           <span className="font-medium">Code:</span>
-                          <span>{addon.code}</span>
+                          <span className="font-mono">{addon.code}</span>
                         </div>
+                        
+                        {addon.postingRhythm && (
+                          <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
+                            <span className="font-medium">Rhythm:</span>
+                            <span className="capitalize">
+                              {addon.postingRhythm.replace(/_/g, " ")}
+                            </span>
+                          </div>
+                        )}
                       </div>
-                      {selectedAddonIds.has(addon.id) && (
-                        <div className="text-primary">
-                          <Plus className="h-5 w-5" />
-                        </div>
-                      )}
                     </div>
                   ))}
                 </div>
               )}
             </ScrollArea>
 
-            <div className="flex items-center justify-between pt-4 border-t">
+            {/* Footer with buttons */}
+            <div className="flex items-center justify-between px-6 py-4 border-t bg-white">
               <div className="text-sm text-gray-600">
                 {selectedAddonIds.size} addon(s) selected
               </div>

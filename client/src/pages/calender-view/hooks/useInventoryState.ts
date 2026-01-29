@@ -37,8 +37,8 @@ export const useInventoryState = (_days: InventoryDay[]) => {
   const [scrollLeft, setScrollLeft] = useState(0);
 
   // UI toggles
-  const [showRatePlans, setShowRatePlans] = useState(false);
-  const [showRestrictions, setShowRestrictions] = useState(true);
+  const [showRatePlans, setShowRatePlans] = useState(true);
+  const [showRestrictions, setShowRestrictions] = useState(false);
   const [expandedOccupancy, setExpandedOccupancy] = useState<Set<string>>(new Set());
 
   // Rate plan toggles

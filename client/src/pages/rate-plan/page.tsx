@@ -93,7 +93,7 @@ export default function RatePlan() {
       setLoader({ isLoading: true, text: "Fetching Rate Plans..." });
       const ratePlans = await fetchRatePlansService(propertyId);
       if (ratePlans.success) {
-        toast.success(ratePlans.message || "Rate Plans fetched successfully");
+        // toast.success(ratePlans.message || "Rate Plans fetched successfully");
         setAllRatePlans(ratePlans.data || []);
       } else {
         toast.error(ratePlans.message || "Failed to fetch Rate Plans");
@@ -472,7 +472,7 @@ export default function RatePlan() {
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className={`h-2 w-2 rounded-full ${!ratePlan.Addons ? 'bg-gray-300' : 'bg-green-500'}`} />
+                        <div className={`h-2 w-2 rounded-full ${ratePlan.Addons?.length===0 ? 'bg-gray-300' : 'bg-green-500'}`} />
                         <span className="text-xs text-gray-600">
                           Addon Included
                         </span>
@@ -600,19 +600,20 @@ export default function RatePlan() {
       )}
 
       {/* ✅ ADDED: Manage Addons Dialog */}
-      {addonsDialog.ratePlan && propertyId && (
-        <ManageRateWithAddonsForm
-          open={addonsDialog.open}
-          onOpenChange={(open) => {
-            if (!open) {
-              setAddonsDialog({ open: false, ratePlan: null });
-            }
-          }}
-          ratePlanCode={addonsDialog.ratePlan.ratePlanCode}
-          ratePlanName={addonsDialog.ratePlan.ratePlanName}
-          propertyId={propertyId}
-        />
-      )}
+     {addonsDialog.ratePlan && propertyId && (
+  <ManageRateWithAddonsForm
+    open={addonsDialog.open}
+    onOpenChange={(open) => {
+      if (!open) {
+        setAddonsDialog({ open: false, ratePlan: null });
+      }
+    }}
+    ratePlanCode={addonsDialog.ratePlan.ratePlanCode}
+    ratePlanName={addonsDialog.ratePlan.ratePlanName}
+    propertyId={propertyId}
+    onSuccess={fetchRatePlans} // ✅ This refetches rate plans after save
+  />
+)}
     </>
   );
 }

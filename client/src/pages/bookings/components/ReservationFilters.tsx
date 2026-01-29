@@ -343,7 +343,7 @@ export default function ReservationFilters({
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 <Globe className="w-4 h-4 inline mr-1" />
-                Source Market (Country)
+                Source Market
               </label>
               <Select
                 value={localFilters.countryCode || 'all'}

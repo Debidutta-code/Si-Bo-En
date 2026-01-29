@@ -19,7 +19,7 @@ import { IPropertyCodeAndIds } from "../../../../dashboard/types";
 import { DashUtilsRepo } from "../../../../dashboard/repository";
 import { Decimal } from "@prisma/client/runtime/library";
 import { BookingStatus } from "@prisma/client";
-import { nowUTC, toUTC } from "../../../../utils";
+import { nowUTC, toUTC, toUTCDate } from "../../../../utils";
 
 export class ReservationService {
     reservationRepository: ReservationRepository;
@@ -45,17 +45,21 @@ export class ReservationService {
         return code;
     }
 
-    private generateDateRange(startDate: Date, endDate: Date): Date[] {
-        const dates: Date[] = [];
-        let currentDate = toUTC(startDate);
-        const toDate = toUTC(endDate);
-
-        while (currentDate < toDate) {
-            dates.push(currentDate);
-            currentDate.setDate(currentDate.getDate() + 1);
-        }
-        return dates;
+  private generateDateRange(startDate: Date, endDate: Date): Date[] {
+    const dates: Date[] = [];
+    const start = toUTCDate(startDate);
+    const end = toUTCDate(endDate);
+    
+    const startMs = start.getTime();
+    const endMs = end.getTime();
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    
+    for (let currentMs = startMs; currentMs < endMs; currentMs += oneDayMs) {
+        dates.push(new Date(currentMs));
     }
+    
+    return dates;
+}
 
     private mapPaymentMethod(method: string): "pay_at_hotel" | "net_banking" | "upi" | "payment_gateway" {
         const methodMap: Record<string, "pay_at_hotel" | "net_banking" | "upi" | "payment_gateway"> = {
@@ -136,7 +140,8 @@ export class ReservationService {
                 currency,
                 email,
                 phone,
-                paymentMethod
+                paymentMethod,
+                bookingSource
             } = bookingDetails;
 
             // 1️⃣ Resolve property
@@ -215,7 +220,7 @@ export class ReservationService {
                 bookingStatus: "confirmed",
                 cancellationReason: null,
                 deviceTypes:payload.deviceTypes||"desktop",
-                bookingSource: payload.bookingSource||"direct",
+                bookingSource: bookingSource||"direct",
                 
                 isPromoUsed: false,
                 promoId: null
@@ -245,7 +250,7 @@ export class ReservationService {
             console.log("Price breakdown created");
 
             // 7️⃣ Update ARI (decrease room availability)
-            const reservationDates = this.generateDateRange(toUTC(startDate), toUTC(endDate));
+            const reservationDates = this.generateDateRange(toUTCDate(startDate), toUTCDate(endDate));
             const ariPayload: IAriManulupulation = {
                 propertyCode,
                 dates: reservationDates,
