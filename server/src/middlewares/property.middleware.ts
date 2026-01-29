@@ -38,7 +38,7 @@ export function attachPropertyDetails(
         },
       });
 
-      if (!property || !property.propertyConfigs) {
+      if (!property ) {
         return res
           .status(404)
           .json(errorResponse("Property or configuration not found"));
@@ -48,8 +48,8 @@ export function attachPropertyDetails(
         id: property.id,
         propertyName: property.propertyName,
         propertyCode: property.propertyCode,
-        timezone: property.propertyConfigs.timezone,
-        currencyCode: property.propertyConfigs.baseCurrency,
+        timezone: property.propertyConfigs?.timezone,
+        currencyCode: property.propertyConfigs?.baseCurrency,
       };
 
       next();

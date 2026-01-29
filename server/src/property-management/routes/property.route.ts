@@ -15,7 +15,13 @@ export const propertyRouter = Router();
 propertyRouter
   .route('/')
   .post(protect, checkRoleBased('canCreateHotel'), Property.createProperty);
-
+propertyRouter.use('/management', protect, restrictTo("super_admin"), managementRoute);
+// Amenity Management
+propertyRouter.use('/booking-engine', protect, attachPropertyDetails({
+  identifierType: "id",
+  key: "id",
+  source: "params"
+}), bookingEngineRoute)
 propertyRouter
   .route('/:id')
   .get(
@@ -77,14 +83,7 @@ propertyRouter.use('/:id/room/aminity/:roomId', protect, attachPropertyDetails({
 
 
 // Management Routes
-propertyRouter.use('/management', protect,restrictTo("super_admin"), managementRoute);
 
-// Amenity Management
-propertyRouter.use('/booking-engine', protect, attachPropertyDetails({
-  identifierType: "id",
-  key: "id",
-  source: "params"
-}), bookingEngineRoute)
+
 
 export default propertyRouter;
-    

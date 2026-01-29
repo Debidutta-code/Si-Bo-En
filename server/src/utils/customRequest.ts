@@ -6,8 +6,8 @@ export interface PropertyRequest extends ExpressRequest {
     id: string;
     propertyName: string;
     propertyCode: string;
-    timezone: string;
-    currencyCode: string;
+    timezone?: string;
+    currencyCode?: string;
   };
 }
 export interface PropertyCustomRequest extends PropertyRequest {
