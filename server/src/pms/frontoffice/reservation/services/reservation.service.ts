@@ -214,9 +214,9 @@ export class ReservationService {
                 
                 bookingStatus: "confirmed",
                 cancellationReason: null,
-                
-                bookingSource: "direct",
-                
+                deviceTypes:payload.deviceTypes||"desktop",
+                bookingSource: payload.bookingSource||"direct",
+
                 isPromoUsed: false,
                 promoId: null
             };

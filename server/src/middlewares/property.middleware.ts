@@ -1,5 +1,5 @@
 import { Response, NextFunction } from "express";
-import { PropertyCustomRequest } from '../utils/customRequest';
+import { PropertyCustomRequest, PropertyRequest } from '../utils/customRequest';
 import { prisma } from "../config";
 import { errorResponse } from "../utils/return";
 export type PropertySource = "params" | "query" | "body" | "headers";
@@ -69,7 +69,7 @@ export function attachPropertyDetails(
 
 
 export const resolvePropertyIdentifier = (
-  req: PropertyCustomRequest,
+  req: PropertyCustomRequest|PropertyRequest,
   rule: PropertyResolveRule
 ): { type: "id" | "code"; value: string } | null => {
   let value: any;

@@ -1,4 +1,4 @@
-import { BookingSource, BookingStatus, CurrencyCode, PaymentMethod } from "@prisma/client";
+import { BookingSource, BookingStatus, CurrencyCode, PaymentMethod ,DeviceType} from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 
 // ==================== PAYLOAD TYPES ====================
@@ -143,6 +143,7 @@ export interface ICReservation {
   promoId: string | null;
   countryCode: string;
   timezone: string;
+  deviceTypes:DeviceType
 }
 
 export interface IReservation extends ICReservation {
