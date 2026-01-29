@@ -27,6 +27,8 @@ interface GuestSelectorProps {
 }
 
 const MAX_GUESTS_PER_ROOM = 4;
+const MAX_ADULTS_PER_ROOM = 8;
+const MAX_CHILDREN_PER_ROOM = 6;
 
 const GuestSelector: React.FC<GuestSelectorProps> = ({
   isOpen,
@@ -61,44 +63,6 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
     }
   }, [totalRooms, rooms]);
 
-  const redistributeGuests = (updatedRooms: Room[]) => {
-    let flattenedGuests: { type: "adult" | "child" }[] = [];
-
-    updatedRooms.forEach((room) => {
-      for (let i = 0; i < room.adults; i++)
-        flattenedGuests.push({ type: "adult" });
-      for (let i = 0; i < room.children; i++)
-        flattenedGuests.push({ type: "child" });
-    });
-
-    const newRooms: Room[] = [];
-    let room: Room = { adults: 0, children: 0 };
-
-    flattenedGuests.forEach((guest) => {
-      const roomCount = room.adults + room.children;
-      if (roomCount >= MAX_GUESTS_PER_ROOM) {
-        newRooms.push(room);
-        room = { adults: 0, children: 0 };
-      }
-      if (guest.type === "adult") room.adults += 1;
-      else room.children += 1;
-    });
-
-    if (room.adults + room.children > 0) {
-      newRooms.push(room);
-    }
-
-    if (newRooms.length > 0 && newRooms[0].adults === 0) {
-      newRooms[0].adults = 1;
-      if (newRooms[0].children > 0) {
-        newRooms[0].children -= 1;
-      }
-    }
-
-    setRooms(newRooms);
-    setTotalRooms(newRooms.length);
-  };
-
   const updateRoom = (
     roomIndex: number,
     field: "adults" | "children",
@@ -108,10 +72,18 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
     const room = { ...updatedRooms[roomIndex] };
 
     if (increment) {
-      if (field === "adults" && room.adults < 8) {
-        room.adults += 1;
-      } else if (field === "children" && room.children < 6) {
-        room.children += 1;
+      if (field === "adults") {
+        // Check if adding another adult would exceed max guests per room
+        const currentTotal = room.adults + room.children;
+        if (currentTotal < MAX_GUESTS_PER_ROOM && room.adults < MAX_ADULTS_PER_ROOM) {
+          room.adults += 1;
+        }
+      } else if (field === "children") {
+        // Check if adding another child would exceed max guests per room
+        const currentTotal = room.adults + room.children;
+        if (currentTotal < MAX_GUESTS_PER_ROOM && room.children < MAX_CHILDREN_PER_ROOM) {
+          room.children += 1;
+        }
       }
     } else {
       if (field === "adults") {
@@ -126,7 +98,7 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
     }
 
     updatedRooms[roomIndex] = room;
-    redistributeGuests(updatedRooms);
+    setRooms(updatedRooms);
   };
 
   const handleApply = () => {
@@ -141,6 +113,11 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
 
     onApply(summary, { rooms });
     onClose();
+  };
+
+  // Check if room is at max capacity
+  const isRoomFull = (room: Room) => {
+    return room.adults + room.children >= MAX_GUESTS_PER_ROOM;
   };
 
   return (
@@ -233,9 +210,9 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
                           variant="outline"
                           size="icon"
                           onClick={() => updateRoom(index, "adults", true)}
-                          disabled={room.adults >= 8}
+                          disabled={room.adults >= MAX_ADULTS_PER_ROOM || isRoomFull(room)}
                           className={`w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center transition-colors duration-200
-                            ${room.adults >= 8
+                            ${room.adults >= MAX_ADULTS_PER_ROOM || isRoomFull(room)
                               ? "bg-gray-300 cursor-not-allowed opacity-50"
                               : "bg-white hover:bg-gray-100"
                             }`}
@@ -275,9 +252,9 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
                           variant="outline"
                           size="icon"
                           onClick={() => updateRoom(index, "children", true)}
-                          disabled={room.children >= 6}
+                          disabled={room.children >= MAX_CHILDREN_PER_ROOM || isRoomFull(room)}
                           className={`w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center transition-colors duration-200
-                            ${room.children >= 6
+                            ${room.children >= MAX_CHILDREN_PER_ROOM || isRoomFull(room)
                               ? "bg-gray-300 cursor-not-allowed opacity-50"
                               : "bg-white hover:bg-gray-100"
                             }`}
@@ -287,6 +264,11 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
                       </div>
                     </div>
                   </div>
+                </div>
+                
+                {/* Room capacity indicator */}
+                <div className="mt-3 text-xs text-gray-500 text-center">
+                  {room.adults + room.children} of {MAX_GUESTS_PER_ROOM} guests
                 </div>
               </div>
             ))}

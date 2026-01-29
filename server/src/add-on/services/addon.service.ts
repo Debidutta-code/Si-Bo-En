@@ -16,9 +16,6 @@ export class AddonService {
             if(!addonData.name){
                 return errorResponse("Addon name is required");
             }
-            if(!addonData.images || addonData.images.length === 0){
-                return errorResponse("At least one image is required");
-            }
             if(!addonData.postingRhythm){
                 return errorResponse("Posting rhythm is required");
             }

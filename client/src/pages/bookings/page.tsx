@@ -7,8 +7,6 @@ import {
   fetchReservations,
   fetchArrivals,
   fetchDepartures,
-  fetchCheckIns,
-  fetchCheckOuts,
   fetchProperties,
   cancelReservation,
 } from "./api";
@@ -37,13 +35,15 @@ export default function ReservationsPage() {
   });
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<IReservationFilters>({
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    page: 1,
-    limit: 10,
-    bookingStatus: 'all',
-    reservationType: 'all'
-  });
+  startDate: new Date().toISOString().split('T')[0],
+  endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+  page: 1,
+  limit: 10,
+  bookingStatus: 'all',
+  reservationType: 'all',
+  bookingSource: 'all',
+  deviceType: 'all'
+});
 
   // Fetch properties on mount
   useEffect(() => {
@@ -67,18 +67,25 @@ export default function ReservationsPage() {
   };
 
   const loadReservations = async () => {
-    setLoading(true);
-    try {
-      let response;
-      const apiFilters = {
-        startDate: filters.startDate,
-        endDate: filters.endDate,
-        propertyId: filters.propertyId,
-        propertyCode: filters.propertyCode,
-        bookingStatus: filters.bookingStatus !== 'all' ? filters.bookingStatus : undefined,
-        page: filters.page,
-        limit: filters.limit
-      };
+  setLoading(true);
+  try {
+    let response;
+    const apiFilters = {
+      startDate: filters.startDate,
+      endDate: filters.endDate,
+      dateFilterType: filters.dateFilterType,
+      propertyId: filters.propertyId,
+      propertyCode: filters.propertyCode,
+      bookingStatus: filters.bookingStatus !== 'all' ? filters.bookingStatus : undefined,
+      bookingSource: filters.bookingSource !== 'all' ? filters.bookingSource : undefined,
+      deviceType: filters.deviceType !== 'all' ? filters.deviceType : undefined,
+      bookingCode: filters.bookingCode,
+      guestName: filters.guestName,
+      promoCode: filters.promoCode,
+      countryCode: filters.countryCode,
+      page: filters.page,
+      limit: filters.limit
+    };
 
       // Call appropriate API based on reservation type
       switch (filters.reservationType) {
@@ -87,12 +94,6 @@ export default function ReservationsPage() {
           break;
         case 'departures':
           response = await fetchDepartures(apiFilters);
-          break;
-        case 'checkins':
-          response = await fetchCheckIns(apiFilters);
-          break;
-        case 'checkouts':
-          response = await fetchCheckOuts(apiFilters);
           break;
         default:
           response = await fetchReservations(apiFilters);
@@ -127,16 +128,18 @@ export default function ReservationsPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
-  const handleClearFilters = () => {
-    setFilters({
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      page: 1,
-      limit: 10,
-      bookingStatus: 'all',
-      reservationType: 'all'
-    });
-  };
+const handleClearFilters = () => {
+  setFilters({
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    page: 1,
+    limit: 10,
+    bookingStatus: 'all',
+    reservationType: 'all',
+    bookingSource: 'all',
+    deviceType: 'all'
+  });
+};
 
   const handleCancelReservation = async (reservationId: string) => {
     try {

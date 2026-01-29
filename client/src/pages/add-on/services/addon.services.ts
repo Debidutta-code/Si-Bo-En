@@ -17,9 +17,6 @@ export const createAddOnService = async (data:IAddonCreate,propertyId:string) =>
         if(!propertyId || propertyId.trim() === "") {
             return { success: false, message: "Property ID is required." };
         }
-        if(!data.images) {    
-            return { success: false, message: "At least one image is required." };
-        }
         const response = await createAddOn(data,propertyId);
         return response;
     } catch (error) {

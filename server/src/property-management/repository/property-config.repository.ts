@@ -15,6 +15,7 @@ export class PropertyConfigRepo {
                     isB2bAvailable: config.isB2bAvailable,
                     reservationResetMinutes: config.reservationResetMinutes,
                     selfAriActive: config.selfAriActive,
+                    timezone: config.timezone,
                     updatedAt: new Date()
                 }
             })

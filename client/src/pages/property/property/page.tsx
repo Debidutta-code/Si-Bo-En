@@ -345,8 +345,8 @@ export default function PropertyPage() {
                                         : "Complete your property setup to start managing"}
                                 </p>
                                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${isDrafted
-                                        ? 'bg-green-100 text-green-700 ring-1 ring-green-200'
-                                        : 'bg-yellow-100 text-yellow-700 ring-1 ring-yellow-200'
+                                    ? 'bg-green-100 text-green-700 ring-1 ring-green-200'
+                                    : 'bg-yellow-100 text-yellow-700 ring-1 ring-yellow-200'
                                     }`}>
                                     {isDrafted ? '● Active' : '● Setup Required'}
                                 </span>
@@ -367,277 +367,283 @@ export default function PropertyPage() {
                 </div>
                 <div className='flex'>
 
-                <div className="px-2">
-                    {isCreationCompleted ? (
-                        <Button onClick={handleEditProperty} className="w-full">
-                            View Property
-                        </Button>
-                    ) : (
-                        <Button onClick={handleCreateProperty} className="w-full">
-                            Complete Property Setup
-                        </Button>
-                    )}
-                </div>
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline" size="icon">
-                            <MoreVertical className="h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56 space-y-2">
-                        <DropdownMenuItem onSelect={(e) => { e.preventDefault(); openUpdateDialog(); }} className="cursor-pointer">
-                            <Button variant={"secondary"}>
-                                <CloudCog className="h-4 w-4 mr-2 text-gray-600" /> Update Property
+                    <div className="px-2">
+                        {isCreationCompleted ? (
+                            <Button onClick={handleEditProperty} className="w-full">
+                                View Property
                             </Button>
-                        </DropdownMenuItem>
+                        ) : (
+                            <Button onClick={handleCreateProperty} className="w-full">
+                                Complete Property Setup
+                            </Button>
+                        )}
+                    </div>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="icon">
+                                <MoreVertical className="h-4 w-4" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-56 space-y-2">
+                            <DropdownMenuItem onSelect={(e) => { e.preventDefault(); openUpdateDialog(); }} className="cursor-pointer">
+                                <Button variant={"secondary"}>
+                                    <CloudCog className="h-4 w-4 mr-2 text-gray-600" /> Update Property
+                                </Button>
+                            </DropdownMenuItem>
 
-                        {user?.role === "super_admin" && propertyDetails?.id && (
-                            <Dialog>
+                            {user?.role === "super_admin" && propertyDetails?.id && (
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-pointer">
+                                            <Button variant={"secondary"}>
+                                                <Settings className='h-4 w-4 mr-2' /> Property Config
+                                            </Button>
+                                        </DropdownMenuItem>
+                                    </DialogTrigger>
+                                    <DialogContent className='sm:max-w-[500px] max-h-[80vh] overflow-y-auto'>
+                                        <DialogHeader>
+                                            <DialogTitle>Property Configuration</DialogTitle>
+                                            <DialogDescription>
+                                                Update property settings and integrations. Only Super Admin can modify these settings.
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <div className='space-y-4 py-4'>
+                                            <div className='flex items-center justify-between space-x-2'>
+                                                <div className='space-y-0.5'>
+                                                    <Label htmlFor='channelManager'>Channel Manager Integration</Label>
+                                                    <p className='text-xs text-muted-foreground'>Enable channel manager integration</p>
+                                                </div>
+                                                <Switch
+                                                    id='channelManager'
+                                                    checked={propertyConfig.channelManagerIntegrationActive}
+                                                    onCheckedChange={(checked) =>
+                                                        setPropertyConfig({ ...propertyConfig, channelManagerIntegrationActive: checked })
+                                                    }
+                                                />
+                                            </div>
+
+                                            <div className='flex items-center justify-between space-x-2'>
+                                                <div className='space-y-0.5'>
+                                                    <Label htmlFor='pmsIntegration'>PMS Integration</Label>
+                                                    <p className='text-xs text-muted-foreground'>Enable PMS integration</p>
+                                                </div>
+                                                <Switch
+                                                    id='pmsIntegration'
+                                                    checked={propertyConfig.pmsIntegrationActive}
+                                                    onCheckedChange={(checked) =>
+                                                        setPropertyConfig({ ...propertyConfig, pmsIntegrationActive: checked })
+                                                    }
+                                                />
+                                            </div>
+
+                                            <div className='flex items-center justify-between space-x-2'>
+                                                <div className='space-y-0.5'>
+                                                    <Label htmlFor='selfAri'>Self ARI</Label>
+                                                    <p className='text-xs text-muted-foreground'>Enable self availability, rates, and inventory</p>
+                                                </div>
+                                                <Switch
+                                                    id='selfAri'
+                                                    checked={propertyConfig.selfAriActive}
+                                                    onCheckedChange={(checked) =>
+                                                        setPropertyConfig({ ...propertyConfig, selfAriActive: checked })
+                                                    }
+                                                />
+                                            </div>
+
+                                            <div className='flex items-center justify-between space-x-2'>
+                                                <div className='space-y-0.5'>
+                                                    <Label htmlFor='isB2bAvailable'>B2B Availability</Label>
+                                                    <p className='text-xs text-muted-foreground'>Enable B2B booking channel</p>
+                                                </div>
+                                                <Switch
+                                                    id='isB2bAvailable'
+                                                    checked={propertyConfig.isB2bAvailable}
+                                                    onCheckedChange={(checked) =>
+                                                        setPropertyConfig({ ...propertyConfig, isB2bAvailable: checked })
+                                                    }
+                                                />
+                                            </div>
+
+                                            <div className='flex items-center justify-between space-x-2'>
+                                                <div className='space-y-0.5'>
+                                                    <Label htmlFor='isB2cAvailable'>B2C Availability</Label>
+                                                    <p className='text-xs text-muted-foreground'>Enable B2C booking channel</p>
+                                                </div>
+                                                <Switch
+                                                    id='isB2cAvailable'
+                                                    checked={propertyConfig.isB2cAvailable}
+                                                    onCheckedChange={(checked) =>
+                                                        setPropertyConfig({ ...propertyConfig, isB2cAvailable: checked })
+                                                    }
+                                                />
+                                            </div>
+
+                                            <div className='flex items-center justify-between space-x-2'>
+                                                <div className='space-y-0.5'>
+                                                    <Label htmlFor='commission'>Commission</Label>
+                                                    <p className='text-xs text-muted-foreground'>Enable commission on bookings</p>
+                                                </div>
+                                                <Switch
+                                                    id='commission'
+                                                    checked={propertyConfig.commission}
+                                                    onCheckedChange={(checked) =>
+                                                        setPropertyConfig({ ...propertyConfig, commission: checked })
+                                                    }
+                                                />
+                                            </div>
+
+                                            <div className='space-y-2'>
+                                                <Label htmlFor='timezone'>Timezone</Label>
+                                                <Select
+                                                    value={propertyConfig.timezone}
+                                                    onValueChange={(value) =>
+                                                        setPropertyConfig({ ...propertyConfig, timezone: value })
+                                                    }
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder='Select timezone' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {getAllTimezones().map((tz) => (
+                                                            <SelectItem key={tz} value={tz}>
+                                                                {formatTimezoneLabel(tz)}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+
+                                            <div className='space-y-2'>
+                                                <Label htmlFor='baseCurrency'>Base Currency</Label>
+                                                <Select
+                                                    value={propertyConfig.baseCurrency}
+                                                    onValueChange={(value) =>
+                                                        setPropertyConfig({ ...propertyConfig, baseCurrency: value })
+                                                    }
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder='Select currency' />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="USD">USD ($)</SelectItem>
+                                                        <SelectItem value="EUR">EUR (€)</SelectItem>
+                                                        <SelectItem value="INR">INR (₹)</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+
+                                            <div className='space-y-2'>
+                                                <Label htmlFor='resetTime'>Reservation Reset Time</Label>
+                                                <Input
+                                                    id='resetTime'
+                                                    type='text'
+                                                    placeholder='e.g., 9.30'
+                                                    value={minutesToTime(propertyConfig.reservationResetMinutes)}
+                                                    onChange={(e) =>
+                                                        setPropertyConfig({
+                                                            ...propertyConfig,
+                                                            reservationResetMinutes: timeToMinutes(e.target.value)
+                                                        })
+                                                    }
+                                                />
+                                                <p className='text-xs text-muted-foreground'>Format: HH.MM (24-hour format)</p>
+                                            </div>
+                                        </div>
+                                        <DialogFooter>
+                                            <Button onClick={updatePropertyConfig}>
+                                                Save Configuration
+                                            </Button>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
+                            )}
+
+                            <Dialog onOpenChange={handleDialogOpenChange}>
                                 <DialogTrigger asChild>
                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-pointer">
                                         <Button variant={"secondary"}>
-                                            <Settings className='h-4 w-4 mr-2' /> Property Config
+                                            <User2Icon className='h-4 w-4 mr-2' /> Add Members
                                         </Button>
                                     </DropdownMenuItem>
                                 </DialogTrigger>
-                                <DialogContent className='sm:max-w-[500px] max-h-[80vh] overflow-y-auto'>
-    <DialogHeader>
-        <DialogTitle>Property Configuration</DialogTitle>
-        <DialogDescription>
-            Update property settings and integrations. Only Super Admin can modify these settings.
-        </DialogDescription>
-    </DialogHeader>
-    <div className='space-y-4 py-4'>
-        <div className='flex items-center justify-between space-x-2'>
-            <div className='space-y-0.5'>
-                <Label htmlFor='channelManager'>Channel Manager Integration</Label>
-                <p className='text-xs text-muted-foreground'>Enable channel manager integration</p>
-            </div>
-            <Switch
-                id='channelManager'
-                checked={propertyConfig.channelManagerIntegrationActive}
-                onCheckedChange={(checked) =>
-                    setPropertyConfig({ ...propertyConfig, channelManagerIntegrationActive: checked })
-                }
-            />
-        </div>
+                                <DialogContent className='sm:max-w-[425px]'>
+                                    <DialogHeader>
+                                        <DialogTitle>Add Members</DialogTitle>
+                                        <DialogDescription>
+                                            Assign a user to your property with a specific role.
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                    <div className='space-y-4 py-4'>
+                                        <div className='space-y-2'>
+                                            <Label htmlFor='role'>Role</Label>
+                                            <Select value={selectedRole} onValueChange={setSelectedRole}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder='Select a role' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {roles.map((role, index) => (
+                                                        <SelectItem key={index} value={role.value}>
+                                                            {role.label}
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
 
-        <div className='flex items-center justify-between space-x-2'>
-            <div className='space-y-0.5'>
-                <Label htmlFor='pmsIntegration'>PMS Integration</Label>
-                <p className='text-xs text-muted-foreground'>Enable PMS integration</p>
-            </div>
-            <Switch
-                id='pmsIntegration'
-                checked={propertyConfig.pmsIntegrationActive}
-                onCheckedChange={(checked) =>
-                    setPropertyConfig({ ...propertyConfig, pmsIntegrationActive: checked })
-                }
-            />
-        </div>
-
-        <div className='flex items-center justify-between space-x-2'>
-            <div className='space-y-0.5'>
-                <Label htmlFor='selfAri'>Self ARI</Label>
-                <p className='text-xs text-muted-foreground'>Enable self availability, rates, and inventory</p>
-            </div>
-            <Switch
-                id='selfAri'
-                checked={propertyConfig.selfAriActive}
-                onCheckedChange={(checked) =>
-                    setPropertyConfig({ ...propertyConfig, selfAriActive: checked })
-                }
-            />
-        </div>
-
-        <div className='flex items-center justify-between space-x-2'>
-            <div className='space-y-0.5'>
-                <Label htmlFor='isB2bAvailable'>B2B Availability</Label>
-                <p className='text-xs text-muted-foreground'>Enable B2B booking channel</p>
-            </div>
-            <Switch
-                id='isB2bAvailable'
-                checked={propertyConfig.isB2bAvailable}
-                onCheckedChange={(checked) =>
-                    setPropertyConfig({ ...propertyConfig, isB2bAvailable: checked })
-                }
-            />
-        </div>
-
-        <div className='flex items-center justify-between space-x-2'>
-            <div className='space-y-0.5'>
-                <Label htmlFor='isB2cAvailable'>B2C Availability</Label>
-                <p className='text-xs text-muted-foreground'>Enable B2C booking channel</p>
-            </div>
-            <Switch
-                id='isB2cAvailable'
-                checked={propertyConfig.isB2cAvailable}
-                onCheckedChange={(checked) =>
-                    setPropertyConfig({ ...propertyConfig, isB2cAvailable: checked })
-                }
-            />
-        </div>
-
-        <div className='flex items-center justify-between space-x-2'>
-            <div className='space-y-0.5'>
-                <Label htmlFor='commission'>Commission</Label>
-                <p className='text-xs text-muted-foreground'>Enable commission on bookings</p>
-            </div>
-            <Switch
-                id='commission'
-                checked={propertyConfig.commission}
-                onCheckedChange={(checked) =>
-                    setPropertyConfig({ ...propertyConfig, commission: checked })
-                }
-            />
-        </div>
-
-        <div className='space-y-2'>
-            <Label htmlFor='timezone'>Timezone</Label>
-            <Select 
-                value={propertyConfig.timezone} 
-                onValueChange={(value) =>
-                    setPropertyConfig({ ...propertyConfig, timezone: value })
-                }
-            >
-                <SelectTrigger>
-                    <SelectValue placeholder='Select timezone' />
-                </SelectTrigger>
-                <SelectContent>
-                    {getAllTimezones().map((tz) => (
-                        <SelectItem key={tz} value={tz}>
-                            {formatTimezoneLabel(tz)}
-                        </SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
-        </div>
-
-        <div className='space-y-2'>
-            <Label htmlFor='baseCurrency'>Base Currency</Label>
-            <Input
-                id='baseCurrency'
-                type='text'
-                placeholder='e.g., INR, USD, EUR'
-                value={propertyConfig.baseCurrency}
-                onChange={(e) =>
-                    setPropertyConfig({ ...propertyConfig, baseCurrency: e.target.value })
-                }
-            />
-        </div>
-
-        <div className='space-y-2'>
-            <Label htmlFor='resetTime'>Reservation Reset Time</Label>
-            <Input
-                id='resetTime'
-                type='text'
-                placeholder='e.g., 9.30'
-                value={minutesToTime(propertyConfig.reservationResetMinutes)}
-                onChange={(e) =>
-                    setPropertyConfig({ 
-                        ...propertyConfig, 
-                        reservationResetMinutes: timeToMinutes(e.target.value) 
-                    })
-                }
-            />
-            <p className='text-xs text-muted-foreground'>Format: HH.MM (24-hour format)</p>
-        </div>
-    </div>
-    <DialogFooter>
-        <Button onClick={updatePropertyConfig}>
-            Save Configuration
-        </Button>
-    </DialogFooter>
-</DialogContent>
+                                        <div className='space-y-2'>
+                                            <Label htmlFor='user'>User</Label>
+                                            <Select value={selectedUser} onValueChange={setSelectedUser}>
+                                                <SelectTrigger>
+                                                    <SelectValue placeholder='Select a user' />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {selectedRole === "hotel_manager" && users?.hotelManagers?.length > 0 ? (
+                                                        users.hotelManagers.map((user) => (
+                                                            <SelectItem key={user.id} value={user.id}>
+                                                                {user.firstName} {user.lastName} {user.email && `(${user.email})`}
+                                                            </SelectItem>
+                                                        ))
+                                                    ) : selectedRole === "staff" && users?.staffs?.length > 0 ? (
+                                                        users.staffs.map((user) => (
+                                                            <SelectItem key={user.id} value={user.id}>
+                                                                {user.firstName} {user.lastName} {user.email && `(${user.email})`}
+                                                            </SelectItem>
+                                                        ))
+                                                    ) : selectedRole === "revenue_manager" && users?.revenueManagers?.length > 0 ? (
+                                                        users.revenueManagers.map((user) => (
+                                                            <SelectItem key={user.id} value={user.id}>
+                                                                {user.firstName} {user.lastName} {user.email && `(${user.email})`}
+                                                            </SelectItem>
+                                                        ))
+                                                    ) : selectedRole === "housekeeping" && users?.housekeeping?.length > 0 ? (
+                                                        users.housekeeping.map((user) => (
+                                                            <SelectItem key={user.id} value={user.id}>
+                                                                {user.firstName} {user.lastName} {user.email && `(${user.email})`}
+                                                            </SelectItem>
+                                                        ))
+                                                    ) : (
+                                                        <SelectItem value="qq" disabled>
+                                                            No users available for this role
+                                                        </SelectItem>
+                                                    )}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    </div>
+                                    <DialogFooter>
+                                        <Button
+                                            onClick={handleAddMember}
+                                            disabled={!selectedUser || isAssigningUser}
+                                        >
+                                            {isAssigningUser ? 'Assigning...' : 'Assign User'}
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
                             </Dialog>
-                        )}
-
-                        <Dialog onOpenChange={handleDialogOpenChange}>
-                            <DialogTrigger asChild>
-                                <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-pointer">
-                                    <Button variant={"secondary"}>
-                                        <User2Icon className='h-4 w-4 mr-2' /> Add Members
-                                    </Button>
-                                </DropdownMenuItem>
-                            </DialogTrigger>
-                            <DialogContent className='sm:max-w-[425px]'>
-                                <DialogHeader>
-                                    <DialogTitle>Add Members</DialogTitle>
-                                    <DialogDescription>
-                                        Assign a user to your property with a specific role.
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <div className='space-y-4 py-4'>
-                                    <div className='space-y-2'>
-                                        <Label htmlFor='role'>Role</Label>
-                                        <Select value={selectedRole} onValueChange={setSelectedRole}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder='Select a role' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {roles.map((role, index) => (
-                                                    <SelectItem key={index} value={role.value}>
-                                                        {role.label}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-
-                                    <div className='space-y-2'>
-                                        <Label htmlFor='user'>User</Label>
-                                        <Select value={selectedUser} onValueChange={setSelectedUser}>
-                                            <SelectTrigger>
-                                                <SelectValue placeholder='Select a user' />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {selectedRole === "hotel_manager" && users?.hotelManagers?.length > 0 ? (
-                                                    users.hotelManagers.map((user) => (
-                                                        <SelectItem key={user.id} value={user.id}>
-                                                            {user.firstName} {user.lastName} {user.email && `(${user.email})`}
-                                                        </SelectItem>
-                                                    ))
-                                                ) : selectedRole === "staff" && users?.staffs?.length > 0 ? (
-                                                    users.staffs.map((user) => (
-                                                        <SelectItem key={user.id} value={user.id}>
-                                                            {user.firstName} {user.lastName} {user.email && `(${user.email})`}
-                                                        </SelectItem>
-                                                    ))
-                                                ) : selectedRole === "revenue_manager" && users?.revenueManagers?.length > 0 ? (
-                                                    users.revenueManagers.map((user) => (
-                                                        <SelectItem key={user.id} value={user.id}>
-                                                            {user.firstName} {user.lastName} {user.email && `(${user.email})`}
-                                                        </SelectItem>
-                                                    ))
-                                                ) : selectedRole === "housekeeping" && users?.housekeeping?.length > 0 ? (
-                                                    users.housekeeping.map((user) => (
-                                                        <SelectItem key={user.id} value={user.id}>
-                                                            {user.firstName} {user.lastName} {user.email && `(${user.email})`}
-                                                        </SelectItem>
-                                                    ))
-                                                ) : (
-                                                    <SelectItem value="qq" disabled>
-                                                        No users available for this role
-                                                    </SelectItem>
-                                                )}
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                </div>
-                                <DialogFooter>
-                                    <Button
-                                        onClick={handleAddMember}
-                                        disabled={!selectedUser || isAssigningUser}
-                                    >
-                                        {isAssigningUser ? 'Assigning...' : 'Assign User'}
-                                    </Button>
-                                </DialogFooter>
-                            </DialogContent>
-                        </Dialog>
 
 
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </div>
             </div>
 

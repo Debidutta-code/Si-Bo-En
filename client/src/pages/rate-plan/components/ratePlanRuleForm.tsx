@@ -80,7 +80,8 @@ export default function RatePlanRulesDialog({
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-
+  const [fromDateOpen, setFromDateOpen] = useState(false);
+  const [toDateOpen, setToDateOpen] = useState(false);
   // Update form data when existingRule changes
   useEffect(() => {
     if (existingRule) {
@@ -210,7 +211,7 @@ export default function RatePlanRulesDialog({
               {/* Start Date */}
               <div className="grid gap-2">
                 <Label htmlFor="startDate">Start Date</Label>
-                <Popover>
+                <Popover open={fromDateOpen} onOpenChange={setFromDateOpen}>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
@@ -230,9 +231,10 @@ export default function RatePlanRulesDialog({
                     <Calendar
                       mode="single"
                       selected={formData.startDate || undefined}
-                      onSelect={(date) =>
-                        setFormData({ ...formData, startDate: date || null })
-                      }
+                      onSelect={(date) => {
+                        setFormData({ ...formData, startDate: date || null });
+                        setFromDateOpen(false);
+                      }}
                       initialFocus
                     />
                   </PopoverContent>
@@ -242,7 +244,7 @@ export default function RatePlanRulesDialog({
               {/* End Date */}
               <div className="grid gap-2">
                 <Label htmlFor="endDate">End Date</Label>
-                <Popover>
+                <Popover open={toDateOpen} onOpenChange={setToDateOpen}>
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
@@ -262,9 +264,10 @@ export default function RatePlanRulesDialog({
                     <Calendar
                       mode="single"
                       selected={formData.endDate || undefined}
-                      onSelect={(date) =>
-                        setFormData({ ...formData, endDate: date || null })
-                      }
+                      onSelect={(date) => {
+                        setFormData({ ...formData, endDate: date || null });
+                        setToDateOpen(false);
+                      }}
                       initialFocus
                       disabled={(date) =>
                         formData.startDate ? date < formData.startDate : false

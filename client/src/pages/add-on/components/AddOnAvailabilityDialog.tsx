@@ -53,6 +53,8 @@ export default function AddOnAvailabilityDialog({
         isAvailable: true,
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [fromDateOpen, setFromDateOpen] = useState(false);
+    const [toDateOpen, setToDateOpen] = useState(false);
 
     useEffect(() => {
         if (selectedAddonId) {
@@ -124,7 +126,7 @@ export default function AddOnAvailabilityDialog({
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label>From Date *</Label>
-                            <Popover>
+                            <Popover open={fromDateOpen} onOpenChange={setFromDateOpen}>
                                 <PopoverTrigger asChild>
                                     <Button
                                         variant="outline"
@@ -141,15 +143,17 @@ export default function AddOnAvailabilityDialog({
                                         )}
                                     </Button>
                                 </PopoverTrigger>
-                            <PopoverContent className="w-[8rem] sm:w-[10rem] md:w-[14rem] p-0" align="start">
+                                <PopoverContent className=" p-0" align="start">
                                     <Calendar
                                         mode="single"
                                         selected={formData.from}
-                                        onSelect={(date) =>
-                                            date && setFormData({ ...formData, from: date })
-                                        }
-                                                                                                                    className="rounded-md border w-full"
-
+                                        onSelect={(date) => {
+                                            if (date) {
+                                                setFormData({ ...formData, from: date });
+                                                setFromDateOpen(false); // Close the popover
+                                            }
+                                        }}
+                                        className="rounded-md border w-full"
                                         initialFocus
                                     />
                                 </PopoverContent>
@@ -158,7 +162,7 @@ export default function AddOnAvailabilityDialog({
 
                         <div className="space-y-2">
                             <Label>To Date *</Label>
-                            <Popover>
+                            <Popover open={toDateOpen} onOpenChange={setToDateOpen}>
                                 <PopoverTrigger asChild>
                                     <Button
                                         variant="outline"
@@ -175,18 +179,21 @@ export default function AddOnAvailabilityDialog({
                                         )}
                                     </Button>
                                 </PopoverTrigger>
-                            <PopoverContent className="w-[8rem] sm:w-[10rem] md:w-[14rem] p-0" align="start">
+                                <PopoverContent className=" p-0" align="start">
                                     <Calendar
                                         mode="single"
                                         selected={formData.to}
-                                        onSelect={(date) =>
-                                            date && setFormData({ ...formData, to: date })
-                                        }
+                                        onSelect={(date) => {
+                                            if (date) {
+                                                setFormData({ ...formData, to: date });
+                                                setToDateOpen(false); // Close the popover
+                                            }
+                                        }}
                                         initialFocus
                                         disabled={(date) =>
                                             formData.from ? date < formData.from : false
                                         }
-                                                                            className="rounded-md border w-full"
+                                        className="rounded-md border w-full"
 
                                     />
                                 </PopoverContent>

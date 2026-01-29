@@ -910,9 +910,6 @@ const Rooms = () => {
           contactInfo={contactInfo}
           price={price}
           finalPrice={finalPrice}
-          loadingPrice={loadingPrice}
-          errorPrice={errorPrice}
-          bookingRoom={bookingRoom}
           bookingContext={bookingContext}
           onClose={() => {
             setBookingRoom(null);

@@ -1,6 +1,6 @@
 "use client";
 import { usePathname } from "next/navigation";
-import { Facebook, Instagram, Youtube } from "lucide-react";
+import { CloudCog, Facebook, Instagram, Youtube } from "lucide-react";
 import Image from "next/image";
 import { useSelector } from "react-redux";
 import { RootState } from "@/src/store/store";
@@ -17,6 +17,8 @@ const Footer = () => {
     // // Get booking context from Redux
     const bookingContext = useSelector((state: RootState) => state.booking);
 
+    const propertyAddress = bookingContext.PropertyDetails?.address;
+    console.log(propertyAddress);
     // Use the shared hook to get colors and logo consistently
     const { colors, logoIcon } = useBookingStorage(bookingContext);
 
@@ -67,12 +69,13 @@ const Footer = () => {
 
                     {/* Address Section */}
                     <div className="text-center flex-1 max-w-2xl">
-                        <p
-                            className="text-sm md:text-base leading-relaxed font-light"
-                            style={{ color: "#2F2A1F" }} // Dark color for better readability
-                        >
-Dubai, United Arab Emirates                        </p>
+                        <p className="text-sm md:text-base leading-relaxed font-light text-[#2F2A1F]">
+                            {propertyAddress?.addressLine1
+                                ? `${propertyAddress.addressLine1}`
+                                : "Dubai, United Arab Emirates"}
+                        </p>
                     </div>
+
 
                     {/* Social Media Icons */}
                     <div className="flex items-center gap-4 flex-shrink-0">

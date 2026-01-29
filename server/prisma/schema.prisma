@@ -125,7 +125,12 @@ enum AgencyApplicationStatus {
 
 enum PostingRhythm {
   per_night
+  per_person_per_night
+  per_person_per_stay
   per_stay
+  per_person_per_room
+  per_room
+  per_room_per_night
 }
 
 enum PaymentMethod {
@@ -655,7 +660,7 @@ model RatePlan {
   b2cAvailable Boolean @default(true) @map("b2c_available")
 
   ratePlanRules RatePlanRule?
-  Addons        Addon[]
+  Addons        RatePlanWithAddon[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -855,15 +860,25 @@ model Addon {
   images        String[]
   createdAt     DateTime            @default(now())
   updatedAt     DateTime            @updatedAt
-  ratePlan      RatePlan?           @relation(fields: [ratePlanId], references: [id])
   property      Property            @relation(fields: [propertyId], references: [id])
   subCategory   AddonSubCategory?   @relation(fields: [subcategoryId], references: [id])
   category      AddonCategory?      @relation(fields: [categoryId], references: [id])
   addonVariant  AddonVariant?       @relation("AddonToVariant", fields: [variantId], references: [id])
   bookingAddons BookingAddon[]
   availability  AddonAvailability[]
+  ratePlans     RatePlanWithAddon[]
 }
+model RatePlanWithAddon {
+  id         String   @id @default(uuid()) 
+  ratePlanId String @map("rate_plan_id")
+  addonId    String @map("addon_id")
+  ratePlan   RatePlan @relation(fields: [ratePlanId], references: [id])
+  addon      Addon    @relation(fields: [addonId], references: [id])
+  createdAt  DateTime @default(now()) @map("created_at")
 
+  @@unique([ratePlanId, addonId])
+  @@map("rate_plan_with_addon")
+}
 model BookingAddon {
   id                  String   @id @default(uuid())
   reservationId       String

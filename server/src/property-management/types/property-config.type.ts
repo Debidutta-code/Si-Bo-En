@@ -9,4 +9,5 @@ export interface IUPropertyConfig {
   isB2bAvailable: boolean,
   reservationResetMinutes: number,
   selfAriActive: boolean,
+  timezone: string,
 }
