@@ -59,14 +59,7 @@ export const router = createBrowserRouter(
           <Route path="group/:groupId" element={<GroupId />} />
           <Route path="brand/:brandId" element={<BrandId />} />
           <Route path="property/:propertyId" element={<PropertyId />} />
-          {/* <Route path=":propertyId" element={<PropertyById />} />
-          <Route path="rate-plan/:propertyId" element={<RatePlan />} />
-          <Route path="rate-plan/map/:propertyId" element={<MappedRatePlans />} />
-          <Route path="inventory/:propertyId" element={<Inventory />} />
-          <Route path="policy/:propertyId" element={<Policies />} />
-          <Route path="promo-code/:propertyId" element={<PromoCode />} />
-          <Route path="add-on/:propertyId" element={<AddOn />} />
-          <Route path="tax-system/:propertyId" element={<TaxSystem />} /> */}
+
         </Route>
         <Route path="members" element={<MembersPage />} />
         <Route path="logs" element={<LogsPage />} />

@@ -83,6 +83,10 @@ export interface IRoom {
   isDeleted: boolean;
   __v: number;
   view360Link?: string;
+  roomVideos?: {
+    url: string;
+    thumbnail: string;
+  };
   // New relational structure for amenities
   roomAmenities?: IRoomAmenitySelection[];
 }

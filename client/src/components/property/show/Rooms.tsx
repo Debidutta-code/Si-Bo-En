@@ -23,8 +23,9 @@ import {
   X,
   Plus,
   Rotate3d,
+  Video,
 } from "lucide-react";
-import ImageSlider from "@/components/shared/ImageSlider";
+import PropertyMediaGallery from "@/components/property/PropertyMediaGallery";
 import { type IRoom } from "../types/types";
 import { Button } from "../../ui/button";
 import PropertyDetailsDialog from "@/components/ExplandableDescription";
@@ -41,7 +42,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import UpdateRoom from "../update/Rooms";
 import type { IRoomDetails } from "../update/types/types";
-import { updateRoom, createRoom, deleteRoom, updateRoomAmenity, createRoomAmenity } from "../api/show/room";
+import { updateRoom, createRoom, deleteRoom, updateRoomAmenity, createRoomAmenity, addVideoToRoom, deleteRoomVideo } from "../api/show/room";
 import UpdateRoomAmenityUi from "../update/RoomAmenity"
 import Room360ViewModal from "../Room360ViewModal";
 import { uploadImages } from "../api/create/propertyinfo";
@@ -53,6 +54,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import VideoUploadModal from "../VedioUpload.modal";
 
 interface PropertyId {
   propertyId: string;
@@ -61,6 +63,9 @@ interface PropertyId {
 export default function Rooms({ propertyId }: PropertyId) {
   const [loading, setLoading] = useState(true);
   const [rooms, setRooms] = useState<IRoom[]>([]);
+  const [isVideoModalOpen, setIsVideoModalOpen] = useState<boolean>(false);
+  const [selectedRoomId, setSelectedRoomId] = useState<string>("");
+  const [selectedRoomName, setSelectedRoomName] = useState<string>("");
   const [roomDetails, setRoomDetails] = useState<IRoomDetails>({
     roomName: "",
     roomType: "",
@@ -80,7 +85,13 @@ export default function Rooms({ propertyId }: PropertyId) {
     image: [],
     available: true,
     view360Link: "",
+    roomVideos: {
+      url: "",
+      thumbnail: ""
+    }
   });
+  const [isDeletingVideo, setIsDeletingVideo] = useState<boolean>(false);
+
   const [updatedAmenities, setUpdatedAmenities] = useState<Record<string, boolean>>({});
   const [is360ViewModalOpen, setIs360ViewModalOpen] = useState(false);
   const [selected360Room, setSelected360Room] = useState<{ id: string; name: string; view360Link?: string } | null>(null);
@@ -198,6 +209,56 @@ export default function Rooms({ propertyId }: PropertyId) {
       setLoading(false);
     }
   }
+  const handleVideoUploadSuccess = async (videoUrl: string, thumbnailUrl: string) => {
+    if (!propertyId || !selectedRoomId) {
+      toast.error("Property ID or Room ID is missing");
+      return;
+    }
+
+    try {
+      const response = await addVideoToRoom(selectedRoomId, videoUrl, thumbnailUrl);
+
+      if (response.success) {
+        console.log('Video uploaded successfully:', { videoUrl, thumbnailUrl });
+        toast.success('Video uploaded and saved successfully!');
+        await fetchRoom(propertyId);
+      } else {
+        toast.error(response.message || 'Failed to save video');
+      }
+    } catch (error) {
+      console.error('Error saving video:', error);
+      toast.error('Failed to save video');
+    }
+  };
+
+  const handleDeleteVideo = async (roomId: string) => {
+    if (!propertyId || !roomId) {
+      toast.error("Property ID or Room ID is missing");
+      return;
+    }
+
+    if (!confirm("Are you sure you want to delete this video?")) {
+      return;
+    }
+
+    try {
+      setIsDeletingVideo(true);
+      const response = await deleteRoomVideo(roomId);
+
+      if (response.success) {
+        toast.success('Video deleted successfully!');
+        await fetchRoom(propertyId);
+      } else {
+        toast.error(response.message || 'Failed to delete video');
+      }
+    } catch (error) {
+      console.error('Error deleting video:', error);
+      toast.error('Failed to delete video');
+    } finally {
+      setIsDeletingVideo(false);
+    }
+  };
+
   return (
     <div className="w-full space-y-6">
       {rooms.length > 0 ? (
@@ -387,7 +448,46 @@ export default function Rooms({ propertyId }: PropertyId) {
                             {room.view360Link ? "Update" : "Add"} 360° View
                           </Button>
                         </DropdownMenuItem>
+                        {/* Add/Update Video */}
+                        <DropdownMenuItem
+                          className="p-0 focus:bg-transparent"
+                          onSelect={(e) => e.preventDefault()}
+                        >
+                          <Button
+                            variant="ghost"
+                            className="w-full justify-start px-2 py-1.5 h-auto font-normal"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedRoomId(room.id);
+                              setSelectedRoomName(room.roomName);
+                              setIsVideoModalOpen(true);
+                            }}
+                          >
+                            <Video className="h-4 w-4 mr-2" />
+                            {room.roomVideos?.url ? "Update" : "Add"} Video
+                          </Button>
+                        </DropdownMenuItem>
 
+                        {/* Delete Video */}
+                        {room.roomVideos?.url && (
+                          <DropdownMenuItem
+                            className="p-0 focus:bg-transparent"
+                            onSelect={(e) => e.preventDefault()}
+                          >
+                            <Button
+                              variant="ghost"
+                              className="w-full justify-start px-2 py-1.5 h-auto font-normal text-red-600 hover:text-red-700 hover:bg-red-50"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteVideo(room.id);
+                              }}
+                              disabled={isDeletingVideo}
+                            >
+                              <Trash className="h-4 w-4 mr-2" />
+                              {isDeletingVideo ? 'Deleting...' : 'Remove Video'}
+                            </Button>
+                          </DropdownMenuItem>
+                        )}
                         {/* Delete Room */}
                         <DropdownMenuItem
                           className="p-0 focus:bg-transparent"
@@ -432,16 +532,13 @@ export default function Rooms({ propertyId }: PropertyId) {
 
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                  {/* Room Images */}
+                  {/* Room Media Gallery */}
                   <div className="lg:col-span-4">
-                    {room.image && room.image.length > 0 ? (
-                      <ImageSlider images={room.image} height="h-64" />
-                    ) : (
-                      <div className="h-64 bg-gradient-to-br from-primary/10 to-primary/20 flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-primary/30">
-                        <Bed className="h-12 w-12 text-primary-400 mb-2" />
-                        <p className="text-sm text-primary-600 font-medium">No images uploaded</p>
-                      </div>
-                    )}
+                    <PropertyMediaGallery
+                      propertyVideo={room.roomVideos?.url ? room.roomVideos : undefined}
+                      propertyImages={room.image || []}
+                      type="room"
+                    />
                   </div>
 
                   {/* Room Details */}
@@ -680,6 +777,17 @@ export default function Rooms({ propertyId }: PropertyId) {
           </div>
         </DialogContent>
       </Dialog>
+      {/* Video Upload Modal */}
+      <VideoUploadModal
+        isOpen={isVideoModalOpen}
+        onClose={() => {
+          setIsVideoModalOpen(false);
+          setSelectedRoomId("");
+          setSelectedRoomName("");
+        }}
+        onUploadSuccess={handleVideoUploadSuccess}
+        title={`Upload Video for ${selectedRoomName}`}
+      />
     </div>
   );
 }

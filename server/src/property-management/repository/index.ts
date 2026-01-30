@@ -17,6 +17,7 @@ import {
     RoomAminityDao
 } from "./types.repository";
 
+export { PropertyVideoRepository, RoomVideoRepository } from "./vedio.repository";
 
 export{
     BankDetailsDao,
