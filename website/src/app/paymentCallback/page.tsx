@@ -1,0 +1,251 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState } from "@/src/store/store";
+import { ngeniusService } from "@/src/services/ngenius.service";
+import toast from "react-hot-toast";
+import {
+  setBookingCode,
+  setBookingStatus,
+  setFullBookingDetails,
+} from "@/src/store/bookingSlice";
+import { Loader2, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+
+const PaymentCallbackPage = () => {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const dispatch = useDispatch();
+  const booking = useSelector((state: RootState) => state.booking);
+
+  const [status, setStatus] = useState<"checking" | "success" | "failed" | "error">("checking");
+  const [message, setMessage] = useState("Verifying your payment...");
+  const [orderReference, setOrderReference] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const processPayment = async () => {
+      try {
+        // 1. Get order reference
+        const urlOrderRef = searchParams.get("orderRef") || searchParams.get("ref");
+        const storedOrderRef = localStorage.getItem("ngeniusOrderRef");
+
+        const orderRef = urlOrderRef || storedOrderRef;
+
+        if (!orderRef) {
+          if (isMounted) {
+            setStatus("error");
+            setMessage("Payment reference not found. Please contact support.");
+          }
+          return;
+        }
+
+        if (isMounted) {
+          setOrderReference(orderRef);
+          setMessage("Checking payment status...");
+        }
+
+        // 2. Verify payment status with NGenius
+        const orderStatus = await ngeniusService.getOrderStatus(orderRef);
+        const isSuccess = ngeniusService.isPaymentSuccessful(orderStatus);
+        const paymentState = ngeniusService.getPaymentState(orderStatus);
+
+        if (!isSuccess) {
+          if (isMounted) {
+            setStatus("failed");
+            setMessage(`Payment ${paymentState.toLowerCase()}. Please try again or contact support.`);
+            toast.error("Payment was not successful. Please try again.", {
+              id: "payment-failed",
+            });
+
+            localStorage.removeItem("ngeniusOrderRef");
+            localStorage.removeItem("pendingBookingData");
+
+            setTimeout(() => {
+              router.replace("/Payment");
+            }, 3000);
+          }
+          return;
+        }
+
+        // 3. Payment successful → create booking
+        if (isMounted) {
+          setMessage("Payment successful! Creating your booking...");
+        }
+
+        // Prepare booking data
+        let bookingData;
+
+        const storedBookingData = localStorage.getItem("pendingBookingData");
+
+        if (storedBookingData) {
+          bookingData = JSON.parse(storedBookingData);
+        } else {
+          // Fallback - construct from redux (less reliable)
+          bookingData = {
+            data: {
+              bookingDetails: {
+                startDate: booking.startDate,
+                endDate: booking.endDate,
+                propertyCode: booking.PropertyCode,
+                hotelName: booking.hotelName,
+                roomTypeCode: booking.roomTypeCode,
+                numberOfRooms: booking.numberOfRooms || 1,
+                finalPrice: booking.finalPrice,
+                currency: booking.finalPrice?.dailyBreakdown?.[0]?.currencyCode || "AED",
+                email: booking.email,
+                phone: booking.phone,
+                guests: booking.guests,
+                guestDetails: booking.guestDetails,
+                ratePlanCode: booking.ratePlanCode,
+                paymentMethod: "ngenius",
+                bookingSource: booking.bookingSource,
+                ngeniusOrderRef: orderRef,
+                ngeniusPaymentState: paymentState,
+              },
+              guestDetails: booking.guestDetails,
+            },
+          };
+        }
+
+        // Make sure payment info is always included
+        if (bookingData?.data?.bookingDetails) {
+          bookingData.data.bookingDetails.ngeniusOrderRef = orderRef;
+          bookingData.data.bookingDetails.ngeniusPaymentState = paymentState;
+          bookingData.data.bookingDetails.paymentMethod = "ngenius";
+        }
+
+        // 4. Send booking to backend
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/pms/front-office/reservations`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              // Add authorization header if needed
+              // "Authorization": `Bearer ${token}`,
+            },
+            body: JSON.stringify(bookingData),
+          }
+        );
+
+        const result = await response.json();
+
+        if (!response.ok) {
+          throw new Error(result.message || "Failed to create booking");
+        }
+
+        // 5. Success path
+        if (isMounted) {
+          dispatch(setBookingCode(result.data.bookingCode));
+          dispatch(setBookingStatus(result.data.bookingStatus));
+          dispatch(setFullBookingDetails(result.data));
+
+          localStorage.removeItem("ngeniusOrderRef");
+          localStorage.removeItem("pendingBookingData");
+
+          setStatus("success");
+          setMessage("Booking confirmed successfully!");
+
+          toast.success("Payment successful! Your booking is confirmed.", {
+            id: "payment-success",
+          });
+
+          setTimeout(() => {
+            router.replace("/PaymentSuccess");
+          }, 2200);
+        }
+      } catch (err) {
+        console.error("Payment callback error:", err);
+
+        if (isMounted) {
+          setStatus("error");
+          setMessage("An error occurred while processing your payment. Please contact support.");
+          toast.error("Failed to process payment. Please contact support.", {
+            id: "payment-error",
+          });
+        }
+      }
+    };
+
+    processPayment();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [searchParams, booking, router, dispatch]);
+
+  const renderIcon = () => {
+    switch (status) {
+      case "checking":
+        return <Loader2 className="h-16 w-16 text-blue-600 animate-spin" />;
+      case "success":
+        return <CheckCircle2 className="h-16 w-16 text-green-600" />;
+      case "failed":
+        return <XCircle className="h-16 w-16 text-red-600" />;
+      case "error":
+        return <AlertCircle className="h-16 w-16 text-orange-600" />;
+      default:
+        return <Loader2 className="h-16 w-16 text-blue-600 animate-spin" />;
+    }
+  };
+
+  const getStatusColor = () => {
+    switch (status) {
+      case "checking":
+        return "text-blue-600";
+      case "success":
+        return "text-green-600";
+      case "failed":
+        return "text-red-600";
+      case "error":
+        return "text-orange-600";
+      default:
+        return "text-gray-600";
+    }
+  };
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-12">
+      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
+        <div className="flex justify-center mb-6">{renderIcon()}</div>
+
+        <h1 className={`text-2xl md:text-3xl font-bold mb-4 ${getStatusColor()}`}>
+          {status === "checking" && "Processing Payment"}
+          {status === "success" && "Payment & Booking Successful!"}
+          {status === "failed" && "Payment Failed"}
+          {status === "error" && "Something Went Wrong"}
+        </h1>
+
+        <p className="text-gray-600 mb-6 text-lg">{message}</p>
+
+        {orderReference && (
+          <div className="bg-gray-50 rounded-lg p-4 mb-6 break-all">
+            <p className="text-xs text-gray-500 mb-1 font-medium">Payment Reference</p>
+            <p className="text-sm font-mono text-gray-800">{orderReference}</p>
+          </div>
+        )}
+
+        {status === "checking" && (
+          <div className="space-y-2 text-sm text-gray-500 mt-4">
+            <p>Please do not close or refresh this window</p>
+            <p>This may take a few moments...</p>
+          </div>
+        )}
+
+        {(status === "failed" || status === "error") && (
+          <button
+            onClick={() => router.replace("/Payment")}
+            className="mt-6 px-8 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            Try Payment Again
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default PaymentCallbackPage;

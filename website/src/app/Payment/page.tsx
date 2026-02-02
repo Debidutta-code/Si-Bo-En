@@ -11,12 +11,15 @@ import {
   Upload,
   X,
   Camera,
+  ShieldCheck,
+  Info,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { setBookingCode, setBookingStatus, setFullBookingDetails } from "@/src/store/bookingSlice";
 import PriceDetails from "@/src/components/payment/PriceDetails";
 import HelpBox from "@/src/components/payment/HelpBox";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage";
+import { ngeniusService } from "@/src/services/ngenius.service";
 
 // Simplified BankDetails interface based on current API response
 interface BankDetails {
@@ -40,7 +43,7 @@ const BookingReviewPage = () => {
     hotelName,
     PropertyDetails
   } = bookingDetails;
-  
+
   const ratePlanCode = finalPrice?.dailyBreakdown?.[0]?.ratePlanCode;
   const currencyCode = finalPrice?.dailyBreakdown?.[0]?.currencyCode || "USD";
   const roomTypeCode = bookingDetails.roomTypeCode;
@@ -131,18 +134,21 @@ const BookingReviewPage = () => {
 
     // Check which payment methods are available
     const methods: string[] = [];
-    
+
     if (bankDetails.payAtHotel) {
       methods.push("payAtHotel");
     }
-    
+
     if (bankDetails.paymentGateway) {
       methods.push("gateway");
     }
 
+    // N-Genius is always available as a payment option
+    methods.push("ngenius");
+
     setAvailableMethods(methods);
     setNoAvailablePayment(methods.length === 0);
-    
+
     // Auto-select the first available method if none is selected
     if (!selectedPayment && methods.length > 0) {
       setSelectedPayment(methods[0]);
@@ -152,12 +158,14 @@ const BookingReviewPage = () => {
   // Check if a payment method is available
   const isMethodAvailable = (methodKey: string): boolean => {
     if (!bankDetails) return false;
-    
+
     switch (methodKey) {
       case "payAtHotel":
         return bankDetails.payAtHotel;
       case "gateway":
         return bankDetails.paymentGateway;
+      case "ngenius":
+        return true; // N-Genius is always available
       default:
         return false;
     }
@@ -195,6 +203,13 @@ const BookingReviewPage = () => {
     setLoading(true);
     setError(null);
     try {
+      // If N-Genius payment is selected, handle differently
+      if (selectedPayment === "ngenius") {
+        await handleNGeniusPayment();
+        return;
+      }
+
+      // For other payment methods (payAtHotel, gateway), create booking directly
       const bookingData = {
         data: {
           bookingDetails: {
@@ -271,6 +286,121 @@ const BookingReviewPage = () => {
     }
   };
 
+  const handleNGeniusPayment = async () => {
+    try {
+      setLoading(true);
+
+      // Validate required data before proceeding
+      if (!updatedPrice || updatedPrice <= 0) {
+        toast.error("Invalid booking amount. Please try again.");
+        return;
+      }
+
+      if (!email || !checkIn || !checkOut) {
+        toast.error("Missing required booking information.");
+        return;
+      }
+
+      // Convert amount to smallest currency unit (fils for AED, cents for others)
+      // N-Genius expects amount in smallest unit based on currency
+      const isAED = currencyCode === "AED";
+      const amountInSmallestUnit = isAED
+        ? Math.round(updatedPrice * 100) // 1 AED = 100 fils
+        : Math.round(updatedPrice * 100); // Most currencies use 100 subunits (e.g., USD cents)
+
+      // For sandbox/testing: N-Genius often requires AED even if displaying USD
+      const gatewayCurrency = currencyCode === "USD" ? "AED" : currencyCode;
+
+      toast.loading("Creating secure payment order...", { id: "ngenius-order" });
+
+      // Create order via N-Genius service
+      const orderResponse = await ngeniusService.createOrder({
+        action: "PURCHASE",
+        amount: {
+          currencyCode: gatewayCurrency,
+          value: amountInSmallestUnit,
+        },
+        merchantAttributes: {
+          redirectUrl: "https://thescanmenu.com",
+          // Optional: add cancel URL
+          // cancelUrl: `${window.location.origin}/Payment?cancelled=true`,
+        },
+        emailAddress: email.trim(),
+        // billingAddress if you collect it
+      });
+
+      if (!orderResponse?.data?.orderReference || !orderResponse?.data?.paymentUrl) {
+        throw new Error("Invalid response from payment gateway");
+      }
+
+      // Dismiss loading toast
+      toast.dismiss("ngenius-order");
+
+      // Store critical data for callback handling
+      localStorage.setItem("ngeniusOrderRef", orderResponse.data.orderReference);
+
+      localStorage.setItem(
+        "pendingBookingData",
+        JSON.stringify({
+          data: {
+            bookingDetails: {
+              startDate: checkIn,
+              endDate: checkOut,
+              propertyCode: bookingDetails.PropertyCode,
+              hotelName: hotelName,
+              roomTypeCode: roomTypeCode,
+              numberOfRooms: bookingDetails.numberOfRooms || 1,
+              finalPrice: {
+                ...finalPrice,
+                totalAmount: updatedPrice,
+              },
+              promoCode: promoDetails || null,
+              currency: currencyCode,
+              email: email.trim(),
+              phone: bookingDetails.phone,
+              guests: guests,
+              guestDetails: guest,
+              ratePlanCode: bookingDetails.ratePlanCode,
+              paymentMethod: "ngenius",
+              bookingSource: bookingDetails.bookingSource,
+              ngeniusOrderRef: orderResponse.data.orderReference, // Pre-store for reliability
+            },
+            guestDetails: guest,
+            bankDetails: bankDetails || null,
+          },
+        })
+      );
+
+      // Success feedback before redirect
+      toast.success("Redirecting to secure payment gateway...", {
+        id: "redirect-payment",
+        duration: 2000,
+      });
+
+      // Smooth redirect after short delay
+      setTimeout(() => {
+        window.location.href = orderResponse.data.paymentUrl;
+      }, 1800);
+
+    } catch (err: any) {
+      console.error("N-Genius payment initiation failed:", err);
+
+      toast.dismiss("ngenius-order");
+
+      const message =
+        err?.message?.includes("network") || err?.message?.includes("fetch")
+          ? "Network error. Please check your connection and try again."
+          : err?.message || "Failed to initiate payment. Please try again later.";
+
+      toast.error(message, {
+        id: "ngenius-error",
+        duration: 6000,
+      });
+
+      setLoading(false);
+    }
+  };
+
   const renderPaymentDetails = (paymentType: string) => {
     if (selectedPayment !== paymentType) return null;
 
@@ -321,6 +451,72 @@ const BookingReviewPage = () => {
                 <span>Secure SSL</span>
               </div>
             </div>
+          </div>
+        );
+      case "ngenius":
+        return (
+          <div
+            className="mt-4 p-5 border rounded-xl shadow-sm"
+            style={{
+              backgroundColor: `${colors.secondaryColor}08`, // lighter opacity for better contrast
+              borderColor: `${colors.primaryColor}60`,
+            }}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h4
+                className="font-semibold text-lg"
+                style={{ color: colors.primaryColor }}
+              >
+                Pay with Card
+              </h4>
+              <div className="text-xs font-medium px-2.5 py-1 rounded-full bg-green-100 text-green-800">
+                Secure
+              </div>
+            </div>
+
+            <p
+              className="text-sm mb-4 leading-relaxed"
+              style={{ color: colors.primaryColor }}
+            >
+              Complete your payment securely via N-Genius payment gateway.
+              You will be redirected to their encrypted payment page.
+            </p>
+
+            <div className="flex flex-wrap gap-3 mb-4">
+              <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                <CreditCard className="h-4 w-4" />
+                <span>Visa</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                <CreditCard className="h-4 w-4" />
+                <span>Mastercard</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                <CreditCard className="h-4 w-4" />
+                <span>American Express</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                <CreditCard className="h-4 w-4" />
+                <span>Discover</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-green-700 font-medium">
+                <ShieldCheck className="h-4 w-4 text-green-600" />
+                <span>3D Secure</span>
+              </div>
+            </div>
+
+            <div className="mt-2 p-3 bg-blue-50/70 border border-blue-200 rounded-lg text-xs text-blue-800 flex items-start gap-2">
+              <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <span>
+                You will be securely redirected to the N-Genius payment page to
+                complete your transaction.
+              </span>
+            </div>
+
+            {/* Optional: small note about supported currencies or processing time */}
+            <p className="mt-3 text-xs text-gray-500 italic">
+              Supported cards processed in seconds • No hidden fees
+            </p>
           </div>
         );
 
@@ -393,6 +589,12 @@ const BookingReviewPage = () => {
                   label: "Online Payment",
                   icon: "💳",
                   description: "Secure payment via card/netbanking/UPI",
+                },
+                {
+                  key: "ngenius",
+                  label: "Pay with Card (N-Genius)",
+                  icon: "💳",
+                  description: "Secure card payment powered by N-Genius gateway",
                 },
               ].map(({ key, label, icon, description }) => {
                 const isActive = isMethodAvailable(key);
