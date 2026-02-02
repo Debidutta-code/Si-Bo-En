@@ -8,14 +8,17 @@ import { Response } from 'express';
 export class AvailabilityController {
   public static async getCalendarAvailability(req: PropertyCustomRequest, res: Response) {
     try {
-      const { propertyId, startDate, endDate, invTypeCodes } = req.query;
+      // ✅ ADD: ratePlanCode parameter
+      const { propertyId, startDate, endDate, invTypeCodes, roomTypeCode, ratePlanCode } = req.query;
 
       if (!propertyId || !startDate || !endDate) {
         return res.status(400).json(
-          errorResponse('Missing required parameters: propertyCode, startDate, endDate')
+          errorResponse('Missing required parameters: propertyId, startDate, endDate')
         );
       }
-      const propertyCode = await getPropertyCode(propertyId as string)
+      
+      const propertyCode = await getPropertyCode(propertyId as string);
+      
       // Validate dates
       const start = toUTCDate(startDate as string);
       const end = toUTCDate(endDate as string);
@@ -28,16 +31,30 @@ export class AvailabilityController {
         return res.status(400).json(errorResponse('Start date must be before end date'));
       }
 
-      // Parse room type codes (comma-separated)
-      const roomTypeCodes = invTypeCodes && String(invTypeCodes).length > 0
-        ? String(invTypeCodes).split(',').map(code => code.trim())
-        : [];
+      // Parse room type codes
+      let roomTypeCodes: string[] = [];
+      
+      if (roomTypeCode) {
+        roomTypeCodes = [String(roomTypeCode).trim()];
+      } else if (invTypeCodes && String(invTypeCodes).length > 0) {
+        roomTypeCodes = String(invTypeCodes).split(',').map(code => code.trim());
+      }
+
+      // ✅ ADD: Parse rate plan codes
+      let ratePlanCodes: string[] = [];
+      
+      if (ratePlanCode && String(ratePlanCode).length > 0) {
+        ratePlanCodes = String(ratePlanCode).split(',').map(code => code.trim());
+      }
+
+      console.log('🔍 Controller - Filters:', { roomTypeCodes, ratePlanCodes });
 
       const response = await AvailabilityServices.getCalendarAvailability(
         propertyCode as string,
         start,
         end,
-        roomTypeCodes
+        roomTypeCodes,
+        ratePlanCodes // ✅ ADD: Pass rate plan codes
       );
 
       const status = response.success ? 200 : 400;

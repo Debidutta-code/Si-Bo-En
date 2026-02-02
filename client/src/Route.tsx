@@ -39,6 +39,7 @@ import ForgotPasswordForm from "./components/auth/ForgotPasswordForm.tsx";
 import LinkVerification from "./components/auth/LinkVerification.tsx";
 import ContactSupport from "./pages/contact-support/ContactSupport.tsx";
 import ManagementPage from "./pages/management/Management.tsx";
+import GeoRatePlanList from "./pages/promotions/geo/page.tsx";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -85,7 +86,7 @@ export const router = createBrowserRouter(
         <Route path="price-management/calendar/:propertyId" element={<CalendarView />} />
         <Route path="price-management/periods/:propertyId" element={<PeriodsManagement />} />
         <Route path="price-management/table/:propertyId" element={<TableView />} />
-
+        <Route path="promotion/geo/:propertyId" element={<GeoRatePlanList />} />
       </Route>
       <Route path="members" element={<MembersPage />} />
       <Route path="logs" element={<LogsPage />} />

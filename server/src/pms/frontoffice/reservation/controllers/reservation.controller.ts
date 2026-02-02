@@ -141,13 +141,13 @@ public async getAllReservations(req: CustomRequest, res: Response): Promise<Resp
             propertyId?.toString(),
             propertyCode?.toString(),
             bookingStatus?.toString(),
-            bookingSource?.toString(),      // ← Add these
-            deviceType?.toString(),         // ← Add these
-            bookingCode?.toString(),        // ← Add these
-            guestName?.toString(),          // ← Add these
-            promoCode?.toString(),          // ← Add these
-            countryCode?.toString(),        // ← Add these
-            dateFilterType?.toString() as 'checkin' | 'booking' | 'modification' | undefined  // ← Add these
+            bookingSource?.toString(),      
+            deviceType?.toString(),         
+            bookingCode?.toString(),        
+            guestName?.toString(),          
+            promoCode?.toString(),          
+            countryCode?.toString(),        
+            dateFilterType?.toString() as 'checkin' | 'booking' | 'modification' | undefined
         );
         
         return res.status(serRes.success ? 200 : 400).json(serRes);

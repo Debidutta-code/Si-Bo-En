@@ -18,7 +18,8 @@ import {
   DollarSign,
   ChevronDown,
   Ban,
-  Wrench
+  Wrench,
+  Tag
 } from 'lucide-react';
 import { useAppSelector } from '@/redux/hooks';
 import { useState } from 'react';
@@ -64,6 +65,7 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
   // const [isPriceManagementOpen, setIsPriceManagementOpen] = useState(false);
   const [isRatesOpen, setIsRatesOpen] = useState(false);
   const [isRestrictionsOpen, setIsRestrictionsOpen] = useState(false);
+  const [isPromotionsOpen, setIsPromotionsOpen] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem('isAuthenticated');
@@ -104,7 +106,7 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
   // Rates sub-items
   const ratesItems = [
     { name: 'RatePlan', href: `/property/rate-plan/${propertyId}` },
-    { name: 'Rate Plan Allotment', href: `/property/rate-plan/map/${propertyId}` },
+    { name: 'Rate Allotment', href: `/property/rate-plan/map/${propertyId}` },
     { name: 'Calender-View', href: `/property/calender-view/${propertyId}` },
     { name: 'Inventory', href: `/property/inventory/${propertyId}`, icon: Building, userLevels: [1, 0, 2, 3, 4] },
 
@@ -117,17 +119,20 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
     { name: 'Add On', href: `/property/add-on/${propertyId}`, icon: Users, userLevels: [4, 3, 2, 1] },
     { name: 'Tax System', href: `/property/tax-system/${propertyId}`, icon: Shield, userLevels: [4] },
   ];
+  const promotionsItems = [
+    { name: 'Geo', href: `/property/promotion/geo/${propertyId}`, icon: Tag, userLevels: [4, 3, 2, 1,0] },
+  ];
 
   // Filter navigation based on user level
   const filteredNavigation = navigation.filter(item => user && item.userLevels.includes(user.userLevel));
-  
+
   // Filter property navigation if we're in a property context
-  const filteredPropertyNavigation = propertyNavigation.filter(item => 
+  const filteredPropertyNavigation = propertyNavigation.filter(item =>
     user && item.userLevels.includes(user.userLevel)
   );
 
   // Filter management items based on user level
-  const filteredManagementItems = managementItems.filter(item => 
+  const filteredManagementItems = managementItems.filter(item =>
     user && item.userLevels.includes(user.userLevel)
   );
 
@@ -168,7 +173,7 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
                     user?.userLevel === 0 ? `/app/property/property/${user.creation}` :
                       item.href
           ) : item.href;
-          
+
           return (
             <Link
               key={item.name}
@@ -337,7 +342,7 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
                 >
                   Bank Details
                 </Link>
-                
+
                 {/* New Management Items */}
                 {filteredManagementItems.map((item) => (
                   <Link
@@ -357,8 +362,49 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
             )}
           </div>
         )}
+        {
+          isPropertyContext && (
+            <div>
+              <button
+                onClick={() => setIsPromotionsOpen(!isPromotionsOpen)}
+                title="Promotions"
+                className={cn(
+                  'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50',
+                  !isSidebarOpen && 'justify-center'
+                )}
+              >
+                <Tag className='h-5 w-5 flex-shrink-0' />
+                <span className={cn('whitespace-nowrap flex-1 text-left', !isSidebarOpen && 'hidden')}>Promotions</span>
+                <ChevronDown className={cn(
+                  'h-4 w-4 transition-transform',
+                  isPromotionsOpen && 'rotate-180',
+                  !isSidebarOpen && 'hidden'
+                )} />
+              </button>
 
-        
+              {/* Promotions Dropdown Items */}
+              {isPromotionsOpen && isSidebarOpen && (
+                <div className="ml-8 mt-1 space-y-1">
+                  {promotionsItems.map((subItem) => (
+                    <Link
+                      key={subItem.name}
+                      to={subItem.href}
+                      className={cn(
+                        'flex items-center px-3 py-2 rounded-lg text-sm transition-colors',
+                        location.pathname === subItem.href
+                          ? 'bg-primary/10 text-primary font-medium'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      )}
+                    >
+                      {subItem.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        }
+
         {/* {isPropertyContext && (
           <div>
             <button
@@ -482,7 +528,7 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
       {/* Desktop Sidebar (Permanent Flex Item) */}
       <aside className={cn(
         'hidden md:flex flex-col border-gray-200 transition-all duration-300 ease-in-out',
-        isSidebarOpen ? 'w-64' : 'w-20'
+        isSidebarOpen ? 'w-56' : 'w-20'
       )}>
         <SidebarContent />
       </aside>
