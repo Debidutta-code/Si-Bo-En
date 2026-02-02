@@ -1,4 +1,4 @@
-import { getGeoRatePlans, createGeoRatePlan, updateGeoRatePlan, deleteGeoRatePlan , getGeoRatePlanById, toggleGeoRatePlanStatus } from "./geo.api";
+import { getGeoRatePlans, createGeoRatePlan, updateGeoRatePlan, deleteGeoRatePlan , getGeoRatePlanById } from "./geo.api";
 
 export {
     getGeoRatePlans,
@@ -6,5 +6,4 @@ export {
     updateGeoRatePlan,
     deleteGeoRatePlan,
     getGeoRatePlanById,
-    toggleGeoRatePlanStatus
 }

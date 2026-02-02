@@ -28,8 +28,8 @@ const GeoRatePlanFilter: React.FC<GeoRatePlanFilterProps> = ({
   onRatePlanChange,
   onClearFilters
 }) => {
-  const hasActiveFilters = selectedRoomType || selectedRatePlan;
-
+  
+const hasActiveFilters = selectedRoomType !== "all" || selectedRatePlan !== "all";
   return (
     <div className="bg-card p-4 rounded-lg border border-border mb-4">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
@@ -42,7 +42,7 @@ const GeoRatePlanFilter: React.FC<GeoRatePlanFilterProps> = ({
               <SelectValue placeholder="All Room Types" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Room Types</SelectItem>
+              <SelectItem value="all">All Room Types</SelectItem>
               {roomTypes.map((room) => (
                 <SelectItem key={room.id} value={room.roomType}>
                   {room.roomName} ({room.roomType})
@@ -61,7 +61,7 @@ const GeoRatePlanFilter: React.FC<GeoRatePlanFilterProps> = ({
               <SelectValue placeholder="All Rate Plans" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Rate Plans</SelectItem>
+              <SelectItem value="all">All Rate Plans</SelectItem>
               {ratePlans.map((plan) => (
                 <SelectItem key={plan.id} value={plan.ratePlanCode}>
                   {plan.ratePlanName} ({plan.ratePlanCode})

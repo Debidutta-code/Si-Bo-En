@@ -1,13 +1,10 @@
-import { CustomRequest } from '../../utils/customRequest';
-import { errorResponse } from '../../utils/return';
-import  {RatePlanRuleService}  from '../services';
-import { Response } from 'express';
 
-export class RatePlanRuleController {
-  /**
-   * Create a new rate plan rule
-   * POST /api/rate-plan-rules
-   */
+import { Response } from 'express';
+import { CustomRequest, errorResponse } from '../../../utils';
+import { MLOSService } from '../services';
+
+export class MLOSController {
+
   public static async createRatePlanRule(req: CustomRequest, res: Response) {
     try {
       const {
@@ -69,7 +66,7 @@ export class RatePlanRuleController {
         isActive,
       };
 
-      const serRes = await RatePlanRuleService.createRatePlanRule(ruleData);
+      const serRes = await MLOSService.createRatePlanRule(ruleData);
       const status = serRes.success ? 201 : 400;
       return res.status(status).json(serRes);
     } catch (error: any) {
@@ -96,7 +93,7 @@ export class RatePlanRuleController {
           .json(errorResponse('Rate plan ID is required'));
       }
 
-      const response = await RatePlanRuleService.getRatePlanRuleByRatePlanId(ratePlanId);
+      const response = await MLOSService.getRatePlanRuleByRatePlanId(ratePlanId);
       const status = response.success ? 200 : 404;
       return res.status(status).json(response);
     } catch (error: any) {
@@ -145,7 +142,7 @@ export class RatePlanRuleController {
         return res.status(400).json(errorResponse('Discount value must be a number'));
       }
 
-      const response = await RatePlanRuleService.updateRatePlanRule(
+      const response = await MLOSService.updateRatePlanRule(
         ratePlanId,
         updateData
       );
@@ -169,7 +166,7 @@ export class RatePlanRuleController {
           .json(errorResponse('Rate plan ID is required'));
       }
 
-      const response = await RatePlanRuleService.deleteRatePlanRule(ratePlanId);
+      const response = await MLOSService.deleteRatePlanRule(ratePlanId);
       const status = response.success ? 200 : 400;
       return res.status(status).json(response);
     } catch (error: any) {
@@ -179,5 +176,30 @@ export class RatePlanRuleController {
     }
   }
 
+/**
+ * Get all rate plan rules by property ID
+ * GET /api/rate-plan-rules/property/:propertyId
+ */
+public static async getRatePlanRulesByPropertyId(
+  req: CustomRequest,
+  res: Response
+) {
+  try {
+    const propertyId = req.params.propertyId;
 
+    if (!propertyId) {
+      return res
+        .status(400)
+        .json(errorResponse('Property ID is required'));
+    }
+
+    const response = await MLOSService.getRatePlanRulesByPropertyId(propertyId);
+    const status = response.success ? 200 : 404;
+    return res.status(status).json(response);
+  } catch (error: any) {
+    return res
+      .status(500)
+      .json(errorResponse('Internal Server Error', error?.message));
+  }
+}
 }

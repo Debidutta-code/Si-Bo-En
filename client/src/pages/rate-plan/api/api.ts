@@ -70,7 +70,7 @@ export async function updateRatePlan(ratePlanCode:string,payload: Partial<Create
 
 export async function createRatePlanRule(payload: Partial<RatePlanRule>) {
     try {
-        const response = await axiosInstance.post(`/ari/rate-plan-rule`, payload);
+        const response = await axiosInstance.post(`/promotions/mlos`, payload);
         return response.data;
     } catch (error: any) {
         if (!error?.response?.data?.success) {
@@ -86,7 +86,7 @@ export async function createRatePlanRule(payload: Partial<RatePlanRule>) {
 
 export async function getRatePlanRule(ratePlanId: string) {
     try {
-        const response = await axiosInstance.get(`/ari/rate-plan-rule/${ratePlanId}`);
+        const response = await axiosInstance.get(`/promotions/mlos/${ratePlanId}`);
         return response.data;
     } catch (error: any) {
         if (!error?.response?.data?.success) {
@@ -102,7 +102,7 @@ export async function getRatePlanRule(ratePlanId: string) {
 
 export async function updateRatePlanRule(ratePlanId: string, payload: Partial<RatePlanRule>) {
     try {
-        const response = await axiosInstance.put(`/ari/rate-plan-rule/${ratePlanId}`, payload);
+        const response = await axiosInstance.put(`/promotions/mlos/${ratePlanId}`, payload);
         return response.data;
     } catch (error: any) {
         if (!error?.response?.data?.success) {
@@ -118,7 +118,7 @@ export async function updateRatePlanRule(ratePlanId: string, payload: Partial<Ra
 
 export async function deleteRatePlanRule(ratePlanId: string) {
     try {
-        const response = await axiosInstance.delete(`/ari/rate-plan-rule/${ratePlanId}`);
+        const response = await axiosInstance.delete(`/promotions/mlos/${ratePlanId}`);
         return response.data;
     } catch (error: any) {
         if (!error?.response?.data?.success) {

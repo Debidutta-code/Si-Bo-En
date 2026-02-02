@@ -1,10 +1,9 @@
-import {fetchGeoRatePlansService,removeGeoRatePlanService,toggleGeoRatePlanStatusService,createGeoRatePlanService,updateGeoRatePlanService,fetchGeoRatePlanByIdService} from "./geo.service";
+import {fetchGeoRatePlansService,removeGeoRatePlanService,createGeoRatePlanService,updateGeoRatePlanService,fetchGeoRatePlanByIdService} from "./geo.service";
 
 
 export {
     fetchGeoRatePlansService,
     removeGeoRatePlanService,
-    toggleGeoRatePlanStatusService,
     createGeoRatePlanService,
     updateGeoRatePlanService,
     fetchGeoRatePlanByIdService

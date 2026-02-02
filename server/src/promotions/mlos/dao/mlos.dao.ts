@@ -1,12 +1,12 @@
-import prisma from '../../config/prisma.client';
-import { IRatePlanRuleCreate, IRatePlanRuleUpdate } from '../types/rateplan.type';
+import { prisma } from "../../../config";
+import { IMLOSCreate, IMLOSUpdate } from "../interfaces";
 
-export class RatePlanRuleRepository {
+export class MLOSDao {
   /**
    * Create a new rate plan rule
    */
   public static async createRatePlanRule(
-    data: IRatePlanRuleCreate
+    data: IMLOSCreate
   ): Promise<any> {
     try {
       return await prisma.ratePlanRule.create({
@@ -68,7 +68,7 @@ export class RatePlanRuleRepository {
    */
   public static async updateRatePlanRule(
     ratePlanId: string,
-    updateData: IRatePlanRuleUpdate
+    updateData: IMLOSUpdate
   ): Promise<any> {
     try {
       const dataToUpdate: any = {};
@@ -140,5 +140,37 @@ export class RatePlanRuleRepository {
       throw new Error('Unknown error occurred while checking rate plan existence');
     }
   }
-
+/**
+ * Get all rate plan rules by property ID
+ */
+public static async getRatePlanRulesByPropertyId(
+  propertyId: string
+): Promise<any[]> {
+  try {
+    return await prisma.ratePlanRule.findMany({
+      where: {
+        ratePlan: {
+          propertyId: propertyId,
+        },
+      },
+      include: {
+        ratePlan: {
+          select: {
+            id: true,
+            ratePlanName: true,
+            ratePlanCode: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new Error(`Failed to fetch rate plan rules: ${error.message}`);
+    }
+    throw new Error('Unknown error occurred while fetching rate plan rules');
+  }
+}
 }

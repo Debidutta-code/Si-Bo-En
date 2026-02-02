@@ -13,7 +13,6 @@ import { getCountryFlag, getCountryName } from '@/pages/bookings/utils/country.u
 import {
   fetchGeoRatePlansService,
   removeGeoRatePlanService,
-  toggleGeoRatePlanStatusService,
   createGeoRatePlanService,
   updateGeoRatePlanService
 } from './services';
@@ -23,6 +22,7 @@ import type { RoomTypes } from '@/pages/inventory/types';
 import type { RatePlan } from '@/pages/rate-plan/interfaces';
 import type { CreateGeoRatePlan, GeoRatePlan } from './interfaces';
 import { useParams } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 
 export const GeoRatePlanList: React.FC = () => {
@@ -34,9 +34,11 @@ export const GeoRatePlanList: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [editData, setEditData] = useState<GeoRatePlan | null>(null);
   
-  const [selectedRoomType, setSelectedRoomType] = useState('');
-  const [selectedRatePlan, setSelectedRatePlan] = useState('');
 
+  const [selectedRoomType, setSelectedRoomType] = useState('all');
+  const [selectedRatePlan, setSelectedRatePlan] = useState('all');
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [planToDelete, setPlanToDelete] = useState<string | null>(null);
   useEffect(() => {
     loadData();
   }, [propertyId, selectedRoomType, selectedRatePlan]);
@@ -79,12 +81,12 @@ export const GeoRatePlanList: React.FC = () => {
       if (result.success) {
         setShowForm(false);
         loadData();
-        alert('Geo Rate Plan created successfully!');
+        toast.success('Geo Rate Plan created successfully!');
       } else {
-        alert(result.message || 'Failed to create Geo Rate Plan');
+        toast.error(result.message || 'Failed to create Geo Rate Plan');
       }
     } catch (error) {
-      alert('An error occurred while creating the Geo Rate Plan');
+      toast.error('An error occurred while creating the Geo Rate Plan');
     } finally {
       setIsLoading(false);
     }
@@ -108,51 +110,65 @@ export const GeoRatePlanList: React.FC = () => {
         setShowForm(false);
         setEditData(null);
         loadData();
-        alert('Geo Rate Plan updated successfully!');
+        toast.success('Geo Rate Plan updated successfully!');
       } else {
-        alert(result.message || 'Failed to update Geo Rate Plan');
+        toast.error(result.message || 'Failed to update Geo Rate Plan');
       }
     } catch (error) {
-      alert('An error occurred while updating the Geo Rate Plan');
+      toast.error('An error occurred while updating the Geo Rate Plan');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this Geo Rate Plan?')) return;
-    
-    setIsLoading(true);
-    try {
-      const result = await removeGeoRatePlanService(id);
-      if (result.success) {
-        loadData();
-        alert('Geo Rate Plan deleted successfully!');
-      } else {
-        alert(result.message || 'Failed to delete Geo Rate Plan');
-      }
-    } catch (error) {
-      alert('An error occurred while deleting the Geo Rate Plan');
-    } finally {
-      setIsLoading(false);
-    }
-  };
+const handleDeleteClick = (id: string) => {
+  setPlanToDelete(id);
+  setDeleteDialogOpen(true);
+};
 
-  const handleToggleStatus = async (id: string, currentStatus: boolean) => {
-    setIsLoading(true);
-    try {
-      const result = await toggleGeoRatePlanStatusService(id, !currentStatus);
-      if (result.success) {
-        loadData();
-      } else {
-        alert(result.message || 'Failed to toggle status');
-      }
-    } catch (error) {
-      alert('An error occurred while toggling status');
-    } finally {
-      setIsLoading(false);
+const handleDeleteConfirm = async () => {
+  if (!planToDelete) return;
+  
+  setIsLoading(true);
+  try {
+    const result = await removeGeoRatePlanService(planToDelete);
+    if (result.success) {
+      loadData();
+      toast.success('Geo Rate Plan deleted successfully!');
+    } else {
+      toast.error(result.message || 'Failed to delete Geo Rate Plan');
     }
-  };
+  } catch (error) {
+    toast.error('An error occurred while deleting the Geo Rate Plan');
+  } finally {
+    setIsLoading(false);
+    setDeleteDialogOpen(false);
+    setPlanToDelete(null);
+  }
+};
+
+const handleDeleteCancel = () => {
+  setDeleteDialogOpen(false);
+  setPlanToDelete(null);
+};
+
+const handleToggleStatus = async (id: string, currentStatus: boolean) => {
+  setIsLoading(true);
+  try {
+    const result = await updateGeoRatePlanService(id, {
+      isActive: !currentStatus
+    });
+    if (result.success) {
+      loadData();
+    } else {
+      toast.error(result.message || 'Failed to toggle status');
+    }
+  } catch (error) {
+    toast.error('An error occurred while toggling status');
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const handleEdit = (plan: GeoRatePlan) => {
     setEditData(plan);
@@ -160,8 +176,8 @@ export const GeoRatePlanList: React.FC = () => {
   };
 
   const handleClearFilters = () => {
-    setSelectedRoomType('');
-    setSelectedRatePlan('');
+    setSelectedRoomType('all');
+    setSelectedRatePlan('all');
   };
 
   if (showForm) {
@@ -188,31 +204,34 @@ export const GeoRatePlanList: React.FC = () => {
     );
   }
 
-  return (
-    <div className="space-y-4">
-      {isLoading && <Loader text="Loading..." />}
-      
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-bold text-foreground">Geo Rate Plans</h2>
-        <button
-          onClick={() => setShowForm(true)}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-        >
-          + Create Geo Rate Plan
-        </button>
-      </div>
+ return (
+  <div className="space-y-4">
+    <div className="flex items-center justify-between">
+      <h2 className="text-2xl font-bold text-foreground">Geo Rate Plans</h2>
+      <button
+        onClick={() => setShowForm(true)}
+        className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+      >
+        + Create Geo Rate Plan
+      </button>
+    </div>
 
-      <GeoRatePlanFilter
-        roomTypes={roomTypes}
-        ratePlans={ratePlans}
-        selectedRoomType={selectedRoomType}
-        selectedRatePlan={selectedRatePlan}
-        onRoomTypeChange={setSelectedRoomType}
-        onRatePlanChange={setSelectedRatePlan}
-        onClearFilters={handleClearFilters}
-      />
+    <GeoRatePlanFilter
+      roomTypes={roomTypes}
+      ratePlans={ratePlans}
+      selectedRoomType={selectedRoomType}
+      selectedRatePlan={selectedRatePlan}
+      onRoomTypeChange={setSelectedRoomType}
+      onRatePlanChange={setSelectedRatePlan}
+      onClearFilters={handleClearFilters}
+    />
 
-      <div className="bg-card rounded-lg border border-border overflow-hidden">
+    <div className="bg-card rounded-lg border border-border overflow-hidden">
+      {isLoading ? (
+        <div className="py-12">
+          <Loader text="Loading..." />
+        </div>
+      ) : (
         <Table>
           <TableHeader>
             <TableRow>
@@ -299,7 +318,7 @@ export const GeoRatePlanList: React.FC = () => {
                         Edit
                       </button>
                       <button
-                        onClick={() => handleDelete(plan.id)}
+                        onClick={() => handleDeleteClick(plan.id)}
                         className="px-3 py-1 bg-destructive text-destructive-foreground rounded text-xs hover:bg-destructive/90 transition-colors"
                       >
                         Delete
@@ -311,7 +330,40 @@ export const GeoRatePlanList: React.FC = () => {
             )}
           </TableBody>
         </Table>
+      )}
       </div>
+      {/* Delete Confirmation Dialog */}
+{deleteDialogOpen && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="bg-card border border-border rounded-lg shadow-lg max-w-md w-full mx-4 p-6">
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-lg font-semibold text-foreground">Delete Geo Rate Plan</h3>
+          <p className="text-sm text-muted-foreground mt-2">
+            Are you sure you want to delete this geo rate plan? This action cannot be undone.
+          </p>
+        </div>
+        
+        <div className="flex justify-end space-x-3 pt-4 border-t border-border">
+          <button
+            onClick={handleDeleteCancel}
+            className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
+            disabled={isLoading}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleDeleteConfirm}
+            className="px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors"
+            disabled={isLoading}
+          >
+            {isLoading ? 'Deleting...' : 'Delete'}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };

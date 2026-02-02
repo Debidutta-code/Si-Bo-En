@@ -1,4 +1,4 @@
-import { createGeoRatePlan, deleteGeoRatePlan, getGeoRatePlanById, getGeoRatePlans, toggleGeoRatePlanStatus, updateGeoRatePlan } from "../apis";
+import { createGeoRatePlan, deleteGeoRatePlan, getGeoRatePlanById, getGeoRatePlans, updateGeoRatePlan } from "../apis";
 import type { CreateGeoRatePlan, UpdateGeoRatePlan } from "../interfaces";
 
 export async function createGeoRatePlanService(payload: CreateGeoRatePlan) {
@@ -9,13 +9,6 @@ export async function createGeoRatePlanService(payload: CreateGeoRatePlan) {
     };
   }
 
-  if (!payload.rooms || payload.rooms.length === 0) {
-    return {
-      success: false,
-      message: "At least one room is required"
-    };
-  }
-
   if (!payload.ratePlans || payload.ratePlans.length === 0) {
     return {
       success: false,
@@ -23,12 +16,6 @@ export async function createGeoRatePlanService(payload: CreateGeoRatePlan) {
     };
   }
 
-  if (!payload.countryCode || payload.countryCode.length === 0) {
-    return {
-      success: false,
-      message: "At least one country code is required"
-    };
-  }
 
   // Validate based on restriction type
   if (payload.restrictionType === "restricted") {
@@ -163,13 +150,3 @@ export async function removeGeoRatePlanService(id: string) {
   return result;
 }
 
-export async function toggleGeoRatePlanStatusService(id: string, isActive: boolean) {
-  if (!id) {
-    return {
-      success: false,
-      message: "Geo Rate Plan ID is required"
-    };
-  }
-  const result = await toggleGeoRatePlanStatus(id, isActive);
-  return result;
-}

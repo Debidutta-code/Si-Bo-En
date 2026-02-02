@@ -1,21 +1,21 @@
-import { RatePlanRuleRepository } from '../repository';
-import { errorResponse, successResponse } from '../../utils/return';
-import { IRatePlanRuleCreate, IRatePlanRuleUpdate } from '../types/rateplan.type';
+import { errorResponse, successResponse } from "../../../utils";
+import { MLOSDao } from "../dao";
+import { IMLOSCreate, IMLOSUpdate } from "../interfaces";
 
-export class RatePlanRuleService {
+export class MLOSService {
   /**
    * Create a new rate plan rule
    */
-  public static async createRatePlanRule(data: IRatePlanRuleCreate) {
+  public static async createRatePlanRule(data: IMLOSCreate) {
     try {
       // Validation: Check if rate plan exists
-      const ratePlanExists = await RatePlanRuleRepository.ratePlanExists(data.ratePlanId);
+      const ratePlanExists = await MLOSDao.ratePlanExists(data.ratePlanId);
       if (!ratePlanExists) {
         return errorResponse('Rate plan does not exist');
       }
 
       // Validation: Check if rule already exists for this rate plan
-      const existingRule = await RatePlanRuleRepository.getRatePlanRuleByRatePlanId(data.ratePlanId);
+      const existingRule = await MLOSDao.getRatePlanRuleByRatePlanId(data.ratePlanId);
       if (existingRule) {
         return errorResponse('Rate plan rule already exists for this rate plan. Please update the existing rule instead.');
       }
@@ -56,7 +56,7 @@ export class RatePlanRuleService {
         return errorResponse('Discount value cannot be negative');
       }
 
-      const response = await RatePlanRuleRepository.createRatePlanRule(data);
+      const response = await MLOSDao.createRatePlanRule(data);
 
       if (response) {
         return successResponse('Rate plan rule created successfully', response);
@@ -73,7 +73,7 @@ export class RatePlanRuleService {
    */
   public static async getRatePlanRuleByRatePlanId(ratePlanId: string) {
     try {
-      const rule = await RatePlanRuleRepository.getRatePlanRuleByRatePlanId(ratePlanId);
+      const rule = await MLOSDao.getRatePlanRuleByRatePlanId(ratePlanId);
 
       if (!rule) {
         return errorResponse('Rate plan rule not found');
@@ -90,11 +90,11 @@ export class RatePlanRuleService {
    */
   public static async updateRatePlanRule(
     ratePlanId: string,
-    updateData: IRatePlanRuleUpdate
+    updateData: IMLOSUpdate
   ) {
     try {
       // Check if rule exists
-      const existingRule = await RatePlanRuleRepository.getRatePlanRuleByRatePlanId(ratePlanId);
+      const existingRule = await MLOSDao.getRatePlanRuleByRatePlanId(ratePlanId);
       if (!existingRule) {
         return errorResponse('Rate plan rule does not exist');
       }
@@ -146,7 +146,7 @@ export class RatePlanRuleService {
         return errorResponse('Discount value cannot be negative');
       }
 
-      const response = await RatePlanRuleRepository.updateRatePlanRule(
+      const response = await MLOSDao.updateRatePlanRule(
         ratePlanId,
         updateData
       );
@@ -167,12 +167,12 @@ export class RatePlanRuleService {
   public static async deleteRatePlanRule(ratePlanId: string) {
     try {
       // Check if rule exists
-      const existingRule = await RatePlanRuleRepository.getRatePlanRuleByRatePlanId(ratePlanId);
+      const existingRule = await MLOSDao.getRatePlanRuleByRatePlanId(ratePlanId);
       if (!existingRule) {
         return errorResponse('Rate plan rule does not exist');
       }
 
-      const response = await RatePlanRuleRepository.deleteRatePlanRule(ratePlanId);
+      const response = await MLOSDao.deleteRatePlanRule(ratePlanId);
 
       if (response) {
         return successResponse('Rate plan rule deleted successfully', response);
@@ -183,5 +183,20 @@ export class RatePlanRuleService {
       return errorResponse('Failed to delete rate plan rule', error?.message);
     }
   }
+/**
+ * Get all rate plan rules by property ID
+ */
+public static async getRatePlanRulesByPropertyId(propertyId: string) {
+  try {
+    const rules = await MLOSDao.getRatePlanRulesByPropertyId(propertyId);
 
+    if (!rules || rules.length === 0) {
+      return errorResponse('No rate plan rules found for this property');
+    }
+
+    return successResponse('Rate plan rules fetched successfully', rules);
+  } catch (error: any) {
+    return errorResponse('Failed to fetch rate plan rules', error?.message);
+  }
+}
 }
