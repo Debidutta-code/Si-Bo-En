@@ -8,7 +8,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import Loader from '@/components/Loader/Loader';
-import {DeviceSpecificPromotionForm} from './components';
+import { DeviceSpecificPromotionForm } from './components';
 import {
   getDeviceSpecificPromotionsByPropertyService,
   createDeviceSpecificPromotionService,
@@ -17,14 +17,15 @@ import {
 } from './services';
 import { fetchRatePlansService } from '@/pages/rate-plan/services';
 import type { RatePlan } from '@/pages/rate-plan/interfaces';
-import { 
-  type CreateDeviceSpecificPromotion, 
-  type DeviceSpecificPromotionWithRatePlan, 
+import {
+  type CreateDeviceSpecificPromotion,
+  type DeviceSpecificPromotionWithRatePlan,
 } from './interfaces';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Smartphone, Tablet, Monitor } from 'lucide-react';
+import { Smartphone, Tablet, Monitor, MoreVertical, Edit, Trash2 } from 'lucide-react';
 import { convertBackendToApplicableDays } from './interfaces/mobilePromotion.type';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 export const DeviceSpecificPromotionList: React.FC = () => {
   const { propertyId } = useParams<{ propertyId: string }>();
@@ -91,7 +92,7 @@ export const DeviceSpecificPromotionList: React.FC = () => {
 
   const handleUpdate = async (payload: CreateDeviceSpecificPromotion) => {
     if (!editData) return;
-    
+
     setIsLoading(true);
     try {
       const updatePayload = {
@@ -112,7 +113,7 @@ export const DeviceSpecificPromotionList: React.FC = () => {
       };
 
       const result = await updateDeviceSpecificPromotionService(editData.id, updatePayload);
-      
+
       if (result.success) {
         setShowForm(false);
         setEditData(null);
@@ -135,7 +136,7 @@ export const DeviceSpecificPromotionList: React.FC = () => {
 
   const handleDeleteConfirm = async () => {
     if (!promotionToDelete) return;
-    
+
     setIsLoading(true);
     try {
       const result = await deleteDeviceSpecificPromotionService(promotionToDelete);
@@ -198,10 +199,10 @@ export const DeviceSpecificPromotionList: React.FC = () => {
   };
 
   const getDiscountDisplay = (promotion: DeviceSpecificPromotionWithRatePlan) => {
-    if (promotion.discountType === 'percentage') {
-      return `${promotion.discountValue}% OFF`;
+    if (promotion.DiscountType === 'percentage') {
+      return `${promotion.DiscountValue}% OFF`;
     } else {
-      return `${promotion.currencyCode || 'USD'} ${promotion.discountValue} OFF`;
+      return `${promotion.currencyCode || 'USD'} ${promotion.DiscountValue} OFF`;
     }
   };
 
@@ -313,29 +314,37 @@ export const DeviceSpecificPromotionList: React.FC = () => {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <span className={`px-3 py-1 rounded text-xs font-medium ${
-                        promotion.isActive
+                      <span className={`px-3 py-1 rounded text-xs font-medium ${promotion.isActive
                           ? 'bg-success/10 text-success'
                           : 'bg-muted text-muted-foreground'
-                      }`}>
+                        }`}>
                         {promotion.isActive ? 'Active' : 'Inactive'}
                       </span>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleEdit(promotion)}
-                          className="px-3 py-1 bg-primary text-primary-foreground rounded text-xs hover:bg-primary/90 transition-colors"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(promotion.id)}
-                          className="px-3 py-1 bg-destructive text-destructive-foreground rounded text-xs hover:bg-destructive/90 transition-colors"
-                        >
-                          Delete
-                        </button>
-                      </div>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="p-2 hover:bg-accent rounded-md transition-colors">
+                            <MoreVertical className="w-5 h-5" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem
+                            onClick={() => handleEdit(promotion)}
+                            className="cursor-pointer"
+                          >
+                            <Edit className="w-4 h-4 mr-3" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleDeleteClick(promotion.id)}
+                            className="cursor-pointer text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4 mr-3" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))
@@ -356,7 +365,7 @@ export const DeviceSpecificPromotionList: React.FC = () => {
                   Are you sure you want to delete this promotion? This action cannot be undone.
                 </p>
               </div>
-              
+
               <div className="flex justify-end space-x-3 pt-4 border-t border-border">
                 <button
                   onClick={handleDeleteCancel}

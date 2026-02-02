@@ -17,6 +17,8 @@ import toast from 'react-hot-toast';
 import type { RatePlanRule } from '@/pages/rate-plan/interfaces/ratePlan.type';
 import { getRatePlanRulesByPropertyIdService } from './services';
 import { deleteRatePlanRule } from '@/pages/rate-plan/api/api';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Edit, MoreVertical, Trash2 } from 'lucide-react';
 
 interface RatePlanRuleWithRatePlan extends RatePlanRule {
   ratePlan: {
@@ -86,11 +88,11 @@ export const MLOSRuleList: React.FC = () => {
 
   const handleUpdate = async (payload: Partial<RatePlanRule>) => {
     if (!editData) return;
-    
+
     setIsLoading(true);
     try {
       const result = await updateRatePlanRuleService(editData.ratePlanId, payload);
-      
+
       if (result.success) {
         setShowForm(false);
         setEditData(null);
@@ -113,7 +115,7 @@ export const MLOSRuleList: React.FC = () => {
 
   const handleDeleteConfirm = async () => {
     if (!ruleToDelete) return;
-    
+
     setIsLoading(true);
     try {
       const result = await deleteRatePlanRule(ruleToDelete);
@@ -231,7 +233,7 @@ export const MLOSRuleList: React.FC = () => {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-{formatDate(rule.startDate ?? null)} - {formatDate(rule.endDate ?? null)}
+                        {formatDate(rule.startDate ?? null)} - {formatDate(rule.endDate ?? null)}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -249,38 +251,45 @@ export const MLOSRuleList: React.FC = () => {
                       )}
                     </TableCell>
                     <TableCell>
-                      <span className={`px-2 py-1 rounded text-xs font-medium ${
-                        rule.discountType && rule.discountValue
+                      <span className={`px-2 py-1 rounded text-xs font-medium ${rule.discountType && rule.discountValue
                           ? 'bg-success/10 text-success'
                           : 'bg-muted text-muted-foreground'
-                      }`}>
+                        }`}>
                         {formatDiscount(rule.discountType || null, rule.discountValue || null)}
                       </span>
                     </TableCell>
                     <TableCell>
-                      <span className={`px-3 py-1 rounded text-xs font-medium ${
-                        rule.isActive
+                      <span className={`px-3 py-1 rounded text-xs font-medium ${rule.isActive
                           ? 'bg-success/10 text-success'
                           : 'bg-muted text-muted-foreground'
-                      }`}>
+                        }`}>
                         {rule.isActive ? 'Active' : 'Inactive'}
                       </span>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <button
-                          onClick={() => handleEdit(rule)}
-                          className="px-3 py-1 bg-primary text-primary-foreground rounded text-xs hover:bg-primary/90 transition-colors"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteClick(rule.ratePlanId)}
-                          className="px-3 py-1 bg-destructive text-destructive-foreground rounded text-xs hover:bg-destructive/90 transition-colors"
-                        >
-                          Delete
-                        </button>
-                      </div>
+                    <TableCell className="text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button className="p-2 hover:bg-accent rounded-md transition-colors">
+                            <MoreVertical className="w-5 h-5" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48">
+                          <DropdownMenuItem
+                            onClick={() => handleEdit(rule)}
+                            className="cursor-pointer"
+                          >
+                            <Edit className="w-4 h-4 mr-3" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleDeleteClick(rule.ratePlanId)}
+                            className="cursor-pointer text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4 mr-3" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))
@@ -301,7 +310,7 @@ export const MLOSRuleList: React.FC = () => {
                   Are you sure you want to delete this MLOS rule? This action cannot be undone.
                 </p>
               </div>
-              
+
               <div className="flex justify-end space-x-3 pt-4 border-t border-border">
                 <button
                   onClick={handleDeleteCancel}
