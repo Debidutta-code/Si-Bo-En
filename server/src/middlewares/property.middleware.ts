@@ -51,6 +51,7 @@ export function attachPropertyDetails(
         propertyCode: property.propertyCode,
         timezone: property.propertyConfigs?.timezone,
         currencyCode: property.propertyConfigs?.baseCurrency,
+        creationId: property.creationId,
       };
 
       next();

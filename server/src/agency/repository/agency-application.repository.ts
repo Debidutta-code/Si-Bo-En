@@ -1,5 +1,5 @@
 import {prisma} from "../../config";
-import { AgencyApplicationStatus,ICAgencyApplication, IAgencyApplication, IAgents } from "../types";
+import { AgencyApplicationStatus,ICAgencyApplication, IAgencyApplication, IAgents, fAgencyApplicationStatus } from "../types";
 
 
 export class AgencyApplicationRepository {
@@ -35,10 +35,10 @@ export class AgencyApplicationRepository {
             throw new Error(`Failed to retrieve agency applications by email`);
         }
     }
-    public async getApplications(status: AgencyApplicationStatus, skip: number=0, take: number=10): Promise<IAgencyApplication[]> {
+    public async getApplications(status: fAgencyApplicationStatus, skip: number=0, take: number=10): Promise<IAgencyApplication[]> {
         try {
             const query: any = {};
-            if (status) {
+            if (status && status !== "all") {
                 query.status = status;
             }
             const applications = await prisma.agentApplications.findMany({
@@ -105,6 +105,14 @@ export class AgencyApplicationRepository {
             });
         } catch (error) {
             throw new Error(`Failed to update application count for email: ${email}`);
+        }
+    }
+    public async getCount(): Promise<number> {
+        try {
+            const count = await prisma.agentApplications.count();
+            return count;
+        } catch (error) {
+            throw new Error(`Failed to get agency application count`);
         }
     }
 }
