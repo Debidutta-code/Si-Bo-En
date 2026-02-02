@@ -1,7 +1,15 @@
-import type {MobilePromotion,MobilePromotionWithRatePlan,CreateMobilePromotion,UpdateMobilePromotion} from "./mobilePromotion.type";
+import type {DeviceSpecificPromotion,DeviceSpecificPromotionWithRatePlan,CreateDeviceSpecificPromotion,UpdateDeviceSpecificPromotion,
+    DeviceType,
+    DiscountType,CurrencyCode,
+    
+} from "./mobilePromotion.type";
 export type {
-    UpdateMobilePromotion,
-    CreateMobilePromotion,
-    MobilePromotion,
-    MobilePromotionWithRatePlan
+    UpdateDeviceSpecificPromotion,
+    CreateDeviceSpecificPromotion,
+    DeviceSpecificPromotion,
+    DeviceSpecificPromotionWithRatePlan,
+    DeviceType,
+    DiscountType,
+    CurrencyCode,
+    
 }

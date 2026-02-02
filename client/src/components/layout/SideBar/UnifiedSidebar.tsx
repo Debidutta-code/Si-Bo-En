@@ -128,7 +128,7 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
   const promotionsItems = [
     { name: 'GEO', href: `/property/promotion/geo/${propertyId}`, icon: Globe, userLevels: [4, 3, 2, 1,0] },
     { name: 'MLOS', href: `/property/promotion/mlos/${propertyId}`, icon: ListEndIcon, userLevels: [4, 3, 2, 1,0] },
-    { name: 'Mobile only', href: `/property/promotion/mobile-only/${propertyId}`, icon: Smartphone, userLevels: [4, 3, 2, 1,0] },
+    { name: 'Device Specific', href: `/property/promotion/device-specific/${propertyId}`, icon: Smartphone, userLevels: [4, 3, 2, 1,0] },
     { name: 'Early Bird', href: `/property/promotion/early-bird/${propertyId}`, icon:Sun , userLevels: [4, 3, 2, 1,0] },
     { name: 'Offer for tonight only', href: `/property/promotion/offer-for-tonight/${propertyId}`, icon: MoonIcon, userLevels: [4, 3, 2, 1,0] },
     { name: 'Customizable deal', href: `/property/promotion/customizable-deal/${propertyId}`, icon: Pen, userLevels: [4, 3, 2, 1,0] },

@@ -41,7 +41,10 @@ import ContactSupport from "./pages/contact-support/ContactSupport.tsx";
 import ManagementPage from "./pages/management/Management.tsx";
 import GeoRatePlanList from "./pages/promotions/geo/page.tsx";
 import MLOSRuleList from "./pages/promotions/mlos/page.tsx";
-import MobilePromotionList from "./pages/promotions/mobile-only/page.tsx";
+import { DeviceSpecificPromotionList } from "./pages/promotions/mobile-only/page.tsx";
+import { EarlyBirdPromotionList } from "./pages/promotions/early-bird/page.tsx";
+import { OfferForTonightPromotionList } from "./pages/promotions/offer-for-tonight/page.tsx";
+import CustomizablePromotionList from "./pages/promotions/customizable-promotion/page.tsx";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -88,9 +91,19 @@ export const router = createBrowserRouter(
         <Route path="price-management/calendar/:propertyId" element={<CalendarView />} />
         <Route path="price-management/periods/:propertyId" element={<PeriodsManagement />} />
         <Route path="price-management/table/:propertyId" element={<TableView />} />
-        <Route path="promotion/geo/:propertyId" element={<GeoRatePlanList />} />
-        <Route path="promotion/mlos/:propertyId" element={<MLOSRuleList />} />
-        <Route path="promotion/mobile-only/:propertyId" element={<MobilePromotionList />} />
+       
+       
+       
+        <Route path="promotion/">
+
+        <Route path="geo/:propertyId" element={<GeoRatePlanList />} />
+        <Route path="mlos/:propertyId" element={<MLOSRuleList />} />
+        <Route path="device-specific/:propertyId" element={<DeviceSpecificPromotionList />} />
+        <Route path="early-bird/:propertyId" element={<EarlyBirdPromotionList />} />
+        <Route path="offer-for-tonight/:propertyId" element={<OfferForTonightPromotionList />} />
+        <Route path="customizable-deal/:propertyId" element={<CustomizablePromotionList />} />
+        </Route>
+
       </Route>
       <Route path="members" element={<MembersPage />} />
       <Route path="logs" element={<LogsPage />} />

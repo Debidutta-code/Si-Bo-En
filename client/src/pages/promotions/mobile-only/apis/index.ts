@@ -1,8 +1,9 @@
-import {createMobilePromotion,getMobilePromotionByRatePlanId,getMobilePromotionsByPropertyId,updateMobilePromotion,deleteMobilePromotion} from "./mobilePromotion.api";
+import {createDeviceSpecificPromotion,getDeviceSpecificPromotionById,getDeviceSpecificPromotionsByProperty,updateDeviceSpecificPromotion,deleteDeviceSpecificPromotion,toggleDeviceSpecificPromotionStatus} from "./mobilePromotion.api";
 export {
-    createMobilePromotion,
-    getMobilePromotionByRatePlanId,
-    getMobilePromotionsByPropertyId,
-    updateMobilePromotion,
-    deleteMobilePromotion
+    createDeviceSpecificPromotion,
+    getDeviceSpecificPromotionById,
+    getDeviceSpecificPromotionsByProperty,
+    updateDeviceSpecificPromotion,
+    deleteDeviceSpecificPromotion,
+    toggleDeviceSpecificPromotionStatus
 }

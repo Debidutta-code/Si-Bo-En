@@ -8,32 +8,44 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import type { CreateMobilePromotion, MobilePromotionWithRatePlan } from '../interfaces/mobilePromotion.type';
+import type { 
+  CreateDeviceSpecificPromotion, 
+  DeviceSpecificPromotionWithRatePlan,
+  DeviceType,
+  DiscountType,
+  CurrencyCode
+} from '../interfaces';
+import { Smartphone, Tablet, Monitor } from 'lucide-react';
 
-interface MobilePromotionFormProps {
+interface DeviceSpecificPromotionFormProps {
   ratePlans: RatePlan[];
-  onSubmit: (payload: CreateMobilePromotion) => Promise<void>;
+  propertyId: string;
+  onSubmit: (payload: CreateDeviceSpecificPromotion) => Promise<void>;
   onCancel: () => void;
-  editData?: MobilePromotionWithRatePlan | null;
+  editData?: DeviceSpecificPromotionWithRatePlan | null;
   isLoading: boolean;
 }
 
-const MobilePromotionForm: React.FC<MobilePromotionFormProps> = ({
+const DeviceSpecificPromotionForm: React.FC<DeviceSpecificPromotionFormProps> = ({
   ratePlans,
+  propertyId,
   onSubmit,
   onCancel,
   editData,
   isLoading
 }) => {
   const [selectedRatePlan, setSelectedRatePlan] = useState<string>('');
+  const [selectedRatePlanCode, setSelectedRatePlanCode] = useState<string>('');
   const [promotionName, setPromotionName] = useState<string>('');
-  const [discountPercentage, setDiscountPercentage] = useState<string>('10');
-  const [startDate, setStartDate] = useState<string>('');
-  const [endDate, setEndDate] = useState<string>('');
-  const [dateMode, setDateMode] = useState<'continuous' | 'individual'>('continuous');
-  const [isB2C, setIsB2C] = useState(false);
-  const [isB2B, setIsB2B] = useState(false);
+  const [discountType, setDiscountType] = useState<DiscountType>('percentage' as DiscountType);
+  const [discountValue, setDiscountValue] = useState<string>('10');
+  const [currencyCode, setCurrencyCode] = useState<CurrencyCode>('USD' as CurrencyCode);
+  const [validFrom, setValidFrom] = useState<string>('');
+  const [validTo, setValidTo] = useState<string>('');
+  const [hasEndDate, setHasEndDate] = useState<boolean>(false);
+  const [ratePlanType, setRatePlanType] = useState<'b2b' | 'b2c'>('b2c');
   const [isActive, setIsActive] = useState(true);
+  const [selectedDevices, setSelectedDevices] = useState<DeviceType[]>(['mobile' as DeviceType]);
   
   const [applicableDays, setApplicableDays] = useState({
     monday: true,
@@ -48,22 +60,54 @@ const MobilePromotionForm: React.FC<MobilePromotionFormProps> = ({
   useEffect(() => {
     if (editData) {
       setSelectedRatePlan(editData.ratePlanId);
+      setSelectedRatePlanCode(editData.ratePlanCode);
       setPromotionName(editData.promotionName);
-      setDiscountPercentage(editData.discountPercentage.toString());
-      setStartDate(editData.startDate ? new Date(editData.startDate).toISOString().split('T')[0] : '');
-      setEndDate(editData.endDate ? new Date(editData.endDate).toISOString().split('T')[0] : '');
-      setDateMode(editData.endDate ? 'continuous' : 'individual');
+      setDiscountType(editData.discountType);
+      setDiscountValue(editData.discountValue.toString());
+      setCurrencyCode(editData.currencyCode || 'USD' as CurrencyCode);
+      setValidFrom(editData.validFrom ? new Date(editData.validFrom).toISOString().split('T')[0] : '');
+      setValidTo(editData.validTo ? new Date(editData.validTo).toISOString().split('T')[0] : '');
+      setHasEndDate(!!editData.validTo);
       setApplicableDays(editData.applicableDays);
-      setIsB2C(editData.isB2C);
-      setIsB2B(editData.isB2B);
       setIsActive(editData.isActive);
+      setSelectedDevices(editData.deviceType);
+      
+      // Set rate plan type based on the rate plan
+      if (editData.ratePlan.b2bAvailable) {
+        setRatePlanType('b2b');
+      } else if (editData.ratePlan.b2cAvailable) {
+        setRatePlanType('b2c');
+      }
     }
   }, [editData]);
 
-  // Get available rate plans (those without mobile promotions)
-  const availableRatePlans = ratePlans.filter(
-    rp => !rp.ratePlanRules || editData?.ratePlanId === rp.id
-  );
+  // Filter rate plans based on selected type
+  const filteredRatePlans = ratePlans.filter(rp => {
+    if (editData?.ratePlanId === rp.id) return true;
+    if (ratePlanType === 'b2b') return rp.b2bAvailable;
+    if (ratePlanType === 'b2c') return rp.b2cAvailable;
+    return false;
+  });
+
+  const handleRatePlanChange = (value: string) => {
+    setSelectedRatePlan(value);
+    const plan = ratePlans.find(rp => rp.id === value);
+    if (plan) {
+      setSelectedRatePlanCode(plan.ratePlanCode);
+    }
+  };
+
+  const handleDeviceToggle = (device: DeviceType) => {
+    setSelectedDevices(prev => {
+      if (prev.includes(device)) {
+        // Don't allow removing if it's the last device
+        if (prev.length === 1) return prev;
+        return prev.filter(d => d !== device);
+      } else {
+        return [...prev, device];
+      }
+    });
+  };
 
   const handleDayToggle = (day: keyof typeof applicableDays) => {
     setApplicableDays(prev => ({
@@ -94,22 +138,53 @@ const MobilePromotionForm: React.FC<MobilePromotionFormProps> = ({
     return activeDays.join(', ');
   };
 
+  const getDeviceIcons = (device: DeviceType) => {
+    switch (device) {
+      case 'mobile':
+        return <Smartphone className="w-5 h-5" />;
+      case 'tablet':
+        return <Tablet className="w-5 h-5" />;
+      case 'desktop':
+        return <Monitor className="w-5 h-5" />;
+      default:
+        return null;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const payload: CreateMobilePromotion = {
+    const payload: CreateDeviceSpecificPromotion = {
+      propertyId,
+      promotionType:'device_specific',
       ratePlanId: selectedRatePlan,
+      ratePlanCode: selectedRatePlanCode,
       promotionName,
-      discountPercentage: parseFloat(discountPercentage),
-      startDate,
-      endDate: dateMode === 'continuous' ? endDate || null : null,
-      applicableDays,
-      isB2C,
-      isB2B,
+      deviceType: selectedDevices,
+      discountType,
+      discountValue: parseFloat(discountValue),
+      currencyCode: discountType === 'flat' ? currencyCode : undefined,
+      validFrom,
+      validTo: hasEndDate ? validTo || null : null,
+      monApplicable: applicableDays.monday,
+      tueApplicable: applicableDays.tuesday,
+      wedApplicable: applicableDays.wednesday,
+      thuApplicable: applicableDays.thursday,
+      friApplicable: applicableDays.friday,
+      satApplicable: applicableDays.saturday,
+      sunApplicable: applicableDays.sunday,
       isActive
     };
 
     await onSubmit(payload);
+  };
+
+  const getDiscountDisplayText = () => {
+    if (discountType === 'percentage') {
+      return `${discountValue}% OFF`;
+    } else {
+      return `${currencyCode} ${discountValue} OFF`;
+    }
   };
 
   return (
@@ -124,11 +199,48 @@ const MobilePromotionForm: React.FC<MobilePromotionFormProps> = ({
         {/* Header */}
         <div className="pb-4 border-b border-border">
           <h3 className="text-lg font-semibold text-foreground">
-            Create a Mobile Rate Promotion
+            {editData ? 'Edit' : 'Create'} Device-Specific Promotion
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Become a top pick among mobile users (up to 76% of bookings are made using the app)
+            Target specific devices with customized promotions (mobile, tablet, or desktop users)
           </p>
+        </div>
+
+        {/* Device Selection */}
+        <div className="space-y-3 p-4 bg-muted/20 rounded-lg border border-border">
+          <h4 className="text-sm font-semibold text-foreground">Device Type Selection *</h4>
+          <p className="text-xs text-muted-foreground">
+            Select which devices this promotion will be available on
+          </p>
+          
+          <div className="grid grid-cols-3 gap-3">
+            {(['mobile', 'tablet', 'desktop'] as DeviceType[]).map((device) => (
+              <button
+                key={device}
+                type="button"
+                onClick={() => handleDeviceToggle(device)}
+                className={`flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all ${
+                  selectedDevices.includes(device)
+                    ? 'border-primary bg-primary/10 text-primary'
+                    : 'border-border bg-background text-muted-foreground hover:border-primary/50'
+                }`}
+              >
+                {getDeviceIcons(device)}
+                <span className="text-sm font-medium mt-2 capitalize">{device}</span>
+                {selectedDevices.includes(device) && (
+                  <span className="text-xs mt-1">Selected</span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {selectedDevices.length > 0 && (
+            <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mt-3">
+              <p className="text-xs text-blue-700 dark:text-blue-300">
+                Active on: <span className="font-medium">{selectedDevices.map(d => d.charAt(0).toUpperCase() + d.slice(1)).join(', ')}</span>
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Rate Plan Selection */}
@@ -154,10 +266,11 @@ const MobilePromotionForm: React.FC<MobilePromotionFormProps> = ({
                   <label className="flex items-center space-x-2 cursor-pointer">
                     <input
                       type="radio"
-                      checked={isB2B}
+                      checked={ratePlanType === 'b2c'}
                       onChange={() => {
-                        setIsB2B(true);
-                        setIsB2C(false);
+                        setRatePlanType('b2c');
+                        setSelectedRatePlan('');
+                        setSelectedRatePlanCode('');
                       }}
                       className="w-4 h-4 text-primary border-border focus:ring-2 focus:ring-primary"
                     />
@@ -166,30 +279,31 @@ const MobilePromotionForm: React.FC<MobilePromotionFormProps> = ({
                   <label className="flex items-center space-x-2 cursor-pointer">
                     <input
                       type="radio"
-                      checked={isB2C}
+                      checked={ratePlanType === 'b2b'}
                       onChange={() => {
-                        setIsB2C(true);
-                        setIsB2B(false);
+                        setRatePlanType('b2b');
+                        setSelectedRatePlan('');
+                        setSelectedRatePlanCode('');
                       }}
                       className="w-4 h-4 text-primary border-border focus:ring-2 focus:ring-primary"
                     />
-                    <span className="text-sm text-foreground">Non-connectivity rate plan</span>
+                    <span className="text-sm text-foreground">B2B rate plan</span>
                   </label>
                 </div>
                 <Select
                   value={selectedRatePlan}
-                  onValueChange={setSelectedRatePlan}
+                  onValueChange={handleRatePlanChange}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select a rate plan" />
                   </SelectTrigger>
                   <SelectContent>
-                    {availableRatePlans.length === 0 ? (
+                    {filteredRatePlans.length === 0 ? (
                       <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                        No available rate plans
+                        No available {ratePlanType.toUpperCase()} rate plans
                       </div>
                     ) : (
-                      availableRatePlans.map((plan) => (
+                      filteredRatePlans.map((plan) => (
                         <SelectItem key={plan.id} value={plan.id}>
                           {plan.ratePlanName} ({plan.ratePlanCode})
                         </SelectItem>
@@ -202,37 +316,87 @@ const MobilePromotionForm: React.FC<MobilePromotionFormProps> = ({
           </div>
         </div>
 
-        {/* Discounts and Stay dates */}
+        {/* Discount Configuration */}
         <div className="space-y-4 p-4 bg-muted/20 rounded-lg border border-border">
-          <h4 className="text-sm font-semibold text-foreground">Discounts and Stay dates</h4>
+          <h4 className="text-sm font-semibold text-foreground">Discount Configuration</h4>
           
+          {/* Discount Type */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
-              How much of a discount do you want to give? *
+              Discount Type *
             </label>
-            <div className="relative max-w-xs">
-              <input
-                type="number"
-                value={discountPercentage}
-                onChange={(e) => setDiscountPercentage(e.target.value)}
-                min="1"
-                max="100"
-                step="1"
-                className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground pr-12"
-                required
-              />
-              <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground font-medium">
-                % off
-              </span>
+            <div className="flex items-center space-x-4">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  checked={discountType === 'percentage'}
+                  onChange={() => setDiscountType('percentage' as DiscountType)}
+                  className="w-4 h-4 text-primary border-border focus:ring-2 focus:ring-primary"
+                />
+                <span className="text-sm text-foreground">Percentage (%)</span>
+              </label>
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="radio"
+                  checked={discountType === 'flat'}
+                  onChange={() => setDiscountType('flat' as DiscountType)}
+                  className="w-4 h-4 text-primary border-border focus:ring-2 focus:ring-primary"
+                />
+                <span className="text-sm text-foreground">Flat Amount</span>
+              </label>
             </div>
           </div>
 
+          {/* Discount Value */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Discount Value *
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  value={discountValue}
+                  onChange={(e) => setDiscountValue(e.target.value)}
+                  min="1"
+                  max={discountType === 'percentage' ? '100' : undefined}
+                  step={discountType === 'percentage' ? '1' : '0.01'}
+                  className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground pr-12"
+                  required
+                />
+                <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground font-medium">
+                  {discountType === 'percentage' ? '%' : currencyCode}
+                </span>
+              </div>
+            </div>
+
+            {/* Currency Selection (only for flat discount) */}
+            {discountType === 'flat' && (
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Currency *
+                </label>
+                <Select
+                  value={currencyCode}
+                  onValueChange={(value) => setCurrencyCode(value as CurrencyCode)}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="USD">USD - US Dollar</SelectItem>
+                    <SelectItem value="EUR">EUR - Euro</SelectItem>
+                    <SelectItem value="INR">INR - Indian Rupee</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+
           <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-            <p className="text-sm text-blue-900 dark:text-blue-100 font-medium">Promotion Stack Rule</p>
-            <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-              Stacks with: TripPlus, ComPlus, Basic Deal, Early Bird, Last Minute, Offer for Tonight, and Minimum Stay.
-              Doesn't stack with: Packages, campaigns, or XPOS. When running concurrently with these types of promotions,
-              users will only see the larger discount.
+            <p className="text-sm text-blue-900 dark:text-blue-100 font-medium">Preview</p>
+            <p className="text-lg text-blue-700 dark:text-blue-300 mt-1 font-semibold">
+              {getDiscountDisplayText()}
             </p>
           </div>
         </div>
@@ -241,42 +405,55 @@ const MobilePromotionForm: React.FC<MobilePromotionFormProps> = ({
         <div className="space-y-4 p-4 bg-muted/20 rounded-lg border border-border">
           <div>
             <label className="block text-sm font-medium text-foreground mb-3">
-              What dates of stay does the promotion apply to? *
+              Promotion Validity Period *
             </label>
             
             <div className="space-y-3">
-              <label className="flex items-start space-x-3 cursor-pointer">
+              {/* Start Date */}
+              <div>
+                <label className="block text-xs text-muted-foreground mb-1">
+                  Start Date *
+                </label>
                 <input
-                  type="radio"
-                  checked={dateMode === 'continuous'}
-                  onChange={() => setDateMode('continuous')}
-                  className="w-4 h-4 text-primary border-border focus:ring-2 focus:ring-primary mt-0.5"
+                  type="date"
+                  value={validFrom}
+                  onChange={(e) => setValidFrom(e.target.value)}
+                  className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
+                  required
                 />
-                <div className="flex-1">
-                  <span className="text-sm text-foreground font-medium">Valid continuously from start date</span>
-                  {dateMode === 'continuous' && (
-                    <div className="mt-2 max-w-xs">
-                      <input
-                        type="date"
-                        value={startDate}
-                        onChange={(e) => setStartDate(e.target.value)}
-                        className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
-                        required
-                      />
-                    </div>
-                  )}
-                </div>
-              </label>
+              </div>
 
-              <label className="flex items-start space-x-3 cursor-pointer">
+              {/* End Date Option */}
+              <div className="flex items-center space-x-2">
                 <input
-                  type="radio"
-                  checked={dateMode === 'individual'}
-                  onChange={() => setDateMode('individual')}
-                  className="w-4 h-4 text-primary border-border focus:ring-2 focus:ring-primary mt-0.5"
+                  type="checkbox"
+                  id="hasEndDate"
+                  checked={hasEndDate}
+                  onChange={(e) => {
+                    setHasEndDate(e.target.checked);
+                    if (!e.target.checked) setValidTo('');
+                  }}
+                  className="w-4 h-4 text-primary border-border rounded focus:ring-2 focus:ring-primary"
                 />
-                <span className="text-sm text-foreground font-medium">Select individual dates</span>
-              </label>
+                <label htmlFor="hasEndDate" className="text-sm text-foreground cursor-pointer">
+                  Set end date (optional)
+                </label>
+              </div>
+
+              {hasEndDate && (
+                <div>
+                  <label className="block text-xs text-muted-foreground mb-1">
+                    End Date
+                  </label>
+                  <input
+                    type="date"
+                    value={validTo}
+                    onChange={(e) => setValidTo(e.target.value)}
+                    min={validFrom}
+                    className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
+                  />
+                </div>
+              )}
             </div>
           </div>
 
@@ -315,10 +492,10 @@ const MobilePromotionForm: React.FC<MobilePromotionFormProps> = ({
             {Object.values(applicableDays).some(v => v) && (
               <div className="mt-3 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
                 <p className="text-xs text-blue-700 dark:text-blue-300">
-                  Promotion will be active on the following days:
+                  Promotion will be active on:
                 </p>
                 <p className="text-sm text-blue-900 dark:text-blue-100 font-medium mt-1">
-                  {discountPercentage}% OFF: Valid continuously from {startDate || 'Jan 23, 2026'}, including {getActiveDaysSummary()}.
+                  {getDiscountDisplayText()}: Valid from {validFrom || 'start date'}{hasEndDate && validTo ? ` to ${validTo}` : ' onwards'}, including {getActiveDaysSummary()}.
                 </p>
               </div>
             )}
@@ -328,7 +505,7 @@ const MobilePromotionForm: React.FC<MobilePromotionFormProps> = ({
         {/* Promotion Name */}
         <div className="space-y-2">
           <label className="block text-sm font-semibold text-foreground">
-            Promotion name
+            Promotion name *
           </label>
           <p className="text-xs text-muted-foreground">
             What do you want to name this promotion?
@@ -340,7 +517,7 @@ const MobilePromotionForm: React.FC<MobilePromotionFormProps> = ({
             type="text"
             value={promotionName}
             onChange={(e) => setPromotionName(e.target.value)}
-            placeholder={`${discountPercentage}% off - Mobile Rate - ${startDate || 'Jan 23, 2026'}`}
+            placeholder={`${getDiscountDisplayText()} - ${selectedDevices.map(d => d.charAt(0).toUpperCase() + d.slice(1)).join('/')} - ${validFrom || 'Start Date'}`}
             className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
             required
           />
@@ -371,14 +548,21 @@ const MobilePromotionForm: React.FC<MobilePromotionFormProps> = ({
             className="px-6 py-2.5 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/90 transition-colors font-medium"
             disabled={isLoading}
           >
-            Back
+            Cancel
           </button>
           <button
             type="submit"
             className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm"
-            disabled={isLoading || !selectedRatePlan || !promotionName || !startDate || !Object.values(applicableDays).some(v => v)}
+            disabled={
+              isLoading || 
+              !selectedRatePlan || 
+              !promotionName || 
+              !validFrom || 
+              selectedDevices.length === 0 ||
+              !Object.values(applicableDays).some(v => v)
+            }
           >
-            {editData ? 'Update' : 'Preview'}
+            {editData ? 'Update Promotion' : 'Create Promotion'}
           </button>
         </div>
       </form>
@@ -386,4 +570,4 @@ const MobilePromotionForm: React.FC<MobilePromotionFormProps> = ({
   );
 };
 
-export default MobilePromotionForm;
+export default DeviceSpecificPromotionForm;

@@ -8,31 +8,34 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import Loader from '@/components/Loader/Loader';
-import {DeviceSpecificPromotionForm} from './components';
+import {EarlyBirdPromotionForm} from './components';
 import {
-  getDeviceSpecificPromotionsByPropertyService,
-  createDeviceSpecificPromotionService,
-  updateDeviceSpecificPromotionService,
-  deleteDeviceSpecificPromotionService
+  getEarlyBirdPromotionsByPropertyService,
+  createEarlyBirdPromotionService,
+  updateEarlyBirdPromotionService,
+  deleteEarlyBirdPromotionService
 } from './services';
 import { fetchRatePlansService } from '@/pages/rate-plan/services';
+import { fetchRoomTypesService } from '@/pages/inventory/services';
 import type { RatePlan } from '@/pages/rate-plan/interfaces';
+import type { RoomTypes } from '@/pages/inventory/types';
 import { 
-  type CreateDeviceSpecificPromotion, 
-  type DeviceSpecificPromotionWithRatePlan, 
+  type CreateEarlyBirdPromotion, 
+  type EarlyBirdPromotionWithRatePlan, 
 } from './interfaces';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Smartphone, Tablet, Monitor } from 'lucide-react';
-import { convertBackendToApplicableDays } from './interfaces/mobilePromotion.type';
+import { Calendar, Clock } from 'lucide-react';
+import { convertBackendToApplicableDays } from '../mobile-only/interfaces/mobilePromotion.type';
 
-export const DeviceSpecificPromotionList: React.FC = () => {
+export const EarlyBirdPromotionList: React.FC = () => {
   const { propertyId } = useParams<{ propertyId: string }>();
-  const [promotions, setPromotions] = useState<DeviceSpecificPromotionWithRatePlan[]>([]);
+  const [promotions, setPromotions] = useState<EarlyBirdPromotionWithRatePlan[]>([]);
   const [ratePlans, setRatePlans] = useState<RatePlan[]>([]);
+  const [roomTypes, setRoomTypes] = useState<RoomTypes[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showForm, setShowForm] = useState(false);
-  const [editData, setEditData] = useState<DeviceSpecificPromotionWithRatePlan | null>(null);
+  const [editData, setEditData] = useState<EarlyBirdPromotionWithRatePlan | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [promotionToDelete, setPromotionToDelete] = useState<string | null>(null);
 
@@ -47,9 +50,10 @@ export const DeviceSpecificPromotionList: React.FC = () => {
         return;
       }
 
-      const [promotionsResponse, plansResponse] = await Promise.all([
-        getDeviceSpecificPromotionsByPropertyService(propertyId),
-        fetchRatePlansService(propertyId)
+      const [promotionsResponse, plansResponse, roomsResponse] = await Promise.all([
+        getEarlyBirdPromotionsByPropertyService(propertyId),
+        fetchRatePlansService(propertyId),
+        fetchRoomTypesService(propertyId)
       ]);
 
       if (promotionsResponse.success) {
@@ -63,33 +67,36 @@ export const DeviceSpecificPromotionList: React.FC = () => {
       if (plansResponse.success) {
         setRatePlans(plansResponse.data || []);
       }
+      if (roomsResponse.success) {
+        setRoomTypes(roomsResponse.data || []);
+      }
     } catch (error) {
       console.error('Error loading data:', error);
-      toast.error('Failed to load device-specific promotions');
+      toast.error('Failed to load early bird promotions');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleCreate = async (payload: CreateDeviceSpecificPromotion) => {
+  const handleCreate = async (payload: CreateEarlyBirdPromotion) => {
     setIsLoading(true);
     try {
-      const result = await createDeviceSpecificPromotionService(payload);
+      const result = await createEarlyBirdPromotionService(payload);
       if (result.success) {
         setShowForm(false);
         loadData();
-        toast.success('Device-specific promotion created successfully!');
+        toast.success('Early bird promotion created successfully!');
       } else {
-        toast.error(result.message || 'Failed to create device-specific promotion');
+        toast.error(result.message || 'Failed to create early bird promotion');
       }
     } catch (error) {
-      toast.error('An error occurred while creating the device-specific promotion');
+      toast.error('An error occurred while creating the early bird promotion');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleUpdate = async (payload: CreateDeviceSpecificPromotion) => {
+  const handleUpdate = async (payload: CreateEarlyBirdPromotion) => {
     if (!editData) return;
     
     setIsLoading(true);
@@ -108,21 +115,22 @@ export const DeviceSpecificPromotionList: React.FC = () => {
         friApplicable: payload.friApplicable,
         satApplicable: payload.satApplicable,
         sunApplicable: payload.sunApplicable,
-        isActive: payload.isActive
+        isActive: true,
+        advanceBookingDays: payload.advanceBookingDays
       };
 
-      const result = await updateDeviceSpecificPromotionService(editData.id, updatePayload);
+      const result = await updateEarlyBirdPromotionService(editData.id, updatePayload);
       
       if (result.success) {
         setShowForm(false);
         setEditData(null);
         loadData();
-        toast.success('Device-specific promotion updated successfully!');
+        toast.success('Early bird promotion updated successfully!');
       } else {
-        toast.error(result.message || 'Failed to update device-specific promotion');
+        toast.error(result.message || 'Failed to update early bird promotion');
       }
     } catch (error) {
-      toast.error('An error occurred while updating the device-specific promotion');
+      toast.error('An error occurred while updating the early bird promotion');
     } finally {
       setIsLoading(false);
     }
@@ -138,15 +146,15 @@ export const DeviceSpecificPromotionList: React.FC = () => {
     
     setIsLoading(true);
     try {
-      const result = await deleteDeviceSpecificPromotionService(promotionToDelete);
+      const result = await deleteEarlyBirdPromotionService(promotionToDelete);
       if (result.success) {
         loadData();
-        toast.success('Device-specific promotion deleted successfully!');
+        toast.success('Early bird promotion deleted successfully!');
       } else {
-        toast.error(result.message || 'Failed to delete device-specific promotion');
+        toast.error(result.message || 'Failed to delete early bird promotion');
       }
     } catch (error) {
-      toast.error('An error occurred while deleting the device-specific promotion');
+      toast.error('An error occurred while deleting the early bird promotion');
     } finally {
       setIsLoading(false);
       setDeleteDialogOpen(false);
@@ -159,7 +167,7 @@ export const DeviceSpecificPromotionList: React.FC = () => {
     setPromotionToDelete(null);
   };
 
-  const handleEdit = (promotion: DeviceSpecificPromotionWithRatePlan) => {
+  const handleEdit = (promotion: EarlyBirdPromotionWithRatePlan) => {
     setEditData(promotion);
     setShowForm(true);
   };
@@ -184,20 +192,7 @@ export const DeviceSpecificPromotionList: React.FC = () => {
       .join(', ');
   };
 
-  const getDeviceIcon = (device: string) => {
-    switch (device.toLowerCase()) {
-      case 'mobile':
-        return <Smartphone className="w-4 h-4" />;
-      case 'tablet':
-        return <Tablet className="w-4 h-4" />;
-      case 'desktop':
-        return <Monitor className="w-4 h-4" />;
-      default:
-        return null;
-    }
-  };
-
-  const getDiscountDisplay = (promotion: DeviceSpecificPromotionWithRatePlan) => {
+  const getDiscountDisplay = (promotion: EarlyBirdPromotionWithRatePlan) => {
     if (promotion.discountType === 'percentage') {
       return `${promotion.discountValue}% OFF`;
     } else {
@@ -210,11 +205,12 @@ export const DeviceSpecificPromotionList: React.FC = () => {
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold text-foreground">
-            {editData ? 'Edit' : 'Create'} Device-Specific Promotion
+            {editData ? 'Edit' : 'Create'} Early Bird Promotion
           </h2>
         </div>
-        <DeviceSpecificPromotionForm
+        <EarlyBirdPromotionForm
           ratePlans={ratePlans}
+          roomTypes={roomTypes}
           propertyId={propertyId!}
           onSubmit={editData ? handleUpdate : handleCreate}
           onCancel={() => {
@@ -232,16 +228,16 @@ export const DeviceSpecificPromotionList: React.FC = () => {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-foreground">Device-Specific Promotions</h2>
+          <h2 className="text-2xl font-bold text-foreground">Early Bird Promotions</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Target specific devices with customized promotional offers
+            Secure your occupancy in advance with early booking discounts
           </p>
         </div>
         <button
           onClick={() => setShowForm(true)}
           className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
         >
-          + Create Device Promotion
+          + Create Early Bird
         </button>
       </div>
 
@@ -254,9 +250,9 @@ export const DeviceSpecificPromotionList: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Rate Plan</TableHead>
+                <TableHead>Rate Plan(s)</TableHead>
                 <TableHead>Promotion Name</TableHead>
-                <TableHead>Devices</TableHead>
+                <TableHead>Advance Days</TableHead>
                 <TableHead>Discount</TableHead>
                 <TableHead>Start Date</TableHead>
                 <TableHead>End Date</TableHead>
@@ -269,7 +265,7 @@ export const DeviceSpecificPromotionList: React.FC = () => {
               {promotions.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
-                    No device-specific promotions found. Create one to get started!
+                    No early bird promotions found. Create one to get started!
                   </TableCell>
                 </TableRow>
               ) : (
@@ -278,26 +274,18 @@ export const DeviceSpecificPromotionList: React.FC = () => {
                     <TableCell>
                       <div>
                         <div className="font-medium text-foreground">
-                          {promotion.ratePlan.ratePlanName}
+                          {promotion.ratePlan?.ratePlanName || 'Multiple Plans'}
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {promotion.ratePlan.ratePlanCode}
+                          {promotion.ratePlan?.ratePlanCode || promotion.ratePlanCode}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell className="font-medium">{promotion.promotionName}</TableCell>
                     <TableCell>
-                      <div className="flex gap-2">
-                        {promotion.deviceType.map((device) => (
-                          <div
-                            key={device}
-                            className="flex items-center gap-1 px-2 py-1 bg-muted rounded text-xs"
-                            title={device.charAt(0).toUpperCase() + device.slice(1)}
-                          >
-                            {getDeviceIcon(device)}
-                            <span className="capitalize">{device}</span>
-                          </div>
-                        ))}
+                      <div className="flex items-center gap-1 text-xs">
+                        <Clock className="w-3 h-3 text-muted-foreground" />
+                        <span>{promotion.advanceBookingDays || 7} days</span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -305,8 +293,18 @@ export const DeviceSpecificPromotionList: React.FC = () => {
                         {getDiscountDisplay(promotion)}
                       </span>
                     </TableCell>
-                    <TableCell>{formatDate(promotion.validFrom)}</TableCell>
-                    <TableCell>{formatDate(promotion.validTo)}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1 text-xs">
+                        <Calendar className="w-3 h-3 text-muted-foreground" />
+                        {formatDate(promotion.validFrom)}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1 text-xs">
+                        <Calendar className="w-3 h-3 text-muted-foreground" />
+                        {formatDate(promotion.validTo)}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <span className="text-xs text-muted-foreground">
                         {getActiveDays(promotion.applicableDays)}
@@ -351,7 +349,7 @@ export const DeviceSpecificPromotionList: React.FC = () => {
           <div className="bg-card border border-border rounded-lg shadow-lg max-w-md w-full mx-4 p-6">
             <div className="space-y-4">
               <div>
-                <h3 className="text-lg font-semibold text-foreground">Delete Device-Specific Promotion</h3>
+                <h3 className="text-lg font-semibold text-foreground">Delete Early Bird Promotion</h3>
                 <p className="text-sm text-muted-foreground mt-2">
                   Are you sure you want to delete this promotion? This action cannot be undone.
                 </p>
@@ -381,4 +379,4 @@ export const DeviceSpecificPromotionList: React.FC = () => {
   );
 };
 
-export default DeviceSpecificPromotionList;
+export default EarlyBirdPromotionList;

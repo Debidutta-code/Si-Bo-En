@@ -1,8 +1,9 @@
-import {createMobilePromotionService,getMobilePromotionByRatePlanIdService,getMobilePromotionsByPropertyIdService,updateMobilePromotionService,deleteMobilePromotionService} from "./mobilePromotion.service";
+import {createDeviceSpecificPromotionService,getDeviceSpecificPromotionByIdService,getDeviceSpecificPromotionsByPropertyService,updateDeviceSpecificPromotionService,deleteDeviceSpecificPromotionService,toggleDeviceSpecificPromotionStatusService} from "./mobilePromotion.service";
 export {
-    createMobilePromotionService,
-    getMobilePromotionByRatePlanIdService,
-    getMobilePromotionsByPropertyIdService,
-    updateMobilePromotionService,
-    deleteMobilePromotionService
+    createDeviceSpecificPromotionService,
+    getDeviceSpecificPromotionByIdService,
+    getDeviceSpecificPromotionsByPropertyService,
+    updateDeviceSpecificPromotionService,
+    deleteDeviceSpecificPromotionService,
+    toggleDeviceSpecificPromotionStatusService
 }
