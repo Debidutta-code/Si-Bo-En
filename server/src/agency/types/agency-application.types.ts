@@ -1,6 +1,7 @@
 import { CurrencyCode } from "../../pms/frontoffice/payment/types";
 
 export type AgencyApplicationStatus = "pending" | "approved" | "rejected";
+export type fAgencyApplicationStatus = "all" | AgencyApplicationStatus;
 export type AgencyType = "travel_agency" | "corporate";
 export type AgentCommissionType = "percentage" | "fixed";
 export interface ICAgencyApplication {

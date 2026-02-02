@@ -1,7 +1,7 @@
 import { errorResponse } from "../../utils/return";
 import { CustomRequest } from "../../utils/customRequest";
 import { Request, Response } from "express";
-import { AgencyApplicationStatus, ICAgencyApplication } from "../types";
+import { AgencyApplicationStatus, } from "../types";
 import { AgencyApplicationService } from "../services";
 
 export class AgencyApplicationController {
@@ -107,6 +107,42 @@ export class AgencyApplicationController {
                 return res.status(500).json(errorResponse("failed to update application status", error.message));
             }
             return res.status(500).json(errorResponse("Internal Server Error", "failed to update application status"));
+        }
+    }
+    public async getApplications(req: CustomRequest, res: Response): Promise<Response> {
+        try {
+            const { status, page, limit } = req.query;
+
+            const result = await this.agencyApplicationService.getAgencyApplications(
+                status as AgencyApplicationStatus,
+                Number(page),
+                Number(limit)
+            );
+
+            return res.status(result.success ? 200 : 400).json(result);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res.status(500).json(errorResponse("failed to get applications", error.message));
+            }
+            return res.status(500).json(errorResponse("Internal Server Error", "failed to get applications"));
+        }
+    }
+    public async getAgencyApplicationByName(req: CustomRequest, res: Response): Promise<Response> {
+        try {
+            const { name } = req.params;
+
+            if (!name) {
+                return res.status(400).json(errorResponse("Name is required"));
+            }
+
+            const result = await this.agencyApplicationService.getAgencyApplicationByName(name);
+
+            return res.status(result.success ? 200 : 400).json(result);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res.status(500).json(errorResponse("failed to get application by name", error.message));
+            }
+            return res.status(500).json(errorResponse("Internal Server Error", "failed to get application by name"));
         }
     }
 }

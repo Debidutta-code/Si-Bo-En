@@ -7,7 +7,7 @@ import {
     AgentRepository,
     AgenticRoomRepository
 } from "../repository";
-import { AgencyApplicationStatus, IAgencyApplication, ICAgencyApplication } from "../types";
+import { AgencyApplicationStatus, fAgencyApplicationStatus, IAgencyApplication, ICAgencyApplication } from "../types";
 
 export class AgencyApplicationService {
     private agencyRepository: AgencyRepository;
@@ -200,5 +200,39 @@ export class AgencyApplicationService {
         }
 
     }
-
+    public async getAgencyApplications(status: fAgencyApplicationStatus="all", page: number=1, limit: number=10): Promise<IApiResponse> {
+        try {
+            const [applications, totalCount] = await Promise.all([
+                this.agencyApplicationRepository.getApplications(status, page, limit),
+                this.agencyApplicationRepository.getCount()
+            ]);
+            return paginatedSuccessResponse("Agency applications retrieved successfully", applications, {
+                currentPage: page,
+                totalPages: Math.ceil(totalCount / limit),
+                totalCount,
+                hasNextPage: page < (totalCount / limit),
+                hasPrevPage: page > 1,
+                limit
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                return errorResponse("failed to retrieve agency applications", error.message);
+            }
+            return errorResponse("failed to retrieve agency applications");
+        }
+    }
+    public async getAgencyApplicationByName(name: string): Promise<IApiResponse> {
+        try {
+            const application = await this.agencyApplicationRepository.getAgentApplicationsByName(name);
+            if (!application) {
+                return errorResponse("Agency application not found");
+            }
+            return successResponse("Agency application retrieved successfully", application);
+        } catch (error) {
+            if (error instanceof Error) {
+                return errorResponse("failed to retrieve agency application", error.message);
+            }
+            return errorResponse("failed to retrieve agency application");
+        }
+    }
 }

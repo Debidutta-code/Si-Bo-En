@@ -188,6 +188,15 @@ enum ReservationStatus {
   no_show
 }
 
+enum LoyaltyProgramLevel {
+  basic
+  advance
+}
+
+enum Languages {
+  en
+}
+
 model Creation {
   id          String       @id @default(uuid())
   type        CreationType
@@ -228,6 +237,9 @@ model Creation {
   isDeleted Boolean  @default(false) @map("is_deleted")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  //loyalty
+  loyaltyProgramConfig CreationLoyaltyConfig?
 
   // Indexes
   @@index([type])
@@ -310,31 +322,31 @@ model Property {
   creationId String   @unique @map("creation_id")
 
   // Embedded Data (1:1 relations)
-  propertyCategory  PropertyCategory?
-  propertyType      PropertyType?
-  propertyAddress   PropertyAddress?
-  propertyAmenities PropertyAmenitySelection[]
-  bankDetails       BankDetails?
-  reservations      Reservation[]
-  propertyVideos    PropertyVideo?
-
+  propertyCategory     PropertyCategory?
+  propertyType         PropertyType?
+  propertyAddress      PropertyAddress?
+  bankDetails          BankDetails?
+  propertyVideos       PropertyVideo?
+  bookingEngineConfig  BookingEngineConfigurations?
+  propertyConfigs      PropertyConfigs?
+  Commissions          PropertyCommission?
+  loyaltyProgramConfig PropertyLoyaltyConfig?
   // Children
-  propertyRooms       Room[]
-  ratePlans           RatePlan[]
-  bookingEngineConfig BookingEngineConfigurations?
-  promoCodes          PromoCode[]
-  taxRules            TaxRule[]                    @relation("PropertyTaxRules")
-  taxGroups           TaxGroup[]                   @relation("PropertyTaxGroups")
-  addOns              Addon[]
-  Guests              Guests[]
-  Policy              Policy[]
-  propertyConfigs     PropertyConfigs?
-  agenticProperties   AgenticProperty[]
-  Commissions         PropertyCommission?
+  reservations         Reservation[]
+  propertyAmenities    PropertyAmenitySelection[]
+  propertyRooms        Room[]
+  ratePlans            RatePlan[]
+  promoCodes           PromoCode[]
+  taxRules             TaxRule[]                    @relation("PropertyTaxRules")
+  taxGroups            TaxGroup[]                   @relation("PropertyTaxGroups")
+  addOns               Addon[]
+  Guests               Guests[]
+  Policy               Policy[]
+  agenticProperties    AgenticProperty[]
   geoRatePlans        GeoRatePlan[]
   promotions          Promotion[]
-  createdAt           DateTime                     @default(now())
-  updatedAt           DateTime                     @updatedAt
+  createdAt            DateTime                     @default(now())
+  updatedAt            DateTime                     @updatedAt
 
   @@index([createdById])
   @@index([creationId])
@@ -360,6 +372,16 @@ model PropertyConfigs {
   updatedAt                       DateTime     @updatedAt
 
   @@map("property_configs")
+}
+
+model MasterLoyaltyRegistrationFields {
+  id String @id @default(uuid())
+
+  fieldName String
+
+  LoyaltyProgramFieldConfigs LoyaltyProgramFieldConfig[]
+
+  @@map("master_loyalty_registration_fields")
 }
 
 model MasterPropertyCategory {
@@ -1230,6 +1252,120 @@ model AgentApplications {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("agent_applications")
+}
+
+model CreationLoyaltyConfig {
+  id         String   @id @default(uuid())
+  creationId String   @unique @map("creation_id")
+  Creation   Creation @relation(fields: [creationId], references: [id])
+
+  loyaltyDiscountType DiscountType  @default(percentage) @map("loyalty_discount_type")
+  discountValue       Int           @map("discount_value")
+  currencyCode        CurrencyCode? @default(INR) @map("currency_code")
+
+  BasicLoyaltyProgram     BasicLoyaltyProgram?
+  AdvanceLoyaltyProgram   AdvanceLoyaltyProgram?
+  loyaltyAdvanceProgram   LoyaltyConditions?
+  loyaltySpecialCondition LoyaltySpecialCondition?
+
+  LoyaltyProgramFieldConfig LoyaltyProgramFieldConfig[]
+  PropertyLoyaltyConfig     PropertyLoyaltyConfig[]
+  createdAt                 DateTime                    @default(now())
+
+  @@map("loyalty_program_configs")
+}
+
+model PropertyLoyaltyConfig {
+  id                      String                @id @default(uuid())
+  creationLoyaltyConfigId String                @map("creation_loyalty_config_id")
+  CreationLoyaltyConfig   CreationLoyaltyConfig @relation(fields: [creationLoyaltyConfigId], references: [id], onDelete: Cascade)
+  propertyId              String                @unique @map("property_id")
+  propertyCode            String                @unique @map("property_code")
+  propertyName            String                @map("property_name")
+  Property                Property              @relation(fields: [propertyId], references: [id])
+  isActive                Boolean               @default(true) @map("is_active")
+  // @@unique([creationLoyaltyConfigId, propertyId,isActive])
+  @@map("property_loyalty_configs")
+}
+
+model BasicLoyaltyProgram {
+  id               String                @id @default(uuid())
+  loyaltyProgramId String                @unique @map("loyalty_program_id")
+  LoyaltyProgram   CreationLoyaltyConfig @relation(fields: [loyaltyProgramId], references: [id], onDelete: Cascade)
+
+  isActive Boolean  @default(true) @map("is_active")
+  logo     String[]
+
+  createdAt DateTime @default(now())
+
+  @@map("basic_loyalty_programs")
+}
+
+model AdvanceLoyaltyProgram {
+  id               String                @id @default(uuid())
+  loyaltyProgramId String                @unique @map("loyalty_program_id")
+  LoyaltyProgram   CreationLoyaltyConfig @relation(fields: [loyaltyProgramId], references: [id], onDelete: Cascade)
+
+  activeInCorporateWeb    Boolean @default(true) @map("active_in_corporate_web")
+  defaultLoginMode        Boolean @default(false) @map("default_login_mode")
+  externalRegistrationUrl String? @map("external_registration_url")
+  roomLimitByBooking      Int     @default(1) @map("room_limit_by_booking")
+  blockUserFieldFromForm  Boolean @default(false) @map("block_user_field_from_form")
+
+  createdAt DateTime @default(now())
+
+  @@map("advance_loyalty_programs")
+}
+
+model LoyaltyConditions {
+  id               String                @id @default(uuid())
+  loyaltyProgramId String                @unique @map("loyalty_program_id")
+  LoyaltyProgram   CreationLoyaltyConfig @relation(fields: [loyaltyProgramId], references: [id], onDelete: Cascade)
+
+  text      String
+  language  Languages @default(en)
+  isActive  Boolean   @default(true) @map("is_active")
+  isDeleted Boolean   @default(false) @map("is_deleted")
+
+  createdAt DateTime @default(now())
+
+  @@map("loyalty_conditions")
+}
+
+model LoyaltySpecialCondition {
+  id               String                @id @default(uuid())
+  loyaltyProgramId String                @unique @map("loyalty_program_id")
+  LoyaltyProgram   CreationLoyaltyConfig @relation(fields: [loyaltyProgramId], references: [id], onDelete: Cascade)
+
+  title     String
+  subTitle  String?   @map("sub_title")
+  language  Languages @default(en)
+  isActive  Boolean   @default(true) @map("is_active")
+  isDeleted Boolean   @default(false) @map("is_deleted")
+
+  createdAt DateTime @default(now())
+
+  @@map("loyalty_special_conditions")
+}
+
+model LoyaltyProgramFieldConfig {
+  id String @id @default(uuid())
+
+  loyaltyProgramId String
+  loyaltyProgram   CreationLoyaltyConfig @relation(fields: [loyaltyProgramId], references: [id], onDelete: Cascade)
+
+  masterRegistrationFieldId String
+  MasterRegistrationField   MasterLoyaltyRegistrationFields @relation(fields: [masterRegistrationFieldId], references: [id], onDelete: Cascade)
+
+  fieldName String
+
+  visibleInRegistration Boolean @default(true)
+  visibleInCustomerForm Boolean @default(true)
+  required              Boolean @default(false)
+
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@unique([loyaltyProgramId, fieldName])
 }
 
 model GeoRatePlan {

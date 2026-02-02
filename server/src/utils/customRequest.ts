@@ -6,6 +6,7 @@ export interface PropertyRequest extends ExpressRequest {
     id: string;
     propertyName: string;
     propertyCode: string;
+    creationId: string;
     timezone?: string;
     currencyCode?: string;
   };
