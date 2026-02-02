@@ -15,6 +15,7 @@ export class RoomRentCalculationController {
         noOfAdults,
         noOfRooms,
         ratePlanCode,
+        addons
       } = req.body;
 
       // Validate required fields
@@ -57,7 +58,8 @@ export class RoomRentCalculationController {
         ratePlanCode,
         children,
         adults,
-        rooms
+        rooms,
+        addons
       );
 
       if (response.success) {

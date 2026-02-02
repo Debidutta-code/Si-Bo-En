@@ -1,10 +1,9 @@
 // services/roomRentCalculation.service.ts
 
-import { differenceInDays, startOfDay } from 'date-fns';
+import { differenceInDays } from 'date-fns';
 import { errorResponse, successResponse } from '../../utils/return';
 
 import { prisma } from "../../config"
-import { getPropertyCode } from "../utils";
 import { toUTCDate } from '../../utils';
 
 interface RateCalculationResult {
@@ -70,7 +69,8 @@ export class RoomRentCalculationService {
     ratePlanCode: string,
     noOfChildren: number,
     noOfAdults: number,
-    noOfRooms: number
+    noOfRooms: number,
+    addons?: any[]
   ): Promise<RateCalculationResult> {
     try {
       // Input validation
@@ -123,18 +123,6 @@ export class RoomRentCalculationService {
         return errorResponse('Rate plan not found');
       }
 
-      // Check min/max length of stay
-      // if (numberOfNights < ratePlan.minimumLenghthOfStay) {
-      //   return errorResponse(
-      //     `Minimum stay of ${ratePlan.minimumLenghthOfStay} nights required for this rate plan.`
-      //   );
-      // }
-
-      // if (ratePlan.maximumLengthOfStay && numberOfNights > ratePlan.maximumLengthOfStay) {
-      //   return errorResponse(
-      //     `Maximum stay of ${ratePlan.maximumLengthOfStay} nights allowed for this rate plan.`
-      //   );
-      // }
       console.log("inv ava:", start, end);
 
       // Step 2: Check inventory availability

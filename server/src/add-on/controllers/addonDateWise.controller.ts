@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { AddonDateWiseService } from "../services";
-import { successResponse,errorResponse } from "../../utils/return";
+import { successResponse, errorResponse } from "../../utils/return";
 import { ICreateAddonAvailability } from "../interfaces";
 import { PropertyCustomRequest } from "../../utils";
 export class AddonDateWiseController {
@@ -40,7 +40,7 @@ export class AddonDateWiseController {
             // Create all addon date-wise entries
             const result = await this.addonDateWiseService.createAddonDateWise(addOnArr);
 
-                return res.status(result.success ? 201 : 400).json(result);
+            return res.status(result.success ? 201 : 400).json(result);
         } catch (error: any) {
 
             if (error instanceof Error) {
@@ -60,7 +60,7 @@ export class AddonDateWiseController {
 
             const result = await this.addonDateWiseService.getAddOnDateWiseById(addonId);
 
-                return res.status(result.success ? 200 : 400).json(result);
+            return res.status(result.success ? 200 : 400).json(result);
         } catch (error: any) {
 
             if (error instanceof Error) {
@@ -168,6 +168,39 @@ export class AddonDateWiseController {
                 return res.status(500).json(errorResponse("Failed to get addons for date", error.message));
             }
             return res.status(500).json(errorResponse("Failed to get addons for date", "Unable to fetch addons for date at this moment"));
+        }
+    };
+
+    /**
+     * Get available addons for a property within a date range
+     */
+    getAvailableAddonsByDateRange = async (req: PropertyCustomRequest, res: Response) => {
+        try {
+            // Property ID is resolved from propertyCode by the middleware
+            const propertyId = req.property?.id;
+            const startDate = String(req.query.startDate || '');
+            const endDate = String(req.query.endDate || '');
+
+            if (!propertyId) {
+                return res.status(400).json(errorResponse("Property not found"));
+            }
+
+            if (!startDate || !endDate) {
+                return res.status(400).json(errorResponse("Start date and end date are required"));
+            }
+
+            const result = await this.addonDateWiseService.getAvailableAddonsByDateRange(
+                propertyId,
+                startDate,
+                endDate
+            );
+
+            return res.status(result.success ? 200 : 400).json(result);
+        } catch (error: any) {
+            if (error instanceof Error) {
+                return res.status(500).json(errorResponse("Failed to get available addons", error.message));
+            }
+            return res.status(500).json(errorResponse("Failed to get available addons", "Unable to fetch available addons at this moment"));
         }
     };
 }

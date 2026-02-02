@@ -1,8 +1,8 @@
 import { AddonDateWiseDao } from "../repository/addonDateWise.repository";
 import AddonRepository from "../repository/addon.repository";
-import { IAddonAvailability,ICreateAddonAvailability,IUpdateAddonAvailability } from "../interfaces";
+import { IAddonAvailability, ICreateAddonAvailability, IUpdateAddonAvailability } from "../interfaces";
 import { IApiResponse } from "../../utils/return.types";
-import { successResponse,errorResponse } from "../../utils/return";
+import { successResponse, errorResponse } from "../../utils/return";
 export class AddonDateWiseService {
     private addonDateWiseDao: AddonDateWiseDao;
 
@@ -42,8 +42,8 @@ export class AddonDateWiseService {
 
     async getAddOnDateWiseById(addonId: string): Promise<IApiResponse> {
         try {
-             const result = await this.addonDateWiseDao.getAddonDateWiseById(addonId);
-             return successResponse("Addon date-wise availability fetched successfully", result);
+            const result = await this.addonDateWiseDao.getAddonDateWiseById(addonId);
+            return successResponse("Addon date-wise availability fetched successfully", result);
         } catch (error: any) {
             if (error instanceof Error) {
                 return errorResponse("Failed to get addon date-wise by ID", error.message);
@@ -96,8 +96,8 @@ export class AddonDateWiseService {
                 data
             );
 
-                if (!result) {
-                    return errorResponse("Addon date-wise record not found", "Not Found");
+            if (!result) {
+                return errorResponse("Addon date-wise record not found", "Not Found");
             }
 
             return successResponse("Addon date-wise record updated successfully", result);
@@ -170,4 +170,54 @@ export class AddonDateWiseService {
             return errorResponse("Failed to get addons by date", "Unknown error");
         }
     }
+
+    /**
+     * Get available addons for a property within a date range
+     */
+    async getAvailableAddonsByDateRange(
+        propertyId: string,
+        startDateStr: string,
+        endDateStr: string
+    ): Promise<IApiResponse> {
+        try {
+            if (!propertyId) {
+                return errorResponse("Property ID is required", "Bad Request");
+            }
+            if (!startDateStr) {
+                return errorResponse("Start date is required", "Bad Request");
+            }
+            if (!endDateStr) {
+                return errorResponse("End date is required", "Bad Request");
+            }
+
+            const startDate = new Date(startDateStr);
+            const endDate = new Date(endDateStr);
+
+            // Validate dates
+            if (isNaN(startDate.getTime())) {
+                return errorResponse("Invalid start date format", "Bad Request");
+            }
+            if (isNaN(endDate.getTime())) {
+                return errorResponse("Invalid end date format", "Bad Request");
+            }
+            if (startDate > endDate) {
+                return errorResponse("Start date must be before or equal to end date", "Bad Request");
+            }
+
+            const result = await AddonDateWiseDao.getAvailableAddonsByDateRange(
+                propertyId,
+                startDate,
+                endDate
+            );
+
+            return successResponse("Available addons fetched successfully", result);
+        } catch (error: any) {
+            if (error instanceof Error) {
+                return errorResponse("Failed to get available addons", error.message);
+            }
+            console.error('Failed to get available addons at Service Layer:', error);
+            return errorResponse("Failed to get available addons", "Unknown error");
+        }
+    }
+    
 }
