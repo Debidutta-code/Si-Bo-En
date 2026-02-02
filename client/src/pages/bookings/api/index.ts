@@ -3,8 +3,6 @@ export {
   fetchReservations,
   fetchArrivals,
   fetchDepartures,
-  fetchCheckIns,
-  fetchCheckOuts,
   fetchReservationByCode,
   cancelReservation,
   amendReservation,

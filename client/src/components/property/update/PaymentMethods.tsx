@@ -19,7 +19,7 @@ export default function PaymentMethodsUi({
     }));
   };
   return (
-    <div className=" bg-gray-50">
+    <div className=" bg-gray-50 ">
       <div className="max-w-5xl mx-auto">
         <div className="bg-white shadow-xl border border-gray-200 rounded-3xl overflow-hidden">
           
@@ -37,17 +37,7 @@ export default function PaymentMethodsUi({
                     desc: "Guests can pay directly at the property upon arrival or departure.",
                   },
                   {
-                    key: "bankTransfer",
-                    label: "Bank Transfer",
-                    desc: "Enable direct bank account transfers for bookings.",
-                  },
-                  {
-                    key: "upi",
-                    label: "UPI Payment",
-                    desc: "Accept instant UPI payments via QR or ID.",
-                  },
-                  {
-                    key: "gateway",
+                    key: "paymentGateway",
                     label: "Payment Gateway",
                     desc: "Accept credit/debit cards, net banking, and digital wallets.",
                   },

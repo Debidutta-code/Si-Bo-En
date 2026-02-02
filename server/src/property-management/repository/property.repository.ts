@@ -21,13 +21,6 @@ export class PropertyDao {
           createdById: data.createdById,
           creationId: data.creationId,
 
-          // Create the junction table records
-          destinationType: data.destinationType?.masterDestinationType?.id ? {
-            create: {
-              masterDestinationTypeId: data.destinationType.masterDestinationType.id
-            }
-          } : undefined,
-
           propertyCategory: data.propertyCategory?.masterCategory?.id ? {
             create: {
               masterCategoryId: data.propertyCategory.masterCategory.id
@@ -51,11 +44,6 @@ export class PropertyDao {
               masterCategory: true
             }
           },
-          destinationType: {
-            include: {
-              masterDestinationType: true
-            }
-          }
         },
       });
 
@@ -71,7 +59,11 @@ export class PropertyDao {
           propertyId: property.id,
           channelManagerIntegrationActive:true,
           pmsIntegrationActive:true,
-          reservationResetTime:"9.30",
+          baseCurrency:"USD",
+          commission:false,
+          isB2cAvailable:true,
+          isB2bAvailable:false,
+          reservationResetMinutes:570,
           selfAriActive:true,
           
         }
@@ -117,15 +109,11 @@ export class PropertyDao {
                     }
                   }
                 }
-              }
+              },
+              roomVideos:true
               
             }
 
-          },
-          destinationType: {
-            include: {
-              masterDestinationType: true,
-            },
           },
           propertyCategory: {
             include: {
@@ -136,8 +124,8 @@ export class PropertyDao {
             include: {
               masterPropertyType: true,
             },
-          }, propertyAddress: true
-
+          }, propertyAddress: true,
+          propertyVideos:true
 
 
         },
@@ -617,13 +605,20 @@ console.log(createResult);
     }
   }
 
-  public static async getActiveAmenities(propertyId: string): Promise<string[]> {
-    try {
-      const amenitySelections = await this.findByPropertyId(propertyId);
-      return amenitySelections.map(selection => selection.amenity.amenityName);
-    } catch (error: any) {
-      throw new Error(`Failed to get active amenities: ${error.message}`);
-    }
+ public static async getActiveAmenities(
+  propertyId: string
+): Promise<{ id: string; name: string }[]> {
+  try {
+    const amenitySelections = await this.findByPropertyId(propertyId);
+
+    return amenitySelections.map(selection => ({
+      id: selection.amenity.id,
+      name: selection.amenity.amenityName
+    }));
+  } catch (error: any) {
+    throw new Error(`Failed to get active amenities: ${error.message}`);
   }
+}
+
 }
 

@@ -50,7 +50,8 @@ export default function Inventory() {
     text: "",
   });
   const [isSaving, setIsSaving] = useState(false);
-
+  const [fromDateOpen, setFromDateOpen] = useState(false);
+  const [toDateOpen, setToDateOpen] = useState(false);
   useEffect(() => {
     fetchRoomTypes();
   }, []);
@@ -91,6 +92,12 @@ export default function Inventory() {
 
   const handleDateSelect = (range: { from: Date | undefined; to: Date | undefined }) => {
     setDateRange(range);
+    if (range.from) {
+      setFromDateOpen(false);
+    }
+    if (range.to) {
+      setToDateOpen(false);
+    }
     if (range.from && range.to) {
       setSelectedRooms({
         ...selectedRooms,
@@ -231,7 +238,7 @@ export default function Inventory() {
                   </Label>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {/* Start Date */}
-                    <Popover>
+                    <Popover onOpenChange={setFromDateOpen} open={fromDateOpen}>
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"
@@ -264,7 +271,7 @@ export default function Inventory() {
                     </Popover>
 
                     {/* End Date */}
-                    <Popover>
+                    <Popover onOpenChange={setToDateOpen} open={toDateOpen}>
                       <PopoverTrigger asChild>
                         <Button
                           variant="outline"

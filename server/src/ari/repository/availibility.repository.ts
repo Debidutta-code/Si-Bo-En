@@ -1,5 +1,4 @@
-import prisma from '../../config/prisma.client';
-import { formatDateToYYYYMMDD } from '../utils/date';
+import prisma from '../../config/prisma.client';import { toUTCDate } from '../../utils';
 
 export class AvailabilityRepository {
   public static async getPropertyByCode(propertyCode: string, roomTypeCodes: string[] = []) {
@@ -24,6 +23,7 @@ export class AvailabilityRepository {
           ratePlans: {
             include: {
               taxGroup: true,
+              ratePlanRules: true, // For min/max LOS
             },
           },
         },
@@ -43,14 +43,16 @@ export class AvailabilityRepository {
     roomTypeCodes: string[] = []
   ) {
     try {
-      const startDateStr = formatDateToYYYYMMDD(startDate);
-      const endDateStr = formatDateToYYYYMMDD(endDate);
+      const startDateUTC = toUTCDate(startDate);
+      const endDateUTC = toUTCDate(endDate);
+      
+      console.log(startDateUTC, endDateUTC);
 
       const whereClause: any = {
         propertyCode,
         date: {
-          gte: startDateStr,
-          lte: endDateStr,
+          gte: startDateUTC,
+          lte: endDateUTC,
         },
       };
 
@@ -76,11 +78,14 @@ export class AvailabilityRepository {
     roomTypeCodes: string[] = []
   ) {
     try {
+      const startDateUTC = toUTCDate(startDate);
+      const endDateUTC = toUTCDate(endDate);
+
       const whereClause: any = {
         propertyCode,
         date: {
-          gte: startDate,
-          lte: endDate,
+          gte: startDateUTC,
+          lte: endDateUTC,
         },
       };
 
@@ -113,6 +118,9 @@ export class AvailabilityRepository {
     roomTypeCodes: string[] = []
   ) {
     try {
+      const startDateUTC = toUTCDate(startDate);
+      const endDateUTC = toUTCDate(endDate);
+
       const whereClause: any = {
         propertyCode,
         bookingStatus: {
@@ -121,20 +129,20 @@ export class AvailabilityRepository {
         OR: [
           {
             checkInDate: {
-              gte: startDate,
-              lte: endDate,
+              gte: startDateUTC,
+              lte: endDateUTC,
             },
           },
           {
             checkOutDate: {
-              gte: startDate,
-              lte: endDate,
+              gte: startDateUTC,
+              lte: endDateUTC,
             },
           },
           {
             AND: [
-              { checkInDate: { lte: startDate } },
-              { checkOutDate: { gte: endDate } },
+              { checkInDate: { lte: startDateUTC } },
+              { checkOutDate: { gte: endDateUTC } },
             ],
           },
         ],

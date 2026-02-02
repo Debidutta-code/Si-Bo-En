@@ -7,8 +7,6 @@ import {
   fetchReservations,
   fetchArrivals,
   fetchDepartures,
-  fetchCheckIns,
-  fetchCheckOuts,
   fetchProperties,
   cancelReservation,
 } from "./api";
@@ -22,6 +20,7 @@ import { Calendar, FileText, AlertCircle } from "lucide-react";
 import { ReservationFilters } from "./components";
 import Loader from "@/components/Loader/Loader";
 import ReservationsTable from "./components/ReservationsTable";
+import { noShowReservation } from "./api/reservation.api";
 
 export default function ReservationsPage() {
   const [reservations, setReservations] = useState<IReservation[]>([]);
@@ -36,13 +35,15 @@ export default function ReservationsPage() {
   });
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<IReservationFilters>({
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    page: 1,
-    limit: 10,
-    bookingStatus: 'all',
-    reservationType: 'all'
-  });
+  startDate: new Date().toISOString().split('T')[0],
+  endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+  page: 1,
+  limit: 10,
+  bookingStatus: 'all',
+  reservationType: 'all',
+  bookingSource: 'all',
+  deviceType: 'all'
+});
 
   // Fetch properties on mount
   useEffect(() => {
@@ -66,18 +67,25 @@ export default function ReservationsPage() {
   };
 
   const loadReservations = async () => {
-    setLoading(true);
-    try {
-      let response;
-      const apiFilters = {
-        startDate: filters.startDate,
-        endDate: filters.endDate,
-        propertyId: filters.propertyId,
-        propertyCode: filters.propertyCode,
-        bookingStatus: filters.bookingStatus !== 'all' ? filters.bookingStatus : undefined,
-        page: filters.page,
-        limit: filters.limit
-      };
+  setLoading(true);
+  try {
+    let response;
+    const apiFilters = {
+      startDate: filters.startDate,
+      endDate: filters.endDate,
+      dateFilterType: filters.dateFilterType,
+      propertyId: filters.propertyId,
+      propertyCode: filters.propertyCode,
+      bookingStatus: filters.bookingStatus !== 'all' ? filters.bookingStatus : undefined,
+      bookingSource: filters.bookingSource !== 'all' ? filters.bookingSource : undefined,
+      deviceType: filters.deviceType !== 'all' ? filters.deviceType : undefined,
+      bookingCode: filters.bookingCode,
+      guestName: filters.guestName,
+      promoCode: filters.promoCode,
+      countryCode: filters.countryCode,
+      page: filters.page,
+      limit: filters.limit
+    };
 
       // Call appropriate API based on reservation type
       switch (filters.reservationType) {
@@ -86,12 +94,6 @@ export default function ReservationsPage() {
           break;
         case 'departures':
           response = await fetchDepartures(apiFilters);
-          break;
-        case 'checkins':
-          response = await fetchCheckIns(apiFilters);
-          break;
-        case 'checkouts':
-          response = await fetchCheckOuts(apiFilters);
           break;
         default:
           response = await fetchReservations(apiFilters);
@@ -126,16 +128,18 @@ export default function ReservationsPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
-  const handleClearFilters = () => {
-    setFilters({
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      page: 1,
-      limit: 10,
-      bookingStatus: 'all',
-      reservationType: 'all'
-    });
-  };
+const handleClearFilters = () => {
+  setFilters({
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+    page: 1,
+    limit: 10,
+    bookingStatus: 'all',
+    reservationType: 'all',
+    bookingSource: 'all',
+    deviceType: 'all'
+  });
+};
 
   const handleCancelReservation = async (reservationId: string) => {
     try {
@@ -150,7 +154,19 @@ export default function ReservationsPage() {
       toast.error(error.message || "Failed to cancel reservation");
     }
   };
-
+const handleNoShowReservation = async (reservationId: string) => {
+    try {
+      const response = await noShowReservation(reservationId);
+      if (response.success) {
+        toast.success("Reservation marked as no-show successfully");
+        loadReservations();
+      } else {
+        toast.error(response.message || "Failed to mark reservation as no-show");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "Failed to mark reservation as no-show");
+    }
+  };
   // const handleAmendReservation = (reservationId: string) => {
   //   // Navigate to amendment page or open modal
   //   // router(`/reservations/amend/${reservationId}`);
@@ -160,15 +176,13 @@ export default function ReservationsPage() {
     switch (filters.reservationType) {
       case 'arrivals': return 'Arrivals';
       case 'departures': return 'Departures';
-      case 'checkins': return 'Check-Ins';
-      case 'checkouts': return 'Check-Outs';
       default: return 'All Reservations';
     }
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
@@ -230,6 +244,7 @@ export default function ReservationsPage() {
             <ReservationsTable
               reservations={reservations}
               onCancel={handleCancelReservation}
+              onNoShow={handleNoShowReservation}
             />
 
             {/* Pagination */}

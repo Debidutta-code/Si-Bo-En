@@ -11,13 +11,16 @@ import {
 import {
     AminityServices,
     CategoryService,
-    DestinationTypeService,
     PropertyTypeService,
     RoomAmenityServices
 } from "./types.service";
 
 
 import {PropertyConfigService} from "./property-config.service";
+export {
+    PropertyVideoService,
+    RoomVideoService
+} from "./vedio.service";
 import { BookingEngineService } from "./bookingEngine.service";
 export {
     PropertyConfigService,
@@ -29,7 +32,6 @@ export {
     PropertyService,
     RoomAminityService,
     RoomService,
-    DestinationTypeService,
     PropertyTypeService,
     RoomAmenityServices,
     BookingEngineService

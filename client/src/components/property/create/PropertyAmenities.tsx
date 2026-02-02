@@ -103,8 +103,8 @@ export default function PropertyAmenities() {
         setAvailableAmenities(amenityKeys);
 
         // Initialize selectedAmenities with all false
-        const defaultState = amenityKeys.reduce((acc:any, key:any) => {
-          acc[key] = false;
+        const defaultState = amenityKeys.reduce((acc:any, amenity:IAmenityTypes) => {
+          acc[amenity.id] = false;
           return acc;
         }, {} as Record<string, boolean>);
 
@@ -114,8 +114,8 @@ export default function PropertyAmenities() {
           // Convert array like ['wifi', 'tv'] → { wifi: true, tv: true, gym: false }
           const selectedMap = { ...defaultState };
           selectedResponse.data.forEach((amenity:any) => {
-            if (selectedMap.hasOwnProperty(amenity)) {
-              selectedMap[amenity] = true;
+            if (selectedMap.hasOwnProperty(amenity.id)) {
+              selectedMap[amenity.id] = true;
             }
           });
           setSelectedAmenities(selectedMap);
@@ -231,12 +231,12 @@ export default function PropertyAmenities() {
               <>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-8">
                   {availableAmenities.map((amenity:IAmenityTypes) => {
-                    const isSelected = selectedAmenities[amenity.amenityName] || false;
+                    const isSelected = selectedAmenities[amenity.id] || false;
                     return (
                       <button
-                        key={amenity.amenityName}
+                        key={amenity.id}
                         type="button"
-                        onClick={() => handleAmenityToggle(amenity.amenityName)}
+                        onClick={() => handleAmenityToggle(amenity.id)}
                         className={cn(
                           "group relative flex flex-col items-center justify-center p-4 rounded-xl border-2 text-center transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2",
                           isSelected

@@ -8,7 +8,8 @@ import type { IRTax, ITax } from "./tax.type";
 import type { AdditionalGuestAmount, BaseGuestAmount, IDailyAdditionalCharge, IWeekdayAdditionalCharges, IWeekdayCharges, RateCalculationResult, UpdatePlanData } from "./utills"
 
 import type {IstartStopSellR,IstartStopSellS} from "./start-sepo-sell.type"
-import type {IRestrictionRequest ,RoomRestriction , RestrictionType} from "./restriction.types"
+import type {IRestrictionRequest ,RoomRestriction , RestrictionType} from "./restriction.types";
+import type {IRatePlanWithAddon, IAddAddonToRatePlan, IRemoveAddonFromRatePlan} from "./Rateplanwithaddon.interface";
 export type {
     IAdditionalGuestAmount,
     ICharges,
@@ -41,5 +42,8 @@ export type {
     IRatePlan,
     IRestrictionRequest,
     RoomRestriction,
-    RestrictionType
+    RestrictionType,
+    IAddAddonToRatePlan,
+    IRatePlanWithAddon,
+    IRemoveAddonFromRatePlan
 }

@@ -25,14 +25,7 @@ export interface IPropertyDetails {
       categoryDescription: string
     }
   };
-  destinationType: {
-    masterDestinationType:{
-
-      id: string;
-      destinationTypeName: string
-      destinationDescription: string;
-    }
-  };
+  
   propertyType: {
     masterPropertyType:{
 
@@ -86,4 +79,8 @@ export interface IRoomDetails {
   image?: string[];
   available?: boolean;
   view360Link?: string;
+  roomVideos?: {
+    thumbnail: string;
+    url: string;
+  };
 }

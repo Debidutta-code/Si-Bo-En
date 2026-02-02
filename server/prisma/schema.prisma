@@ -68,6 +68,12 @@ enum DeviceType {
   desktop
 }
 
+enum ReservationDeviceType {
+  mobile
+  tablet
+  desktop
+}
+
 enum DiscountType {
   percentage
   flat
@@ -78,6 +84,7 @@ enum BookingStatus {
   confirmed
   cancelled
   modified
+  no_show
 }
 
 enum AmenityType {
@@ -90,14 +97,40 @@ enum TaxType {
   fixed
 }
 
+enum commissionType {
+  percentage
+  fixed
+}
+
+enum AgencyType {
+  travel_agency
+  corporate
+}
+
+enum AgentCommissionType {
+  percentage
+  fixed
+}
+
 enum TaxApplicableOn {
   room_rate
   total_amount
 }
 
+enum AgencyApplicationStatus {
+  pending
+  approved
+  rejected
+}
+
 enum PostingRhythm {
   per_night
+  per_person_per_night
+  per_person_per_stay
   per_stay
+  per_person_per_room
+  per_room
+  per_room_per_night
 }
 
 enum PaymentMethod {
@@ -108,8 +141,12 @@ enum PaymentMethod {
 }
 
 enum BookingSource {
-  ota
-  travel_agency
+  direct
+  google
+  trip_adviser
+  trivago
+  social_media
+  agency
 }
 
 enum FolioStatus {
@@ -139,35 +176,6 @@ enum ReservationStatus {
   cancelled
   no_show
 }
-
-// enum IndividualRoomStatus {
-//   reserved
-//   tentive
-//   checked_in
-//   checked_out
-//   available
-//   dirty
-//   blocked
-//   checked_in_dirty
-// }
-
-// enum HouseKeepingTaskStatus {
-//   assigned
-//   in_progress
-//   completed
-//   verified
-// }
-
-// enum TaskPriority {
-//   low
-//   medium
-//   high
-// }
-
-// enum BlockedReason {
-//   maintainance
-//   management
-// }
 
 model Creation {
   id          String       @id @default(uuid())
@@ -253,11 +261,11 @@ model User {
   level4Creation   Creation? @relation("Level4Users", fields: [level4CreationId], references: [id])
   level4CreationId String?   @map("level4_creation_id")
 
-  propertiesCreated      Property[]         @relation("PropertyCreatedBy")
-  usersCreated           User[]             @relation("UserCreatedBy")
-  creationsCreated       Creation[]         @relation("CreationCreatedBy")
-  createdAt              DateTime           @default(now())
-  updatedAt              DateTime           @updatedAt
+  propertiesCreated Property[] @relation("PropertyCreatedBy")
+  usersCreated      User[]     @relation("UserCreatedBy")
+  creationsCreated  Creation[] @relation("CreationCreatedBy")
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
   // RecivedPayments        Payments[]         @relation("PaymentProcessedBy")
 
   @@index([createdById])
@@ -292,34 +300,28 @@ model Property {
 
   // Embedded Data (1:1 relations)
   propertyCategory  PropertyCategory?
-  destinationType   DestinationType?
   propertyType      PropertyType?
   propertyAddress   PropertyAddress?
   propertyAmenities PropertyAmenitySelection[]
   bankDetails       BankDetails?
-  reservations Reservation[]
+  reservations      Reservation[]
+  propertyVideos    PropertyVideo?
 
   // Children
-  propertyRooms            Room[]
-  ratePlans                RatePlan[]
-  bookingEngineConfig      BookingEngineConfigurations?
-  promoCodes               PromoCode[]
-  taxRules                 TaxRule[]                    @relation("PropertyTaxRules")
-  taxGroups                TaxGroup[]                   @relation("PropertyTaxGroups")
-  addOns                   Addon[]
-  Guests                   Guests[]
-  Policy                   Policy[]
-  // ReservationRooms         ReservationRoom[]            @relation("BookedRoomsForReservation")
-  propertyConfigs          PropertyConfigs?
-  // SellStopedIndivdualRooms SellStopedIndivdualRooms[]   @relation("PropertySellStopedRooms")
-  // HouseKeepingTask         HouseKeepingTask[]           @relation("TasksIn The property")
-
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
-  // individualRooms IndividualRooms[]
-  // nightAudit      NightAudit?
-  // pastNightAudits PastNightAudit[]
-  // Folio           Folio[]           @relation("PropertyFolio")
+  propertyRooms       Room[]
+  ratePlans           RatePlan[]
+  bookingEngineConfig BookingEngineConfigurations?
+  promoCodes          PromoCode[]
+  taxRules            TaxRule[]                    @relation("PropertyTaxRules")
+  taxGroups           TaxGroup[]                   @relation("PropertyTaxGroups")
+  addOns              Addon[]
+  Guests              Guests[]
+  Policy              Policy[]
+  propertyConfigs     PropertyConfigs?
+  agenticProperties   AgenticProperty[]
+  Commissions         PropertyCommission?
+  createdAt           DateTime                     @default(now())
+  updatedAt           DateTime                     @updatedAt
 
   @@index([createdById])
   @@index([creationId])
@@ -332,13 +334,17 @@ model PropertyConfigs {
   property   Property @relation(fields: [propertyId], references: [id])
   propertyId String   @unique @map("property_id")
 
-  pmsIntegrationActive            Boolean @default(true) @map("pms_integration_active")
-  channelManagerIntegrationActive Boolean @default(true) @map("channel_manager_integration_active")
-  selfAriActive                   Boolean @default(true) @map("self_ari_active")
-
-  reservationResetTime String   @default("9:30") @map("reservation_reset_time")
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
+  pmsIntegrationActive            Boolean      @default(true) @map("pms_integration_active")
+  channelManagerIntegrationActive Boolean      @default(true) @map("channel_manager_integration_active")
+  selfAriActive                   Boolean      @default(true) @map("self_ari_active")
+  isB2bAvailable                  Boolean      @default(true) @map("is_b2b_available")
+  isB2cAvailable                  Boolean      @default(true) @map("is_b2c_available")
+  commission                      Boolean      @default(false)
+  timezone                        String       @default("Asia/Kolkata") @map("timezone")
+  baseCurrency                    CurrencyCode @default(INR) @map("base_currency")
+  reservationResetMinutes         Int          @default(570) @map("reservation_reset_minutes")
+  createdAt                       DateTime     @default(now())
+  updatedAt                       DateTime     @updatedAt
 
   @@map("property_configs")
 }
@@ -373,21 +379,6 @@ model MasterPropertyType {
   @@map("master_property_types")
 }
 
-model MasterDestinationType {
-  id                     String  @id @default(uuid())
-  destinationTypeName    String  @unique @map("destination_type_name")
-  destinationDescription String? @map("destination_description")
-  isActive               Boolean @default(true) @map("is_active")
-
-  // Relation to properties that selected this destination type
-  properties DestinationType[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("master_destination_types")
-}
-
 model MasterAmenity {
   id          String      @id @default(uuid())
   amenityName String      @unique @map("amenity_name")
@@ -413,17 +404,6 @@ model PropertyCategory {
   propertyId String   @unique @map("property_id")
 
   @@map("property_categories")
-}
-
-model DestinationType {
-  id                      String                @id @default(uuid())
-  masterDestinationType   MasterDestinationType @relation(fields: [masterDestinationTypeId], references: [id])
-  masterDestinationTypeId String                @map("master_destination_type_id")
-
-  property   Property @relation(fields: [propertyId], references: [id])
-  propertyId String   @unique @map("property_id")
-
-  @@map("destination_types")
 }
 
 model PropertyType {
@@ -497,7 +477,7 @@ model Room {
   maxOccupancy        Int           @map("max_occupancy")
   maxNumberOfAdults   Int           @map("max_number_of_adults")
   maxNumberOfChildren Int           @map("max_number_of_children")
-  numberOfBedrooms    Int?          @default(0) @map("number_of_bedrooms")
+  numberOfBedrooms    Int           @default(1) @map("number_of_bedrooms")
   numberOfLivingRoom  Int?          @default(0) @map("number_of_living_room")
   extraBed            Int?          @default(0) @map("extra_bed")
   description         String?
@@ -510,9 +490,11 @@ model Room {
   propertyId String   @map("property_id")
 
   roomAmenities RoomAmenitySelection[]
+  roomVideos    RoomVideo?
+  agenticRooms  AgenticRoom[]
 
-  createdAt                DateTime                   @default(now())
-  updatedAt                DateTime                   @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([propertyId])
   @@index([roomType])
@@ -588,18 +570,18 @@ model Charge {
   roomTypeCode  String
   roomTypeName  String
   currencyCode  CurrencyCode @default(INR)
-  date          DateTime
+  date          DateTime     @db.Date
   isAvailable   Boolean      @default(true)
   // Days of week applicability
   isSaleStopped Boolean      @default(false) @map("is_sale_stopped") // for start/stop sales
 
-  monApplicable Boolean @default(true) @map("mon_applicable")
-  tueApplicable Boolean @default(true) @map("tue_applicable")
-  wedApplicable Boolean @default(true) @map("wed_applicable")
-  thuApplicable Boolean @default(true) @map("thu_applicable")
-  friApplicable Boolean @default(true) @map("fri_applicable")
-  satApplicable Boolean @default(true) @map("sat_applicable")
-  sunApplicable Boolean @default(true) @map("sun_applicable")
+  monApplicable       Boolean @default(true) @map("mon_applicable")
+  tueApplicable       Boolean @default(true) @map("tue_applicable")
+  wedApplicable       Boolean @default(true) @map("wed_applicable")
+  thuApplicable       Boolean @default(true) @map("thu_applicable")
+  friApplicable       Boolean @default(true) @map("fri_applicable")
+  satApplicable       Boolean @default(true) @map("sat_applicable")
+  sunApplicable       Boolean @default(true) @map("sun_applicable")
   isClosedToArrival   Boolean @default(false) @map("is_closed_to_arrival")
   isClosedToDeparture Boolean @default(false) @map("is_closed_to_departure")
   restrictionNotes    String? @map("restriction_notes")
@@ -641,7 +623,7 @@ model Inventory {
   id           String   @id @default(uuid())
   propertyCode String   @map("property_code")
   roomTypeCode String   @map("room_type_code")
-  date         String
+  date         DateTime @db.Date
   availability Int
   ratePlans    String[] @map("rate_plans")
 
@@ -654,16 +636,16 @@ model Inventory {
 }
 
 model RatePlan {
-  id           String @id @default(uuid())
-  ratePlanName String @map("rate_plan_name")
-  ratePlanCode String @unique @map("rate_plan_code")
-
+  id              String       @id @default(uuid())
+  ratePlanName    String       @map("rate_plan_name")
+  ratePlanCode    String       @unique @map("rate_plan_code")
+  deviceType      DeviceType[] @map("device_type")
   // Back relation to Property
-  property        Property @relation(fields: [propertyId], references: [id])
-  propertyId      String   @map("property_id")
+  property        Property     @relation(fields: [propertyId], references: [id])
+  propertyId      String       @map("property_id")
   // Policies
-  depositPolicy   Policy?  @relation("RateAmountToDepositPolicy", fields: [depositPolicyId], references: [id])
-  depositPolicyId String?  @map("deposit_policy_id")
+  depositPolicy   Policy?      @relation("RateAmountToDepositPolicy", fields: [depositPolicyId], references: [id])
+  depositPolicyId String?      @map("deposit_policy_id")
 
   cancellationPolicy   Policy? @relation("RateAmountToCancellationPolicy", fields: [cancellationPolicyId], references: [id])
   cancellationPolicyId String? @map("cancellation_policy_id")
@@ -677,11 +659,11 @@ model RatePlan {
   b2bAvailable Boolean @default(false) @map("b2b_available")
   b2cAvailable Boolean @default(true) @map("b2c_available")
 
-  minimumLenghthOfStay Int  @default(1) @map("minimum_length_of_stay")
-  maximumLengthOfStay  Int? @map("maximum_length_of_stay")
+  ratePlanRules RatePlanRule?
+  Addons        RatePlanWithAddon[]
 
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([propertyId])
   @@map("rate_plans")
@@ -709,12 +691,9 @@ model Policy {
 }
 
 model BankDetails {
-  id                     String  @id @default(uuid())
-  accountHolder          String  @map("account_holder")
-  accountNumber          String  @map("account_number")
-  ifsc                   String
-  upiId                  String? @map("upi_id")
-  activatedPaymentMethod Json    @default("{}") @map("activated_payment_method")
+  id             String  @id @default(uuid())
+  payAtHotel     Boolean @default(true) @map("pay_at_hotel")
+  paymentGateway Boolean @default(false) @map("payment_gateway")
 
   property   Property @relation(fields: [propertyId], references: [id])
   propertyId String   @unique @map("property_id")
@@ -726,15 +705,15 @@ model BankDetails {
 }
 
 model BookingEngineConfigurations {
-  id             String   @id @default(uuid())
-  property       Property @relation(fields: [propertyId], references: [id])
-  propertyId     String   @unique @map("property_id")
-  primaryColor   String   @map("primary_color")
-  secondaryColor String   @map("secondary_color")
-  tertiaryColor  String   @map("tertiary_color") 
-  buttonTextColor String  @map("button_text_color")
-  bannerImage    String?   @map("banner_image")
-  logo           String
+  id              String   @id @default(uuid())
+  property        Property @relation(fields: [propertyId], references: [id])
+  propertyId      String   @unique @map("property_id")
+  primaryColor    String   @map("primary_color")
+  secondaryColor  String   @map("secondary_color")
+  tertiaryColor   String   @map("tertiary_color")
+  buttonTextColor String   @map("button_text_color")
+  bannerImage     String?  @map("banner_image")
+  logo            String
 
   @@map("booking_engine_configurations")
 }
@@ -748,6 +727,7 @@ model PromoCode {
   property          Property     @relation(fields: [propertyId], references: [id])
   discountType      DiscountType @map("discount_type")
   discountValue     Float        @map("discount_value")
+  currencyCode      CurrencyCode @default(USD) @map("currency_code")
   validFrom         DateTime     @map("valid_from")
   validTo           DateTime     @map("valid_to")
   minBookingAmount  Float?       @map("min_booking_amount")
@@ -761,15 +741,15 @@ model PromoCode {
   isApplicableForOTA       Boolean @default(false) @map("is_applicable_for_ota")
   isApplicableForCorporate Boolean @default(false) @map("is_applicable_for_corporate")
 
-  usageLimit          Int?     @map("usage_limit")
-  usageLimitPerUser   Int?     @map("usage_limit_per_user")
-  applicableRoomTypes Json[]   @map("applicable_room_types")
-  applicableRatePlans Json[]   @map("applicable_rate_plans")
-  isActive            Boolean  @default(true) @map("is_active")
-  isDeleted           Boolean  @default(false) @map("is_deleted")
-  createdAt           DateTime @default(now()) @map("created_at")
-  updatedAt           DateTime @updatedAt @map("updated_at")
-  reservations Reservation[]
+  usageLimit          Int?          @map("usage_limit")
+  usageLimitPerUser   Int?          @map("usage_limit_per_user")
+  applicableRoomTypes Json[]        @map("applicable_room_types")
+  applicableRatePlans Json[]        @map("applicable_rate_plans")
+  isActive            Boolean       @default(true) @map("is_active")
+  isDeleted           Boolean       @default(false) @map("is_deleted")
+  createdAt           DateTime      @default(now()) @map("created_at")
+  updatedAt           DateTime      @updatedAt @map("updated_at")
+  reservations        Reservation[]
 
   @@index([propertyId, code])
   @@index([id, code])
@@ -872,6 +852,7 @@ model Addon {
   categoryId    String?
   subcategoryId String?
   variantId     String?
+  ratePlanId    String?             @map("rate_plan_id")
   code          String              @unique
   name          String
   postingRhythm PostingRhythm       @default(per_stay)
@@ -886,8 +867,19 @@ model Addon {
   addonVariant  AddonVariant?       @relation("AddonToVariant", fields: [variantId], references: [id])
   bookingAddons BookingAddon[]
   availability  AddonAvailability[]
+  ratePlans     RatePlanWithAddon[]
 }
+model RatePlanWithAddon {
+  id         String   @id @default(uuid()) 
+  ratePlanId String @map("rate_plan_id")
+  addonId    String @map("addon_id")
+  ratePlan   RatePlan @relation(fields: [ratePlanId], references: [id])
+  addon      Addon    @relation(fields: [addonId], references: [id])
+  createdAt  DateTime @default(now()) @map("created_at")
 
+  @@unique([ratePlanId, addonId])
+  @@map("rate_plan_with_addon")
+}
 model BookingAddon {
   id                  String   @id @default(uuid())
   reservationId       String
@@ -912,7 +904,7 @@ model AddonAvailability {
   id           String   @id @default(uuid())
   addonId      String
   // propertyId   String
-  date         DateTime
+  date         DateTime @db.Date
   price        Float
   currencyCode String   @default("INR") @db.VarChar(5)
   isAvailable  Boolean  @default(true)
@@ -922,109 +914,75 @@ model AddonAvailability {
   addon Addon @relation(fields: [addonId], references: [id])
 }
 
-// Pms Models
-
-// model Reservation {
-//   id          String @id @default(uuid())
-//   bookingCode String @unique @map("booking_code")
-
-//   bookedAt          DateTime          @map("booked_at")
-//   reservationStatus ReservationStatus @default(reserved) @map("reservation_status")
-//   noOfAdults        Int               @map("no_of_adults")
-//   noOfChildren      Int               @map("no_of_children")
-//   noOfInfants       Int               @map("no_of_infants")
-
-//   isDeleted Boolean @default(false) @map("is_deleted")
-
-//   checkedInDate   DateTime? @map("checked_in_date")
-//   checkedOutDate  DateTime? @map("checked_out_date")
-//   from            DateTime
-//   to              DateTime
-//   additionalNotes String?   @map("additional_notes")
-
-//   // primaryGuestId String @map("primary_guest_id")
-
-//   source BookingSource @default(walk_in) @map("source")
-
-//   propertyCode String  @map("property_code")
-//   propertyName String  @map("property_name")
-//   folioId      String? @map("folio_id")
-//   // folio        Folio?  @relation("ReservationFolio")
-
-//   // Guests       Guests[]
-//   Guests       Guests[] @relation("ReservationGuests")
-//   // PrimaryGuest Guests   @relation("ReservationPrimaryGuest", fields: [primaryGuestId], references: [id])
-
-//   // ReservationRooms ReservationRoom[]
-//   addOns           BookingAddon[]
-//   // partialRooms     PartialReservationRoom[]
-//   amountPaid       ReservationPriceBrakeDown[]
-//   createdAt        DateTime                    @default(now())
-//   updatedAt        DateTime                    @updatedAt
-
-//   @@index([propertyCode])
-//   @@map("reservations")
-// }
 model Reservation {
-  id                 String   @id @default(uuid()) @db.VarChar(36) @map("id")
+  id String @id @default(uuid()) @map("id") @db.VarChar(36)
 
   // Property & Room
-  propertyId         String   @db.VarChar(36) @map("property_id")
-  propertyCode       String?  @db.VarChar(50) @map("property_code")
-  hotelName          String?  @db.VarChar(150) @map("hotel_name")
+  propertyId   String  @map("property_id") @db.VarChar(36)
+  propertyCode String? @map("property_code") @db.VarChar(50)
+  hotelName    String? @map("hotel_name") @db.VarChar(150)
 
-  roomTypeCode       String?  @db.VarChar(50) @map("room_type_code")
-  ratePlanCode       String?  @db.VarChar(50) @map("rate_plan_code")
+  roomTypeCode String? @map("room_type_code") @db.VarChar(50)
+  ratePlanCode String? @map("rate_plan_code") @db.VarChar(50)
 
-  // Booking Identity
-  bookingCode        String   @unique @db.VarChar(50) @map("booking_code")
+  bookingCode String @unique @map("booking_code") @db.VarChar(50)
 
   // Dates
-  bookedAt           DateTime @default(now()) @map("booked_at")
-  checkInDate        DateTime @map("check_in_date")
-  checkOutDate       DateTime @map("check_out_date")
+  bookedAt DateTime @default(now()) @map("booked_at")
+
+  checkInDate  DateTime @map("check_in_date") @db.Date
+  checkOutDate DateTime @map("check_out_date") @db.Date
+  countryCode  String   @map("country_code") @db.VarChar(5)
+  timezone     String   @map("timezone") @db.VarChar(50)
+  deviceTypes DeviceType @map("device_types")
   // Primary Guest Relation (one-to-many: one guest can have multiple reservations)
-  primaryGuestId     String   @db.VarChar(36) @map("primary_guest_id")
-  primaryGuest       Guests   @relation("ReservationPrimaryGuest", fields: [primaryGuestId], references: [id])
-  
+  primaryGuestId String @map("primary_guest_id") @db.VarChar(36)
+  primaryGuest   Guests @relation("ReservationPrimaryGuest", fields: [primaryGuestId], references: [id])
+
   // Guest Data
-  guests             Json     @map("guests")
-  bookingUserEmail   String   @db.VarChar(150) @map("booking_user_email")
-  bookingUserPhone   String?  @db.VarChar(50) @map("booking_user_phone")
+  guests           Json    @map("guests")
+  bookingUserEmail String  @map("booking_user_email") @db.VarChar(150)
+  bookingUserPhone String? @map("booking_user_phone") @db.VarChar(50)
 
   // Pricing
-  amount             Float    @map("amount")
-  currencyCode       CurrencyCode @default(INR) @map("currency_code")
-  finalPrice         Json?    @map("final_price")
+  amount       Float        @map("amount")
+  currencyCode CurrencyCode @default(INR) @map("currency_code")
+  finalPrice   Json?        @map("final_price")
 
-  paidAmount         Float    @default(0) @map("paid_amount")
-  extraAmountToPay   Float    @default(0) @map("extra_amount_to_pay")
-  refundAmount       Float    @default(0) @map("refund_amount")
+  paidAmount       Float @default(0) @map("paid_amount")
+  extraAmountToPay Float @default(0) @map("extra_amount_to_pay")
+  refundAmount     Float @default(0) @map("refund_amount")
 
   // Payment
-  paymentMethod      PaymentMethod @default(pay_at_hotel) @map("payment_method")
-  paymentImages      Json?    @map("payment_images")
+  paymentMethod PaymentMethod @default(pay_at_hotel) @map("payment_method")
+  paymentImages Json?         @map("payment_images")
 
   // Booking Status
   bookingStatus      BookingStatus @default(confirmed) @map("booking_status")
-  cancellationReason String?  @db.VarChar(255) @map("cancellation_reason")
+  cancellationReason String?       @map("cancellation_reason") @db.VarChar(255)
 
   // Booking Source
-  bookingSource      BookingSource @default(ota) @map("source")
+  bookingSource BookingSource @default(direct) @map("source")
 
   // Promo
-  isPromoUsed        Boolean  @default(false) @map("is_promo_used")
-  promoId            String?  @db.VarChar(36) @map("promo_id")
+  isPromoUsed      Boolean   @default(false) @map("is_promo_used")
+  promoId          String?   @map("promo_id") @db.VarChar(36)
+  //store this in utc
+  actualCheckInAt  DateTime? @map("actual_check_in_at")
+  actualCheckOutAt DateTime? @map("actual_check_out_at")
+  cancelledAt      DateTime? @map("cancelled_at")
 
   // Audit
-  createdAt          DateTime @default(now()) @map("created_at")
-  updatedAt          DateTime @updatedAt @map("updated_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
-  property           Property   @relation(fields: [propertyId], references: [id])
-  promo              PromoCode? @relation(fields: [promoId], references: [id])
-  addOns             BookingAddon[]
+  property        Property                    @relation(fields: [propertyId], references: [id])
+  promo           PromoCode?                  @relation(fields: [promoId], references: [id])
+  addOns          BookingAddon[]
   priceBreakdowns ReservationPriceBrakeDown[]
+  agency          Agency?                     @relation(fields: [agencyId], references: [id])
+  agencyId        String?                     @map("agency_id") @db.VarChar(36)
 
   @@index([propertyCode])
   @@index([propertyId])
@@ -1036,89 +994,12 @@ model Reservation {
   @@map("reservations")
 }
 
-// model PartialReservationRoom {
-//   id            String      @id @default(uuid())
-//   reservation   Reservation @relation(fields: [reservationId], references: [id])
-//   reservationId String      @map("reservation_id")
-
-//   roomTypeCode String @map("room_type_code")
-//   roomTypeName String @map("room_type_name")
-//   quantity     Int    @default(1) @map("quantity")
-//   ratePlanCode String @map("rate_plan_code")
-//   ratePlanName String @map("rate_plan_name")
-//   noOfAdults   Int    @map("no_of_adults")
-//   noOfChildren Int    @default(0) @map("no_of_children")
-//   noOfInfants  Int    @default(0) @map("no_of_infants")
-
-//   @@map("partial_reservation_rooms")
-// }
-
-// model ReservationRoom {
-//   id String @id @default(uuid())
-
-//   reservation   Reservation @relation(fields: [reservationId], references: [id])
-//   reservationId String      @map("reservation_id")
-
-//   isCheckedIn  Boolean @default(false) @map("is_checked_in")
-//   isCheckedOut Boolean @default(false) @map("is_checked_out")
-
-//   checkedInDate   DateTime? @map("checked_in_date")
-//   checkedOutDate  DateTime? @map("checked_out_date")
-//   reservationFrom DateTime  @map("reservation_from")
-//   reservationTo   DateTime  @map("reservation_to")
-
-//   roomTypeCode  String @map("room_type_code")
-//   Room          Room   @relation(fields: [roomTypeRefId], references: [id])
-//   roomTypeRefId String @map("room_type_ref_id")
-//   roomTypeName  String @map("room_type_name")
-
-//   individualRoomRefId  String          @map("individual_room_ref_id")
-//   IndividualRooms      IndividualRooms @relation(fields: [individualRoomRefId], references: [id])
-//   individualRoomNumber String          @map("individual_room_number")
-
-//   ratePlanCode String   @map("rate_plan_code")
-//   ratePlanName String   @map("rate_plan_name")
-//   propertyId   String   @map("property_id")
-//   Property     Property @relation("BookedRoomsForReservation", fields: [propertyId], references: [id])
-//   RatePlan     RatePlan @relation(fields: [ratePlanCode], references: [ratePlanCode])
-//   noOfAdults   Int      @map("no_of_adults")
-//   noOfChildren Int      @default(0) @map("no_of_children")
-//   noOfInfants  Int      @default(0) @map("no_of_infants")
-//   createdAt    DateTime @default(now())
-//   updatedAt    DateTime @updatedAt
-
-//   @@index([reservationId])
-//   @@map("reservation_rooms")
-// }
-
-// model SellStopedIndivdualRooms {
-//   id             String        @id @default(uuid())
-//   blockedReason  BlockedReason @default(maintainance)
-//   sellStopedDate DateTime      @map("sell_stoped_date")
-//   reason         String?
-
-//   individualRoomRefId  String          @map("individual_room_ref_id")
-//   IndividualRooms      IndividualRooms @relation(fields: [individualRoomRefId], references: [id])
-//   individualRoomNumber String          @map("individual_room_number")
-
-//   roomTypeCode  String @map("room_type_code")
-//   Room          Room   @relation(fields: [roomTypeRefId], references: [id])
-//   roomTypeRefId String @map("room_type_ref_id")
-
-//   propertyId String   @map("property_id")
-//   Property   Property @relation("PropertySellStopedRooms", fields: [propertyId], references: [id])
-
-//   @@unique([individualRoomRefId, sellStopedDate])
-//   @@map("sell_stoped_indivdual_rooms")
-// }
-
 model Guests {
   id                   String                @id @default(uuid())
   firstName            String                @map("first_name")
   lastName             String                @map("last_name")
   email                String?
   phoneNumber          String?               @map("phone_number")
-  // reservations         Reservation[]         @relation("ReservationGuests")
   primaryReservations  Reservation[]         @relation("ReservationPrimaryGuest")
   userType             GuestType             @default(adult) @map("user_type")
   propertyId           String                @map("property_id")
@@ -1136,173 +1017,6 @@ model Guests {
 
   @@map("guests")
 }
-
-// model Folio {
-//   id            String      @id @default(uuid())
-//   propertyId    String      @map("property_id")
-//   Property      Property    @relation("PropertyFolio", fields: [propertyId], references: [id])
-//   reservationId String      @unique @map("reservation_id")
-//   bookingCode   String      @map("booking_code")
-//   reservation   Reservation @relation("ReservationFolio", fields: [reservationId], references: [id])
-
-//   status FolioStatus @default(open) @map("status")
-
-//   totalAmount Decimal      @default(0) @map("total_amount")
-//   currency    CurrencyCode @map("currency")
-//   createdAt   DateTime     @default(now())
-//   updatedAt   DateTime     @updatedAt
-
-//   folioLines FolioLines[]
-//   payments   Payments[]
-
-//   @@index([bookingCode])
-//   @@map("folios")
-// }
-
-// model FolioLines {
-//   id      String @id @default(uuid())
-//   folio   Folio  @relation(fields: [folioId], references: [id])
-//   folioId String @map("folio_id")
-
-//   description String @map("description")
-
-//   amount       Decimal      @map("amount")
-//   taxAmount    Decimal      @default(0) @map("tax_amount")
-//   currencyCode CurrencyCode @default(INR)
-//   createdAt    DateTime     @default(now())
-//   updatedAt    DateTime     @updatedAt
-
-//   @@index([folioId])
-//   @@map("folio_lines")
-// }
-
-// model Payments {
-//   id      String @id @default(uuid())
-//   folioId String @map("folio_id")
-//   // folio   Folio  @relation(fields: [folioId], references: [id])
-
-//   amount        Decimal
-//   paymentMethod PaymentMethod @default(cash) @map("payment_method")
-//   paymentDate   DateTime      @map("payment_date")
-//   currency      CurrencyCode  @map("currency")
-
-//   processedBy String  @map("processed_by")
-//   ProcessedBy User    @relation("PaymentProcessedBy", fields: [processedBy], references: [id])
-//   paymentNote String? @map("payment_note")
-
-//   paidAt        DateTime      @default(now()) @map("paid_at")
-//   paymentStatus PaymentStatus @default(confirmed) @map("payment_status")
-//   createdAt     DateTime      @default(now())
-//   updatedAt     DateTime      @updatedAt
-
-//   @@index([folioId])
-//   @@map("payments")
-// }
-
-// model IndividualRooms {
-//   id String @id @default(uuid())
-
-//   roomTypeCode  String @map("room_type_code")
-//   roomTypeRefId String @map("room_type_ref_id")
-//   RoomType      Room   @relation(fields: [roomTypeRefId], references: [id])
-
-//   propertyCode String               @map("property_code")
-//   propertyId   String               @map("property_id")
-//   Property     Property             @relation(fields: [propertyId], references: [id])
-//   roomStatus   IndividualRoomStatus @default(available) @map("room_status")
-//   isAvailable  Boolean              @default(true) @map("is_available")
-
-//   roomNumber String  @unique @map("room_number")
-//   floor      Int     @map("floor")
-//   building   String? @map("building")
-
-//   ReservationRooms          ReservationRoom[]
-//   HouseKeepingTasks         HouseKeepingTask[]
-//   createdAt                 DateTime                   @default(now())
-//   updatedAt                 DateTime                   @updatedAt
-//   sellStoppedIndivdualRooms SellStopedIndivdualRooms[]
-
-//   @@index([propertyId, roomTypeRefId])
-//   @@map("individual_rooms")
-// }
-
-// model HouseKeepingTask {
-//   id           String       @id @default(uuid())
-//   propertyId   String       @map("property_id")
-//   Property     Property     @relation("TasksIn The property", fields: [propertyId], references: [id])
-//   taskPriority TaskPriority @default(low) @map("task_priority")
-
-//   assignmentStatus HouseKeepingTaskStatus @default(assigned) @map("assignment_status")
-//   individualRoomId String                 @map("individual_room_id")
-//   IndividualRoom   IndividualRooms        @relation(fields: [individualRoomId], references: [id])
-
-//   assignedAt  DateTime  @default(now()) @map("assigned_at")
-//   dueAt       DateTime  @map("due_at")
-//   completedAt DateTime? @map("completed_at")
-//   notes       String?   @map("notes")
-
-//   metadata Json? @map("metadata")
-
-//   assignedById String @map("assigned_by_id")
-//   AssignedBy   User   @relation("RoomAssignedBy", fields: [assignedById], references: [id])
-
-//   assignedToId String @map("assigned_to")
-//   AssignedTo   User   @relation("RoomAssignedTo", fields: [assignedToId], references: [id])
-
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-
-//   @@index([individualRoomId])
-//   @@index([assignedById])
-//   @@map("house_keeping_tasks")
-// }
-
-// model NightAudit {
-//   id String @id @default(uuid())
-
-//   propertyId String   @unique @map("property_id")
-//   property   Property @relation(fields: [propertyId], references: [id])
-
-//   auditDate DateTime @map("audit_date")
-
-//   processedById String @map("processed_by_id")
-//   ProcessedBy   User   @relation("AuditProcessedBy", fields: [processedById], references: [id])
-
-//   processedAt DateTime? @map("processed_at")
-//   remarks     String?   @map("remarks")
-
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-
-//   @@index([propertyId])
-//   @@index([processedById])
-//   @@map("night_audits")
-// }
-
-// model PastNightAudit {
-//   id String @id @default(uuid())
-
-//   propertyId String   @map("property_id")
-//   property   Property @relation(fields: [propertyId], references: [id])
-
-//   auditedFrom DateTime @map("audited_from")
-//   auditedTo   DateTime @map("audited_to")
-
-//   reportPdfUrl String? @map("report_pdf_url")
-
-//   processedById String @map("processed_by_id")
-//   ProcessedBy   User   @relation("PastAuditProcessedBy", fields: [processedById], references: [id])
-
-//   processedAt DateTime? @map("processed_at")
-//   remarks     String?   @map("remarks")
-
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-
-//   @@index([propertyId])
-//   @@index([processedById])
-//   @@map("past_night_audits")
-// }
 
 model ReservationPriceBrakeDown {
   id                     String      @id @default(uuid())
@@ -1322,4 +1036,179 @@ model ReservationPriceBrakeDown {
   tax                    Json[]
 
   @@map("reservation_price_brake_down")
+}
+
+model RoomVideo {
+  id        String   @id @default(uuid())
+  roomId    String   @unique
+  url       String
+  thumbnail String?
+  createdAt DateTime @default(now())
+
+  room Room @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@map("room_videos")
+}
+
+model PropertyVideo {
+  id         String   @id @default(uuid())
+  propertyId String   @unique
+  url        String
+  thumbnail  String?
+  createdAt  DateTime @default(now())
+
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@map("property_videos")
+}
+
+model RatePlanRule {
+  id String @id @default(uuid())
+
+  ratePlanId String   @unique @map("rate_plan_id")
+  ratePlan   RatePlan @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
+
+  startDate DateTime? @map("start_date")
+  endDate   DateTime? @map("end_date")
+
+  minLos Int  @default(1) @map("min_los")
+  maxLos Int? @map("max_los")
+
+  discountType  DiscountType? @map("discount_type")
+  discountValue Decimal?      @map("discount_value") @db.Decimal(10, 2)
+
+  isActive Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("rate_plan_rules")
+}
+
+model PropertyCommission {
+  id         String   @id @default(uuid())
+  propertyId String   @unique @map("property_id")
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  commissionType  commissionType @default(percentage) @map("commission_type")
+  commissionValue Decimal        @map("commission_value")
+  currencyCode    CurrencyCode?  @default(INR) @map("currency_code")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("property_commission")
+}
+
+enum CommissionOrDiscount {
+  commission
+  tax
+}
+
+model Agency {
+  id                 String              @id @default(uuid())
+  agencyName         String              @unique @map("agency_name")
+  agencyType         AgencyType          @default(travel_agency) @map("agency_type")
+  agencyEmail        String              @unique @map("agency_email")
+  contactNo          String              @map("contact_no")
+  taxNo              String              @unique @map("tax_no")
+  commissionType     AgentCommissionType @default(percentage) @map("commission_type")
+  commissionValue    Int                 @map("commission_value")
+  commissionCurrency CurrencyCode?       @default(INR) @map("commission_currency")
+  iataCode           String              @map("iata_code")
+  address            String              @map("address")
+
+  Agents            Agents[]
+  AgenticProperties AgenticProperty[]
+  Reservations      Reservation[]
+  isDeleted         Boolean           @default(false) @map("is_deleted")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  @@map("agency")
+}
+
+model AgenticProperty {
+  id           String        @id @default(uuid())
+  agencyId     String        @map("agency_id")
+  agency       Agency        @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  propertyId   String        @map("property_id")
+  propertyCode String        @map("property_code")
+  propertyName String        @map("property_name")
+  Property     Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  AgenticRooms AgenticRoom[]
+
+  isActive  Boolean  @default(true) @map("is_active")
+  isDeleted Boolean  @default(false) @map("is_deleted")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([agencyId, propertyId])
+  @@index([agencyId])
+  @@index([propertyId])
+  @@map("agentic_property")
+}
+
+model AgenticRoom {
+  id                String          @id @default(uuid())
+  agenticPropertyId String          @map("agentic_property_id")
+  AgenticProperty   AgenticProperty @relation(fields: [agenticPropertyId], references: [id], onDelete: Cascade)
+
+  roomId   String @map("room_id")
+  roomType String @map("room_type")
+  roomName String @map("room_name")
+  room     Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  isActive  Boolean  @default(true) @map("is_active")
+  isDeleted Boolean  @default(false) @map("is_deleted")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([agenticPropertyId, roomId])
+  @@index([agenticPropertyId])
+  @@index([roomId])
+  @@map("agentic_room")
+}
+
+model Agents {
+  id       String @id @default(uuid())
+  agencyId String @map("agency_id")
+  agency   Agency @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+
+  agentName     String   @map("agent_name")
+  agentEmail    String   @unique @map("agent_email")
+  agentPhone    String   @map("agent_phone")
+  agentPassword String   @map("agent_password")
+  isDeleted     Boolean  @default(false) @map("is_deleted")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([agencyId])
+  @@map("agents")
+}
+
+model AgentApplications {
+  id                       String                  @id @default(uuid())
+  applicationNoForThisUser Int                     @map("application_no_for_this_user")
+  status                   AgencyApplicationStatus @default(pending) @map("status")
+  rejectionReason          String?                 @map("rejection_reason")
+
+  applicantEmail     String              @unique @map("applicant_email")
+  applicantName      String              @map("applicant_name")
+  applicantPhone     String              @map("applicant_phone")
+  applicantPassword  String              @map("applicant_password")
+  //agency application details
+  agencyName         String              @unique @map("agency_name")
+  agencyType         AgencyType          @default(travel_agency) @map("agency_type")
+  agencyEmail        String              @unique @map("agency_email")
+  contactNo          String              @map("contact_no")
+  taxNo              String              @unique @map("tax_no")
+  commissionType     AgentCommissionType @default(percentage) @map("commission_type")
+  commissionValue    Int                 @map("commission_value")
+  commissionCurrency CurrencyCode?       @default(INR) @map("commission_currency")
+  iataCode           String              @map("iata_code")
+  address            String              @map("address")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("agent_applications")
 }

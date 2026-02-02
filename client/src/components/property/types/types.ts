@@ -83,6 +83,10 @@ export interface IRoom {
   isDeleted: boolean;
   __v: number;
   view360Link?: string;
+  roomVideos?: {
+    url: string;
+    thumbnail: string;
+  };
   // New relational structure for amenities
   roomAmenities?: IRoomAmenitySelection[];
 }
@@ -94,9 +98,7 @@ export interface IRatePlans {
 }
 export interface PaymentMethods {
   payAtHotel?: boolean;
-  bankTransfer?: boolean;
-  upi?: boolean;
-  gateway?: boolean;
+  paymentGateway?: boolean;
 }
 
 export interface IBankDetails {

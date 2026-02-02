@@ -5,6 +5,7 @@ import { errorResponse, successResponse } from '../../utils/return';
 
 import { prisma } from "../../config"
 import { getPropertyCode } from "../utils";
+import { toUTCDate } from '../../utils';
 
 interface RateCalculationResult {
   success: boolean;
@@ -123,17 +124,17 @@ export class RoomRentCalculationService {
       }
 
       // Check min/max length of stay
-      if (numberOfNights < ratePlan.minimumLenghthOfStay) {
-        return errorResponse(
-          `Minimum stay of ${ratePlan.minimumLenghthOfStay} nights required for this rate plan.`
-        );
-      }
+      // if (numberOfNights < ratePlan.minimumLenghthOfStay) {
+      //   return errorResponse(
+      //     `Minimum stay of ${ratePlan.minimumLenghthOfStay} nights required for this rate plan.`
+      //   );
+      // }
 
-      if (ratePlan.maximumLengthOfStay && numberOfNights > ratePlan.maximumLengthOfStay) {
-        return errorResponse(
-          `Maximum stay of ${ratePlan.maximumLengthOfStay} nights allowed for this rate plan.`
-        );
-      }
+      // if (ratePlan.maximumLengthOfStay && numberOfNights > ratePlan.maximumLengthOfStay) {
+      //   return errorResponse(
+      //     `Maximum stay of ${ratePlan.maximumLengthOfStay} nights allowed for this rate plan.`
+      //   );
+      // }
       console.log("inv ava:", start, end);
 
       // Step 2: Check inventory availability
@@ -256,18 +257,18 @@ export class RoomRentCalculationService {
       }
 
       // Check min/max length of stay
-      if (numberOfNights < ratePlan.minimumLenghthOfStay) {
-        return errorResponse(
-          `Minimum stay of ${ratePlan.minimumLenghthOfStay} nights required for this rate plan.`
-        );
-      }
+      // if (numberOfNights < ratePlan.minimumLenghthOfStay) {
+      //   return errorResponse(
+      //     `Minimum stay of ${ratePlan.minimumLenghthOfStay} nights required for this rate plan.`
+      //   );
+      // }
 
-      if (ratePlan.maximumLengthOfStay && numberOfNights > ratePlan.maximumLengthOfStay) {
-        return errorResponse(
-          `Maximum stay of ${ratePlan.maximumLengthOfStay} nights allowed for this rate plan.`
-        );
-      }
-      console.log("inv ava:", start, end);
+      // if (ratePlan.maximumLengthOfStay && numberOfNights > ratePlan.maximumLengthOfStay) {
+      //   return errorResponse(
+      //     `Maximum stay of ${ratePlan.maximumLengthOfStay} nights allowed for this rate plan.`
+      //   );
+      // }
+      // console.log("inv ava:", start, end);
 
       // Step 2: Check inventory availability
       const inventoryCheck = await this.checkInventoryAvailability(
@@ -352,7 +353,7 @@ export class RoomRentCalculationService {
     return { isValid: true };
   }
 
-  private static async checkInventoryAvailability(
+private static async checkInventoryAvailability(
     propertyCode: string,
     roomTypeCode: string,
     ratePlanCode: string,
@@ -360,15 +361,19 @@ export class RoomRentCalculationService {
     endDate: Date,
     noOfRooms: number
   ): Promise<any> {
-    const stayDates: string[] = [];
-    const currentDate = new Date(startDate);  // Create a copy, not a reference
-    console.log(startDate, endDate)
+    const stayDates: Date[] = [];
+    const start = toUTCDate(startDate);
+    const end = toUTCDate(endDate);
+    
+    let current = new Date(start.getTime()); // Create copy using timestamp
 
-    while (currentDate < endDate) {
-      stayDates.push(currentDate.toISOString().split('T')[0]);
-      currentDate.setDate(currentDate.getDate() + 1);
+    while (current < end) {
+      stayDates.push(new Date(current.getTime())); // Push copy using timestamp
+      current.setUTCDate(current.getUTCDate() + 1); // Use UTC methods
     }
-    console.log("Stay dates", stayDates)
+    
+    console.log("Stay dates:", stayDates.map(d => d.toISOString()));
+
     const inventories = await prisma.inventory.findMany({
       where: {
         propertyCode,
@@ -376,14 +381,17 @@ export class RoomRentCalculationService {
         date: { in: stayDates },
       },
     });
-    console.log(inventories)
+    
+    console.log("Found inventories:", inventories.length);
+    
     if (inventories.length !== stayDates.length) {
-      return errorResponse('Inventory not found for all dates in the range');
+      return errorResponse(
+        `Inventory not found for all dates. Expected ${stayDates.length}, found ${inventories.length}`
+      );
     }
 
     let minAvailability = Infinity;
     for (const inv of inventories) {
-      // Check if ratePlanCode exists in ratePlans array
       if (!inv.ratePlans.includes(ratePlanCode)) {
         return errorResponse(
           `Rate plan ${ratePlanCode} not available for date ${inv.date}`
@@ -405,7 +413,7 @@ export class RoomRentCalculationService {
     };
   }
 
-  private static async calculateDayByDayRates(
+ private static async calculateDayByDayRates(
     propertyCode: string,
     roomTypeCode: string,
     ratePlanCode: string,
@@ -424,27 +432,26 @@ export class RoomRentCalculationService {
 
       // Generate stay dates (exclude checkout day)
       const stayDates: Date[] = [];
-      const currentDate = new Date(startDate);  // Create a proper copy
-      console.log("currentDate", currentDate)
-      console.log("startDate", startDate)
-      console.log("endDate", endDate)
+      const start = toUTCDate(startDate);
+      const end = toUTCDate(endDate);
+      
+      let current = toUTCDate(start); // Create copy using timestamp
 
-      // No need to setHours - dates are already in UTC midnight format from controller
-
-      const endDateCheck = new Date(endDate);  // Create a copy of endDate
-
-      while (currentDate < endDateCheck) {
-        stayDates.push(new Date(currentDate));  // Push a copy, not reference
-        currentDate.setDate(currentDate.getDate() + 1);
+      while (current < end) {
+        stayDates.push(toUTCDate(current)); // Push copy using timestamp
+        current.setUTCDate(current.getUTCDate() + 1); // Use UTC methods
       }
-      console.log(stayDates)
+      
+      console.log("Stay dates for calculation:", stayDates.map(d => d.toISOString()));
+
       for (const date of stayDates) {
         const dayOfWeek = this.getDayOfWeek(date);
         const dateStr = date.toISOString().split('T')[0];
 
-        // Get charge for this date - using date range for better matching
-        const startOfDateUTC = new Date(dateStr + 'T00:00:00.000Z');
-        const endOfDateUTC = new Date(dateStr + 'T23:59:59.999Z');
+        // Get charge for this date
+        const startOfDateUTC = toUTCDate(dateStr);
+        const endOfDateUTC = new Date(startOfDateUTC.getTime() + 24 * 60 * 60 * 1000);
+
         const charge = await prisma.charge.findFirst({
           where: {
             propertyCode,
@@ -452,41 +459,21 @@ export class RoomRentCalculationService {
             ratePlanCode,
             date: {
               gte: startOfDateUTC,
-              lte: endOfDateUTC,
+              lt: endOfDateUTC,
             },
             isSaleStopped: false
-            // Removed isSaleStopped filter - you can add it back if needed
           },
           include: {
             baseGuestAmounts: true,
             additionalGuestAmounts: true,
           },
         });
-        console.log("charge", charge)
+        
+        console.log("Charge for", dateStr, ":", charge ? "Found" : "Not found");
 
-        // if (!charge) {
-        //   // Check if rate exists but sales are stopped
-        //   const chargeWithSalesStopped = await prisma.charge.findFirst({
-        //     where: {
-        //       propertyCode,
-        //       roomTypeCode,
-        //       ratePlanCode,
-        //       date: {
-        //         gte: startOfDateUTC,
-        //         lte: endOfDateUTC,
-        //       },
-        //       isAvailable: true,
-        //     },
-        //   });
-
-        //   if (chargeWithSalesStopped && chargeWithSalesStopped.isSaleStopped) {
-        //     return errorResponse(
-        //       `Sales are stopped for date: ${dateStr}. Please choose different dates.`
-        //     );
-        //   }
-
-        //   return errorResponse(`No rates found for date: ${dateStr}`);
-        // }
+        if (!charge) {
+          return errorResponse(`No rates found for date: ${dateStr}`);
+        }
 
         // Check day-of-week applicability
         const dayApplicable = this.isDayApplicable(charge, dayOfWeek);
@@ -522,8 +509,7 @@ export class RoomRentCalculationService {
 
         totalAmount += rateCalculation.totalAmountForDay;
         totalBaseAmount += rateCalculation.baseRatePerRoom * noOfRooms;
-        totalAdditionalCharges +=
-          rateCalculation.additionalGuestCharges * noOfRooms;
+        totalAdditionalCharges += rateCalculation.additionalGuestCharges * noOfRooms;
       }
 
       const averageBaseRate =
@@ -555,7 +541,6 @@ export class RoomRentCalculationService {
       return errorResponse('Error calculating day-by-day rates');
     }
   }
-
   private static getDayOfWeek(date: Date): string {
     const days = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
     return days[date.getDay()];

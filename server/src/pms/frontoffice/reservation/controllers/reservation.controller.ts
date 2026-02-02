@@ -1,6 +1,6 @@
 import { errorResponse } from "../../../../utils/return";
 import { Response } from "express";
-import { CustomRequest } from "../../../../utils/customRequest";
+import { CustomRequest, PropertyRequest } from "../../../../utils/customRequest";
 import { ReservationService } from "../services";
 
 export class ReservationController {
@@ -10,7 +10,7 @@ export class ReservationController {
         this.reservationService = new ReservationService();
     }
 
-    public async createReservation(req: CustomRequest, res: Response): Promise<Response> {
+    public async createReservation(req: PropertyRequest, res: Response): Promise<Response> {
         try {
             const body = req.body;
 
@@ -86,20 +86,33 @@ export class ReservationController {
     }
 } 
 
-public async getReservationsForADate(req: CustomRequest, res: Response): Promise<Response> {
+public async getAllReservations(req: CustomRequest, res: Response): Promise<Response> {
     try {
-        // Check user authentication and creation assignment
         if (!req.user?.creationId || req.user.level === undefined) {
             return res.status(400).json(errorResponse("User is not assigned to any creation", "Creation ID not found"));
         }
 
-        const { startDate, endDate, page = '1', limit = '10', propertyId, propertyCode, bookingStatus } = req.query;
+        const { 
+            startDate, 
+            endDate, 
+            page = '1', 
+            limit = '10', 
+            propertyId, 
+            propertyCode, 
+            bookingStatus,
+            bookingSource,      // ← Add these
+            deviceType,         // ← Add these
+            bookingCode,        // ← Add these
+            guestName,          // ← Add these
+            promoCode,          // ← Add these
+            countryCode,        // ← Add these
+            dateFilterType      // ← Add these
+        } = req.query;
 
         if (!startDate || !endDate) {
             return res.status(400).json(errorResponse("Start date and end date are required"));
         }
 
-        // Validate dates
         const start = new Date(startDate as string);
         const end = new Date(endDate as string);
         
@@ -127,7 +140,14 @@ public async getReservationsForADate(req: CustomRequest, res: Response): Promise
             limitNum,
             propertyId?.toString(),
             propertyCode?.toString(),
-            bookingStatus?.toString() // <-- Add this parameter
+            bookingStatus?.toString(),
+            bookingSource?.toString(),      // ← Add these
+            deviceType?.toString(),         // ← Add these
+            bookingCode?.toString(),        // ← Add these
+            guestName?.toString(),          // ← Add these
+            promoCode?.toString(),          // ← Add these
+            countryCode?.toString(),        // ← Add these
+            dateFilterType?.toString() as 'checkin' | 'booking' | 'modification' | undefined  // ← Add these
         );
         
         return res.status(serRes.success ? 200 : 400).json(serRes);
@@ -360,6 +380,23 @@ public async getCheckOutsForADate(req: CustomRequest, res: Response): Promise<Re
         } catch (error) {
             if (error instanceof Error) {
                 return res.status(500).json(errorResponse("Failed to cancel Reservation", error.message));
+            }
+            return res.status(500).json(errorResponse("Internal server Error"));
+        }
+    }
+    public async noShowReservation(req: CustomRequest, res: Response): Promise<Response> {
+        try {
+            const reservationId = req.params.reservationId;
+            
+            if (!reservationId) {
+                return res.status(400).json(errorResponse("Reservation id is required"));
+            }
+
+            const serRes = await this.reservationService.noShowReservation(reservationId);
+            return res.status(serRes.success ? 200 : 400).json(serRes);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res.status(500).json(errorResponse("Failed to no show Reservation", error.message));
             }
             return res.status(500).json(errorResponse("Internal server Error"));
         }

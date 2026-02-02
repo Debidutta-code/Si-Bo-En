@@ -1,5 +1,5 @@
 import { Response } from "express";
-import { CustomRequest } from "../../utils/customRequest";
+import { PropertyCustomRequest } from "../../utils/customRequest";
 import { StartStopSellService } from "../services";
 
 export class StartStopSellController {
@@ -7,7 +7,7 @@ export class StartStopSellController {
     constructor() {
         this.startStopSellService = new StartStopSellService();
     }
-    public async createStartStopSell(req: CustomRequest, res: Response): Promise<Response> {
+    public async createStartStopSell(req: PropertyCustomRequest, res: Response): Promise<Response> {
         try {
             const propertyId = req.params.propertyId;
             if(!propertyId){

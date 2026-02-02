@@ -104,54 +104,65 @@ export class AvailabilityServices {
     return soldMap;
   }
 
-  private static buildDayData(
-    date: Date,
-    property: any,
-    inventories: any[],
-    charges: any[],
-    soldRoomsMap: Map<string, Map<string, number>>
-  ) {
-    const dateKey = format(date, 'yyyy-MM-dd');
-    const dayOfWeek = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][getDay(date)];
-    const soldMap = soldRoomsMap.get(dateKey) || new Map();
+private static buildDayData(
+  date: Date,
+  property: any,
+  inventories: any[],
+  charges: any[],
+  soldRoomsMap: Map<string, Map<string, number>>
+) {
+  const dateKey = format(date, 'yyyy-MM-dd');
+  const dayOfWeek = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][getDay(date)];
+  const soldMap = soldRoomsMap.get(dateKey) || new Map();
 
-    // Get inventories for this date
-    const dayInventories = inventories.filter((inv) => inv.date === dateKey);
+  // FIX: Compare dates as strings
+  const dayInventories = inventories.filter((inv) => {
+    const invDateKey = format(new Date(inv.date), 'yyyy-MM-dd');
+    console.log('🔍 Comparing inventory:', { invDateKey, dateKey, match: invDateKey === dateKey });
+    return invDateKey === dateKey;
+  });
 
-    // Get charges for this date
-    const dayCharges = charges.filter((charge) => {
-      const chargeDate = format(new Date(charge.date), 'yyyy-MM-dd');
-      return chargeDate === dateKey;
+  // FIX: Compare dates as strings
+  const dayCharges = charges.filter((charge) => {
+    const chargeDateKey = format(new Date(charge.date), 'yyyy-MM-dd');
+    console.log('🔍 Comparing charge:', { chargeDateKey, dateKey, match: chargeDateKey === dateKey });
+    return chargeDateKey === dateKey;
+  });
+
+  console.log('✅ Filtered results:', {
+    dateKey,
+    dayInventoriesCount: dayInventories.length,
+    dayChargesCount: dayCharges.length
+  });
+
+  // Build room types data
+  const roomTypes = property.propertyRooms.map((room: any) => {
+    const totalInventory = room.totalRoom || 0;
+    const dayInventory = dayInventories.find((inv) => inv.roomTypeCode === room.roomType);
+    const inventoryAvailable = dayInventory?.availability ?? 0;
+    const sold = soldMap.get(room.roomType) || 0;
+    const available = Math.max(0, inventoryAvailable - sold);
+    const hasCharges = dayCharges.some((c) => c.roomTypeCode === room.roomType && !c.isSaleStopped);
+
+    console.log('🏨 Room type data:', {
+      roomType: room.roomType,
+      totalInventory,
+      inventoryAvailable,
+      sold,
+      available,
+      hasCharges,
+      status: hasCharges && available > 0 ? 'open' : 'close'
     });
 
-    // Build room types data
- const roomTypes = property.propertyRooms.map((room: any) => {
-  // Physical rooms from Room table
-  const totalInventory = room.totalRoom || 0;
-  
-  // Find inventory for this specific room type on this date
-  const dayInventory = dayInventories.find((inv) => inv.roomTypeCode === room.roomType);
-  
-  // Inventory availability for this date (if no inventory record, use 0)
-  const inventoryAvailable = dayInventory?.availability ?? 0;
-  
-  // Sold rooms for this date
-  const sold = soldMap.get(room.roomType) || 0;
-  
-  // Available = inventory available - sold (not totalRoom - sold)
-  const available = Math.max(0, inventoryAvailable);
-  
-  const hasCharges = dayCharges.some((c) => c.roomTypeCode === room.roomType && !c.isSaleStopped);
-
-  return {
-    invTypeCode: room.roomType,
-    available,
-    sold,
-    occupancy: totalInventory > 0 ? (sold / totalInventory) * 100 : 0,
-    status: hasCharges && available > 0 ? 'open' : 'close',
-    _totalInventory: totalInventory, // This is the physical room count
-  };
-});
+    return {
+      invTypeCode: room.roomType,
+      available,
+      sold,
+      occupancy: totalInventory > 0 ? (sold / totalInventory) * 100 : 0,
+      status: hasCharges && available > 0 ? 'open' : 'close',
+      _totalInventory: totalInventory,
+    };
+  });
 
     // Build rate plans data
     const ratePlanMap = new Map<string, any>();

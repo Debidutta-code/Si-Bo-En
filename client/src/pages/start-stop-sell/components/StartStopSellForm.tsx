@@ -40,6 +40,8 @@ export default function StartStopSellForm({ propertyId }: StartStopSellFormProps
     const [roomTypes, setRoomTypes] = useState<RoomType[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [fromDateOpen, setFromDateOpen] = useState(false);
+    const [toDateOpen, setToDateOpen] = useState(false);
     const [formData, setFormData] = useState<FormData>({
         from: new Date(),
         to: new Date(),
@@ -234,7 +236,7 @@ export default function StartStopSellForm({ propertyId }: StartStopSellFormProps
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="grid gap-2">
                         <Label>From Date *</Label>
-                        <Popover>
+                        <Popover open={fromDateOpen} onOpenChange={setFromDateOpen}>
                             <PopoverTrigger asChild>
                                 <Button
                                     variant="outline"
@@ -251,9 +253,10 @@ export default function StartStopSellForm({ propertyId }: StartStopSellFormProps
                                 <Calendar
                                     mode="single"
                                     selected={formData.from}
-                                    onSelect={(date) =>
-                                        date && setFormData({ ...formData, from: date })
-                                    }
+                                    onSelect={(date) => {
+                                        date && setFormData({ ...formData, from: date });
+                                        setFromDateOpen(false);
+                                    }}
                                     initialFocus
                                 />
                             </PopoverContent>
@@ -262,7 +265,7 @@ export default function StartStopSellForm({ propertyId }: StartStopSellFormProps
 
                     <div className="grid gap-2">
                         <Label>To Date *</Label>
-                        <Popover>
+                        <Popover open={toDateOpen} onOpenChange={setToDateOpen}>
                             <PopoverTrigger asChild>
                                 <Button
                                     variant="outline"
@@ -279,9 +282,10 @@ export default function StartStopSellForm({ propertyId }: StartStopSellFormProps
                                 <Calendar
                                     mode="single"
                                     selected={formData.to}
-                                    onSelect={(date) =>
-                                        date && setFormData({ ...formData, to: date })
-                                    }
+                                    onSelect={(date) => {
+                                        date && setFormData({ ...formData, to: date });
+                                        setToDateOpen(false);
+                                    }}
                                     initialFocus
                                     disabled={(date) => date < formData.from}
                                 />

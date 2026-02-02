@@ -7,6 +7,7 @@ import { IPaginatedResponse } from '../../utils/return';
 import prisma from '../../config/prisma.client';
 // import { MappedRate } from "../types/mapedRate.type"
 import { IRatePlanUpdate } from '../types/rateplan.type';
+import { nowUTC, toUTC } from '../../utils';
 export class RatePlanRepository {
   public static async createRatePlan(
     ratePlanName: string,
@@ -24,8 +25,6 @@ export class RatePlanRepository {
           ratePlanCode,
           b2bAvailable: isB2B,
           b2cAvailable: isB2C,
-          minimumLenghthOfStay: minimumLengthOfStay,
-          maximumLengthOfStay: maximumLengthOfStay,
           property: {
             connect: {
               id: propertyId
@@ -50,6 +49,8 @@ export class RatePlanRepository {
           depositPolicy: true,
           cancellationPolicy: true,
           guaranteePolicy: true,
+          ratePlanRules: true,
+          Addons: true,
         },
       });
     } catch (error) {
@@ -119,10 +120,6 @@ export class RatePlanRepository {
       const mappedData: any = { ...updateData };
       
       // Handle the typo in the database schema: minimumLenghthOfStay
-      if (updateData.minimumLengthOfStay !== undefined) {
-        mappedData.minimumLenghthOfStay = updateData.minimumLengthOfStay;
-        delete mappedData.minimumLengthOfStay;
-      }
       
       return await prisma.ratePlan.update({
         where: { ratePlanCode },
@@ -149,12 +146,12 @@ export class RatePlanRepository {
   const skip = (page - 1) * resultsPerPage;
   
   const startDateString = startDate
-    ? formatDateToYYYYMMDD(startDate)
-    : formatDateToYYYYMMDD(new Date());
+    ? toUTC(startDate)
+    : nowUTC();
 
   const endDateString = endDate
-    ? formatDateToYYYYMMDD(endDate)
-    : formatDateToYYYYMMDD(
+    ? toUTC(endDate)
+    : toUTC(
       new Date(new Date().setFullYear(new Date().getFullYear() + 1))
     );
 
@@ -165,8 +162,8 @@ export class RatePlanRepository {
       ...(roomTypeCode && { roomTypeCode }),
       ...(ratePlanCode && { ratePlanCode }),
       date: {
-        gte: new Date(startDateString),
-        lte: new Date(endDateString),
+        gte:startDateString,
+        lte: endDateString,
       },
     };
 
@@ -198,7 +195,7 @@ export class RatePlanRepository {
           where: {
             propertyCode: charge.propertyCode,
             roomTypeCode: charge.roomTypeCode,
-            date: formatDateToYYYYMMDD(charge.date),
+            date: (charge.date),
           },
           select: {
             availability: true,

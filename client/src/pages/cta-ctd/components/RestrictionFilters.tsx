@@ -9,6 +9,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import type { RestrictionFilters, RoomType, RatePlan } from "../interfaces";
+import { useState } from "react";
 
 interface RestrictionFiltersProps {
     filters: RestrictionFilters;
@@ -25,10 +26,13 @@ export default function RestrictionFiltersComponent({
     ratePlans,
     onReset
 }: RestrictionFiltersProps) {
+    const [fromDateOpen, setFromDateOpen] = useState(false);
+    const [toDateOpen, setToDateOpen] = useState(false);
     const handleStartDateChange = (date: Date | undefined) => {
         if (date) {
             const formattedDate = format(date, "yyyy-MM-dd");
             onFilterChange({ ...filters, startDate: formattedDate });
+            setFromDateOpen(false);
         }
     };
 
@@ -36,6 +40,7 @@ export default function RestrictionFiltersComponent({
         if (date) {
             const formattedDate = format(date, "yyyy-MM-dd");
             onFilterChange({ ...filters, endDate: formattedDate });
+            setToDateOpen(false);
         }
     };
 
@@ -73,7 +78,7 @@ export default function RestrictionFiltersComponent({
                 {/* Start Date */}
                 <div className="grid gap-2">
                     <Label>Start Date</Label>
-                    <Popover>
+                    <Popover onOpenChange={setFromDateOpen} open={fromDateOpen}>
                         <PopoverTrigger asChild>
                             <Button
                                 variant="outline"
@@ -102,7 +107,7 @@ export default function RestrictionFiltersComponent({
                 {/* End Date */}
                 <div className="grid gap-2">
                     <Label>End Date</Label>
-                    <Popover>
+                    <Popover onOpenChange={setToDateOpen} open={toDateOpen}>
                         <PopoverTrigger asChild>
                             <Button
                                 variant="outline"

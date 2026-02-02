@@ -115,8 +115,9 @@ interface BookingState {
   bookingCode?: string;
   roomTypeCode?: string;
   senderUrl?: string;
-  PropertyDetails?: PropertyDetails
-  bookingEngineColor?: BookingEngineColor
+  PropertyDetails?: PropertyDetails;
+  bookingEngineColor?: BookingEngineColor;
+  bookingSource?: string;
 }
 
 const initialState: BookingState = {
@@ -143,6 +144,7 @@ const initialState: BookingState = {
   numberOfRooms: null,
   bookingCode: undefined,
   PropertyDetails: undefined,
+  bookingSource: "direct",
 };
 
 const bookingSlice = createSlice({
@@ -177,6 +179,9 @@ const bookingSlice = createSlice({
     setSenderUrl(state, action: PayloadAction<string>) {
       state.senderUrl = action.payload;
     },
+    setBookingSource(state, action: PayloadAction<string>) { // ADD THIS
+      state.bookingSource = action.payload;
+    },
     clearSenderUrl(state) {
       state.senderUrl = undefined;
     },
@@ -191,6 +196,7 @@ export const {
   setBookingStatus,
   setSenderUrl,
   clearSenderUrl,
-  setCurrency
+  setCurrency,
+  setBookingSource
 } = bookingSlice.actions;
 export default bookingSlice.reducer;

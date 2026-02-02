@@ -2,20 +2,9 @@ import { Router } from 'express';
 import { protect } from '../../middlewares/auth.middleware';
 import {
   checkRoleBased,
-  addRoleBasedDetails,
-  checkMultiplePermissions,
 } from '../../middlewares/checkRole.middleware';
-import {BankController,
-  RoomController,
-  RoomAminityController,
-  Property,
+import {
   PropertyAddressController,
-  PropertyAminityController,
-  Category,
-  PropertyType,
-  DestinationType,
-  AminityController,
-  RoomAminityControllerManagement,
 } from "../controller";
 
 

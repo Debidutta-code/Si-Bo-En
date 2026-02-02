@@ -2,26 +2,72 @@ import createAxiosInstance from "@/components/axiosInstance";
 
 const axiosInstance = createAxiosInstance();
 
-export const fetchReservations = async (filters: {
+// Common filter type for all API calls
+interface ReservationFilters {
   startDate: string;
   endDate: string;
+  dateFilterType?: 'checkin' | 'booking' | 'modification';
   propertyId?: string;
   propertyCode?: string;
   bookingStatus?: string;
+  bookingSource?: string;
+  deviceType?: string;
+  bookingCode?: string;
+  guestName?: string;
+  promoCode?: string;
+  countryCode?: string;
   page?: number;
   limit?: number;
-}) => {
-  try {
-    const params = new URLSearchParams({
-      startDate: filters.startDate,
-      endDate: filters.endDate,
-      page: (filters.page || 1).toString(),
-      limit: (filters.limit || 10).toString(),
-      ...(filters.propertyId && { propertyId: filters.propertyId }),
-      ...(filters.propertyCode && { propertyCode: filters.propertyCode }),
-      ...(filters.bookingStatus && { bookingStatus: filters.bookingStatus })
-    });
+}
 
+// Helper function to build query params
+const buildQueryParams = (filters: ReservationFilters): URLSearchParams => {
+  const params = new URLSearchParams({
+    startDate: filters.startDate,
+    endDate: filters.endDate,
+    page: (filters.page || 1).toString(),
+    limit: (filters.limit || 10).toString(),
+  });
+
+  // Add optional parameters only if they exist and are not 'all'
+  if (filters.dateFilterType) {
+    params.append('dateFilterType', filters.dateFilterType);
+  }
+  if (filters.propertyId) {
+    params.append('propertyId', filters.propertyId);
+  }
+  if (filters.propertyCode) {
+    params.append('propertyCode', filters.propertyCode);
+  }
+  if (filters.bookingStatus && filters.bookingStatus !== 'all') {
+    params.append('bookingStatus', filters.bookingStatus);
+  }
+  if (filters.bookingSource && filters.bookingSource !== 'all') {
+    params.append('bookingSource', filters.bookingSource);
+  }
+  if (filters.deviceType && filters.deviceType !== 'all') {
+    params.append('deviceType', filters.deviceType);
+  }
+  if (filters.bookingCode) {
+    params.append('bookingCode', filters.bookingCode);
+  }
+  if (filters.guestName) {
+    params.append('guestName', filters.guestName);
+  }
+  if (filters.promoCode) {
+    params.append('promoCode', filters.promoCode);
+  }
+  if (filters.countryCode && filters.countryCode !== 'all') {
+    params.append('countryCode', filters.countryCode);
+  }
+
+  return params;
+};
+
+// Updated API functions
+export const fetchReservations = async (filters: ReservationFilters) => {
+  try {
+    const params = buildQueryParams(filters);
     const response = await axiosInstance.get(`pms/front-office/reservations/date-range?${params.toString()}`);
     return response.data;
   } catch (error: any) {
@@ -35,26 +81,9 @@ export const fetchReservations = async (filters: {
   }
 };
 
-export const fetchArrivals = async (filters: {
-  startDate: string;
-  endDate: string;
-  propertyId?: string;
-  propertyCode?: string;
-  bookingStatus?: string;
-  page?: number;
-  limit?: number;
-}) => {
+export const fetchArrivals = async (filters: ReservationFilters) => {
   try {
-    const params = new URLSearchParams({
-      startDate: filters.startDate,
-      endDate: filters.endDate,
-      page: (filters.page || 1).toString(),
-      limit: (filters.limit || 10).toString(),
-      ...(filters.propertyId && { propertyId: filters.propertyId }),
-      ...(filters.propertyCode && { propertyCode: filters.propertyCode }),
-      ...(filters.bookingStatus && { bookingStatus: filters.bookingStatus })
-    });
-
+    const params = buildQueryParams(filters);
     const response = await axiosInstance.get(`/pms/front-office/reservations/arrivals?${params.toString()}`);
     return response.data;
   } catch (error: any) {
@@ -68,26 +97,9 @@ export const fetchArrivals = async (filters: {
   }
 };
 
-export const fetchDepartures = async (filters: {
-  startDate: string;
-  endDate: string;
-  propertyId?: string;
-  propertyCode?: string;
-  bookingStatus?: string;
-  page?: number;
-  limit?: number;
-}) => {
+export const fetchDepartures = async (filters: ReservationFilters) => {
   try {
-    const params = new URLSearchParams({
-      startDate: filters.startDate,
-      endDate: filters.endDate,
-      page: (filters.page || 1).toString(),
-      limit: (filters.limit || 10).toString(),
-      ...(filters.propertyId && { propertyId: filters.propertyId }),
-      ...(filters.propertyCode && { propertyCode: filters.propertyCode }),
-      ...(filters.bookingStatus && { bookingStatus: filters.bookingStatus })
-    });
-
+    const params = buildQueryParams(filters);
     const response = await axiosInstance.get(`/pms/front-office/reservations/departures?${params.toString()}`);
     return response.data;
   } catch (error: any) {
@@ -101,71 +113,7 @@ export const fetchDepartures = async (filters: {
   }
 };
 
-export const fetchCheckIns = async (filters: {
-  startDate: string;
-  endDate: string;
-  propertyId?: string;
-  propertyCode?: string;
-  bookingStatus?: string;
-  page?: number;
-  limit?: number;
-}) => {
-  try {
-    const params = new URLSearchParams({
-      startDate: filters.startDate,
-      endDate: filters.endDate,
-      page: (filters.page || 1).toString(),
-      limit: (filters.limit || 10).toString(),
-      ...(filters.propertyId && { propertyId: filters.propertyId }),
-      ...(filters.propertyCode && { propertyCode: filters.propertyCode }),
-      ...(filters.bookingStatus && { bookingStatus: filters.bookingStatus })
-    });
 
-    const response = await axiosInstance.get(`/pms/front-office/reservations/checkins?${params.toString()}`);
-    return response.data;
-  } catch (error: any) {
-    if (error?.response?.data) {
-      return error.response.data;
-    }
-    return {
-      success: false,
-      message: error?.message || "Failed to fetch check-ins"
-    };
-  }
-};
-
-export const fetchCheckOuts = async (filters: {
-  startDate: string;
-  endDate: string;
-  propertyId?: string;
-  propertyCode?: string;
-  bookingStatus?: string;
-  page?: number;
-  limit?: number;
-}) => {
-  try {
-    const params = new URLSearchParams({
-      startDate: filters.startDate,
-      endDate: filters.endDate,
-      page: (filters.page || 1).toString(),
-      limit: (filters.limit || 10).toString(),
-      ...(filters.propertyId && { propertyId: filters.propertyId }),
-      ...(filters.propertyCode && { propertyCode: filters.propertyCode }),
-      ...(filters.bookingStatus && { bookingStatus: filters.bookingStatus })
-    });
-
-    const response = await axiosInstance.get(`/pms/front-office/reservations/checkouts?${params.toString()}`);
-    return response.data;
-  } catch (error: any) {
-    if (error?.response?.data) {
-      return error.response.data;
-    }
-    return {
-      success: false,
-      message: error?.message || "Failed to fetch check-outs"
-    };
-  }
-};
 
 export const fetchReservationByCode = async (bookingCode: string) => {
   try {
@@ -196,7 +144,20 @@ export const cancelReservation = async (reservationId: string) => {
     };
   }
 };
-
+export const noShowReservation = async (reservationId: string) => {
+  try {
+    const response = await axiosInstance.patch(`/pms/front-office/reservations/no-show/${reservationId}`);
+    return response.data;
+  } catch (error: any) {
+    if (error?.response?.data) {
+      return error.response.data;
+    }
+    return {
+      success: false,
+      message: error?.message || "Failed to no show reservation"
+    };
+  }
+};
 export const amendReservation = async (reservationId: string, newCheckoutDate: string) => {
   try {
     const response = await axiosInstance.patch(`/pms/front-office/reservations/amend/${reservationId}`, {

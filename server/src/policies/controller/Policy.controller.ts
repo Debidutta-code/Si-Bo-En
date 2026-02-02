@@ -1,10 +1,10 @@
-import { CustomRequest } from "../../utils/customRequest";
+import { CustomRequest, PropertyCustomRequest } from "../../utils/customRequest";
 import { Response } from "express"
 import { errorResponse } from "../../utils/return";
 import { PoliciesServices } from "../services"
 export class PolicyController {
 
-    public static async createPolicies(req: CustomRequest, res: Response) {
+    public static async createPolicies(req: PropertyCustomRequest, res: Response) {
         try {
             const { propertyId, description, type, policyName } = req.body
             if (!description || !type || !policyName) {
@@ -47,7 +47,7 @@ export class PolicyController {
             return res.status(500).json(errorResponse("Internal server error", error?.message))
         }
     }
-    public static async findPolicy(req: CustomRequest, res: Response) {
+    public static async findPolicy(req: PropertyCustomRequest, res: Response) {
         try {
 
             const { propertyCode, ratePlanCode } = req.body
@@ -61,7 +61,7 @@ export class PolicyController {
             return res.status(500).json(errorResponse("Internal server error", error?.message))
         }
     }
-    public static async getPoliciesByHotelCode(req: CustomRequest, res: Response) {
+    public static async getPoliciesByHotelCode(req: PropertyCustomRequest, res: Response) {
         try {
             const { propertyId } = req.query
             if (!propertyId) {

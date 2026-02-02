@@ -35,7 +35,7 @@ export class RoomBookingRepository {
   public static async getInventoryByProperty(
     propertyCode: string,
     roomTypeCode: string,
-    dates: string[]
+    dates: Date[]
   ) {
     return prisma.inventory.findMany({
       where: {
@@ -54,7 +54,7 @@ export class RoomBookingRepository {
     propertyCode: string,
     roomTypeCode: string,
     ratePlanCode: string,
-    date: string
+    date: Date
   ) {
    const dayStart = new Date(date);
 const dayEnd = new Date(date);

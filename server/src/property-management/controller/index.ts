@@ -6,13 +6,16 @@ import {Property,
 import {RoomAminityController,RoomController} from "./room.controller";
 import {AminityController,
     Category,
-    DestinationType,
     PropertyType,
     RoomAminityControllerManagement
 } from "./types.controller";
 import {uploadHandler} from "./upload.controller";
 import {PropertyConfigController} from "./property-config.controller";
-import {BookingEngineController} from "./bookingEngine.controller"
+import {BookingEngineController} from "./bookingEngine.controller";
+export {
+    PropertyVedioController,
+    RoomVedioController
+} from "./vedio.controller";
 export{
     BankController,
     Property,
@@ -22,7 +25,6 @@ export{
     RoomController,
     AminityController,
     Category,
-    DestinationType,
     PropertyType,
     RoomAminityControllerManagement,
     uploadHandler,

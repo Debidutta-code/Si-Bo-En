@@ -2,7 +2,6 @@ import { errorResponse, successResponse } from '../../utils/return';
 import {
   CategoryDao,
   PropertyTypesDao,
-  DestinationTypeDao,
   RoomAminityDao,
   PropertyAminityDao,
 } from '../repository';
@@ -123,47 +122,6 @@ export class PropertyTypeService {
       return successResponse('Property Type Deleted Successfully', daoRes);
     } catch (error: any) {
       return errorResponse('Failed to delete Property Type', error?.message);
-    }
-  }
-}
-export class DestinationTypeService {
-  public static async createDestinationService(
-    destinationTypeName: string,
-    description: string
-  ) {
-    try {
-      const isExists =
-        await DestinationTypeDao.getDestinationByName(destinationTypeName);
-      if (isExists) {
-        return errorResponse('Property Type with this name already exists');
-      }
-      const daoRes = await DestinationTypeDao.createDestinationType(
-        destinationTypeName,
-        description
-      );
-      return successResponse('Destination created successfully', daoRes);
-    } catch (error: any) {
-      return errorResponse('Failed to create Destination', error?.message);
-    }
-  }
-  public static async getDestinationService() {
-    try {
-      const daoRes = await DestinationTypeDao.getDestinationType();
-      return successResponse('Destination fetched Successfully', daoRes);
-    } catch (error: any) {
-      return errorResponse('Failed to fetch Destination', error?.message);
-    }
-  }
-  public static async deleteDestinationService(destinationTypeName: string) {
-    try {
-      const daoRes =
-        await DestinationTypeDao.deleteDestinationType(destinationTypeName);
-      return successResponse('Property Type Deleted Successfully', daoRes);
-    } catch (error: any) {
-      return errorResponse(
-        `Failed to delete Destination Type ${destinationTypeName}`,
-        error?.message
-      );
     }
   }
 }

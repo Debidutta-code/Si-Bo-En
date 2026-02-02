@@ -25,14 +25,6 @@ export interface IPropertyDetails {
       categoryDescription: string
     }
   };
-  destinationType: {
-    masterDestinationType:{
-
-      id: string;
-      destinationTypeName: string
-      destinationDescription: string;
-    }
-  };
   propertyType: {
     masterPropertyType:{
 

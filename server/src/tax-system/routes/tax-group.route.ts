@@ -5,6 +5,7 @@ const taxGroupRouter = Router();
 const taxGroupController = new TaxGroupController();
 taxGroupRouter.route("/").post(protect, taxGroupController.createTaxGroupController.bind(taxGroupController));
 taxGroupRouter.route("/property/:propertyId").get(
+    
     taxGroupController.getTaxGroupsByPropertyIdController.bind(taxGroupController)
 );
 taxGroupRouter.route("/:taxGroupId").put(

@@ -6,7 +6,7 @@ import { RootState } from "../../store/store";
 import SearchWidget from "../../components/Home/SearchWidget";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
-import { setBookingContext, setCurrency, setSenderUrl } from "../../store/bookingSlice";
+import { setBookingContext, setBookingSource, setCurrency, setSenderUrl } from "../../store/bookingSlice";
 import { useBookingColors } from "../../hooks/useBookingColors";
 import RoomCard from "@/src/components/RoomPage/RoomCard";
 import PriceSummarySidebar from "../../components/RoomPage/Pricesummerysidebar";
@@ -413,6 +413,7 @@ const Rooms = () => {
     const adults = searchParams.get("adults");
     const children = searchParams.get("children");
     const rooms = searchParams.get("rooms");
+    const bookingSource = searchParams.get("utm_source") || "direct";
 
     // Check if we have external params (checkin/checkout indicates external source)
     const hasExternalParams = !!(code && (checkin || checkout || adults || children || rooms));
@@ -471,7 +472,8 @@ const Rooms = () => {
         roomsDetail: roomsArray, // ✅ Keep detailed array separately
         location: "",
         numberOfRooms: numRooms,
-        isExternal: true // Mark this as external request
+        isExternal: true,
+        bookingSource: bookingSource
       };
     }
 
@@ -513,7 +515,7 @@ const Rooms = () => {
           numberOfRooms: paramsData.numberOfRooms || 1,
           location: paramsData.location || ""
         };
-        
+        dispatch(setBookingSource(paramsData.bookingSource));
         dispatch(setBookingContext(contextWithDates));
         localStorage.setItem("bookingContext", JSON.stringify(contextWithDates));
         await handleSearchStart(contextWithDates);
@@ -542,6 +544,7 @@ const Rooms = () => {
           
           console.log("💾 Loading from localStorage:", validatedContext);
           dispatch(setBookingContext(validatedContext));
+          dispatch(setBookingSource(parsedContext.bookingSource || "direct"));
           localStorage.setItem("bookingContext", JSON.stringify(validatedContext));
           await handleSearchStart(validatedContext);
         } else {
@@ -910,9 +913,6 @@ const Rooms = () => {
           contactInfo={contactInfo}
           price={price}
           finalPrice={finalPrice}
-          loadingPrice={loadingPrice}
-          errorPrice={errorPrice}
-          bookingRoom={bookingRoom}
           bookingContext={bookingContext}
           onClose={() => {
             setBookingRoom(null);

@@ -4,7 +4,6 @@ import toast from "react-hot-toast";
 import { usePropertyForm } from "@/contexts/PropertyFormContext";
 import {
   getAllCategory,
-  getAllDestinationType,
   getAllPropertyType,
   createProperty,
   updatePropertyById,
@@ -34,7 +33,6 @@ import {
 
 // Type Definitions
 import type {
-  IDestinationType,
   IPropertyCategory,
   IPropertyDetails,
   IPropertyType,
@@ -62,13 +60,6 @@ const propertyInfoSchema = z.object({
       propertyTypeDescription: z.string()
     })
   }),
-  destinationType: z.object({
-    masterDestinationType: z.object({
-      id: z.string().min(1, "Please select a destination type."),
-      destinationTypeName: z.string(),
-      destinationDescription: z.string()
-    })
-  }),
   image: z.array(z.string()).min(1, "Please upload at least one image."),
 });
 
@@ -82,7 +73,6 @@ export default function PropertyInfo() {
     propertyName: "",
     description: "",
     propertyEmail: "",
-    destinationType: { masterDestinationType: { id: "39b60d48-74a0-46a5-9cad-bb178de4cbc3", destinationTypeName: "Villa", destinationDescription: "A private luxury house, often with a garden, pool, and exclusive amenities, ideal for families or groups" } },
     propertyCategory: { masterCategory: { id: "", categoryName: "", categoryDescription: "" } },
     propertyContact: "",
     propertyType: { masterPropertyType: { id: "", propertyTypeName: "", propertyTypeDescription: "" } },
@@ -90,7 +80,6 @@ export default function PropertyInfo() {
   });
   const [propertyTypes, setPropertyTypes] = useState<IPropertyType[]>([]);
   const [propertyCategories, setPropertyCategories] = useState<IPropertyCategory[]>([]);
-  const [destinationTypes, setDestinationTypes] = useState<IDestinationType[]>([]);
 
   // State for UI feedback
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -107,14 +96,12 @@ export default function PropertyInfo() {
   useEffect(() => {
     const fetchManagementDetails = async () => {
       try {
-        const [categoryRes, destRes, typeRes] = await Promise.all([
+        const [categoryRes, typeRes] = await Promise.all([
           getAllCategory(),
-          getAllDestinationType(),
           getAllPropertyType(),
         ]);
         // console.log(categoryRes.data, destRes.data, typeRes.data);
         if (categoryRes.success) setPropertyCategories(categoryRes.data);
-        if (destRes.success) setDestinationTypes(destRes.data);
         if (typeRes.success) setPropertyTypes(typeRes.data);
       } catch (error: any) {
         toast.error("Failed to load property options.");
@@ -154,13 +141,7 @@ export default function PropertyInfo() {
                 propertyTypeDescription: response.data.propertyType?.masterPropertyType?.propertyTypeDescription || "",
               }
             },
-            destinationType: {
-              masterDestinationType: {
-                id:  "39b60d48-74a0-46a5-9cad-bb178de4cbc3",
-                destinationTypeName:  "Villa",
-                destinationDescription:  "A private luxury house, often with a garden, pool, and exclusive amenities, ideal for families or groups.",
-              }
-            },
+            
             image: response.data.image || [],
           });
           setIsExistingData(true);
@@ -199,7 +180,7 @@ export default function PropertyInfo() {
           }
         }));
       }
-    } else if (fieldName === "propertyType") {
+    } else   {
       const selectedObject = propertyTypes.find((type) => type.id === selectedValue);
       if (selectedObject) {
         setPropertyDetails((prev) => ({
@@ -213,21 +194,7 @@ export default function PropertyInfo() {
           }
         }));
       }
-    } else {
-      const selectedObject = destinationTypes.find((dest) => dest.id === selectedValue);
-      if (selectedObject) {
-        setPropertyDetails((prev) => ({
-          ...prev,
-          destinationType: {
-            masterDestinationType: {
-              id: selectedObject.id,
-              destinationTypeName: selectedObject.destinationTypeName,
-              destinationDescription: selectedObject.destinationDescription
-            }
-          }
-        }));
-      }
-    }
+    } 
   };
 
   const handleUploadSuccess = (uploadedImageUrls: string[]) => {

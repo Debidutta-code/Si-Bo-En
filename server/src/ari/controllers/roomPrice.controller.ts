@@ -1,9 +1,10 @@
-import { CustomRequest } from '../../utils/customRequest';
+import {  PropertyRequest } from '../../utils/customRequest';
 import { Response } from 'express';
 import { RoomRentCalculationService } from '../services';
 import { errorResponse } from '../../utils/return';
+import { toUTC } from '../../utils';
 export class RoomRentCalculationController {
-  public static async getRoomRentController(req: CustomRequest, res: Response) {
+  public static async getRoomRentController(req: PropertyRequest, res: Response) {
     try {
       const {
         propertyCode,
@@ -51,8 +52,8 @@ export class RoomRentCalculationController {
       const response = await RoomRentCalculationService.getRoomRentService(
         propertyCode,
         invTypeCode,
-        new Date(startDate),
-        new Date(endDate),
+        toUTC(startDate),
+        toUTC(endDate),
         ratePlanCode,
         children,
         adults,

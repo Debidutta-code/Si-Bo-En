@@ -19,6 +19,7 @@ import { IPropertyCodeAndIds } from "../../../../dashboard/types";
 import { DashUtilsRepo } from "../../../../dashboard/repository";
 import { Decimal } from "@prisma/client/runtime/library";
 import { BookingStatus } from "@prisma/client";
+import { nowUTC, toUTC, toUTCDate } from "../../../../utils";
 
 export class ReservationService {
     reservationRepository: ReservationRepository;
@@ -44,17 +45,21 @@ export class ReservationService {
         return code;
     }
 
-    private generateDateRange(startDate: string, endDate: string): string[] {
-        const dates: string[] = [];
-        let currentDate = new Date(startDate);
-        const toDate = new Date(endDate);
-
-        while (currentDate < toDate) {
-            dates.push(currentDate.toISOString().split('T')[0]);
-            currentDate.setDate(currentDate.getDate() + 1);
-        }
-        return dates;
+  private generateDateRange(startDate: Date, endDate: Date): Date[] {
+    const dates: Date[] = [];
+    const start = toUTCDate(startDate);
+    const end = toUTCDate(endDate);
+    
+    const startMs = start.getTime();
+    const endMs = end.getTime();
+    const oneDayMs = 24 * 60 * 60 * 1000;
+    
+    for (let currentMs = startMs; currentMs < endMs; currentMs += oneDayMs) {
+        dates.push(new Date(currentMs));
     }
+    
+    return dates;
+}
 
     private mapPaymentMethod(method: string): "pay_at_hotel" | "net_banking" | "upi" | "payment_gateway" {
         const methodMap: Record<string, "pay_at_hotel" | "net_banking" | "upi" | "payment_gateway"> = {
@@ -135,7 +140,8 @@ export class ReservationService {
                 currency,
                 email,
                 phone,
-                paymentMethod
+                paymentMethod,
+                bookingSource
             } = bookingDetails;
 
             // 1️⃣ Resolve property
@@ -143,7 +149,6 @@ export class ReservationService {
             if (!propertyId) {
                 return errorResponse("Property not found");
             }
-
             // 2️⃣ Primary guest - Use first guest from guestDetails array
             const primaryGuestData = guestDetails[0];
             if (!primaryGuestData) {
@@ -191,9 +196,9 @@ export class ReservationService {
                 roomTypeCode,
                 ratePlanCode,
                 
-                checkInDate: new Date(startDate),
-                checkOutDate: new Date(endDate),
-                bookedAt: new Date(),
+                checkInDate: toUTC(startDate),
+                checkOutDate: toUTC(endDate),
+                bookedAt: nowUTC(),
                 
                 primaryGuestId,
                 guests: guestDetails, // Store all guests as JSON snapshot
@@ -207,14 +212,15 @@ export class ReservationService {
                 paidAmount: 0,
                 extraAmountToPay: 0,
                 refundAmount: 0,
-                
+                timezone: payload.timezone||"Asia/kolkata",
+                countryCode: payload.countryCode||"IN",
                 paymentMethod: this.mapPaymentMethod(paymentMethod),
                 paymentImages: null,
                 
                 bookingStatus: "confirmed",
                 cancellationReason: null,
-                
-                bookingSource: "ota",
+                deviceTypes:payload.deviceTypes||"desktop",
+                bookingSource: bookingSource||"direct",
                 
                 isPromoUsed: false,
                 promoId: null
@@ -244,7 +250,7 @@ export class ReservationService {
             console.log("Price breakdown created");
 
             // 7️⃣ Update ARI (decrease room availability)
-            const reservationDates = this.generateDateRange(startDate, endDate);
+            const reservationDates = this.generateDateRange(toUTCDate(startDate), toUTCDate(endDate));
             const ariPayload: IAriManulupulation = {
                 propertyCode,
                 dates: reservationDates,
@@ -333,13 +339,13 @@ export class ReservationService {
 
         // 4. Generate date ranges for ARI comparison
         const oldDates = this.generateDateRange(
-            oldCheckInDate.toISOString().split('T')[0],
-            oldCheckOutDate.toISOString().split('T')[0]
+            oldCheckInDate,
+            oldCheckOutDate
         );
 
         const newDates = this.generateDateRange(
-            newCheckInDate.toISOString().split('T')[0],
-            newCheckOutDate.toISOString().split('T')[0]
+            newCheckInDate,
+            newCheckOutDate
         );
 
         // 5. Calculate ARI changes
@@ -640,10 +646,16 @@ public async getReservationsForDateRange(
     limit: number,
     specificPropertyId?: string,
     specificPropertyCode?: string,
-    bookingStatus?: string // <-- Add this parameter
+    bookingStatus?: string,
+    bookingSource?: string,        // ← Add these
+    deviceType?: string,           // ← Add these
+    bookingCode?: string,          // ← Add these
+    guestName?: string,            // ← Add these
+    promoCode?: string,            // ← Add these
+    countryCode?: string,          // ← Add these
+    dateFilterType?: 'checkin' | 'booking' | 'modification'  // ← Add these
 ): Promise<IApiResponse> {
     try {
-        // Get accessible property IDs
         const accessResult = await this.getAccessiblePropertyIds(
             creationId, 
             userLevel, 
@@ -672,7 +684,14 @@ public async getReservationsForDateRange(
             endDate,
             page,
             limit,
-            bookingStatus // <-- Add this parameter
+            bookingStatus,
+            bookingSource,        // ← Add these
+            deviceType,           // ← Add these
+            bookingCode,          // ← Add these
+            guestName,            // ← Add these
+            promoCode,            // ← Add these
+            countryCode,          // ← Add these
+            dateFilterType        // ← Add these
         );
         
         return successResponse(
@@ -902,8 +921,8 @@ bookingStatus?: string
 
             // Generate dates for ARI increase
             const reservationDates = this.generateDateRange(
-                reservation.checkInDate.toISOString().split('T')[0],
-                reservation.checkOutDate.toISOString().split('T')[0]
+                reservation.checkInDate,
+                reservation.checkOutDate
             );
 
             // Cancel reservation
@@ -930,6 +949,42 @@ bookingStatus?: string
         }
     }
 
+    public async noShowReservation(reservationId: string): Promise<IApiResponse> {
+        try {
+            const reservation = await this.reservationRepository.getReservationById(reservationId);
+            
+            if (!reservation) {
+                return errorResponse("Reservation not found");
+            }
+
+            const currentCheckout = reservation.checkOutDate;
+            const additionalDates = this.generateDateRange(
+                reservation.checkInDate,
+                currentCheckout
+            );
+
+            const noShowReservation = await this.reservationRepository.NoShow(reservationId);
+
+            // Increase room availability back
+            if (reservation.propertyCode && reservation.roomTypeCode) {
+                await this.ariManupulationRepo.increaseAvailableRooms({
+                    propertyCode: reservation.propertyCode,
+                    dates: additionalDates,
+                    roomInfos: [{
+                        roomTypeCode: reservation.roomTypeCode,
+                        numberOfRooms: reservation.finalPrice?.requestedRooms
+                    }]
+                });
+            }
+
+            return successResponse("Status updated to No show", reservation);
+        } catch (error) {
+            if (error instanceof Error) {
+                return errorResponse("Failed to update reservation status", error.message);
+            }
+            return errorResponse("Failed to update reservation status");
+        }
+    }
     public async amendReservation(reservationId: string, newCheckoutDate: Date): Promise<IApiResponse> {
         try {
             const reservation = await this.reservationRepository.getReservationById(reservationId);
@@ -941,8 +996,8 @@ bookingStatus?: string
             // Calculate additional dates needed
             const currentCheckout = reservation.checkOutDate;
             const additionalDates = this.generateDateRange(
-                currentCheckout.toISOString().split('T')[0],
-                newCheckoutDate.toISOString().split('T')[0]
+                currentCheckout,
+                newCheckoutDate
             );
 
             if (additionalDates.length > 0 && reservation.propertyCode && reservation.roomTypeCode) {

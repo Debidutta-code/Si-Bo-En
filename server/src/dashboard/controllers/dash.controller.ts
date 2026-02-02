@@ -1,5 +1,5 @@
 import { DashBoardServices } from "../services";
-import { CustomRequest } from "../../utils/customRequest";
+import { CustomRequest, PropertyCustomRequest } from "../../utils/customRequest";
 import { successResponse, errorResponse } from "../../utils/return";
 import { Response } from "express";
 export class DashBoardController {

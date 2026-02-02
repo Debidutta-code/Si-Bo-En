@@ -57,7 +57,8 @@ export default function TaxRuleDialog({
         priority: 0,
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
-
+    const [fromDateOpen, setFromDateOpen] = useState(false);
+    const [toDateOpen, setToDateOpen] = useState(false);
     // Update form data when taxRule or mode changes
     useEffect(() => {
         if (open) {
@@ -235,7 +236,7 @@ export default function TaxRuleDialog({
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <Label>Valid From *</Label>
-                            <Popover>
+                            <Popover open={fromDateOpen} onOpenChange={setFromDateOpen}>
                                 <PopoverTrigger asChild>
                                     <Button
                                         variant="outline"
@@ -256,9 +257,11 @@ export default function TaxRuleDialog({
                                     <Calendar
                                         mode="single"
                                         selected={formData.validFrom}
-                                        onSelect={(date) =>
-                                            date && setFormData({ ...formData, validFrom: date })
-                                        }
+                                        onSelect={(date) => {
+
+                                            date && setFormData({ ...formData, validFrom: date });
+                                            setFromDateOpen(false);
+                                        }}
                                         initialFocus
                                     />
                                 </PopoverContent>
@@ -267,7 +270,7 @@ export default function TaxRuleDialog({
 
                         <div className="space-y-2">
                             <Label>Valid To *</Label>
-                            <Popover>
+                            <Popover open={toDateOpen} onOpenChange={setToDateOpen}>
                                 <PopoverTrigger asChild>
                                     <Button
                                         variant="outline"
@@ -288,9 +291,10 @@ export default function TaxRuleDialog({
                                     <Calendar
                                         mode="single"
                                         selected={formData.validTo}
-                                        onSelect={(date) =>
-                                            date && setFormData({ ...formData, validTo: date })
-                                        }
+                                        onSelect={(date) => {
+                                            date && setFormData({ ...formData, validTo: date });
+                                            setToDateOpen(false);
+                                        }}
                                         initialFocus
                                         disabled={(date) =>
                                             formData.validFrom ? date < formData.validFrom : false

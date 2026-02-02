@@ -22,25 +22,14 @@ export class BankService {
   }
   public static async addBankDetails(
     propertyId: string,
-    accountHolder: string,
-    accountNumber: string,
-    ifsc: string,
-    upiId: string,
     payAtHotel: boolean,
-    bankTransfer: boolean,
-    upi: boolean,
-    gateway: boolean
+    paymentGateway: boolean
   ) {
     try {
       const response = await BankDetailsDao.addBankDetails(
         propertyId,
-        accountHolder,
-        accountNumber,
-        ifsc,
-        upiId,
         payAtHotel,
-        bankTransfer,
-        upi,
+        paymentGateway
       );
       if (response) {
         return successResponse('Bank details Added Successfully', response);
@@ -54,45 +43,19 @@ export class BankService {
       );
     }
   }
-  public static async updateBankDetailsByPropertyId(
-    propertyId: string,
-    accountHolder: string,
-    accountNumber: string,
-    ifsc: string,
-    upiId: string
-  ) {
-    try {
-      const response = await BankDetailsDao.updateBankDetailsByPropertyId(
-        propertyId,
-        accountHolder,
-        accountNumber,
-        ifsc,
-        upiId
-      );
-      if (response) {
-        return successResponse('Bank details Updated Successfully', response);
-      } else {
-        return errorResponse('Failed to update Bank details');
-      }
-    } catch (error: any) {
-      return errorResponse('Internal server Error', error?.message);
-    }
-  }
+
   public static async updatePaymentMethodsByPropertyId(
     propertyId: string,
     payAtHotel: boolean,
-    bankTransfer: boolean,
-    upi: boolean,
-    gateway: boolean
+    paymentGateway: boolean
   ) {
     try {
       const response = await BankDetailsDao.updatePaymentMethodsByPropertyId(
         propertyId,
         payAtHotel,
-        bankTransfer,
-        upi,
-        gateway
+        paymentGateway
       );
+      console.log("response ",response)
       if (response) {
         return successResponse(
           'Payment methods Updated Successfully',

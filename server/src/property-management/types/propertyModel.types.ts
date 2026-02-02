@@ -49,7 +49,6 @@ export interface IPropertyInfoType {
   description: string;
   image?: string[];
   propertyCategory?: ICategory;
-  destinationType?: IDestinationType;
   propertyType?: IPropertyType;
   propertyAddress?: IPropertyAddress;
   propertyAmenities?: IPropertyAmenity;

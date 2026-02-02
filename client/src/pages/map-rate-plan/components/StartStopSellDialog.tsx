@@ -47,6 +47,8 @@ export default function StartStopSellDialog({
     ratePlans,
     roomTypes,
 }: StartStopSellDialogProps) {
+    const [fromDateOpen, setFromDateOpen] = useState(false);
+    const [toDateOpen, setToDateOpen] = useState(false);
     const [formData, setFormData] = useState<ICStartStopSell & { isSellStop: boolean }>({
         from: new Date(),
         to: new Date(),
@@ -211,7 +213,7 @@ export default function StartStopSellDialog({
                     <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
                             <Label>From Date *</Label>
-                            <Popover>
+                            <Popover open={fromDateOpen} onOpenChange={setFromDateOpen}>
                                 <PopoverTrigger asChild>
                                     <Button
                                         variant="outline"
@@ -228,9 +230,10 @@ export default function StartStopSellDialog({
                                     <Calendar
                                         mode="single"
                                         selected={formData.from}
-                                        onSelect={(date) =>
-                                            date && setFormData({ ...formData, from: date })
-                                        }
+                                        onSelect={(date) => {
+                                            date && setFormData({ ...formData, from: date });
+                                            setFromDateOpen(false);
+                                        }}
                                         initialFocus
                                     />
                                 </PopoverContent>
@@ -239,7 +242,7 @@ export default function StartStopSellDialog({
 
                         <div className="grid gap-2">
                             <Label>To Date *</Label>
-                            <Popover>
+                            <Popover open={toDateOpen} onOpenChange={setToDateOpen}>
                                 <PopoverTrigger asChild>
                                     <Button
                                         variant="outline"
@@ -256,9 +259,10 @@ export default function StartStopSellDialog({
                                     <Calendar
                                         mode="single"
                                         selected={formData.to}
-                                        onSelect={(date) =>
-                                            date && setFormData({ ...formData, to: date })
-                                        }
+                                        onSelect={(date) => {
+                                            date && setFormData({ ...formData, to: date });
+                                            setToDateOpen(false);
+                                        }}
                                         initialFocus
                                         disabled={(date) => date < formData.from}
                                     />

@@ -86,7 +86,7 @@ public async updateReservationWithTransaction(
 public async checkRoomAvailability(
     propertyCode: string,
     roomTypeCode: string,
-    dates: string[],
+    dates: Date[],
     requiredRooms: number
 ): Promise<boolean> {
     try {
@@ -117,7 +117,14 @@ public async getReservationsForDateRange(
     endDate: Date,
     page: number,
     limit: number,
-    bookingStatus?: string // <-- Add this parameter
+    bookingStatus?: string,
+    bookingSource?: string,        // ← Add these
+    deviceType?: string,           // ← Add these
+    bookingCode?: string,          // ← Add these
+    guestName?: string,            // ← Add these
+    promoCode?: string,            // ← Add these
+    countryCode?: string,          // ← Add these
+    dateFilterType?: 'checkin' | 'booking' | 'modification'  // ← Add these
 ): Promise<IPaginatedResponse<IReservationWithAllDetails>> {
     try {
         const start = new Date(startDate);
@@ -126,9 +133,24 @@ public async getReservationsForDateRange(
         const end = new Date(endDate);
         end.setHours(23, 59, 59, 999);
 
-        const whereClause: any = { // <-- Change type to any for flexibility
-            propertyId: { in: propertyIds },
-            OR: [
+        const whereClause: any = {
+            propertyId: { in: propertyIds }
+        };
+
+        // Date filtering based on dateFilterType
+        if (dateFilterType === 'booking') {
+            whereClause.bookedAt = {
+                gte: start,
+                lte: end
+            };
+        } else if (dateFilterType === 'modification') {
+            whereClause.updatedAt = {
+                gte: start,
+                lte: end
+            };
+        } else {
+            // Default: checkin date
+            whereClause.OR = [
                 {
                     checkInDate: {
                         gte: start,
@@ -147,12 +169,54 @@ public async getReservationsForDateRange(
                         { checkOutDate: { gte: end } }
                     ]
                 }
-            ]
-        };
+            ];
+        }
 
-        // Add bookingStatus filter if provided
+        // Add bookingStatus filter
         if (bookingStatus) {
-            whereClause.bookingStatus = bookingStatus; // <-- Add this condition
+            whereClause.bookingStatus = bookingStatus;
+        }
+
+        // Add bookingSource filter
+        if (bookingSource) {
+            whereClause.bookingSource = bookingSource;
+        }
+
+        // Add deviceType filter
+        if (deviceType) {
+            whereClause.deviceTypes = deviceType;
+        }
+
+        // Add bookingCode filter
+        if (bookingCode) {
+            whereClause.bookingCode = {
+                contains: bookingCode,
+                mode: 'insensitive'
+            };
+        }
+
+        // Add guestName filter (search in primaryGuest or guests JSON)
+        if (guestName) {
+            whereClause.OR = whereClause.OR || [];
+            whereClause.OR.push({
+                primaryGuest: {
+                    OR: [
+                        { firstName: { contains: guestName, mode: 'insensitive' } },
+                        { lastName: { contains: guestName, mode: 'insensitive' } }
+                    ]
+                }
+            });
+        }
+
+        // Add promoCode filter (if you have a promo field)
+        if (promoCode && promoCode !== '') {
+            whereClause.isPromoUsed = true;
+            // Add promo code matching logic if you store it
+        }
+
+        // Add countryCode filter
+        if (countryCode) {
+            whereClause.countryCode = countryCode;
         }
 
         const totalResults = await prisma.reservation.count({
@@ -198,126 +262,7 @@ public async getReservationsForDateRange(
         throw new Error("Failed to fetch reservations");
     }
 }
-    // public async getArrivals(propertyId: string, arrivalDate: Date): Promise<IReservationWithAllDetails[]> {
-    //     try {
-    //         const start = new Date(arrivalDate);
-    //         start.setHours(0, 0, 0, 0);
-    //         const end = this.getNextDate(start);
-
-    //         return await prisma.reservation.findMany({
-    //             where: {
-    //                 propertyId,
-    //                 checkInDate: {
-    //                     gte: start,
-    //                     lt: end
-    //                 },
-    //                 bookingStatus: "confirmed"
-    //             },
-    //             orderBy: { createdAt: 'desc' },
-    //             include: {
-    //                 primaryGuest: true,
-    //                 priceBreakdowns: true,
-    //                 addOns: true,
-    //             }
-    //         });
-    //     } catch (error) {
-    //         if (error instanceof Error) {
-    //             throw new Error(`getArrivals failed: ${error.message}`);
-    //         }
-    //         throw new Error("Failed to fetch Arrivals");
-    //     }
-    // }
-
-    // public async getDepartures(propertyId: string, departureDate: Date): Promise<IReservationWithAllDetails[]> {
-    //     try {
-    //         const start = new Date(departureDate);
-    //         start.setHours(0, 0, 0, 0);
-    //         const end = this.getNextDate(start);
-
-    //         return await prisma.reservation.findMany({
-    //             where: {
-    //                 propertyId,
-    //                 checkOutDate: {
-    //                     gte: start,
-    //                     lt: end
-    //                 },
-    //                 bookingStatus: "confirmed"
-    //             },
-    //             orderBy: { createdAt: 'desc' },
-    //             include: {
-    //                 primaryGuest: true,
-    //                 priceBreakdowns: true,
-    //                 addOns: true,
-    //             }
-    //         });
-    //     } catch (error) {
-    //         if (error instanceof Error) {
-    //             throw new Error(`getDepartures failed: ${error.message}`);
-    //         }
-    //         throw new Error("Failed to fetch Departures");
-    //     }
-    // }
-
-    // public async getCheckIns(propertyId: string, checkInDate: Date): Promise<IReservationWithAllDetails[]> {
-    //     try {
-    //         const start = new Date(checkInDate);
-    //         start.setHours(0, 0, 0, 0);
-    //         const end = this.getNextDate(start);
-
-    //         return await prisma.reservation.findMany({
-    //             where: {
-    //                 propertyId,
-    //                 checkInDate: {
-    //                     gte: start,
-    //                     lt: end
-    //                 },
-    //                 bookingStatus: "confirmed"
-    //             },
-    //             orderBy: { createdAt: 'desc' },
-    //             include: {
-    //                 primaryGuest: true,
-    //                 priceBreakdowns: true,
-    //                 addOns: true,
-    //             }
-    //         });
-    //     } catch (error) {
-    //         if (error instanceof Error) {
-    //             throw new Error(`getCheckIns failed: ${error.message}`);
-    //         }
-    //         throw new Error("Failed to fetch Check-ins");
-    //     }
-    // }
-
-    // public async getCheckouts(propertyId: string, checkOutDate: Date): Promise<IReservationWithAllDetails[]> {
-    //     try {
-    //         const start = new Date(checkOutDate);
-    //         start.setHours(0, 0, 0, 0);
-    //         const end = this.getNextDate(start);
-
-    //         return await prisma.reservation.findMany({
-    //             where: {
-    //                 propertyId,
-    //                 checkOutDate: {
-    //                     gte: start,
-    //                     lt: end
-    //                 },
-    //                 bookingStatus: "confirmed"
-    //             },
-    //             orderBy: { createdAt: 'desc' },
-    //             include: {
-    //                 primaryGuest: true,
-    //                 priceBreakdowns: true,
-    //                 addOns: true,
-    //             }
-    //         });
-    //     } catch (error) {
-    //         if (error instanceof Error) {
-    //             throw new Error(`getCheckouts failed: ${error.message}`);
-    //         }
-    //         throw new Error("Failed to fetch Check-outs");
-    //     }
-    // }
-
+   
 public async getArrivals(
     propertyIds: string[],
     startDate: Date,
@@ -651,7 +596,23 @@ public async getCheckouts(
             throw new Error("Failed to delete ReservationDate");
         }
     }
-
+public async NoShow(reservationId: string): Promise<IReservation> {
+        try {
+            return await prisma.reservation.update({
+                where: { id: reservationId },
+                data: { bookingStatus: "no_show" },
+                include: {
+                    primaryGuest: true,
+                    priceBreakdowns: true
+                }
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`Failed to cancel reservation: ${error.message}`);
+            }
+            throw new Error("Failed to delete ReservationDate");
+        }
+    }
     public async getReservaltionByCode(reservationCode: string): Promise<IReservationWithAllDetails | null> {
         try {
             return await prisma.reservation.findUnique({

@@ -46,3 +46,35 @@ export const createRoomAmenity=async(propertyId:string,roomId:string,amenity:any
         return error?.response.data
     }
 }
+
+export const addVideoToRoom = async (roomId: string, videoUrl: string, thumbnailUrl: string) => {
+    const axiosInstance = AxiosInstance()
+    try {
+        const response = await axiosInstance.post(`/property-management/property/video/room/${roomId}`, {
+            videoUrl,
+            thumbnailUrl
+        })
+        return response.data
+    } catch (error: any) {
+        return error?.response.data
+    }
+}
+export const deleteRoomVideo = async (roomId: string) => {
+    const axiosInstance = AxiosInstance()
+    try {
+        const response = await axiosInstance.delete(`/property-management/property/video/room/${roomId}`)
+        return response.data
+    } catch (error: any) {
+        return error?.response.data
+    }
+}
+
+export const getRoomVideos = async (roomId: string) => {
+    const axiosInstance = AxiosInstance()
+    try {
+        const response = await axiosInstance.get(`/property-management/property/video/room/${roomId}`)
+        return response.data
+    } catch (error: any) {
+        return error?.response.data
+    }
+}

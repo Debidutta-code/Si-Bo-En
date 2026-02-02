@@ -2,9 +2,7 @@
 import { useState } from "react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { ArrowLeft, CheckCircle, Loader2, DollarSign, Banknote } from "lucide-react";
+import { ArrowLeft, CheckCircle, Loader2, DollarSign } from "lucide-react";
 import { usePropertyForm } from "@/contexts/PropertyFormContext";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
@@ -13,17 +11,8 @@ import { useNavigate} from "react-router-dom"
 import Loader from "@/components/Loader/Loader";
 // Zod Schema for Validation
 const bankDetailsSchema = z.object({
-  accountHolder: z.string().min(1, "Account holder name is required"),
-  accountNumber: z.string()
-    .min(8, "Account number must be at least 8 digits"),
-  ifsc: z.string()
-    .regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, "Invalid IFSC code format"),
-  upiId: z.string()
-    .regex(/^[\w.-]+@[\w.-]+$/, "Invalid UPI ID format"),
   activatedPaymentMethod: z.object({
     payAtHotel: z.boolean(),
-    bankTransfer: z.boolean(),
-    upi: z.boolean(),
     gateway: z.boolean(),
   }).refine(
     (methods) => Object.values(methods).some(Boolean),
@@ -38,33 +27,14 @@ export default function BankDetails() {
   const { propertyId, previous, markStepAsCompleted } = usePropertyForm();
 
   const [formData, setFormData] = useState({
-    accountHolder: "",
-    accountNumber: "",
-    ifsc: "",
-    upiId: "",
     activatedPaymentMethod: {
       payAtHotel: true,
-      bankTransfer: false,
-      upi: false,
       gateway: false,
     },
   });
 
   const [errors, setErrors] = useState<FormErrors | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Update field value
-  const updateField = (field: string, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors) {
-      setErrors((prev) => {
-        if (!prev) return null;
-        const newErrors = { ...prev };
-        delete (newErrors as any)[field];
-        return newErrors;
-      });
-    }
-  };
 
   // Update payment method toggle
   const togglePaymentMethod = (method: keyof typeof formData.activatedPaymentMethod) => {
@@ -146,87 +116,6 @@ export default function BankDetails() {
           <div className="sm:p-8 bg-white">
             <div className="">
 
-              {/* Bank Account Info */}
-              <div className="space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center justify-center w-8 h-8 bg-white text-black rounded-lg">
-                    <Banknote className="w-4 h-4" />
-                  </div>
-                  <h3 className="text-xl font-bold text-black">Bank Account Information</h3>
-                </div>
-
-                <div>
-                  <Label htmlFor="accountHolder">Account Holder Name *</Label>
-                  <Input
-                    id="accountHolder"
-                    value={formData.accountHolder}
-                    onChange={(e) => updateField("accountHolder", e.target.value)}
-                    placeholder="Enter full name as per bank records"
-                    className={cn(
-                      "mt-2 h-12 border-2",
-                      errors?.accountHolder ? "border-red-500" : "border-gray-300 focus:border-black"
-                    )}
-                  />
-                  {errors?.accountHolder?._errors[0] && (
-                    <p className="text-red-500 text-sm mt-1">{errors.accountHolder._errors[0]}</p>
-                  )}
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="accountNumber">Account Number *</Label>
-                    <Input
-                      id="accountNumber"
-                      type="text"
-                      value={formData.accountNumber}
-                      onChange={(e) => updateField("accountNumber", e.target.value)}
-                      placeholder="e.g., 1234567890"
-                      className={cn(
-                        "mt-2 h-12 border-2",
-                        errors?.accountNumber ? "border-red-500" : "border-gray-300 focus:border-black"
-                      )}
-                    />
-                    {errors?.accountNumber?._errors[0] && (
-                      <p className="text-red-500 text-sm mt-1">{errors.accountNumber._errors[0]}</p>
-                    )}
-                  </div>
-
-                  <div>
-                    <Label htmlFor="ifsc">IFSC Code *</Label>
-                    <Input
-                      id="ifsc"
-                      value={formData.ifsc}
-                      onChange={(e) => updateField("ifsc", e.target.value.toUpperCase())}
-                      placeholder="e.g., SBIN0001234"
-                      className={cn(
-                        "mt-2 h-12 border-2 uppercase",
-                        errors?.ifsc ? "border-red-500" : "border-gray-300 focus:border-black"
-                      )}
-                    />
-                    {errors?.ifsc?._errors[0] && (
-                      <p className="text-red-500 text-sm mt-1">{errors.ifsc._errors[0]}</p>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <Label htmlFor="upiId">UPI ID *</Label>
-                  <Input
-                    id="upiId"
-                    value={formData.upiId}
-                    onChange={(e) => updateField("upiId", e.target.value)}
-                    placeholder="e.g., user@paytm"
-                    className={cn(
-                      "mt-2 h-12 border-2",
-                      errors?.upiId ? "border-red-500" : "border-gray-300 focus:border-black"
-                    )}
-                  />
-                  {errors?.upiId?._errors[0] && (
-                    <p className="text-red-500 text-sm mt-1">{errors.upiId._errors[0]}</p>
-                  )}
-                </div>
-              </div>
-
               {/* Payment Methods */}
               <div className="space-y-6 ">
                 <div className="flex items-center gap-3">
@@ -242,16 +131,6 @@ export default function BankDetails() {
                       key: "payAtHotel",
                       label: "Pay at Hotel",
                       desc: "Guests can pay directly at the property",
-                    },
-                    {
-                      key: "bankTransfer",
-                      label: "Bank Transfer",
-                      desc: "Direct bank account transfers",
-                    },
-                    {
-                      key: "upi",
-                      label: "UPI Payment",
-                      desc: "Quick UPI transactions",
                     },
                     {
                       key: "gateway",

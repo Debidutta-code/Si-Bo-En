@@ -83,15 +83,32 @@ export interface IReservationResponse {
 }
 
 export interface IReservationFilters {
+  // Existing filters
   startDate: string;
   endDate: string;
-  propertyId?: string;
-  propertyCode?: string;
   page: number;
   limit: number;
-  bookingStatus?: 'pending' | 'confirmed' | 'cancelled' | 'modified' | 'all';
+  dateFilterType?: 'checkin' | 'booking' | 'modification';
+  bookingStatus?: 'all' | 'confirmed' | 'pending' | 'cancelled' | 'modified' | 'no_show';
   reservationType?: 'all' | 'arrivals' | 'departures' | 'checkins' | 'checkouts';
+  propertyId?: string;
+  propertyCode?: string;
+  
+  // New filters
+  bookingSource?: 'all' | 'direct' | 'google' | 'trip_adviser' | 'trivago' | 'social_media' | 'agency';
+  bookingDateFrom?: string;
+  bookingDateTo?: string;
+  promoCode?: string;
+  guestName?: string;
+  modificationDateFrom?: string;
+  modificationDateTo?: string;
+  deviceType?: 'all' | 'mobile' | 'tablet' | 'desktop';
+  countryCode?: string; // Source Market (GEO)
+  bookingCode?: string;
 }
+
+export type BookingSource = 'direct' | 'google' | 'trip_adviser' | 'trivago' | 'social_media' | 'agency';
+export type DeviceType = 'mobile' | 'tablet' | 'desktop';
 
 export interface IProperty {
   id: string;

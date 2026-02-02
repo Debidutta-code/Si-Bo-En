@@ -5,7 +5,7 @@ import type { IAddonSubCategory } from "./sub-category.type";
 import type { IAddonVariant } from "./variant.type";
 
 // Addon interfaces
-export type PostingRhythm = "per_night" | "per_stay";
+export type PostingRhythm = "per_night" | "per_stay" | "per_person_per_night" | "per_person_per_stay" | "per_person_per_room" | "per_room" | "per_room_per_night";
 
 export interface IAddon {
     id: string;

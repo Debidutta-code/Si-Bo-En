@@ -37,7 +37,9 @@ const roomSchema = z.object({
   smokingPolicy: z.string().optional(),
   maxNumberOfAdults: z.coerce.number().optional(),
   maxNumberOfChildren: z.coerce.number().optional(),
-  numberOfBedrooms: z.coerce.number().optional(),
+  numberOfBedrooms: z.coerce.number()
+  .min(1, "Number of bedrooms must be at least 1.")
+  .optional(),
   numberOfLivingRoom: z.coerce.number().optional(),
   extraBed: z.coerce.number().optional(),
   available: z.boolean().optional(),
@@ -135,48 +137,15 @@ export default function Rooms({
                       >
                         Room Type *
                       </Label>
-                      <Select
-                        value={roomDetails.roomType}
-                        onValueChange={(value) =>
-                          updateRoom({ roomType: value })
-                        }
-                      >
-                        <SelectTrigger className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100">
-                          <SelectValue placeholder="Select room type" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white border border-gray-300">
-                          <SelectItem
-                            value="Standard"
-                            className="hover:bg-gray-100"
-                          >
-                            Standard
-                          </SelectItem>
-                          <SelectItem
-                            value="Deluxe"
-                            className="hover:bg-gray-100"
-                          >
-                            Deluxe
-                          </SelectItem>
-                          <SelectItem
-                            value="Suite"
-                            className="hover:bg-gray-100"
-                          >
-                            Suite
-                          </SelectItem>
-                          <SelectItem
-                            value="Premium"
-                            className="hover:bg-gray-100"
-                          >
-                            Premium
-                          </SelectItem>
-                          <SelectItem
-                            value="Executive"
-                            className="hover:bg-gray-100"
-                          >
-                            Executive
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <Input
+                      id="roomType"
+                      value={roomDetails.roomType || ""}
+                      onChange={(e) =>
+                        updateRoom({ roomType: e.target.value })
+                      }
+                      placeholder="e.g., Deluxe King Suite"
+                      className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
+                    />
                       {errors?.roomType?._errors[0] && (
                         <p className="text-red-500 text-sm mt-1">
                           {errors.roomType._errors[0]}
@@ -397,7 +366,7 @@ export default function Rooms({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                       <Label
                         htmlFor="roomSize"
@@ -447,6 +416,27 @@ export default function Rooms({
                           </SelectItem>
                         </SelectContent>
                       </Select>
+                    </div>
+                     <div>
+                      <Label
+                        htmlFor="numberOfBedrooms"
+                        className="text-gray-800 font-medium"
+                      >
+                        No.of Bedrooms
+                      </Label>
+                      <Input
+                        id="numberOfBedrooms"
+                        min={0}
+                        type="number"
+                        value={roomDetails.numberOfBedrooms || ""}
+                        onChange={(e) =>
+                          updateRoom({
+                            numberOfBedrooms: parseInt(e.target.value) || 0,
+                          })
+                        }
+                        placeholder="e.g., 350"
+                        className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
+                      />
                     </div>
                   </div>
                 </div>

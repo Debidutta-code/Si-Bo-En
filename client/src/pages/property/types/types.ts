@@ -16,14 +16,7 @@ export interface IPropertyDetails {
             description: string
         };
     };
-    destinationType: {
-        masterDestinationType: {
-
-            id: string;
-            destinationTypeName: string
-            description: string;
-        }
-    };
+    
     propertyType: {
         masterPropertyType: {
 
@@ -36,6 +29,10 @@ export interface IPropertyDetails {
     propertyRoom: string[];
     description: string;
     propertyCode: string;
+    propertyVideos?: {
+      url: string;
+      thumbnail: string | null;
+    }
 }
 export interface IPropertyAddress {
     propertyId: string;
