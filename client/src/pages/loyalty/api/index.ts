@@ -7,7 +7,8 @@ export {
     createAdvanceLoyaltyProgram,
     getAdvanceLoyaltyProgram,
     updateAdvanceLoyaltyProgram,
-    deleteAdvanceLoyaltyProgram
+    deleteAdvanceLoyaltyProgram,
+    getLoyaltyProgramByCreationId
 } from "./loyality-program.api";
 
 // Loyalty Field APIs
@@ -16,7 +17,8 @@ export {
     getFields,
     updateField,
     deleteField,
-    updateManyFields
+    updateManyFields,
+    getAllFields
 } from "./loyality-field.api";
 
 // Loyalty Condition APIs
@@ -38,7 +40,8 @@ export {
     updatePropertyLoyalityConfig,
     deletePropertyLoyalityConfig,
     getAllPropertyLoyalityWithLoyality,
-    getActiveLoyaltyConfigByPropertyId
+    getActiveLoyaltyConfigByPropertyId,
+    getPropertiesByLoyaltyProgram
 } from "./property-loyality.api";
 
 // Creation Loyalty APIs

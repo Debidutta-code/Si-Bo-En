@@ -47,6 +47,21 @@ export class LoyalityProgramService {
         }
     }
 
+    public async getLoyaltyProgramByCreationId(creationId: string): Promise<IApiResponse> {
+        try {
+            const result = await this.loyaltyProgramRepository.getLoyaltyProgramByCreationId(creationId);
+            if(!result){
+                return errorResponse("Failed to retrieve loyalty program");
+            }
+            return successResponse("Successfully retrieved loyalty program", result);
+        } catch (error) {
+            if(error instanceof Error) {
+                return errorResponse("failed to retrieve loyalty program", error.message);
+            }
+            return errorResponse("failed to retrieve loyalty program");
+        }
+    }
+
     public async updateLoyaltyProgram(loyaltyProgramId: string, data: IULoyalityProgram): Promise<IApiResponse> {
         try {
             const existingProgram = await this.loyaltyProgramRepository.getLoyaltyProgramById(loyaltyProgramId);

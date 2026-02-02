@@ -15,7 +15,12 @@ router.route("/")
         checkRoleBased("canCreatePolicy"),
         loyalityFieldController.createField.bind(loyalityFieldController)
     );
-
+router.route("/update-many/:loyaltyProgramId")
+    .patch(
+        protect,
+        checkRoleBased("canUpdatePolicy"),
+        loyalityFieldController.updateManyFields.bind(loyalityFieldController)
+    );
 router.route("/:loyaltyProgramId")
     .get(
         protect,
@@ -35,11 +40,6 @@ router.route("/:loyaltyProgramId/:fieldName")
         loyalityFieldController.deleteField.bind(loyalityFieldController)
     );
 
-router.route("/update-many/:loyaltyProgramId")
-    .patch(
-        protect,
-        checkRoleBased("canUpdatePolicy"),
-        loyalityFieldController.updateManyFields.bind(loyalityFieldController)
-    );
+
 
 export default router;

@@ -97,3 +97,19 @@ export const getActiveLoyaltyConfigByPropertyId = async (propertyId: string) => 
         }
     }
 };
+
+export const getPropertiesByLoyaltyProgram = async (loyaltyProgramId: string) => {
+    try {
+        const response = await axiosInstance.get(`/loyalty/property/by-program/${loyaltyProgramId}`);
+        return response.data;
+    } catch (error: any) {
+        if (error?.response?.data) {
+            return error.response.data;
+        } else {
+            return {
+                success: false,
+                message: error?.message
+            };
+        }
+    }
+};

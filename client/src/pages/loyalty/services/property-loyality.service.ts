@@ -4,7 +4,8 @@ import {
     updatePropertyLoyalityConfig,
     deletePropertyLoyalityConfig,
     getAllPropertyLoyalityWithLoyality,
-    getActiveLoyaltyConfigByPropertyId
+    getActiveLoyaltyConfigByPropertyId,
+    getPropertiesByLoyaltyProgram
 } from "../api";
 
 import type { ICPropertyLoyaltyConfig } from "../interfaces";
@@ -90,5 +91,17 @@ export const getActiveLoyaltyConfigByPropertyIdService = async (propertyId: stri
         return response;
     } catch (error) {
         return { success: false, message: "Failed to retrieve active loyalty config." };
+    }
+};
+
+export const getPropertiesByLoyaltyProgramService = async (loyaltyProgramId: string) => {
+    try {
+        if (!loyaltyProgramId || loyaltyProgramId.trim() === "") {
+            return { success: false, message: "Loyalty Program ID is required." };
+        }
+        const response = await getPropertiesByLoyaltyProgram(loyaltyProgramId);
+        return response;
+    } catch (error) {
+        return { success: false, message: "Failed to retrieve properties by loyalty program." };
     }
 };

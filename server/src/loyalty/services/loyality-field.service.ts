@@ -99,6 +99,16 @@ export class LoyalityFieldService {
     
     public async updateManyFieldsService(loyaltyProgramId: string, fields: IULoyaltyField[]): Promise<IApiResponse> {
         try {
+            if (!fields || fields.length === 0) {
+                return errorResponse("No fields provided to update");
+            }
+
+            for (const field of fields) {
+                if (!field.fieldName) {
+                    return errorResponse("Field name is required for all fields");
+                }
+            }
+
             const results = await this.loyalityFieldRepository.updateManyFields(loyaltyProgramId, fields);
             return successResponse("Fields updated successfully", results);
         } catch (error) {

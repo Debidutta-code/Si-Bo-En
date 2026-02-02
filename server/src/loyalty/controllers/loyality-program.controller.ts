@@ -57,6 +57,24 @@ export class LoyalityProgramController {
         }
     }
 
+    public async getLoyaltyProgramByCreationId(req: CustomRequest, res: Response): Promise<Response> {
+        try {
+            const { creationId } = req.params;
+
+            if (!creationId) {
+                return res.status(400).json(errorResponse("Creation not chosen", "Creation ID is required"));
+            }
+
+            const result = await this.loyalityProgramService.getLoyaltyProgramByCreationId(creationId);
+            return res.status(result.success ? 200 : 404).json(result);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res.status(500).json(errorResponse("Failed to retrieve loyalty program", error.message));
+            }
+            return res.status(500).json(errorResponse("Internal Server Error", "Failed to retrieve loyalty program"));
+        }
+    }
+
     public async updateLoyaltyProgram(req: CustomRequest, res: Response): Promise<Response> {
         try {
             const { loyaltyProgramId } = req.params;

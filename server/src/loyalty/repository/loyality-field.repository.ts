@@ -56,22 +56,31 @@ export class LoyalityFormFieldRepository {
     }
     public async updateManyFields(loyaltyProgramId:string,fields:IULoyaltyField[]):Promise<{count:number}> {
         try {
-            return await prisma.$transaction(async (prisma) => {
-                const updatePromises = fields.map((field) =>
-                    prisma.loyaltyProgramFieldConfig.update({
-                        where: { loyaltyProgramId_fieldName: { loyaltyProgramId, fieldName: field.fieldName } },
-                        data: {
-                            visibleInCustomerForm: field.visibleInCustomerForm,
-                            required: field.required,
-                            visibleInRegistration: field.visibleInRegistration
-                        }
-                    })
-                );
-                const results = await Promise.all(updatePromises);
-                return { count: results.length };
+            return await prisma.$transaction(async (tx) => {
+                let successCount = 0;
+                
+                for (const field of fields) {
+                    const exists = await tx.loyaltyProgramFieldConfig.findUnique({
+                        where: { loyaltyProgramId_fieldName: { loyaltyProgramId, fieldName: field.fieldName } }
+                    });
+                    
+                    if (exists) {
+                        await tx.loyaltyProgramFieldConfig.update({
+                            where: { loyaltyProgramId_fieldName: { loyaltyProgramId, fieldName: field.fieldName } },
+                            data: {
+                                visibleInCustomerForm: field.visibleInCustomerForm,
+                                required: field.required,
+                                visibleInRegistration: field.visibleInRegistration
+                            }
+                        });
+                        successCount++;
+                    }
+                }
+                
+                return { count: successCount };
             });
         } catch (error) {
-            throw new Error("Error updating multiple loyalty form fields " );
+            throw new Error("Error updating multiple loyalty form fields");
         }
     }
 

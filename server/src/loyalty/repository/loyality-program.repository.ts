@@ -41,6 +41,20 @@ export class LoyaltyProgramRepository {
             throw new Error("Error fetching loyalty program");
         }
     }
+
+    public async getLoyaltyProgramByCreationId(creationId: string): Promise<any> {
+        try {
+            return await prisma.creationLoyaltyConfig.findUnique({
+                where: { creationId },
+                include: {
+                    BasicLoyaltyProgram: true,
+                    AdvanceLoyaltyProgram: true
+                }
+            });
+        } catch (error) {
+            throw new Error("Error fetching loyalty program by creation ID");
+        }
+    }
     
     public async deleteLoyaltyProgram(loyaltyProgramId: string): Promise<IloyaltyProgram> {
         try {

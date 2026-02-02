@@ -50,11 +50,12 @@ export class creationLoyalityRepository {
                     id: creationLoyalityId
                 },
                 include: {
-                    BasicLoyaltyProgram: true,
-                    AdvanceLoyaltyProgram: true,
-                    loyaltyAdvanceProgram: true,
-                    loyaltySpecialCondition: true,
-                    LoyaltyProgramFieldConfig: true
+                    AdvanceLoyaltyProgram:true,
+                    BasicLoyaltyProgram:true,
+                    loyaltyConditions:true,
+                    LoyaltyProgramFieldConfig:true,
+                    loyaltySpecialConditions:true,
+                    // PropertyLoyaltyConfig:true
                 }
             });
         } catch (error) {
@@ -71,9 +72,10 @@ export class creationLoyalityRepository {
                 include: {
                     BasicLoyaltyProgram: true,
                     AdvanceLoyaltyProgram: true,
-                    loyaltyAdvanceProgram: true,
-                    loyaltySpecialCondition: true,
-                    LoyaltyProgramFieldConfig: true
+                    LoyaltyProgramFieldConfig: true,
+                    loyaltyConditions: true,
+                    loyaltySpecialConditions: true,
+                    // PropertyLoyaltyConfig: true
                 }
             });
         } catch (error) {
@@ -88,12 +90,12 @@ export class creationLoyalityRepository {
                     creationId
                 },
                 include: {
-                    PropertyLoyaltyConfig: true,
-                    AdvanceLoyaltyProgram: true,
                     BasicLoyaltyProgram: true,
-                    loyaltyAdvanceProgram: true,
+                    AdvanceLoyaltyProgram: true,
                     LoyaltyProgramFieldConfig: true,
-                    loyaltySpecialCondition: true
+                    loyaltyConditions: true,
+                    loyaltySpecialConditions: true,
+                    PropertyLoyaltyConfig: true
                 }
             });
         } catch (error) {

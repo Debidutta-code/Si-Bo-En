@@ -16,7 +16,12 @@ router.route("/")
         checkRoleBased("canCreatePolicy"),
         propertyLoyalityController.createPropertyLoyalityConfig.bind(propertyLoyalityController)
     );
-
+router.route("/by-program/:loyaltyProgramId")
+    .get(
+        protect,
+        checkRoleBased("canViewHotel"),
+        propertyLoyalityController.getPropertiesByLoyaltyProgram.bind(propertyLoyalityController)
+    );
 router.route("/:propertyId")
     .get(
         protect,
@@ -64,5 +69,7 @@ router.route("/active/:propertyId")
         }),
         propertyLoyalityController.getActiveLoyaltyConfigByPropertyId.bind(propertyLoyalityController)
     );
+
+
 
 export default router;
