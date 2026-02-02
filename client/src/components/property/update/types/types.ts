@@ -79,4 +79,8 @@ export interface IRoomDetails {
   image?: string[];
   available?: boolean;
   view360Link?: string;
+  roomVideos?: {
+    thumbnail: string;
+    url: string;
+  };
 }

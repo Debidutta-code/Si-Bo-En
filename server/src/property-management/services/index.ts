@@ -17,6 +17,10 @@ import {
 
 
 import {PropertyConfigService} from "./property-config.service";
+export {
+    PropertyVideoService,
+    RoomVideoService
+} from "./vedio.service";
 import { BookingEngineService } from "./bookingEngine.service";
 export {
     PropertyConfigService,

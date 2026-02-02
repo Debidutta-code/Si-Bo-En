@@ -11,7 +11,11 @@ import {AminityController,
 } from "./types.controller";
 import {uploadHandler} from "./upload.controller";
 import {PropertyConfigController} from "./property-config.controller";
-import {BookingEngineController} from "./bookingEngine.controller"
+import {BookingEngineController} from "./bookingEngine.controller";
+export {
+    PropertyVedioController,
+    RoomVedioController
+} from "./vedio.controller";
 export{
     BankController,
     Property,

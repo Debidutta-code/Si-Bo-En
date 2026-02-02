@@ -10,7 +10,9 @@ import { roomAminityRoute } from "./roomAmenity.route";
 import { managementRoute } from "./management.route";
 import { bookingEngineRoute } from './bookingEngine.routes';
 import { attachPropertyDetails } from '../../middlewares/property.middleware';
-
+import {
+  vedioRouter
+} from "./vedio.route"
 export const propertyRouter = Router();
 propertyRouter
   .route('/')
@@ -21,6 +23,7 @@ propertyRouter.use('/booking-engine', protect, attachPropertyDetails({
   key: "id",
   source: "params"
 }), bookingEngineRoute)
+propertyRouter.use("/video", vedioRouter)
 propertyRouter
   .route('/:id')
   .get(

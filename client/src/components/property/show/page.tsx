@@ -25,13 +25,7 @@ export default function PropertyDetailsPage() {
     propertyName: "",
     propertyEmail: "",
     description: "",
-    destinationType: {
-      masterDestinationType: {
-      id: "",
-      description: "",
-      destinationTypeName: "",
-      }
-    },
+    
     propertyCategory: {
       masterCategory:{
         
@@ -82,7 +76,6 @@ export default function PropertyDetailsPage() {
           starRating: data.starRating?.$numberDecimal || data.starRating,
 
           propertyCategory: data.propertyCategory,
-          destinationType: data.destinationType,
           propertyType: data.propertyType,
           propertyRoom: data.propertyRoom,
           description: data.description,

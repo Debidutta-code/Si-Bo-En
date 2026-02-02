@@ -109,7 +109,8 @@ export class PropertyDao {
                     }
                   }
                 }
-              }
+              },
+              roomVideos:true
               
             }
 
@@ -123,8 +124,8 @@ export class PropertyDao {
             include: {
               masterPropertyType: true,
             },
-          }, propertyAddress: true
-
+          }, propertyAddress: true,
+          propertyVideos:true
 
 
         },
