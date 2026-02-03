@@ -286,7 +286,7 @@ export const EarlyBirdPromotionList: React.FC = () => {
                                         <TableCell>
                                             <div className="flex items-center gap-1 text-xs">
                                                 <Clock className="w-3 h-3 text-muted-foreground" />
-                                                <span>{promotion.advanceBookingDays || 7} days</span>
+                                                <span>{promotion.advanceBookingDays} days</span>
                                             </div>
                                         </TableCell>
                                         <TableCell>

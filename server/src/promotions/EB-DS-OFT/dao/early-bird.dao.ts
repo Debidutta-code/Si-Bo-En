@@ -38,6 +38,7 @@ export class EarlyBirdPromotionDao {
               friApplicable: data.friApplicable,
               satApplicable: data.satApplicable,
               sunApplicable: data.sunApplicable,
+              advanceBookingDays: data.advanceBookingDays,
             },
             include: {
               property: true,
@@ -134,7 +135,7 @@ export class EarlyBirdPromotionDao {
       if (updateData.satApplicable !== undefined) data.satApplicable = updateData.satApplicable;
       if (updateData.sunApplicable !== undefined) data.sunApplicable = updateData.sunApplicable;
       if (updateData.isActive !== undefined) data.isActive = updateData.isActive;
-
+      if(updateData.advanceBookingDays !== undefined) data.advanceBookingDays = updateData.advanceBookingDays;
       return await prisma.promotion.update({
         where: { id },
         data,
