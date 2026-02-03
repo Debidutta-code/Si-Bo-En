@@ -46,3 +46,10 @@ export {
     getLoyalityByCreationService,
     getAllCreationLoyalityWithPropertyService
 } from "./creation-loyality.service";
+
+export {
+    createLoyaltyGuestService,
+    deleteLoyaltyGuestService,
+    getLoyaltyGuestsForPropertyService,
+    getLoyaltyGuestsForCreationService
+} from "./loyalty.guest.service";
