@@ -130,4 +130,22 @@ export class PropertyLoyalityController {
             return res.status(500).json(errorResponse("Internal Server Error", "Failed to retrieve active loyalty config"));
         }
     }
+
+    public async getPropertiesByLoyaltyProgram(req: CustomRequest, res: Response): Promise<Response> {
+        try {
+            const { loyaltyProgramId } = req.params;
+
+            if (!loyaltyProgramId) {
+                return res.status(400).json(errorResponse("Loyalty program not chosen", "Loyalty Program ID is required"));
+            }
+
+            const result = await this.propertyLoyalityService.getPropertiesByLoyaltyProgram(loyaltyProgramId);
+            return res.status(result.success ? 200 : 401).json(result);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res.status(500).json(errorResponse("Failed to retrieve properties", error.message));
+            }
+            return res.status(500).json(errorResponse("Internal Server Error", "Failed to retrieve properties"));
+        }
+    }
 }

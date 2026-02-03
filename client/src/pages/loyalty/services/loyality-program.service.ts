@@ -6,10 +6,13 @@ import {
     createAdvanceLoyaltyProgram,
     getAdvanceLoyaltyProgram,
     updateAdvanceLoyaltyProgram,
-    deleteAdvanceLoyaltyProgram
+    deleteAdvanceLoyaltyProgram,
+    getLoyaltyProgramByCreationId
 } from "../api";
 
 import type { ICloyaltyProgram, IULoyalityProgram, ICAdvanceLoyaltyprogram, IUAdvanceLoyaltyprogram } from "../interfaces";
+
+export { getLoyaltyProgramByCreationId };
 
 // ===== Basic Loyalty Program Services =====
 export const createLoyaltyProgramService = async (data: ICloyaltyProgram) => {

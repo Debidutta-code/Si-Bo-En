@@ -10,6 +10,7 @@ import {
   PropertyType,
   AminityController,
   RoomAminityControllerManagement,
+  LoyaltyGuestFieldControllers
 } from "../controller";
 
 export const managementRoute = Router();
@@ -18,11 +19,12 @@ const propertyTypeRouter = Router();
 const destinationRouter = Router();
  const aminityRouter = Router();
 const roomAminityRouteM = Router();
-
+const loyaltyGuestFieldRouter = Router();
 managementRoute.use('/category', categoryRouter);
 managementRoute.use('/amenity', aminityRouter);
 managementRoute.use('/type', propertyTypeRouter);
 managementRoute.use('/destination-type', destinationRouter);
+managementRoute.use('/loyalty-guest-field', loyaltyGuestFieldRouter);
 
 categoryRouter
   .route('/get')
@@ -112,3 +114,14 @@ roomAminityRouteM
     RoomAminityControllerManagement.deleteRoomAmenities
   );
   
+
+
+loyaltyGuestFieldRouter.route("/")
+  .post(
+    LoyaltyGuestFieldControllers.createLoyaltyGuestFields
+  ).get(
+    LoyaltyGuestFieldControllers.getLoyaltyGuestFields
+  );
+  loyaltyGuestFieldRouter.route("/:id").post(
+    LoyaltyGuestFieldControllers.deleteLoyaltyGuestFields
+  );

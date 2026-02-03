@@ -47,6 +47,9 @@ import { DeviceSpecificPromotionList } from "./pages/promotions/mobile-only/page
 import { EarlyBirdPromotionList } from "./pages/promotions/early-bird/page.tsx";
 import { OfferForTonightPromotionList } from "./pages/promotions/offer-for-tonight/page.tsx";
 import CustomizablePromotionList from "./pages/promotions/customizable-promotion/page.tsx";
+import LoyaltyForm from "./pages/loyalty/LoyaltyForm.tsx";
+import LoyaltyGuest from "./pages/loyalty/LoyaltyGuest.tsx"
+import LoyaltyContent from "./pages/loyalty/LoyaltyContent.tsx";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -69,6 +72,9 @@ export const router = createBrowserRouter(
           <Route path="property/:creationId" element={<PropertyId />} />
           <Route path="loyalty" >
             <Route path=":creationId" index element={<Loyalty />} />
+            <Route path="register-form/:creationId" index element={<LoyaltyForm />} />
+            <Route path="content-config/:creationId" index element={<LoyaltyContent />} />
+            <Route path="loyalty-guests/:creationId" index element={<LoyaltyGuest />} />
 
           </Route>
 

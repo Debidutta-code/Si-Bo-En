@@ -116,6 +116,22 @@ export const updateAdvanceLoyaltyProgram = async (id: string, data: IUAdvanceLoy
     }
 };
 
+export const getLoyaltyProgramByCreationId = async (creationId: string) => {
+    try {
+        const response = await axiosInstance.get(`/loyalty/program/creation/${creationId}`);
+        return response.data;
+    } catch (error: any) {
+        if (error?.response?.data) {
+            return error.response.data;
+        } else {
+            return {
+                success: false,
+                message: error?.message
+            };
+        }
+    }
+};
+
 export const deleteAdvanceLoyaltyProgram = async (id: string) => {
     try {
         const response = await axiosInstance.delete(`/loyalty/program/advance/delete/${id}`);

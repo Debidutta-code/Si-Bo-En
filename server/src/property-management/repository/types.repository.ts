@@ -394,3 +394,33 @@ export class PropertyAmenitySelectionDao {
     }
   }
 }
+
+export class LoyaltyGuestFieldsDao{
+  public static async createGuestFilelds(name:string[]){
+    try {
+      return await prisma.masterLoyaltyRegistrationFields.createMany({
+        data: name.map(fieldName => ({ fieldName })),
+      });
+    } catch (error) {
+      throw new Error(`Error creating loyalty guest field`);
+    }
+  }
+  public static async deleteGuestField(id:string){
+    try {
+      return await prisma.masterLoyaltyRegistrationFields.delete({
+        where:{
+          id:id
+        }
+      })
+    } catch (error) {
+      throw new Error(`Error deleting loyalty guest field`);
+    }
+  }
+  public static async getGuestFields(){
+    try {
+      return await prisma.masterLoyaltyRegistrationFields.findMany();
+    } catch (error) {
+      throw new Error(`Error fetching loyalty guest fields`);
+    }
+  }
+}

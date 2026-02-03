@@ -14,7 +14,8 @@ export {
     getFieldsService,
     updateFieldService,
     deleteFieldService,
-    updateManyFieldsService
+    updateManyFieldsService,
+    getAllFieldService
 } from "./loyality-field.service";
 
 export {

@@ -34,6 +34,13 @@ router.route("/:loyaltyProgramId")
         loyalityProgramController.deleteLoyaltyProgram.bind(loyalityProgramController)
     );
 
+router.route("/creation/:creationId")
+    .get(
+        protect,
+        checkRoleBased("canViewHotel"),
+        loyalityProgramController.getLoyaltyProgramByCreationId.bind(loyalityProgramController)
+    );
+
 // ===== Advance Loyalty Program Routes =====
 router.route("/advance")
     .post(

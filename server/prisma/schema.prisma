@@ -331,6 +331,7 @@ model Property {
   propertyConfigs      PropertyConfigs?
   Commissions          PropertyCommission?
   loyaltyProgramConfig PropertyLoyaltyConfig?
+  LoyalityGuests       LoyalityGuest[]
   // Children
   reservations         Reservation[]
   propertyAmenities    PropertyAmenitySelection[]
@@ -343,8 +344,8 @@ model Property {
   Guests               Guests[]
   Policy               Policy[]
   agenticProperties    AgenticProperty[]
-  geoRatePlans        GeoRatePlan[]
-  promotions          Promotion[]
+  geoRatePlans         GeoRatePlan[]
+  promotions           Promotion[]
   createdAt            DateTime                     @default(now())
   updatedAt            DateTime                     @updatedAt
 
@@ -530,8 +531,8 @@ model Room {
   geoRatePlans  GeoRatePlan[]
   promotions    Promotion[]
 
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([propertyId])
   @@index([roomType])
@@ -701,8 +702,8 @@ model RatePlan {
   geoRatePlans  GeoRatePlan[]
   promotions    Promotion[]
 
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([propertyId])
   @@map("rate_plans")
@@ -1053,6 +1054,7 @@ model Guests {
   userIdentityCardType userIdentityCardType? @default(adhar_card) @map("user_identity_card")
   identityCardNumber   String?               @map("identity_card_number")
   identityCardImage    String?               @map("identity_card_image")
+  loyalityGuests       LoyalityGuest[]
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
 
@@ -1263,13 +1265,14 @@ model CreationLoyaltyConfig {
   discountValue       Int           @map("discount_value")
   currencyCode        CurrencyCode? @default(INR) @map("currency_code")
 
-  BasicLoyaltyProgram     BasicLoyaltyProgram?
-  AdvanceLoyaltyProgram   AdvanceLoyaltyProgram?
-  loyaltyAdvanceProgram   LoyaltyConditions?
-  loyaltySpecialCondition LoyaltySpecialCondition?
+  BasicLoyaltyProgram      BasicLoyaltyProgram?
+  AdvanceLoyaltyProgram    AdvanceLoyaltyProgram?
+  loyaltyConditions        LoyaltyConditions[]
+  loyaltySpecialConditions LoyaltySpecialCondition[]
 
   LoyaltyProgramFieldConfig LoyaltyProgramFieldConfig[]
   PropertyLoyaltyConfig     PropertyLoyaltyConfig[]
+  LoyalityGuests            LoyalityGuest[]
   createdAt                 DateTime                    @default(now())
 
   @@map("loyalty_program_configs")
@@ -1284,6 +1287,7 @@ model PropertyLoyaltyConfig {
   propertyName            String                @map("property_name")
   Property                Property              @relation(fields: [propertyId], references: [id])
   isActive                Boolean               @default(true) @map("is_active")
+
   // @@unique([creationLoyaltyConfigId, propertyId,isActive])
   @@map("property_loyalty_configs")
 }
@@ -1319,7 +1323,7 @@ model AdvanceLoyaltyProgram {
 
 model LoyaltyConditions {
   id               String                @id @default(uuid())
-  loyaltyProgramId String                @unique @map("loyalty_program_id")
+  loyaltyProgramId String                @map("loyalty_program_id")
   LoyaltyProgram   CreationLoyaltyConfig @relation(fields: [loyaltyProgramId], references: [id], onDelete: Cascade)
 
   text      String
@@ -1329,12 +1333,13 @@ model LoyaltyConditions {
 
   createdAt DateTime @default(now())
 
+  @@index([loyaltyProgramId])
   @@map("loyalty_conditions")
 }
 
 model LoyaltySpecialCondition {
   id               String                @id @default(uuid())
-  loyaltyProgramId String                @unique @map("loyalty_program_id")
+  loyaltyProgramId String                @map("loyalty_program_id")
   LoyaltyProgram   CreationLoyaltyConfig @relation(fields: [loyaltyProgramId], references: [id], onDelete: Cascade)
 
   title     String
@@ -1345,6 +1350,7 @@ model LoyaltySpecialCondition {
 
   createdAt DateTime @default(now())
 
+  @@index([loyaltyProgramId])
   @@map("loyalty_special_conditions")
 }
 
@@ -1430,4 +1436,16 @@ model Promotion {
 
   @@index([propertyId, roomId, ratePlanId])
   @@map("promotion_rule")
+}
+
+model LoyalityGuest {
+  id                      String                @id @default(uuid())
+  creationLoyaltyConfigId String                @map("creation_loyalty_config_id")
+  CreationLoyaltyConfig   CreationLoyaltyConfig @relation(fields: [creationLoyaltyConfigId], references: [id], onDelete: Cascade)
+
+  propertyId String   @map("property_id")
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  guestId String @map("guest_id")
+  guest   Guests @relation(fields: [guestId], references: [id], onDelete: Cascade)
 }

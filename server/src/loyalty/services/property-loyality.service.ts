@@ -107,4 +107,19 @@ export class PropertyLoyalityService {
             return errorResponse("Failed to retrieve active loyalty config");
         }
     }
+
+    public async getPropertiesByLoyaltyProgram(loyaltyProgramId: string): Promise<IApiResponse> {
+        try {
+            const result = await this.propertyLoyalityRepository.getPropertiesByLoyaltyProgram(loyaltyProgramId);
+            if (!result || result.length === 0) {
+                return errorResponse("No properties found for this loyalty program");
+            }
+            return successResponse("Successfully retrieved properties", result);
+        } catch (error) {
+            if (error instanceof Error) {
+                return errorResponse("Failed to retrieve properties", error.message);
+            }
+            return errorResponse("Failed to retrieve properties");
+        }
+    }
 }
