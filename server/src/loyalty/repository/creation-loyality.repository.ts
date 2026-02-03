@@ -3,11 +3,12 @@ import {
     ICreationLoyality,
     ICCreationLoyality,
     ICreationLoyalityWithProperty,
-    IUCreationLoyalty
+    IUCreationLoyalty,
+    ITCreationLoyality
 } from "../types/creation-loyality.types";
 
 export class creationLoyalityRepository {
-    public async createCreationLoyality(data: ICCreationLoyality): Promise<ICCreationLoyality> {
+    public async createCreationLoyality(data: ICCreationLoyality): Promise<ITCreationLoyality> {
         try {
             return await prisma.creationLoyaltyConfig.create({
                 data

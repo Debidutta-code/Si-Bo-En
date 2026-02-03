@@ -25,8 +25,8 @@ import type { IUpdateCreation } from '../types/types';
 
 export default function page() {
 
-    const { groupId } = useParams<{ groupId: string }>();
-   
+    const { creationId } = useParams<{ creationId: string }>();
+
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true)
     const [creations, setCreations] = useState<IGroupCreations>({
@@ -66,8 +66,8 @@ export default function page() {
     const fetchGroup = async () => {
         try {
 
-            if (!groupId) return;
-            const response = await getGroupCreationId(groupId);
+            if (!creationId) return;
+            const response = await getGroupCreationId(creationId);
             if (response.success) {
                 setCreations(response.data)
                 // toast.success("Brand/Property fetched successfully")
@@ -82,7 +82,7 @@ export default function page() {
     };
     useEffect(() => {
         fetchGroup();
-    }, [groupId])
+    }, [creationId])
     const getCurrentData = (): ICreation[] => {
         switch (currentTab) {
             case "brand":
@@ -114,14 +114,14 @@ export default function page() {
             toast.error("Please select a user");
             return;
         }
-        if (!groupId) {
+        if (!creationId) {
             toast.error("Invalid Creation");
             return;
         }
         setIsAssigningUser(true);
         try {
             const response = await assignUserToProperty({
-                creationId: groupId,
+                creationId: creationId,
                 userId: selectedUser,
                 role: "group_manager"
             });
@@ -143,7 +143,7 @@ export default function page() {
 
     const openUpdateDialog = () => {
         setUpdateGroupDetails({
-            id: creations.groupData.id || groupId || '',
+            id: creations.groupData.id || creationId || '',
             name: creations.groupData.name || '',
             images: creations.groupData.images || [],
             isActive: Boolean(creations.groupData.isActive)
@@ -167,12 +167,12 @@ export default function page() {
     };
 
     const handleUpdateGroup = async () => {
-        if (!groupId) {
+        if (!creationId) {
             toast.error('Invalid Group ID');
             return;
         }
         try {
-            const response = await updateCreationService(groupId, updateGroupDetails.name, updateGroupDetails.images, updateGroupDetails.isActive);
+            const response = await updateCreationService(creationId, updateGroupDetails.name, updateGroupDetails.images, updateGroupDetails.isActive);
             if (!response.success) {
                 toast.error(response.message || 'Failed to update group');
                 return;
@@ -369,7 +369,7 @@ export default function page() {
                         </Dialog>
 
                         <div className="px-2">
-                            <CreateEntityDialog currentTab={currentTab} creationId={groupId ? groupId : ""} level={3} fetchProperties={fetchGroup} />
+                            <CreateEntityDialog currentTab={currentTab} creationId={creationId ? creationId : ""} level={3} fetchProperties={fetchGroup} />
                         </div>
                     </DropdownMenuContent>
                 </DropdownMenu>

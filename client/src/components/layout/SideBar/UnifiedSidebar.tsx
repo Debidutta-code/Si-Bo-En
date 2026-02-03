@@ -57,51 +57,20 @@ interface SidebarProps {
 
 export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) {
   const { propertyId } = useParams();
+  // const { creationId } = useParams();
   const { user } = useAppSelector((state) => state.user);
   const location = useLocation();
   const navigate = useNavigate();
   const [isManagementOpen, setIsManagementOpen] = useState(false);
-  // const [isPriceManagementOpen, setIsPriceManagementOpen] = useState(false);
   const [isRatesOpen, setIsRatesOpen] = useState(false);
   const [isRestrictionsOpen, setIsRestrictionsOpen] = useState(false);
+  const [isLoyaltyOpen, setIsLoyaltyOpen] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem('isAuthenticated');
     navigate('/');
   };
 
-  // useEffect(() => {
-  //   // Add conditional navigation items based on user role
-  //   if (user?.role === "hotel_manager" && user?.propertyId) {
-  //     const frontDeskExists = navigation.some(item => item.name === 'Front Desk');
-  //     const housekeepingExists = navigation.some(item => item.name === 'House Keeping');
-
-  //     if (!frontDeskExists) {
-  //       navigation.push({ name: 'Front Desk', href: `/property/${user.propertyId}/frontdesk`, icon: HeadsetIcon, userLevels: [0, 1, 2, 3, 4] });
-  //     }
-  //     if (!housekeepingExists) {
-  //       navigation.push({ name: 'House Keeping', href: `/property/${user.propertyId}/housekeeping`, icon: BrushCleaning, userLevels: [0, 1, 2, 3, 4] });
-  //     }
-  //   }
-
-  //   // Redirect users to their appropriate property pages
-  //   if (user?.role === "front_desk" && user?.propertyId) {
-  //     navigate(`/property/${user.propertyId}/frontdesk`);
-  //   }
-  //   if (user?.role === "housekeeping" && user?.propertyId) {
-  //     navigate(`/property/${user.propertyId}/housekeeping`);
-  //   }
-  // }, [user, navigate, propertyId]);
-
-  // Price Management sub-items
-  // const priceManagementItems = [
-  //   { name: 'Seasons', href: `/property/price-management/seasons/${propertyId}` },
-  //   { name: 'Calendar', href: `/property/price-management/calendar/${propertyId}` },
-  //   { name: 'Periods', href: `/property/price-management/periods/${propertyId}` },
-  //   { name: 'Table', href: `/property/price-management/table/${propertyId}` },
-  // ];
-
-  // Rates sub-items
   const ratesItems = [
     { name: 'RatePlan', href: `/property/rate-plan/${propertyId}` },
     { name: 'Rate Plan Allotment', href: `/property/rate-plan/map/${propertyId}` },
@@ -110,7 +79,6 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
 
   ];
 
-  // Management sub-items
   const managementItems = [
     { name: 'Policy', href: `/property/policy/${propertyId}`, icon: CalendarClock, userLevels: [0, 1, 2, 3, 4] },
     { name: 'Promo Code', href: `/property/promo-code/${propertyId}`, icon: FileText, userLevels: [0, 1, 2, 3, 4] },
@@ -118,29 +86,35 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
     { name: 'Tax System', href: `/property/tax-system/${propertyId}`, icon: Shield, userLevels: [4] },
   ];
 
-  // Filter navigation based on user level
+  const loyaltyItems = [
+    { name: 'Configuration', href: `/app/property/loyalty/${user?.creation}`, icon: CalendarClock, userLevels: [0, 1, 2, 3, 4] },
+    { name: 'Register Form', href: `/app/property/loyalty/register-form/${user?.creation}`, icon: FileText, userLevels: [0, 1, 2, 3, 4] },
+    { name: 'Content Configuration', href: `/app/property/loyalty/content-config/${user?.creation}`, icon: Users, userLevels: [4, 3, 2, 1] },
+    { name: 'Loyalty Guests', href: `/app/property/loyalty/loyalty-guests/${user?.creation}`, icon: Shield, userLevels: [4] },
+  ];
+
+  const filteredLoyaltyItems = loyaltyItems.filter(item =>
+    user && item.userLevels.includes(user.userLevel)
+  );
+
   const filteredNavigation = navigation.filter(item => user && item.userLevels.includes(user.userLevel));
-  
-  // Filter property navigation if we're in a property context
-  const filteredPropertyNavigation = propertyNavigation.filter(item => 
+
+  const filteredPropertyNavigation = propertyNavigation.filter(item =>
     user && item.userLevels.includes(user.userLevel)
   );
 
-  // Filter management items based on user level
-  const filteredManagementItems = managementItems.filter(item => 
+  const filteredManagementItems = managementItems.filter(item =>
     user && item.userLevels.includes(user.userLevel)
   );
 
-  // Check if we're in a property context (only for /property/* routes, not /app/property/*)
   const isPropertyContext = !!propertyId && location.pathname.startsWith('/property/');
 
-  // Restrictions sub-items (defined inside component to access propertyId)
   const restrictionsItems = [
     { name: 'Start/Stop Sell', href: `/property/start-stop-sell/${propertyId}` },
     { name: 'CTA-CTD', href: `/property/cta-ctd/${propertyId}` },
   ];
+  // const isLoyaltyContext = location.pathname.includes('/app/property');
 
-  // Reusable component for the sidebar's content
   const SidebarContent = () => (
     <div className='flex flex-col h-full bg-white border-r w-full'>
       <div className="flex justify-around items-center h-16 px-2 border-b border-gray-200">
@@ -158,7 +132,6 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
       </div>
 
       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-        {/* Main Navigation (always visible) */}
         {filteredNavigation.map((item) => {
           const targetHref = item.href === `/app/property` ? (
             user?.userLevel === 4 ? `/app/property/super/${user.creation}` :
@@ -167,8 +140,8 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
                   user?.userLevel === 1 ? `/app/property/property/${user.creation}` :
                     user?.userLevel === 0 ? `/app/property/property/${user.creation}` :
                       item.href
-          ) : item.href;
-          
+          ) : item.href === `/app/loyalty` ? `/app/property/loyalty/${user?.creation}` : item.href;
+
           return (
             <Link
               key={item.name}
@@ -189,6 +162,53 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
             </Link>
           );
         })}
+
+        {/* Loyalty Dropdown (only show when in loyalty context) */}
+        {user?.creation && filteredLoyaltyItems.length > 0 && (
+          <div>
+            <button
+              onClick={() => setIsLoyaltyOpen(!isLoyaltyOpen)}
+              title="Loyalty"
+              className={cn(
+                'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                location.pathname.startsWith(`/app/property/loyalty`)
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-gray-700 hover:bg-gray-50',
+                !isSidebarOpen && 'justify-center'
+              )}
+            >
+              <DollarSign className='h-5 w-5 flex-shrink-0' />
+              <span className={cn('whitespace-nowrap flex-1 text-left', !isSidebarOpen && 'hidden')}>
+                Loyalty
+              </span>
+              <ChevronDown className={cn(
+                'h-4 w-4 transition-transform',
+                isLoyaltyOpen && 'rotate-180',
+                !isSidebarOpen && 'hidden'
+              )} />
+            </button>
+
+            {/* Loyalty Dropdown Items */}
+            {isLoyaltyOpen && isSidebarOpen && (
+              <div className="ml-8 mt-1 space-y-1">
+                {filteredLoyaltyItems.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={cn(
+                      'flex items-center px-3 py-2 rounded-lg text-sm transition-colors',
+                      location.pathname === item.href
+                        ? 'bg-primary/10 text-primary font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    )}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Property-specific navigation (only show when in property context) */}
         {isPropertyContext && filteredPropertyNavigation.map((item) => {
@@ -337,7 +357,7 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
                 >
                   Bank Details
                 </Link>
-                
+
                 {/* New Management Items */}
                 {filteredManagementItems.map((item) => (
                   <Link
@@ -358,49 +378,7 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
           </div>
         )}
 
-        
-        {/* {isPropertyContext && (
-          <div>
-            <button
-              onClick={() => setIsPriceManagementOpen(!isPriceManagementOpen)}
-              title="Price Management"
-              className={cn(
-                'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50',
-                !isSidebarOpen && 'justify-center'
-              )}
-            >
-              <DollarSign className='h-5 w-5 flex-shrink-0' />
-              <span className={cn('whitespace-nowrap flex-1 text-left', !isSidebarOpen && 'hidden')}>
-                Price Management
-              </span>
-              <ChevronDown className={cn(
-                'h-4 w-4 transition-transform',
-                isPriceManagementOpen && 'rotate-180',
-                !isSidebarOpen && 'hidden'
-              )} />
-            </button>
 
-            
-            {isPriceManagementOpen && isSidebarOpen && (
-              <div className="ml-8 mt-1 space-y-1">
-                {priceManagementItems.map((subItem) => (
-                  <Link
-                    key={subItem.name}
-                    to={subItem.href}
-                    className={cn(
-                      'flex items-center px-3 py-2 rounded-lg text-sm transition-colors',
-                      location.pathname === subItem.href
-                        ? 'bg-primary/10 text-primary font-medium'
-                        : 'text-gray-600 hover:bg-gray-50'
-                    )}
-                  >
-                    {subItem.name}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        )} */}
 
         {/* Restrictions Dropdown (only show when in property context) */}
         {isPropertyContext && (

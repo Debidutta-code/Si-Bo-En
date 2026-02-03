@@ -1,6 +1,6 @@
 import { successResponse, errorResponse } from "../../utils";
 import { IApiResponse } from "../../utils";
-import { creationLoyalityRepository } from "../repository";
+import { creationLoyalityRepository ,LoyaltyProgramRepository} from "../repository";
 import {
     ICCreationLoyality,
     IUCreationLoyalty
@@ -8,14 +8,24 @@ import {
 
 export class CreationLoyalityService {
     private creationLoyalityRepository: creationLoyalityRepository;
+    private loyaltyProgramRepository: LoyaltyProgramRepository;
 
     constructor() {
         this.creationLoyalityRepository = new creationLoyalityRepository();
+        this.loyaltyProgramRepository = new LoyaltyProgramRepository();
     }
 
     public async createCreationLoyality(data: ICCreationLoyality): Promise<IApiResponse> {
         try {
             const result = await this.creationLoyalityRepository.createCreationLoyality(data);
+            if(!result){
+                return errorResponse("Failed to create creation loyalty");
+            }
+            await this.loyaltyProgramRepository.createLoyaltyProgram({
+                isActive:false,
+                logo:[],
+                loyaltyProgramId: result.id
+            });
             return successResponse("Successfully created creation loyalty", result);
         } catch (error) {
             if (error instanceof Error) {

@@ -39,6 +39,8 @@ import ForgotPasswordForm from "./components/auth/ForgotPasswordForm.tsx";
 import LinkVerification from "./components/auth/LinkVerification.tsx";
 import ContactSupport from "./pages/contact-support/ContactSupport.tsx";
 import ManagementPage from "./pages/management/Management.tsx";
+import Loyalty from "./pages/loyalty/Loyalty.tsx";
+
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -55,17 +57,21 @@ export const router = createBrowserRouter(
 
         <Route path="property">
 
-          <Route path="super/:superId" element={<Property />} />
-          <Route path="group/:groupId" element={<GroupId />} />
-          <Route path="brand/:brandId" element={<BrandId />} />
-          <Route path="property/:propertyId" element={<PropertyId />} />
+          <Route path="super/:creationId" element={<Property />} />
+          <Route path="group/:creationId" element={<GroupId />} />
+          <Route path="brand/:creationId" element={<BrandId />} />
+          <Route path="property/:creationId" element={<PropertyId />} />
+          <Route path="loyalty" >
+            <Route path=":creationId" index element={<Loyalty />} />
+
+          </Route>
 
         </Route>
         <Route path="members" element={<MembersPage />} />
         <Route path="logs" element={<LogsPage />} />
         <Route path="access-control" element={<AccessControlPage />} />
         <Route path="bookings" element={<Bookings />} />
-         <Route path="utils-management" element={<ManagementPage />} />
+        <Route path="utils-management" element={<ManagementPage />} />
 
       </Route>
       <Route path="/property" element={<PropertyLayout />}>
