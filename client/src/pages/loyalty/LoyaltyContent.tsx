@@ -8,6 +8,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import {
@@ -44,6 +54,9 @@ export default function LoyaltyContent() {
   
   const [conditionForm, setConditionForm] = useState({ text: "", language: "en" as const });
   const [specialConditionForm, setSpecialConditionForm] = useState({ title: "", subTitle: "", language: "en" as const });
+  
+  const [deleteConditionId, setDeleteConditionId] = useState<string | null>(null);
+  const [deleteSpecialConditionId, setDeleteSpecialConditionId] = useState<string | null>(null);
 
   useEffect(() => {
     if (creationId) {
@@ -136,11 +149,11 @@ export default function LoyaltyContent() {
     setIsLoading({ isLoading: false, message: "" });
   };
 
-  const handleDeleteCondition = async (id: string): Promise<void> => {
-    if (!confirm("Are you sure you want to delete this condition?")) return;
+  const handleDeleteCondition = async (): Promise<void> => {
+    if (!deleteConditionId) return;
 
     setIsLoading({ isLoading: true, message: "Deleting condition..." });
-    const response = await deleteConditionService(id);
+    const response = await deleteConditionService(deleteConditionId);
     if (response.success) {
       toast.success("Condition deleted successfully");
       await fetchConditions();
@@ -148,6 +161,7 @@ export default function LoyaltyContent() {
       toast.error(response.message);
     }
     setIsLoading({ isLoading: false, message: "" });
+    setDeleteConditionId(null);
   };
 
   const handleToggleConditionStatus = async (condition: ILoyalityCondition): Promise<void> => {
@@ -218,11 +232,11 @@ export default function LoyaltyContent() {
     setIsLoading({ isLoading: false, message: "" });
   };
 
-  const handleDeleteSpecialCondition = async (id: string): Promise<void> => {
-    if (!confirm("Are you sure you want to delete this special condition?")) return;
+  const handleDeleteSpecialCondition = async (): Promise<void> => {
+    if (!deleteSpecialConditionId) return;
 
     setIsLoading({ isLoading: true, message: "Deleting special condition..." });
-    const response = await deleteSpecialConditionService(id);
+    const response = await deleteSpecialConditionService(deleteSpecialConditionId);
     if (response.success) {
       toast.success("Special condition deleted successfully");
       await fetchSpecialConditions();
@@ -230,6 +244,7 @@ export default function LoyaltyContent() {
       toast.error(response.message);
     }
     setIsLoading({ isLoading: false, message: "" });
+    setDeleteSpecialConditionId(null);
   };
 
   const handleToggleSpecialConditionStatus = async (condition: ILoyalitySpecialCondition): Promise<void> => {
@@ -332,7 +347,7 @@ if (isLoading.isLoading) {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleDeleteCondition(condition.id)}
+                        onClick={() => setDeleteConditionId(condition.id)}
                       >
                         <Trash2 className="w-4 h-4 text-destructive" />
                       </Button>
@@ -385,7 +400,7 @@ if (isLoading.isLoading) {
                       <Button
                         variant="ghost"
                         size="icon"
-                        onClick={() => handleDeleteSpecialCondition(condition.id)}
+                        onClick={() => setDeleteSpecialConditionId(condition.id)}
                       >
                         <Trash2 className="w-4 h-4 text-destructive" />
                       </Button>
@@ -472,6 +487,38 @@ if (isLoading.isLoading) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Condition Confirmation */}
+      <AlertDialog open={!!deleteConditionId} onOpenChange={() => setDeleteConditionId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this condition. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteCondition}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Special Condition Confirmation */}
+      <AlertDialog open={!!deleteSpecialConditionId} onOpenChange={() => setDeleteSpecialConditionId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this special condition. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteSpecialCondition}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

@@ -22,8 +22,18 @@ export class propertyLoyalityRepository {
         try {
             return await prisma.propertyLoyaltyConfig.findFirst({
                 where: {
-                    propertyId,
-                    isActive: true
+                    propertyId
+                },
+                include: {
+                    CreationLoyaltyConfig: {
+                        include: {
+                            BasicLoyaltyProgram: true,
+                            AdvanceLoyaltyProgram: true,
+                            LoyaltyProgramFieldConfig: true,
+                            loyaltyConditions: true,
+                            loyaltySpecialConditions: true,
+                        }
+                    }
                 }
             });
         } catch (error) {

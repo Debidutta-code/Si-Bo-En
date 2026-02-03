@@ -34,12 +34,13 @@ router.route("/:propertyId")
         propertyLoyalityController.getLoyalityForProperty.bind(propertyLoyalityController)
     );
 
-router.route("/config/:propertyLoyalityId")
+router.route("/config/:propertyId")
     .patch(
         protect,
         checkRoleBased("canUpdatePolicy"),
         propertyLoyalityController.updatePropertyLoyalityConfig.bind(propertyLoyalityController)
     )
+    
     .delete(
         protect,
         checkRoleBased("canDeletePolicy"),

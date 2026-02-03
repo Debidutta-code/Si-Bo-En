@@ -34,9 +34,9 @@ export const getLoyalityForProperty = async (propertyId: string) => {
     }
 };
 
-export const updatePropertyLoyalityConfig = async (propertyLoyalityId: string, isActive: boolean) => {
+export const updatePropertyLoyalityConfig = async (propertyId: string, isActive: boolean) => {
     try {
-        const response = await axiosInstance.patch(`/loyalty/property/config/${propertyLoyalityId}`, { isActive });
+        const response = await axiosInstance.patch(`/loyalty/property/config/${propertyId}`, { isActive });
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {
@@ -50,9 +50,9 @@ export const updatePropertyLoyalityConfig = async (propertyLoyalityId: string, i
     }
 };
 
-export const deletePropertyLoyalityConfig = async (propertyLoyalityId: string) => {
+export const deletePropertyLoyalityConfig = async (propertyId: string) => {
     try {
-        const response = await axiosInstance.delete(`/loyalty/property/config/${propertyLoyalityId}`);
+        const response = await axiosInstance.delete(`/loyalty/property/config/${propertyId}`);
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {

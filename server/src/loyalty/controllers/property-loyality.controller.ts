@@ -57,17 +57,17 @@ export class PropertyLoyalityController {
 
     public async updatePropertyLoyalityConfig(req: CustomRequest, res: Response): Promise<Response> {
         try {
-            const { propertyLoyalityId } = req.params;
+            const { propertyId } = req.params;
             const { isActive } = req.body;
 
-            if (!propertyLoyalityId) {
-                return res.status(400).json(errorResponse("Invalid Request", "Property Loyalty Config ID is required"));
+            if (!propertyId) {
+                return res.status(400).json(errorResponse("Property is not selected", "Property ID is required"));
             }
             if (typeof isActive !== 'boolean') {
                 return res.status(400).json(errorResponse("Invalid Field Provided", "isActive field is required and must be a boolean"));
             }
 
-            const result = await this.propertyLoyalityService.updatePropertyLoyalityConfig(propertyLoyalityId, isActive);
+            const result = await this.propertyLoyalityService.updatePropertyLoyalityConfig(propertyId, isActive);
             return res.status(result.success ? 200 : 400).json(result);
         } catch (error) {
             if (error instanceof Error) {
@@ -79,13 +79,13 @@ export class PropertyLoyalityController {
 
     public async deletePropertyLoyalityConfig(req: CustomRequest, res: Response): Promise<Response> {
         try {
-            const { propertyLoyalityId } = req.params;
+            const { propertyId } = req.params;
 
-            if (!propertyLoyalityId) {
+            if (!propertyId) {
                 return res.status(400).json(errorResponse("Invalid Request", "Property Loyalty Config ID is required"));
             }
 
-            const result = await this.propertyLoyalityService.deletePropertyLoyalityConfig(propertyLoyalityId);
+            const result = await this.propertyLoyalityService.deletePropertyLoyalityConfig(propertyId);
             return res.status(result.success ? 200 : 400).json(result);
         } catch (error) {
             if (error instanceof Error) {

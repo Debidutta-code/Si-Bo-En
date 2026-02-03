@@ -25,7 +25,8 @@ import {
   Smartphone,
   MoonIcon,
   Pen,
-  Sun
+  Sun,
+  Award
 } from 'lucide-react';
 import { useAppSelector } from '@/redux/hooks';
 import { useState } from 'react';
@@ -521,6 +522,26 @@ const promotionsItems = [
               </div>
             )}
           </div>
+        )}
+
+        {/* Property Loyalty (only show when in property context) */}
+        {isPropertyContext && (
+          <Link
+            to={`/property/loyalty/${propertyId}`}
+            title="Property Loyalty"
+            className={cn(
+              'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+              location.pathname.startsWith(`/property/loyalty/${propertyId}`)
+                ? 'bg-primary/10 text-primary'
+                : 'text-gray-700 hover:bg-gray-50',
+              !isSidebarOpen && 'justify-center'
+            )}
+          >
+            <Award className='h-5 w-5 flex-shrink-0' />
+            <span className={cn('whitespace-nowrap', !isSidebarOpen && 'hidden')}>
+              Property Loyalty
+            </span>
+          </Link>
         )}
       </nav>
 

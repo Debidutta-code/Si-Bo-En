@@ -43,27 +43,27 @@ export const getLoyalityForPropertyService = async (propertyId: string) => {
     }
 };
 
-export const updatePropertyLoyalityConfigService = async (propertyLoyalityId: string, isActive: boolean) => {
+export const updatePropertyLoyalityConfigService = async (propertyId: string, isActive: boolean) => {
     try {
-        if (!propertyLoyalityId || propertyLoyalityId.trim() === "") {
-            return { success: false, message: "Property Loyalty Config ID is required." };
+        if (!propertyId || propertyId.trim() === "") {
+            return { success: false, message: "Property ID is required." };
         }
         if (typeof isActive !== "boolean") {
-            return { success: false, message: "Active status is required." };
+            return { success: false, message: "isActive must be a boolean value." };
         }
-        const response = await updatePropertyLoyalityConfig(propertyLoyalityId, isActive);
+        const response = await updatePropertyLoyalityConfig(propertyId, isActive);
         return response;
     } catch (error) {
         return { success: false, message: "Failed to update property loyalty config." };
     }
 };
 
-export const deletePropertyLoyalityConfigService = async (propertyLoyalityId: string) => {
+export const deletePropertyLoyalityConfigService = async (propertyId: string) => {
     try {
-        if (!propertyLoyalityId || propertyLoyalityId.trim() === "") {
-            return { success: false, message: "Property Loyalty Config ID is required." };
+        if (!propertyId || propertyId.trim() === "") {
+            return { success: false, message: "Property ID is required." };
         }
-        const response = await deletePropertyLoyalityConfig(propertyLoyalityId);
+        const response = await deletePropertyLoyalityConfig(propertyId);
         return response;
     } catch (error) {
         return { success: false, message: "Failed to delete property loyalty config." };

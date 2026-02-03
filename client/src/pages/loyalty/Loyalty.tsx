@@ -10,6 +10,7 @@ import {
   getLoyalityByCreationService,
   updateCreationLoyalityService
 } from "./services";
+import { fetchProperties } from "../dashboard/api/dash.api";
 import type { 
   ICloyaltyProgram,
   IAdvanceLoyaltyprogram,
@@ -17,7 +18,7 @@ import type {
 } from "./interfaces";
 import Loader from "@/components/Loader/Loader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "react-hot-toast";
+import { toast } from "sonner";
 import ImageUploadModal from "@/components/property/ImageUploadModal";
 import { uploadImages } from "../property/booking-engine-config/api";
 import CreateLoyaltyForm from "./components/CreateLoyaltyForm";
@@ -79,16 +80,23 @@ export default function Loyalty() {
   }, [creationId]);
 
   const fetchPropertiesByCreation = async () => {
-    // TODO: Replace with actual API call to fetch properties by creationId
-    // For now, leaving it empty - you can fetch from your property management API
     try {
-      // const response = await getPropertiesByCreation(creationId);
-      // if (response.success) {
-      //   setAvailableProperties(response.data);
-      // }
-      setAvailableProperties([]);
+      const response = await fetchProperties();
+      if (response.success && response.data) {
+        // Map the response to match the Property interface
+        const properties: Property[] = response.data.map((prop: any) => ({
+          id: prop.id,
+          propertyCode: prop.code,
+          propertyName: prop.name
+        }));
+        setAvailableProperties(properties);
+      } else {
+        toast.error(response.message || "Failed to fetch properties");
+        setAvailableProperties([]);
+      }
     } catch (error) {
       console.error("Error fetching properties:", error);
+      toast.error("Failed to fetch properties");
       setAvailableProperties([]);
     }
   };
