@@ -18,6 +18,15 @@ export class LoyalityConditionRepository {
             throw new Error("Error creating loyalty condition " );
         }
     }
+    public async getById(id:string):Promise<ILoyalityCondition | null> {
+        try {
+            return await prisma.loyaltyConditions.findUnique({
+                where: { id }
+            });
+        } catch (error) {
+            throw new Error("Error fetching loyalty condition by id " );
+        }
+    }
     public async updateLoyalityCondition(id:string,data:IULoyalityCondition):Promise<ILoyalityCondition> {
         try {
             return await prisma.loyaltyConditions.update({
@@ -39,6 +48,7 @@ export class LoyalityConditionRepository {
             throw new Error("Error deleting loyalty condition " );
         }
     }
+
     public async getConditionsByProgramId(loyaltyProgramId:string):Promise<ILoyalityCondition[]> {
         try {
             return await prisma.loyaltyConditions.findMany({
@@ -58,6 +68,15 @@ export class LoyalitySpecialConditionRepository {
             });
         } catch (error) {
             throw new Error("Error creating loyalty special condition " );
+        }
+    }
+    public async getById(id:string):Promise<ILoyalitySpecialCondition | null> {
+        try {
+            return await prisma.loyaltySpecialCondition.findUnique({
+                where: { id }
+            });
+        } catch (error) {
+            throw new Error("Error fetching loyalty special condition by id " );
         }
     }
     public async updateLoyalitySpecialCondition(id:string,data:IULoyalitySpecialCondition):Promise<ILoyalitySpecialCondition> {

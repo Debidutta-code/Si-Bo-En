@@ -13,9 +13,10 @@ export class creationLoyalityRepository {
                 data
             });
         } catch (error) {
-            throw new Error("failed to create creation loyality");
+            throw new Error("Failed to create creation loyalty");
         }
     }
+    
     public async updateCreationLoyality(creationLoyalityId: string, data: IUCreationLoyalty): Promise<ICCreationLoyality> {
         try {
             return await prisma.creationLoyaltyConfig.update({
@@ -25,9 +26,10 @@ export class creationLoyalityRepository {
                 data
             });
         } catch (error) {
-            throw new Error("failed to update creation loyality");
+            throw new Error("Failed to update creation loyalty");
         }
     }
+    
     public async deleteLoyality(creationLoyalityId: string): Promise<ICCreationLoyality> {
         try {
             return await prisma.creationLoyaltyConfig.delete({
@@ -36,9 +38,10 @@ export class creationLoyalityRepository {
                 }
             });
         } catch (error) {
-            throw new Error("failed to delete creation loyality");
+            throw new Error("Failed to delete creation loyalty");
         }
     }
+    
     public async getCreationLoyalityById(creationLoyalityId: string): Promise<ICreationLoyality | null> {
         try {
             return await prisma.creationLoyaltyConfig.findUnique({
@@ -54,27 +57,29 @@ export class creationLoyalityRepository {
                 }
             });
         } catch (error) {
-            throw new Error("failed to get creation loyality by id");
+            throw new Error("Failed to get creation loyalty by id");
         }
     }
+    
     public async getLoyalityByCreation(creationId: string): Promise<ICreationLoyality | null> {
         try {
             return await prisma.creationLoyaltyConfig.findUnique({
                 where: {
                     creationId
-                }, include: {
+                },
+                include: {
                     BasicLoyaltyProgram: true,
                     AdvanceLoyaltyProgram: true,
                     loyaltyAdvanceProgram: true,
                     loyaltySpecialCondition: true,
                     LoyaltyProgramFieldConfig: true
                 }
-            })
+            });
         } catch (error) {
-            throw new Error("failed to get loyality by creation ");
+            throw new Error("Failed to get loyalty by creation");
         }
-
     }
+    
     public async getAllCreationLoyalityWithProperty(creationId: string): Promise<ICreationLoyalityWithProperty | null> {
         try {
             return await prisma.creationLoyaltyConfig.findUnique({
@@ -89,11 +94,9 @@ export class creationLoyalityRepository {
                     LoyaltyProgramFieldConfig: true,
                     loyaltySpecialCondition: true
                 }
-            })
+            });
         } catch (error) {
-            throw new Error("failed to get all creation loyality with property ");
+            throw new Error("Failed to get all creation loyalty with property");
         }
     }
-
-
 }

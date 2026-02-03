@@ -4,6 +4,7 @@ import {
     IPropertyLoyalityWithLoyality,
     IPropertyLoyaltyConfig
 } from "../types/property-loyality.types";
+
 export class propertyLoyalityRepository {
     public async createPropertyLoyalityConfig(
         data: ICPropertyLoyaltyConfig
@@ -13,92 +14,96 @@ export class propertyLoyalityRepository {
                 data
             });
         } catch (error) {
-            throw new Error("failed to create property loyality config: ");
+            throw new Error("Failed to create property loyalty config");
         }
     }
-    public async getLoyalityForProperty(propertyId: string): Promise<IPropertyLoyaltyConfig|null> {
+    
+    public async getLoyalityForProperty(propertyId: string): Promise<IPropertyLoyaltyConfig | null> {
         try {
             return await prisma.propertyLoyaltyConfig.findFirst({
                 where: {
                     propertyId,
-                    isActive:true
+                    isActive: true
                 }
             });
         } catch (error) {
-            throw new Error("failed to get loyality for property: ");
+            throw new Error("Failed to get loyalty for property");
         }
     }
-    public async updatePropertyLoyalityConfig(propertyLoyalityId:string,isActive:boolean): Promise<IPropertyLoyaltyConfig> {
+    
+    public async updatePropertyLoyalityConfig(propertyLoyalityId: string, isActive: boolean): Promise<IPropertyLoyaltyConfig> {
         try {
             return await prisma.propertyLoyaltyConfig.update({
                 where: {
-                    id:propertyLoyalityId
+                    id: propertyLoyalityId
                 },
-                data:{
+                data: {
                     isActive
                 }
             });
         } catch (error) {
-            throw new Error("failed to update property loyality config ");
+            throw new Error("Failed to update property loyalty config");
         }
     }
-    public async deletePropertyLoyalityConfig(propertyLoyalityId:string): Promise<IPropertyLoyaltyConfig> {
+    
+    public async deletePropertyLoyalityConfig(propertyLoyalityId: string): Promise<IPropertyLoyaltyConfig> {
         try {
             return await prisma.propertyLoyaltyConfig.delete({
                 where: {
-                    id:propertyLoyalityId
+                    id: propertyLoyalityId
                 }
             });
-        }
-        catch (error) {
-            throw new Error("failed to delete property loyality config ");
+        } catch (error) {
+            throw new Error("Failed to delete property loyalty config");
         }
     }
-    public async getAllPropertyLoyalityWithLoyality(propertyId:string): Promise<IPropertyLoyalityWithLoyality[]> {
+    
+    public async getAllPropertyLoyalityWithLoyality(propertyId: string): Promise<IPropertyLoyalityWithLoyality[]> {
         try {
             return await prisma.propertyLoyaltyConfig.findMany({
                 where: {
                     propertyId,
                 },
-                include:{
-                    CreationLoyaltyConfig:{
-                        include:{
-                            AdvanceLoyaltyProgram:true,
-                            BasicLoyaltyProgram:true,
-                            loyaltyAdvanceProgram:true,
-                            LoyaltyProgramFieldConfig:true,
-                            loyaltySpecialCondition:true,
-                            PropertyLoyaltyConfig:true
-                        }
-                    }
-                }
-            })
-        } catch (error) {
-            throw new Error("failed to get property loyality with loyality: ");
-        }
-    }
-    public getActiveLoyaltyConfigByPropertyId(propertyId:string): Promise<IPropertyLoyaltyConfig|null> {
-        try {
-            
-            return prisma.propertyLoyaltyConfig.findFirst({
-                where: {
-                    propertyId,
-                    isActive: true
-                },include:{
-                    CreationLoyaltyConfig:{
-                        include:{
-                            AdvanceLoyaltyProgram:true,
-                            BasicLoyaltyProgram:true,
-                            loyaltyAdvanceProgram:true,
-                            LoyaltyProgramFieldConfig:true,
-                            loyaltySpecialCondition:true,
-                            PropertyLoyaltyConfig:true
+                include: {
+                    CreationLoyaltyConfig: {
+                        include: {
+                            AdvanceLoyaltyProgram: true,
+                            BasicLoyaltyProgram: true,
+                            loyaltyAdvanceProgram: true,
+                            LoyaltyProgramFieldConfig: true,
+                            loyaltySpecialCondition: true,
+                            PropertyLoyaltyConfig: true
                         }
                     }
                 }
             });
         } catch (error) {
-            throw new Error("Error fetching active loyalty config by property " );
+            throw new Error("Failed to get property loyalty with loyalty");
+        }
+    }
+    
+    public async getActiveLoyaltyConfigByPropertyId(propertyId: string): Promise<IPropertyLoyaltyConfig | null> {
+        try {
+            return await prisma.propertyLoyaltyConfig.findFirst({
+                where: {
+                    propertyId,
+                    isActive: true
+                },
+                include: {
+                    CreationLoyaltyConfig: {
+                        include: {
+                            AdvanceLoyaltyProgram: true,
+                            BasicLoyaltyProgram: true,
+                            loyaltyAdvanceProgram: true,
+                            LoyaltyProgramFieldConfig: true,
+                            loyaltySpecialCondition: true,
+                            PropertyLoyaltyConfig: true
+                        }
+                    }
+                }
+            });
+        } catch (error) {
+            throw new Error("Error fetching active loyalty config by property");
         }
     }
 }
