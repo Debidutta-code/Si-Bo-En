@@ -19,12 +19,12 @@ export interface IUCreationLoyalty {
 }
 export interface ICreationLoyality extends ICCreationLoyality {
       id: string;
-      BasicLoyaltyProgram?: IloyaltyProgram;
-      AdvanceLoyaltyProgram?: IAdvanceLoyaltyprogram;
-      loyaltyAdvanceProgram?: ILoyalityCondition;
-      loyaltySpecialCondition?: ILoyalitySpecialCondition;
+      BasicLoyaltyProgram: IloyaltyProgram|null;
+      AdvanceLoyaltyProgram: IAdvanceLoyaltyprogram|null;
+      loyaltyAdvanceProgram: ILoyalityCondition|null;
+      loyaltySpecialCondition: ILoyalitySpecialCondition|null;
       LoyaltyProgramFieldConfig: ILoyaltyField[];
 }
 export interface ICreationLoyalityWithProperty{
-      PropertyLoyaltyConfig: IPropertyLoyaltyConfig;
+      PropertyLoyaltyConfig: IPropertyLoyaltyConfig[]|null;
 }

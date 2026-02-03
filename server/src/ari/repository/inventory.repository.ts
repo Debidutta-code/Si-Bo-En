@@ -293,7 +293,7 @@ console.log(repoData);
                 });
 
                 const inventoryUpdates = inventories
-                    .filter(inv => !inv.ratePlans.includes(ratePlanCode))
+                    .filter(inv: => !inv.ratePlans.includes(ratePlanCode))
                     .map(inv =>
                         prisma.inventory.update({
                             where: { id: inv.id },
