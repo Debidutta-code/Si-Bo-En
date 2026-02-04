@@ -5,6 +5,7 @@ export interface ICloyalityGuests{
     propertyId:string;
     propertyCode:string;
     guestId:string;
+    guestEmail:string;
 }
 export interface ILoyalityGuests extends ICloyalityGuests{
 id:string;

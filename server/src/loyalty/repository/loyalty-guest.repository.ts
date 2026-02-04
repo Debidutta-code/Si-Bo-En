@@ -4,7 +4,10 @@ export class LoyaltyGuestRepository {
     public async createGuestsLoyaltyConfig(guestLoyaltyConfigData: ICloyalityGuests): Promise<any> {
         try {
             return await prisma.loyalityGuest.create({
-                data: guestLoyaltyConfigData
+                data: {
+                    ...guestLoyaltyConfigData,
+                    metaData: {}
+                }
             });
         } catch (error) {
             throw new Error("Failed to create guest loyalty config");
