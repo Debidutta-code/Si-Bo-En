@@ -178,8 +178,9 @@ export class AddonDateWiseController {
         try {
             // Property ID is resolved from propertyCode by the middleware
             const propertyId = req.property?.id;
-            const startDate = String(req.query.startDate || '');
-            const endDate = String(req.query.endDate || '');
+            const startDate = String(req.query.startDate);
+            const endDate = String(req.query.endDate);
+            const ratePlanCode = String(req.query.ratePlanCode);
 
             if (!propertyId) {
                 return res.status(400).json(errorResponse("Property not found"));
@@ -189,10 +190,14 @@ export class AddonDateWiseController {
                 return res.status(400).json(errorResponse("Start date and end date are required"));
             }
 
+            if (!ratePlanCode) {
+                return res.status(400).json(errorResponse("Rate plan code is required"));
+            }
             const result = await this.addonDateWiseService.getAvailableAddonsByDateRange(
                 propertyId,
                 startDate,
-                endDate
+                endDate,
+                ratePlanCode
             );
 
             return res.status(result.success ? 200 : 400).json(result);

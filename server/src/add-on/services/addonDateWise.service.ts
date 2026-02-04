@@ -177,7 +177,8 @@ export class AddonDateWiseService {
     async getAvailableAddonsByDateRange(
         propertyId: string,
         startDateStr: string,
-        endDateStr: string
+        endDateStr: string,
+        ratePlanCode: string
     ): Promise<IApiResponse> {
         try {
             if (!propertyId) {
@@ -188,6 +189,9 @@ export class AddonDateWiseService {
             }
             if (!endDateStr) {
                 return errorResponse("End date is required", "Bad Request");
+            }
+            if (!ratePlanCode) {
+                return errorResponse("Rate plan code is required", "Bad Request");
             }
 
             const startDate = new Date(startDateStr);
@@ -207,7 +211,8 @@ export class AddonDateWiseService {
             const result = await AddonDateWiseDao.getAvailableAddonsByDateRange(
                 propertyId,
                 startDate,
-                endDate
+                endDate,
+                ratePlanCode
             );
 
             return successResponse("Available addons fetched successfully", result);

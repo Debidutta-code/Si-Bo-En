@@ -856,8 +856,17 @@ const Rooms = () => {
               numberOfRooms: finalPrice?.requestedRooms || 1,
               propertyDetails: bookingContext.PropertyDetails,
               selectedAddons: selectedAddons,
-            };
 
+            };
+            if (currentRatePlan.selectedPromotion) {
+              bookingData.selectedPromotion = {
+                id: currentRatePlan.selectedPromotion.id,
+                promotionType: currentRatePlan.selectedPromotion.type,
+                promotionName: currentRatePlan.selectedPromotion.name,
+                discountValue: currentRatePlan.selectedPromotion.discountValue,
+                discountType: currentRatePlan.selectedPromotion.discountType
+              };
+            }
             dispatch({
               type: "booking/setFullBookingDetails",
               payload: bookingData,

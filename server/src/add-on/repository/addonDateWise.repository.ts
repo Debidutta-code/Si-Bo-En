@@ -1,3 +1,4 @@
+import { AddonAvailability } from "@prisma/client";
 import { prisma } from "../../config";
 import { ICreateAddonAvailability, IAddonAvailability, IUpdateAddonAvailability } from "../interfaces"
 export class AddonDateWiseDao {
@@ -88,48 +89,57 @@ export class AddonDateWiseDao {
      * Returns addons that are available on ALL dates in the range
      */
     public static async getAvailableAddonsByDateRange(
-        propertyId: string,
-        startDate: Date,
-        endDate: Date
-    ): Promise<any[]> {
-        try {
-            // Get all addon availability records for the property within the date range
-            const availabilityRecords = await prisma.addonAvailability.findMany({
-                where: {
-                    addon: {
-                        propertyId: propertyId,
-                        isActive: true
-                    },
-                    date: {
-                        gte: startDate,
-                        lte: endDate
-                    },
-                    isAvailable: true
-                },
-                include: {
-                    addon: {
-                        include: {
-                            category: {
-                                select: { code: true, name: true }
-                            },
-                            subCategory: {
-                                select: { code: true, name: true }
-                            },
-                            addonVariant: {
-                                select: { code: true, name: true }
+    propertyId: string,
+    startDate: Date,
+    endDate: Date,
+    ratePlanCode: string
+): Promise<AddonAvailability[]> {
+    try {
+        const availabilityRecords = await prisma.addonAvailability.findMany({
+            where: {
+                addon: {
+                    propertyId: propertyId,
+                    isActive: true,
+                    // Exclude addons that are already connected to the specified rate plan
+                    ratePlans: {
+                        none: {
+                            ratePlan: {
+                                ratePlanCode: ratePlanCode,
+                                propertyId: propertyId
                             }
                         }
                     }
                 },
-                orderBy: [
-                    { addonId: 'asc' },
-                    { date: 'asc' }
-                ]
-            });
+                date: {
+                    gte: startDate,
+                    lte: endDate
+                },
+                isAvailable: true
+            },
+            include: {
+                addon: {
+                    include: {
+                        category: {
+                            select: { code: true, name: true }
+                        },
+                        subCategory: {
+                            select: { code: true, name: true }
+                        },
+                        addonVariant: {
+                            select: { code: true, name: true }
+                        }
+                    }
+                }
+            },
+            orderBy: [
+                { addonId: 'asc' },
+                { date: 'asc' }
+            ]
+        });
 
-            return availabilityRecords;
-        } catch (error: any) {
-            throw new Error(`Error fetching available addons for date range: ${error?.message}`);
-        }
+        return availabilityRecords;
+    } catch (error: any) {
+        throw new Error(`Error fetching available addons for date range: ${error?.message}`);
     }
+}
 }
