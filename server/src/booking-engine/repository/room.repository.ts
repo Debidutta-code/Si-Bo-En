@@ -27,12 +27,14 @@ export class RoomBookingRepository {
             },
           }
         },
+        propertyVideos:true,
         propertyRooms: {
           where: { isDeleted: false, available: true },
           include: {
             roomAmenities: {
               include: { amenity: true }
-            }
+            },
+            roomVideos:true
           }
         },
         ratePlans: {
@@ -270,11 +272,4 @@ public static async getPromotions(
     });
   }
 
-  /**
-   * Calculate days between two dates
-   */
-  private static calculateDaysBetween(date1: Date, date2: Date): number {
-    const diffTime = Math.abs(date2.getTime() - date1.getTime());
-    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  }
 }
