@@ -6,7 +6,8 @@ export class LoyaltyGuestRepository {
             return await prisma.loyalityGuest.create({
                 data: {
                     ...guestLoyaltyConfigData,
-                    metaData: {}
+                    guestId: guestLoyaltyConfigData.guestId || "", // Use empty string if no guestId provided
+                    
                 }
             });
         } catch (error) {
@@ -109,6 +110,59 @@ export class LoyaltyGuestRepository {
             });
         } catch (error) {
             throw new Error("Failed to delete loyalty guest by id");
+        }
+    }
+
+    /**
+     * Create loyalty guest from booking engine (without existing guestId)
+     */
+    public async createGuestsLoyaltyConfigFromBookingEngine(data: ICloyalityGuests): Promise<ILoyalityGuests> {
+        try {
+            return await prisma.loyalityGuest.create({
+                data: {
+                    creationLoyaltyConfigId: data.creationLoyaltyConfigId,
+                    propertyId: data.propertyId,
+                    propertyCode: data.propertyCode,
+                    guestEmail: data.guestEmail,
+                    guestId: data.guestId || undefined, // Use undefined if no guestId provided
+                    metaData: data.metaData,
+                }
+            });
+        } catch (error) {
+            console.error("Error creating loyalty guest:", error);
+            throw new Error("Failed to create guest loyalty config from booking engine");
+        }
+    }
+
+    /**
+     * Get property loyalty config with creation loyalty details
+     */
+    public async getPropertyLoyaltyConfig(propertyId: string): Promise<any> {
+        try {
+            return await prisma.propertyLoyaltyConfig.findUnique({
+                where: {
+                    propertyId: propertyId
+                },
+                include: {
+                    Property: {
+                        select: {
+                            id: true,
+                            propertyCode: true,
+                            propertyName: true
+                        }
+                    },
+                    CreationLoyaltyConfig: {
+                        select: {
+                            id: true,
+                            loyaltyDiscountType: true,
+                            discountValue: true,
+                            currencyCode: true
+                        }
+                    }
+                }
+            });
+        } catch (error) {
+            throw new Error("Failed to get property loyalty config");
         }
     }
 }

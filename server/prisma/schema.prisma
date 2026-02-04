@@ -1467,8 +1467,8 @@ model LoyalityGuest {
   property     Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   propertyCode String   @map("property_code")
   guestEmail   String   @map("guest_email")
-  guestId      String   @map("guest_id")
-  guest        Guests   @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  guestId      String?  @map("guest_id")
+  guest        Guests?  @relation(fields: [guestId], references: [id], onDelete: Cascade)
   metaData     Json     @map("meta_data")
   createdAt    DateTime @default(now())
 

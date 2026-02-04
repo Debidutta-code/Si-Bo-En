@@ -119,12 +119,43 @@ const LoyaltyProgramBanner = ({
     setIsSubmitting(true);
 
     try {
-      // TODO: Implement API call to register user in loyalty program
-      console.log("Sign up data:", formData);
+      // Separate email from other fields
+      const { email, ...otherFields } = formData;
+
+      if (!email) {
+        toast.error("Email is required");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Call registration API
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/loyalty/guest/register`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: email,
+            propertyId: loyaltyProgram.propertyId,
+            metadata: otherFields, // All other fields go into metadata
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        const errorMsg = data.message || "Failed to register for loyalty program";
+        toast.error(errorMsg);
+        setIsSubmitting(false);
+        return;
+      }
+
       toast.success("Successfully registered for loyalty program!");
       setShowSignUpModal(false);
       setFormData({});
     } catch (error) {
+      console.error("Registration error:", error);
       toast.error("Failed to register. Please try again.");
     } finally {
       setIsSubmitting(false);
@@ -333,8 +364,26 @@ const LoyaltyProgramBanner = ({
                   {program.LoyaltyProgramFieldConfig && 
                    program.LoyaltyProgramFieldConfig.filter(field => field.visibleInRegistration).length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {/* Email field (required, prominently displayed) */}
+                      <div className="space-y-2 md:col-span-2">
+                        <Label htmlFor="email" className="text-sm font-medium">
+                          Email Address
+                          <span className="text-red-500 ml-1">*</span>
+                        </Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          placeholder="Enter your email address"
+                          required
+                          value={formData.email || ""}
+                          onChange={(e) => handleFieldChange("email", e.target.value)}
+                          className="w-full"
+                        />
+                      </div>
+
+                      {/* Other dynamic fields */}
                       {program.LoyaltyProgramFieldConfig
-                        .filter(field => field.visibleInRegistration)
+                        .filter(field => field.visibleInRegistration && field.fieldName.toLowerCase() !== 'email')
                         .map((field) => (
                           <div key={field.id} className="space-y-2">
                             <Label htmlFor={field.fieldName} className="text-sm font-medium">
@@ -342,7 +391,7 @@ const LoyaltyProgramBanner = ({
                               {field.required && <span className="text-red-500 ml-1">*</span>}
                             </Label>
                             <Input
-                              id={field.fieldName.replaceAll("_", " ")}
+                              id={field.fieldName}
                               type="text"
                               placeholder={`Enter ${field.fieldName.toLowerCase().replaceAll("_", " ")}`}
                               required={field.required}
