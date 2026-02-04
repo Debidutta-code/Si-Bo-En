@@ -1,3 +1,5 @@
+import { IRoomVideo } from "../../property-management/types";
+
 export interface IBookingSearchPayload {
   startDate: string;
   endDate: string;
@@ -71,4 +73,5 @@ export interface IRoom {
   amenities: any[];
   has_valid_rate: boolean;
   room_price: IRoomPrice[];
+  roomVideos:IRoomVideo | null;
 }

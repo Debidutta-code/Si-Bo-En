@@ -14,9 +14,9 @@ export class RoomBookingService {
       };
     }
 
-    console.log("✅ Property found:", property.propertyName);
-    console.log("📊 Total rooms:", property.propertyRooms.length);
-    console.log("💰 Total rate plans:", property.ratePlans.length);
+    //console.log("✅ Property found:", property.propertyName);
+    //console.log("📊 Total rooms:", property.propertyRooms.length);
+    //console.log("💰 Total rate plans:", property.ratePlans.length);
 
     // Build date array
  // Build date array - ONLY for nights stayed (exclude checkout date)
@@ -31,17 +31,17 @@ while (current < last) {  // ✅ Already correct - excludes checkout date
   current = toUTCDate(current);  // Convert the incremented date back to UTC
 }
 
-console.log("📅 Dates for pricing:", dates.map(d => d.toISOString()));
-console.log("📅 Number of nights:", dates.length);
+//console.log("📅 Dates for pricing:", dates.map(d => d.toISOString()));
+//console.log("📅 Number of nights:", dates.length);
 
-    console.log("📅 Date range:", dates);
+    //console.log("📅 Date range:", dates);
 
     const totalGuests = guests.adults + guests.children;
     const numberOfNights = calculateNights(startDate, endDate);
     const rooms: IRoom[] = [];
 
     for (const room of property.propertyRooms) {
-      console.log(`\n🏠 Processing room: ${room.roomName} (${room.roomType})`);
+      //console.log(`\n🏠 Processing room: ${room.roomName} (${room.roomType})`);
       
       // Check inventory for all dates
       const inventory = await RoomBookingRepository.getInventoryByProperty(
@@ -50,24 +50,24 @@ console.log("📅 Number of nights:", dates.length);
         dates
       );
 
-      console.log(`  📦 Inventory found: ${inventory.length} / ${dates.length} dates`);
+      //console.log(`  📦 Inventory found: ${inventory.length} / ${dates.length} dates`);
 
       if (inventory.length !== dates.length) {
-        console.log(`  ❌ Skipping room - insufficient inventory`);
+        //console.log(`  ❌ Skipping room - insufficient inventory`);
         continue;
       }
 
       const room_price: IRoomPrice[] = [];
 
       for (const ratePlan of property.ratePlans) {
-        console.log(`\n  💳 Processing rate plan: ${ratePlan.ratePlanName} (${ratePlan.ratePlanCode})`);
+        //console.log(`\n  💳 Processing rate plan: ${ratePlan.ratePlanName} (${ratePlan.ratePlanCode})`);
         
         // Get all addons for this rate plan
         const ratePlanAddons = await RoomBookingRepository.getRatePlanAddons(
           ratePlan.id
         );
 
-        console.log(`    🎁 Addons found: ${ratePlanAddons.length}`);
+        //console.log(`    🎁 Addons found: ${ratePlanAddons.length}`);
 
         // Check addon availability for all dates
         let allAddonsAvailable = true;
@@ -79,13 +79,13 @@ console.log("📅 Number of nights:", dates.length);
             dates
           );
 
-          console.log(`      🎁 Addon "${ratePlanAddon.addon.name}": ${addonAvailability.length} / ${dates.length} dates available`);
+          //console.log(`      🎁 Addon "${ratePlanAddon.addon.name}": ${addonAvailability.length} / ${dates.length} dates available`);
 
           // If any addon is not available for all dates, skip this rate plan
           if (addonAvailability.length !== dates.length) {
             allAddonsAvailable = false;
-            console.log(addonAvailability)
-            console.log(`❌ Addon not available for all dates`);
+            //console.log(addonAvailability)
+            //console.log(`❌ Addon not available for all dates`);
             break;
           }
 
@@ -104,7 +104,7 @@ console.log("📅 Number of nights:", dates.length);
 
         // Skip this rate plan if addons are not available
         if (!allAddonsAvailable) {
-          console.log(`    ❌ Skipping rate plan - addons not available`);
+          //console.log(`    ❌ Skipping rate plan - addons not available`);
           continue;
         }
 
@@ -116,10 +116,10 @@ console.log("📅 Number of nights:", dates.length);
           dates[0]
         );
 
-        console.log(`    💵 Charges found: ${charges.length}`);
+        //console.log(`    💵 Charges found: ${charges.length}`);
 
         if (!charges.length) {
-          console.log(`    ❌ Skipping rate plan - no charges found`);
+          //console.log(`    ❌ Skipping rate plan - no charges found`);
           continue;
         }
 
@@ -130,14 +130,14 @@ console.log("📅 Number of nights:", dates.length);
           (a, b) => a.numberOfGuests - b.numberOfGuests
         );
 
-        console.log(`    👥 Base guest amounts:`, sortedBase.map(b => `${b.numberOfGuests} guests = ${b.amountBeforeTax}`));
+        //console.log(`    👥 Base guest amounts:`, sortedBase.map(b => `${b.numberOfGuests} guests = ${b.amountBeforeTax}`));
 
         // Pick base amount for total guests (or last available if exceeds)
         const selectedTier =
           sortedBase.find(b => b.numberOfGuests >= totalGuests) ||
           sortedBase[sortedBase.length - 1];
 
-        console.log(`    ✅ Selected tier: ${selectedTier.numberOfGuests} guests = ${selectedTier.amountBeforeTax}`);
+        //console.log(`    ✅ Selected tier: ${selectedTier.numberOfGuests} guests = ${selectedTier.amountBeforeTax}`);
 
         // Initialize totalAmount with selected tier price
         let totalAmount = Number(selectedTier.amountBeforeTax);
@@ -151,7 +151,7 @@ console.log("📅 Number of nights:", dates.length);
         );
 
         if (geoAdjustment) {
-          console.log(`    🌍 Geo adjustment found for ${payload.countryCode}:`, geoAdjustment.restrictionType);
+          //console.log(`    🌍 Geo adjustment found for ${payload.countryCode}:`, geoAdjustment.restrictionType);
           const restrictionValue = geoAdjustment.restrictionValue
             ? Number(geoAdjustment.restrictionValue)
             : 0;
@@ -163,7 +163,7 @@ console.log("📅 Number of nights:", dates.length);
             restrictionValue,
             geoAdjustment.currencyCode || "USD"
           );
-          console.log(`    🌍 Price adjusted: ${oldAmount} → ${totalAmount}`);
+          //console.log(`    🌍 Price adjusted: ${oldAmount} → ${totalAmount}`);
         }
 
         // Calculate and add addon prices to total
@@ -173,7 +173,7 @@ console.log("📅 Number of nights:", dates.length);
         );
         totalAmount += totalAddonPrice;
 
-        console.log(`    💰 Final amount: ${totalAmount} (base: ${selectedTier.amountBeforeTax}, addons: ${totalAddonPrice})`);
+        //console.log(`    💰 Final amount: ${totalAmount} (base: ${selectedTier.amountBeforeTax}, addons: ${totalAddonPrice})`);
 
         // Fetch available promotions
         const availablePromotions: IPromotion[] = [];
@@ -186,7 +186,7 @@ console.log("📅 Number of nights:", dates.length);
           numberOfNights
         );
 
-        console.log(`    🎉 Promotions found: ${promotions.length}`);
+        //console.log(`    🎉 Promotions found: ${promotions.length}`);
 
         // Add regular promotions to available list
         for (const promo of promotions) {
@@ -221,7 +221,7 @@ console.log("📅 Number of nights:", dates.length);
           );
 
           if (isWithinPeriod && ratePlanRule.discountType && ratePlanRule.discountValue) {
-            console.log(`    🎉 MLOS promotion added: ${ratePlanRule.minLos} nights`);
+            //console.log(`    🎉 MLOS promotion added: ${ratePlanRule.minLos} nights`);
             availablePromotions.push({
               id: ratePlanRule.id,
               promotionName: `Minimum ${ratePlanRule.minLos} nights stay`,
@@ -259,10 +259,10 @@ console.log("📅 Number of nights:", dates.length);
           availablePromotions
         });
 
-        console.log(`    ✅ Rate plan added successfully`);
+        //console.log(`    ✅ Rate plan added successfully`);
       }
 
-      console.log(`\n  📝 Room "${room.roomName}" has ${room_price.length} rate plans`);
+      //console.log(`\n  📝 Room "${room.roomName}" has ${room_price.length} rate plans`);
 
       rooms.push({
         id: room.id,
@@ -276,11 +276,12 @@ console.log("📅 Number of nights:", dates.length);
         images: room.image || [],
         amenities: room.roomAmenities.map(r => r.amenity),
         has_valid_rate: room_price.length > 0,
-        room_price
+        room_price,
+        roomVideos:room.roomVideos ||null,
       });
     }
 
-    console.log(`\n✅ Total rooms with valid rates: ${rooms.filter(r => r.has_valid_rate).length} / ${rooms.length}`);
+    //console.log(`\n✅ Total rooms with valid rates: ${rooms.filter(r => r.has_valid_rate).length} / ${rooms.length}`);
 
     return {
       success: true,
@@ -289,6 +290,7 @@ console.log("📅 Number of nights:", dates.length);
         propertyDetails: {
           id: property.id,
           propertyName: property.propertyName,
+          propertyVideos:property.propertyVideos,
           loyaltyProgramConfig:property.loyaltyProgramConfig,
           propertyCode: property.propertyCode,
           starRating: property.starRating,
