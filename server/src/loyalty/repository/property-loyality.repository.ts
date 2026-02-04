@@ -40,6 +40,29 @@ export class propertyLoyalityRepository {
             throw new Error("Failed to get loyalty for property");
         }
     }
+        public async getLoyalityForPropertyWhereTrue(propertyId: string): Promise<IPropertyLoyaltyConfig | null> {
+        try {
+            return await prisma.propertyLoyaltyConfig.findFirst({
+                where: {
+                    propertyId,
+                    isActive: true
+                },
+                include: {
+                    CreationLoyaltyConfig: {
+                        include: {
+                            BasicLoyaltyProgram: true,
+                            AdvanceLoyaltyProgram: true,
+                            LoyaltyProgramFieldConfig: true,
+                            loyaltyConditions: true,
+                            loyaltySpecialConditions: true,
+                        }
+                    }
+                }
+            });
+        } catch (error) {
+            throw new Error("Failed to get loyalty for property");
+        }
+    }
 
     public async updatePropertyLoyalityConfig(propertyLoyalityId: string, isActive: boolean): Promise<IPropertyLoyaltyConfig> {
         try {

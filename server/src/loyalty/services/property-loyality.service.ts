@@ -15,6 +15,10 @@ export class PropertyLoyalityService {
 
     public async createPropertyLoyalityConfig(data: ICPropertyLoyaltyConfig): Promise<IApiResponse> {
         try {
+            const activeExisting = await this.propertyLoyalityRepository.getLoyalityForPropertyWhereTrue(data.propertyId);
+            if (activeExisting) {
+                await this.propertyLoyalityRepository.updatePropertyLoyalityConfig(activeExisting.id, false);
+            }
             const result = await this.propertyLoyalityRepository.createPropertyLoyalityConfig(data);
             return successResponse("Successfully created property loyalty config", result);
         } catch (error) {
@@ -43,9 +47,17 @@ export class PropertyLoyalityService {
     public async updatePropertyLoyalityConfig(propertyId: string, isActive: boolean): Promise<IApiResponse> {
         try {
             const existingConfig = await this.propertyLoyalityRepository.getLoyalityForProperty(propertyId);
+            
             if (!existingConfig) {
                 return errorResponse("Property loyalty config not found");
             }
+            if (isActive) {
+                const activeExisting = await this.propertyLoyalityRepository.getLoyalityForPropertyWhereTrue(propertyId);
+                if (activeExisting && activeExisting.id !== existingConfig.id) {
+                    await this.propertyLoyalityRepository.updatePropertyLoyalityConfig(activeExisting.id, false);
+                }
+            }
+
             const result = await this.propertyLoyalityRepository.updatePropertyLoyalityConfig(existingConfig.id, isActive);
             if (!result) {
                 return errorResponse("Failed to update property loyalty config");
