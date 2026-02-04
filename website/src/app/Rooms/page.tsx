@@ -101,6 +101,12 @@ const LoyaltyProgramBanner = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState<string>("");
+  const [isVerifying, setIsVerifying] = useState(true);
+  const [discountInfo, setDiscountInfo] = useState<{
+    type: string;
+    value: number;
+    currencyCode: string;
+  } | null>(null);
 
   const program = loyaltyProgram.CreationLoyaltyConfig;
   const isBasicProgram = program.BasicLoyaltyProgram !== null;
@@ -109,14 +115,56 @@ const LoyaltyProgramBanner = ({
     ? program.BasicLoyaltyProgram.logo[0] 
     : null;
 
-  // Check if user is already registered (from localStorage)
-  useState(() => {
-    const loyaltyMemberEmail = localStorage.getItem(`loyalty_member_${loyaltyProgram.propertyId}`);
-    if (loyaltyMemberEmail) {
-      setIsRegistered(true);
-      setRegisteredEmail(loyaltyMemberEmail);
-    }
-  });
+  // Check if user is already registered and verify with backend
+  useEffect(() => {
+    const verifyLoyaltyMembership = async () => {
+      setIsVerifying(true);
+      const loyaltyMemberEmail = localStorage.getItem(`loyalty_member_${loyaltyProgram.propertyId}`);
+      
+      if (loyaltyMemberEmail) {
+        try {
+          // Verify with backend using check-discount endpoint
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_URL}/loyalty/guest/check-discount`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email: loyaltyMemberEmail,
+                propertyId: loyaltyProgram.propertyId,
+              }),
+            }
+          );
+
+          const data = await response.json();
+
+          if (response.ok && data.success && data.data?.isLoyaltyMember) {
+            // Valid loyalty member
+            setIsRegistered(true);
+            setRegisteredEmail(loyaltyMemberEmail);
+            setDiscountInfo(data.data.discount);
+          } else {
+            // Not a valid loyalty member, clear localStorage
+            localStorage.removeItem(`loyalty_member_${loyaltyProgram.propertyId}`);
+            setIsRegistered(false);
+            setRegisteredEmail("");
+            setDiscountInfo(null);
+          }
+        } catch (error) {
+          console.error("Error verifying loyalty membership:", error);
+          // On error, clear localStorage to be safe
+          localStorage.removeItem(`loyalty_member_${loyaltyProgram.propertyId}`);
+          setIsRegistered(false);
+          setRegisteredEmail("");
+          setDiscountInfo(null);
+        }
+      }
+      
+      setIsVerifying(false);
+    };
+
+    verifyLoyaltyMembership();
+  }, [loyaltyProgram.propertyId]);
 
   const handleFieldChange = (fieldName: string, value: any) => {
     setFormData(prev => ({
@@ -163,9 +211,12 @@ const LoyaltyProgramBanner = ({
           // Save to localStorage
           localStorage.setItem(`loyalty_member_${loyaltyProgram.propertyId}`, email);
           
-          // Update state
+          // Update state with discount info from backend
           setIsRegistered(true);
           setRegisteredEmail(email);
+          if (data.data?.discount) {
+            setDiscountInfo(data.data.discount);
+          }
           
           toast.success("Welcome back! You're already a loyalty member.");
           setShowSignUpModal(false);
@@ -182,9 +233,18 @@ const LoyaltyProgramBanner = ({
       // Save to localStorage
       localStorage.setItem(`loyalty_member_${loyaltyProgram.propertyId}`, email);
       
-      // Update state
+      // Update state with discount info from registration response
       setIsRegistered(true);
       setRegisteredEmail(email);
+      
+      // Store discount info from response
+      if (data.data?.discountType && data.data?.discountValue) {
+        setDiscountInfo({
+          type: data.data.discountType,
+          value: data.data.discountValue,
+          currencyCode: data.data.currencyCode || program.currencyCode,
+        });
+      }
       
       toast.success("Successfully registered for loyalty program!");
       setShowSignUpModal(false);
@@ -198,6 +258,16 @@ const LoyaltyProgramBanner = ({
   };
 
   const getDiscountDisplay = () => {
+    // If user is registered and we have discount info from backend, use that
+    if (isRegistered && discountInfo) {
+      if (discountInfo.type === "percentage") {
+        return `${discountInfo.value}% OFF`;
+      } else {
+        return `${discountInfo.currencyCode} ${discountInfo.value} OFF`;
+      }
+    }
+    
+    // Otherwise, use the default from program config
     if (program.loyaltyDiscountType === "percentage") {
       return `${program.discountValue}% OFF`;
     } else {
@@ -213,6 +283,16 @@ const LoyaltyProgramBanner = ({
             className="relative overflow-hidden rounded-xl shadow-md border"
             style={{ borderColor: `${primaryColor}40` }}
           >
+            {/* Show loading overlay while verifying */}
+            {isVerifying && (
+              <div className="absolute inset-0 bg-white/50 backdrop-blur-sm flex items-center justify-center z-10">
+                <div className="flex items-center gap-2 text-gray-600">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2" style={{ borderColor: primaryColor }}></div>
+                  <span className="text-sm font-medium">Verifying membership...</span>
+                </div>
+              </div>
+            )}
+            
             <div className="bg-white p-4 md:p-6">
               {/* Header - Property Name Loyalty */}
               <div className="mb-4">
@@ -542,6 +622,7 @@ const [bookingSelectedPromotions, setBookingSelectedPromotions] = useState<any[]
   const [selectedAddons, setSelectedAddons] = useState<any[]>([]);
   const [guestForms, setGuestForms] = useState<Guest[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [loyaltyMemberEmail, setLoyaltyMemberEmail] = useState<string>("");
   const [contactInfo, setContactInfo] = useState({
     email: "",
     phoneNumber: "",
@@ -835,6 +916,14 @@ setLoadingPrice(true);
       setRoomsData(data.data?.rooms || []);
       setAddons(data.addons || []);
       setPropertyDetails(propertyDetails || null);
+
+      // Check for loyalty membership
+      if (propertyDetails?.id) {
+        const storedEmail = localStorage.getItem(`loyalty_member_${propertyDetails.id}`);
+        if (storedEmail) {
+          setLoyaltyMemberEmail(storedEmail);
+        }
+      }
 
     } catch (err: any) {
       console.error(err);
@@ -1185,6 +1274,7 @@ setLoadingPrice(true);
                               loadingBookNow={loadingBookNow}
                               onPriceUpdate={handlePriceUpdate}
                               selectedBoardType={selectedBoardType}
+                              loyaltyMemberEmail={loyaltyMemberEmail}
                             />
                           ))}
                       </div>
@@ -1278,6 +1368,8 @@ setLoadingPrice(true);
           price={price}
           finalPrice={finalPrice}
           bookingContext={bookingContext}
+          loyaltyMemberEmail={loyaltyMemberEmail}
+          propertyId={propertyDetails?.id || ""}
           onClose={() => {
             setBookingRoom(null);
             setCurrentRatePlan(null);

@@ -21,7 +21,8 @@ export class RoomRentCalculationController {
         noOfRooms,
         ratePlanCode,
         addons,
-        promotion
+        promotion,
+        guestEmail // ✅ NEW: Accept loyalty guest email
       } = req.body;
 
       // Validate required fields
@@ -95,6 +96,7 @@ export class RoomRentCalculationController {
         children,
         adults,
         rooms,
+        guestEmail // ✅ Pass loyalty guest email to service
         // userCountryCode,
         // detectedDeviceType,
         // parsedAddons

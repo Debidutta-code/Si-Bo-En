@@ -8,13 +8,6 @@ const router = Router();
 // Initialize controller
 const loyaltyGuestController = new LoyaltyGuestController();
 
-// ===== Loyalty Guest Routes =====
-// router.route("/")
-//     .post(
-//         protect,
-//         checkRoleBased("canCreatePolicy"),
-//         loyaltyGuestController.createLoyaltyGuest.bind(loyaltyGuestController)
-//     );
 
 router.route("/:id")
     .delete(
