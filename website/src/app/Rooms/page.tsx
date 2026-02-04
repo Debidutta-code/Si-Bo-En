@@ -12,8 +12,6 @@ import RoomCard from "@/src/components/RoomPage/RoomCard";
 import PriceSummarySidebar from "../../components/RoomPage/Pricesummerysidebar";
 import { Room } from "@/src/store/roomsSlice";
 import GuestFormModal from "../../components/GuestModals/GuestFormModal";
-import { Building2, Calendar, MessageCircle, Moon, Plus } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -738,6 +736,10 @@ setLoadingPrice(true);
       noOfChildrens,
       noOfRooms,
     };
+      if (loyaltyMemberEmail) {
+        payload.guestEmail = loyaltyMemberEmail;
+      }
+
  if (selectedPromotionsList && selectedPromotionsList.length > 0) {
     payload.promotions = selectedPromotionsList.map((promotion: any) => ({
       id: promotion.id,

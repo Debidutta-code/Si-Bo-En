@@ -1036,12 +1036,18 @@ model Reservation {
   @@index([primaryGuestId])
   @@map("reservations")
 }
-
+enum ReservationPromotionType {
+  early_bird
+  mlos
+  device_specific
+  offer_for_tonight
+}
 model ReservationPromotion {
   id          String      @id @default(uuid())
   bookingCode String      @map("booking_code")
   bookingId   String      @map("booking_id")
   Reservation Reservation @relation(fields: [bookingId], references: [id])
+  promotionType ReservationPromotionType @default(mlos) @map("promotion_type")
 
   promotionId String?    @map("promotion_id")
   mlosId      String?   @map("mlos_id")

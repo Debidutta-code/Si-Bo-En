@@ -82,4 +82,25 @@ export class RoomRentCalculationRepository {
             throw new Error("Failed to fetch addons for reservations");
         }
     }
+    public static async getDeviceSpecificPromotion(
+  propertyId: string,
+  ratePlanCode: string,
+  deviceType: string
+) {
+  try {
+    return await prisma.promotion.findFirst({
+      where: {
+        propertyId,
+        ratePlanCode,
+        promotionType: "device_specific",
+        deviceType: {
+          has: deviceType as any
+        },
+        isActive: true
+      }
+    });
+  } catch (error) {
+    throw new Error("Failed to fetch device-specific promotion");
+  }
+}
 }

@@ -32,7 +32,7 @@ export class ReservationService {
     dashUtils: DashUtilsRepo;
     bookingAddonRepository: BookingAddonRepository; // ✅ ADD THIS
     reservationPromotionRepository: ReservationPromotionRepository; // ✅ ADD THIS
-    
+
     constructor() {
         this.reservationRepository = new ReservationRepository();
         this.priceBrakeDownRepo = new PriceBrakeDownRepo();
@@ -46,28 +46,28 @@ export class ReservationService {
     private async generateBookingCode(): Promise<string> {
         const code = 'BOOK-' + Math.random().toString(36).substr(2, 9).toUpperCase();
         const existingReservation = await this.reservationRepository.getReservaltionByCode(code);
-        
+
         if (existingReservation !== null) {
             return this.generateBookingCode();
         }
         return code;
     }
 
-  private generateDateRange(startDate: Date, endDate: Date): Date[] {
-    const dates: Date[] = [];
-    const start = toUTCDate(startDate);
-    const end = toUTCDate(endDate);
-    
-    const startMs = start.getTime();
-    const endMs = end.getTime();
-    const oneDayMs = 24 * 60 * 60 * 1000;
-    
-    for (let currentMs = startMs; currentMs < endMs; currentMs += oneDayMs) {
-        dates.push(new Date(currentMs));
+    private generateDateRange(startDate: Date, endDate: Date): Date[] {
+        const dates: Date[] = [];
+        const start = toUTCDate(startDate);
+        const end = toUTCDate(endDate);
+
+        const startMs = start.getTime();
+        const endMs = end.getTime();
+        const oneDayMs = 24 * 60 * 60 * 1000;
+
+        for (let currentMs = startMs; currentMs < endMs; currentMs += oneDayMs) {
+            dates.push(new Date(currentMs));
+        }
+
+        return dates;
     }
-    
-    return dates;
-}
 
     private mapPaymentMethod(method: string): "pay_at_hotel" | "net_banking" | "upi" | "payment_gateway" {
         const methodMap: Record<string, "pay_at_hotel" | "net_banking" | "upi" | "payment_gateway"> = {
@@ -84,247 +84,293 @@ export class ReservationService {
 
     // Normalize/transform incoming payload to match expected format
     private normalizePayload(payload: any): ICreateReservationPayload["data"] {
-    const { bookingDetails, guestDetails } = payload;
-    const { finalPrice } = bookingDetails;
+        const { bookingDetails, guestDetails } = payload;
+        const { finalPrice } = bookingDetails;
 
-    // Fix tax/taxes field mismatch
-    if (finalPrice.tax && !finalPrice.taxes) {
-        finalPrice.taxes = finalPrice.tax;
-        delete finalPrice.tax;
-    }
-
-    // Add missing totalTaxAmount if not present
-    if (finalPrice.totalTaxAmount === undefined) {
-        finalPrice.totalTaxAmount = finalPrice.totalTax || 0;
-    }
-
-    // Add missing subtotal if not present
-    if (finalPrice.subtotal === undefined) {
-        finalPrice.subtotal = finalPrice.totalAmount || finalPrice.priceAfterTax || 0;
-    }
-
-    // Add missing taxBreakdown if not present
-    if (!finalPrice.taxBreakdown) {
-        finalPrice.taxBreakdown = {
-            totalBaseAmount: finalPrice.breakdown?.totalBaseAmount || 0,
-            totalAdditionalCharges: finalPrice.breakdown?.totalAdditionalCharges || 0,
-            totalAmount: finalPrice.breakdown?.totalAmount || finalPrice.totalAmount || 0,
-            numberOfNights: finalPrice.numberOfNights || 1,
-            averagePerNight: finalPrice.breakdown?.averagePerNight || finalPrice.totalAmount || 0,
-            totalTax: finalPrice.totalTax || 0
-        };
-    }
-
-    // Fix empty dateOfBirth in guestDetails
-    const normalizedGuestDetails = guestDetails.map((guest: any) => ({
-        ...guest,
-        dateOfBirth: guest.dateOfBirth || null
-    }));
-
-    return {
-        bookingDetails: {
-            ...bookingDetails,
-            finalPrice,
-            // ✅ ENSURE THESE ARE INCLUDED
-            selectedAddons: bookingDetails.selectedAddons || [],
-            selectedPromotions: bookingDetails.selectedPromotions || []
-        },
-        guestDetails: normalizedGuestDetails,
-        bankDetails: payload.bankDetails
-    };
-}
-
-    public async createReservation(payload: any): Promise<IApiResponse> {
-    try {
-        // Normalize the payload first
-        const normalizedPayload = this.normalizePayload(payload);
-        const { bookingDetails, guestDetails } = normalizedPayload;
-
-        const {
-            startDate,
-            endDate,
-            propertyCode,
-            hotelName,
-            roomTypeCode,
-            ratePlanCode,
-            finalPrice,
-            currency,
-            email,
-            phone,
-            paymentMethod,
-            bookingSource,
-            selectedAddons, // ✅ ADD THIS
-            selectedPromotions // ✅ ADD THIS
-        } = bookingDetails;
-
-        // 1️⃣ Resolve property
-        const propertyId = await this.getPropertyIdByCode(propertyCode);
-        if (!propertyId) {
-            return errorResponse("Property not found");
+        // Fix tax/taxes field mismatch
+        if (finalPrice.tax && !finalPrice.taxes) {
+            finalPrice.taxes = finalPrice.tax;
+            delete finalPrice.tax;
         }
 
-        // 2️⃣ Primary guest - YOUR EXISTING CODE
-        const primaryGuestData = guestDetails[0];
-        if (!primaryGuestData) {
-            return errorResponse("At least one guest is required");
+        // Add missing fields...
+        // (keep existing normalization code)
+
+        // ✅ NEW: Extract promotions from finalPrice.promotions.applied
+        let selectedPromotions = bookingDetails.selectedPromotions || [];
+
+        // If promotions are in finalPrice.promotions.applied, map them
+        if (finalPrice.promotions?.applied && Array.isArray(finalPrice.promotions.applied)) {
+            selectedPromotions = finalPrice.promotions.applied.map((promo: any) => {
+                // Check if it's MLOS type
+                if (promo.promotionType === 'mlos') {
+                    return {
+                        id: promo.id || promo.promotionId,
+                        promotionType: 'mlos',
+                        ratePlanName: promo.ratePlanName,
+                        discountValue: promo.discountValue,
+                        discountType: promo.discountType,
+                        amount: promo.discountAmount // ✅ Use calculated amount
+                    };
+                } else {
+                    // Regular promotion (early_bird, offer_for_tonight, device_specific)
+                    return {
+                        id: promo.id || promo.promotionId,
+                        promotionType: promo.promotionType,
+                        promotionName: promo.promotionName,
+                        discountValue: promo.discountValue,
+                        discountType: promo.discountType,
+                        amount: promo.discountAmount // ✅ Use calculated amount
+                    };
+                }
+            });
         }
 
-        let primaryGuestId: string;
-        const existingGuest = await this.guestRepository.getGuestByEmail(email);
-        
-        if (existingGuest) {
-            primaryGuestId = existingGuest.id;
-            console.log("Existing guest found:", primaryGuestId);
-        } else {
-            const newGuestPayload: ICGuest = {
-                firstName: primaryGuestData.firstName,
-                lastName: primaryGuestData.lastName,
-                email: email,
-                phoneNumber: phone || null,
-                propertyId: propertyId,
-                userType: primaryGuestData.type as "adult" | "child" | "infant",
-                address: null,
-                city: null,
-                state: null,
-                country: null,
-                zipCode: null
-            };
+        // ✅ NEW: Extract addons from finalPrice.userAddons.selected
+        let selectedAddons = bookingDetails.selectedAddons || [];
 
-            const newGuest = await this.guestRepository.createGuest(newGuestPayload);
-            primaryGuestId = newGuest.id;
-            console.log("New guest created:", primaryGuestId);
-        }
-
-        // 3️⃣ Generate booking code
-        const bookingCode = await this.generateBookingCode();
-
-        // 4️⃣ Build reservation payload - YOUR EXISTING CODE
-        const reservationPayload: ICReservation = {
-            bookingCode,
-            propertyId,
-            propertyCode,
-            hotelName,
-            roomTypeCode,
-            ratePlanCode,
-            
-            checkInDate: toUTC(startDate),
-            checkOutDate: toUTC(endDate),
-            bookedAt: nowUTC(),
-            
-            primaryGuestId,
-            guests: guestDetails,
-            bookingUserEmail: email,
-            bookingUserPhone: phone || null,
-            
-            amount: finalPrice.totalAmount,
-            currencyCode: currency,
-            finalPrice: finalPrice,
-            
-            paidAmount: 0,
-            extraAmountToPay: 0,
-            refundAmount: 0,
-            timezone: payload.timezone || "Asia/Kolkata",
-            countryCode: payload.countryCode || "IN",
-            paymentMethod: this.mapPaymentMethod(paymentMethod),
-            paymentImages: null,
-            
-            bookingStatus: "confirmed",
-            cancellationReason: null,
-            deviceTypes: payload.deviceTypes || "desktop",
-            bookingSource: bookingSource || "direct",
-            
-            isPromoUsed: !!(bookingDetails.promoCode || (selectedPromotions && selectedPromotions.length > 0)),
-            promoId: null
-        };
-
-        // 5️⃣ Create reservation
-        const reservation = await this.reservationRepository.createReservation(reservationPayload);
-        console.log("Reservation created:", reservation.id);
-
-        // 6️⃣ Create price breakdown - YOUR EXISTING CODE
-        const priceBreakdownPayload: IReservationPriceBrakeDownR = {
-            reservationId: reservation.id,
-            additionalGuestCharges: finalPrice.additionalGuestCharges,
-            baseRatePerNight: finalPrice.baseRatePerNight,
-            numberOfNights: finalPrice.numberOfNights,
-            priceAfterTax: new Decimal(finalPrice.subtotal),
-            totalAmount: new Decimal(finalPrice.totalAmount),
-            totalTax: new Decimal(finalPrice.totalTaxAmount),
-            breakdown: finalPrice.breakdown,
-            dailyBreakdown: finalPrice.dailyBreakdown,
-            availableRooms: finalPrice.availableRooms,
-            requestedRooms: finalPrice.requestedRooms,
-            tax: finalPrice.taxes
-        };
-
-        await this.priceBrakeDownRepo.createpriceBrakeDowns([priceBreakdownPayload]);
-        console.log("Price breakdown created");
-
-        // 7️⃣ Create Booking Addons (if any) - ✅ NEW CODE
-        if (selectedAddons && selectedAddons.length > 0) {
-            const addonPayloads: IBookingAddonCreate[] = selectedAddons.map((addon: any) => ({
-                reservationId: reservation.id,
+        if (finalPrice.userAddons?.selected && Array.isArray(finalPrice.userAddons.selected)) {
+            selectedAddons = finalPrice.userAddons.selected.map((addon: any) => ({
                 addonId: addon.addonId,
-                name: addon.addonName,
-                unitPrice: addon.price,
+                addonName: addon.name,
+                addonCode: addon.code,
+                availabilityId: addon.availabilityId,
+                date: addon.date,
+                price: addon.price,
                 quantity: addon.quantity,
                 totalPrice: addon.totalPrice,
-                currencyCode: currency,
-                specialInstructions: null,
-                date: new Date(addon.date)
+                type: addon.type
             }));
-
-            await this.bookingAddonRepository.createBookingAddons(addonPayloads);
-            console.log(`Created ${addonPayloads.length} booking addons`);
         }
 
-        // 8️⃣ Create Reservation Promotions (if any) - ✅ NEW CODE
-        if (selectedPromotions && selectedPromotions.length > 0) {
-            const promotionPayloads: IReservationPromotionCreate[] = selectedPromotions.map((promo: any) => {
-                // Calculate promotion discount amount
-                let discountAmount = 0;
-                if (promo.discountType === 'percentage') {
-                    discountAmount = (finalPrice.totalAmount * promo.discountValue) / 100;
-                } else {
-                    discountAmount = promo.discountValue;
+        return {
+            bookingDetails: {
+                ...bookingDetails,
+                finalPrice,
+                selectedPromotions,
+                selectedAddons
+            },
+            guestDetails: guestDetails,
+            bankDetails: payload.bankDetails
+        };
+    }
+
+    public async createReservation(payload: any): Promise<IApiResponse> {
+        try {
+            // Normalize the payload first
+            const normalizedPayload = this.normalizePayload(payload);
+            const { bookingDetails, guestDetails , } = normalizedPayload;
+
+            const {
+                startDate,
+                endDate,
+                propertyCode,
+                hotelName,
+                roomTypeCode,
+                ratePlanCode,
+                finalPrice,
+                currency,
+                email,
+                phone,
+                paymentMethod,
+                bookingSource
+            } = bookingDetails;
+
+            // 1️⃣ Resolve property
+            const propertyId = await this.getPropertyIdByCode(propertyCode);
+            if (!propertyId) {
+                return errorResponse("Property not found");
+            }
+
+            // 2️⃣ Primary guest - YOUR EXISTING CODE
+            const primaryGuestData = guestDetails[0];
+            if (!primaryGuestData) {
+                return errorResponse("At least one guest is required");
+            }
+
+            let primaryGuestId: string;
+            const existingGuest = await this.guestRepository.getGuestByEmail(email);
+
+            if (existingGuest) {
+                primaryGuestId = existingGuest.id;
+                console.log("Existing guest found:", primaryGuestId);
+            } else {
+                const newGuestPayload: ICGuest = {
+                    firstName: primaryGuestData.firstName,
+                    lastName: primaryGuestData.lastName,
+                    email: email,
+                    phoneNumber: phone || null,
+                    propertyId: propertyId,
+                    userType: primaryGuestData.type as "adult" | "child" | "infant",
+                    address: null,
+                    city: null,
+                    state: null,
+                    country: null,
+                    zipCode: null
+                };
+
+                const newGuest = await this.guestRepository.createGuest(newGuestPayload);
+                primaryGuestId = newGuest.id;
+                console.log("New guest created:", primaryGuestId);
+            }
+
+            // 3️⃣ Generate booking code
+            const bookingCode = await this.generateBookingCode();
+
+            // 4️⃣ Build reservation payload - YOUR EXISTING CODE
+            const reservationPayload: ICReservation = {
+                bookingCode,
+                propertyId,
+                propertyCode,
+                hotelName,
+                roomTypeCode,
+                ratePlanCode,
+
+                checkInDate: toUTC(startDate),
+                checkOutDate: toUTC(endDate),
+                bookedAt: nowUTC(),
+
+                primaryGuestId,
+                guests: guestDetails,
+                bookingUserEmail: email,
+                bookingUserPhone: phone || null,
+
+                amount: finalPrice.totalAmount,
+                currencyCode: currency,
+                finalPrice: finalPrice,
+
+                paidAmount: 0,
+                extraAmountToPay: 0,
+                refundAmount: 0,
+                timezone: payload.timezone || "Asia/Kolkata",
+                countryCode: payload.countryCode || "IN",
+                paymentMethod: this.mapPaymentMethod(paymentMethod),
+                paymentImages: null,
+
+                bookingStatus: "confirmed",
+                cancellationReason: null,
+                deviceTypes: payload.deviceTypes || "desktop",
+                bookingSource: bookingSource || "direct",
+
+                isPromoUsed: !!(bookingDetails.promoCode || (normalizedPayload.bookingDetails.selectedPromotions && normalizedPayload.bookingDetails.selectedPromotions.length > 0)),
+                promoId: null
+            };
+
+            // 5️⃣ Create reservation
+            const reservation = await this.reservationRepository.createReservation(reservationPayload);
+            console.log("Reservation created:", reservation.id);
+
+            // 6️⃣ Create price breakdown - YOUR EXISTING CODE
+            const priceBreakdownPayload: IReservationPriceBrakeDownR = {
+                reservationId: reservation.id,
+                additionalGuestCharges: finalPrice.additionalGuestCharges,
+                baseRatePerNight: finalPrice.baseRatePerNight,
+                numberOfNights: finalPrice.numberOfNights,
+                priceAfterTax: new Decimal(finalPrice.totalAmount),
+                totalAmount: new Decimal(finalPrice.totalAmount),
+                totalTax: new Decimal(finalPrice.totalAmount - finalPrice.totalTax),
+                breakdown: finalPrice.breakdown,
+                dailyBreakdown: finalPrice.dailyBreakdown,
+                availableRooms: finalPrice.availableRooms,
+                requestedRooms: finalPrice.requestedRooms,
+                tax: finalPrice.taxes
+            };
+
+            await this.priceBrakeDownRepo.createpriceBrakeDowns([priceBreakdownPayload]);
+            console.log("Price breakdown created");
+
+            // 7️⃣ Create Booking Addons (if any) - ✅ UPDATED CODE
+            if (normalizedPayload.bookingDetails.selectedAddons && normalizedPayload.bookingDetails.selectedAddons.length > 0) {
+                const addonPayloads: IBookingAddonCreate[] = normalizedPayload.bookingDetails.selectedAddons.map((addon: any) => ({
+                    reservationId: reservation.id,
+                    addonId: addon.addonId,
+                    name: addon.addonName || addon.name,
+                    unitPrice: addon.price,          // ✅ Use provided price
+                    quantity: addon.quantity,
+                    totalPrice: addon.totalPrice,    // ✅ Use pre-calculated total
+                    currencyCode: currency,
+                    specialInstructions: null,
+                    date: new Date(addon.date)
+                }));
+
+                await this.bookingAddonRepository.createBookingAddons(addonPayloads);
+                console.log(`Created ${addonPayloads.length} booking addons`);
+            }
+
+            // 8️⃣ Create Reservation Promotions (if any) - ✅ CORRECTED CODE
+            if (normalizedPayload.bookingDetails.selectedPromotions && normalizedPayload.bookingDetails.selectedPromotions.length > 0) {
+                const promotionPayloads: IReservationPromotionCreate[] = [];
+
+                for (const promo of normalizedPayload.bookingDetails.selectedPromotions) {
+                    if (promo.promotionType === 'mlos') {
+                        console.log("MLOS promotion", normalizedPayload.bookingDetails.selectedPromotions);
+                        // ✅ MLOS: The 'id' field IS the RatePlanRule ID
+                        // No need to search - it's already provided in the payload
+                        if (!promo.id) {
+                            console.warn('MLOS promotion missing id:', promo);
+                            return errorResponse('MLOS promotion missing id')
+                        }
+
+                        promotionPayloads.push({
+                            id:promo.id,
+                            bookingCode: bookingCode,
+                            bookingId: reservation.id,
+                            promotionId: null,           // ✅ NULL for MLOS
+                            mlosId: promo.id,            // ✅ Use the id directly - it's the RatePlanRule ID
+                            amount: promo.amount, // ✅ Use pre-calculated amount
+                            currency: currency as CurrencyCode,
+                            promotionType: promo.promotionType,
+                        });
+
+                    } else {
+                        // ✅ Regular Promotion: early_bird, offer_for_tonight, device_specific
+                        // The 'id' field IS the Promotion ID
+                        if (!promo.id) {
+                            console.warn('Promotion missing id:', promo);
+                            return errorResponse('Promotion missing id')
+                        }
+
+                        promotionPayloads.push({
+                            bookingCode: bookingCode,
+                            bookingId: reservation.id,
+                            promotionId: promo.id,        // ✅ Use the id - it's the Promotion ID
+                            mlosId: null,                 // ✅ NULL for regular promotions
+                            amount: promo.amount, // ✅ Use pre-calculated amount
+                            currency: currency as CurrencyCode,
+                            promotionType: promo.promotionType,
+                        });
+                    }
                 }
 
-                return {
-                    bookingCode: bookingCode,
-                    bookingId: reservation.id,
-                    promotionId: promo.id,
-                    amount: discountAmount,
-                    currency: currency as CurrencyCode
-                };
-            });
+                if (promotionPayloads.length > 0) {
+                    await this.reservationPromotionRepository.createReservationPromotions(promotionPayloads);
+                    console.log(`Created ${promotionPayloads.length} reservation promotions`);
+                }
+            }
 
-            await this.reservationPromotionRepository.createReservationPromotions(promotionPayloads);
-            console.log(`Created ${promotionPayloads.length} reservation promotions`);
+            // 9️⃣ Update ARI (decrease room availability) - YOUR EXISTING CODE
+            const reservationDates = this.generateDateRange(toUTCDate(startDate), toUTCDate(endDate));
+            const ariPayload: IAriManulupulation = {
+                propertyCode,
+                dates: reservationDates,
+                roomInfos: [{
+                    roomTypeCode,
+                    numberOfRooms: finalPrice.requestedRooms || 1
+                }]
+            };
+
+            await this.ariManupulationRepo.decreaseAvailableRooms(ariPayload);
+            console.log("ARI updated - rooms decreased");
+
+            return successResponse("Reservation created successfully", reservation);
+        } catch (error) {
+            console.error("Error creating reservation:", error);
+            if (error instanceof Error) {
+                return errorResponse("Failed to create reservation", error.message);
+            }
+            return errorResponse("Failed to create reservation");
         }
-
-        // 9️⃣ Update ARI (decrease room availability) - YOUR EXISTING CODE
-        const reservationDates = this.generateDateRange(toUTCDate(startDate), toUTCDate(endDate));
-        const ariPayload: IAriManulupulation = {
-            propertyCode,
-            dates: reservationDates,
-            roomInfos: [{
-                roomTypeCode,
-                numberOfRooms: finalPrice.requestedRooms || 1
-            }]
-        };
-
-        await this.ariManupulationRepo.decreaseAvailableRooms(ariPayload);
-        console.log("ARI updated - rooms decreased");
-
-        return successResponse("Reservation created successfully", reservation);
-    } catch (error) {
-        console.error("Error creating reservation:", error);
-        if (error instanceof Error) {
-            return errorResponse("Failed to create reservation", error.message);
-        }
-        return errorResponse("Failed to create reservation");
     }
-}
     // Helper method to get propertyId from propertyCode
     private async getPropertyIdByCode(propertyCode: string): Promise<string | null> {
         try {
@@ -341,7 +387,7 @@ export class ReservationService {
     public async getReservaltionByCode(reservationCode: string): Promise<IApiResponse> {
         try {
             const reservation = await this.reservationRepository.getReservaltionByCode(reservationCode);
-            
+
             if (!reservation) {
                 return errorResponse("Reservation not found");
             }
@@ -354,242 +400,242 @@ export class ReservationService {
         }
     }
     public async updateReservation(
-    reservationCode: string, 
-    updatePayload: IReservationUpdatePayload
-): Promise<IApiResponse> {
-    try {
-        // 1. Get existing reservation
-        const existingReservation = await this.reservationRepository.getReservaltionByCode(reservationCode);
-        
-        if (!existingReservation) {
-            return errorResponse("Reservation not found");
-        }
+        reservationCode: string,
+        updatePayload: IReservationUpdatePayload
+    ): Promise<IApiResponse> {
+        try {
+            // 1. Get existing reservation
+            const existingReservation = await this.reservationRepository.getReservaltionByCode(reservationCode);
 
-        // 2. Validate property matches
-        if (existingReservation.propertyCode !== updatePayload.propertyCode) {
-            return errorResponse("Cannot change property for existing reservation");
-        }
+            if (!existingReservation) {
+                return errorResponse("Reservation not found");
+            }
 
-        if (existingReservation.roomTypeCode !== updatePayload.roomTypeCode) {
-            return errorResponse("Cannot change room type for existing reservation");
-        }
+            // 2. Validate property matches
+            if (existingReservation.propertyCode !== updatePayload.propertyCode) {
+                return errorResponse("Cannot change property for existing reservation");
+            }
 
-        if (existingReservation.ratePlanCode !== updatePayload.ratePlanCode) {
-            return errorResponse("Cannot change rate plan for existing reservation");
-        }
+            if (existingReservation.roomTypeCode !== updatePayload.roomTypeCode) {
+                return errorResponse("Cannot change room type for existing reservation");
+            }
 
-        // 3. Parse dates
-        const newCheckInDate = new Date(updatePayload.checkInDate);
-        const newCheckOutDate = new Date(updatePayload.checkOutDate);
-        const oldCheckInDate = existingReservation.checkInDate;
-        const oldCheckOutDate = existingReservation.checkOutDate;
+            if (existingReservation.ratePlanCode !== updatePayload.ratePlanCode) {
+                return errorResponse("Cannot change rate plan for existing reservation");
+            }
 
-        // Validate new dates
-        if (newCheckInDate >= newCheckOutDate) {
-            return errorResponse("Check-in date must be before check-out date");
-        }
+            // 3. Parse dates
+            const newCheckInDate = new Date(updatePayload.checkInDate);
+            const newCheckOutDate = new Date(updatePayload.checkOutDate);
+            const oldCheckInDate = existingReservation.checkInDate;
+            const oldCheckOutDate = existingReservation.checkOutDate;
 
-        // 4. Generate date ranges for ARI comparison
-        const oldDates = this.generateDateRange(
-            oldCheckInDate,
-            oldCheckOutDate
-        );
+            // Validate new dates
+            if (newCheckInDate >= newCheckOutDate) {
+                return errorResponse("Check-in date must be before check-out date");
+            }
 
-        const newDates = this.generateDateRange(
-            newCheckInDate,
-            newCheckOutDate
-        );
-
-        // 5. Calculate ARI changes
-        const oldRooms = existingReservation.finalPrice?.requestedRooms || 1;
-        const newRooms = updatePayload.requestedRooms;
-
-        // Determine dates that need ARI updates
-        const datesToFree = oldDates.filter(date => !newDates.includes(date));
-        const datesToReserve = newDates.filter(date => !oldDates.includes(date));
-        const commonDates = oldDates.filter(date => newDates.includes(date));
-
-        // 6. Check availability for new requirements
-        if (datesToReserve.length > 0 || newRooms > oldRooms) {
-            const allNewDates = [...new Set([...newDates])]; // Unique dates
-            
-            const isAvailable = await this.reservationRepository.checkRoomAvailability(
-                updatePayload.propertyCode,
-                updatePayload.roomTypeCode,
-                allNewDates,
-                newRooms
+            // 4. Generate date ranges for ARI comparison
+            const oldDates = this.generateDateRange(
+                oldCheckInDate,
+                oldCheckOutDate
             );
 
-            if (!isAvailable) {
-                return errorResponse("Not enough rooms available for the selected dates");
-            }
-        }
+            const newDates = this.generateDateRange(
+                newCheckInDate,
+                newCheckOutDate
+            );
 
-        // 7. Calculate financial changes
-        const oldAmount = existingReservation.amount;
-        const newAmount = updatePayload.amount;
-        const priceDifference = newAmount - oldAmount;
+            // 5. Calculate ARI changes
+            const oldRooms = existingReservation.finalPrice?.requestedRooms || 1;
+            const newRooms = updatePayload.requestedRooms;
 
-        let extraAmountToPay = 0;
-        let refundAmount = 0;
+            // Determine dates that need ARI updates
+            const datesToFree = oldDates.filter(date => !newDates.includes(date));
+            const datesToReserve = newDates.filter(date => !oldDates.includes(date));
+            const commonDates = oldDates.filter(date => newDates.includes(date));
 
-        if (priceDifference > 0) {
-            extraAmountToPay = priceDifference;
-        } else if (priceDifference < 0) {
-            refundAmount = Math.abs(priceDifference);
-        }
+            // 6. Check availability for new requirements
+            if (datesToReserve.length > 0 || newRooms > oldRooms) {
+                const allNewDates = [...new Set([...newDates])]; // Unique dates
 
-        // 8. Update ARI in a transaction
-        await prisma.$transaction(async (tx) => {
-            // Free up old inventory for dates that are no longer needed
-            if (datesToFree.length > 0) {
-                const freeAriPayload: IAriManulupulation = {
-                    propertyCode: updatePayload.propertyCode,
-                    dates: datesToFree,
-                    roomInfos: [{
-                        roomTypeCode: updatePayload.roomTypeCode,
-                        numberOfRooms: oldRooms
-                    }]
-                };
+                const isAvailable = await this.reservationRepository.checkRoomAvailability(
+                    updatePayload.propertyCode,
+                    updatePayload.roomTypeCode,
+                    allNewDates,
+                    newRooms
+                );
 
-                // Use direct prisma call since AriManupulationRepo doesn't have transaction support
-                for (const room of freeAriPayload.roomInfos) {
-                    await tx.inventory.updateMany({
-                        where: {
-                            propertyCode: freeAriPayload.propertyCode,
-                            roomTypeCode: room.roomTypeCode,
-                            date: { in: freeAriPayload.dates }
-                        },
-                        data: {
-                            availability: {
-                                increment: room.numberOfRooms
-                            }
-                        }
-                    });
+                if (!isAvailable) {
+                    return errorResponse("Not enough rooms available for the selected dates");
                 }
             }
 
-            // For common dates, adjust if room count changed
-            if (commonDates.length > 0 && oldRooms !== newRooms) {
-                const roomDifference = newRooms - oldRooms;
-                if (roomDifference !== 0) {
-                    const adjustment = roomDifference > 0 ? 
-                        { decrement: Math.abs(roomDifference) } : 
-                        { increment: Math.abs(roomDifference) };
+            // 7. Calculate financial changes
+            const oldAmount = existingReservation.amount;
+            const newAmount = updatePayload.amount;
+            const priceDifference = newAmount - oldAmount;
 
-                    await tx.inventory.updateMany({
-                        where: {
-                            propertyCode: updatePayload.propertyCode,
+            let extraAmountToPay = 0;
+            let refundAmount = 0;
+
+            if (priceDifference > 0) {
+                extraAmountToPay = priceDifference;
+            } else if (priceDifference < 0) {
+                refundAmount = Math.abs(priceDifference);
+            }
+
+            // 8. Update ARI in a transaction
+            await prisma.$transaction(async (tx) => {
+                // Free up old inventory for dates that are no longer needed
+                if (datesToFree.length > 0) {
+                    const freeAriPayload: IAriManulupulation = {
+                        propertyCode: updatePayload.propertyCode,
+                        dates: datesToFree,
+                        roomInfos: [{
                             roomTypeCode: updatePayload.roomTypeCode,
-                            date: { in: commonDates }
-                        },
-                        data: {
-                            availability: adjustment
-                        }
-                    });
-                }
-            }
+                            numberOfRooms: oldRooms
+                        }]
+                    };
 
-            // Reserve new inventory for new dates
-            if (datesToReserve.length > 0) {
-                const reserveAriPayload: IAriManulupulation = {
-                    propertyCode: updatePayload.propertyCode,
-                    dates: datesToReserve,
-                    roomInfos: [{
-                        roomTypeCode: updatePayload.roomTypeCode,
-                        numberOfRooms: newRooms
-                    }]
-                };
-
-                for (const room of reserveAriPayload.roomInfos) {
-                    await tx.inventory.updateMany({
-                        where: {
-                            propertyCode: reserveAriPayload.propertyCode,
-                            roomTypeCode: room.roomTypeCode,
-                            date: { in: reserveAriPayload.dates }
-                        },
-                        data: {
-                            availability: {
-                                decrement: room.numberOfRooms
+                    // Use direct prisma call since AriManupulationRepo doesn't have transaction support
+                    for (const room of freeAriPayload.roomInfos) {
+                        await tx.inventory.updateMany({
+                            where: {
+                                propertyCode: freeAriPayload.propertyCode,
+                                roomTypeCode: room.roomTypeCode,
+                                date: { in: freeAriPayload.dates }
+                            },
+                            data: {
+                                availability: {
+                                    increment: room.numberOfRooms
+                                }
                             }
-                        }
-                    });
+                        });
+                    }
                 }
+
+                // For common dates, adjust if room count changed
+                if (commonDates.length > 0 && oldRooms !== newRooms) {
+                    const roomDifference = newRooms - oldRooms;
+                    if (roomDifference !== 0) {
+                        const adjustment = roomDifference > 0 ?
+                            { decrement: Math.abs(roomDifference) } :
+                            { increment: Math.abs(roomDifference) };
+
+                        await tx.inventory.updateMany({
+                            where: {
+                                propertyCode: updatePayload.propertyCode,
+                                roomTypeCode: updatePayload.roomTypeCode,
+                                date: { in: commonDates }
+                            },
+                            data: {
+                                availability: adjustment
+                            }
+                        });
+                    }
+                }
+
+                // Reserve new inventory for new dates
+                if (datesToReserve.length > 0) {
+                    const reserveAriPayload: IAriManulupulation = {
+                        propertyCode: updatePayload.propertyCode,
+                        dates: datesToReserve,
+                        roomInfos: [{
+                            roomTypeCode: updatePayload.roomTypeCode,
+                            numberOfRooms: newRooms
+                        }]
+                    };
+
+                    for (const room of reserveAriPayload.roomInfos) {
+                        await tx.inventory.updateMany({
+                            where: {
+                                propertyCode: reserveAriPayload.propertyCode,
+                                roomTypeCode: room.roomTypeCode,
+                                date: { in: reserveAriPayload.dates }
+                            },
+                            data: {
+                                availability: {
+                                    decrement: room.numberOfRooms
+                                }
+                            }
+                        });
+                    }
+                }
+            });
+
+            // 9. Update reservation record
+            const updateData: Partial<ICReservation> = {
+                checkInDate: newCheckInDate,
+                checkOutDate: newCheckOutDate,
+                amount: newAmount,
+                finalPrice: updatePayload.finalPrice,
+                guests: updatePayload.guests,
+                bookingUserEmail: updatePayload.bookingUserEmail,
+                bookingUserPhone: updatePayload.bookingUserPhone || null,
+                bookingStatus: "modified" as BookingStatus,
+                extraAmountToPay: existingReservation.extraAmountToPay + extraAmountToPay,
+                refundAmount: existingReservation.refundAmount + refundAmount
+            };
+
+            const updatedReservation = await this.reservationRepository.updateReservationWithTransaction(
+                existingReservation.id,
+                updateData,
+                {
+                    reservationId: existingReservation.id,
+                    additionalGuestCharges: updatePayload.finalPrice.additionalGuestCharges,
+                    baseRatePerNight: updatePayload.finalPrice.baseRatePerNight,
+                    numberOfNights: updatePayload.finalPrice.numberOfNights,
+                    priceAfterTax: new Decimal(updatePayload.finalPrice.priceAfterTax),
+                    totalAmount: new Decimal(updatePayload.finalPrice.totalAmount),
+                    totalTax: new Decimal(updatePayload.finalPrice.totalTax),
+                    breakdown: updatePayload.finalPrice.breakdown,
+                    dailyBreakdown: updatePayload.finalPrice.dailyBreakdown,
+                    availableRooms: updatePayload.finalPrice.availableRooms,
+                    requestedRooms: updatePayload.requestedRooms,
+                    tax: updatePayload.finalPrice.tax
+                }
+            );
+
+            // 10. Prepare response with change summary
+            const modificationSummary = {
+                reservation: updatedReservation,
+                ariChanges: {
+                    datesFreed: datesToFree,
+                    datesReserved: datesToReserve,
+                    roomsFreed: oldRooms,
+                    roomsReserved: newRooms,
+                    commonDates: commonDates,
+                    roomChange: newRooms - oldRooms
+                },
+                financialSummary: {
+                    oldAmount,
+                    newAmount,
+                    difference: priceDifference,
+                    extraAmountToPay,
+                    refundAmount,
+                    totalExtraAmountToPay: existingReservation.extraAmountToPay + extraAmountToPay,
+                    totalRefundAmount: existingReservation.refundAmount + refundAmount
+                },
+                dateChanges: {
+                    oldCheckIn: oldCheckInDate,
+                    oldCheckOut: oldCheckOutDate,
+                    newCheckIn: newCheckInDate,
+                    newCheckOut: newCheckOutDate,
+                    nightsChanged: updatePayload.finalPrice.numberOfNights - (existingReservation.finalPrice?.numberOfNights || 1)
+                }
+            };
+
+            return successResponse("Reservation updated successfully", modificationSummary);
+
+        } catch (error) {
+            console.error("Error updating reservation:", error);
+            if (error instanceof Error) {
+                return errorResponse("Failed to update reservation", error.message);
             }
-        });
-
-        // 9. Update reservation record
-        const updateData: Partial<ICReservation> = {
-            checkInDate: newCheckInDate,
-            checkOutDate: newCheckOutDate,
-            amount: newAmount,
-            finalPrice: updatePayload.finalPrice,
-            guests: updatePayload.guests,
-            bookingUserEmail: updatePayload.bookingUserEmail,
-            bookingUserPhone: updatePayload.bookingUserPhone || null,
-            bookingStatus: "modified" as BookingStatus,
-            extraAmountToPay: existingReservation.extraAmountToPay + extraAmountToPay,
-            refundAmount: existingReservation.refundAmount + refundAmount
-        };
-
-        const updatedReservation = await this.reservationRepository.updateReservationWithTransaction(
-            existingReservation.id,
-            updateData,
-            {
-                reservationId: existingReservation.id,
-                additionalGuestCharges: updatePayload.finalPrice.additionalGuestCharges,
-                baseRatePerNight: updatePayload.finalPrice.baseRatePerNight,
-                numberOfNights: updatePayload.finalPrice.numberOfNights,
-                priceAfterTax: new Decimal(updatePayload.finalPrice.priceAfterTax),
-                totalAmount: new Decimal(updatePayload.finalPrice.totalAmount),
-                totalTax: new Decimal(updatePayload.finalPrice.totalTax),
-                breakdown: updatePayload.finalPrice.breakdown,
-                dailyBreakdown: updatePayload.finalPrice.dailyBreakdown,
-                availableRooms: updatePayload.finalPrice.availableRooms,
-                requestedRooms: updatePayload.requestedRooms,
-                tax: updatePayload.finalPrice.tax
-            }
-        );
-
-        // 10. Prepare response with change summary
-        const modificationSummary = {
-            reservation: updatedReservation,
-            ariChanges: {
-                datesFreed: datesToFree,
-                datesReserved: datesToReserve,
-                roomsFreed: oldRooms,
-                roomsReserved: newRooms,
-                commonDates: commonDates,
-                roomChange: newRooms - oldRooms
-            },
-            financialSummary: {
-                oldAmount,
-                newAmount,
-                difference: priceDifference,
-                extraAmountToPay,
-                refundAmount,
-                totalExtraAmountToPay: existingReservation.extraAmountToPay + extraAmountToPay,
-                totalRefundAmount: existingReservation.refundAmount + refundAmount
-            },
-            dateChanges: {
-                oldCheckIn: oldCheckInDate,
-                oldCheckOut: oldCheckOutDate,
-                newCheckIn: newCheckInDate,
-                newCheckOut: newCheckOutDate,
-                nightsChanged: updatePayload.finalPrice.numberOfNights - (existingReservation.finalPrice?.numberOfNights || 1)
-            }
-        };
-
-        return successResponse("Reservation updated successfully", modificationSummary);
-
-    } catch (error) {
-        console.error("Error updating reservation:", error);
-        if (error instanceof Error) {
-            return errorResponse("Failed to update reservation", error.message);
+            return errorResponse("Failed to update reservation");
         }
-        return errorResponse("Failed to update reservation");
     }
-}
     // public async getReservationsForADate(propertyId: string, date: Date): Promise<IApiResponse> {
     //     try {
     //         const reservations = await this.reservationRepository.getReservationForADate(propertyId, date);
@@ -602,7 +648,7 @@ export class ReservationService {
     //     }
     // }
     private async getAccessiblePropertyIds(
-        creationId: string, 
+        creationId: string,
         userLevel: number,
         specificPropertyId?: string,
         specificPropertyCode?: string
@@ -639,7 +685,7 @@ export class ReservationService {
                 allAccessibleProperties = daoRes.data;
 
                 // Validate access to specific property
-                const hasAccess = allAccessibleProperties.some(p => 
+                const hasAccess = allAccessibleProperties.some(p =>
                     p.id === specificPropertyId || p.code === specificPropertyCode
                 );
 
@@ -648,7 +694,7 @@ export class ReservationService {
                 }
 
                 // Return only the specific property ID
-                const specificProperty = allAccessibleProperties.find(p => 
+                const specificProperty = allAccessibleProperties.find(p =>
                     p.id === specificPropertyId || p.code === specificPropertyCode
                 );
                 return { success: true, propertyIds: [specificProperty!.id] };
@@ -682,84 +728,84 @@ export class ReservationService {
             return { success: true, propertyIds };
 
         } catch (error) {
-            return { 
-                success: false, 
-                propertyIds: [], 
-                message: error instanceof Error ? error.message : "Unknown error" 
+            return {
+                success: false,
+                propertyIds: [],
+                message: error instanceof Error ? error.message : "Unknown error"
             };
         }
     }
-public async getReservationsForDateRange(
-    creationId: string,
-    userLevel: number,
-    startDate: Date, 
-    endDate: Date,
-    page: number,
-    limit: number,
-    specificPropertyId?: string,
-    specificPropertyCode?: string,
-    bookingStatus?: string,
-    bookingSource?: string,        // ← Add these
-    deviceType?: string,           // ← Add these
-    bookingCode?: string,          // ← Add these
-    guestName?: string,            // ← Add these
-    promoCode?: string,            // ← Add these
-    countryCode?: string,          // ← Add these
-    dateFilterType?: 'checkin' | 'booking' | 'modification'  // ← Add these
-): Promise<IApiResponse> {
-    try {
-        const accessResult = await this.getAccessiblePropertyIds(
-            creationId, 
-            userLevel, 
-            specificPropertyId, 
-            specificPropertyCode
-        );
+    public async getReservationsForDateRange(
+        creationId: string,
+        userLevel: number,
+        startDate: Date,
+        endDate: Date,
+        page: number,
+        limit: number,
+        specificPropertyId?: string,
+        specificPropertyCode?: string,
+        bookingStatus?: string,
+        bookingSource?: string,        // ← Add these
+        deviceType?: string,           // ← Add these
+        bookingCode?: string,          // ← Add these
+        guestName?: string,            // ← Add these
+        promoCode?: string,            // ← Add these
+        countryCode?: string,          // ← Add these
+        dateFilterType?: 'checkin' | 'booking' | 'modification'  // ← Add these
+    ): Promise<IApiResponse> {
+        try {
+            const accessResult = await this.getAccessiblePropertyIds(
+                creationId,
+                userLevel,
+                specificPropertyId,
+                specificPropertyCode
+            );
 
-        if (!accessResult.success) {
-            return errorResponse(accessResult.message || "Failed to get accessible properties");
-        }
+            if (!accessResult.success) {
+                return errorResponse(accessResult.message || "Failed to get accessible properties");
+            }
 
-        if (accessResult.propertyIds.length === 0) {
-            return successResponse("No reservations found", [], {
-                currentPage: page,
-                totalPages: 0,
-                totalResults: 0,
-                hasNextPage: false,
-                hasPreviousPage: false,
-                resultsPerPage: limit
-            });
-        }
+            if (accessResult.propertyIds.length === 0) {
+                return successResponse("No reservations found", [], {
+                    currentPage: page,
+                    totalPages: 0,
+                    totalResults: 0,
+                    hasNextPage: false,
+                    hasPreviousPage: false,
+                    resultsPerPage: limit
+                });
+            }
 
-        const result = await this.reservationRepository.getReservationsForDateRange(
-            accessResult.propertyIds,
-            startDate, 
-            endDate,
-            page,
-            limit,
-            bookingStatus,
-            bookingSource,        // ← Add these
-            deviceType,           // ← Add these
-            bookingCode,          // ← Add these
-            guestName,            // ← Add these
-            promoCode,            // ← Add these
-            countryCode,          // ← Add these
-            dateFilterType        // ← Add these
-        );
-        
-        return successResponse(
-            "Reservations fetched successfully", 
-            result.data,
-            result.pagination
-        );
-    } catch (error) {
-        if (error instanceof Error) {
-            return errorResponse("Failed to fetch reservations", error.message);
+            const result = await this.reservationRepository.getReservationsForDateRange(
+                accessResult.propertyIds,
+                startDate,
+                endDate,
+                page,
+                limit,
+                bookingStatus,
+                bookingSource,        // ← Add these
+                deviceType,           // ← Add these
+                bookingCode,          // ← Add these
+                guestName,            // ← Add these
+                promoCode,            // ← Add these
+                countryCode,          // ← Add these
+                dateFilterType        // ← Add these
+            );
+
+            return successResponse(
+                "Reservations fetched successfully",
+                result.data,
+                result.pagination
+            );
+        } catch (error) {
+            if (error instanceof Error) {
+                return errorResponse("Failed to fetch reservations", error.message);
+            }
+            return errorResponse("Failed to fetch reservations");
         }
-        return errorResponse("Failed to fetch reservations");
     }
-}
 
-public async getArrivals(
+    public async getArrivals(
         creationId: string,
         userLevel: number,
         startDate: Date,
@@ -772,9 +818,9 @@ public async getArrivals(
     ): Promise<IApiResponse> {
         try {
             const accessResult = await this.getAccessiblePropertyIds(
-                creationId, 
-                userLevel, 
-                specificPropertyId, 
+                creationId,
+                userLevel,
+                specificPropertyId,
                 specificPropertyCode
             );
 
@@ -801,7 +847,7 @@ public async getArrivals(
                 limit,
                 bookingStatus
             );
-            
+
             return successResponse("Arrivals fetched successfully", result.data, result.pagination);
         } catch (error) {
             if (error instanceof Error) {
@@ -820,13 +866,13 @@ public async getArrivals(
         limit: number,
         specificPropertyId?: string,
         specificPropertyCode?: string,
-bookingStatus?: string
+        bookingStatus?: string
     ): Promise<IApiResponse> {
         try {
             const accessResult = await this.getAccessiblePropertyIds(
-                creationId, 
-                userLevel, 
-                specificPropertyId, 
+                creationId,
+                userLevel,
+                specificPropertyId,
                 specificPropertyCode
             );
 
@@ -853,7 +899,7 @@ bookingStatus?: string
                 limit,
                 bookingStatus
             );
-            
+
             return successResponse("Departures fetched successfully", result.data, result.pagination);
         } catch (error) {
             if (error instanceof Error) {
@@ -875,9 +921,9 @@ bookingStatus?: string
     ): Promise<IApiResponse> {
         try {
             const accessResult = await this.getAccessiblePropertyIds(
-                creationId, 
-                userLevel, 
-                specificPropertyId, 
+                creationId,
+                userLevel,
+                specificPropertyId,
                 specificPropertyCode
             );
 
@@ -903,7 +949,7 @@ bookingStatus?: string
                 page,
                 limit
             );
-            
+
             return successResponse("Checked-in reservations fetched successfully", result.data, result.pagination);
         } catch (error) {
             if (error instanceof Error) {
@@ -925,9 +971,9 @@ bookingStatus?: string
     ): Promise<IApiResponse> {
         try {
             const accessResult = await this.getAccessiblePropertyIds(
-                creationId, 
-                userLevel, 
-                specificPropertyId, 
+                creationId,
+                userLevel,
+                specificPropertyId,
                 specificPropertyCode
             );
 
@@ -953,7 +999,7 @@ bookingStatus?: string
                 page,
                 limit
             );
-            
+
             return successResponse("Checked-out reservations fetched successfully", result.data, result.pagination);
         } catch (error) {
             if (error instanceof Error) {
@@ -966,7 +1012,7 @@ bookingStatus?: string
     public async deleteReservation(reservationId: string): Promise<IApiResponse> {
         try {
             const reservation = await this.reservationRepository.getReservationById(reservationId);
-            
+
             if (!reservation) {
                 return errorResponse("Reservation not found");
             }
@@ -1004,7 +1050,7 @@ bookingStatus?: string
     public async noShowReservation(reservationId: string): Promise<IApiResponse> {
         try {
             const reservation = await this.reservationRepository.getReservationById(reservationId);
-            
+
             if (!reservation) {
                 return errorResponse("Reservation not found");
             }
@@ -1040,7 +1086,7 @@ bookingStatus?: string
     public async amendReservation(reservationId: string, newCheckoutDate: Date): Promise<IApiResponse> {
         try {
             const reservation = await this.reservationRepository.getReservationById(reservationId);
-            
+
             if (!reservation) {
                 return errorResponse("Reservation not found");
             }
@@ -1075,5 +1121,5 @@ bookingStatus?: string
             return errorResponse("Failed to amend reservation");
         }
     }
-    
+
 }

@@ -140,7 +140,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
   const [pendingRatePlan, setPendingRatePlan] = useState<any>(null);
   const [fetchingAddons, setFetchingAddons] = useState(false);
   const [expandedPromotions, setExpandedPromotions] = useState<string | null>(null);
-const [selectedPromotions, setSelectedPromotions] = useState<Record<string, any[]>>({});
+  const [selectedPromotions, setSelectedPromotions] = useState<Record<string, any[]>>({});
   const addonsRef = useRef<HTMLDivElement | null>(null);
 
   // Update price sidebar whenever addons change
@@ -243,13 +243,13 @@ const [selectedPromotions, setSelectedPromotions] = useState<Record<string, any[
 
       // ✅ ADD SELECTED PROMOTION TO PAYLOAD
       // Around line 223 - Update to send array of promotions:
-const selectedPromotionsList = selectedPromotions[ratePlan.ratePlanCode] || [];
-if (selectedPromotionsList.length > 0) {
-  payload.promotions = selectedPromotionsList.map(promotions => ({
-    id: promotions.id,
-    promotionType: promotions.type
-  }));
-}
+      const selectedPromotionsList = selectedPromotions[ratePlan.ratePlanCode] || [];
+      if (selectedPromotionsList.length > 0) {
+        payload.promotions = selectedPromotionsList.map(promotions => ({
+          id: promotions.id,
+          promotionType: promotions.type
+        }));
+      }
 
       // Add addons if present
       if (selectedAddonsList && selectedAddonsList.length > 0) {
@@ -277,7 +277,7 @@ if (selectedPromotionsList.length > 0) {
       setLatestPrice(data.data);
 
       // Proceed to booking with selected addons
-      onBookNow(room, ratePlan, selectedAddonsList,selectedPromotionsList);
+      onBookNow(room, ratePlan, selectedAddonsList, selectedPromotionsList);
     } catch (error) {
       console.error("Error fetching price:", error);
       toast.error("Failed to fetch price. Please try again.");
@@ -327,27 +327,27 @@ if (selectedPromotionsList.length > 0) {
     });
   };
 
- // Around line 355:
-const handleContinue = () => {
-  const selectedAddonsList = Object.values(selectedAddons);
-  const currentRatePlan = room.room_price.find((rp: any) => rp.ratePlanCode === expandedRatePlan);
-  const selectedPromotionsList = selectedPromotions[expandedRatePlan || ''] || [];
+  // Around line 355:
+  const handleContinue = () => {
+    const selectedAddonsList = Object.values(selectedAddons);
+    const currentRatePlan = room.room_price.find((rp: any) => rp.ratePlanCode === expandedRatePlan);
+    const selectedPromotionsList = selectedPromotions[expandedRatePlan || ''] || [];
 
-  onBookNow(room, currentRatePlan, selectedAddonsList, selectedPromotionsList);
-  setExpandedRatePlan(null);
-  setSelectedAddons({});
-  setCollapsedRatePlans(new Set());
-};
+    onBookNow(room, currentRatePlan, selectedAddonsList, selectedPromotionsList);
+    setExpandedRatePlan(null);
+    setSelectedAddons({});
+    setCollapsedRatePlans(new Set());
+  };
 
-const handleSkip = () => {
-  const currentRatePlan = room.room_price.find((rp: any) => rp.ratePlanCode === expandedRatePlan);
-  const selectedPromotionsList = selectedPromotions[expandedRatePlan || ''] || [];
-  
-  onBookNow(room, currentRatePlan, [], selectedPromotionsList);
-  setExpandedRatePlan(null);
-  setSelectedAddons({});
-  setCollapsedRatePlans(new Set());
-};
+  const handleSkip = () => {
+    const currentRatePlan = room.room_price.find((rp: any) => rp.ratePlanCode === expandedRatePlan);
+    const selectedPromotionsList = selectedPromotions[expandedRatePlan || ''] || [];
+
+    onBookNow(room, currentRatePlan, [], selectedPromotionsList);
+    setExpandedRatePlan(null);
+    setSelectedAddons({});
+    setCollapsedRatePlans(new Set());
+  };
 
   const handleViewDetails = (ratePlan: any) => {
     setSelectedRatePlanForDetails(ratePlan);
@@ -553,183 +553,183 @@ const handleSkip = () => {
                           </button>
                           {/* ✅ NEW: PROMOTION LINK */}
                           {ratePlan.availablePromotions?.length > 0 && (
-  <button
-    onClick={() => {
-      setExpandedPromotions(
-        expandedPromotions === ratePlan.ratePlanCode ? null : ratePlan.ratePlanCode
-      );
-    }}
-    className="mt-2 flex items-center gap-1.5 text-xs md:text-sm text-orange-600 hover:text-orange-700 font-medium hover:underline"
-  >
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-    </svg>
-{selectedPromotions[ratePlan.ratePlanCode]?.length > 0
-  ? `${selectedPromotions[ratePlan.ratePlanCode].length} Offer${selectedPromotions[ratePlan.ratePlanCode].length > 1 ? 's' : ''} Applied • ${ratePlan.availablePromotions.length} Available`
-  : `${ratePlan.availablePromotions.length} Special Offer${ratePlan.availablePromotions.length > 1 ? 's' : ''} Available`
-}
-{selectedPromotions[ratePlan.ratePlanCode]?.length > 0 && (
-  <span className="px-2.5 py-1 bg-green-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
-    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-    </svg>
-    {selectedPromotions[ratePlan.ratePlanCode].length} Applied
-  </span>
-)}
-  </button>
-)}
-{expandedPromotions === ratePlan.ratePlanCode && ratePlan.availablePromotions?.length > 0 && (
-                      <div className="mt-4 p-4 bg-gradient-to-br from-orange-50 to-amber-50 border-l-4 border-orange-400 rounded-lg">
-                        <div className="flex items-center gap-2 mb-3">
-                          <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
-                          </svg>
-                          <div className="flex-1">
-                            <h4 className="text-sm font-bold text-gray-900">Special Promotions</h4>
-                            <p className="text-xs text-gray-600">Select one promotion to apply discount</p>
-                          </div>
-                          {selectedPromotions[ratePlan.ratePlanCode] && (
-                            <span className="px-2.5 py-1 bg-green-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
-                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                            <button
+                              onClick={() => {
+                                setExpandedPromotions(
+                                  expandedPromotions === ratePlan.ratePlanCode ? null : ratePlan.ratePlanCode
+                                );
+                              }}
+                              className="mt-2 flex items-center gap-1.5 text-xs md:text-sm text-orange-600 hover:text-orange-700 font-medium hover:underline"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
                               </svg>
-                              Applied
-                            </span>
+                              {selectedPromotions[ratePlan.ratePlanCode]?.length > 0
+                                ? `${selectedPromotions[ratePlan.ratePlanCode].length} Offer${selectedPromotions[ratePlan.ratePlanCode].length > 1 ? 's' : ''} Applied • ${ratePlan.availablePromotions.length} Available`
+                                : `${ratePlan.availablePromotions.length} Special Offer${ratePlan.availablePromotions.length > 1 ? 's' : ''} Available`
+                              }
+                              {selectedPromotions[ratePlan.ratePlanCode]?.length > 0 && (
+                                <span className="px-2.5 py-1 bg-green-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
+                                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                  {selectedPromotions[ratePlan.ratePlanCode].length} Applied
+                                </span>
+                              )}
+                            </button>
                           )}
-                        </div>
-
-                        <div className="space-y-2.5">
-                          {ratePlan.availablePromotions.map((promo: any) => {
-const currentPromotions = selectedPromotions[ratePlan.ratePlanCode] || [];
-const isSelected = currentPromotions.some(p => p.id === promo.id);
-                            return (
-                              <div
-                                key={promo.id}
-                              // Inside the promotion card onClick handler (around line 580):
-onClick={() => {
-  setSelectedPromotions(prev => {
-    const newState = { ...prev };
-    const currentPromotions = newState[ratePlan.ratePlanCode] || [];
-    
-    // Check if promotion is already selected
-    const promoIndex = currentPromotions.findIndex(p => p.id === promo.id);
-    
-    if (promoIndex > -1) {
-      // Remove if already selected
-      currentPromotions.splice(promoIndex, 1);
-      if (currentPromotions.length === 0) {
-        delete newState[ratePlan.ratePlanCode];
-      } else {
-        newState[ratePlan.ratePlanCode] = currentPromotions;
-      }
-    } else {
-      // Add to selection
-      newState[ratePlan.ratePlanCode] = [
-        ...currentPromotions,
-        {
-          id: promo.id,
-          name: promo.promotionName,
-          type: promo.promotionType,
-          discountType: promo.discountType,
-          discountValue: promo.discountValue,
-          ...promo
-        }
-      ];
-    }
-    return newState;
-  });
-}}
-                                className={`relative p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 ${isSelected
-                                    ? 'bg-white border-orange-400 shadow-md'
-                                    : 'bg-white border-gray-200 hover:border-orange-300 hover:shadow-sm'
-                                  }`}
-                              >
-                                <div className="flex items-start gap-3">
-                                  <div className="flex-shrink-0 mt-0.5">
-                                    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${isSelected
-                                        ? 'bg-orange-500 border-orange-500'
-                                        : 'border-gray-300 bg-white'
-                                      }`}>
-                                      {isSelected && (
-                                        <div className="w-2 h-2 rounded-full bg-white"></div>
-                                      )}
-                                    </div>
-                                  </div>
-
-                                  <div className="flex-1 min-w-0">
-                                    <div className="flex items-start justify-between gap-3 mb-1">
-                                      <h5 className="font-bold text-sm text-gray-900 leading-tight">
-                                        {promo.promotionName}
-                                      </h5>
-                                      <span className="flex-shrink-0 px-2.5 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold rounded-full shadow-sm">
-                                        {promo.discountType === 'percentage'
-                                          ? `${promo.discountValue}% OFF`
-                                          : `$${promo.discountValue} OFF`}
-                                      </span>
-                                    </div>
-
-                                    <div className="flex items-center gap-2 text-xs text-gray-600">
-                                      <svg className="w-3.5 h-3.5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                                      </svg>
-                                      {getPromotionTypeText(promo.promotionType, promo)}
-                                    </div>
-
-                                    {promo.promotionType === 'early_bird' && promo.advanceBookingDays && (
-                                      <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                        Book {promo.advanceBookingDays} days in advance
-                                      </p>
-                                    )}
-                                  </div>
+                          {expandedPromotions === ratePlan.ratePlanCode && ratePlan.availablePromotions?.length > 0 && (
+                            <div className="mt-4 p-4 bg-gradient-to-br from-orange-50 to-amber-50 border-l-4 border-orange-400 rounded-lg">
+                              <div className="flex items-center gap-2 mb-3">
+                                <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                                </svg>
+                                <div className="flex-1">
+                                  <h4 className="text-sm font-bold text-gray-900">Special Promotions</h4>
+                                  <p className="text-xs text-gray-600">Select one promotion to apply discount</p>
                                 </div>
-
-                                {isSelected && (
-                                  <div className="absolute top-2 right-2">
-                                    <span className="flex h-2.5 w-2.5">
-                                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500"></span>
-                                    </span>
-                                  </div>
+                                {selectedPromotions[ratePlan.ratePlanCode] && (
+                                  <span className="px-2.5 py-1 bg-green-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
+                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                    Applied
+                                  </span>
                                 )}
                               </div>
-                            );
-                          })}
-                        </div>
 
-                        <div className="mt-3 pt-3 border-t border-orange-200 flex items-center justify-between">
-                          <button
-onClick={(e) => {
-  e.stopPropagation();
-  setSelectedPromotions(prev => {
-    const newState = { ...prev };
-    delete newState[ratePlan.ratePlanCode];
-    return newState;
-  });
-}}
-                            className="text-xs text-gray-600 hover:text-gray-900 font-medium transition-colors"
-                          >
-                            Clear Selection
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setExpandedPromotions(null);
-                            }}
-                            className="px-4 py-1.5 bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"
-                          >
-                            Done
-                          </button>
-                        </div>
-                      </div>
-                    )}
+                              <div className="space-y-2.5">
+                                {ratePlan.availablePromotions.map((promo: any) => {
+                                  const currentPromotions = selectedPromotions[ratePlan.ratePlanCode] || [];
+                                  const isSelected = currentPromotions.some(p => p.id === promo.id);
+                                  return (
+                                    <div
+                                      key={promo.id}
+                                      // Inside the promotion card onClick handler (around line 580):
+                                      onClick={() => {
+                                        setSelectedPromotions(prev => {
+                                          const newState = { ...prev };
+                                          const currentPromotions = newState[ratePlan.ratePlanCode] || [];
+
+                                          // Check if promotion is already selected
+                                          const promoIndex = currentPromotions.findIndex(p => p.id === promo.id);
+
+                                          if (promoIndex > -1) {
+                                            // Remove if already selected
+                                            currentPromotions.splice(promoIndex, 1);
+                                            if (currentPromotions.length === 0) {
+                                              delete newState[ratePlan.ratePlanCode];
+                                            } else {
+                                              newState[ratePlan.ratePlanCode] = currentPromotions;
+                                            }
+                                          } else {
+                                            // Add to selection
+                                            newState[ratePlan.ratePlanCode] = [
+                                              ...currentPromotions,
+                                              {
+                                                id: promo.id,
+                                                name: promo.promotionName,
+                                                type: promo.promotionType,
+                                                discountType: promo.discountType,
+                                                discountValue: promo.discountValue,
+                                                ...promo
+                                              }
+                                            ];
+                                          }
+                                          return newState;
+                                        });
+                                      }}
+                                      className={`relative p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 ${isSelected
+                                        ? 'bg-white border-orange-400 shadow-md'
+                                        : 'bg-white border-gray-200 hover:border-orange-300 hover:shadow-sm'
+                                        }`}
+                                    >
+                                      <div className="flex items-start gap-3">
+                                        <div className="flex-shrink-0 mt-0.5">
+                                          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${isSelected
+                                            ? 'bg-orange-500 border-orange-500'
+                                            : 'border-gray-300 bg-white'
+                                            }`}>
+                                            {isSelected && (
+                                              <div className="w-2 h-2 rounded-full bg-white"></div>
+                                            )}
+                                          </div>
+                                        </div>
+
+                                        <div className="flex-1 min-w-0">
+                                          <div className="flex items-start justify-between gap-3 mb-1">
+                                            <h5 className="font-bold text-sm text-gray-900 leading-tight">
+                                              {promo.promotionName}
+                                            </h5>
+                                            <span className="flex-shrink-0 px-2.5 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold rounded-full shadow-sm">
+                                              {promo.discountType === 'percentage'
+                                                ? `${promo.discountValue}% OFF`
+                                                : `$${promo.discountValue} OFF`}
+                                            </span>
+                                          </div>
+
+                                          <div className="flex items-center gap-2 text-xs text-gray-600">
+                                            <svg className="w-3.5 h-3.5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                            </svg>
+                                            {getPromotionTypeText(promo.promotionType, promo)}
+                                          </div>
+
+                                          {promo.promotionType === 'early_bird' && promo.advanceBookingDays && (
+                                            <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                              </svg>
+                                              Book {promo.advanceBookingDays} days in advance
+                                            </p>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      {isSelected && (
+                                        <div className="absolute top-2 right-2">
+                                          <span className="flex h-2.5 w-2.5">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500"></span>
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+
+                              <div className="mt-3 pt-3 border-t border-orange-200 flex items-center justify-between">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedPromotions(prev => {
+                                      const newState = { ...prev };
+                                      delete newState[ratePlan.ratePlanCode];
+                                      return newState;
+                                    });
+                                  }}
+                                  className="text-xs text-gray-600 hover:text-gray-900 font-medium transition-colors"
+                                >
+                                  Clear Selection
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setExpandedPromotions(null);
+                                  }}
+                                  className="px-4 py-1.5 bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"
+                                >
+                                  Done
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </>
                       )}
                     </div>
                     {/* ✅ EXPANDED PROMOTIONS SECTION */}
-                    
+
 
                     <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:gap-2 sm:min-w-[180px] md:min-w-[200px]">
                       {!isCollapsed && (

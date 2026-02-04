@@ -21,7 +21,7 @@ export class RoomRentCalculationController {
         noOfRooms,
         ratePlanCode,
         addons,
-        promotion,
+        promotions,
         guestEmail // ✅ NEW: Accept loyalty guest email
       } = req.body;
 
@@ -73,7 +73,7 @@ export class RoomRentCalculationController {
       console.log('Device type:', detectedDeviceType);
 
       // Parse addons if provided
-      let parsedAddons ;
+      let parsedAddons;
       if (addons && Array.isArray(addons)) {
         parsedAddons = addons.map((addon: any) => ({
           addonId: addon.addonId,
@@ -96,10 +96,11 @@ export class RoomRentCalculationController {
         children,
         adults,
         rooms,
-        guestEmail // ✅ Pass loyalty guest email to service
-        // userCountryCode,
-        // detectedDeviceType,
-        // parsedAddons
+        guestEmail,
+        userCountryCode,
+        detectedDeviceType,
+        promotions,
+        parsedAddons
       );
 
       if (response.success) {
