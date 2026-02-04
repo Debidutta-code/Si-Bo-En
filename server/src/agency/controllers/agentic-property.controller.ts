@@ -95,4 +95,20 @@ export class AgenticPropertyController {
             return res.status(500).json(errorResponse("Internal Server Error", "failed to get available properties"));
         }
     }
+    
+    public async getAgenciesByPropertyId(req: CustomRequest, res: Response): Promise<Response> {
+        try {
+            const { propertyId } = req.params;
+            if (!propertyId) {
+                return res.status(400).json(errorResponse("propertyId is required"));
+            }
+            const result = await this.agenticPropertyService.getAgenciesByPropertyId(propertyId);
+            return res.status(result.success ? 200 : 404).json(result);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res.status(500).json(errorResponse("failed to get agencies by property", error.message));
+            }
+            return res.status(500).json(errorResponse("Internal Server Error", "failed to get agencies by property"));
+        }
+    }
 }

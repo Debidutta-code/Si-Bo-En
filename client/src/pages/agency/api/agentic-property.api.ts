@@ -5,7 +5,7 @@ const axiosInstance = createAxiosInstance();
 
 export const createAgenticProperty=async(agenticPropertyData:ICAgenticProperty)=>{
     try {
-        const response = await axiosInstance.post("/agentic-property", agenticPropertyData);
+        const response = await axiosInstance.post("/agency/agentic-properties", agenticPropertyData);
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {
@@ -21,7 +21,7 @@ export const createAgenticProperty=async(agenticPropertyData:ICAgenticProperty)=
 
 export const getAgenticPropertyById=async(id:string)=>{
     try {
-        const response = await axiosInstance.get(`/agentic-property/${id}`);
+        const response = await axiosInstance.get(`/agency/agentic-properties/${id}`);
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {
@@ -37,7 +37,7 @@ export const getAgenticPropertyById=async(id:string)=>{
 
 export const deleteAgenticProperty=async(id:string)=>{
     try {
-        const response = await axiosInstance.delete(`/agentic-property/${id}`);
+        const response = await axiosInstance.delete(`/agency/agentic-properties/${id}`);
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {
@@ -54,7 +54,7 @@ export const deleteAgenticProperty=async(id:string)=>{
 
 export const getAvailablePropertiesForAgencies=async(agencyId:string)=>{
     try {
-        const response = await axiosInstance.get(`/agentic-property/available/${agencyId}`);
+        const response = await axiosInstance.get(`/agency/agentic-properties/available/${agencyId}`);
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {
@@ -69,7 +69,7 @@ export const getAvailablePropertiesForAgencies=async(agencyId:string)=>{
 };
 export const getReservationsByAgenticPropertyId=async(agencyId:string,propertyId:string)=>{
     try {
-        const response = await axiosInstance.get(`/agentic-property/${agencyId}/${propertyId}`);
+        const response = await axiosInstance.get(`/agency/agentic-properties/reservations/${agencyId}/${propertyId}`);
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {

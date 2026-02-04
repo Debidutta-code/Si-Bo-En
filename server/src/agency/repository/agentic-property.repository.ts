@@ -109,9 +109,14 @@ export class AgenticPropertyRepository {
                     propertyConfigs:{
                         isB2bAvailable:true
                     },
-                    isDraft:true,
+                    isDraft:false,  // ✅ Get published properties (not drafts)
                     isDeleted:false,
                     isAvailable:true
+                },
+                select: {
+                    id: true,
+                    propertyCode: true,
+                    propertyName: true
                 }
             });
         } catch (error) {
@@ -125,7 +130,7 @@ export class AgenticPropertyRepository {
                     propertyConfigs: {
                         isB2bAvailable: true
                     },
-                    isDraft: true, 
+                    isDraft: true,  // ✅ Get published properties (not drafts)
                     isDeleted: false,
                     isAvailable: true,
                     agenticProperties: {
@@ -134,6 +139,11 @@ export class AgenticPropertyRepository {
                             isDeleted: false 
                         }
                     }
+                },
+                select: {
+                    id: true,
+                    propertyCode: true,
+                    propertyName: true
                 }
             });
         } catch (error) {
@@ -186,6 +196,39 @@ export class AgenticPropertyRepository {
             });
         } catch (error) {
             throw new Error(`Failed to connect property`);
+        }
+    }
+    
+    public async getAgenciesByPropertyId(propertyId: string): Promise<IAgency[]> {
+        try {
+            return await prisma.agency.findMany({
+                where: {
+                    isDeleted: false,
+                    AgenticProperties: {
+                        some: {
+                            propertyId: propertyId,
+                            isDeleted: false
+                        }
+                    }
+                },
+                include: {
+                    AgenticProperties: {
+                        where: {
+                            propertyId: propertyId,
+                            isDeleted: false
+                        },
+                        include: {
+                            AgenticRooms: {
+                                where: {
+                                    isDeleted: false
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        } catch (error) {
+            throw new Error(`Failed to get agencies by property ID: ${propertyId}`);
         }
     }
 }

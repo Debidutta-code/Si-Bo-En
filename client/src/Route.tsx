@@ -53,6 +53,13 @@ import LoyaltyContent from "./pages/loyalty/LoyaltyContent.tsx";
 import PropertyLoyalityManagement from "./pages/loyalty/PropertyLoyalties.tsx";
 import PropertyLoyaltyGuests from "./pages/loyalty/PropertyLoyaltyGuests.tsx";
 import ActivePropertyLoyalty from "./pages/loyalty/ActivepropertyLoyaty.tsx";
+import AgenciesListPage from "./pages/agency/AgenciesListPage.tsx";
+import AgencyDetailsPage from "./pages/agency/AgencyDetailsPage.tsx";
+import AgencyAgentsPage from "./pages/agency/AgencyAgentsPage.tsx";
+import AgenticPropertyDetailsPage from "./pages/agency/AgenticPropertyDetailsPage.tsx";
+import AgencyApplicationsPage from "./pages/agency/AgencyApplicationsPage.tsx";
+import PropertyAgenciesPage from "./pages/property-agencies/PropertyAgenciesPage.tsx";
+import AgencyReservationsPage from "./pages/property-agencies/AgencyReservationsPage.tsx";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -88,6 +95,17 @@ export const router = createBrowserRouter(
         <Route path="bookings" element={<Bookings />} />
         <Route path="utils-management" element={<ManagementPage />} />
 
+        {/* Agency Routes - Super Admin Only */}
+        <Route path="agency">
+          <Route index element={<AgenciesListPage />} />
+          <Route path="applications" element={<AgencyApplicationsPage />} />
+          <Route path=":agencyId">
+            <Route index element={<AgencyDetailsPage />} />
+            <Route path="agents" element={<AgencyAgentsPage />} />
+            <Route path="property/:propertyId" element={<AgenticPropertyDetailsPage />} />
+          </Route>
+        </Route>
+
       </Route>
       <Route path="/property" element={<PropertyLayout />}>
         <Route path=":propertyId" element={<PropertyById />} />
@@ -106,6 +124,11 @@ export const router = createBrowserRouter(
         <Route path="price-management/calendar/:propertyId" element={<CalendarView />} />
         <Route path="price-management/periods/:propertyId" element={<PeriodsManagement />} />
         <Route path="price-management/table/:propertyId" element={<TableView />} />
+        
+        {/* Property Agencies Routes */}
+        <Route path=":propertyId/agencies" element={<PropertyAgenciesPage />} />
+        <Route path=":propertyId/agencies/:agencyId/reservations" element={<AgencyReservationsPage />} />
+        
         <Route path="loyalty/:propertyId">
         <Route path="" index element={<PropertyLoyalityManagement />} />
         <Route path="active/:loyaltyConfigId" element={<ActivePropertyLoyalty />} />
