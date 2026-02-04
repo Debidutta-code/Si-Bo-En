@@ -8,11 +8,11 @@ import { paginatedSuccessResponse } from "../../utils";
 import {GuestRepository} from "../../pms/frontoffice/guest/repository/guest.repository";
 export class LoyaltyGuestService {
     private loyaltyGuestRepository: LoyaltyGuestRepository;
-    private guestRepository: GuestRepository;
+    // private guestRepository: GuestRepository;
 
     constructor() {
         this.loyaltyGuestRepository = new LoyaltyGuestRepository();
-        this.guestRepository = new GuestRepository();
+        // this.guestRepository = new GuestRepository();
     }
 
     public async deleteLoyaltyGuest(loyaltyGuestId: string): Promise<IApiResponse> {

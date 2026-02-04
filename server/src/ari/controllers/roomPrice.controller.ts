@@ -21,6 +21,7 @@ export class RoomRentCalculationController {
         noOfRooms,
         ratePlanCode,
         addons,
+        promotion
       } = req.body;
 
       // Validate required fields
@@ -71,7 +72,7 @@ export class RoomRentCalculationController {
       console.log('Device type:', detectedDeviceType);
 
       // Parse addons if provided
-      let parsedAddons = undefined;
+      let parsedAddons ;
       if (addons && Array.isArray(addons)) {
         parsedAddons = addons.map((addon: any) => ({
           addonId: addon.addonId,

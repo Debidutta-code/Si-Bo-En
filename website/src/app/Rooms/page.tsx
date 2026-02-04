@@ -12,8 +12,6 @@ import RoomCard from "@/src/components/RoomPage/RoomCard";
 import PriceSummarySidebar from "../../components/RoomPage/Pricesummerysidebar";
 import { Room } from "@/src/store/roomsSlice";
 import GuestFormModal from "../../components/GuestModals/GuestFormModal";
-import { Building2, Calendar, MessageCircle, Moon, Plus } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -99,6 +97,7 @@ const LoyaltyProgramBanner = ({
   const [showSignUpModal, setShowSignUpModal] = useState(false);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAlreadyMember, setIsAlreadyMember] = useState(false);
 
   const program = loyaltyProgram.CreationLoyaltyConfig;
   const isBasicProgram = program.BasicLoyaltyProgram !== null;
@@ -146,12 +145,24 @@ const LoyaltyProgramBanner = ({
 
       if (!response.ok || !data.success) {
         const errorMsg = data.message || "Failed to register for loyalty program";
+        
+        // Check if user is already registered
+        if (errorMsg.toLowerCase().includes("already registered")) {
+          toast.success("You are already a member of this loyalty program!");
+          setIsAlreadyMember(true);
+          setShowSignUpModal(false);
+          setFormData({});
+          setIsSubmitting(false);
+          return;
+        }
+        
         toast.error(errorMsg);
         setIsSubmitting(false);
         return;
       }
 
       toast.success("Successfully registered for loyalty program!");
+      setIsAlreadyMember(true);
       setShowSignUpModal(false);
       setFormData({});
     } catch (error) {
@@ -287,26 +298,47 @@ const LoyaltyProgramBanner = ({
 
                   {/* Sign Up Section */}
                   <div className="flex flex-col items-center space-y-2 pt-1">
-                    <div className="text-center w-full">
-                      <h3 className="text-sm font-bold text-gray-900 mb-0.5">
-                        Join & Save
-                      </h3>
-                      <p className="text-[10px] text-gray-600 mb-2">
-                        Exclusive discounts on every booking
-                      </p>
-                    </div>
+                    {!isAlreadyMember ? (
+                      <>
+                        <div className="text-center w-full">
+                          <h3 className="text-sm font-bold text-gray-900 mb-0.5">
+                            Join & Save
+                          </h3>
+                          <p className="text-[10px] text-gray-600 mb-2">
+                            Exclusive discounts on every booking
+                          </p>
+                        </div>
 
-                    <button
-                      onClick={() => setShowSignUpModal(true)}
-                      className="w-full px-4 py-2 rounded-lg text-white text-sm font-bold shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
-                      style={{ backgroundColor: primaryColor }}
-                    >
-                      <User className="w-4 h-4" />
-                      <span>Sign Up Now</span>
-                    </button>
-
-
-
+                        <button
+                          onClick={() => setShowSignUpModal(true)}
+                          className="w-full px-4 py-2 rounded-lg text-white text-sm font-bold shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
+                          style={{ backgroundColor: primaryColor }}
+                        >
+                          <User className="w-4 h-4" />
+                          <span>Sign Up Now</span>
+                        </button>
+                      </>
+                    ) : (
+                      <div className="w-full">
+                        <div
+                          className="px-4 py-3 rounded-lg border-2 text-center"
+                          style={{
+                            backgroundColor: `${primaryColor}10`,
+                            borderColor: primaryColor
+                          }}
+                        >
+                          <div className="flex items-center justify-center gap-2 mb-1">
+                            <Award className="w-5 h-5" style={{ color: primaryColor }} />
+                            <h3 className="text-sm font-bold text-gray-900">
+                              Active Member
+                            </h3>
+                          </div>
+                          <p className="text-[10px] text-gray-600">
+                            You're enjoying exclusive member benefits
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
