@@ -322,6 +322,7 @@ const BookingReviewPage = () => {
         },
         merchantAttributes: {
           redirectUrl: "https://thescanmenu.com",
+          // skipConfirmationPage: true,
           // Optional: add cancel URL
           // cancelUrl: `${window.location.origin}/Payment?cancelled=true`,
         },

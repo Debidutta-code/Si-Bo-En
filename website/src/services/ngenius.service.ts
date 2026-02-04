@@ -10,6 +10,7 @@ export interface CreateOrderPayload {
   };
   merchantAttributes?: {
     redirectUrl?: string;
+    // skipConfirmationPage?: boolean;
   };
   emailAddress?: string;
 }
