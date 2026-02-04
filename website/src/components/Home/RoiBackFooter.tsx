@@ -18,7 +18,6 @@ const Footer = () => {
     const bookingContext = useSelector((state: RootState) => state.booking);
 
     const propertyAddress = bookingContext.PropertyDetails?.address;
-    console.log(propertyAddress);
     // Use the shared hook to get colors and logo consistently
     const { colors, logoIcon } = useBookingStorage(bookingContext);
 

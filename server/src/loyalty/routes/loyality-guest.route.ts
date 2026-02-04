@@ -9,12 +9,12 @@ const router = Router();
 const loyaltyGuestController = new LoyaltyGuestController();
 
 // ===== Loyalty Guest Routes =====
-router.route("/")
-    .post(
-        protect,
-        checkRoleBased("canCreatePolicy"),
-        loyaltyGuestController.createLoyaltyGuest.bind(loyaltyGuestController)
-    );
+// router.route("/")
+//     .post(
+//         protect,
+//         checkRoleBased("canCreatePolicy"),
+//         loyaltyGuestController.createLoyaltyGuest.bind(loyaltyGuestController)
+//     );
 
 router.route("/:id")
     .delete(
@@ -35,6 +35,26 @@ router.route("/creation/:creationLoyaltyId")
         protect,
         checkRoleBased("canViewHotel"),
         loyaltyGuestController.getLoyaltyGuestsForCreation.bind(loyaltyGuestController)
+    );
+
+// ===== Booking Engine Public Routes (No Authentication) =====
+
+// Register new loyalty guest from booking engine
+router.route("/register")
+    .post(
+        loyaltyGuestController.registerGuestFromBookingEngine.bind(loyaltyGuestController)
+    );
+
+// Check loyalty discount for a guest
+router.route("/check-discount")
+    .post(
+        loyaltyGuestController.checkLoyaltyDiscount.bind(loyaltyGuestController)
+    );
+
+// Get loyalty guest by email (for booking engine)
+router.route("/by-email/:propertyId/:email")
+    .get(
+        loyaltyGuestController.getLoyaltyGuestByEmail.bind(loyaltyGuestController)
     );
 
 export default router;

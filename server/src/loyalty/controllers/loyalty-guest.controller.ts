@@ -10,32 +10,7 @@ export class LoyaltyGuestController {
         this.loyaltyGuestService = new LoyaltyGuestService();
     }
 
-    public async createLoyaltyGuest(req: CustomRequest, res: Response): Promise<Response> {
-        try {
-            const data: ICloyalityGuests = req.body;
 
-            if (!data.creationLoyaltyConfigId) {
-                return res.status(400).json(errorResponse("Invalid Field Provided", "Creation Loyalty Config ID is required"));
-            }
-            if (!data.propertyId) {
-                return res.status(400).json(errorResponse("Invalid Field Provided", "Property ID is required"));
-            }
-            if (!data.propertyCode || data.propertyCode.trim() === "") {
-                return res.status(400).json(errorResponse("Invalid Field Provided", "Property Code is required"));
-            }
-            if (!data.guestId) {
-                return res.status(400).json(errorResponse("Invalid Field Provided", "Guest ID is required"));
-            }
-
-            const result = await this.loyaltyGuestService.createLoyaltyGuest(data);
-            return res.status(result.success ? 201 : 400).json(result);
-        } catch (error) {
-            if (error instanceof Error) {
-                return res.status(500).json(errorResponse("Failed to create loyalty guest", error.message));
-            }
-            return res.status(500).json(errorResponse("Internal Server Error", "Failed to create loyalty guest"));
-        }
-    }
 
     public async deleteLoyaltyGuest(req: CustomRequest, res: Response): Promise<Response> {
         try {
@@ -92,6 +67,88 @@ export class LoyaltyGuestController {
                 return res.status(500).json(errorResponse("Failed to retrieve loyalty guests for creation loyalty", error.message));
             }
             return res.status(500).json(errorResponse("Internal Server Error", "Failed to retrieve loyalty guests for creation loyalty"));
+        }
+    }
+
+    /**
+     * Register a new loyalty guest from booking engine
+     * POST /api/v1/loyalty/guest/register
+     */
+    public async registerGuestFromBookingEngine(req: CustomRequest, res: Response): Promise<Response> {
+        try {
+            const { email, propertyId, metadata } = req.body;
+
+            // Validation
+            if (!email || !propertyId) {
+                return res.status(400).json(errorResponse("Invalid Field Provided", "Email and propertyId are required"));
+            }
+
+            // Validate email format
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                return res.status(400).json(errorResponse("Invalid Email", "Invalid email format"));
+            }
+
+            const result = await this.loyaltyGuestService.registerGuestFromBookingEngine({
+                email,
+                propertyId,
+                metadata: metadata || {},
+            });
+
+            return res.status(result.success ? 201 : 400).json(result);
+        } catch (error) {
+            if (error instanceof Error) {
+                if (error.message.includes("already registered")) {
+                    return res.status(409).json(errorResponse("Already Registered", error.message));
+                }
+                return res.status(500).json(errorResponse("Failed to register guest", error.message));
+            }
+            return res.status(500).json(errorResponse("Internal Server Error", "Failed to register for loyalty program"));
+        }
+    }
+
+    /**
+     * Check if guest is a loyalty member and get discount details
+     * POST /api/v1/loyalty/guest/check-discount
+     */
+    public async checkLoyaltyDiscount(req: CustomRequest, res: Response): Promise<Response> {
+        try {
+            const { email, propertyId } = req.body;
+
+            // Validation
+            if (!email || !propertyId) {
+                return res.status(400).json(errorResponse("Invalid Request", "Email and propertyId are required"));
+            }
+
+            const result = await this.loyaltyGuestService.checkLoyaltyDiscount(email, propertyId);
+            return res.status(200).json(result);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res.status(500).json(errorResponse("Failed to check discount", error.message));
+            }
+            return res.status(500).json(errorResponse("Internal Server Error", "Failed to check discount"));
+        }
+    }
+
+    /**
+     * Get loyalty guest by email for a specific property
+     * GET /api/v1/loyalty/guest/by-email/:propertyId/:email
+     */
+    public async getLoyaltyGuestByEmail(req: CustomRequest, res: Response): Promise<Response> {
+        try {
+            const { email, propertyId } = req.params;
+
+            if (!email || !propertyId) {
+                return res.status(400).json(errorResponse("Invalid Request", "Email and propertyId are required"));
+            }
+
+            const result = await this.loyaltyGuestService.getGuestByEmailAndProperty(email, propertyId);
+            return res.status(result.success ? 200 : 404).json(result);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res.status(500).json(errorResponse("Failed to fetch guest details", error.message));
+            }
+            return res.status(500).json(errorResponse("Internal Server Error", "Failed to fetch guest details"));
         }
     }
 }

@@ -4,7 +4,9 @@ export interface ICloyalityGuests{
     creationLoyaltyConfigId:string;
     propertyId:string;
     propertyCode:string;
-    guestId:string;
+    guestId:string|null;
+    guestEmail:string;
+    metaData:any;
 }
 export interface ILoyalityGuests extends ICloyalityGuests{
 id:string;
@@ -16,6 +18,6 @@ export interface ILoyalityGuestsWDP extends ILoyalityGuests{
         propertyName:string;
         propertyCode:string;
     };
-    guest:IGuests;
+    guest:IGuests|null;
     
 }
