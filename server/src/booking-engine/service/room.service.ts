@@ -4,7 +4,7 @@ import { IBookingSearchPayload, IPromotion, IRoom, IRoomPrice } from "../types";
 
 export class RoomBookingService {
   public static async fetchRooms(payload: IBookingSearchPayload) {
-    const { PropertyCode, startDate, endDate, guests } = payload;
+    const { PropertyCode, startDate, endDate, guests, deviceType } = payload;
 
     const property = await RoomBookingRepository.getPropertyByCode(PropertyCode);
     if (!property || !property.isAvailable) {
@@ -19,20 +19,20 @@ export class RoomBookingService {
     //console.log("💰 Total rate plans:", property.ratePlans.length);
 
     // Build date array
- // Build date array - ONLY for nights stayed (exclude checkout date)
-const dates: Date[] = [];
-let current = toUTCDate(startDate);
-const last = toUTCDate(endDate);
+    // Build date array - ONLY for nights stayed (exclude checkout date)
+    const dates: Date[] = [];
+    let current = toUTCDate(startDate);
+    const last = toUTCDate(endDate);
 
-while (current < last) {  // ✅ Already correct - excludes checkout date
-  dates.push(current);
-  current = new Date(current);
-  current.setDate(current.getDate() + 1);
-  current = toUTCDate(current);  // Convert the incremented date back to UTC
-}
+    while (current < last) {  // ✅ Already correct - excludes checkout date
+      dates.push(current);
+      current = new Date(current);
+      current.setDate(current.getDate() + 1);
+      current = toUTCDate(current);  // Convert the incremented date back to UTC
+    }
 
-//console.log("📅 Dates for pricing:", dates.map(d => d.toISOString()));
-//console.log("📅 Number of nights:", dates.length);
+    //console.log("📅 Dates for pricing:", dates.map(d => d.toISOString()));
+    //console.log("📅 Number of nights:", dates.length);
 
     //console.log("📅 Date range:", dates);
 
@@ -42,7 +42,7 @@ while (current < last) {  // ✅ Already correct - excludes checkout date
 
     for (const room of property.propertyRooms) {
       //console.log(`\n🏠 Processing room: ${room.roomName} (${room.roomType})`);
-      
+
       // Check inventory for all dates
       const inventory = await RoomBookingRepository.getInventoryByProperty(
         PropertyCode,
@@ -61,7 +61,7 @@ while (current < last) {  // ✅ Already correct - excludes checkout date
 
       for (const ratePlan of property.ratePlans) {
         //console.log(`\n  💳 Processing rate plan: ${ratePlan.ratePlanName} (${ratePlan.ratePlanCode})`);
-        
+
         // Get all addons for this rate plan
         const ratePlanAddons = await RoomBookingRepository.getRatePlanAddons(
           ratePlan.id
@@ -142,7 +142,29 @@ while (current < last) {  // ✅ Already correct - excludes checkout date
         // Initialize totalAmount with selected tier price
         let totalAmount = Number(selectedTier.amountBeforeTax);
 
-        // Apply geo-based pricing (silent)
+        // ✅ STEP 1: Apply device-specific promotion FIRST (silent)
+        const devicePromotion = await this.getDeviceSpecificPromotion(
+          property.id,
+          room.id,
+          ratePlan.id,
+          dates[0],
+          deviceType
+        );
+
+        let deviceDiscountApplied = 0;
+        if (devicePromotion) {
+          const discountAmount = devicePromotion.DiscountType === "percentage"
+            ? totalAmount * (Number(devicePromotion.DiscountValue) / 100)
+            : Number(devicePromotion.DiscountValue);
+
+          totalAmount -= discountAmount;
+          deviceDiscountApplied = discountAmount;
+
+          //console.log(`    📱 Device promotion applied: -${discountAmount} (${devicePromotion.promotionName})`);
+          //console.log(`    💰 Price after device discount: ${totalAmount}`);
+        }
+
+        // ✅ STEP 2: Apply geo-based pricing (on discounted price)
         const geoAdjustment = await this.getGeoPricing(
           property.id,
           room.id,
@@ -166,18 +188,19 @@ while (current < last) {  // ✅ Already correct - excludes checkout date
           //console.log(`    🌍 Price adjusted: ${oldAmount} → ${totalAmount}`);
         }
 
-        // Calculate and add addon prices to total
+        // ✅ STEP 3: Calculate and add addon prices to total
         const totalAddonPrice = Object.values(addonPrices).reduce(
           (sum, price) => sum + price,
           0
         );
         totalAmount += totalAddonPrice;
 
+
         //console.log(`    💰 Final amount: ${totalAmount} (base: ${selectedTier.amountBeforeTax}, addons: ${totalAddonPrice})`);
 
         // Fetch available promotions
         const availablePromotions: IPromotion[] = [];
-        
+
         const promotions = await this.getApplicablePromotions(
           property.id,
           room.id,
@@ -277,7 +300,7 @@ while (current < last) {  // ✅ Already correct - excludes checkout date
         amenities: room.roomAmenities.map(r => r.amenity),
         has_valid_rate: room_price.length > 0,
         room_price,
-        roomVideos:room.roomVideos ||null,
+        roomVideos: room.roomVideos || null,
       });
     }
 
@@ -290,8 +313,8 @@ while (current < last) {  // ✅ Already correct - excludes checkout date
         propertyDetails: {
           id: property.id,
           propertyName: property.propertyName,
-          propertyVideos:property.propertyVideos,
-          loyaltyProgramConfig:property.loyaltyProgramConfig,
+          propertyVideos: property.propertyVideos,
+          loyaltyProgramConfig: property.loyaltyProgramConfig,
           propertyCode: property.propertyCode,
           starRating: property.starRating,
           bookingEngineConfig: property.bookingEngineConfig,
@@ -302,7 +325,26 @@ while (current < last) {  // ✅ Already correct - excludes checkout date
       }
     };
   }
+/**
+ * Get device-specific promotion (applied silently to price)
+ */
+private static async getDeviceSpecificPromotion(
+  propertyId: string,
+  roomId: string,
+  ratePlanId: string,
+  checkInDate: Date,
+  deviceType?: string
+) {
+  if (!deviceType) return null;
 
+  return RoomBookingRepository.getDeviceSpecificPromotion(
+    propertyId,
+    roomId,
+    ratePlanId,
+    checkInDate,
+    deviceType
+  );
+}
   /**
    * Calculate addon price based on posting rhythm
    */
@@ -444,7 +486,7 @@ while (current < last) {  // ✅ Already correct - excludes checkout date
   ) {
     const today = new Date();
     const checkInDate = dates[0];
-    
+
     return RoomBookingRepository.getPromotions(
       propertyId,
       roomId,

@@ -271,5 +271,62 @@ public static async getPromotions(
       where: { ratePlanId }
     });
   }
+/**
+ * Get device-specific promotion for silent application
+ */
+public static async getDeviceSpecificPromotion(
+  propertyId: string,
+  roomId: string,
+  ratePlanId: string,
+  checkInDate: Date,
+  deviceType: string
+) {
+  const checkInUTC = toUTCDate(checkInDate);
+  const todayUTC = toUTCDate(new Date());
+  
+  const dayOfWeek = checkInUTC.getDay();
+  
+  const dayApplicability: Record<number, string> = {
+    0: 'sunApplicable',
+    1: 'monApplicable',
+    2: 'tueApplicable',
+    3: 'wedApplicable',
+    4: 'thuApplicable',
+    5: 'friApplicable',
+    6: 'satApplicable'
+  };
+
+  const dayField = dayApplicability[dayOfWeek];
+
+  return prisma.promotion.findFirst({
+    where: {
+      propertyId,
+      OR: [
+        { roomId: roomId },
+        { roomId: null }
+      ],
+      ratePlanId,
+      isActive: true,
+      promotionType: "device_specific",
+      deviceType: {
+        has: deviceType as any
+      },
+      AND: [
+        {
+          OR: [
+            { AND: [{ validFrom: null }, { validTo: null }] },
+            { 
+              AND: [
+                { OR: [{ validFrom: null }, { validFrom: { lte: todayUTC } }] },
+                { OR: [{ validTo: null }, { validTo: { gte: checkInUTC } }] }
+              ]
+            }
+          ]
+        },
+        { [dayField]: true }
+      ]
+    }
+  });
+}
 
 }

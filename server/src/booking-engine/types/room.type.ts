@@ -1,3 +1,4 @@
+import { DeviceType } from "@prisma/client";
 import { IRoomVideo } from "../../property-management/types";
 
 export interface IBookingSearchPayload {
@@ -10,7 +11,7 @@ export interface IBookingSearchPayload {
   };
   PropertyCode: string;
   countryCode?: string; // For geo-based pricing
-  deviceType?: string; // For device-specific promotions (mobile, tablet, desktop)
+  deviceType?: DeviceType; // For device-specific promotions (mobile, tablet, desktop)
 }
 
 export interface IBaseByGuestAmount {
