@@ -20,7 +20,7 @@ export function attachPropertyDetails(
       if (req.property?.timezone) {
         return next();
       }
-
+      console.log(req.params)
       const resolved = resolvePropertyIdentifier(req, rule);
       console.log("resolved", resolved)
       if (!resolved) {

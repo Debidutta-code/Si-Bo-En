@@ -81,7 +81,12 @@ export class LoyaltyGuestRepository {
                         select:{
                             id:true,
                             propertyName:true,
-                            propertyCode:true
+                            propertyCode:true,
+                        }
+                    },
+                    CreationLoyaltyConfig:{
+                        select:{
+
                         }
                     }
                 },
