@@ -94,9 +94,9 @@ export class RoomRentCalculationController {
         children,
         adults,
         rooms,
-        userCountryCode,
-        detectedDeviceType,
-        parsedAddons
+        // userCountryCode,
+        // detectedDeviceType,
+        // parsedAddons
       );
 
       if (response.success) {
