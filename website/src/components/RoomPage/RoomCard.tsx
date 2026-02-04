@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Users, Ruler, Eye, Wifi, Coffee, Tv, Wind, Phone, Utensils, ChevronRight, Plus, Minus, ChevronDown, ChevronUp, ChevronLeft } from 'lucide-react';
 import RoomDetails from './RoomDetails';
+import AddonSelectionModal from './AddonSelectionModal';
 import { Room } from "../../store/roomsSlice";
-import { useBookingStorage } from '../../hooks/useBookingStorage'; // Adjust path as needed
+import { useBookingStorage } from '../../hooks/useBookingStorage';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/src/store/store';
 import { useCurrencyConverter } from '@/src/hooks/useCurrencyConverter';
+import toast from 'react-hot-toast';
 
 interface RoomCardProps {
   room: Room;
@@ -130,6 +132,12 @@ const RoomCard: React.FC<RoomCardProps> = ({
   const [collapsedRatePlans, setCollapsedRatePlans] = useState<Set<string>>(new Set());
   const [latestPrice, setLatestPrice] = useState<any>(null);
 
+  // New states for addon modal
+  const [addonModalOpen, setAddonModalOpen] = useState(false);
+  const [fetchedAddons, setFetchedAddons] = useState<any[]>([]);
+  const [pendingRatePlan, setPendingRatePlan] = useState<any>(null);
+  const [fetchingAddons, setFetchingAddons] = useState(false);
+
   const addonsRef = useRef<HTMLDivElement | null>(null);
 
   // Update price sidebar whenever addons change
@@ -164,6 +172,45 @@ const RoomCard: React.FC<RoomCardProps> = ({
 
   const handleBookNowClick = async (ratePlan: any) => {
     setLoadingPriceFor(ratePlan.ratePlanCode);
+    setPendingRatePlan(ratePlan);
+
+    try {
+      // Step 1: Always try to fetch available addons using the new API
+      setFetchingAddons(true);
+      try {
+        console.log('Fetching addons for:', bookingContext.PropertyCode, bookingContext.startDate, bookingContext.endDate);
+        const addonResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/addon/addon-datewise/available?propertyCode=${bookingContext.PropertyCode}&startDate=${bookingContext.startDate}&endDate=${bookingContext.endDate}`
+        );
+        const addonData = await addonResponse.json();
+        console.log('Addon response:', addonData);
+
+        if (addonResponse.ok && addonData.success && addonData.data?.length > 0) {
+          setFetchedAddons(addonData.data);
+          setAddonModalOpen(true);
+          setLoadingPriceFor(null);
+          setFetchingAddons(false);
+          return; // Wait for modal interaction
+        }
+      } catch (addonError) {
+        console.error('Error fetching addons:', addonError);
+        // Continue without addons if fetch fails
+      }
+      setFetchingAddons(false);
+
+      // Step 2: No addons available, proceed directly to price fetch
+      await proceedWithBooking(ratePlan, []);
+    } catch (error) {
+      console.error("Error in booking flow:", error);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setLoadingPriceFor(null);
+    }
+  };
+
+  // Helper function to proceed with booking after addon selection
+  const proceedWithBooking = async (ratePlan: any, selectedAddonsList: any[]) => {
+    setLoadingPriceFor(ratePlan.ratePlanCode);
     try {
       const payload = {
         propertyCode: bookingContext.PropertyCode,
@@ -191,30 +238,29 @@ const RoomCard: React.FC<RoomCardProps> = ({
       }
       setLatestPrice(data.data);
 
-      if (propertyDetails?.addonsEnabled && addons && addons.length > 0) {
-        setCollapsedRatePlans(prev => new Set(prev).add(ratePlan.ratePlanCode));
-        setExpandedRatePlan(ratePlan.ratePlanCode);
-        setSelectedAddons({});
-        scrollToAddons();
-
-        if (onPriceUpdate) {
-          const basePrice = data.data?.baseRatePerNight || 0;
-          onPriceUpdate({
-            room,
-            ratePlan,
-            selectedAddons: [],
-            basePrice,
-            totalAddonsPrice: 0,
-            finalprice: data.data,
-          });
-        }
-      } else {
-        onBookNow(room, ratePlan, []);
-      }
+      // Proceed to booking with selected addons
+      onBookNow(room, ratePlan, selectedAddonsList);
     } catch (error) {
-      console.error("Error fetching latest price:", error);
+      console.error("Error fetching price:", error);
+      toast.error("Failed to fetch price. Please try again.");
     } finally {
-      setLoadingPriceFor(null); // Always clear local loading
+      setLoadingPriceFor(null);
+    }
+  };
+
+  // Handle addon modal continue
+  const handleAddonContinue = (selectedAddonsList: any[]) => {
+    setAddonModalOpen(false);
+    if (pendingRatePlan) {
+      proceedWithBooking(pendingRatePlan, selectedAddonsList);
+    }
+  };
+
+  // Handle addon modal skip
+  const handleAddonSkip = () => {
+    setAddonModalOpen(false);
+    if (pendingRatePlan) {
+      proceedWithBooking(pendingRatePlan, []);
     }
   };
 
@@ -484,10 +530,10 @@ const RoomCard: React.FC<RoomCardProps> = ({
                       <button
                         onClick={() => handleBookNowClick(ratePlan)}
                         disabled={isLoadingForRatePlan(ratePlan.ratePlanCode) || isExpanded}
-                       style={{
-    backgroundColor: primaryColor || '#FF6B35',  // ✅ Add fallback
-    color: buttonTextColor || '#FFFFFF'  // ✅ Add fallback
-  }}
+                        style={{
+                          backgroundColor: primaryColor || '#FF6B35',  // ✅ Add fallback
+                          color: buttonTextColor || '#FFFFFF'  // ✅ Add fallback
+                        }}
                         className="px-4 md:px-5 py-2 rounded-lg font-semibold text-sm md:text-base transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg whitespace-nowrap hover:opacity-90"
                       >
                         {isLoadingForRatePlan(ratePlan.ratePlanCode) ? (
@@ -665,6 +711,23 @@ const RoomCard: React.FC<RoomCardProps> = ({
           }}
         />
       )}
+
+      {/* Addon Selection Modal */}
+      <AddonSelectionModal
+        isOpen={addonModalOpen}
+        onClose={() => {
+          setAddonModalOpen(false);
+          setPendingRatePlan(null);
+          setFetchedAddons([]);
+        }}
+        addons={fetchedAddons}
+        bookingDates={bookingDates}
+        onContinue={handleAddonContinue}
+        onSkip={handleAddonSkip}
+        primaryColor={primaryColor}
+        buttonTextColor={buttonTextColor}
+        currencyCode={pendingRatePlan?.currencyCode || 'USD'}
+      />
     </div>
   );
 };

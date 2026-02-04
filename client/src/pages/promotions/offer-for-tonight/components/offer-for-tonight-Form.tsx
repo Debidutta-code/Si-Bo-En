@@ -10,25 +10,25 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { 
-  CreateEarlyBirdPromotion, 
-  EarlyBirdPromotionWithRatePlan,
+  CreateOfferForTonight, 
+  OfferForTonightWithRatePlan,
   DiscountType,
   RoomRatePlanPair
 } from '../interfaces';
-import { Calendar } from 'lucide-react';
+import { Clock } from 'lucide-react';
 import type { CurrencyCode } from '../../mobile-only/interfaces';
 
-interface EarlyBirdPromotionFormProps {
+interface OfferForTonightFormProps {
   ratePlans: RatePlan[];
   roomTypes: RoomTypes[];
   propertyId: string;
-  onSubmit: (payload: CreateEarlyBirdPromotion) => Promise<void>;
+  onSubmit: (payload: CreateOfferForTonight) => Promise<void>;
   onCancel: () => void;
-  editData?: EarlyBirdPromotionWithRatePlan | null;
+  editData?: OfferForTonightWithRatePlan | null;
   isLoading: boolean;
 }
 
-const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
+const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
   ratePlans,
   roomTypes,
   propertyId,
@@ -41,10 +41,11 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
   const [discountType, setDiscountType] = useState<DiscountType>('percentage');
   const [discountValue, setDiscountValue] = useState<string>('10');
   const [currencyCode, setCurrencyCode] = useState<CurrencyCode>('USD');
-  const [validFrom, setValidFrom] = useState<string>('');
-  const [validTo, setValidTo] = useState<string>('');
+  const [bookingTimeFrom, setBookingTimeFrom] = useState<string>('12:00');
+  const [bookingTimeTo, setBookingTimeTo] = useState<string>('18:00');
+  const [startDate, setStartDate] = useState<string>('');
   const [hasEndDate, setHasEndDate] = useState<boolean>(false);
-  const [advanceBookingDays, setAdvanceBookingDays] = useState<string>('7');
+  const [endDate, setEndDate] = useState<string>('');
   const [isActive, setIsActive] = useState(true);
   
   // Room and Rate Plan Selection
@@ -62,22 +63,39 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
     sunday: true,
   });
 
+  // Set today's date as default start date
+  useEffect(() => {
+    if (!editData) {
+      const today = new Date().toISOString().split('T')[0];
+      setStartDate(today);
+    }
+  }, [editData]);
+
   useEffect(() => {
     if (editData) {
       setPromotionName(editData.promotionName);
       setDiscountType(editData.DiscountType);
       setDiscountValue(editData.DiscountValue.toString());
       setCurrencyCode(editData.currencyCode || 'USD');
-      setValidFrom(editData.validFrom ? new Date(editData.validFrom).toISOString().split('T')[0] : '');
-      setValidTo(editData.validTo ? new Date(editData.validTo).toISOString().split('T')[0] : '');
-      setHasEndDate(!!editData.validTo);
+      
+      // Extract date and time from validFrom and validTo
+      if (editData.validFrom) {
+        const fromDate = new Date(editData.validFrom);
+        setStartDate(fromDate.toISOString().split('T')[0]);
+        setBookingTimeFrom(fromDate.toTimeString().slice(0, 5));
+      }
+      if (editData.validTo) {
+        const toDate = new Date(editData.validTo);
+        setEndDate(toDate.toISOString().split('T')[0]);
+        setBookingTimeTo(toDate.toTimeString().slice(0, 5));
+        setHasEndDate(true);
+      }
+      
       setApplicableDays(editData.applicableDays);
       setIsActive(editData.isActive);
-      setAdvanceBookingDays(editData.advanceBookingDays?.toString() || '7');
       
       // Check if it's "all" mode or specific selection
       if (editData.roomRatePlans && editData.roomRatePlans.length > 0) {
-        // For now, treat edit as specific mode
         setSelectionMode('specific');
         const roomIds = editData.roomRatePlans
           .map(rp => rp.roomId)
@@ -136,6 +154,20 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
     return activeDays.join(', ');
   };
 
+  // Generate time options (24-hour format)
+  const generateTimeOptions = () => {
+    const options = [];
+    for (let hour = 0; hour < 24; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        options.push(timeString);
+      }
+    }
+    return options;
+  };
+
+  const timeOptions = generateTimeOptions();
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -190,15 +222,26 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
       }
     }
 
-    const payload: CreateEarlyBirdPromotion = {
+    // Combine date and time to create ISO timestamp for validFrom
+    const validFromDateTime = new Date(`${startDate}T${bookingTimeFrom}:00`);
+    const validFrom = validFromDateTime.toISOString();
+
+    // Combine date and time to create ISO timestamp for validTo
+    // If no end date is set, use the same start date with the "to" time
+    let validTo: string | null = null;
+    const dateForValidTo = hasEndDate && endDate ? endDate : startDate;
+    const validToDateTime = new Date(`${dateForValidTo}T${bookingTimeTo}:00`);
+    validTo = validToDateTime.toISOString();
+
+    const payload: CreateOfferForTonight = {
       propertyId,
-      promotionType: 'early_bird',
+      promotionType: 'offer_for_tonight',
       promotionName,
       discountType,
       discountValue: parseFloat(discountValue),
       currencyCode: discountType === 'flat' ? currencyCode : undefined,
       validFrom,
-      validTo: hasEndDate ? validTo || null : null,
+      validTo,
       roomRatePlans,
       monApplicable: applicableDays.monday,
       tueApplicable: applicableDays.tuesday,
@@ -207,7 +250,6 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
       friApplicable: applicableDays.friday,
       satApplicable: applicableDays.saturday,
       sunApplicable: applicableDays.sunday,
-      advanceBookingDays: advanceBookingDays ? parseInt(advanceBookingDays) : undefined,
     };
 
     await onSubmit(payload);
@@ -233,44 +275,73 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
         {/* Header */}
         <div className="pb-4 border-b border-border">
           <h3 className="text-lg font-semibold text-foreground">
-            {editData ? 'Edit' : 'Create'} Early Bird Promotion
+            {editData ? 'Edit' : 'Create'} Offer For Tonight
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Secure your occupancy in advance with early booking discounts
+            Stand out among search results of the same-day bookings
           </p>
         </div>
 
-        {/* Advance Booking Days */}
+        {/* Available Booking Time */}
         <div className="space-y-3 p-4 bg-muted/20 rounded-lg border border-border">
           <div className="flex items-start space-x-2">
-            <Calendar className="w-5 h-5 text-primary mt-0.5" />
+            <Clock className="w-5 h-5 text-primary mt-0.5" />
             <div className="flex-1">
-              <h4 className="text-sm font-semibold text-foreground">Advance booking days *</h4>
+              <h4 className="text-sm font-semibold text-foreground">Available booking time</h4>
               <p className="text-xs text-muted-foreground mt-1">
-                How far do guests book in advance in order to use this promotion?
+                Based on the property's local time zone
               </p>
             </div>
           </div>
           
-          <div className="flex items-center space-x-3">
-            <input
-              type="number"
-              value={advanceBookingDays}
-              onChange={(e) => setAdvanceBookingDays(e.target.value)}
-              min="1"
-              className="w-24 px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
-              required
-            />
-            <span className="text-sm text-foreground">Day(s) or more</span>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+            <div>
+              <label className="block text-xs text-muted-foreground mb-2">
+                From *
+              </label>
+              <Select value={bookingTimeFrom} onValueChange={setBookingTimeFrom}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="max-h-60">
+                  {timeOptions.map(time => (
+                    <SelectItem key={`from-${time}`} value={time}>
+                      {time}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex items-center justify-center pb-2">
+              <span className="text-sm text-muted-foreground">to</span>
+            </div>
+
+            <div>
+              <label className="block text-xs text-muted-foreground mb-2">
+                To *
+              </label>
+              <Select value={bookingTimeTo} onValueChange={setBookingTimeTo}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="max-h-60">
+                  {timeOptions.map(time => (
+                    <SelectItem key={`to-${time}`} value={time}>
+                      {time}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          {advanceBookingDays && parseInt(advanceBookingDays) > 0 && (
-            <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-              <p className="text-xs text-blue-700 dark:text-blue-300">
-                Guests must book at least <span className="font-semibold">{advanceBookingDays} day(s)</span> before check-in to qualify for this promotion
-              </p>
-            </div>
-          )}
+          <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+            <p className="text-xs text-blue-700 dark:text-blue-300">
+              Guests can book between <span className="font-semibold">{bookingTimeFrom}</span> and{' '}
+              <span className="font-semibold">{bookingTimeTo}</span> for same-day check-in
+            </p>
+          </div>
         </div>
 
         {/* Room Types and Rate Plans */}
@@ -582,15 +653,19 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
             <div className="space-y-3">
               <div>
                 <label className="block text-xs text-muted-foreground mb-1">
-                  Valid continuously from start date *
+                  Start date *
                 </label>
                 <input
                   type="date"
-                  value={validFrom}
-                  onChange={(e) => setValidFrom(e.target.value)}
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
                   className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
                   required
                 />
+                <p className="text-xs text-muted-foreground mt-1">
+                  By default, promotion applies only to this date (from {bookingTimeFrom} to {bookingTimeTo})
+                </p>
               </div>
 
               <div className="flex items-center space-x-2">
@@ -600,12 +675,12 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
                   checked={hasEndDate}
                   onChange={(e) => {
                     setHasEndDate(e.target.checked);
-                    if (!e.target.checked) setValidTo('');
+                    if (!e.target.checked) setEndDate('');
                   }}
                   className="w-4 h-4 text-primary border-border rounded focus:ring-2 focus:ring-primary"
                 />
                 <label htmlFor="hasEndDate" className="text-sm text-foreground cursor-pointer">
-                  Set end date (optional)
+                  Apply to multiple dates (set end date)
                 </label>
               </div>
 
@@ -616,11 +691,14 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
                   </label>
                   <input
                     type="date"
-                    value={validTo}
-                    onChange={(e) => setValidTo(e.target.value)}
-                    min={validFrom}
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    min={startDate}
                     className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
                   />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Promotion will apply from {startDate} to {endDate || 'end date'}
+                  </p>
                 </div>
               )}
             </div>
@@ -664,7 +742,13 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
                   Promotion will be active on:
                 </p>
                 <p className="text-sm text-blue-900 dark:text-blue-100 font-medium mt-1">
-                  {getDiscountDisplayText()}: Valid from {validFrom || 'start date'}{hasEndDate && validTo ? ` to ${validTo}` : ' onwards'}, including {getActiveDaysSummary()}.
+                  {getDiscountDisplayText()}: 
+                  {hasEndDate && endDate ? (
+                    <> Valid from {startDate} to {endDate}</>
+                  ) : (
+                    <> Valid on {startDate} ({bookingTimeFrom} - {bookingTimeTo})</>
+                  )}
+                  , including {getActiveDaysSummary()}.
                 </p>
               </div>
             )}
@@ -686,7 +770,7 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
             type="text"
             value={promotionName}
             onChange={(e) => setPromotionName(e.target.value)}
-            placeholder={`${getDiscountDisplayText()} - Early Bird - ${validFrom || 'Start Date'}`}
+            placeholder={`${getDiscountDisplayText()} - Offer For Tonight - ${startDate || 'Start Date'}`}
             className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
             required
           />
@@ -725,7 +809,7 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
             disabled={
               isLoading || 
               !promotionName || 
-              !validFrom || 
+              !startDate || 
               (selectionMode === 'specific' && selectedRatePlans.length === 0) ||
               !Object.values(applicableDays).some(v => v)
             }
@@ -738,4 +822,4 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
   );
 };
 
-export default EarlyBirdPromotionForm;
+export default OfferForTonightForm;

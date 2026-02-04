@@ -18,6 +18,7 @@ export interface IEarlyBirdPromotionBase {
   currencyCode?: CurrencyCode;
   validFrom: Date;
   validTo?: Date;
+  advanceBookingDays?: number;
 }
 
 // Early Bird Promotion (array of room-rateplan pairs)
@@ -48,6 +49,7 @@ export interface IEarlyBirdPromotionUpdate {
   satApplicable?: boolean;
   sunApplicable?: boolean;
   isActive?: boolean;
+  advanceBookingDays?:number
 }
 
 // Response interface for early-bird promotion

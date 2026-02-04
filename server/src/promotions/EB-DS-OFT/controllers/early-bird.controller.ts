@@ -26,6 +26,7 @@ export class EarlyBirdPromotionController {
         friApplicable,
         satApplicable,
         sunApplicable,
+        advanceBookingDays
       } = req.body;
 
       // Basic validation
@@ -45,7 +46,9 @@ export class EarlyBirdPromotionController {
           errorResponse('At least one room-rateplan pair is required for early-bird promotion')
         );
       }
-
+      if(!advanceBookingDays){
+        errorResponse('Advance booking days is required for early-bird promotion')
+      }
       // Validate each room-rateplan pair
       for (const pair of roomRatePlans) {
         if (!pair.ratePlanId || !pair.ratePlanCode) {
@@ -72,6 +75,7 @@ export class EarlyBirdPromotionController {
         friApplicable: friApplicable ?? true,
         satApplicable: satApplicable ?? true,
         sunApplicable: sunApplicable ?? true,
+        advanceBookingDays
       };
 
       const result = await EarlyBirdPromotionService.createEarlyBirdPromotion(promotionData);

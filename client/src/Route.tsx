@@ -45,7 +45,7 @@ import GeoRatePlanList from "./pages/promotions/geo/page.tsx";
 import MLOSRuleList from "./pages/promotions/mlos/page.tsx";
 import { DeviceSpecificPromotionList } from "./pages/promotions/mobile-only/page.tsx";
 import { EarlyBirdPromotionList } from "./pages/promotions/early-bird/page.tsx";
-import { OfferForTonightPromotionList } from "./pages/promotions/offer-for-tonight/page.tsx";
+import  {OfferForTonightList}  from "./pages/promotions/offer-for-tonight/page.tsx";
 import CustomizablePromotionList from "./pages/promotions/customizable-promotion/page.tsx";
 import LoyaltyForm from "./pages/loyalty/LoyaltyForm.tsx";
 import LoyaltyGuest from "./pages/loyalty/LoyaltyGuest.tsx"
@@ -119,7 +119,7 @@ export const router = createBrowserRouter(
         <Route path="mlos/:propertyId" element={<MLOSRuleList />} />
         <Route path="device-specific/:propertyId" element={<DeviceSpecificPromotionList />} />
         <Route path="early-bird/:propertyId" element={<EarlyBirdPromotionList />} />
-        <Route path="offer-for-tonight/:propertyId" element={<OfferForTonightPromotionList />} />
+        <Route path="offer-for-tonight/:propertyId" element={<OfferForTonightList />} />
         <Route path="customizable-deal/:propertyId" element={<CustomizablePromotionList />} />
         </Route>
 

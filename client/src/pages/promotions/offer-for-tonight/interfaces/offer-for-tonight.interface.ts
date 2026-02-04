@@ -1,4 +1,4 @@
-export type PromotionType = 'early_bird';
+export type PromotionType = 'offer_for_tonight';
 export type DiscountType = 'percentage' | 'flat';
 export type CurrencyCode = 'USD' | 'EUR' | 'INR';
 
@@ -22,7 +22,7 @@ export interface ApplicableDays {
 }
 
 // Create Early Bird Promotion payload
-export interface CreateEarlyBirdPromotion {
+export interface CreateOfferForTonight {
   promotionName: string;
   propertyId: string;
   promotionType: PromotionType;
@@ -43,7 +43,7 @@ export interface CreateEarlyBirdPromotion {
 }
 
 // Update Early Bird Promotion payload
-export interface UpdateEarlyBirdPromotion {
+export interface UpdateOfferForTonight {
   promotionName?: string;
   validFrom?: string;
   validTo?: string | null;
@@ -62,7 +62,7 @@ export interface UpdateEarlyBirdPromotion {
 }
 
 // Early Bird Promotion response with RatePlan details
-export interface EarlyBirdPromotionWithRatePlan {
+export interface OfferForTonightWithRatePlan {
   id: string;
   promotionName: string;
   propertyId: string;

@@ -62,8 +62,8 @@ const DeviceSpecificPromotionForm: React.FC<DeviceSpecificPromotionFormProps> = 
       setSelectedRatePlan(editData.ratePlanId);
       setSelectedRatePlanCode(editData.ratePlanCode);
       setPromotionName(editData.promotionName);
-      setDiscountType(editData.discountType);
-      setDiscountValue(editData.discountValue.toString());
+      setDiscountType(editData.DiscountType);
+      setDiscountValue(editData.DiscountValue.toString());
       setCurrencyCode(editData.currencyCode || 'USD' as CurrencyCode);
       setValidFrom(editData.validFrom ? new Date(editData.validFrom).toISOString().split('T')[0] : '');
       setValidTo(editData.validTo ? new Date(editData.validTo).toISOString().split('T')[0] : '');
