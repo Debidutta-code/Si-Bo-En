@@ -14,7 +14,7 @@ interface RoomCardProps {
   propertyDetails: any;
   addons: any[];
   bookingContext: any;
-  onBookNow: (room: Room, ratePlan: any, selectedAddons: any[]) => void;
+  onBookNow: (room: Room, ratePlan: any, selectedAddons: any[], selectedPromotion: any) => void;
   loadingBookNow: string | null;
   onPriceUpdate?: (data: {
     room: Room;
@@ -270,7 +270,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
       setLatestPrice(data.data);
 
       // Proceed to booking with selected addons
-      onBookNow(room, ratePlan, selectedAddonsList);
+      onBookNow(room, ratePlan, selectedAddonsList,selectedPromotion);
     } catch (error) {
       console.error("Error fetching price:", error);
       toast.error("Failed to fetch price. Please try again.");
@@ -324,7 +324,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
     const selectedAddonsList = Object.values(selectedAddons);
     const currentRatePlan = room.room_price.find((rp: any) => rp.ratePlanCode === expandedRatePlan);
 
-    onBookNow(room, currentRatePlan, selectedAddonsList);
+    onBookNow(room, currentRatePlan, selectedAddonsList ,selectedPromotions);
     setExpandedRatePlan(null);
     setSelectedAddons({});
     setCollapsedRatePlans(new Set());
@@ -332,7 +332,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
 
   const handleSkip = () => {
     const currentRatePlan = room.room_price.find((rp: any) => rp.ratePlanCode === expandedRatePlan);
-    onBookNow(room, currentRatePlan, []);
+    onBookNow(room, currentRatePlan, [],selectedPromotions);
     setExpandedRatePlan(null);
     setSelectedAddons({});
     setCollapsedRatePlans(new Set());
