@@ -292,20 +292,20 @@ const Rooms = () => {
 
   const handleSearchStart = async (payload: any) => {
     const bookingCtx = payload || bookingContext;
-    
+
     // ✅ Validate required fields before making API call
     if (!bookingCtx?.PropertyCode) {
       console.error("❌ Missing PropertyCode");
       setInitialLoading(false);
       return;
     }
-    
+
     if (!bookingCtx?.startDate || !bookingCtx?.endDate) {
       console.error("❌ Missing dates");
       setInitialLoading(false);
       return;
     }
-    
+
     if (!bookingCtx?.guests || typeof bookingCtx.guests.rooms !== 'number') {
       console.error("❌ Invalid guests data");
       setInitialLoading(false);
@@ -417,7 +417,7 @@ const Rooms = () => {
 
     // Check if we have external params (checkin/checkout indicates external source)
     const hasExternalParams = !!(code && (checkin || checkout || adults || children || rooms));
-    
+
     if (hasExternalParams) {
       // Will be set in the initialization useEffect
       const today = new Date();
@@ -431,7 +431,7 @@ const Rooms = () => {
       // Parse rooms data from localStorage if available
       let roomsArray = [];
       const numRooms = parseInt(rooms || "1");
-      
+
       try {
         const storedContext = localStorage.getItem("bookingContext");
         if (storedContext) {
@@ -450,7 +450,7 @@ const Rooms = () => {
       if (roomsArray.length === 0) {
         const totalAdults = parseInt(adults || "1");
         const totalChildren = parseInt(children || "0");
-        
+
         // Distribute guests across rooms
         for (let i = 0; i < numRooms; i++) {
           roomsArray.push({
@@ -497,16 +497,16 @@ const Rooms = () => {
 
       // First, try to get data from URL params
       const paramsData = getBookingDataFromParams();
-      
+
       if (paramsData) {
         // Data from external source (URL params)
         console.log("📥 Loading from URL params:", paramsData);
-        
+
         // Mark as external and show loader
         setIsExternalRequest(true);
         setInitialLoading(true);
         isLoadingFromExternal.current = true; // Prevent SearchWidget from triggering
-        
+
         // Ensure dates are set
         const contextWithDates = {
           ...paramsData,
@@ -523,10 +523,10 @@ const Rooms = () => {
       } else {
         // No URL params, check localStorage
         const storedContext = localStorage.getItem("bookingContext");
-        
+
         if (storedContext) {
           const parsedContext = JSON.parse(storedContext);
-          
+
           // Validate stored context has required fields
           const validatedContext = {
             ...parsedContext,
@@ -541,7 +541,7 @@ const Rooms = () => {
             location: parsedContext.location || "",
             numberOfRooms: parsedContext.numberOfRooms || parsedContext.guests?.rooms || 1
           };
-          
+
           console.log("💾 Loading from localStorage:", validatedContext);
           dispatch(setBookingContext(validatedContext));
           dispatch(setBookingSource(parsedContext.bookingSource || "direct"));
@@ -579,18 +579,18 @@ const Rooms = () => {
   useEffect(() => {
     if (!initializedRef.current) return; // Only run after initialization
     if (isLoadingFromExternal.current) return; // Don't run during external load
-    
+
     const urlCode = searchParams.get("code");
-    
+
     if (urlCode && urlCode !== bookingContext.PropertyCode) {
       console.log("🔄 Property code changed in URL:", urlCode);
-      
+
       // Ensure we have valid dates
       const today = new Date();
       today.setDate(today.getDate() + 1);
       const tomorrow = new Date(today);
       tomorrow.setDate(today.getDate() + 1);
-      
+
       const updatedContext = {
         ...bookingContext,
         PropertyCode: urlCode,
@@ -677,13 +677,13 @@ const Rooms = () => {
         onLoad={() => setLoaded(true)}
       >
         <div className="sticky top-0 z-40 bg-white/90 backdrop-blur shadow-sm">
-          <SearchWidget 
+          <SearchWidget
             onSearchStart={(payload) => {
               // Don't trigger if we're loading from external source
               if (!isLoadingFromExternal.current) {
                 handleSearchStart(payload);
               }
-            }} 
+            }}
           />
         </div>
 
@@ -691,97 +691,10 @@ const Rooms = () => {
           <div className="max-w-7xl mx-auto mt-10">
             <div className="flex gap-6">
               <div className={`flex-1 ${showPriceSummary ? 'lg:w-2/3' : 'w-full'} transition-all duration-300`}>
-                {showUrgencyBanner && (
-                  <div className="relative mb-8">
-                    <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                      <div className="relative">
-                        <button
-                          className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition-colors z-10"
-                          onClick={handleCloseUrgencyBanner}
-                          aria-label="Close urgency message"
-                        >
-                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        </button>
 
-                        <div className="text-center px-6 pt-12 pb-4">
-                          <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
-                            YOU WILL GET THE BEST AVAILABLE PRICE IF YOU BOOK NOW!
-                          </h3>
-                          <p className="text-sm md:text-base text-gray-600 font-medium">
-                            THE PRICES CAN RISE AT ANY MOMENT. DON'T WAIT ANY LONGER!
-                          </p>
-                        </div>
-                      </div>
-                    </div>
 
-                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-20">
-                      <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center shadow-md border border-amber-200">
-                        <MessageCircle />
-                      </div>
-                    </div>
+                <div>
 
-                    <div
-                      className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 z-10 cursor-pointer"
-                      onClick={handleOpenUrgencyModal}
-                    >
-                      <div className="w-7 h-7 rounded-full border-2 border-gray-800 flex items-center justify-center bg-white shadow-lg hover:bg-gray-50 transition-colors">
-                        <Plus size={15} />
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="mb-6 bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
-                  <div className="flex flex-col md:flex-row md:items-center gap-4">
-                    <div className="flex items-center gap-2 flex-1">
-                      <Building2 className="w-5 h-5 text-gray-700" />
-                      <span className="text-sm md:text-base font-medium text-gray-900">
-                        {roomsData.filter((room: Room) => room.has_valid_rate).length} Types of rooms available at {bookingContext?.hotelName || 'this hotel'}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4" />
-                        <span>From {bookingContext.startDate} to {bookingContext.endDate}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Moon className="w-4 h-4" />
-                        <span>{(() => {
-                          const start = new Date(bookingContext.startDate);
-                          const end = new Date(bookingContext.endDate);
-                          const nights = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-                          return `${nights} night${nights > 1 ? 's' : ''}`;
-                        })()}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                    <Select value={selectedBoardType} onValueChange={setSelectedBoardType}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select board type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All board types</SelectItem>
-                        {availableBoardTypes.map((boardType) => {
-                          const value = boardType
-                            .toLowerCase()
-                            .replace(/ & /g, "-")
-                            .replace(/[^a-z0-9-]/g, "-")
-                            .replace(/-+/g, "-");
-
-                          return (
-                            <SelectItem key={boardType} value={value}>
-                              {boardType}
-                            </SelectItem>
-                          );
-                        })}
-                      </SelectContent>
-                    </Select>
-                  </div>
                 </div>
 
                 <div className="px-4 sm:px-4 py-4 bg-white border border-gray-200 rounded-xl">

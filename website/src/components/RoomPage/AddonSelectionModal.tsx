@@ -136,7 +136,9 @@ const AddonSelectionModal: React.FC<AddonSelectionModalProps> = ({
     );
 
     const displayedAddons = showAllAddons ? groupedAddons : groupedAddons.slice(0, 4);
-
+    const convertText = (text: string) => text.split("_").map((word, index) => {
+        return word.charAt(0).toUpperCase() + word.slice(1);
+    }).join(" ");
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
             <DialogContent className="sm:max-w-2xl md:max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
@@ -180,14 +182,13 @@ const AddonSelectionModal: React.FC<AddonSelectionModalProps> = ({
                                                         className="w-20 h-20 rounded-lg object-cover flex-shrink-0 border border-gray-200"
                                                     />
                                                 )}
-
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-start justify-between gap-2 mb-1">
                                                         <h5 className="font-bold text-sm text-gray-900 leading-tight">
                                                             {addon.name}
                                                         </h5>
                                                         <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-semibold whitespace-nowrap">
-                                                            {addon.postingRhythm}
+                                                            {convertText(addon.postingRhythm)}
                                                         </span>
                                                     </div>
 
