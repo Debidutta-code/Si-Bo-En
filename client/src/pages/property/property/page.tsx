@@ -34,7 +34,7 @@ import { minutesToTime, timeToMinutes } from './utils/time.utils';
 export default function PropertyPage() {
     const { user } = useAppSelector((state) => state.user);
 
-    const { propertyId } = useParams<{ propertyId: string }>();
+    const { creationId } = useParams<{ creationId: string }>();
     const [propertyConfig, setPropertyConfig] = useState<IUPropertyConfig>({
         channelManagerIntegrationActive: false,
         pmsIntegrationActive: false,
@@ -86,13 +86,13 @@ export default function PropertyPage() {
     useEffect(() => {
         const fetchProperty = async () => {
             try {
-                if (!propertyId) {
+                if (!creationId) {
                     toast.error("Property ID is required");
                     navigate('/app/property');
                     return;
                 }
 
-                const response = await getPropertyCreationId(propertyId);
+                const response = await getPropertyCreationId(creationId);
                 if (response.success) {
                     setIsCreationCompleted(response.isPropertyCreated);
                     setCreationDetails(response.data.creationData);
@@ -111,7 +111,7 @@ export default function PropertyPage() {
         };
 
         fetchProperty();
-    }, [propertyId, navigate]);
+    }, [creationId, navigate]);
 
     const fetchUsers = async () => {
         try {
@@ -150,17 +150,17 @@ export default function PropertyPage() {
             setIsLoading(false)
         }
     }
-    const fetchPropertyConfig = async (propertyId: string) => {
+    const fetchPropertyConfig = async (creationId: string) => {
         if (user?.role != "super_admin") {
             return
         }
-        if (!propertyId) {
+        if (!creationId) {
             toast.error("Property Not Selected");
             return
         }
         try {
             setIsLoading(true)
-            const response = await fetchPropertyConfigService(propertyId)
+            const response = await fetchPropertyConfigService(creationId)
             if (response.success) {
                 setPropertyConfig(response.data);
                 // toast.success("Property Config fetched successfully")
@@ -185,9 +185,9 @@ export default function PropertyPage() {
 
     const handleCreateProperty = () => {
         if (!propertyDetails?.id) {
-            navigate(`/property/create?creationId=${propertyId}`);
+            navigate(`/property/create?creationId=${creationId}`);
         } else {
-            navigate(`/property/create?propertyId=${propertyDetails?.id}`);
+            navigate(`/property/create?creationId=${propertyDetails?.id}`);
         }
     };
 
@@ -266,12 +266,12 @@ export default function PropertyPage() {
     };
 
     const handleUpdateProperty = async () => {
-        if (!propertyId) {
+        if (!creationId) {
             toast.error('Invalid Property ID');
             return;
         }
         try {
-            const response = await updateCreationService(propertyId, updatePropertyDetails.name, updatePropertyDetails.images, updatePropertyDetails.isActive);
+            const response = await updateCreationService(creationId, updatePropertyDetails.name, updatePropertyDetails.images, updatePropertyDetails.isActive);
             if (!response.success) {
                 toast.error(response.message || 'Failed to update property');
                 return;

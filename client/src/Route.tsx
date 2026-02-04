@@ -50,6 +50,9 @@ import CustomizablePromotionList from "./pages/promotions/customizable-promotion
 import LoyaltyForm from "./pages/loyalty/LoyaltyForm.tsx";
 import LoyaltyGuest from "./pages/loyalty/LoyaltyGuest.tsx"
 import LoyaltyContent from "./pages/loyalty/LoyaltyContent.tsx";
+import PropertyLoyalityManagement from "./pages/loyalty/PropertyLoyalties.tsx";
+import PropertyLoyaltyGuests from "./pages/loyalty/PropertyLoyaltyGuests.tsx";
+import ActivePropertyLoyalty from "./pages/loyalty/ActivepropertyLoyaty.tsx";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -103,7 +106,11 @@ export const router = createBrowserRouter(
         <Route path="price-management/calendar/:propertyId" element={<CalendarView />} />
         <Route path="price-management/periods/:propertyId" element={<PeriodsManagement />} />
         <Route path="price-management/table/:propertyId" element={<TableView />} />
-       
+        <Route path="loyalty/:propertyId">
+        <Route path="" index element={<PropertyLoyalityManagement />} />
+        <Route path="active/:loyaltyConfigId" element={<ActivePropertyLoyalty />} />
+        <Route path="guests/:loyalityId" element={<PropertyLoyaltyGuests />} />
+        </Route>
        
        
         <Route path="promotion/">

@@ -53,3 +53,11 @@ export {
     getLoyalityByCreation,
     getAllCreationLoyalityWithProperty
 } from "./creation-loyality.api";
+
+export {
+    createLoyaltyGuest,
+    deleteLoyaltyGuest,
+    getLoyaltyGuestsForCreation,
+    getLoyaltyGuestsForProperty,
+    
+} from "./loyalty-guest.api";

@@ -16,6 +16,7 @@ export interface ICGuest{
 }
 export interface IGuests extends ICGuest{
     id:string;
+    isALoyalityGuest:boolean;
     createdAt:Date;
     updatedAt:Date;
     userIdentityCardType:IdentityType|null;

@@ -1057,7 +1057,8 @@ model Guests {
   loyalityGuests       LoyalityGuest[]
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
-
+  isALoyalityGuest      Boolean               @default(false) @map("is_a_loyality_guest")
+  @@unique([propertyId,email])
   @@map("guests")
 }
 
@@ -1446,7 +1447,10 @@ model LoyalityGuest {
 
   propertyId String   @map("property_id")
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-
+  propertyCode String @map("property_code")
   guestId String @map("guest_id")
   guest   Guests @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  @@unique([propertyId, guestId])
+  createdAt DateTime @default(now())
+  @@map("loyality_guests")
 }
