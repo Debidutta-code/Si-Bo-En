@@ -51,8 +51,6 @@ const navigation: NavItem[] = [
   { name: 'Manage Members', href: '/app/members', icon: Users, userLevels: [4, 3, 2, 1] },
   { name: 'Access Control', href: '/app/access-control', icon: Shield, userLevels: [4] },
   { name: 'Utils Management', href: '/app/utils-management', icon: Wrench, userLevels: [4] },
-  { name: 'Agency', href: '/app/agency', icon: Briefcase, userLevels: [4] },
-  { name: 'Agency Applications', href: '/app/agency/applications', icon: ClipboardCheck, userLevels: [4] },
 
 ];
 
@@ -78,6 +76,7 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
   const [isRestrictionsOpen, setIsRestrictionsOpen] = useState(false);
   const [isLoyaltyOpen, setIsLoyaltyOpen] = useState(false);
   const [isPromotionsOpen, setIsPromotionsOpen] = useState(false);
+  const [isAgencyOpen, setIsAgencyOpen] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem('isAuthenticated');
@@ -98,7 +97,7 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
     { name: 'Add On', href: `/property/add-on/${propertyId}`, icon: Users, userLevels: [4, 3, 2, 1] },
     { name: 'Tax System', href: `/property/tax-system/${propertyId}`, icon: Shield, userLevels: [4] },
   ];
-const promotionsItems = [
+  const promotionsItems = [
     { name: 'GEO', href: `/property/promotion/geo/${propertyId}`, icon: Globe, userLevels: [4, 3, 2, 1,0] },
     { name: 'MLOS', href: `/property/promotion/mlos/${propertyId}`, icon: ListEndIcon, userLevels: [4, 3, 2, 1,0] },
     { name: 'Device Specific', href: `/property/promotion/device-specific/${propertyId}`, icon: Smartphone, userLevels: [4, 3, 2, 1,0] },
@@ -107,14 +106,42 @@ const promotionsItems = [
     // { name: 'Customizable deal', href: `/property/promotion/customizable-deal/${propertyId}`, icon: Pen, userLevels: [4, 3, 2, 1,0] },
 
   ];
-  const loyaltyItems = [
-    { name: 'Configuration', href: `/app/property/loyalty/${user?.creation}`, icon: CalendarClock, userLevels: [0, 1, 2, 3, 4] },
-    { name: 'Register Form', href: `/app/property/loyalty/register-form/${user?.creation}`, icon: FileText, userLevels: [0, 1, 2, 3, 4] },
-    { name: 'Content Configuration', href: `/app/property/loyalty/content-config/${user?.creation}`, icon: Users, userLevels: [4, 3, 2, 1] },
-    { name: 'Loyalty Guests', href: `/app/property/loyalty/loyalty-guests/${user?.creation}`, icon: Shield, userLevels: [4] },
-  ];
 
-  const filteredLoyaltyItems = loyaltyItems.filter(item =>
+  const isPropertyContext = !!propertyId && location.pathname.startsWith('/property/');
+  
+  const getLoyaltyItems = () => {
+    const baseItems = [
+      { name: 'Configuration', href: `/app/property/loyalty/${user?.creation}`, icon: CalendarClock, userLevels: [0, 1, 2, 3, 4] },
+      { name: 'Register Form', href: `/app/property/loyalty/register-form/${user?.creation}`, icon: FileText, userLevels: [0, 1, 2, 3, 4] },
+      { name: 'Content Configuration', href: `/app/property/loyalty/content-config/${user?.creation}`, icon: Users, userLevels: [4, 3, 2, 1] },
+      { name: 'Loyalty Guests', href: `/app/property/loyalty/loyalty-guests/${user?.creation}`, icon: Shield, userLevels: [4] },
+    ];
+    
+    if (isPropertyContext && propertyId) {
+      baseItems.push({ name: 'Property Loyalty', href: `/property/loyalty/${propertyId}`, icon: Award, userLevels: [0, 1, 2, 3, 4] });
+    }
+    
+    return baseItems;
+  };
+
+  const filteredLoyaltyItems = getLoyaltyItems().filter(item =>
+    user && item.userLevels.includes(user.userLevel)
+  );
+
+  const getAgencyItems = () => {
+    const baseItems = [
+      { name: 'Agencies', href: `/app/agency`, icon: Briefcase, userLevels: [4] },
+      { name: 'Agency Applications', href: `/app/agency/applications`, icon: ClipboardCheck, userLevels: [4] },
+    ];
+    
+    if (isPropertyContext && propertyId) {
+      baseItems.push({ name: 'Property Agencies', href: `/property/${propertyId}/agencies`, icon: Briefcase, userLevels: [0, 1, 2, 3, 4] });
+    }
+    
+    return baseItems;
+  };
+
+  const filteredAgencyItems = getAgencyItems().filter(item =>
     user && item.userLevels.includes(user.userLevel)
   );
 
@@ -126,11 +153,7 @@ const promotionsItems = [
 
   const filteredManagementItems = managementItems.filter(item =>
     user && item.userLevels.includes(user.userLevel)
-  );
-
-  const isPropertyContext = !!propertyId && location.pathname.startsWith('/property/');
-
-  const restrictionsItems = [
+  );  const restrictionsItems = [
     { name: 'Start/Stop Sell', href: `/property/start-stop-sell/${propertyId}` },
     { name: 'CTA-CTD', href: `/property/cta-ctd/${propertyId}` },
   ];
@@ -192,13 +215,13 @@ const promotionsItems = [
               title="Loyalty"
               className={cn(
                 'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-                location.pathname.startsWith(`/app/property/loyalty`)
+                location.pathname.startsWith(`/app/property/loyalty`) || (isPropertyContext && location.pathname.startsWith(`/property/loyalty/${propertyId}`))
                   ? 'bg-primary/10 text-primary'
                   : 'text-gray-700 hover:bg-gray-50',
                 !isSidebarOpen && 'justify-center'
               )}
             >
-              <DollarSign className='h-5 w-5 flex-shrink-0' />
+              <Award className='h-5 w-5 flex-shrink-0' />
               <span className={cn('whitespace-nowrap flex-1 text-left', !isSidebarOpen && 'hidden')}>
                 Loyalty
               </span>
@@ -218,7 +241,54 @@ const promotionsItems = [
                     to={item.href}
                     className={cn(
                       'flex items-center px-3 py-2 rounded-lg text-sm transition-colors',
-                      location.pathname === item.href
+                      location.pathname === item.href || location.pathname.startsWith(item.href)
+                        ? 'bg-primary/10 text-primary font-medium'
+                        : 'text-gray-600 hover:bg-gray-50'
+                    )}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Agency Dropdown */}
+        {filteredAgencyItems.length > 0 && (
+          <div>
+            <button
+              onClick={() => setIsAgencyOpen(!isAgencyOpen)}
+              title="Agency"
+              className={cn(
+                'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                location.pathname.startsWith(`/app/agency`) || (isPropertyContext && location.pathname.startsWith(`/property/${propertyId}/agencies`))
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-gray-700 hover:bg-gray-50',
+                !isSidebarOpen && 'justify-center'
+              )}
+            >
+              <Briefcase className='h-5 w-5 flex-shrink-0' />
+              <span className={cn('whitespace-nowrap flex-1 text-left', !isSidebarOpen && 'hidden')}>
+                Agency
+              </span>
+              <ChevronDown className={cn(
+                'h-4 w-4 transition-transform',
+                isAgencyOpen && 'rotate-180',
+                !isSidebarOpen && 'hidden'
+              )} />
+            </button>
+
+            {/* Agency Dropdown Items */}
+            {isAgencyOpen && isSidebarOpen && (
+              <div className="ml-8 mt-1 space-y-1">
+                {filteredAgencyItems.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={cn(
+                      'flex items-center px-3 py-2 rounded-lg text-sm transition-colors',
+                      location.pathname === item.href || location.pathname.startsWith(item.href)
                         ? 'bg-primary/10 text-primary font-medium'
                         : 'text-gray-600 hover:bg-gray-50'
                     )}
@@ -526,46 +596,6 @@ const promotionsItems = [
               </div>
             )}
           </div>
-        )}
-
-        {/* Property Loyalty (only show when in property context) */}
-        {isPropertyContext && (
-          <Link
-            to={`/property/loyalty/${propertyId}`}
-            title="Property Loyalty"
-            className={cn(
-              'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-              location.pathname.startsWith(`/property/loyalty/${propertyId}`)
-                ? 'bg-primary/10 text-primary'
-                : 'text-gray-700 hover:bg-gray-50',
-              !isSidebarOpen && 'justify-center'
-            )}
-          >
-            <Award className='h-5 w-5 flex-shrink-0' />
-            <span className={cn('whitespace-nowrap', !isSidebarOpen && 'hidden')}>
-              Property Loyalty
-            </span>
-          </Link>
-        )}
-
-        {/* Property Agencies (only show when in property context) */}
-        {isPropertyContext && (
-          <Link
-            to={`/property/${propertyId}/agencies`}
-            title="Property Agencies"
-            className={cn(
-              'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-              location.pathname.startsWith(`/property/${propertyId}/agencies`)
-                ? 'bg-primary/10 text-primary'
-                : 'text-gray-700 hover:bg-gray-50',
-              !isSidebarOpen && 'justify-center'
-            )}
-          >
-            <Briefcase className='h-5 w-5 flex-shrink-0' />
-            <span className={cn('whitespace-nowrap', !isSidebarOpen && 'hidden')}>
-              Property Agencies
-            </span>
-          </Link>
         )}
       </nav>
 
