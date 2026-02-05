@@ -589,8 +589,6 @@ const [bookingSelectedPromotions, setBookingSelectedPromotions] = useState<any[]
     setShowPriceSummary(true);
   };
 
-  const handleBookNow = async (room: Room, ratePlan: any, selectedAddonsList: any[]) => {
-    setLoadingBookNow(`${room.id}-${ratePlan.ratePlanCode}`);
 const handleBookNow = async (room: Room, ratePlan: any, selectedAddonsList: any[], selectedPromotionsList: any[]) => {    setLoadingBookNow(`${room.id}-${ratePlan.ratePlanCode}`);
         setLoadingBookNow(`${room.id}-${ratePlan.ratePlanCode}`);
 setLoadingPrice(true);
