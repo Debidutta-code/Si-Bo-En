@@ -4,7 +4,7 @@ const axiosInstance = createAxiosInstance();
 
 export const getAgencies = async (page: number, limit: number) => {
     try {
-        const response = await axiosInstance.get("/agency", {
+        const response = await axiosInstance.get("/agency/agencies", {
             params: { page, limit }
         });
         return response.data;
@@ -22,7 +22,7 @@ export const getAgencies = async (page: number, limit: number) => {
 
 export const createAgency = async (data: ICAgency) => {
     try {
-        const response = await axiosInstance.post("/agency", data);
+        const response = await axiosInstance.post("/agency/agencies", data);
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {
@@ -37,7 +37,7 @@ export const createAgency = async (data: ICAgency) => {
 };
 export const getAgencyById = async (agencyId: string) => {
     try {
-        const response = await axiosInstance.get(`/agency/${agencyId}`);
+        const response = await axiosInstance.get(`/agency/agencies/${agencyId}`);
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {
@@ -52,7 +52,7 @@ export const getAgencyById = async (agencyId: string) => {
 };
 export const updateAgency = async (agencyId: string, data: ICAgency) => {
     try {
-        const response = await axiosInstance.put(`/agency/${agencyId}`, data);
+        const response = await axiosInstance.put(`/agency/agencies/${agencyId}`, data);
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {
@@ -67,7 +67,7 @@ export const updateAgency = async (agencyId: string, data: ICAgency) => {
 };
 export const deleteAgency = async (agencyId: string) => {
     try {
-        const response = await axiosInstance.delete(`/agency/${agencyId}`);
+        const response = await axiosInstance.delete(`/agency/agencies/${agencyId}`);
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {
@@ -83,8 +83,8 @@ export const deleteAgency = async (agencyId: string) => {
 
 export const getReservationsForAgency = async (agencyId: string,page: number=1,limit: number=10) => {
     try {
-        const response = await axiosInstance.get("/agency/reservations", {
-            params: { agencyId, page, limit }
+        const response = await axiosInstance.get(`/agency/agencies/${agencyId}/reservations`, {
+            params: { page, limit }
         });
         return response.data;
     } catch (error: any) {

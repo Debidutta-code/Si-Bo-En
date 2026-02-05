@@ -24,6 +24,10 @@ agenticPropertyRouter.route("/:id")
 agenticPropertyRouter.route("/available/:agencyId")
     .get(protect, agenticPropertyController.createAvailablePropertiesForAgents.bind(agenticPropertyController));
 
+// Get agencies by property
+agenticPropertyRouter.route("/property/:propertyId")
+    .get(protect, agenticPropertyController.getAgenciesByPropertyId.bind(agenticPropertyController));
+
 // Get reservations by agents
 agenticPropertyRouter.route("/reservations/:agencyId/:propertyId")
     .get(protect, attachPropertyDetails({

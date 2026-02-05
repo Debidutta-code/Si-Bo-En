@@ -15,7 +15,9 @@ export class AgencyRepository {
     public async getAgencies(skip: number = 0, take: number = 10): Promise<IAgency[]> {
         try {
             return await prisma.agency.findMany({
-
+                where: {
+                    isDeleted: false
+                },
                 skip,
                 take
             });
@@ -25,7 +27,11 @@ export class AgencyRepository {
     }
     public async getAgencyCount(): Promise<number> {
         try {
-            return await prisma.agency.count();
+            return await prisma.agency.count({
+                where: {
+                    isDeleted: false
+                }
+            });
         } catch (error) {
             throw new Error(`Failed to get agency count`);
         }
@@ -33,11 +39,22 @@ export class AgencyRepository {
     public async getAgencyById(id: string): Promise<IAgencyWD | null> {
         try {
 
-            return await prisma.agency.findUnique({
-                where: { id },
+            return await prisma.agency.findFirst({
+                where: { 
+                    id,
+                    isDeleted: false 
+                },
                 include: {
-                    AgenticProperties: true,
-                    Agents: true,
+                    AgenticProperties: {
+                        where: {
+                            isDeleted: false
+                        }
+                    },
+                    Agents: {
+                        where: {
+                            isDeleted: false
+                        }
+                    },
                 }
             });
         } catch (error) {

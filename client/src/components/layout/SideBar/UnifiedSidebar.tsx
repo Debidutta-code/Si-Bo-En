@@ -26,7 +26,9 @@ import {
   MoonIcon,
   // Pen,
   Sun,
-  Award
+  Award,
+  Briefcase,
+  ClipboardCheck
 } from 'lucide-react';
 import { useAppSelector } from '@/redux/hooks';
 import { useState } from 'react';
@@ -49,6 +51,8 @@ const navigation: NavItem[] = [
   { name: 'Manage Members', href: '/app/members', icon: Users, userLevels: [4, 3, 2, 1] },
   { name: 'Access Control', href: '/app/access-control', icon: Shield, userLevels: [4] },
   { name: 'Utils Management', href: '/app/utils-management', icon: Wrench, userLevels: [4] },
+  { name: 'Agency', href: '/app/agency', icon: Briefcase, userLevels: [4] },
+  { name: 'Agency Applications', href: '/app/agency/applications', icon: ClipboardCheck, userLevels: [4] },
 
 ];
 
@@ -540,6 +544,26 @@ const promotionsItems = [
             <Award className='h-5 w-5 flex-shrink-0' />
             <span className={cn('whitespace-nowrap', !isSidebarOpen && 'hidden')}>
               Property Loyalty
+            </span>
+          </Link>
+        )}
+
+        {/* Property Agencies (only show when in property context) */}
+        {isPropertyContext && (
+          <Link
+            to={`/property/${propertyId}/agencies`}
+            title="Property Agencies"
+            className={cn(
+              'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+              location.pathname.startsWith(`/property/${propertyId}/agencies`)
+                ? 'bg-primary/10 text-primary'
+                : 'text-gray-700 hover:bg-gray-50',
+              !isSidebarOpen && 'justify-center'
+            )}
+          >
+            <Briefcase className='h-5 w-5 flex-shrink-0' />
+            <span className={cn('whitespace-nowrap', !isSidebarOpen && 'hidden')}>
+              Property Agencies
             </span>
           </Link>
         )}

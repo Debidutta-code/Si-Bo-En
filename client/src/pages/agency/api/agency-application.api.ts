@@ -7,7 +7,7 @@ const axiosInstance = createAxiosInstance();
 
 export const agencyApplicationRequest = async(data: ICAgencyApplication) => {
     try {
-        const response = await axiosInstance.post("/agency/application", data);
+        const response = await axiosInstance.post("/agency/agency-applications", data);
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {
@@ -22,7 +22,7 @@ export const agencyApplicationRequest = async(data: ICAgencyApplication) => {
 };
 export const getAgencyApplications = async (status: fAgencyApplicationStatus, page: number=1, limit: number=10) => {
     try {
-        const response = await axiosInstance.get("/agency/application", {
+        const response = await axiosInstance.get("/agency/agency-applications", {
             params: { status, page, limit }
         });
         return response.data;
@@ -39,7 +39,7 @@ export const getAgencyApplications = async (status: fAgencyApplicationStatus, pa
 };
 export const updateApplicationStatus = async (applicationId: string, status: AgencyApplicationStatus, rejectionReason?: string) => {
     try {
-        const response = await axiosInstance.put(`/agency/application/${applicationId}/status`, {
+        const response = await axiosInstance.put(`/agency/agency-applications/${applicationId}/status`, {
             status,
             rejectionReason
         });
@@ -57,7 +57,7 @@ export const updateApplicationStatus = async (applicationId: string, status: Age
 };
 export const getAgencyApplicationByName = async (name: string) => {
     try {
-        const response = await axiosInstance.get(`/agency/application/name/${name}`);
+        const response = await axiosInstance.get(`/agency/agency-applications/name/${name}`);
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {
