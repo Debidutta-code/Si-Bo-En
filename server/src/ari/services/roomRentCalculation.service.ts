@@ -99,6 +99,7 @@ export class RoomRentCalculationService {
         noOfChildren: number,
         noOfAdults: number,
         noOfRooms: number,
+        guestEmail?: string, // ✅ NEW: Accept loyalty guest email
         addons?: any[]
     ): Promise<RateCalculationResult> {
         try {
@@ -188,25 +189,60 @@ export class RoomRentCalculationService {
                 return rateCalculation;
             }
 
-            // Step 4: Calculate tax on base amount only
+            let baseAmountAfterLoyaltyDiscount = rateCalculation.data!.breakdown.totalBaseAmount;
+            let loyaltyDiscountAmount = 0;
+            let loyaltyDiscountInfo = null;
+
+            // ✅ Step 3.5: Check for loyalty discount
+            if (guestEmail && propertyCode) {
+                const loyaltyDiscountResult = await this.getLoyalityDiscount(
+                    guestEmail,
+                    propertyCode,
+                    new Decimal(baseAmountAfterLoyaltyDiscount)
+                );
+
+                if (loyaltyDiscountResult.success && loyaltyDiscountResult.data) {
+                    loyaltyDiscountAmount = loyaltyDiscountResult.data.discountAmount;
+                    baseAmountAfterLoyaltyDiscount = loyaltyDiscountResult.data.amountAfterDiscount;
+                    
+                    loyaltyDiscountInfo = {
+                        type: loyaltyDiscountResult.data.discountType,
+                        value: loyaltyDiscountResult.data.discountValue,
+                        discountAmount: loyaltyDiscountResult.data.discountAmount,
+                        appliedTo: loyaltyDiscountResult.data.appliedTo,
+                        guestEmail: loyaltyDiscountResult.data.guestEmail,
+                        loyaltyMemberId: loyaltyDiscountResult.data.loyaltyMemberId
+                    };
+
+                    console.log('Loyalty discount applied:', loyaltyDiscountInfo);
+                } else {
+                    console.log('Loyalty discount not applied:', loyaltyDiscountResult.message);
+                }
+            }
+
+            // Step 4: Calculate tax on discounted base amount
             const taxCalculation = await this.calculateTax(
                 ratePlan,
-                rateCalculation.data!.breakdown.totalBaseAmount
+                baseAmountAfterLoyaltyDiscount
             );
 
             const totalTax = taxCalculation.totalTax;
-            const finalAmount = rateCalculation.data!.totalAmount + totalTax;
+            const finalAmount = baseAmountAfterLoyaltyDiscount + totalTax;
 
             return successResponse('Price calculated successfully', {
                 ...rateCalculation.data!,
                 tax: taxCalculation.taxDetails,
                 totalTax,
+                loyaltyDiscount: loyaltyDiscountInfo,
                 priceAfterTax: Number(finalAmount.toFixed(2)),
                 totalAmount: Number(finalAmount.toFixed(2)),
                 availableRooms: inventoryCheck.availableRooms!,
                 requestedRooms: noOfRooms,
                 breakdown: {
                     ...rateCalculation.data!.breakdown,
+                    totalBaseAmount: Number(baseAmountAfterLoyaltyDiscount.toFixed(2)),
+                    loyaltyDiscountAmount: Number(loyaltyDiscountAmount.toFixed(2)),
+                    originalBaseAmount: Number(rateCalculation.data!.breakdown.totalBaseAmount.toFixed(2)),
                     totalAmount: Number(finalAmount.toFixed(2)),
                     averagePerNight: Number((finalAmount / numberOfNights).toFixed(2)),
                 },
@@ -349,7 +385,7 @@ export class RoomRentCalculationService {
             return errorResponse('Internal server error');
         }
     }
-
+     
     private static validateInputs(
         propertyCode: string,
         invTypeCode: string,
@@ -1230,6 +1266,110 @@ export class RoomRentCalculationService {
                 return errorResponse("Failed to calculate addons", error.message);
             }
             return errorResponse("Failed to calculate addons");
+        }
+    }
+    private static async getLoyalityDiscount(
+        guestEmail: string,
+        propertyCode: string,
+        baseAmount: Decimal
+    ): Promise<IApiResponse> {
+        try {
+            // Validate required fields
+            if (!guestEmail || !propertyCode) {
+                return errorResponse("Guest email and property code are required");
+            }
+
+            if (!baseAmount || Number(baseAmount) <= 0) {
+                return errorResponse("Invalid base amount for loyalty discount calculation");
+            }
+
+            const property = await prisma.property.findUnique({
+                where: { propertyCode: propertyCode },
+                select: { id: true, propertyName: true }
+            });
+
+            if (!property) {
+                return errorResponse("Property not found");
+            }
+
+            // Check if guest is a loyalty member
+            const loyaltyGuest = await prisma.loyalityGuest.findFirst({
+                where: {
+                    guestEmail: guestEmail,
+                    propertyId: property.id,
+                }
+            });
+
+            if (!loyaltyGuest) {
+                return errorResponse(
+                    `Guest ${guestEmail} is not a loyalty member for this property`
+                );
+            }
+
+            // Get property loyalty config
+            const propertyLoyaltyConfig = await prisma.propertyLoyaltyConfig.findUnique({
+                where: { propertyId: property.id },
+                include: {
+                    CreationLoyaltyConfig: true
+                }
+            });
+
+            if (!propertyLoyaltyConfig) {
+                return errorResponse("Loyalty program not configured for this property");
+            }
+
+            if (!propertyLoyaltyConfig.isActive) {
+                return errorResponse("Loyalty program is not active for this property");
+            }
+
+            if (!propertyLoyaltyConfig.CreationLoyaltyConfig) {
+                return errorResponse("Loyalty program configuration is incomplete");
+            }
+
+            const loyaltyConfig = propertyLoyaltyConfig.CreationLoyaltyConfig;
+            
+            // Validate discount configuration
+            if (!loyaltyConfig.discountValue || !loyaltyConfig.loyaltyDiscountType) {
+                return errorResponse("Loyalty discount not configured properly");
+            }
+
+            const discountType = loyaltyConfig.loyaltyDiscountType;
+            const discountValue = loyaltyConfig.discountValue;
+            const baseAmountNumber = Number(baseAmount);
+
+            // Calculate discount based on type
+            let discountAmount = 0;
+
+            if (discountType === 'percentage') {
+                discountAmount = (baseAmountNumber * discountValue) / 100;
+            } else if (discountType === 'flat') {
+                discountAmount = discountValue;
+            } else {
+                return errorResponse(`Invalid discount type: ${discountType}`);
+            }
+
+            // Ensure discount doesn't exceed base amount
+            if (discountAmount > baseAmountNumber) {
+                discountAmount = baseAmountNumber;
+            }
+
+            return successResponse("Loyalty discount applied successfully", {
+                guestEmail: guestEmail,
+                propertyName: property.propertyName,
+                loyaltyMemberId: loyaltyGuest.id,
+                discountType: discountType,
+                discountValue: discountValue,
+                discountAmount: Number(discountAmount.toFixed(2)),
+                currencyCode: loyaltyConfig.currencyCode,
+                appliedTo: 'base_amount',
+                originalAmount: baseAmountNumber,
+                amountAfterDiscount: Number((baseAmountNumber - discountAmount).toFixed(2))
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                return errorResponse("Failed to calculate loyalty discount", error.message);
+            }
+            return errorResponse("Failed to calculate loyalty discount");
         }
     }
 }

@@ -26,6 +26,7 @@ interface RoomCardProps {
   }) => void;
   activeRatePlan?: string | null;
   selectedBoardType?: string;
+  loyaltyMemberEmail?: string;
 }
 
 // Helper to get dates between check-in and check-out (excluding checkout date)
@@ -91,7 +92,8 @@ const RoomCard: React.FC<RoomCardProps> = ({
   loadingBookNow,
   onPriceUpdate,
   activeRatePlan,
-  selectedBoardType
+  selectedBoardType,
+  loyaltyMemberEmail
 }) => {
   // const { currency: selectedCurrency } = useSelector((state: RootState) => state.booking);
   const [loadingPriceFor, setLoadingPriceFor] = useState<string | null>(null);
@@ -233,6 +235,11 @@ const [selectedPromotions, setSelectedPromotions] = useState<Record<string, any[
         noOfChildren: noOfChildrens,
         noOfRooms
       };
+
+      // ✅ ADD LOYALTY GUEST EMAIL TO PAYLOAD
+      if (loyaltyMemberEmail) {
+        payload.guestEmail = loyaltyMemberEmail;
+      }
 
       // ✅ ADD SELECTED PROMOTION TO PAYLOAD
       // Around line 223 - Update to send array of promotions:
