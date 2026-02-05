@@ -859,7 +859,7 @@ setLoadingPrice(true);
         }
       );
       const data = await response.json();
-      console.log(data)
+      //console.log(data)
       if (!response.ok || data.status === "fail") {
         const msg = data.message || "Failed to load rooms.";
         toast.error(msg);
@@ -1034,7 +1034,7 @@ setLoadingPrice(true);
 
       if (paramsData) {
         // Data from external source (URL params)
-        console.log("📥 Loading from URL params:", paramsData);
+        //console.log("📥 Loading from URL params:", paramsData);
 
         // Mark as external and show loader
         setIsExternalRequest(true);
@@ -1076,7 +1076,7 @@ setLoadingPrice(true);
             numberOfRooms: parsedContext.numberOfRooms || parsedContext.guests?.rooms || 1
           };
 
-          console.log("💾 Loading from localStorage:", validatedContext);
+          //console.log("💾 Loading from localStorage:", validatedContext);
           dispatch(setBookingContext(validatedContext));
           dispatch(setBookingSource(parsedContext.bookingSource || "direct"));
           localStorage.setItem("bookingContext", JSON.stringify(validatedContext));
@@ -1098,7 +1098,7 @@ setLoadingPrice(true);
             numberOfRooms: 1
           };
 
-          console.log("🆕 Creating default context:", defaultContext);
+          //console.log("🆕 Creating default context:", defaultContext);
           dispatch(setBookingContext(defaultContext));
           localStorage.setItem("bookingContext", JSON.stringify(defaultContext));
           await handleSearchStart(defaultContext);
@@ -1117,7 +1117,7 @@ setLoadingPrice(true);
     const urlCode = searchParams.get("code");
 
     if (urlCode && urlCode !== bookingContext.PropertyCode) {
-      console.log("🔄 Property code changed in URL:", urlCode);
+      //console.log("🔄 Property code changed in URL:", urlCode);
 
       // Ensure we have valid dates
       const today = new Date();

@@ -65,7 +65,7 @@ export class RoomVedioController{
         try {
             const {videoUrl, thumbnailUrl}=req.body;
             const roomId=req.params?.roomId;
-            console.log(req.params);
+            //console.log(req.params);
             if(!videoUrl){
                 return res.status(400).json(errorResponse("Video Url is not provided"));
             }

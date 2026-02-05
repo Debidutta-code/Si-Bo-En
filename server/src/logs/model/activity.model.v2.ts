@@ -225,20 +225,20 @@ const ActivitySchema = new Schema<IActivity>({
   action: {
     type: String,
     enum: Object.values(ActivityAction),
-    required: [true, 'Action is required'],
+    // required: [true, 'Action is required'],
     index: true
   },
   
   entity: {
     type: String,
     enum: Object.values(ActivityEntity),
-    required: [true, 'Entity type is required'],
+    // required: [true, 'Entity type is required'],
     index: true
   },
   
   entityId: {
     type: String,
-    required: [true, 'Entity ID is required'],
+    // required: [true, 'Entity ID is required'],
     index: true
   },
   

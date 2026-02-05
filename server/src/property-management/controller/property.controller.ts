@@ -47,8 +47,8 @@ export class Property {
           .status(400)
           .json(errorResponse('Must provide at least one image of property'));
       }
-      console.log(propertyType,
-        propertyCategory)
+      //console.log(propertyType,
+        // propertyCategory)
       const serviceRes = await PropertyService.createPropertyService(
         {
           propertyName,
@@ -71,7 +71,7 @@ export class Property {
       if (serviceRes?.success) {
         return res.status(200).json(serviceRes);
       } else {
-        console.log(serviceRes);
+        //console.log(serviceRes);
         return res.status(400).json(serviceRes);
       }
     } catch (error: any) {
@@ -207,7 +207,7 @@ export class PropertyAddressController {
   ) {
     try {
       const id = req.params.id;
-      console.log(req.params);
+      //console.log(req.params);
       if (!id) {
         return res.status(400).json(errorResponse('Property id not found'));
       }
@@ -304,7 +304,7 @@ export class PropertyAminityController {
       if (!propertyId) {
         return res.status(400).json(errorResponse('Property id not found'));
       }
-      console.log(req.body);
+      //console.log(req.body);
       const { amenities } = req.body;
       if (!amenities) {
         return res

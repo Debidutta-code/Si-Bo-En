@@ -193,7 +193,7 @@ export class ReservationService {
 
             if (existingGuest) {
                 primaryGuestId = existingGuest.id;
-                console.log("Existing guest found:", primaryGuestId);
+                //console.log("Existing guest found:", primaryGuestId);
             } else {
                 const newGuestPayload: ICGuest = {
                     firstName: primaryGuestData.firstName,
@@ -211,7 +211,7 @@ export class ReservationService {
 
                 const newGuest = await this.guestRepository.createGuest(newGuestPayload);
                 primaryGuestId = newGuest.id;
-                console.log("New guest created:", primaryGuestId);
+                //console.log("New guest created:", primaryGuestId);
             }
 
             // 3️⃣ Generate booking code
@@ -258,7 +258,7 @@ export class ReservationService {
 
             // 5️⃣ Create reservation
             const reservation = await this.reservationRepository.createReservation(reservationPayload);
-            console.log("Reservation created:", reservation.id);
+            //console.log("Reservation created:", reservation.id);
 
             // 6️⃣ Create price breakdown - YOUR EXISTING CODE
             const priceBreakdownPayload: IReservationPriceBrakeDownR = {
@@ -277,7 +277,7 @@ export class ReservationService {
             };
 
             await this.priceBrakeDownRepo.createpriceBrakeDowns([priceBreakdownPayload]);
-            console.log("Price breakdown created");
+            //console.log("Price breakdown created");
 
             // 7️⃣ Create Booking Addons (if any) - ✅ UPDATED CODE
             if (normalizedPayload.bookingDetails.selectedAddons && normalizedPayload.bookingDetails.selectedAddons.length > 0) {
@@ -294,7 +294,7 @@ export class ReservationService {
                 }));
 
                 await this.bookingAddonRepository.createBookingAddons(addonPayloads);
-                console.log(`Created ${addonPayloads.length} booking addons`);
+                //console.log(`Created ${addonPayloads.length} booking addons`);
             }
 
             // 8️⃣ Create Reservation Promotions (if any) - ✅ CORRECTED CODE
@@ -303,7 +303,7 @@ export class ReservationService {
 
                 for (const promo of normalizedPayload.bookingDetails.selectedPromotions) {
                     if (promo.promotionType === 'mlos') {
-                        console.log("MLOS promotion", normalizedPayload.bookingDetails.selectedPromotions);
+                        //console.log("MLOS promotion", normalizedPayload.bookingDetails.selectedPromotions);
                         // ✅ MLOS: The 'id' field IS the RatePlanRule ID
                         // No need to search - it's already provided in the payload
                         if (!promo.id) {
@@ -344,7 +344,7 @@ export class ReservationService {
 
                 if (promotionPayloads.length > 0) {
                     await this.reservationPromotionRepository.createReservationPromotions(promotionPayloads);
-                    console.log(`Created ${promotionPayloads.length} reservation promotions`);
+                    //console.log(`Created ${promotionPayloads.length} reservation promotions`);
                 }
             }
 
@@ -360,7 +360,7 @@ export class ReservationService {
             };
 
             await this.ariManupulationRepo.decreaseAvailableRooms(ariPayload);
-            console.log("ARI updated - rooms decreased");
+            //console.log("ARI updated - rooms decreased");
 
             return successResponse("Reservation created successfully", reservation);
         } catch (error) {

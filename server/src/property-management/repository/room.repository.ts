@@ -276,7 +276,7 @@ export class RoomAmenityDao {
           isActive: true
         }
       });
-      console.log(masterAmenities)
+      //console.log(masterAmenities)
       if (masterAmenities.length === 0) {
         throw new Error('No valid amenities found in master amenities');
       }

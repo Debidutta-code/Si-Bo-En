@@ -102,14 +102,14 @@ const BookingReviewPage = () => {
         );
 
         const data = await response.json();
-        console.log("💡 Payment Details Response:", data);
+        //console.log("💡 Payment Details Response:", data);
 
         if (!response.ok) {
           throw new Error(data?.message || "Failed to fetch payment details");
         }
 
         setBankDetails(data?.data);
-        console.log("✅ Payment details fetched successfully");
+        //console.log("✅ Payment details fetched successfully");
       } catch (error) {
         console.error("❌ Error fetching payment details:", error);
         toast.error(

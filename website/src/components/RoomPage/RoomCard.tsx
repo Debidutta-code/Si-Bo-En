@@ -196,7 +196,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/addon/addon-datewise/available?propertyCode=${bookingContext.PropertyCode}&startDate=${bookingContext.startDate}&endDate=${bookingContext.endDate}&ratePlanCode=${ratePlan.ratePlanCode}`
         );
         const addonData = await addonResponse.json();
-        console.log('Addon response:', addonData);
+        //console.log('Addon response:', addonData);
 
         if (addonResponse.ok && addonData.success && addonData.data?.length > 0) {
           setFetchedAddons(addonData.data);
@@ -505,7 +505,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
             const basePrice = ratePlan.totalAmount || 0;
             const currency = ratePlan.currencyCode || 'USD';
 
-            // console.log(ratePlan, 'ratePlan');
+            // //console.log(ratePlan, 'ratePlan');
 
             // const { convertedAmount } = useCurrencyConverter(basePrice);
 

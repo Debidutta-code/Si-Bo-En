@@ -129,7 +129,7 @@ export class RoomAminityService {
     amenities: Record<string, boolean>
   ) {
     try {
-      console.log("roomId", roomId, "amenities", amenities);
+      //console.log("roomId", roomId, "amenities", amenities);
       const isExists = await RoomAmenityDao.existsByRoomId(roomId);
       if (isExists) {
         return errorResponse('Amenity already exists for this room');

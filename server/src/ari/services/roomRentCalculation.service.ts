@@ -229,8 +229,8 @@ export class RoomRentCalculationService {
             const totalBaseAmount = rateCalculation.data!.breakdown.totalBaseAmount;
             const totalAdditionalCharges = rateCalculation.data!.breakdown.totalAdditionalCharges;
 
-            console.log(`\n=== PRICING CALCULATION ===`);
-            console.log(`Original Base Price: ${originalBasePrice}`);
+            //console.log(`\n=== PRICING CALCULATION ===`);
+            //console.log(`Original Base Price: ${originalBasePrice}`);
 
             // === STEP 2: CALCULATE USER-SELECTED PROMOTIONS (on original base) ===
             // === STEP 2: CALCULATE USER-SELECTED PROMOTIONS (on original base) ===
@@ -294,7 +294,7 @@ export class RoomRentCalculationService {
                 }
             }
 
-            console.log(`Total Promotion Discount: -${totalPromotionDiscount}`);
+            //console.log(`Total Promotion Discount: -${totalPromotionDiscount}`);
 
             // Check for MLOS (if not already in selected promotions)
             const hasMLOS = selectedPromotions?.some(p => p.promotionType === "mlos");
@@ -319,7 +319,7 @@ export class RoomRentCalculationService {
                 }
             }
 
-            console.log(`Total Promotion Discount: -${totalPromotionDiscount}`);
+            //console.log(`Total Promotion Discount: -${totalPromotionDiscount}`);
 
             // === STEP 3: APPLY SILENT ADJUSTMENTS ===
             let currentPrice = originalBasePrice;
@@ -348,7 +348,7 @@ export class RoomRentCalculationService {
                     deviceDiscount = deviceResult.data.discountAmount;
                     currentPrice -= deviceDiscount;
                     deviceDiscountInfo = deviceResult.data;
-                    console.log(`Device Discount: -${deviceDiscount} → ${currentPrice}`);
+                    //console.log(`Device Discount: -${deviceDiscount} → ${currentPrice}`);
                 }
             }
 
@@ -378,7 +378,7 @@ export class RoomRentCalculationService {
                             currentPrice -= geoData.adjustmentAmount;
                         }
                         geoAdjustmentInfo = geoData;
-                        console.log(`Geo Adjustment: ${geoAdjustment} → ${currentPrice}`);
+                        //console.log(`Geo Adjustment: ${geoAdjustment} → ${currentPrice}`);
                     }
                 }
             }
@@ -395,7 +395,7 @@ export class RoomRentCalculationService {
                     loyaltyDiscount = loyaltyResult.data.discountAmount;
                     currentPrice -= loyaltyDiscount;
                     loyaltyDiscountInfo = loyaltyResult.data;
-                    console.log(`Loyalty Discount: -${loyaltyDiscount} → ${currentPrice}`);
+                    //console.log(`Loyalty Discount: -${loyaltyDiscount} → ${currentPrice}`);
                 }
             }
 
@@ -415,12 +415,12 @@ export class RoomRentCalculationService {
                 includedAddons = ratePlanWithAddons.data.addons || [];
                 includedAddonsTotal = ratePlanWithAddons.data.totalAddonAmount || 0;
                 currentPrice += includedAddonsTotal;
-                console.log(`Included Addons: +${includedAddonsTotal} → ${currentPrice}`);
+                //console.log(`Included Addons: +${includedAddonsTotal} → ${currentPrice}`);
             }
 
             // === STEP 5: SUBTRACT USER-SELECTED PROMOTIONS ===
             currentPrice -= totalPromotionDiscount;
-            console.log(`After Promotions: -${totalPromotionDiscount} → ${currentPrice}`);
+            //console.log(`After Promotions: -${totalPromotionDiscount} → ${currentPrice}`);
 
             // === STEP 6: ADD USER-SELECTED ADDONS ===
             let userAddonsTotal = 0;
@@ -436,7 +436,7 @@ export class RoomRentCalculationService {
                     });
                 }
                 currentPrice += userAddonsTotal;
-                console.log(`User Addons: +${userAddonsTotal} → ${currentPrice}`);
+                //console.log(`User Addons: +${userAddonsTotal} → ${currentPrice}`);
             }
 
            const priceBeforeTax = currentPrice;
@@ -450,8 +450,8 @@ const taxCalculation = await this.calculateTax(
 const totalTax = taxCalculation.totalTax;
 const finalPrice = priceBeforeTax + totalTax;
 
-console.log(`Tax (on original base): +${totalTax} → ${finalPrice}`);
-console.log(`=========================\n`);
+//console.log(`Tax (on original base): +${totalTax} → ${finalPrice}`);
+//console.log(`=========================\n`);
 
 // === RETURN COMPREHENSIVE BREAKDOWN ===
 return successResponse("Price calculated successfully", {
@@ -527,7 +527,7 @@ return successResponse("Price calculated successfully", {
             const start = startDate;
             const end = endDate;
 
-            console.log("Service received dates:", start, end);
+            //console.log("Service received dates:", start, end);
 
             const numberOfNights = differenceInDays(end, start);
 
@@ -567,7 +567,7 @@ return successResponse("Price calculated successfully", {
             //     `Maximum stay of ${ratePlan.maximumLengthOfStay} nights allowed for this rate plan.`
             //   );
             // }
-            // console.log("inv ava:", start, end);
+            // //console.log("inv ava:", start, end);
 
             // Step 2: Check inventory availability
             const inventoryCheck = await this.checkInventoryAvailability(
@@ -584,8 +584,8 @@ return successResponse("Price calculated successfully", {
             }
 
             // Step 3: Calculate day-by-day rates
-            console.log("Calculating day-by-day rates with dates:", start, end);
-            console.log("Calculating day-by-day rates with dates:", startDate, endDate);
+            //console.log("Calculating day-by-day rates with dates:", start, end);
+            //console.log("Calculating day-by-day rates with dates:", startDate, endDate);
 
             const rateCalculation = await this.calculateDayByDayRates(
                 propertyCode,
@@ -598,7 +598,7 @@ return successResponse("Price calculated successfully", {
                 start,
                 end
             );
-            console.log(rateCalculation)
+            //console.log(rateCalculation)
             if (!rateCalculation.success) {
                 return rateCalculation;
             }
@@ -671,7 +671,7 @@ return successResponse("Price calculated successfully", {
             current.setUTCDate(current.getUTCDate() + 1); // Use UTC methods
         }
 
-        console.log("Stay dates:", stayDates.map(d => d.toISOString()));
+        //console.log("Stay dates:", stayDates.map(d => d.toISOString()));
 
         const inventories = await prisma.inventory.findMany({
             where: {
@@ -681,7 +681,7 @@ return successResponse("Price calculated successfully", {
             },
         });
 
-        console.log("Found inventories:", inventories.length);
+        //console.log("Found inventories:", inventories.length);
 
         if (inventories.length !== stayDates.length) {
             return errorResponse(
@@ -741,7 +741,7 @@ return successResponse("Price calculated successfully", {
                 current.setUTCDate(current.getUTCDate() + 1); // Use UTC methods
             }
 
-            console.log("Stay dates for calculation:", stayDates.map(d => d.toISOString()));
+            //console.log("Stay dates for calculation:", stayDates.map(d => d.toISOString()));
 
             for (const date of stayDates) {
                 const dayOfWeek = this.getDayOfWeek(date);
@@ -768,7 +768,7 @@ return successResponse("Price calculated successfully", {
                     },
                 });
 
-                console.log("Charge for", dateStr, ":", charge ? "Found" : "Not found");
+                //console.log("Charge for", dateStr, ":", charge ? "Found" : "Not found");
 
                 if (!charge) {
                     return errorResponse(`No rates found for date: ${dateStr}`);

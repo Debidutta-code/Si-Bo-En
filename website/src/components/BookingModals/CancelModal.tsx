@@ -22,7 +22,7 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
     amount,
     currencyCode,
   } = bookingData;
-  // console.log("bookingdatsdfsjdfhcdsa", bookingData)
+  // //console.log("bookingdatsdfsjdfhcdsa", bookingData)
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
 

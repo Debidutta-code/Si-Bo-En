@@ -200,7 +200,7 @@ export class EmailService {
     async cleanupExpiredOTPs(): Promise<number> {
         try {
             const deletedCount = await this.otpRepository.deleteExpiredOTPs();
-            console.log(`Cleaned up ${deletedCount} expired OTPs`);
+            //console.log(`Cleaned up ${deletedCount} expired OTPs`);
             return deletedCount;
         } catch (error) {
             console.error("Error cleaning up expired OTPs:", error);

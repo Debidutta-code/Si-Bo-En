@@ -31,7 +31,7 @@ export class AddonDateWiseService {
             const result = await this.addonDateWiseDao.createAddOnDateWise(data);
             return successResponse("Addon date-wise availability created successfully", result);
         } catch (error: any) {
-            console.log(error?.message)
+            // console.log(error?.message)
             if (error instanceof Error) {
                 return errorResponse("Failed to create addon date-wise availability", error.message);
             }

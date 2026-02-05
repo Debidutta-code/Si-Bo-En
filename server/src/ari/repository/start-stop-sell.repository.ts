@@ -6,7 +6,7 @@ export class StartStopSellRepository {
         startStopSellData: IstartStopSellR[],
     ): Promise<any[] | Error> {
         try {
-            console.log("Creating start-stop-sell for propertyCode:", propertyCode, "with data:", startStopSellData);
+            //console.log("Creating start-stop-sell for propertyCode:", propertyCode, "with data:", startStopSellData);
             return await prisma.$transaction(
                 startStopSellData.map((item) => {
                     const whereClause: any = {
@@ -34,7 +34,7 @@ export class StartStopSellRepository {
                 })
             );
         } catch (error) {
-            console.log("Error creating start-stop-sell record:", error);
+            //console.log("Error creating start-stop-sell record:", error);
             throw new Error('Failed to create start-stop-sell record');
         }
     }

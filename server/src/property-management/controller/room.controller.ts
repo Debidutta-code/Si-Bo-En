@@ -175,7 +175,7 @@ export class RoomController {
   ): Promise<Response> {
     try {
       const propertyId = req.params.id;
-      console.log("Property ID:", propertyId);
+      //console.log("Property ID:", propertyId);
       if (!propertyId) {
         return res.status(400).json(errorResponse('Property id not found'));
       }

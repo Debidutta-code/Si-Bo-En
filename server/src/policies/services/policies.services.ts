@@ -4,12 +4,12 @@ export class PoliciesServices {
     public static async createPolicyService(propertyId: string, description: string, type: "deposit" | "guarantee" | "cancellation", policyName: string) {
         try {
             const response = await PolicyRepository.createOne({ policyName, type, description, propertyId })
-            console.log("Repository Response:", response); // Debugging line
+            //console.log("Repository Response:", response); // Debugging line
             if (response.id) {
-                console.log("Success res", response)
+                //console.log("Success res", response)
                 return successResponse("Policy Created Successfully", response)
             } else {
-                console.log(response)
+                //console.log(response)
                 return errorResponse("Error occur while getting the Policy")
             }
         } catch (error: any) {

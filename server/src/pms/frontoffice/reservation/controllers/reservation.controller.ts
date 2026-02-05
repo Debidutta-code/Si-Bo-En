@@ -22,7 +22,7 @@ export class ReservationController {
                 return res.status(400).json(errorResponse("Invalid payload - at least one guest is required"));
             }
 
-            console.log("Creating reservation with data:", JSON.stringify(body.data, null, 2));
+            //console.log("Creating reservation with data:", JSON.stringify(body.data, null, 2));
 
             const serviceRes = await this.reservationService.createReservation(body.data);
 
@@ -72,7 +72,7 @@ export class ReservationController {
             return res.status(400).json(errorResponse("Missing required fields: propertyCode, checkInDate, checkOutDate"));
         }
 
-        console.log("Updating reservation:", reservationCode, "with data:", JSON.stringify(updateData, null, 2));
+        //console.log("Updating reservation:", reservationCode, "with data:", JSON.stringify(updateData, null, 2));
 
         const serviceRes = await this.reservationService.updateReservation(reservationCode, updateData);
 
