@@ -19,9 +19,7 @@ export class LoyaltyGuestRepository {
             return await prisma.loyalityGuest.findFirst({
                 where:{
                     propertyId,
-                    guest:{
-                        email:guestEmail
-                    }
+                    guestEmail
                 }
             })
         } catch (error) {
