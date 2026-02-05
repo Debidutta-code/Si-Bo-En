@@ -6,11 +6,11 @@ export interface CreateOrderPayload {
   action: 'PURCHASE' | 'SALE' | 'AUTH';
   amount: {
     currencyCode: string;
-    value: number; // Amount in fils (100 = 1 AED)
+    value: number;
   };
   merchantAttributes?: {
     redirectUrl?: string;
-    // skipConfirmationPage?: boolean;
+    skipConfirmationPage?: boolean;
   };
   emailAddress?: string;
 }
@@ -77,22 +77,16 @@ export interface OrderStatusResponse {
 }
 
 class NGeniusService {
-  /**
-   * Create a payment order
-   */
   async createOrder(payload: CreateOrderPayload): Promise<NGeniusOrderResponse> {
     try {
-        console.log("Creating N-Genius order with payload:", API_BASE_URL, payload);
-      const response = await fetch(
-        `${API_BASE_URL}/payment/ngenius/order`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        }
-      );
+      console.log("Creating N-Genius order with payload:", payload);
+      const response = await fetch(`${API_BASE_URL}/payment/ngenius/order`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
 
       const data = await response.json();
 
@@ -135,16 +129,11 @@ class NGeniusService {
     }
   }
 
-  /**
-   * Check if payment was successful
-   */
   isPaymentSuccessful(orderStatus: OrderStatusResponse): boolean {
     const payment = orderStatus.data._embedded?.payment?.[0];
     
     if (!payment) return false;
 
-    // Check payment state
-    // Successful states: PURCHASED, AUTHORISED, CAPTURED
     const successStates = ['PURCHASED', 'AUTHORISED', 'CAPTURED'];
     
     return successStates.includes(payment.state);

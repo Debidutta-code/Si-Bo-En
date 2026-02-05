@@ -77,6 +77,20 @@ const BookingReviewPage = () => {
   // Add the hook usage at the component level
   const { colors } = useBookingStorage({});
 
+  // Map frontend payment method names to database enum values
+  const mapPaymentMethodToEnum = (method: string): string => {
+    switch (method) {
+      case "payAtHotel":
+        return "pay_at_hotel";
+      case "gateway":
+        return "payment_gateway";
+      case "ngenius":
+        return "payment_gateway";
+      default:
+        return "pay_at_hotel";
+    }
+  };
+
   useEffect(() => {
     if (finalPrice?.totalAmount) {
       setUpdatedPrice(finalPrice.totalAmount - discount);
@@ -230,7 +244,7 @@ const BookingReviewPage = () => {
             guests: guests,
             guestDetails: guest,
             ratePlanCode: bookingDetails.ratePlanCode,
-            paymentMethod: selectedPayment,
+            paymentMethod: mapPaymentMethodToEnum(selectedPayment || ""),
             bookingSource: bookingDetails.bookingSource,
             // Note: No payment proof for current methods
           },
@@ -290,7 +304,6 @@ const BookingReviewPage = () => {
     try {
       setLoading(true);
 
-      // Validate required data before proceeding
       if (!updatedPrice || updatedPrice <= 0) {
         toast.error("Invalid booking amount. Please try again.");
         return;
@@ -301,19 +314,12 @@ const BookingReviewPage = () => {
         return;
       }
 
-      // Convert amount to smallest currency unit (fils for AED, cents for others)
-      // N-Genius expects amount in smallest unit based on currency
       const isAED = currencyCode === "AED";
-      const amountInSmallestUnit = isAED
-        ? Math.round(updatedPrice * 100) // 1 AED = 100 fils
-        : Math.round(updatedPrice * 100); // Most currencies use 100 subunits (e.g., USD cents)
-
-      // For sandbox/testing: N-Genius often requires AED even if displaying USD
+      const amountInSmallestUnit = Math.round(updatedPrice * 100);
       const gatewayCurrency = currencyCode === "USD" ? "AED" : currencyCode;
 
       toast.loading("Creating secure payment order...", { id: "ngenius-order" });
 
-      // Create order via N-Genius service
       const orderResponse = await ngeniusService.createOrder({
         action: "PURCHASE",
         amount: {
@@ -321,25 +327,20 @@ const BookingReviewPage = () => {
           value: amountInSmallestUnit,
         },
         merchantAttributes: {
-          redirectUrl: "https://thescanmenu.com",
-          // skipConfirmationPage: true,
-          // Optional: add cancel URL
-          // cancelUrl: `${window.location.origin}/Payment?cancelled=true`,
+          redirectUrl: `${window.location.origin}/PaymentCallback`,
+          skipConfirmationPage: true,
         },
         emailAddress: email.trim(),
-        // billingAddress if you collect it
       });
 
       if (!orderResponse?.data?.orderReference || !orderResponse?.data?.paymentUrl) {
         throw new Error("Invalid response from payment gateway");
       }
 
-      // Dismiss loading toast
       toast.dismiss("ngenius-order");
 
-      // Store critical data for callback handling
+      // Store order reference and booking data
       localStorage.setItem("ngeniusOrderRef", orderResponse.data.orderReference);
-
       localStorage.setItem(
         "pendingBookingData",
         JSON.stringify({
@@ -362,9 +363,8 @@ const BookingReviewPage = () => {
               guests: guests,
               guestDetails: guest,
               ratePlanCode: bookingDetails.ratePlanCode,
-              paymentMethod: "ngenius",
+              paymentMethod: mapPaymentMethodToEnum("ngenius"),
               bookingSource: bookingDetails.bookingSource,
-              ngeniusOrderRef: orderResponse.data.orderReference, // Pre-store for reliability
             },
             guestDetails: guest,
             bankDetails: bankDetails || null,
@@ -372,20 +372,17 @@ const BookingReviewPage = () => {
         })
       );
 
-      // Success feedback before redirect
       toast.success("Redirecting to secure payment gateway...", {
         id: "redirect-payment",
         duration: 2000,
       });
 
-      // Smooth redirect after short delay
       setTimeout(() => {
         window.location.href = orderResponse.data.paymentUrl;
       }, 1800);
 
     } catch (err: any) {
       console.error("N-Genius payment initiation failed:", err);
-
       toast.dismiss("ngenius-order");
 
       const message =
