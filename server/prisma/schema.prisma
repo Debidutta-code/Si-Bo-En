@@ -348,6 +348,7 @@ model Property {
   promotions           Promotion[]
   createdAt            DateTime                     @default(now())
   updatedAt            DateTime                     @updatedAt
+  customizableDeals    CustomizableDeal[]
 
   @@index([createdById])
   @@index([creationId])
@@ -531,8 +532,9 @@ model Room {
   geoRatePlans  GeoRatePlan[]
   promotions    Promotion[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt                            DateTime                               @default(now())
+  updatedAt                            DateTime                               @updatedAt
+  customizableDealsApplicableRoomTypes CustomizableDealsApplicableRoomTypes[]
 
   @@index([propertyId])
   @@index([roomType])
@@ -701,9 +703,10 @@ model RatePlan {
   Addons        RatePlanWithAddon[]
   geoRatePlans  GeoRatePlan[]
   promotions    Promotion[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  TouristTaxs TouristTaxes[]
+  createdAt                                DateTime                                   @default(now())
+  updatedAt                                DateTime                                   @updatedAt
+  customizableDealsApplicableRatePlanTypes CustomizableDealsApplicableRatePlanTypes[]
 
   @@index([propertyId])
   @@map("rate_plans")
@@ -887,27 +890,28 @@ model AddonVariant {
 }
 
 model Addon {
-  id            String              @id @default(uuid())
-  propertyId    String
-  categoryId    String?
-  subcategoryId String?
-  variantId     String?
-  ratePlanId    String?             @map("rate_plan_id")
-  code          String              @unique
-  name          String
-  postingRhythm PostingRhythm       @default(per_stay)
-  description   String?
-  isActive      Boolean             @default(true)
-  images        String[]
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
-  property      Property            @relation(fields: [propertyId], references: [id])
-  subCategory   AddonSubCategory?   @relation(fields: [subcategoryId], references: [id])
-  category      AddonCategory?      @relation(fields: [categoryId], references: [id])
-  addonVariant  AddonVariant?       @relation("AddonToVariant", fields: [variantId], references: [id])
-  bookingAddons BookingAddon[]
-  availability  AddonAvailability[]
-  ratePlans     RatePlanWithAddon[]
+  id                                String                              @id @default(uuid())
+  propertyId                        String
+  categoryId                        String?
+  subcategoryId                     String?
+  variantId                         String?
+  ratePlanId                        String?                             @map("rate_plan_id")
+  code                              String                              @unique
+  name                              String
+  postingRhythm                     PostingRhythm                       @default(per_stay)
+  description                       String?
+  isActive                          Boolean                             @default(true)
+  images                            String[]
+  createdAt                         DateTime                            @default(now())
+  updatedAt                         DateTime                            @updatedAt
+  property                          Property                            @relation(fields: [propertyId], references: [id])
+  subCategory                       AddonSubCategory?                   @relation(fields: [subcategoryId], references: [id])
+  category                          AddonCategory?                      @relation(fields: [categoryId], references: [id])
+  addonVariant                      AddonVariant?                       @relation("AddonToVariant", fields: [variantId], references: [id])
+  bookingAddons                     BookingAddon[]
+  availability                      AddonAvailability[]
+  ratePlans                         RatePlanWithAddon[]
+  customizableDealsApplicableAddons CustomizableDealsApplicableAddons[]
 }
 
 model RatePlanWithAddon {
@@ -1036,25 +1040,27 @@ model Reservation {
   @@index([primaryGuestId])
   @@map("reservations")
 }
+
 enum ReservationPromotionType {
   early_bird
   mlos
   device_specific
   offer_for_tonight
 }
+
 model ReservationPromotion {
-  id          String      @id @default(uuid())
-  bookingCode String      @map("booking_code")
-  bookingId   String      @map("booking_id")
-  Reservation Reservation @relation(fields: [bookingId], references: [id])
+  id            String                   @id @default(uuid())
+  bookingCode   String                   @map("booking_code")
+  bookingId     String                   @map("booking_id")
+  Reservation   Reservation              @relation(fields: [bookingId], references: [id])
   promotionType ReservationPromotionType @default(mlos) @map("promotion_type")
 
-  promotionId String?    @map("promotion_id")
-  mlosId      String?   @map("mlos_id")
-  Promotion   Promotion? @relation(fields: [promotionId], references: [id])
+  promotionId  String?       @map("promotion_id")
+  mlosId       String?       @map("mlos_id")
+  Promotion    Promotion?    @relation(fields: [promotionId], references: [id])
   RatePlanRule RatePlanRule? @relation(fields: [mlosId], references: [id])
-  amount     Float      @map("amount")
-  currency   CurrencyCode   @default(USD) @map("currency")
+  amount       Float         @map("amount")
+  currency     CurrencyCode  @default(USD) @map("currency")
 
   @@map("reservation_promotions")
 }
@@ -1142,8 +1148,8 @@ model RatePlanRule {
   minLos Int  @default(1) @map("min_los")
   maxLos Int? @map("max_los")
 
-  discountType  DiscountType? @map("discount_type")
-  discountValue Decimal?      @map("discount_value") @db.Decimal(10, 2)
+  discountType         DiscountType?          @map("discount_type")
+  discountValue        Decimal?               @map("discount_value") @db.Decimal(10, 2)
   ReservationPromotion ReservationPromotion[]
 
   isActive Boolean @default(true)
@@ -1482,4 +1488,86 @@ model LoyalityGuest {
 
   @@unique([propertyId, guestEmail])
   @@map("loyality_guests")
+}
+
+model CustomizableDeal {
+  id String @id @default(uuid())
+
+  propertyId   String   @map("property_id")
+  propertyCode String   @map("property_code")
+  Property     Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  discountType  DiscountType  @default(percentage) @map("discount_type")
+  discountValue Decimal?      @map("discount_value")
+  currencyCode  CurrencyCode? @default(USD) @map("currency_code")
+
+  CustomizableDealsApplicableRoomTypes     CustomizableDealsApplicableRoomTypes[]
+  CustomizableDealsApplicableRatePlanTypes CustomizableDealsApplicableRatePlanTypes[]
+  CustomizableDealsApplicableAddons        CustomizableDealsApplicableAddons[]
+  createdAt                                DateTime                                   @default(now()) @map("created_at")
+
+  @@map("customizable_deals")
+}
+
+model CustomizableDealsApplicableRoomTypes {
+  id String @id @default(uuid())
+
+  customizableDealId String           @map("customizable_deal_id")
+  CustomizableDeal   CustomizableDeal @relation(fields: [customizableDealId], references: [id], onDelete: Cascade)
+
+  roomId       String @map("room_id")
+  roomTypeCode String @map("room_type_code")
+  Room         Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([customizableDealId, roomId])
+  @@map("customizable_deals_applicable_room_types")
+}
+
+model CustomizableDealsApplicableRatePlanTypes {
+  id String @id @default(uuid())
+
+  customizableDealId String           @map("customizable_deal_id")
+  CustomizableDeal   CustomizableDeal @relation(fields: [customizableDealId], references: [id], onDelete: Cascade)
+
+  ratePlanId   String   @map("rate_plan_id")
+  ratePlanCode String   @map("rate_plan_code")
+  RatePlan     RatePlan @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([customizableDealId, ratePlanId])
+  @@map("customizable_deals_applicable_rate_plan_types")
+}
+
+model CustomizableDealsApplicableAddons {
+  id String @id @default(uuid())
+
+  customizableDealId String           @map("customizable_deal_id")
+  CustomizableDeal   CustomizableDeal @relation(fields: [customizableDealId], references: [id], onDelete: Cascade)
+
+  addOnId String @map("add_on_id")
+  AddOn   Addon  @relation(fields: [addOnId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([customizableDealId, addOnId])
+  @@map("customizable_deals_applicable_addons")
+}
+
+model TouristTaxes {
+  id String @id @default(uuid())
+
+  ratePlanId   String   @map("rate_plan_id")
+  ratePlanCode String   @map("rate_plan_code")
+  ratePlan     RatePlan @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
+
+  discountType  DiscountType  @default(flat) @map("discount_type")
+  discountValue Decimal?      @map("discount_value")
+  currencyCode  CurrencyCode? @default(USD) @map("currency_code")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("tourist_taxes")
 }
