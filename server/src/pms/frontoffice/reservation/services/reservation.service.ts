@@ -12,14 +12,17 @@ import {
     IAriManulupulation,
     ICreateReservationPayload,
     ICGuest,
-    IReservationUpdatePayload
+    IReservationUpdatePayload,
+    IReservationPromotionCreate,
+    IBookingAddonCreate
 } from "../types";
 import { prisma } from "../../../../config";
 import { IPropertyCodeAndIds } from "../../../../dashboard/types";
 import { DashUtilsRepo } from "../../../../dashboard/repository";
 import { Decimal } from "@prisma/client/runtime/library";
-import { BookingStatus } from "@prisma/client";
+import { BookingStatus, CurrencyCode } from "@prisma/client";
 import { nowUTC, toUTC, toUTCDate } from "../../../../utils";
+import { BookingAddonRepository, ReservationPromotionRepository } from "../repository/reservation.repository";
 
 export class ReservationService {
     reservationRepository: ReservationRepository;
@@ -27,12 +30,17 @@ export class ReservationService {
     ariManupulationRepo: AriManupulationRepo;
     guestRepository: GuestRepository;
     dashUtils: DashUtilsRepo;
+    bookingAddonRepository: BookingAddonRepository; // ✅ ADD THIS
+    reservationPromotionRepository: ReservationPromotionRepository; // ✅ ADD THIS
+    
     constructor() {
         this.reservationRepository = new ReservationRepository();
         this.priceBrakeDownRepo = new PriceBrakeDownRepo();
         this.ariManupulationRepo = new AriManupulationRepo();
         this.guestRepository = new GuestRepository();
-                this.dashUtils = new DashUtilsRepo();
+        this.dashUtils = new DashUtilsRepo();
+        this.bookingAddonRepository = new BookingAddonRepository(); // ✅ ADD THIS
+        this.reservationPromotionRepository = new ReservationPromotionRepository(); // ✅ ADD THIS
     }
 
     private async generateBookingCode(): Promise<string> {
@@ -76,203 +84,247 @@ export class ReservationService {
 
     // Normalize/transform incoming payload to match expected format
     private normalizePayload(payload: any): ICreateReservationPayload["data"] {
-        const { bookingDetails, guestDetails } = payload;
-        const { finalPrice } = bookingDetails;
+    const { bookingDetails, guestDetails } = payload;
+    const { finalPrice } = bookingDetails;
 
-        // Fix tax/taxes field mismatch
-        if (finalPrice.tax && !finalPrice.taxes) {
-            finalPrice.taxes = finalPrice.tax;
-            delete finalPrice.tax;
-        }
+    // Fix tax/taxes field mismatch
+    if (finalPrice.tax && !finalPrice.taxes) {
+        finalPrice.taxes = finalPrice.tax;
+        delete finalPrice.tax;
+    }
 
-        // Add missing totalTaxAmount if not present
-        if (finalPrice.totalTaxAmount === undefined) {
-            finalPrice.totalTaxAmount = finalPrice.totalTax || 0;
-        }
+    // Add missing totalTaxAmount if not present
+    if (finalPrice.totalTaxAmount === undefined) {
+        finalPrice.totalTaxAmount = finalPrice.totalTax || 0;
+    }
 
-        // Add missing subtotal if not present
-        if (finalPrice.subtotal === undefined) {
-            finalPrice.subtotal = finalPrice.totalAmount || finalPrice.priceAfterTax || 0;
-        }
+    // Add missing subtotal if not present
+    if (finalPrice.subtotal === undefined) {
+        finalPrice.subtotal = finalPrice.totalAmount || finalPrice.priceAfterTax || 0;
+    }
 
-        // Add missing taxBreakdown if not present
-        if (!finalPrice.taxBreakdown) {
-            finalPrice.taxBreakdown = {
-                totalBaseAmount: finalPrice.breakdown?.totalBaseAmount || 0,
-                totalAdditionalCharges: finalPrice.breakdown?.totalAdditionalCharges || 0,
-                totalAmount: finalPrice.breakdown?.totalAmount || finalPrice.totalAmount || 0,
-                numberOfNights: finalPrice.numberOfNights || 1,
-                averagePerNight: finalPrice.breakdown?.averagePerNight || finalPrice.totalAmount || 0,
-                totalTax: finalPrice.totalTax || 0
-            };
-        }
-
-        // Fix empty dateOfBirth in guestDetails
-        const normalizedGuestDetails = guestDetails.map((guest: any) => ({
-            ...guest,
-            dateOfBirth: guest.dateOfBirth || null
-        }));
-
-        return {
-            bookingDetails: {
-                ...bookingDetails,
-                finalPrice
-            },
-            guestDetails: normalizedGuestDetails,
-            bankDetails: payload.bankDetails
+    // Add missing taxBreakdown if not present
+    if (!finalPrice.taxBreakdown) {
+        finalPrice.taxBreakdown = {
+            totalBaseAmount: finalPrice.breakdown?.totalBaseAmount || 0,
+            totalAdditionalCharges: finalPrice.breakdown?.totalAdditionalCharges || 0,
+            totalAmount: finalPrice.breakdown?.totalAmount || finalPrice.totalAmount || 0,
+            numberOfNights: finalPrice.numberOfNights || 1,
+            averagePerNight: finalPrice.breakdown?.averagePerNight || finalPrice.totalAmount || 0,
+            totalTax: finalPrice.totalTax || 0
         };
     }
 
+    // Fix empty dateOfBirth in guestDetails
+    const normalizedGuestDetails = guestDetails.map((guest: any) => ({
+        ...guest,
+        dateOfBirth: guest.dateOfBirth || null
+    }));
+
+    return {
+        bookingDetails: {
+            ...bookingDetails,
+            finalPrice,
+            // ✅ ENSURE THESE ARE INCLUDED
+            selectedAddons: bookingDetails.selectedAddons || [],
+            selectedPromotions: bookingDetails.selectedPromotions || []
+        },
+        guestDetails: normalizedGuestDetails,
+        bankDetails: payload.bankDetails
+    };
+}
+
     public async createReservation(payload: any): Promise<IApiResponse> {
-        try {
-            // Normalize the payload first
-            const normalizedPayload = this.normalizePayload(payload);
-            const { bookingDetails, guestDetails } = normalizedPayload;
+    try {
+        // Normalize the payload first
+        const normalizedPayload = this.normalizePayload(payload);
+        const { bookingDetails, guestDetails } = normalizedPayload;
 
-            const {
-                startDate,
-                endDate,
-                propertyCode,
-                hotelName,
-                roomTypeCode,
-                ratePlanCode,
-                finalPrice,
-                currency,
-                email,
-                phone,
-                paymentMethod,
-                bookingSource
-            } = bookingDetails;
+        const {
+            startDate,
+            endDate,
+            propertyCode,
+            hotelName,
+            roomTypeCode,
+            ratePlanCode,
+            finalPrice,
+            currency,
+            email,
+            phone,
+            paymentMethod,
+            bookingSource,
+            selectedAddons, // ✅ ADD THIS
+            selectedPromotions // ✅ ADD THIS
+        } = bookingDetails;
 
-            // 1️⃣ Resolve property
-            const propertyId = await this.getPropertyIdByCode(propertyCode);
-            if (!propertyId) {
-                return errorResponse("Property not found");
-            }
-            // 2️⃣ Primary guest - Use first guest from guestDetails array
-            const primaryGuestData = guestDetails[0];
-            if (!primaryGuestData) {
-                return errorResponse("At least one guest is required");
-            }
-
-            let primaryGuestId: string;
-
-            // Check if guest exists with this email
-            const existingGuest = await this.guestRepository.getGuestByEmail(email);
-            
-            if (existingGuest) {
-                primaryGuestId = existingGuest.id;
-                console.log("Existing guest found:", primaryGuestId);
-            } else {
-                // Create new guest using first guest data + booking email/phone
-                const newGuestPayload: ICGuest = {
-                    firstName: primaryGuestData.firstName,
-                    lastName: primaryGuestData.lastName,
-                    email: email,
-                    phoneNumber: phone || null,
-                    propertyId: propertyId,
-                    userType: primaryGuestData.type as "adult" | "child" | "infant",
-                    address: null,
-                    city: null,
-                    state: null,
-                    country: null,
-                    zipCode: null
-                };
-
-                const newGuest = await this.guestRepository.createGuest(newGuestPayload);
-                primaryGuestId = newGuest.id;
-                console.log("New guest created:", primaryGuestId);
-            }
-
-            // 3️⃣ Generate booking code
-            const bookingCode = await this.generateBookingCode();
-
-            // 4️⃣ Build reservation payload
-            const reservationPayload: ICReservation = {
-                bookingCode,
-                propertyId,
-                propertyCode,
-                hotelName,
-                roomTypeCode,
-                ratePlanCode,
-                
-                checkInDate: toUTC(startDate),
-                checkOutDate: toUTC(endDate),
-                bookedAt: nowUTC(),
-                
-                primaryGuestId,
-                guests: guestDetails, // Store all guests as JSON snapshot
-                bookingUserEmail: email,
-                bookingUserPhone: phone || null,
-                
-                amount: finalPrice.totalAmount,
-                currencyCode: currency,
-                finalPrice: finalPrice, // Store entire finalPrice object as JSON
-                
-                paidAmount: 0,
-                extraAmountToPay: 0,
-                refundAmount: 0,
-                timezone: payload.timezone||"Asia/kolkata",
-                countryCode: payload.countryCode||"IN",
-                paymentMethod: this.mapPaymentMethod(paymentMethod),
-                paymentImages: null,
-                
-                bookingStatus: "confirmed",
-                cancellationReason: null,
-                deviceTypes:payload.deviceTypes||"desktop",
-                bookingSource: bookingSource||"direct",
-                
-                isPromoUsed: false,
-                promoId: null
-            };
-
-            // 5️⃣ Create reservation
-            const reservation = await this.reservationRepository.createReservation(reservationPayload);
-            console.log("Reservation created:", reservation.id);
-
-            // 6️⃣ Create price breakdown
-            const priceBreakdownPayload: IReservationPriceBrakeDownR = {
-                reservationId: reservation.id,
-                additionalGuestCharges: finalPrice.additionalGuestCharges,
-                baseRatePerNight: finalPrice.baseRatePerNight,
-                numberOfNights: finalPrice.numberOfNights,
-                priceAfterTax: new Decimal(finalPrice.subtotal),
-                totalAmount: new Decimal(finalPrice.totalAmount),
-                totalTax: new Decimal(finalPrice.totalTaxAmount),
-                breakdown: finalPrice.breakdown,
-                dailyBreakdown: finalPrice.dailyBreakdown,
-                availableRooms: finalPrice.availableRooms,
-                requestedRooms: finalPrice.requestedRooms,
-                tax: finalPrice.taxes
-            };
-
-            await this.priceBrakeDownRepo.createpriceBrakeDowns([priceBreakdownPayload]);
-            console.log("Price breakdown created");
-
-            // 7️⃣ Update ARI (decrease room availability)
-            const reservationDates = this.generateDateRange(toUTCDate(startDate), toUTCDate(endDate));
-            const ariPayload: IAriManulupulation = {
-                propertyCode,
-                dates: reservationDates,
-                roomInfos: [{
-                    roomTypeCode,
-                    numberOfRooms: finalPrice.requestedRooms || 1
-                }]
-            };
-
-            await this.ariManupulationRepo.decreaseAvailableRooms(ariPayload);
-            console.log("ARI updated - rooms decreased");
-
-            return successResponse("Reservation created successfully", reservation);
-        } catch (error) {
-            console.error("Error creating reservation:", error);
-            if (error instanceof Error) {
-                return errorResponse("Failed to create reservation", error.message);
-            }
-            return errorResponse("Failed to create reservation");
+        // 1️⃣ Resolve property
+        const propertyId = await this.getPropertyIdByCode(propertyCode);
+        if (!propertyId) {
+            return errorResponse("Property not found");
         }
-    }
 
+        // 2️⃣ Primary guest - YOUR EXISTING CODE
+        const primaryGuestData = guestDetails[0];
+        if (!primaryGuestData) {
+            return errorResponse("At least one guest is required");
+        }
+
+        let primaryGuestId: string;
+        const existingGuest = await this.guestRepository.getGuestByEmail(email);
+        
+        if (existingGuest) {
+            primaryGuestId = existingGuest.id;
+            console.log("Existing guest found:", primaryGuestId);
+        } else {
+            const newGuestPayload: ICGuest = {
+                firstName: primaryGuestData.firstName,
+                lastName: primaryGuestData.lastName,
+                email: email,
+                phoneNumber: phone || null,
+                propertyId: propertyId,
+                userType: primaryGuestData.type as "adult" | "child" | "infant",
+                address: null,
+                city: null,
+                state: null,
+                country: null,
+                zipCode: null
+            };
+
+            const newGuest = await this.guestRepository.createGuest(newGuestPayload);
+            primaryGuestId = newGuest.id;
+            console.log("New guest created:", primaryGuestId);
+        }
+
+        // 3️⃣ Generate booking code
+        const bookingCode = await this.generateBookingCode();
+
+        // 4️⃣ Build reservation payload - YOUR EXISTING CODE
+        const reservationPayload: ICReservation = {
+            bookingCode,
+            propertyId,
+            propertyCode,
+            hotelName,
+            roomTypeCode,
+            ratePlanCode,
+            
+            checkInDate: toUTC(startDate),
+            checkOutDate: toUTC(endDate),
+            bookedAt: nowUTC(),
+            
+            primaryGuestId,
+            guests: guestDetails,
+            bookingUserEmail: email,
+            bookingUserPhone: phone || null,
+            
+            amount: finalPrice.totalAmount,
+            currencyCode: currency,
+            finalPrice: finalPrice,
+            
+            paidAmount: 0,
+            extraAmountToPay: 0,
+            refundAmount: 0,
+            timezone: payload.timezone || "Asia/Kolkata",
+            countryCode: payload.countryCode || "IN",
+            paymentMethod: this.mapPaymentMethod(paymentMethod),
+            paymentImages: null,
+            
+            bookingStatus: "confirmed",
+            cancellationReason: null,
+            deviceTypes: payload.deviceTypes || "desktop",
+            bookingSource: bookingSource || "direct",
+            
+            isPromoUsed: !!(bookingDetails.promoCode || (selectedPromotions && selectedPromotions.length > 0)),
+            promoId: null
+        };
+
+        // 5️⃣ Create reservation
+        const reservation = await this.reservationRepository.createReservation(reservationPayload);
+        console.log("Reservation created:", reservation.id);
+
+        // 6️⃣ Create price breakdown - YOUR EXISTING CODE
+        const priceBreakdownPayload: IReservationPriceBrakeDownR = {
+            reservationId: reservation.id,
+            additionalGuestCharges: finalPrice.additionalGuestCharges,
+            baseRatePerNight: finalPrice.baseRatePerNight,
+            numberOfNights: finalPrice.numberOfNights,
+            priceAfterTax: new Decimal(finalPrice.subtotal),
+            totalAmount: new Decimal(finalPrice.totalAmount),
+            totalTax: new Decimal(finalPrice.totalTaxAmount),
+            breakdown: finalPrice.breakdown,
+            dailyBreakdown: finalPrice.dailyBreakdown,
+            availableRooms: finalPrice.availableRooms,
+            requestedRooms: finalPrice.requestedRooms,
+            tax: finalPrice.taxes
+        };
+
+        await this.priceBrakeDownRepo.createpriceBrakeDowns([priceBreakdownPayload]);
+        console.log("Price breakdown created");
+
+        // 7️⃣ Create Booking Addons (if any) - ✅ NEW CODE
+        if (selectedAddons && selectedAddons.length > 0) {
+            const addonPayloads: IBookingAddonCreate[] = selectedAddons.map((addon: any) => ({
+                reservationId: reservation.id,
+                addonId: addon.addonId,
+                name: addon.addonName,
+                unitPrice: addon.price,
+                quantity: addon.quantity,
+                totalPrice: addon.totalPrice,
+                currencyCode: currency,
+                specialInstructions: null,
+                date: new Date(addon.date)
+            }));
+
+            await this.bookingAddonRepository.createBookingAddons(addonPayloads);
+            console.log(`Created ${addonPayloads.length} booking addons`);
+        }
+
+        // 8️⃣ Create Reservation Promotions (if any) - ✅ NEW CODE
+        if (selectedPromotions && selectedPromotions.length > 0) {
+            const promotionPayloads: IReservationPromotionCreate[] = selectedPromotions.map((promo: any) => {
+                // Calculate promotion discount amount
+                let discountAmount = 0;
+                if (promo.discountType === 'percentage') {
+                    discountAmount = (finalPrice.totalAmount * promo.discountValue) / 100;
+                } else {
+                    discountAmount = promo.discountValue;
+                }
+
+                return {
+                    bookingCode: bookingCode,
+                    bookingId: reservation.id,
+                    promotionId: promo.id,
+                    amount: discountAmount,
+                    currency: currency as CurrencyCode
+                };
+            });
+
+            await this.reservationPromotionRepository.createReservationPromotions(promotionPayloads);
+            console.log(`Created ${promotionPayloads.length} reservation promotions`);
+        }
+
+        // 9️⃣ Update ARI (decrease room availability) - YOUR EXISTING CODE
+        const reservationDates = this.generateDateRange(toUTCDate(startDate), toUTCDate(endDate));
+        const ariPayload: IAriManulupulation = {
+            propertyCode,
+            dates: reservationDates,
+            roomInfos: [{
+                roomTypeCode,
+                numberOfRooms: finalPrice.requestedRooms || 1
+            }]
+        };
+
+        await this.ariManupulationRepo.decreaseAvailableRooms(ariPayload);
+        console.log("ARI updated - rooms decreased");
+
+        return successResponse("Reservation created successfully", reservation);
+    } catch (error) {
+        console.error("Error creating reservation:", error);
+        if (error instanceof Error) {
+            return errorResponse("Failed to create reservation", error.message);
+        }
+        return errorResponse("Failed to create reservation");
+    }
+}
     // Helper method to get propertyId from propertyCode
     private async getPropertyIdByCode(propertyCode: string): Promise<string | null> {
         try {

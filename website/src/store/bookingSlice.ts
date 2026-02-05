@@ -118,6 +118,8 @@ interface BookingState {
   PropertyDetails?: PropertyDetails;
   bookingEngineColor?: BookingEngineColor;
   bookingSource?: string;
+  selectedAddons?: any[];
+  selectedPromotions?: any[];
 }
 
 const initialState: BookingState = {

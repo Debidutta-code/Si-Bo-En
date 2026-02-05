@@ -468,7 +468,7 @@ const Rooms = () => {
   const router = useRouter();
   const rooms = useSelector((state: RootState) => state.rooms.rooms);
   const bookingContext = useSelector((state: RootState) => state.booking);
-  const [selectedPromotions, setSelectedPromotions] = useState<Record<string, any>>({});
+const [bookingSelectedPromotions, setBookingSelectedPromotions] = useState<any[]>([]);
 
   const [bookingRoom, setBookingRoom] = useState<Room | null>(null);
   const [currentRatePlan, setCurrentRatePlan] = useState<any>(null);
@@ -522,10 +522,10 @@ const Rooms = () => {
     setShowPriceSummary(true);
   };
 
-  const handleBookNow = async (room: Room, ratePlan: any, selectedAddonsList: any[], selectedPromotion: any) => {
-    setLoadingBookNow(`${room.id}-${ratePlan.ratePlanCode}`);
+const handleBookNow = async (room: Room, ratePlan: any, selectedAddonsList: any[], selectedPromotionsList: any[]) => {    setLoadingBookNow(`${room.id}-${ratePlan.ratePlanCode}`);
     setLoadingPrice(true);
     setErrorPrice(null);
+  setBookingSelectedPromotions(selectedPromotionsList);
 
     const rawRooms = bookingContext.numberOfRooms || bookingContext.guests?.rooms;
     let allGuests: Guest[] = [];
@@ -589,10 +589,12 @@ const Rooms = () => {
       noOfChildrens,
       noOfRooms,
     };
-    if (selectedPromotion?.id) {
-      payload.promotionId = selectedPromotion.id;
-      payload.promotionType = selectedPromotion.type;
-    }
+ if (selectedPromotionsList && selectedPromotionsList.length > 0) {
+    payload.promotions = selectedPromotionsList.map((promotion: any) => ({
+      id: promotion.id,
+      promotionType: promotion.type
+    }));
+  }
     if (selectedAddonsList && selectedAddonsList.length > 0) {
       payload.addons = selectedAddonsList.map(addon => ({
         addonId: addon.addonId,
@@ -1237,18 +1239,19 @@ const Rooms = () => {
               numberOfRooms: finalPrice?.requestedRooms || 1,
               propertyDetails: bookingContext.PropertyDetails,
               selectedAddons: selectedAddons,
+              selectedPromotions: bookingSelectedPromotions,
             };
 
-            const selectedPromotion = selectedPromotions[currentRatePlan.ratePlanCode];
-            if (selectedPromotion) {
-              bookingData.selectedPromotion = {
-                id: selectedPromotion.id,
-                promotionType: selectedPromotion.type,
-                promotionName: selectedPromotion.name || selectedPromotion.promotionName,
-                discountValue: selectedPromotion.discountValue,
-                discountType: selectedPromotion.discountType
-              };
-            }
+          // In the onSubmit handler (around line 1100):
+ if (bookingSelectedPromotions && bookingSelectedPromotions.length > 0) {
+    bookingData.selectedPromotions = bookingSelectedPromotions.map((promotion: any) => ({
+      id: promotion.id,
+      promotionType: promotion.type,
+      promotionName: promotion.name || promotion.promotionName,
+      discountValue: promotion.discountValue,
+      discountType: promotion.discountType
+    }));
+  }
 
             dispatch({
               type: "booking/setFullBookingDetails",

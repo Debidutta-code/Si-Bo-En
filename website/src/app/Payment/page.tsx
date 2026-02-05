@@ -38,7 +38,7 @@ const BookingReviewPage = () => {
     finalPrice,
     guests,
     hotelName,
-    PropertyDetails
+    PropertyDetails,
   } = bookingDetails;
   
   const ratePlanCode = finalPrice?.dailyBreakdown?.[0]?.ratePlanCode;
@@ -217,7 +217,8 @@ const BookingReviewPage = () => {
             ratePlanCode: bookingDetails.ratePlanCode,
             paymentMethod: selectedPayment,
             bookingSource: bookingDetails.bookingSource,
-            // Note: No payment proof for current methods
+            selectedPromotions: bookingDetails.selectedPromotions ||[],
+            selectedAddons: bookingDetails.selectedAddons ||[],
           },
           bankDetails,
           guestDetails: guest,

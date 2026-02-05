@@ -31,6 +31,8 @@ export interface IBookingDetails {
   };
   guestDetails: IGuestDetail[];
   paymentMethod: string;
+  selectedAddons?: IBookingAddonCreate[]; // ✅ ADD THIS
+  selectedPromotions?: IReservationPromotionCreate[];
 }
 
 export interface IGuestDetail {
@@ -316,6 +318,39 @@ export interface IUpdateReservationResult {
     extraAmountToPay: number;
     refundAmount: number;
   };
+}
+// ==================== BOOKING ADDON TYPES ====================
+// In reservation.type.ts
+export interface IBookingAddonCreate {
+  reservationId: string;
+  addonId: string;
+  name: string;
+  unitPrice: number;
+  quantity: number;
+  totalPrice: number;
+  currencyCode: string;
+  specialInstructions?: string | null; // ✅ CHANGE: Add | null
+  date: Date;
+}
+
+export interface IBookingAddon extends IBookingAddonCreate {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// ==================== RESERVATION PROMOTION TYPES ====================
+export interface IReservationPromotionCreate {
+  bookingCode: string;
+  bookingId: string;
+  promotionId?: string|null;
+  mlosId?: string|null;
+  amount: number;
+  currency: CurrencyCode;
+}
+
+export interface IReservationPromotion extends IReservationPromotionCreate {
+  id: string;
 }
 // ==================== ENUMS ====================
 export type ReservationStatus = "pending" | "confirmed" | "cancelled" | "modified";

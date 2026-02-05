@@ -7,7 +7,7 @@ import {
     IReservationPriceBrakeDownR,
     IAriManulupulation
 } from "../types";
-import { BookingStatus } from "../types/reservation.type";
+import { BookingStatus, IBookingAddon, IBookingAddonCreate, IReservationPromotion, IReservationPromotionCreate } from "../types/reservation.type";
 
 export class ReservationRepository {
     public async createReservation(data: ICReservation) {
@@ -770,6 +770,67 @@ export class GuestRepository {
                 throw new Error(`Failed to create guest: ${error.message}`);
             }
             throw new Error("Failed to create guest");
+        }
+    }
+}
+// ==================== BOOKING ADDON REPOSITORY ====================
+export class BookingAddonRepository {
+    public async createBookingAddons(addons: IBookingAddonCreate[]): Promise<any> {
+        try {
+            return await prisma.bookingAddon.createMany({
+                data: addons
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`Failed to create booking addons: ${error.message}`);
+            }
+            throw new Error("Failed to create booking addons");
+        }
+    }
+
+    public async getBookingAddonsByReservationId(reservationId: string): Promise<IBookingAddon[]> {
+        try {
+            return await prisma.bookingAddon.findMany({
+                where: { reservationId }
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`Failed to fetch booking addons: ${error.message}`);
+            }
+            throw new Error("Failed to fetch booking addons");
+        }
+    }
+}
+
+// ==================== RESERVATION PROMOTION REPOSITORY ====================
+export class ReservationPromotionRepository {
+    public async createReservationPromotions(promotions: IReservationPromotionCreate[]): Promise<any> {
+        try {
+            return await prisma.reservationPromotion.createMany({
+                data: promotions
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`Failed to create reservation promotions: ${error.message}`);
+            }
+            throw new Error("Failed to create reservation promotions");
+        }
+    }
+
+    public async getPromotionsByReservationId(reservationId: string): Promise<IReservationPromotion[]> {
+        try {
+            return await prisma.reservationPromotion.findMany({
+                where: { bookingId: reservationId },
+                include: {
+                    Promotion: true,
+                    RatePlanRule: true
+                }
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`Failed to fetch reservation promotions: ${error.message}`);
+            }
+            throw new Error("Failed to fetch reservation promotions");
         }
     }
 }

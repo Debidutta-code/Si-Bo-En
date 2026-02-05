@@ -138,8 +138,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
   const [pendingRatePlan, setPendingRatePlan] = useState<any>(null);
   const [fetchingAddons, setFetchingAddons] = useState(false);
   const [expandedPromotions, setExpandedPromotions] = useState<string | null>(null);
-  const [selectedPromotions, setSelectedPromotions] = useState<Record<string, any>>({});
-
+const [selectedPromotions, setSelectedPromotions] = useState<Record<string, any[]>>({});
   const addonsRef = useRef<HTMLDivElement | null>(null);
 
   // Update price sidebar whenever addons change
@@ -236,13 +235,14 @@ const RoomCard: React.FC<RoomCardProps> = ({
       };
 
       // ✅ ADD SELECTED PROMOTION TO PAYLOAD
-      const selectedPromotion = selectedPromotions[ratePlan.ratePlanCode];
-      if (selectedPromotion) {
-        payload.promotion = {
-          id: selectedPromotion.id,
-          promotionType: selectedPromotion.type
-        };
-      }
+      // Around line 223 - Update to send array of promotions:
+const selectedPromotionsList = selectedPromotions[ratePlan.ratePlanCode] || [];
+if (selectedPromotionsList.length > 0) {
+  payload.promotions = selectedPromotionsList.map(promotions => ({
+    id: promotions.id,
+    promotionType: promotions.type
+  }));
+}
 
       // Add addons if present
       if (selectedAddonsList && selectedAddonsList.length > 0) {
@@ -270,7 +270,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
       setLatestPrice(data.data);
 
       // Proceed to booking with selected addons
-      onBookNow(room, ratePlan, selectedAddonsList,selectedPromotion);
+      onBookNow(room, ratePlan, selectedAddonsList,selectedPromotionsList);
     } catch (error) {
       console.error("Error fetching price:", error);
       toast.error("Failed to fetch price. Please try again.");
@@ -320,23 +320,27 @@ const RoomCard: React.FC<RoomCardProps> = ({
     });
   };
 
-  const handleContinue = () => {
-    const selectedAddonsList = Object.values(selectedAddons);
-    const currentRatePlan = room.room_price.find((rp: any) => rp.ratePlanCode === expandedRatePlan);
+ // Around line 355:
+const handleContinue = () => {
+  const selectedAddonsList = Object.values(selectedAddons);
+  const currentRatePlan = room.room_price.find((rp: any) => rp.ratePlanCode === expandedRatePlan);
+  const selectedPromotionsList = selectedPromotions[expandedRatePlan || ''] || [];
 
-    onBookNow(room, currentRatePlan, selectedAddonsList ,selectedPromotions);
-    setExpandedRatePlan(null);
-    setSelectedAddons({});
-    setCollapsedRatePlans(new Set());
-  };
+  onBookNow(room, currentRatePlan, selectedAddonsList, selectedPromotionsList);
+  setExpandedRatePlan(null);
+  setSelectedAddons({});
+  setCollapsedRatePlans(new Set());
+};
 
-  const handleSkip = () => {
-    const currentRatePlan = room.room_price.find((rp: any) => rp.ratePlanCode === expandedRatePlan);
-    onBookNow(room, currentRatePlan, [],selectedPromotions);
-    setExpandedRatePlan(null);
-    setSelectedAddons({});
-    setCollapsedRatePlans(new Set());
-  };
+const handleSkip = () => {
+  const currentRatePlan = room.room_price.find((rp: any) => rp.ratePlanCode === expandedRatePlan);
+  const selectedPromotionsList = selectedPromotions[expandedRatePlan || ''] || [];
+  
+  onBookNow(room, currentRatePlan, [], selectedPromotionsList);
+  setExpandedRatePlan(null);
+  setSelectedAddons({});
+  setCollapsedRatePlans(new Set());
+};
 
   const handleViewDetails = (ratePlan: any) => {
     setSelectedRatePlanForDetails(ratePlan);
@@ -368,7 +372,6 @@ const RoomCard: React.FC<RoomCardProps> = ({
   const activeAmenities = getActiveAmenities(room.amenities);
   const bookingDates = getDatesBetween(bookingContext.startDate, bookingContext.endDate);
 
-  const totalAddonsPrice = Object.values(selectedAddons).reduce((sum: number, addon: any) => sum + addon.totalPrice, 0);
   const totalAddonsCount = Object.values(selectedAddons).reduce((sum: number, addon: any) => sum + addon.quantity, 0);
 
   return (
@@ -492,7 +495,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
           ?.map((ratePlan: any, index: number) => {
             const isExpanded = expandedRatePlan === ratePlan.ratePlanCode;
             const isCollapsed = collapsedRatePlans.has(ratePlan.ratePlanCode);
-            const basePrice = ratePlan.baseByGuestAmts?.[0]?.amountBeforeTax || 0;
+            const basePrice = ratePlan.totalAmount || 0;
             const currency = ratePlan.currencyCode || 'USD';
 
             // console.log(ratePlan, 'ratePlan');
@@ -554,13 +557,18 @@ const RoomCard: React.FC<RoomCardProps> = ({
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
     </svg>
-    {selectedPromotions[ratePlan.ratePlanCode]
-      ? `Offer Applied • ${ratePlan.availablePromotions.length} Available`
-      : `${ratePlan.availablePromotions.length} Special Offer${ratePlan.availablePromotions.length > 1 ? 's' : ''} Available`
-    }
-    {selectedPromotions[ratePlan.ratePlanCode] && (
-      <span className="w-1.5 h-1.5 rounded-full bg-green-500 ml-1"></span>
-    )}
+{selectedPromotions[ratePlan.ratePlanCode]?.length > 0
+  ? `${selectedPromotions[ratePlan.ratePlanCode].length} Offer${selectedPromotions[ratePlan.ratePlanCode].length > 1 ? 's' : ''} Applied • ${ratePlan.availablePromotions.length} Available`
+  : `${ratePlan.availablePromotions.length} Special Offer${ratePlan.availablePromotions.length > 1 ? 's' : ''} Available`
+}
+{selectedPromotions[ratePlan.ratePlanCode]?.length > 0 && (
+  <span className="px-2.5 py-1 bg-green-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
+    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+    </svg>
+    {selectedPromotions[ratePlan.ratePlanCode].length} Applied
+  </span>
+)}
   </button>
 )}
 {expandedPromotions === ratePlan.ratePlanCode && ratePlan.availablePromotions?.length > 0 && (
@@ -585,29 +593,45 @@ const RoomCard: React.FC<RoomCardProps> = ({
 
                         <div className="space-y-2.5">
                           {ratePlan.availablePromotions.map((promo: any) => {
-                            const isSelected = selectedPromotions[ratePlan.ratePlanCode]?.id === promo.id;
-
+const currentPromotions = selectedPromotions[ratePlan.ratePlanCode] || [];
+const isSelected = currentPromotions.some(p => p.id === promo.id);
                             return (
                               <div
                                 key={promo.id}
-                                onClick={() => {
-                                  setSelectedPromotions(prev => {
-                                    const newState = { ...prev };
-                                    if (isSelected) {
-                                      delete newState[ratePlan.ratePlanCode];
-                                    } else {
-                                      newState[ratePlan.ratePlanCode] = {
-                                        id: promo.id,
-                                        name: promo.promotionName,
-                                        type: promo.promotionType,
-                                        discountType: promo.discountType,
-                                        discountValue: promo.discountValue,
-                                        ...promo
-                                      };
-                                    }
-                                    return newState;
-                                  });
-                                }}
+                              // Inside the promotion card onClick handler (around line 580):
+onClick={() => {
+  setSelectedPromotions(prev => {
+    const newState = { ...prev };
+    const currentPromotions = newState[ratePlan.ratePlanCode] || [];
+    
+    // Check if promotion is already selected
+    const promoIndex = currentPromotions.findIndex(p => p.id === promo.id);
+    
+    if (promoIndex > -1) {
+      // Remove if already selected
+      currentPromotions.splice(promoIndex, 1);
+      if (currentPromotions.length === 0) {
+        delete newState[ratePlan.ratePlanCode];
+      } else {
+        newState[ratePlan.ratePlanCode] = currentPromotions;
+      }
+    } else {
+      // Add to selection
+      newState[ratePlan.ratePlanCode] = [
+        ...currentPromotions,
+        {
+          id: promo.id,
+          name: promo.promotionName,
+          type: promo.promotionType,
+          discountType: promo.discountType,
+          discountValue: promo.discountValue,
+          ...promo
+        }
+      ];
+    }
+    return newState;
+  });
+}}
                                 className={`relative p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 ${isSelected
                                     ? 'bg-white border-orange-400 shadow-md'
                                     : 'bg-white border-gray-200 hover:border-orange-300 hover:shadow-sm'
@@ -670,14 +694,14 @@ const RoomCard: React.FC<RoomCardProps> = ({
 
                         <div className="mt-3 pt-3 border-t border-orange-200 flex items-center justify-between">
                           <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedPromotions(prev => {
-                                const newState = { ...prev };
-                                delete newState[ratePlan.ratePlanCode];
-                                return newState;
-                              });
-                            }}
+onClick={(e) => {
+  e.stopPropagation();
+  setSelectedPromotions(prev => {
+    const newState = { ...prev };
+    delete newState[ratePlan.ratePlanCode];
+    return newState;
+  });
+}}
                             className="text-xs text-gray-600 hover:text-gray-900 font-medium transition-colors"
                           >
                             Clear Selection

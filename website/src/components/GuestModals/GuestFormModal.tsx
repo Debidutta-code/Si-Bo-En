@@ -341,11 +341,11 @@ const GuestFormModal: React.FC<Props> = ({
                   id="phone"
                   type="tel"
                   value={contactInfo.phoneNumber}
-                  maxLength={10}
+                  maxLength={15}
                   onChange={(e: any) =>
                     handleFieldChange('contact', 'phoneNumber', 'phoneNumber', e.target.value.replace(/\D/g, ''))
                   }
-                  placeholder="10-digit number"
+                  placeholder="Enter Phone Number"
                   className={errors.phoneNumber ? "border-red-500" : ""}
                 />
                 {errors.phoneNumber && (

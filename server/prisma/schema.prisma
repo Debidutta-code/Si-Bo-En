@@ -1043,12 +1043,13 @@ model ReservationPromotion {
   bookingId   String      @map("booking_id")
   Reservation Reservation @relation(fields: [bookingId], references: [id])
 
-  promotionId String    @map("promotion_id")
-  Promotion   Promotion @relation(fields: [promotionId], references: [id])
-
+  promotionId String?    @map("promotion_id")
+  mlosId      String?   @map("mlos_id")
+  Promotion   Promotion? @relation(fields: [promotionId], references: [id])
+  RatePlanRule RatePlanRule? @relation(fields: [mlosId], references: [id])
   amount     Float      @map("amount")
   currency   CurrencyCode   @default(USD) @map("currency")
-  @@unique([bookingCode, promotionId])
+
   @@map("reservation_promotions")
 }
 
@@ -1137,6 +1138,7 @@ model RatePlanRule {
 
   discountType  DiscountType? @map("discount_type")
   discountValue Decimal?      @map("discount_value") @db.Decimal(10, 2)
+  ReservationPromotion ReservationPromotion[]
 
   isActive Boolean @default(true)
 
