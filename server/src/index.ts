@@ -4,7 +4,7 @@ import { initializeExpressRoutes } from './config/route.config';
 import { connectPostgres, connectMongo } from './config/index';
 initializeExpressRoutes({ app }).then(async () => {
   try {
-    // await connectMongo();
+    await connectMongo();
     await connectPostgres();
 
 
