@@ -12,6 +12,8 @@ import RoomCard from "@/src/components/RoomPage/RoomCard";
 import PriceSummarySidebar from "../../components/RoomPage/Pricesummerysidebar";
 import { Room } from "@/src/store/roomsSlice";
 import GuestFormModal from "../../components/GuestModals/GuestFormModal";
+import { Building2, Calendar, MessageCircle, Moon, Plus } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/src/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -87,24 +89,34 @@ interface PriceSummaryData {
 }
 
 // Loyalty Program Banner Component
-const LoyaltyProgramBanner = ({
-  loyaltyProgram,
-  primaryColor
-}: {
-  loyaltyProgram: IPropertyLoyalityWithLoyality;
+const LoyaltyProgramBanner = ({ 
+  loyaltyProgram, 
+  primaryColor 
+}: { 
+  loyaltyProgram: IPropertyLoyalityWithLoyality; 
   primaryColor: string;
 }) => {
   const [showSignUpModal, setShowSignUpModal] = useState(false);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isAlreadyMember, setIsAlreadyMember] = useState(false);
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState<string>("");
 
   const program = loyaltyProgram.CreationLoyaltyConfig;
   const isBasicProgram = program.BasicLoyaltyProgram !== null;
   const isAdvancedProgram = program.AdvanceLoyaltyProgram !== null;
-  const loyaltyLogo = isBasicProgram && program.BasicLoyaltyProgram?.logo?.[0]
-    ? program.BasicLoyaltyProgram.logo[0]
+  const loyaltyLogo = isBasicProgram && program.BasicLoyaltyProgram?.logo?.[0] 
+    ? program.BasicLoyaltyProgram.logo[0] 
     : null;
+
+  // Check if user is already registered (from localStorage)
+  useState(() => {
+    const loyaltyMemberEmail = localStorage.getItem(`loyalty_member_${loyaltyProgram.propertyId}`);
+    if (loyaltyMemberEmail) {
+      setIsRegistered(true);
+      setRegisteredEmail(loyaltyMemberEmail);
+    }
+  });
 
   const handleFieldChange = (fieldName: string, value: any) => {
     setFormData(prev => ({
@@ -146,10 +158,16 @@ const LoyaltyProgramBanner = ({
       if (!response.ok || !data.success) {
         const errorMsg = data.message || "Failed to register for loyalty program";
         
-        // Check if user is already registered
-        if (errorMsg.toLowerCase().includes("already registered")) {
-          toast.success("You are already a member of this loyalty program!");
-          setIsAlreadyMember(true);
+        // Check if already registered
+        if (errorMsg.includes("already registered")) {
+          // Save to localStorage
+          localStorage.setItem(`loyalty_member_${loyaltyProgram.propertyId}`, email);
+          
+          // Update state
+          setIsRegistered(true);
+          setRegisteredEmail(email);
+          
+          toast.success("Welcome back! You're already a loyalty member.");
           setShowSignUpModal(false);
           setFormData({});
           setIsSubmitting(false);
@@ -161,8 +179,14 @@ const LoyaltyProgramBanner = ({
         return;
       }
 
+      // Save to localStorage
+      localStorage.setItem(`loyalty_member_${loyaltyProgram.propertyId}`, email);
+      
+      // Update state
+      setIsRegistered(true);
+      setRegisteredEmail(email);
+      
       toast.success("Successfully registered for loyalty program!");
-      setIsAlreadyMember(true);
       setShowSignUpModal(false);
       setFormData({});
     } catch (error) {
@@ -185,7 +209,7 @@ const LoyaltyProgramBanner = ({
     <>
       <div className="px-4 py-3">
         <div className="max-w-7xl mx-auto">
-          <div
+          <div 
             className="relative overflow-hidden rounded-xl shadow-md border"
             style={{ borderColor: `${primaryColor}40` }}
           >
@@ -196,7 +220,7 @@ const LoyaltyProgramBanner = ({
                   {loyaltyProgram.propertyName} Loyalty Program
                 </h2>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <div
+                  <div 
                     className="px-3 py-1.5 rounded-full text-white text-sm font-semibold"
                     style={{ backgroundColor: primaryColor }}
                   >
@@ -222,9 +246,9 @@ const LoyaltyProgramBanner = ({
                   {/* Logo Image */}
                   {loyaltyLogo && (
                     <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                      <img
-                        src={loyaltyLogo}
-                        alt="Loyalty Program"
+                      <img 
+                        src={loyaltyLogo} 
+                        alt="Loyalty Program" 
                         className="w-full h-auto rounded object-contain max-h-32"
                       />
                     </div>
@@ -243,12 +267,12 @@ const LoyaltyProgramBanner = ({
                         {program.loyaltyConditions
                           .filter(condition => condition.isActive)
                           .map((condition, index) => (
-                            <div
-                              key={index}
+                            <div 
+                              key={index} 
                               className="flex items-start gap-2 p-2 bg-gray-50 rounded-lg"
                             >
-                              <div
-                                className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0"
+                              <div 
+                                className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" 
                                 style={{ backgroundColor: primaryColor }}
                               ></div>
                               <span className="text-xs text-gray-700 line-clamp-2">{condition.text}</span>
@@ -273,8 +297,8 @@ const LoyaltyProgramBanner = ({
                           .filter(condition => condition.isActive)
                           .slice(0, 2)
                           .map((condition, index) => (
-                            <div
-                              key={index}
+                            <div 
+                              key={index} 
                               className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-md p-2 border border-purple-200"
                             >
                               <h4 className="font-semibold text-gray-900 text-xs leading-tight">
@@ -295,10 +319,10 @@ const LoyaltyProgramBanner = ({
                       </div>
                     </div>
                   )}
-
-                  {/* Sign Up Section */}
+                  
+                  {/* Sign Up Section or Registered Status */}
                   <div className="flex flex-col items-center space-y-2 pt-1">
-                    {!isAlreadyMember ? (
+                    {!isRegistered ? (
                       <>
                         <div className="text-center w-full">
                           <h3 className="text-sm font-bold text-gray-900 mb-0.5">
@@ -319,25 +343,36 @@ const LoyaltyProgramBanner = ({
                         </button>
                       </>
                     ) : (
-                      <div className="w-full">
-                        <div
-                          className="px-4 py-3 rounded-lg border-2 text-center"
-                          style={{
-                            backgroundColor: `${primaryColor}10`,
-                            borderColor: primaryColor
-                          }}
-                        >
-                          <div className="flex items-center justify-center gap-2 mb-1">
-                            <Award className="w-5 h-5" style={{ color: primaryColor }} />
-                            <h3 className="text-sm font-bold text-gray-900">
-                              Active Member
-                            </h3>
-                          </div>
-                          <p className="text-[10px] text-gray-600">
-                            You're enjoying exclusive member benefits
+                      <>
+                        <div className="text-center w-full">
+                          <h3 className="text-sm font-bold text-gray-900 mb-0.5">
+                            You're a Member! 🎉
+                          </h3>
+                          <p className="text-[10px] text-gray-600 mb-2">
+                            Loyalty discount will be applied at checkout
                           </p>
                         </div>
-                      </div>
+
+                        <div 
+                          className="w-full px-4 py-3 rounded-lg border-2 flex items-center justify-center gap-2"
+                          style={{ 
+                            borderColor: primaryColor,
+                            backgroundColor: `${primaryColor}10`
+                          }}
+                        >
+                          <User className="w-4 h-4" style={{ color: primaryColor }} />
+                          <span className="text-sm font-semibold text-gray-900">{registeredEmail}</span>
+                        </div>
+
+                        <div className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg">
+                          <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                          </svg>
+                          <span className="text-xs font-medium text-green-700">
+                            {getDiscountDisplay()} Applied
+                          </span>
+                        </div>
+                      </>
                     )}
                   </div>
                 </div>
@@ -364,15 +399,15 @@ const LoyaltyProgramBanner = ({
             <form onSubmit={handleSignUpSubmit} className="mt-6">
               <div className="space-y-6">
                 {/* Discount Info Banner */}
-                <div
+                <div 
                   className="p-5 rounded-xl border-2"
-                  style={{
+                  style={{ 
                     backgroundColor: `${primaryColor}08`,
                     borderColor: primaryColor
                   }}
                 >
                   <div className="flex items-center gap-1">
-                    <div
+                    <div 
                       className="p-3 rounded-lg"
                       style={{ backgroundColor: primaryColor }}
                     >
@@ -392,9 +427,9 @@ const LoyaltyProgramBanner = ({
                 {/* Registration Fields */}
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-4">Registration Information</h4>
-
-                  {program.LoyaltyProgramFieldConfig &&
-                    program.LoyaltyProgramFieldConfig.filter(field => field.visibleInRegistration).length > 0 ? (
+                  
+                  {program.LoyaltyProgramFieldConfig && 
+                   program.LoyaltyProgramFieldConfig.filter(field => field.visibleInRegistration).length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {/* Email field (required, prominently displayed) */}
                       <div className="space-y-2 md:col-span-2">
@@ -441,7 +476,7 @@ const LoyaltyProgramBanner = ({
                   )}
                 </div>
 
-
+                
               </div>
 
               {/* Action Buttons */}
@@ -500,7 +535,6 @@ const Rooms = () => {
   const router = useRouter();
   const rooms = useSelector((state: RootState) => state.rooms.rooms);
   const bookingContext = useSelector((state: RootState) => state.booking);
-  const [selectedPromotions, setSelectedPromotions] = useState<Record<string, any>>({});
 
   const [bookingRoom, setBookingRoom] = useState<Room | null>(null);
   const [currentRatePlan, setCurrentRatePlan] = useState<any>(null);
@@ -554,7 +588,7 @@ const Rooms = () => {
     setShowPriceSummary(true);
   };
 
-  const handleBookNow = async (room: Room, ratePlan: any, selectedAddonsList: any[], selectedPromotion: any) => {
+  const handleBookNow = async (room: Room, ratePlan: any, selectedAddonsList: any[]) => {
     setLoadingBookNow(`${room.id}-${ratePlan.ratePlanCode}`);
     setLoadingPrice(true);
     setErrorPrice(null);
@@ -621,10 +655,7 @@ const Rooms = () => {
       noOfChildrens,
       noOfRooms,
     };
-    if (selectedPromotion?.id) {
-      payload.promotionId = selectedPromotion.id;
-      payload.promotionType = selectedPromotion.type;
-    }
+
     if (selectedAddonsList && selectedAddonsList.length > 0) {
       payload.addons = selectedAddonsList.map(addon => ({
         addonId: addon.addonId,
@@ -1091,15 +1122,15 @@ const Rooms = () => {
             }}
           />
         </div>
-
+        
         {/* Loyalty Program Banner */}
         {loyaltyProgram && (
-          <LoyaltyProgramBanner
-            loyaltyProgram={loyaltyProgram}
+          <LoyaltyProgramBanner 
+            loyaltyProgram={loyaltyProgram} 
             primaryColor={primaryColor}
           />
         )}
-
+        
         <div className="px-4 pb-2">
           <div className="max-w-7xl mx-auto mt-10">
             <div className="flex gap-6">
@@ -1250,7 +1281,7 @@ const Rooms = () => {
           onSubmit={() => {
             if (!bookingRoom || !currentRatePlan) return;
 
-            const bookingData: any = {
+            const bookingData = {
               PropertyCode: bookingContext.PropertyCode,
               startDate: bookingContext.startDate,
               endDate: bookingContext.endDate,
@@ -1270,17 +1301,6 @@ const Rooms = () => {
               propertyDetails: bookingContext.PropertyDetails,
               selectedAddons: selectedAddons,
             };
-
-            const selectedPromotion = selectedPromotions[currentRatePlan.ratePlanCode];
-            if (selectedPromotion) {
-              bookingData.selectedPromotion = {
-                id: selectedPromotion.id,
-                promotionType: selectedPromotion.type,
-                promotionName: selectedPromotion.name || selectedPromotion.promotionName,
-                discountValue: selectedPromotion.discountValue,
-                discountType: selectedPromotion.discountType
-              };
-            }
 
             dispatch({
               type: "booking/setFullBookingDetails",
