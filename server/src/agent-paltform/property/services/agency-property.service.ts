@@ -25,18 +25,18 @@ export class AgencyPropertyService {
         }
     }
 
-    public async getAgenticPropertyById(agenticPropertyId: string): Promise<IApiResponse> {
-        try {
-            const property = await this.agenticPropertyRepository.getAgenticPropertyById(agenticPropertyId);
-            if (!property) {
-                return errorResponse("Agentic Property not found", "Property does not exist or deleted");
-            }
-            return successResponse("Agentic Property fetched successfully", property);
-        } catch (error) {
-            if(error instanceof Error){
-                return errorResponse("Failed to retrieve agentic property", error.message);
-            }
-            return errorResponse("Failed to retrieve agentic property");
-        }
-    }
+    // public async getAgenticPropertyById(agenticPropertyId: string): Promise<IApiResponse> {
+    //     try {
+    //         const property = await this.agenticPropertyRepository.getAgenticPropertyById(agenticPropertyId);
+    //         if (!property) {
+    //             return errorResponse("Agentic Property not found", "Property does not exist or deleted");
+    //         }
+    //         return successResponse("Agentic Property fetched successfully", property);
+    //     } catch (error) {
+    //         if(error instanceof Error){
+    //             return errorResponse("Failed to retrieve agentic property", error.message);
+    //         }
+    //         return errorResponse("Failed to retrieve agentic property");
+    //     }
+    // }
 }

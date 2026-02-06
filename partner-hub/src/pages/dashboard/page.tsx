@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector } from '@/redux/hooks';
 import { mockDashboardStats } from '@/lib/mockData';
@@ -86,16 +85,7 @@ const formatValue = (value: number, format?: string) => {
 
 export default function DashboardPage() {
   const navigate = useNavigate();
-  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
   const user = useAppSelector((state) => state.auth.user);
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
-    }
-  }, [isAuthenticated, navigate]);
-
-  if (!isAuthenticated) return null;
 
   return (
     <div className="space-y-6">
@@ -103,7 +93,7 @@ export default function DashboardPage() {
       <div className="flex flex-col gap-2">
         <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
         <p className="text-muted-foreground">
-          Welcome back, {user?.name}! Here's your property overview.
+          Welcome back! Here's your property overview.
         </p>
       </div>
 

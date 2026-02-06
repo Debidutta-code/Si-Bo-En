@@ -1,19 +1,18 @@
-import { useEffect } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAppSelector, useAppDispatch } from '@/redux/hooks';
-import { setProperties } from '@/redux/slices/propertySlice';
-import { mockProperties } from '@/lib/mockData';
-import { useFilteredProperties, useSearchSummary } from '@/hooks/useSearchFilters';
+import { useSearch } from '@/contexts/SearchContext';
+import { useSearchSummary } from '@/hooks/useSearchFilters';
+import { fetchPropertiesService } from './services';
+import toast from 'react-hot-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader } from '@/components/Loader';
+import type { IProperty } from './interface/agentic-property.types';
 import { 
   Building2, 
   MapPin, 
-  Star, 
-  DoorOpen, 
-  Clock, 
   Mail, 
   Phone,
   Wifi,
@@ -53,21 +52,43 @@ const amenityIcons: Record<string, React.ElementType> = {
 
 export default function PropertyPage() {
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
-  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
-  const properties = useAppSelector((state) => state.property.properties);
+  const [properties, setProperties] = useState<IProperty[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
   
-  // Use search filters
-  const filteredProperties = useFilteredProperties(properties);
+  const { filters } = useSearch();
   const { hasActiveFilters, activeFilterCount } = useSearchSummary();
 
+  const filteredProperties = useMemo(() => {
+    return properties.filter((property) => {
+      if (filters.searchQuery) {
+        const query = filters.searchQuery.toLowerCase();
+        const matchesName = property.propertyName?.toLowerCase().includes(query);
+        const matchesCity = property.propertyAddress?.city?.toLowerCase().includes(query);
+        const matchesState = property.propertyAddress?.state?.toLowerCase().includes(query);
+        
+        if (!matchesName && !matchesCity && !matchesState) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [properties, filters]);
+
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-    dispatch(setProperties(mockProperties));
-  }, [isAuthenticated, navigate, dispatch]);
+    const fetchProperties = async () => {
+      setLoading(true);
+      const result = await fetchPropertiesService();
+      
+      if (result.success && result.data) {
+        setProperties(result.data);
+      } else {
+        toast.error(result.message || 'Failed to fetch properties');
+      }
+      setLoading(false);
+    };
+
+    fetchProperties();
+  }, []);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-IN', {
@@ -77,7 +98,9 @@ export default function PropertyPage() {
     });
   };
 
-  if (!isAuthenticated) return null;
+  if (loading) {
+    return <Loader fullScreen text="Loading properties..." />;
+  }
 
   return (
     <div className="space-y-6">
@@ -121,21 +144,16 @@ export default function PropertyPage() {
                   {/* Property Image */}
                   <div className="relative lg:w-72 h-56 lg:h-auto shrink-0">
                     <img
-                      src={property.image}
-                      alt={property.name}
+                      src={property.image[0] || '/placeholder.svg'}
+                      alt={property.propertyName}
                       className="w-full h-full object-cover"
                     />
                     <div className="absolute top-3 left-3">
                       <Badge className="bg-card/90 text-foreground backdrop-blur-sm">
-                        {property.propertyType}
+                        {property.propertyType?.masterPropertyType?.propertyTypeName || 'N/A'}
                       </Badge>
                     </div>
-                    <div className="absolute top-3 right-3">
-                      <Badge className="bg-card/90 text-foreground backdrop-blur-sm">
-                        <Star className="h-3 w-3 mr-1 fill-warning text-warning" />
-                        {property.rating}
-                      </Badge>
-                    </div>
+                    
                   </div>
 
                   {/* Property Details */}
@@ -145,16 +163,14 @@ export default function PropertyPage() {
                       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
                         <div>
                           <h3 className="text-xl font-semibold text-foreground mb-1">
-                            {property.name}
+                            {property.propertyName}
                           </h3>
                           <div className="flex items-center gap-1 text-sm text-muted-foreground">
                             <MapPin className="h-4 w-4" />
-                            <span>{property.address}, {property.city}, {property.state}</span>
+                            <span>
+                              {property.propertyAddress?.addressLine1}, {property.propertyAddress?.city}, {property.propertyAddress?.state}
+                            </span>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <CalendarDays className="h-4 w-4" />
-                          <span>Added: {formatDate(property.addedOn)}</span>
                         </div>
                       </div>
 
@@ -167,31 +183,33 @@ export default function PropertyPage() {
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                         <div className="flex items-center gap-2">
                           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/10">
-                            <DoorOpen className="h-4 w-4 text-accent" />
+                            <Building2 className="h-4 w-4 text-accent" />
                           </div>
                           <div>
-                            <p className="text-xs text-muted-foreground">Rooms</p>
+                            <p className="text-xs text-muted-foreground">Category</p>
                             <p className="text-sm font-medium text-foreground">
-                              {property.availableRooms}/{property.totalRooms}
+                              {property.propertyCategory?.masterCategory?.categoryName || 'N/A'}
                             </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-success/10">
-                            <Clock className="h-4 w-4 text-success" />
+                            <MapPin className="h-4 w-4 text-success" />
                           </div>
                           <div>
-                            <p className="text-xs text-muted-foreground">Check-in</p>
-                            <p className="text-sm font-medium text-foreground">{property.checkInTime}</p>
+                            <p className="text-xs text-muted-foreground">Location</p>
+                            <p className="text-sm font-medium text-foreground">{property.propertyAddress?.location || 'N/A'}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
                           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-warning/10">
-                            <Clock className="h-4 w-4 text-warning" />
+                            <Mail className="h-4 w-4 text-warning" />
                           </div>
                           <div>
-                            <p className="text-xs text-muted-foreground">Check-out</p>
-                            <p className="text-sm font-medium text-foreground">{property.checkOutTime}</p>
+                            <p className="text-xs text-muted-foreground">Email</p>
+                            <p className="text-sm font-medium text-foreground truncate max-w-[120px]" title={property.propertyEmail}>
+                              {property.propertyEmail}
+                            </p>
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
@@ -200,8 +218,8 @@ export default function PropertyPage() {
                           </div>
                           <div>
                             <p className="text-xs text-muted-foreground">Contact</p>
-                            <p className="text-sm font-medium text-foreground truncate max-w-[100px]" title={property.contactPhone}>
-                              {property.contactPhone.slice(-10)}
+                            <p className="text-sm font-medium text-foreground truncate max-w-[100px]" title={property.propertyContact}>
+                              {property.propertyContact}
                             </p>
                           </div>
                         </div>
@@ -213,22 +231,26 @@ export default function PropertyPage() {
                           Amenities
                         </p>
                         <div className="flex flex-wrap gap-2">
-                          {property.amenities.slice(0, 6).map((amenity) => {
-                            const Icon = amenityIcons[amenity] || Sparkles;
+                          {property.propertyAmenities?.slice(0, 6).map((amenityItem, idx) => {
+                            const amenityName = amenityItem.amenity.amenityName;
+                            const Icon = amenityIcons[amenityName] || Sparkles;
                             return (
                               <div
-                                key={amenity}
+                                key={idx}
                                 className="flex items-center gap-1.5 text-xs bg-muted px-2.5 py-1.5 rounded-full"
                               >
                                 <Icon className="h-3 w-3 text-muted-foreground" />
-                                <span className="text-foreground">{amenity}</span>
+                                <span className="text-foreground">{amenityName}</span>
                               </div>
                             );
                           })}
-                          {property.amenities.length > 6 && (
+                          {property.propertyAmenities && property.propertyAmenities.length > 6 && (
                             <div className="flex items-center text-xs text-accent font-medium px-2.5 py-1.5">
-                              +{property.amenities.length - 6} more
+                              +{property.propertyAmenities.length - 6} more
                             </div>
+                          )}
+                          {(!property.propertyAmenities || property.propertyAmenities.length === 0) && (
+                            <span className="text-sm text-muted-foreground">No amenities listed</span>
                           )}
                         </div>
                       </div>
@@ -237,8 +259,10 @@ export default function PropertyPage() {
                       <div className="flex items-center justify-between pt-4 border-t mt-auto">
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <div className="flex items-center gap-1">
-                            <Mail className="h-4 w-4" />
-                            <span className="hidden sm:inline">{property.contactEmail}</span>
+                            <Building2 className="h-4 w-4" />
+                            <span className="hidden sm:inline">
+                              {property.propertyCategory?.masterCategory?.categoryName || 'N/A'}
+                            </span>
                           </div>
                         </div>
                         <Button 

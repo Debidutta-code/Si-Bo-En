@@ -29,22 +29,22 @@ export class AgenticPropertyController {
             return res.status(500).json(errorResponse("Internal Server Error", "An unexpected error occurred"));
         }
     }
-    public async getByAgenticPropertyId(req: AgentRequest, res: Response): Promise<Response> {
-        try {
-            const agenticPropertyId = req.params.agenticPropertyId;
+    // public async getByAgenticPropertyId(req: AgentRequest, res: Response): Promise<Response> {
+    //     try {
+    //         const agenticPropertyId = req.params.agenticPropertyId;
 
-            if (!agenticPropertyId) {
-                return res.status(400).json(errorResponse("Property not found", "agent is not assigned or unauthorized"));
-            }
+    //         if (!agenticPropertyId) {
+    //             return res.status(400).json(errorResponse("Property not found", "agent is not assigned or unauthorized"));
+    //         }
 
-            const property = await this.agencyPropertyService.getAgenticPropertyById(agenticPropertyId);
+    //         const property = await this.agencyPropertyService.getAgenticPropertyById(agenticPropertyId);
 
-            return res.status(property.success ? 200 : 400).json(property);
-        } catch (error) {
-            if (error instanceof Error) {
-                return res.status(500).json(errorResponse("Internal Server Error", error.message));
-            }
-            return res.status(500).json(errorResponse("Internal Server Error", "An unexpected error occurred"));
-        }
-    }
+    //         return res.status(property.success ? 200 : 400).json(property);
+    //     } catch (error) {
+    //         if (error instanceof Error) {
+    //             return res.status(500).json(errorResponse("Internal Server Error", error.message));
+    //         }
+    //         return res.status(500).json(errorResponse("Internal Server Error", "An unexpected error occurred"));
+    //     }
+    // }
 }

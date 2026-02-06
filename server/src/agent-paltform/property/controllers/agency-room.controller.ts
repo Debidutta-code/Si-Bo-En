@@ -13,10 +13,15 @@ export class AgenticRoomController{
     }
     public async getAgenticRooms(req: AgentRequest, res: Response): Promise<Response> {
         try {
-            const agenticPropertyId = req.params.agenticPropertyId;
 
-            if (!agenticPropertyId) {
+            const propertyId = req.params.propertyId;
+            const agencyId = req.agent?.agencyId;
+            console.log(propertyId, agencyId);
+            if (!propertyId) {
                 return res.status(400).json(errorResponse("Property not found", "agent is not assigned or unauthorized"));
+            }
+            if(!agencyId){
+                return res.status(400).json(errorResponse("Agency not found", "agent is not assigned or unauthorized"));
             }
             let {startDate,endDate} = req.query;
             if(!startDate || !endDate){
@@ -25,7 +30,7 @@ export class AgenticRoomController{
             if(startDate>endDate){
                 return res.status(400).json(errorResponse("Invalid date range", "Start date must be before end date"));
             }
-            const rooms = await this.agenticRoomService.getRoomDetails(agenticPropertyId,toUTC(startDate as string),toUTC(endDate as string));
+            const rooms = await this.agenticRoomService.getRoomDetails(agencyId,propertyId,toUTC(startDate as string),toUTC(endDate as string));
 
             return res.status(rooms.success ? 200 : 400).json(rooms);
         } catch (error) {

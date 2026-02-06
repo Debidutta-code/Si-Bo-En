@@ -29,37 +29,25 @@ export class AgenticPropertyRepository {
                             masterPropertyType: true
                         }
                     },
-                    propertyVideos: true
+                    propertyVideos: true,
+                    
                 }
             })
         } catch (error) {
             throw new Error("Failed to retrieve properties");
         }
     }
-    public async getAgenticPropertyById(agenticPropertyId: string): Promise<IProperty | null> {
+    public async getAgenticPropertyById(agencyId:string,propertyId:string) {
         try {
-            return await prisma.property.findUnique({
-                where: {
-                    id: agenticPropertyId
+            return await prisma.agenticProperty.findFirst({
+                where:{
+                    propertyId: propertyId,
+                    agencyId: agencyId,
+                    isActive:true,
+                    isDeleted:false
                 },
-                include: {
-                    propertyAddress: true,
-                    propertyAmenities: {
-                        include: {
-                            amenity: true
-                        }
-                    },
-                    propertyCategory: {
-                        include: {
-                            masterCategory: true
-                        }
-                    },
-                    propertyType: {
-                        include: {
-                            masterPropertyType: true
-                        }
-                    },
-                    propertyVideos: true
+                include:{
+                    Property:true
                 }
             })
         } catch (error) {
@@ -73,7 +61,7 @@ export class AgenticPropertyRepository {
                 where: {
                     id: agencyId,
                     isDeleted:false,
-                    
+
                 }
             });
         } catch (error) {

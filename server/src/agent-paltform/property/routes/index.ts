@@ -1,1 +1,1 @@
-export * from "./index.route"
+export {route} from "./index.route";

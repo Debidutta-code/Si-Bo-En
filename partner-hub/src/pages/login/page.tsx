@@ -1,7 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAppDispatch } from '@/redux/hooks';
-import { setUser, setLoading } from '@/redux/slices/authSlice';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,45 +8,41 @@ import { ButtonLoader } from '@/components/Loader';
 import { Building2, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
-
+import { loginService } from './services';
+import type { IAgentLogin, ILoading } from './interface';
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const dispatch = useAppDispatch();
+const [loginCred,setLoginCred] = useState<IAgentLogin>({
+    email: '',
+    password: ''
+});
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<ILoading>({
+    isLoading: false,
+    message: ''
+  });
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!email || !password) {
+
+    if (!loginCred.email || !loginCred.password) {
       toast.error('Please fill in all fields');
       return;
     }
 
-    setIsLoading(true);
-    dispatch(setLoading(true));
+    setIsLoading({ isLoading: true, message: 'Logging in...' });
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const result = await loginService(loginCred);
 
-    // Mock authentication (in real app, this would be an API call)
-    if (email === 'partner@demo.com' && password === 'password123') {
-      dispatch(setUser({
-        id: 'user-1',
-        email: 'partner@demo.com',
-        name: 'John Partner',
-        partnerId: 'PARTNER-001',
-      }));
+    if (result.success) {
       toast.success('Welcome back!');
       navigate('/dashboard');
+      
     } else {
-      toast.error('Invalid credentials. Try partner@demo.com / password123');
+      toast.error(result.message || 'Login failed. Please try again.');
     }
 
-    setIsLoading(false);
-    dispatch(setLoading(false));
+    setIsLoading({ isLoading: false, message: '' });
   };
 
   return (
@@ -113,10 +107,10 @@ export default function LoginPage() {
                       id="email"
                       type="email"
                       placeholder="partner@example.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      value={loginCred.email}
+                      onChange={(e) => setLoginCred({ ...loginCred, email: e.target.value })}
                       className="pl-10"
-                      disabled={isLoading}
+                      disabled={isLoading.isLoading}
                     />
                   </div>
                 </div>
@@ -129,10 +123,10 @@ export default function LoginPage() {
                       id="password"
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      value={loginCred.password}
+                      onChange={(e) => setLoginCred({ ...loginCred, password: e.target.value })}
                       className="pl-10 pr-10"
-                      disabled={isLoading}
+                      disabled={isLoading.isLoading}
                     />
                     <button
                       type="button"
@@ -144,25 +138,17 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isLoading}>
-                  {isLoading ? (
+                <Button type="submit" className="w-full bg-accent hover:bg-accent/90 text-accent-foreground" disabled={isLoading.isLoading}>
+                  {isLoading.isLoading ? (
                     <>
                       <ButtonLoader />
-                      <span className="ml-2">Signing in...</span>
+                      <span className="ml-2">{isLoading.message}</span>
                     </>
                   ) : (
                     'Sign In'
                   )}
                 </Button>
               </form>
-
-              <div className="mt-6 p-4 bg-muted rounded-lg">
-                <p className="text-xs text-muted-foreground text-center">
-                  <strong>Demo Credentials:</strong><br />
-                  Email: partner@demo.com<br />
-                  Password: password123
-                </p>
-              </div>
             </CardContent>
           </Card>
         </motion.div>

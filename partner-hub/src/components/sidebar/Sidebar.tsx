@@ -80,13 +80,6 @@ export default function Sidebar({
         </Button>
       </div>
 
-      {/* User Info */}
-      {user && sidebarOpen && (
-        <div className="border-b border-sidebar-border px-4 py-4 flex-shrink-0">
-          <p className="text-sm font-medium text-sidebar-foreground">{user.name}</p>
-          <p className="text-xs text-sidebar-muted truncate">{user.email}</p>
-        </div>
-      )}
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 px-3 py-4 overflow-y-auto">

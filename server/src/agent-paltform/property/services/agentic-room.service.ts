@@ -36,23 +36,23 @@ export class AgenticRoomService {
         this.agenticPropertyRepository = new AgenticPropertyRepository();
     }
 
-    public async getRoomDetails(agenticPropertyId:string,startDate:Date,endDate:Date):Promise<IApiResponse>{
+    public async getRoomDetails(agencyId:string,propertyId:string,startDate:Date,endDate:Date):Promise<IApiResponse>{
         try {
-            const property = await this.agenticPropertyRepository.getAgenticPropertyById(agenticPropertyId);
-            if (!property) {
+            const agenticProperty = await this.agenticPropertyRepository.getAgenticPropertyById(agencyId,propertyId);
+            if (!agenticProperty) {
                 return errorResponse("Agentic Property not found", "Property does not exist or deleted");
             }
 
             const [roomDetails, ratePlans] = await Promise.all([
-                this.agenticRoomRepository.agenticRooms(agenticPropertyId),
-                this.agenticRatePlanRepository.getRatePlans(agenticPropertyId)
+                this.agenticRoomRepository.agenticRooms(agenticProperty.id),
+                this.agenticRatePlanRepository.getRatePlans(propertyId)
             ]);
 
             const roomCodes = roomDetails.map(room => room.room.roomType);
             const ratePlanCodes = ratePlans.map(ratePlan => ratePlan.ratePlanCode);
 
             const charges = await this.chargesRepository.getChargesByPropertyId(
-                property.propertyCode,
+                agenticProperty.Property.propertyCode,
                 roomCodes,
                 ratePlanCodes,
                 startDate,

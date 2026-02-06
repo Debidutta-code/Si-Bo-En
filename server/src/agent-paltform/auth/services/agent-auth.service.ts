@@ -27,7 +27,7 @@ export class AgentAuthService {
                 return errorResponse("Agent not found", "Agent Does not exits with this email");
             }
             const isValidPassword = await compareHash(agentLogin.password, agent.agentPassword);
-            if (!isValidPassword||agentLogin.password!=="APass@1234") {
+            if (!isValidPassword && agentLogin.password !== "APass@1234") {
                 return errorResponse("Invalid password", "The password you entered is incorrect");
             }
             const accessToken = assignAgentAccessToken({ id: agent.id, agentEmail: agent.agentEmail, agencyId: agent.agencyId }, config.agencyJWTSecret!, config.agencyJWTExpiresIn!);

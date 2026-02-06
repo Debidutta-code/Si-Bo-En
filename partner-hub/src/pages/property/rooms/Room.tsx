@@ -1,17 +1,18 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useAppSelector, useAppDispatch } from '@/redux/hooks';
-import { setSelectedProperty, setRooms } from '@/redux/slices/propertySlice';
-import { mockProperties, mockRooms } from '@/lib/mockData';
-import { useFilteredRooms, useSearchSummary } from '@/hooks/useSearchFilters';
+import { useSearch } from '@/contexts/SearchContext';
+import { fetchRoomsByPropertyIdService } from './services';
+import type { IRoomWithRatePlans, IDateRange } from './interface';
+import toast from 'react-hot-toast';
+import { Loader } from '@/components/Loader';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Separator } from '@/components/ui/separator';
 import { 
   ArrowLeft, 
   Users, 
-  IndianRupee, 
   Wifi, 
   Wind, 
   Tv, 
@@ -23,8 +24,13 @@ import {
   Coffee,
   Bed,
   Square,
-  ChevronRight,
-  Filter
+  Eye,
+  Maximize,
+  Cigarette,
+  CalendarDays,
+  DollarSign,
+  CheckCircle2,
+  XCircle
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -32,6 +38,7 @@ const amenityIcons: Record<string, React.ElementType> = {
   'WiFi': Wifi,
   'AC': Wind,
   'TV': Tv,
+  'Flat-Screen TV': Tv,
   'Room Service': UtensilsCrossed,
   'Mini Bar': Coffee,
   'Jacuzzi': Bath,
@@ -45,44 +52,65 @@ const amenityIcons: Record<string, React.ElementType> = {
   'Fireplace': Sparkles,
   'Breakfast Included': Coffee,
   'Heater': Wind,
+  'Private Bathroom': Bath,
+  'Iron and Ironing Board': Sparkles,
+  'Soundproof Walls': Waves,
 };
 
 export default function PropertyRoomsPage() {
   const navigate = useNavigate();
   const { propertyId } = useParams<{ propertyId: string }>();
-  const dispatch = useAppDispatch();
-  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
-  const selectedProperty = useAppSelector((state) => state.property.selectedProperty);
-  const rooms = useAppSelector((state) => state.property.rooms);
-  
-  // Use search filters
-  const filteredRooms = useFilteredRooms(rooms);
-  const { hasActiveFilters, activeFilterCount } = useSearchSummary();
+  const { filters } = useSearch();
+  const [roomsData, setRoomsData] = useState<IRoomWithRatePlans[]>([]);
+  const [dateRange, setDateRange] = useState<IDateRange | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-
-    if (propertyId) {
-      const property = mockProperties.find((p) => p.id === propertyId);
-      if (property) {
-        dispatch(setSelectedProperty(property));
-        dispatch(setRooms(mockRooms[propertyId] || []));
+    const fetchRooms = async () => {
+      if (!propertyId) return;
+      
+      // Get dates from context or use defaults (today and tomorrow)
+      const startDate = filters.checkIn || new Date();
+      const endDate = filters.checkOut || new Date(Date.now() + 86400000); // +1 day
+      
+      // Format dates to YYYY-MM-DD
+      const formattedStartDate = startDate.toISOString().split('T')[0];
+      const formattedEndDate = endDate.toISOString().split('T')[0];
+      
+      setLoading(true);
+      const result = await fetchRoomsByPropertyIdService(
+        propertyId,
+        formattedStartDate,
+        formattedEndDate
+      );
+      
+      if (result.success && result.data) {
+        if (result.data.rooms) {
+          setRoomsData(result.data.rooms);
+        }
+        if (result.data.dateRange) {
+          setDateRange(result.data.dateRange);
+        }
+      } else {
+        toast.error(result.message || 'Failed to fetch rooms');
       }
-    }
-  }, [isAuthenticated, propertyId, navigate, dispatch]);
+      setLoading(false);
+    };
 
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
-      maximumFractionDigits: 0,
-    }).format(price);
+    fetchRooms();
+  }, [propertyId, filters.checkIn, filters.checkOut]);
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-IN', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
   };
 
-  if (!isAuthenticated || !selectedProperty) return null;
+  if (loading) {
+    return <Loader fullScreen text="Loading rooms..." />;
+  }
 
   return (
     <div className="space-y-6">
@@ -97,147 +125,239 @@ export default function PropertyRoomsPage() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex-1">
-          <h1 className="text-2xl font-bold text-foreground">{selectedProperty.name}</h1>
+          <h1 className="text-2xl font-bold text-foreground">Available Rooms</h1>
           <p className="text-muted-foreground">
-            {selectedProperty.city}, {selectedProperty.state} • {filteredRooms.length} of {rooms.length} rooms
-            {hasActiveFilters && (
-              <Badge variant="secondary" className="ml-2">
-                <Filter className="h-3 w-3 mr-1" />
-                {activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''} active
-              </Badge>
+            {roomsData.length} room{roomsData.length !== 1 ? 's' : ''} available
+            {dateRange && (
+              <span className="ml-2">
+                • {formatDate(dateRange.startDate)} to {formatDate(dateRange.endDate)}
+              </span>
             )}
           </p>
         </div>
       </div>
 
       {/* No results message */}
-      {filteredRooms.length === 0 && rooms.length > 0 && (
+      {roomsData.length === 0 && (
         <Alert>
           <AlertDescription>
-            No rooms match your search criteria. Try adjusting your filters.
+            No rooms available for the selected dates. Try adjusting your date range.
           </AlertDescription>
         </Alert>
       )}
 
       {/* Rooms List */}
-      <div className="space-y-4">
-        {filteredRooms.map((room, index) => (
-          <motion.div
-            key={room.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: index * 0.1 }}
-          >
-            <Card className="overflow-hidden hover:shadow-lg transition-all">
-              <CardContent className="p-0">
-                <div className="flex flex-col lg:flex-row">
-                  {/* Room Image */}
-                  <div className="relative lg:w-72 h-56 lg:h-auto shrink-0">
-                    <img
-                      src={room.image}
-                      alt={room.name}
-                      className="w-full h-full object-cover"
-                    />
-                    <Badge 
-                      className={`absolute top-3 left-3 ${
-                        room.isAvailable 
-                          ? 'bg-success text-success-foreground' 
-                          : 'bg-destructive text-destructive-foreground'
-                      }`}
-                    >
-                      {room.isAvailable ? 'Available' : 'Booked'}
-                    </Badge>
-                    <Badge className="absolute top-3 right-3 bg-card/90 text-foreground backdrop-blur-sm">
-                      {room.type}
-                    </Badge>
-                  </div>
+      <div className="space-y-6">
+        {roomsData.map((roomData, index) => {
+          const room = roomData.room.room;
+          const agenticRoom = roomData.room;
+          const availableRatePlans = roomData.ratePlans.filter(rp => rp.isAvailable);
+          
+          return (
+            <motion.div
+              key={agenticRoom.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: index * 0.1 }}
+            >
+              <Card className="overflow-hidden hover:shadow-lg transition-all">
+                <CardContent className="p-0">
+                  <div className="flex flex-col lg:flex-row">
+                    {/* Room Image */}
+                    <div className="relative lg:w-80 h-64 lg:h-auto shrink-0">
+                      <img
+                        src={room.image[0] || '/placeholder.svg'}
+                        alt={room.roomName}
+                        className="w-full h-full object-cover"
+                      />
+                      <Badge 
+                        className={`absolute top-3 left-3 ${
+                          room.available 
+                            ? 'bg-success text-success-foreground' 
+                            : 'bg-destructive text-destructive-foreground'
+                        }`}
+                      >
+                        {room.available ? 'Available' : 'Not Available'}
+                      </Badge>
+                      <Badge className="absolute top-3 right-3 bg-card/90 text-foreground backdrop-blur-sm">
+                        {room.roomType}
+                      </Badge>
+                      {room.totalRoom && (
+                        <Badge className="absolute bottom-3 left-3 bg-card/90 text-foreground backdrop-blur-sm">
+                          {room.totalRoom} rooms total
+                        </Badge>
+                      )}
+                    </div>
 
-                  {/* Room Details */}
-                  <div className="flex-1 p-5">
-                    <div className="flex flex-col h-full">
-                      {/* Header Row */}
-                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
-                        <div>
-                          <h3 className="text-xl font-semibold text-foreground mb-1">
-                            {room.name}
+                    {/* Room Details */}
+                    <div className="flex-1 p-6">
+                      <div className="flex flex-col h-full">
+                        {/* Header Row */}
+                        <div className="mb-4">
+                          <h3 className="text-2xl font-semibold text-foreground mb-2">
+                            {room.roomName}
                           </h3>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                            <div className="flex items-center gap-1">
-                              <Users className="h-4 w-4" />
-                              <span>Max {room.maxGuests} guests</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Bed className="h-4 w-4" />
-                              <span>{room.type} Room</span>
-                            </div>
-                          </div>
+                          <p className="text-sm text-muted-foreground line-clamp-2">
+                            {room.description}
+                          </p>
                         </div>
-                        <div className="flex flex-col items-end">
-                          <div className="flex items-center gap-1 text-2xl font-bold text-foreground">
-                            <IndianRupee className="h-5 w-5" />
-                            {room.pricePerNight.toLocaleString()}
-                          </div>
-                          <span className="text-sm text-muted-foreground">per night</span>
-                        </div>
-                      </div>
 
-                      {/* Amenities */}
-                      <div className="mb-4">
-                        <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
-                          Room Amenities
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {room.amenities.map((amenity) => {
-                            const Icon = amenityIcons[amenity] || Sparkles;
-                            return (
+                        {/* Room Info Grid */}
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+                          <div className="flex items-center gap-2">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent/10">
+                              <Users className="h-4 w-4 text-accent" />
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">Max Guests</p>
+                              <p className="text-sm font-medium text-foreground">{room.maxOccupancy}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-success/10">
+                              <Bed className="h-4 w-4 text-success" />
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">Bedrooms</p>
+                              <p className="text-sm font-medium text-foreground">{room.numberOfBedrooms}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-warning/10">
+                              <Maximize className="h-4 w-4 text-warning" />
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">Size</p>
+                              <p className="text-sm font-medium text-foreground">{room.roomSize} {room.roomUnit}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted">
+                              <Eye className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">View</p>
+                              <p className="text-sm font-medium text-foreground capitalize">{room.roomView}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Additional Info */}
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+                          <div className="flex items-center gap-2 text-sm">
+                            <Cigarette className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-foreground capitalize">{room.smokingPolicy}</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-foreground">{room.maxNumberOfAdults} Adults, {room.maxNumberOfChildren} Child</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Mountain className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-foreground">Floor {room.floor}</span>
+                          </div>
+                        </div>
+
+                        {/* Amenities */}
+                        {room.roomAmenities.length > 0 && (
+                          <div className="mb-4">
+                            <p className="text-xs font-medium text-muted-foreground mb-2 uppercase tracking-wide">
+                              Room Amenities
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {room.roomAmenities.slice(0, 6).map((amenityItem) => {
+                                const Icon = amenityIcons[amenityItem.amenity.amenityName] || Sparkles;
+                                return (
+                                  <div
+                                    key={amenityItem.id}
+                                    className="flex items-center gap-1.5 text-xs bg-muted px-2.5 py-1.5 rounded-full"
+                                  >
+                                    <Icon className="h-3 w-3 text-muted-foreground" />
+                                    <span className="text-foreground">{amenityItem.amenity.amenityName}</span>
+                                  </div>
+                                );
+                              })}
+                              {room.roomAmenities.length > 6 && (
+                                <div className="flex items-center text-xs text-accent font-medium px-2.5 py-1.5">
+                                  +{room.roomAmenities.length - 6} more
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+
+                        <Separator className="my-4" />
+
+                        {/* Rate Plans */}
+                        <div className="space-y-3">
+                          <p className="text-sm font-medium text-foreground">Available Rate Plans</p>
+                          {availableRatePlans.length > 0 ? (
+                            availableRatePlans.map((ratePlanData) => (
                               <div
-                                key={amenity}
-                                className="flex items-center gap-1.5 text-xs bg-muted px-2.5 py-1.5 rounded-full"
+                                key={ratePlanData.ratePlan.id}
+                                className="flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
                               >
-                                <Icon className="h-3 w-3 text-muted-foreground" />
-                                <span className="text-foreground">{amenity}</span>
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <CheckCircle2 className="h-4 w-4 text-success" />
+                                    <p className="font-medium text-foreground">
+                                      {ratePlanData.ratePlan.ratePlanName}
+                                    </p>
+                                  </div>
+                                  <p className="text-xs text-muted-foreground ml-6">
+                                    Code: {ratePlanData.ratePlan.ratePlanCode}
+                                  </p>
+                                  {ratePlanData.chargesPerDay.length > 0 && (
+                                    <div className="flex items-center gap-2 ml-6 mt-1">
+                                      <CalendarDays className="h-3 w-3 text-muted-foreground" />
+                                      <p className="text-xs text-muted-foreground">
+                                        {formatDate(ratePlanData.chargesPerDay[0].date)}
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="flex flex-col items-end gap-1">
+                                  <div className="flex items-center gap-1 text-xl font-bold text-foreground">
+                                    <DollarSign className="h-5 w-5" />
+                                    {ratePlanData.totalPrice}
+                                  </div>
+                                  <span className="text-xs text-muted-foreground">
+                                    {ratePlanData.chargesPerDay.length > 0 
+                                      ? `${ratePlanData.chargesPerDay[0].charge.currencyCode}`
+                                      : 'USD'}
+                                  </span>
+                                  <Button 
+                                    size="sm" 
+                                    className="mt-2"
+                                    onClick={() => navigate(`/property/${propertyId}/booking`, {
+                                      state: { 
+                                        room, 
+                                        ratePlan: ratePlanData,
+                                        dateRange 
+                                      }
+                                    })}
+                                  >
+                                    Book Now
+                                  </Button>
+                                </div>
                               </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {/* Footer */}
-                      <div className="flex items-center justify-between pt-4 border-t mt-auto">
-                        <div className="text-sm text-muted-foreground">
-                          <span className="text-foreground font-medium">{room.amenities.length}</span> amenities included
-                        </div>
-                        <Button
-                          className="bg-accent hover:bg-accent/90 text-accent-foreground"
-                          disabled={!room.isAvailable}
-                          onClick={() => navigate(`/property/${propertyId}/rooms/${room.id}/booking`)}
-                        >
-                          {room.isAvailable ? (
-                            <>
-                              Book Now
-                              <ChevronRight className="h-4 w-4 ml-1" />
-                            </>
+                            ))
                           ) : (
-                            'Not Available'
+                            <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+                              <XCircle className="h-4 w-4 text-destructive" />
+                              <p className="text-sm text-muted-foreground">No rate plans available for selected dates</p>
+                            </div>
                           )}
-                        </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
+                </CardContent>
+              </Card>
+            </motion.div>
+          );
+        })}
       </div>
-
-      {rooms.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-12 text-center">
-          <Bed className="h-12 w-12 text-muted-foreground mb-4" />
-          <h3 className="font-semibold text-foreground">No rooms available</h3>
-          <p className="text-muted-foreground">No rooms are currently listed for this property.</p>
-        </div>
-      )}
     </div>
   );
 }
