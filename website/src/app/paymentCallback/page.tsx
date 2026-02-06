@@ -155,6 +155,7 @@ const PaymentCallbackPage = () => {
 
   useEffect(() => {
     let isMounted = true;
+    let socketTimeout: NodeJS.Timeout;
 
     const initializePayment = async () => {
       try {
@@ -175,17 +176,25 @@ const PaymentCallbackPage = () => {
 
         if (isMounted) {
           setOrderReference(orderRef);
-          setMessage("Connecting to payment system...");
+          setMessage("Waiting for payment confirmation...");
         }
 
-        // Wait for socket connection or fall back to polling after timeout
-        const socketTimeout = setTimeout(() => {
-          if (!isConnected) {
-            console.log("⚠️ Socket connection timeout, falling back to polling");
+        // Check if socket was pre-connected
+        const wasSocketConnected = localStorage.getItem("socketConnected") === "true";
+        if (wasSocketConnected) {
+          console.log("✅ Socket was pre-connected before payment");
+          localStorage.removeItem("socketConnected");
+        }
+
+        // Wait for socket connection or fall back to polling after 15 seconds
+        socketTimeout = setTimeout(() => {
+          if (!isConnected && isMounted) {
+            console.log("⚠️ No webhook received in 15 seconds, falling back to polling");
             setUsePolling(true);
+            setMessage("Verifying payment status...");
             performPaymentCheck(orderRef, isMounted);
           }
-        }, 5000);
+        }, 15000); // Changed from 5000 to 15000 (15 seconds)
 
         return () => {
           clearTimeout(socketTimeout);
@@ -203,6 +212,9 @@ const PaymentCallbackPage = () => {
 
     return () => {
       isMounted = false;
+      if (socketTimeout) {
+        clearTimeout(socketTimeout);
+      }
     };
   }, [searchParams, isConnected]);
 

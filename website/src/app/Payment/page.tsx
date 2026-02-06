@@ -327,7 +327,7 @@ const BookingReviewPage = () => {
           value: amountInSmallestUnit,
         },
         merchantAttributes: {
-          redirectUrl: `${window.location.origin}/PaymentCallback`,
+          redirectUrl: `${window.location.origin}/paymentCallback`,
           skipConfirmationPage: true,
         },
         emailAddress: email.trim(),
@@ -339,8 +339,10 @@ const BookingReviewPage = () => {
 
       toast.dismiss("ngenius-order");
 
+      const orderReference = orderResponse.data.orderReference;
+
       // Store order reference and booking data
-      localStorage.setItem("ngeniusOrderRef", orderResponse.data.orderReference);
+      localStorage.setItem("ngeniusOrderRef", orderReference);
       localStorage.setItem(
         "pendingBookingData",
         JSON.stringify({
@@ -372,6 +374,57 @@ const BookingReviewPage = () => {
         })
       );
 
+      // Initialize WebSocket connection BEFORE redirecting
+      console.log("🔌 Establishing WebSocket connection before payment redirect...");
+      toast.loading("Connecting to payment system...", { id: "socket-connect" });
+
+      try {
+        // Dynamically import socket.io-client - FIXED: properly extract default export
+        const { default: io } = await import('socket.io-client');
+        
+        const socket = io(process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8001', {
+          transports: ['websocket', 'polling'],
+          reconnection: true,
+          reconnectionAttempts: 5,
+          reconnectionDelay: 1000,
+        });
+
+        // Wait for socket connection
+        await new Promise<void>((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error('Socket connection timeout'));
+          }, 5000);
+
+          socket.on('connect', () => {
+            clearTimeout(timeout);
+            console.log('✅ Socket connected before payment redirect:', socket.id);
+            
+            // Join payment room with order reference
+            socket.emit('join-payment-room', orderReference);
+            console.log(`📌 Joined payment room: payment:${orderReference}`);
+            
+            resolve();
+          });
+
+          socket.on('connect_error', (error: any) => {
+            clearTimeout(timeout);
+            console.error('❌ Socket connection error:', error);
+            reject(error);
+          });
+        });
+
+        toast.dismiss("socket-connect");
+        console.log("✅ WebSocket connection established successfully");
+
+        // Store socket connection info
+        localStorage.setItem("socketConnected", "true");
+
+      } catch (socketError) {
+        console.warn("⚠️ Could not establish socket connection, will use fallback polling:", socketError);
+        toast.dismiss("socket-connect");
+        // Continue anyway - callback page will handle fallback
+      }
+
       toast.success("Redirecting to secure payment gateway...", {
         id: "redirect-payment",
         duration: 2000,
@@ -382,8 +435,9 @@ const BookingReviewPage = () => {
       }, 1800);
 
     } catch (err: any) {
-      console.error("N-Genius payment initiation failed:", err);
+      console.error("❌ N-Genius payment initiation failed:", err);
       toast.dismiss("ngenius-order");
+      toast.dismiss("socket-connect");
 
       const message =
         err?.message?.includes("network") || err?.message?.includes("fetch")
@@ -456,7 +510,7 @@ const BookingReviewPage = () => {
           <div
             className="mt-4 p-5 border rounded-xl shadow-sm"
             style={{
-              backgroundColor: `${colors.secondaryColor}08`, // lighter opacity for better contrast
+              backgroundColor: `${colors.secondaryColor}08`,
               borderColor: `${colors.primaryColor}60`,
             }}
           >
@@ -511,7 +565,6 @@ const BookingReviewPage = () => {
               </span>
             </div>
 
-            {/* Optional: small note about supported currencies or processing time */}
             <p className="mt-3 text-xs text-gray-500 italic">
               Supported cards processed in seconds • No hidden fees
             </p>
