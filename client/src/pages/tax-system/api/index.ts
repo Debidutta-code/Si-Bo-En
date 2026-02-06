@@ -14,6 +14,12 @@ import {
     fetchTaxRulesByPro,
     updateTaxRuleApi
 } from "./tax-rule.api";
+import {
+    createTouristTaxApi,
+    deleteTouristTaxApi,
+    fetchTouristTaxesByPropertyApi,
+    updateTouristTaxApi
+} from "./tourist-tax.api";
 export {
     createTaxGroup,
     addRulesToTaxGroup,
@@ -27,4 +33,8 @@ export {
     updateTaxRuleApi,
     addRatePlanToTaxGroup,
     removeRatePlanFromTaxGroup,
+    createTouristTaxApi,
+    deleteTouristTaxApi,
+    fetchTouristTaxesByPropertyApi,
+    updateTouristTaxApi
 }

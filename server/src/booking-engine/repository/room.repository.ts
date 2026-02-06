@@ -70,32 +70,61 @@ export class RoomBookingRepository {
   /**
    * Get charges for a specific date
    */
-  public static async getCharges(
-    propertyCode: string,
-    roomTypeCode: string,
-    ratePlanCode: string,
-    date: Date
-  ) {
-    const dayStart = new Date(date);
-    const dayEnd = new Date(date);
-    dayEnd.setDate(dayEnd.getDate() + 1);
+public static async getCharges(
+  propertyCode: string,
+  roomTypeCode: string,
+  ratePlanCode: string,
+  dates: Date[]
+) {
+  //console.log('🔍 Query Parameters:', {
+  //   propertyCode,
+  //   roomTypeCode,
+  //   ratePlanCode,
+  //   dates: dates,
+  // });
 
-    return prisma.charge.findMany({
-      where: {
-        propertyCode,
-        roomTypeCode,
-        ratePlanCode,
-        date: {
-          gte: dayStart,
-          lt: dayEnd
-        }
+  // First, check if ANY charges exist for this room type
+  const anyCharges = await prisma.charge.findMany({
+    where: {
+      propertyCode,
+      roomTypeCode
+    },
+    take: 5
+  });
+
+  //console.log('📊 Sample charges for this room type:', anyCharges.map(c => ({
+  //   date: c.date.toISOString(),
+  //   ratePlanCode: c.ratePlanCode,
+  //   isAvailable: c.isAvailable,
+  //   isSaleStopped: c.isSaleStopped
+  // })));
+
+  // Now do the actual query
+  const charges = await prisma.charge.findMany({
+    where: {
+      propertyCode,
+      roomTypeCode,
+      ratePlanCode,
+      date: {
+        in: dates
       },
-      include: { 
-        baseGuestAmounts: true, 
-        additionalGuestAmounts: true 
-      }
-    });
-  }
+      isAvailable: true,
+      isSaleStopped: false
+    },
+    include: { 
+      baseGuestAmounts: true, 
+      additionalGuestAmounts: true 
+    },
+    orderBy: {
+      date: 'asc'
+    }
+  });
+
+  //console.log('✅ Final charges found:', charges.length);
+  
+  return charges;
+}
+
 
   /**
    * Get addons linked to a rate plan

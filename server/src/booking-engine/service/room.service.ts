@@ -49,8 +49,8 @@ export class RoomBookingService {
         room.roomType,
         dates
       );
-
-      //console.log(`  📦 Inventory found: ${inventory.length} / ${dates.length} dates`);
+//console.log(inventory)
+      //console.log(`  📦 Inventory found:${inventory} ,${inventory.length} / ${dates.length} dates`);
 
       if (inventory.length !== dates.length) {
         //console.log(`  ❌ Skipping room - insufficient inventory`);
@@ -113,7 +113,7 @@ export class RoomBookingService {
           PropertyCode,
           room.roomType,
           ratePlan.ratePlanCode,
-          dates[0]
+          dates
         );
 
         //console.log(`    💵 Charges found: ${charges.length}`);

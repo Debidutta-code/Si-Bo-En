@@ -639,7 +639,7 @@ model Charge {
 
 model ChargeBaseByGuest {
   id              String  @id @default(uuid())
-  charge          Charge  @relation(fields: [chargeId], references: [id])
+  charge          Charge  @relation(fields: [chargeId], references: [id] ,onDelete: Cascade)
   chargeId        String
   amountBeforeTax Decimal @map("amount_before_tax")
   numberOfGuests  Int     @map("number_of_guests")
@@ -650,7 +650,7 @@ model ChargeBaseByGuest {
 
 model ChargeAdditionalGuest {
   id                String  @id @default(uuid())
-  charge            Charge  @relation(fields: [chargeId], references: [id])
+  charge            Charge  @relation(fields: [chargeId], references: [id] ,onDelete: Cascade)
   chargeId          String
   ageQualifyingCode String  @map("age_qualifying_code")
   amount            Decimal
@@ -956,7 +956,7 @@ model AddonAvailability {
   isAvailable  Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-
+@@unique([addonId,date])
   addon Addon @relation(fields: [addonId], references: [id])
 }
 

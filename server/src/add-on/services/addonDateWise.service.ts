@@ -1,8 +1,9 @@
 import { AddonDateWiseDao } from "../repository/addonDateWise.repository";
 import AddonRepository from "../repository/addon.repository";
-import { IAddonAvailability, ICreateAddonAvailability, IUpdateAddonAvailability } from "../interfaces";
+import { IAddonAvailability, ICreateAddonAvailability } from "../interfaces";
 import { IApiResponse } from "../../utils/return.types";
 import { successResponse, errorResponse } from "../../utils/return";
+
 export class AddonDateWiseService {
     private addonDateWiseDao: AddonDateWiseDao;
 
@@ -11,7 +12,7 @@ export class AddonDateWiseService {
     }
 
     /**
-     * Create addon date-wise availability (bulk)
+     * ✅ UPDATED: Upsert addon date-wise availability (bulk)
      */
     async createAddonDateWise(data: ICreateAddonAvailability[]): Promise<IApiResponse> {
         try {
@@ -19,27 +20,37 @@ export class AddonDateWiseService {
                 return errorResponse("Input data must be a non-empty array", "Invalid input");
             }
 
-            // Validate each item
-            for (const item of data) {
-
-                // Check if addon exists
-                const addon = await AddonRepository.getAddonById(item.addonId.toString());
+            // Validate addon exists (check once per unique addonId)
+            const uniqueAddonIds = [...new Set(data.map(item => item.addonId))];
+            
+            for (const addonId of uniqueAddonIds) {
+                const addon = await AddonRepository.getAddonById(addonId.toString());
                 if (!addon) {
-                    return errorResponse(`Addon not found for ID: ${item.addonId}`, "Addon not found");
+                    return errorResponse(`Addon not found for ID: ${addonId}`, "Addon not found");
                 }
             }
-            const result = await this.addonDateWiseDao.createAddOnDateWise(data);
-            return successResponse("Addon date-wise availability created successfully", result);
+
+            // ✅ Use upsert with metadata
+            const result = await this.addonDateWiseDao.upsertAddonDateWiseWithMetadata(data);
+            
+            return successResponse(
+                "Addon date-wise availability saved successfully", 
+                {
+                    total: result.records.length,
+                    created: result.created,
+                    updated: result.updated,
+                    records: result.records
+                }
+            );
         } catch (error: any) {
-            // console.log(error?.message)
             if (error instanceof Error) {
-                return errorResponse("Failed to create addon date-wise availability", error.message);
+                return errorResponse("Failed to save addon date-wise availability", error.message);
             }
-            return errorResponse("Failed to create addon date-wise availability", "Unknown error");
+            return errorResponse("Failed to save addon date-wise availability", "Unknown error");
         }
     }
 
-
+    // ... keep all other methods unchanged
     async getAddOnDateWiseById(addonId: string): Promise<IApiResponse> {
         try {
             const result = await this.addonDateWiseDao.getAddonDateWiseById(addonId);

@@ -236,7 +236,6 @@ export default function AddOnAvailabilityDialog({
                                     <SelectItem value="INR">INR (₹)</SelectItem>
                                     <SelectItem value="USD">USD ($)</SelectItem>
                                     <SelectItem value="EUR">EUR (€)</SelectItem>
-                                    <SelectItem value="GBP">GBP (£)</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>

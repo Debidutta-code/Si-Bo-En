@@ -12,6 +12,12 @@ import {createTaxRuleService,
     fetchTaxRulesByPropertyService,
     updateTaxRuleService
 } from "./tax-rule.services";
+
+import {createTouristTaxService,
+    deleteTouristTaxService,
+    fetchTouristTaxesByPropertyService,
+    updateTouristTaxService
+} from "./tourist-tax.service";
 import {fetchRatePlansService} from "../../rate-plan/services";
 
 
@@ -30,5 +36,12 @@ export {
     deleteTaxRuleService,
     fetchTaxRulesByPropertyService,
     updateTaxRuleService,
-    fetchRatePlansService
+    fetchRatePlansService,
+
+
+    
+    createTouristTaxService,
+    deleteTouristTaxService,
+    fetchTouristTaxesByPropertyService,
+    updateTouristTaxService
 }
