@@ -127,14 +127,7 @@ export default function BasicConfigTab({
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        {/* Program ID */}
-        <div className="space-y-2">
-          <Label>Program ID</Label>
-          <Input value={creationId} disabled className="bg-muted" />
-          <p className="text-sm text-muted-foreground">
-            This is your unique loyalty program identifier
-          </p>
-        </div>
+
 
         {/* Program Logo */}
         <div className="space-y-2">
