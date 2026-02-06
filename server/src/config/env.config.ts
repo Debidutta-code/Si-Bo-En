@@ -26,5 +26,10 @@ const config={
     senderEmail:process.env.EMAIL_USER,
     senderName:process.env.SENDER_NAME,
     senderEmailPassword:process.env.EMAIL_SERVICE_PASSWORD,
-}
+
+    // Fikafi Payment Configuration
+    fikafiBaseUrl: process.env.FIKAFI_BASE_URL,
+    fikafiClientID: process.env.FIKAFI_CLIENT_ID,
+    fikafiSecretKey: process.env.FIKAFI_SECRET_KEY,
+}       
 export default config;

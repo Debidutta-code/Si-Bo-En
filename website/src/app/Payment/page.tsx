@@ -8,15 +8,15 @@ import {
   DollarSign,
   CreditCard,
   Check,
-  Upload,
-  X,
-  Camera,
+  Loader2,
+  Wallet,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { setBookingCode, setBookingStatus, setFullBookingDetails } from "@/src/store/bookingSlice";
 import PriceDetails from "@/src/components/payment/PriceDetails";
 import HelpBox from "@/src/components/payment/HelpBox";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage";
+import FikafiPaymentButton from "@/src/components/payment/FikafiPaymentButton";
 
 // Simplified BankDetails interface based on current API response
 interface BankDetails {
@@ -40,12 +40,13 @@ const BookingReviewPage = () => {
     hotelName,
     PropertyDetails,
   } = bookingDetails;
-  
+
   const ratePlanCode = finalPrice?.dailyBreakdown?.[0]?.ratePlanCode;
   const currencyCode = finalPrice?.dailyBreakdown?.[0]?.currencyCode || "USD";
   const roomTypeCode = bookingDetails.roomTypeCode;
   const propertyCode = bookingDetails.PropertyCode;
   const PropertyId = bookingDetails.PropertyDetails?.id;
+  const propertyName = PropertyDetails?.propertyName || hotelName || "";
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -54,16 +55,9 @@ const BookingReviewPage = () => {
   const [availableMethods, setAvailableMethods] = useState<string[]>([]);
   const [noAvailablePayment, setNoAvailablePayment] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
+  const [fikafiLoading, setFikafiLoading] = useState(false);
+  const [bookingCode, setBookingCodeValue] = useState<string>("");
 
-  // Image upload states (not needed for payAtHotel or gateway)
-  const [paymentProof, setPaymentProof] = useState<File | null>(null);
-  const [paymentProofPreview, setPaymentProofPreview] = useState<string | null>(
-    null
-  );
-  const [imageUploading, setImageUploading] = useState(false);
-  const [cloudinaryImageUrl, setCloudinaryImageUrl] = useState<string | null>(
-    null
-  );
   const dispatch = useDispatch();
   const nights = finalPrice?.numberOfNights || 0;
   const totalAmount = finalPrice?.totalAmount || 0;
@@ -102,14 +96,12 @@ const BookingReviewPage = () => {
         );
 
         const data = await response.json();
-        //console.log("💡 Payment Details Response:", data);
 
         if (!response.ok) {
           throw new Error(data?.message || "Failed to fetch payment details");
         }
 
         setBankDetails(data?.data);
-        //console.log("✅ Payment details fetched successfully");
       } catch (error) {
         console.error("❌ Error fetching payment details:", error);
         toast.error(
@@ -129,20 +121,27 @@ const BookingReviewPage = () => {
   useEffect(() => {
     if (!bankDetails) return;
 
+    // Debug log to check what payment methods are available
+    console.log("📋 Bank Details:", bankDetails);
+    console.log("💳 paymentGateway:", bankDetails.paymentGateway);
+    console.log("🏨 payAtHotel:", bankDetails.payAtHotel);
+    console.log("👀 Checking available payment methods...",bookingDetails);
+
     // Check which payment methods are available
     const methods: string[] = [];
-    
+
     if (bankDetails.payAtHotel) {
       methods.push("payAtHotel");
     }
-    
-    if (bankDetails.paymentGateway) {
-      methods.push("gateway");
-    }
+
+    // Always add Fikafi option for testing
+    methods.push("fikafi");
+
+    console.log("✅ Available payment methods:", methods);
 
     setAvailableMethods(methods);
     setNoAvailablePayment(methods.length === 0);
-    
+
     // Auto-select the first available method if none is selected
     if (!selectedPayment && methods.length > 0) {
       setSelectedPayment(methods[0]);
@@ -151,8 +150,11 @@ const BookingReviewPage = () => {
 
   // Check if a payment method is available
   const isMethodAvailable = (methodKey: string): boolean => {
+    // Always enable Fikafi for online payments
+    if (methodKey === "fikafi") return true;
+
     if (!bankDetails) return false;
-    
+
     switch (methodKey) {
       case "payAtHotel":
         return bankDetails.payAtHotel;
@@ -161,6 +163,24 @@ const BookingReviewPage = () => {
       default:
         return false;
     }
+  };
+
+  // Get guest name from booking details
+  const getGuestName = () => {
+    if (guest && guest.length > 0) {
+      return `${guest[0].firstName} ${guest[0].lastName}`;
+    }
+    return email || "Guest";
+  };
+
+  // Get guest phone from booking details
+  const getGuestPhone = () => {
+    return bookingDetails.phone || "";
+  };
+
+  // Get guest email from booking details
+  const getGuestEmail = () => {
+    return email || "";
   };
 
   // Show loading state while payment details are being fetched
@@ -217,8 +237,8 @@ const BookingReviewPage = () => {
             ratePlanCode: bookingDetails.ratePlanCode,
             paymentMethod: selectedPayment,
             bookingSource: bookingDetails.bookingSource,
-            selectedPromotions: bookingDetails.selectedPromotions ||[],
-            selectedAddons: bookingDetails.selectedAddons ||[],
+            selectedPromotions: bookingDetails.selectedPromotions || [],
+            selectedAddons: bookingDetails.selectedAddons || [],
           },
           bankDetails,
           guestDetails: guest,
@@ -249,10 +269,22 @@ const BookingReviewPage = () => {
         throw new Error(data.message || "Booking failed");
       }
 
-      dispatch(setBookingCode(data.data.bookingCode));
+      const newBookingCode = data.data.bookingCode;
+      setBookingCodeValue(newBookingCode);
+      dispatch(setBookingCode(newBookingCode));
       dispatch(setBookingStatus(data.data.bookingStatus));
       dispatch(setFullBookingDetails(data.data));
       document.cookie = "can_access_payment=true; path=/";
+
+      // If Fikafi is selected, trigger Fikafi payment flow
+      if (selectedPayment === "fikafi") {
+        toast.success("Booking confirmed! Redirecting to payment...", {
+          id: "booking-success",
+          duration: 2000,
+        });
+        // The FikafiPaymentButton will handle the payment flow
+        return;
+      }
 
       toast.success("Booking confirmed! Please check your email for details.", {
         id: "booking-success",
@@ -291,6 +323,65 @@ const BookingReviewPage = () => {
             <div className="mt-3 flex items-center gap-2 text-xs" style={{ color: colors.primaryColor }}>
               <span>✓ No advance payment required</span>
               <span>✓ Flexible payment options</span>
+            </div>
+          </div>
+        );
+
+      case "fikafi":
+        return (
+          <div className="mt-4 p-4 border rounded-lg" style={{
+            backgroundColor: `${colors.secondaryColor}10`,
+            borderColor: colors.primaryColor
+          }}>
+            <h4 className="font-medium mb-2 flex items-center gap-2" style={{ color: colors.primaryColor }}>
+              <Wallet className="w-4 h-4" />
+              Secure Online Payment
+            </h4>
+            <p className="text-sm" style={{ color: colors.primaryColor }}>
+              You'll be redirected to our secure payment partner to complete your payment
+              using credit/debit card, net banking, or other online payment methods.
+            </p>
+
+            {/* Fikafi Payment Button */}
+            <div className="mt-4">
+              <FikafiPaymentButton
+                bookingCode={bookingCode || "PENDING_BOOKING"}
+                amount={updatedPrice}
+                currency={currencyCode}
+                guestName={getGuestName()}
+                guestEmail={getGuestEmail()}
+                guestPhone={getGuestPhone()}
+                propertyName={propertyName}
+                propertyId={PropertyId || "UNKNOWN_PROPERTY"}   
+
+                checkInDate={checkIn}
+                numberOfNights={nights}
+                onPaymentLinkGenerated={(paymentLink, paymentId) => {
+                  console.log('Payment link generated:', paymentLink);
+                  toast.success("Redirecting to payment...", { id: "fikafi-success" });
+                }}
+                onPaymentError={(error) => {
+                  console.error('Fikafi error:', error);
+                  toast.error("Payment failed. Please try again.", { id: "fikafi-error" });
+                }}
+                buttonText="Pay Now with Fikafi"
+                className="w-full"
+              />
+            </div>
+
+            <div className="mt-3 flex flex-wrap gap-3 items-center">
+              <div className="flex items-center gap-1 text-xs text-gray-600">
+                <CreditCard className="h-4 w-4" />
+                <span>Visa</span>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-gray-600">
+                <CreditCard className="h-4 w-4" />
+                <span>Mastercard</span>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-gray-600">
+                <DollarSign className="h-4 w-4" />
+                <span>Secure SSL</span>
+              </div>
             </div>
           </div>
         );
@@ -390,12 +481,13 @@ const BookingReviewPage = () => {
                   description: "Pay directly at the property during check-in",
                 },
                 {
-                  key: "gateway",
-                  label: "Online Payment",
+                  key: "fikafi",
+                  label: "Pay Online",
                   icon: "💳",
-                  description: "Secure payment via card/netbanking/UPI",
+                  description: "Secure payment via credit/debit card or net banking",
+                  isRecommended: true,
                 },
-              ].map(({ key, label, icon, description }) => {
+              ].map(({ key, label, icon, description, isRecommended }) => {
                 const isActive = isMethodAvailable(key);
                 const isSelected = selectedPayment === key;
 
@@ -433,6 +525,11 @@ const BookingReviewPage = () => {
                             <span className="font-medium text-gray-900">
                               {label}
                             </span>
+                            {isRecommended && isActive && (
+                              <span className="text-xs text-white bg-green-500 px-2 py-1 rounded">
+                                Recommended
+                              </span>
+                            )}
                             {!isActive && (
                               <span className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded">
                                 Not Available
@@ -450,35 +547,37 @@ const BookingReviewPage = () => {
             </div>
           )}
 
-          <button
-            onClick={handleConfirmBooking}
-            className={`mt-6 w-full py-3 px-4 rounded-xl font-medium transition-all transform ${loading ||
-              noAvailablePayment ||
-              !selectedPayment
-              ? "bg-gray-400 cursor-not-allowed opacity-50"
-              : "text-white hover:scale-[1.02]"
-              }`}
-            style={!(loading || noAvailablePayment || !selectedPayment) ? {
-              backgroundColor: colors.primaryColor,
-              color: colors.buttonTextColor
-            } : {}}
-            disabled={
-              loading ||
-              noAvailablePayment ||
-              !selectedPayment
-            }
-          >
-            {loading ? (
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Processing...
-              </div>
-            ) : !selectedPayment ? (
-              "Select Payment Method"
-            ) : (
-              "Confirm Booking"
-            )}
-          </button>
+          {selectedPayment !== "fikafi" && (
+            <button
+              onClick={handleConfirmBooking}
+              className={`mt-6 w-full py-3 px-4 rounded-xl font-medium transition-all transform ${loading ||
+                noAvailablePayment ||
+                !selectedPayment
+                ? "bg-gray-400 cursor-not-allowed opacity-50"
+                : "text-white hover:scale-[1.02]"
+                }`}
+              style={!(loading || noAvailablePayment || !selectedPayment) ? {
+                backgroundColor: colors.primaryColor,
+                color: colors.buttonTextColor
+              } : {}}
+              disabled={
+                loading ||
+                noAvailablePayment ||
+                !selectedPayment
+              }
+            >
+              {loading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Processing...
+                </div>
+              ) : !selectedPayment ? (
+                "Select Payment Method"
+              ) : (
+                "Confirm Booking"
+              )}
+            </button>
+          )}
 
           {error && (
             <p className="mt-3 text-red-600 font-medium text-center text-sm bg-red-50 p-2 rounded">
@@ -506,3 +605,4 @@ const BookingReviewPage = () => {
 };
 
 export default BookingReviewPage;
+

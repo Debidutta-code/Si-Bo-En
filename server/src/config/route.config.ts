@@ -18,6 +18,7 @@ import EmailService from "../sms-email-service/routes/route";
 import { agencyMainRouter } from '../agency/routes/index.route';
 import { loyaltyRouter } from '../loyalty/routes/loyalty.routes';
 import promotionRouter from '../promotions/routes';
+import { fikafiPaymentRoutes } from '../fikafi-payment/routes';
 export async function initializeExpressRoutes({ app }: { app: Express }) {
   // Health check
   app.head('/status', (_, res: Response) => res.status(200).end());
@@ -50,6 +51,8 @@ export async function initializeExpressRoutes({ app }: { app: Express }) {
   apiV1Router.use("/agency",agencyMainRouter);
   apiV1Router.use("/promotions",promotionRouter);
   apiV1Router.use('/loyalty', loyaltyRouter);
+  apiV1Router.use('/fikafi', fikafiPaymentRoutes);
+
   // Handle 404 for any undefined route under /api/v1
   app.all('/api/v1/*', (req: Request, _res: Response, next: NextFunction) => {
     next(new AppError(`Can't find ${req.originalUrl} on this server`, 404));
