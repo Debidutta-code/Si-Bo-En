@@ -1,6 +1,7 @@
 // N-Genius Webhook Service
 import * as crypto from 'crypto';
 import { NGeniusWebhookPayload } from '../types/webhook.types';
+import { socketManager } from '../../socket/socket.manager';
 
 class WebhookService {
   /**
@@ -50,7 +51,7 @@ class WebhookService {
   }
 
   /**
-   * Process webhook event (currently just logs the event)
+   * Process webhook event and emit to Socket.IO
    * 
    * @param payload - Webhook payload
    */
@@ -66,7 +67,8 @@ class WebhookService {
     console.log('Order Action:', payload.order.action);
     console.log('Amount:', `${payload.order.amount.value} ${payload.order.amount.currencyCode}`);
     
-    // Log payment details if available
+    // Extract payment details if available
+    let paymentDetails: any = null;
     if (payload.order._embedded?.payment && payload.order._embedded.payment.length > 0) {
       const payment = payload.order._embedded.payment[0];
       console.log('Payment State:', payment.state);
@@ -81,11 +83,90 @@ class WebhookService {
         console.log('Auth Code:', payment.authResponse.authorizationCode);
         console.log('Auth Result:', payment.authResponse.resultMessage);
       }
+
+      paymentDetails = {
+        state: payment.state,
+        reference: payment.reference,
+        paymentMethod: payment.paymentMethod,
+        authResponse: payment.authResponse,
+      };
     }
     
     console.log('========================================');
-    console.log('✅ Webhook Event Logged Successfully');
+
+    // Determine payment status
+    const status = this.determinePaymentStatus(payload.eventName);
+    const message = this.getStatusMessage(payload.eventName);
+
+    // Emit to Socket.IO
+    const orderReference = payload.order.reference;
+    console.log(`🔔 Emitting payment update for order: ${orderReference}`);
+    
+    socketManager.emitPaymentUpdate(orderReference, {
+      orderReference,
+      eventName: payload.eventName,
+      status,
+      message,
+      eventId: payload.eventId,
+      paymentDetails,
+    });
+
+    console.log('✅ Webhook Event Processed & Emitted to Socket.IO');
     console.log('========================================');
+  }
+
+  /**
+   * Determine payment status from event name
+   */
+  private determinePaymentStatus(eventName: string): 'success' | 'failed' | 'pending' {
+    const successEvents = [
+      'AUTHORISED',
+      'PURCHASED',
+      'CAPTURED',
+      'PARTIALLY_CAPTURED',
+      'APM_PAYMENT_ACCEPTED',
+    ];
+
+    const failedEvents = [
+      'DECLINED',
+      'AUTHORISATION_FAILED',
+      'PURCHASE_DECLINED',
+      'PURCHASE_FAILED',
+      'CAPTURE_FAILED',
+      'REFUND_FAILED',
+      'CANCELLED',
+    ];
+
+    if (successEvents.includes(eventName)) {
+      return 'success';
+    } else if (failedEvents.includes(eventName)) {
+      return 'failed';
+    } else {
+      return 'pending';
+    }
+  }
+
+  /**
+   * Get user-friendly status message
+   */
+  private getStatusMessage(eventName: string): string {
+    const messages: Record<string, string> = {
+      AUTHORISED: 'Payment authorized successfully',
+      PURCHASED: 'Payment completed successfully',
+      CAPTURED: 'Payment captured successfully',
+      PARTIALLY_CAPTURED: 'Payment partially captured',
+      DECLINED: 'Payment was declined',
+      AUTHORISATION_FAILED: 'Payment authorization failed',
+      PURCHASE_DECLINED: 'Purchase was declined',
+      PURCHASE_FAILED: 'Purchase failed',
+      CAPTURE_FAILED: 'Payment capture failed',
+      CANCELLED: 'Payment was cancelled',
+      APM_PAYMENT_ACCEPTED: 'Payment accepted',
+      REFUNDED: 'Payment refunded',
+      PARTIALLY_REFUNDED: 'Payment partially refunded',
+    };
+
+    return messages[eventName] || `Payment ${eventName.toLowerCase()}`;
   }
 
   /**

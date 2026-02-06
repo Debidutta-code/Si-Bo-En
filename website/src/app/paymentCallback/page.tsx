@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/src/store/store";
@@ -11,7 +11,8 @@ import {
   setBookingStatus,
   setFullBookingDetails,
 } from "@/src/store/bookingSlice";
-import { Loader2, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, AlertCircle, Wifi, WifiOff } from "lucide-react";
+import { usePaymentSocket } from "@/src/hooks/usePaymentSocket";
 
 const PaymentCallbackPage = () => {
   const router = useRouter();
@@ -23,16 +24,143 @@ const PaymentCallbackPage = () => {
   const [message, setMessage] = useState("Verifying your payment...");
   const [orderReference, setOrderReference] = useState<string | null>(null);
   const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [usePolling, setUsePolling] = useState(false);
+
+  // Handle payment status updates from socket
+  const handlePaymentUpdate = useCallback((update: any) => {
+    console.log('🎯 Payment update received via socket:', update);
+
+    if (update.status === 'success') {
+      handleSuccessfulPayment(update.orderReference);
+    } else if (update.status === 'failed') {
+      handleFailedPayment(update.message);
+    } else {
+      setMessage(update.message || 'Processing payment...');
+    }
+  }, []);
+
+  // Initialize socket connection
+  const { isConnected, connectionError } = usePaymentSocket({
+    orderReference,
+    onStatusUpdate: handlePaymentUpdate,
+    enabled: !!orderReference && !usePolling,
+  });
+
+  const handleSuccessfulPayment = async (orderRef: string) => {
+    try {
+      setStatus("success");
+      setMessage("Payment successful! Creating your booking...");
+
+      // Get booking data from localStorage or Redux
+      let bookingData;
+      const storedBookingData = localStorage.getItem("pendingBookingData");
+
+      if (storedBookingData) {
+        bookingData = JSON.parse(storedBookingData);
+        console.log("📦 Using stored booking data");
+      } else {
+        console.log("⚠️ No stored data, using Redux state");
+        bookingData = {
+          data: {
+            bookingDetails: {
+              startDate: booking.startDate,
+              endDate: booking.endDate,
+              propertyCode: booking.PropertyCode,
+              hotelName: booking.hotelName,
+              roomTypeCode: booking.roomTypeCode,
+              numberOfRooms: booking.numberOfRooms || 1,
+              finalPrice: booking.finalPrice,
+              currency: booking.finalPrice?.dailyBreakdown?.[0]?.currencyCode || "AED",
+              email: booking.email,
+              phone: booking.phone,
+              guests: booking.guests,
+              guestDetails: booking.guestDetails,
+              ratePlanCode: booking.ratePlanCode,
+              paymentMethod: "ngenius",
+              bookingSource: booking.bookingSource,
+            },
+            guestDetails: booking.guestDetails,
+          },
+        };
+      }
+
+      // Attach payment info to booking
+      if (bookingData?.data?.bookingDetails) {
+        bookingData.data.bookingDetails.ngeniusOrderRef = orderRef;
+        bookingData.data.bookingDetails.paymentMethod = "ngenius";
+      }
+
+      console.log("📤 Sending booking request:", bookingData);
+
+      // Create booking via backend
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/pms/front-office/reservations`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(bookingData),
+        }
+      );
+
+      const result = await response.json();
+      console.log("📥 Booking Response:", result);
+
+      if (!response.ok) {
+        throw new Error(result.message || "Failed to create booking");
+      }
+
+      // Update Redux and navigate
+      dispatch(setBookingCode(result.data.bookingCode));
+      dispatch(setBookingStatus(result.data.bookingStatus));
+      dispatch(setFullBookingDetails(result.data));
+
+      // Cleanup
+      localStorage.removeItem("ngeniusOrderRef");
+      localStorage.removeItem("pendingBookingData");
+
+      setMessage("Booking confirmed successfully!");
+      toast.success("Payment successful! Your booking is confirmed.", {
+        id: "payment-success",
+      });
+
+      setTimeout(() => {
+        router.replace("/PaymentSuccess");
+      }, 2000);
+    } catch (err: any) {
+      console.error("❌ Booking creation error:", err);
+      setStatus("error");
+      setMessage(err?.message || "Failed to create booking after successful payment");
+      toast.error("Failed to create booking. Please contact support.", {
+        id: "booking-error",
+      });
+    }
+  };
+
+  const handleFailedPayment = (errorMessage: string) => {
+    setStatus("failed");
+    setMessage(errorMessage || "Payment failed. Please try again.");
+    toast.error("Payment was not successful. Please try again.", {
+      id: "payment-failed",
+    });
+
+    localStorage.removeItem("ngeniusOrderRef");
+    localStorage.removeItem("pendingBookingData");
+
+    setTimeout(() => {
+      router.replace("/Payment");
+    }, 3000);
+  };
 
   useEffect(() => {
     let isMounted = true;
 
-    const processPayment = async () => {
+    const initializePayment = async () => {
       try {
-        // 1. Get order reference from URL or localStorage
+        // Get order reference from URL or localStorage
         const urlOrderRef = searchParams.get("orderRef") || searchParams.get("ref");
         const storedOrderRef = localStorage.getItem("ngeniusOrderRef");
-
         const orderRef = urlOrderRef || storedOrderRef;
 
         console.log("🔍 Order Reference:", orderRef);
@@ -47,147 +175,71 @@ const PaymentCallbackPage = () => {
 
         if (isMounted) {
           setOrderReference(orderRef);
-          setMessage("Checking payment status with N-Genius...");
+          setMessage("Connecting to payment system...");
         }
 
-        // 2. Check payment status via backend
-        console.log("📡 Fetching payment status from backend...");
-        const orderStatus = await ngeniusService.getOrderStatus(orderRef);
-        
-        console.log("✅ Order Status Response:", orderStatus);
-        setDebugInfo(orderStatus);
-
-        const isSuccess = ngeniusService.isPaymentSuccessful(orderStatus);
-        const paymentState = ngeniusService.getPaymentState(orderStatus);
-
-        console.log("💳 Payment State:", paymentState);
-        console.log("✔️ Is Successful:", isSuccess);
-
-        // 3. Handle failed/pending payment
-        if (!isSuccess) {
-          if (isMounted) {
-            setStatus("failed");
-            setMessage(`Payment ${paymentState.toLowerCase()}. Please try again or contact support.`);
-            toast.error("Payment was not successful. Please try again.", {
-              id: "payment-failed",
-            });
-
-            localStorage.removeItem("ngeniusOrderRef");
-            localStorage.removeItem("pendingBookingData");
-
-            setTimeout(() => {
-              router.replace("/Payment");
-            }, 3000);
+        // Wait for socket connection or fall back to polling after timeout
+        const socketTimeout = setTimeout(() => {
+          if (!isConnected) {
+            console.log("⚠️ Socket connection timeout, falling back to polling");
+            setUsePolling(true);
+            performPaymentCheck(orderRef, isMounted);
           }
-          return;
-        }
+        }, 5000);
 
-        // 4. Payment successful - proceed with booking
-        if (isMounted) {
-          setMessage("Payment successful! Creating your booking...");
-        }
-
-        // Get booking data from localStorage or Redux
-        let bookingData;
-        const storedBookingData = localStorage.getItem("pendingBookingData");
-
-        if (storedBookingData) {
-          bookingData = JSON.parse(storedBookingData);
-          console.log("📦 Using stored booking data");
-        } else {
-          console.log("⚠️ No stored data, using Redux state");
-          bookingData = {
-            data: {
-              bookingDetails: {
-                startDate: booking.startDate,
-                endDate: booking.endDate,
-                propertyCode: booking.PropertyCode,
-                hotelName: booking.hotelName,
-                roomTypeCode: booking.roomTypeCode,
-                numberOfRooms: booking.numberOfRooms || 1,
-                finalPrice: booking.finalPrice,
-                currency: booking.finalPrice?.dailyBreakdown?.[0]?.currencyCode || "AED",
-                email: booking.email,
-                phone: booking.phone,
-                guests: booking.guests,
-                guestDetails: booking.guestDetails,
-                ratePlanCode: booking.ratePlanCode,
-                paymentMethod: "ngenius",
-                bookingSource: booking.bookingSource,
-              },
-              guestDetails: booking.guestDetails,
-            },
-          };
-        }
-
-        // Attach payment info to booking
-        if (bookingData?.data?.bookingDetails) {
-          bookingData.data.bookingDetails.ngeniusOrderRef = orderRef;
-          bookingData.data.bookingDetails.ngeniusPaymentState = paymentState;
-          bookingData.data.bookingDetails.paymentMethod = "ngenius";
-        }
-
-        console.log("📤 Sending booking request:", bookingData);
-
-        // 5. Create booking via backend
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/pms/front-office/reservations`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(bookingData),
-          }
-        );
-
-        const result = await response.json();
-        console.log("📥 Booking Response:", result);
-
-        if (!response.ok) {
-          throw new Error(result.message || "Failed to create booking");
-        }
-
-        // 6. Success! Update Redux and navigate
-        if (isMounted) {
-          dispatch(setBookingCode(result.data.bookingCode));
-          dispatch(setBookingStatus(result.data.bookingStatus));
-          dispatch(setFullBookingDetails(result.data));
-
-          // Cleanup
-          localStorage.removeItem("ngeniusOrderRef");
-          localStorage.removeItem("pendingBookingData");
-
-          setStatus("success");
-          setMessage("Booking confirmed successfully!");
-
-          toast.success("Payment successful! Your booking is confirmed.", {
-            id: "payment-success",
-          });
-
-          setTimeout(() => {
-            router.replace("/PaymentSuccess");
-          }, 2000);
-        }
+        return () => {
+          clearTimeout(socketTimeout);
+        };
       } catch (err: any) {
-        console.error("❌ Payment callback error:", err);
-
+        console.error("❌ Payment initialization error:", err);
         if (isMounted) {
           setStatus("error");
-          setMessage(err?.message || "An error occurred while processing your payment.");
-          toast.error("Failed to process payment. Please contact support.", {
-            id: "payment-error",
-          });
+          setMessage(err?.message || "An error occurred");
         }
       }
     };
 
-    processPayment();
+    initializePayment();
 
     return () => {
       isMounted = false;
     };
-  }, [searchParams, booking, router, dispatch]);
+  }, [searchParams, isConnected]);
+
+  // Fallback polling function
+  const performPaymentCheck = async (orderRef: string, isMounted: boolean) => {
+    try {
+      setMessage("Checking payment status...");
+
+      const orderStatus = await ngeniusService.getOrderStatus(orderRef);
+      console.log("✅ Order Status Response:", orderStatus);
+      setDebugInfo(orderStatus);
+
+      const isSuccess = ngeniusService.isPaymentSuccessful(orderStatus);
+      const paymentState = ngeniusService.getPaymentState(orderStatus);
+
+      console.log("💳 Payment State:", paymentState);
+      console.log("✔️ Is Successful:", isSuccess);
+
+      if (!isSuccess) {
+        if (isMounted) {
+          handleFailedPayment(`Payment ${paymentState.toLowerCase()}`);
+        }
+        return;
+      }
+
+      // Payment successful
+      if (isMounted) {
+        await handleSuccessfulPayment(orderRef);
+      }
+    } catch (err: any) {
+      console.error("❌ Payment check error:", err);
+      if (isMounted) {
+        setStatus("error");
+        setMessage(err?.message || "Failed to verify payment");
+      }
+    }
+  };
 
   const renderIcon = () => {
     switch (status) {
@@ -232,6 +284,28 @@ const PaymentCallbackPage = () => {
         </h1>
 
         <p className="text-gray-600 mb-6 text-lg">{message}</p>
+
+        {/* Connection Status */}
+        {status === "checking" && (
+          <div className="mb-4 flex items-center justify-center gap-2 text-sm">
+            {isConnected ? (
+              <>
+                <Wifi className="h-4 w-4 text-green-600" />
+                <span className="text-green-600">Live updates active</span>
+              </>
+            ) : usePolling ? (
+              <>
+                <WifiOff className="h-4 w-4 text-orange-600" />
+                <span className="text-orange-600">Using fallback mode</span>
+              </>
+            ) : (
+              <>
+                <Loader2 className="h-4 w-4 text-blue-600 animate-spin" />
+                <span className="text-blue-600">Connecting...</span>
+              </>
+            )}
+          </div>
+        )}
 
         {orderReference && (
           <div className="bg-gray-50 rounded-lg p-4 mb-6 break-all">
