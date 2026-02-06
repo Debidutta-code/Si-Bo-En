@@ -67,6 +67,8 @@ export class NGeniusController {
 
       const orderResponse = await ngeniusService.createOrder(orderData);
 
+      console.log('✅ Order created successfully:', orderResponse);
+
       // Extract payment URL
       const paymentUrl = ngeniusService.getPaymentUrl(orderResponse);
 

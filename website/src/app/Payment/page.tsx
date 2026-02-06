@@ -379,14 +379,16 @@ const BookingReviewPage = () => {
       toast.loading("Connecting to payment system...", { id: "socket-connect" });
 
       try {
-        // Dynamically import socket.io-client - FIXED: properly extract default export
+        // Dynamically import socket.io-client
         const { default: io } = await import('socket.io-client');
-        
-        const socket = io(process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8001', {
+
+        // Connect to the payment-specific namespace
+        const socket = io(`${process.env.NEXT_PUBLIC_SOCKET_URL}`, {
           transports: ['websocket', 'polling'],
           reconnection: true,
           reconnectionAttempts: 5,
           reconnectionDelay: 1000,
+          autoConnect: true,
         });
 
         // Wait for socket connection
@@ -398,11 +400,11 @@ const BookingReviewPage = () => {
           socket.on('connect', () => {
             clearTimeout(timeout);
             console.log('✅ Socket connected before payment redirect:', socket.id);
-            
+
             // Join payment room with order reference
             socket.emit('join-payment-room', orderReference);
             console.log(`📌 Joined payment room: payment:${orderReference}`);
-            
+
             resolve();
           });
 

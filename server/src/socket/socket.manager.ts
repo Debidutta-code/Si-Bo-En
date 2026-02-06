@@ -2,7 +2,7 @@
 import { Server as SocketIOServer, Socket } from 'socket.io';
 import { Server as HTTPServer } from 'http';
 
-interface PaymentStatusUpdate {
+export interface PaymentStatusUpdate {
   orderReference: string;
   eventName: string;
   status: 'success' | 'failed' | 'pending';
@@ -13,10 +13,12 @@ interface PaymentStatusUpdate {
 
 class SocketManager {
   private io: SocketIOServer | null = null;
-  private activeConnections: Map<string, Set<string>> = new Map(); // orderRef -> Set of socketIds
+
+  // orderReference -> Set of socketIds
+  private activeConnections: Map<string, Set<string>> = new Map();
 
   /**
-   * Initialize Socket.IO server
+   * Initialize Socket.IO server (DEFAULT NAMESPACE ONLY)
    */
   initialize(httpServer: HTTPServer, allowedOrigins: string[]): void {
     this.io = new SocketIOServer(httpServer, {
@@ -29,11 +31,12 @@ class SocketManager {
     });
 
     this.setupEventHandlers();
-    console.log('✅ Socket.IO initialized successfully');
+
+    console.log('✅ Socket.IO initialized (default namespace)');
   }
 
   /**
-   * Setup socket event handlers
+   * Setup socket event handlers (NO NAMESPACE)
    */
   private setupEventHandlers(): void {
     if (!this.io) return;
@@ -41,42 +44,48 @@ class SocketManager {
     this.io.on('connection', (socket: Socket) => {
       console.log(`🔌 Client connected: ${socket.id}`);
 
-      // Join payment room
+      /**
+       * Join payment room
+       */
       socket.on('join-payment-room', (orderReference: string) => {
         if (!orderReference) {
-          console.error('❌ No order reference provided');
+          console.error('❌ join-payment-room: orderReference missing');
           return;
         }
 
-        socket.join(`payment:${orderReference}`);
-        
-        // Track this connection
+        const room = `payment:${orderReference}`;
+        socket.join(room);
+
         if (!this.activeConnections.has(orderReference)) {
           this.activeConnections.set(orderReference, new Set());
         }
-        this.activeConnections.get(orderReference)?.add(socket.id);
+        this.activeConnections.get(orderReference)!.add(socket.id);
 
-        console.log(`📌 Client ${socket.id} joined room: payment:${orderReference}`);
-        
-        // Acknowledge joining
+        console.log(`📌 Socket ${socket.id} joined room: ${room}`);
+
         socket.emit('room-joined', {
           orderReference,
           message: 'Successfully joined payment room',
         });
       });
 
-      // Leave payment room
+      /**
+       * Leave payment room
+       */
       socket.on('leave-payment-room', (orderReference: string) => {
-        socket.leave(`payment:${orderReference}`);
+        const room = `payment:${orderReference}`;
+        socket.leave(room);
         this.activeConnections.get(orderReference)?.delete(socket.id);
-        console.log(`📌 Client ${socket.id} left room: payment:${orderReference}`);
+
+        console.log(`📌 Socket ${socket.id} left room: ${room}`);
       });
 
-      // Handle disconnection
-      socket.on('disconnect', () => {
-        console.log(`🔌 Client disconnected: ${socket.id}`);
-        
-        // Remove from all rooms
+      /**
+       * Handle disconnect
+       */
+      socket.on('disconnect', (reason) => {
+        console.log(`🔌 Client disconnected: ${socket.id} (${reason})`);
+
         this.activeConnections.forEach((socketIds, orderRef) => {
           socketIds.delete(socket.id);
           if (socketIds.size === 0) {
@@ -85,7 +94,9 @@ class SocketManager {
         });
       });
 
-      // Handle errors
+      /**
+       * Handle socket errors
+       */
       socket.on('error', (error) => {
         console.error('❌ Socket error:', error);
       });
@@ -93,7 +104,7 @@ class SocketManager {
   }
 
   /**
-   * Send payment status update to specific order room
+   * Emit payment status update to an order room
    */
   emitPaymentUpdate(orderReference: string, update: PaymentStatusUpdate): void {
     if (!this.io) {
@@ -102,13 +113,28 @@ class SocketManager {
     }
 
     const room = `payment:${orderReference}`;
-    const activeClients = this.activeConnections.get(orderReference);
+    const activeClients = this.activeConnections.get(orderReference)?.size || 0;
 
-    console.log(`📡 Emitting payment update to room: ${room}`);
-    console.log(`👥 Active clients in room: ${activeClients?.size || 0}`);
-    console.log(`📦 Update data:`, update);
+    console.log(`📡 Emitting payment update`);
+    console.log(`➡️ Room: ${room}`);
+    console.log(`👥 Active clients: ${activeClients}`);
+    console.log(`📦 Payload:`, update);
 
     this.io.to(room).emit('payment-status-update', update);
+  }
+
+  /**
+   * Check if an order has active listeners
+   */
+  hasActiveListeners(orderReference: string): boolean {
+    return (this.activeConnections.get(orderReference)?.size || 0) > 0;
+  }
+
+  /**
+   * Get active connection count for an order
+   */
+  getActiveConnectionCount(orderReference: string): number {
+    return this.activeConnections.get(orderReference)?.size || 0;
   }
 
   /**
@@ -116,21 +142,6 @@ class SocketManager {
    */
   getIO(): SocketIOServer | null {
     return this.io;
-  }
-
-  /**
-   * Check if there are active listeners for an order
-   */
-  hasActiveListeners(orderReference: string): boolean {
-    const listeners = this.activeConnections.get(orderReference);
-    return listeners ? listeners.size > 0 : false;
-  }
-
-  /**
-   * Get number of active connections for an order
-   */
-  getActiveConnectionCount(orderReference: string): number {
-    return this.activeConnections.get(orderReference)?.size || 0;
   }
 }
 

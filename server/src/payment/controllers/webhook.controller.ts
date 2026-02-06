@@ -35,14 +35,14 @@ export class WebhookController {
 
       // Check if payload is encrypted
       const secretKey = req.headers['x-webhook-secret'] as string;
-      
+
       if (secretKey) {
         // Encrypted payload - decrypt it
         console.log('🔓 Decrypting webhook payload...');
-        
+
         // For encrypted payloads, the body will be a string
         const encryptedData = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
-        
+
         try {
           payload = webhookService.decryptPayload(encryptedData, secretKey);
           console.log('✅ Payload decrypted successfully');
@@ -77,7 +77,7 @@ export class WebhookController {
       });
     } catch (error) {
       console.error('❌ Error processing webhook:', error);
-      
+
       // Still respond with 200 to acknowledge receipt
       // (N-Genius doesn't retry, so we should acknowledge even on error)
       res.status(200).json({
@@ -98,45 +98,31 @@ export class WebhookController {
     next: NextFunction
   ): Promise<void> {
     try {
-      // Sample webhook payload for testing
-      const samplePayload: NGeniusWebhookPayload = {
-        outletId: '670bfc06-63d6-472b-af75-ad0207ac44f5',
-        eventId: '4120eec7-9dbe-4163-912e-c2f0b459ef2d',
-        eventName: 'CAPTURED',
-        order: {
-          _id: 'urn:order:2fc2d9d9-3b5f-45b2-9c85-9d11a3eb43ce',
-          _links: {
-            self: {
-              href: 'http://transaction-service/transactions/outlets/670bfc06-63d6-472b-af75-ad0207ac44f5/orders/2fc2d9d9-3b5f-45b2-9c85-9d11a3eb43ce',
-            },
-            'tenant-brand': {
-              href: 'http://config-service/config/outlets/670bfc06-63d6-472b-af75-ad0207ac44f5/configs/tenant-brand',
-            },
-            'merchant-brand': {
-              href: 'http://config-service/config/outlets/670bfc06-63d6-472b-af75-ad0207ac44f5/configs/merchant-brand',
-            },
-          },
-          type: 'SINGLE',
-          action: 'SALE',
-          amount: {
-            currencyCode: 'AED',
-            value: 50000,
-          },
-          language: 'en',
-          reference: '2fc2d9d9-3b5f-45b2-9c85-9d11a3eb43ce',
-          outletId: '670bfc06-63d6-472b-af75-ad0207ac44f5',
-          createDateTime: '2025-09-09T09:57:58.251529358Z',
-          formattedAmount: 'د.إ.‏ 500.00',
-        },
-      };
+      console.log('🧪 Test webhook triggered from Postman');
 
-      console.log('🧪 Testing webhook with sample payload...');
-      webhookService.processWebhookEvent(samplePayload);
+      if (!req.body || Object.keys(req.body).length === 0) {
+        res.status(400).json({
+          success: false,
+          message: 'Request body is empty',
+        });
+        return;
+      }
+
+      // Use payload directly from request body
+      const payload = req.body as NGeniusWebhookPayload;
+
+      console.log('📦 Incoming test webhook payload:', payload);
+
+      webhookService.processWebhookEvent(payload);
 
       res.status(200).json({
         success: true,
         message: 'Test webhook processed successfully',
-        payload: samplePayload,
+        receivedEvent: {
+          eventId: payload.eventId,
+          eventName: payload.eventName,
+          orderReference: payload.order?.reference,
+        },
       });
     } catch (error) {
       next(error);

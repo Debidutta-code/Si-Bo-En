@@ -36,8 +36,7 @@ export const usePaymentSocket = ({
     console.log('🔌 Initializing Socket.IO connection...');
     console.log('📦 Order Reference:', orderReference);
 
-    // Create socket connection
-    const socket = io(process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8001', {
+    const socket = io(`${process.env.NEXT_PUBLIC_SOCKET_URL}`, {
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionAttempts: 5,
@@ -55,6 +54,7 @@ export const usePaymentSocket = ({
 
       // Join payment room
       socket.emit('join-payment-room', orderReference);
+      console.log(`📌 Joining payment room: payment:${orderReference}`);
     });
 
     socket.on('disconnect', (reason: any) => {
