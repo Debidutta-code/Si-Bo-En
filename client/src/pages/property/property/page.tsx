@@ -187,7 +187,7 @@ export default function PropertyPage() {
         if (!propertyDetails?.id) {
             navigate(`/property/create?creationId=${creationId}`);
         } else {
-            navigate(`/property/create?creationId=${propertyDetails?.id}`);
+            navigate(`/property/create?propertyId=${propertyDetails?.id}`);
         }
     };
 
