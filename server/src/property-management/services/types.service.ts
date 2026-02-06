@@ -4,6 +4,7 @@ import {
   PropertyTypesDao,
   RoomAminityDao,
   PropertyAminityDao,
+  LoyaltyGuestFieldsDao
 } from '../repository';
 export class RoomAmenityServices {
   public static async createRoomAmenity(amenities: string[]) {
@@ -40,7 +41,7 @@ export class AminityServices {
       return errorResponse('Failed to create category', error?.message);
     }
   }
-  public static async getCategory(type:string="property") {
+  public static async getCategory(type: string = "property") {
     try {
       const daoRes = await PropertyAminityDao.getAllPropertyAmenities(type);
       return successResponse('Aminity fetched Successfully', daoRes);
@@ -86,7 +87,7 @@ export class CategoryService {
       return errorResponse('Failed to delete category', error?.message);
     }
   }
-  
+
 }
 export class PropertyTypeService {
   public static async createPropertyTypeService(
@@ -123,5 +124,33 @@ export class PropertyTypeService {
     } catch (error: any) {
       return errorResponse('Failed to delete Property Type', error?.message);
     }
+  }
+}
+
+export class LoyaltyGuestFields {
+  public static async getLoyaltyGuestFields() {
+    try {
+      const daoRes = await LoyaltyGuestFieldsDao.getGuestFields();
+      return successResponse('Loyalty Guest Fields fetched Successfully', daoRes);
+    } catch (error: any) {
+      return errorResponse('Failed to fetch Loyalty Guest Fields', error?.message);
+    }
+  }
+  public static async createLoyaltyGuestFields(fields: string[]) {
+    try {
+      const daoRes = await LoyaltyGuestFieldsDao.createGuestFilelds(fields);
+      return successResponse('Loyalty Guest Fields created Successfully', daoRes);
+    } catch (error: any) {
+      return errorResponse('Failed to create Loyalty Guest Fields', error?.message);
+    }
+  }
+  public static async deleteLoyaltyGuestFields(fields: string) {
+    try {
+      const daoRes = await LoyaltyGuestFieldsDao.deleteGuestField(fields);
+      return successResponse('Loyalty Guest Fields deleted Successfully', daoRes);
+    } catch (error: any) {
+      return errorResponse('Failed to delete Loyalty Guest Fields', error?.message);
+    }
+  
   }
 }

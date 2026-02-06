@@ -5,7 +5,7 @@ export class TaxGroupRepository {
         propertyId: string,
         taxGroupData: ICTaxGroup
     ): Promise<ICTaxGroup | Error> {
-        console.log("Creating tax group for propertyId:", propertyId, "with data:", taxGroupData);
+        //console.log("Creating tax group for propertyId:", propertyId, "with data:", taxGroupData);
         const { taxRuleIds, ...data } = taxGroupData as any;
         try {
             const createdTaxGroup = await prisma.taxGroup.create({
@@ -19,7 +19,7 @@ export class TaxGroupRepository {
             }
             return createdTaxGroup;
         } catch (error) {
-            console.log(error);
+            //console.log(error);
             throw new Error('Failed to create tax group');
         }
     }
@@ -55,7 +55,7 @@ export class TaxGroupRepository {
             });
             return updatedTaxGroup;
         } catch (error) {
-            console.log(error);
+            //console.log(error);
             throw new Error('Failed to update tax group');
         }
     }
@@ -101,7 +101,7 @@ export class TaxGroupRepository {
             });
         }
         catch (error) {
-            console.log(error);
+            //console.log(error);
             throw new Error('Failed to remove tax rules from tax group');
         }
     }

@@ -12,18 +12,21 @@ import {
 import type { ICalendarResponse } from '../types/availability.types';
 
 export class AvailabilityServices {
-  public static async getCalendarAvailability(
+   public static async getCalendarAvailability(
     propertyCode: string,
     startDate: Date,
     endDate: Date,
-    roomTypeCodes: string[] = []
+    roomTypeCodes: string[] = [],
+    ratePlanCodes: string[] = [] // ✅ ADD THIS
   ) {
     try {
+      //console.log('🎯 Service - Filters:', { roomTypeCodes, ratePlanCodes });
+
       // Fetch all required data
       const [property, inventories, charges, reservations] = await Promise.all([
-        AvailabilityRepository.getPropertyByCode(propertyCode, roomTypeCodes),
+        AvailabilityRepository.getPropertyByCode(propertyCode, roomTypeCodes, ratePlanCodes), // ✅ ADD ratePlanCodes
         AvailabilityRepository.getInventoryForDateRange(propertyCode, startDate, endDate, roomTypeCodes),
-        AvailabilityRepository.getChargesForDateRange(propertyCode, startDate, endDate, roomTypeCodes),
+        AvailabilityRepository.getChargesForDateRange(propertyCode, startDate, endDate, roomTypeCodes, ratePlanCodes), // ✅ ADD ratePlanCodes
         AvailabilityRepository.getReservationsForDateRange(propertyCode, startDate, endDate, roomTypeCodes),
       ]);
 
@@ -31,26 +34,43 @@ export class AvailabilityServices {
         return errorResponse('Property not found');
       }
 
+      //console.log('✅ Fetched data:', {
+      //   totalRooms: property.propertyRooms.length,
+      //   totalRatePlans: property.ratePlans.length,
+      //   requestedRoomTypes: roomTypeCodes,
+      //   requestedRatePlans: ratePlanCodes,
+      //   chargesCount: charges.length
+      // });
+
       // Filter property rooms if room type codes provided
       const filteredRooms = roomTypeCodes.length > 0
         ? property.propertyRooms.filter(room => roomTypeCodes.includes(room.roomType))
         : property.propertyRooms;
 
-      // Get all dates in range (exclusive of end date - standard hotel logic)
-      // If requesting Jan 6 to Jan 9, return [Jan 6, Jan 7, Jan 8]
+      // ✅ ADD: Filter rate plans if rate plan codes provided
+      const filteredRatePlans = ratePlanCodes.length > 0
+        ? property.ratePlans.filter(rp => ratePlanCodes.includes(rp.ratePlanCode))
+        : property.ratePlans;
+
+      //console.log('🏨 Filtered results:', {
+      //   rooms: filteredRooms.map(r => r.roomType),
+      //   ratePlans: filteredRatePlans.map(rp => rp.ratePlanCode)
+      // });
+
+      // Get all dates in range
       const dates = eachDayOfInterval({ 
         start: startDate, 
-        end: subDays(endDate, 1) // Exclude end date
+        end: subDays(endDate, 1)
       });
 
       // Calculate sold rooms per day per room type
       const soldRoomsMap = this.calculateSoldRooms(reservations, dates);
 
-      // Build calendar response
+      // Build calendar response with filtered rate plans
       const calendarDays = dates.map((date) => {
         return this.buildDayData(
           date,
-          { ...property, propertyRooms: filteredRooms },
+          { ...property, propertyRooms: filteredRooms, ratePlans: filteredRatePlans }, // ✅ Pass filtered rate plans
           inventories,
           charges,
           soldRoomsMap
@@ -105,64 +125,44 @@ export class AvailabilityServices {
   }
 
 private static buildDayData(
-  date: Date,
-  property: any,
-  inventories: any[],
-  charges: any[],
-  soldRoomsMap: Map<string, Map<string, number>>
-) {
-  const dateKey = format(date, 'yyyy-MM-dd');
-  const dayOfWeek = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][getDay(date)];
-  const soldMap = soldRoomsMap.get(dateKey) || new Map();
+    date: Date,
+    property: any,
+    inventories: any[],
+    charges: any[],
+    soldRoomsMap: Map<string, Map<string, number>>
+  ) {
+    const dateKey = format(date, 'yyyy-MM-dd');
+    const dayOfWeek = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][getDay(date)];
+    const soldMap = soldRoomsMap.get(dateKey) || new Map();
 
-  // FIX: Compare dates as strings
-  const dayInventories = inventories.filter((inv) => {
-    const invDateKey = format(new Date(inv.date), 'yyyy-MM-dd');
-    console.log('🔍 Comparing inventory:', { invDateKey, dateKey, match: invDateKey === dateKey });
-    return invDateKey === dateKey;
-  });
-
-  // FIX: Compare dates as strings
-  const dayCharges = charges.filter((charge) => {
-    const chargeDateKey = format(new Date(charge.date), 'yyyy-MM-dd');
-    console.log('🔍 Comparing charge:', { chargeDateKey, dateKey, match: chargeDateKey === dateKey });
-    return chargeDateKey === dateKey;
-  });
-
-  console.log('✅ Filtered results:', {
-    dateKey,
-    dayInventoriesCount: dayInventories.length,
-    dayChargesCount: dayCharges.length
-  });
-
-  // Build room types data
-  const roomTypes = property.propertyRooms.map((room: any) => {
-    const totalInventory = room.totalRoom || 0;
-    const dayInventory = dayInventories.find((inv) => inv.roomTypeCode === room.roomType);
-    const inventoryAvailable = dayInventory?.availability ?? 0;
-    const sold = soldMap.get(room.roomType) || 0;
-    const available = Math.max(0, inventoryAvailable - sold);
-    const hasCharges = dayCharges.some((c) => c.roomTypeCode === room.roomType && !c.isSaleStopped);
-
-    console.log('🏨 Room type data:', {
-      roomType: room.roomType,
-      totalInventory,
-      inventoryAvailable,
-      sold,
-      available,
-      hasCharges,
-      status: hasCharges && available > 0 ? 'open' : 'close'
+    const dayInventories = inventories.filter((inv) => {
+      const invDateKey = format(new Date(inv.date), 'yyyy-MM-dd');
+      return invDateKey === dateKey;
     });
 
-    return {
-      invTypeCode: room.roomType,
-      available,
-      sold,
-      occupancy: totalInventory > 0 ? (sold / totalInventory) * 100 : 0,
-      status: hasCharges && available > 0 ? 'open' : 'close',
-      _totalInventory: totalInventory,
-    };
-  });
+    const dayCharges = charges.filter((charge) => {
+      const chargeDateKey = format(new Date(charge.date), 'yyyy-MM-dd');
+      return chargeDateKey === dateKey;
+    });
+
+    // Build room types data
+    const roomTypes = property.propertyRooms.map((room: any) => {
+      const totalInventory = room.totalRoom || 0;
+      const dayInventory = dayInventories.find((inv) => inv.roomTypeCode === room.roomType);
+      const inventoryAvailable = dayInventory?.availability ?? 0;
+      const sold = soldMap.get(room.roomType) || 0;
+      const available = inventoryAvailable;
+      const hasCharges = dayCharges.some((c) => c.roomTypeCode === room.roomType && !c.isSaleStopped);
+
+      return {
+        invTypeCode: room.roomType,
+        available,
+        sold,
+        occupancy: totalInventory > 0 ? (sold / totalInventory) * 100 : 0,
+        status: hasCharges && available > 0 ? 'open' : 'close',
+        _totalInventory: totalInventory,
+      };
+    });
 
     // Build rate plans data
     const ratePlanMap = new Map<string, any>();
@@ -170,11 +170,16 @@ private static buildDayData(
     dayCharges.forEach((charge) => {
       if (!ratePlanMap.has(charge.ratePlanCode)) {
         const ratePlan = property.ratePlans.find((rp: any) => rp.ratePlanCode === charge.ratePlanCode);
+        
+        // ✅ FIX: Get minLOS and maxLOS from RatePlanRule (not from RatePlan directly)
+        const minLOS = ratePlan?.ratePlanRules?.minLos || 1;
+        const maxLOS = ratePlan?.ratePlanRules?.maxLos || null;
+
         ratePlanMap.set(charge.ratePlanCode, {
           ratePlanCode: charge.ratePlanCode,
           ratePlanName: ratePlan?.ratePlanName || '',
-          minLengthOfStay: ratePlan?.minimumLenghthOfStay || 0,
-          maxLengthOfStay: ratePlan?.maximumLengthOfStay || 0,
+          minLengthOfStay: minLOS, // ✅ FROM RatePlanRule
+          maxLengthOfStay: maxLOS, // ✅ FROM RatePlanRule
           cta: charge.isClosedToArrival,
           ctd: charge.isClosedToDeparture,
           prices: [],

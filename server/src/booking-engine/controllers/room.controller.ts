@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { RoomBookingService } from "../service";
 import { PropertyRequest } from "../../utils";
+import { getGeoLocationDetails } from "../../utils/get-location.utils";
+import { getDeviceInfo } from "../../utils/device-type.util";
 
 export class RoomBookingController {
   public static async fetchRooms(req: PropertyRequest, res: Response) {
@@ -23,11 +25,21 @@ export class RoomBookingController {
         });
       }
 
+      // Extract country code from geo-location
+      const geoDetails = getGeoLocationDetails(req);
+      const countryCode = geoDetails.success ? geoDetails.country : "US";
+      const deviceInfo = getDeviceInfo(req);
+      const deviceType = deviceInfo.deviceType as "mobile" | "tablet" | "desktop";
+
+      // Detect device type from user agent
+
       const response = await RoomBookingService.fetchRooms({
         PropertyCode,
         startDate,
         endDate,
-        guests
+        guests,
+        countryCode,
+        deviceType,
       });
 
       const status = response.success ? 200 : 400;

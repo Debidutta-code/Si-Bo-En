@@ -22,7 +22,7 @@ export class ReservationController {
                 return res.status(400).json(errorResponse("Invalid payload - at least one guest is required"));
             }
 
-            console.log("Creating reservation with data:", JSON.stringify(body.data, null, 2));
+            //console.log("Creating reservation with data:", JSON.stringify(body.data, null, 2));
 
             const serviceRes = await this.reservationService.createReservation(body.data);
 
@@ -72,7 +72,7 @@ export class ReservationController {
             return res.status(400).json(errorResponse("Missing required fields: propertyCode, checkInDate, checkOutDate"));
         }
 
-        console.log("Updating reservation:", reservationCode, "with data:", JSON.stringify(updateData, null, 2));
+        //console.log("Updating reservation:", reservationCode, "with data:", JSON.stringify(updateData, null, 2));
 
         const serviceRes = await this.reservationService.updateReservation(reservationCode, updateData);
 
@@ -141,13 +141,13 @@ public async getAllReservations(req: CustomRequest, res: Response): Promise<Resp
             propertyId?.toString(),
             propertyCode?.toString(),
             bookingStatus?.toString(),
-            bookingSource?.toString(),      // ← Add these
-            deviceType?.toString(),         // ← Add these
-            bookingCode?.toString(),        // ← Add these
-            guestName?.toString(),          // ← Add these
-            promoCode?.toString(),          // ← Add these
-            countryCode?.toString(),        // ← Add these
-            dateFilterType?.toString() as 'checkin' | 'booking' | 'modification' | undefined  // ← Add these
+            bookingSource?.toString(),      
+            deviceType?.toString(),         
+            bookingCode?.toString(),        
+            guestName?.toString(),          
+            promoCode?.toString(),          
+            countryCode?.toString(),        
+            dateFilterType?.toString() as 'checkin' | 'booking' | 'modification' | undefined
         );
         
         return res.status(serRes.success ? 200 : 400).json(serRes);

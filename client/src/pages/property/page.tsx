@@ -9,7 +9,7 @@ import type { Icreations, ICreation } from "./types/types"
 import { useNavigate, useParams } from "react-router-dom";
 
 export default function HotelsPage() {
-  const { superId } = useParams<{ superId: string }>();
+  const { creationId } = useParams<{ creationId: string }>();
   const [isLoading, setIsLoading] = useState(false)
   const [creations, setCreations] = useState<Icreations>({
     brands: [],
@@ -75,7 +75,7 @@ export default function HotelsPage() {
   }
 
   const currentData = getCurrentData();
-
+console.log(creations.properties)
   return (
     <div className="space-y-6 p-4">
       <div className="flex justify-between">
@@ -85,7 +85,7 @@ export default function HotelsPage() {
             Manage all your hotel properties and their performance
           </p>
         </div>
-        <CreateEntityDialog currentTab={currentTab} creationId={superId?superId:""} level={4} fetchProperties={fetchProperties} />
+        <CreateEntityDialog currentTab={currentTab} creationId={creationId?creationId:""} level={4} fetchProperties={fetchProperties} />
       </div>
 
       <div className="flex space-x-2 border-b">

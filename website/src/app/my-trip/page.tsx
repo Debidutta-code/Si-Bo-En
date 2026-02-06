@@ -79,7 +79,7 @@ export default function MyTripPage() {
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/pms/front-office/reservations/${codeFromUrl}`
         );
         const data = await res.json();
-        // console.log(data)
+        // //console.log(data)
         if (!res.ok) throw new Error(data.message || "Booking not found");
         setBookingData(data.data);
         dispatch(setBookingViewData(data.data));
@@ -303,7 +303,7 @@ export default function MyTripPage() {
     }
   };
 
-  // console.log("bookingdata", bookingData)
+  // //console.log("bookingdata", bookingData)
 
   return (
     <div className="min-h-screen bg-gray-100 px-4 pt-32 py-12 flex flex-col items-center">

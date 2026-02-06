@@ -16,13 +16,13 @@ export function attachPropertyDetails(
 ) {
   return async (req: PropertyCustomRequest, res: Response, next: NextFunction) => {
     try {
-      console.log("rule", rule.key)
+      //console.log("rule", rule.key)
       if (req.property?.timezone) {
         return next();
       }
-
+      //console.log(req.params)
       const resolved = resolvePropertyIdentifier(req, rule);
-      console.log("resolved", resolved)
+      //console.log("resolved", resolved)
       if (!resolved) {
         return res
           .status(400)
@@ -51,6 +51,7 @@ export function attachPropertyDetails(
         propertyCode: property.propertyCode,
         timezone: property.propertyConfigs?.timezone,
         currencyCode: property.propertyConfigs?.baseCurrency,
+        creationId: property.creationId,
       };
 
       next();

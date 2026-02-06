@@ -7,7 +7,7 @@ import {
     AgentRepository,
     AgenticRoomRepository
 } from "../repository";
-import { AgencyApplicationStatus, IAgencyApplication, ICAgencyApplication } from "../types";
+import { AgencyApplicationStatus, fAgencyApplicationStatus, IAgencyApplication, ICAgencyApplication } from "../types";
 
 export class AgencyApplicationService {
     private agencyRepository: AgencyRepository;
@@ -135,7 +135,7 @@ export class AgencyApplicationService {
             if (availableProperties && availableProperties.length > 0) {
                 //  Create agentic properties 
                 const agenticProperties = await this.agenticPropertyRepository.createAgenticProperties(newAgency.id, availableProperties);
-                console.log("Agentic properties created:", agenticProperties.length);
+                // console.log("Agentic properties created:", agenticProperties.length);
 
                 // Step 5: For each agentic property, add all available rooms
                 if (agenticProperties && agenticProperties.length > 0) {
@@ -147,13 +147,13 @@ export class AgencyApplicationService {
                             );
                             
                             if (allAvailableRoomsForAgency && allAvailableRoomsForAgency.length > 0) {
-                                console.log(`Adding ${allAvailableRoomsForAgency.length} rooms for property ${agenticProperty.propertyName}`);
+                                // console.log(`Adding ${allAvailableRoomsForAgency.length} rooms for property ${agenticProperty.propertyName}`);
                                 await this.agenticRoomRepository.addRoomsForAgenticProperty(
                                     agenticProperty.id, 
                                     allAvailableRoomsForAgency
                                 );
                             } else {
-                                console.log(`No rooms found for property ${agenticProperty.propertyName}`);
+                                // console.log(`No rooms found for property ${agenticProperty.propertyName}`);
                             }
                         } catch (roomError) {
                             console.error(`Failed to add rooms for property ${agenticProperty.id}:`, roomError);
@@ -161,7 +161,7 @@ export class AgencyApplicationService {
                     }));
                 }
             } else {
-                console.log("No B2B properties available for this agency");
+                // console.log("No B2B properties available for this agency");
             }
 
             //  Update application status to approved
@@ -200,5 +200,39 @@ export class AgencyApplicationService {
         }
 
     }
-
+    public async getAgencyApplications(status: fAgencyApplicationStatus="all", page: number=1, limit: number=10): Promise<IApiResponse> {
+        try {
+            const [applications, totalCount] = await Promise.all([
+                this.agencyApplicationRepository.getApplications(status, page, limit),
+                this.agencyApplicationRepository.getCount()
+            ]);
+            return paginatedSuccessResponse("Agency applications retrieved successfully", applications, {
+                currentPage: page,
+                totalPages: Math.ceil(totalCount / limit),
+                totalCount,
+                hasNextPage: page < (totalCount / limit),
+                hasPrevPage: page > 1,
+                limit
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                return errorResponse("failed to retrieve agency applications", error.message);
+            }
+            return errorResponse("failed to retrieve agency applications");
+        }
+    }
+    public async getAgencyApplicationByName(name: string): Promise<IApiResponse> {
+        try {
+            const application = await this.agencyApplicationRepository.getAgentApplicationsByName(name);
+            if (!application) {
+                return errorResponse("Agency application not found");
+            }
+            return successResponse("Agency application retrieved successfully", application);
+        } catch (error) {
+            if (error instanceof Error) {
+                return errorResponse("failed to retrieve agency application", error.message);
+            }
+            return errorResponse("failed to retrieve agency application");
+        }
+    }
 }

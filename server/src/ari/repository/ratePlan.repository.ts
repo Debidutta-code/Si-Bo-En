@@ -172,7 +172,7 @@ export class RatePlanRepository {
       where: chargeWhereClause,
     });
 
-    console.log("Total Charges:", totalResults);
+    // //console.log("Total Charges:", totalResults);
 
     // Step 2: Get paginated charges directly
     const charges = await prisma.charge.findMany({
@@ -386,7 +386,7 @@ public static async updateOrCreateChargesForDateRange(
       currentDate.setDate(currentDate.getDate() + 1);
     }
 
-    console.log(`Processing ${dates.length} dates from ${startDate} to ${endDate}`);
+    //console.log(`Processing ${dates.length} dates from ${startDate} to ${endDate}`);
 
     // Find existing charges for these dates
     const existingCharges = await prisma.charge.findMany({
@@ -405,7 +405,7 @@ public static async updateOrCreateChargesForDateRange(
       },
     });
 
-    console.log(`Found ${existingCharges.length} existing charges`);
+    //console.log(`Found ${existingCharges.length} existing charges`);
 
     // Create a map of existing charge dates
     const existingDatesMap = new Map(
@@ -454,7 +454,7 @@ public static async updateOrCreateChargesForDateRange(
 
         updatedCount++;
         processedDates.push(dateString);
-        console.log(`Updated charge for ${dateString}`);
+        //console.log(`Updated charge for ${dateString}`);
       } else {
         // Create new charge
         await prisma.charge.create({
@@ -482,11 +482,11 @@ public static async updateOrCreateChargesForDateRange(
 
         createdCount++;
         processedDates.push(dateString);
-        console.log(`Created charge for ${dateString}`);
+        //console.log(`Created charge for ${dateString}`);
       }
     }
 
-    console.log(`Total: Updated ${updatedCount}, Created ${createdCount}`);
+    //console.log(`Total: Updated ${updatedCount}, Created ${createdCount}`);
 
     return {
       updated: updatedCount,

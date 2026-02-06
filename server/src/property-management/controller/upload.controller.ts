@@ -33,7 +33,7 @@ export const uploadHandler = async (req: CustomRequest, res: Response) => {
       .json(errorResponse('Failed to upload images', err?.message));
   } finally {
     if (files && Array.isArray(files)) {
-      console.log('Cleaning up temporary files...');
+      //console.log('Cleaning up temporary files...');
       
       const unlinkPromises = files.map(file => fs.unlink(file.path));
 

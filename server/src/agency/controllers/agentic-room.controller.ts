@@ -43,7 +43,7 @@ export class AgenticRoomController {
                 return res.status(400).json(errorResponse("property is not choosen"));
             }
             const result = await this.agenticRoomService.getRoomsForAgencies(agenticPropertyId, propertyId);
-            return res.status(result.success ? 200 : 404).json(result);
+            return res.status(result.success ? 200 : 400).json(result);
         } catch (error) {
             if (error instanceof Error) {
                 return res.status(500).json(errorResponse("failed to create room", error.message));

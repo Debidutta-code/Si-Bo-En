@@ -164,7 +164,7 @@ export default function ReservationsTable({
 
     return (
       <span
-        className={`inline-flex px-3 py-1 text-xs font-medium rounded uppercase ${variants[statusLower] || "bg-muted text-muted-foreground"
+        className={`inline-flex px-1 py-0 text-[10px] font-medium rounded uppercase ${variants[statusLower] || "bg-muted text-muted-foreground"
           }`}
       >
         {formatStatusLabel(status)}
@@ -229,16 +229,16 @@ export default function ReservationsTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Booking Code</TableHead>
-              <TableHead>Guest</TableHead>
-              <TableHead>Rooms</TableHead>
-              <TableHead>Check-in</TableHead>
-              <TableHead>Check-out</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Source</TableHead>
-              <TableHead>Total</TableHead>
-              <TableHead>without Taxes</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="text-[12px]">Booking Code</TableHead>
+              <TableHead className="text-[12px]">Guest</TableHead>
+              <TableHead className="text-[12px]">Rooms</TableHead>
+              <TableHead className="text-[12px]">Check-in</TableHead>
+              <TableHead className="text-[12px]">Check-out</TableHead>
+              <TableHead className="text-[12px]">Status</TableHead>
+              <TableHead className="text-[12px]">Source</TableHead>
+              <TableHead className="text-[12px]">Incl. Tax</TableHead>
+              <TableHead className="text-[12px]">Excl. Tax</TableHead>
+              <TableHead className="text-right text-[12px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -281,7 +281,7 @@ export default function ReservationsTable({
                 <TableCell>{formatDate(reservation.checkInDate)}</TableCell>
                 <TableCell>{formatDate(reservation.checkOutDate)}</TableCell>
                 <TableCell>{getStatusBadge(reservation.bookingStatus)}</TableCell>
-                <TableCell className="uppercase text-sm">
+                <TableCell className="uppercase text-[12px]">
                 {reservation.bookingSource}
                 </TableCell>
                 <TableCell>{reservation.finalPrice?.totalAmount}</TableCell>

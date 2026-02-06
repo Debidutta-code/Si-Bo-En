@@ -122,7 +122,47 @@ export class InitializeDB {
                     canCreateLevel1User: true,
                 }
             })
+            await prisma.masterLoyaltyRegistrationFields.createMany({
+                data: [
+                    {
+                        fieldName: "first_name",
 
+                    },
+                    {
+                        fieldName: "last_name",
+                    },
+                    {
+                        fieldName: "last_name",
+                    },
+                    {
+                        fieldName: "email",
+                    },
+                    {
+                        fieldName: "phone",
+                    },
+                    {
+                        fieldName: "address"
+                    },
+                    {
+                        fieldName: "city"
+                    },
+                    {
+                        fieldName: "state"
+                    },
+                    {
+                        fieldName: "zip_code"
+                    },
+                    {
+                        fieldName: "country"
+                    },
+                    {
+                        fieldName: "identification"
+                    },
+                    {
+                        fieldName: "receive_marketing_mails"
+                    }
+                ]
+            })
             return userRes
         } catch (error) {
             throw new Error("Failed to init db")

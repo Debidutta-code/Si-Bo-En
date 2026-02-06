@@ -1,4 +1,4 @@
-import { BookingSource, BookingStatus, CurrencyCode, PaymentMethod ,DeviceType} from "@prisma/client";
+import { BookingSource, BookingStatus, CurrencyCode, PaymentMethod ,DeviceType, ReservationPromotionType} from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 
 // ==================== PAYLOAD TYPES ====================
@@ -31,6 +31,8 @@ export interface IBookingDetails {
   };
   guestDetails: IGuestDetail[];
   paymentMethod: string;
+  selectedAddons?: IBookingAddonCreate[]; // ✅ ADD THIS
+  selectedPromotions?: IReservationPromotionCreate[];
 }
 
 export interface IGuestDetail {
@@ -51,10 +53,15 @@ export interface IFinalPrice {
   dailyBreakdown: IDailyBreakdown[];
   availableRooms: number;
   requestedRooms: number;
-  totalTaxAmount: number;
+  totalTax: number;
   taxes: ITax[];
   subtotal: number;
   taxBreakdown: ITaxBreakdown;
+  promotions?: {
+    applied: IReservationPromotionCreate[];
+    totalDiscount: number;
+  };
+  addons?:any[];
 }
 
 export interface IPriceBreakdown {
@@ -183,6 +190,28 @@ export interface IGuests extends ICGuest {
   id: string;
   createdAt: Date;
   updatedAt: Date;
+}
+// ==================== NORMALIZED PROMOTION TYPES (for internal use) ====================
+export interface INormalizedPromotion {
+  id?: string;
+  promotionType: string;
+  promotionName?: string;
+  ratePlanName?: string;
+  discountValue: number;
+  discountType: string;
+  discountAmount: number;
+}
+
+// ==================== RESERVATION PROMOTION TYPES ====================
+export interface IReservationPromotionCreate {
+  id?: string;
+  bookingCode: string;
+  bookingId: string;
+  promotionId?: string | null;
+  promotionType: ReservationPromotionType;
+  mlosId?: string | null;
+  amount: number;
+  currency: CurrencyCode;
 }
 
 // ==================== PRICE BREAKDOWN TYPES ====================
@@ -316,6 +345,48 @@ export interface IUpdateReservationResult {
     extraAmountToPay: number;
     refundAmount: number;
   };
+}
+// ==================== BOOKING ADDON TYPES ====================
+// In reservation.type.ts
+export interface IBookingAddonCreate {
+  reservationId: string;
+  addonId: string;
+  name: string;
+  unitPrice: number;
+  quantity: number;
+  totalPrice: number;
+  currencyCode: string;
+  specialInstructions?: string | null; // ✅ CHANGE: Add | null
+  date: Date;
+}
+
+export interface IBookingAddon extends IBookingAddonCreate {
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// ==================== RESERVATION PROMOTION TYPES ====================
+export interface IReservationPromotionCreate {
+ bookingCode: string;
+  bookingId: string;
+  promotionId?: string | null;
+  mlosId?: string | null;
+  amount: number;
+  currency: CurrencyCode;
+  promotionType: ReservationPromotionType;
+}
+export interface IReservationPromotionPayload {
+ bookingCode: string;
+  bookingId: string;
+  promotionId?: string | null;
+  mlosId?: string | null;
+  discountAmount: number;
+  currency: CurrencyCode;
+  promotionType: string;
+}
+export interface IReservationPromotion extends IReservationPromotionCreate {
+  id: string;
 }
 // ==================== ENUMS ====================
 export type ReservationStatus = "pending" | "confirmed" | "cancelled" | "modified";

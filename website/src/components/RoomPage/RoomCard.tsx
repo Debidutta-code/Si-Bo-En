@@ -1,18 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Users, Ruler, Eye, Wifi, Coffee, Tv, Wind, Phone, Utensils, ChevronRight, Plus, Minus, ChevronDown, ChevronUp, ChevronLeft } from 'lucide-react';
 import RoomDetails from './RoomDetails';
+import AddonSelectionModal from './AddonSelectionModal';
 import { Room } from "../../store/roomsSlice";
-import { useBookingStorage } from '../../hooks/useBookingStorage'; // Adjust path as needed
+import { useBookingStorage } from '../../hooks/useBookingStorage';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/src/store/store';
 import { useCurrencyConverter } from '@/src/hooks/useCurrencyConverter';
+import toast from 'react-hot-toast';
 
 interface RoomCardProps {
   room: Room;
   propertyDetails: any;
   addons: any[];
   bookingContext: any;
-  onBookNow: (room: Room, ratePlan: any, selectedAddons: any[]) => void;
+  onBookNow: (room: Room, ratePlan: any, selectedAddons: any[], selectedPromotion: any) => void;
   loadingBookNow: string | null;
   onPriceUpdate?: (data: {
     room: Room;
@@ -24,6 +26,7 @@ interface RoomCardProps {
   }) => void;
   activeRatePlan?: string | null;
   selectedBoardType?: string;
+  loyaltyMemberEmail?: string;
 }
 
 // Helper to get dates between check-in and check-out (excluding checkout date)
@@ -89,7 +92,8 @@ const RoomCard: React.FC<RoomCardProps> = ({
   loadingBookNow,
   onPriceUpdate,
   activeRatePlan,
-  selectedBoardType
+  selectedBoardType,
+  loyaltyMemberEmail
 }) => {
   // const { currency: selectedCurrency } = useSelector((state: RootState) => state.booking);
   const [loadingPriceFor, setLoadingPriceFor] = useState<string | null>(null);
@@ -130,6 +134,13 @@ const RoomCard: React.FC<RoomCardProps> = ({
   const [collapsedRatePlans, setCollapsedRatePlans] = useState<Set<string>>(new Set());
   const [latestPrice, setLatestPrice] = useState<any>(null);
 
+  // New states for addon modal
+  const [addonModalOpen, setAddonModalOpen] = useState(false);
+  const [fetchedAddons, setFetchedAddons] = useState<any[]>([]);
+  const [pendingRatePlan, setPendingRatePlan] = useState<any>(null);
+  const [fetchingAddons, setFetchingAddons] = useState(false);
+  const [expandedPromotions, setExpandedPromotions] = useState<string | null>(null);
+  const [selectedPromotions, setSelectedPromotions] = useState<Record<string, any[]>>({});
   const addonsRef = useRef<HTMLDivElement | null>(null);
 
   // Update price sidebar whenever addons change
@@ -152,7 +163,18 @@ const RoomCard: React.FC<RoomCardProps> = ({
       }
     }
   }, [selectedAddons, expandedRatePlan, latestPrice, onPriceUpdate, room]);
-
+  const getPromotionTypeText = (promotionType: string, promo?: any) => {
+    switch (promotionType) {
+      case 'early_bird':
+        return 'Early Bird Offer';
+      case 'mlos':
+        return `Minimum ${promo?.minLos || 1} night stay`;
+      case 'offer_for_tonight':
+        return 'Tonight Special Offer';
+      default:
+        return 'Special Offer';
+    }
+  };
   const rooms = Array.isArray(bookingContext.guests?.rooms)
     ? bookingContext.guests.rooms
     : [{ adults: 1, children: 0 }];
@@ -164,8 +186,46 @@ const RoomCard: React.FC<RoomCardProps> = ({
 
   const handleBookNowClick = async (ratePlan: any) => {
     setLoadingPriceFor(ratePlan.ratePlanCode);
+    setPendingRatePlan(ratePlan);
+
     try {
-      const payload = {
+      // Step 1: Always try to fetch available addons using the new API
+      setFetchingAddons(true);
+      try {
+        const addonResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/addon/addon-datewise/available?propertyCode=${bookingContext.PropertyCode}&startDate=${bookingContext.startDate}&endDate=${bookingContext.endDate}&ratePlanCode=${ratePlan.ratePlanCode}`
+        );
+        const addonData = await addonResponse.json();
+        //console.log('Addon response:', addonData);
+
+        if (addonResponse.ok && addonData.success && addonData.data?.length > 0) {
+          setFetchedAddons(addonData.data);
+          setAddonModalOpen(true);
+          setLoadingPriceFor(null);
+          setFetchingAddons(false);
+          return; // Wait for modal interaction
+        }
+      } catch (addonError) {
+        console.error('Error fetching addons:', addonError);
+        // Continue without addons if fetch fails
+      }
+      setFetchingAddons(false);
+
+      // Step 2: No addons available, proceed directly to price fetch
+      await proceedWithBooking(ratePlan, []);
+    } catch (error) {
+      console.error("Error in booking flow:", error);
+      toast.error("Something went wrong. Please try again.");
+    } finally {
+      setLoadingPriceFor(null);
+    }
+  };
+
+  // Helper function to proceed with booking after addon selection
+  const proceedWithBooking = async (ratePlan: any, selectedAddonsList: any[]) => {
+    setLoadingPriceFor(ratePlan.ratePlanCode);
+    try {
+      const payload: any = {
         propertyCode: bookingContext.PropertyCode,
         invTypeCode: room.room_type,
         ratePlanCode: ratePlan.ratePlanCode,
@@ -176,6 +236,31 @@ const RoomCard: React.FC<RoomCardProps> = ({
         noOfRooms
       };
 
+      // ✅ ADD LOYALTY GUEST EMAIL TO PAYLOAD
+      if (loyaltyMemberEmail) {
+        payload.guestEmail = loyaltyMemberEmail;
+      }
+
+      // ✅ ADD SELECTED PROMOTION TO PAYLOAD
+      // Around line 223 - Update to send array of promotions:
+      const selectedPromotionsList = selectedPromotions[ratePlan.ratePlanCode] || [];
+      if (selectedPromotionsList.length > 0) {
+        payload.promotions = selectedPromotionsList.map(promotions => ({
+          id: promotions.id,
+          promotionType: promotions.type
+        }));
+      }
+
+      // Add addons if present
+      if (selectedAddonsList && selectedAddonsList.length > 0) {
+        payload.addons = selectedAddonsList.map((addon: any) => ({
+          id: addon.id,
+          addonCode: addon.addonCode,
+          quantity: addon.quantity,
+          date: addon.date,
+          availabilityId: addon.availabilityId,
+        }));
+      }
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/ari/price/get-price`,
         {
@@ -191,30 +276,29 @@ const RoomCard: React.FC<RoomCardProps> = ({
       }
       setLatestPrice(data.data);
 
-      if (propertyDetails?.addonsEnabled && addons && addons.length > 0) {
-        setCollapsedRatePlans(prev => new Set(prev).add(ratePlan.ratePlanCode));
-        setExpandedRatePlan(ratePlan.ratePlanCode);
-        setSelectedAddons({});
-        scrollToAddons();
-
-        if (onPriceUpdate) {
-          const basePrice = data.data?.baseRatePerNight || 0;
-          onPriceUpdate({
-            room,
-            ratePlan,
-            selectedAddons: [],
-            basePrice,
-            totalAddonsPrice: 0,
-            finalprice: data.data,
-          });
-        }
-      } else {
-        onBookNow(room, ratePlan, []);
-      }
+      // Proceed to booking with selected addons
+      onBookNow(room, ratePlan, selectedAddonsList, selectedPromotionsList);
     } catch (error) {
-      console.error("Error fetching latest price:", error);
+      console.error("Error fetching price:", error);
+      toast.error("Failed to fetch price. Please try again.");
     } finally {
-      setLoadingPriceFor(null); // Always clear local loading
+      setLoadingPriceFor(null);
+    }
+  };
+
+  // Handle addon modal continue
+  const handleAddonContinue = (selectedAddonsList: any[]) => {
+    setAddonModalOpen(false);
+    if (pendingRatePlan) {
+      proceedWithBooking(pendingRatePlan, selectedAddonsList);
+    }
+  };
+
+  // Handle addon modal skip
+  const handleAddonSkip = () => {
+    setAddonModalOpen(false);
+    if (pendingRatePlan) {
+      proceedWithBooking(pendingRatePlan, []);
     }
   };
 
@@ -243,11 +327,13 @@ const RoomCard: React.FC<RoomCardProps> = ({
     });
   };
 
+  // Around line 355:
   const handleContinue = () => {
     const selectedAddonsList = Object.values(selectedAddons);
     const currentRatePlan = room.room_price.find((rp: any) => rp.ratePlanCode === expandedRatePlan);
+    const selectedPromotionsList = selectedPromotions[expandedRatePlan || ''] || [];
 
-    onBookNow(room, currentRatePlan, selectedAddonsList);
+    onBookNow(room, currentRatePlan, selectedAddonsList, selectedPromotionsList);
     setExpandedRatePlan(null);
     setSelectedAddons({});
     setCollapsedRatePlans(new Set());
@@ -255,7 +341,9 @@ const RoomCard: React.FC<RoomCardProps> = ({
 
   const handleSkip = () => {
     const currentRatePlan = room.room_price.find((rp: any) => rp.ratePlanCode === expandedRatePlan);
-    onBookNow(room, currentRatePlan, []);
+    const selectedPromotionsList = selectedPromotions[expandedRatePlan || ''] || [];
+
+    onBookNow(room, currentRatePlan, [], selectedPromotionsList);
     setExpandedRatePlan(null);
     setSelectedAddons({});
     setCollapsedRatePlans(new Set());
@@ -291,7 +379,6 @@ const RoomCard: React.FC<RoomCardProps> = ({
   const activeAmenities = getActiveAmenities(room.amenities);
   const bookingDates = getDatesBetween(bookingContext.startDate, bookingContext.endDate);
 
-  const totalAddonsPrice = Object.values(selectedAddons).reduce((sum: number, addon: any) => sum + addon.totalPrice, 0);
   const totalAddonsCount = Object.values(selectedAddons).reduce((sum: number, addon: any) => sum + addon.quantity, 0);
 
   return (
@@ -415,10 +502,10 @@ const RoomCard: React.FC<RoomCardProps> = ({
           ?.map((ratePlan: any, index: number) => {
             const isExpanded = expandedRatePlan === ratePlan.ratePlanCode;
             const isCollapsed = collapsedRatePlans.has(ratePlan.ratePlanCode);
-            const basePrice = ratePlan.baseByGuestAmts?.[0]?.amountBeforeTax || 0;
+            const basePrice = ratePlan.totalAmount || 0;
             const currency = ratePlan.currencyCode || 'USD';
 
-            // console.log(ratePlan, 'ratePlan');
+            // //console.log(ratePlan, 'ratePlan');
 
             // const { convertedAmount } = useCurrencyConverter(basePrice);
 
@@ -431,15 +518,14 @@ const RoomCard: React.FC<RoomCardProps> = ({
                 <div className={`p-4 md:p-5 ${isCollapsed && !isExpanded ? 'pb-2' : ''}`}>
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                     <div className="flex-1 min-w-0">
+                      {/* Inside ratePlan header section */}
                       <div className="flex flex-wrap items-center gap-2 mb-2">
                         <h3 className="text-base md:text-lg font-bold text-gray-900 leading-tight">
                           {ratePlan.ratePlanName || ratePlan.ratePlanCode}
                         </h3>
-                        <span className="bg-red-100 text-red-700 text-xs font-bold px-2.5 py-0.5 rounded-full whitespace-nowrap">
-                          Special Rate
-                        </span>
-                      </div>
 
+
+                      </div>
                       {!isCollapsed && (
                         <>
                           <div className="space-y-1 text-xs md:text-sm text-gray-700 mb-2">
@@ -465,9 +551,185 @@ const RoomCard: React.FC<RoomCardProps> = ({
                           >
                             View Details →
                           </button>
+                          {/* ✅ NEW: PROMOTION LINK */}
+                          {ratePlan.availablePromotions?.length > 0 && (
+                            <button
+                              onClick={() => {
+                                setExpandedPromotions(
+                                  expandedPromotions === ratePlan.ratePlanCode ? null : ratePlan.ratePlanCode
+                                );
+                              }}
+                              className="mt-2 flex items-center gap-1.5 text-xs md:text-sm text-orange-600 hover:text-orange-700 font-medium hover:underline"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                              </svg>
+                              {selectedPromotions[ratePlan.ratePlanCode]?.length > 0
+                                ? `${selectedPromotions[ratePlan.ratePlanCode].length} Offer${selectedPromotions[ratePlan.ratePlanCode].length > 1 ? 's' : ''} Applied • ${ratePlan.availablePromotions.length} Available`
+                                : `${ratePlan.availablePromotions.length} Special Offer${ratePlan.availablePromotions.length > 1 ? 's' : ''} Available`
+                              }
+                              {selectedPromotions[ratePlan.ratePlanCode]?.length > 0 && (
+                                <span className="px-2.5 py-1 bg-green-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
+                                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  </svg>
+                                  {selectedPromotions[ratePlan.ratePlanCode].length} Applied
+                                </span>
+                              )}
+                            </button>
+                          )}
+                          {expandedPromotions === ratePlan.ratePlanCode && ratePlan.availablePromotions?.length > 0 && (
+                            <div className="mt-4 p-4 bg-gradient-to-br from-orange-50 to-amber-50 border-l-4 border-orange-400 rounded-lg">
+                              <div className="flex items-center gap-2 mb-3">
+                                <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                                </svg>
+                                <div className="flex-1">
+                                  <h4 className="text-sm font-bold text-gray-900">Special Promotions</h4>
+                                  <p className="text-xs text-gray-600">Select one promotion to apply discount</p>
+                                </div>
+                                {selectedPromotions[ratePlan.ratePlanCode] && (
+                                  <span className="px-2.5 py-1 bg-green-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
+                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                    Applied
+                                  </span>
+                                )}
+                              </div>
+
+                              <div className="space-y-2.5">
+                                {ratePlan.availablePromotions.map((promo: any) => {
+                                  const currentPromotions = selectedPromotions[ratePlan.ratePlanCode] || [];
+                                  const isSelected = currentPromotions.some(p => p.id === promo.id);
+                                  return (
+                                    <div
+                                      key={promo.id}
+                                      // Inside the promotion card onClick handler (around line 580):
+                                      onClick={() => {
+                                        setSelectedPromotions(prev => {
+                                          const newState = { ...prev };
+                                          const currentPromotions = newState[ratePlan.ratePlanCode] || [];
+
+                                          // Check if promotion is already selected
+                                          const promoIndex = currentPromotions.findIndex(p => p.id === promo.id);
+
+                                          if (promoIndex > -1) {
+                                            // Remove if already selected
+                                            currentPromotions.splice(promoIndex, 1);
+                                            if (currentPromotions.length === 0) {
+                                              delete newState[ratePlan.ratePlanCode];
+                                            } else {
+                                              newState[ratePlan.ratePlanCode] = currentPromotions;
+                                            }
+                                          } else {
+                                            // Add to selection
+                                            newState[ratePlan.ratePlanCode] = [
+                                              ...currentPromotions,
+                                              {
+                                                id: promo.id,
+                                                name: promo.promotionName,
+                                                type: promo.promotionType,
+                                                discountType: promo.discountType,
+                                                discountValue: promo.discountValue,
+                                                ...promo
+                                              }
+                                            ];
+                                          }
+                                          return newState;
+                                        });
+                                      }}
+                                      className={`relative p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 ${isSelected
+                                        ? 'bg-white border-orange-400 shadow-md'
+                                        : 'bg-white border-gray-200 hover:border-orange-300 hover:shadow-sm'
+                                        }`}
+                                    >
+                                      <div className="flex items-start gap-3">
+                                        <div className="flex-shrink-0 mt-0.5">
+                                          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${isSelected
+                                            ? 'bg-orange-500 border-orange-500'
+                                            : 'border-gray-300 bg-white'
+                                            }`}>
+                                            {isSelected && (
+                                              <div className="w-2 h-2 rounded-full bg-white"></div>
+                                            )}
+                                          </div>
+                                        </div>
+
+                                        <div className="flex-1 min-w-0">
+                                          <div className="flex items-start justify-between gap-3 mb-1">
+                                            <h5 className="font-bold text-sm text-gray-900 leading-tight">
+                                              {promo.promotionName}
+                                            </h5>
+                                            <span className="flex-shrink-0 px-2.5 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold rounded-full shadow-sm">
+                                              {promo.discountType === 'percentage'
+                                                ? `${promo.discountValue}% OFF`
+                                                : `$${promo.discountValue} OFF`}
+                                            </span>
+                                          </div>
+
+                                          <div className="flex items-center gap-2 text-xs text-gray-600">
+                                            <svg className="w-3.5 h-3.5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                                            </svg>
+                                            {getPromotionTypeText(promo.promotionType, promo)}
+                                          </div>
+
+                                          {promo.promotionType === 'early_bird' && promo.advanceBookingDays && (
+                                            <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                              </svg>
+                                              Book {promo.advanceBookingDays} days in advance
+                                            </p>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      {isSelected && (
+                                        <div className="absolute top-2 right-2">
+                                          <span className="flex h-2.5 w-2.5">
+                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500"></span>
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+
+                              <div className="mt-3 pt-3 border-t border-orange-200 flex items-center justify-between">
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedPromotions(prev => {
+                                      const newState = { ...prev };
+                                      delete newState[ratePlan.ratePlanCode];
+                                      return newState;
+                                    });
+                                  }}
+                                  className="text-xs text-gray-600 hover:text-gray-900 font-medium transition-colors"
+                                >
+                                  Clear Selection
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setExpandedPromotions(null);
+                                  }}
+                                  className="px-4 py-1.5 bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"
+                                >
+                                  Done
+                                </button>
+                              </div>
+                            </div>
+                          )}
                         </>
                       )}
                     </div>
+                    {/* ✅ EXPANDED PROMOTIONS SECTION */}
+
 
                     <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:gap-2 sm:min-w-[180px] md:min-w-[200px]">
                       {!isCollapsed && (
@@ -484,10 +746,10 @@ const RoomCard: React.FC<RoomCardProps> = ({
                       <button
                         onClick={() => handleBookNowClick(ratePlan)}
                         disabled={isLoadingForRatePlan(ratePlan.ratePlanCode) || isExpanded}
-                       style={{
-    backgroundColor: primaryColor || '#FF6B35',  // ✅ Add fallback
-    color: buttonTextColor || '#FFFFFF'  // ✅ Add fallback
-  }}
+                        style={{
+                          backgroundColor: primaryColor || '#FF6B35',  // ✅ Add fallback
+                          color: buttonTextColor || '#FFFFFF'  // ✅ Add fallback
+                        }}
                         className="px-4 md:px-5 py-2 rounded-lg font-semibold text-sm md:text-base transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg whitespace-nowrap hover:opacity-90"
                       >
                         {isLoadingForRatePlan(ratePlan.ratePlanCode) ? (
@@ -665,6 +927,23 @@ const RoomCard: React.FC<RoomCardProps> = ({
           }}
         />
       )}
+
+      {/* Addon Selection Modal */}
+      <AddonSelectionModal
+        isOpen={addonModalOpen}
+        onClose={() => {
+          setAddonModalOpen(false);
+          setPendingRatePlan(null);
+          setFetchedAddons([]);
+        }}
+        addons={fetchedAddons}
+        bookingDates={bookingDates}
+        onContinue={handleAddonContinue}
+        onSkip={handleAddonSkip}
+        primaryColor={primaryColor}
+        buttonTextColor={buttonTextColor}
+        currencyCode={pendingRatePlan?.currencyCode || 'USD'}
+      />
     </div>
   );
 };

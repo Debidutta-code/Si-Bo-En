@@ -55,12 +55,12 @@ export class PropertyService {
         createdById: createdById.toString(),
         creationId: creationId
       };
-      console.log('Creating property with data:', createData);
+      //console.log('Creating property with data:', createData);
       const property = await PropertyDao.createProperty(createData);
       if (!property || !property.id) {
         return errorResponse('Failed to create property');
       }
-      console.log(creationId, property.id)
+      //console.log(creationId, property.id)
       await AddCreationToCreation.addToProperty(creationId, property.id)
       return successResponse('Property created successfully', {
         id: property.id,

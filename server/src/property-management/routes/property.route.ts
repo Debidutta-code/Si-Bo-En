@@ -18,11 +18,7 @@ propertyRouter
   .route('/')
   .post(protect, checkRoleBased('canCreateHotel'), Property.createProperty);
 propertyRouter.use('/management', protect,restrictTo("super_admin"), managementRoute);
-propertyRouter.use('/booking-engine', protect, attachPropertyDetails({
-  identifierType: "id",
-  key: "id",
-  source: "params"
-}), bookingEngineRoute)
+propertyRouter.use('/booking-engine',  bookingEngineRoute)
 propertyRouter.use("/video", vedioRouter)
 propertyRouter
   .route('/:id')

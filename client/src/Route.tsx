@@ -39,6 +39,27 @@ import ForgotPasswordForm from "./components/auth/ForgotPasswordForm.tsx";
 import LinkVerification from "./components/auth/LinkVerification.tsx";
 import ContactSupport from "./pages/contact-support/ContactSupport.tsx";
 import ManagementPage from "./pages/management/Management.tsx";
+import Loyalty from "./pages/loyalty/Loyalty.tsx";
+
+import GeoRatePlanList from "./pages/promotions/geo/page.tsx";
+import MLOSRuleList from "./pages/promotions/mlos/page.tsx";
+import { DeviceSpecificPromotionList } from "./pages/promotions/mobile-only/page.tsx";
+import { EarlyBirdPromotionList } from "./pages/promotions/early-bird/page.tsx";
+import  {OfferForTonightList}  from "./pages/promotions/offer-for-tonight/page.tsx";
+import CustomizablePromotionList from "./pages/promotions/customizable-promotion/page.tsx";
+import LoyaltyForm from "./pages/loyalty/LoyaltyForm.tsx";
+import LoyaltyGuest from "./pages/loyalty/LoyaltyGuest.tsx"
+import LoyaltyContent from "./pages/loyalty/LoyaltyContent.tsx";
+import PropertyLoyalityManagement from "./pages/loyalty/PropertyLoyalties.tsx";
+import PropertyLoyaltyGuests from "./pages/loyalty/PropertyLoyaltyGuests.tsx";
+import ActivePropertyLoyalty from "./pages/loyalty/ActivepropertyLoyaty.tsx";
+import AgenciesListPage from "./pages/agency/AgenciesListPage.tsx";
+import AgencyDetailsPage from "./pages/agency/AgencyDetailsPage.tsx";
+import AgencyAgentsPage from "./pages/agency/AgencyAgentsPage.tsx";
+import AgenticPropertyDetailsPage from "./pages/agency/AgenticPropertyDetailsPage.tsx";
+import AgencyApplicationsPage from "./pages/agency/AgencyApplicationsPage.tsx";
+import PropertyAgenciesPage from "./pages/property-agencies/PropertyAgenciesPage.tsx";
+import AgencyReservationsPage from "./pages/property-agencies/AgencyReservationsPage.tsx";
 
 export const router = createBrowserRouter(
   createRoutesFromElements(
@@ -55,17 +76,35 @@ export const router = createBrowserRouter(
 
         <Route path="property">
 
-          <Route path="super/:superId" element={<Property />} />
-          <Route path="group/:groupId" element={<GroupId />} />
-          <Route path="brand/:brandId" element={<BrandId />} />
-          <Route path="property/:propertyId" element={<PropertyId />} />
+          <Route path="super/:creationId" element={<Property />} />
+          <Route path="group/:creationId" element={<GroupId />} />
+          <Route path="brand/:creationId" element={<BrandId />} />
+          <Route path="property/:creationId" element={<PropertyId />} />
+          <Route path="loyalty" >
+            <Route path=":creationId" index element={<Loyalty />} />
+            <Route path="register-form/:creationId" index element={<LoyaltyForm />} />
+            <Route path="content-config/:creationId" index element={<LoyaltyContent />} />
+            <Route path="loyalty-guests/:creationId" index element={<LoyaltyGuest />} />
+
+          </Route>
 
         </Route>
         <Route path="members" element={<MembersPage />} />
         <Route path="logs" element={<LogsPage />} />
         <Route path="access-control" element={<AccessControlPage />} />
         <Route path="bookings" element={<Bookings />} />
-         <Route path="utils-management" element={<ManagementPage />} />
+        <Route path="utils-management" element={<ManagementPage />} />
+
+        {/* Agency Routes - Super Admin Only */}
+        <Route path="agency">
+          <Route index element={<AgenciesListPage />} />
+          <Route path="applications" element={<AgencyApplicationsPage />} />
+          <Route path=":agencyId">
+            <Route index element={<AgencyDetailsPage />} />
+            <Route path="agents" element={<AgencyAgentsPage />} />
+            <Route path="property/:propertyId" element={<AgenticPropertyDetailsPage />} />
+          </Route>
+        </Route>
 
       </Route>
       <Route path="/property" element={<PropertyLayout />}>
@@ -85,6 +124,27 @@ export const router = createBrowserRouter(
         <Route path="price-management/calendar/:propertyId" element={<CalendarView />} />
         <Route path="price-management/periods/:propertyId" element={<PeriodsManagement />} />
         <Route path="price-management/table/:propertyId" element={<TableView />} />
+        
+        {/* Property Agencies Routes */}
+        <Route path=":propertyId/agencies" element={<PropertyAgenciesPage />} />
+        <Route path=":propertyId/agencies/:agencyId/reservations" element={<AgencyReservationsPage />} />
+        
+        <Route path="loyalty/:propertyId">
+        <Route path="" index element={<PropertyLoyalityManagement />} />
+        <Route path="active/:loyaltyConfigId" element={<ActivePropertyLoyalty />} />
+        <Route path="guests/:loyalityId" element={<PropertyLoyaltyGuests />} />
+        </Route>
+       
+       
+        <Route path="promotion/">
+
+        <Route path="geo/:propertyId" element={<GeoRatePlanList />} />
+        <Route path="mlos/:propertyId" element={<MLOSRuleList />} />
+        <Route path="device-specific/:propertyId" element={<DeviceSpecificPromotionList />} />
+        <Route path="early-bird/:propertyId" element={<EarlyBirdPromotionList />} />
+        <Route path="offer-for-tonight/:propertyId" element={<OfferForTonightList />} />
+        <Route path="customizable-deal/:propertyId" element={<CustomizablePromotionList />} />
+        </Route>
 
       </Route>
       <Route path="members" element={<MembersPage />} />

@@ -18,6 +18,8 @@ import EmailService from "../sms-email-service/routes/route";
 import { PaymentRoutes } from "../payment/routes";
 
 import { agencyMainRouter } from '../agency/routes/index.route';
+import { loyaltyRouter } from '../loyalty/routes/loyalty.routes';
+import promotionRouter from '../promotions/routes';
 export async function initializeExpressRoutes({ app }: { app: Express }) {
   // Health check
   app.head('/status', (_, res: Response) => res.status(200).end());
@@ -51,7 +53,9 @@ export async function initializeExpressRoutes({ app }: { app: Express }) {
   apiV1Router.use("/pms",pmsRoute)
   apiV1Router.use("/booking-engine",BookingEngineRoutes)
   apiV1Router.use("/email-service",EmailService)
-  apiV1Router.use("/agency",agencyMainRouter)
+  apiV1Router.use("/agency",agencyMainRouter);
+  apiV1Router.use("/promotions",promotionRouter);
+  apiV1Router.use('/loyalty', loyaltyRouter);
   apiV1Router.use("/payment", PaymentRoutes)
   // Handle 404 for any undefined route under /api/v1
   app.all('/api/v1/*', (req: Request, _res: Response, next: NextFunction) => {

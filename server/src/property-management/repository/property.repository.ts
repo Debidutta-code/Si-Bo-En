@@ -424,7 +424,7 @@ export class PropertyAmenityDao {
         skipDuplicates: true,
       });
 
-      console.log(`Created ${result.count} amenity selections for property ${propertyId}`);
+      //console.log(`Created ${result.count} amenity selections for property ${propertyId}`);
 
       const createdAmenities = await prisma.propertyAmenitySelection.findMany({
         where: {
@@ -499,7 +499,7 @@ export class PropertyAmenityDao {
       const selectedAmenityNames = Object.entries(amenities)
         .filter(([_, isSelected]) => isSelected === true)
         .map(([amenityName, _]) => amenityName);
-console.log(selectedAmenityNames);
+//console.log(selectedAmenityNames);
       // Use transaction to ensure atomicity
       const result = await prisma.$transaction(async (prisma) => {
         // Delete existing amenity selections
@@ -519,7 +519,7 @@ console.log(selectedAmenityNames);
             isActive: true
           }
         });
-        console.log(existingAmenities);
+        //console.log(existingAmenities);
 
 
         // Create new selections
@@ -532,7 +532,7 @@ console.log(selectedAmenityNames);
           data: amenitySelections,
           skipDuplicates: true,
         });
-console.log(createResult);
+//console.log(createResult);
         // Get the created amenities with details
         const createdAmenities = await prisma.propertyAmenitySelection.findMany({
           where: {

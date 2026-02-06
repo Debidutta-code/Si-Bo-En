@@ -10,7 +10,7 @@ const httpServer = createServer(app);
 
 initializeExpressRoutes({ app }).then(async () => {
   try {
-    // await connectMongo();
+    await connectMongo();
     await connectPostgres();
 
     // Initialize Socket.IO

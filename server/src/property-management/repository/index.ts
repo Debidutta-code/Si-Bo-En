@@ -14,7 +14,8 @@ import {
     PropertyCategorySelectionDao,
     PropertyTypeSelectionDao,
     PropertyTypesDao,
-    RoomAminityDao
+    RoomAminityDao,
+    LoyaltyGuestFieldsDao
 } from "./types.repository";
 
 export { PropertyVideoRepository, RoomVideoRepository } from "./vedio.repository";
@@ -34,5 +35,5 @@ export{
     PropertyTypeSelectionDao,
     PropertyTypesDao,
     RoomAminityDao,
-    PropertyConfigRepo,
+    PropertyConfigRepo,LoyaltyGuestFieldsDao
 }

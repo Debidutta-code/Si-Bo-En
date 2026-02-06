@@ -109,4 +109,16 @@ export class AgenticPropertyService {
         }
     }
 
+    public async getAgenciesByPropertyId(propertyId: string): Promise<IApiResponse> {
+        try {
+            const agencies = await this.agenticPropertyRepository.getAgenciesByPropertyId(propertyId);
+            return successResponse("Agencies retrieved successfully", agencies);
+        } catch (error) {
+            if (error instanceof Error) {
+                return errorResponse("Failed to get agencies for property", error.message);
+            }
+            return errorResponse("Failed to get agencies for property");
+        }
+    }
 }
+

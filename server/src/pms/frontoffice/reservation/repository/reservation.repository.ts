@@ -7,7 +7,7 @@ import {
     IReservationPriceBrakeDownR,
     IAriManulupulation
 } from "../types";
-import { BookingStatus } from "../types/reservation.type";
+import { BookingStatus, IBookingAddon, IBookingAddonCreate, IReservationPromotion, IReservationPromotionCreate } from "../types/reservation.type";
 
 export class ReservationRepository {
     public async createReservation(data: ICReservation) {
@@ -27,36 +27,12 @@ export class ReservationRepository {
         }
     }
 
-  public async updateReservation(
-    reservationId: string, 
-    updateData: Partial<ICReservation>
-): Promise<IReservation> {
-    try {
-        return await prisma.reservation.update({
-            where: { id: reservationId },
-            data: updateData,
-            include: {
-                primaryGuest: true,
-                priceBreakdowns: true
-            }
-        });
-    } catch (error) {
-        if (error instanceof Error) {
-            throw new Error(`Failed to update reservation: ${error.message}`);
-        }
-        throw new Error("Failed to update reservation");
-    }
-}
-
-public async updateReservationWithTransaction(
-    reservationId: string,
-    updateData: Partial<ICReservation>,
-    priceBreakdownData?: Partial<IReservationPriceBrakeDownR>
-): Promise<IReservation> {
-    try {
-        return await prisma.$transaction(async (tx) => {
-            // Update reservation
-            const updatedReservation = await tx.reservation.update({
+    public async updateReservation(
+        reservationId: string,
+        updateData: Partial<ICReservation>
+    ): Promise<IReservation> {
+        try {
+            return await prisma.reservation.update({
                 where: { id: reservationId },
                 data: updateData,
                 include: {
@@ -64,495 +40,519 @@ public async updateReservationWithTransaction(
                     priceBreakdowns: true
                 }
             });
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`Failed to update reservation: ${error.message}`);
+            }
+            throw new Error("Failed to update reservation");
+        }
+    }
 
-            // Update price breakdown if provided
-            if (priceBreakdownData) {
-                await tx.reservationPriceBrakeDown.updateMany({
-                    where: { reservationId },
-                    data: priceBreakdownData
+    public async updateReservationWithTransaction(
+        reservationId: string,
+        updateData: Partial<ICReservation>,
+        priceBreakdownData?: Partial<IReservationPriceBrakeDownR>
+    ): Promise<IReservation> {
+        try {
+            return await prisma.$transaction(async (tx) => {
+                // Update reservation
+                const updatedReservation = await tx.reservation.update({
+                    where: { id: reservationId },
+                    data: updateData,
+                    include: {
+                        primaryGuest: true,
+                        priceBreakdowns: true
+                    }
+                });
+
+                // Update price breakdown if provided
+                if (priceBreakdownData) {
+                    await tx.reservationPriceBrakeDown.updateMany({
+                        where: { reservationId },
+                        data: priceBreakdownData
+                    });
+                }
+
+                return updatedReservation;
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`Failed to update reservation in transaction: ${error.message}`);
+            }
+            throw new Error("Failed to update reservation in transaction");
+        }
+    }
+
+    public async checkRoomAvailability(
+        propertyCode: string,
+        roomTypeCode: string,
+        dates: Date[],
+        requiredRooms: number
+    ): Promise<boolean> {
+        try {
+            const inventories = await prisma.inventory.findMany({
+                where: {
+                    propertyCode,
+                    roomTypeCode,
+                    date: { in: dates }
+                }
+            });
+
+            // Check if all dates have enough availability
+            for (const inventory of inventories) {
+                if (inventory.availability < requiredRooms) {
+                    return false;
+                }
+            }
+
+            return inventories.length === dates.length; // All dates must exist
+        } catch (error) {
+            console.error("Error checking room availability:", error);
+            return false;
+        }
+    }
+    public async getReservationsForDateRange(
+        propertyIds: string[],
+        startDate: Date,
+        endDate: Date,
+        page: number,
+        limit: number,
+        bookingStatus?: string,
+        bookingSource?: string,        // ← Add these
+        deviceType?: string,           // ← Add these
+        bookingCode?: string,          // ← Add these
+        guestName?: string,            // ← Add these
+        promoCode?: string,            // ← Add these
+        countryCode?: string,          // ← Add these
+        dateFilterType?: 'checkin' | 'booking' | 'modification'  // ← Add these
+    ): Promise<IPaginatedResponse<IReservationWithAllDetails>> {
+        try {
+            const start = new Date(startDate);
+            start.setHours(0, 0, 0, 0);
+
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
+
+            const whereClause: any = {
+                propertyId: { in: propertyIds }
+            };
+
+            // Date filtering based on dateFilterType
+            if (dateFilterType === 'booking') {
+                whereClause.bookedAt = {
+                    gte: start,
+                    lte: end
+                };
+            } else if (dateFilterType === 'modification') {
+                whereClause.updatedAt = {
+                    gte: start,
+                    lte: end
+                };
+            } else {
+                // Default: checkin date
+                whereClause.OR = [
+                    {
+                        checkInDate: {
+                            gte: start,
+                            lte: end
+                        }
+                    },
+                    {
+                        checkOutDate: {
+                            gte: start,
+                            lte: end
+                        }
+                    },
+                    {
+                        AND: [
+                            { checkInDate: { lte: start } },
+                            { checkOutDate: { gte: end } }
+                        ]
+                    }
+                ];
+            }
+
+            // Add bookingStatus filter
+            if (bookingStatus) {
+                whereClause.bookingStatus = bookingStatus;
+            }
+
+            // Add bookingSource filter
+            if (bookingSource) {
+                whereClause.bookingSource = bookingSource;
+            }
+
+            // Add deviceType filter
+            if (deviceType) {
+                whereClause.deviceTypes = deviceType;
+            }
+
+            // Add bookingCode filter
+            if (bookingCode) {
+                whereClause.bookingCode = {
+                    contains: bookingCode,
+                    mode: 'insensitive'
+                };
+            }
+
+            // Add guestName filter (search in primaryGuest or guests JSON)
+            if (guestName) {
+                whereClause.AND = whereClause.AND || [];
+                whereClause.AND.push({
+                    primaryGuest: {
+                        OR: [
+                            { firstName: { contains: guestName, mode: 'insensitive' } },
+                            { lastName: { contains: guestName, mode: 'insensitive' } }
+                        ]
+                    }
                 });
             }
 
-            return updatedReservation;
-        });
-    } catch (error) {
-        if (error instanceof Error) {
-            throw new Error(`Failed to update reservation in transaction: ${error.message}`);
-        }
-        throw new Error("Failed to update reservation in transaction");
-    }
-}
-
-public async checkRoomAvailability(
-    propertyCode: string,
-    roomTypeCode: string,
-    dates: Date[],
-    requiredRooms: number
-): Promise<boolean> {
-    try {
-        const inventories = await prisma.inventory.findMany({
-            where: {
-                propertyCode,
-                roomTypeCode,
-                date: { in: dates }
+            // Add promoCode filter (if you have a promo field)
+            if (promoCode && promoCode !== '') {
+                whereClause.isPromoUsed = true;
+                // Add promo code matching logic if you store it
             }
-        });
 
-        // Check if all dates have enough availability
-        for (const inventory of inventories) {
-            if (inventory.availability < requiredRooms) {
-                return false;
+            // Add countryCode filter
+            if (countryCode) {
+                whereClause.countryCode = countryCode;
             }
-        }
 
-        return inventories.length === dates.length; // All dates must exist
-    } catch (error) {
-        console.error("Error checking room availability:", error);
-        return false;
-    }
-}
-public async getReservationsForDateRange(
-    propertyIds: string[],
-    startDate: Date, 
-    endDate: Date,
-    page: number,
-    limit: number,
-    bookingStatus?: string,
-    bookingSource?: string,        // ← Add these
-    deviceType?: string,           // ← Add these
-    bookingCode?: string,          // ← Add these
-    guestName?: string,            // ← Add these
-    promoCode?: string,            // ← Add these
-    countryCode?: string,          // ← Add these
-    dateFilterType?: 'checkin' | 'booking' | 'modification'  // ← Add these
-): Promise<IPaginatedResponse<IReservationWithAllDetails>> {
-    try {
-        const start = new Date(startDate);
-        start.setHours(0, 0, 0, 0);
-        
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
+            const totalResults = await prisma.reservation.count({
+                where: whereClause
+            });
 
-        const whereClause: any = {
-            propertyId: { in: propertyIds }
-        };
+            const totalPages = Math.ceil(totalResults / limit);
+            const skip = (page - 1) * limit;
 
-        // Date filtering based on dateFilterType
-        if (dateFilterType === 'booking') {
-            whereClause.bookedAt = {
-                gte: start,
-                lte: end
-            };
-        } else if (dateFilterType === 'modification') {
-            whereClause.updatedAt = {
-                gte: start,
-                lte: end
-            };
-        } else {
-            // Default: checkin date
-            whereClause.OR = [
-                {
-                    checkInDate: {
-                        gte: start,
-                        lte: end
+            const reservations = await prisma.reservation.findMany({
+                where: whereClause,
+                skip,
+                take: limit,
+                orderBy: { checkInDate: 'asc' },
+                include: {
+                    primaryGuest: true,
+                    priceBreakdowns: true,
+                    addOns: true,
+                    property: {
+                        select: {
+                            propertyName: true,
+                            propertyCode: true
+                        }
                     }
-                },
-                {
-                    checkOutDate: {
-                        gte: start,
-                        lte: end
-                    }
-                },
-                {
-                    AND: [
-                        { checkInDate: { lte: start } },
-                        { checkOutDate: { gte: end } }
-                    ]
-                }
-            ];
-        }
-
-        // Add bookingStatus filter
-        if (bookingStatus) {
-            whereClause.bookingStatus = bookingStatus;
-        }
-
-        // Add bookingSource filter
-        if (bookingSource) {
-            whereClause.bookingSource = bookingSource;
-        }
-
-        // Add deviceType filter
-        if (deviceType) {
-            whereClause.deviceTypes = deviceType;
-        }
-
-        // Add bookingCode filter
-        if (bookingCode) {
-            whereClause.bookingCode = {
-                contains: bookingCode,
-                mode: 'insensitive'
-            };
-        }
-
-        // Add guestName filter (search in primaryGuest or guests JSON)
-        if (guestName) {
-            whereClause.OR = whereClause.OR || [];
-            whereClause.OR.push({
-                primaryGuest: {
-                    OR: [
-                        { firstName: { contains: guestName, mode: 'insensitive' } },
-                        { lastName: { contains: guestName, mode: 'insensitive' } }
-                    ]
                 }
             });
+
+            return {
+                data: reservations,
+                pagination: {
+                    currentPage: page,
+                    totalPages,
+                    totalResults,
+                    hasNextPage: page < totalPages,
+                    hasPreviousPage: page > 1,
+                    resultsPerPage: limit
+                }
+            };
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`getReservationsForDateRange failed: ${error.message}`);
+            }
+            throw new Error("Failed to fetch reservations");
         }
+    }
 
-        // Add promoCode filter (if you have a promo field)
-        if (promoCode && promoCode !== '') {
-            whereClause.isPromoUsed = true;
-            // Add promo code matching logic if you store it
-        }
+    public async getArrivals(
+        propertyIds: string[],
+        startDate: Date,
+        endDate: Date,
+        page: number,
+        limit: number,
+        bookingStatus?: string
+    ): Promise<IPaginatedResponse<IReservationWithAllDetails>> {
+        try {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
-        // Add countryCode filter
-        if (countryCode) {
-            whereClause.countryCode = countryCode;
-        }
+            const start = new Date(startDate);
+            start.setHours(0, 0, 0, 0);
 
-        const totalResults = await prisma.reservation.count({
-            where: whereClause
-        });
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
 
-        const totalPages = Math.ceil(totalResults / limit);
-        const skip = (page - 1) * limit;
+            // 🔑 If date range starts in the past → start from today
+            const effectiveStart = start < today ? today : start;
 
-        const reservations = await prisma.reservation.findMany({
-            where: whereClause,
-            skip,
-            take: limit,
-            orderBy: { checkInDate: 'asc' },
-            include: {
-                primaryGuest: true,
-                priceBreakdowns: true,
-                addOns: true,
-                property: {
-                    select: {
-                        propertyName: true,
-                        propertyCode: true
+            const whereClause: any = {
+                propertyId: { in: propertyIds },
+                checkInDate: {
+                    gte: effectiveStart,
+                    lte: end
+                }
+            };
+
+            // 🔥 Booking status logic
+            if (bookingStatus) {
+                whereClause.bookingStatus = bookingStatus;
+            } else {
+                whereClause.bookingStatus = { not: "cancelled" };
+            }
+
+            const totalResults = await prisma.reservation.count({ where: whereClause });
+
+            const totalPages = Math.ceil(totalResults / limit);
+            const skip = (page - 1) * limit;
+
+            const arrivals = await prisma.reservation.findMany({
+                where: whereClause,
+                skip,
+                take: limit,
+                orderBy: { checkInDate: "asc" },
+                include: {
+                    primaryGuest: true,
+                    priceBreakdowns: true,
+                    addOns: true,
+                    property: {
+                        select: {
+                            propertyName: true,
+                            propertyCode: true
+                        }
                     }
                 }
-            }
-        });
+            });
 
-        return {
-            data: reservations,
-            pagination: {
-                currentPage: page,
-                totalPages,
-                totalResults,
-                hasNextPage: page < totalPages,
-                hasPreviousPage: page > 1,
-                resultsPerPage: limit
+            return {
+                data: arrivals,
+                pagination: {
+                    currentPage: page,
+                    totalPages,
+                    totalResults,
+                    hasNextPage: page < totalPages,
+                    hasPreviousPage: page > 1,
+                    resultsPerPage: limit
+                }
+            };
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`getArrivals failed: ${error.message}`);
             }
-        };
-    } catch (error) {
-        if (error instanceof Error) {
-            throw new Error(`getReservationsForDateRange failed: ${error.message}`);
+            throw new Error("Failed to fetch arrivals");
         }
-        throw new Error("Failed to fetch reservations");
     }
-}
-   
-public async getArrivals(
-    propertyIds: string[],
-    startDate: Date,
-    endDate: Date,
-    page: number,
-    limit: number,
-    bookingStatus?: string
-): Promise<IPaginatedResponse<IReservationWithAllDetails>> {
-    try {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
 
-        const start = new Date(startDate);
-        start.setHours(0, 0, 0, 0);
 
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
+    public async getDepartures(
+        propertyIds: string[],
+        startDate: Date,
+        endDate: Date,
+        page: number,
+        limit: number,
+        bookingStatus?: string
+    ): Promise<IPaginatedResponse<IReservationWithAllDetails>> {
+        try {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
 
-        // 🔑 If date range starts in the past → start from today
-        const effectiveStart = start < today ? today : start;
+            const start = new Date(startDate);
+            start.setHours(0, 0, 0, 0);
 
-        const whereClause: any = {
-            propertyId: { in: propertyIds },
-            checkInDate: {
-                gte: effectiveStart,
-                lte: end
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
+
+            const effectiveStart = start < today ? today : start;
+
+            const whereClause: any = {
+                propertyId: { in: propertyIds },
+                checkOutDate: {
+                    gte: effectiveStart,
+                    lte: end
+                }
+            };
+
+            // 🔥 Booking status logic
+            if (bookingStatus) {
+                whereClause.bookingStatus = bookingStatus;
+            } else {
+                whereClause.bookingStatus = { not: "cancelled" };
             }
-        };
 
-        // 🔥 Booking status logic
-        if (bookingStatus) {
-            whereClause.bookingStatus = bookingStatus;
-        } else {
-            whereClause.bookingStatus = { not: "cancelled" };
-        }
+            const totalResults = await prisma.reservation.count({ where: whereClause });
 
-        const totalResults = await prisma.reservation.count({ where: whereClause });
+            const totalPages = Math.ceil(totalResults / limit);
+            const skip = (page - 1) * limit;
 
-        const totalPages = Math.ceil(totalResults / limit);
-        const skip = (page - 1) * limit;
-
-        const arrivals = await prisma.reservation.findMany({
-            where: whereClause,
-            skip,
-            take: limit,
-            orderBy: { checkInDate: "asc" },
-            include: {
-                primaryGuest: true,
-                priceBreakdowns: true,
-                addOns: true,
-                property: {
-                    select: {
-                        propertyName: true,
-                        propertyCode: true
+            const departures = await prisma.reservation.findMany({
+                where: whereClause,
+                skip,
+                take: limit,
+                orderBy: { checkOutDate: "asc" },
+                include: {
+                    primaryGuest: true,
+                    priceBreakdowns: true,
+                    addOns: true,
+                    property: {
+                        select: {
+                            propertyName: true,
+                            propertyCode: true
+                        }
                     }
                 }
-            }
-        });
+            });
 
-        return {
-            data: arrivals,
-            pagination: {
-                currentPage: page,
-                totalPages,
-                totalResults,
-                hasNextPage: page < totalPages,
-                hasPreviousPage: page > 1,
-                resultsPerPage: limit
+            return {
+                data: departures,
+                pagination: {
+                    currentPage: page,
+                    totalPages,
+                    totalResults,
+                    hasNextPage: page < totalPages,
+                    hasPreviousPage: page > 1,
+                    resultsPerPage: limit
+                }
+            };
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`getDepartures failed: ${error.message}`);
             }
-        };
-    } catch (error) {
-        if (error instanceof Error) {
-            throw new Error(`getArrivals failed: ${error.message}`);
+            throw new Error("Failed to fetch departures");
         }
-        throw new Error("Failed to fetch arrivals");
     }
-}
 
 
-public async getDepartures(
-    propertyIds: string[],
-    startDate: Date,
-    endDate: Date,
-    page: number,
-    limit: number,
-    bookingStatus?: string
-): Promise<IPaginatedResponse<IReservationWithAllDetails>> {
-    try {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+    public async getCheckIns(
+        propertyIds: string[],
+        startDate: Date,
+        endDate: Date,
+        page: number,
+        limit: number
+    ): Promise<IPaginatedResponse<IReservationWithAllDetails>> {
+        try {
+            const start = new Date(startDate);
+            start.setHours(0, 0, 0, 0);
 
-        const start = new Date(startDate);
-        start.setHours(0, 0, 0, 0);
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
 
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
+            const whereClause = {
+                propertyId: { in: propertyIds },
+                checkInDate: {
+                    gte: start,
+                    lte: end
+                },
+                bookingStatus: "confirmed" as const
+            };
 
-        const effectiveStart = start < today ? today : start;
+            const totalResults = await prisma.reservation.count({
+                where: whereClause
+            });
 
-        const whereClause: any = {
-            propertyId: { in: propertyIds },
-            checkOutDate: {
-                gte: effectiveStart,
-                lte: end
-            }
-        };
+            const totalPages = Math.ceil(totalResults / limit);
+            const skip = (page - 1) * limit;
 
-        // 🔥 Booking status logic
-        if (bookingStatus) {
-            whereClause.bookingStatus = bookingStatus;
-        } else {
-            whereClause.bookingStatus = { not: "cancelled" };
-        }
-
-        const totalResults = await prisma.reservation.count({ where: whereClause });
-
-        const totalPages = Math.ceil(totalResults / limit);
-        const skip = (page - 1) * limit;
-
-        const departures = await prisma.reservation.findMany({
-            where: whereClause,
-            skip,
-            take: limit,
-            orderBy: { checkOutDate: "asc" },
-            include: {
-                primaryGuest: true,
-                priceBreakdowns: true,
-                addOns: true,
-                property: {
-                    select: {
-                        propertyName: true,
-                        propertyCode: true
+            const checkIns = await prisma.reservation.findMany({
+                where: whereClause,
+                skip,
+                take: limit,
+                orderBy: { checkInDate: 'asc' },
+                include: {
+                    primaryGuest: true,
+                    priceBreakdowns: true,
+                    addOns: true,
+                    property: {
+                        select: {
+                            propertyName: true,
+                            propertyCode: true
+                        }
                     }
                 }
-            }
-        });
+            });
 
-        return {
-            data: departures,
-            pagination: {
-                currentPage: page,
-                totalPages,
-                totalResults,
-                hasNextPage: page < totalPages,
-                hasPreviousPage: page > 1,
-                resultsPerPage: limit
+            return {
+                data: checkIns,
+                pagination: {
+                    currentPage: page,
+                    totalPages,
+                    totalResults,
+                    hasNextPage: page < totalPages,
+                    hasPreviousPage: page > 1,
+                    resultsPerPage: limit
+                }
+            };
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`getCheckIns failed: ${error.message}`);
             }
-        };
-    } catch (error) {
-        if (error instanceof Error) {
-            throw new Error(`getDepartures failed: ${error.message}`);
+            throw new Error("Failed to fetch check-ins");
         }
-        throw new Error("Failed to fetch departures");
     }
-}
 
+    public async getCheckouts(
+        propertyIds: string[],
+        startDate: Date,
+        endDate: Date,
+        page: number,
+        limit: number
+    ): Promise<IPaginatedResponse<IReservationWithAllDetails>> {
+        try {
+            const start = new Date(startDate);
+            start.setHours(0, 0, 0, 0);
 
-public async getCheckIns(
-    propertyIds: string[],
-    startDate: Date,
-    endDate: Date,
-    page: number,
-    limit: number
-): Promise<IPaginatedResponse<IReservationWithAllDetails>> {
-    try {
-        const start = new Date(startDate);
-        start.setHours(0, 0, 0, 0);
-        
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
+            const end = new Date(endDate);
+            end.setHours(23, 59, 59, 999);
 
-        const whereClause = {
-            propertyId: { in: propertyIds },
-            checkInDate: {
-                gte: start,
-                lte: end
-            },
-            bookingStatus: "confirmed" as const
-        };
+            const whereClause = {
+                propertyId: { in: propertyIds },
+                checkOutDate: {
+                    gte: start,
+                    lte: end
+                },
+                bookingStatus: "confirmed" as const
+            };
 
-        const totalResults = await prisma.reservation.count({
-            where: whereClause
-        });
+            const totalResults = await prisma.reservation.count({
+                where: whereClause
+            });
 
-        const totalPages = Math.ceil(totalResults / limit);
-        const skip = (page - 1) * limit;
+            const totalPages = Math.ceil(totalResults / limit);
+            const skip = (page - 1) * limit;
 
-        const checkIns = await prisma.reservation.findMany({
-            where: whereClause,
-            skip,
-            take: limit,
-            orderBy: { checkInDate: 'asc' },
-            include: {
-                primaryGuest: true,
-                priceBreakdowns: true,
-                addOns: true,
-                property: {
-                    select: {
-                        propertyName: true,
-                        propertyCode: true
+            const checkOuts = await prisma.reservation.findMany({
+                where: whereClause,
+                skip,
+                take: limit,
+                orderBy: { checkOutDate: 'asc' },
+                include: {
+                    primaryGuest: true,
+                    priceBreakdowns: true,
+                    addOns: true,
+                    property: {
+                        select: {
+                            propertyName: true,
+                            propertyCode: true
+                        }
                     }
                 }
-            }
-        });
+            });
 
-        return {
-            data: checkIns,
-            pagination: {
-                currentPage: page,
-                totalPages,
-                totalResults,
-                hasNextPage: page < totalPages,
-                hasPreviousPage: page > 1,
-                resultsPerPage: limit
-            }
-        };
-    } catch (error) {
-        if (error instanceof Error) {
-            throw new Error(`getCheckIns failed: ${error.message}`);
-        }
-        throw new Error("Failed to fetch check-ins");
-    }
-}
-
-public async getCheckouts(
-    propertyIds: string[],
-    startDate: Date,
-    endDate: Date,
-    page: number,
-    limit: number
-): Promise<IPaginatedResponse<IReservationWithAllDetails>> {
-    try {
-        const start = new Date(startDate);
-        start.setHours(0, 0, 0, 0);
-        
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
-
-        const whereClause = {
-            propertyId: { in: propertyIds },
-            checkOutDate: {
-                gte: start,
-                lte: end
-            },
-            bookingStatus: "confirmed" as const
-        };
-
-        const totalResults = await prisma.reservation.count({
-            where: whereClause
-        });
-
-        const totalPages = Math.ceil(totalResults / limit);
-        const skip = (page - 1) * limit;
-
-        const checkOuts = await prisma.reservation.findMany({
-            where: whereClause,
-            skip,
-            take: limit,
-            orderBy: { checkOutDate: 'asc' },
-            include: {
-                primaryGuest: true,
-                priceBreakdowns: true,
-                addOns: true,
-                property: {
-                    select: {
-                        propertyName: true,
-                        propertyCode: true
-                    }
+            return {
+                data: checkOuts,
+                pagination: {
+                    currentPage: page,
+                    totalPages,
+                    totalResults,
+                    hasNextPage: page < totalPages,
+                    hasPreviousPage: page > 1,
+                    resultsPerPage: limit
                 }
+            };
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`getCheckouts failed: ${error.message}`);
             }
-        });
-
-        return {
-            data: checkOuts,
-            pagination: {
-                currentPage: page,
-                totalPages,
-                totalResults,
-                hasNextPage: page < totalPages,
-                hasPreviousPage: page > 1,
-                resultsPerPage: limit
-            }
-        };
-    } catch (error) {
-        if (error instanceof Error) {
-            throw new Error(`getCheckouts failed: ${error.message}`);
+            throw new Error("Failed to fetch check-outs");
         }
-        throw new Error("Failed to fetch check-outs");
     }
-}
     private getNextDate(currentDate: Date): Date {
         const start = new Date(currentDate);
         start.setHours(0, 0, 0, 0);
@@ -566,7 +566,7 @@ public async getCheckouts(
             return await prisma.reservation.update({
                 where: { id: reservationId },
                 data: { checkOutDate: newCheckoutDate },
-                include: { 
+                include: {
                     primaryGuest: true,
                     priceBreakdowns: true
                 }
@@ -596,7 +596,7 @@ public async getCheckouts(
             throw new Error("Failed to delete ReservationDate");
         }
     }
-public async NoShow(reservationId: string): Promise<IReservation> {
+    public async NoShow(reservationId: string): Promise<IReservation> {
         try {
             return await prisma.reservation.update({
                 where: { id: reservationId },
@@ -702,7 +702,7 @@ export class AriManupulationRepo {
                             }
                         }
                     });
-                    console.log(`Decreased availability for ${room.roomTypeCode} in ${ariManupulationRooms.propertyCode}: ${result.count} records updated`);
+                    //console.log(`Decreased availability for ${room.roomTypeCode} in ${ariManupulationRooms.propertyCode}: ${result.count} records updated`);
                 }
             });
         } catch (error) {
@@ -772,4 +772,65 @@ export class GuestRepository {
             throw new Error("Failed to create guest");
         }
     }
+}
+// ==================== BOOKING ADDON REPOSITORY ====================
+export class BookingAddonRepository {
+    public async createBookingAddons(addons: IBookingAddonCreate[]): Promise<any> {
+        try {
+            return await prisma.bookingAddon.createMany({
+                data: addons
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`Failed to create booking addons: ${error.message}`);
+            }
+            throw new Error("Failed to create booking addons");
+        }
+    }
+
+    public async getBookingAddonsByReservationId(reservationId: string): Promise<IBookingAddon[]> {
+        try {
+            return await prisma.bookingAddon.findMany({
+                where: { reservationId }
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`Failed to fetch booking addons: ${error.message}`);
+            }
+            throw new Error("Failed to fetch booking addons");
+        }
+    }
+}
+
+// ==================== RESERVATION PROMOTION REPOSITORY ====================
+export class ReservationPromotionRepository {
+    public async createReservationPromotions(promotions: IReservationPromotionCreate[]): Promise<any> {
+        try {
+            return await prisma.reservationPromotion.createMany({
+                data: promotions
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`Failed to create reservation promotions: ${error.message}`);
+            }
+            throw new Error("Failed to create reservation promotions");
+        }
+    }
+
+//     public async getPromotionsByReservationId(reservationId: string): Promise<IReservationPromotion[]> {
+//     try {
+//         return await prisma.reservationPromotion.findMany({
+//             where: { bookingId: reservationId },
+//             include: {
+//                 Promotion: true,
+//                 RatePlanRule: true
+//             }
+//         });
+//     } catch (error) {
+//         if (error instanceof Error) {
+//             throw new Error(`Failed to fetch reservation promotions: ${error.message}`);
+//         }
+//         throw new Error("Failed to fetch reservation promotions");
+//     }
+// }
 }

@@ -5,7 +5,7 @@ export default class VariantRepository{
         try {
             return await prisma.addonVariant.create({ data: { code, name, subcategoryId: subCategoryId } });
         } catch (error) {
-            console.log(error)
+            // console.log(error)
             throw new Error("Error creating variant");
         }
     }
@@ -13,7 +13,7 @@ export default class VariantRepository{
         try {
             return await prisma.addonVariant.findMany();
         } catch (error) {
-            console.log(error)
+            // console.log(error)
             throw new Error("Error fetching variants");
         }
     }

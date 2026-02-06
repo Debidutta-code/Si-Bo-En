@@ -14,6 +14,8 @@ import type{  DayData,  RoomTypeWithRatePlans } from './interfaces/inventory.int
 import dayjs from 'dayjs';
 import toast from 'react-hot-toast';
 import Loader from '@/components/Loader/Loader';
+import { fetchRatePlansService } from '../rate-plan/services';
+import type { RatePlan } from '../rate-plan/interfaces';
 
 export default function InventoryPage() {
   // Get propertyId from URL params
@@ -48,6 +50,9 @@ export default function InventoryPage() {
   const [isLoadingInventory, setIsLoadingInventory] = useState(false);
   const [inventoryData, setInventoryData] = useState<DayData[]>([]);
   const [_error, setError] = useState<string | null>(null);
+  const [ratePlans, setRatePlans] = useState<Array<{ ratePlanCode: string; ratePlanName: string }>>([]);
+  const [selectedRatePlans, setSelectedRatePlans] = useState<string[]>([]);
+  const [isLoadingRatePlans, setIsLoadingRatePlans] = useState(false);
 
   // Hotel info from API response
   const [hotelCode, setHotelCode] = useState<string>('');
@@ -101,11 +106,99 @@ useEffect(() => {
 
   fetchRoomTypes();
 }, [propertyId]);
+
+
+useEffect(() => {
+    const fetchRatePlans = async () => {
+      if (!propertyId) return;
+
+      try {
+        setIsLoadingRatePlans(true);
+        setError(null);
+
+        const response = await fetchRatePlansService(propertyId);
+
+        if (!response.success) {
+          throw new Error(response.message || 'Failed to load rate plans');
+        }
+
+        const transformedRatePlans = (response.data || []).map((rp: RatePlan) => ({
+          ratePlanCode: rp.ratePlanCode,
+          ratePlanName: rp.ratePlanName
+        }));
+
+        setRatePlans(transformedRatePlans);
+        
+        // Initialize with all rate plans selected
+        if (transformedRatePlans.length > 0) {
+          const ratePlanCodes = transformedRatePlans.map((rp: RatePlan) => rp.ratePlanCode);
+          setSelectedRatePlans(ratePlanCodes);
+        }
+      } catch (error: any) {
+        console.error('❌ Failed to fetch rate plans:', error);
+        setError(error.message || 'Failed to load rate plans');
+        toast.error('Failed to load rate plans');
+      } finally {
+        setIsLoadingRatePlans(false);
+      }
+    };
+
+    fetchRatePlans();
+  }, [propertyId]);
+  
+  const handleRatePlanChange = async (newSelectedRatePlans: string[]) => {
+  setSelectedRatePlans(newSelectedRatePlans);
+  
+  if (!propertyId || newSelectedRatePlans.length === 0) {
+    return;
+  }
+
+  try {
+    setIsLoadingInventory(true);
+    setError(null);
+
+    let startDate: dayjs.Dayjs;
+    let endDate: dayjs.Dayjs;
+
+    if (dateRange.startDate && dateRange.endDate) {
+      startDate = dayjs(dateRange.startDate);
+      endDate = dayjs(dateRange.endDate);
+    } else {
+      const range = getDateRange();
+      startDate = range.startDate;
+      endDate = range.endDate;
+    }
+
+    const roomTypeCode = selectedRoomTypes.length === roomTypes.length 
+      ? undefined 
+      : selectedRoomTypes[0];
+
+    const response = await fetchInventoryAnalysisService(propertyId, {
+      startDate: startDate.format('YYYY-MM-DD'),
+      endDate: endDate.format('YYYY-MM-DD'),
+      roomTypeCode
+    });
+
+    if (!response.success) {
+      throw new Error(response.message || 'Failed to load inventory data');
+    }
+
+    setInventoryData(response.data?.days || []);
+    setHotelCode(response.data?.hotelCode || '');
+    setHotelName(response.data?.hotelName || '');
+  } catch (error: any) {
+    console.error('❌ Failed to fetch inventory data:', error);
+    setError(error.message || 'Failed to load inventory data');
+    toast.error(error.message || 'Failed to load inventory data');
+  } finally {
+    setIsLoadingInventory(false);
+  }
+};
   // ============================================
   // FETCH INVENTORY DATA
   // ============================================
   const fetchInventoryData = useCallback(async (silent: boolean = false) => {
-    if (!propertyId || selectedRoomTypes.length === 0) {
+    if (!propertyId || selectedRoomTypes.length === 0 ) {
       return;
     }
 
@@ -132,14 +225,6 @@ useEffect(() => {
       const roomTypeCode = selectedRoomTypes.length === roomTypes.length 
         ? undefined 
         : selectedRoomTypes[0]; // Send first selected room type
-
-      // console.log('🚀 Fetching inventory with:', {
-      //   propertyId,
-      //   startDate: startDate.format('YYYY-MM-DD'),
-      //   endDate: endDate.format('YYYY-MM-DD'),
-      //   selectedRoomTypes,
-      //   roomTypeCode: roomTypeCode || 'ALL'
-      // });
 
       const response = await fetchInventoryAnalysisService(propertyId, {
         startDate: startDate.format('YYYY-MM-DD'),
@@ -168,18 +253,12 @@ useEffect(() => {
     }
   }, [propertyId, dateRange, selectedRoomTypes, roomTypes.length, currentView, currentDate]);
 
-  // ============================================
-  // AUTO-FETCH when room types are loaded (initial load only)
-  // ============================================
   useEffect(() => {
     if (roomTypes.length > 0 && selectedRoomTypes.length > 0) {
       fetchInventoryData(false);
     }
   }, [roomTypes.length]);
   
-  // ============================================
-  // AUTO-FETCH when view/date changes
-  // ============================================
   useEffect(() => {
     if (propertyId && selectedRoomTypes.length > 0 && roomTypes.length > 0) {
       fetchInventoryData(false);
@@ -244,11 +323,6 @@ useEffect(() => {
         ? undefined 
         : newSelectedRoomTypes[0];
 
-      // console.log('🚀 Fetching with NEW room types:', {
-      //   newSelectedRoomTypes,
-      //   roomTypeCode: roomTypeCode || 'ALL'
-      // });
-
       const response = await fetchInventoryAnalysisService(propertyId, {
         startDate: startDate.format('YYYY-MM-DD'),
         endDate: endDate.format('YYYY-MM-DD'),
@@ -305,11 +379,6 @@ useEffect(() => {
         ? undefined 
         : selectedRoomTypes[0];
 
-      // console.log('🚀 Fetching with NEW dates:', {
-      //   startDate: startDate.format('YYYY-MM-DD'),
-      //   endDate: endDate.format('YYYY-MM-DD'),
-      //   roomTypeCode: roomTypeCode || 'ALL'
-      // });
 
       const response = await fetchInventoryAnalysisService(propertyId, {
         startDate: startDate.format('YYYY-MM-DD'),
@@ -334,9 +403,7 @@ useEffect(() => {
     }
   };
 
-  // ============================================
-  // NAVIGATION HANDLERS
-  // ============================================
+
   const handlePrevious = () => {
     setCurrentDate(prev => {
       switch (currentView) {
@@ -361,11 +428,6 @@ useEffect(() => {
     });
   };
 
-  // ============================================
-  // UTILITY FUNCTION
-  // ============================================
- // Updated convertToInventoryDay function for page.tsx
-// This properly converts API types to your existing InventoryDay types
 
 const convertToInventoryDay = (apiDay: DayData): InventoryDay => {
   return {
@@ -426,22 +488,6 @@ const convertToInventoryDay = (apiDay: DayData): InventoryDay => {
   };
 };
 
-  // ============================================
-  // RENDER
-  // ============================================
-  // if (!propertyId) {
-  //   return (
-  //     <div className="min-h-screen flex items-center justify-center">
-  //       <div className="text-center">
-  //         <p className="text-red-600 text-lg font-semibold">Property ID not found in URL</p>
-  //         <p className="text-gray-500 text-sm mt-2">
-  //           Expected URL format: /property/calender-view/[propertyId]
-  //         </p>
-  //       </div>
-  //     </div>
-  //   );
-  // }
-
   return (
     <div className="min-h-screen md:mx-4 bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       {/* Header */}
@@ -471,13 +517,16 @@ const convertToInventoryDay = (apiDay: DayData): InventoryDay => {
 
       <div className="p-2 sm:p-4 max-w-6xl mx-auto">
         {/* Filters */}
-        <FilterBar
+          <FilterBar
           roomTypes={roomTypes}
           selectedRoomTypes={selectedRoomTypes}
+          ratePlans={ratePlans} // ADD THIS
+          selectedRatePlans={selectedRatePlans} // ADD THIS
           dateRange={dateRange}
           onRoomTypeChange={handleRoomTypeChange}
+          onRatePlanChange={handleRatePlanChange} // ADD THIS
           onDateRangeApply={handleDateRangeApply}
-          isLoading={isLoadingRoomTypes || isLoadingInventory}
+          isLoading={isLoadingRoomTypes || isLoadingInventory || isLoadingRatePlans} // UPDATE THIS
         />
 
         {/* Calendar */}

@@ -52,7 +52,7 @@ export class RatePlanServices {
         return errorResponse('Rate Plan does not exists');
       }
       const response = await RatePlanRepository.deleteRatePlan(ratePlanCode);
-      console.log(response);
+      //console.log(response);
       if (response) {
         return successResponse('RatePlan deleted successfully', response);
       } else {

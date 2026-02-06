@@ -12,8 +12,9 @@ export class AgencyService {
     }
     public async getAgencies(page: number, limit: number): Promise<IApiResponse> {
         try {
+            const skip = (page - 1) * limit;
             const [agencies, totalCount] = await Promise.all([
-                this.agencyRepository.getAgencies(page, limit),
+                this.agencyRepository.getAgencies(skip, limit),
                 this.agencyRepository.getAgencyCount()
             ]);
             return paginatedSuccessResponse("Agencies retrieved successfully", agencies,{ 

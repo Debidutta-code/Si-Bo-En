@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { AddonDateWiseController } from "../controllers";
-import {attachPropertyDetails} from "../../middlewares/property.middleware"
+import { attachPropertyDetails } from "../../middlewares/property.middleware"
 
 const router = Router();
 const addonDateWiseController = new AddonDateWiseController();
@@ -24,6 +24,17 @@ router.get(
         identifierType: "id"
     }),
     addonDateWiseController.getAddOnsByDate
+);
+
+// GET /api/addon/addon-datewise/available?propertyCode=XXX&startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+router.get(
+    "/available",
+    attachPropertyDetails({
+        source: "query",
+        key: "propertyCode",
+        identifierType: "code"
+    }),
+    addonDateWiseController.getAvailableAddonsByDateRange
 );
 router.put(
     "/addon/:addonId",

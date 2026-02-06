@@ -116,7 +116,7 @@ class InventoryRepository {
         const keyOf = (d: ICreateInventoryRepo) => `${d.propertyCode}__${d.roomTypeCode}__${d.date}`;
         const inputMap = new Map<string, ICreateInventoryRepo>();
         for (const d of repoData) inputMap.set(keyOf(d), d);
-console.log(repoData);
+// console.log(repoData);
         // Fetch existing inventory rows for these (propertyCode, roomTypeCode, date) triples
         const existing = await prisma.inventory.findMany({
             where: {

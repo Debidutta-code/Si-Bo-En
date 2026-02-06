@@ -45,7 +45,7 @@ const PaymentSuccessPage = () => {
     bookingCode,
     bookingStatus,
   } = bookingData;
-  // console.log(bookingData);
+  // //console.log(bookingData);
 
   const totalAmount = finalPrice?.totalAmount || 0;
   const nights = finalPrice?.numberOfNights || 0;

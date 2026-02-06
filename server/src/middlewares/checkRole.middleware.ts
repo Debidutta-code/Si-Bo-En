@@ -124,7 +124,7 @@ export function checkRoleBased(requiredPermission: Permission) {
       });
 
       if (!roleDoc) {
-        console.log('Role document not found or inactive for role:', role);
+        // console.log('Role document not found or inactive for role:', role);
         return res
           .status(403)
           .json(errorResponse('Access denied: Role not found or inactive'));

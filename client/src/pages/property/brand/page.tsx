@@ -22,7 +22,7 @@ import { uploadImages } from '@/components/property/api/create/propertyinfo';
 
 
 export default function page() {
-    const { brandId } = useParams<{ brandId: string }>();
+    const { creationId } = useParams<{ creationId: string }>();
     const [brandManagers, setBrandManagers] = useState<IBrandManagersMapping>({
         brandManagers: []
     })
@@ -58,8 +58,8 @@ export default function page() {
     const fetchGroup = async () => {
         try {
 
-            if (!brandId) return;
-            const response = await getBrandCreationId(brandId);
+            if (!creationId) return;
+            const response = await getBrandCreationId(creationId);
             if (response.success) {
                 setCreations(response.data.properties)
                 setBrandDetails(response.data.brandData)
@@ -75,7 +75,7 @@ export default function page() {
     };
     useEffect(() => {
         fetchGroup();
-    }, [brandId])
+    }, [creationId])
     if (isLoading) {
         return (
             <div className='min-h-screen w-full flex justify-center items-center'>
@@ -103,14 +103,14 @@ export default function page() {
             toast.error("Please select a user");
             return;
         }
-        if (!brandId) {
+        if (!creationId) {
             toast.error("Invalid Creation");
             return;
         }
         setIsAssigningUser(true);
         try {
             const response = await assignUserToProperty({
-                creationId: brandId,
+                creationId: creationId,
                 userId: selectedUser,
                 role: "group_manager"
             });
@@ -156,12 +156,12 @@ export default function page() {
     };
 
     const handleUpdateBrand = async () => {
-        if (!brandId) {
+        if (!creationId) {
             toast.error('Invalid Brand ID');
             return;
         }
         try {
-            const response = await updateCreationService(brandId, updateBrandDetails.name, updateBrandDetails.images, updateBrandDetails.isActive);
+            const response = await updateCreationService(creationId, updateBrandDetails.name, updateBrandDetails.images, updateBrandDetails.isActive);
             if (!response.success) {
                 toast.error(response.message || 'Failed to update brand');
                 return;
@@ -336,7 +336,7 @@ export default function page() {
                         </Dialog>
 
                         <div className="px-2">
-                            <CreateEntityDialog currentTab={currentTab} creationId={brandId ? brandId : ""} level={2} fetchProperties={fetchGroup} />
+                            <CreateEntityDialog currentTab={currentTab} creationId={creationId ? creationId : ""} level={2} fetchProperties={fetchGroup} />
                         </div>
                     </DropdownMenuContent>
 

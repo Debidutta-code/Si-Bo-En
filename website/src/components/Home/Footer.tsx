@@ -18,17 +18,17 @@ const Footer = () => {
   // ✅ UPDATED: More aggressive logo checking
 useEffect(() => {
   const updateLogoFromStorage = () => {
-    console.log('🔍 Footer: Checking for logo update...');
+    //console.log('🔍 Footer: Checking for logo update...');
     
     // Priority 1: Check bookingContext
     const logoFromContext = 
       bookingContext?.bookingEngineColor?.logo || 
       bookingContext?.PropertyDetails?.bookingEngineConfig?.logo;
     
-    console.log('📦 Footer logoFromContext:', logoFromContext);
+    //console.log('📦 Footer logoFromContext:', logoFromContext);
     
     if (logoFromContext) {
-      console.log('✅ Footer: Setting logo from context:', logoFromContext);
+      //console.log('✅ Footer: Setting logo from context:', logoFromContext);
       setCurrentLogo(logoFromContext);
       return;
     }
@@ -36,20 +36,20 @@ useEffect(() => {
     // Priority 2: Check localStorage
     try {
       const stored = localStorage.getItem('bookingstorage');
-      console.log('💾 Footer localStorage:', stored);
+      //console.log('💾 Footer localStorage:', stored);
       
       if (stored) {
         const parsed = JSON.parse(stored);
-        console.log('📋 Footer parsed:', parsed);
+        //console.log('📋 Footer parsed:', parsed);
         
         if (parsed.logoIcon) {
-          console.log('✅ Footer: Setting logo from storage:', parsed.logoIcon);
+          //console.log('✅ Footer: Setting logo from storage:', parsed.logoIcon);
           setCurrentLogo(parsed.logoIcon);
           return;
         }
       }
       
-      console.log('❌ Footer: No logo found');
+      //console.log('❌ Footer: No logo found');
       setCurrentLogo(null);
     } catch (error) {
       console.error('❌ Footer error:', error);
@@ -60,7 +60,7 @@ useEffect(() => {
   updateLogoFromStorage();
 
   const handleStorageUpdate = () => {
-    console.log('🔔 Footer: Storage event triggered');
+    //console.log('🔔 Footer: Storage event triggered');
     updateLogoFromStorage();
   };
 
@@ -93,7 +93,7 @@ useEffect(() => {
     },
   ];
 
-  console.log('🎨 Footer rendering with currentLogo:', currentLogo);
+  //console.log('🎨 Footer rendering with currentLogo:', currentLogo);
 
   return (
     <footer id="contact" className="bg-gray-300 text-black">

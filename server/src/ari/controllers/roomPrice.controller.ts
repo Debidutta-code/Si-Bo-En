@@ -1,8 +1,13 @@
-import {  PropertyRequest } from '../../utils/customRequest';
+// controllers/roomRentCalculation.controller.ts
+
+import { PropertyRequest } from '../../utils/customRequest';
 import { Response } from 'express';
-import { RoomRentCalculationService } from '../services';
 import { errorResponse } from '../../utils/return';
 import { toUTC } from '../../utils';
+import { getGeoLocationDetails } from '../../utils/get-location.utils';
+import { RoomRentCalculationService } from '../services';
+import { getDeviceInfo } from '../../utils/device-type.util';
+
 export class RoomRentCalculationController {
   public static async getRoomRentController(req: PropertyRequest, res: Response) {
     try {
@@ -15,6 +20,9 @@ export class RoomRentCalculationController {
         noOfAdults,
         noOfRooms,
         ratePlanCode,
+        addons,
+        promotions,
+        guestEmail // ✅ NEW: Accept loyalty guest email
       } = req.body;
 
       // Validate required fields
@@ -49,6 +57,36 @@ export class RoomRentCalculationController {
         return res.status(400).json(errorResponse('At least 1 room is required'));
       }
 
+      // Get user's geo-location from IP
+      const geoDetails = getGeoLocationDetails(req);
+      const userCountryCode = geoDetails.country !== 'Unknown' ? geoDetails.country : undefined;
+
+      // console.log('User geo-location:', {
+      //   ip: geoDetails.ip,
+      //   country: geoDetails.country,
+      //   city: geoDetails.city,
+      // });
+
+      const deviceInfo = getDeviceInfo(req);
+      const detectedDeviceType = deviceInfo.deviceType;
+
+      // console.log('Device type:', detectedDeviceType);
+
+      // Parse addons if provided
+      let parsedAddons;
+      if (addons && Array.isArray(addons)) {
+        parsedAddons = addons.map((addon: any) => ({
+          addonId: addon.addonId,
+          availabilityId: addon.availabilityId,
+          date: addon.date,
+          price: Number(addon.price),
+          quantity: Number(addon.quantity),
+          type: addon.type, // PostingRhythm
+          name: addon.name,
+          code: addon.code,
+        }));
+      }
+
       const response = await RoomRentCalculationService.getRoomRentService(
         propertyCode,
         invTypeCode,
@@ -57,7 +95,12 @@ export class RoomRentCalculationController {
         ratePlanCode,
         children,
         adults,
-        rooms
+        rooms,
+        guestEmail,
+        userCountryCode,
+        detectedDeviceType,
+        promotions,
+        parsedAddons
       );
 
       if (response.success) {
@@ -67,9 +110,8 @@ export class RoomRentCalculationController {
       }
     } catch (error: any) {
       console.error('Error in getRoomRentController:', error);
-      return res.status(500).json(
-        errorResponse('Internal server error', error?.message)
-      );
+      return res.status(500).json(errorResponse('Internal server error', error?.message));
     }
   }
+
 }

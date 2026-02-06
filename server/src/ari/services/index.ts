@@ -4,7 +4,6 @@ import { RoomRentCalculationService } from "./roomRentCalculation.service";
 import { StartStopSellService } from "./start-stop-sell.service";
 import {AvailabilityServices} from "./availibility.service";
 import {RestrictionServices} from "./restriction.services";
-import {RatePlanRuleService} from "./ratePlanRule.service";
 import {RatePlanWithAddonService} from "./Rateplanwithaddon.service";
 
 
@@ -15,6 +14,5 @@ export {
     StartStopSellService,
     AvailabilityServices,
     RestrictionServices,
-    RatePlanRuleService,
     RatePlanWithAddonService
 };

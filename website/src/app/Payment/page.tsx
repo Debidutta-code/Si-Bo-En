@@ -41,7 +41,7 @@ const BookingReviewPage = () => {
     finalPrice,
     guests,
     hotelName,
-    PropertyDetails
+    PropertyDetails,
   } = bookingDetails;
 
   const ratePlanCode = finalPrice?.dailyBreakdown?.[0]?.ratePlanCode;
@@ -119,14 +119,14 @@ const BookingReviewPage = () => {
         );
 
         const data = await response.json();
-        console.log("💡 Payment Details Response:", data);
+        //console.log("💡 Payment Details Response:", data);
 
         if (!response.ok) {
           throw new Error(data?.message || "Failed to fetch payment details");
         }
 
         setBankDetails(data?.data);
-        console.log("✅ Payment details fetched successfully");
+        //console.log("✅ Payment details fetched successfully");
       } catch (error) {
         console.error("❌ Error fetching payment details:", error);
         toast.error(
@@ -246,7 +246,8 @@ const BookingReviewPage = () => {
             ratePlanCode: bookingDetails.ratePlanCode,
             paymentMethod: mapPaymentMethodToEnum(selectedPayment || ""),
             bookingSource: bookingDetails.bookingSource,
-            // Note: No payment proof for current methods
+            selectedPromotions: bookingDetails.selectedPromotions ||[],
+            selectedAddons: bookingDetails.selectedAddons ||[],
           },
           bankDetails,
           guestDetails: guest,

@@ -6,7 +6,7 @@ export class TaxRuleRepository {
         propertyId: string,
         taxRuleData: ICTaxRule,
     ): Promise<ICTaxRule | Error> {
-        console.log("Creating tax rule for propertyId:", propertyId, "with data:", taxRuleData);
+        //console.log("Creating tax rule for propertyId:", propertyId, "with data:", taxRuleData);
         try {
             const { ...data } = taxRuleData;
             const createdTaxRule = await prisma.taxRule.create({
@@ -18,7 +18,7 @@ export class TaxRuleRepository {
             return createdTaxRule;
             
         } catch (error) {
-            console.log(error);
+            //console.log(error);
             throw new Error('Failed to create tax rule');
         }
     }

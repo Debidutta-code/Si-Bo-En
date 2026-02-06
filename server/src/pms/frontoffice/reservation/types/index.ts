@@ -21,7 +21,11 @@ import {
     ITaxBreakdown,
 IReservationModification,
 IReservationUpdatePayload,
-IUpdateReservationResult
+IUpdateReservationResult,
+IBookingAddonCreate,
+IBookingAddon,
+IReservationPromotionCreate,
+IReservationPromotion
 } from "./reservation.type";
 
 
@@ -49,5 +53,9 @@ export{
     ITaxBreakdown,
     IReservationModification,
     IReservationUpdatePayload,
-    IUpdateReservationResult
+    IUpdateReservationResult,
+    IBookingAddonCreate,
+    IBookingAddon,
+    IReservationPromotionCreate,
+    IReservationPromotion
 }

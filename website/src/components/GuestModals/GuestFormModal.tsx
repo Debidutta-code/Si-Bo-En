@@ -21,6 +21,8 @@ interface Props {
   price: number | null;
   finalPrice: any;
   bookingContext: any;
+  loyaltyMemberEmail?: string;
+  propertyId?: string;
   onClose: () => void;
   handleGuestDetailChange: (
     index: number,
@@ -37,6 +39,8 @@ const GuestFormModal: React.FC<Props> = ({
   price,
   finalPrice,
   bookingContext,
+  loyaltyMemberEmail,
+  propertyId,
   onClose,
   handleGuestDetailChange,
   handleContactChange,
@@ -48,6 +52,54 @@ const GuestFormModal: React.FC<Props> = ({
   const [paymentProcessing, setPaymentProcessing] = useState(false);
   const [showTooltip, setShowTooltip] = useState(false);
   const tooltipRef = useRef<HTMLDivElement>(null);
+  const [isLoyaltyMember, setIsLoyaltyMember] = useState(false);
+  const [loyaltyDiscount, setLoyaltyDiscount] = useState<any>(null);
+  const [verifyingLoyalty, setVerifyingLoyalty] = useState(false);
+
+  // Auto-fill email if loyalty member
+  useEffect(() => {
+    if (loyaltyMemberEmail && !contactInfo.email) {
+      handleContactChange("email", loyaltyMemberEmail);
+      // Verify loyalty membership
+      verifyLoyaltyMembership(loyaltyMemberEmail);
+    }
+  }, [loyaltyMemberEmail]);
+
+  // Verify loyalty membership when email changes
+  const verifyLoyaltyMembership = async (email: string) => {
+    if (!email || !propertyId) return;
+
+    setVerifyingLoyalty(true);
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/loyalty/guest/check-discount`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            email: email,
+            propertyId: propertyId,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok && data.success && data.data?.isLoyaltyMember) {
+        setIsLoyaltyMember(true);
+        setLoyaltyDiscount(data.data.discount);
+      } else {
+        setIsLoyaltyMember(false);
+        setLoyaltyDiscount(null);
+      }
+    } catch (error) {
+      console.error("Error verifying loyalty membership:", error);
+      setIsLoyaltyMember(false);
+      setLoyaltyDiscount(null);
+    } finally {
+      setVerifyingLoyalty(false);
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -194,8 +246,6 @@ const GuestFormModal: React.FC<Props> = ({
     }
   };
 
-  console.log("Final price", finalPrice);
-  console.log("Current errors:", errors); // For debugging
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -305,6 +355,11 @@ const GuestFormModal: React.FC<Props> = ({
               <CardTitle className="text-lg flex items-center gap-2">
                 <Mail className="h-5 w-5" style={{ color: colors.primaryColor }} />
                 Contact Information
+                {isLoyaltyMember && (
+                  <Badge className="ml-2 bg-green-500 text-white">
+                    Loyalty Member
+                  </Badge>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -313,18 +368,49 @@ const GuestFormModal: React.FC<Props> = ({
                 <Label htmlFor="email">
                   Email Address <span className="text-red-500">*</span>
                 </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={contactInfo.email}
-                  onChange={(e: any) =>
-                    handleFieldChange('contact', 'email', 'email', e.target.value)
-                  }
-                  placeholder="your@email.com"
-                  className={errors.email ? "border-red-500" : ""}
-                />
+                <div className="relative">
+                  <Input
+                    id="email"
+                    type="email"
+                    value={contactInfo.email}
+                    onChange={(e: any) => {
+                      handleFieldChange('contact', 'email', 'email', e.target.value);
+                      // Verify loyalty when email changes
+                      if (e.target.value && propertyId) {
+                        const timer = setTimeout(() => {
+                          verifyLoyaltyMembership(e.target.value);
+                        }, 500);
+                        return () => clearTimeout(timer);
+                      }
+                    }}
+                    placeholder="your@email.com"
+                    className={errors.email ? "border-red-500" : ""}
+                    disabled={!!loyaltyMemberEmail}
+                  />
+                  {verifyingLoyalty && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                    </div>
+                  )}
+                </div>
                 {errors.email && (
                   <p className="text-sm text-red-600">{errors.email}</p>
+                )}
+                {isLoyaltyMember && loyaltyDiscount && (
+                  <div 
+                    className="flex items-center gap-2 p-2 rounded-lg text-sm font-medium"
+                    style={{ backgroundColor: `${colors.primaryColor}10`, color: colors.primaryColor }}
+                  >
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span>
+                      {loyaltyDiscount.type === "percentage" 
+                        ? `${loyaltyDiscount.value}% loyalty discount will be applied`
+                        : `${loyaltyDiscount.currencyCode} ${loyaltyDiscount.value} loyalty discount will be applied`
+                      }
+                    </span>
+                  </div>
                 )}
                 <p className="text-xs text-muted-foreground">
                   Your booking confirmation will be sent here
@@ -341,11 +427,11 @@ const GuestFormModal: React.FC<Props> = ({
                   id="phone"
                   type="tel"
                   value={contactInfo.phoneNumber}
-                  maxLength={10}
+                  maxLength={15}
                   onChange={(e: any) =>
                     handleFieldChange('contact', 'phoneNumber', 'phoneNumber', e.target.value.replace(/\D/g, ''))
                   }
-                  placeholder="10-digit number"
+                  placeholder="Enter Phone Number"
                   className={errors.phoneNumber ? "border-red-500" : ""}
                 />
                 {errors.phoneNumber && (
