@@ -1017,18 +1017,19 @@ model Reservation {
   actualCheckInAt  DateTime? @map("actual_check_in_at")
   actualCheckOutAt DateTime? @map("actual_check_out_at")
   cancelledAt      DateTime? @map("cancelled_at")
+  agencyId              String?                     @map("agency_id") @db.VarChar(36)
 
   // Audit
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   // Relations
+  
 
   property              Property                    @relation(fields: [propertyId], references: [id])
   promo                 PromoCode?                  @relation(fields: [promoId], references: [id])
   addOns                BookingAddon[]
   priceBreakdowns       ReservationPriceBrakeDown[]
   agency                Agency?                     @relation(fields: [agencyId], references: [id])
-  agencyId              String?                     @map("agency_id") @db.VarChar(36)
   reservationPromotions ReservationPromotion[]
 
   @@index([propertyCode])
