@@ -641,7 +641,7 @@ export default function TaxSystem() {
                 </div>
 
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <Card>
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
@@ -669,6 +669,21 @@ export default function TaxSystem() {
                                     </p>
                                 </div>
                                 <Layers className="w-10 h-10 text-green-600" />
+                            </div>
+                        </CardContent>
+                    </Card>
+                    <Card>
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-600">
+                                        Total Additional Charges
+                                    </p>
+                                    <p className="text-2xl font-bold text-gray-900">
+                                        {touristTaxes.length}
+                                    </p>
+                                </div>
+                                <Receipt className="w-10 h-10 text-primary" />
                             </div>
                         </CardContent>
                     </Card>
