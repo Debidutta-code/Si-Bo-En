@@ -2,7 +2,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { ActivityLogger, IActivityConfig } from '../utils/activityLogger';
-import { ACTIVITY_LOGGER_ROUTES } from '../utils/activityLoggerConfig';
+import { ACTIVITY_LOGGER_ROUTES } from '../utils/activityLoggerConfig.optimized';
 
 export const globalActivityLogger = (req: Request, res: Response, next: NextFunction) => {
   const skipPaths = [
