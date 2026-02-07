@@ -6,7 +6,12 @@ import { RootState } from "../../store/store";
 import SearchWidget from "../../components/Home/SearchWidget";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
-import { setBookingContext, setBookingSource, setCurrency, setSenderUrl } from "../../store/bookingSlice";
+import {
+  setBookingContext,
+  setBookingSource,
+  setCurrency,
+  setSenderUrl,
+} from "../../store/bookingSlice";
 import { useBookingColors } from "../../hooks/useBookingColors";
 import RoomCard from "@/src/components/RoomPage/RoomCard";
 import PriceSummarySidebar from "../../components/RoomPage/Pricesummerysidebar";
@@ -20,10 +25,7 @@ import {
   DialogDescription,
 } from "@/src/components/ui/dialog";
 import { ICreationLoyality, IPropertyLoyalityWithLoyality } from "./interface";
-import { Award, Gift, Star, User, X } from "lucide-react";
-import { Button } from "@/src/components/ui/button";
-import { Input } from "@/src/components/ui/input";
-import { Label } from "@/src/components/ui/label";
+import { LoyaltyProgramBanner } from "@/src/components/RoomPage/LoyalityBanner";
 
 interface Guest {
   type: "adult" | "child";
@@ -83,526 +85,13 @@ interface PriceSummaryData {
   selectedAddons: any[];
   basePrice: number;
   totalAddonsPrice: number;
-  finalprice?: any
+  finalprice?: any;
 }
 
 // Loyalty Program Banner Component
-const LoyaltyProgramBanner = ({ 
-  loyaltyProgram, 
-  primaryColor 
-}: { 
-  loyaltyProgram: IPropertyLoyalityWithLoyality; 
-  primaryColor: string;
-}) => {
-  const [showSignUpModal, setShowSignUpModal] = useState(false);
-  const [formData, setFormData] = useState<Record<string, any>>({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isRegistered, setIsRegistered] = useState(false);
-  const [registeredEmail, setRegisteredEmail] = useState<string>("");
-  const [isVerifying, setIsVerifying] = useState(true);
-  const [discountInfo, setDiscountInfo] = useState<{
-    type: string;
-    value: number;
-    currencyCode: string;
-  } | null>(null);
-
-  const program = loyaltyProgram.CreationLoyaltyConfig;
-  const isBasicProgram = program.BasicLoyaltyProgram !== null;
-  const isAdvancedProgram = program.AdvanceLoyaltyProgram !== null;
-  const loyaltyLogo = isBasicProgram && program.BasicLoyaltyProgram?.logo?.[0] 
-    ? program.BasicLoyaltyProgram.logo[0] 
-    : null;
-
-  // Check if user is already registered and verify with backend
-  useEffect(() => {
-    const verifyLoyaltyMembership = async () => {
-      setIsVerifying(true);
-      const loyaltyMemberEmail = localStorage.getItem(`loyalty_member_${loyaltyProgram.propertyId}`);
-      
-      if (loyaltyMemberEmail) {
-        try {
-          // Verify with backend using check-discount endpoint
-          const response = await fetch(
-            `${process.env.NEXT_PUBLIC_BACKEND_URL}/loyalty/guest/check-discount`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                email: loyaltyMemberEmail,
-                propertyId: loyaltyProgram.propertyId,
-              }),
-            }
-          );
-
-          const data = await response.json();
-
-          if (response.ok && data.success && data.data?.isLoyaltyMember) {
-            // Valid loyalty member
-            setIsRegistered(true);
-            setRegisteredEmail(loyaltyMemberEmail);
-            setDiscountInfo(data.data.discount);
-          } else {
-            // Not a valid loyalty member, clear localStorage
-            localStorage.removeItem(`loyalty_member_${loyaltyProgram.propertyId}`);
-            setIsRegistered(false);
-            setRegisteredEmail("");
-            setDiscountInfo(null);
-          }
-        } catch (error) {
-          console.error("Error verifying loyalty membership:", error);
-          // On error, clear localStorage to be safe
-          localStorage.removeItem(`loyalty_member_${loyaltyProgram.propertyId}`);
-          setIsRegistered(false);
-          setRegisteredEmail("");
-          setDiscountInfo(null);
-        }
-      }
-      
-      setIsVerifying(false);
-    };
-
-    verifyLoyaltyMembership();
-  }, [loyaltyProgram.propertyId]);
-
-  const handleFieldChange = (fieldName: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [fieldName]: value
-    }));
-  };
-
-  const handleSignUpSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      // Separate email from other fields
-      const { email, ...otherFields } = formData;
-
-      if (!email) {
-        toast.error("Email is required");
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Call registration API
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/loyalty/guest/register`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: email,
-            propertyId: loyaltyProgram.propertyId,
-            metadata: otherFields, // All other fields go into metadata
-          }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        const errorMsg = data.message || "Failed to register for loyalty program";
-        
-        // Check if already registered
-        if (errorMsg.includes("already registered")) {
-          // Save to localStorage
-          localStorage.setItem(`loyalty_member_${loyaltyProgram.propertyId}`, email);
-          
-          // Update state with discount info from backend
-          setIsRegistered(true);
-          setRegisteredEmail(email);
-          if (data.data?.discount) {
-            setDiscountInfo(data.data.discount);
-          }
-          
-          toast.success("Welcome back! You're already a loyalty member.");
-          setShowSignUpModal(false);
-          setFormData({});
-          setIsSubmitting(false);
-          return;
-        }
-        
-        toast.error(errorMsg);
-        setIsSubmitting(false);
-        return;
-      }
-
-      // Save to localStorage
-      localStorage.setItem(`loyalty_member_${loyaltyProgram.propertyId}`, email);
-      
-      // Update state with discount info from registration response
-      setIsRegistered(true);
-      setRegisteredEmail(email);
-      
-      // Store discount info from response
-      if (data.data?.discountType && data.data?.discountValue) {
-        setDiscountInfo({
-          type: data.data.discountType,
-          value: data.data.discountValue,
-          currencyCode: data.data.currencyCode || program.currencyCode,
-        });
-      }
-      
-      toast.success("Successfully registered for loyalty program!");
-      setShowSignUpModal(false);
-      setFormData({});
-    } catch (error) {
-      console.error("Registration error:", error);
-      toast.error("Failed to register. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const getDiscountDisplay = () => {
-    // If user is registered and we have discount info from backend, use that
-    if (isRegistered && discountInfo) {
-      if (discountInfo.type === "percentage") {
-        return `${discountInfo.value}% OFF`;
-      } else {
-        return `${discountInfo.currencyCode} ${discountInfo.value} OFF`;
-      }
-    }
-    
-    // Otherwise, use the default from program config
-    if (program.loyaltyDiscountType === "percentage") {
-      return `${program.discountValue}% OFF`;
-    } else {
-      return `${program.currencyCode} ${program.discountValue} OFF`;
-    }
-  };
-
-  return (
-    <>
-      <div className="px-4 py-3">
-        <div className="max-w-7xl mx-auto">
-          <div 
-            className="relative overflow-hidden rounded-xl shadow-md border"
-            style={{ borderColor: `${primaryColor}40` }}
-          >
-            {/* Show loading overlay while verifying */}
-            {isVerifying && (
-              <div className="absolute inset-0 bg-white/50 backdrop-blur-sm flex items-center justify-center z-10">
-                <div className="flex items-center gap-2 text-gray-600">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2" style={{ borderColor: primaryColor }}></div>
-                  <span className="text-sm font-medium">Verifying membership...</span>
-                </div>
-              </div>
-            )}
-            
-            <div className="bg-white p-4 md:p-6">
-              {/* Header - Property Name Loyalty */}
-              <div className="mb-4">
-                <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">
-                  {loyaltyProgram.propertyName} Loyalty Program
-                </h2>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <div 
-                    className="px-3 py-1.5 rounded-full text-white text-sm font-semibold"
-                    style={{ backgroundColor: primaryColor }}
-                  >
-                    {getDiscountDisplay()}
-                  </div>
-                  {isBasicProgram && (
-                    <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
-                      Basic Program
-                    </span>
-                  )}
-                  {isAdvancedProgram && (
-                    <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
-                      Premium Program
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Main Content - 3 Column Layout */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                {/* Left Column - Logo Only */}
-                <div className="lg:col-span-3">
-                  {/* Logo Image */}
-                  {loyaltyLogo && (
-                    <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-                      <img 
-                        src={loyaltyLogo} 
-                        alt="Loyalty Program" 
-                        className="w-full h-auto rounded object-contain max-h-32"
-                      />
-                    </div>
-                  )}
-                </div>
-
-                {/* Middle Column - Loyalty Conditions (Terms) */}
-                <div className="lg:col-span-6">
-                  {program.loyaltyConditions && program.loyaltyConditions.filter(c => c.isActive).length > 0 && (
-                    <div>
-                      <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-1.5">
-                        <Award className="w-4 h-4" style={{ color: primaryColor }} />
-                        Program Terms
-                      </h3>
-                      <div className="space-y-1.5 max-h-40 overflow-y-auto pr-2">
-                        {program.loyaltyConditions
-                          .filter(condition => condition.isActive)
-                          .map((condition, index) => (
-                            <div 
-                              key={index} 
-                              className="flex items-start gap-2 p-2 bg-gray-50 rounded-lg"
-                            >
-                              <div 
-                                className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" 
-                                style={{ backgroundColor: primaryColor }}
-                              ></div>
-                              <span className="text-xs text-gray-700 line-clamp-2">{condition.text}</span>
-                            </div>
-                          ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Right Column - Special Benefits + Sign Up */}
-                <div className="lg:col-span-3 space-y-2">
-                  {/* Special Benefits */}
-                  {program.loyaltySpecialConditions && program.loyaltySpecialConditions.filter(c => c.isActive).length > 0 && (
-                    <div>
-                      <h3 className="text-xs font-semibold text-gray-900 mb-1.5 flex items-center gap-1">
-                        <Star className="w-3.5 h-3.5" style={{ color: primaryColor }} />
-                        Special Benefits
-                      </h3>
-                      <div className="space-y-1.5">
-                        {program.loyaltySpecialConditions
-                          .filter(condition => condition.isActive)
-                          .slice(0, 2)
-                          .map((condition, index) => (
-                            <div 
-                              key={index} 
-                              className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-md p-2 border border-purple-200"
-                            >
-                              <h4 className="font-semibold text-gray-900 text-xs leading-tight">
-                                {condition.title}
-                              </h4>
-                              {condition.subTitle && (
-                                <p className="text-[10px] text-gray-600 line-clamp-1 mt-0.5">
-                                  {condition.subTitle}
-                                </p>
-                              )}
-                            </div>
-                          ))}
-                        {program.loyaltySpecialConditions.filter(c => c.isActive).length > 2 && (
-                          <p className="text-[10px] text-gray-500 text-center mt-1">
-                            +{program.loyaltySpecialConditions.filter(c => c.isActive).length - 2} more benefits
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  )}
-                  
-                  {/* Sign Up Section or Registered Status */}
-                  <div className="flex flex-col items-center space-y-2 pt-1">
-                    {!isRegistered ? (
-                      <>
-                        <div className="text-center w-full">
-                          <h3 className="text-sm font-bold text-gray-900 mb-0.5">
-                            Join & Save
-                          </h3>
-                          <p className="text-[10px] text-gray-600 mb-2">
-                            Exclusive discounts on every booking
-                          </p>
-                        </div>
-
-                        <button
-                          onClick={() => setShowSignUpModal(true)}
-                          className="w-full px-4 py-2 rounded-lg text-white text-sm font-bold shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
-                          style={{ backgroundColor: primaryColor }}
-                        >
-                          <User className="w-4 h-4" />
-                          <span>Sign Up Now</span>
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <div className="text-center w-full">
-                          <h3 className="text-sm font-bold text-gray-900 mb-0.5">
-                            You're a Member! 🎉
-                          </h3>
-                          <p className="text-[10px] text-gray-600 mb-2">
-                            Loyalty discount will be applied at checkout
-                          </p>
-                        </div>
-
-                        <div 
-                          className="w-full px-4 py-3 rounded-lg border-2 flex items-center justify-center gap-2"
-                          style={{ 
-                            borderColor: primaryColor,
-                            backgroundColor: `${primaryColor}10`
-                          }}
-                        >
-                          <User className="w-4 h-4" style={{ color: primaryColor }} />
-                          <span className="text-sm font-semibold text-gray-900">{registeredEmail}</span>
-                        </div>
-
-                        <div className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg">
-                          <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-                          </svg>
-                          <span className="text-xs font-medium text-green-700">
-                            {getDiscountDisplay()} Applied
-                          </span>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Sign Up Modal */}
-      {showSignUpModal && (
-        <Dialog open={showSignUpModal} onOpenChange={setShowSignUpModal}>
-          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-bold flex items-center gap-2">
-                <Award className="w-6 h-6" style={{ color: primaryColor }} />
-                Join {loyaltyProgram.propertyName} Loyalty Program
-              </DialogTitle>
-              <DialogDescription>
-                Complete your registration to start enjoying member benefits
-              </DialogDescription>
-            </DialogHeader>
-
-            <form onSubmit={handleSignUpSubmit} className="mt-6">
-              <div className="space-y-6">
-                {/* Discount Info Banner */}
-                <div 
-                  className="p-5 rounded-xl border-2"
-                  style={{ 
-                    backgroundColor: `${primaryColor}08`,
-                    borderColor: primaryColor
-                  }}
-                >
-                  <div className="flex items-center gap-1">
-                    <div 
-                      className="p-3 rounded-lg"
-                      style={{ backgroundColor: primaryColor }}
-                    >
-                      <Gift className="w-8 h-8 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-bold text-gray-900 text-lg">
-                        Member Discount: {getDiscountDisplay()}
-                      </p>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Applied automatically on all your bookings
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Registration Fields */}
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-4">Registration Information</h4>
-                  
-                  {program.LoyaltyProgramFieldConfig && 
-                   program.LoyaltyProgramFieldConfig.filter(field => field.visibleInRegistration).length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Email field (required, prominently displayed) */}
-                      <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="email" className="text-sm font-medium">
-                          Email Address
-                          <span className="text-red-500 ml-1">*</span>
-                        </Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          placeholder="Enter your email address"
-                          required
-                          value={formData.email || ""}
-                          onChange={(e) => handleFieldChange("email", e.target.value)}
-                          className="w-full"
-                        />
-                      </div>
-
-                      {/* Other dynamic fields */}
-                      {program.LoyaltyProgramFieldConfig
-                        .filter(field => field.visibleInRegistration && field.fieldName.toLowerCase() !== 'email')
-                        .map((field) => (
-                          <div key={field.id} className="space-y-2">
-                            <Label htmlFor={field.fieldName} className="text-sm font-medium">
-                              {field.fieldName.replaceAll("_", " ")}
-                              {field.required && <span className="text-red-500 ml-1">*</span>}
-                            </Label>
-                            <Input
-                              id={field.fieldName}
-                              type="text"
-                              placeholder={`Enter ${field.fieldName.toLowerCase().replaceAll("_", " ")}`}
-                              required={field.required}
-                              value={formData[field.fieldName] || ""}
-                              onChange={(e) => handleFieldChange(field.fieldName, e.target.value)}
-                              className="w-full"
-                            />
-                          </div>
-                        ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      No registration fields configured for this loyalty program.
-                    </div>
-                  )}
-                </div>
-
-                
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex gap-3 mt-6">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => {
-                    setShowSignUpModal(false);
-                    setFormData({});
-                  }}
-                  className="flex-1"
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  className="flex-1 text-white font-semibold"
-                  style={{ backgroundColor: primaryColor }}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                      Registering...
-                    </span>
-                  ) : (
-                    <span className="flex items-center justify-center gap-2">
-                      <User className="w-4 h-4" />
-                      Complete Registration
-                    </span>
-                  )}
-                </Button>
-              </div>
-            </form>
-          </DialogContent>
-        </Dialog>
-      )}
-    </>
-  );
-};
-
 
 const Rooms = () => {
-  const { currency } = useSelector(
-    (state: RootState) => state.booking
-  );
+  const { currency } = useSelector((state: RootState) => state.booking);
   const [urgencyModalOpen, setUrgencyModalOpen] = useState(false);
   const [selectedBoardType, setSelectedBoardType] = useState("all");
   const [selectedCurrency, setSelectedCurrency] = useState(currency || "USD");
@@ -613,7 +102,9 @@ const Rooms = () => {
   const router = useRouter();
   const rooms = useSelector((state: RootState) => state.rooms.rooms);
   const bookingContext = useSelector((state: RootState) => state.booking);
-const [bookingSelectedPromotions, setBookingSelectedPromotions] = useState<any[]>([]);
+  const [bookingSelectedPromotions, setBookingSelectedPromotions] = useState<
+    any[]
+  >([]);
 
   const [bookingRoom, setBookingRoom] = useState<Room | null>(null);
   const [currentRatePlan, setCurrentRatePlan] = useState<any>(null);
@@ -641,8 +132,10 @@ const [bookingSelectedPromotions, setBookingSelectedPromotions] = useState<any[]
 
   // Price summary sidebar state
   const [showPriceSummary, setShowPriceSummary] = useState(false);
-  const [priceSummaryData, setPriceSummaryData] = useState<PriceSummaryData | null>(null);
-  const [loyaltyProgram, setLoyaltyProgram] = useState<IPropertyLoyalityWithLoyality | null>(null);
+  const [priceSummaryData, setPriceSummaryData] =
+    useState<PriceSummaryData | null>(null);
+  const [loyaltyProgram, setLoyaltyProgram] =
+    useState<IPropertyLoyalityWithLoyality | null>(null);
 
   const [finalPrice, setFinalPrice] = useState<FinalPrice | null>({
     totalAmount: 0,
@@ -668,13 +161,20 @@ const [bookingSelectedPromotions, setBookingSelectedPromotions] = useState<any[]
     setShowPriceSummary(true);
   };
 
-const handleBookNow = async (room: Room, ratePlan: any, selectedAddonsList: any[], selectedPromotionsList: any[]) => {    setLoadingBookNow(`${room.id}-${ratePlan.ratePlanCode}`);
-        setLoadingBookNow(`${room.id}-${ratePlan.ratePlanCode}`);
-setLoadingPrice(true);
+  const handleBookNow = async (
+    room: Room,
+    ratePlan: any,
+    selectedAddonsList: any[],
+    selectedPromotionsList: any[],
+  ) => {
+    setLoadingBookNow(`${room.id}-${ratePlan.ratePlanCode}`);
+    setLoadingBookNow(`${room.id}-${ratePlan.ratePlanCode}`);
+    setLoadingPrice(true);
     setErrorPrice(null);
-  setBookingSelectedPromotions(selectedPromotionsList);
+    setBookingSelectedPromotions(selectedPromotionsList);
 
-    const rawRooms = bookingContext.numberOfRooms || bookingContext.guests?.rooms;
+    const rawRooms =
+      bookingContext.numberOfRooms || bookingContext.guests?.rooms;
     let allGuests: Guest[] = [];
     let noOfAdults = 1;
     let noOfChildrens = 0;
@@ -736,18 +236,18 @@ setLoadingPrice(true);
       noOfChildrens,
       noOfRooms,
     };
-      if (loyaltyMemberEmail) {
-        payload.guestEmail = loyaltyMemberEmail;
-      }
+    if (loyaltyMemberEmail) {
+      payload.guestEmail = loyaltyMemberEmail;
+    }
 
- if (selectedPromotionsList && selectedPromotionsList.length > 0) {
-    payload.promotions = selectedPromotionsList.map((promotion: any) => ({
-      id: promotion.id,
-      promotionType: promotion.type
-    }));
-  }
+    if (selectedPromotionsList && selectedPromotionsList.length > 0) {
+      payload.promotions = selectedPromotionsList.map((promotion: any) => ({
+        id: promotion.id,
+        promotionType: promotion.type,
+      }));
+    }
     if (selectedAddonsList && selectedAddonsList.length > 0) {
-      payload.addons = selectedAddonsList.map(addon => ({
+      payload.addons = selectedAddonsList.map((addon) => ({
         addonId: addon.addonId,
         availabilityId: addon.availabilityId,
         date: addon.date,
@@ -766,7 +266,7 @@ setLoadingPrice(true);
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
-        }
+        },
       );
 
       const data = await response.json();
@@ -802,7 +302,7 @@ setLoadingPrice(true);
   const handleGuestDetailChange = (
     index: number,
     field: keyof Guest,
-    value: string
+    value: string,
   ) => {
     setGuestForms((prev) => {
       const updated = [...prev];
@@ -813,7 +313,7 @@ setLoadingPrice(true);
 
   const handleContactChange = (
     field: "email" | "phoneNumber",
-    value: string
+    value: string,
   ) => {
     setContactInfo((prev) => ({ ...prev, [field]: value }));
   };
@@ -833,7 +333,7 @@ setLoadingPrice(true);
       return;
     }
 
-    if (!bookingCtx?.guests || typeof bookingCtx.guests.rooms !== 'number') {
+    if (!bookingCtx?.guests || typeof bookingCtx.guests.rooms !== "number") {
       console.error("❌ Invalid guests data");
       setInitialLoading(false);
       return;
@@ -848,7 +348,6 @@ setLoadingPrice(true);
     setShowPriceSummary(false);
     setPriceSummaryData(null);
 
-
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/fetch-rooms`,
@@ -856,7 +355,7 @@ setLoadingPrice(true);
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(bookingCtx),
-        }
+        },
       );
       const data = await response.json();
       //console.log(data)
@@ -869,14 +368,17 @@ setLoadingPrice(true);
 
       const propertyDetails = data.data?.propertyDetails;
       setLoyaltyProgram(propertyDetails?.loyaltyProgramConfig || null);
-      const bookingEngineColor = propertyDetails?.bookingEngineConfig ? {
-        primaryColor: propertyDetails.bookingEngineConfig.primaryColor,
-        secondaryColor: propertyDetails.bookingEngineConfig.secondaryColor,
-        tertiaryColor: propertyDetails.bookingEngineConfig.tertiaryColor,
-        buttonTextColor: propertyDetails.bookingEngineConfig.buttonTextColor,
-        bgImage: propertyDetails.bookingEngineConfig.bannerImage,
-        logo: propertyDetails.bookingEngineConfig.logo
-      } : undefined;
+      const bookingEngineColor = propertyDetails?.bookingEngineConfig
+        ? {
+            primaryColor: propertyDetails.bookingEngineConfig.primaryColor,
+            secondaryColor: propertyDetails.bookingEngineConfig.secondaryColor,
+            tertiaryColor: propertyDetails.bookingEngineConfig.tertiaryColor,
+            buttonTextColor:
+              propertyDetails.bookingEngineConfig.buttonTextColor,
+            bgImage: propertyDetails.bookingEngineConfig.bannerImage,
+            logo: propertyDetails.bookingEngineConfig.logo,
+          }
+        : undefined;
 
       const updatedContext = {
         ...bookingCtx,
@@ -895,9 +397,9 @@ setLoadingPrice(true);
             secondaryColor: bookingEngineColor.secondaryColor,
             tertiaryColor: bookingEngineColor.tertiaryColor,
             buttonTextColor: bookingEngineColor.buttonTextColor,
-            logoIcon: null
+            logoIcon: null,
           },
-          logoIcon: bookingEngineColor.logo
+          logoIcon: bookingEngineColor.logo,
         };
         localStorage.setItem("bookingstorage", JSON.stringify(bookingStorage));
       } else {
@@ -907,11 +409,14 @@ setLoadingPrice(true);
             secondaryColor: "#E8DFC9",
             tertiaryColor: "#7D7566",
             buttonTextColor: "#FFFFFF",
-            logoIcon: null
+            logoIcon: null,
           },
-          logoIcon: null
+          logoIcon: null,
         };
-        localStorage.setItem("bookingstorage", JSON.stringify(defaultBookingStorage));
+        localStorage.setItem(
+          "bookingstorage",
+          JSON.stringify(defaultBookingStorage),
+        );
       }
 
       dispatch({ type: "rooms/setRooms", payload: data.data || [] });
@@ -921,12 +426,13 @@ setLoadingPrice(true);
 
       // Check for loyalty membership
       if (propertyDetails?.id) {
-        const storedEmail = localStorage.getItem(`loyalty_member_${propertyDetails.id}`);
+        const storedEmail = localStorage.getItem(
+          `loyalty_member_${propertyDetails.id}`,
+        );
         if (storedEmail) {
           setLoyaltyMemberEmail(storedEmail);
         }
       }
-
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || "Something went wrong while fetching rooms.");
@@ -950,7 +456,10 @@ setLoadingPrice(true);
     const bookingSource = searchParams.get("utm_source") || "direct";
 
     // Check if we have external params (checkin/checkout indicates external source)
-    const hasExternalParams = !!(code && (checkin || checkout || adults || children || rooms));
+    const hasExternalParams = !!(
+      code &&
+      (checkin || checkout || adults || children || rooms)
+    );
 
     if (hasExternalParams) {
       // Will be set in the initialization useEffect
@@ -989,7 +498,7 @@ setLoadingPrice(true);
         for (let i = 0; i < numRooms; i++) {
           roomsArray.push({
             adults: i === 0 ? totalAdults : 0,
-            children: i === 0 ? totalChildren : 0
+            children: i === 0 ? totalChildren : 0,
           });
         }
       }
@@ -1001,13 +510,13 @@ setLoadingPrice(true);
         guests: {
           rooms: numRooms, // ✅ Always send as number for API
           adults: parseInt(adults || "1"),
-          children: parseInt(children || "0")
+          children: parseInt(children || "0"),
         },
         roomsDetail: roomsArray, // ✅ Keep detailed array separately
         location: "",
         numberOfRooms: numRooms,
         isExternal: true,
-        bookingSource: bookingSource
+        bookingSource: bookingSource,
       };
     }
 
@@ -1047,11 +556,14 @@ setLoadingPrice(true);
           startDate: paramsData.startDate || defaultStartDate,
           endDate: paramsData.endDate || defaultEndDate,
           numberOfRooms: paramsData.numberOfRooms || 1,
-          location: paramsData.location || ""
+          location: paramsData.location || "",
         };
         dispatch(setBookingSource(paramsData.bookingSource));
         dispatch(setBookingContext(contextWithDates));
-        localStorage.setItem("bookingContext", JSON.stringify(contextWithDates));
+        localStorage.setItem(
+          "bookingContext",
+          JSON.stringify(contextWithDates),
+        );
         await handleSearchStart(contextWithDates);
         isLoadingFromExternal.current = false; // Allow SearchWidget after initial load
       } else {
@@ -1064,22 +576,29 @@ setLoadingPrice(true);
           // Validate stored context has required fields
           const validatedContext = {
             ...parsedContext,
-            PropertyCode: parsedContext.PropertyCode || searchParams.get("code") || "WOQDD3",
+            PropertyCode:
+              parsedContext.PropertyCode ||
+              searchParams.get("code") ||
+              "WOQDD3",
             startDate: parsedContext.startDate || defaultStartDate,
             endDate: parsedContext.endDate || defaultEndDate,
             guests: parsedContext.guests || {
               rooms: 1,
               adults: 1,
-              children: 0
+              children: 0,
             },
             location: parsedContext.location || "",
-            numberOfRooms: parsedContext.numberOfRooms || parsedContext.guests?.rooms || 1
+            numberOfRooms:
+              parsedContext.numberOfRooms || parsedContext.guests?.rooms || 1,
           };
 
           //console.log("💾 Loading from localStorage:", validatedContext);
           dispatch(setBookingContext(validatedContext));
           dispatch(setBookingSource(parsedContext.bookingSource || "direct"));
-          localStorage.setItem("bookingContext", JSON.stringify(validatedContext));
+          localStorage.setItem(
+            "bookingContext",
+            JSON.stringify(validatedContext),
+          );
           await handleSearchStart(validatedContext);
         } else {
           // No data at all, create default
@@ -1092,15 +611,18 @@ setLoadingPrice(true);
             guests: {
               rooms: 1,
               adults: 1,
-              children: 0
+              children: 0,
             },
             location: "",
-            numberOfRooms: 1
+            numberOfRooms: 1,
           };
 
           //console.log("🆕 Creating default context:", defaultContext);
           dispatch(setBookingContext(defaultContext));
-          localStorage.setItem("bookingContext", JSON.stringify(defaultContext));
+          localStorage.setItem(
+            "bookingContext",
+            JSON.stringify(defaultContext),
+          );
           await handleSearchStart(defaultContext);
         }
       }
@@ -1128,10 +650,12 @@ setLoadingPrice(true);
       const updatedContext = {
         ...bookingContext,
         PropertyCode: urlCode,
-        startDate: bookingContext.startDate || today.toISOString().split("T")[0],
+        startDate:
+          bookingContext.startDate || today.toISOString().split("T")[0],
         endDate: bookingContext.endDate || tomorrow.toISOString().split("T")[0],
-        numberOfRooms: bookingContext.numberOfRooms || bookingContext.guests?.rooms || 1,
-        location: bookingContext.location || ""
+        numberOfRooms:
+          bookingContext.numberOfRooms || bookingContext.guests?.rooms || 1,
+        location: bookingContext.location || "",
       };
 
       dispatch(setBookingContext(updatedContext));
@@ -1161,14 +685,14 @@ setLoadingPrice(true);
 
   const handleCloseUrgencyBanner = () => {
     setShowUrgencyBanner(false);
-    localStorage.setItem('urgencyBannerDismissed', 'true');
+    localStorage.setItem("urgencyBannerDismissed", "true");
   };
 
   useEffect(() => {
-    const isDismissed = localStorage.getItem('urgencyBannerDismissed');
-    if (isDismissed === 'true') {
+    const isDismissed = localStorage.getItem("urgencyBannerDismissed");
+    if (isDismissed === "true") {
       setShowUrgencyBanner(true);
-      localStorage.setItem('urgencyBannerDismissed', 'false');
+      localStorage.setItem("urgencyBannerDismissed", "false");
     }
   }, []);
 
@@ -1177,9 +701,9 @@ setLoadingPrice(true);
       roomsData
         .filter((room: Room) => room.has_valid_rate)
         .flatMap((room: Room) =>
-          room.room_price.map((rp: any) => rp.ratePlanName)
-        )
-    )
+          room.room_price.map((rp: any) => rp.ratePlanName),
+        ),
+    ),
   );
 
   const handleOpenUrgencyModal = () => {
@@ -1206,8 +730,9 @@ setLoadingPrice(true);
         </div>
       )}
       <div
-        className={`min-h-screen bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${loaded ? "opacity-100" : "opacity-0"
-          }`}
+        className={`min-h-screen bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${
+          loaded ? "opacity-100" : "opacity-0"
+        }`}
         onLoad={() => setLoaded(true)}
       >
         <div className="sticky top-0 z-40 bg-white/90 backdrop-blur shadow-sm">
@@ -1220,24 +745,72 @@ setLoadingPrice(true);
             }}
           />
         </div>
-        
+
         {/* Loyalty Program Banner */}
-        {loyaltyProgram && (
-          <LoyaltyProgramBanner 
-            loyaltyProgram={loyaltyProgram} 
-            primaryColor={primaryColor}
-          />
-        )}
-        
+
+        <div className="px-4 py-3">
+          <div className="max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+              {/* Left Column - Loyalty Program Banner */}
+              {loyaltyProgram && (
+                <div
+                  className={`${propertyDetails?.propertyVideos ? "lg:col-span-7" : "lg:col-span-12"}`}
+                >
+                  <LoyaltyProgramBanner
+                    loyaltyProgram={loyaltyProgram}
+                    primaryColor={primaryColor}
+                  />
+                </div>
+              )}
+
+              {/* Right Column - Property Video */}
+              {propertyDetails?.propertyVideos && (
+                <div
+                  className={`${loyaltyProgram ? "lg:col-span-5" : "lg:col-span-12"}`}
+                >
+                  <div
+                    className="rounded-xl shadow-md border overflow-hidden h-full"
+                    style={{ borderColor: `${primaryColor}40` }}
+                  >
+                    <div
+                      className={`relative w-full ${loyaltyProgram ? "h-full min-h-[300px]" : "h-[400px] lg:h-[500px]"}`}
+                    >
+                      <video
+                        className="w-full h-full object-cover"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                        poster={propertyDetails.propertyVideos.thumbnail}
+                      >
+                        <source
+                          src={propertyDetails.propertyVideos.url}
+                          type="video/mp4"
+                        />
+                        Your browser does not support the video tag.
+                      </video>
+
+                      {/* Optional: Video Title Overlay */}
+                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                        <h3 className="text-white font-semibold text-lg">
+                          {propertyDetails.propertyName} - Property Tour
+                        </h3>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
         <div className="px-4 pb-2">
           <div className="max-w-7xl mx-auto mt-10">
             <div className="flex gap-6">
-              <div className={`flex-1 ${showPriceSummary ? 'lg:w-2/3' : 'w-full'} transition-all duration-300`}>
-
-
-                <div>
-
-                </div>
+              <div
+                className={`flex-1 ${showPriceSummary ? "lg:w-2/3" : "w-full"} transition-all duration-300`}
+              >
+                <div></div>
 
                 <div className="px-4 sm:px-4 py-4 bg-white border border-gray-200 rounded-xl">
                   {loadingRooms ? (
@@ -1256,7 +829,9 @@ setLoadingPrice(true);
                     <div className="text-center text-gray-600 text-xl py-10 font-medium">
                       No rooms available for this hotel.
                     </div>
-                  ) : roomsData.filter((room: Room) => room.has_valid_rate === true).length === 0 ? (
+                  ) : roomsData.filter(
+                      (room: Room) => room.has_valid_rate === true,
+                    ).length === 0 ? (
                     <div className="text-center py-10 text-gray-600 text-lg font-medium">
                       No rooms available
                     </div>
@@ -1321,9 +896,12 @@ setLoadingPrice(true);
 
           <div className="mt-4 space-y-4">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-semibold text-blue-800 mb-2">Best Price Guarantee</h4>
+              <h4 className="font-semibold text-blue-800 mb-2">
+                Best Price Guarantee
+              </h4>
               <p className="text-blue-700 text-sm">
-                We guarantee that you won't find a lower price for the same room, dates, and conditions anywhere else online.
+                We guarantee that you won't find a lower price for the same
+                room, dates, and conditions anywhere else online.
               </p>
             </div>
 
@@ -1332,11 +910,16 @@ setLoadingPrice(true);
               <ul className="space-y-2 text-gray-700">
                 <li className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 flex-shrink-0"></div>
-                  <span>Prices are subject to change and may increase at any time</span>
+                  <span>
+                    Prices are subject to change and may increase at any time
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 flex-shrink-0"></div>
-                  <span>Early booking discounts are only available through our official website</span>
+                  <span>
+                    Early booking discounts are only available through our
+                    official website
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 flex-shrink-0"></div>
@@ -1344,18 +927,24 @@ setLoadingPrice(true);
                 </li>
                 <li className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 flex-shrink-0"></div>
-                  <span>Special promotions are exclusive to direct bookings</span>
+                  <span>
+                    Special promotions are exclusive to direct bookings
+                  </span>
                 </li>
                 <li className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 flex-shrink-0"></div>
-                  <span>Flexible cancellation policies only apply to official website bookings</span>
+                  <span>
+                    Flexible cancellation policies only apply to official
+                    website bookings
+                  </span>
                 </li>
               </ul>
             </div>
 
             <div className="pt-4 border-t border-gray-200">
               <p className="text-sm text-gray-600">
-                <strong>Note:</strong> Booking through third-party websites or agents may result in higher prices and fewer benefits.
+                <strong>Note:</strong> Booking through third-party websites or
+                agents may result in higher prices and fewer benefits.
               </p>
             </div>
           </div>
@@ -1404,16 +993,21 @@ setLoadingPrice(true);
               selectedPromotions: bookingSelectedPromotions,
             };
 
-          // In the onSubmit handler (around line 1100):
- if (bookingSelectedPromotions && bookingSelectedPromotions.length > 0) {
-    bookingData.selectedPromotions = bookingSelectedPromotions.map((promotion: any) => ({
-      id: promotion.id,
-      promotionType: promotion.type,
-      promotionName: promotion.name || promotion.promotionName,
-      discountValue: promotion.discountValue,
-      discountType: promotion.discountType
-    }));
-  }
+            // In the onSubmit handler (around line 1100):
+            if (
+              bookingSelectedPromotions &&
+              bookingSelectedPromotions.length > 0
+            ) {
+              bookingData.selectedPromotions = bookingSelectedPromotions.map(
+                (promotion: any) => ({
+                  id: promotion.id,
+                  promotionType: promotion.type,
+                  promotionName: promotion.name || promotion.promotionName,
+                  discountValue: promotion.discountValue,
+                  discountType: promotion.discountType,
+                }),
+              );
+            }
 
             dispatch({
               type: "booking/setFullBookingDetails",

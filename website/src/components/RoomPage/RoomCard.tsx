@@ -1,20 +1,41 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Users, Ruler, Eye, Wifi, Coffee, Tv, Wind, Phone, Utensils, ChevronRight, Plus, Minus, ChevronDown, ChevronUp, ChevronLeft } from 'lucide-react';
-import RoomDetails from './RoomDetails';
-import AddonSelectionModal from './AddonSelectionModal';
+import React, { useState, useEffect, useRef } from "react";
+import {
+  Users,
+  Ruler,
+  Eye,
+  Wifi,
+  Coffee,
+  Tv,
+  Wind,
+  Phone,
+  Utensils,
+  ChevronRight,
+  Plus,
+  Minus,
+  ChevronDown,
+  ChevronUp,
+  ChevronLeft,
+} from "lucide-react";
+import RoomDetails from "./RoomDetails";
+import AddonSelectionModal from "./AddonSelectionModal";
 import { Room } from "../../store/roomsSlice";
-import { useBookingStorage } from '../../hooks/useBookingStorage';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/src/store/store';
-import { useCurrencyConverter } from '@/src/hooks/useCurrencyConverter';
-import toast from 'react-hot-toast';
+import { useBookingStorage } from "../../hooks/useBookingStorage";
+import { useSelector } from "react-redux";
+import { RootState } from "@/src/store/store";
+import { useCurrencyConverter } from "@/src/hooks/useCurrencyConverter";
+import toast from "react-hot-toast";
 
 interface RoomCardProps {
   room: Room;
   propertyDetails: any;
   addons: any[];
   bookingContext: any;
-  onBookNow: (room: Room, ratePlan: any, selectedAddons: any[], selectedPromotion: any) => void;
+  onBookNow: (
+    room: Room,
+    ratePlan: any,
+    selectedAddons: any[],
+    selectedPromotion: any,
+  ) => void;
   loadingBookNow: string | null;
   onPriceUpdate?: (data: {
     room: Room;
@@ -22,7 +43,7 @@ interface RoomCardProps {
     selectedAddons: any[];
     basePrice: number;
     totalAddonsPrice: number;
-    finalprice: any
+    finalprice: any;
   }) => void;
   activeRatePlan?: string | null;
   selectedBoardType?: string;
@@ -36,7 +57,7 @@ const getDatesBetween = (startDate: string, endDate: string) => {
   const end = new Date(endDate);
 
   while (start < end) {
-    dates.push(new Date(start).toISOString().split('T')[0]);
+    dates.push(new Date(start).toISOString().split("T")[0]);
     start.setDate(start.getDate() + 1);
   }
 
@@ -51,7 +72,7 @@ const AmenityIcon = ({ amenityKey }: { amenityKey: string }) => {
     television: <Tv size={16} />,
     airConditioning: <Wind size={16} />,
     coffeeMaker: <Coffee size={16} />,
-    microwave: <Utensils size={16} />
+    microwave: <Utensils size={16} />,
   };
 
   return icons[amenityKey] || null;
@@ -63,7 +84,7 @@ const getActiveAmenities = (amenities: any) => {
   if (!amenities?.amenities) return active;
 
   for (const category of Object.values(amenities.amenities)) {
-    if (typeof category === 'object') {
+    if (typeof category === "object") {
       for (const [key, value] of Object.entries(category as any)) {
         if (value === true) active.push(key);
       }
@@ -76,11 +97,11 @@ const getActiveAmenities = (amenities: any) => {
 // Format amenity name
 const formatAmenityName = (key: string) => {
   return key
-    .replace(/([A-Z])/g, ' $1')
+    .replace(/([A-Z])/g, " $1")
     .trim()
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 };
 
 const RoomCard: React.FC<RoomCardProps> = ({
@@ -93,12 +114,15 @@ const RoomCard: React.FC<RoomCardProps> = ({
   onPriceUpdate,
   activeRatePlan,
   selectedBoardType,
-  loyaltyMemberEmail
+  loyaltyMemberEmail,
 }) => {
   // const { currency: selectedCurrency } = useSelector((state: RootState) => state.booking);
   const [loadingPriceFor, setLoadingPriceFor] = useState<string | null>(null);
   const isLoadingForRatePlan = (ratePlanCode: string) => {
-    return loadingPriceFor === ratePlanCode || loadingBookNow === `${room.id}-${ratePlanCode}`;
+    return (
+      loadingPriceFor === ratePlanCode ||
+      loadingBookNow === `${room.id}-${ratePlanCode}`
+    );
   };
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const images = room.images?.length
@@ -106,32 +130,27 @@ const RoomCard: React.FC<RoomCardProps> = ({
     : ["https://via.placeholder.com/600x400?text=No+Image+Available"];
 
   const prevImage = () => {
-    setCurrentImageIndex((prev) =>
-      prev === 0 ? images.length - 1 : prev - 1
-    );
+    setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
   };
 
   const nextImage = () => {
-    setCurrentImageIndex((prev) =>
-      prev === images.length - 1 ? 0 : prev + 1
-    );
+    setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
   };
-
 
   // Use the custom hook to get dynamic branding colors
   const { colors } = useBookingStorage(bookingContext);
 
-  const {
-    primaryColor,
-    buttonTextColor
-  } = colors;
+  const { primaryColor, buttonTextColor } = colors;
 
   const [expandedRatePlan, setExpandedRatePlan] = useState<string | null>(null);
   const [selectedAddons, setSelectedAddons] = useState<Record<string, any>>({});
   const [showAllAddons, setShowAllAddons] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
-  const [selectedRatePlanForDetails, setSelectedRatePlanForDetails] = useState<any>(null);
-  const [collapsedRatePlans, setCollapsedRatePlans] = useState<Set<string>>(new Set());
+  const [selectedRatePlanForDetails, setSelectedRatePlanForDetails] =
+    useState<any>(null);
+  const [collapsedRatePlans, setCollapsedRatePlans] = useState<Set<string>>(
+    new Set(),
+  );
   const [latestPrice, setLatestPrice] = useState<any>(null);
 
   // New states for addon modal
@@ -139,18 +158,28 @@ const RoomCard: React.FC<RoomCardProps> = ({
   const [fetchedAddons, setFetchedAddons] = useState<any[]>([]);
   const [pendingRatePlan, setPendingRatePlan] = useState<any>(null);
   const [fetchingAddons, setFetchingAddons] = useState(false);
-  const [expandedPromotions, setExpandedPromotions] = useState<string | null>(null);
-  const [selectedPromotions, setSelectedPromotions] = useState<Record<string, any[]>>({});
+  const [expandedPromotions, setExpandedPromotions] = useState<string | null>(
+    null,
+  );
+  const [selectedPromotions, setSelectedPromotions] = useState<
+    Record<string, any[]>
+  >({});
   const addonsRef = useRef<HTMLDivElement | null>(null);
 
   // Update price sidebar whenever addons change
   useEffect(() => {
     if (expandedRatePlan && onPriceUpdate && latestPrice) {
-      const currentRatePlan = room.room_price.find((rp: any) => rp.ratePlanCode === expandedRatePlan);
+      const currentRatePlan = room.room_price.find(
+        (rp: any) => rp.ratePlanCode === expandedRatePlan,
+      );
       if (currentRatePlan) {
-        const basePrice = currentRatePlan.baseByGuestAmts?.[0]?.amountBeforeTax || 0;
+        const basePrice =
+          currentRatePlan.baseByGuestAmts?.[0]?.amountBeforeTax || 0;
         const selectedAddonsList = Object.values(selectedAddons);
-        const totalAddonsPrice = selectedAddonsList.reduce((sum: number, addon: any) => sum + addon.totalPrice, 0);
+        const totalAddonsPrice = selectedAddonsList.reduce(
+          (sum: number, addon: any) => sum + addon.totalPrice,
+          0,
+        );
 
         onPriceUpdate({
           room,
@@ -158,21 +187,21 @@ const RoomCard: React.FC<RoomCardProps> = ({
           selectedAddons: selectedAddonsList,
           basePrice,
           totalAddonsPrice,
-          finalprice: latestPrice
+          finalprice: latestPrice,
         });
       }
     }
   }, [selectedAddons, expandedRatePlan, latestPrice, onPriceUpdate, room]);
   const getPromotionTypeText = (promotionType: string, promo?: any) => {
     switch (promotionType) {
-      case 'early_bird':
-        return 'Early Bird Offer';
-      case 'mlos':
+      case "early_bird":
+        return "Early Bird Offer";
+      case "mlos":
         return `Minimum ${promo?.minLos || 1} night stay`;
-      case 'offer_for_tonight':
-        return 'Tonight Special Offer';
+      case "offer_for_tonight":
+        return "Tonight Special Offer";
       default:
-        return 'Special Offer';
+        return "Special Offer";
     }
   };
   const rooms = Array.isArray(bookingContext.guests?.rooms)
@@ -181,8 +210,14 @@ const RoomCard: React.FC<RoomCardProps> = ({
 
   const noOfRooms = rooms.length || 1;
 
-  const noOfAdults = rooms.reduce((sum: number, r: any) => sum + (r.adults || 0), 0);
-  const noOfChildrens = rooms.reduce((sum: number, r: any) => sum + (r.children || 0), 0);
+  const noOfAdults = rooms.reduce(
+    (sum: number, r: any) => sum + (r.adults || 0),
+    0,
+  );
+  const noOfChildrens = rooms.reduce(
+    (sum: number, r: any) => sum + (r.children || 0),
+    0,
+  );
 
   const handleBookNowClick = async (ratePlan: any) => {
     setLoadingPriceFor(ratePlan.ratePlanCode);
@@ -193,12 +228,16 @@ const RoomCard: React.FC<RoomCardProps> = ({
       setFetchingAddons(true);
       try {
         const addonResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/addon/addon-datewise/available?propertyCode=${bookingContext.PropertyCode}&startDate=${bookingContext.startDate}&endDate=${bookingContext.endDate}&ratePlanCode=${ratePlan.ratePlanCode}`
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/addon/addon-datewise/available?propertyCode=${bookingContext.PropertyCode}&startDate=${bookingContext.startDate}&endDate=${bookingContext.endDate}&ratePlanCode=${ratePlan.ratePlanCode}`,
         );
         const addonData = await addonResponse.json();
         //console.log('Addon response:', addonData);
 
-        if (addonResponse.ok && addonData.success && addonData.data?.length > 0) {
+        if (
+          addonResponse.ok &&
+          addonData.success &&
+          addonData.data?.length > 0
+        ) {
           setFetchedAddons(addonData.data);
           setAddonModalOpen(true);
           setLoadingPriceFor(null);
@@ -206,7 +245,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
           return; // Wait for modal interaction
         }
       } catch (addonError) {
-        console.error('Error fetching addons:', addonError);
+        console.error("Error fetching addons:", addonError);
         // Continue without addons if fetch fails
       }
       setFetchingAddons(false);
@@ -222,7 +261,10 @@ const RoomCard: React.FC<RoomCardProps> = ({
   };
 
   // Helper function to proceed with booking after addon selection
-  const proceedWithBooking = async (ratePlan: any, selectedAddonsList: any[]) => {
+  const proceedWithBooking = async (
+    ratePlan: any,
+    selectedAddonsList: any[],
+  ) => {
     setLoadingPriceFor(ratePlan.ratePlanCode);
     try {
       const payload: any = {
@@ -233,7 +275,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
         endDate: bookingContext.endDate,
         noOfAdults,
         noOfChildren: noOfChildrens,
-        noOfRooms
+        noOfRooms,
       };
 
       // ✅ ADD LOYALTY GUEST EMAIL TO PAYLOAD
@@ -243,11 +285,12 @@ const RoomCard: React.FC<RoomCardProps> = ({
 
       // ✅ ADD SELECTED PROMOTION TO PAYLOAD
       // Around line 223 - Update to send array of promotions:
-      const selectedPromotionsList = selectedPromotions[ratePlan.ratePlanCode] || [];
+      const selectedPromotionsList =
+        selectedPromotions[ratePlan.ratePlanCode] || [];
       if (selectedPromotionsList.length > 0) {
-        payload.promotions = selectedPromotionsList.map(promotions => ({
+        payload.promotions = selectedPromotionsList.map((promotions) => ({
           id: promotions.id,
-          promotionType: promotions.type
+          promotionType: promotions.type,
         }));
       }
 
@@ -267,7 +310,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
-        }
+        },
       );
 
       const data = await response.json();
@@ -302,10 +345,14 @@ const RoomCard: React.FC<RoomCardProps> = ({
     }
   };
 
-  const handleAddonQuantityChange = (addon: any, availability: any, quantity: number) => {
+  const handleAddonQuantityChange = (
+    addon: any,
+    availability: any,
+    quantity: number,
+  ) => {
     const key = `${addon.id}-${availability.availabilityId}`;
 
-    setSelectedAddons(prev => {
+    setSelectedAddons((prev) => {
       const newState = { ...prev };
 
       if (quantity <= 0) {
@@ -320,7 +367,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
           price: availability.price,
           quantity: quantity,
           totalPrice: availability.price * quantity,
-          type: addon.type
+          type: addon.type,
         };
       }
       return newState;
@@ -330,18 +377,29 @@ const RoomCard: React.FC<RoomCardProps> = ({
   // Around line 355:
   const handleContinue = () => {
     const selectedAddonsList = Object.values(selectedAddons);
-    const currentRatePlan = room.room_price.find((rp: any) => rp.ratePlanCode === expandedRatePlan);
-    const selectedPromotionsList = selectedPromotions[expandedRatePlan || ''] || [];
+    const currentRatePlan = room.room_price.find(
+      (rp: any) => rp.ratePlanCode === expandedRatePlan,
+    );
+    const selectedPromotionsList =
+      selectedPromotions[expandedRatePlan || ""] || [];
 
-    onBookNow(room, currentRatePlan, selectedAddonsList, selectedPromotionsList);
+    onBookNow(
+      room,
+      currentRatePlan,
+      selectedAddonsList,
+      selectedPromotionsList,
+    );
     setExpandedRatePlan(null);
     setSelectedAddons({});
     setCollapsedRatePlans(new Set());
   };
 
   const handleSkip = () => {
-    const currentRatePlan = room.room_price.find((rp: any) => rp.ratePlanCode === expandedRatePlan);
-    const selectedPromotionsList = selectedPromotions[expandedRatePlan || ''] || [];
+    const currentRatePlan = room.room_price.find(
+      (rp: any) => rp.ratePlanCode === expandedRatePlan,
+    );
+    const selectedPromotionsList =
+      selectedPromotions[expandedRatePlan || ""] || [];
 
     onBookNow(room, currentRatePlan, [], selectedPromotionsList);
     setExpandedRatePlan(null);
@@ -355,7 +413,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
   };
 
   const toggleRatePlanCollapse = (ratePlanCode: string) => {
-    setCollapsedRatePlans(prev => {
+    setCollapsedRatePlans((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(ratePlanCode)) {
         newSet.delete(ratePlanCode);
@@ -370,16 +428,25 @@ const RoomCard: React.FC<RoomCardProps> = ({
     setTimeout(() => {
       if (addonsRef.current) {
         const yOffset = -200;
-        const y = addonsRef.current.getBoundingClientRect().top + window.scrollY + yOffset;
+        const y =
+          addonsRef.current.getBoundingClientRect().top +
+          window.scrollY +
+          yOffset;
         window.scrollTo({ top: y, behavior: "smooth" });
       }
     }, 300);
   };
 
   const activeAmenities = getActiveAmenities(room.amenities);
-  const bookingDates = getDatesBetween(bookingContext.startDate, bookingContext.endDate);
+  const bookingDates = getDatesBetween(
+    bookingContext.startDate,
+    bookingContext.endDate,
+  );
 
-  const totalAddonsCount = Object.values(selectedAddons).reduce((sum: number, addon: any) => sum + addon.quantity, 0);
+  const totalAddonsCount = Object.values(selectedAddons).reduce(
+    (sum: number, addon: any) => sum + addon.quantity,
+    0,
+  );
 
   return (
     <div className="space-y-4">
@@ -417,10 +484,9 @@ const RoomCard: React.FC<RoomCardProps> = ({
                   {images.map((_, idx) => (
                     <span
                       key={idx}
-                      className={`h-2 w-2 rounded-full ${idx === currentImageIndex
-                        ? "bg-white"
-                        : "bg-white/50"
-                        }`}
+                      className={`h-2 w-2 rounded-full ${
+                        idx === currentImageIndex ? "bg-white" : "bg-white/50"
+                      }`}
                     />
                   ))}
                 </div>
@@ -428,16 +494,21 @@ const RoomCard: React.FC<RoomCardProps> = ({
             )}
           </div>
 
-
           <div className="md:w-3/5 lg:w-2/3 p-4 md:p-5">
             <div className="flex items-start justify-between mb-2">
               <div className="flex-1">
-                <h2 className="text-xl md:text-2xl font-bold text-gray-900 leading-tight">{room.room_name}</h2>
-                <p className="text-xs md:text-sm text-gray-500 font-medium mt-1">{room.room_type}</p>
+                <h2 className="text-xl md:text-2xl font-bold text-gray-900 leading-tight">
+                  {room.room_name}
+                </h2>
+                <p className="text-xs md:text-sm text-gray-500 font-medium mt-1">
+                  {room.room_type}
+                </p>
               </div>
             </div>
 
-            <p className="text-xs md:text-sm text-gray-700 mb-3 leading-relaxed line-clamp-3">{room.description}</p>
+            <p className="text-xs md:text-sm text-gray-700 mb-3 leading-relaxed line-clamp-3">
+              {room.description}
+            </p>
 
             <div className="flex flex-wrap gap-3 md:gap-4 text-xs md:text-sm text-gray-600 mb-3">
               <div className="flex items-center gap-1.5">
@@ -446,7 +517,9 @@ const RoomCard: React.FC<RoomCardProps> = ({
               </div>
               <div className="flex items-center gap-1.5">
                 <Ruler size={16} className="text-orange-500 flex-shrink-0" />
-                <span className="font-medium">{room.room_size} {room.room_unit}</span>
+                <span className="font-medium">
+                  {room.room_size} {room.room_unit}
+                </span>
               </div>
               {room.room_view && (
                 <div className="flex items-center gap-1.5">
@@ -459,9 +532,14 @@ const RoomCard: React.FC<RoomCardProps> = ({
             {activeAmenities.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
                 {activeAmenities.map((amenity: any) => (
-                  <div key={amenity} className="flex items-center gap-1 text-xs text-gray-700 bg-gray-50 px-2.5 py-1 rounded-full border border-gray-200">
+                  <div
+                    key={amenity}
+                    className="flex items-center gap-1 text-xs text-gray-700 bg-gray-50 px-2.5 py-1 rounded-full border border-gray-200"
+                  >
                     <AmenityIcon amenityKey={amenity} />
-                    <span className="font-medium">{formatAmenityName(amenity)}</span>
+                    <span className="font-medium">
+                      {formatAmenityName(amenity)}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -497,13 +575,15 @@ const RoomCard: React.FC<RoomCardProps> = ({
             }
 
             // Fallback: direct match or partial (safe)
-            return ratePlanName?.toLowerCase().includes(selectedBoardType.replace(/-/g, ' '));
+            return ratePlanName
+              ?.toLowerCase()
+              .includes(selectedBoardType.replace(/-/g, " "));
           })
           ?.map((ratePlan: any, index: number) => {
             const isExpanded = expandedRatePlan === ratePlan.ratePlanCode;
             const isCollapsed = collapsedRatePlans.has(ratePlan.ratePlanCode);
             const basePrice = ratePlan.totalAmount || 0;
-            const currency = ratePlan.currencyCode || 'USD';
+            const currency = ratePlan.currencyCode || "USD";
 
             // //console.log(ratePlan, 'ratePlan');
 
@@ -512,10 +592,12 @@ const RoomCard: React.FC<RoomCardProps> = ({
             return (
               <div
                 key={`${ratePlan.ratePlanCode}-${index}`}
-                className={`bg-white rounded-lg shadow-md overflow-hidden border-2 transition-all ${isExpanded ? 'border-orange-400' : 'border-gray-200'}`}
+                className={`bg-white rounded-lg shadow-md overflow-hidden border-2 transition-all ${isExpanded ? "border-orange-400" : "border-gray-200"}`}
               >
                 {/* Rate Plan Header */}
-                <div className={`p-4 md:p-5 ${isCollapsed && !isExpanded ? 'pb-2' : ''}`}>
+                <div
+                  className={`p-4 md:p-5 ${isCollapsed && !isExpanded ? "pb-2" : ""}`}
+                >
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                     <div className="flex-1 min-w-0">
                       {/* Inside ratePlan header section */}
@@ -523,26 +605,55 @@ const RoomCard: React.FC<RoomCardProps> = ({
                         <h3 className="text-base md:text-lg font-bold text-gray-900 leading-tight">
                           {ratePlan.ratePlanName || ratePlan.ratePlanCode}
                         </h3>
-
-
                       </div>
                       {!isCollapsed && (
                         <>
                           <div className="space-y-1 text-xs md:text-sm text-gray-700 mb-2">
-                            {ratePlan.policy?.cancellationPolicy?.description && (
+                            {ratePlan.policy?.cancellationPolicy
+                              ?.description && (
                               <div className="flex items-start gap-1.5">
-                                <span className="text-green-600 mt-0.5 flex-shrink-0">✓</span>
-                                <span className="line-clamp-1">{ratePlan.policy.cancellationPolicy.description}</span>
+                                <span className="text-green-600 mt-0.5 flex-shrink-0">
+                                  ✓
+                                </span>
+                                <span className="line-clamp-1">
+                                  {
+                                    ratePlan.policy.cancellationPolicy
+                                      .description
+                                  }
+                                </span>
                               </div>
                             )}
                             <div className="flex items-start gap-1.5">
-                              <span className="text-green-600 mt-0.5 flex-shrink-0">✓</span>
+                              <span className="text-green-600 mt-0.5 flex-shrink-0">
+                                ✓
+                              </span>
                               <span>Complimentary WiFi included</span>
                             </div>
                             <div className="flex items-start gap-1.5">
-                              <span className="text-green-600 mt-0.5 flex-shrink-0">✓</span>
+                              <span className="text-green-600 mt-0.5 flex-shrink-0">
+                                ✓
+                              </span>
                               <span>24/7 Room Service</span>
                             </div>
+
+                            {ratePlan.touristTax?.calculatedTaxAmount > 0 && (
+                              <div className="flex items-start gap-1.5">
+                                <span className="text-amber-600 mt-0.5 flex-shrink-0">
+                                  $
+                                </span>
+                                <span className="text-sm">
+                                  <span className="font-semibold text-amber-800">
+                                    Additional Charges: {ratePlan.currencyCode}{" "}
+                                    {ratePlan.touristTax.calculatedTaxAmount.toFixed(
+                                      2,
+                                    )}
+                                  </span>
+                                  <span className="text-xs text-gray-600 ml-1">
+                                    (To be paid directly at hotel)
+                                  </span>
+                                </span>
+                              </div>
+                            )}
                           </div>
 
                           <button
@@ -556,199 +667,312 @@ const RoomCard: React.FC<RoomCardProps> = ({
                             <button
                               onClick={() => {
                                 setExpandedPromotions(
-                                  expandedPromotions === ratePlan.ratePlanCode ? null : ratePlan.ratePlanCode
+                                  expandedPromotions === ratePlan.ratePlanCode
+                                    ? null
+                                    : ratePlan.ratePlanCode,
                                 );
                               }}
                               className="mt-2 flex items-center gap-1.5 text-xs md:text-sm text-orange-600 hover:text-orange-700 font-medium hover:underline"
                             >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                                />
                               </svg>
-                              {selectedPromotions[ratePlan.ratePlanCode]?.length > 0
-                                ? `${selectedPromotions[ratePlan.ratePlanCode].length} Offer${selectedPromotions[ratePlan.ratePlanCode].length > 1 ? 's' : ''} Applied • ${ratePlan.availablePromotions.length} Available`
-                                : `${ratePlan.availablePromotions.length} Special Offer${ratePlan.availablePromotions.length > 1 ? 's' : ''} Available`
-                              }
-                              {selectedPromotions[ratePlan.ratePlanCode]?.length > 0 && (
+                              {selectedPromotions[ratePlan.ratePlanCode]
+                                ?.length > 0
+                                ? `${selectedPromotions[ratePlan.ratePlanCode].length} Offer${selectedPromotions[ratePlan.ratePlanCode].length > 1 ? "s" : ""} Applied • ${ratePlan.availablePromotions.length} Available`
+                                : `${ratePlan.availablePromotions.length} Special Offer${ratePlan.availablePromotions.length > 1 ? "s" : ""} Available`}
+                              {selectedPromotions[ratePlan.ratePlanCode]
+                                ?.length > 0 && (
                                 <span className="px-2.5 py-1 bg-green-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
-                                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                  <svg
+                                    className="w-3 h-3"
+                                    fill="currentColor"
+                                    viewBox="0 0 20 20"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                      clipRule="evenodd"
+                                    />
                                   </svg>
-                                  {selectedPromotions[ratePlan.ratePlanCode].length} Applied
+                                  {
+                                    selectedPromotions[ratePlan.ratePlanCode]
+                                      .length
+                                  }{" "}
+                                  Applied
                                 </span>
                               )}
                             </button>
                           )}
-                          {expandedPromotions === ratePlan.ratePlanCode && ratePlan.availablePromotions?.length > 0 && (
-                            <div className="mt-4 p-4 bg-gradient-to-br from-orange-50 to-amber-50 border-l-4 border-orange-400 rounded-lg">
-                              <div className="flex items-center gap-2 mb-3">
-                                <svg className="w-5 h-5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
-                                </svg>
-                                <div className="flex-1">
-                                  <h4 className="text-sm font-bold text-gray-900">Special Promotions</h4>
-                                  <p className="text-xs text-gray-600">Select one promotion to apply discount</p>
+                          {expandedPromotions === ratePlan.ratePlanCode &&
+                            ratePlan.availablePromotions?.length > 0 && (
+                              <div className="mt-4 p-4 bg-gradient-to-br from-orange-50 to-amber-50 border-l-4 border-orange-400 rounded-lg">
+                                <div className="flex items-center gap-2 mb-3">
+                                  <svg
+                                    className="w-5 h-5 text-orange-600"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"
+                                    />
+                                  </svg>
+                                  <div className="flex-1">
+                                    <h4 className="text-sm font-bold text-gray-900">
+                                      Special Promotions
+                                    </h4>
+                                    <p className="text-xs text-gray-600">
+                                      Select one promotion to apply discount
+                                    </p>
+                                  </div>
+                                  {selectedPromotions[
+                                    ratePlan.ratePlanCode
+                                  ] && (
+                                    <span className="px-2.5 py-1 bg-green-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
+                                      <svg
+                                        className="w-3 h-3"
+                                        fill="currentColor"
+                                        viewBox="0 0 20 20"
+                                      >
+                                        <path
+                                          fillRule="evenodd"
+                                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                          clipRule="evenodd"
+                                        />
+                                      </svg>
+                                      Applied
+                                    </span>
+                                  )}
                                 </div>
-                                {selectedPromotions[ratePlan.ratePlanCode] && (
-                                  <span className="px-2.5 py-1 bg-green-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
-                                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                    </svg>
-                                    Applied
-                                  </span>
-                                )}
-                              </div>
 
-                              <div className="space-y-2.5">
-                                {ratePlan.availablePromotions.map((promo: any) => {
-                                  const currentPromotions = selectedPromotions[ratePlan.ratePlanCode] || [];
-                                  const isSelected = currentPromotions.some(p => p.id === promo.id);
-                                  return (
-                                    <div
-                                      key={promo.id}
-                                      // Inside the promotion card onClick handler (around line 580):
-                                      onClick={() => {
-                                        setSelectedPromotions(prev => {
-                                          const newState = { ...prev };
-                                          const currentPromotions = newState[ratePlan.ratePlanCode] || [];
+                                <div className="space-y-2.5">
+                                  {ratePlan.availablePromotions.map(
+                                    (promo: any) => {
+                                      const currentPromotions =
+                                        selectedPromotions[
+                                          ratePlan.ratePlanCode
+                                        ] || [];
+                                      const isSelected = currentPromotions.some(
+                                        (p) => p.id === promo.id,
+                                      );
+                                      return (
+                                        <div
+                                          key={promo.id}
+                                          // Inside the promotion card onClick handler (around line 580):
+                                          onClick={() => {
+                                            setSelectedPromotions((prev) => {
+                                              const newState = { ...prev };
+                                              const currentPromotions =
+                                                newState[
+                                                  ratePlan.ratePlanCode
+                                                ] || [];
 
-                                          // Check if promotion is already selected
-                                          const promoIndex = currentPromotions.findIndex(p => p.id === promo.id);
+                                              // Check if promotion is already selected
+                                              const promoIndex =
+                                                currentPromotions.findIndex(
+                                                  (p) => p.id === promo.id,
+                                                );
 
-                                          if (promoIndex > -1) {
-                                            // Remove if already selected
-                                            currentPromotions.splice(promoIndex, 1);
-                                            if (currentPromotions.length === 0) {
-                                              delete newState[ratePlan.ratePlanCode];
-                                            } else {
-                                              newState[ratePlan.ratePlanCode] = currentPromotions;
-                                            }
-                                          } else {
-                                            // Add to selection
-                                            newState[ratePlan.ratePlanCode] = [
-                                              ...currentPromotions,
-                                              {
-                                                id: promo.id,
-                                                name: promo.promotionName,
-                                                type: promo.promotionType,
-                                                discountType: promo.discountType,
-                                                discountValue: promo.discountValue,
-                                                ...promo
+                                              if (promoIndex > -1) {
+                                                // Remove if already selected
+                                                currentPromotions.splice(
+                                                  promoIndex,
+                                                  1,
+                                                );
+                                                if (
+                                                  currentPromotions.length === 0
+                                                ) {
+                                                  delete newState[
+                                                    ratePlan.ratePlanCode
+                                                  ];
+                                                } else {
+                                                  newState[
+                                                    ratePlan.ratePlanCode
+                                                  ] = currentPromotions;
+                                                }
+                                              } else {
+                                                // Add to selection
+                                                newState[
+                                                  ratePlan.ratePlanCode
+                                                ] = [
+                                                  ...currentPromotions,
+                                                  {
+                                                    id: promo.id,
+                                                    name: promo.promotionName,
+                                                    type: promo.promotionType,
+                                                    discountType:
+                                                      promo.discountType,
+                                                    discountValue:
+                                                      promo.discountValue,
+                                                    ...promo,
+                                                  },
+                                                ];
                                               }
-                                            ];
-                                          }
-                                          return newState;
-                                        });
-                                      }}
-                                      className={`relative p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 ${isSelected
-                                        ? 'bg-white border-orange-400 shadow-md'
-                                        : 'bg-white border-gray-200 hover:border-orange-300 hover:shadow-sm'
-                                        }`}
-                                    >
-                                      <div className="flex items-start gap-3">
-                                        <div className="flex-shrink-0 mt-0.5">
-                                          <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${isSelected
-                                            ? 'bg-orange-500 border-orange-500'
-                                            : 'border-gray-300 bg-white'
-                                            }`}>
-                                            {isSelected && (
-                                              <div className="w-2 h-2 rounded-full bg-white"></div>
-                                            )}
-                                          </div>
-                                        </div>
+                                              return newState;
+                                            });
+                                          }}
+                                          className={`relative p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
+                                            isSelected
+                                              ? "bg-white border-orange-400 shadow-md"
+                                              : "bg-white border-gray-200 hover:border-orange-300 hover:shadow-sm"
+                                          }`}
+                                        >
+                                          <div className="flex items-start gap-3">
+                                            <div className="flex-shrink-0 mt-0.5">
+                                              <div
+                                                className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${
+                                                  isSelected
+                                                    ? "bg-orange-500 border-orange-500"
+                                                    : "border-gray-300 bg-white"
+                                                }`}
+                                              >
+                                                {isSelected && (
+                                                  <div className="w-2 h-2 rounded-full bg-white"></div>
+                                                )}
+                                              </div>
+                                            </div>
 
-                                        <div className="flex-1 min-w-0">
-                                          <div className="flex items-start justify-between gap-3 mb-1">
-                                            <h5 className="font-bold text-sm text-gray-900 leading-tight">
-                                              {promo.promotionName}
-                                            </h5>
-                                            <span className="flex-shrink-0 px-2.5 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold rounded-full shadow-sm">
-                                              {promo.discountType === 'percentage'
-                                                ? `${promo.discountValue}% OFF`
-                                                : `$${promo.discountValue} OFF`}
-                                            </span>
+                                            <div className="flex-1 min-w-0">
+                                              <div className="flex items-start justify-between gap-3 mb-1">
+                                                <h5 className="font-bold text-sm text-gray-900 leading-tight">
+                                                  {promo.promotionName}
+                                                </h5>
+                                                <span className="flex-shrink-0 px-2.5 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold rounded-full shadow-sm">
+                                                  {promo.discountType ===
+                                                  "percentage"
+                                                    ? `${promo.discountValue}% OFF`
+                                                    : `$${promo.discountValue} OFF`}
+                                                </span>
+                                              </div>
+
+                                              <div className="flex items-center gap-2 text-xs text-gray-600">
+                                                <svg
+                                                  className="w-3.5 h-3.5 text-orange-500"
+                                                  fill="none"
+                                                  stroke="currentColor"
+                                                  viewBox="0 0 24 24"
+                                                >
+                                                  <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                                                  />
+                                                </svg>
+                                                {getPromotionTypeText(
+                                                  promo.promotionType,
+                                                  promo,
+                                                )}
+                                              </div>
+
+                                              {promo.promotionType ===
+                                                "early_bird" &&
+                                                promo.advanceBookingDays && (
+                                                  <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                                                    <svg
+                                                      className="w-3 h-3"
+                                                      fill="none"
+                                                      stroke="currentColor"
+                                                      viewBox="0 0 24 24"
+                                                    >
+                                                      <path
+                                                        strokeLinecap="round"
+                                                        strokeLinejoin="round"
+                                                        strokeWidth={2}
+                                                        d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                                      />
+                                                    </svg>
+                                                    Book{" "}
+                                                    {promo.advanceBookingDays}{" "}
+                                                    days in advance
+                                                  </p>
+                                                )}
+                                            </div>
                                           </div>
 
-                                          <div className="flex items-center gap-2 text-xs text-gray-600">
-                                            <svg className="w-3.5 h-3.5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                                            </svg>
-                                            {getPromotionTypeText(promo.promotionType, promo)}
-                                          </div>
-
-                                          {promo.promotionType === 'early_bird' && promo.advanceBookingDays && (
-                                            <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                              </svg>
-                                              Book {promo.advanceBookingDays} days in advance
-                                            </p>
+                                          {isSelected && (
+                                            <div className="absolute top-2 right-2">
+                                              <span className="flex h-2.5 w-2.5">
+                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                                                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500"></span>
+                                              </span>
+                                            </div>
                                           )}
                                         </div>
-                                      </div>
+                                      );
+                                    },
+                                  )}
+                                </div>
 
-                                      {isSelected && (
-                                        <div className="absolute top-2 right-2">
-                                          <span className="flex h-2.5 w-2.5">
-                                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
-                                            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500"></span>
-                                          </span>
-                                        </div>
-                                      )}
-                                    </div>
-                                  );
-                                })}
+                                <div className="mt-3 pt-3 border-t border-orange-200 flex items-center justify-between">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedPromotions((prev) => {
+                                        const newState = { ...prev };
+                                        delete newState[ratePlan.ratePlanCode];
+                                        return newState;
+                                      });
+                                    }}
+                                    className="text-xs text-gray-600 hover:text-gray-900 font-medium transition-colors"
+                                  >
+                                    Clear Selection
+                                  </button>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setExpandedPromotions(null);
+                                    }}
+                                    className="px-4 py-1.5 bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"
+                                  >
+                                    Done
+                                  </button>
+                                </div>
                               </div>
-
-                              <div className="mt-3 pt-3 border-t border-orange-200 flex items-center justify-between">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setSelectedPromotions(prev => {
-                                      const newState = { ...prev };
-                                      delete newState[ratePlan.ratePlanCode];
-                                      return newState;
-                                    });
-                                  }}
-                                  className="text-xs text-gray-600 hover:text-gray-900 font-medium transition-colors"
-                                >
-                                  Clear Selection
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setExpandedPromotions(null);
-                                  }}
-                                  className="px-4 py-1.5 bg-orange-600 hover:bg-orange-700 text-white text-xs font-semibold rounded-lg transition-colors shadow-sm"
-                                >
-                                  Done
-                                </button>
-                              </div>
-                            </div>
-                          )}
+                            )}
                         </>
                       )}
                     </div>
                     {/* ✅ EXPANDED PROMOTIONS SECTION */}
-
 
                     <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:gap-2 sm:min-w-[180px] md:min-w-[200px]">
                       {!isCollapsed && (
                         <div className="text-left sm:text-right">
                           <div className="flex items-baseline gap-1.5">
                             <span className="text-xl md:text-2xl font-bold text-orange-600">
-                              {currency === 'USD' ? '$' : currency} {basePrice.toLocaleString()}
+                              {currency === "USD" ? "$" : currency}{" "}
+                              {basePrice.toLocaleString()}
                             </span>
                           </div>
-                          <span className="text-xs text-gray-500">per night</span>
+                          <span className="text-xs text-gray-500">
+                            per night
+                          </span>
                         </div>
                       )}
 
                       <button
                         onClick={() => handleBookNowClick(ratePlan)}
-                        disabled={isLoadingForRatePlan(ratePlan.ratePlanCode) || isExpanded}
+                        disabled={
+                          isLoadingForRatePlan(ratePlan.ratePlanCode) ||
+                          isExpanded
+                        }
                         style={{
-                          backgroundColor: primaryColor || '#FF6B35',  // ✅ Add fallback
-                          color: buttonTextColor || '#FFFFFF'  // ✅ Add fallback
+                          backgroundColor: primaryColor || "#FF6B35", // ✅ Add fallback
+                          color: buttonTextColor || "#FFFFFF", // ✅ Add fallback
                         }}
                         className="px-4 md:px-5 py-2 rounded-lg font-semibold text-sm md:text-base transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg whitespace-nowrap hover:opacity-90"
                       >
@@ -758,9 +982,9 @@ const RoomCard: React.FC<RoomCardProps> = ({
                             <span>Loading...</span>
                           </div>
                         ) : isExpanded ? (
-                          'Selected'
+                          "Selected"
                         ) : (
-                          'Book Now'
+                          "Book Now"
                         )}
                       </button>
                     </div>
@@ -769,7 +993,9 @@ const RoomCard: React.FC<RoomCardProps> = ({
                   {isCollapsed && !isExpanded && (
                     <div className="mt-3 pt-3 border-t border-gray-200">
                       <button
-                        onClick={() => toggleRatePlanCollapse(ratePlan.ratePlanCode)}
+                        onClick={() =>
+                          toggleRatePlanCollapse(ratePlan.ratePlanCode)
+                        }
                         className="flex items-center gap-1.5 text-xs md:text-sm text-gray-600 hover:text-gray-900 font-medium"
                       >
                         <ChevronDown size={16} />
@@ -780,7 +1006,9 @@ const RoomCard: React.FC<RoomCardProps> = ({
 
                   {!isCollapsed && !isExpanded && (
                     <button
-                      onClick={() => toggleRatePlanCollapse(ratePlan.ratePlanCode)}
+                      onClick={() =>
+                        toggleRatePlanCollapse(ratePlan.ratePlanCode)
+                      }
                       className="mt-2 text-xs md:text-sm text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1"
                     >
                       <ChevronUp size={16} /> Collapse
@@ -790,91 +1018,146 @@ const RoomCard: React.FC<RoomCardProps> = ({
 
                 {/* Addons Section */}
                 {isExpanded && addons && addons.length > 0 && (
-                  <div ref={addonsRef} className="border-t-2 border-gray-200 bg-gradient-to-b from-orange-50 to-white p-4 md:p-5">
+                  <div
+                    ref={addonsRef}
+                    className="border-t-2 border-gray-200 bg-gradient-to-b from-orange-50 to-white p-4 md:p-5"
+                  >
                     <div className="flex items-center justify-between mb-3">
-                      <h4 className="text-lg md:text-xl font-bold text-gray-900">Enhance Your Stay</h4>
-                      <span className="text-xs md:text-sm text-gray-600">Optional Add-ons</span>
+                      <h4 className="text-lg md:text-xl font-bold text-gray-900">
+                        Enhance Your Stay
+                      </h4>
+                      <span className="text-xs md:text-sm text-gray-600">
+                        Optional Add-ons
+                      </span>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 mb-3">
-                      {(showAllAddons ? addons : addons.slice(0, 2)).map((addon) => {
-                        const relevantAvailabilities = addon.availabilities.filter((av: any) =>
-                          bookingDates.includes(av.date) && av.isActive
-                        );
+                      {(showAllAddons ? addons : addons.slice(0, 2)).map(
+                        (addon) => {
+                          const relevantAvailabilities =
+                            addon.availabilities.filter(
+                              (av: any) =>
+                                bookingDates.includes(av.date) && av.isActive,
+                            );
 
-                        if (relevantAvailabilities.length === 0) return null;
+                          if (relevantAvailabilities.length === 0) return null;
 
-                        return (
-                          <div key={addon.id} className="bg-white border-2 border-gray-200 rounded-lg p-3 md:p-4 hover:border-orange-300 hover:shadow-md transition-all">
-                            <div className="flex gap-3">
-                              {addon.images?.[0] && (
-                                <img
-                                  src={addon.images[0]}
-                                  alt={addon.name}
-                                  className="w-20 h-20 md:w-24 md:h-24 rounded-lg object-cover flex-shrink-0 border border-gray-200"
-                                />
-                              )}
+                          return (
+                            <div
+                              key={addon.id}
+                              className="bg-white border-2 border-gray-200 rounded-lg p-3 md:p-4 hover:border-orange-300 hover:shadow-md transition-all"
+                            >
+                              <div className="flex gap-3">
+                                {addon.images?.[0] && (
+                                  <img
+                                    src={addon.images[0]}
+                                    alt={addon.name}
+                                    className="w-20 h-20 md:w-24 md:h-24 rounded-lg object-cover flex-shrink-0 border border-gray-200"
+                                  />
+                                )}
 
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-start flex-wrap justify-between mb-1.5 gap-2">
-                                  <h5 className="font-bold text-sm md:text-base text-gray-900 leading-tight">{addon.name}</h5>
-                                  <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-semibold whitespace-nowrap flex-shrink-0">
-                                    {addon.type}
-                                  </span>
-                                </div>
-                                <p className="text-xs text-gray-600 mb-2 line-clamp-2">{addon.description}</p>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-start flex-wrap justify-between mb-1.5 gap-2">
+                                    <h5 className="font-bold text-sm md:text-base text-gray-900 leading-tight">
+                                      {addon.name}
+                                    </h5>
+                                    <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-semibold whitespace-nowrap flex-shrink-0">
+                                      {addon.type}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-gray-600 mb-2 line-clamp-2">
+                                    {addon.description}
+                                  </p>
 
-                                <div className="space-y-1.5">
-                                  {relevantAvailabilities.map((availability: any) => {
-                                    const key = `${addon.id}-${availability.availabilityId}`;
-                                    const currentQuantity = selectedAddons[key]?.quantity || 0;
+                                  <div className="space-y-1.5">
+                                    {relevantAvailabilities.map(
+                                      (availability: any) => {
+                                        const key = `${addon.id}-${availability.availabilityId}`;
+                                        const currentQuantity =
+                                          selectedAddons[key]?.quantity || 0;
 
-                                    return (
-                                      <div key={availability.availabilityId} className="flex flex-wrap items-center justify-between bg-gray-50 p-2 rounded-lg border border-gray-200 gap-2">
-                                        <div className="flex-1">
-                                          <p className="text-xs md:text-sm font-medium text-gray-800 truncate">
-                                            {new Date(availability.date).toLocaleDateString('en-US', {
-                                              weekday: 'short',
-                                              month: 'short',
-                                              day: 'numeric'
-                                            })}
-                                          </p>
-                                          <p className="text-xs text-gray-600">${availability.price} each</p>
-                                        </div>
+                                        return (
+                                          <div
+                                            key={availability.availabilityId}
+                                            className="flex flex-wrap items-center justify-between bg-gray-50 p-2 rounded-lg border border-gray-200 gap-2"
+                                          >
+                                            <div className="flex-1">
+                                              <p className="text-xs md:text-sm font-medium text-gray-800 truncate">
+                                                {new Date(
+                                                  availability.date,
+                                                ).toLocaleDateString("en-US", {
+                                                  weekday: "short",
+                                                  month: "short",
+                                                  day: "numeric",
+                                                })}
+                                              </p>
+                                              <p className="text-xs text-gray-600">
+                                                ${availability.price} each
+                                              </p>
+                                            </div>
 
-                                        <div className="flex flex-wrap items-center gap-1.5">
-                                          {currentQuantity > 0 && (
-                                            <span className="text-xs font-semibold text-orange-600">
-                                              ${(availability.price * currentQuantity).toLocaleString()}
-                                            </span>
-                                          )}
-                                          <div className="flex items-center">
-                                            <button
-                                              onClick={() => handleAddonQuantityChange(addon, availability, Math.max(0, currentQuantity - 1))}
-                                              disabled={currentQuantity === 0}
-                                              className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-gray-200 hover:bg-gray-300 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
-                                            >
-                                              <Minus size={12} />
-                                            </button>
-                                            <span className="w-7 text-center font-bold text-sm text-gray-900">{currentQuantity}</span>
-                                            <button
-                                              onClick={() => handleAddonQuantityChange(addon, availability, currentQuantity + 1)}
-                                              style={{ backgroundColor: primaryColor, color: buttonTextColor }}
-                                              className="w-6 h-6 md:w-7 md:h-7 rounded-full flex items-center justify-center transition-colors hover:opacity-90"
-                                            >
-                                              <Plus size={12} />
-                                            </button>
+                                            <div className="flex flex-wrap items-center gap-1.5">
+                                              {currentQuantity > 0 && (
+                                                <span className="text-xs font-semibold text-orange-600">
+                                                  $
+                                                  {(
+                                                    availability.price *
+                                                    currentQuantity
+                                                  ).toLocaleString()}
+                                                </span>
+                                              )}
+                                              <div className="flex items-center">
+                                                <button
+                                                  onClick={() =>
+                                                    handleAddonQuantityChange(
+                                                      addon,
+                                                      availability,
+                                                      Math.max(
+                                                        0,
+                                                        currentQuantity - 1,
+                                                      ),
+                                                    )
+                                                  }
+                                                  disabled={
+                                                    currentQuantity === 0
+                                                  }
+                                                  className="w-6 h-6 md:w-7 md:h-7 rounded-full bg-gray-200 hover:bg-gray-300 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors"
+                                                >
+                                                  <Minus size={12} />
+                                                </button>
+                                                <span className="w-7 text-center font-bold text-sm text-gray-900">
+                                                  {currentQuantity}
+                                                </span>
+                                                <button
+                                                  onClick={() =>
+                                                    handleAddonQuantityChange(
+                                                      addon,
+                                                      availability,
+                                                      currentQuantity + 1,
+                                                    )
+                                                  }
+                                                  style={{
+                                                    backgroundColor:
+                                                      primaryColor,
+                                                    color: buttonTextColor,
+                                                  }}
+                                                  className="w-6 h-6 md:w-7 md:h-7 rounded-full flex items-center justify-center transition-colors hover:opacity-90"
+                                                >
+                                                  <Plus size={12} />
+                                                </button>
+                                              </div>
+                                            </div>
                                           </div>
-                                        </div>
-                                      </div>
-                                    );
-                                  })}
+                                        );
+                                      },
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
-                        );
-                      })}
+                          );
+                        },
+                      )}
                     </div>
 
                     {addons.length > 2 && (
@@ -882,8 +1165,13 @@ const RoomCard: React.FC<RoomCardProps> = ({
                         onClick={() => setShowAllAddons(!showAllAddons)}
                         className="text-orange-600 hover:text-orange-700 font-semibold text-xs md:text-sm flex items-center gap-1 mb-3 hover:underline"
                       >
-                        {showAllAddons ? 'Show Less' : `See ${addons.length - 2} More Add-ons`}
-                        <ChevronRight size={14} className={`transform transition-transform ${showAllAddons ? 'rotate-90' : ''}`} />
+                        {showAllAddons
+                          ? "Show Less"
+                          : `See ${addons.length - 2} More Add-ons`}
+                        <ChevronRight
+                          size={14}
+                          className={`transform transition-transform ${showAllAddons ? "rotate-90" : ""}`}
+                        />
                       </button>
                     )}
 
@@ -892,7 +1180,8 @@ const RoomCard: React.FC<RoomCardProps> = ({
                         onClick={handleSkip}
                         className="flex items-center justify-center gap-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg font-medium text-sm transition-all duration-200 border border-gray-300 order-2 sm:order-1"
                       >
-                        Skip <span className="font-bold text-base">&gt;&gt;</span>
+                        Skip{" "}
+                        <span className="font-bold text-base">&gt;&gt;</span>
                       </button>
 
                       <button
@@ -900,13 +1189,13 @@ const RoomCard: React.FC<RoomCardProps> = ({
                         style={{
                           backgroundColor: primaryColor,
                           color: buttonTextColor,
-                          borderColor: primaryColor
+                          borderColor: primaryColor,
                         }}
                         className="px-4 py-2 rounded-lg font-medium text-sm transition-all duration-200 shadow hover:shadow-md order-1 sm:order-2 hover:opacity-90"
                       >
                         {totalAddonsCount > 0
-                          ? `Continue with ${totalAddonsCount} Add-on${totalAddonsCount > 1 ? 's' : ''}`
-                          : 'Continue'}
+                          ? `Continue with ${totalAddonsCount} Add-on${totalAddonsCount > 1 ? "s" : ""}`
+                          : "Continue"}
                       </button>
                     </div>
                   </div>
@@ -942,7 +1231,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
         onSkip={handleAddonSkip}
         primaryColor={primaryColor}
         buttonTextColor={buttonTextColor}
-        currencyCode={pendingRatePlan?.currencyCode || 'USD'}
+        currencyCode={pendingRatePlan?.currencyCode || "USD"}
       />
     </div>
   );

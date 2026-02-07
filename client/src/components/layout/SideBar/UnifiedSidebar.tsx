@@ -24,7 +24,7 @@ import {
   ListEndIcon,
   Smartphone,
   MoonIcon,
-  // Pen,
+  Pen,
   Sun,
   Award,
   Briefcase,
@@ -103,7 +103,7 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
     { name: 'Device Specific', href: `/property/promotion/device-specific/${propertyId}`, icon: Smartphone, userLevels: [4, 3, 2, 1,0] },
     { name: 'Early Bird', href: `/property/promotion/early-bird/${propertyId}`, icon:Sun , userLevels: [4, 3, 2, 1,0] },
     { name: 'Offer For Tonight', href: `/property/promotion/offer-for-tonight/${propertyId}`, icon: MoonIcon, userLevels: [4, 3, 2, 1,0] },
-    // { name: 'Customizable deal', href: `/property/promotion/customizable-deal/${propertyId}`, icon: Pen, userLevels: [4, 3, 2, 1,0] },
+    { name: 'Customizable Deal', href: `/property/promotion/customizable-deal/${propertyId}`, icon: Pen, userLevels: [4, 3, 2, 1,0] },
 
   ];
 
