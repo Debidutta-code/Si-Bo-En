@@ -84,8 +84,8 @@ export const cancelReservation = async (
   payload: ICancelReservationPayload
 ): Promise<ICancelReservationResponse> => {
   try {
-    const response = await axiosInstance.patch(
-      `/agent-platform/reservations/${reservationId}/cancel`,
+    const response = await axiosInstance.put(
+      `/agent-platform/booking/cancel/${reservationId}`,
       payload
     );
     return response.data;

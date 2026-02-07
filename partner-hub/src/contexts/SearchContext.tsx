@@ -1,9 +1,10 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode } from "react";
 
 export interface SearchFilters {
   checkIn: Date | undefined;
   checkOut: Date | undefined;
-  guests: number;
+  adults: number;
+  children: number;
   rooms: number;
   priceRange: [number, number];
   amenities: string[];
@@ -19,11 +20,12 @@ interface SearchContextType {
 const defaultFilters: SearchFilters = {
   checkIn: undefined,
   checkOut: undefined,
-  guests: 2,
+  adults: 2,
+  children:0,
   rooms: 1,
   priceRange: [0, 50000],
   amenities: [],
-  searchQuery: '',
+  searchQuery: "",
 };
 
 const SearchContext = createContext<SearchContextType | undefined>(undefined);
@@ -49,7 +51,7 @@ export function SearchProvider({ children }: { children: ReactNode }) {
 export function useSearch() {
   const context = useContext(SearchContext);
   if (!context) {
-    throw new Error('useSearch must be used within SearchProvider');
+    throw new Error("useSearch must be used within SearchProvider");
   }
   return context;
 }
