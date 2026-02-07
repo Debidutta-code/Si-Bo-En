@@ -158,3 +158,33 @@ export const deleteRoomAmenities = async (amenities: string[]) => {
     throw error.response?.data ;
   }
 };
+
+// Loyalty Guest Fields APIs
+export const getLoyaltyGuestFields = async () => {
+  try {
+    const response = await axios.get("/property-management/property/management/loyalty-guest-field/");
+    return response.data;
+  } catch (error: any) {
+    throw error.response?.data ;
+  }
+};
+
+export const createLoyaltyGuestFields = async (fields: string[]) => {
+  try {
+    const response = await axios.post("/property-management/property/management/loyalty-guest-field/", {
+      fields,
+    });
+    return response.data;
+  } catch (error: any) {
+    throw error.response?.data ;
+  }
+};
+
+export const deleteLoyaltyGuestField = async (id: string) => {
+  try {
+    const response = await axios.post(`/property-management/property/management/loyalty-guest-field/${id}`);
+    return response.data;
+  } catch (error: any) {
+    throw error.response?.data ;
+  }
+};

@@ -1,5 +1,5 @@
 import { IPropertyLoyalityWithLoyality } from "@/src/app/Rooms/interface";
-import { Award, Gift, Star, User } from "lucide-react";
+import { Award, Gift, Star, User, Sparkles, CheckCircle2, Mail } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
@@ -195,85 +195,96 @@ export const LoyaltyProgramBanner = ({
 
   return (
     <>
-      <div className="px-4 py-3">
+      <div className="px-3 py-2">
         <div className="max-w-7xl mx-auto">
           <div 
             className="relative overflow-hidden rounded-xl shadow-md border"
-            style={{ borderColor: `${primaryColor}40` }}
+            style={{ 
+              borderColor: `${primaryColor}20`,
+              background: 'white'
+            }}
           >
             {/* Show loading overlay while verifying */}
             {isVerifying && (
-              <div className="absolute inset-0 bg-white/50 backdrop-blur-sm flex items-center justify-center z-10">
-                <div className="flex items-center gap-2 text-gray-600">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2" style={{ borderColor: primaryColor }}></div>
-                  <span className="text-sm font-medium">Verifying membership...</span>
+              <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center z-20">
+                <div className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-200" style={{ borderTopColor: primaryColor }}></div>
+                  <span className="text-xs font-medium text-gray-600">Verifying...</span>
                 </div>
               </div>
             )}
             
-            <div className="bg-white p-4 md:p-6">
-              {/* Header - Property Name Loyalty */}
-              <div className="mb-4">
-                <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-2">
-                  {loyaltyProgram.propertyName} Loyalty Program
-                </h2>
-                <div className="flex items-center gap-2 flex-wrap">
+            <div className="p-3 md:p-4">
+              {/* Header */}
+              <div className="flex items-center justify-between gap-3 mb-3">
+                <div className="flex items-center gap-2">
+                  <Award className="w-4 h-4" style={{ color: primaryColor }} />
+                  <h2 className="text-base md:text-lg font-bold text-gray-900">
+                    {loyaltyProgram.propertyName}
+                  </h2>
+                  <span className="text-xs text-gray-500 hidden sm:inline">Loyalty Program</span>
+                </div>
+                
+                <div className="flex items-center gap-2">
                   <div 
-                    className="px-3 py-1.5 rounded-full text-white text-sm font-semibold"
+                    className="px-3 py-1 rounded-lg text-white text-sm font-bold"
                     style={{ backgroundColor: primaryColor }}
                   >
                     {getDiscountDisplay()}
                   </div>
                   {isBasicProgram && (
-                    <span className="px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
-                      Basic Program
+                    <span className="px-2 py-0.5 bg-blue-500 text-white rounded text-xs font-semibold hidden sm:inline">
+                      Basic
                     </span>
                   )}
                   {isAdvancedProgram && (
-                    <span className="px-2 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium">
-                      Premium Program
+                    <span className="px-2 py-0.5 bg-purple-500 text-white rounded text-xs font-semibold hidden sm:inline">
+                      Premium
                     </span>
                   )}
                 </div>
               </div>
 
-              {/* Main Content - 3 Column Layout */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-                {/* Left Column - Logo Only */}
-                <div className="lg:col-span-3">
-                  {/* Logo Image */}
-                  {loyaltyLogo && (
-                    <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+              {/* Main Content Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
+                {/* Logo */}
+                <div className="lg:col-span-2">
+                  {loyaltyLogo ? (
+                    <div className="bg-gray-50 rounded-lg p-2 border border-gray-200">
                       <img 
                         src={loyaltyLogo} 
                         alt="Loyalty Program" 
-                        className="w-full h-auto rounded object-contain max-h-32"
+                        className="w-full h-auto rounded object-contain max-h-16"
                       />
+                    </div>
+                  ) : (
+                    <div 
+                      className="bg-gray-50 rounded-lg p-3 border flex items-center justify-center h-16"
+                      style={{ borderColor: `${primaryColor}20` }}
+                    >
+                      <Award className="w-8 h-8 opacity-20" style={{ color: primaryColor }} />
                     </div>
                   )}
                 </div>
 
-                {/* Middle Column - Loyalty Conditions (Terms) */}
+                {/* Program Terms */}
                 <div className="lg:col-span-6">
                   {program.loyaltyConditions && program.loyaltyConditions.filter(c => c.isActive).length > 0 && (
                     <div>
-                      <h3 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-1.5">
-                        <Award className="w-4 h-4" style={{ color: primaryColor }} />
+                      <h3 className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
+                        <Award className="w-3 h-3" style={{ color: primaryColor }} />
                         Program Terms
                       </h3>
-                      <div className="space-y-1.5 max-h-40 overflow-y-auto pr-2">
+                      <div className="space-y-1.5 max-h-24 overflow-y-auto custom-scrollbar">
                         {program.loyaltyConditions
                           .filter(condition => condition.isActive)
                           .map((condition, index) => (
                             <div 
                               key={index} 
-                              className="flex items-start gap-2 p-2 bg-gray-50 rounded-lg"
+                              className="flex items-start gap-2 bg-gray-50 rounded p-2"
                             >
-                              <div 
-                                className="w-1.5 h-1.5 rounded-full mt-1.5 flex-shrink-0" 
-                                style={{ backgroundColor: primaryColor }}
-                              ></div>
-                              <span className="text-xs text-gray-700 line-clamp-2">{condition.text}</span>
+                              <CheckCircle2 className="w-3 h-3 flex-shrink-0 mt-0.5" style={{ color: primaryColor }} />
+                              <span className="text-xs text-gray-700 line-clamp-1">{condition.text}</span>
                             </div>
                           ))}
                       </div>
@@ -281,14 +292,14 @@ export const LoyaltyProgramBanner = ({
                   )}
                 </div>
 
-                {/* Right Column - Special Benefits + Sign Up */}
-                <div className="lg:col-span-3 space-y-2">
+                {/* Benefits & CTA */}
+                <div className="lg:col-span-4 flex gap-2">
                   {/* Special Benefits */}
                   {program.loyaltySpecialConditions && program.loyaltySpecialConditions.filter(c => c.isActive).length > 0 && (
-                    <div>
-                      <h3 className="text-xs font-semibold text-gray-900 mb-1.5 flex items-center gap-1">
-                        <Star className="w-3.5 h-3.5" style={{ color: primaryColor }} />
-                        Special Benefits
+                    <div className="flex-1">
+                      <h3 className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
+                        <Star className="w-3 h-3" style={{ color: primaryColor }} />
+                        Benefits
                       </h3>
                       <div className="space-y-1.5">
                         {program.loyaltySpecialConditions
@@ -297,80 +308,53 @@ export const LoyaltyProgramBanner = ({
                           .map((condition, index) => (
                             <div 
                               key={index} 
-                              className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-md p-2 border border-purple-200"
+                              className="bg-gradient-to-br from-purple-50 to-blue-50 rounded p-2 border border-purple-200"
                             >
-                              <h4 className="font-semibold text-gray-900 text-xs leading-tight">
+                              <h4 className="font-semibold text-gray-900 text-xs line-clamp-1">
                                 {condition.title}
                               </h4>
-                              {condition.subTitle && (
-                                <p className="text-[10px] text-gray-600 line-clamp-1 mt-0.5">
-                                  {condition.subTitle}
-                                </p>
-                              )}
                             </div>
                           ))}
                         {program.loyaltySpecialConditions.filter(c => c.isActive).length > 2 && (
-                          <p className="text-[10px] text-gray-500 text-center mt-1">
-                            +{program.loyaltySpecialConditions.filter(c => c.isActive).length - 2} more benefits
+                          <p className="text-[9px] text-gray-500 text-center">
+                            +{program.loyaltySpecialConditions.filter(c => c.isActive).length - 2} more
                           </p>
                         )}
                       </div>
                     </div>
                   )}
                   
-                  {/* Sign Up Section or Registered Status */}
-                  <div className="flex flex-col items-center space-y-2 pt-1">
+                  {/* CTA */}
+                  <div className="flex-1">
                     {!isRegistered ? (
-                      <>
-                        <div className="text-center w-full">
-                          <h3 className="text-sm font-bold text-gray-900 mb-0.5">
-                            Join & Save
-                          </h3>
-                          <p className="text-[10px] text-gray-600 mb-2">
-                            Exclusive discounts on every booking
-                          </p>
-                        </div>
-
+                      <div className="h-full flex flex-col justify-center">
                         <button
                           onClick={() => setShowSignUpModal(true)}
-                          className="w-full px-4 py-2 rounded-lg text-white text-sm font-bold shadow-md hover:shadow-lg transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2"
+                          className="w-full px-3 py-2 rounded-lg text-white text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1.5"
                           style={{ backgroundColor: primaryColor }}
                         >
-                          <User className="w-4 h-4" />
-                          <span>Sign Up Now</span>
+                          <User className="w-3.5 h-3.5" />
+                          Sign Up
                         </button>
-                      </>
+                      </div>
                     ) : (
-                      <>
-                        <div className="text-center w-full">
-                          <h3 className="text-sm font-bold text-gray-900 mb-0.5">
-                            You're a Member! 🎉
-                          </h3>
-                          <p className="text-[10px] text-gray-600 mb-2">
-                            Loyalty discount will be applied at checkout
-                          </p>
-                        </div>
-
+                      <div className="space-y-1.5">
                         <div 
-                          className="w-full px-4 py-3 rounded-lg border-2 flex items-center justify-center gap-2"
-                          style={{ 
-                            borderColor: primaryColor,
-                            backgroundColor: `${primaryColor}10`
-                          }}
+                          className="rounded-lg p-2 text-center"
+                          style={{ backgroundColor: `${primaryColor}15` }}
                         >
-                          <User className="w-4 h-4" style={{ color: primaryColor }} />
-                          <span className="text-sm font-semibold text-gray-900">{registeredEmail}</span>
+                          <Award className="w-4 h-4 mx-auto mb-1" style={{ color: primaryColor }} />
+                          <p className="text-[9px] font-bold text-gray-900">Active Member</p>
                         </div>
-
-                        <div className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg">
-                          <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-                          </svg>
-                          <span className="text-xs font-medium text-green-700">
-                            {getDiscountDisplay()} Applied
-                          </span>
+                        <div 
+                          className="rounded-lg px-2 py-1.5 bg-green-600 text-center"
+                        >
+                          <p className="text-[10px] font-bold text-white">
+                            {getDiscountDisplay()}
+                          </p>
+                          <p className="text-[8px] text-white/90">Auto-applied</p>
                         </div>
-                      </>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -383,102 +367,88 @@ export const LoyaltyProgramBanner = ({
       {/* Sign Up Modal */}
       {showSignUpModal && (
         <Dialog open={showSignUpModal} onOpenChange={setShowSignUpModal}>
-          <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-2xl font-bold flex items-center gap-2">
-                <Award className="w-6 h-6" style={{ color: primaryColor }} />
-                Join {loyaltyProgram.propertyName} Loyalty Program
+              <DialogTitle className="text-xl font-bold flex items-center gap-2">
+                <Award className="w-5 h-5" style={{ color: primaryColor }} />
+                Join {loyaltyProgram.propertyName}
               </DialogTitle>
-              <DialogDescription>
-                Complete your registration to start enjoying member benefits
+              <DialogDescription className="text-sm">
+                Register to get {getDiscountDisplay()} on all bookings
               </DialogDescription>
             </DialogHeader>
 
-            <form onSubmit={handleSignUpSubmit} className="mt-6">
-              <div className="space-y-6">
-                {/* Discount Info Banner */}
+            <form onSubmit={handleSignUpSubmit} className="mt-4">
+              <div className="space-y-4">
+                {/* Discount Banner */}
                 <div 
-                  className="p-5 rounded-xl border-2"
+                  className="p-3 rounded-lg border flex items-center gap-3"
                   style={{ 
-                    backgroundColor: `${primaryColor}08`,
-                    borderColor: primaryColor
+                    backgroundColor: `${primaryColor}10`,
+                    borderColor: `${primaryColor}40`
                   }}
                 >
-                  <div className="flex items-center gap-1">
-                    <div 
-                      className="p-3 rounded-lg"
-                      style={{ backgroundColor: primaryColor }}
-                    >
-                      <Gift className="w-8 h-8 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <p className="font-bold text-gray-900 text-lg">
-                        Member Discount: {getDiscountDisplay()}
-                      </p>
-                      <p className="text-sm text-gray-600 mt-1">
-                        Applied automatically on all your bookings
-                      </p>
-                    </div>
+                  <div 
+                    className="p-2 rounded-lg"
+                    style={{ backgroundColor: primaryColor }}
+                  >
+                    <Gift className="w-5 h-5 text-white" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-gray-900 text-sm">
+                      {getDiscountDisplay()} Discount
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      Auto-applied on every booking
+                    </p>
                   </div>
                 </div>
 
-                {/* Registration Fields */}
-                <div>
-                  <h4 className="font-semibold text-gray-900 mb-4">Registration Information</h4>
-                  
-                  {program.LoyaltyProgramFieldConfig && 
-                   program.LoyaltyProgramFieldConfig.filter(field => field.visibleInRegistration).length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {/* Email field (required, prominently displayed) */}
-                      <div className="space-y-2 md:col-span-2">
-                        <Label htmlFor="email" className="text-sm font-medium">
-                          Email Address
-                          <span className="text-red-500 ml-1">*</span>
-                        </Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          placeholder="Enter your email address"
-                          required
-                          value={formData.email || ""}
-                          onChange={(e) => handleFieldChange("email", e.target.value)}
-                          className="w-full"
-                        />
-                      </div>
-
-                      {/* Other dynamic fields */}
-                      {program.LoyaltyProgramFieldConfig
-                        .filter(field => field.visibleInRegistration && field.fieldName.toLowerCase() !== 'email')
-                        .map((field) => (
-                          <div key={field.id} className="space-y-2">
-                            <Label htmlFor={field.fieldName} className="text-sm font-medium">
-                              {field.fieldName.replaceAll("_", " ")}
-                              {field.required && <span className="text-red-500 ml-1">*</span>}
-                            </Label>
-                            <Input
-                              id={field.fieldName}
-                              type="text"
-                              placeholder={`Enter ${field.fieldName.toLowerCase().replaceAll("_", " ")}`}
-                              required={field.required}
-                              value={formData[field.fieldName] || ""}
-                              onChange={(e) => handleFieldChange(field.fieldName, e.target.value)}
-                              className="w-full"
-                            />
-                          </div>
-                        ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-gray-500">
-                      No registration fields configured for this loyalty program.
-                    </div>
-                  )}
+                {/* Email Field */}
+                <div className="space-y-1.5">
+                  <Label htmlFor="email" className="text-sm font-medium">
+                    Email Address <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="your.email@example.com"
+                    required
+                    value={formData.email || ""}
+                    onChange={(e) => handleFieldChange("email", e.target.value)}
+                    className="w-full"
+                  />
                 </div>
 
-                
+                {/* Other Fields */}
+                {program.LoyaltyProgramFieldConfig && 
+                 program.LoyaltyProgramFieldConfig.filter(field => field.visibleInRegistration && field.fieldName.toLowerCase() !== 'email').length > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {program.LoyaltyProgramFieldConfig
+                      .filter(field => field.visibleInRegistration && field.fieldName.toLowerCase() !== 'email')
+                      .map((field) => (
+                        <div key={field.id} className="space-y-1.5">
+                          <Label htmlFor={field.fieldName} className="text-sm font-medium">
+                            {field.fieldName.charAt(0).toUpperCase() + field.fieldName.slice(1).replaceAll("_", " ")}
+                            {field.required && <span className="text-red-500">*</span>}
+                          </Label>
+                          <Input
+                            id={field.fieldName}
+                            type="text"
+                            placeholder={`Enter ${field.fieldName.toLowerCase().replaceAll("_", " ")}`}
+                            required={field.required}
+                            value={formData[field.fieldName] || ""}
+                            onChange={(e) => handleFieldChange(field.fieldName, e.target.value)}
+                            className="w-full"
+                          />
+                        </div>
+                      ))}
+                  </div>
+                )}
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex gap-3 mt-6">
+              {/* Buttons */}
+              <div className="flex gap-2 mt-6">
                 <Button
                   type="button"
                   variant="outline"
@@ -498,14 +468,14 @@ export const LoyaltyProgramBanner = ({
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
-                    <span className="flex items-center justify-center gap-2">
+                    <span className="flex items-center gap-1.5">
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                       Registering...
                     </span>
                   ) : (
-                    <span className="flex items-center justify-center gap-2">
+                    <span className="flex items-center gap-1.5">
                       <User className="w-4 h-4" />
-                      Complete Registration
+                      Sign Up
                     </span>
                   )}
                 </Button>
@@ -514,6 +484,23 @@ export const LoyaltyProgramBanner = ({
           </DialogContent>
         </Dialog>
       )}
+
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: ${primaryColor}40;
+          border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: ${primaryColor}60;
+        }
+      `}</style>
     </>
   );
 };

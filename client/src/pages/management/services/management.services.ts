@@ -11,6 +11,9 @@ import {
   getRoomAmenities,
   createRoomAmenities,
   deleteRoomAmenities,
+  getLoyaltyGuestFields,
+  createLoyaltyGuestFields,
+  deleteLoyaltyGuestField,
 } from "../api";
 
 // Category Services
@@ -272,6 +275,63 @@ export const deleteRoomAmenitiesService = async (amenities: string[]) => {
     return {
       success: false,
       message: error.message || "Failed to delete room amenities",
+    };
+  }
+};
+// Loyalty Guest Fields Services
+export const getLoyaltyGuestFieldsService = async () => {
+  try {
+    return await getLoyaltyGuestFields();
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || "Failed to fetch loyalty guest fields",
+    };
+  }
+};
+
+export const createLoyaltyGuestFieldsService = async (fields: string[]) => {
+  if (!fields || fields.length === 0) {
+    return {
+      success: false,
+      message: "At least one field is required",
+    };
+  }
+
+  // Validate each field
+  for (const field of fields) {
+    if (!field || field.trim().length < 2) {
+      return {
+        success: false,
+        message: "Each field name must be at least 2 characters long",
+      };
+    }
+  }
+
+  try {
+    return await createLoyaltyGuestFields(fields.map(f => f.trim()));
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || "Failed to create loyalty guest fields",
+    };
+  }
+};
+
+export const deleteLoyaltyGuestFieldService = async (id: string) => {
+  if (!id) {
+    return {
+      success: false,
+      message: "Field ID is required",
+    };
+  }
+
+  try {
+    return await deleteLoyaltyGuestField(id);
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || "Failed to delete loyalty guest field",
     };
   }
 };

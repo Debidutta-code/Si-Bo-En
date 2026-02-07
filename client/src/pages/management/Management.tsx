@@ -7,9 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Tag, Home, Sparkles } from "lucide-react";
+import { Plus, Trash2, Tag, Home, Sparkles, Users } from "lucide-react";
 import toast from "react-hot-toast";
-import type { ICategory, IPropertyType, IAmenity } from "./types";
+import type { ICategory, IPropertyType, IAmenity, ILoyaltyGuestField } from "./types";
 import {
   getCategoriesService,
   createCategoryService,
@@ -23,6 +23,9 @@ import {
   getRoomAmenitiesService,
   createRoomAmenitiesService,
   deleteRoomAmenitiesService,
+  getLoyaltyGuestFieldsService,
+  createLoyaltyGuestFieldsService,
+  deleteLoyaltyGuestFieldService,
 } from "./services/management.services";
 
 export default function ManagementPage() {
@@ -31,12 +34,14 @@ export default function ManagementPage() {
   const [propertyTypes, setPropertyTypes] = useState<IPropertyType[]>([]);
   const [propertyAmenities, setPropertyAmenities] = useState<IAmenity[]>([]);
   const [roomAmenities, setRoomAmenities] = useState<IAmenity[]>([]);
+  const [loyaltyGuestFields, setLoyaltyGuestFields] = useState<ILoyaltyGuestField[]>([]);
 
   // Dialog states
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [isPropertyTypeDialogOpen, setIsPropertyTypeDialogOpen] = useState(false);
   const [isPropertyAmenityDialogOpen, setIsPropertyAmenityDialogOpen] = useState(false);
   const [isRoomAmenityDialogOpen, setIsRoomAmenityDialogOpen] = useState(false);
+  const [isLoyaltyFieldDialogOpen, setIsLoyaltyFieldDialogOpen] = useState(false);
 
   // Form states
   const [categoryForm, setCategoryForm] = useState({ name: "", description: "" });
@@ -44,6 +49,8 @@ export default function ManagementPage() {
   const [propertyAmenityInput, setPropertyAmenityInput] = useState("");
   const [roomAmenityInput, setRoomAmenityInput] = useState("");
   const [amenitiesList, setAmenitiesList] = useState<string[]>([]);
+  const [loyaltyFieldInput, setLoyaltyFieldInput] = useState("");
+  const [loyaltyFieldsList, setLoyaltyFieldsList] = useState<string[]>([]);
 
   useEffect(() => {
     fetchAllData();
@@ -52,17 +59,19 @@ export default function ManagementPage() {
   const fetchAllData = async () => {
     setLoading(true);
     try {
-      const [catRes, propTypeRes, propAmenRes, roomAmenRes] = await Promise.all([
+      const [catRes, propTypeRes, propAmenRes, roomAmenRes, loyaltyFieldsRes] = await Promise.all([
         getCategoriesService(),
         getPropertyTypesService(),
         getPropertyAmenitiesService("property"),
         getRoomAmenitiesService(),
+        getLoyaltyGuestFieldsService(),
       ]);
 
       if (catRes.success) setCategories(catRes.data);
       if (propTypeRes.success) setPropertyTypes(propTypeRes.data);
       if (propAmenRes.success) setPropertyAmenities(propAmenRes.data);
       if (roomAmenRes.success) setRoomAmenities(roomAmenRes.data);
+      if (loyaltyFieldsRes.success) setLoyaltyGuestFields(loyaltyFieldsRes.data);
     } catch (error: any) {
       toast.error("Failed to fetch management data");
     } finally {
@@ -183,6 +192,43 @@ export default function ManagementPage() {
     }
   };
 
+  // Loyalty Guest Fields handlers
+  const handleAddLoyaltyFieldToList = () => {
+    if (!loyaltyFieldInput.trim()) return;
+    if (loyaltyFieldsList.includes(loyaltyFieldInput.trim())) {
+      toast.error("Field already added");
+      return;
+    }
+    setLoyaltyFieldsList([...loyaltyFieldsList, loyaltyFieldInput.trim()]);
+    setLoyaltyFieldInput("");
+  };
+
+  const handleCreateLoyaltyFields = async () => {
+    const response = await createLoyaltyGuestFieldsService(loyaltyFieldsList);
+    if (response.success) {
+      toast.success("Loyalty fields created successfully");
+      // Refetch to get updated data
+      const fieldsRes = await getLoyaltyGuestFieldsService();
+      if (fieldsRes.success) setLoyaltyGuestFields(fieldsRes.data);
+      setLoyaltyFieldsList([]);
+      setIsLoyaltyFieldDialogOpen(false);
+    } else {
+      toast.error(response.message || "Failed to create loyalty fields");
+    }
+  };
+
+  const handleDeleteLoyaltyField = async (id: string) => {
+    const response = await deleteLoyaltyGuestFieldService(id);
+    if (response.success) {
+      toast.success("Loyalty field deleted successfully");
+      // Refetch to get updated data
+      const fieldsRes = await getLoyaltyGuestFieldsService();
+      if (fieldsRes.success) setLoyaltyGuestFields(fieldsRes.data);
+    } else {
+      toast.error(response.message || "Failed to delete loyalty field");
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen w-full flex justify-center items-center">
@@ -201,7 +247,7 @@ export default function ManagementPage() {
       </div>
 
       <Tabs defaultValue="categories" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="categories">
             <Tag className="h-4 w-4 mr-2" />
             Categories
@@ -217,6 +263,10 @@ export default function ManagementPage() {
           <TabsTrigger value="room-amenities">
             <Sparkles className="h-4 w-4 mr-2" />
             Room Amenities
+          </TabsTrigger>
+          <TabsTrigger value="loyalty-fields">
+            <Users className="h-4 w-4 mr-2" />
+            Loyalty Fields
           </TabsTrigger>
         </TabsList>
 
@@ -569,6 +619,95 @@ export default function ManagementPage() {
                 {roomAmenities.length === 0 && (
                   <div className="w-full text-center py-12 text-gray-500">
                     No room amenities found. Create your first amenity to get started.
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Loyalty Guest Fields Tab */}
+        <TabsContent value="loyalty-fields">
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle>Loyalty Guest Registration Fields</CardTitle>
+                  <CardDescription>Manage custom fields for loyalty program registration</CardDescription>
+                </div>
+                <Dialog open={isLoyaltyFieldDialogOpen} onOpenChange={setIsLoyaltyFieldDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Fields
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Create Loyalty Registration Fields</DialogTitle>
+                      <DialogDescription>Add new custom fields for guest registration</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div className="flex gap-2">
+                        <Input
+                          value={loyaltyFieldInput}
+                          onChange={(e) => setLoyaltyFieldInput(e.target.value)}
+                          placeholder="e.g., Phone Number, Date of Birth"
+                          onKeyPress={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleAddLoyaltyFieldToList();
+                            }
+                          }}
+                        />
+                        <Button onClick={handleAddLoyaltyFieldToList}>Add</Button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {loyaltyFieldsList.map((field, index) => (
+                          <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                            {field}
+                            <button
+                              onClick={() => setLoyaltyFieldsList(loyaltyFieldsList.filter((_, i) => i !== index))}
+                              className="ml-1 hover:text-red-500"
+                            >
+                              ×
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setIsLoyaltyFieldDialogOpen(false);
+                          setLoyaltyFieldsList([]);
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button onClick={handleCreateLoyaltyFields}>Create All</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {loyaltyGuestFields.map((field) => (
+                  <Badge key={field.id} variant="outline" className="text-sm py-2 px-3">
+                    {field.fieldName}
+                    <button
+                      onClick={() => handleDeleteLoyaltyField(field.id)}
+                      className="ml-2 hover:text-red-500"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+                {loyaltyGuestFields.length === 0 && (
+                  <div className="w-full text-center py-12 text-gray-500">
+                    No loyalty fields found. Create your first field to get started.
                   </div>
                 )}
               </div>
