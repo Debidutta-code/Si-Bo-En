@@ -13,19 +13,16 @@ const propertyLoyalityController = new PropertyLoyalityController();
 router.route("/")
     .post(
         protect,
-        checkRoleBased("canCreatePolicy"),
         propertyLoyalityController.createPropertyLoyalityConfig.bind(propertyLoyalityController)
     );
 router.route("/by-program/:loyaltyProgramId")
     .get(
         protect,
-        checkRoleBased("canViewHotel"),
         propertyLoyalityController.getPropertiesByLoyaltyProgram.bind(propertyLoyalityController)
     );
 router.route("/:propertyId")
     .get(
         protect,
-        checkRoleBased("canViewHotel"),
         attachPropertyDetails({
             identifierType: "id",
             key: "propertyId",
@@ -37,20 +34,17 @@ router.route("/:propertyId")
 router.route("/config/:propertyId")
     .patch(
         protect,
-        checkRoleBased("canUpdatePolicy"),
         propertyLoyalityController.updatePropertyLoyalityConfig.bind(propertyLoyalityController)
     )
     
     .delete(
         protect,
-        checkRoleBased("canDeletePolicy"),
         propertyLoyalityController.deletePropertyLoyalityConfig.bind(propertyLoyalityController)
     );
 
 router.route("/all/:propertyId")
     .get(
         protect,
-        checkRoleBased("canViewHotel"),
         attachPropertyDetails({
             identifierType: "id",
             key: "propertyId",
@@ -62,7 +56,6 @@ router.route("/all/:propertyId")
 router.route("/active/:propertyId")
     .get(
         protect,
-        checkRoleBased("canViewHotel"),
         attachPropertyDetails({
             identifierType: "id",
             key: "propertyId",

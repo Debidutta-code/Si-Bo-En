@@ -13,31 +13,26 @@ const advanceLoyaltyProgramController = new AdvanceLoyaltyProgramController();
 router.route("/")
     .post(
         protect,
-        checkRoleBased("canCreatePolicy"),
-        loyalityProgramController.createLoyaltyProgram.bind(loyalityProgramController)
+       loyalityProgramController.createLoyaltyProgram.bind(loyalityProgramController)
     );
 
 router.route("/:loyaltyProgramId")
     .get(
         protect,
-        checkRoleBased("canViewHotel"),
         loyalityProgramController.getLoyaltyProgram.bind(loyalityProgramController)
     )
     .patch(
         protect,
-        checkRoleBased("canUpdatePolicy"),
         loyalityProgramController.updateLoyaltyProgram.bind(loyalityProgramController)
     )
     .delete(
         protect,
-        checkRoleBased("canDeletePolicy"),
         loyalityProgramController.deleteLoyaltyProgram.bind(loyalityProgramController)
     );
 
 router.route("/creation/:creationId")
     .get(
         protect,
-        checkRoleBased("canViewHotel"),
         loyalityProgramController.getLoyaltyProgramByCreationId.bind(loyalityProgramController)
     );
 
@@ -45,28 +40,24 @@ router.route("/creation/:creationId")
 router.route("/advance")
     .post(
         protect,
-        checkRoleBased("canCreatePolicy"),
         advanceLoyaltyProgramController.createAdvanceLoyaltyProgram.bind(advanceLoyaltyProgramController)
     );
 
 router.route("/advance/:loyaltyProgramId")
     .get(
         protect,
-        checkRoleBased("canViewHotel"),
         advanceLoyaltyProgramController.getAdvanceLoyaltyProgram.bind(advanceLoyaltyProgramController)
     );
 
 router.route("/advance/update/:id")
     .patch(
         protect,
-        checkRoleBased("canUpdatePolicy"),
         advanceLoyaltyProgramController.updateAdvanceLoyaltyProgram.bind(advanceLoyaltyProgramController)
     );
 
 router.route("/advance/delete/:id")
     .delete(
         protect,
-        checkRoleBased("canDeletePolicy"),
         advanceLoyaltyProgramController.deleteAdvanceLoyaltyProgram.bind(advanceLoyaltyProgramController)
     );
 

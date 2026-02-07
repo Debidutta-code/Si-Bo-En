@@ -12,31 +12,26 @@ const loyalityFieldController = new LoyalityFieldController();
 router.route("/")
     .post(
         protect,
-        checkRoleBased("canCreatePolicy"),
         loyalityFieldController.createField.bind(loyalityFieldController)
     );
 router.route("/update-many/:loyaltyProgramId")
     .patch(
         protect,
-        checkRoleBased("canUpdatePolicy"),
         loyalityFieldController.updateManyFields.bind(loyalityFieldController)
     );
 router.route("/:loyaltyProgramId")
     .get(
         protect,
-        checkRoleBased("canViewHotel"),
         loyalityFieldController.getFields.bind(loyalityFieldController)
     );
 
 router.route("/:loyaltyProgramId/:fieldName")
     .patch(
         protect,
-        checkRoleBased("canUpdatePolicy"),
         loyalityFieldController.updateField.bind(loyalityFieldController)
     )
     .delete(
         protect,
-        checkRoleBased("canDeletePolicy"),
         loyalityFieldController.deleteField.bind(loyalityFieldController)
     );
 

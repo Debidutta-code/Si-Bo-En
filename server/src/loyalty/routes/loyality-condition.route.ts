@@ -13,26 +13,22 @@ const loyalitySpecialConditionController = new LoyalitySpecialConditionControlle
 router.route("/")
     .post(
         protect,
-        checkRoleBased("canCreatePolicy"),
         loyalityConditionController.createCondition.bind(loyalityConditionController)
     );
 
 router.route("/:id")
     .patch(
         protect,
-        checkRoleBased("canUpdatePolicy"),
         loyalityConditionController.updateCondition.bind(loyalityConditionController)
     )
     .delete(
         protect,
-        checkRoleBased("canDeletePolicy"),
         loyalityConditionController.deleteCondition.bind(loyalityConditionController)
     );
 
 router.route("/program/:loyaltyProgramId")
     .get(
         protect,
-        checkRoleBased("canViewHotel"),
         loyalityConditionController.getConditionsByProgramId.bind(loyalityConditionController)
     );
 
@@ -40,26 +36,22 @@ router.route("/program/:loyaltyProgramId")
 router.route("/special")
     .post(
         protect,
-        checkRoleBased("canCreatePolicy"),
         loyalitySpecialConditionController.createSpecialCondition.bind(loyalitySpecialConditionController)
     );
 
 router.route("/special/:id")
     .patch(
         protect,
-        checkRoleBased("canUpdatePolicy"),
         loyalitySpecialConditionController.updateSpecialCondition.bind(loyalitySpecialConditionController)
     )
     .delete(
         protect,
-        checkRoleBased("canDeletePolicy"),
         loyalitySpecialConditionController.deleteSpecialCondition.bind(loyalitySpecialConditionController)
     );
 
 router.route("/special/program/:loyaltyProgramId")
     .get(
         protect,
-        checkRoleBased("canViewHotel"),
         loyalitySpecialConditionController.getSpecialConditionsByProgramId.bind(loyalitySpecialConditionController)
     );
 

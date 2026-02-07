@@ -5,6 +5,7 @@ import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
 
 import {config} from "./config/index"
+import { globalActivityLogger } from './middlewares/globalActivityLogger.middleware';
 export const app = express();
 
 app.use(
@@ -33,6 +34,7 @@ app.use(
     extended: true,
   })
 );
+app.use(globalActivityLogger);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
