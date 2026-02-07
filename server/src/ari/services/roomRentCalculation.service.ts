@@ -407,7 +407,10 @@ export class RoomRentCalculationService {
             const ratePlanWithAddons = await this.ratePlanWithAddonsService(
                 ratePlanCode,
                 startDate,
-                endDate
+                endDate,
+                noOfAdults,
+                noOfChildren,
+                noOfRooms
             );
 
             if (ratePlanWithAddons.success) {
@@ -1409,7 +1412,10 @@ export class RoomRentCalculationService {
     private static async ratePlanWithAddonsService(
         ratePlanCode: string,
         checkInDate: Date,
-        checkOutDate: Date
+        checkOutDate: Date,
+        noOfAdults:number,
+        noOfChildren:number,
+        noOfRooms:number
     ): Promise<IApiResponse> {
         try {
             const ratePlan = await RoomRentCalculationRepository.getRatePlanDetails(ratePlanCode);
@@ -1421,7 +1427,7 @@ export class RoomRentCalculationService {
             // ✅ Extract the actual addon IDs from the junction table
             const addonIds = ratePlan.Addons.map((ratePlanAddon: any) => ratePlanAddon.addonId);
 
-            return await this.normalAddonsService(addonIds, checkInDate, checkOutDate);
+            return await this.normalAddonsService(addonIds, checkInDate, checkOutDate,noOfAdults,noOfChildren,noOfRooms);
         } catch (error) {
             if (error instanceof Error) {
                 return errorResponse("Failed to calculate rate plan with addons", error.message);
@@ -1429,7 +1435,7 @@ export class RoomRentCalculationService {
             return errorResponse("Failed to calculate rate plan with addons");
         }
     }
-    private static async normalAddonsService(addOnIds: string[], checkInDate: Date, checkOutDate: Date): Promise<IApiResponse> {
+    private static async normalAddonsService(addOnIds: string[], checkInDate: Date, checkOutDate: Date ,noOfAdults:number,noOfChildren:number, noOfRooms:number): Promise<IApiResponse> {
         try {
             const addons = await RoomRentCalculationRepository.findAddonsForReservations(addOnIds, checkInDate, checkOutDate);
             if (addons.length === 0) {
@@ -1451,6 +1457,7 @@ export class RoomRentCalculationService {
 
                 let addonAmount = 0;
                 const availabilityCount = addon.availability.length;
+                const totalGuests =noOfAdults+noOfChildren;
 
                 // Calculate price based on posting rhythm
                 switch (addon.postingRhythm) {
@@ -1463,23 +1470,23 @@ export class RoomRentCalculationService {
                         break;
 
                     case 'per_person_per_night':
-                        addonAmount = addon.availability.reduce((sum: number, avail: any) => sum + avail.price, 0);
+                        addonAmount = addon.availability.reduce((sum: number, avail: any) => sum + avail.price, 0)*totalGuests;
                         break;
 
                     case 'per_person_per_stay':
-                        addonAmount = addon.availability[0].price;
+                         addonAmount = addon.availability[0].price * totalGuests; // ✅ FIX
                         break;
 
                     case 'per_room':
-                        addonAmount = addon.availability[0].price;
+                        addonAmount = addon.availability[0].price * noOfRooms; // ✅ FIX
                         break;
 
                     case 'per_room_per_night':
-                        addonAmount = addon.availability.reduce((sum: number, avail: any) => sum + avail.price, 0);
+                        addonAmount = addon.availability.reduce((sum, avail) => sum + avail.price, 0) * noOfRooms; // ✅ FIX
                         break;
 
                     case 'per_person_per_room':
-                        addonAmount = addon.availability[0].price;
+                        addonAmount = addon.availability[0].price * totalGuests * noOfRooms; // ✅ FIX
                         break;
 
                     default:

@@ -27,7 +27,6 @@ export class TouristTaxService {
             const ratePlan = await RatePlanRepository.getRatePlanByCode(
                 touristTaxData.ratePlanCode,
             );
-            console.log("gt here",typeof touristTaxData.discountValue);
 
             if (!ratePlan) {
                 return errorResponse('Rate plan not found or does not belong to this property');

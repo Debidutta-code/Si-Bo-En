@@ -285,7 +285,7 @@ export default function ReservationsTable({
                 {reservation.bookingSource}
                 </TableCell>
                 <TableCell>{reservation.finalPrice?.totalAmount}</TableCell>
-                <TableCell>{reservation.finalPrice?.subtotal}</TableCell>
+                <TableCell>{reservation.finalPrice?.totalAmount-reservation.finalPrice?.totalTax}</TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
