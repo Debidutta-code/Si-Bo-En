@@ -1,30 +1,51 @@
 "use client";
 
-import { Calendar, Filter, Building2, X, Search, Globe, Smartphone } from "lucide-react";
+import {
+  Calendar,
+  Filter,
+  Building2,
+  X,
+  Search,
+  Globe,
+  Smartphone,
+  Download,
+} from "lucide-react";
 import type { IReservationFilters, IProperty } from "../types";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { countries } from "../utils/country.utils";
 
+// Change the interface - remove PDF handler
 interface ReservationFiltersProps {
   filters: IReservationFilters;
   onFilterChange: (filters: Partial<IReservationFilters>) => void;
   properties: IProperty[];
   onClearFilters: () => void;
+  onDownloadReservationsExcel?: () => void; // Only Excel
+  isDownloading?: boolean;
 }
 
 export default function ReservationFilters({
   filters,
   onFilterChange,
   properties,
-  onClearFilters
+  onClearFilters,
+  onDownloadReservationsExcel,
+  isDownloading = false,
 }: ReservationFiltersProps) {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
-  
+
   // Local state for filters before applying
-  const [localFilters, setLocalFilters] = useState<IReservationFilters>(filters);
-  
+  const [localFilters, setLocalFilters] =
+    useState<IReservationFilters>(filters);
+
   // Track if advanced filters have changed
   const [advancedFiltersChanged, setAdvancedFiltersChanged] = useState(false);
 
@@ -34,15 +55,20 @@ export default function ReservationFilters({
     setAdvancedFiltersChanged(false);
   }, [filters]);
 
-  const handleLocalFilterChange = (newFilters: Partial<IReservationFilters>, isAdvanced: boolean = false) => {
-    setLocalFilters(prev => ({ ...prev, ...newFilters }));
+  const handleLocalFilterChange = (
+    newFilters: Partial<IReservationFilters>,
+    isAdvanced: boolean = false,
+  ) => {
+    setLocalFilters((prev) => ({ ...prev, ...newFilters }));
     if (isAdvanced) {
       setAdvancedFiltersChanged(true);
     }
   };
 
   // Auto-apply for basic filters
-  const handleBasicFilterChange = (newFilters: Partial<IReservationFilters>) => {
+  const handleBasicFilterChange = (
+    newFilters: Partial<IReservationFilters>,
+  ) => {
     const updatedFilters = { ...localFilters, ...newFilters };
     setLocalFilters(updatedFilters);
     onFilterChange({ ...updatedFilters, page: 1 });
@@ -55,73 +81,86 @@ export default function ReservationFilters({
 
   const handleLocalClearFilters = () => {
     const clearedFilters = {
-      startDate: new Date().toISOString().split('T')[0],
-      endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      dateFilterType: 'checkin' as const,
+      startDate: new Date().toISOString().split("T")[0],
+      endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0],
+      dateFilterType: "checkin" as const,
       page: 1,
       limit: 10,
-      bookingStatus: 'all' as const,
-      reservationType: 'all' as const,
-      bookingSource: 'all' as const,
-      deviceType: 'all' as const
+      bookingStatus: "all" as const,
+      reservationType: "all" as const,
+      bookingSource: "all" as const,
+      deviceType: "all" as const,
     };
     setLocalFilters(clearedFilters);
     setAdvancedFiltersChanged(false);
     onClearFilters();
   };
 
-  const handleDateChange = (field: 'startDate' | 'endDate', value: string) => {
+  const handleDateChange = (field: "startDate" | "endDate", value: string) => {
     handleBasicFilterChange({ [field]: value });
   };
 
   const handlePropertyChange = (propertyId: string) => {
-    if (propertyId === 'all') {
-      handleBasicFilterChange({ propertyId: undefined, propertyCode: undefined });
+    if (propertyId === "all") {
+      handleBasicFilterChange({
+        propertyId: undefined,
+        propertyCode: undefined,
+      });
     } else {
-      const selectedProperty = properties.find(p => p.id === propertyId);
+      const selectedProperty = properties.find((p) => p.id === propertyId);
       handleBasicFilterChange({
         propertyId: selectedProperty?.id,
-        propertyCode: selectedProperty?.code
+        propertyCode: selectedProperty?.code,
       });
     }
   };
 
-  const handleReservationTypeChange = (type: IReservationFilters['reservationType']) => {
+  const handleReservationTypeChange = (
+    type: IReservationFilters["reservationType"],
+  ) => {
     handleBasicFilterChange({ reservationType: type });
   };
 
-  const handleStatusChange = (status: IReservationFilters['bookingStatus']) => {
+  const handleStatusChange = (status: IReservationFilters["bookingStatus"]) => {
     handleBasicFilterChange({ bookingStatus: status });
   };
 
-  const handleDateFilterTypeChange = (dateFilterType: 'checkin' | 'booking' | 'modification') => {
+  const handleDateFilterTypeChange = (
+    dateFilterType: "checkin" | "booking" | "modification",
+  ) => {
     handleBasicFilterChange({ dateFilterType });
   };
 
-  const handleBookingSourceChange = (source: IReservationFilters['bookingSource']) => {
+  const handleBookingSourceChange = (
+    source: IReservationFilters["bookingSource"],
+  ) => {
     handleLocalFilterChange({ bookingSource: source }, true);
   };
 
-  const handleDeviceTypeChange = (deviceType: IReservationFilters['deviceType']) => {
+  const handleDeviceTypeChange = (
+    deviceType: IReservationFilters["deviceType"],
+  ) => {
     handleLocalFilterChange({ deviceType: deviceType }, true);
   };
 
   const getDateFilterLabel = () => {
     switch (localFilters.dateFilterType) {
-      case 'booking':
-        return 'Booking Date';
-      case 'modification':
-        return 'Modification Date';
+      case "booking":
+        return "Booking Date";
+      case "modification":
+        return "Modification Date";
       default:
-        return 'Check-in Date';
+        return "Check-in Date";
     }
   };
 
-  const hasActiveFilters = 
-    localFilters.propertyId || 
-    localFilters.bookingStatus !== 'all' ||
-    localFilters.bookingSource !== 'all' ||
-    localFilters.deviceType !== 'all' ||
+  const hasActiveFilters =
+    localFilters.propertyId ||
+    localFilters.bookingStatus !== "all" ||
+    localFilters.bookingSource !== "all" ||
+    localFilters.deviceType !== "all" ||
     localFilters.bookingCode ||
     localFilters.guestName ||
     localFilters.promoCode ||
@@ -139,7 +178,7 @@ export default function ReservationFilters({
             onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
             className="text-sm text-primary hover:text-primary/90 transition-colors"
           >
-            {showAdvancedFilters ? 'Hide' : 'Show'} Advanced Filters
+            {showAdvancedFilters ? "Hide" : "Show"} Advanced Filters
           </button>
           {hasActiveFilters && (
             <button
@@ -164,7 +203,7 @@ export default function ReservationFilters({
               Date Filter Type
             </label>
             <Select
-              value={localFilters.dateFilterType || 'checkin'}
+              value={localFilters.dateFilterType || "checkin"}
               onValueChange={handleDateFilterTypeChange}
             >
               <SelectTrigger className="w-full">
@@ -184,8 +223,8 @@ export default function ReservationFilters({
             </label>
             <input
               type="date"
-              value={localFilters.startDate || ''}
-              onChange={(e) => handleDateChange('startDate', e.target.value)}
+              value={localFilters.startDate || ""}
+              onChange={(e) => handleDateChange("startDate", e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
             />
           </div>
@@ -196,8 +235,8 @@ export default function ReservationFilters({
             </label>
             <input
               type="date"
-              value={localFilters.endDate || ''}
-              onChange={(e) => handleDateChange('endDate', e.target.value)}
+              value={localFilters.endDate || ""}
+              onChange={(e) => handleDateChange("endDate", e.target.value)}
               min={localFilters.startDate}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
             />
@@ -210,7 +249,7 @@ export default function ReservationFilters({
               Property
             </label>
             <select
-              value={localFilters.propertyId || 'all'}
+              value={localFilters.propertyId || "all"}
               onChange={(e) => handlePropertyChange(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
             >
@@ -229,7 +268,7 @@ export default function ReservationFilters({
               Status
             </label>
             <select
-              value={localFilters.bookingStatus || 'all'}
+              value={localFilters.bookingStatus || "all"}
               onChange={(e) => handleStatusChange(e.target.value as any)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
             >
@@ -248,14 +287,16 @@ export default function ReservationFilters({
       {showAdvancedFilters && (
         <div className="mt-4 pt-4 border-t border-gray-200">
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-sm font-semibold text-gray-900">Advanced Filters</h4>
+            <h4 className="text-sm font-semibold text-gray-900">
+              Advanced Filters
+            </h4>
             {advancedFiltersChanged && (
               <span className="text-xs text-amber-600 font-medium">
                 Click "Apply Filters" to search
               </span>
             )}
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Booking Source */}
             <div>
@@ -263,8 +304,10 @@ export default function ReservationFilters({
                 Booking Source
               </label>
               <select
-                value={localFilters.bookingSource || 'all'}
-                onChange={(e) => handleBookingSourceChange(e.target.value as any)}
+                value={localFilters.bookingSource || "all"}
+                onChange={(e) =>
+                  handleBookingSourceChange(e.target.value as any)
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
               >
                 <option value="all">All Sources</option>
@@ -284,7 +327,7 @@ export default function ReservationFilters({
                 Device Type
               </label>
               <select
-                value={localFilters.deviceType || 'all'}
+                value={localFilters.deviceType || "all"}
                 onChange={(e) => handleDeviceTypeChange(e.target.value as any)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
               >
@@ -304,8 +347,13 @@ export default function ReservationFilters({
               <input
                 type="text"
                 placeholder="Search by booking code"
-                value={localFilters.bookingCode || ''}
-                onChange={(e) => handleLocalFilterChange({ bookingCode: e.target.value.toUpperCase() || undefined }, true)}
+                value={localFilters.bookingCode || ""}
+                onChange={(e) =>
+                  handleLocalFilterChange(
+                    { bookingCode: e.target.value.toUpperCase() || undefined },
+                    true,
+                  )
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
@@ -319,8 +367,13 @@ export default function ReservationFilters({
               <input
                 type="text"
                 placeholder="Search by guest name"
-                value={localFilters.guestName || ''}
-                onChange={(e) => handleLocalFilterChange({ guestName: e.target.value || undefined }, true)}
+                value={localFilters.guestName || ""}
+                onChange={(e) =>
+                  handleLocalFilterChange(
+                    { guestName: e.target.value || undefined },
+                    true,
+                  )
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
@@ -333,8 +386,13 @@ export default function ReservationFilters({
               <input
                 type="text"
                 placeholder="Search by promo code"
-                value={localFilters.promoCode || ''}
-                onChange={(e) => handleLocalFilterChange({ promoCode: e.target.value.toUpperCase() || undefined }, true)}
+                value={localFilters.promoCode || ""}
+                onChange={(e) =>
+                  handleLocalFilterChange(
+                    { promoCode: e.target.value.toUpperCase() || undefined },
+                    true,
+                  )
+                }
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-primary focus:border-transparent"
               />
             </div>
@@ -346,8 +404,13 @@ export default function ReservationFilters({
                 Source Market
               </label>
               <Select
-                value={localFilters.countryCode || 'all'}
-                onValueChange={(value) => handleLocalFilterChange({ countryCode: value === 'all' ? undefined : value }, true)}
+                value={localFilters.countryCode || "all"}
+                onValueChange={(value) =>
+                  handleLocalFilterChange(
+                    { countryCode: value === "all" ? undefined : value },
+                    true,
+                  )
+                }
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select country" />
@@ -369,43 +432,59 @@ export default function ReservationFilters({
         </div>
       )}
 
-      {/* Reservation Type Tabs - Auto Apply */}
-      <div className="mt-4 border-t pt-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Reservation Type
-        </label>
-        <div className="flex flex-wrap gap-2">
-          {[
-            { value: 'all', label: 'All Reservations' },
-            { value: 'arrivals', label: 'Arrivals' },
-            { value: 'departures', label: 'Departures' },
-          ].map((type) => (
-            <button
-              key={type.value}
-              onClick={() => handleReservationTypeChange(type.value as any)}
-              className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
-                localFilters.reservationType === type.value
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
-            >
-              {type.label}
-            </button>
-          ))}
-        </div>
-      </div>
+     <div className="mt-4 border-t pt-4">
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    Reservation Type
+  </label>
+
+  <div className="flex flex-col md:flex-row md:items-center gap-3">
+    {/* Reservation Type Buttons */}
+    <div className="flex flex-wrap gap-2">
+      {[
+        { value: "all", label: "All Reservations" },
+        { value: "arrivals", label: "Arrivals" },
+        { value: "departures", label: "Departures" },
+      ].map((type) => (
+        <button
+          key={type.value}
+          onClick={() => handleReservationTypeChange(type.value as any)}
+          className={`px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+            localFilters.reservationType === type.value
+              ? "bg-primary text-primary-foreground"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+          }`}
+        >
+          {type.label}
+        </button>
+      ))}
+    </div>
+
+    {/* Download Button */}
+    {localFilters.propertyId && (
+      <button
+        onClick={onDownloadReservationsExcel}
+        disabled={isDownloading}
+        className="md:ml-auto flex items-center gap-2 px-3 py-2 bg-primary text-white rounded-md  transition-colors disabled:opacity-50 text-sm"
+      >
+        <Download className="w-4 h-4" />
+        {isDownloading ? "Downloading..." : "Download Excel"}
+      </button>
+    )}
+  </div>
+</div>
+
 
       {/* Apply Filters Button - Only for Advanced Filters */}
       {showAdvancedFilters && (
         <div className="mt-6 flex justify-end gap-3">
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             onClick={handleLocalClearFilters}
             disabled={!hasActiveFilters}
           >
             Reset
           </Button>
-          <Button 
+          <Button
             onClick={handleApplyFilters}
             disabled={!advancedFiltersChanged}
           >

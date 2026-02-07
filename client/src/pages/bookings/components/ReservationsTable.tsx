@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MoreVertical, Eye, Edit, XCircle, X, AlertTriangle, EyeOff } from "lucide-react";
+import { MoreVertical, Eye, Edit, XCircle, X, AlertTriangle, EyeOff, FileText } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -19,6 +19,10 @@ import {
 import type { IReservation } from "../types";
 import ReservationCard from "./ReservationCard";
 import NoShowConfirmationModal from "./NoShowModal";
+import { 
+  // downloadBookingInvoice, 
+  downloadBookingVoucher } from "../api/reservation.api";
+import toast from "react-hot-toast";
 
 // Modal to show ReservationCard
 interface ViewDetailsModalProps {
@@ -222,7 +226,28 @@ export default function ReservationsTable({
       setIsMarkingNoShow(false);
     }
   };
+// Add these functions inside your ReservationsTable component
+const handleDownloadVoucher = async (bookingCode: string) => {
+  try {
+    const response = await downloadBookingVoucher(bookingCode);
+    if (!response.success) {
+      toast.error(response.message || "Failed to download voucher");
+    }
+  } catch (error) {
+    toast.error("Failed to download voucher");
+  }
+};
 
+// const handleDownloadInvoice = async (bookingCode: string) => {
+//   try {
+//     const response = await downloadBookingInvoice(bookingCode);
+//     if (!response.success) {
+//       toast.error(response.message || "Failed to download invoice");
+//     }
+//   } catch (error) {
+//     toast.error("Failed to download invoice");
+//   }
+// };
   return (
     <>
       <div className="bg-card rounded-lg border border-border overflow-hidden">
@@ -301,6 +326,20 @@ export default function ReservationsTable({
                         <Eye className="w-4 h-4 mr-3" />
                         View Details
                       </DropdownMenuItem>
+                      <DropdownMenuItem
+    onClick={() => handleDownloadVoucher(reservation.bookingCode)}
+    className="cursor-pointer"
+  >
+    <FileText className="w-4 h-4 mr-3" />
+    Download Voucher
+  </DropdownMenuItem>
+  {/* <DropdownMenuItem
+    onClick={() => handleDownloadInvoice(reservation.bookingCode)}
+    className="cursor-pointer"
+  >
+    <FileDown className="w-4 h-4 mr-3" />
+    Download Invoice
+  </DropdownMenuItem> */}
                       <DropdownMenuItem
                         onClick={() => handleAmend(reservation.id)}
                         className="cursor-pointer"
