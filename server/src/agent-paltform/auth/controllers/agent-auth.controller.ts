@@ -30,7 +30,7 @@ export class AgentAuthController {
                     .cookie("agentAccessToken", result.data.accessToken, { httpOnly: true, secure: true })
                     .json(successResponse("Login successful"));
             }
-            return res.status(401).json(errorResponse("Login failed"));
+            return res.status(401).json(result);
         } catch (error) {
             if (error instanceof Error) {
                 return res.status(500).json(errorResponse("Login failed", error.message));

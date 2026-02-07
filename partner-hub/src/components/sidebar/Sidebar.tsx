@@ -10,9 +10,10 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAppDispatch, useAppSelector } from '@/redux/hooks';
-import { logout } from '@/redux/slices/authSlice';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { logoutService } from '@/pages/login/services/agent-auth.services';
+import { useState } from 'react';
 
 const navItems = [
   { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -37,11 +38,24 @@ export default function Sidebar({
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const user = useAppSelector((state) => state.auth.user);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const handleLogout = () => {
-    dispatch(logout());
-    toast.success('Logged out successfully');
-    navigate('/login');
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      const response = await logoutService();
+      
+      if (response.success) {
+        toast.success('Logged out successfully');
+        navigate('/login');
+      } else {
+        toast.error(response.message || 'Failed to logout');
+      }
+    } catch (error) {
+      toast.error('An error occurred during logout');
+    } finally {
+      setIsLoggingOut(false);
+    }
   };
 
   return (
@@ -111,9 +125,10 @@ export default function Sidebar({
             !sidebarOpen && "justify-center px-0"
           )}
           onClick={handleLogout}
+          disabled={isLoggingOut}
         >
           <LogOut className="h-5 w-5 flex-shrink-0" />
-          {sidebarOpen && <span>Logout</span>}
+          {sidebarOpen && <span>{isLoggingOut ? 'Logging out...' : 'Logout'}</span>}
         </Button>
       </div>
     </aside>

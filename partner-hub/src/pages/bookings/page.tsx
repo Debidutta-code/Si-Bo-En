@@ -49,7 +49,6 @@ export default function BookingPage() {
   const navigate = useNavigate();
   const { propertyId, roomId } = useParams<{ propertyId: string; roomId: string }>();
   const dispatch = useAppDispatch();
-  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
   const selectedProperty = useAppSelector((state) => state.property.selectedProperty);
   const selectedRoom = useAppSelector((state) => state.property.selectedRoom);
   const currentBooking = useAppSelector((state) => state.booking.currentBooking);
@@ -63,10 +62,7 @@ export default function BookingPage() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
+
 
     dispatch(resetBooking());
 
@@ -82,7 +78,7 @@ export default function BookingPage() {
         }
       }
     }
-  }, [isAuthenticated, propertyId, roomId, navigate, dispatch]);
+  }, [ propertyId, roomId, navigate, dispatch]);
 
   const nights = checkIn && checkOut ? differenceInDays(checkOut, checkIn) : 0;
   const roomTotal = selectedRoom ? selectedRoom.pricePerNight * nights : 0;
@@ -162,7 +158,7 @@ export default function BookingPage() {
     setLocalAddOns(addOns.map(a => a.id === id ? { ...a, selected: !a.selected } : a));
   };
 
-  if (!isAuthenticated || !selectedProperty || !selectedRoom) return null;
+  if ( !selectedProperty || !selectedRoom) return null;
 
   const currentStepIndex = steps.findIndex(s => s.key === currentStep);
 

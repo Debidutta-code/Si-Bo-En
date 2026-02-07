@@ -303,10 +303,7 @@ export default function PropertyRoomsPage() {
                                     <p className="font-medium text-foreground">
                                       {ratePlanData.ratePlan.ratePlanName}
                                     </p>
-                                  </div>
-                                  <p className="text-xs text-muted-foreground ml-6">
-                                    Code: {ratePlanData.ratePlan.ratePlanCode}
-                                  </p>
+                                  </div>  
                                   {ratePlanData.chargesPerDay.length > 0 && (
                                     <div className="flex items-center gap-2 ml-6 mt-1">
                                       <CalendarDays className="h-3 w-3 text-muted-foreground" />
@@ -329,7 +326,7 @@ export default function PropertyRoomsPage() {
                                   <Button 
                                     size="sm" 
                                     className="mt-2"
-                                    onClick={() => navigate(`/property/${propertyId}/booking`, {
+                                    onClick={() => navigate(`/property/${propertyId}/rooms/${room.id}/booking`, {
                                       state: { 
                                         room, 
                                         ratePlan: ratePlanData,

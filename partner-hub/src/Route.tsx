@@ -6,7 +6,7 @@ import DashboardPage from './pages/dashboard/page';
 import PropertyPage from './pages/property/Property';
 import PropertyRoomsPage from './pages/property/rooms/Room';
 import BookingPage from './pages/bookings/page';
-import ReservationsPage from './pages/reservations/page';
+import ReservationsPage from './pages/reservations/Reservations';
 import NotFoundPage from './pages/not-found/page';
 
 export const router = createBrowserRouter([
