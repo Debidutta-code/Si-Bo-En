@@ -190,3 +190,106 @@ export const fetchProperties = async () => {
     };
   }
 };
+
+// Add to your existing api/index.ts or create new file
+export const downloadBookingVoucher = async (bookingCode: string) => {
+  try {
+    const response = await axiosInstance.get(
+      `/pms/front-office/reports/booking-voucher/${bookingCode}`,
+      { responseType: 'blob' }
+    );
+    
+    // Create download link
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `voucher-${bookingCode}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    
+    return { success: true };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error?.response?.data?.message || "Failed to download voucher"
+    };
+  }
+};
+
+export const downloadBookingInvoice = async (bookingCode: string) => {
+  try {
+    const response = await axiosInstance.get(
+      `/pms/front-office/reports/booking-invoice/${bookingCode}`,
+      { responseType: 'blob' }
+    );
+    
+    // Create download link
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `invoice-${bookingCode}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    
+    return { success: true };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error?.response?.data?.message || "Failed to download invoice"
+    };
+  }
+};
+
+export const downloadReport = async (propertyId: string, reportType: string, startDate?: string, endDate?: string) => {
+  try {
+    const params = new URLSearchParams();
+    params.append('reportType', reportType);
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    
+    const response = await axiosInstance.get(
+      `/pms/front-office/reports/${propertyId}?${params.toString()}`,
+      { responseType: 'blob' }
+    );
+    
+    // Extract filename from response headers or generate one
+    const contentDisposition = response.headers['content-disposition'];
+    let fileName = `${reportType}-report.xlsx`;
+    
+    if (contentDisposition) {
+      const fileNameMatch = contentDisposition.match(/filename="(.+)"/);
+      if (fileNameMatch) fileName = fileNameMatch[1];
+    }
+    
+    // Create download link
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    
+    return { success: true };
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error?.response?.data?.message || "Failed to download report"
+    };
+  }
+};
+
+// Get report types
+export const fetchReportTypes = async () => {
+  try {
+    const response = await axiosInstance.get('/pms/front-office/reports/types');
+    return response.data;
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error?.response?.data?.message || "Failed to fetch report types"
+    };
+  }
+};

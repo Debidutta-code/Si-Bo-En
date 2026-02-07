@@ -14,13 +14,13 @@ import type {
   IReservation,
   IReservationFilters,
   IPaginationMeta,
-  IProperty
+  IProperty,
 } from "./types/index";
 import { Calendar, FileText, AlertCircle } from "lucide-react";
 import { ReservationFilters } from "./components";
 import Loader from "@/components/Loader/Loader";
+import { downloadReport, noShowReservation } from "./api/reservation.api";
 import ReservationsTable from "./components/ReservationsTable";
-import { noShowReservation } from "./api/reservation.api";
 
 export default function ReservationsPage() {
   const [reservations, setReservations] = useState<IReservation[]>([]);
@@ -31,19 +31,22 @@ export default function ReservationsPage() {
     totalResults: 0,
     hasNextPage: false,
     hasPreviousPage: false,
-    resultsPerPage: 10
+    resultsPerPage: 10,
   });
   const [loading, setLoading] = useState(true);
+  const [downloadingReport, setDownloadingReport] = useState(false);
   const [filters, setFilters] = useState<IReservationFilters>({
-  startDate: new Date().toISOString().split('T')[0],
-  endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-  page: 1,
-  limit: 10,
-  bookingStatus: 'all',
-  reservationType: 'all',
-  bookingSource: 'all',
-  deviceType: 'all'
-});
+    startDate: new Date().toISOString().split("T")[0],
+    endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split("T")[0],
+    page: 1,
+    limit: 10,
+    bookingStatus: "all",
+    reservationType: "all",
+    bookingSource: "all",
+    deviceType: "all",
+  });
 
   // Fetch properties on mount
   useEffect(() => {
@@ -67,32 +70,35 @@ export default function ReservationsPage() {
   };
 
   const loadReservations = async () => {
-  setLoading(true);
-  try {
-    let response;
-    const apiFilters = {
-      startDate: filters.startDate,
-      endDate: filters.endDate,
-      dateFilterType: filters.dateFilterType,
-      propertyId: filters.propertyId,
-      propertyCode: filters.propertyCode,
-      bookingStatus: filters.bookingStatus !== 'all' ? filters.bookingStatus : undefined,
-      bookingSource: filters.bookingSource !== 'all' ? filters.bookingSource : undefined,
-      deviceType: filters.deviceType !== 'all' ? filters.deviceType : undefined,
-      bookingCode: filters.bookingCode,
-      guestName: filters.guestName,
-      promoCode: filters.promoCode,
-      countryCode: filters.countryCode,
-      page: filters.page,
-      limit: filters.limit
-    };
+    setLoading(true);
+    try {
+      let response;
+      const apiFilters = {
+        startDate: filters.startDate,
+        endDate: filters.endDate,
+        dateFilterType: filters.dateFilterType,
+        propertyId: filters.propertyId,
+        propertyCode: filters.propertyCode,
+        bookingStatus:
+          filters.bookingStatus !== "all" ? filters.bookingStatus : undefined,
+        bookingSource:
+          filters.bookingSource !== "all" ? filters.bookingSource : undefined,
+        deviceType:
+          filters.deviceType !== "all" ? filters.deviceType : undefined,
+        bookingCode: filters.bookingCode,
+        guestName: filters.guestName,
+        promoCode: filters.promoCode,
+        countryCode: filters.countryCode,
+        page: filters.page,
+        limit: filters.limit,
+      };
 
       // Call appropriate API based on reservation type
       switch (filters.reservationType) {
-        case 'arrivals':
+        case "arrivals":
           response = await fetchArrivals(apiFilters);
           break;
-        case 'departures':
+        case "departures":
           response = await fetchDepartures(apiFilters);
           break;
         default:
@@ -114,32 +120,37 @@ export default function ReservationsPage() {
     }
   };
 
-  const handleFilterChange = useCallback((newFilters: Partial<IReservationFilters>) => {
-    setFilters((prev) => ({
-      ...prev,
-      ...newFilters,
-      // Reset to page 1 if filters change (except page itself)
-      page: 'page' in newFilters ? newFilters.page! : 1
-    }));
-  }, []);
+  const handleFilterChange = useCallback(
+    (newFilters: Partial<IReservationFilters>) => {
+      setFilters((prev) => ({
+        ...prev,
+        ...newFilters,
+        // Reset to page 1 if filters change (except page itself)
+        page: "page" in newFilters ? newFilters.page! : 1,
+      }));
+    },
+    [],
+  );
 
   const handlePageChange = useCallback((page: number) => {
     setFilters((prev) => ({ ...prev, page }));
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-const handleClearFilters = () => {
-  setFilters({
-    startDate: new Date().toISOString().split('T')[0],
-    endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    page: 1,
-    limit: 10,
-    bookingStatus: 'all',
-    reservationType: 'all',
-    bookingSource: 'all',
-    deviceType: 'all'
-  });
-};
+  const handleClearFilters = () => {
+    setFilters({
+      startDate: new Date().toISOString().split("T")[0],
+      endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0],
+      page: 1,
+      limit: 10,
+      bookingStatus: "all",
+      reservationType: "all",
+      bookingSource: "all",
+      deviceType: "all",
+    });
+  };
 
   const handleCancelReservation = async (reservationId: string) => {
     try {
@@ -154,14 +165,16 @@ const handleClearFilters = () => {
       toast.error(error.message || "Failed to cancel reservation");
     }
   };
-const handleNoShowReservation = async (reservationId: string) => {
+  const handleNoShowReservation = async (reservationId: string) => {
     try {
       const response = await noShowReservation(reservationId);
       if (response.success) {
         toast.success("Reservation marked as no-show successfully");
         loadReservations();
       } else {
-        toast.error(response.message || "Failed to mark reservation as no-show");
+        toast.error(
+          response.message || "Failed to mark reservation as no-show",
+        );
       }
     } catch (error: any) {
       toast.error(error.message || "Failed to mark reservation as no-show");
@@ -174,12 +187,48 @@ const handleNoShowReservation = async (reservationId: string) => {
 
   const getReservationTypeLabel = () => {
     switch (filters.reservationType) {
-      case 'arrivals': return 'Arrivals';
-      case 'departures': return 'Departures';
-      default: return 'All Reservations';
+      case "arrivals":
+        return "Arrivals";
+      case "departures":
+        return "Departures";
+      default:
+        return "All Reservations";
     }
   };
+  // Add download function for Excel only
+  const handleDownloadReservationsExcel = async () => {
+    if (!filters.propertyId) {
+      toast.error("Please select a property to download report");
+      return;
+    }
 
+    setDownloadingReport(true);
+    try {
+      // Determine report type based on current filter
+      let reportType = "reservation"; // Default
+
+      if (filters.reservationType === "arrivals") {
+        reportType = "arrival";
+      } else if (filters.reservationType === "departures") {
+        reportType = "departure";
+      }
+
+      const response = await downloadReport(
+        filters.propertyId,
+        reportType,
+        filters.startDate,
+        filters.endDate,
+      );
+
+      if (!response.success) {
+        toast.error(response.message || "Failed to download Excel report");
+      }
+    } catch (error) {
+      toast.error("Failed to download Excel report");
+    } finally {
+      setDownloadingReport(false);
+    }
+  };
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -200,6 +249,8 @@ const handleNoShowReservation = async (reservationId: string) => {
           onFilterChange={handleFilterChange}
           properties={properties}
           onClearFilters={handleClearFilters}
+          onDownloadReservationsExcel={handleDownloadReservationsExcel}
+          isDownloading={downloadingReport}
         />
 
         {/* Results Header */}
@@ -211,7 +262,8 @@ const handleNoShowReservation = async (reservationId: string) => {
             </h2>
             {pagination.totalResults > 0 && (
               <span className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm font-medium">
-                {pagination.totalResults} result{pagination.totalResults !== 1 ? 's' : ''}
+                {pagination.totalResults} result
+                {pagination.totalResults !== 1 ? "s" : ""}
               </span>
             )}
           </div>

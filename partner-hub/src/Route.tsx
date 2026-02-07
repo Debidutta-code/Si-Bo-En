@@ -8,6 +8,7 @@ import PropertyRoomsPage from './pages/property/rooms/Room';
 import BookingPage from './pages/bookings/page';
 import ReservationsPage from './pages/reservations/Reservations';
 import NotFoundPage from './pages/not-found/page';
+import PaymentSuccessPage from './pages/payment/page';
 
 export const router = createBrowserRouter([
   {
@@ -29,6 +30,15 @@ export const router = createBrowserRouter([
         path: '/reservations',
         element: <ReservationsPage />,
       },
+      {
+        path: '/property/:propertyId/rooms/:roomId/booking',
+        element: <BookingPage />,
+      },
+       {
+        path: '/payment-success',
+        element: <PaymentSuccessPage />,
+      },
+      
     ],
   },
   {
@@ -42,10 +52,7 @@ export const router = createBrowserRouter([
         path: '/property/:propertyId/rooms',
         element: <PropertyRoomsPage />,
       },
-      {
-        path: '/property/:propertyId/rooms/:roomId/booking',
-        element: <BookingPage />,
-      },
+      
     ],
   },
   {

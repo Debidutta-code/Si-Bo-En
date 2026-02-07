@@ -57,12 +57,11 @@ export class AgenticPropertyRepository {
 
     public async getAgencyById(agencyId: string) {
         try {
-            return await prisma.agency.findUnique({
+            return await prisma.agency.findFirst({
                 where: {
                     id: agencyId,
                     isDeleted:false,
-
-                }
+               }
             });
         } catch (error) {
             throw new Error("Failed to retrieve agency");

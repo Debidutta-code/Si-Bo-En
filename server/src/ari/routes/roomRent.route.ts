@@ -1,4 +1,3 @@
-import { protect } from "../../middlewares/auth.middleware";
 import { attachPropertyDetails } from "../../middlewares/property.middleware";
 import { RoomRentCalculationController } from "../controllers";
 import { Router } from 'express';
