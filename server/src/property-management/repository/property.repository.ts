@@ -65,7 +65,7 @@ export class PropertyDao {
           isB2bAvailable:false,
           reservationResetMinutes:570,
           selfAriActive:true,
-          
+          showVideo:true
         }
       });
       // await prisma.nightAudit.create({

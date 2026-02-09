@@ -10,7 +10,8 @@ import {
   PropertyType,
   AminityController,
   RoomAminityControllerManagement,
-  LoyaltyGuestFieldControllers
+  LoyaltyGuestFieldControllers,
+  PaymentIntegrationController
 } from "../controller";
 
 export const managementRoute = Router();
@@ -19,12 +20,15 @@ const propertyTypeRouter = Router();
 const destinationRouter = Router();
  const aminityRouter = Router();
 const roomAminityRouteM = Router();
+const paymentIntegrationRouter=Router();
 const loyaltyGuestFieldRouter = Router();
 managementRoute.use('/category', categoryRouter);
 managementRoute.use('/amenity', aminityRouter);
 managementRoute.use('/type', propertyTypeRouter);
 managementRoute.use('/destination-type', destinationRouter);
 managementRoute.use('/loyalty-guest-field', loyaltyGuestFieldRouter);
+managementRoute.use('/payment-integrations',paymentIntegrationRouter)
+
 
 categoryRouter
   .route('/get')
@@ -124,4 +128,26 @@ loyaltyGuestFieldRouter.route("/")
   );
   loyaltyGuestFieldRouter.route("/:id").post(
     LoyaltyGuestFieldControllers.deleteLoyaltyGuestFields
+  );
+
+  paymentIntegrationRouter
+  .route('/')
+  .get(
+    protect,
+    PaymentIntegrationController.getPaymentIntegrations
+  )
+  .post(
+    protect,
+    PaymentIntegrationController.createPaymentIntegration
+  );
+
+paymentIntegrationRouter
+  .route('/:id')
+  .patch(
+    protect,
+    PaymentIntegrationController.updatePaymentIntegration
+  )
+  .delete(
+    protect,
+    PaymentIntegrationController.deletePaymentIntegration
   );

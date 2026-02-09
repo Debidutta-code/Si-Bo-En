@@ -13,9 +13,11 @@ export class PropertyConfigRepo {
                     commission: config.commission,
                     isB2cAvailable: config.isB2cAvailable,
                     isB2bAvailable: config.isB2bAvailable,
+                    showVideo:config.showVideo,
                     reservationResetMinutes: config.reservationResetMinutes,
                     selfAriActive: config.selfAriActive,
                     timezone: config.timezone,
+                    
                     updatedAt: new Date()
                 }
             })

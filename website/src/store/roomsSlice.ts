@@ -23,9 +23,16 @@ export interface Room {
   images:string[];
   description:string;
   room_unit: string
-  room_view: string
+  room_view: string;
+  roomVideos:IRoomVideo|null;
 }
-
+interface IRoomVideo{
+  id:string;
+  roomId: string,
+  url: string,
+  thumbnail: string,
+               
+}
 interface RoomsState {
   rooms: Room[];
 }

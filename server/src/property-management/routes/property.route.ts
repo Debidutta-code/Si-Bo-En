@@ -17,7 +17,7 @@ export const propertyRouter = Router();
 propertyRouter
   .route('/')
   .post(protect, checkRoleBased('canCreateHotel'), Property.createProperty);
-propertyRouter.use('/management', protect,restrictTo("super_admin"), managementRoute);
+propertyRouter.use('/management', protect, managementRoute);
 propertyRouter.use('/booking-engine',  bookingEngineRoute)
 propertyRouter.use("/video", vedioRouter)
 propertyRouter

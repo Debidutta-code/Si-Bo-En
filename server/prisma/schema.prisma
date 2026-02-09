@@ -322,33 +322,34 @@ model Property {
   creationId String   @unique @map("creation_id")
 
   // Embedded Data (1:1 relations)
-  propertyCategory     PropertyCategory?
-  propertyType         PropertyType?
-  propertyAddress      PropertyAddress?
-  bankDetails          BankDetails?
-  propertyVideos       PropertyVideo?
-  bookingEngineConfig  BookingEngineConfigurations?
-  propertyConfigs      PropertyConfigs?
-  Commissions          PropertyCommission?
-  loyaltyProgramConfig PropertyLoyaltyConfig?
-  LoyalityGuests       LoyalityGuest[]
+  propertyCategory            PropertyCategory?
+  propertyType                PropertyType?
+  propertyAddress             PropertyAddress?
+  bankDetails                 BankDetails?
+  propertyVideos              PropertyVideo?
+  bookingEngineConfig         BookingEngineConfigurations?
+  propertyConfigs             PropertyConfigs?
+  Commissions                 PropertyCommission?
+  loyaltyProgramConfig        PropertyLoyaltyConfig?
+  LoyalityGuests              LoyalityGuest[]
   // Children
-  reservations         Reservation[]
-  propertyAmenities    PropertyAmenitySelection[]
-  propertyRooms        Room[]
-  ratePlans            RatePlan[]
-  promoCodes           PromoCode[]
-  taxRules             TaxRule[]                    @relation("PropertyTaxRules")
-  taxGroups            TaxGroup[]                   @relation("PropertyTaxGroups")
-  addOns               Addon[]
-  Guests               Guests[]
-  Policy               Policy[]
-  agenticProperties    AgenticProperty[]
-  geoRatePlans         GeoRatePlan[]
-  promotions           Promotion[]
-  createdAt            DateTime                     @default(now())
-  updatedAt            DateTime                     @updatedAt
-  customizableDeals    CustomizableDeal[]
+  reservations                Reservation[]
+  propertyAmenities           PropertyAmenitySelection[]
+  propertyRooms               Room[]
+  ratePlans                   RatePlan[]
+  promoCodes                  PromoCode[]
+  taxRules                    TaxRule[]                    @relation("PropertyTaxRules")
+  taxGroups                   TaxGroup[]                   @relation("PropertyTaxGroups")
+  addOns                      Addon[]
+  Guests                      Guests[]
+  Policy                      Policy[]
+  agenticProperties           AgenticProperty[]
+  geoRatePlans                GeoRatePlan[]
+  promotions                  Promotion[]
+  createdAt                   DateTime                     @default(now())
+  updatedAt                   DateTime                     @updatedAt
+  customizableDeals           CustomizableDeal[]
+  propertyPaymentIntegrations PropertyPaymentIntegration[]
 
   @@index([createdById])
   @@index([creationId])
@@ -366,6 +367,7 @@ model PropertyConfigs {
   selfAriActive                   Boolean      @default(true) @map("self_ari_active")
   isB2bAvailable                  Boolean      @default(true) @map("is_b2b_available")
   isB2cAvailable                  Boolean      @default(true) @map("is_b2c_available")
+  showVideo                       Boolean      @default(true) @map("show_video")
   commission                      Boolean      @default(false)
   timezone                        String       @default("Asia/Kolkata") @map("timezone")
   baseCurrency                    CurrencyCode @default(INR) @map("base_currency")
@@ -639,7 +641,7 @@ model Charge {
 
 model ChargeBaseByGuest {
   id              String  @id @default(uuid())
-  charge          Charge  @relation(fields: [chargeId], references: [id] ,onDelete: Cascade)
+  charge          Charge  @relation(fields: [chargeId], references: [id], onDelete: Cascade)
   chargeId        String
   amountBeforeTax Decimal @map("amount_before_tax")
   numberOfGuests  Int     @map("number_of_guests")
@@ -650,7 +652,7 @@ model ChargeBaseByGuest {
 
 model ChargeAdditionalGuest {
   id                String  @id @default(uuid())
-  charge            Charge  @relation(fields: [chargeId], references: [id] ,onDelete: Cascade)
+  charge            Charge  @relation(fields: [chargeId], references: [id], onDelete: Cascade)
   chargeId          String
   ageQualifyingCode String  @map("age_qualifying_code")
   amount            Decimal
@@ -699,11 +701,11 @@ model RatePlan {
   b2bAvailable Boolean @default(false) @map("b2b_available")
   b2cAvailable Boolean @default(true) @map("b2c_available")
 
-  ratePlanRules RatePlanRule?
-  Addons        RatePlanWithAddon[]
-  geoRatePlans  GeoRatePlan[]
-  promotions    Promotion[]
-  TouristTaxs TouristTaxes[]
+  ratePlanRules                            RatePlanRule?
+  Addons                                   RatePlanWithAddon[]
+  geoRatePlans                             GeoRatePlan[]
+  promotions                               Promotion[]
+  TouristTaxs                              TouristTaxes[]
   createdAt                                DateTime                                   @default(now())
   updatedAt                                DateTime                                   @updatedAt
   customizableDealsApplicableRatePlanTypes CustomizableDealsApplicableRatePlanTypes[]
@@ -956,8 +958,9 @@ model AddonAvailability {
   isAvailable  Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-@@unique([addonId,date])
-  addon Addon @relation(fields: [addonId], references: [id])
+  addon        Addon    @relation(fields: [addonId], references: [id])
+
+  @@unique([addonId, date])
 }
 
 model Reservation {
@@ -1017,13 +1020,12 @@ model Reservation {
   actualCheckInAt  DateTime? @map("actual_check_in_at")
   actualCheckOutAt DateTime? @map("actual_check_out_at")
   cancelledAt      DateTime? @map("cancelled_at")
-  agencyId              String?                     @map("agency_id") @db.VarChar(36)
+  agencyId         String?   @map("agency_id") @db.VarChar(36)
 
   // Audit
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   // Relations
-  
 
   property              Property                    @relation(fields: [propertyId], references: [id])
   promo                 PromoCode?                  @relation(fields: [promoId], references: [id])
@@ -1571,4 +1573,26 @@ model TouristTaxes {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("tourist_taxes")
+}
+
+model MasterPaymentIntegration {
+  id                          String                       @id @default(uuid())
+  name                        String                       @unique
+  isActive                    Boolean                      @default(true) @map("is_active")
+  propertyPaymentIntegrations PropertyPaymentIntegration[]
+
+  @@map("master_payment_integrations")
+}
+
+model PropertyPaymentIntegration {
+  id                   String  @id @default(uuid())
+  propertyId           String  @map("property_id")
+  paymentIntegrationId String  @map("payment_integration_id")
+  isActive             Boolean @default(false) @map("is_active")
+
+  property           Property                 @relation(fields: [propertyId], references: [id])
+  paymentIntegration MasterPaymentIntegration @relation(fields: [paymentIntegrationId], references: [id])
+
+  @@unique([propertyId, paymentIntegrationId])
+  @@map("property_payment_integrations")
 }

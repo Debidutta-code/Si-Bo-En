@@ -15,9 +15,10 @@ import {
     PropertyTypeSelectionDao,
     PropertyTypesDao,
     RoomAminityDao,
-    LoyaltyGuestFieldsDao
+    LoyaltyGuestFieldsDao,
+    PaymentIntegrationDao
+    
 } from "./types.repository";
-
 export { PropertyVideoRepository, RoomVideoRepository } from "./vedio.repository";
 
 export{
@@ -35,5 +36,6 @@ export{
     PropertyTypeSelectionDao,
     PropertyTypesDao,
     RoomAminityDao,
-    PropertyConfigRepo,LoyaltyGuestFieldsDao
+    PropertyConfigRepo,LoyaltyGuestFieldsDao,
+    PaymentIntegrationDao
 }

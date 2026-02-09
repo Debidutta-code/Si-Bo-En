@@ -121,7 +121,7 @@ const GuestFormModal: React.FC<Props> = ({
     const newErrors: any = {};
     const nameRegex = /^[A-Za-z\s]+$/;
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    const phoneRegex = /^[0-9]{10}$/;
+    const phoneRegex = /^[0-9]{5,15}$/;
 
     // Validate each guest
     guestForms.forEach((guest, index) => {
@@ -151,11 +151,12 @@ const GuestFormModal: React.FC<Props> = ({
     }
 
     // Validate phone
-    if (!contactInfo.phoneNumber.trim()) {
-      newErrors.phoneNumber = "Phone number is required.";
-    } else if (!phoneRegex.test(contactInfo.phoneNumber)) {
-      newErrors.phoneNumber = "Phone number must be exactly 10 digits.";
-    }
+  // Validate phone
+if (!contactInfo.phoneNumber.trim()) {
+  newErrors.phoneNumber = "Phone number is required.";
+} else if (!phoneRegex.test(contactInfo.phoneNumber)) {
+  newErrors.phoneNumber = "Phone number must be between 5 and 15 digits.";
+}
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
