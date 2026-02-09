@@ -43,3 +43,33 @@ app.use(morgan('dev'));
 app.use(express.json({ limit: '50mb' }));
 app.use(cookieParser());
 app.set('trust proxy', true);
+
+// ✅ Mock Fikafi Payment Endpoint for Testing
+app.post('/createPayment', (req, res) => {
+    console.log('📥 Mock Fikafi received payment request:', JSON.stringify(req.body, null, 2));
+    
+    const bookingRefNum = req.body.bookingRefNum || 'MOCK-' + Date.now();
+    
+    // ✅ MOCK MODE: Return success URL that redirects to our success page
+    const successUrl = `http://localhost:8080/api/v1/fikafi/mock-success?bookingRefNum=${bookingRefNum}`;
+    
+    res.json({
+        success: true,
+        data: {
+            paymentLink: successUrl,
+            paymentId: bookingRefNum,
+            expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+            bookingRefNum: bookingRefNum
+        }
+    });
+});
+
+// ✅ Mock Success Redirect Endpoint - simulates Fikafi redirect after payment
+app.get('/api/v1/fikafi/mock-success', (req, res) => {
+    const { bookingRefNum } = req.query;
+    
+    console.log('📥 Mock Fikafi redirect received:', { bookingRefNum });
+    
+    // Redirect to the frontend success page
+    res.redirect(`http://localhost:3000/PaymentSuccess?bookingCode=${bookingRefNum}`);
+});

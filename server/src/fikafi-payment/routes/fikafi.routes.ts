@@ -1,0 +1,33 @@
+import { Router } from "express";
+import { FikafiPaymentController } from "../controller/fikafi.controller";
+
+export const fikafiPaymentRoutes = Router();
+
+// Main payment routes
+fikafiPaymentRoutes.post(
+  "/create-payment-link",
+  FikafiPaymentController.createPaymentLink
+);
+
+fikafiPaymentRoutes.get(
+  "/payment-status/:paymentId",
+  FikafiPaymentController.getPaymentStatus
+);
+
+// Generate payment link from existing reservation
+fikafiPaymentRoutes.post(
+  "/generate-from-reservation",
+  FikafiPaymentController.generateFromReservation
+);
+
+// Webhook endpoints for Fikafi
+fikafiPaymentRoutes.post(
+  "/webhook/payment-details",
+  FikafiPaymentController.handlePaymentDetailsWebhook
+);
+
+fikafiPaymentRoutes.post(
+  "/webhook/payment-event",
+  FikafiPaymentController.handlePaymentEventWebhook
+);
+
