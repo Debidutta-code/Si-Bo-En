@@ -10,7 +10,11 @@ export type Payload = {
   level: number;
   creationId?: string|null;
 };
-
+export interface agentPayload{
+  id:string;
+  agentEmail:string;
+  agencyId:string
+}
 const expiresInSeconds = (days: number) => days * 24 * 60 * 60;
 
 const assignToken = (payload: Payload, secret: string, expiresIn: string) => {
@@ -31,5 +35,10 @@ const decodeToken = async (
     });
   });
 };
+export const assignAgentAccessToken=(agentPayload: agentPayload, secret: string, expiresIn: string)=>{
+  return jwt.sign(agentPayload, secret, {
+    expiresIn: expiresInSeconds(parseInt(expiresIn?.split('d')[0]!)),
+  });
+}
 
 export { assignToken, decodeToken };

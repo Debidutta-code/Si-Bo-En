@@ -33,6 +33,7 @@ export interface IBookingDetails {
   paymentMethod: string;
   selectedAddons?: IBookingAddonCreate[]; // ✅ ADD THIS
   selectedPromotions?: IReservationPromotionCreate[];
+  agencyId?:string|null;
 }
 
 export interface IGuestDetail {
@@ -152,6 +153,7 @@ export interface ICReservation {
   countryCode: string;
   timezone: string;
   deviceTypes:DeviceType
+  agencyId?: string | null; // ✅ ADD THIS
 }
 
 export interface IReservation extends ICReservation {

@@ -10,45 +10,44 @@ import {
 } from "../repository/room-rent.repository";
 import { Decimal } from '@prisma/client/runtime/library';
 import { CurrencyCode } from '../../pms/frontoffice/payment/types';
-import { DeviceType } from '@prisma/client';
 interface PriceCalculationData {
-  totalAmount: number;
-  numberOfNights: number;
-  baseRatePerNight: number;
-  additionalGuestCharges: number;
+    totalAmount: number;
+    numberOfNights: number;
+    baseRatePerNight: number;
+    additionalGuestCharges: number;
 
-  breakdown: {
-    originalBaseAmount: number;
-    loyaltyDiscountAmount: number;
-    promotionDiscountAmount: number;
-    totalBaseAmount: number;
-    totalAdditionalCharges: number;
+    breakdown: {
+        originalBaseAmount: number;
+        loyaltyDiscountAmount: number;
+        promotionDiscountAmount: number;
+        totalBaseAmount: number;
+        totalAdditionalCharges: number;
+        totalTax: number;
+        totalAmount: number;
+        averagePerNight: number;
+    };
+
+    dailyBreakdown: DailyBreakdown[];
+
+    availableRooms: number;
+    requestedRooms: number;
+
+    promotions: {
+        applied: PromotionResult[];
+        totalDiscount: number;
+    };
+
+    userAddons: {
+        selected: UserAddonResult[];
+        totalAmount: number;
+    };
+
+    loyaltyDiscount?: LoyaltyDiscountResult;
+
+    tax: TaxDetail[];
     totalTax: number;
-    totalAmount: number;
-    averagePerNight: number;
-  };
 
-  dailyBreakdown: DailyBreakdown[];
-
-  availableRooms: number;
-  requestedRooms: number;
-
-  promotions: {
-    applied: PromotionResult[];
-    totalDiscount: number;
-  };
-
-  userAddons: {
-    selected: UserAddonResult[];
-    totalAmount: number;
-  };
-
-  loyaltyDiscount?: LoyaltyDiscountResult;
-
-  tax: TaxDetail[];
-  totalTax: number;
-
-  priceAfterTax: number;
+    priceAfterTax: number;
 }
 
 interface UserAddonResult {
@@ -154,7 +153,7 @@ export class RoomRentCalculationService {
         deviceType?: "mobile" | "tablet" | "desktop",
         selectedPromotions?: { id: string, promotionType: any }[],
         userAddons?: any[]
-): Promise<IApiResponse<PriceCalculationData>> {
+    ): Promise<IApiResponse<PriceCalculationData>> {
         try {
             // === VALIDATION ===
             const validationResult = this.validateInputs(
@@ -408,7 +407,10 @@ export class RoomRentCalculationService {
             const ratePlanWithAddons = await this.ratePlanWithAddonsService(
                 ratePlanCode,
                 startDate,
-                endDate
+                endDate,
+                noOfAdults,
+                noOfChildren,
+                noOfRooms
             );
 
             if (ratePlanWithAddons.success) {
@@ -439,60 +441,60 @@ export class RoomRentCalculationService {
                 //console.log(`User Addons: +${userAddonsTotal} → ${currentPrice}`);
             }
 
-           const priceBeforeTax = currentPrice;
+            const priceBeforeTax = currentPrice;
 
-// === STEP 7: CALCULATE TAX (on ORIGINAL BASE) ===
-const taxCalculation = await this.calculateTax(
-    ratePlan,
-    originalBasePrice  // ✅ Tax on original base
-);
+            // === STEP 7: CALCULATE TAX (on ORIGINAL BASE) ===
+            const taxCalculation = await this.calculateTax(
+                ratePlan,
+                originalBasePrice  // ✅ Tax on original base
+            );
 
-const totalTax = taxCalculation.totalTax;
-const finalPrice = priceBeforeTax + totalTax;
+            const totalTax = taxCalculation.totalTax;
+            const finalPrice = priceBeforeTax + totalTax;
 
-//console.log(`Tax (on original base): +${totalTax} → ${finalPrice}`);
-//console.log(`=========================\n`);
+            //console.log(`Tax (on original base): +${totalTax} → ${finalPrice}`);
+            //console.log(`=========================\n`);
 
-// === RETURN COMPREHENSIVE BREAKDOWN ===
-return successResponse("Price calculated successfully", {
-    totalAmount: finalPrice,  // ✅ Change from null
-    numberOfNights,
-    baseRatePerNight: totalBaseAmount / numberOfNights / noOfRooms,
-    additionalGuestCharges: totalAdditionalCharges,
+            // === RETURN COMPREHENSIVE BREAKDOWN ===
+            return successResponse("Price calculated successfully", {
+                totalAmount: finalPrice,  // ✅ Change from null
+                numberOfNights,
+                baseRatePerNight: totalBaseAmount / numberOfNights / noOfRooms,
+                additionalGuestCharges: totalAdditionalCharges,
 
-    breakdown: {
-        originalBaseAmount: originalBasePrice,
-        loyaltyDiscountAmount: loyaltyDiscount,
-        promotionDiscountAmount: totalPromotionDiscount,
-        totalBaseAmount: adjustedBasePrice,
-        totalAdditionalCharges,
-        totalTax,
-        totalAmount: finalPrice,  // ✅ Change from null
-        averagePerNight: finalPrice / numberOfNights  // ✅ Change from null
-    },
+                breakdown: {
+                    originalBaseAmount: originalBasePrice,
+                    loyaltyDiscountAmount: loyaltyDiscount,
+                    promotionDiscountAmount: totalPromotionDiscount,
+                    totalBaseAmount: adjustedBasePrice,
+                    totalAdditionalCharges,
+                    totalTax,
+                    totalAmount: finalPrice,  // ✅ Change from null
+                    averagePerNight: finalPrice / numberOfNights  // ✅ Change from null
+                },
 
-    dailyBreakdown: rateCalculation.data!.dailyBreakdown,
+                dailyBreakdown: rateCalculation.data!.dailyBreakdown,
 
-    availableRooms: inventoryCheck.availableRooms!,
-    requestedRooms: noOfRooms,
+                availableRooms: inventoryCheck.availableRooms!,
+                requestedRooms: noOfRooms,
 
-    promotions: {
-        applied: promotionDiscounts,
-        totalDiscount: totalPromotionDiscount
-    },
+                promotions: {
+                    applied: promotionDiscounts,
+                    totalDiscount: totalPromotionDiscount
+                },
 
-    userAddons: {
-        selected: userAddonsDetails,
-        totalAmount: userAddonsTotal  // ✅ Change from null
-    },
+                userAddons: {
+                    selected: userAddonsDetails,
+                    totalAmount: userAddonsTotal  // ✅ Change from null
+                },
 
-    loyaltyDiscount: loyaltyDiscountInfo,
+                loyaltyDiscount: loyaltyDiscountInfo,
 
-    tax: taxCalculation.taxDetails,
-    totalTax,
+                tax: taxCalculation.taxDetails,
+                totalTax,
 
-    priceAfterTax: finalPrice  // ✅ Change from null
-});
+                priceAfterTax: finalPrice  // ✅ Change from null
+            });
         } catch (error) {
             console.error('Error in getRoomRentService:', error);
             return errorResponse('Internal server error');
@@ -507,7 +509,7 @@ return successResponse("Price calculated successfully", {
         noOfChildren: number,
         noOfAdults: number,
         noOfRooms: number
-): Promise<IApiResponse<PriceCalculationData>> {
+    ): Promise<IApiResponse<PriceCalculationData>> {
         try {
             const validationResult = this.validateInputs(
                 propertyCode,
@@ -1407,14 +1409,25 @@ return successResponse("Price calculated successfully", {
             return errorResponse("Failed to calculate geo-based rate plan");
         }
     }
-    private static async ratePlanWithAddonsService(ratePlanCode: string, checkInDate: Date, checkOutDate: Date): Promise<IApiResponse> {
+    private static async ratePlanWithAddonsService(
+        ratePlanCode: string,
+        checkInDate: Date,
+        checkOutDate: Date,
+        noOfAdults:number,
+        noOfChildren:number,
+        noOfRooms:number
+    ): Promise<IApiResponse> {
         try {
-            const addons = await RoomRentCalculationRepository.getRatePlanDetails(ratePlanCode);
-            if (!addons || !addons.Addons || addons.Addons.length === 0) {
+            const ratePlan = await RoomRentCalculationRepository.getRatePlanDetails(ratePlanCode);
+
+            if (!ratePlan || !ratePlan.Addons || ratePlan.Addons.length === 0) {
                 return errorResponse("No addons found for this rate plan");
             }
-            const addonIds = addons.Addons.map((addon: any) => addon.id);
-            return await this.normalAddonsService(addonIds, checkInDate, checkOutDate);
+
+            // ✅ Extract the actual addon IDs from the junction table
+            const addonIds = ratePlan.Addons.map((ratePlanAddon: any) => ratePlanAddon.addonId);
+
+            return await this.normalAddonsService(addonIds, checkInDate, checkOutDate,noOfAdults,noOfChildren,noOfRooms);
         } catch (error) {
             if (error instanceof Error) {
                 return errorResponse("Failed to calculate rate plan with addons", error.message);
@@ -1422,7 +1435,7 @@ return successResponse("Price calculated successfully", {
             return errorResponse("Failed to calculate rate plan with addons");
         }
     }
-    private static async normalAddonsService(addOnIds: string[], checkInDate: Date, checkOutDate: Date): Promise<IApiResponse> {
+    private static async normalAddonsService(addOnIds: string[], checkInDate: Date, checkOutDate: Date ,noOfAdults:number,noOfChildren:number, noOfRooms:number): Promise<IApiResponse> {
         try {
             const addons = await RoomRentCalculationRepository.findAddonsForReservations(addOnIds, checkInDate, checkOutDate);
             if (addons.length === 0) {
@@ -1444,6 +1457,7 @@ return successResponse("Price calculated successfully", {
 
                 let addonAmount = 0;
                 const availabilityCount = addon.availability.length;
+                const totalGuests =noOfAdults+noOfChildren;
 
                 // Calculate price based on posting rhythm
                 switch (addon.postingRhythm) {
@@ -1456,23 +1470,23 @@ return successResponse("Price calculated successfully", {
                         break;
 
                     case 'per_person_per_night':
-                        addonAmount = addon.availability.reduce((sum: number, avail: any) => sum + avail.price, 0);
+                        addonAmount = addon.availability.reduce((sum: number, avail: any) => sum + avail.price, 0)*totalGuests;
                         break;
 
                     case 'per_person_per_stay':
-                        addonAmount = addon.availability[0].price;
+                         addonAmount = addon.availability[0].price * totalGuests; // ✅ FIX
                         break;
 
                     case 'per_room':
-                        addonAmount = addon.availability[0].price;
+                        addonAmount = addon.availability[0].price * noOfRooms; // ✅ FIX
                         break;
 
                     case 'per_room_per_night':
-                        addonAmount = addon.availability.reduce((sum: number, avail: any) => sum + avail.price, 0);
+                        addonAmount = addon.availability.reduce((sum, avail) => sum + avail.price, 0) * noOfRooms; // ✅ FIX
                         break;
 
                     case 'per_person_per_room':
-                        addonAmount = addon.availability[0].price;
+                        addonAmount = addon.availability[0].price * totalGuests * noOfRooms; // ✅ FIX
                         break;
 
                     default:

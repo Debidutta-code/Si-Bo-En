@@ -243,7 +243,6 @@ export class PropertyTypesDao {
 }
 
 
-// Additional helper DAOs for property selection/assignment
 
 export class PropertyCategorySelectionDao {
   public static async assignCategoryToProperty(

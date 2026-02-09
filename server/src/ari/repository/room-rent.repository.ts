@@ -23,7 +23,11 @@ export class RoomRentCalculationRepository {
                     ratePlanCode
                 },include:{
                     ratePlanRules:true,
-                    Addons:true,
+                    Addons:{
+                        include:{
+                            addon:true,
+                        }
+                    },
                 }
             })
         }

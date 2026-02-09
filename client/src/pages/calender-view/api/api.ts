@@ -11,17 +11,16 @@ export async function getInventoryAnalysis(
 ) {
   const axiosInstance = createAxiosInstance();
   try {
-    const params = new URLSearchParams();
-    params.append('propertyId', propertyId);
-    params.append('startDate', filters.startDate);
-    params.append('endDate', filters.endDate);
-    
-    if (filters.roomTypeCode) {
-      params.append('roomTypeCode', filters.roomTypeCode);
-    }
-    
-    const response = await axiosInstance.get(
-      `/ari/analysis/calendar?${params.toString()}`
+    // ✅ CLEAN: Send filters in body
+    const response = await axiosInstance.post(
+      `/ari/analysis/calendar`,
+      {
+        propertyId,
+        startDate: filters.startDate,
+        endDate: filters.endDate,
+        roomTypeCodes: filters.roomTypeCodes || [],
+        ratePlanCodes: filters.ratePlanCodes || []
+      }
     );
     return response.data;
   } catch (error: any) {

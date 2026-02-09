@@ -20,6 +20,7 @@ import { PaymentRoutes } from "../payment/routes";
 import { agencyMainRouter } from '../agency/routes/index.route';
 import { loyaltyRouter } from '../loyalty/routes/loyalty.routes';
 import promotionRouter from '../promotions/routes';
+import { agentPlatformRouter } from '../agent-paltform/routes';
 export async function initializeExpressRoutes({ app }: { app: Express }) {
   // Health check
   app.head('/status', (_, res: Response) => res.status(200).end());
@@ -43,7 +44,7 @@ export async function initializeExpressRoutes({ app }: { app: Express }) {
   apiV1Router.use('/access', AccessControlRoutes);
 
   apiV1Router.use("/policy", PolicyRoute);
-
+  apiV1Router.use("/agent-platform", agentPlatformRouter);
   apiV1Router.use('/property-management', PropertyManagement);
   apiV1Router.use('/ari', AriRouter);
   apiV1Router.use('/activities', ActivityRouter);

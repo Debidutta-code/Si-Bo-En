@@ -115,6 +115,7 @@ export interface IGuestAnalytics {
 // Addon Analytics Interfaces
 export interface IPopularAddon {
     addonId: string;
+    addonName:string,
     revenue: number;
     bookingCount: number;
 }

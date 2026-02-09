@@ -668,7 +668,7 @@ private calculateChange(current: number, previous: number) {
                 _sum: { totalPrice: true }
             }),
             prisma.bookingAddon.groupBy({
-                by: ['addonId'],
+                by: ['addonId','name'],
                 where: {
                     Reservation: {
                         propertyId: { in: propertyIds }
@@ -693,6 +693,7 @@ private calculateChange(current: number, previous: number) {
             addonCount,
             popularAddons: popularAddons.map(a => ({
                 addonId: a.addonId,
+                addonName:a.name,
                 revenue: a._sum.totalPrice || 0,
                 bookingCount: a._count
             }))
@@ -748,113 +749,119 @@ private calculateChange(current: number, previous: number) {
     /**
      * Top Performing Properties Analytics
      */
-    private async getTopPerformingProperties(propertyIdsAndCodes: IPropertyCodeAndIds[]): Promise<ITopPerformingProperties> {
-        try {
-            const propertyIds = propertyIdsAndCodes.map(p => p.id);
+   private async getTopPerformingProperties(propertyIdsAndCodes: IPropertyCodeAndIds[]): Promise<ITopPerformingProperties> {
+    try {
+        const propertyIds = propertyIdsAndCodes.map(p => p.id);
+        
+        // ✅ FIX: Create proper date for today
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-            // Revenue by property
-            const revenueByProperty = await prisma.reservation.groupBy({
-                by: ['propertyId'],
-                where: {
-                    propertyId: { in: propertyIds },
-                    bookingStatus: 'confirmed'
-                },
-                _sum: { amount: true }
-            });
+        // Revenue by property
+        const revenueByProperty = await prisma.reservation.groupBy({
+            by: ['propertyId'],
+            where: {
+                propertyId: { in: propertyIds },
+                bookingStatus: 'confirmed'
+            },
+            _sum: { amount: true }
+        });
 
-            // Bookings by property
-            const bookingsByProperty = await prisma.reservation.groupBy({
-                by: ['propertyId'],
-                where: {
-                    propertyId: { in: propertyIds }
-                },
-                _count: true
-            });
+        // Bookings by property
+        const bookingsByProperty = await prisma.reservation.groupBy({
+            by: ['propertyId'],
+            where: {
+                propertyId: { in: propertyIds }
+            },
+            _count: true
+        });
 
-            // Occupancy by property
-            const roomsByProperty = await prisma.room.groupBy({
-                by: ['propertyId'],
-                where: {
-                    propertyId: { in: propertyIds }
-                },
-                _sum: { totalRoom: true }
-            });
+        // Occupancy by property
+        const roomsByProperty = await prisma.room.groupBy({
+            by: ['propertyId'],
+            where: {
+                propertyId: { in: propertyIds }
+            },
+            _sum: { totalRoom: true }
+        });
 
-            const inventoryByProperty = await prisma.inventory.groupBy({
-                by: ['propertyCode'],
-                where: {
-                    propertyCode: { in: propertyIdsAndCodes.map(p => p.code) },
-                    date: new Date().toISOString().split('T')[0]
-                },
-                _sum: { availability: true }
-            });
+        // ✅ FIX: Use Date object instead of string
+        const inventoryByProperty = await prisma.inventory.groupBy({
+            by: ['propertyCode'],
+            where: {
+                propertyCode: { in: propertyIdsAndCodes.map(p => p.code) },
+                date: today  // ✅ Changed from string to Date
+            },
+            _sum: { availability: true }
+        });
 
-            // Create property map
-            const propertyMap = new Map(propertyIdsAndCodes.map(p => [p.id, p]));
+        // Create property map
+        const propertyMap = new Map(propertyIdsAndCodes.map(p => [p.id, p]));
 
-            // Top by revenue
-            const topByRevenue = revenueByProperty
-                .map(r => {
-                    const prop = propertyMap.get(r.propertyId);
-                    return {
-                        propertyId: r.propertyId,
-                        propertyCode: prop?.code || '',
-                        propertyName: prop?.name || '',
-                        totalRevenue: r._sum.amount || 0
-                    };
-                })
-                .sort((a, b) => b.totalRevenue - a.totalRevenue)
-                .slice(0, 5);
+        // Top by revenue
+        const topByRevenue = revenueByProperty
+            .map(r => {
+                const prop = propertyMap.get(r.propertyId);
+                return {
+                    propertyId: r.propertyId,
+                    propertyCode: prop?.code || '',
+                    propertyName: prop?.name || '',
+                    totalRevenue: r._sum.amount || 0
+                };
+            })
+            .sort((a, b) => b.totalRevenue - a.totalRevenue)
+            .slice(0, 5);
 
-            // Top by bookings
-            const topByBookings = bookingsByProperty
-                .map(b => {
-                    const prop = propertyMap.get(b.propertyId);
-                    return {
-                        propertyId: b.propertyId,
-                        propertyCode: prop?.code || '',
-                        propertyName: prop?.name || '',
-                        totalBookings: b._count
-                    };
-                })
-                .sort((a, b) => b.totalBookings - a.totalBookings)
-                .slice(0, 5);
+        // Top by bookings
+        const topByBookings = bookingsByProperty
+            .map(b => {
+                const prop = propertyMap.get(b.propertyId);
+                return {
+                    propertyId: b.propertyId,
+                    propertyCode: prop?.code || '',
+                    propertyName: prop?.name || '',
+                    totalBookings: b._count
+                };
+            })
+            .sort((a, b) => b.totalBookings - a.totalBookings)
+            .slice(0, 5);
 
-            // Top by occupancy
-            const topByOccupancy = roomsByProperty
-                .map(r => {
-                    const prop = propertyMap.get(r.propertyId);
-                    const inventory = inventoryByProperty.find(i => i.propertyCode === prop?.code);
-                    const totalRooms = r._sum.totalRoom || 0;
-                    const available = inventory?._sum.availability || totalRooms;
-                    const occupied = totalRooms - available;
-                    const occupancyRate = totalRooms > 0 ? (occupied / totalRooms) * 100 : 0;
+        // Top by occupancy
+        const topByOccupancy = roomsByProperty
+            .map(r => {
+                const prop = propertyMap.get(r.propertyId);
+                const inventory = inventoryByProperty.find(i => i.propertyCode === prop?.code);
+                const totalRooms = r._sum.totalRoom || 0;
+                const available = inventory?._sum.availability || totalRooms;
+                const occupied = totalRooms - available;
+                const occupancyRate = totalRooms > 0 ? (occupied / totalRooms) * 100 : 0;
 
-                    return {
-                        propertyId: r.propertyId,
-                        propertyCode: prop?.code || '',
-                        propertyName: prop?.name || '',
-                        occupancyRate: Number(occupancyRate.toFixed(2)),
-                        totalRooms,
-                        occupiedRooms: occupied
-                    };
-                })
-                .sort((a, b) => b.occupancyRate - a.occupancyRate)
-                .slice(0, 5);
+                return {
+                    propertyId: r.propertyId,
+                    propertyCode: prop?.code || '',
+                    propertyName: prop?.name || '',
+                    occupancyRate: Number(occupancyRate.toFixed(2)),
+                    totalRooms,
+                    occupiedRooms: occupied
+                };
+            })
+            .sort((a, b) => b.occupancyRate - a.occupancyRate)
+            .slice(0, 5);
 
-            return {
-                topByRevenue,
-                topByBookings,
-                topByOccupancy
-            };
-        } catch (error) {
-            return {
-                topByRevenue: [],
-                topByBookings: [],
-                topByOccupancy: []
-            };
-        }
+        return {
+            topByRevenue,
+            topByBookings,
+            topByOccupancy
+        };
+    } catch (error) {
+        console.error("Error in getTopPerformingProperties:", error); // ✅ Added logging
+        return {
+            topByRevenue: [],
+            topByBookings: [],
+            topByOccupancy: []
+        };
     }
+}
 }
 
 export class DashUtilsRepo {

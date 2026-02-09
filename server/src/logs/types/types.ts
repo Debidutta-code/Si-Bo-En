@@ -1,208 +1,339 @@
-import { Types } from "mongoose";
-export interface IGuests {
-    firstName: string;
-    lastName: string;
-    dob: Date;
-    type: "Adult" | "Child"
+import { 
+  ActivityAction, 
+  ActivityEntity, 
+  ActivitySeverity,
+  IMetadata,
+  IChangeLog,
+  IErrorDetails,
+  IEntityReference
+} from '../model/activity.model';
 
-}
-export interface IBookingActivity {
-    property: {
-        code: string;
-        id: Types.ObjectId
-    };
-    room: {
-        code: string;
-        id: Types.ObjectId
-    };
-    ratePlanCode: string;
-    amount: number;
-    currencyCode: string;
-    guests: IGuests[];
-    bookingUserEmail: string;
-    bookingUserPhoneNo: string;
-    bookingDate: Date;
-    checkInDate: Date;
-    checkoutDate: Date;
-    paymentType: string;
-    bookingStatus: "Confirmed" | "Pending" | "Cancelled" | "Modified";
-    finalPrice: any;
-    bookingCode: string;
-    cancellationReason: string;
-    activity: "Create" | "Update" | "Delete";
-    message: string;
-}
-export interface IPropertyActivity {
-    propertyName: string;
-    creator: {
-        firstName: string;
-        lastName: string;
-        email: string;
-        role: string;
-    },
-    address: string;
-    propertyEmail: string;
-    activity: "Create" | "Update" | "Delete";
-    field: "address" | "propertyCatrgory" | "destinationType" | "propertyType" | "propertyAddress" | "propertyAmenities" | "ratePlan"
-    message: string;
-}
-export interface IRoomActivity {
-    propertyName: string;
-    propertyContactEmail: string;
-    roomName: string;
-    activity: "Create" | "Update" | "Delete";
-    isRoomActive: boolean;
-    field: "room" | "amenities"
-    message: string;
-}
-export interface IPolicy {
-    policyName: string;
-    type: "Deposit Policies" | "Guarantee Policies" | "Cancellation Policies";
-    propertyCode: string;
-    activity: "Create" | "Update" | "Delete";
-    message: string;
-}
-export interface IInventory {
-    hotelName: string;
-    propertyCode: string;
-    roomTypeCode: string;
-    availability: string;
-    activity: "Create" | "Update" | "Delete";
-    message: string;
 
+export interface ICreateActivityInput {
+  // Core fields
+  action: ActivityAction;
+  entity: ActivityEntity;
+  entityId: string;
+  entityName?: string;
+  
+  // Actor information
+  userId?: string;
+  userEmail?: string;
+  userName?: string;
+  userRole?: string;
+  userLevel?: number;
+  
+  // Context
+  propertyId?: string;
+  propertyCode?: string;
+  propertyName?: string;
+  creationId?: string;
+  creationName?: string;
+  creationType?: 'group' | 'property' | 'brand' | 'super'|undefined;
+  
+  // Description
+  description: string;
+  shortMessage?: string;
+  
+  // API details
+  requestUrl?: string;
+  requestPayload?: any;
+  apiStatus?: string;
+  
+  // Changes
+  changes?: IChangeLog[];
+  oldState?: any;
+  newState?: any;
+  
+  // Metadata
+  metadata?: IMetadata;
+  
+  // Error handling
+  isError?: boolean;
+  errorDetails?: IErrorDetails;
+  
+  // Severity
+  severity?: ActivitySeverity;
+  
+  // Related entities
+  relatedEntities?: IEntityReference[];
+  
+  // Tags
+  tags?: string[];
+  
+  // Timestamp
+  timestamp?: Date;
+  expiresAt?: Date;
 }
-export interface IUser{
-    firstName:string;
-    lastName:string;
-    role:string;
-    level:number;
-    email:string;
-    createdBy:Types.ObjectId;
-    creatorLevel:number;
-    activity: "Create" | "Update" | "Delete";
-    message: string;
+
+export interface IBulkCreateActivityInput {
+  activities: ICreateActivityInput[];
 }
-export interface IRateAmount {
-    propertyCode: string;
-    hotelName: string;
-    daterange:{
-        from:Date;
-        to:Date;
-    },
-    ratePlanCode:string;
-    activity: "Create" | "Update" | "Delete";
-    message: string;
+
+
+export interface IActivityFilters {
+  // Core filters
+  action?: ActivityAction | ActivityAction[];
+  entity?: ActivityEntity | ActivityEntity[];
+  entityId?: string | string[];
+  
+  // Actor filters
+  userId?: string | string[];
+  userEmail?: string;
+  userRole?: string | string[];
+  
+  // Context filters
+  propertyId?: string | string[];
+  propertyCode?: string;
+  creationId?: string | string[];
+  
+  // Error filters
+  isError?: boolean;
+  severity?: ActivitySeverity | ActivitySeverity[];
+  
+  // Tag filters
+  tags?: string | string[];
+  
+  // Date range filters
+  startDate?: Date;
+  endDate?: Date;
+  
+  // Search
+  search?: string; // Search in description, shortMessage, entityName
+  
+  // Custom filters
+  [key: string]: any;
 }
-export interface IRateplan {
-    propertyCode:string;
-    RatePlanName:string;
-    activity: "Create" | "Update" | "Delete";
-    message: string;
+
+export interface IActivityPagination {
+  page?: number;
+  limit?: number;
+  skip?: number;
 }
-export interface IFailedActivity{
-    failedActivityType:string;
-    reason:string;
+
+export interface IActivitySort {
+  field?: string;
+  order?: 'asc' | 'desc' | 1 | -1;
 }
-export interface IActivityDocument {
-    initiatedBy: Types.ObjectId;
+
+export interface IFetchActivitiesInput {
+  filters?: IActivityFilters;
+  pagination?: IActivityPagination;
+  sort?: IActivitySort;
+  select?: string | string[]; // Fields to select
+  populate?: string | string[]; // Fields to populate (if any)
+}
+
+export interface IFetchActivitiesResponse {
+  data: any[]; // Array of activities
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasNextPage: boolean;
+    hasPrevPage: boolean;
+  };
+}
+
+export interface IFetchActivityByIdInput {
+  activityId: string;
+  select?: string | string[];
+}
+
+
+export interface IActivityCountByEntityInput {
+  entity?: ActivityEntity;
+  propertyId?: string;
+  creationId?: string;
+  startDate?: Date;
+  endDate?: Date;
+}
+
+export interface IActivityCountByActionInput {
+  action?: ActivityAction;
+  entity?: ActivityEntity;
+  propertyId?: string;
+  userId?: string;
+  startDate?: Date;
+  endDate?: Date;
+}
+
+export interface IActivityErrorStatsInput {
+  propertyId?: string;
+  creationId?: string;
+  startDate?: Date;
+  endDate?: Date;
+  severity?: ActivitySeverity;
+}
+
+export interface IUserActivityStatsInput {
+  userId: string;
+  startDate?: Date;
+  endDate?: Date;
+  entity?: ActivityEntity;
+}
+
+export interface IPropertyActivityStatsInput {
+  propertyId: string;
+  startDate?: Date;
+  endDate?: Date;
+  entity?: ActivityEntity;
+  action?: ActivityAction;
+}
+
+
+export interface IActivityResponse {
+  success: boolean;
+  message: string;
+  data?: any;
+  error?: string;
+}
+
+export interface ICreateActivityResponse extends IActivityResponse {
+  data?: {
+    activityId: string;
     timestamp: Date;
-    ipAddress?: string;
-    userAgent?: string;
-    activityType: 'booking' | 'property' | 'room' | 'policy' | 'inventory' | 'user' | 'rateAmount' | 'ratePlan' | 'failed';
-    bookingActivity?: IBookingActivity;
-    propertyActivity?: IPropertyActivity;
-    roomActivity?: IRoomActivity;
-    policy?: IPolicy;
-    inventory?: IInventory;
-    userActivity?: IUser;
-    rateAmount?: IRateAmount;
-    ratePlan?: IRateplan;
-    failedActivity?: IFailedActivity;
-    createdAt: Date;
-    updatedAt: Date;
-}
-export interface PaginatedResult<T> {
-    data: T[];
-    pagination: {
-        page: number;
-        limit: number;
-        total: number;
-        totalPages: number;
-    };
+  };
 }
 
-// Filter interfaces
-export interface DateRangeFilter {
-    startDate?: Date;
-    endDate?: Date;
+export interface IBulkCreateActivityResponse extends IActivityResponse {
+  data?: {
+    createdCount: number;
+    failedCount: number;
+    activityIds: string[];
+  };
 }
 
-export interface ActivityFilters {
-    activityType?: 'booking' | 'property' | 'room' | 'policy' | 'inventory' | 'user' | 'rateAmount' | 'ratePlan' | 'failed';
-    initiatedBy?: string | Types.ObjectId;
-    dateRange?: DateRangeFilter;
-    bookingStatus?: 'Confirmed' | 'Pending' | 'Cancelled' | 'Modified';
-    propertyCode?: string;
-    bookingCode?: string;
-    userEmail?: string;
-    propertyEmail?: string;
-    ipAddress?: string;
-    search?: string; // General search term
+
+export interface IActivityAggregation {
+  groupBy: string | string[]; // Fields to group by
+  count?: boolean;
+  sum?: string; // Field to sum
+  avg?: string; // Field to average
+  min?: string; // Field to get minimum
+  max?: string; // Field to get maximum
+  filters?: IActivityFilters;
 }
 
-export interface CreateActivityData {
-    initiatedBy: Types.ObjectId;
-    activityType: 'booking' | 'property' | 'room' | 'policy' | 'inventory' | 'user' | 'rateAmount' | 'ratePlan' | 'failed';
-    ipAddress?: string;
-    userAgent?: string;
-    bookingActivity?: IBookingActivity;
-    propertyActivity?: IPropertyActivity;
-    roomActivity?: IRoomActivity;
-    policy?: IPolicy;
-    inventory?: IInventory;
-    userActivity?: IUser;
-    rateAmount?: IRateAmount;
-    ratePlan?: IRateplan;
-    failedActivity?: IFailedActivity;
-}
-export interface ActivityServiceResponse<T = any> {
-    success: boolean;
-    message: string;
-    data?: T;
-    error?: string;
+export interface IRecentActivitiesInput {
+  limit?: number;
+  entity?: ActivityEntity;
+  propertyId?: string;
+  userId?: string;
+  excludeErrors?: boolean;
 }
 
-export interface CreateActivityRequest {
-    initiatedBy: string | Types.ObjectId;
-    activityType: 'booking' | 'property' | 'room' | 'policy' | 'inventory' | 'user' | 'rateAmount' | 'ratePlan' | 'failed';
-    ipAddress?: string;
-    userAgent?: string;
-    activityData: IBookingActivity | IPropertyActivity | IRoomActivity | IPolicy | IInventory | IUser | IRateAmount | IRateplan | IFailedActivity;
+export interface IActivityTimelineInput {
+  entityType: ActivityEntity;
+  entityId: string;
+  startDate?: Date;
+  endDate?: Date;
+  includeRelated?: boolean;
 }
 
-export interface GetActivitiesRequest {
-    filters?: ActivityFilters;
-    page?: number;
-    itemsPerPage?: number;
-    sortBy?: 'timestamp' | 'activityType' | 'createdAt';
-    sortOrder?: 'asc' | 'desc';
+export interface IExportActivitiesInput {
+  filters?: IActivityFilters;
+  format?: 'json' | 'csv' | 'excel';
+  fields?: string[];
+  startDate?: Date;
+  endDate?: Date;
 }
 
-export interface ActivityStatsResponse {
-    totalActivities: number;
-    activityBreakdown: Array<{
-        _id: string;
-        count: number;
-        latestActivity: Date;
-    }>;
-    dateRange?: DateRangeFilter;
-    topUsers?: Array<{
-        userId: Types.ObjectId;
-        count: number;
-        userName?: string;
-    }>;
-    dailyStats?: Array<{
-        date: string;
-        count: number;
-    }>;
+
+export type ActivitySortField = 
+  | 'timestamp'
+  | 'createdAt'
+  | 'entity'
+  | 'action'
+  | 'severity'
+  | 'userId'
+  | 'propertyId';
+
+export type ActivitySelectFields = 
+  | 'action'
+  | 'entity'
+  | 'entityId'
+  | 'entityName'
+  | 'userId'
+  | 'userEmail'
+  | 'userName'
+  | 'description'
+  | 'shortMessage'
+  | 'timestamp'
+  | 'severity'
+  | 'isError'
+  | 'metadata'
+  | 'changes'
+  | 'tags';
+
+
+export interface IRequestContext {
+  userId?: string;
+  userEmail?: string;
+  userName?: string;
+  userRole?: string;
+  userLevel?: number;
+  
+  propertyId?: string;
+  propertyCode?: string;
+  propertyName?: string;
+  
+  creationId?: string;
+  creationName?: string;
+  creationType?: string;
+  
+  ipAddress?: string;
+  userAgent?: string;
+  sessionId?: string;
+  requestId?: string;
+}
+
+
+
+export interface IQuickLogReservationInput {
+  action: ActivityAction.CREATE | ActivityAction.UPDATE | ActivityAction.CANCEL | ActivityAction.CONFIRM;
+  reservationId: string;
+  reservationCode?: string;
+  guestName?: string;
+  propertyId?: string;
+  changes?: IChangeLog[];
+  context?: IRequestContext;
+}
+
+export interface IQuickLogPaymentInput {
+  action: ActivityAction.CREATE | ActivityAction.UPDATE | ActivityAction.APPROVE | ActivityAction.REJECT;
+  paymentId: string;
+  amount?: number;
+  currency?: string;
+  propertyId?: string;
+  reservationId?: string;
+  context?: IRequestContext;
+}
+
+export interface IQuickLogLoyaltyInput {
+  action: ActivityAction.CREATE | ActivityAction.UPDATE;
+  loyaltyGuestId?: string;
+  loyaltyConfigId?: string;
+  email?: string;
+  propertyId?: string;
+  context?: IRequestContext;
+}
+
+export interface IQuickLogUserInput {
+  action: ActivityAction.CREATE | ActivityAction.UPDATE | ActivityAction.LOGIN | ActivityAction.LOGOUT;
+  userId: string;
+  userEmail?: string;
+  userName?: string;
+  context?: IRequestContext;
+}
+
+export interface IQuickLogErrorInput {
+  entity: ActivityEntity;
+  entityId?: string;
+  errorMessage: string;
+  errorCode?: string;
+  stackTrace?: string;
+  severity?: ActivitySeverity;
+  context?: IRequestContext;
 }

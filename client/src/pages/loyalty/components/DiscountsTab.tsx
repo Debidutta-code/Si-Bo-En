@@ -96,7 +96,7 @@ export default function DiscountsTab({
               type="text"
               value={currencyCode}
               onChange={(e) => setCurrencyCode(e.target.value.toUpperCase())}
-              placeholder="e.g., USD, EUR, GBP"
+              placeholder="e.g., USD, EUR, INR"
               maxLength={3}
             />
             <p className="text-sm text-muted-foreground">

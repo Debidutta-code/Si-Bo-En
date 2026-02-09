@@ -59,8 +59,15 @@ export interface IRoomPrice {
   };
   addons: IAddonInfo[];
   availablePromotions: IPromotion[];
+   touristTax?: ITouristTax | null;
 }
-
+export interface ITouristTax {
+  id: string;
+  discountType: string;
+  discountValue: number;
+  currencyCode: string;
+  calculatedTaxAmount?:number;
+}
 export interface IRoom {
   id: string;
   room_name: string;

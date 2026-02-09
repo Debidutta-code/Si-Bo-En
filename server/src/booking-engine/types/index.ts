@@ -1,9 +1,18 @@
-import type {IBookingSearchPayload,IRoom,IRoomPrice , IPromotion ,IAddonInfo ,IBaseByGuestAmount} from "./room.type";
-export{
+import type {
     IBookingSearchPayload,
     IRoom,
     IRoomPrice,
     IPromotion,
     IAddonInfo,
-    IBaseByGuestAmount
-}
+    IBaseByGuestAmount,
+    ITouristTax
+} from './room.type';
+export {
+    IBookingSearchPayload,
+    IRoom,
+    IRoomPrice,
+    IPromotion,
+    IAddonInfo,
+    IBaseByGuestAmount,
+    ITouristTax
+};
