@@ -26,6 +26,7 @@
     "@prisma/client": "6.15.0",
     "@sendgrid/mail": "^8.1.5",
     "@types/html-pdf-node": "^1.0.2",
+    "@types/socket.io": "^3.0.1",
     "bcryptjs": "^2.4.3",
     "cloudinary": "^2.2.0",
     "cookie-parser": "^1.4.7",
