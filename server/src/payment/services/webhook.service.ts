@@ -1,0 +1,203 @@
+// N-Genius Webhook Service
+import * as crypto from 'crypto';
+import { NGeniusWebhookPayload } from '../types/webhook.types';
+import { socketManager } from '../../socket/socket.manager';
+
+class WebhookService {
+  /**
+   * Decrypt encrypted webhook payload
+   * Algorithm: AES-256-CBC with PKCS5 Padding
+   * 
+   * @param encryptedData - Base64 encoded encrypted data (IV prepended)
+   * @param secretKey - 32-character ASCII secret key
+   * @returns Decrypted JSON object
+   */
+  decryptPayload(encryptedData: string, secretKey: string): NGeniusWebhookPayload {
+    try {
+      // Validate secret key length (must be exactly 32 characters for AES-256)
+      if (secretKey.length !== 32) {
+        throw new Error('Secret key must be exactly 32 characters');
+      }
+
+      // Step 1: Decode the Base64 string
+      const encryptedBuffer = Buffer.from(encryptedData, 'base64');
+
+      // Step 2: Extract the first 16 bytes as IV (Initialization Vector)
+      const iv = encryptedBuffer.subarray(0, 16);
+
+      // Step 3: Extract the rest as encrypted data
+      const encryptedContent = encryptedBuffer.subarray(16);
+
+      // Step 4: Create decipher with AES-256-CBC
+      const decipher = crypto.createDecipheriv(
+        'aes-256-cbc',
+        Buffer.from(secretKey, 'utf8'),
+        iv
+      );
+
+      // Step 5: Decrypt the data
+      let decrypted = decipher.update(encryptedContent);
+      decrypted = Buffer.concat([decrypted, decipher.final()]);
+
+      // Step 6: Parse the decrypted JSON
+      const decryptedText = decrypted.toString('utf8');
+      const payload = JSON.parse(decryptedText);
+
+      return payload;
+    } catch (error) {
+      console.error('Error decrypting webhook payload:', error);
+      throw new Error('Failed to decrypt webhook payload');
+    }
+  }
+
+  /**
+   * Process webhook event and emit to Socket.IO
+   * 
+   * @param payload - Webhook payload
+   */
+  processWebhookEvent(payload: NGeniusWebhookPayload): void {
+    console.log('========================================');
+    console.log('📥 N-Genius Webhook Event Received');
+    console.log('========================================');
+    console.log('Event ID:', payload.eventId);
+    console.log('Event Name:', payload.eventName);
+    console.log('Outlet ID:', payload.outletId);
+    console.log('Order Reference:', payload.order.reference);
+    console.log('Order ID:', payload.order._id);
+    console.log('Order Action:', payload.order.action);
+    console.log('Amount:', `${payload.order.amount.value} ${payload.order.amount.currencyCode}`);
+    
+    // Extract payment details if available
+    let paymentDetails: any = null;
+    if (payload.order._embedded?.payment && payload.order._embedded.payment.length > 0) {
+      const payment = payload.order._embedded.payment[0];
+      console.log('Payment State:', payment.state);
+      console.log('Payment Reference:', payment.reference);
+      
+      if (payment.paymentMethod) {
+        console.log('Payment Method:', payment.paymentMethod.name);
+        console.log('Card PAN:', payment.paymentMethod.pan);
+      }
+      
+      if (payment.authResponse) {
+        console.log('Auth Code:', payment.authResponse.authorizationCode);
+        console.log('Auth Result:', payment.authResponse.resultMessage);
+      }
+
+      paymentDetails = {
+        state: payment.state,
+        reference: payment.reference,
+        paymentMethod: payment.paymentMethod,
+        authResponse: payment.authResponse,
+      };
+    }
+    
+    console.log('========================================');
+
+    // Determine payment status
+    const status = this.determinePaymentStatus(payload.eventName);
+    const message = this.getStatusMessage(payload.eventName);
+
+    // Emit to Socket.IO
+    const orderReference = payload.order.reference;
+    console.log(`🔔 Emitting payment update for order: ${orderReference}`);
+    
+    socketManager.emitPaymentUpdate(orderReference, {
+      orderReference,
+      eventName: payload.eventName,
+      status,
+      message,
+      eventId: payload.eventId,
+      paymentDetails,
+    });
+
+    console.log('✅ Webhook Event Processed & Emitted to Socket.IO');
+    console.log('========================================');
+  }
+
+  /**
+   * Determine payment status from event name
+   */
+  private determinePaymentStatus(eventName: string): 'success' | 'failed' | 'pending' {
+    const successEvents = [
+      'AUTHORISED',
+      'PURCHASED',
+      'CAPTURED',
+      'PARTIALLY_CAPTURED',
+      'APM_PAYMENT_ACCEPTED',
+    ];
+
+    const failedEvents = [
+      'DECLINED',
+      'AUTHORISATION_FAILED',
+      'PURCHASE_DECLINED',
+      'PURCHASE_FAILED',
+      'CAPTURE_FAILED',
+      'REFUND_FAILED',
+      'CANCELLED',
+    ];
+
+    if (successEvents.includes(eventName)) {
+      return 'success';
+    } else if (failedEvents.includes(eventName)) {
+      return 'failed';
+    } else {
+      return 'pending';
+    }
+  }
+
+  /**
+   * Get user-friendly status message
+   */
+  private getStatusMessage(eventName: string): string {
+    const messages: Record<string, string> = {
+      AUTHORISED: 'Payment authorized successfully',
+      PURCHASED: 'Payment completed successfully',
+      CAPTURED: 'Payment captured successfully',
+      PARTIALLY_CAPTURED: 'Payment partially captured',
+      DECLINED: 'Payment was declined',
+      AUTHORISATION_FAILED: 'Payment authorization failed',
+      PURCHASE_DECLINED: 'Purchase was declined',
+      PURCHASE_FAILED: 'Purchase failed',
+      CAPTURE_FAILED: 'Payment capture failed',
+      CANCELLED: 'Payment was cancelled',
+      APM_PAYMENT_ACCEPTED: 'Payment accepted',
+      REFUNDED: 'Payment refunded',
+      PARTIALLY_REFUNDED: 'Payment partially refunded',
+    };
+
+    return messages[eventName] || `Payment ${eventName.toLowerCase()}`;
+  }
+
+  /**
+   * Validate webhook request
+   * 
+   * @param body - Request body
+   * @param headers - Request headers
+   * @returns True if valid, false otherwise
+   */
+  validateWebhookRequest(body: any, headers: any): boolean {
+    // Basic validation - ensure body is not empty
+    if (!body) {
+      console.error('Webhook validation failed: Empty body');
+      return false;
+    }
+
+    // If encrypted, ensure secret header is present
+    if (headers['x-webhook-secret']) {
+      console.log('🔒 Encrypted webhook detected');
+      return true;
+    }
+
+    // If not encrypted, check if it's a valid JSON payload
+    if (typeof body === 'object' && body.eventId && body.eventName && body.order) {
+      console.log('📄 Unencrypted webhook detected');
+      return true;
+    }
+
+    console.error('Webhook validation failed: Invalid payload structure');
+    return false;
+  }
+}
+
+export const webhookService = new WebhookService();

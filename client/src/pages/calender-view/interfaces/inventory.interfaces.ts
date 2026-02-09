@@ -3,8 +3,8 @@
 export interface InventoryAnalysisFilters {
   startDate: string; // YYYY-MM-DD
   endDate: string;   // YYYY-MM-DD
-  roomTypeCode?: string; // Optional - specific room type
-  ratePlanCode?: string; // Optional - specific rate plan
+  roomTypeCodes?: string[]; // Optional - specific room type
+  ratePlanCodes?: string[]; // Optional - specific rate plan
 }
 
 export interface RoomTypeResponse {

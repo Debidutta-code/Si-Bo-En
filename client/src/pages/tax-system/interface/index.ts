@@ -19,7 +19,12 @@ import type {ICTaxRule,
     TaxType,
 } from "./tax-rule.type";
 import type {RatePlan} from "../../rate-plan/interfaces";
-
+import type {ITouristTax,
+    ICTouristTax,
+    IUTouristTax,
+    DiscountType,
+    CurrencyCode,
+} from "./tourism-tax.type";
 export type {
  ICTaxGroup,
     ICTaxGroupRule,
@@ -41,5 +46,10 @@ ICTaxRule,
 // ITaxRuleWithRelations,
 IUTaxGroup,
 IUTaxGroupRule,
-RatePlan
+RatePlan,
+ITouristTax,
+ICTouristTax,
+IUTouristTax,
+DiscountType,
+CurrencyCode,
 }

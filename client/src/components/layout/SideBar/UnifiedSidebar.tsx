@@ -24,7 +24,7 @@ import {
   ListEndIcon,
   Smartphone,
   MoonIcon,
-  // Pen,
+  Pen,
   Sun,
   Award,
   Briefcase,
@@ -47,7 +47,7 @@ const navigation: NavItem[] = [
   { name: 'Properties', href: '/app/property', icon: Building, userLevels: [2, 3, 4] },
   { name: "My Property", href: `/app/property`, icon: Building, userLevels: [1, 0] },
   { name: "Reservations", href: "/app/bookings", icon: CalendarClock, userLevels: [0, 1, 2, 3, 4] },
-  // { name: 'Logs', href: '/app/logs', icon: FileText, userLevels: [0, 1, 2, 3, 4] },
+  { name: 'Logs', href: '/app/logs', icon: FileText, userLevels: [ 4] },
   { name: 'Manage Members', href: '/app/members', icon: Users, userLevels: [4, 3, 2, 1] },
   { name: 'Access Control', href: '/app/access-control', icon: Shield, userLevels: [4] },
   { name: 'Utils Management', href: '/app/utils-management', icon: Wrench, userLevels: [4] },
@@ -103,7 +103,7 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
     { name: 'Device Specific', href: `/property/promotion/device-specific/${propertyId}`, icon: Smartphone, userLevels: [4, 3, 2, 1,0] },
     { name: 'Early Bird', href: `/property/promotion/early-bird/${propertyId}`, icon:Sun , userLevels: [4, 3, 2, 1,0] },
     { name: 'Offer For Tonight', href: `/property/promotion/offer-for-tonight/${propertyId}`, icon: MoonIcon, userLevels: [4, 3, 2, 1,0] },
-    // { name: 'Customizable deal', href: `/property/promotion/customizable-deal/${propertyId}`, icon: Pen, userLevels: [4, 3, 2, 1,0] },
+    { name: 'Customizable Deal', href: `/property/promotion/customizable-deal/${propertyId}`, icon: Pen, userLevels: [4, 3, 2, 1,0] },
 
   ];
 

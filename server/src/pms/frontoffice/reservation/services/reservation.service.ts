@@ -173,7 +173,8 @@ export class ReservationService {
                 email,
                 phone,
                 paymentMethod,
-                bookingSource
+                bookingSource,
+                agencyId,
             } = bookingDetails;
 
             // 1️⃣ Resolve property
@@ -253,7 +254,8 @@ export class ReservationService {
                 bookingSource: bookingSource || "direct",
 
                 isPromoUsed: !!(bookingDetails.promoCode || (normalizedPayload.bookingDetails.selectedPromotions && normalizedPayload.bookingDetails.selectedPromotions.length > 0)),
-                promoId: null
+                promoId: null,
+                agencyId:agencyId||null
             };
 
             // 5️⃣ Create reservation

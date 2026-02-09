@@ -23,3 +23,10 @@ export interface IAmenity {
   description?: string;
   icon?: string;
 }
+
+export interface ILoyaltyGuestField {
+  id: string;
+  fieldName: string;
+  createdAt?: string;
+  updatedAt?: string;
+}

@@ -639,7 +639,7 @@ model Charge {
 
 model ChargeBaseByGuest {
   id              String  @id @default(uuid())
-  charge          Charge  @relation(fields: [chargeId], references: [id])
+  charge          Charge  @relation(fields: [chargeId], references: [id] ,onDelete: Cascade)
   chargeId        String
   amountBeforeTax Decimal @map("amount_before_tax")
   numberOfGuests  Int     @map("number_of_guests")
@@ -650,7 +650,7 @@ model ChargeBaseByGuest {
 
 model ChargeAdditionalGuest {
   id                String  @id @default(uuid())
-  charge            Charge  @relation(fields: [chargeId], references: [id])
+  charge            Charge  @relation(fields: [chargeId], references: [id] ,onDelete: Cascade)
   chargeId          String
   ageQualifyingCode String  @map("age_qualifying_code")
   amount            Decimal
@@ -956,7 +956,7 @@ model AddonAvailability {
   isAvailable  Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-
+@@unique([addonId,date])
   addon Addon @relation(fields: [addonId], references: [id])
 }
 
@@ -1017,18 +1017,19 @@ model Reservation {
   actualCheckInAt  DateTime? @map("actual_check_in_at")
   actualCheckOutAt DateTime? @map("actual_check_out_at")
   cancelledAt      DateTime? @map("cancelled_at")
+  agencyId              String?                     @map("agency_id") @db.VarChar(36)
 
   // Audit
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   // Relations
+  
 
   property              Property                    @relation(fields: [propertyId], references: [id])
   promo                 PromoCode?                  @relation(fields: [promoId], references: [id])
   addOns                BookingAddon[]
   priceBreakdowns       ReservationPriceBrakeDown[]
   agency                Agency?                     @relation(fields: [agencyId], references: [id])
-  agencyId              String?                     @map("agency_id") @db.VarChar(36)
   reservationPromotions ReservationPromotion[]
 
   @@index([propertyCode])

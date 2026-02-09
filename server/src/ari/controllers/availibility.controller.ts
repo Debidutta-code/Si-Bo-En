@@ -1,15 +1,15 @@
 import { getPropertyCode } from '../../pms/frontoffice/room-management/utils/property.util';
 import { toUTCDate } from '../../utils';
-import { CustomRequest ,PropertyCustomRequest} from '../../utils/customRequest';
+import { PropertyCustomRequest } from '../../utils/customRequest';
 import { errorResponse } from '../../utils/return';
 import { AvailabilityServices } from '../services';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 
 export class AvailabilityController {
-  public static async getCalendarAvailability(req: PropertyCustomRequest, res: Response) {
+  public static async getCalendarAvailability(req: Request, res: Response) {
     try {
-      // ✅ ADD: ratePlanCode parameter
-      const { propertyId, startDate, endDate, invTypeCodes, roomTypeCode, ratePlanCode } = req.query;
+      // ✅ Read from body instead of query
+      const { propertyId, startDate, endDate, roomTypeCodes = [], ratePlanCodes = [] } = req.body;
 
       if (!propertyId || !startDate || !endDate) {
         return res.status(400).json(
@@ -31,30 +31,26 @@ export class AvailabilityController {
         return res.status(400).json(errorResponse('Start date must be before end date'));
       }
 
-      // Parse room type codes
-      let roomTypeCodes: string[] = [];
+      // ✅ Arrays come clean from body - no parsing needed!
+      const parsedRoomTypeCodes = Array.isArray(roomTypeCodes) 
+        ? roomTypeCodes.map(code => String(code).trim())
+        : [];
       
-      if (roomTypeCode) {
-        roomTypeCodes = [String(roomTypeCode).trim()];
-      } else if (invTypeCodes && String(invTypeCodes).length > 0) {
-        roomTypeCodes = String(invTypeCodes).split(',').map(code => code.trim());
-      }
+      const parsedRatePlanCodes = Array.isArray(ratePlanCodes)
+        ? ratePlanCodes.map(code => String(code).trim())
+        : [];
 
-      // ✅ ADD: Parse rate plan codes
-      let ratePlanCodes: string[] = [];
-      
-      if (ratePlanCode && String(ratePlanCode).length > 0) {
-        ratePlanCodes = String(ratePlanCode).split(',').map(code => code.trim());
-      }
-
-      // console.log('🔍 Controller - Filters:', { roomTypeCodes, ratePlanCodes });
+      console.log('🔍 Controller - Filters:', { 
+        roomTypeCodes: parsedRoomTypeCodes, 
+        ratePlanCodes: parsedRatePlanCodes 
+      });
 
       const response = await AvailabilityServices.getCalendarAvailability(
         propertyCode as string,
         start,
         end,
-        roomTypeCodes,
-        ratePlanCodes // ✅ ADD: Pass rate plan codes
+        parsedRoomTypeCodes,
+        parsedRatePlanCodes
       );
 
       const status = response.success ? 200 : 400;

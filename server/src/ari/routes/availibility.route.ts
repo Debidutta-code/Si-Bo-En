@@ -6,12 +6,12 @@ export const availabilityRouter = Router();
 
 availabilityRouter
   .route('/calendar')
-  .get(
+  .post(
     protect,
     attachPropertyDetails({
       identifierType: "id",
       key: "propertyId",
-      source: "query"
+      source: "body"
     }),
     AvailabilityController.getCalendarAvailability
   );

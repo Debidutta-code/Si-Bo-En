@@ -12,6 +12,10 @@ const config={
     jwtSecretKeyProd: process.env.JWT_SECRET_KEY,
     jwtExpiresInDev: process.env.JWT_EXPIRES_IN_DEV,
     jwtExpiresInProd: process.env.JWT_EXPIRES_IN,
+
+    agencyJWTSecret: process.env.AGENT_JWT_SECRET,
+    agencyJWTExpiresIn: process.env.AGENT_JWT_EXPIRES_IN,
+
     cloudinaryUrl: process.env.CLOUDINARY_URL,
 
     allowedOrigins: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ["*"],

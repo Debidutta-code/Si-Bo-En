@@ -4,11 +4,14 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { useRouter } from "next/navigation";
+import {ngeniusService} from "../../services/ngenius.service";
 import {
   DollarSign,
   CreditCard,
   Check,
   Loader2,
+  ShieldCheck,
+ Info,
   Wallet,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -67,6 +70,20 @@ const BookingReviewPage = () => {
 
   // Add the hook usage at the component level
   const { colors } = useBookingStorage({});
+
+  // Map frontend payment method names to database enum values
+  const mapPaymentMethodToEnum = (method: string): string => {
+    switch (method) {
+      case "payAtHotel":
+        return "pay_at_hotel";
+      case "gateway":
+        return "payment_gateway";
+      case "ngenius":
+        return "payment_gateway";
+      default:
+        return "pay_at_hotel";
+    }
+  };
 
   useEffect(() => {
     if (finalPrice?.totalAmount) {
@@ -139,6 +156,9 @@ const BookingReviewPage = () => {
 
     console.log("✅ Available payment methods:", methods);
 
+    // N-Genius is always available as a payment option
+    methods.push("ngenius");
+
     setAvailableMethods(methods);
     setNoAvailablePayment(methods.length === 0);
 
@@ -160,6 +180,8 @@ const BookingReviewPage = () => {
         return bankDetails.payAtHotel;
       case "gateway":
         return bankDetails.paymentGateway;
+      case "ngenius":
+        return true; // N-Genius is always available
       default:
         return false;
     }
@@ -215,6 +237,13 @@ const BookingReviewPage = () => {
     setLoading(true);
     setError(null);
     try {
+      // If N-Genius payment is selected, handle differently
+      if (selectedPayment === "ngenius") {
+        await handleNGeniusPayment();
+        return;
+      }
+
+      // For other payment methods (payAtHotel, gateway), create booking directly
       const bookingData = {
         data: {
           bookingDetails: {
@@ -235,7 +264,7 @@ const BookingReviewPage = () => {
             guests: guests,
             guestDetails: guest,
             ratePlanCode: bookingDetails.ratePlanCode,
-            paymentMethod: selectedPayment,
+            paymentMethod: mapPaymentMethodToEnum(selectedPayment || ""),
             bookingSource: bookingDetails.bookingSource,
             selectedPromotions: bookingDetails.selectedPromotions || [],
             selectedAddons: bookingDetails.selectedAddons || [],
@@ -300,6 +329,161 @@ const BookingReviewPage = () => {
         id: "generic-error",
       });
     } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleNGeniusPayment = async () => {
+    try {
+      setLoading(true);
+
+      if (!updatedPrice || updatedPrice <= 0) {
+        toast.error("Invalid booking amount. Please try again.");
+        return;
+      }
+
+      if (!email || !checkIn || !checkOut) {
+        toast.error("Missing required booking information.");
+        return;
+      }
+
+      const isAED = currencyCode === "AED";
+      const amountInSmallestUnit = Math.round(updatedPrice * 100);
+      const gatewayCurrency = currencyCode === "USD" ? "AED" : currencyCode;
+
+      toast.loading("Creating secure payment order...", { id: "ngenius-order" });
+
+      const orderResponse = await ngeniusService.createOrder({
+        action: "PURCHASE",
+        amount: {
+          currencyCode: gatewayCurrency,
+          value: amountInSmallestUnit,
+        },
+        merchantAttributes: {
+          redirectUrl: `${window.location.origin}/paymentCallback`,
+          skipConfirmationPage: true,
+        },
+        emailAddress: email.trim(),
+      });
+
+      if (!orderResponse?.data?.orderReference || !orderResponse?.data?.paymentUrl) {
+        throw new Error("Invalid response from payment gateway");
+      }
+
+      toast.dismiss("ngenius-order");
+
+      const orderReference = orderResponse.data.orderReference;
+
+      // Store order reference and booking data
+      localStorage.setItem("ngeniusOrderRef", orderReference);
+      localStorage.setItem(
+        "pendingBookingData",
+        JSON.stringify({
+          data: {
+            bookingDetails: {
+              startDate: checkIn,
+              endDate: checkOut,
+              propertyCode: bookingDetails.PropertyCode,
+              hotelName: hotelName,
+              roomTypeCode: roomTypeCode,
+              numberOfRooms: bookingDetails.numberOfRooms || 1,
+              finalPrice: {
+                ...finalPrice,
+                totalAmount: updatedPrice,
+              },
+              promoCode: promoDetails || null,
+              currency: currencyCode,
+              email: email.trim(),
+              phone: bookingDetails.phone,
+              guests: guests,
+              guestDetails: guest,
+              ratePlanCode: bookingDetails.ratePlanCode,
+              paymentMethod: mapPaymentMethodToEnum("ngenius"),
+              bookingSource: bookingDetails.bookingSource,
+            },
+            guestDetails: guest,
+            bankDetails: bankDetails || null,
+          },
+        })
+      );
+
+      // Initialize WebSocket connection BEFORE redirecting
+      console.log("🔌 Establishing WebSocket connection before payment redirect...");
+      toast.loading("Connecting to payment system...", { id: "socket-connect" });
+
+      try {
+        // Dynamically import socket.io-client
+        const { default: io } = await import('socket.io-client');
+
+        // Connect to the payment-specific namespace
+        const socket = io(`${process.env.NEXT_PUBLIC_SOCKET_URL}`, {
+          transports: ['websocket', 'polling'],
+          reconnection: true,
+          reconnectionAttempts: 5,
+          reconnectionDelay: 1000,
+          autoConnect: true,
+        });
+
+        // Wait for socket connection
+        await new Promise<void>((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            reject(new Error('Socket connection timeout'));
+          }, 5000);
+
+          socket.on('connect', () => {
+            clearTimeout(timeout);
+            console.log('✅ Socket connected before payment redirect:', socket.id);
+
+            // Join payment room with order reference
+            socket.emit('join-payment-room', orderReference);
+            console.log(`📌 Joined payment room: payment:${orderReference}`);
+
+            resolve();
+          });
+
+          socket.on('connect_error', (error: any) => {
+            clearTimeout(timeout);
+            console.error('❌ Socket connection error:', error);
+            reject(error);
+          });
+        });
+
+        toast.dismiss("socket-connect");
+        console.log("✅ WebSocket connection established successfully");
+
+        // Store socket connection info
+        localStorage.setItem("socketConnected", "true");
+
+      } catch (socketError) {
+        console.warn("⚠️ Could not establish socket connection, will use fallback polling:", socketError);
+        toast.dismiss("socket-connect");
+        // Continue anyway - callback page will handle fallback
+      }
+
+      toast.success("Redirecting to secure payment gateway...", {
+        id: "redirect-payment",
+        duration: 2000,
+      });
+
+      setTimeout(() => {
+        window.location.href = orderResponse.data.paymentUrl;
+      }, 1800);
+
+    } catch (err: any) {
+      console.error("❌ N-Genius payment initiation failed:", err);
+      toast.dismiss("ngenius-order");
+      toast.dismiss("socket-connect");
+
+      const message =
+        err?.message?.includes("network") || err?.message?.includes("fetch")
+          ? "Network error. Please check your connection and try again."
+          : err?.message || "Failed to initiate payment. Please try again later.";
+
+      toast.error(message, {
+        id: "ngenius-error",
+        duration: 6000,
+      });
+
       setLoading(false);
     }
   };
@@ -413,6 +597,71 @@ const BookingReviewPage = () => {
                 <span>Secure SSL</span>
               </div>
             </div>
+          </div>
+        );
+      case "ngenius":
+        return (
+          <div
+            className="mt-4 p-5 border rounded-xl shadow-sm"
+            style={{
+              backgroundColor: `${colors.secondaryColor}08`,
+              borderColor: `${colors.primaryColor}60`,
+            }}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <h4
+                className="font-semibold text-lg"
+                style={{ color: colors.primaryColor }}
+              >
+                Pay with Card
+              </h4>
+              <div className="text-xs font-medium px-2.5 py-1 rounded-full bg-green-100 text-green-800">
+                Secure
+              </div>
+            </div>
+
+            <p
+              className="text-sm mb-4 leading-relaxed"
+              style={{ color: colors.primaryColor }}
+            >
+              Complete your payment securely via N-Genius payment gateway.
+              You will be redirected to their encrypted payment page.
+            </p>
+
+            <div className="flex flex-wrap gap-3 mb-4">
+              <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                <CreditCard className="h-4 w-4" />
+                <span>Visa</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                <CreditCard className="h-4 w-4" />
+                <span>Mastercard</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                <CreditCard className="h-4 w-4" />
+                <span>American Express</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                <CreditCard className="h-4 w-4" />
+                <span>Discover</span>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-green-700 font-medium">
+                <ShieldCheck className="h-4 w-4 text-green-600" />
+                <span>3D Secure</span>
+              </div>
+            </div>
+
+            <div className="mt-2 p-3 bg-blue-50/70 border border-blue-200 rounded-lg text-xs text-blue-800 flex items-start gap-2">
+              <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+              <span>
+                You will be securely redirected to the N-Genius payment page to
+                complete your transaction.
+              </span>
+            </div>
+
+            <p className="mt-3 text-xs text-gray-500 italic">
+              Supported cards processed in seconds • No hidden fees
+            </p>
           </div>
         );
 

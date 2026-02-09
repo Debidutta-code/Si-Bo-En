@@ -69,3 +69,5 @@ ehthumbs.db
 
 
 /src/generated/prisma
+
+*.md*

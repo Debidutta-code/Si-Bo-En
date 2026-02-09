@@ -11,7 +11,10 @@ import {
     deleteRoomAmenities,
     getCategories,
     getPropertyAmenities,
-    getPropertyTypes
+    getPropertyTypes,
+    getLoyaltyGuestFields,
+    createLoyaltyGuestFields,
+    deleteLoyaltyGuestField
 } from "./management.api";
 
 export{
@@ -26,5 +29,8 @@ export{
     deleteRoomAmenities,
     getCategories,
     getPropertyAmenities,
-    getPropertyTypes
+    getPropertyTypes,
+    getLoyaltyGuestFields,
+    createLoyaltyGuestFields,
+    deleteLoyaltyGuestField
 }

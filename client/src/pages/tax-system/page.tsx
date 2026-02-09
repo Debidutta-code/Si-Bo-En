@@ -16,10 +16,14 @@ import {
     removeRulesFromTaxGroupService,
     addRatePlanToTaxGroupService,
     removeRatePlanFromTaxGroupService,
-    fetchRatePlansService
+    fetchRatePlansService,
+    fetchTouristTaxesByPropertyService,
+    createTouristTaxService,
+    updateTouristTaxService,
+    deleteTouristTaxService
 
 } from "./services";
-import type { ITaxRule, ICTaxRule, ITaxGroup, ICTaxGroup, RatePlan } from "./interface";
+import type { ITaxRule, ICTaxRule, ITaxGroup, ICTaxGroup, RatePlan, ITouristTax, ICTouristTax } from "./interface";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -70,7 +74,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-import { TaxRuleDialog, TaxGroupDialog } from "./components";
+import { TaxRuleDialog, TaxGroupDialog, TouristTaxDialog } from "./components";
 
 interface LoadingProps {
     isLoading: boolean;
@@ -83,6 +87,8 @@ export default function TaxSystem() {
     // State management
     const [taxRules, setTaxRules] = useState<ITaxRule[]>([]);
     const [taxGroups, setTaxGroups] = useState<ITaxGroup[]>([]);
+    const [touristTaxes, setTouristTaxes] = useState<ITouristTax[]>([]);
+
     const [searchQuery, setSearchQuery] = useState("");
     const [loader, setLoader] = useState<LoadingProps>({
         isLoading: false,
@@ -109,11 +115,19 @@ export default function TaxSystem() {
         mode: "create",
         taxGroup: null,
     });
-
+    const [touristTaxDialog, setTouristTaxDialog] = useState<{
+        open: boolean;
+        mode: "create" | "edit";
+        touristTax: ITouristTax | null;
+    }>({
+        open: false,
+        mode: "create",
+        touristTax: null,
+    });
     const [deleteDialog, setDeleteDialog] = useState<{
         open: boolean;
-        type: "rule" | "group" | null;
-        item: ITaxRule | ITaxGroup | null;
+        type: "rule" | "group" | "charge" | null;
+        item: ITaxRule | ITaxGroup | ITouristTax | null;
     }>({
         open: false,
         type: null,
@@ -154,17 +168,99 @@ export default function TaxSystem() {
     const fetchAllData = async () => {
         setLoader({ isLoading: true, message: "Loading tax system data..." });
         try {
-            await Promise.all([fetchTaxRules(), fetchTaxGroups(), fetchRatePlans()]);
+            await Promise.all([fetchTaxRules(), fetchTaxGroups(), fetchRatePlans(), fetchTouristTaxes()]);
         } catch (error) {
             toast.error("Failed to load tax system data");
         } finally {
             setLoader({ isLoading: false, message: "" });
         }
     };
+    const fetchTouristTaxes = async () => {
+        if (!propertyId) return;
+        try {
+            const response = await fetchTouristTaxesByPropertyService(propertyId);
+            if (response.success) {
+                setTouristTaxes(response.data || []);
+            } else {
+                toast.error(response.message || "Failed to fetch tourist taxes");
+            }
+        } catch (error) {
+            toast.error("Failed to fetch tourist taxes");
+        }
+    }
+    const handleSaveTouristTax = async (data: ICTouristTax) => {
+        if (touristTaxDialog.mode === "create") {
+            await handleCreateTouristTax(data);
+        } else {
+            await handleUpdateTouristTax(data);
+        }
+    };
+    const handleDeleteTouristTax = async () => {
+        if (!deleteDialog.item) return;
+        setLoader({ isLoading: true, message: "Deleting additional charge..." });
+        try {
+            const response = await deleteTouristTaxService(deleteDialog.item.id);
+            if (response.success) {
+                toast.success(response.message || "Additional charge deleted successfully");
+                setDeleteDialog({ open: false, type: null, item: null });
+                fetchTouristTaxes();
+            } else {
+                toast.error(response.message || "Failed to delete additional charge");
+            }
+        } catch (error) {
+            toast.error("Failed to delete additional charge");
+        } finally {
+            setLoader({ isLoading: false, message: "" });
+        }
+    };
+    const handleCreateTouristTax = async (data: ICTouristTax) => {
+        if (!propertyId) return;
+        setLoader({ isLoading: true, message: "Creating tourist tax..." });
+        try {
+            const response = await createTouristTaxService(propertyId, data);
+            if (response.success) {
+                toast.success(response.message || "Tourist tax created successfully");
+                setTouristTaxDialog({ open: false, mode: "create", touristTax: null });
+                fetchTouristTaxes();
+            } else {
+                toast.error(response.message || "Failed to create tourist tax");
+            }
+        } catch (error) {
+            toast.error("Failed to create tourist tax");
+        } finally {
+            setLoader({ isLoading: false, message: "" });
+        }
+    };
+
+    const handleUpdateTouristTax = async (data: ICTouristTax) => {
+        if (!touristTaxDialog.touristTax) return;
+        setLoader({ isLoading: true, message: "Updating tourist tax..." });
+        try {
+            const response = await updateTouristTaxService(
+                touristTaxDialog.touristTax.id,
+                data
+            );
+            if (response.success) {
+                toast.success(response.message || "Tourist tax updated successfully");
+                setTouristTaxDialog({ open: false, mode: "create", touristTax: null });
+                fetchTouristTaxes();
+            } else {
+                toast.error(response.message || "Failed to update tourist tax");
+            }
+        } catch (error) {
+            toast.error("Failed to update tourist tax");
+        } finally {
+            setLoader({ isLoading: false, message: "" });
+        }
+    };
+
+
+
+
     const fetchRatePlans = async () => {
         if (!propertyId) return;
         try {
-const response = await fetchRatePlansService(propertyId);
+            const response = await fetchRatePlansService(propertyId);
             if (response.success) {
                 setRatePlans(response.data || []);
             } else {
@@ -545,7 +641,7 @@ const response = await fetchRatePlansService(propertyId);
                 </div>
 
                 {/* Stats Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <Card>
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
@@ -576,13 +672,29 @@ const response = await fetchRatePlansService(propertyId);
                             </div>
                         </CardContent>
                     </Card>
+                    <Card>
+                        <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm font-medium text-gray-600">
+                                        Total Additional Charges
+                                    </p>
+                                    <p className="text-2xl font-bold text-gray-900">
+                                        {touristTaxes.length}
+                                    </p>
+                                </div>
+                                <Receipt className="w-10 h-10 text-primary" />
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
 
                 {/* Tabs */}
                 <Tabs defaultValue="rules" className="space-y-6">
-                    <TabsList className="grid w-full grid-cols-2">
+                    <TabsList className="grid w-full grid-cols-3">
                         <TabsTrigger value="rules">Tax Rules</TabsTrigger>
                         <TabsTrigger value="groups">Tax Groups</TabsTrigger>
+                        <TabsTrigger value="additional-charges">Additional charges</TabsTrigger>
                     </TabsList>
 
                     {/* Tax Rules Tab */}
@@ -610,7 +722,7 @@ const response = await fetchRatePlansService(propertyId);
                                         }
                                     >
                                         <Plus className="w-4 h-4 mr-2" />
-                                        Create Tax Rule
+                                        Create Tax
                                     </Button>
                                 </div>
                             </CardContent>
@@ -1061,6 +1173,150 @@ const response = await fetchRatePlansService(propertyId);
                             </div>
                         )}
                     </TabsContent>
+                    {/* Additional Charges Tab */}
+                    <TabsContent value="additional-charges" className="space-y-6">
+                        {/* Search and Create */}
+                        <Card>
+                            <CardContent className="p-6">
+                                <div className="flex flex-col md:flex-row gap-4">
+                                    <div className="flex-1 relative">
+                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                                        <Input
+                                            placeholder="Search additional charges..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="pl-10"
+                                        />
+                                    </div>
+                                    <Button
+                                        onClick={() =>
+                                            setTouristTaxDialog({
+                                                open: true,
+                                                mode: "create",
+                                                touristTax: null,
+                                            })
+                                        }
+                                    >
+                                        <Plus className="w-4 h-4 mr-2" />
+                                        Add Charges
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Additional Charges List */}
+                        {touristTaxes.length === 0 ? (
+                            <Card className="shadow-lg">
+                                <CardContent className="p-12 text-center">
+                                    <Receipt className="w-16 h-16 mx-auto text-gray-300 mb-4" />
+                                    <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                                        No Additional Charges Found
+                                    </h3>
+                                    <p className="text-gray-500 mb-6">
+                                        {searchQuery
+                                            ? "No additional charges match your search criteria."
+                                            : "Get started by creating your first additional charge."}
+                                    </p>
+                                    {!searchQuery && (
+                                        <Button
+                                            onClick={() =>
+                                                setTouristTaxDialog({
+                                                    open: true,
+                                                    mode: "create",
+                                                    touristTax: null,
+                                                })
+                                            }
+                                        >
+                                            <Plus className="w-4 h-4 mr-2" />
+                                            Add Charges
+                                        </Button>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {touristTaxes.map((charge) => (
+                                    <Card
+                                        key={charge.id}
+                                        className="hover:shadow-xl transition-shadow duration-200"
+                                    >
+                                        <CardHeader className="pb-3">
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex-1">
+                                                    <CardTitle className="text-lg mb-1">
+                                                        {charge.ratePlan?.ratePlanName || charge.ratePlanCode}
+                                                    </CardTitle>
+                                                    <CardDescription className="text-xs">
+                                                        Rate Plan Code: {charge.ratePlanCode}
+                                                    </CardDescription>
+                                                </div>
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-8 w-8 p-0"
+                                                        >
+                                                            <MoreVertical className="w-4 h-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end" className="w-56">
+                                                        <DropdownMenuItem
+                                                            onClick={() =>
+                                                                setTouristTaxDialog({
+                                                                    open: true,
+                                                                    mode: "edit",
+                                                                    touristTax: charge,
+                                                                })
+                                                            }
+                                                        >
+                                                            <Pencil className="w-4 h-4 mr-2" />
+                                                            Edit
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuSeparator />
+                                                        <DropdownMenuItem
+                                                            onClick={() =>
+                                                                setDeleteDialog({
+                                                                    open: true,
+                                                                    type: "charge",
+                                                                    item: charge,
+                                                                })
+                                                            }
+                                                            className="text-red-600"
+                                                        >
+                                                            <Trash2 className="w-4 h-4 mr-2" />
+                                                            Delete
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </div>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="space-y-3">
+                                                <div className="flex gap-2 flex-wrap">
+                                                    <Badge variant="default">
+                                                        {charge.discountType === "percentage"
+                                                            ? `${charge.discountValue}%`
+                                                            : `${charge.currencyCode} ${charge.discountValue}`}
+                                                    </Badge>
+                                                    <Badge variant="outline">
+                                                        {charge.discountType === "percentage"
+                                                            ? "Percentage Discount"
+                                                            : "Flat Discount"}
+                                                    </Badge>
+                                                </div>
+                                                <div className="pt-2 border-t text-xs text-gray-500">
+                                                    <p>
+                                                        Created: {format(new Date(charge.createdAt), "PP")}
+                                                    </p>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        )}
+                    </TabsContent>
                 </Tabs>
 
                 {/* Dialogs */}
@@ -1089,7 +1345,17 @@ const response = await fetchRatePlansService(propertyId);
                             : []
                     }
                 />
-
+                <TouristTaxDialog
+                    open={touristTaxDialog.open}
+                    onOpenChange={(open) =>
+                        setTouristTaxDialog({ open, mode: "create", touristTax: null })
+                    }
+                    onSave={handleSaveTouristTax}
+                    touristTax={touristTaxDialog.touristTax}
+                    mode={touristTaxDialog.mode}
+                    ratePlans={ratePlans}
+                />
+                {/* Delete Confirmation Dialog */}
                 {/* Delete Confirmation Dialog */}
                 <AlertDialog
                     open={deleteDialog.open}
@@ -1102,18 +1368,29 @@ const response = await fetchRatePlansService(propertyId);
                             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                             <AlertDialogDescription>
                                 This will permanently delete the{" "}
-                                {deleteDialog.type === "rule" ? "tax rule" : "tax group"} "
-                                {deleteDialog.item?.name}". This action cannot be undone.
+                                {deleteDialog.type === "rule"
+                                    ? "tax rule"
+                                    : deleteDialog.type === "group"
+                                        ? "tax group"
+                                        : "additional charge"} "
+                                {deleteDialog.type === "charge"
+                                    ? (deleteDialog.item as ITouristTax)?.ratePlan?.ratePlanName || (deleteDialog.item as ITouristTax)?.ratePlanCode
+                                    : (deleteDialog.item as ITaxRule | ITaxGroup)?.name}".
+                                This action cannot be undone.
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction
-                                onClick={
-                                    deleteDialog.type === "rule"
-                                        ? handleDeleteTaxRule
-                                        : handleDeleteTaxGroup
-                                }
+                                onClick={() => {
+                                    if (deleteDialog.type === "rule") {
+                                        handleDeleteTaxRule();
+                                    } else if (deleteDialog.type === "group") {
+                                        handleDeleteTaxGroup();
+                                    } else if (deleteDialog.type === "charge") {
+                                        handleDeleteTouristTax();
+                                    }
+                                }}
                                 className="bg-red-600 hover:bg-red-700"
                             >
                                 Delete
@@ -1161,44 +1438,44 @@ const response = await fetchRatePlansService(propertyId);
                 </AlertDialog>
 
                 {/* Rate Plan Action Confirmation Dialog */}
-<AlertDialog
-    open={ratePlanActionDialog.open}
-    onOpenChange={(open) =>
-        setRatePlanActionDialog({
-            open,
-            action: null,
-            ratePlanId: null,
-            selectedGroupId: null,
-        })
-    }
->
-    <AlertDialogContent>
-        <AlertDialogHeader>
-            <AlertDialogTitle>
-                {ratePlanActionDialog.action === "add" 
-                    ? "Add Rate Plan to Tax Group" 
-                    : "Remove Rate Plan from Tax Group"}
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-                {ratePlanActionDialog.action === "add"
-                    ? `Add "${ratePlans.find((rp) => rp.ratePlanCode === ratePlanActionDialog.ratePlanId)?.ratePlanName || 'Unknown'}" to "${taxGroups.find((g) => g.id === ratePlanActionDialog.selectedGroupId)?.name}"?`
-                    : `Remove "${ratePlans.find((rp) => rp.ratePlanCode === ratePlanActionDialog.ratePlanId)?.ratePlanName || 'Unknown'}" from "${taxGroups.find((g) => g.id === ratePlanActionDialog.selectedGroupId)?.name}"?`}
-            </AlertDialogDescription>
-        </AlertDialogHeader>
-        <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-                onClick={
-                    ratePlanActionDialog.action === "add"
-                        ? handleAddRatePlanToGroup
-                        : handleRemoveRatePlanFromGroup
-                }
-            >
-                {ratePlanActionDialog.action === "add" ? "Add" : "Remove"}
-            </AlertDialogAction>
-        </AlertDialogFooter>
-    </AlertDialogContent>
-</AlertDialog>
+                <AlertDialog
+                    open={ratePlanActionDialog.open}
+                    onOpenChange={(open) =>
+                        setRatePlanActionDialog({
+                            open,
+                            action: null,
+                            ratePlanId: null,
+                            selectedGroupId: null,
+                        })
+                    }
+                >
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>
+                                {ratePlanActionDialog.action === "add"
+                                    ? "Add Rate Plan to Tax Group"
+                                    : "Remove Rate Plan from Tax Group"}
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                                {ratePlanActionDialog.action === "add"
+                                    ? `Add "${ratePlans.find((rp) => rp.ratePlanCode === ratePlanActionDialog.ratePlanId)?.ratePlanName || 'Unknown'}" to "${taxGroups.find((g) => g.id === ratePlanActionDialog.selectedGroupId)?.name}"?`
+                                    : `Remove "${ratePlans.find((rp) => rp.ratePlanCode === ratePlanActionDialog.ratePlanId)?.ratePlanName || 'Unknown'}" from "${taxGroups.find((g) => g.id === ratePlanActionDialog.selectedGroupId)?.name}"?`}
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                                onClick={
+                                    ratePlanActionDialog.action === "add"
+                                        ? handleAddRatePlanToGroup
+                                        : handleRemoveRatePlanFromGroup
+                                }
+                            >
+                                {ratePlanActionDialog.action === "add" ? "Add" : "Remove"}
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
         </div>
     );

@@ -146,17 +146,24 @@ useEffect(() => {
     fetchRatePlans();
   }, [propertyId]);
   
-  const handleRatePlanChange = async (newSelectedRatePlans: string[]) => {
-  setSelectedRatePlans(newSelectedRatePlans);
-  
-  if (!propertyId || newSelectedRatePlans.length === 0) {
+
+  // ============================================
+  // FETCH INVENTORY DATA
+  // ============================================
+// In InventoryPage component
+
+const fetchInventoryData = useCallback(async (silent: boolean = false) => {
+  if (!propertyId || selectedRoomTypes.length === 0) {
     return;
   }
 
   try {
-    setIsLoadingInventory(true);
+    if (!silent) {
+      setIsLoadingInventory(true);
+    }
     setError(null);
 
+    // Use custom date range if provided, otherwise use view-based range
     let startDate: dayjs.Dayjs;
     let endDate: dayjs.Dayjs;
 
@@ -169,14 +176,16 @@ useEffect(() => {
       endDate = range.endDate;
     }
 
-    const roomTypeCode = selectedRoomTypes.length === roomTypes.length 
-      ? undefined 
-      : selectedRoomTypes[0];
-
+    // ✅ Send arrays instead of single values
     const response = await fetchInventoryAnalysisService(propertyId, {
       startDate: startDate.format('YYYY-MM-DD'),
       endDate: endDate.format('YYYY-MM-DD'),
-      roomTypeCode
+      roomTypeCodes: selectedRoomTypes.length === roomTypes.length 
+        ? undefined  // Don't filter if all selected
+        : selectedRoomTypes,
+      ratePlanCodes: selectedRatePlans.length === ratePlans.length
+        ? undefined  // Don't filter if all selected
+        : selectedRatePlans
     });
 
     if (!response.success) {
@@ -186,73 +195,17 @@ useEffect(() => {
     setInventoryData(response.data?.days || []);
     setHotelCode(response.data?.hotelCode || '');
     setHotelName(response.data?.hotelName || '');
+    
   } catch (error: any) {
     console.error('❌ Failed to fetch inventory data:', error);
     setError(error.message || 'Failed to load inventory data');
     toast.error(error.message || 'Failed to load inventory data');
   } finally {
-    setIsLoadingInventory(false);
+    if (!silent) {
+      setIsLoadingInventory(false);
+    }
   }
-};
-  // ============================================
-  // FETCH INVENTORY DATA
-  // ============================================
-  const fetchInventoryData = useCallback(async (silent: boolean = false) => {
-    if (!propertyId || selectedRoomTypes.length === 0 ) {
-      return;
-    }
-
-    try {
-      if (!silent) {
-        setIsLoadingInventory(true);
-      }
-      setError(null);
-
-      // Use custom date range if provided, otherwise use view-based range
-      let startDate: dayjs.Dayjs;
-      let endDate: dayjs.Dayjs;
-
-      if (dateRange.startDate && dateRange.endDate) {
-        startDate = dayjs(dateRange.startDate);
-        endDate = dayjs(dateRange.endDate);
-      } else {
-        const range = getDateRange();
-        startDate = range.startDate;
-        endDate = range.endDate;
-      }
-
-      // If all room types selected, don't send roomTypeCode (means "all")
-      const roomTypeCode = selectedRoomTypes.length === roomTypes.length 
-        ? undefined 
-        : selectedRoomTypes[0]; // Send first selected room type
-
-      const response = await fetchInventoryAnalysisService(propertyId, {
-        startDate: startDate.format('YYYY-MM-DD'),
-        endDate: endDate.format('YYYY-MM-DD'),
-        roomTypeCode
-      });
-
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to load inventory data');
-      }
-
-      // Extract data from response
-      setInventoryData(response.data?.days || []);
-      setHotelCode(response.data?.hotelCode || '');
-      setHotelName(response.data?.hotelName || '');
-      
-      // console.log('✅ Inventory data fetched:', response.data?.days?.length || 0, 'days');
-    } catch (error: any) {
-      console.error('❌ Failed to fetch inventory data:', error);
-      setError(error.message || 'Failed to load inventory data');
-      toast.error(error.message || 'Failed to load inventory data');
-    } finally {
-      if (!silent) {
-        setIsLoadingInventory(false);
-      }
-    }
-  }, [propertyId, dateRange, selectedRoomTypes, roomTypes.length, currentView, currentDate]);
-
+}, [propertyId, dateRange, selectedRoomTypes, selectedRatePlans, roomTypes.length, ratePlans.length, currentView, currentDate]);
   useEffect(() => {
     if (roomTypes.length > 0 && selectedRoomTypes.length > 0) {
       fetchInventoryData(false);
@@ -293,115 +246,166 @@ useEffect(() => {
   // ============================================
   // HANDLER: Room Type Change
   // ============================================
-  const handleRoomTypeChange = async (newSelectedRoomTypes: string[]) => {
-    // console.log('🎯 handleRoomTypeChange called with:', newSelectedRoomTypes);
-    
-    setSelectedRoomTypes(newSelectedRoomTypes);
-    
-    if (!propertyId || newSelectedRoomTypes.length === 0) {
-      // console.log('⚠️ Cannot fetch: missing requirements');
-      return;
+  // handleRoomTypeChange
+const handleRoomTypeChange = async (newSelectedRoomTypes: string[]) => {
+  setSelectedRoomTypes(newSelectedRoomTypes);
+  
+  if (!propertyId || newSelectedRoomTypes.length === 0) {
+    return;
+  }
+
+  try {
+    setIsLoadingInventory(true);
+    setError(null);
+
+    let startDate: dayjs.Dayjs;
+    let endDate: dayjs.Dayjs;
+
+    if (dateRange.startDate && dateRange.endDate) {
+      startDate = dayjs(dateRange.startDate);
+      endDate = dayjs(dateRange.endDate);
+    } else {
+      const range = getDateRange();
+      startDate = range.startDate;
+      endDate = range.endDate;
     }
 
-    try {
-      setIsLoadingInventory(true);
-      setError(null);
-
-      let startDate: dayjs.Dayjs;
-      let endDate: dayjs.Dayjs;
-
-      if (dateRange.startDate && dateRange.endDate) {
-        startDate = dayjs(dateRange.startDate);
-        endDate = dayjs(dateRange.endDate);
-      } else {
-        const range = getDateRange();
-        startDate = range.startDate;
-        endDate = range.endDate;
-      }
-
-      const roomTypeCode = newSelectedRoomTypes.length === roomTypes.length 
+    // ✅ Send arrays
+    const response = await fetchInventoryAnalysisService(propertyId, {
+      startDate: startDate.format('YYYY-MM-DD'),
+      endDate: endDate.format('YYYY-MM-DD'),
+      roomTypeCodes: newSelectedRoomTypes.length === roomTypes.length 
         ? undefined 
-        : newSelectedRoomTypes[0];
+        : newSelectedRoomTypes,
+      ratePlanCodes: selectedRatePlans.length === ratePlans.length
+        ? undefined
+        : selectedRatePlans
+    });
 
-      const response = await fetchInventoryAnalysisService(propertyId, {
-        startDate: startDate.format('YYYY-MM-DD'),
-        endDate: endDate.format('YYYY-MM-DD'),
-        roomTypeCode
-      });
-
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to load inventory data');
-      }
-
-      setInventoryData(response.data?.days || []);
-      setHotelCode(response.data?.hotelCode || '');
-      setHotelName(response.data?.hotelName || '');
-      // console.log('✅ Inventory data fetched with new room types');
-    } catch (error: any) {
-      console.error('❌ Failed to fetch inventory data:', error);
-      setError(error.message || 'Failed to load inventory data');
-      toast.error(error.message || 'Failed to load inventory data');
-    } finally {
-      setIsLoadingInventory(false);
+    if (!response.success) {
+      throw new Error(response.message || 'Failed to load inventory data');
     }
-  };
+
+    setInventoryData(response.data?.days || []);
+    setHotelCode(response.data?.hotelCode || '');
+    setHotelName(response.data?.hotelName || '');
+  } catch (error: any) {
+    console.error('❌ Failed to fetch inventory data:', error);
+    setError(error.message || 'Failed to load inventory data');
+    toast.error(error.message || 'Failed to load inventory data');
+  } finally {
+    setIsLoadingInventory(false);
+  }
+};
+
+// handleRatePlanChange
+const handleRatePlanChange = async (newSelectedRatePlans: string[]) => {
+  setSelectedRatePlans(newSelectedRatePlans);
+  
+  if (!propertyId || newSelectedRatePlans.length === 0) {
+    return;
+  }
+
+  try {
+    setIsLoadingInventory(true);
+    setError(null);
+
+    let startDate: dayjs.Dayjs;
+    let endDate: dayjs.Dayjs;
+
+    if (dateRange.startDate && dateRange.endDate) {
+      startDate = dayjs(dateRange.startDate);
+      endDate = dayjs(dateRange.endDate);
+    } else {
+      const range = getDateRange();
+      startDate = range.startDate;
+      endDate = range.endDate;
+    }
+
+    // ✅ Send arrays
+    const response = await fetchInventoryAnalysisService(propertyId, {
+      startDate: startDate.format('YYYY-MM-DD'),
+      endDate: endDate.format('YYYY-MM-DD'),
+      roomTypeCodes: selectedRoomTypes.length === roomTypes.length 
+        ? undefined 
+        : selectedRoomTypes,
+      ratePlanCodes: newSelectedRatePlans.length === ratePlans.length
+        ? undefined
+        : newSelectedRatePlans
+    });
+
+    if (!response.success) {
+      throw new Error(response.message || 'Failed to load inventory data');
+    }
+
+    setInventoryData(response.data?.days || []);
+    setHotelCode(response.data?.hotelCode || '');
+    setHotelName(response.data?.hotelName || '');
+  } catch (error: any) {
+    console.error('❌ Failed to fetch inventory data:', error);
+    setError(error.message || 'Failed to load inventory data');
+    toast.error(error.message || 'Failed to load inventory data');
+  } finally {
+    setIsLoadingInventory(false);
+  }
+};
 
   // ============================================
   // HANDLER: Date Range Apply
   // ============================================
-  const handleDateRangeApply = async (newStartDate: string | null, newEndDate: string | null) => {
-    // console.log('🎯 handleDateRangeApply called with:', { newStartDate, newEndDate });
-    
-    setDateRange({ startDate: newStartDate, endDate: newEndDate });
-    
-    if (!propertyId || selectedRoomTypes.length === 0) {
-      // console.log('⚠️ Cannot fetch: missing requirements');
-      return;
+// ============================================
+// HANDLER: Date Range Apply
+// ============================================
+const handleDateRangeApply = async (newStartDate: string | null, newEndDate: string | null) => {
+  setDateRange({ startDate: newStartDate, endDate: newEndDate });
+  
+  if (!propertyId || selectedRoomTypes.length === 0) {
+    return;
+  }
+
+  try {
+    setIsLoadingInventory(true);
+    setError(null);
+
+    let startDate: dayjs.Dayjs;
+    let endDate: dayjs.Dayjs;
+
+    if (newStartDate && newEndDate) {
+      startDate = dayjs(newStartDate);
+      endDate = dayjs(newEndDate);
+    } else {
+      const range = getDateRange();
+      startDate = range.startDate;
+      endDate = range.endDate;
     }
 
-    try {
-      setIsLoadingInventory(true);
-      setError(null);
-
-      let startDate: dayjs.Dayjs;
-      let endDate: dayjs.Dayjs;
-
-      if (newStartDate && newEndDate) {
-        startDate = dayjs(newStartDate);
-        endDate = dayjs(newEndDate);
-      } else {
-        const range = getDateRange();
-        startDate = range.startDate;
-        endDate = range.endDate;
-      }
-
-      const roomTypeCode = selectedRoomTypes.length === roomTypes.length 
+    // ✅ FIXED: Changed from roomTypeCode to roomTypeCodes and ratePlanCodes
+    const response = await fetchInventoryAnalysisService(propertyId, {
+      startDate: startDate.format('YYYY-MM-DD'),
+      endDate: endDate.format('YYYY-MM-DD'),
+      roomTypeCodes: selectedRoomTypes.length === roomTypes.length 
         ? undefined 
-        : selectedRoomTypes[0];
+        : selectedRoomTypes,
+      ratePlanCodes: selectedRatePlans.length === ratePlans.length
+        ? undefined
+        : selectedRatePlans
+    });
 
-
-      const response = await fetchInventoryAnalysisService(propertyId, {
-        startDate: startDate.format('YYYY-MM-DD'),
-        endDate: endDate.format('YYYY-MM-DD'),
-        roomTypeCode
-      });
-
-      if (!response.success) {
-        throw new Error(response.message || 'Failed to load inventory data');
-      }
-
-      setInventoryData(response.data?.days || []);
-      setHotelCode(response.data?.hotelCode || '');
-      setHotelName(response.data?.hotelName || '');
-      // console.log('✅ Inventory data fetched with new dates');
-    } catch (error: any) {
-      console.error('❌ Failed to fetch inventory data:', error);
-      setError(error.message || 'Failed to load inventory data');
-      toast.error(error.message || 'Failed to load inventory data');
-    } finally {
-      setIsLoadingInventory(false);
+    if (!response.success) {
+      throw new Error(response.message || 'Failed to load inventory data');
     }
-  };
+
+    setInventoryData(response.data?.days || []);
+    setHotelCode(response.data?.hotelCode || '');
+    setHotelName(response.data?.hotelName || '');
+  } catch (error: any) {
+    console.error('❌ Failed to fetch inventory data:', error);
+    setError(error.message || 'Failed to load inventory data');
+    toast.error(error.message || 'Failed to load inventory data');
+  } finally {
+    setIsLoadingInventory(false);
+  }
+};
 
 
   const handlePrevious = () => {

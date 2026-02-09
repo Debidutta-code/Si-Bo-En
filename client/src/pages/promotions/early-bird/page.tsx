@@ -45,39 +45,59 @@ export const EarlyBirdPromotionList: React.FC = () => {
     }, [propertyId]);
 
     const loadData = async () => {
-        setIsLoading(true);
-        try {
-            if (!propertyId) {
-                return;
-            }
-
-            const [promotionsResponse, plansResponse, roomsResponse] = await Promise.all([
-                getEarlyBirdPromotionsByPropertyService(propertyId),
-                fetchRatePlansService(propertyId),
-                fetchRoomTypesService(propertyId)
-            ]);
-
-            if (promotionsResponse.success) {
-                // Convert backend format to frontend format
-                const formattedPromotions = (promotionsResponse.data || []).map((promo: any) => ({
-                    ...promo,
-                    applicableDays: convertBackendToApplicableDays(promo)
-                }));
-                setPromotions(formattedPromotions);
-            }
-            if (plansResponse.success) {
-                setRatePlans(plansResponse.data || []);
-            }
-            if (roomsResponse.success) {
-                setRoomTypes(roomsResponse.data || []);
-            }
-        } catch (error) {
-            console.error('Error loading data:', error);
-            toast.error('Failed to load early bird promotions');
-        } finally {
-            setIsLoading(false);
+    setIsLoading(true);
+    try {
+        if (!propertyId) {
+            return;
         }
-    };
+
+        const [promotionsResponse, plansResponse, roomsResponse] = await Promise.all([
+            getEarlyBirdPromotionsByPropertyService(propertyId),
+            fetchRatePlansService(propertyId),
+            fetchRoomTypesService(propertyId)
+        ]);
+
+        if (promotionsResponse.success) {
+            // Group promotions by id and construct roomRatePlans array
+            const promotionsMap = new Map<string, EarlyBirdPromotionWithRatePlan>();
+            
+            (promotionsResponse.data || []).forEach((promo: any) => {
+                if (!promotionsMap.has(promo.id)) {
+                    // First occurrence of this promotion
+                    promotionsMap.set(promo.id, {
+                        ...promo,
+                        applicableDays: convertBackendToApplicableDays(promo),
+                        roomRatePlans: []
+                    });
+                }
+                
+                // Add room-rateplan pair to the array
+                const promotion = promotionsMap.get(promo.id)!;
+                if (promo.roomId && promo.ratePlanId) {
+                    promotion.roomRatePlans!.push({
+                        roomId: promo.roomId,
+                        roomType: promo.roomType || undefined,
+                        ratePlanId: promo.ratePlanId,
+                        ratePlanCode: promo.ratePlanCode
+                    });
+                }
+            });
+            
+            setPromotions(Array.from(promotionsMap.values()));
+        }
+        if (plansResponse.success) {
+            setRatePlans(plansResponse.data || []);
+        }
+        if (roomsResponse.success) {
+            setRoomTypes(roomsResponse.data || []);
+        }
+    } catch (error) {
+        console.error('Error loading data:', error);
+        toast.error('Failed to load early bird promotions');
+    } finally {
+        setIsLoading(false);
+    }
+};
 
     const handleCreate = async (payload: CreateEarlyBirdPromotion) => {
         setIsLoading(true);
