@@ -3,17 +3,40 @@
 import React, { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
-import { useBookingStorage } from "@/src/hooks/useBookingStorage"; // Add this import
+import { useBookingStorage } from "@/src/hooks/useBookingStorage";
 
 const PaymentSuccessPage = () => {
   const bookingData = useSelector((state: RootState) => state.booking);
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
 
+  // Get booking code from URL params (for Fikafi redirect)
+  const urlBookingCode = searchParams?.get("bookingCode");
+  
   // Add the hook usage at the component level
-  const { colors } = useBookingStorage({}); // You may need to pass actual bookingContext if available
+  const { colors } = useBookingStorage({});
+
+  // ✅ Read booking confirmation from localStorage
+  const [localConfirmation, setLocalConfirmation] = useState<any>(null);
+
+  useEffect(() => {
+    // Check localStorage for booking confirmation
+    const stored = localStorage.getItem('bookingConfirmation');
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        // Check if it's recent (within 24 hours)
+        if (parsed.timestamp && Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000) {
+          setLocalConfirmation(parsed);
+        }
+      } catch (e) {
+        console.error('Error parsing booking confirmation:', e);
+      }
+    }
+  }, []);
 
   // ✅ Clear cookie + block back navigation
   useEffect(() => {
@@ -45,7 +68,9 @@ const PaymentSuccessPage = () => {
     bookingCode,
     bookingStatus,
   } = bookingData;
-  // //console.log(bookingData);
+  
+  // ✅ Show success if either Redux has confirmed status OR localStorage has confirmation OR URL has booking code
+  const isConfirmed = bookingStatus === "confirmed" || (localConfirmation?.status === "confirmed") || !!urlBookingCode;
 
   const totalAmount = finalPrice?.totalAmount || 0;
   const nights = finalPrice?.numberOfNights || 0;
@@ -61,16 +86,18 @@ const PaymentSuccessPage = () => {
     Array.isArray(guestCounts.rooms)
   ) {
     rooms = guestCounts.rooms.length;
-    adults = guestCounts.rooms.reduce((sum, r) => sum + (r.adults || 0), 0);
-    children = guestCounts.rooms.reduce((sum, r) => sum + (r.children || 0), 0);
+    adults = guestCounts.rooms.reduce((sum: number, r: any) => sum + (r.adults || 0), 0);
+    children = guestCounts.rooms.reduce((sum: number, r: any) => sum + (r.children || 0), 0);
   }
 
   const handleViewBookings = () => {
     setLoading(true);
-    router.push(`/my-trip?code=${bookingData.bookingCode}`);
+    // Use URL booking code if available, otherwise use Redux booking code
+    const code = urlBookingCode || bookingData.bookingCode;
+    router.push(`/my-trip?code=${code}`);
   };
 
-  return bookingStatus === "confirmed" ? (
+  return isConfirmed ? (
     <div className="min-h-screen bg-gray-100 pt-28 pb-8 px-4">
       <div className="max-w-5xl mx-auto bg-white shadow-xl rounded-2xl p-8 sm:p-10">
         {/* Success Banner */}
@@ -120,7 +147,7 @@ const PaymentSuccessPage = () => {
             </h2>
             <div className="space-y-2 text-sm text-gray-800">
               {guests && guests.length > 0 ? (
-                guests.map((guest, index) => (
+                guests.map((guest: any, index: number) => (
                   <div key={index}>
                     <p className="font-medium">
                       {guest.firstName} {guest.lastName}
@@ -314,3 +341,4 @@ const PaymentSuccessPage = () => {
 };
 
 export default PaymentSuccessPage;
+

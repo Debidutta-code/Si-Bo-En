@@ -1,4 +1,3 @@
-
 import axios, { AxiosInstance } from 'axios';
 import crypto from 'crypto';
 
@@ -16,10 +15,12 @@ interface GuestDetails {
     guestName: string;
     phoneNum?: string;
     email: string;
+    country?: string; // ✅ Added country as per Fikafi docs
 }
 
 interface BookingDetails {
-    propertyId: string;
+    propertyID?: string; // Optional - Fikafi may not require it
+    propertyName: string; // Required by Fikafi
     referenceDetails: string;
     communicationMode: 'WHATSAPP' | 'EMAIL';
     arrivalDate: string;
@@ -28,8 +29,10 @@ interface BookingDetails {
 
 interface Payment {
     paymentNumber: number;
+    paymentName?: string;
     amount: number;
     date?: string;
+    dueDate?: string; // Support both date and dueDate
 }
 
 interface PaymentDetails {
@@ -53,7 +56,7 @@ interface Webhook {
 export interface FikafiPaymentRequest {
     bookingRefNum: string;
     guestDetails: GuestDetails;
-    country: string;
+    country?: string; // ✅ Made optional since it's now inside guestDetails
     bookingDetails: BookingDetails;
     paymentDetails: PaymentDetails;
     returnURL?: ReturnUrl;
@@ -65,6 +68,7 @@ export interface FikafiPaymentResponse {
     message?: string;
     data?: any;
     error?: string;
+    details?: any;
 }
 
 /* =====================================================
@@ -82,7 +86,7 @@ class FikafiPaymentService {
         this.config = {
             baseUrl:
                 process.env.FIKAFI_BASE_URL ||
-                'https://demo.encorepay.co/FikafiSandbox/FikafiApi/api',
+                'http://localhost:8080', // Default to local for testing
 
             clientId: process.env.FIKAFI_CLIENT_ID || '',
             secretKey: process.env.FIKAFI_SECRET_KEY || '',
@@ -106,11 +110,15 @@ class FikafiPaymentService {
         /* ==============================
        Attach token automatically
     ============================== */
-        this.client.interceptors.request.use(async config => {
-            const token = await this.getToken();
-            config.headers.Authorization = `Bearer ${token}`;
-            return config;
-        });
+        const useFake = process.env.USE_FAKE_FIKAFI === 'true';
+
+        if (!useFake) {
+            this.client.interceptors.request.use(async config => {
+                const token = await this.getToken();
+                config.headers.Authorization = `Bearer ${token}`;
+                return config;
+            });
+        }
 
         /* ==============================
        Error handler
@@ -145,16 +153,19 @@ class FikafiPaymentService {
             const res = await axios.post(
                 `${this.config.baseUrl}/auth/token`,
                 {
-                    clientId: process.env.FIKAFI_CLIENT_ID, // ✅ MUST be "clientId"
-                    key: process.env.FIKAFI_SECRET_KEY, // ✅ MUST be "key"
-                    },
+                    clientId: process.env.FIKAFI_CLIENT_ID,
+                    key: process.env.FIKAFI_SECRET_KEY,
+                },
                 {
                     headers: { 'Content-Type': 'application/json' },
                 }
             );
 
             console.log('📥 Token response status:', res.status);
-            console.log('📥 Token response data:', JSON.stringify(res.data).substring(0, 200));
+            console.log(
+                '📥 Token response data:',
+                JSON.stringify(res.data).substring(0, 200)
+            );
 
             const { accessToken, expiresIn } = res.data;
 
@@ -181,48 +192,71 @@ class FikafiPaymentService {
         request: FikafiPaymentRequest
     ): Promise<FikafiPaymentResponse> {
         try {
-            console.log('📤 Creating Fikafi payment link...');
+            console.log('📤 Creating payment link...');
+
+            /* ===============================
+           ✅ MOCK MODE (LOCAL SERVER)
+        =============================== */
+if (process.env.PAYMENT_MODE === 'mock') {
+                console.log('🧪 Using MOCK payment server');
+
+                const mockRes = await axios.post(
+                    'http://localhost:8080/createPayment',
+                    request
+                );
+
+                return {
+                    success: true,
+                    data: mockRes.data,
+                };
+            }
+
+            /* ===============================
+           ✅ REAL FIKAFI (SANDBOX/PROD)
+        =============================== */
 
             const body = {
                 bookingRefNum: request.bookingRefNum,
-                guestDetails: request.guestDetails,
-                country: request.country,
-                bookingDetails: {
-                    propertyID: request.bookingDetails.propertyId,
-                    referenceDetails: request.bookingDetails.referenceDetails,
-                    communicationMode: request.bookingDetails.communicationMode,
-                    arrivalDate: request.bookingDetails.arrivalDate,
-                    numberOfNights: request.bookingDetails.numberOfNights,
+
+                guestDetails: {
+                    guestName: request.guestDetails.guestName,
+                    email: request.guestDetails.email,
                 },
-                paymentDetails: request.paymentDetails,
-                returnURL: request.returnURL,
+
+bookingDetails: {
+                  propertyID: request.bookingDetails.propertyID || request.bookingDetails.propertyName, // ✅ Fikafi requires propertyID
+                  propertyName: request.bookingDetails.propertyName,
+                  referenceDetails: request.bookingDetails.referenceDetails,
+                  communicationMode: request.bookingDetails.communicationMode,
+                  arrivalDate: request.bookingDetails.arrivalDate,
+                  numberOfNights: request.bookingDetails.numberOfNights,
+                },
+
+                paymentDetails: {
+                    currency: request.paymentDetails.currency,
+                    totalAmounts: request.paymentDetails.totalAmounts,
+                    numOfPayments: 1,
+                    validity: '24 hours',
+                    payments: [{ amount: request.paymentDetails.totalAmounts }],
+                },
+
                 webhook: request.webhook,
             };
 
-            console.log(
-                '📤 Request body:',
-                JSON.stringify(body).substring(0, 200) + '...'
-            );
+            console.log('📤 Real Fikafi body:', JSON.stringify(body, null, 2));
 
-            const response = await this.client.post(
-                '/payment/createOnlinePayment',
+const response = await this.client.post(
+                '/payment/createPayment',
                 body
-            );
-
-            console.log(
-                '📥 Payment response:',
-                JSON.stringify(response.data).substring(0, 200)
             );
 
             return response.data;
         } catch (error: any) {
-            console.error(
-                '❌ Payment link error:',
-                error.response?.data || error.message
-            );
+            console.error('❌ Payment link error:', error.message);
+
             return {
                 success: false,
-                error: error.response?.data || error.message,
+                error: error.message,
             };
         }
     }

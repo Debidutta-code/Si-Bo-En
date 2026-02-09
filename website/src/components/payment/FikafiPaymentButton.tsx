@@ -12,7 +12,7 @@ interface FikafiPaymentButtonProps {
   guestEmail?: string;
   guestPhone?: string;
   propertyName: string;
-  propertyId: string; 
+  propertyId: string;
   checkInDate: string;
   numberOfNights: number;
   onPaymentLinkGenerated?: (paymentLink: string, paymentId: string) => void;
@@ -58,17 +58,35 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
       console.log("💰 Amount:", amount, currency);
       console.log("👤 Guest:", guestName);
 
+      // Clean the backend URL to avoid duplicate /api/v1 and double slashes
+      let backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || "").trim();
+      // Remove any trailing slashes
+      backendUrl = backendUrl.replace(/\/+$/, "");
+      // Remove /api/v1/ if present to avoid duplicates
+      backendUrl = backendUrl.replace(/\/api\/v1\/?$/, "");
+      // If empty, use default
+      if (!backendUrl) {
+        backendUrl = "http://localhost:8080";
+      }
+      // Ensure no double slashes when appending path
+      const cleanPath = (path: string) =>
+        `${backendUrl}${backendUrl.endsWith('/') ? '' : '/'}${path.replace(/^\/+/, '')}`;
+
       const requestBody = {
         bookingRefNum: bookingCode,
-        guestDetails: {
+
+guestDetails: {
           guestName,
-          email: guestEmail || "",
-          phoneNum: guestPhone || undefined,
+          email: guestEmail || "guest@email.com", // Required by Fikafi
+          // phoneNum removed - Fikafi doesn't require it
+          // country removed - Fikafi doesn't require it
         },
-        country: "AE",
+
+        // country removed - Fikafi doesn't require country at all
+
         bookingDetails: {
-          propertyId, // ⭐ ADD THIS
-          propertyName,
+      "propertyID": "KSA_MUK_01",
+          propertyName, // Only propertyName is needed
           referenceDetails: bookingCode,
           communicationMode: guestEmail ? "EMAIL" : "WHATSAPP",
           arrivalDate: checkInDate,
@@ -76,38 +94,35 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
         },
 
         paymentDetails: {
-          currency,
+          currency: currency || "USD",
           totalAmounts: amount,
           numOfPayments: 1,
-          validity: "24 hours" as const,
+          validity: "24 hours",
           payments: [
             {
-              paymentNumber: 1,
-              paymentName: "Full Payment",
+              // paymentNumber removed - Fikafi doesn't require it
+              // paymentName removed - Fikafi doesn't require it
               amount,
-              dueDate: new Date().toISOString().split("T")[0],
+              // date removed - Fikafi doesn't require it
             },
           ],
         },
+
         returnURL: {
           success_url: `${window.location.origin}/PaymentSuccess?bookingCode=${bookingCode}`,
           failed_url: `${window.location.origin}/PaymentFailed?bookingCode=${bookingCode}`,
         },
+
         webhook: {
-          payment_details_url: `${process.env.NEXT_PUBLIC_BACKEND_URL || ""}/api/v1/fikafi/webhook/payment-details`,
-          payment_event_url: `${process.env.NEXT_PUBLIC_BACKEND_URL || ""}/api/v1/fikafi/webhook/payment-event`,
+          payment_details_url: "https://webhook.site/268808ea-38e6-44ba-b6b2-0575c29d71d6",
+          payment_event_url: "https://webhook.site/268808ea-38e6-44ba-b6b2-0575c29d71d6",
         },
       };
 
+
+
       console.log("📤 Sending request to Fikafi API...");
-      
-      // Clean the backend URL to avoid duplicate /api/v1
-      let backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || "").replace(/\/api\/v1\/?$/, "");
-      if (!backendUrl) {
-        // Default to localhost for development
-        backendUrl = "http://localhost:8080";
-      }
-      
+
       const response = await fetch(
         `${backendUrl}/api/v1/fikafi/create-payment-link`,
         {
@@ -129,6 +144,15 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
       }
 
       if (data.success && data.data?.paymentLink) {
+        // ✅ Store booking confirmation in localStorage for the success page
+        const bookingConfirmation = {
+          bookingCode: bookingCode,
+          status: 'confirmed',
+          timestamp: Date.now(),
+          paymentId: data.data.paymentId
+        };
+        localStorage.setItem('bookingConfirmation', JSON.stringify(bookingConfirmation));
+        
         setPaymentLink(data.data.paymentLink);
         onPaymentLinkGenerated?.(data.data.paymentLink, data.data.paymentId);
         console.log("🔗 Redirecting to:", data.data.paymentLink);

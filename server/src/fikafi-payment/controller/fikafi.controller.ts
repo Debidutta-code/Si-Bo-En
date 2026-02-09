@@ -7,11 +7,12 @@ interface FikafiGuestDetails {
   guestName: string;
   phoneNum?: string;
   email: string;
+  country?: string; // ✅ Added country as per Fikafi docs
 }
 
 interface FikafiBookingDetails {
-  propertyId: string;
-  propertyName: string;
+  propertyID?: string; // Optional - Fikafi may not require it
+  propertyName: string; // Required by Fikafi
   referenceDetails: string;
   communicationMode: "WHATSAPP" | "EMAIL";
   arrivalDate: string;
@@ -25,9 +26,10 @@ interface FikafiPaymentDetails {
   validity: "3 hours" | "8 hours" | "24 hours" | "3 days" | "7 days";
   payments: Array<{
     paymentNumber: number;
-    paymentName: string;
+    paymentName?: string;
     amount: number;
-    dueDate: string;
+    date?: string; // ✅ Made optional since frontend sends dueDate
+    dueDate?: string; // ✅ Added support for dueDate from frontend
   }>;
 }
 
@@ -44,7 +46,7 @@ interface FikafiWebhook {
 interface FikafiPaymentRequestBody {
   bookingRefNum: string;
   guestDetails: FikafiGuestDetails;
-  country: string;
+  country?: string; // ✅ Made optional since it's now inside guestDetails
   bookingDetails: FikafiBookingDetails;
   paymentDetails: FikafiPaymentDetails;
   returnURL: FikafiReturnUrl;
@@ -70,8 +72,9 @@ export class FikafiPaymentController {
 
       console.log('Incoming bookingDetails:', bookingDetails);
 
-      // Validate required fields
-      if (!bookingRefNum || !guestDetails || !country || !bookingDetails || !paymentDetails || !returnURL || !webhook) {
+      // ✅ FIX: Country is now inside guestDetails, not at top level
+      if (!bookingRefNum || !guestDetails || !bookingDetails || !paymentDetails || !returnURL || !webhook) {
+        console.error('❌ Validation failed: Missing required fields');
         return res.status(400).json({
           success: false,
           message: "Missing required fields",
@@ -86,14 +89,16 @@ export class FikafiPaymentController {
         });
       }
 
-      // Validate booking details
+// Validate booking details
+      // Note: propertyID is optional, propertyName is required
       if (
-          !bookingDetails.propertyId ||
+          !bookingDetails.propertyName ||
           !bookingDetails.referenceDetails ||
           !bookingDetails.communicationMode ||
           !bookingDetails.arrivalDate ||
           !bookingDetails.numberOfNights
       ) {
+          console.error('❌ Validation failed: Booking details incomplete');
           return res.status(400).json({
               success: false,
               message: 'Incomplete booking details',
@@ -108,30 +113,46 @@ export class FikafiPaymentController {
         });
       }
 
-      const result = await fikafiPaymentService.createPaymentLink({
+const result = await fikafiPaymentService.createPaymentLink({
         bookingRefNum,
         guestDetails,
-        country,
         bookingDetails,
         paymentDetails,
         returnURL,
         webhook,
       });
 
+      console.log('📥 Fikafi service result:', JSON.stringify(result, null, 2));
+
       if (result.success && result.data) {
+        // ✅ Handle mock response which has nested structure: { success: true, data: { success: true, data: {...} } }
+        // Unwrap the response to get the actual payment data
+        let paymentData = result.data;
+        
+        // If mock mode returns nested data, unwrap it
+        if (paymentData.success === true && paymentData.data) {
+            paymentData = paymentData.data;
+        }
+        
+        // ✅ Map Fikafi response to our expected format
+        // Fikafi returns: { bookingRefNum, fikafiRefNum, token, url }
+        // We expect: { paymentLink, paymentId, expiresAt }
         return res.status(200).json({
           success: true,
           message: "Payment link created successfully",
           data: {
-            paymentLink: result.data.paymentLink,
-            paymentId: result.data.paymentId,
-            expiresAt: result.data.expiresAt,
+            paymentLink: paymentData.url || paymentData.paymentLink, // Fikafi uses 'url'
+            paymentId: paymentData.fikafiRefNum || paymentData.paymentId || paymentData.paymentLink, // Fikafi uses 'fikafiRefNum'
+            expiresAt: paymentData.expiresAt || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // Default to 24 hours
+            fikafiToken: paymentData.token, // Include the token for reference
+            bookingRefNum: paymentData.bookingRefNum, // Echo back the booking ref
           },
         });
       } else {
         return res.status(400).json({
           success: false,
           message: result.error || "Failed to create payment link",
+          details: result.details, // Include detailed error info
         });
       }
     } catch (error: any) {
@@ -223,17 +244,17 @@ export class FikafiPaymentController {
         where: { propertyId: reservation.propertyId },
       });
 
-      // Construct Fikafi request from reservation data
+// Construct Fikafi request from reservation data
       const fikafiRequest: FikafiPaymentRequestBody = {
         bookingRefNum: reservation.bookingCode,
         guestDetails: {
           guestName: `${reservation.primaryGuest.firstName} ${reservation.primaryGuest.lastName}`,
           phoneNum: reservation.primaryGuest.phoneNumber || undefined,
           email: reservation.primaryGuest.email || "",
+          country: reservation.countryCode || "AE",
         },
-        country: reservation.countryCode || "AE",
         bookingDetails: {
-          propertyId: reservation.property?.id || "",
+          propertyID: reservation.property?.id || "", // ✅ Changed from propertyId to propertyID
           propertyName: reservation.property?.propertyName || "",
           referenceDetails: reservation.bookingCode,
           communicationMode: reservation.primaryGuest.email ? "EMAIL" : "WHATSAPP",
@@ -250,7 +271,7 @@ export class FikafiPaymentController {
               paymentNumber: 1,
               paymentName: "Full Payment",
               amount: reservation.amount || 0,
-              dueDate: new Date().toISOString().split("T")[0],
+              date: new Date().toISOString().split("T")[0], // ✅ Changed from dueDate to date
             },
           ],
         },
