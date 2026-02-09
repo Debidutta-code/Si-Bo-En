@@ -225,7 +225,7 @@ export interface IPropertyDetails {
     loyaltyProgramConfig: ILoyaltyProgramConfig | null;
     propertyCode: string;
     starRating: number;
-    bookingEngineConfig: IBookingEngineConfig;
+    bookingEngineConfig: IBookingEngineConfig|null;
     address: IAddress;
 }
 
@@ -239,8 +239,7 @@ export interface ISearchCriteria {
         children: number;
         rooms: number;
     };
-    countryCode: string;
-    deviceType: string;
+    
 }
 
 // Response Data Interface

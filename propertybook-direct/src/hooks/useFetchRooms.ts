@@ -1,16 +1,10 @@
 import { useState, useCallback } from 'react';
-import type { FetchRoomsResponse, SearchCriteria } from '@/types/booking';
 import {
   fetchPropertyDetailsWithRooms
 } from "../pages/rooms/services"
 import { FindRoomsRequest, IFetchRoomsData } from '@/pages/rooms/interfaces';
 
-interface UseFetchRoomsResult {
-  data: FetchRoomsResponse | null;
-  isLoading: boolean;
-  error: Error | null;
-  fetchRooms: (criteria: FindRoomsRequest) => Promise<any>;
-}
+
 
 export function useFetchRooms() {
   const [data, setData] = useState<IFetchRoomsData | null>(null);
@@ -18,7 +12,7 @@ export function useFetchRooms() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchRooms = useCallback(async (criteria: SearchCriteria) => {
+  const fetchRooms = useCallback(async (criteria: FindRoomsRequest) => {
     setIsLoading(true);
     setError(null);
 

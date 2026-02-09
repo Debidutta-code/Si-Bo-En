@@ -5,7 +5,6 @@ import * as z from 'zod';
 import { Gift, ChevronDown, ChevronUp, Percent, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -25,115 +24,101 @@ import {
 } from '@/components/ui/form';
 import { useBooking } from '@/contexts/BookingContext';
 import { cn } from '@/lib/utils';
+import type { ILoyaltyProgramConfig } from '@/types/booking';
 
-// Dynamic field types that can come from API
-export interface LoyaltyField {
-  id: string;
-  name: string;
-  label: string;
-  type: 'text' | 'email' | 'tel' | 'select' | 'checkbox' | 'date';
-  required: boolean;
-  placeholder?: string;
-  options?: { value: string; label: string }[];
-}
-
-export interface LoyaltyConfig {
-  enabled: boolean;
-  programName: string;
-  discountPercentage: number;
-  description: string;
-  fields: LoyaltyField[];
-}
-
-// Mock loyalty config - this would come from API
-const mockLoyaltyConfig: LoyaltyConfig = {
-  enabled: true,
-  programName: 'Elite Rewards',
-  discountPercentage: 10,
-  description: 'Join our loyalty program and get exclusive discounts on your stay!',
-  fields: [
-    { id: 'firstName', name: 'firstName', label: 'First Name', type: 'text', required: true, placeholder: 'Enter your first name' },
-    { id: 'lastName', name: 'lastName', label: 'Last Name', type: 'text', required: true, placeholder: 'Enter your last name' },
-    { id: 'email', name: 'email', label: 'Email Address', type: 'email', required: true, placeholder: 'your@email.com' },
-    { id: 'phone', name: 'phone', label: 'Phone Number', type: 'tel', required: false, placeholder: '+1 (555) 000-0000' },
-    { id: 'dateOfBirth', name: 'dateOfBirth', label: 'Date of Birth', type: 'date', required: false },
-    { id: 'preferredContact', name: 'preferredContact', label: 'Preferred Contact Method', type: 'select', required: true, options: [
-      { value: 'email', label: 'Email' },
-      { value: 'phone', label: 'Phone' },
-      { value: 'sms', label: 'SMS' },
-    ]},
-    { id: 'newsletter', name: 'newsletter', label: 'Subscribe to newsletter for exclusive offers', type: 'checkbox', required: false },
-    { id: 'terms', name: 'terms', label: 'I agree to the terms and conditions', type: 'checkbox', required: true },
-  ],
-};
-
-// Build dynamic zod schema based on fields
-const buildSchema = (fields: LoyaltyField[]) => {
+// Build dynamic zod schema based on field configs
+const buildSchema = (fieldConfigs: ILoyaltyProgramConfig['CreationLoyaltyConfig']['LoyaltyProgramFieldConfig']) => {
   const shape: Record<string, z.ZodTypeAny> = {};
   
-  fields.forEach((field) => {
-    let fieldSchema: z.ZodTypeAny;
-    
-    switch (field.type) {
-      case 'email':
+  fieldConfigs
+    .filter(field => field.visibleInRegistration)
+    .forEach((field) => {
+      let fieldSchema: z.ZodTypeAny;
+      
+      // Determine field type based on field name
+      if (field.fieldName.includes('email')) {
         fieldSchema = z.string().email('Please enter a valid email');
-        break;
-      case 'checkbox':
-        fieldSchema = z.boolean();
-        break;
-      default:
-        fieldSchema = z.string();
-    }
-    
-    if (field.required) {
-      if (field.type === 'checkbox') {
-        fieldSchema = z.boolean().refine(val => val === true, { message: 'This field is required' });
       } else {
-        fieldSchema = (fieldSchema as z.ZodString).min(1, `${field.label} is required`);
+        fieldSchema = z.string();
       }
-    } else {
-      fieldSchema = fieldSchema.optional();
-    }
-    
-    shape[field.name] = fieldSchema;
+      
+      if (field.required) {
+        fieldSchema = (fieldSchema as z.ZodString).min(1, `${field.fieldName} is required`);
+      } else {
+        fieldSchema = fieldSchema.optional();
+      }
+      
+      shape[field.fieldName] = fieldSchema;
+    });
+  
+  // Add terms acceptance
+  shape['acceptTerms'] = z.boolean().refine(val => val === true, { 
+    message: 'You must accept the terms and conditions' 
   });
   
   return z.object(shape);
 };
 
 interface LoyaltySignupProps {
-  loyaltyConfig?: LoyaltyConfig;
+  className?: string;
 }
 
-export function LoyaltySignup({ loyaltyConfig = mockLoyaltyConfig }: LoyaltySignupProps) {
+export function LoyaltySignup({ className }: LoyaltySignupProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const { applyLoyaltyDiscount } = useBooking();
+  const { state, applyLoyaltyDiscount } = useBooking();
   
-  const schema = buildSchema(loyaltyConfig.fields);
-  
-  const form = useForm({
-    resolver: zodResolver(schema),
-    defaultValues: loyaltyConfig.fields.reduce((acc, field) => {
-      acc[field.name] = field.type === 'checkbox' ? false : '';
-      return acc;
-    }, {} as Record<string, string | boolean>),
-  });
+  const loyaltyConfig = state.propertyDetails?.loyaltyProgramConfig;
 
-  if (!loyaltyConfig.enabled) {
+  if (!loyaltyConfig || !loyaltyConfig.isActive || !loyaltyConfig.CreationLoyaltyConfig) {
     return null;
   }
 
+  const { CreationLoyaltyConfig } = loyaltyConfig;
+  const visibleFields = CreationLoyaltyConfig.LoyaltyProgramFieldConfig.filter(
+    field => field.visibleInRegistration
+  );
+
+  const schema = buildSchema(CreationLoyaltyConfig.LoyaltyProgramFieldConfig);
+  
+  const defaultValues = visibleFields.reduce((acc, field) => {
+    acc[field.fieldName] = '';
+    return acc;
+  }, {} as Record<string, string | boolean>);
+  defaultValues['acceptTerms'] = false;
+
+  const form = useForm({
+    resolver: zodResolver(schema),
+    defaultValues,
+  });
+
   const onSubmit = (data: Record<string, string | boolean>) => {
     console.log('Loyalty signup data:', data);
-    // Apply discount to booking context
-    applyLoyaltyDiscount(loyaltyConfig.discountPercentage, loyaltyConfig.programName);
+    
+    // Apply loyalty discount
+    applyLoyaltyDiscount({
+      isApplied: true,
+      programId: CreationLoyaltyConfig.id,
+      programName: loyaltyConfig.propertyName,
+      discountType: CreationLoyaltyConfig.loyaltyDiscountType,
+      discountValue: CreationLoyaltyConfig.discountValue,
+      currencyCode: CreationLoyaltyConfig.currencyCode,
+      logo: CreationLoyaltyConfig.BasicLoyaltyProgram?.logo,
+    });
+    
     setIsSubmitted(true);
   };
 
+  const programName = loyaltyConfig.propertyName || 'Loyalty Program';
+  const discountValue = CreationLoyaltyConfig.discountValue;
+  const discountType = CreationLoyaltyConfig.loyaltyDiscountType;
+  const discountDisplay = discountType === 'percentage' 
+    ? `${discountValue}%` 
+    : `${CreationLoyaltyConfig.currencyCode} ${discountValue}`;
+
   if (isSubmitted) {
     return (
-      <Card className="border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-800">
+      <Card className={cn("border-green-200 bg-green-50 dark:bg-green-950/20 dark:border-green-800", className)}>
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
@@ -141,17 +126,20 @@ export function LoyaltySignup({ loyaltyConfig = mockLoyaltyConfig }: LoyaltySign
             </div>
             <div className="flex-1">
               <p className="font-medium text-green-800 dark:text-green-200">
-                Welcome to {loyaltyConfig.programName}!
+                Welcome to {programName}!
               </p>
               <p className="text-sm text-green-600 dark:text-green-400">
-                Your {loyaltyConfig.discountPercentage}% discount has been applied.
+                Your {discountDisplay} discount has been applied.
               </p>
             </div>
             <div className="text-right">
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 font-semibold text-sm">
-                <Percent className="h-3 w-3" />
-                {loyaltyConfig.discountPercentage}% OFF
-              </span>
+              {CreationLoyaltyConfig.BasicLoyaltyProgram?.logo?.[0] && (
+                <img 
+                  src={CreationLoyaltyConfig.BasicLoyaltyProgram.logo[0]} 
+                  alt={programName}
+                  className="h-8 object-contain"
+                />
+              )}
             </div>
           </div>
         </CardContent>
@@ -160,7 +148,7 @@ export function LoyaltySignup({ loyaltyConfig = mockLoyaltyConfig }: LoyaltySign
   }
 
   return (
-    <Card className="border-primary/20 bg-primary/5 overflow-hidden">
+    <Card className={cn("border-primary/20 bg-primary/5 overflow-hidden", className)}>
       <button
         onClick={() => setIsExpanded(!isExpanded)}
         className="w-full p-4 flex items-center justify-between hover:bg-primary/10 transition-colors"
@@ -171,17 +159,30 @@ export function LoyaltySignup({ loyaltyConfig = mockLoyaltyConfig }: LoyaltySign
           </div>
           <div className="text-left">
             <p className="font-medium text-foreground">
-              Join {loyaltyConfig.programName}
+              Join {programName}
             </p>
             <p className="text-sm text-muted-foreground">
-              Get {loyaltyConfig.discountPercentage}% off your booking
+              Get {discountDisplay} off your booking
             </p>
           </div>
         </div>
         <div className="flex items-center gap-2">
+          {CreationLoyaltyConfig.BasicLoyaltyProgram?.logo?.[0] && (
+            <img 
+              src={CreationLoyaltyConfig.BasicLoyaltyProgram.logo[0]} 
+              alt={programName}
+              className="h-6 object-contain hidden sm:block"
+            />
+          )}
           <span className="hidden sm:inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 text-primary font-semibold text-sm">
-            <Percent className="h-3 w-3" />
-            Save {loyaltyConfig.discountPercentage}%
+            {discountType === 'percentage' ? (
+              <>
+                <Percent className="h-3 w-3" />
+                Save {discountValue}%
+              </>
+            ) : (
+              <>Save {discountDisplay}</>
+            )}
           </span>
           {isExpanded ? (
             <ChevronUp className="h-5 w-5 text-muted-foreground" />
@@ -199,84 +200,97 @@ export function LoyaltySignup({ loyaltyConfig = mockLoyaltyConfig }: LoyaltySign
       >
         <div className="overflow-hidden">
           <CardContent className="p-4 pt-0 border-t border-primary/10">
-            <p className="text-sm text-muted-foreground mb-4">
-              {loyaltyConfig.description}
-            </p>
+            {/* Show loyalty conditions if available */}
+            {CreationLoyaltyConfig.loyaltyConditions.length > 0 && (
+              <div className="mb-4">
+                <p className="text-sm font-medium text-foreground mb-2">Program Benefits:</p>
+                <ul className="text-sm text-muted-foreground space-y-1">
+                  {CreationLoyaltyConfig.loyaltyConditions
+                    .filter(condition => condition.isActive && !condition.isDeleted)
+                    .map((condition) => (
+                      <li key={condition.id} className="flex items-start gap-2">
+                        <Check className="h-4 w-4 text-primary flex-shrink-0 mt-0.5" />
+                        <span>{condition.text}</span>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            )}
+
+            {/* Show special conditions if available */}
+            {CreationLoyaltyConfig.loyaltySpecialConditions.length > 0 && (
+              <div className="mb-4">
+                <p className="text-sm font-medium text-foreground mb-2">Special Offers:</p>
+                <div className="space-y-2">
+                  {CreationLoyaltyConfig.loyaltySpecialConditions
+                    .filter(condition => condition.isActive && !condition.isDeleted)
+                    .map((condition) => (
+                      <div key={condition.id} className="bg-primary/5 p-2 rounded">
+                        <p className="text-sm font-medium text-foreground">{condition.title}</p>
+                        {condition.subTitle && (
+                          <p className="text-xs text-muted-foreground">{condition.subTitle}</p>
+                        )}
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
 
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {loyaltyConfig.fields.map((field) => (
+                  {visibleFields.map((field) => (
                     <FormField
                       key={field.id}
                       control={form.control}
-                      name={field.name}
+                      name={field.fieldName}
                       render={({ field: formField }) => (
-                        <FormItem
-                          className={cn(
-                            field.type === 'checkbox' && 'md:col-span-2 flex flex-row items-start space-x-3 space-y-0'
-                          )}
-                        >
-                          {field.type === 'checkbox' ? (
-                            <>
-                              <FormControl>
-                                <Checkbox
-                                  checked={formField.value as boolean}
-                                  onCheckedChange={formField.onChange}
-                                />
-                              </FormControl>
-                              <div className="space-y-1 leading-none">
-                                <FormLabel className="text-sm font-normal cursor-pointer">
-                                  {field.label}
-                                  {field.required && <span className="text-destructive ml-1">*</span>}
-                                </FormLabel>
-                                <FormMessage />
-                              </div>
-                            </>
-                          ) : (
-                            <>
-                              <FormLabel>
-                                {field.label}
-                                {field.required && <span className="text-destructive ml-1">*</span>}
-                              </FormLabel>
-                              <FormControl>
-                                {field.type === 'select' ? (
-                                  <Select
-                                    value={formField.value as string}
-                                    onValueChange={formField.onChange}
-                                  >
-                                    <SelectTrigger>
-                                      <SelectValue placeholder={`Select ${field.label.toLowerCase()}`} />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      {field.options?.map((option) => (
-                                        <SelectItem key={option.value} value={option.value}>
-                                          {option.label}
-                                        </SelectItem>
-                                      ))}
-                                    </SelectContent>
-                                  </Select>
-                                ) : (
-                                  <Input
-                                    type={field.type}
-                                    placeholder={field.placeholder}
-                                    {...formField}
-                                    value={formField.value as string}
-                                  />
-                                )}
-                              </FormControl>
-                              <FormMessage />
-                            </>
-                          )}
+                        <FormItem>
+                          <FormLabel>
+                            {field.fieldName.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}
+                            {field.required && <span className="text-destructive ml-1">*</span>}
+                          </FormLabel>
+                          <FormControl>
+                            <Input
+                              type={field.fieldName.includes('email') ? 'email' : 'text'}
+                              placeholder={`Enter ${field.fieldName.replace(/_/g, ' ')}`}
+                              {...formField}
+                              value={formField.value as string}
+                            />
+                          </FormControl>
+                          <FormMessage />
                         </FormItem>
                       )}
                     />
                   ))}
                 </div>
 
+                {/* Terms and conditions checkbox */}
+                <FormField
+                  control={form.control}
+                  name="acceptTerms"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value as boolean}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel className="text-sm font-normal cursor-pointer">
+                          I agree to the loyalty program terms and conditions
+                          <span className="text-destructive ml-1">*</span>
+                        </FormLabel>
+                        <FormMessage />
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
                 <Button type="submit" className="w-full" size="lg">
                   <Gift className="h-4 w-4 mr-2" />
-                  Join & Get {loyaltyConfig.discountPercentage}% Discount
+                  Join & Get {discountDisplay} Discount
                 </Button>
               </form>
             </Form>

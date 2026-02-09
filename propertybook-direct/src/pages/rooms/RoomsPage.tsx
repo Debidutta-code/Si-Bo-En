@@ -7,44 +7,62 @@ import { BookingProgress } from '@/components/booking/BookingProgress';
 import { RoomCard } from '@/components/booking/RoomCard';
 import { PriceSummary } from '@/components/booking/PriceSummary';
 import { LoyaltySignup } from '@/components/booking/LoyaltySignup';
+import { PropertyVideo } from '@/components/booking/PropertyVideo';
 import { RoomCardSkeleton } from '@/components/booking/Skeleton';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { } from "./services";
+
 export default function RoomsPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { state,  setSearchCriteria } = useBooking();
+  const { state, setSearchCriteria, setPropertyDetails, setRooms } = useBooking();
   const { fetchRooms, isLoading, error } = useFetchRooms();
 
   const PropertyCode = searchParams.get('code') || '4BTXDZ';
+
   const loadRooms = async () => {
-    console.log(state.searchCriteria)
-    if (!state.searchCriteria) {
-      const today = new Date();
-      const tomorrow = new Date(today);
-      tomorrow.setDate(tomorrow.getDate() + 1);
+    try {
+      let criteria = state.searchCriteria;
 
-      const defaultCriteria = {
-        startDate: today.toISOString().split('T')[0],
-        endDate: tomorrow.toISOString().split('T')[0],
-        guests: { adults: 2, children: 0, rooms: 1 },
-        PropertyCode
-      };
+      if (!criteria) {
+        const today = new Date();
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
 
-      setSearchCriteria(defaultCriteria);
+        criteria = {
+          PropertyCode,
+          startDate: today.toISOString().split('T')[0],
+          endDate: tomorrow.toISOString().split('T')[0],
+          guests: { adults: 2, children: 0, rooms: 1 },
 
-      const response = await fetchRooms(state.searchCriteria);
-    } else if (state.rooms.length === 0) {
-      const response = await fetchRooms(state.searchCriteria);
+        };
+
+        setSearchCriteria(criteria);
+      }
+
+      if (state.rooms.length === 0 || state.propertyDetails?.propertyCode !== PropertyCode) {
+        const response = await fetchRooms({
+          PropertyCode: criteria.PropertyCode,
+          startDate: criteria.startDate,
+          endDate: criteria.endDate,
+          guests: criteria.guests,
+        });
+        console.log(response)
+        if (response) {
+          setPropertyDetails(response.data.propertyDetails);
+          setRooms(response.data.rooms);
+        }
+      }
+    } catch (err) {
+      console.error('Error loading rooms:', err);
     }
   };
+
   useEffect(() => {
     loadRooms();
-  }, [state.searchCriteria]);
+  }, [state]);
 
-  const availableRooms = state.rooms.filter(room => room.has_valid_rate);
-  const soldOutRooms = state.rooms.filter(room => !room.has_valid_rate);
+  const availableRooms = state.rooms
 
   return (
     <div className="min-h-screen bg-background pb-24 lg:pb-0">
@@ -69,11 +87,19 @@ export default function RoomsPage() {
                 <h1 className="text-2xl font-bold">Select Your Room</h1>
                 <p className="text-muted-foreground mt-1">
                   {availableRooms.length} {availableRooms.length === 1 ? 'room' : 'rooms'} available
+                  {state.propertyDetails && (
+                    <span className="ml-2">at {state.propertyDetails.propertyName}</span>
+                  )}
                 </p>
               </div>
             </div>
 
-            <LoyaltySignup />
+            {/* Loyalty Program - Only show if available and active */}
+            {state.propertyDetails?.loyaltyProgramConfig?.isActive && (
+              <LoyaltySignup />
+            )}
+
+
 
             {error && (
               <div className="flex items-center gap-3 p-4 rounded-lg bg-destructive/10 text-destructive">
@@ -97,17 +123,7 @@ export default function RoomsPage() {
                   ))}
                 </div>
 
-                {/* Sold Out Rooms */}
-                {soldOutRooms.length > 0 && (
-                  <div className="space-y-6 mt-8">
-                    <h2 className="text-lg font-semibold text-muted-foreground">
-                      Sold Out
-                    </h2>
-                    {soldOutRooms.map((room) => (
-                      <RoomCard key={room.id} room={room} />
-                    ))}
-                  </div>
-                )}
+
 
                 {state.rooms.length === 0 && !isLoading && (
                   <div className="text-center py-16">
@@ -130,6 +146,13 @@ export default function RoomsPage() {
           {/* Price Summary Sidebar - Desktop */}
           <aside className="hidden lg:block w-80 flex-shrink-0">
             <div className="sticky top-8">
+              {/* Property Video - Show if available */}
+              {state.propertyDetails?.propertyVideos && (
+                <PropertyVideo
+                  video={state.propertyDetails.propertyVideos}
+                  propertyName={state.propertyDetails.propertyName}
+                />
+              )}
               {state.selectedRatePlan && <PriceSummary />}
             </div>
           </aside>
