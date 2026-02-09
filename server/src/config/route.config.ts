@@ -19,7 +19,7 @@ import { AddonsRoute } from '../add-on/routes';
 import { pmsRoute } from '../pms/routes';
 import { BookingEngineRoutes } from '../booking-engine/routes';
 import { dashboardRouter } from '../dashboard/routes';
-import EmailService from '../sms-email-service/routes/route';
+// import EmailService from '../sms-email-service/routes/route';
 import { PaymentRoutes } from '../payment/routes';
 
 import { agencyMainRouter } from '../agency/routes/index.route';
@@ -62,7 +62,7 @@ export async function initializeExpressRoutes({ app }: { app: Express }) {
     apiV1Router.use('/addon', AddonsRoute);
     apiV1Router.use('/pms', pmsRoute);
     apiV1Router.use('/booking-engine', BookingEngineRoutes);
-    apiV1Router.use('/email-service', EmailService);
+    // apiV1Router.use('/email-service', EmailService);
     apiV1Router.use('/agency', agencyMainRouter);
     apiV1Router.use('/promotions', promotionRouter);
     apiV1Router.use('/loyalty', loyaltyRouter);
