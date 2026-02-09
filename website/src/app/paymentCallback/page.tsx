@@ -76,7 +76,7 @@ const PaymentCallbackPage = () => {
               guests: booking.guests,
               guestDetails: booking.guestDetails,
               ratePlanCode: booking.ratePlanCode,
-              paymentMethod: "ngenius",
+              paymentMethod: "payment_gateway",
               bookingSource: booking.bookingSource,
             },
             guestDetails: booking.guestDetails,

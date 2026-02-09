@@ -160,12 +160,18 @@ const PaymentSuccessPage = () => {
               <p>
                 <strong>Email:</strong> {email}
               </p>
-              <p>
-                <strong>Payment Method:</strong>{" "}
-                <span className="font-semibold" style={{ color: colors.primaryColor }}>
-                  Pay at Hotel
-                </span>
-              </p>
+             
+<p>
+  <strong>Payment Method:</strong>{" "}
+  <span className="font-semibold" style={{ color: colors.primaryColor }}>
+    {localConfirmation?.paymentMethod === "payment_gateway" 
+      ? "Online Payment (Fikafi)"
+      : localConfirmation?.paymentMethod === "pay_at_hotel"
+      ? "Pay at Hotel"
+      : "Pay at Hotel" // Default fallback
+    }
+  </span>
+</p>
             </div>
           </div>
         </div>

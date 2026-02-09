@@ -14,6 +14,7 @@ interface FikafiPaymentButtonProps {
   propertyName: string;
   propertyId: string;
   checkInDate: string;
+    paymentMethod?: string; 
   numberOfNights: number;
   onPaymentLinkGenerated?: (paymentLink: string, paymentId: string) => void;
   onPaymentError?: (error: string) => void;
@@ -34,6 +35,7 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
   numberOfNights,
   onPaymentLinkGenerated,
   onPaymentError,
+  paymentMethod = "payment_gateway",
   buttonText = "Pay with Fikafi",
   className = "",
 }) => {
@@ -149,7 +151,8 @@ guestDetails: {
           bookingCode: bookingCode,
           status: 'confirmed',
           timestamp: Date.now(),
-          paymentId: data.data.paymentId
+          paymentId: data.data.paymentId,
+          paymentMethod: paymentMethod || "payment_gateway",
         };
         localStorage.setItem('bookingConfirmation', JSON.stringify(bookingConfirmation));
         
