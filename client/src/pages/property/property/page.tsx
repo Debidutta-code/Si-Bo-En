@@ -43,6 +43,7 @@ export default function PropertyPage() {
         isB2bAvailable: false,
         isB2cAvailable: false,
         commission: false,
+        showVideo: true,
         timezone: "Asia/Kolkata",
         baseCurrency: "INR"
     })
@@ -491,6 +492,25 @@ export default function PropertyPage() {
                                                     }
                                                 />
                                             </div>
+
+                                            {user?.userLevel === 4 && (
+                                                <div className="flex items-center justify-between space-x-2">
+                                                    <div className="space-y-0.5">
+                                                        <Label htmlFor="showVideo">Show Video In Booking Engine</Label>
+                                                        <p className="text-xs text-muted-foreground">
+                                                            Enable this to show property video in booking engine
+                                                        </p>
+                                                    </div>
+                                                    <Switch
+                                                        id="showVideo"
+                                                        checked={propertyConfig.showVideo}
+                                                        onCheckedChange={(checked) =>
+                                                            setPropertyConfig({ ...propertyConfig, showVideo: checked })
+                                                        }
+                                                    />
+                                                </div>
+                                            )}
+
 
                                             <div className='space-y-2'>
                                                 <Label htmlFor='timezone'>Timezone</Label>

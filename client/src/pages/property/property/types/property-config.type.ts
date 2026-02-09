@@ -8,4 +8,5 @@ export interface IUPropertyConfig {
     commission?: boolean;
     timezone?: string;
     baseCurrency?: string;
+    showVideo:boolean;
 }

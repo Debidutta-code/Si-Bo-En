@@ -37,6 +37,7 @@ export class RoomBookingRepository {
                         roomVideos: true,
                     },
                 },
+                propertyConfigs:true,
                 ratePlans: {
                     include: {
                         depositPolicy: true,

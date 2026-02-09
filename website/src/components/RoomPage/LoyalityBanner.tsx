@@ -1,5 +1,5 @@
 import { IPropertyLoyalityWithLoyality } from "@/src/app/Rooms/interface";
-import { Award, Gift, Star, User, Sparkles, CheckCircle2, Mail } from "lucide-react";
+import { Award, Gift, Star, User, Sparkles, CheckCircle2, Mail, LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
@@ -91,6 +91,16 @@ export const LoyaltyProgramBanner = ({
     }));
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem(`loyalty_member_${loyaltyProgram.propertyId}`);
+    setIsRegistered(false);
+    setRegisteredEmail("");
+    setDiscountInfo(null);
+    toast.success("Successfully logged out from loyalty program");
+    // Reload the page to reset loyalty member email in parent component
+    window.location.reload();
+  };
+
   const handleSignUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -140,6 +150,8 @@ export const LoyaltyProgramBanner = ({
           setShowSignUpModal(false);
           setFormData({});
           setIsSubmitting(false);
+          // Reload to update parent component
+          window.location.reload();
           return;
         }
         
@@ -167,6 +179,8 @@ export const LoyaltyProgramBanner = ({
       toast.success("Successfully registered for loyalty program!");
       setShowSignUpModal(false);
       setFormData({});
+      // Reload to update parent component
+      window.location.reload();
     } catch (error) {
       console.error("Registration error:", error);
       toast.error("Failed to register. Please try again.");
@@ -195,10 +209,10 @@ export const LoyaltyProgramBanner = ({
 
   return (
     <>
-      <div className="px-3 py-2">
-        <div className="max-w-7xl mx-auto">
+      <div className="px-3 py-2 h-full">
+        <div className="max-w-7xl h-full mx-auto">
           <div 
-            className="relative overflow-hidden rounded-xl shadow-md border"
+            className="relative h-full overflow-hidden rounded-xl shadow-md border"
             style={{ 
               borderColor: `${primaryColor}20`,
               background: 'white'
@@ -218,7 +232,7 @@ export const LoyaltyProgramBanner = ({
               {/* Header */}
               <div className="flex items-center justify-between gap-3 mb-3">
                 <div className="flex items-center gap-2">
-                  <Award className="w-4 h-4" style={{ color: primaryColor }} />
+                  <Award className="w-5 h-5" style={{ color: primaryColor }} />
                   <h2 className="text-base md:text-lg font-bold text-gray-900">
                     {loyaltyProgram.propertyName}
                   </h2>
@@ -268,11 +282,11 @@ export const LoyaltyProgramBanner = ({
                 </div>
 
                 {/* Program Terms */}
-                <div className="lg:col-span-6">
+                <div className="lg:col-span-5">
                   {program.loyaltyConditions && program.loyaltyConditions.filter(c => c.isActive).length > 0 && (
                     <div>
                       <h3 className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
-                        <Award className="w-3 h-3" style={{ color: primaryColor }} />
+                        <CheckCircle2 className="w-3 h-3" style={{ color: primaryColor }} />
                         Program Terms
                       </h3>
                       <div className="space-y-1.5 max-h-24 overflow-y-auto custom-scrollbar">
@@ -293,13 +307,13 @@ export const LoyaltyProgramBanner = ({
                 </div>
 
                 {/* Benefits & CTA */}
-                <div className="lg:col-span-4 flex gap-2">
+                <div className="lg:col-span-5">
                   {/* Special Benefits */}
                   {program.loyaltySpecialConditions && program.loyaltySpecialConditions.filter(c => c.isActive).length > 0 && (
-                    <div className="flex-1">
+                    <div className="mb-3">
                       <h3 className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
                         <Star className="w-3 h-3" style={{ color: primaryColor }} />
-                        Benefits
+                        Special Benefits
                       </h3>
                       <div className="space-y-1.5">
                         {program.loyaltySpecialConditions
@@ -324,37 +338,56 @@ export const LoyaltyProgramBanner = ({
                     </div>
                   )}
                   
-                  {/* CTA */}
-                  <div className="flex-1">
+                  {/* CTA - Horizontal Layout */}
+                  <div className="flex gap-2 justify-end">
                     {!isRegistered ? (
-                      <div className="h-full flex flex-col justify-center">
-                        <button
-                          onClick={() => setShowSignUpModal(true)}
-                          className="w-full px-3 py-2 rounded-lg text-white text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1.5"
-                          style={{ backgroundColor: primaryColor }}
-                        >
-                          <User className="w-3.5 h-3.5" />
-                          Sign Up
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => setShowSignUpModal(true)}
+                        className="px-4 py-2 rounded-lg text-white text-xs font-bold shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-1.5"
+                        style={{ backgroundColor: primaryColor }}
+                      >
+                        <User className="w-3.5 h-3.5" />
+                        Join Program
+                      </button>
                     ) : (
-                      <div className="space-y-1.5">
+                      <>
                         <div 
-                          className="rounded-lg p-2 text-center"
-                          style={{ backgroundColor: `${primaryColor}15` }}
+                          className="rounded-lg px-3 py-2 text-center border flex-shrink-0"
+                          style={{ 
+                            backgroundColor: `${primaryColor}15`,
+                            borderColor: `${primaryColor}40`
+                          }}
                         >
-                          <Award className="w-4 h-4 mx-auto mb-1" style={{ color: primaryColor }} />
-                          <p className="text-[9px] font-bold text-gray-900">Active Member</p>
+                          <div className="flex items-center w-full gap-1">
+                            <Award className="w-5 h-3 flex-shrink-0" style={{ color: primaryColor }} />
+                            <div className="text-left">
+                              <p className="text-[10px] font-bold text-gray-900 whitespace-nowrap">Active Member</p>
+                              <p className="text-[8px] font-semibold text-gray-600 truncate max-w-[80px]" title={registeredEmail}>
+                                {registeredEmail}
+                              </p>
+                            </div>
+                          </div>
                         </div>
+                        
                         <div 
-                          className="rounded-lg px-2 py-1.5 bg-green-600 text-center"
+                          className="rounded-lg px-3 py-2 bg-green-600 text-center flex items-center flex-shrink-0"
                         >
-                          <p className="text-[10px] font-bold text-white">
-                            {getDiscountDisplay()}
-                          </p>
-                          <p className="text-[8px] text-white/90">Auto-applied</p>
+                          <div>
+                            <p className="text-[10px] font-bold text-white whitespace-nowrap">
+                              {getDiscountDisplay()}
+                            </p>
+                            <p className="text-[8px] font-semibold text-white/90 whitespace-nowrap">Auto-applied</p>
+                          </div>
                         </div>
-                      </div>
+
+                        <button
+                          onClick={handleLogout}
+                          className="px-2.5 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-[9px] font-semibold transition-all flex items-center justify-center gap-1 border border-red-200 whitespace-nowrap flex-shrink-0"
+                        >
+                          <LogOut className="w-3 h-3" />
+                          Logout
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>

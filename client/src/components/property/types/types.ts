@@ -99,6 +99,7 @@ export interface IRatePlans {
 export interface PaymentMethods {
   payAtHotel?: boolean;
   paymentGateway?: boolean;
+  selectedPaymentIntegrations?: string[];
 }
 
 export interface IBankDetails {

@@ -751,33 +751,21 @@ const Rooms = () => {
         <div className="px-4 py-3">
           <div className="max-w-7xl mx-auto">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-              {/* Left Column - Loyalty Program Banner */}
-              {loyaltyProgram && (
-                <div
-                  className={`${propertyDetails?.propertyVideos ? "lg:col-span-7" : "lg:col-span-12"}`}
-                >
-                  <LoyaltyProgramBanner
-                    loyaltyProgram={loyaltyProgram}
-                    primaryColor={primaryColor}
-                  />
-                </div>
-              )}
-
-              {/* Right Column - Property Video */}
               {propertyDetails?.propertyVideos && (
                 <div
-                  className={`${loyaltyProgram ? "lg:col-span-5" : "lg:col-span-12"}`}
+                  className={`${loyaltyProgram ? "lg:col-span-7" : "lg:col-span-12"}`}
                 >
                   <div
                     className="rounded-xl shadow-md border overflow-hidden h-full"
                     style={{ borderColor: `${primaryColor}40` }}
                   >
                     <div
-                      className={`relative w-full ${loyaltyProgram ? "h-full min-h-[300px]" : "h-[400px] lg:h-[500px]"}`}
+                      className={`relative w-full ${loyaltyProgram ? "h-[300px]" : "h-[350px]"}`}
                     >
                       <video
                         className="w-full h-full object-cover"
                         autoPlay
+                        
                         loop
                         muted
                         playsInline
@@ -798,6 +786,16 @@ const Rooms = () => {
                       </div>
                     </div>
                   </div>
+                </div>
+              )}
+              {loyaltyProgram && (
+                <div
+                  className={`${propertyDetails?.propertyVideos ? "lg:col-span-5" : "lg:col-span-12"}`}
+                >
+                  <LoyaltyProgramBanner
+                    loyaltyProgram={loyaltyProgram}
+                    primaryColor={primaryColor}
+                  />
                 </div>
               )}
             </div>

@@ -125,16 +125,49 @@ const RoomCard: React.FC<RoomCardProps> = ({
     );
   };
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [showVideo, setShowVideo] = useState(false);
+  const hasVideo = room.roomVideos?.url;
   const images = room.images?.length
     ? room.images
     : ["https://via.placeholder.com/600x400?text=No+Image+Available"];
+  const totalMediaCount = images.length + (hasVideo ? 1 : 0);
 
   const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+    if (showVideo) {
+      // If showing video, go back to last image
+      setShowVideo(false);
+      setCurrentImageIndex(images.length - 1);
+    } else if (currentImageIndex === 0) {
+      // If at first image, loop to video (if exists) or last image
+      if (hasVideo) {
+        setShowVideo(true);
+      } else {
+        setCurrentImageIndex(images.length - 1);
+      }
+    } else {
+      // Go to previous image
+      setCurrentImageIndex(prev => prev - 1);
+    }
   };
 
   const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+    if (showVideo) {
+      // If showing video, loop back to first image
+      setShowVideo(false);
+      setCurrentImageIndex(0);
+    } else if (currentImageIndex === images.length - 1) {
+      // If at last image
+      if (hasVideo) {
+        // Show video if available
+        setShowVideo(true);
+      } else {
+        // Otherwise loop back to first image
+        setCurrentImageIndex(0);
+      }
+    } else {
+      // Go to next image
+      setCurrentImageIndex(prev => prev + 1);
+    }
   };
 
   // Use the custom hook to get dynamic branding colors
@@ -454,16 +487,35 @@ const RoomCard: React.FC<RoomCardProps> = ({
       <div className="bg-white rounded-lg shadow-md overflow-hidden border border-gray-200">
         <div className="flex flex-col md:flex-row">
           <div className="md:w-2/5 lg:w-1/3 relative">
-            <img
-              src={images[currentImageIndex]}
-              alt={room.room_name}
-              className="w-full h-48 object-cover"
-            />
+            {/* Media Display */}
+            {showVideo ? (
+              // Video Player
+              <div className="relative w-full h-48">
+                <video
+                  className="w-full h-full object-cover"
+                  autoPlay
+                  muted
+                  loop
+                  playsInline
+                  poster={room.roomVideos?.thumbnail}
+                  key={room.roomVideos?.url}
+                >
+                  <source src={room.roomVideos?.url} type="video/mp4" />
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+            ) : (
+              // Image Display
+              <img
+                src={images[currentImageIndex]}
+                alt={room.room_name}
+                className="w-full h-48 object-cover"
+              />
+            )}
 
-            {/* Show arrows only if more than one image */}
-            {images.length > 1 && (
+            {/* Navigation Arrows - Show only if more than one media item */}
+            {totalMediaCount > 1 && (
               <>
-                {/* Left Button */}
                 <button
                   onClick={prevImage}
                   className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-1 transition"
@@ -471,7 +523,6 @@ const RoomCard: React.FC<RoomCardProps> = ({
                   <ChevronLeft size={18} />
                 </button>
 
-                {/* Right Button */}
                 <button
                   onClick={nextImage}
                   className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white rounded-full p-1 transition"
@@ -484,11 +535,16 @@ const RoomCard: React.FC<RoomCardProps> = ({
                   {images.map((_, idx) => (
                     <span
                       key={idx}
-                      className={`h-2 w-2 rounded-full ${
-                        idx === currentImageIndex ? "bg-white" : "bg-white/50"
-                      }`}
+                      className={`h-2 w-2 rounded-full ${!showVideo && idx === currentImageIndex ? "bg-white" : "bg-white/50"
+                        }`}
                     />
                   ))}
+                  {hasVideo && (
+                    <span
+                      className={`h-2 w-2 rounded-full ${showVideo ? "bg-white" : "bg-white/50"
+                        }`}
+                    />
+                  )}
                 </div>
               </>
             )}
@@ -611,18 +667,18 @@ const RoomCard: React.FC<RoomCardProps> = ({
                           <div className="space-y-1 text-xs md:text-sm text-gray-700 mb-2">
                             {ratePlan.policy?.cancellationPolicy
                               ?.description && (
-                              <div className="flex items-start gap-1.5">
-                                <span className="text-green-600 mt-0.5 flex-shrink-0">
-                                  ✓
-                                </span>
-                                <span className="line-clamp-1">
-                                  {
-                                    ratePlan.policy.cancellationPolicy
-                                      .description
-                                  }
-                                </span>
-                              </div>
-                            )}
+                                <div className="flex items-start gap-1.5">
+                                  <span className="text-green-600 mt-0.5 flex-shrink-0">
+                                    ✓
+                                  </span>
+                                  <span className="line-clamp-1">
+                                    {
+                                      ratePlan.policy.cancellationPolicy
+                                        .description
+                                    }
+                                  </span>
+                                </div>
+                              )}
                             <div className="flex items-start gap-1.5">
                               <span className="text-green-600 mt-0.5 flex-shrink-0">
                                 ✓
@@ -693,25 +749,25 @@ const RoomCard: React.FC<RoomCardProps> = ({
                                 : `${ratePlan.availablePromotions.length} Special Offer${ratePlan.availablePromotions.length > 1 ? "s" : ""} Available`}
                               {selectedPromotions[ratePlan.ratePlanCode]
                                 ?.length > 0 && (
-                                <span className="px-2.5 py-1 bg-green-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
-                                  <svg
-                                    className="w-3 h-3"
-                                    fill="currentColor"
-                                    viewBox="0 0 20 20"
-                                  >
-                                    <path
-                                      fillRule="evenodd"
-                                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                      clipRule="evenodd"
-                                    />
-                                  </svg>
-                                  {
-                                    selectedPromotions[ratePlan.ratePlanCode]
-                                      .length
-                                  }{" "}
-                                  Applied
-                                </span>
-                              )}
+                                  <span className="px-2.5 py-1 bg-green-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
+                                    <svg
+                                      className="w-3 h-3"
+                                      fill="currentColor"
+                                      viewBox="0 0 20 20"
+                                    >
+                                      <path
+                                        fillRule="evenodd"
+                                        d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                        clipRule="evenodd"
+                                      />
+                                    </svg>
+                                    {
+                                      selectedPromotions[ratePlan.ratePlanCode]
+                                        .length
+                                    }{" "}
+                                    Applied
+                                  </span>
+                                )}
                             </button>
                           )}
                           {expandedPromotions === ratePlan.ratePlanCode &&
@@ -742,21 +798,21 @@ const RoomCard: React.FC<RoomCardProps> = ({
                                   {selectedPromotions[
                                     ratePlan.ratePlanCode
                                   ] && (
-                                    <span className="px-2.5 py-1 bg-green-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
-                                      <svg
-                                        className="w-3 h-3"
-                                        fill="currentColor"
-                                        viewBox="0 0 20 20"
-                                      >
-                                        <path
-                                          fillRule="evenodd"
-                                          d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                                          clipRule="evenodd"
-                                        />
-                                      </svg>
-                                      Applied
-                                    </span>
-                                  )}
+                                      <span className="px-2.5 py-1 bg-green-500 text-white text-xs font-bold rounded-full flex items-center gap-1">
+                                        <svg
+                                          className="w-3 h-3"
+                                          fill="currentColor"
+                                          viewBox="0 0 20 20"
+                                        >
+                                          <path
+                                            fillRule="evenodd"
+                                            d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                                            clipRule="evenodd"
+                                          />
+                                        </svg>
+                                        Applied
+                                      </span>
+                                    )}
                                 </div>
 
                                 <div className="space-y-2.5">
@@ -764,7 +820,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                                     (promo: any) => {
                                       const currentPromotions =
                                         selectedPromotions[
-                                          ratePlan.ratePlanCode
+                                        ratePlan.ratePlanCode
                                         ] || [];
                                       const isSelected = currentPromotions.some(
                                         (p) => p.id === promo.id,
@@ -778,7 +834,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                                               const newState = { ...prev };
                                               const currentPromotions =
                                                 newState[
-                                                  ratePlan.ratePlanCode
+                                                ratePlan.ratePlanCode
                                                 ] || [];
 
                                               // Check if promotion is already selected
@@ -809,36 +865,34 @@ const RoomCard: React.FC<RoomCardProps> = ({
                                                 newState[
                                                   ratePlan.ratePlanCode
                                                 ] = [
-                                                  ...currentPromotions,
-                                                  {
-                                                    id: promo.id,
-                                                    name: promo.promotionName,
-                                                    type: promo.promotionType,
-                                                    discountType:
-                                                      promo.discountType,
-                                                    discountValue:
-                                                      promo.discountValue,
-                                                    ...promo,
-                                                  },
-                                                ];
+                                                    ...currentPromotions,
+                                                    {
+                                                      id: promo.id,
+                                                      name: promo.promotionName,
+                                                      type: promo.promotionType,
+                                                      discountType:
+                                                        promo.discountType,
+                                                      discountValue:
+                                                        promo.discountValue,
+                                                      ...promo,
+                                                    },
+                                                  ];
                                               }
                                               return newState;
                                             });
                                           }}
-                                          className={`relative p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 ${
-                                            isSelected
-                                              ? "bg-white border-orange-400 shadow-md"
-                                              : "bg-white border-gray-200 hover:border-orange-300 hover:shadow-sm"
-                                          }`}
+                                          className={`relative p-3 rounded-lg border-2 cursor-pointer transition-all duration-200 ${isSelected
+                                            ? "bg-white border-orange-400 shadow-md"
+                                            : "bg-white border-gray-200 hover:border-orange-300 hover:shadow-sm"
+                                            }`}
                                         >
                                           <div className="flex items-start gap-3">
                                             <div className="flex-shrink-0 mt-0.5">
                                               <div
-                                                className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${
-                                                  isSelected
-                                                    ? "bg-orange-500 border-orange-500"
-                                                    : "border-gray-300 bg-white"
-                                                }`}
+                                                className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${isSelected
+                                                  ? "bg-orange-500 border-orange-500"
+                                                  : "border-gray-300 bg-white"
+                                                  }`}
                                               >
                                                 {isSelected && (
                                                   <div className="w-2 h-2 rounded-full bg-white"></div>
@@ -853,7 +907,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                                                 </h5>
                                                 <span className="flex-shrink-0 px-2.5 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-bold rounded-full shadow-sm">
                                                   {promo.discountType ===
-                                                  "percentage"
+                                                    "percentage"
                                                     ? `${promo.discountValue}% OFF`
                                                     : `$${promo.discountValue} OFF`}
                                                 </span>
