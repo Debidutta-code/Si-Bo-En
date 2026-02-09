@@ -15,7 +15,8 @@ import {
   XCircle,
   CheckCircle,
   AlertCircle,
-  RefreshCw
+  RefreshCw,
+  DollarSign
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { fetchAnalyticsService } from './services';
@@ -76,7 +77,7 @@ const statsConfig: StatConfig[] = [
   { 
     key: 'totalRevenue', 
     label: 'Total Revenue', 
-    icon: IndianRupee, 
+    icon: DollarSign, 
     color: 'text-emerald-700',
     bgColor: 'bg-emerald-50',
     iconColor: 'text-emerald-600',
@@ -126,7 +127,7 @@ const formatValue = (value: number, format?: 'currency'): string => {
   if (format === 'currency') {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'INR',
+      currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(value);

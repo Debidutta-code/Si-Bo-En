@@ -27,6 +27,8 @@ const config={
     cloudinaryKey:process.env.CLOUDINARY_KEY,
     cloudinarySecrete:process.env.CLOUDINARY_SECRETE,
 
+    smtpHost: process.env.SMTP_HOST,
+    smtpPort: process.env.SMTP_PORT,
     senderEmail:process.env.EMAIL_USER,
     senderName:process.env.SENDER_NAME,
     senderEmailPassword:process.env.EMAIL_SERVICE_PASSWORD,

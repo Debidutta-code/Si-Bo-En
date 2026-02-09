@@ -22,6 +22,7 @@ export interface IBookingDetails {
   promoCode: string | null;
   currency: CurrencyCode;
   bookingSource: BookingSource;
+  refundAmount:any
   email: string;
   phone: string;
   guests: {
@@ -33,7 +34,12 @@ export interface IBookingDetails {
   paymentMethod: string;
   selectedAddons?: IBookingAddonCreate[]; // ✅ ADD THIS
   selectedPromotions?: IReservationPromotionCreate[];
-  agencyId?:string|null;
+  agencyId?: string | null;
+  // Additional fields for email service
+  bookingCode?: string;
+  reservationId?: string;
+  bookedAt?: string;
+  bookingStatus?: BookingStatus;
 }
 
 export interface IGuestDetail {
@@ -93,7 +99,7 @@ export interface ITax {
   applicableOn: string;
   isInclusive: boolean;
   baseAmount: number;
-  taxAmount: number;
+  amount: number;
   priority: number;
 }
 

@@ -16,11 +16,9 @@ const authSlice = createSlice({
     setUser: (state, action: PayloadAction<IAgentsWA>) => {
       state.user = action.payload;
     },
-    logout: (state) => {
-      state.user = null;
-    },
+  
   },
 });
 
-export const { setUser, logout } = authSlice.actions;
+export const { setUser,  } = authSlice.actions;
 export default authSlice.reducer;

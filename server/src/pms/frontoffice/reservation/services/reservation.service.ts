@@ -14,7 +14,8 @@ import {
     ICGuest,
     IReservationUpdatePayload,
     IReservationPromotionCreate,
-    IBookingAddonCreate
+    IBookingAddonCreate,
+    IBookingDetails
 } from "../types";
 import { prisma } from "../../../../config";
 import { IPropertyCodeAndIds } from "../../../../dashboard/types";
@@ -23,15 +24,18 @@ import { Decimal } from "@prisma/client/runtime/library";
 import { BookingStatus, CurrencyCode } from "@prisma/client";
 import { nowUTC, toUTC, toUTCDate } from "../../../../utils";
 import { BookingAddonRepository, ReservationPromotionRepository } from "../repository/reservation.repository";
-
+import {
+    ReservationEmailService
+} from "../../../../sms-email-service/service"
 export class ReservationService {
     reservationRepository: ReservationRepository;
     priceBrakeDownRepo: PriceBrakeDownRepo;
     ariManupulationRepo: AriManupulationRepo;
     guestRepository: GuestRepository;
     dashUtils: DashUtilsRepo;
-    bookingAddonRepository: BookingAddonRepository; // ✅ ADD THIS
-    reservationPromotionRepository: ReservationPromotionRepository; // ✅ ADD THIS
+    bookingAddonRepository: BookingAddonRepository;
+    reservationPromotionRepository: ReservationPromotionRepository;
+    emailService: ReservationEmailService;
 
     constructor() {
         this.reservationRepository = new ReservationRepository();
@@ -39,8 +43,9 @@ export class ReservationService {
         this.ariManupulationRepo = new AriManupulationRepo();
         this.guestRepository = new GuestRepository();
         this.dashUtils = new DashUtilsRepo();
-        this.bookingAddonRepository = new BookingAddonRepository(); // ✅ ADD THIS
-        this.reservationPromotionRepository = new ReservationPromotionRepository(); // ✅ ADD THIS
+        this.bookingAddonRepository = new BookingAddonRepository();
+        this.reservationPromotionRepository = new ReservationPromotionRepository(); 
+        this.emailService = new ReservationEmailService();
     }
 
     private async generateBookingCode(): Promise<string> {
@@ -82,24 +87,16 @@ export class ReservationService {
         return methodMap[method] || "pay_at_hotel";
     }
 
-    // Normalize/transform incoming payload to match expected format
     private normalizePayload(payload: any): ICreateReservationPayload["data"] {
         const { bookingDetails, guestDetails } = payload;
         const { finalPrice } = bookingDetails;
 
-        // Fix tax/taxes field mismatch
         if (finalPrice.tax && !finalPrice.taxes) {
             finalPrice.taxes = finalPrice.tax;
             delete finalPrice.tax;
         }
-
-        // Add missing fields...
-        // (keep existing normalization code)
-
-        // ✅ NEW: Extract promotions from finalPrice.promotions.applied
         let selectedPromotions = bookingDetails.selectedPromotions || [];
 
-        // If promotions are in finalPrice.promotions.applied, map them
         if (finalPrice.promotions?.applied && Array.isArray(finalPrice.promotions.applied)) {
             selectedPromotions = finalPrice.promotions.applied.map((promo: any) => {
                 // Check if it's MLOS type
@@ -113,7 +110,6 @@ export class ReservationService {
                         amount: promo.discountAmount // ✅ Use calculated amount
                     };
                 } else {
-                    // Regular promotion (early_bird, offer_for_tonight, device_specific)
                     return {
                         id: promo.id || promo.promotionId,
                         promotionType: promo.promotionType,
@@ -177,13 +173,11 @@ export class ReservationService {
                 agencyId,
             } = bookingDetails;
 
-            // 1️⃣ Resolve property
             const propertyId = await this.getPropertyIdByCode(propertyCode);
             if (!propertyId) {
                 return errorResponse("Property not found");
             }
 
-            // 2️⃣ Primary guest - YOUR EXISTING CODE
             const primaryGuestData = guestDetails[0];
             if (!primaryGuestData) {
                 return errorResponse("At least one guest is required");
@@ -194,7 +188,6 @@ export class ReservationService {
 
             if (existingGuest) {
                 primaryGuestId = existingGuest.id;
-                //console.log("Existing guest found:", primaryGuestId);
             } else {
                 const newGuestPayload: ICGuest = {
                     firstName: primaryGuestData.firstName,
@@ -212,13 +205,10 @@ export class ReservationService {
 
                 const newGuest = await this.guestRepository.createGuest(newGuestPayload);
                 primaryGuestId = newGuest.id;
-                //console.log("New guest created:", primaryGuestId);
             }
 
-            // 3️⃣ Generate booking code
             const bookingCode = await this.generateBookingCode();
 
-            // 4️⃣ Build reservation payload - YOUR EXISTING CODE
             const reservationPayload: ICReservation = {
                 bookingCode,
                 propertyId,
@@ -258,11 +248,8 @@ export class ReservationService {
                 agencyId:agencyId||null
             };
 
-            // 5️⃣ Create reservation
             const reservation = await this.reservationRepository.createReservation(reservationPayload);
-            //console.log("Reservation created:", reservation.id);
 
-            // 6️⃣ Create price breakdown - YOUR EXISTING CODE
             const priceBreakdownPayload: IReservationPriceBrakeDownR = {
                 reservationId: reservation.id,
                 additionalGuestCharges: finalPrice.additionalGuestCharges,
@@ -279,9 +266,6 @@ export class ReservationService {
             };
 
             await this.priceBrakeDownRepo.createpriceBrakeDowns([priceBreakdownPayload]);
-            //console.log("Price breakdown created");
-
-            // 7️⃣ Create Booking Addons (if any) - ✅ UPDATED CODE
             if (normalizedPayload.bookingDetails.selectedAddons && normalizedPayload.bookingDetails.selectedAddons.length > 0) {
                 const addonPayloads: IBookingAddonCreate[] = normalizedPayload.bookingDetails.selectedAddons.map((addon: any) => ({
                     reservationId: reservation.id,
@@ -296,18 +280,13 @@ export class ReservationService {
                 }));
 
                 await this.bookingAddonRepository.createBookingAddons(addonPayloads);
-                //console.log(`Created ${addonPayloads.length} booking addons`);
             }
 
-            // 8️⃣ Create Reservation Promotions (if any) - ✅ CORRECTED CODE
             if (normalizedPayload.bookingDetails.selectedPromotions && normalizedPayload.bookingDetails.selectedPromotions.length > 0) {
                 const promotionPayloads: IReservationPromotionCreate[] = [];
 
                 for (const promo of normalizedPayload.bookingDetails.selectedPromotions) {
                     if (promo.promotionType === 'mlos') {
-                        //console.log("MLOS promotion", normalizedPayload.bookingDetails.selectedPromotions);
-                        // ✅ MLOS: The 'id' field IS the RatePlanRule ID
-                        // No need to search - it's already provided in the payload
                         if (!promo.id) {
                             console.warn('MLOS promotion missing id:', promo);
                             return errorResponse('MLOS promotion missing id')
@@ -325,8 +304,6 @@ export class ReservationService {
                         });
 
                     } else {
-                        // ✅ Regular Promotion: early_bird, offer_for_tonight, device_specific
-                        // The 'id' field IS the Promotion ID
                         if (!promo.id) {
                             console.warn('Promotion missing id:', promo);
                             return errorResponse('Promotion missing id')
@@ -346,11 +323,9 @@ export class ReservationService {
 
                 if (promotionPayloads.length > 0) {
                     await this.reservationPromotionRepository.createReservationPromotions(promotionPayloads);
-                    //console.log(`Created ${promotionPayloads.length} reservation promotions`);
                 }
             }
 
-            // 9️⃣ Update ARI (decrease room availability) - YOUR EXISTING CODE
             const reservationDates = this.generateDateRange(toUTCDate(startDate), toUTCDate(endDate));
             const ariPayload: IAriManulupulation = {
                 propertyCode,
@@ -361,8 +336,26 @@ export class ReservationService {
                 }]
             };
 
-            await this.ariManupulationRepo.decreaseAvailableRooms(ariPayload);
-            //console.log("ARI updated - rooms decreased");
+            Promise.all([
+                this.ariManupulationRepo.decreaseAvailableRooms(ariPayload),
+                this.emailService.reservationConfirmation({
+                    ...bookingDetails,
+                    guestDetails: guestDetails.map((guest: any) => ({
+                        type: guest.type,
+                        firstName: guest.firstName,
+                        lastName: guest.lastName,
+                        dateOfBirth: guest.dateOfBirth || guest.dob || '',
+                        email: guest.type === 'adult' ? email : undefined,
+                        phone: guest.type === 'adult' ? phone : undefined
+                    })),
+                    bookingCode: reservation.bookingCode,
+                    reservationId: reservation.id,
+                    bookedAt: reservation.bookedAt.toISOString(),
+                    bookingStatus: reservation.bookingStatus,
+                })
+            ]).catch(error => {
+                console.error("Non-blocking operations failed:", error);
+            });
 
             return successResponse("Reservation created successfully", reservation);
         } catch (error) {
@@ -373,7 +366,6 @@ export class ReservationService {
             return errorResponse("Failed to create reservation");
         }
     }
-    // Helper method to get propertyId from propertyCode
     private async getPropertyIdByCode(propertyCode: string): Promise<string | null> {
         try {
             const property = await prisma.property.findUnique({
@@ -628,6 +620,72 @@ export class ReservationService {
                 }
             };
 
+            // Send reservation updated email (non-blocking)
+            const emailBookingDetails: IBookingDetails = {
+                startDate: updatePayload.checkInDate,
+                endDate: updatePayload.checkOutDate,
+                propertyCode: updatePayload.propertyCode,
+                hotelName: existingReservation.hotelName || '',
+                roomTypeCode: updatePayload.roomTypeCode,
+                ratePlanCode: updatePayload.ratePlanCode,
+                numberOfRooms: updatePayload.requestedRooms,
+                refundAmount: updatedReservation.refundAmount,
+                finalPrice: {
+                    totalAmount: updatePayload.finalPrice.totalAmount,
+                    numberOfNights: updatePayload.finalPrice.numberOfNights,
+                    baseRatePerNight: updatePayload.finalPrice.baseRatePerNight,
+                    additionalGuestCharges: updatePayload.finalPrice.additionalGuestCharges,
+                    breakdown: {
+                        ...updatePayload.finalPrice.breakdown,
+                        totalTax: updatePayload.finalPrice.totalTax
+                    },
+                    dailyBreakdown: updatePayload.finalPrice.dailyBreakdown.map(day => ({
+                        ...day,
+                        childrenChargesBreakdown: []
+                    })),
+                    availableRooms: updatePayload.finalPrice.availableRooms,
+                    requestedRooms: updatePayload.requestedRooms,
+                    totalTax: updatePayload.finalPrice.totalTax,
+                    taxes: [], // Simplified tax structure for email
+                    subtotal: updatePayload.finalPrice.totalAmount - updatePayload.finalPrice.totalTax,
+                    taxBreakdown: {
+                        totalBaseAmount: updatePayload.finalPrice.breakdown.totalBaseAmount,
+                        totalAdditionalCharges: updatePayload.finalPrice.breakdown.totalAdditionalCharges,
+                        totalAmount: updatePayload.finalPrice.breakdown.totalAmount,
+                        numberOfNights: updatePayload.finalPrice.breakdown.numberOfNights,
+                        averagePerNight: updatePayload.finalPrice.breakdown.averagePerNight,
+                        totalTax: updatePayload.finalPrice.totalTax
+                    }
+                },
+                promoCode: null,
+                currency: updatePayload.currencyCode,
+                bookingSource: existingReservation.bookingSource,
+                email: updatePayload.bookingUserEmail,
+                phone: updatePayload.bookingUserPhone,
+                guests: {
+                    adults: updatePayload.rooms.reduce((sum, room) => sum + room.adults, 0),
+                    children: updatePayload.rooms.reduce((sum, room) => sum + room.children, 0),
+                    rooms: updatePayload.rooms.length
+                },
+                guestDetails: updatePayload.guests.map(guest => ({
+                    type: guest.type,
+                    firstName: guest.firstName,
+                    lastName: guest.lastName,
+                    dateOfBirth: guest.dob,
+                    email: guest.type === 'adult' ? updatePayload.bookingUserEmail : undefined,
+                    phone: guest.type === 'adult' ? updatePayload.bookingUserPhone : undefined
+                })),
+                paymentMethod: existingReservation.paymentMethod,
+                bookingCode: existingReservation.bookingCode,
+                reservationId: existingReservation.id,
+                bookedAt: existingReservation.bookedAt.toISOString(),
+                bookingStatus: 'modified' as BookingStatus,
+            };
+
+            this.emailService.reservationUpdatedEmail(emailBookingDetails).catch(error => {
+                console.error("Failed to send reservation update email:", error);
+            });
+
             return successResponse("Reservation updated successfully", modificationSummary);
 
         } catch (error) {
@@ -638,17 +696,6 @@ export class ReservationService {
             return errorResponse("Failed to update reservation");
         }
     }
-    // public async getReservationsForADate(propertyId: string, date: Date): Promise<IApiResponse> {
-    //     try {
-    //         const reservations = await this.reservationRepository.getReservationForADate(propertyId, date);
-    //         return successResponse("Reservations fetched successfully", reservations);
-    //     } catch (error) {
-    //         if (error instanceof Error) {
-    //             return errorResponse("Failed to fetch reservations", error.message);
-    //         }
-    //         return errorResponse("Failed to fetch reservations");
-    //     }
-    // }
     private async getAccessiblePropertyIds(
         creationId: string,
         userLevel: number,
@@ -1028,15 +1075,80 @@ export class ReservationService {
             // Cancel reservation
             const cancelledReservation = await this.reservationRepository.deleteReservation(reservationId);
 
-            // Increase room availability back
+            // Prepare email booking details for cancellation email
+            const emailBookingDetails: IBookingDetails = {
+                startDate: reservation.checkInDate.toISOString(),
+                endDate: reservation.checkOutDate.toISOString(),
+                propertyCode: reservation.propertyCode || '',
+                hotelName: reservation.hotelName || '',
+                refundAmount: reservation.refundAmount || 0,
+                roomTypeCode: reservation.roomTypeCode || '',
+                ratePlanCode: reservation.ratePlanCode || '',
+                numberOfRooms: reservation.finalPrice?.requestedRooms || 1,
+                finalPrice: {
+                    totalAmount: reservation.finalPrice?.totalAmount || reservation.amount,
+                    numberOfNights: reservation.finalPrice?.numberOfNights || 1,
+                    baseRatePerNight: reservation.finalPrice?.baseRatePerNight || 0,
+                    additionalGuestCharges: reservation.finalPrice?.additionalGuestCharges || 0,
+                    breakdown: reservation.finalPrice?.breakdown || {},
+                    dailyBreakdown: reservation.finalPrice?.dailyBreakdown || [],
+                    availableRooms: reservation.finalPrice?.availableRooms || 0,
+                    requestedRooms: reservation.finalPrice?.requestedRooms || 1,
+                    totalTax: reservation.finalPrice?.totalTax || 0,
+                    taxes: [],
+                    subtotal: (reservation.finalPrice?.totalAmount || reservation.amount) - (reservation.finalPrice?.totalTax || 0),
+                    taxBreakdown: {
+                        totalBaseAmount: reservation.finalPrice?.breakdown?.totalBaseAmount || 0,
+                        totalAdditionalCharges: reservation.finalPrice?.breakdown?.totalAdditionalCharges || 0,
+                        totalAmount: reservation.finalPrice?.breakdown?.totalAmount || 0,
+                        numberOfNights: reservation.finalPrice?.breakdown?.numberOfNights || 1,
+                        averagePerNight: reservation.finalPrice?.breakdown?.averagePerNight || 0,
+                        totalTax: reservation.finalPrice?.totalTax || 0
+                    }
+                },
+                promoCode: null,
+                currency: reservation.currencyCode,
+                bookingSource: reservation.bookingSource,
+                email: reservation.bookingUserEmail,
+                phone: reservation.bookingUserPhone || '',
+                guests: {
+                    adults: Array.isArray(reservation.guests) ? reservation.guests.filter((g: any) => g.type === 'adult').length : 1,
+                    children: Array.isArray(reservation.guests) ? reservation.guests.filter((g: any) => g.type === 'child').length : 0,
+                    rooms: 1
+                },
+                guestDetails: Array.isArray(reservation.guests) ? reservation.guests.map((guest: any) => ({
+                    type: guest.type,
+                    firstName: guest.firstName,
+                    lastName: guest.lastName,
+                    dateOfBirth: guest.dateOfBirth || guest.dob,
+                    email: guest.type === 'adult' ? reservation.bookingUserEmail : undefined,
+                    phone: guest.type === 'adult' ? (reservation.bookingUserPhone || undefined) : undefined
+                })) : [],
+                paymentMethod: reservation.paymentMethod,
+                bookingCode: reservation.bookingCode,
+                reservationId: reservation.id,
+                bookedAt: reservation.bookedAt.toISOString(),
+                bookingStatus: 'cancelled' as BookingStatus,
+            };
+
             if (reservation.propertyCode && reservation.roomTypeCode) {
-                await this.ariManupulationRepo.increaseAvailableRooms({
-                    propertyCode: reservation.propertyCode,
-                    dates: reservationDates,
-                    roomInfos: [{
-                        roomTypeCode: reservation.roomTypeCode,
-                        numberOfRooms: reservation.finalPrice?.requestedRooms
-                    }]
+                Promise.all([
+                    this.ariManupulationRepo.increaseAvailableRooms({
+                        propertyCode: reservation.propertyCode,
+                        dates: reservationDates,
+                        roomInfos: [{
+                            roomTypeCode: reservation.roomTypeCode,
+                            numberOfRooms: reservation.finalPrice?.requestedRooms
+                        }]
+                    }),
+                    this.emailService.reservationCancelEmail(emailBookingDetails)
+                ]).catch(error => {
+                    console.error("Non-blocking operations failed:", error);
+                });
+            } else {
+                // If no room info, just send the email
+                this.emailService.reservationCancelEmail(emailBookingDetails).catch(error => {
+                    console.error("Failed to send cancellation email:", error);
                 });
             }
 
