@@ -6,7 +6,8 @@ import {
   PropertyTypeService,
   AminityServices,
   RoomAmenityServices,
-  LoyaltyGuestFields
+  LoyaltyGuestFields,
+  PaymentIntegrationService
 } from '../services';
 
 export class RoomAminityControllerManagement {
@@ -301,6 +302,88 @@ export class LoyaltyGuestFieldControllers {
           .json(errorResponse('Fields are required to delete Loyalty Guest Fields'));
       }
       const serRes = await LoyaltyGuestFields.deleteLoyaltyGuestFields(fields);
+      if (serRes.success) {
+        return res.status(200).json(serRes);
+      } else {
+        return res.status(400).json(serRes);
+      }
+    } catch (error: any) {
+      return res
+        .status(500)
+        .json(errorResponse('Internal Server Error', error?.message));
+    }
+  }
+}
+
+export class PaymentIntegrationController {
+  public static async createPaymentIntegration(req: CustomRequest, res: Response) {
+    try {
+      const { name } = req.body;
+      if (!name || typeof name !== 'string') {
+        return res.status(400).json(errorResponse('Payment integration name is required and must be a string'));
+      }
+      
+      const serRes = await PaymentIntegrationService.createPaymentIntegration(name);
+      if (serRes.success) {
+        return res.status(200).json(serRes);
+      } else {
+        return res.status(400).json(serRes);
+      }
+    } catch (error: any) {
+      return res
+        .status(500)
+        .json(errorResponse('Internal Server Error', error?.message));
+    }
+  }
+
+  public static async getPaymentIntegrations(req: CustomRequest, res: Response) {
+    try {
+      const serRes = await PaymentIntegrationService.getPaymentIntegrations();
+      if (serRes.success) {
+        return res.status(200).json(serRes);
+      } else {
+        return res.status(400).json(serRes);
+      }
+    } catch (error: any) {
+      return res
+        .status(500)
+        .json(errorResponse('Internal Server Error', error?.message));
+    }
+  }
+
+  public static async updatePaymentIntegration(req: CustomRequest, res: Response) {
+    try {
+      const { id } = req.params;
+      const { name, isActive } = req.body;
+      
+      if (!id) {
+        return res.status(400).json(errorResponse('Payment integration ID is required'));
+      }
+
+      const serRes = await PaymentIntegrationService.updatePaymentIntegration(id, name, isActive);
+      if (serRes.success) {
+        return res.status(200).json(serRes);
+      } else {
+        return res.status(400).json(serRes);
+      }
+    } catch (error: any) {
+      return res
+        .status(500)
+        .json(errorResponse('Internal Server Error', error?.message));
+    }
+  }
+
+  public static async deletePaymentIntegration(req: CustomRequest, res: Response) {
+    try {
+      const { id } = req.params;
+      
+      if (!id) {
+        return res
+          .status(400)
+          .json(errorResponse('Payment integration ID is required to delete'));
+      }
+      
+      const serRes = await PaymentIntegrationService.deletePaymentIntegration(id);
       if (serRes.success) {
         return res.status(200).json(serRes);
       } else {

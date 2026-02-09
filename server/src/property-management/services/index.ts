@@ -13,7 +13,8 @@ import {
     CategoryService,
     PropertyTypeService,
     RoomAmenityServices,
-    LoyaltyGuestFields
+    LoyaltyGuestFields,
+    PaymentIntegrationService
 } from "./types.service";
 
 
@@ -36,5 +37,6 @@ export {
     PropertyTypeService,
     RoomAmenityServices,
     BookingEngineService,
-    LoyaltyGuestFields
+    LoyaltyGuestFields,
+    PaymentIntegrationService
 }

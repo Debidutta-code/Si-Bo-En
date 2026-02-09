@@ -10,15 +10,16 @@ import Rooms from "@/components/property/show/Rooms";
 import BankDetails from "@/components/property/show/BankDetails";
 import Loader from "@/components/Loader/Loader";
 import { useParams, useSearchParams } from "react-router-dom";
-import { 
-  getPropertyDetails, 
-  addPropertyVideo, 
-  deletePropertyVideo, 
+import {
+  getPropertyDetails,
+  addPropertyVideo,
+  deletePropertyVideo,
 } from "@/components/property/api/show/propertyDetails";
 import BackButton from "@/components/shared/BackButton";
 import { Button } from "@/components/ui/button";
 import VideoUploadModal from "@/components/property/VedioUpload.modal";
 import PropertyMediaGallery from "@/components/property/PropertyMediaGallery";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 
 export default function PropertyDetailsPage() {
@@ -69,6 +70,7 @@ export default function PropertyDetailsPage() {
     zipCode: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(() => {
     return searchParams.get('tab') || "property";
   });
@@ -127,7 +129,7 @@ export default function PropertyDetailsPage() {
 
     try {
       const response = await addPropertyVideo(propertyId, videoUrl, thumbnailUrl);
-      
+
       if (response.success) {
         console.log('Video uploaded successfully:', { videoUrl, thumbnailUrl });
         toast.success('Video uploaded and saved successfully!');
@@ -147,14 +149,13 @@ export default function PropertyDetailsPage() {
       return;
     }
 
-    if (!confirm("Are you sure you want to delete this video?")) {
-      return;
-    }
+    // Close the dialog first
+    setIsDeleteDialogOpen(false);
 
     try {
       setIsDeletingVideo(true);
       const response = await deletePropertyVideo(propertyId);
-      
+
       if (response.success) {
         toast.success('Video deleted successfully!');
         await fetchPropertyDetails(propertyId);
@@ -192,7 +193,7 @@ export default function PropertyDetailsPage() {
     <>
       <div className="space-y-6">
         <BackButton />
-        
+
         {/* Property Header */}
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between px-6">
           <div className="w-full">
@@ -206,7 +207,7 @@ export default function PropertyDetailsPage() {
                   {getFullAddress()}
                 </p>
               </div>
-              
+
               {/* Action Buttons */}
               <div className="flex gap-3 ml-4">
                 <Button
@@ -221,7 +222,7 @@ export default function PropertyDetailsPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    onClick={handleDeleteVideo}
+                    onClick={() => setIsDeleteDialogOpen(true)} // Changed this line
                     disabled={isDeletingVideo}
                     className="text-red-600 hover:text-red-700 hover:bg-red-50 shadow-sm"
                   >
@@ -235,15 +236,15 @@ export default function PropertyDetailsPage() {
         </div>
 
         {/* Media Gallery */}
-        <PropertyMediaGallery 
+        <PropertyMediaGallery
           propertyVideo={propertyDetails.propertyVideos?.url ? propertyDetails.propertyVideos : undefined}
           propertyImages={propertyImages}
           type="property"
         />
 
         {/* Tabs Section */}
-        <Tabs 
-          value={activeTab} 
+        <Tabs
+          value={activeTab}
           onValueChange={(value) => {
             setActiveTab(value);
             setSearchParams(prev => {
@@ -272,12 +273,34 @@ export default function PropertyDetailsPage() {
       </div>
 
       {/* Video Upload Modal */}
+      {/* Video Upload Modal */}
       <VideoUploadModal
         isOpen={isVideoModalOpen}
         onClose={() => setIsVideoModalOpen(false)}
         onUploadSuccess={handleVideoUploadSuccess}
         title="Upload Property Video"
       />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this video?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the property video from the system.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteVideo}
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+            >
+              Delete Video
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

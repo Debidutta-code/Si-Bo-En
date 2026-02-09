@@ -423,3 +423,273 @@ export class LoyaltyGuestFieldsDao{
     }
   }
 }
+
+
+export class PaymentIntegrationDao {
+  // ============ Master Payment Integration Methods ============
+  
+  public static async getPaymentIntegrationByName(name: string) {
+    try {
+      return await prisma.masterPaymentIntegration.findFirst({
+        where: {
+          name: name,
+          isActive: true,
+        },
+      });
+    } catch (error: any) {
+      throw new Error(error?.message);
+    }
+  }
+
+  public static async createPaymentIntegration(name: string) {
+    try {
+      return await prisma.masterPaymentIntegration.create({
+        data: {
+          name,
+          isActive: true,
+        },
+      });
+    } catch (error: any) {
+      throw new Error(error?.message);
+    }
+  }
+
+  public static async getPaymentIntegrations() {
+    try {
+      return await prisma.masterPaymentIntegration.findMany({
+        where: {
+          isActive: true,
+        },
+        orderBy: {
+          name: 'asc',
+        },
+      });
+    } catch (error: any) {
+      throw new Error(error?.message);
+    }
+  }
+
+  public static async updatePaymentIntegration(
+    id: string, 
+    name?: string, 
+    isActive?: boolean
+  ) {
+    try {
+      const updateData: any = {};
+      if (name !== undefined) updateData.name = name;
+      if (isActive !== undefined) updateData.isActive = isActive;
+
+      return await prisma.masterPaymentIntegration.update({
+        where: { id },
+        data: updateData,
+      });
+    } catch (error: any) {
+      throw new Error(error?.message);
+    }
+  }
+
+  public static async deletePaymentIntegration(id: string) {
+    try {
+      // Soft delete by setting isActive to false
+      return await prisma.masterPaymentIntegration.update({
+        where: { id },
+        data: { isActive: false },
+      });
+    } catch (error: any) {
+      throw new Error(error?.message);
+    }
+  }
+
+  // ============ Property Payment Integration Methods ============
+
+  /**
+   * Validate that master payment integrations exist and are active
+   */
+  public static async validateMasterIntegrations(integrationIds: string[]): Promise<boolean> {
+    try {
+      const count = await prisma.masterPaymentIntegration.count({
+        where: {
+          id: { in: integrationIds },
+          isActive: true
+        }
+      });
+      return count === integrationIds.length;
+    } catch (error: any) {
+      throw new Error(error?.message);
+    }
+  }
+
+  /**
+   * Create property payment integrations
+   */
+  public static async createPropertyIntegrations(
+    propertyId: string,
+    integrationIds: string[]
+  ) {
+    try {
+      const data = integrationIds.map(integrationId => ({
+        propertyId,
+        paymentIntegrationId: integrationId,
+        isActive: true
+      }));
+
+      return await prisma.propertyPaymentIntegration.createMany({
+        data,
+        skipDuplicates: true
+      });
+    } catch (error: any) {
+      throw new Error(error?.message);
+    }
+  }
+
+  /**
+   * Get active property payment integrations by property ID
+   */
+  public static async getByPropertyId(propertyId: string) {
+    try {
+      return await prisma.propertyPaymentIntegration.findMany({
+        where: {
+          propertyId,
+          isActive: true
+        },
+        include: {
+          paymentIntegration: true
+        }
+      });
+    } catch (error: any) {
+      throw new Error(error?.message);
+    }
+  }
+
+  /**
+   * Get all property payment integrations (including inactive)
+   */
+  public static async getAllByPropertyId(propertyId: string) {
+    try {
+      return await prisma.propertyPaymentIntegration.findMany({
+        where: {
+          propertyId
+        },
+        include: {
+          paymentIntegration: true
+        }
+      });
+    } catch (error: any) {
+      throw new Error(error?.message);
+    }
+  }
+
+  /**
+   * Delete property payment integrations (hard delete)
+   */
+  public static async deletePropertyIntegrations(propertyId: string) {
+    try {
+      return await prisma.propertyPaymentIntegration.deleteMany({
+        where: { propertyId }
+      });
+    } catch (error: any) {
+      throw new Error(error?.message);
+    }
+  }
+
+  /**
+   * Deactivate all property payment integrations
+   */
+  public static async deactivatePropertyIntegrations(propertyId: string) {
+    try {
+      return await prisma.propertyPaymentIntegration.updateMany({
+        where: { propertyId },
+        data: { isActive: false }
+      });
+    } catch (error: any) {
+      throw new Error(error?.message);
+    }
+  }
+
+  /**
+   * Update property payment integrations (replaces existing with new ones)
+   */
+  public static async updatePropertyIntegrations(
+    propertyId: string,
+    integrationIds: string[]
+  ) {
+    try {
+      // Use a transaction to ensure atomicity
+      return await prisma.$transaction(async (tx) => {
+        // First, delete all existing integrations
+        await tx.propertyPaymentIntegration.deleteMany({
+          where: { propertyId }
+        });
+
+        // Then create new ones
+        if (integrationIds.length > 0) {
+          const data = integrationIds.map(integrationId => ({
+            propertyId,
+            paymentIntegrationId: integrationId,
+            isActive: true
+          }));
+
+          await tx.propertyPaymentIntegration.createMany({
+            data
+          });
+        }
+
+        // Return the updated integrations
+        return await tx.propertyPaymentIntegration.findMany({
+          where: { propertyId },
+          include: {
+            paymentIntegration: true
+          }
+        });
+      });
+    } catch (error: any) {
+      throw new Error(error?.message);
+    }
+  }
+
+  /**
+   * Check if a specific payment integration is active for a property
+   */
+  public static async isIntegrationActiveForProperty(
+    propertyId: string,
+    integrationId: string
+  ): Promise<boolean> {
+    try {
+      const integration = await prisma.propertyPaymentIntegration.findUnique({
+        where: {
+          propertyId_paymentIntegrationId: {
+            propertyId,
+            paymentIntegrationId: integrationId
+          }
+        }
+      });
+
+      return integration?.isActive ?? false;
+    } catch (error: any) {
+      throw new Error(error?.message);
+    }
+  }
+
+  /**
+   * Toggle property payment integration status
+   */
+  public static async togglePropertyIntegration(
+    propertyId: string,
+    integrationId: string,
+    isActive: boolean
+  ) {
+    try {
+      return await prisma.propertyPaymentIntegration.update({
+        where: {
+          propertyId_paymentIntegrationId: {
+            propertyId,
+            paymentIntegrationId: integrationId
+          }
+        },
+        data: { isActive }
+      });
+    } catch (error: any) {
+      throw new Error(error?.message);
+    }
+  }
+}

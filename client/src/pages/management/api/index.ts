@@ -14,7 +14,10 @@ import {
     getPropertyTypes,
     getLoyaltyGuestFields,
     createLoyaltyGuestFields,
-    deleteLoyaltyGuestField
+    deleteLoyaltyGuestField,
+    createPaymentIntegration,
+    deletePaymentIntegration,
+    getPaymentIntegrations,
 } from "./management.api";
 
 export{
@@ -32,5 +35,8 @@ export{
     getPropertyTypes,
     getLoyaltyGuestFields,
     createLoyaltyGuestFields,
-    deleteLoyaltyGuestField
+    deleteLoyaltyGuestField,
+    createPaymentIntegration,
+    deletePaymentIntegration,
+    getPaymentIntegrations
 }

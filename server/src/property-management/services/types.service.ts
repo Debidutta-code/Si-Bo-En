@@ -4,8 +4,10 @@ import {
   PropertyTypesDao,
   RoomAminityDao,
   PropertyAminityDao,
-  LoyaltyGuestFieldsDao
+  LoyaltyGuestFieldsDao,
+  PaymentIntegrationDao
 } from '../repository';
+import { normalizePaymentIntegrationName } from '../utils/nameNormalizer';
 export class RoomAmenityServices {
   public static async createRoomAmenity(amenities: string[]) {
     try {
@@ -152,5 +154,59 @@ export class LoyaltyGuestFields {
       return errorResponse('Failed to delete Loyalty Guest Fields', error?.message);
     }
   
+  }
+}
+
+export class PaymentIntegrationService {
+  public static async createPaymentIntegration(name: string) {
+    try {
+      const normalizedName = normalizePaymentIntegrationName(name);
+      
+      const isExists = await PaymentIntegrationDao.getPaymentIntegrationByName(normalizedName);
+      if (isExists) {
+        return errorResponse('Payment integration with this name already exists');
+      }
+      
+      const daoRes = await PaymentIntegrationDao.createPaymentIntegration(normalizedName);
+      return successResponse('Payment integration created successfully', daoRes);
+    } catch (error: any) {
+      return errorResponse('Failed to create payment integration', error?.message);
+    }
+  }
+
+  public static async getPaymentIntegrations() {
+    try {
+      const daoRes = await PaymentIntegrationDao.getPaymentIntegrations();
+      return successResponse('Payment integrations fetched successfully', daoRes);
+    } catch (error: any) {
+      return errorResponse('Failed to fetch payment integrations', error?.message);
+    }
+  }
+
+  public static async updatePaymentIntegration(id: string, name?: string, isActive?: boolean) {
+    try {
+      const normalizedName = name ? normalizePaymentIntegrationName(name) : undefined;
+      
+      if (normalizedName) {
+        const isExists = await PaymentIntegrationDao.getPaymentIntegrationByName(normalizedName);
+        if (isExists && isExists.id !== id) {
+          return errorResponse('Payment integration with this name already exists');
+        }
+      }
+      
+      const daoRes = await PaymentIntegrationDao.updatePaymentIntegration(id, normalizedName, isActive);
+      return successResponse('Payment integration updated successfully', daoRes);
+    } catch (error: any) {
+      return errorResponse('Failed to update payment integration', error?.message);
+    }
+  }
+
+  public static async deletePaymentIntegration(id: string) {
+    try {
+      const daoRes = await PaymentIntegrationDao.deletePaymentIntegration(id);
+      return successResponse('Payment integration deleted successfully', daoRes);
+    } catch (error: any) {
+      return errorResponse('Failed to delete payment integration', error?.message);
+    }
   }
 }

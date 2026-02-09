@@ -1,6 +1,8 @@
+// controller/bank.controller.ts
 import { Request, Response } from 'express';
 import { BankService } from '../services';
 import { errorResponse } from '../../utils/return';
+
 export class BankController {
   public static async getBankDetailsByPropertyId(req: Request, res: Response) {
     try {
@@ -20,13 +22,19 @@ export class BankController {
         .json(errorResponse('Internal Server Error', error?.message));
     }
   }
+
   public static async addBankDetails(req: Request, res: Response) {
     try {
       const propertyId: any = req.params.id;
       const {
         payAtHotel,
-        paymentGateway
+        paymentGateway,
+        selectedPaymentIntegrations = []
       } = req.body.activatedPaymentMethod;
+
+      // Get user role from request (assuming it's attached by auth middleware)
+      const userRole = (req as any).user?.role;
+
       if (!propertyId) {
         return res
           .status(400)
@@ -37,15 +45,19 @@ export class BankController {
         return res
           .status(400)
           .json(
-            errorResponse('At lest one payment method activation is required')
+            errorResponse('At least one payment method activation is required')
           );
       }
+
       const response = await BankService.addBankDetails(
         propertyId,
         payAtHotel,
-        paymentGateway
+        paymentGateway,
+        selectedPaymentIntegrations,
+        userRole
       );
-      const status = response ? 200 : 400;
+
+      const status = response.success ? 200 : 400;
       return res.status(status).json(response);
     } catch (error: any) {
       return res
@@ -66,22 +78,33 @@ export class BankController {
           .status(400)
           .json(errorResponse('In sufficient Property details'));
       }
-      const { payAtHotel, paymentGateway } =
-        req.body.activatedPaymentMethod;
+
+      const { 
+        payAtHotel, 
+        paymentGateway,
+        selectedPaymentIntegrations = []
+      } = req.body.activatedPaymentMethod;
+
+      // Get user role from request
+      const userRole = (req as any).user?.role;
+
       if (!payAtHotel && !paymentGateway) {
         return res
           .status(400)
           .json(
-            errorResponse('At lest one payment method activation is required')
+            errorResponse('At least one payment method activation is required')
           );
       }
+
       const response = await BankService.updatePaymentMethodsByPropertyId(
         propertyId,
         payAtHotel,
-        paymentGateway
+        paymentGateway,
+        selectedPaymentIntegrations,
+        userRole
       );
 
-      const status = response ? 200 : 400;
+      const status = response.success ? 200 : 400;
       return res.status(status).json(response);
     } catch (error: any) {
       return res
