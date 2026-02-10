@@ -268,7 +268,7 @@ export class ActivityLogger {
         : undefined;
       let ip=req.ip || req.socket.remoteAddress || (request.headers['x-forwarded-for'] as string)
       console.log('User IP:', ip);
-      if(ip && typeof ip === 'string' && ip==="::ffff:127.0.0.1") {
+      if(ip && typeof ip === 'string' && (ip==="::ffff:127.0.0.1"||ip==="::1") ) {
         ip="127.0.0.1"
       }
       const activityData: ICreateActivityInput = {
