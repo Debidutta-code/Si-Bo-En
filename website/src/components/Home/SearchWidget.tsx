@@ -740,6 +740,20 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 </div>
 
                 {/* BOOK BUTTON */}
+                <button
+                  onClick={handleSearch}
+                  disabled={loading}
+                  className="px-10 py-4 rounded-full text-[11px] font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm hover:opacity-90"
+                  style={{
+                    backgroundColor: secondaryColor,
+                    color: calculatedButtonTextColor,
+                  }}
+                >
+                  {loading ? "LOADING..." : "BOOK"}
+                </button>
+
+
+                {/* RIGHT: MY BOOKING */}
                 <div className="min-w-[140px] flex justify-end gap-4">
                   {isRoomsPage && (
                     <button
