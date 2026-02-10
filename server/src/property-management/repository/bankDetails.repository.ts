@@ -52,7 +52,7 @@ export class BankDetailsDao {
           paymentGateway: paymentGateway,
         },
       });
-console.log("property id ",propertyId)
+//console.log("property id ",propertyId)
       await prisma.property.update({
         where: { id: propertyId },
         data: { isDraft: true },

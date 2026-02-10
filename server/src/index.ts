@@ -18,8 +18,8 @@ initializeExpressRoutes({ app }).then(async () => {
 
     // Start server
     httpServer.listen(config.port, () => {
-      console.log(`🏡 Server is running on port ${config.port}`);
-      console.log(`🔌 Socket.IO is ready for connections`);
+      // console.log(`🏡 Server is running on port ${config.port}`);
+      // console.log(`🔌 Socket.IO is ready for connections`);
     });
   } catch (err) {
     console.log(`Error: ${err}`);

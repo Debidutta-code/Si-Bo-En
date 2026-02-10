@@ -267,7 +267,7 @@ export class ActivityLogger {
           }))
         : undefined;
       let ip=req.ip || req.socket.remoteAddress || (request.headers['x-forwarded-for'] as string)
-      console.log('User IP:', ip);
+      // console.log('User IP:', ip);
       if(ip && typeof ip === 'string' && (ip==="::ffff:127.0.0.1"||ip==="::1") ) {
         ip="127.0.0.1"
       }
@@ -366,7 +366,7 @@ export class ActivityLogger {
   }
   
   private static getBrowser(userAgent?: string): string | undefined {
-    console.log('User-Agent:', userAgent);  
+    // console.log('User-Agent:', userAgent);  
     if (!userAgent) return undefined;
     
     if (userAgent.includes('Chrome')) return 'Chrome';

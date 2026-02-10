@@ -46,7 +46,7 @@ app.set('trust proxy', true);
 
 // ✅ Mock Fikafi Payment Endpoint for Testing
 app.post('/createPayment', (req, res) => {
-    console.log('📥 Mock Fikafi received payment request:', JSON.stringify(req.body, null, 2));
+    // console.log('📥 Mock Fikafi received payment request:', JSON.stringify(req.body, null, 2));
     
     const bookingRefNum = req.body.bookingRefNum || 'MOCK-' + Date.now();
     
@@ -68,7 +68,7 @@ app.post('/createPayment', (req, res) => {
 app.get('/api/v1/fikafi/mock-success', (req, res) => {
     const { bookingRefNum } = req.query;
     
-    console.log('📥 Mock Fikafi redirect received:', { bookingRefNum });
+    // console.log('📥 Mock Fikafi redirect received:', { bookingRefNum });
     
     // Redirect to the frontend success page
     res.redirect(`http://localhost:3000/PaymentSuccess?bookingCode=${bookingRefNum}`);

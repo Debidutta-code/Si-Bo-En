@@ -32,7 +32,7 @@ class SocketManager {
 
     this.setupEventHandlers();
 
-    console.log('✅ Socket.IO initialized (default namespace)');
+    //console.log('✅ Socket.IO initialized (default namespace)');
   }
 
   /**
@@ -42,7 +42,7 @@ class SocketManager {
     if (!this.io) return;
 
     this.io.on('connection', (socket: Socket) => {
-      console.log(`🔌 Client connected: ${socket.id}`);
+      //console.log(`🔌 Client connected: ${socket.id}`);
 
       /**
        * Join payment room
@@ -61,7 +61,7 @@ class SocketManager {
         }
         this.activeConnections.get(orderReference)!.add(socket.id);
 
-        console.log(`📌 Socket ${socket.id} joined room: ${room}`);
+        //console.log(`📌 Socket ${socket.id} joined room: ${room}`);
 
         socket.emit('room-joined', {
           orderReference,
@@ -77,14 +77,14 @@ class SocketManager {
         socket.leave(room);
         this.activeConnections.get(orderReference)?.delete(socket.id);
 
-        console.log(`📌 Socket ${socket.id} left room: ${room}`);
+        //console.log(`📌 Socket ${socket.id} left room: ${room}`);
       });
 
       /**
        * Handle disconnect
        */
       socket.on('disconnect', (reason) => {
-        console.log(`🔌 Client disconnected: ${socket.id} (${reason})`);
+        //console.log(`🔌 Client disconnected: ${socket.id} (${reason})`);
 
         this.activeConnections.forEach((socketIds, orderRef) => {
           socketIds.delete(socket.id);
@@ -115,10 +115,10 @@ class SocketManager {
     const room = `payment:${orderReference}`;
     const activeClients = this.activeConnections.get(orderReference)?.size || 0;
 
-    console.log(`📡 Emitting payment update`);
-    console.log(`➡️ Room: ${room}`);
-    console.log(`👥 Active clients: ${activeClients}`);
-    console.log(`📦 Payload:`, update);
+    //console.log(`📡 Emitting payment update`);
+    //console.log(`➡️ Room: ${room}`);
+    //console.log(`👥 Active clients: ${activeClients}`);
+    //console.log(`📦 Payload:`, update);
 
     this.io.to(room).emit('payment-status-update', update);
   }

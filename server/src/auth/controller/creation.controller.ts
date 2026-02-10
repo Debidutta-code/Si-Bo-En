@@ -68,7 +68,7 @@ export default class CreationController {
         try {
             const requestUserLevel = req.user?.level;
             const creationId = req.user?.creationId;
-            console.log(creationId)
+           // console.log(creationId)
             if (!requestUserLevel || !creationId) {
                 return res.status(400).json(errorResponse('Insufficient user data'));
             }

@@ -8,22 +8,22 @@ import {
 } from "../templatesss";
 export class ReservationEmailService {
     public async reservationConfirmation(bookingDetails: IBookingDetails):Promise<void> {
-        console.log(bookingDetails)
+        //console.log(bookingDetails)
         try {
             const propertyDetails = await getPropertyDetails(bookingDetails.propertyCode, bookingDetails.roomTypeCode);
 
             if(!propertyDetails) {
-                console.log("Property Not found for sending an email")
+                //console.log("Property Not found for sending an email")
                 return
             }
             if(!propertyDetails.propertyAddress) {
-                console.log("Property Address Not found for sending an email")
+                //console.log("Property Address Not found for sending an email")
                 return
             }
 
             const room=propertyDetails.propertyRooms[0];
             if(!room) {
-                console.log("Room Not found for sending an email")
+                //console.log("Room Not found for sending an email")
                 return
             }
             const htmlTemplete= EmailTemplates.BookingConfirmation({
@@ -44,7 +44,7 @@ export class ReservationEmailService {
                 propertyAddress: propertyDetails.propertyAddress,
             })
             const res=await sendEmail(bookingDetails.email, "Your Reservation Confirmation - SwiftRooms", htmlTemplete);
-            console.log("Email sent successfully:", res);
+            //console.log("Email sent successfully:", res);
 
         } catch (error) {
             console.error("Error sending reservation confirmation email:", error);
@@ -56,17 +56,17 @@ export class ReservationEmailService {
             const propertyDetails = await getPropertyDetails(bookingDetails.propertyCode, bookingDetails.roomTypeCode);
 
             if(!propertyDetails) {
-                console.log("Property Not found for sending an email")
+                //console.log("Property Not found for sending an email")
                 return
             }
             if(!propertyDetails.propertyAddress) {
-                console.log("Property Address Not found for sending an email")
+                //console.log("Property Address Not found for sending an email")
                 return
             }
 
             const room = propertyDetails.propertyRooms[0];
             if(!room) {
-                console.log("Room Not found for sending an email")
+                //console.log("Room Not found for sending an email")
                 return
             }
 
@@ -93,7 +93,7 @@ export class ReservationEmailService {
                 "Your Reservation Has Been Updated - SwiftRooms", 
                 htmlTemplate
             );
-            console.log("Reservation updated email sent successfully:", res);
+            //console.log("Reservation updated email sent successfully:", res);
 
         } catch (error) {
             console.error("Error sending reservation updated email:", error);
@@ -102,22 +102,22 @@ export class ReservationEmailService {
 
     public async reservationCancelEmail(bookingDetails: IBookingDetails): Promise<void> {
         try {
-                    console.log(bookingDetails)
+                    //console.log(bookingDetails)
 
             const propertyDetails = await getPropertyDetails(bookingDetails.propertyCode, bookingDetails.roomTypeCode);
 
             if(!propertyDetails) {
-                console.log("Property Not found for sending an email")
+                //console.log("Property Not found for sending an email")
                 return
             }
             if(!propertyDetails.propertyAddress) {
-                console.log("Property Address Not found for sending an email")
+                //console.log("Property Address Not found for sending an email")
                 return
             }
 
             const room = propertyDetails.propertyRooms[0];
             if(!room) {
-                console.log("Room Not found for sending an email")
+                //console.log("Room Not found for sending an email")
                 return
             }
 
@@ -144,7 +144,7 @@ export class ReservationEmailService {
                 "Your Reservation Cancellation Confirmation - SwiftRooms", 
                 htmlTemplate
             );
-            console.log("Reservation cancellation email sent successfully:", res);
+            //console.log("Reservation cancellation email sent successfully:", res);
 
         } catch (error) {
             console.error("Error sending reservation cancellation email:", error);

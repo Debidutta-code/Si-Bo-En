@@ -70,7 +70,7 @@ export class FikafiPaymentController {
         webhook,
       } = req.body as FikafiPaymentRequestBody;
 
-      console.log('Incoming bookingDetails:', bookingDetails);
+      //console.log('Incoming bookingDetails:', bookingDetails);
 
       // ✅ FIX: Country is now inside guestDetails, not at top level
       if (!bookingRefNum || !guestDetails || !bookingDetails || !paymentDetails || !returnURL || !webhook) {
@@ -122,7 +122,7 @@ const result = await fikafiPaymentService.createPaymentLink({
         webhook,
       });
 
-      console.log('📥 Fikafi service result:', JSON.stringify(result, null, 2));
+      //console.log('📥 Fikafi service result:', JSON.stringify(result, null, 2));
 
       if (result.success && result.data) {
         // ✅ Handle mock response which has nested structure: { success: true, data: { success: true, data: {...} } }
@@ -348,7 +348,7 @@ const result = await fikafiPaymentService.createPaymentLink({
 
       // Process the webhook payload
       // This typically contains payment method details, customer info, etc.
-      console.log("Fikafi Payment Details Webhook received:", payload);
+      //console.log("Fikafi Payment Details Webhook received:", payload);
 
       // Update reservation based on payment details if needed
       if (payload.bookingRefNum) {
@@ -401,7 +401,7 @@ const result = await fikafiPaymentService.createPaymentLink({
 
       // Process the payment event
       // Common events: payment_initiated, payment_completed, payment_failed, payment_expired
-      console.log("Fikafi Payment Event Webhook received:", payload);
+      //console.log("Fikafi Payment Event Webhook received:", payload);
 
       const { eventType, bookingRefNum, paymentId, amount, status } = payload;
 
@@ -431,7 +431,7 @@ const result = await fikafiPaymentService.createPaymentLink({
             break;
 
           default:
-            console.log(`Unhandled Fikafi event type: ${eventType}`);
+            //console.log(`Unhandled Fikafi event type: ${eventType}`);
         }
       }
 

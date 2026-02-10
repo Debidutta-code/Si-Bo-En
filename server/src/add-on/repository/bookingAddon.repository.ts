@@ -27,7 +27,7 @@ export default class BookingAddOnRepository {
                 }
             })
         } catch (error) {
-            console.log(error)
+            // console.log(error)
             throw new Error("Failed to create Booking Add on ")
         }
     }

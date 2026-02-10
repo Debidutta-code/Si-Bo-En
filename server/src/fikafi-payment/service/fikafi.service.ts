@@ -92,14 +92,14 @@ class FikafiPaymentService {
             secretKey: process.env.FIKAFI_SECRET_KEY || '',
         };
 
-        console.log('🔑 Fikafi Config loaded:');
-        console.log('  Base URL:', this.config.baseUrl);
-        console.log(
-            '  Client ID:',
-            this.config.clientId
-                ? this.config.clientId.substring(0, 8) + '...'
-                : 'NOT SET'
-        );
+        //console.log('🔑 Fikafi Config loaded:');
+        //console.log('  Base URL:', this.config.baseUrl);
+        //console.log(
+        //     '  Client ID:',
+        //     this.config.clientId
+        //         ? this.config.clientId.substring(0, 8) + '...'
+        //         : 'NOT SET'
+        // );
 
         this.client = axios.create({
             baseURL: this.config.baseUrl,
@@ -143,11 +143,11 @@ class FikafiPaymentService {
         const now = Date.now();
 
         if (this.token && now < this.tokenExpiry) {
-            console.log('♻️ Using cached Fikafi token');
+            //console.log('♻️ Using cached Fikafi token');
             return this.token;
         }
 
-        console.log('🔐 Fetching new Fikafi token...');
+        //console.log('🔐 Fetching new Fikafi token...');
 
         try {
             const res = await axios.post(
@@ -161,18 +161,18 @@ class FikafiPaymentService {
                 }
             );
 
-            console.log('📥 Token response status:', res.status);
-            console.log(
-                '📥 Token response data:',
-                JSON.stringify(res.data).substring(0, 200)
-            );
+            //console.log('📥 Token response status:', res.status);
+            //console.log(
+            //     '📥 Token response data:',
+            //     JSON.stringify(res.data).substring(0, 200)
+            // );
 
             const { accessToken, expiresIn } = res.data;
 
             this.token = accessToken;
             this.tokenExpiry = now + expiresIn * 1000 - 60000;
 
-            console.log('✅ Token obtained successfully');
+            //console.log('✅ Token obtained successfully');
 
             return this.token!;
         } catch (error: any) {
@@ -192,13 +192,13 @@ class FikafiPaymentService {
         request: FikafiPaymentRequest
     ): Promise<FikafiPaymentResponse> {
         try {
-            console.log('📤 Creating payment link...');
+            //console.log('📤 Creating payment link...');
 
             /* ===============================
            ✅ MOCK MODE (LOCAL SERVER)
         =============================== */
 if (process.env.PAYMENT_MODE === 'mock') {
-                console.log('🧪 Using MOCK payment server');
+                //console.log('🧪 Using MOCK payment server');
 
                 const mockRes = await axios.post(
                     'http://localhost:8080/createPayment',
@@ -243,7 +243,7 @@ bookingDetails: {
                 webhook: request.webhook,
             };
 
-            console.log('📤 Real Fikafi body:', JSON.stringify(body, null, 2));
+            //console.log('📤 Real Fikafi body:', JSON.stringify(body, null, 2));
 
 const response = await this.client.post(
                 '/payment/createPayment',
