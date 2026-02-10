@@ -430,10 +430,9 @@ export class PaymentIntegrationDao {
   
   public static async getPaymentIntegrationByName(name: string) {
     try {
-      return await prisma.masterPaymentIntegration.findFirst({
+      return await prisma.masterPaymentIntegration.findUnique({
         where: {
           name: name,
-          isActive: true,
         },
       });
     } catch (error: any) {
@@ -458,7 +457,6 @@ export class PaymentIntegrationDao {
     try {
       return await prisma.masterPaymentIntegration.findMany({
         where: {
-          isActive: true,
         },
         orderBy: {
           name: 'asc',
@@ -491,9 +489,8 @@ export class PaymentIntegrationDao {
   public static async deletePaymentIntegration(id: string) {
     try {
       // Soft delete by setting isActive to false
-      return await prisma.masterPaymentIntegration.update({
+      return await prisma.masterPaymentIntegration.delete({
         where: { id },
-        data: { isActive: false },
       });
     } catch (error: any) {
       throw new Error(error?.message);
