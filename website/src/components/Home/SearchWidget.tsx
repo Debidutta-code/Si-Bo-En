@@ -91,7 +91,6 @@ const DatePickerWithHover = ({
 
     return baseClass;
   };
-
   return (
     <DatePicker
       selected={checkIn}
@@ -122,6 +121,9 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   );
   const userTriggeredSearch = useRef(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isRoomsPage, setIsRoomsPage] = useState(false);
+  const agenturl = process.env.NEXT_PUBLIC_AGENT_URL;
+
 
   interface GuestInfo {
     adults: number;
@@ -161,15 +163,6 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
 
   const bookingContext = useSelector((state: RootState) => state.booking);
 
-  // Get colors from Redux booking context with fallbacks
-  // const primaryColor = bookingContext?.bookingEngineColor?.primaryColor || "#2F2A1F";
-  // const secondaryColor = bookingContext?.bookingEngineColor?.primaryColor || "#E8DFC9";
-  // const tertiaryColor = bookingContext?.bookingEngineColor?.tertiaryColor || "#7D7566";
-  // const buttonTextColor = bookingContext?.bookingEngineColor?.buttonTextColor || "#2F2A1F";
-
-  // // Get logo from booking context
-  // const logoIcon = bookingContext?.PropertyDetails?.bookingEngineConfig?.logo ||
-  //   bookingContext?.bookingEngineColor?.logo;
 
   const { colors, logoIcon } = useBookingStorage(bookingContext);
   const [currentLogo, setCurrentLogo] = useState<string | null>(logoIcon);
@@ -216,10 +209,8 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
 
         setGuestInfo(g);
         setGuestSummary(
-          `${totalAdults || 1} adult${totalAdults !== 1 ? "s" : ""} - ${
-            totalChildren || 0
-          } child${totalChildren !== 1 ? "ren" : ""} - ${roomsCount} room${
-            roomsCount !== 1 ? "s" : ""
+          `${totalAdults || 1} adult${totalAdults !== 1 ? "s" : ""} - ${totalChildren || 0
+          } child${totalChildren !== 1 ? "ren" : ""} - ${roomsCount} room${roomsCount !== 1 ? "s" : ""
           }`,
         );
       }
@@ -237,8 +228,9 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
       userTriggeredSearch.current = false;
     }
   }, [checkIn, checkOut, guestInfo]);
-  // ✅ ADD THIS ENTIRE useEffect
-  // ✅ REPLACE the useEffect you added with THIS improved version
+  useEffect(() => {
+    setIsRoomsPage(PathName.includes('/Rooms'));
+  }, [PathName]);
   useEffect(() => {
     const updateLogoFromStorage = () => {
       // Priority 1: Check bookingContext first
@@ -633,9 +625,9 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                     >
                       {checkOut
                         ? checkOut.toLocaleDateString("en-US", {
-                            month: "short",
-                            year: "numeric",
-                          })
+                          month: "short",
+                          year: "numeric",
+                        })
                         : "Select"}
                     </p>
                   </div>
@@ -695,9 +687,9 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                       >
                         {Array.isArray(guestInfo.rooms)
                           ? guestInfo.rooms.reduce(
-                              (sum, room) => sum + (room.adults || 0),
-                              0,
-                            )
+                            (sum, room) => sum + (room.adults || 0),
+                            0,
+                          )
                           : guestInfo.adults || 1}
                       </span>
                     </div>
@@ -725,9 +717,9 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                       >
                         {Array.isArray(guestInfo.rooms)
                           ? guestInfo.rooms.reduce(
-                              (sum, room) => sum + (room.children || 0),
-                              0,
-                            )
+                            (sum, room) => sum + (room.children || 0),
+                            0,
+                          )
                           : guestInfo.children || 0}
                       </span>
                     </div>
@@ -748,28 +740,24 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 </div>
 
                 {/* BOOK BUTTON */}
-                <button
-                  onClick={handleSearch}
-                  disabled={loading}
-                  className="px-10 py-4 rounded-full text-[11px] font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm hover:opacity-90"
-                  style={{
-                    backgroundColor: secondaryColor,
-                    color: calculatedButtonTextColor,
-                  }}
-                >
-                  {loading ? "LOADING..." : "BOOK"}
-                </button>
-              </div>
-
-              {/* RIGHT: MY BOOKING */}
-              <div className="min-w-[140px] flex justify-end">
-                <button
-                  className="text-[11px] font-semibold tracking-[0.1em] hover:opacity-80 transition-colors"
-                  style={{ color: primaryColor }}
-                  onClick={() => router.push(`/my-trip`)}
-                >
-                  MY BOOKING
-                </button>
+                <div className="min-w-[140px] flex justify-end gap-4">
+                  {isRoomsPage && (
+                    <button
+                      className="text-[11px] font-semibold tracking-[0.1em] hover:opacity-80 transition-colors"
+                      style={{ color: primaryColor }}
+                      onClick={() => window.open(agenturl, '_blank')}
+                    >
+                      BECOME A PARTNER
+                    </button>
+                  )}
+                  <button
+                    className="text-[11px] font-semibold tracking-[0.1em] hover:opacity-80 transition-colors"
+                    style={{ color: primaryColor }}
+                    onClick={() => router.push(`/my-trip`)}
+                  >
+                    MY BOOKING
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -864,8 +852,8 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                     >
                       {checkOut
                         ? checkOut.toLocaleDateString("en-US", {
-                            month: "short",
-                          })
+                          month: "short",
+                        })
                         : "Select"}
                     </p>
                   </div>
@@ -920,9 +908,9 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                       >
                         {Array.isArray(guestInfo.rooms)
                           ? guestInfo.rooms.reduce(
-                              (sum, room) => sum + (room.adults || 0),
-                              0,
-                            )
+                            (sum, room) => sum + (room.adults || 0),
+                            0,
+                          )
                           : guestInfo.adults || 1}
                       </span>
                     </div>
@@ -956,8 +944,16 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 </button>
               </div>
 
-              {/* RIGHT: MY BOOKING - Compact */}
-              <div className="min-w-[100px] flex justify-end">
+              <div className="min-w-[100px] flex justify-end gap-3">
+                {isRoomsPage && (
+                  <button
+                    className="text-[10px] font-semibold tracking-[0.1em] hover:opacity-80 transition-colors"
+                    style={{ color: primaryColor }}
+                    onClick={() => window.open(agenturl, '_blank')}
+                  >
+                    BECOME A PARTNER
+                  </button>
+                )}
                 <button
                   className="text-[10px] font-semibold tracking-[0.1em] hover:opacity-80 transition-colors"
                   style={{ color: primaryColor }}
@@ -1004,13 +1000,24 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   )}
                 </button>
 
-                <button
-                  className="text-xs font-semibold tracking-[0.1em] hover:opacity-80 transition-colors"
-                  style={{ color: primaryColor }}
-                  onClick={() => router.push(`/my-trip`)}
-                >
-                  MY BOOKING
-                </button>
+                <div className="flex items-center justify-between gap-3">
+                  {isRoomsPage && (
+                    <button
+                      className="text-xs font-semibold tracking-[0.1em] hover:opacity-80 transition-colors"
+                      style={{ color: primaryColor }}
+                      onClick={() => window.open(agenturl, '_blank')}
+                    >
+                      BECOME A PARTNER
+                    </button>
+                  )}
+                  <button
+                    className="text-xs font-semibold tracking-[0.1em] hover:opacity-80 transition-colors"
+                    style={{ color: primaryColor }}
+                    onClick={() => router.push(`/my-trip`)}
+                  >
+                    MY BOOKING
+                  </button>
+                </div>
               </div>
 
               {/* Booking Controls Grid */}
@@ -1078,8 +1085,8 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                       <p className="text-xs" style={{ color: tertiaryColor }}>
                         {checkOut
                           ? checkOut.toLocaleDateString("en-US", {
-                              month: "short",
-                            })
+                            month: "short",
+                          })
                           : "Select"}
                       </p>
                     </div>
@@ -1248,8 +1255,8 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                       <p className="text-xs text-[#7D7566]">
                         {checkOut
                           ? checkOut.toLocaleDateString("en-US", {
-                              month: "short",
-                            })
+                            month: "short",
+                          })
                           : "Select"}
                       </p>
                     </div>
@@ -1319,9 +1326,9 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                           >
                             {Array.isArray(guestInfo.rooms)
                               ? guestInfo.rooms.reduce(
-                                  (sum, room) => sum + (room.adults || 0),
-                                  0,
-                                )
+                                (sum, room) => sum + (room.adults || 0),
+                                0,
+                              )
                               : guestInfo.adults || 1}
                           </p>
                         </div>
@@ -1352,14 +1359,24 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   />
                 </div>
 
-                {/* My Booking */}
-                <button
-                  className="w-full text-center text-sm font-semibold py-3 border-t border-[#D4CABA]"
-                  style={{ color: primaryColor }}
-                  onClick={() => router.push(`/my-trip`)}
-                >
-                  MY BOOKING
-                </button>
+                <div className="space-y-3 border-t border-[#D4CABA] pt-4">
+                  {isRoomsPage && (
+                    <button
+                      className="w-full text-center text-sm font-semibold py-3"
+                      style={{ color: primaryColor }}
+                      onClick={() => window.open(agenturl, '_blank')}
+                    >
+                      BECOME A PARTNER
+                    </button>
+                  )}
+                  <button
+                    className="w-full text-center text-sm font-semibold py-3"
+                    style={{ color: primaryColor }}
+                    onClick={() => router.push(`/my-trip`)}
+                  >
+                    MY BOOKING
+                  </button>
+                </div>
 
                 {/* Book Button */}
                 <button
