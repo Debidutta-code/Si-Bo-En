@@ -113,13 +113,13 @@ export class AuthService {
       if (existingUser) {
         return errorResponse('User with this email already exists');
       }
-      console.log(firstName,
-        lastName,
-        email,
-        password,
-        role,
-        createdBy,
-        level,)
+      // console.log(firstName,
+      //   lastName,
+      //   email,
+      //   password,
+      //   role,
+      //   createdBy,
+      //   level,)
       const daoRes = await UserAuthRepository.createUser(firstName, lastName, email, password, role!, createdBy!, creatorId, level!)
       if (daoRes) {
         return successResponse("User created SuccessFully", daoRes)

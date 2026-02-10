@@ -157,7 +157,7 @@ const BookingReviewPage = () => {
           throw new Error(data?.message || "Failed to fetch payment details");
         }
 
-        console.log("💳 Fetched Bank Details:", data?.data);
+        //console.log("💳 Fetched Bank Details:", data?.data);
         setBankDetails(data?.data);
       } catch (error) {
         console.error("❌ Error fetching payment details:", error);
@@ -178,17 +178,17 @@ const BookingReviewPage = () => {
   useEffect(() => {
     if (!bankDetails) return;
 
-    console.log("📋 Processing Bank Details:", bankDetails);
-    console.log("💳 paymentGateway:", bankDetails.paymentGateway);
-    console.log("🏨 payAtHotel:", bankDetails.payAtHotel);
-    console.log("🔌 selectedPaymentIntegrations:", bankDetails.selectedPaymentIntegrations);
+    //console.log("📋 Processing Bank Details:", bankDetails);
+    //console.log("💳 paymentGateway:", bankDetails.paymentGateway);
+    //console.log("🏨 payAtHotel:", bankDetails.payAtHotel);
+    //console.log("🔌 selectedPaymentIntegrations:", bankDetails.selectedPaymentIntegrations);
 
     const methods: string[] = [];
     
     // Add Pay at Hotel if enabled
     if (bankDetails.payAtHotel) {
       methods.push("payAtHotel");
-      console.log("✅ Pay at Hotel is available");
+      //console.log("✅ Pay at Hotel is available");
     }
 
     // Determine which gateway is active
@@ -197,12 +197,12 @@ const BookingReviewPage = () => {
 
     if (gateway) {
       methods.push("gateway");
-      console.log(`✅ Online Payment Gateway is available (${gateway})`);
+      //console.log(`✅ Online Payment Gateway is available (${gateway})`);
     } else if (bankDetails.paymentGateway) {
-      console.log("⚠️ Payment Gateway is enabled but no valid integration found");
+      //console.log("⚠️ Payment Gateway is enabled but no valid integration found");
     }
 
-    console.log("✅ Final available payment methods:", methods);
+    //console.log("✅ Final available payment methods:", methods);
 
     setAvailableMethods(methods);
     setNoAvailablePayment(methods.length === 0);
@@ -450,7 +450,7 @@ const BookingReviewPage = () => {
         })
       );
 
-      console.log("🔌 Establishing WebSocket connection before payment redirect...");
+      //console.log("🔌 Establishing WebSocket connection before payment redirect...");
       toast.loading("Connecting to payment system...", { id: "socket-connect" });
 
       try {
@@ -471,10 +471,10 @@ const BookingReviewPage = () => {
 
           socket.on('connect', () => {
             clearTimeout(timeout);
-            console.log('✅ Socket connected before payment redirect:', socket.id);
+            //console.log('✅ Socket connected before payment redirect:', socket.id);
 
             socket.emit('join-payment-room', orderReference);
-            console.log(`📌 Joined payment room: payment:${orderReference}`);
+            //console.log(`📌 Joined payment room: payment:${orderReference}`);
 
             resolve();
           });
@@ -487,7 +487,7 @@ const BookingReviewPage = () => {
         });
 
         toast.dismiss("socket-connect");
-        console.log("✅ WebSocket connection established successfully");
+        //console.log("✅ WebSocket connection established successfully");
 
         localStorage.setItem("socketConnected", "true");
 
@@ -579,7 +579,7 @@ const BookingReviewPage = () => {
                   numberOfNights={nights}
                   paymentMethod="payment_gateway"
                   onPaymentLinkGenerated={(paymentLink, paymentId) => {
-                    console.log('Payment link generated:', paymentLink);
+                    //console.log('Payment link generated:', paymentLink);
                     toast.success("Redirecting to payment...", { id: "fikafi-success" });
                   }}
                   onPaymentError={(error) => {

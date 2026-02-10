@@ -55,10 +55,10 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
         return;
       }
 
-      console.log("🚀 Starting Fikafi payment flow...");
-      console.log("📋 Booking Code:", bookingCode);
-      console.log("💰 Amount:", amount, currency);
-      console.log("👤 Guest:", guestName);
+      //console.log("🚀 Starting Fikafi payment flow...");
+      //console.log("📋 Booking Code:", bookingCode);
+      //console.log("💰 Amount:", amount, currency);
+      //console.log("👤 Guest:", guestName);
 
       // Clean the backend URL to avoid duplicate /api/v1 and double slashes
       let backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || "").trim();
@@ -123,7 +123,7 @@ guestDetails: {
 
 
 
-      console.log("📤 Sending request to Fikafi API...");
+      //console.log("📤 Sending request to Fikafi API...");
 
       const response = await fetch(
         `${backendUrl}/api/v1/fikafi/create-payment-link`,
@@ -136,10 +136,10 @@ guestDetails: {
         }
       );
 
-      console.log("📥 Response status:", response.status);
+      //console.log("📥 Response status:", response.status);
 
       const data = await response.json();
-      console.log("📥 Response data:", data);
+      //console.log("📥 Response data:", data);
 
       if (!response.ok) {
         throw new Error(data.message || `HTTP ${response.status}: Failed to create payment link`);
@@ -158,7 +158,7 @@ guestDetails: {
         
         setPaymentLink(data.data.paymentLink);
         onPaymentLinkGenerated?.(data.data.paymentLink, data.data.paymentId);
-        console.log("🔗 Redirecting to:", data.data.paymentLink);
+        //console.log("🔗 Redirecting to:", data.data.paymentLink);
         window.location.href = data.data.paymentLink;
       } else {
         throw new Error(data.message || "Failed to generate payment link");

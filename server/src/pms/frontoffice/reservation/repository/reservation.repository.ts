@@ -702,7 +702,7 @@ export class AriManupulationRepo {
                             }
                         }
                     });
-                    //console.log(`Decreased availability for ${room.roomTypeCode} in ${ariManupulationRooms.propertyCode}: ${result.count} records updated`);
+                    ////console.log(`Decreased availability for ${room.roomTypeCode} in ${ariManupulationRooms.propertyCode}: ${result.count} records updated`);
                 }
             });
         } catch (error) {
@@ -732,7 +732,7 @@ export class AriManupulationRepo {
                             }
                         }
                     });
-                    console.log(`Increased availability for ${room.roomTypeCode}: ${result.count} records updated`);
+                    //console.log(`Increased availability for ${room.roomTypeCode}: ${result.count} records updated`);
                 }
             });
         } catch (error) {

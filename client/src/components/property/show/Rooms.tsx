@@ -220,7 +220,7 @@ export default function Rooms({ propertyId }: PropertyId) {
       const response = await addVideoToRoom(selectedRoomId, videoUrl, thumbnailUrl);
 
       if (response.success) {
-        console.log('Video uploaded successfully:', { videoUrl, thumbnailUrl });
+        // console.log('Video uploaded successfully:', { videoUrl, thumbnailUrl });
         toast.success('Video uploaded and saved successfully!');
         await fetchRoom(propertyId);
       } else {

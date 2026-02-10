@@ -214,7 +214,7 @@ export default function BookingPage() {
         },
       };
 
-      console.log('Creating booking with payload:', bookingPayload);
+      // console.log('Creating booking with payload:', bookingPayload);
 
       const result = await createBookingService(bookingPayload);
 

@@ -102,7 +102,7 @@ export default function PropertyRoomsPage() {
           setRoomsData(result.data.rooms);
         }
         if (result.data.dateRange) {
-          console.log(result.data.dateRange);
+          // console.log(result.data.dateRange);
           setDateRange(result.data.dateRange);
         }
       } else {
@@ -121,8 +121,8 @@ export default function PropertyRoomsPage() {
       year: "numeric",
     });
   };
-  console.log("filters", filters);
-  console.log(dateRange);
+  // console.log("filters", filters);
+  // console.log(dateRange);
   if (loading) {
     return <Loader fullScreen text="Loading rooms..." />;
   }

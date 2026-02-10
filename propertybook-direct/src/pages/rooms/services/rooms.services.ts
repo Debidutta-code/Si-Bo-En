@@ -33,7 +33,7 @@ export const fetchPropertyDetailsWithRooms = async (data:FindRoomsRequest) => {
             }
             return await fetchRooms(data);
     } catch (error) {
-        console.log(error)
+        // console.log(error)
         return {
             success: false,
             message: "An error occurred while fetching property details"

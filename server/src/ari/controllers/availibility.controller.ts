@@ -40,10 +40,10 @@ export class AvailabilityController {
         ? ratePlanCodes.map(code => String(code).trim())
         : [];
 
-      console.log('🔍 Controller - Filters:', { 
-        roomTypeCodes: parsedRoomTypeCodes, 
-        ratePlanCodes: parsedRatePlanCodes 
-      });
+      // console.log('🔍 Controller - Filters:', { 
+      //   roomTypeCodes: parsedRoomTypeCodes, 
+      //   ratePlanCodes: parsedRatePlanCodes 
+      // });
 
       const response = await AvailabilityServices.getCalendarAvailability(
         propertyCode as string,
