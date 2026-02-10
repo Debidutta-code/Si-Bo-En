@@ -1,7 +1,15 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Users, Menu, X, Calendar, User, Key, ChevronRight } from "lucide-react";
+import {
+  Users,
+  Menu,
+  X,
+  Calendar,
+  User,
+  Key,
+  ChevronRight,
+} from "lucide-react";
 import GuestSelector from "../GuestModals/GuestSelector";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -34,7 +42,7 @@ const DatePickerWithHover = ({
   onDateSelect,
   onDayMouseEnter,
   onDayMouseLeave,
-  isSelectingRange
+  isSelectingRange,
 }: {
   checkIn: Date | null;
   checkOut: Date | null;
@@ -71,7 +79,11 @@ const DatePickerWithHover = ({
     const isInRange =
       checkIn &&
       date > checkIn &&
-      (temporaryCheckOut ? date <= temporaryCheckOut : checkOut ? date <= checkOut : false);
+      (temporaryCheckOut
+        ? date <= temporaryCheckOut
+        : checkOut
+          ? date <= checkOut
+          : false);
 
     if (isInRange) {
       return `${baseClass} terra-solis-day-in-range`;
@@ -106,7 +118,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   const dispatch = useDispatch();
   const [isGuestSelectorOpen, setIsGuestSelectorOpen] = useState(false);
   const [guestSummary, setGuestSummary] = useState(
-    "1 adults - 0 children - 1 room"
+    "1 adults - 0 children - 1 room",
   );
   const userTriggeredSearch = useRef(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -114,7 +126,14 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   interface GuestInfo {
     adults: number;
     children: number;
-    rooms: number;
+    rooms: number | Room[]; // ✅ Change from 'number' to allow both types
+    roomsArray?: Room[]; // ✅ Add this
+  }
+
+  // ✅ Add the Room interface if not already present
+  interface Room {
+    adults: number;
+    children: number;
   }
 
   const [guestInfo, setGuestInfo] = useState<GuestInfo>({
@@ -136,7 +155,9 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [temporaryCheckOut, setTemporaryCheckOut] = useState<Date | null>(null);
   const [isSelectingRange, setIsSelectingRange] = useState(false);
-  const [selectionMode, setSelectionMode] = useState<'checkin' | 'checkout'>('checkin');
+  const [selectionMode, setSelectionMode] = useState<"checkin" | "checkout">(
+    "checkin",
+  );
 
   const bookingContext = useSelector((state: RootState) => state.booking);
 
@@ -152,7 +173,8 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
 
   const { colors, logoIcon } = useBookingStorage(bookingContext);
   const [currentLogo, setCurrentLogo] = useState<string | null>(logoIcon);
-  const { primaryColor, secondaryColor, tertiaryColor, buttonTextColor } = colors;
+  const { primaryColor, secondaryColor, tertiaryColor, buttonTextColor } =
+    colors;
   const hotelcode = bookingContext?.PropertyCode || "4BTXDZ";
   const PathName = usePathname();
 
@@ -166,7 +188,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
     if (bookingContext) {
       if (bookingContext.startDate) {
         setCheckIn(new Date(bookingContext.startDate));
-        setSelectionMode('checkout');
+        setSelectionMode("checkout");
       }
       if (bookingContext.endDate) {
         setCheckOut(new Date(bookingContext.endDate));
@@ -194,9 +216,11 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
 
         setGuestInfo(g);
         setGuestSummary(
-          `${totalAdults || 1} adult${totalAdults !== 1 ? "s" : ""} - ${totalChildren || 0
-          } child${totalChildren !== 1 ? "ren" : ""} - ${roomsCount} room${roomsCount !== 1 ? "s" : ""
-          }`
+          `${totalAdults || 1} adult${totalAdults !== 1 ? "s" : ""} - ${
+            totalChildren || 0
+          } child${totalChildren !== 1 ? "ren" : ""} - ${roomsCount} room${
+            roomsCount !== 1 ? "s" : ""
+          }`,
         );
       }
     }
@@ -213,54 +237,58 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
       userTriggeredSearch.current = false;
     }
   }, [checkIn, checkOut, guestInfo]);
-// ✅ ADD THIS ENTIRE useEffect
-// ✅ REPLACE the useEffect you added with THIS improved version
-useEffect(() => {
-  const updateLogoFromStorage = () => {
-    // Priority 1: Check bookingContext first
-    const logoFromContext = 
-      bookingContext?.bookingEngineColor?.logo || 
-      bookingContext?.PropertyDetails?.bookingEngineConfig?.logo;
-    
-    if (logoFromContext) {
-      setCurrentLogo(logoFromContext);
-      return;
-    }
+  // ✅ ADD THIS ENTIRE useEffect
+  // ✅ REPLACE the useEffect you added with THIS improved version
+  useEffect(() => {
+    const updateLogoFromStorage = () => {
+      // Priority 1: Check bookingContext first
+      const logoFromContext =
+        bookingContext?.bookingEngineColor?.logo ||
+        bookingContext?.PropertyDetails?.bookingEngineConfig?.logo;
 
-    // Priority 2: Check localStorage
-    try {
-      const stored = localStorage.getItem('bookingstorage');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (parsed.logoIcon) {
-          setCurrentLogo(parsed.logoIcon);
-        } else {
-          setCurrentLogo(null); // Reset if no logo
-        }
+      if (logoFromContext) {
+        setCurrentLogo(logoFromContext);
+        return;
       }
-    } catch (error) {
-      console.error('Error reading logo from storage:', error);
-    }
-  };
 
-  // Run on mount and when dependencies change
-  updateLogoFromStorage();
+      // Priority 2: Check localStorage
+      try {
+        const stored = localStorage.getItem("bookingstorage");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.logoIcon) {
+            setCurrentLogo(parsed.logoIcon);
+          } else {
+            setCurrentLogo(null); // Reset if no logo
+          }
+        }
+      } catch (error) {
+        console.error("Error reading logo from storage:", error);
+      }
+    };
 
-  // ✅ CRITICAL: Listen for storage changes (custom event)
-  const handleStorageUpdate = () => {
+    // Run on mount and when dependencies change
     updateLogoFromStorage();
-  };
 
-  window.addEventListener('storage', handleStorageUpdate);
-  
-  // ✅ Also listen for a custom event we'll dispatch from Rooms
-  window.addEventListener('bookingStorageUpdated', handleStorageUpdate);
+    // ✅ CRITICAL: Listen for storage changes (custom event)
+    const handleStorageUpdate = () => {
+      updateLogoFromStorage();
+    };
 
-  return () => {
-    window.removeEventListener('storage', handleStorageUpdate);
-    window.removeEventListener('bookingStorageUpdated', handleStorageUpdate);
-  };
-}, [bookingContext?.bookingEngineColor?.logo, bookingContext?.PropertyDetails?.bookingEngineConfig?.logo, logoIcon]);
+    window.addEventListener("storage", handleStorageUpdate);
+
+    // ✅ Also listen for a custom event we'll dispatch from Rooms
+    window.addEventListener("bookingStorageUpdated", handleStorageUpdate);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageUpdate);
+      window.removeEventListener("bookingStorageUpdated", handleStorageUpdate);
+    };
+  }, [
+    bookingContext?.bookingEngineColor?.logo,
+    bookingContext?.PropertyDetails?.bookingEngineConfig?.logo,
+    logoIcon,
+  ]);
   const handleGuestSelection = (summary: string, data: any) => {
     // //console.log("Selected guest data:", data);
     // //console.log("Selected guest summary:", summary);
@@ -270,8 +298,14 @@ useEffect(() => {
     // Transform the data from GuestSelector to match the expected format
     if (Array.isArray(data.rooms)) {
       // Calculate totals from rooms array
-      const totalAdults = data.rooms.reduce((sum: number, room: any) => sum + (room.adults || 0), 0);
-      const totalChildren = data.rooms.reduce((sum: number, room: any) => sum + (room.children || 0), 0);
+      const totalAdults = data.rooms.reduce(
+        (sum: number, room: any) => sum + (room.adults || 0),
+        0,
+      );
+      const totalChildren = data.rooms.reduce(
+        (sum: number, room: any) => sum + (room.children || 0),
+        0,
+      );
       const roomsCount = data.rooms.length;
 
       const transformedData = {
@@ -279,7 +313,7 @@ useEffect(() => {
         children: totalChildren,
         rooms: roomsCount,
         // Keep the original rooms array for display purposes if needed
-        roomsArray: data.rooms
+        roomsArray: data.rooms,
       };
 
       setGuestInfo(transformedData);
@@ -326,7 +360,7 @@ useEffect(() => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
-        }
+        },
       );
       const data = await response.json();
 
@@ -378,13 +412,13 @@ useEffect(() => {
   }, [dispatch]);
 
   const handleDateSelect = (date: Date) => {
-    if (selectionMode === 'checkin') {
+    if (selectionMode === "checkin") {
       // First click - set check-in
       setCheckIn(date);
       setCheckOut(null);
-      setSelectionMode('checkout');
+      setSelectionMode("checkout");
       setIsSelectingRange(true);
-    } else if (selectionMode === 'checkout') {
+    } else if (selectionMode === "checkout") {
       // Second click - set check-out
       if (date > checkIn!) {
         setCheckOut(date);
@@ -392,14 +426,14 @@ useEffect(() => {
         // Close the calendar automatically after selecting check-out
         setTimeout(() => {
           setIsCalendarOpen(false);
-          setSelectionMode('checkin'); // Reset for next time
+          setSelectionMode("checkin"); // Reset for next time
           setTemporaryCheckOut(null);
         }, 300);
       } else if (date < checkIn!) {
         // If user selects a date before current check-in, start over
         setCheckIn(date);
         setCheckOut(null);
-        setSelectionMode('checkout');
+        setSelectionMode("checkout");
         setIsSelectingRange(true);
       }
     }
@@ -419,18 +453,18 @@ useEffect(() => {
     setIsCalendarOpen(true);
     // If we have both dates already selected, start fresh
     if (checkIn && checkOut) {
-      setSelectionMode('checkin');
+      setSelectionMode("checkin");
       setIsSelectingRange(false);
       setTemporaryCheckOut(null);
     }
     // If we only have check-in, we're ready to select check-out
     else if (checkIn && !checkOut) {
-      setSelectionMode('checkout');
+      setSelectionMode("checkout");
       setIsSelectingRange(true);
     }
     // If we have nothing, start with check-in
     else {
-      setSelectionMode('checkin');
+      setSelectionMode("checkin");
       setIsSelectingRange(false);
     }
   };
@@ -440,7 +474,7 @@ useEffect(() => {
     setTemporaryCheckOut(null);
     // Reset to check-in mode for next time
     if (!checkOut) {
-      setSelectionMode('checkin');
+      setSelectionMode("checkin");
       setIsSelectingRange(false);
     }
   };
@@ -464,7 +498,7 @@ useEffect(() => {
   // Function to get text color that contrasts with background
   const getContrastTextColor = (bgColor: string) => {
     // Convert hex to RGB
-    const hex = bgColor.replace('#', '');
+    const hex = bgColor.replace("#", "");
     const r = parseInt(hex.substring(0, 2), 16);
     const g = parseInt(hex.substring(2, 4), 16);
     const b = parseInt(hex.substring(4, 6), 16);
@@ -473,11 +507,12 @@ useEffect(() => {
     const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 
     // Return black or white based on luminance
-    return luminance > 0.5 ? '#2F2A1F' : '#FFFFFF';
+    return luminance > 0.5 ? "#2F2A1F" : "#FFFFFF";
   };
 
   // Calculate button text color - use provided buttonTextColor or get contrast color
-  const calculatedButtonTextColor = buttonTextColor || getContrastTextColor(secondaryColor);
+  const calculatedButtonTextColor =
+    buttonTextColor || getContrastTextColor(secondaryColor);
 
   // //console.log("Rendering SearchWidget with colors:", { primaryColor, secondaryColor, tertiaryColor, buttonTextColor }, bookingContext);
 
@@ -509,27 +544,27 @@ useEffect(() => {
                 onClick={handleHomeClick}
                 className="flex items-center focus:outline-none"
               >
-               {currentLogo ? (
-  <div className="relative w-32 h-32">
-    <Image
-      src={currentLogo}
-      alt="Hotel Logo"
-      fill
-      className="object-contain"
-      unoptimized
-    />
-  </div>
-) : (
-  <div className="relative w-32 h-32">
-    <Image
-      src={defaultLogo}
-      alt="Hotel Logo"
-      fill
-      className="object-contain"
-      unoptimized
-    />
-  </div>
-)}
+                {currentLogo ? (
+                  <div className="relative w-32 h-32">
+                    <Image
+                      src={currentLogo}
+                      alt="Hotel Logo"
+                      fill
+                      className="object-contain"
+                      unoptimized
+                    />
+                  </div>
+                ) : (
+                  <div className="relative w-32 h-32">
+                    <Image
+                      src={defaultLogo}
+                      alt="Hotel Logo"
+                      fill
+                      className="object-contain"
+                      unoptimized
+                    />
+                  </div>
+                )}
               </button>
 
               {/* CENTER: BOOKING CONTROLS */}
@@ -598,9 +633,9 @@ useEffect(() => {
                     >
                       {checkOut
                         ? checkOut.toLocaleDateString("en-US", {
-                          month: "short",
-                          year: "numeric",
-                        })
+                            month: "short",
+                            year: "numeric",
+                          })
                         : "Select"}
                     </p>
                   </div>
@@ -610,7 +645,7 @@ useEffect(() => {
                 <button
                   onClick={() => setIsGuestSelectorOpen(true)}
                   className="bg-white border rounded-lg px-4 py-3 min-w-[140px] hover:bg-[#FAFAF8] transition-colors shadow-sm"
-                  style={{ borderColor: '#C4BAA5' }}
+                  style={{ borderColor: "#C4BAA5" }}
                 >
                   <p
                     className="text-[9px] tracking-[0.15em] font-medium mb-2"
@@ -640,21 +675,29 @@ useEffect(() => {
                         className="text-xs font-bold"
                         style={{ color: primaryColor }}
                       >
-                        {Array.isArray(guestInfo.rooms) ? guestInfo.rooms.length : guestInfo.rooms || 1}
+                        {Array.isArray(guestInfo.rooms)
+                          ? guestInfo.rooms.length
+                          : guestInfo.rooms || 1}
                       </span>
                     </div>
 
                     {/* Adults */}
                     <div className="flex items-center gap-1">
                       <div className="w-5 h-5 bg-[#F4EFE6] rounded-full flex items-center justify-center">
-                        <Users className="w-2.5 h-2.5" style={{ color: '#5B543F' }} />
+                        <Users
+                          className="w-2.5 h-2.5"
+                          style={{ color: "#5B543F" }}
+                        />
                       </div>
                       <span
                         className="text-xs font-bold"
                         style={{ color: primaryColor }}
                       >
                         {Array.isArray(guestInfo.rooms)
-                          ? guestInfo.rooms.reduce((sum, room) => sum + (room.adults || 0), 0)
+                          ? guestInfo.rooms.reduce(
+                              (sum, room) => sum + (room.adults || 0),
+                              0,
+                            )
                           : guestInfo.adults || 1}
                       </span>
                     </div>
@@ -681,7 +724,10 @@ useEffect(() => {
                         style={{ color: primaryColor }}
                       >
                         {Array.isArray(guestInfo.rooms)
-                          ? guestInfo.rooms.reduce((sum, room) => sum + (room.children || 0), 0)
+                          ? guestInfo.rooms.reduce(
+                              (sum, room) => sum + (room.children || 0),
+                              0,
+                            )
                           : guestInfo.children || 0}
                       </span>
                     </div>
@@ -696,7 +742,7 @@ useEffect(() => {
                     className="bg-transparent border-b-2 pb-2 text-[10px] tracking-[0.15em] placeholder-[#9B8B6F] focus:outline-none transition-colors"
                     style={{
                       borderColor: tertiaryColor,
-                      color: tertiaryColor
+                      color: tertiaryColor,
                     }}
                   />
                 </div>
@@ -708,7 +754,7 @@ useEffect(() => {
                   className="px-10 py-4 rounded-full text-[11px] font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm hover:opacity-90"
                   style={{
                     backgroundColor: secondaryColor,
-                    color: calculatedButtonTextColor
+                    color: calculatedButtonTextColor,
                   }}
                 >
                   {loading ? "LOADING..." : "BOOK"}
@@ -739,26 +785,26 @@ useEffect(() => {
                 className="flex items-center focus:outline-none"
               >
                 {currentLogo ? (
-  <div className="relative w-28 h-20">
-    <Image
-      src={currentLogo}
-      alt="Hotel Logo"
-      fill
-      className="object-contain"
-      unoptimized
-    />
-  </div>
-) : (
-  <div className="relative w-28 h-20">
-    <Image
-      src={defaultLogo}
-      alt="Hotel Logo"
-      fill
-      className="object-contain"
-      unoptimized
-    />
-  </div>
-)}
+                  <div className="relative w-28 h-20">
+                    <Image
+                      src={currentLogo}
+                      alt="Hotel Logo"
+                      fill
+                      className="object-contain"
+                      unoptimized
+                    />
+                  </div>
+                ) : (
+                  <div className="relative w-28 h-20">
+                    <Image
+                      src={defaultLogo}
+                      alt="Hotel Logo"
+                      fill
+                      className="object-contain"
+                      unoptimized
+                    />
+                  </div>
+                )}
               </button>
 
               {/* CENTER: COMPACT BOOKING CONTROLS */}
@@ -818,8 +864,8 @@ useEffect(() => {
                     >
                       {checkOut
                         ? checkOut.toLocaleDateString("en-US", {
-                          month: "short",
-                        })
+                            month: "short",
+                          })
                         : "Select"}
                     </p>
                   </div>
@@ -829,7 +875,7 @@ useEffect(() => {
                 <button
                   onClick={() => setIsGuestSelectorOpen(true)}
                   className="bg-white border rounded-lg px-3 py-2 min-w-[120px] hover:bg-[#FAFAF8] transition-colors shadow-sm"
-                  style={{ borderColor: '#C4BAA5' }}
+                  style={{ borderColor: "#C4BAA5" }}
                 >
                   <p
                     className="text-[9px] tracking-[0.15em] font-medium mb-2"
@@ -840,7 +886,14 @@ useEffect(() => {
                   <div className="flex items-center justify-center gap-2">
                     <div className="flex items-center gap-1">
                       <div className="w-4 h-4 bg-[#F4EFE6] rounded-full flex items-center justify-center">
-                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#5B543F" strokeWidth="2">
+                        <svg
+                          width="8"
+                          height="8"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="#5B543F"
+                          strokeWidth="2"
+                        >
                           <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
                           <polyline points="9 22 9 12 15 12 15 22" />
                         </svg>
@@ -849,19 +902,27 @@ useEffect(() => {
                         className="text-xs font-bold"
                         style={{ color: primaryColor }}
                       >
-                        {Array.isArray(guestInfo.rooms) ? guestInfo.rooms.length : guestInfo.rooms || 1}
+                        {Array.isArray(guestInfo.rooms)
+                          ? guestInfo.rooms.length
+                          : guestInfo.rooms || 1}
                       </span>
                     </div>
                     <div className="flex items-center gap-1">
                       <div className="w-4 h-4 bg-[#F4EFE6] rounded-full flex items-center justify-center">
-                        <Users className="w-2 h-2" style={{ color: '#5B543F' }} />
+                        <Users
+                          className="w-2 h-2"
+                          style={{ color: "#5B543F" }}
+                        />
                       </div>
                       <span
                         className="text-xs font-bold"
                         style={{ color: primaryColor }}
                       >
                         {Array.isArray(guestInfo.rooms)
-                          ? guestInfo.rooms.reduce((sum, room) => sum + (room.adults || 0), 0)
+                          ? guestInfo.rooms.reduce(
+                              (sum, room) => sum + (room.adults || 0),
+                              0,
+                            )
                           : guestInfo.adults || 1}
                       </span>
                     </div>
@@ -876,7 +937,7 @@ useEffect(() => {
                     className="bg-transparent border-b-2 pb-1.5 text-[9px] tracking-[0.15em] placeholder-[#9B8B6F] focus:outline-none"
                     style={{
                       borderColor: tertiaryColor,
-                      color: tertiaryColor
+                      color: tertiaryColor,
                     }}
                   />
                 </div>
@@ -888,7 +949,7 @@ useEffect(() => {
                   className="px-6 py-3 rounded-full text-[10px] font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm min-w-[90px] hover:opacity-90"
                   style={{
                     backgroundColor: secondaryColor,
-                    color: calculatedButtonTextColor
+                    color: calculatedButtonTextColor,
                   }}
                 >
                   {loading ? "LOADING..." : "BOOK"}
@@ -920,27 +981,27 @@ useEffect(() => {
                   onClick={handleHomeClick}
                   className="flex items-center focus:outline-none"
                 >
-                 {currentLogo ? (
-  <div className="relative w-24 h-16">
-    <Image
-      src={currentLogo}
-      alt="Hotel Logo"
-      fill
-      className="object-contain"
-      unoptimized
-    />
-  </div>
-) : (
-  <div className="relative w-24 h-16">
-    <Image
-      src={defaultLogo}
-      alt="Hotel Logo"
-      fill
-      className="object-contain"
-      unoptimized
-    />
-  </div>
-)}
+                  {currentLogo ? (
+                    <div className="relative w-24 h-16">
+                      <Image
+                        src={currentLogo}
+                        alt="Hotel Logo"
+                        fill
+                        className="object-contain"
+                        unoptimized
+                      />
+                    </div>
+                  ) : (
+                    <div className="relative w-24 h-16">
+                      <Image
+                        src={defaultLogo}
+                        alt="Hotel Logo"
+                        fill
+                        className="object-contain"
+                        unoptimized
+                      />
+                    </div>
+                  )}
                 </button>
 
                 <button
@@ -962,7 +1023,10 @@ useEffect(() => {
                 >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4" style={{ color: tertiaryColor }} />
+                      <Calendar
+                        className="w-4 h-4"
+                        style={{ color: tertiaryColor }}
+                      />
                       <span
                         className="text-xs font-semibold tracking-[0.1em]"
                         style={{ color: primaryColor }}
@@ -970,7 +1034,9 @@ useEffect(() => {
                         DATES
                       </span>
                     </div>
-                    <span className="text-xs" style={{ color: tertiaryColor }}>Edit</span>
+                    <span className="text-xs" style={{ color: tertiaryColor }}>
+                      Edit
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="text-center">
@@ -986,16 +1052,16 @@ useEffect(() => {
                       >
                         {checkIn?.getDate()}
                       </p>
-                      <p
-                        className="text-xs"
-                        style={{ color: tertiaryColor }}
-                      >
+                      <p className="text-xs" style={{ color: tertiaryColor }}>
                         {checkIn?.toLocaleDateString("en-US", {
                           month: "short",
                         })}
                       </p>
                     </div>
-                    <ChevronRight className="w-6 h-6" style={{ color: tertiaryColor }} />
+                    <ChevronRight
+                      className="w-6 h-6"
+                      style={{ color: tertiaryColor }}
+                    />
                     <div className="text-center">
                       <p
                         className="text-[12px] mb-1"
@@ -1009,14 +1075,11 @@ useEffect(() => {
                       >
                         {checkOut?.getDate() ?? "--"}
                       </p>
-                      <p
-                        className="text-xs"
-                        style={{ color: tertiaryColor }}
-                      >
+                      <p className="text-xs" style={{ color: tertiaryColor }}>
                         {checkOut
                           ? checkOut.toLocaleDateString("en-US", {
-                            month: "short",
-                          })
+                              month: "short",
+                            })
                           : "Select"}
                       </p>
                     </div>
@@ -1027,10 +1090,13 @@ useEffect(() => {
                 <button
                   onClick={() => setIsGuestSelectorOpen(true)}
                   className="bg-white border rounded-2xl p-4 text-left hover:border-[#9B8B6F] transition-colors"
-                  style={{ borderColor: '#C4BAA5' }}
+                  style={{ borderColor: "#C4BAA5" }}
                 >
                   <div className="flex items-center gap-2 mb-2">
-                    <Users className="w-4 h-4" style={{ color: tertiaryColor }} />
+                    <Users
+                      className="w-4 h-4"
+                      style={{ color: tertiaryColor }}
+                    />
                     <span
                       className="text-xs font-semibold"
                       style={{ color: primaryColor }}
@@ -1043,16 +1109,19 @@ useEffect(() => {
                       className="text-sm font-semibold"
                       style={{ color: primaryColor }}
                     >
-                      {totalGuests} guest{totalGuests !== 1 ? 's' : ''}
+                      {totalGuests} guest{totalGuests !== 1 ? "s" : ""}
                     </span>
-                    <ChevronRight className="w-4 h-4 ml-auto" style={{ color: tertiaryColor }} />
+                    <ChevronRight
+                      className="w-4 h-4 ml-auto"
+                      style={{ color: tertiaryColor }}
+                    />
                   </div>
                 </button>
 
                 {/* Promo Code */}
                 <div
                   className="bg-white border rounded-2xl p-4 hover:border-[#9B8B6F] transition-colors"
-                  style={{ borderColor: '#C4BAA5' }}
+                  style={{ borderColor: "#C4BAA5" }}
                 >
                   <div
                     className="text-xs font-semibold mb-2"
@@ -1076,7 +1145,7 @@ useEffect(() => {
                 className="w-full py-4 rounded-full text-sm font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm hover:opacity-90"
                 style={{
                   backgroundColor: secondaryColor,
-                  color: calculatedButtonTextColor
+                  color: calculatedButtonTextColor,
                 }}
               >
                 {loading ? "LOADING..." : "BOOK NOW"}
@@ -1095,26 +1164,26 @@ useEffect(() => {
               className="flex items-center focus:outline-none"
             >
               {currentLogo ? (
-  <div className="relative w-20 h-12">
-    <Image
-      src={currentLogo}
-      alt="Hotel Logo"
-      fill
-      className="object-contain"
-      unoptimized
-    />
-  </div>
-) : (
-  <div className="relative w-20 h-12">
-    <Image
-      src={defaultLogo}
-      alt="Hotel Logo"
-      fill
-      className="object-contain"
-      unoptimized
-    />
-  </div>
-)}
+                <div className="relative w-20 h-12">
+                  <Image
+                    src={currentLogo}
+                    alt="Hotel Logo"
+                    fill
+                    className="object-contain"
+                    unoptimized
+                  />
+                </div>
+              ) : (
+                <div className="relative w-20 h-12">
+                  <Image
+                    src={defaultLogo}
+                    alt="Hotel Logo"
+                    fill
+                    className="object-contain"
+                    unoptimized
+                  />
+                </div>
+              )}
             </button>
 
             <button
@@ -1136,7 +1205,10 @@ useEffect(() => {
                 {/* Dates Section */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-5 h-5" style={{ color: tertiaryColor }} />
+                    <Calendar
+                      className="w-5 h-5"
+                      style={{ color: tertiaryColor }}
+                    />
                     <span
                       className="text-sm font-semibold"
                       style={{ color: primaryColor }}
@@ -1176,8 +1248,8 @@ useEffect(() => {
                       <p className="text-xs text-[#7D7566]">
                         {checkOut
                           ? checkOut.toLocaleDateString("en-US", {
-                            month: "short",
-                          })
+                              month: "short",
+                            })
                           : "Select"}
                       </p>
                     </div>
@@ -1187,7 +1259,10 @@ useEffect(() => {
                 {/* Occupancy Section */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
-                    <Users className="w-5 h-5" style={{ color: tertiaryColor }} />
+                    <Users
+                      className="w-5 h-5"
+                      style={{ color: tertiaryColor }}
+                    />
                     <span
                       className="text-sm font-semibold"
                       style={{ color: primaryColor }}
@@ -1223,13 +1298,18 @@ useEffect(() => {
                             className="text-sm font-bold"
                             style={{ color: primaryColor }}
                           >
-                            {Array.isArray(guestInfo.rooms) ? guestInfo.rooms.length : guestInfo.rooms || 1}
+                            {Array.isArray(guestInfo.rooms)
+                              ? guestInfo.rooms.length
+                              : guestInfo.rooms || 1}
                           </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-1">
                         <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-                          <User className="w-4 h-4" style={{ color: '#5B543F' }} />
+                          <User
+                            className="w-4 h-4"
+                            style={{ color: "#5B543F" }}
+                          />
                         </div>
                         <div className="text-left">
                           <p className="text-xs text-[#7D7566]">Adults</p>
@@ -1238,13 +1318,19 @@ useEffect(() => {
                             style={{ color: primaryColor }}
                           >
                             {Array.isArray(guestInfo.rooms)
-                              ? guestInfo.rooms.reduce((sum, room) => sum + (room.adults || 0), 0)
+                              ? guestInfo.rooms.reduce(
+                                  (sum, room) => sum + (room.adults || 0),
+                                  0,
+                                )
                               : guestInfo.adults || 1}
                           </p>
                         </div>
                       </div>
                     </div>
-                    <ChevronRight className="w-5 h-5" style={{ color: tertiaryColor }} />
+                    <ChevronRight
+                      className="w-5 h-5"
+                      style={{ color: tertiaryColor }}
+                    />
                   </button>
                 </div>
 
@@ -1282,7 +1368,7 @@ useEffect(() => {
                   className="w-full py-4 rounded-full text-sm font-semibold disabled:opacity-60 transition-all shadow-sm hover:opacity-90"
                   style={{
                     backgroundColor: secondaryColor,
-                    color: calculatedButtonTextColor
+                    color: calculatedButtonTextColor,
                   }}
                 >
                   {loading ? "LOADING..." : "BOOK NOW"}
@@ -1297,14 +1383,12 @@ useEffect(() => {
         {isCalendarOpen &&
           createPortal(
             <>
-
               <div
                 className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9998]"
                 onClick={() => setIsCalendarOpen(false)}
               />
 
-              <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-auto" >
-
+              <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-auto">
                 <button
                   onClick={() => setIsCalendarOpen(false)}
                   className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/80 hover:bg-white transition-colors shadow-md"
@@ -1312,30 +1396,28 @@ useEffect(() => {
                   <X className="w-5 h-5" style={{ color: primaryColor }} />
                 </button>
 
-
                 <div className="p-6 md:p-8">
                   <DatePickerWithHover
                     checkIn={checkIn}
                     checkOut={checkOut}
                     temporaryCheckOut={temporaryCheckOut}
                     onDateSelect={(date: Date) => {
-
-                      if (selectionMode === 'checkin') {
+                      if (selectionMode === "checkin") {
                         setCheckIn(date);
                         setCheckOut(null);
-                        setSelectionMode('checkout');
+                        setSelectionMode("checkout");
                         setIsSelectingRange(true);
                       } else {
                         if (date > checkIn!) {
                           setCheckOut(date);
                           setIsSelectingRange(false);
                           setTimeout(() => setIsCalendarOpen(false), 300);
-                          setSelectionMode('checkin');
+                          setSelectionMode("checkin");
                           setTemporaryCheckOut(null);
                         } else {
                           setCheckIn(date);
                           setCheckOut(null);
-                          setSelectionMode('checkout');
+                          setSelectionMode("checkout");
                           setIsSelectingRange(true);
                         }
                       }
@@ -1351,7 +1433,7 @@ useEffect(() => {
                 </div>
               </div>
             </>,
-            document.body
+            document.body,
           )}
 
         <GuestSelector

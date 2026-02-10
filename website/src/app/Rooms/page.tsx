@@ -180,49 +180,56 @@ const Rooms = () => {
     let noOfChildrens = 0;
     let noOfRooms = 1;
 
-    if (Array.isArray(rawRooms)) {
-      noOfRooms = rawRooms.length;
-      rawRooms.forEach((room) => {
-        for (let i = 0; i < (room.adults || 0); i++) {
-          allGuests.push({
-            type: "adult",
-            firstName: "",
-            lastName: "",
-            dateOfBirth: "",
-          });
-        }
-        for (let i = 0; i < (room.children || 0); i++) {
-          allGuests.push({
-            type: "child",
-            firstName: "",
-            lastName: "",
-            dateOfBirth: "",
-          });
-        }
+    // ✅ FIXED CODE
+if (Array.isArray(rawRooms)) {
+  noOfRooms = rawRooms.length;
+  rawRooms.forEach((room) => {
+    for (let i = 0; i < (room.adults || 0); i++) {
+      allGuests.push({
+        type: "adult",
+        firstName: "",
+        lastName: "",
+        dateOfBirth: "",
       });
-      noOfAdults = allGuests.filter((g) => g.type === "adult").length;
-      noOfChildrens = allGuests.filter((g) => g.type === "child").length;
-    } else {
-      noOfAdults = bookingContext.guests?.adults || 1;
-      noOfChildrens = bookingContext.guests?.children || 0;
-      noOfRooms = bookingContext.guests?.rooms || 1;
-      for (let i = 0; i < noOfAdults; i++) {
-        allGuests.push({
-          type: "adult",
-          firstName: "",
-          lastName: "",
-          dateOfBirth: "",
-        });
-      }
-      for (let i = 0; i < noOfChildrens; i++) {
-        allGuests.push({
-          type: "child",
-          firstName: "",
-          lastName: "",
-          dateOfBirth: "",
-        });
-      }
     }
+    for (let i = 0; i < (room.children || 0); i++) {
+      allGuests.push({
+        type: "child",
+        firstName: "",
+        lastName: "",
+        dateOfBirth: "",
+      });
+    }
+  });
+  noOfAdults = allGuests.filter((g) => g.type === "adult").length;
+  noOfChildrens = allGuests.filter((g) => g.type === "child").length;
+} else {
+  noOfAdults = bookingContext.guests?.adults || 1;
+  noOfChildrens = bookingContext.guests?.children || 0;
+  // ✅ FIX: Ensure rooms is always a number
+  noOfRooms = typeof bookingContext.guests?.rooms === 'number'
+    ? bookingContext.guests.rooms
+    : Array.isArray(bookingContext.guests?.rooms)
+      ? bookingContext.guests.rooms.length
+      : 1;
+  
+  for (let i = 0; i < noOfAdults; i++) {
+    allGuests.push({
+      type: "adult",
+      firstName: "",
+      lastName: "",
+      dateOfBirth: "",
+    });
+  }
+  for (let i = 0; i < noOfChildrens; i++) {
+    allGuests.push({
+      type: "child",
+      firstName: "",
+      lastName: "",
+      dateOfBirth: "",
+    });
+  }
+}
 
     setGuestForms(allGuests);
 
@@ -653,8 +660,11 @@ const Rooms = () => {
         startDate:
           bookingContext.startDate || today.toISOString().split("T")[0],
         endDate: bookingContext.endDate || tomorrow.toISOString().split("T")[0],
-        numberOfRooms:
-          bookingContext.numberOfRooms || bookingContext.guests?.rooms || 1,
+         numberOfRooms: typeof bookingContext.guests?.rooms === 'number' 
+    ? bookingContext.guests.rooms 
+    : Array.isArray(bookingContext.guests?.rooms) 
+      ? bookingContext.guests.rooms.length 
+      : 1,
         location: bookingContext.location || "",
       };
 
@@ -760,7 +770,7 @@ const Rooms = () => {
                     style={{ borderColor: `${primaryColor}40` }}
                   >
                     <div
-                      className={`relative w-full ${loyaltyProgram ? "h-[300px]" : "h-[350px]"}`}
+                      className={`relative w-full ${loyaltyProgram ? "h-[348px]" : "h-[350px]"}`}
                     >
                       <video
                         className="w-full h-full object-cover"
