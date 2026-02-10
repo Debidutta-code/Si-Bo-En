@@ -211,8 +211,8 @@ export class ReservationService {
             const bookingCode = await this.generateBookingCode();
             const paymentMethods = await this.mapPaymentMethod(paymentMethod);
             let paidAmount = 0
-            if (paymentMethods=="payment_gateway") {
-                paidAmount==finalPrice.totalAmount
+            if (paymentMethods==="payment_gateway") {
+                paidAmount = finalPrice.totalAmount
             }
             const reservationPayload: ICReservation = {
                 bookingCode,
