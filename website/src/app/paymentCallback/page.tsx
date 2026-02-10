@@ -87,7 +87,7 @@ const PaymentCallbackPage = () => {
       // Attach payment info to booking
       if (bookingData?.data?.bookingDetails) {
         bookingData.data.bookingDetails.ngeniusOrderRef = orderRef;
-        bookingData.data.bookingDetails.paymentMethod = "ngenius";
+        bookingData.data.bookingDetails.paymentMethod = "payment_gateway";
       }
 
       //console.log("📤 Sending booking request:", bookingData);

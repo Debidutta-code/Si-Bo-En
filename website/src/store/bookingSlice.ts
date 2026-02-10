@@ -124,6 +124,7 @@ interface BookingState {
   bookingSource?: string;
   selectedAddons?: any[];
   selectedPromotions?: any[];
+  paymentMethod?:string;
 }
 
 const initialState: BookingState = {
@@ -151,6 +152,7 @@ const initialState: BookingState = {
   bookingCode: undefined,
   PropertyDetails: undefined,
   bookingSource: "direct",
+  paymentMethod:"pay_at_hotel"
 };
 
 const bookingSlice = createSlice({

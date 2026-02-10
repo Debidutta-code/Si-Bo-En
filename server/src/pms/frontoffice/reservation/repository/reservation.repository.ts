@@ -817,20 +817,20 @@ export class ReservationPromotionRepository {
         }
     }
 
-//     public async getPromotionsByReservationId(reservationId: string): Promise<IReservationPromotion[]> {
-//     try {
-//         return await prisma.reservationPromotion.findMany({
-//             where: { bookingId: reservationId },
-//             include: {
-//                 Promotion: true,
-//                 RatePlanRule: true
-//             }
-//         });
-//     } catch (error) {
-//         if (error instanceof Error) {
-//             throw new Error(`Failed to fetch reservation promotions: ${error.message}`);
-//         }
-//         throw new Error("Failed to fetch reservation promotions");
-//     }
-// }
+    public async getPromotionsByReservationId(reservationId: string): Promise<IReservationPromotion[]> {
+    try {
+        return await prisma.reservationPromotion.findMany({
+            where: { bookingId: reservationId },
+            include: {
+                Promotion: true,
+                RatePlanRule: true
+            }
+        });
+    } catch (error) {
+        if (error instanceof Error) {
+            throw new Error(`Failed to fetch reservation promotions: ${error.message}`);
+        }
+        throw new Error("Failed to fetch reservation promotions");
+    }
+}
 }
