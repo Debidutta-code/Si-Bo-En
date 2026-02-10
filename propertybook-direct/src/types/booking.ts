@@ -9,7 +9,11 @@ export interface FindRoomsRequest {
   };
   PropertyCode: string;
 }
-
+export interface Guest {
+  adults: number;
+  children: number;
+  rooms: number;
+}
 // Amenity Interface
 export interface IAmenity {
   id: string;

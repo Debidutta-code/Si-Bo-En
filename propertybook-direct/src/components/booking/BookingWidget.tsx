@@ -73,7 +73,7 @@ export function BookingWidget() {
       startDate: format(checkIn, 'yyyy-MM-dd'),
       endDate: format(checkOut, 'yyyy-MM-dd'),
       guests,
-      propertyCode: PROPERTY_CODE,
+      PropertyCode: PROPERTY_CODE,
     };
     
     setSearchCriteria(criteria);
