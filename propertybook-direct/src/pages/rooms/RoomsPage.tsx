@@ -47,7 +47,7 @@ export default function RoomsPage() {
           endDate: criteria.endDate,
           guests: criteria.guests,
         });
-        console.log(response)
+        // console.log(response)
         if (response) {
           setPropertyDetails(response.data.propertyDetails);
           setRooms(response.data.rooms);

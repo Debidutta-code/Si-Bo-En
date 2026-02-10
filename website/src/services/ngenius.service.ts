@@ -79,7 +79,7 @@ export interface OrderStatusResponse {
 class NGeniusService {
   async createOrder(payload: CreateOrderPayload): Promise<NGeniusOrderResponse> {
     try {
-      console.log("Creating N-Genius order with payload:", payload);
+      //console.log("Creating N-Genius order with payload:", payload);
       const response = await fetch(`${API_BASE_URL}/payment/ngenius/order`, {
         method: 'POST',
         headers: {

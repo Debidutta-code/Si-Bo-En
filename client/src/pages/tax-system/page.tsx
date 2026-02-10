@@ -270,7 +270,7 @@ export default function TaxSystem() {
             toast.error("Failed to fetch rate plans");
         }
     }
-    console.log("Rate Plans:", ratePlans);
+    // console.log("Rate Plans:", ratePlans);
     const fetchTaxRules = async () => {
         if (!propertyId) return;
         try {
