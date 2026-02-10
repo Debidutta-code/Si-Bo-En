@@ -30,8 +30,12 @@ interface PropertyAddress {
 interface Guests {
   adults: number;
   children: number;
-  rooms: number;
-  // childAges: number[];
+  rooms: number | Room[]; // ✅ Allow rooms to be either number or array
+  roomsArray?: Room[]; // ✅ Add optional roomsArray for detailed data
+}
+interface Room {
+  adults: number;
+  children: number;
 }
 
 interface GuestDetail {
