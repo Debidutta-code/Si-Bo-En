@@ -10,7 +10,8 @@ export const globalActivityLogger = (req: Request, res: Response, next: NextFunc
     '/ping',
     '/metrics',
     '/favicon.ico',
-    '/api/activities' 
+    '/api/activities',
+    '/api/v1/booking-engine/fetch-rooms'
   ];
   
   if (skipPaths.some(path => req.path.includes(path))) {

@@ -738,7 +738,17 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                     }}
                   />
                 </div>
-
+                <button
+                  onClick={handleSearch}
+                  disabled={loading}
+                  className="w-28 py-4 rounded-full text-sm font-semibold disabled:opacity-60 transition-all shadow-sm hover:opacity-90"
+                  style={{
+                    backgroundColor: secondaryColor,
+                    color: calculatedButtonTextColor,
+                  }}
+                >
+                  {loading ? "LOADING..." : "BOOK NOW"}
+                </button>
                 {/* BOOK BUTTON */}
                 <div className="min-w-[140px] flex justify-end gap-4">
                   {isRoomsPage && (
@@ -931,7 +941,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 </div>
 
                 {/* COMPACT BOOK BUTTON */}
-                <button
+                {/* <button
                   onClick={handleSearch}
                   disabled={loading}
                   className="px-6 py-3 rounded-full text-[10px] font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm min-w-[90px] hover:opacity-90"
@@ -941,9 +951,19 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   }}
                 >
                   {loading ? "LOADING..." : "BOOK"}
-                </button>
+                </button> */}
               </div>
-
+              <button
+                onClick={handleSearch}
+                disabled={loading}
+                className="w-full py-4 rounded-full text-sm font-semibold disabled:opacity-60 transition-all shadow-sm hover:opacity-90"
+                style={{
+                  backgroundColor: secondaryColor,
+                  color: calculatedButtonTextColor,
+                }}
+              >
+                {loading ? "LOADING..." : "BOOK NOW"}
+              </button>
               <div className="min-w-[100px] flex justify-end gap-3">
                 {isRoomsPage && (
                   <button
@@ -999,7 +1019,17 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                     </div>
                   )}
                 </button>
-
+                {/* <button
+                  onClick={handleSearch}
+                  disabled={loading}
+                  className="w-full py-4 rounded-full text-sm font-semibold disabled:opacity-60 transition-all shadow-sm hover:opacity-90"
+                  style={{
+                    backgroundColor: secondaryColor,
+                    color: calculatedButtonTextColor,
+                  }}
+                >
+                  {loading ? "LOADING..." : "BOOK NOW"}
+                </button> */}
                 <div className="flex items-center justify-between gap-3">
                   {isRoomsPage && (
                     <button

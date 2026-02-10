@@ -338,16 +338,16 @@ export const ACTIVITY_LOGGER_ROUTES: RoutePattern[] = [
         method: 'POST',
         config: createCheckInOutConfig(ActivityAction.CHECKOUT)
     },
-    {
-        pattern: /\/api\/v1\/booking-engine\/fetch-rooms$/,
-        method: 'POST',
-        config: createSimpleConfig(
-            ActivityAction.EXPORT,
-            ActivityEntity.ROOM,
-            (success) => success ? 'Available rooms fetched successfully' : 'Failed to fetch available rooms',
-            ['booking-engine', 'availability', 'export']
-        )
-    },
+    // {
+    //     pattern: /\/api\/v1\/booking-engine\/fetch-rooms$/,
+    //     method: 'POST',
+    //     config: createSimpleConfig(
+    //         ActivityAction.EXPORT,
+    //         ActivityEntity.ROOM,
+    //         (success) => success ? 'Available rooms fetched successfully' : 'Failed to fetch available rooms',
+    //         ['booking-engine', 'availability', 'export']
+    //     )
+    // },
 
     // ==================== PAYMENT ====================
     {
