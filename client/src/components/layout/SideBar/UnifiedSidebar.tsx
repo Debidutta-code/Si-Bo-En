@@ -446,7 +446,7 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
                       : 'text-gray-600 hover:bg-gray-50'
                   )}
                 >
-                  Bank Details
+                  Payment Setup
                 </Link>
 
                 {/* New Management Items */}

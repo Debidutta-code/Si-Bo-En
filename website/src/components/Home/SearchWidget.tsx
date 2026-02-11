@@ -537,7 +537,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 className="flex items-center focus:outline-none"
               >
                 {currentLogo ? (
-                  <div className="relative w-32 h-32">
+                  <div className="relative w-44 h-32">
                     <Image
                       src={currentLogo}
                       alt="Hotel Logo"
@@ -547,7 +547,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                     />
                   </div>
                 ) : (
-                  <div className="relative w-32 h-32">
+                  <div className="relative w-44 h-32">
                     <Image
                       src={defaultLogo}
                       alt="Hotel Logo"
@@ -738,17 +738,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                     }}
                   />
                 </div>
-                <button
-                  onClick={handleSearch}
-                  disabled={loading}
-                  className="w-28 py-4 rounded-full text-sm font-semibold disabled:opacity-60 transition-all shadow-sm hover:opacity-90"
-                  style={{
-                    backgroundColor: secondaryColor,
-                    color: calculatedButtonTextColor,
-                  }}
-                >
-                  {loading ? "LOADING..." : "BOOK NOW"}
-                </button>
+
                 {/* BOOK BUTTON */}
                 <button
                   onClick={handleSearch}
@@ -771,7 +761,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                       style={{ color: primaryColor }}
                       onClick={() => window.open(agenturl, '_blank')}
                     >
-                      BECOME A PARTNER
+                        
                     </button>
                   )}
                   <button
@@ -797,7 +787,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 className="flex items-center focus:outline-none"
               >
                 {currentLogo ? (
-                  <div className="relative w-28 h-20">
+                  <div className="relative w-44 h-20">
                     <Image
                       src={currentLogo}
                       alt="Hotel Logo"
@@ -807,7 +797,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                     />
                   </div>
                 ) : (
-                  <div className="relative w-28 h-20">
+                  <div className="relative w-44 h-20">
                     <Image
                       src={defaultLogo}
                       alt="Hotel Logo"
@@ -985,7 +975,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                     style={{ color: primaryColor }}
                     onClick={() => window.open(agenturl, '_blank')}
                   >
-                    BECOME A PARTNER
+                    PARTNER LOGIN
                   </button>
                 )}
                 <button
@@ -1012,7 +1002,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   className="flex items-center focus:outline-none"
                 >
                   {currentLogo ? (
-                    <div className="relative w-24 h-16">
+                    <div className="relative w-44 h-16">
                       <Image
                         src={currentLogo}
                         alt="Hotel Logo"
@@ -1022,7 +1012,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                       />
                     </div>
                   ) : (
-                    <div className="relative w-24 h-16">
+                    <div className="relative w-44 h-16">
                       <Image
                         src={defaultLogo}
                         alt="Hotel Logo"
@@ -1051,7 +1041,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                       style={{ color: primaryColor }}
                       onClick={() => window.open(agenturl, '_blank')}
                     >
-                      BECOME A PARTNER
+                      PARTNER LOGIN
                     </button>
                   )}
                   <button
@@ -1215,7 +1205,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
               className="flex items-center focus:outline-none"
             >
               {currentLogo ? (
-                <div className="relative w-20 h-12">
+                <div className="relative w-44 h-12">
                   <Image
                     src={currentLogo}
                     alt="Hotel Logo"
@@ -1225,7 +1215,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   />
                 </div>
               ) : (
-                <div className="relative w-20 h-12">
+                <div className="relative w-44 h-12">
                   <Image
                     src={defaultLogo}
                     alt="Hotel Logo"
@@ -1410,7 +1400,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                       style={{ color: primaryColor }}
                       onClick={() => window.open(agenturl, '_blank')}
                     >
-                      BECOME A PARTNER
+                      PARTNER LOGIN
                     </button>
                   )}
                   <button
