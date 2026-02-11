@@ -3,7 +3,7 @@ import { app } from './app';
 import { initializeExpressRoutes } from './config/route.config';
 import { connectPostgres, connectMongo } from './config/index';
 import { createServer } from 'http';
-import { socketManager } from './socket/socket.manager';
+import { socketManager } from './socket';
 
 // Create HTTP server
 const httpServer = createServer(app);
