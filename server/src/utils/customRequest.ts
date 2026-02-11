@@ -36,3 +36,10 @@ export interface CustomRequest extends ExpressRequest {
   permission?: IUserRolesAndAccess;
 
 }
+
+export interface RateTigerRequest extends ExpressRequest {
+  rateTiger?: {
+    partnerId: string;
+    apiKey: string;
+  };
+}

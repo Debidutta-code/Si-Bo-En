@@ -27,6 +27,7 @@ import { loyaltyRouter } from '../loyalty/routes/loyalty.routes';
 import promotionRouter from '../promotions/routes';
 import { fikafiPaymentRoutes } from '../fikafi-payment/routes';
 import { agentPlatformRouter } from '../agent-paltform/routes';
+import integrationRouter from '../integrations/routes/index.routes';
 export async function initializeExpressRoutes({ app }: { app: Express }) {
     // Health check
     app.head('/status', (_, res: Response) => res.status(200).end());
@@ -68,6 +69,7 @@ export async function initializeExpressRoutes({ app }: { app: Express }) {
     apiV1Router.use('/loyalty', loyaltyRouter);
     apiV1Router.use('/fikafi', fikafiPaymentRoutes);
     apiV1Router.use('/payment',PaymentRoutes);
+    apiV1Router.use('/integrations',integrationRouter)
 
     // Handle 404 for any undefined route under /api/v1
     app.all('/api/v1/*', (req: Request, _res: Response, next: NextFunction) => {

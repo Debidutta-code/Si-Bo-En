@@ -37,5 +37,13 @@ const config={
     fikafiBaseUrl: process.env.FIKAFI_BASE_URL,
     fikafiClientID: process.env.FIKAFI_CLIENT_ID,
     fikafiSecretKey: process.env.FIKAFI_SECRET_KEY,
+
+
+    rateTigerUsername: process.env.RATETIGER_USERNAME,
+    rateTigerPassword: process.env.RATETIGER_PASSWORD,
+    rateTigerApiKey: process.env.RATETIGER_API_KEY,
+    rateTigerPartnerId: process.env.RATETIGER_PARTNER_ID,
+    rateTigerJwtSecret: process.env.RATETIGER_JWT_SECRET || 'your-secret-key',
+    rateTigerJwtExpiresIn: 24 * 60 * 60,
 }       
 export default config;
