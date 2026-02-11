@@ -174,19 +174,19 @@ export class PaymentIntegrationService {
     }
   }
 
-  public static async getPaymentIntegrations() {
+  public static async getPaymentIntegrations(propertyId: string) {
     try {
-      const daoRes = await PaymentIntegrationDao.getPaymentIntegrations();
+      const daoRes = await PaymentIntegrationDao.getAllForPropertyId(propertyId);
       return successResponse('Payment integrations fetched successfully', daoRes);
     } catch (error: any) {
       return errorResponse('Failed to fetch payment integrations', error?.message);
     }
   }
 
-  public static async updatePaymentIntegration(id: string, name?: string, isActive?: boolean) {
+  public static async updatePaymentIntegration(id: string, name: string) {
     try {
-      const normalizedName = name ? normalizePaymentIntegrationName(name) : undefined;
-      
+      const normalizedName = normalizePaymentIntegrationName(name);
+
       if (normalizedName) {
         const isExists = await PaymentIntegrationDao.getPaymentIntegrationByName(normalizedName);
         if (isExists && isExists.id !== id) {
@@ -194,7 +194,7 @@ export class PaymentIntegrationService {
         }
       }
       
-      const daoRes = await PaymentIntegrationDao.updatePaymentIntegration(id, normalizedName, isActive);
+      const daoRes = await PaymentIntegrationDao.updatePaymentIntegration(id, normalizedName, true);
       return successResponse('Payment integration updated successfully', daoRes);
     } catch (error: any) {
       return errorResponse('Failed to update payment integration', error?.message);

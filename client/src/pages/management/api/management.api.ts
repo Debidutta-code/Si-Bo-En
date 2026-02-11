@@ -189,9 +189,9 @@ export const deleteLoyaltyGuestField = async (id: string) => {
   }
 };
 // Payment Integration APIs
-export const getPaymentIntegrations = async () => {
+export const getPaymentIntegrations = async (propertyId:string) => {
   try {
-    const response = await axios.get("/property-management/property/management/payment-integrations/");
+    const response = await axios.get(`/property-management/property/management/payment-integrations?propertyId=${propertyId}`);
     return response.data;
   } catch (error: any) {
     throw error.response?.data;

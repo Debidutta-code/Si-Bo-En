@@ -2,6 +2,7 @@
 import { Request, Response } from 'express';
 import { BankService } from '../services';
 import { errorResponse } from '../../utils/return';
+import { CustomRequest } from '../../utils';
 
 export class BankController {
   public static async getBankDetailsByPropertyId(req: Request, res: Response) {
@@ -23,42 +24,54 @@ export class BankController {
     }
   }
 
-  public static async addBankDetails(req: Request, res: Response) {
+  public static async addBankDetails(req: CustomRequest, res: Response) {
     try {
-      const propertyId: any = req.params.id;
+      const propertyId=req.params.id;
       const {
         payAtHotel,
         paymentGateway,
-        selectedPaymentIntegrations = []
+        selectedPaymentIntegration,
+        outletId
       } = req.body.activatedPaymentMethod;
 
-      // Get user role from request (assuming it's attached by auth middleware)
-      const userRole = (req as any).user?.role;
+      const userRole =req.user?.role;
+      if(!userRole) {
+        return res
+          .status(403)
+          .json(errorResponse('User role not found'));
+      }
 
       if (!propertyId) {
         return res
           .status(400)
           .json(errorResponse('In sufficient Property details'));
       }
-
       if (!payAtHotel && !paymentGateway) {
         return res
-          .status(400)
-          .json(
-            errorResponse('At least one payment method activation is required')
-          );
+        .status(400)
+        .json(
+          errorResponse('At least one payment method activation is required')
+        );
       }
-
+      if(userRole!=="super_admin"&& paymentGateway){
+        return res
+          .status(403)
+          .json(errorResponse('Only Super Admin can activate payment gateway'));
+      }
+      if(selectedPaymentIntegration&&!outletId){
+        return res
+          .status(400)
+          .json(errorResponse('Outlet ID is required for selected payment integration'));
+      }
       const response = await BankService.addBankDetails(
         propertyId,
         payAtHotel,
         paymentGateway,
-        selectedPaymentIntegrations,
-        userRole
+        selectedPaymentIntegration,
+        outletId
       );
 
-      const status = response.success ? 200 : 400;
-      return res.status(status).json(response);
+      return res.status(response.success ? 200 : 400).json(response);
     } catch (error: any) {
       return res
         .status(500)
@@ -67,11 +80,11 @@ export class BankController {
   }
 
   public static async updatePaymentMethodsByPropertyId(
-    req: Request,
+    req: CustomRequest,
     res: Response
   ) {
     try {
-      const propertyId: any = req.params.id;
+      const propertyId: string = req.params.id;
 
       if (!propertyId) {
         return res
@@ -82,11 +95,15 @@ export class BankController {
       const { 
         payAtHotel, 
         paymentGateway,
-        selectedPaymentIntegrations = []
+        selectedPaymentIntegration, 
+        outletId
       } = req.body.activatedPaymentMethod;
 
-      // Get user role from request
-      const userRole = (req as any).user?.role;
+      if(req.user?.role !== 'super_admin' && paymentGateway) {
+        return res
+          .status(403)
+          .json(errorResponse('Only Super Admin can activate payment gateway'));
+      }
 
       if (!payAtHotel && !paymentGateway) {
         return res
@@ -100,12 +117,11 @@ export class BankController {
         propertyId,
         payAtHotel,
         paymentGateway,
-        selectedPaymentIntegrations,
-        userRole
+        selectedPaymentIntegration,
+        outletId
       );
 
-      const status = response.success ? 200 : 400;
-      return res.status(status).json(response);
+      return res.status(response.success ? 200 : 400).json(response);
     } catch (error: any) {
       return res
         .status(500)

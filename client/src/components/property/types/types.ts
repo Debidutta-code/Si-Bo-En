@@ -1,3 +1,4 @@
+
 export interface IPropertyDetails {
   propertyName: string;
   propertyEmail: string;
@@ -96,10 +97,22 @@ export interface IRatePlans {
   ratePlanCode: string
   ratePlanName: string
 }
+
+export interface PaymentIntegrationDetail {
+  id: string;
+  isActive: boolean;
+  outletId: string;
+  paymentIntegration: {
+    id: string;
+    name: string;
+    isActive: boolean;
+  };
+}
+
 export interface PaymentMethods {
-  payAtHotel?: boolean;
-  paymentGateway?: boolean;
-  selectedPaymentIntegrations?: string[];
+  payAtHotel: boolean;
+  paymentGateway: boolean;
+  selectedPaymentIntegration: PaymentIntegrationDetail | null;
 }
 
 export interface IBankDetails {
