@@ -44,7 +44,7 @@ export class ReservationService {
         this.guestRepository = new GuestRepository();
         this.dashUtils = new DashUtilsRepo();
         this.bookingAddonRepository = new BookingAddonRepository();
-        this.reservationPromotionRepository = new ReservationPromotionRepository(); 
+        this.reservationPromotionRepository = new ReservationPromotionRepository();
         this.emailService = new ReservationEmailService();
     }
 
@@ -82,6 +82,7 @@ export class ReservationService {
             "net_banking": "net_banking",
             "upi": "upi",
             "paymentGateway": "payment_gateway",
+            "ngenius":"payment_gateway",
             "payment_gateway": "payment_gateway"
         };
         return methodMap[method] || "pay_at_hotel";
@@ -155,7 +156,7 @@ export class ReservationService {
         try {
             // Normalize the payload first
             const normalizedPayload = this.normalizePayload(payload);
-            const { bookingDetails, guestDetails , } = normalizedPayload;
+            const { bookingDetails, guestDetails, } = normalizedPayload;
 
             const {
                 startDate,
@@ -208,7 +209,11 @@ export class ReservationService {
             }
 
             const bookingCode = await this.generateBookingCode();
-
+            const paymentMethods = await this.mapPaymentMethod(paymentMethod);
+            let paidAmount = 0
+            if (paymentMethods==="payment_gateway") {
+                paidAmount = finalPrice.totalAmount
+            }
             const reservationPayload: ICReservation = {
                 bookingCode,
                 propertyId,
@@ -230,12 +235,12 @@ export class ReservationService {
                 currencyCode: currency,
                 finalPrice: finalPrice,
 
-                paidAmount: 0,
+                paidAmount: paidAmount,
                 extraAmountToPay: 0,
                 refundAmount: 0,
                 timezone: payload.timezone || "Asia/Kolkata",
                 countryCode: payload.countryCode || "IN",
-                paymentMethod: this.mapPaymentMethod(paymentMethod),
+                paymentMethod:paymentMethods,
                 paymentImages: null,
 
                 bookingStatus: "confirmed",
@@ -245,7 +250,7 @@ export class ReservationService {
 
                 isPromoUsed: !!(bookingDetails.promoCode || (normalizedPayload.bookingDetails.selectedPromotions && normalizedPayload.bookingDetails.selectedPromotions.length > 0)),
                 promoId: null,
-                agencyId:agencyId||null
+                agencyId: agencyId || null
             };
 
             const reservation = await this.reservationRepository.createReservation(reservationPayload);
@@ -293,7 +298,6 @@ export class ReservationService {
                         }
 
                         promotionPayloads.push({
-                            id:promo.id,
                             bookingCode: bookingCode,
                             bookingId: reservation.id,
                             promotionId: null,           // ✅ NULL for MLOS
