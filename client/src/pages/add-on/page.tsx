@@ -566,6 +566,13 @@ export default function AddOns() {
         setAvailabilities([]);
     };
 
+    const convertText = (txt: string): string => {
+        return txt
+            .split("_")
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(" ");
+    };
+
     // Filter add-ons
     const filteredAddOns = addOns?.filter((addOn) => {
         const matchesSearch = addOn.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -788,7 +795,7 @@ export default function AddOns() {
                                                         {addOn.isActive ? "Active" : "Inactive"}
                                                     </Badge>
                                                     <Badge variant="outline">
-                                                        {addOn.postingRhythm === "per_night" ? "Per Night" : "Per Stay"}
+                                                        {convertText(addOn.postingRhythm)}
                                                     </Badge>
                                                 </div>
                                                 <div className="pt-2 border-t">

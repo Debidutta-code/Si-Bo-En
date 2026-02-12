@@ -1566,7 +1566,7 @@ model CustomizableDealsApplicableAddons {
 
 model TouristTaxes {
   id String @id @default(uuid())
-
+  name String? //remove this ? when there is a need for db push
   ratePlanId   String   @map("rate_plan_id")
   ratePlanCode String   @map("rate_plan_code")
   ratePlan     RatePlan @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
@@ -1576,7 +1576,6 @@ model TouristTaxes {
   currencyCode  CurrencyCode? @default(USD) @map("currency_code")
 
   createdAt DateTime @default(now()) @map("created_at")
-
   @@map("tourist_taxes")
 }
 

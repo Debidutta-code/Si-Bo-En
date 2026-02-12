@@ -37,6 +37,7 @@ export interface ILoyalityGuestsWDP extends ILoyalityGuests{
         propertyName:string;
         propertyCode:string;
     };
-    guest:IGuests;
+    guest?:IGuests;
+    metaData:JSON
     
 }

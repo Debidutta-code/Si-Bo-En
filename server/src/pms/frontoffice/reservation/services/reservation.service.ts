@@ -27,6 +27,7 @@ import { BookingAddonRepository, ReservationPromotionRepository } from "../repos
 import {
     ReservationEmailService
 } from "../../../../sms-email-service/service"
+import { LoyaltyGuestRepository } from "../../../../loyalty/repository";
 export class ReservationService {
     reservationRepository: ReservationRepository;
     priceBrakeDownRepo: PriceBrakeDownRepo;
@@ -36,7 +37,7 @@ export class ReservationService {
     bookingAddonRepository: BookingAddonRepository;
     reservationPromotionRepository: ReservationPromotionRepository;
     emailService: ReservationEmailService;
-
+    loyalityGuestRepo: LoyaltyGuestRepository
     constructor() {
         this.reservationRepository = new ReservationRepository();
         this.priceBrakeDownRepo = new PriceBrakeDownRepo();
@@ -46,6 +47,7 @@ export class ReservationService {
         this.bookingAddonRepository = new BookingAddonRepository();
         this.reservationPromotionRepository = new ReservationPromotionRepository();
         this.emailService = new ReservationEmailService();
+        this.loyalityGuestRepo = new LoyaltyGuestRepository;
     }
 
     private async generateBookingCode(): Promise<string> {
@@ -82,7 +84,7 @@ export class ReservationService {
             "net_banking": "net_banking",
             "upi": "upi",
             "paymentGateway": "payment_gateway",
-            "ngenius":"payment_gateway",
+            "ngenius": "payment_gateway",
             "payment_gateway": "payment_gateway"
         };
         return methodMap[method] || "pay_at_hotel";
@@ -201,7 +203,10 @@ export class ReservationService {
                     city: null,
                     state: null,
                     country: null,
-                    zipCode: null
+                    zipCode: null,
+                    identityCardImage: null,
+                    identityCardNumber: null,
+                    userIdentityCardType: null
                 };
 
                 const newGuest = await this.guestRepository.createGuest(newGuestPayload);
@@ -209,9 +214,9 @@ export class ReservationService {
             }
 
             const bookingCode = await this.generateBookingCode();
-            const paymentMethods = await this.mapPaymentMethod(paymentMethod);
+            const paymentMethods =  this.mapPaymentMethod(paymentMethod);
             let paidAmount = 0
-            if (paymentMethods==="payment_gateway") {
+            if (paymentMethods === "payment_gateway") {
                 paidAmount = finalPrice.totalAmount
             }
             const reservationPayload: ICReservation = {
@@ -240,7 +245,7 @@ export class ReservationService {
                 refundAmount: 0,
                 timezone: payload.timezone || "Asia/Kolkata",
                 countryCode: payload.countryCode || "IN",
-                paymentMethod:paymentMethods,
+                paymentMethod: paymentMethods,
                 paymentImages: null,
 
                 bookingStatus: "confirmed",
@@ -269,6 +274,7 @@ export class ReservationService {
                 requestedRooms: finalPrice.requestedRooms,
                 tax: finalPrice.taxes
             };
+            const loyalityBrakedown=finalPrice.loyaltyDiscount
 
             await this.priceBrakeDownRepo.createpriceBrakeDowns([priceBreakdownPayload]);
             if (normalizedPayload.bookingDetails.selectedAddons && normalizedPayload.bookingDetails.selectedAddons.length > 0) {
@@ -342,21 +348,22 @@ export class ReservationService {
 
             Promise.all([
                 this.ariManupulationRepo.decreaseAvailableRooms(ariPayload),
-                this.emailService.reservationConfirmation({
-                    ...bookingDetails,
-                    guestDetails: guestDetails.map((guest: any) => ({
-                        type: guest.type,
-                        firstName: guest.firstName,
-                        lastName: guest.lastName,
-                        dateOfBirth: guest.dateOfBirth || guest.dob || '',
-                        email: guest.type === 'adult' ? email : undefined,
-                        phone: guest.type === 'adult' ? phone : undefined
-                    })),
-                    bookingCode: reservation.bookingCode,
-                    reservationId: reservation.id,
-                    bookedAt: reservation.bookedAt.toISOString(),
-                    bookingStatus: reservation.bookingStatus,
-                })
+                this.loyalityGuestRepo.addGuest(finalPrice?.loyaltyDiscount.loyaltyMemberId,primaryGuestId),
+                    this.emailService.reservationConfirmation({
+                        ...bookingDetails,
+                        guestDetails: guestDetails.map((guest: any) => ({
+                            type: guest.type,
+                            firstName: guest.firstName,
+                            lastName: guest.lastName,
+                            dateOfBirth: guest.dateOfBirth || guest.dob || '',
+                            email: guest.type === 'adult' ? email : undefined,
+                            phone: guest.type === 'adult' ? phone : undefined
+                        })),
+                        bookingCode: reservation.bookingCode,
+                        reservationId: reservation.id,
+                        bookedAt: reservation.bookedAt.toISOString(),
+                        bookingStatus: reservation.bookingStatus,
+                    })
             ]).catch(error => {
                 console.error("Non-blocking operations failed:", error);
             });
@@ -659,7 +666,9 @@ export class ReservationService {
                         numberOfNights: updatePayload.finalPrice.breakdown.numberOfNights,
                         averagePerNight: updatePayload.finalPrice.breakdown.averagePerNight,
                         totalTax: updatePayload.finalPrice.totalTax
-                    }
+                    },
+                                        loyaltyDiscount:updatePayload.finalPrice.loyaltyDiscount
+
                 },
                 promoCode: null,
                 currency: updatePayload.currencyCode,
@@ -1108,7 +1117,8 @@ export class ReservationService {
                         numberOfNights: reservation.finalPrice?.breakdown?.numberOfNights || 1,
                         averagePerNight: reservation.finalPrice?.breakdown?.averagePerNight || 0,
                         totalTax: reservation.finalPrice?.totalTax || 0
-                    }
+                    },
+                    loyaltyDiscount:reservation.finalPrice.loyaltyDiscount
                 },
                 promoCode: null,
                 currency: reservation.currencyCode,

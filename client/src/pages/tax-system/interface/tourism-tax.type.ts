@@ -12,6 +12,7 @@ export interface ITouristTax {
     discountValue: number | null;
     currencyCode: CurrencyCode | null;
     createdAt: Date;
+    name:string;
     ratePlan?: {
         id: string;
         ratePlanCode: string;
@@ -20,6 +21,7 @@ export interface ITouristTax {
 }
 
 export interface ICTouristTax {
+    name:string;
     ratePlanCode: string;
     discountType: DiscountType;
     discountValue?: number;

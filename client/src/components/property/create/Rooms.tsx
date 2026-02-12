@@ -265,7 +265,6 @@ export default function Rooms() {
                           <SelectItem value="sea" className="hover:bg-gray-100">Sea View</SelectItem>
                           <SelectItem value="mountain" className="hover:bg-gray-100">Mountain View</SelectItem>
                           <SelectItem value="garden" className="hover:bg-gray-100">Garden View</SelectItem>
-                          <SelectItem value="others " className="hover:bg-gray-100">Others</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

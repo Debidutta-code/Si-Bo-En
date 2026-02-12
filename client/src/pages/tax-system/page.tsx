@@ -1244,10 +1244,10 @@ export default function TaxSystem() {
                                             <div className="flex items-start justify-between">
                                                 <div className="flex-1">
                                                     <CardTitle className="text-lg mb-1">
-                                                        {charge.ratePlan?.ratePlanName || charge.ratePlanCode}
+                                                        {charge.name || charge.ratePlan?.ratePlanName}
                                                     </CardTitle>
                                                     <CardDescription className="text-xs">
-                                                        Rate Plan Code: {charge.ratePlanCode}
+                                                        Rate Plan name: {charge.ratePlan?.ratePlanName}
                                                     </CardDescription>
                                                 </div>
                                                 <DropdownMenu>
