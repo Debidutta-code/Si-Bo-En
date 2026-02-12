@@ -134,36 +134,4 @@ export class RateTigerMiddleware {
     }
   }
 
-  /**
-   * Validates OTA request structure
-   */
-  public static validateOTARequest(
-    req: RateTigerRequest,
-    res: Response,
-    next: NextFunction
-  ) {
-    try {
-      const { otaHotelAvailRQ } = req.body;
-
-      if (!otaHotelAvailRQ) {
-        return res.status(400).json({
-          success: false,
-          message: 'Missing otaHotelAvailRQ in request body'
-        });
-      }
-
-      const { hotelCode, requestId, timeStamp } = otaHotelAvailRQ;
-
-      if (!hotelCode || !requestId || !timeStamp) {
-        return res.status(400).json({
-          success: false,
-          message: 'Missing required fields in otaHotelAvailRQ'
-        });
-      }
-
-      next();
-    } catch (error) {
-      next(error);
-    }
-  }
 }

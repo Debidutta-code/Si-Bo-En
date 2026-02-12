@@ -2,7 +2,7 @@
 
 import { Router } from 'express';
 import { RateTigerMiddleware } from '../middleware/rate-tiger.middleware';
-import { RateTigerController } from '../controllers';
+import { InventoryUpdateController, PricePullController, RateTigerController } from '../controllers';
 
 const rateTigerRoute = Router();
 
@@ -17,8 +17,28 @@ rateTigerRoute.post(
 rateTigerRoute.post(
   '/room-rateplan-pull',
   RateTigerMiddleware.validateBearerToken,
-  RateTigerMiddleware.validateOTARequest,
   RateTigerController.roomRatePlanPull
 );
+rateTigerRoute.post(
+  '/inventory-pull',
+  RateTigerMiddleware.validateBearerToken,
+  RateTigerController.inventoryPull
+);
+rateTigerRoute.post(
+  '/price-pull',
+  RateTigerMiddleware.validateBearerToken,
+  PricePullController.pricePull
+);
+// Add to routes/ratetiger.routes.ts
 
+rateTigerRoute.post(
+  '/price-update',
+  RateTigerMiddleware.validateBearerToken,
+  RateTigerController.priceUpdate
+);
+rateTigerRoute.post(
+  '/inventory-update',
+  RateTigerMiddleware.validateBearerToken,
+  InventoryUpdateController.inventoryUpdate
+);
 export default rateTigerRoute;
