@@ -4,14 +4,14 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { useRouter } from "next/navigation";
-import {ngeniusService} from "../../services/ngenius.service";
+import { ngeniusService } from "../../services/ngenius.service";
 import {
   DollarSign,
   CreditCard,
   Check,
   Loader2,
   ShieldCheck,
- Info,
+  Info,
   Wallet,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -60,6 +60,10 @@ const BookingReviewPage = () => {
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
   const [fikafiLoading, setFikafiLoading] = useState(false);
   const [bookingCode, setBookingCodeValue] = useState<string>("");
+  const [bookingStatus, setBookingStatus] = useState<"pending" | "confirmed">(
+    "pending"
+  );
+
 
   const dispatch = useDispatch();
   const nights = finalPrice?.numberOfNights || 0;
@@ -136,13 +140,62 @@ const BookingReviewPage = () => {
   }, [PropertyId]);
 
   useEffect(() => {
+    if (!bookingCode) return;
+
+    let socket: any;
+
+    const initSocket = async () => {
+      const { default: io } = await import("socket.io-client");
+
+      socket = io(process.env.NEXT_PUBLIC_SOCKET_URL!, {
+        transports: ["websocket", "polling"],
+      });
+
+      socket.on("connect", () => {
+        console.log("🔌 Socket connected:", socket.id);
+
+        // Join payment room with correct format matching server's payment:{bookingCode}
+        const roomName = `payment:${bookingCode}`;
+        socket.emit("join-payment-room", roomName);
+        console.log(`📌 Joined payment room: ${roomName}`);
+      });
+
+      socket.on("payment-status-update", (data: any) => {
+        console.log("📡 Payment update received:", data);
+
+        if (data.status === "success") {
+          toast.success("Payment successful!");
+
+          setBookingStatus("confirmed");   // ⭐ update UI
+
+          setTimeout(() => {
+            router.push("/PaymentSuccess");
+          }, 800);
+        }
+
+      });
+
+      socket.on("disconnect", () => {
+        console.log("Socket disconnected");
+      });
+    };
+
+    initSocket();
+
+    return () => {
+      socket?.disconnect();
+    };
+  }, [bookingCode]);
+
+
+  useEffect(() => {
     if (!bankDetails) return;
 
     // Debug log to check what payment methods are available
     console.log("📋 Bank Details:", bankDetails);
     console.log("💳 paymentGateway:", bankDetails.paymentGateway);
     console.log("🏨 payAtHotel:", bankDetails.payAtHotel);
-    console.log("👀 Checking available payment methods...",bookingDetails);
+    console.log("👀 Checking available payment methods...", bookingDetails);
 
     // Check which payment methods are available
     const methods: string[] = [];
@@ -305,13 +358,27 @@ const BookingReviewPage = () => {
       dispatch(setFullBookingDetails(data.data));
       document.cookie = "can_access_payment=true; path=/";
 
-      // If Fikafi is selected, trigger Fikafi payment flow
+      // If Fikafi is selected, trigger Fikafi payment flow after booking is confirmed
       if (selectedPayment === "fikafi") {
-        toast.success("Booking confirmed! Redirecting to payment...", {
+        // Store booking code in localStorage for the Fikafi button to access
+        localStorage.setItem('currentBookingCode', newBookingCode);
+        
+        toast.success("Booking confirmed! Initiating payment...", {
           id: "booking-success",
           duration: 2000,
         });
-        // The FikafiPaymentButton will handle the payment flow
+        
+        // Trigger Fikafi payment after a short delay
+        setTimeout(() => {
+          // Find the Fikafi button and click it programmatically
+          const fikafiButton = document.querySelector('[data-fikafi-button]') as HTMLButtonElement;
+          if (fikafiButton) {
+            fikafiButton.click();
+          } else {
+            // Fallback: reload page with booking code or show payment section
+            console.error('Fikafi button not found');
+          }
+        }, 500);
         return;
       }
 
@@ -434,9 +501,10 @@ const BookingReviewPage = () => {
             clearTimeout(timeout);
             console.log('✅ Socket connected before payment redirect:', socket.id);
 
-            // Join payment room with order reference
-            socket.emit('join-payment-room', orderReference);
-            console.log(`📌 Joined payment room: payment:${orderReference}`);
+            // Join payment room with order reference using correct format
+            const roomName = `payment:${orderReference}`;
+            socket.emit('join-payment-room', roomName);
+            console.log(`📌 Joined payment room: ${roomName}`);
 
             resolve();
           });
@@ -529,15 +597,14 @@ const BookingReviewPage = () => {
             {/* Fikafi Payment Button */}
             <div className="mt-4">
               <FikafiPaymentButton
-                bookingCode={bookingCode || "PENDING_BOOKING"}
+                bookingCode={bookingCode}
                 amount={updatedPrice}
                 currency={currencyCode}
                 guestName={getGuestName()}
                 guestEmail={getGuestEmail()}
                 guestPhone={getGuestPhone()}
                 propertyName={propertyName}
-                propertyId={PropertyId || "UNKNOWN_PROPERTY"}   
-
+                propertyID={PropertyId || "UNKNOWN_PROPERTY"}
                 checkInDate={checkIn}
                 numberOfNights={nights}
                 onPaymentLinkGenerated={(paymentLink, paymentId) => {
@@ -550,7 +617,9 @@ const BookingReviewPage = () => {
                 }}
                 buttonText="Pay Now with Fikafi"
                 className="w-full"
+                data-fikafi-button="true"
               />
+
             </div>
 
             <div className="mt-3 flex flex-wrap gap-3 items-center">

@@ -437,7 +437,7 @@ model PropertyCategory {
   masterCategory   MasterPropertyCategory @relation(fields: [masterCategoryId], references: [id])
   masterCategoryId String                 @map("master_category_id")
 
-  property   Property @relation(fields: [propertyId], references: [id])
+  property   Property @relation(fields: [propertyId], references: [id])   
   propertyId String   @unique @map("property_id")
 
   @@map("property_categories")

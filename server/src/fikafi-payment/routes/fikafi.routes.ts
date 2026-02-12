@@ -1,33 +1,35 @@
-import { Router } from "express";
-import { FikafiPaymentController } from "../controller/fikafi.controller";
+import { Router } from 'express';
+import { FikafiPaymentController } from '../controller/fikafi.controller';
 
 export const fikafiPaymentRoutes = Router();
 
+// Get Fikafi token for frontend use
+fikafiPaymentRoutes.post('/token', FikafiPaymentController.getFikafiToken);
+
 // Main payment routes
 fikafiPaymentRoutes.post(
-  "/create-payment-link",
-  FikafiPaymentController.createPaymentLink
+    '/create-payment-link',
+    FikafiPaymentController.createPaymentLink
 );
 
 fikafiPaymentRoutes.get(
-  "/payment-status/:paymentId",
-  FikafiPaymentController.getPaymentStatus
+    '/payment-status/:paymentId',
+    FikafiPaymentController.getPaymentStatus
 );
 
 // Generate payment link from existing reservation
 fikafiPaymentRoutes.post(
-  "/generate-from-reservation",
-  FikafiPaymentController.generateFromReservation
-);
-
-// Webhook endpoints for Fikafi
-fikafiPaymentRoutes.post(
-  "/webhook/payment-details",
-  FikafiPaymentController.handlePaymentDetailsWebhook
+    '/generate-from-reservation',
+    FikafiPaymentController.generateFromReservation
 );
 
 fikafiPaymentRoutes.post(
-  "/webhook/payment-event",
-  FikafiPaymentController.handlePaymentEventWebhook
+    '/webhook/payment-event',
+    FikafiPaymentController.handlePaymentEventWebhook
 );
 
+// Get reservation by booking code
+fikafiPaymentRoutes.get(
+    '/reservation/:bookingCode',
+    FikafiPaymentController.getReservationByCode
+);

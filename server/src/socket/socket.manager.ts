@@ -46,25 +46,45 @@ class SocketManager {
 
       /**
        * Join payment room
+       * Handles both formats:
+       * - Legacy: receives just {orderReference} → creates room payment:{orderReference}
+       * - New: receives {payment:{orderReference}} → joins room as-is
        */
-      socket.on('join-payment-room', (orderReference: string) => {
-        if (!orderReference) {
-          console.error('❌ join-payment-room: orderReference missing');
+      socket.on('join-payment-room', (roomIdentifier: string) => {
+        if (!roomIdentifier) {
+          console.error('❌ join-payment-room: roomIdentifier missing');
           return;
         }
 
-        const room = `payment:${orderReference}`;
+        // Detect if already has payment: prefix (new format from frontend)
+        let room: string;
+        let orderReference: string;
+
+        if (roomIdentifier.startsWith('payment:')) {
+          // New format: frontend sends full room name
+          room = roomIdentifier;
+          orderReference = roomIdentifier.replace('payment:', '');
+          console.log(`📌 Using new format room name: ${room}`);
+        } else {
+          // Legacy format: frontend sends just orderReference
+          room = `payment:${roomIdentifier}`;
+          orderReference = roomIdentifier;
+          console.log(`📌 Using legacy format, created room: ${room}`);
+        }
+
         socket.join(room);
 
+        // Track by actual orderReference (without prefix)
         if (!this.activeConnections.has(orderReference)) {
           this.activeConnections.set(orderReference, new Set());
         }
         this.activeConnections.get(orderReference)!.add(socket.id);
 
-        console.log(`📌 Socket ${socket.id} joined room: ${room}`);
+        console.log(`📌 Socket ${socket.id} joined room: ${room} (orderRef: ${orderReference})`);
 
         socket.emit('room-joined', {
           orderReference,
+          room,
           message: 'Successfully joined payment room',
         });
       });
