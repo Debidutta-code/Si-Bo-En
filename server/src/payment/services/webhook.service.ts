@@ -1,7 +1,7 @@
 // N-Genius Webhook Service
 import * as crypto from 'crypto';
 import { NGeniusWebhookPayload } from '../types/webhook.types';
-import { socketManager } from '../../socket/socket.manager';
+import { socketManager } from '../../socket';
 
 class WebhookService {
   /**
