@@ -22,6 +22,14 @@ export class WebhookController {
       const startTime = Date.now();
       console.log('🔔 Webhook request received at:', new Date().toISOString());
 
+      if (!req.body || Object.keys(req.body).length === 0) {
+        res.status(200).json({
+          success: false,
+          message: 'Empty webhook payload',
+        });
+        return;
+      }
+
       // Validate webhook request
       if (!webhookService.validateWebhookRequest(req.body, req.headers)) {
         res.status(400).json({
