@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -36,6 +37,8 @@ export default function PromoCodePage() {
     const [editingPromoCode, setEditingPromoCode] = useState<IRPromoCode | null>(null);
     const [isSpecificRoomTypes, setIsSpecificRoomTypes] = useState(false);
     const [isSpecificRatePlans, setIsSpecificRatePlans] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [promoCodeToDelete, setPromoCodeToDelete] = useState<string | null>(null);
 
     const [formData, setFormData] = useState<ICreatePromoCode>({
         name: "",
@@ -136,7 +139,6 @@ export default function PromoCodePage() {
 
     const handleDelete = async (id: string) => {
         if (!propertyId) return;
-        if (!confirm("Are you sure you want to delete this promo code?")) return;
 
         setLoading({ isLoading: true, text: "Deleting promo code..." });
         try {
@@ -151,6 +153,19 @@ export default function PromoCodePage() {
             toast.error("An error occurred while deleting promo code");
         } finally {
             setLoading({ isLoading: false, text: "" });
+            setDeleteDialogOpen(false);
+            setPromoCodeToDelete(null);
+        }
+    };
+
+    const openDeleteDialog = (id: string) => {
+        setPromoCodeToDelete(id);
+        setDeleteDialogOpen(true);
+    };
+
+    const confirmDelete = () => {
+        if (promoCodeToDelete) {
+            handleDelete(promoCodeToDelete);
         }
     };
 
@@ -217,12 +232,12 @@ export default function PromoCodePage() {
         return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
     };
 
-    const isPromoCodeActive = (promoCode: IRPromoCode) => {
-        const now = new Date();
-        const validFrom = new Date(promoCode.validFrom);
-        const validTo = new Date(promoCode.validTo);
-        return promoCode.isActive && now >= validFrom && now <= validTo;
-    };
+    // const isPromoCodeActive = (promoCode: IRPromoCode) => {
+    //     const now = new Date();
+    //     const validFrom = new Date(promoCode.validFrom);
+    //     const validTo = new Date(promoCode.validTo);
+    //     return promoCode.isActive && now >= validFrom && now <= validTo;
+    // };
     if (loading.isLoading) {
         return (
             <div className="flex h-screen items-center justify-center">
@@ -321,6 +336,7 @@ export default function PromoCodePage() {
                                         <Input
                                             id="discountValue"
                                             type="number"
+                                            min={0}
                                             value={formData.discountValue}
                                             onChange={(e) => setFormData({ ...formData, discountValue: parseFloat(e.target.value) })}
                                             placeholder={formData.discountType === "percentage" ? "e.g., 20" : "e.g., 500"}
@@ -333,6 +349,8 @@ export default function PromoCodePage() {
                                         <Input
                                             id="minBookingAmount"
                                             type="number"
+                                            min={0}
+
                                             value={formData.minBookingAmount || ""}
                                             onChange={(e) => setFormData({ ...formData, minBookingAmount: e.target.value ? parseFloat(e.target.value) : null })}
                                             placeholder="Optional"
@@ -343,6 +361,8 @@ export default function PromoCodePage() {
                                         <Input
                                             id="maxDiscountAmount"
                                             type="number"
+                                                                                        min={0}
+
                                             value={formData.maxDiscountAmount || ""}
                                             onChange={(e) => setFormData({ ...formData, maxDiscountAmount: e.target.value ? parseFloat(e.target.value) : null })}
                                             placeholder="Optional"
@@ -661,7 +681,7 @@ export default function PromoCodePage() {
                                             )}
                                         </TableCell>
                                         <TableCell>
-                                            {isPromoCodeActive(promoCode) ? (
+                                            {promoCode.isActive ? (
                                                 <Badge className="bg-green-500">Active</Badge>
                                             ) : (
                                                 <Badge variant="destructive">Inactive</Badge>
@@ -679,7 +699,7 @@ export default function PromoCodePage() {
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    onClick={() => handleDelete(promoCode.id)}
+                                                    onClick={() => openDeleteDialog(promoCode.id)}
                                                 >
                                                     <Trash2 className="h-4 w-4 text-destructive" />
                                                 </Button>
@@ -692,6 +712,32 @@ export default function PromoCodePage() {
                     )}
                 </CardContent>
             </Card>
+
+            {/* Delete Confirmation Dialog */}
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            This will permanently delete this promo code. This action cannot be undone.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => {
+                            setDeleteDialogOpen(false);
+                            setPromoCodeToDelete(null);
+                        }}>
+                            Cancel
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                            onClick={confirmDelete}
+                            className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                            Delete
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 }

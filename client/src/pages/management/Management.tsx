@@ -26,7 +26,7 @@ import {
   getLoyaltyGuestFieldsService,
   createLoyaltyGuestFieldsService,
   deleteLoyaltyGuestFieldService,
-  getPaymentIntegrationsService,
+  // getPaymentIntegrationsService,
   createPaymentIntegrationService,
   deletePaymentIntegrationService,
 } from "./services/management.services";
@@ -64,13 +64,15 @@ export default function ManagementPage() {
   const fetchAllData = async () => {
     setLoading(true);
     try {
-      const [catRes, propTypeRes, propAmenRes, roomAmenRes, loyaltyFieldsRes, paymentIntRes] = await Promise.all([
+      const [catRes, propTypeRes, propAmenRes, roomAmenRes, loyaltyFieldsRes, 
+        // paymentIntRes
+      ] = await Promise.all([
         getCategoriesService(),
         getPropertyTypesService(),
         getPropertyAmenitiesService("property"),
         getRoomAmenitiesService(),
         getLoyaltyGuestFieldsService(),
-        getPaymentIntegrationsService(),
+        // getPaymentIntegrationsService(),
       ]);
 
       if (catRes.success) setCategories(catRes.data);
@@ -78,7 +80,7 @@ export default function ManagementPage() {
       if (propAmenRes.success) setPropertyAmenities(propAmenRes.data);
       if (roomAmenRes.success) setRoomAmenities(roomAmenRes.data);
       if (loyaltyFieldsRes.success) setLoyaltyGuestFields(loyaltyFieldsRes.data);
-      if (paymentIntRes.success) setPaymentIntegrations(paymentIntRes.data);
+      // if (paymentIntRes.success) setPaymentIntegrations(paymentIntRes.data);
 
     } catch (error: any) {
       toast.error("Failed to fetch management data");

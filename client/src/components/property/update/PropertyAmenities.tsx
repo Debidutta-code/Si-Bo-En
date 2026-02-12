@@ -8,6 +8,7 @@ import Loader from "@/components/Loader/Loader";
 
 // API
 import { getAmenities } from "../api/create/propertyAmenity";
+import type { IAmenity } from "../types/amenity.types";
 
 // Types
 type AmenityKey = string;
@@ -29,7 +30,7 @@ export default function UpdatePropertyAmenity({
   availableAmenities: propAvailableAmenities = [], // selected amenities from parent
   setSelectedAmenities: propSetSelectedAmenities,
 }: {
-  availableAmenities: string[];
+  availableAmenities: IAmenity[];
   setSelectedAmenities: (val: AmenityState) => void;
 }) {
   const [isLoading, setIsLoading] = useState(true);
@@ -68,8 +69,8 @@ export default function UpdatePropertyAmenity({
         }, {});
 
         // Mark selected ones as true
-        propAvailableAmenities.forEach((selectedName: string) => {
-          const cleanSelectedName = selectedName.trim()
+        propAvailableAmenities.forEach((amenity: IAmenity) => {
+          const cleanSelectedName = amenity.name.trim()
           const key = toKey(cleanSelectedName);
           if (initialState.hasOwnProperty(key)) {
             initialState[key] = true;
@@ -119,19 +120,19 @@ export default function UpdatePropertyAmenity({
               key={name}
               type="button"
               onClick={() => handleToggle(name)}
-              className={cn(
+              className={cn( 
                 "relative flex flex-col items-center p-4 rounded-xl border-2 transition-all duration-200 focus:outline-none",
                 isSelected
                   ? "bg-black text-white border-black shadow-md"
                   : "bg-white border-gray-300 hover:border-black hover:shadow-md"
               )}
             >
-              <span className="text-xs font-medium capitalize text-center">
+              <span className="text-xs  font-medium capitalize text-center">
                 {name.replace(/_/g, " ")}
               </span>
               <div
                 className={cn(
-                  "absolute top-2 right-2 flex items-center justify-center w-5 h-5 rounded-full border-2 transition-all",
+                  "absolute top-0 right-0 flex items-center justify-center w-5 h-5 rounded-full border-2 transition-all",
                   isSelected
                     ? "bg-white border-white"
                     : "bg-white border-gray-400 group-hover:border-black"

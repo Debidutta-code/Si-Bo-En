@@ -705,7 +705,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                                     )}
                                   </span>
                                   <span className="text-xs text-gray-600 ml-1">
-                                    (To be paid directly at hotel)
+                                    (To be paid directly at hotel per night)
                                   </span>
                                 </span>
                               </div>

@@ -480,7 +480,11 @@ export default function TaxSystem() {
                     ruleId: null,
                     selectedGroupId: null,
                 });
-                fetchTaxGroups();
+                await Promise.all([
+
+                    fetchTaxRules(),
+                    fetchTaxGroups()
+                ])
             } else {
                 toast.error(response.message || "Failed to add rule to group");
             }
@@ -507,7 +511,11 @@ export default function TaxSystem() {
                     ruleId: null,
                     selectedGroupId: null,
                 });
-                fetchTaxGroups();
+                await Promise.all([
+
+                    fetchTaxRules(),
+                    fetchTaxGroups()
+                ])
             } else {
                 toast.error(response.message || "Failed to remove rule from group");
             }
