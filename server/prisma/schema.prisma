@@ -196,6 +196,10 @@ enum LoyaltyProgramLevel {
 enum Languages {
   en
 }
+enum IntegrationTypes {
+  channel_manager
+  pms
+}
 
 model Creation {
   id          String       @id @default(uuid())
@@ -351,7 +355,7 @@ model Property {
   customizableDeals           CustomizableDeal[]
   propertyPaymentIntegrations PropertyPaymentIntegration[]
   payments                    Payment[]
-  propertyIntegrations        PropertyIntegrations[]
+  // propertyIntegrations        PropertyIntegrations[]
 
   @@index([createdById])
   @@index([creationId])
@@ -1565,8 +1569,8 @@ model CustomizableDealsApplicableAddons {
 }
 
 model TouristTaxes {
-  id String @id @default(uuid())
-  name String? //remove this ? when there is a need for db push
+  id           String   @id @default(uuid())
+  name         String? //remove this ? when there is a need for db push
   ratePlanId   String   @map("rate_plan_id")
   ratePlanCode String   @map("rate_plan_code")
   ratePlan     RatePlan @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
@@ -1576,6 +1580,7 @@ model TouristTaxes {
   currencyCode  CurrencyCode? @default(USD) @map("currency_code")
 
   createdAt DateTime @default(now()) @map("created_at")
+
   @@map("tourist_taxes")
 }
 
@@ -1624,29 +1629,74 @@ model Payment {
   @@map("payments")
 }
 
-enum IntegrationTypes {
-  channel_manager
-  pms
-}
 
-model MasterIntegrations {
-  id       String           @id @default(uuid())
-  type     IntegrationTypes @default(channel_manager)
-  name     String           @unique
-  isActive Boolean          @default(true)
+// model MasterIntegrations {
+//   id       String           @id @default(uuid())
+//   type     IntegrationTypes @default(channel_manager)
+//   name     String           @unique
+//   isActive Boolean          @default(true)
 
-  createdAt            DateTime               @default(now()) @map("created_at")
-  propertyIntegrations PropertyIntegrations[]
-}
+//   createdAt                          DateTime                            @default(now()) @map("created_at")
+//   propertyIntegrations               PropertyIntegrations[]
+//   requiredFieldsForMasterIntegration RquiredFieldsForMasterIntegration[]
+//   masterIntegrationURLFields         MasterIntegrationURLFields[]
 
-model PropertyIntegrations {
-  id                   String             @id @default(uuid())
-  propertyId           String             @map("property_id")
-  Property             Property           @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  masterId             String             @map("master_id")
-  Master               MasterIntegrations @relation(fields: [masterIntegrationsId], references: [id])
-  isActive             Boolean            @map("is_active")
-  masterIntegrationsId String
+//   @@map("master_integrations")
+// }
 
-  @@unique([propertyId, masterId])
-}
+// model RquiredFieldsForMasterIntegration {
+//   id                  String @id @default(uuid())
+//   name                String
+//   masterIntegrationId String @map("master_integration_id")
+
+//   MasterIntegration          MasterIntegrations           @relation(fields: [masterIntegrationId], references: [id], onDelete: Cascade)
+//   propertyInregrationSecrets PropertyInregrationSecrets[]
+//   @@unique([masterIntegrationId,name])
+//   @@index([masterIntegrationId])
+//   @@map("required_fields_for_master_integration")
+// }
+
+// model MasterIntegrationURLFields {
+//   id                  String @id @default(uuid())
+//   name                String
+//   url                 String
+//   masterIntegrationId String @map("master_integration_id")
+
+//   MasterIntegration MasterIntegrations @relation(fields: [masterIntegrationId], references: [id], onDelete: Cascade)
+
+//   @@index([masterIntegrationId])
+//   @@map("master_integration_url_fields")
+// }
+
+// model PropertyIntegrations {
+//   id                         String                       @id @default(uuid())
+//   propertyId                 String                       @map("property_id")
+//   Property                   Property                     @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+//   masterIntegrationId        String                       @map("master_integration_id")
+//   MasterIntegration          MasterIntegrations           @relation(fields: [masterIntegrationId], references: [id])
+//   isActive                   Boolean                      @map("is_active")
+//   propertyIntegrationSecrets PropertyInregrationSecrets[]
+
+//   createdAt DateTime @default(now()) @map("created_at")
+
+//   @@unique([propertyId, masterIntegrationId])
+//   @@index([propertyId])
+//   @@index([masterIntegrationId])
+//   @@map("property_integrations")
+// }
+
+// model PropertyInregrationSecrets {
+//   id                    String                            @id @default(uuid())
+//   propertyIntegrationId String                            @map("property_integration_id")
+//   requiredFieldId       String                            @map("required_field_id")
+//   value                 String
+//   PropertyIntegration   PropertyIntegrations              @relation(fields: [propertyIntegrationId], references: [id], onDelete: Cascade)
+//   RequiredField         RquiredFieldsForMasterIntegration @relation(fields: [requiredFieldId], references: [id], onDelete: Cascade)
+
+//   createdAt DateTime @default(now()) @map("created_at")
+
+//   @@unique([propertyIntegrationId, requiredFieldId])
+//   @@index([propertyIntegrationId])
+//   @@index([requiredFieldId])
+//   @@map("property_integration_secrets")
+// }

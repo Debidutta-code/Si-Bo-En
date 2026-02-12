@@ -43,4 +43,5 @@ export type {
 
 export * from "./vedio.types";
 
-export * from "./payment-integration.type"
+export * from "./payment-integration.type";
+export * from "./integration.type"
