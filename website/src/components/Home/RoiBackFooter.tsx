@@ -32,7 +32,7 @@ const Footer = () => {
     const socialIconColor = tertiaryColor || "#b39a7e";
 
     // Final logo decision
-    const finalLogo = logoIcon || (isHomePage ? ZLogo : SLogo);
+    // const finalLogo = logoIcon || (isHomePage ? ZLogo : SLogo);
 
     return (
         <footer
@@ -69,9 +69,20 @@ const Footer = () => {
                     {/* Address Section */}
                     <div className="text-center flex-1 max-w-2xl">
                         <p className="text-sm md:text-base leading-relaxed font-light text-[#2F2A1F]">
-                            {propertyAddress?.addressLine1
-                                ? `${propertyAddress.addressLine1}`
-                                : "Dubai, United Arab Emirates"}
+                            {propertyAddress ? (
+                                <>
+                                    {propertyAddress.addressLine1 && `${propertyAddress.addressLine1}`}
+                                    {propertyAddress.addressLine2 && `, ${propertyAddress.addressLine2}`}
+                                    {propertyAddress.landmark && `, ${propertyAddress.landmark}`}
+                                    {propertyAddress.location && `, ${propertyAddress.location}`}
+                                    {propertyAddress.city && `, ${propertyAddress.city}`}
+                                    {propertyAddress.state && `, ${propertyAddress.state}`}
+                                    {propertyAddress.zipCode && ` - ${propertyAddress.zipCode}`}
+                                    {propertyAddress.country && `, ${propertyAddress.country}`}
+                                </>
+                            ) : (
+                                "Dubai, United Arab Emirates"
+                            )}
                         </p>
                     </div>
 

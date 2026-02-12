@@ -63,6 +63,7 @@ export interface IRoomPrice {
 }
 export interface ITouristTax {
   id: string;
+  name?:string;
   discountType: string;
   discountValue: number;
   currencyCode: string;

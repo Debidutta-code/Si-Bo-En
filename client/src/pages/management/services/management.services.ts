@@ -342,9 +342,9 @@ export const deleteLoyaltyGuestFieldService = async (id: string) => {
 
 
 // Payment Integration Services
-export const getPaymentIntegrationsService = async () => {
+export const getPaymentIntegrationsService = async (propertyId:string) => {
   try {
-    return await getPaymentIntegrations();
+    return await getPaymentIntegrations(propertyId);
   } catch (error: any) {
     return {
       success: false,

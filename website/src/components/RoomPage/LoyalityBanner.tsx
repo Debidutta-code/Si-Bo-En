@@ -20,6 +20,7 @@ export const LoyaltyProgramBanner = ({
   const [isRegistered, setIsRegistered] = useState(false);
   const [registeredEmail, setRegisteredEmail] = useState<string>("");
   const [isVerifying, setIsVerifying] = useState(true);
+  const [showAllBenefits, setShowAllBenefits] = useState(false);
   const [discountInfo, setDiscountInfo] = useState<{
     type: string;
     value: number;
@@ -293,18 +294,59 @@ export const LoyaltyProgramBanner = ({
                     <Star className="w-3 h-3" style={{ color: primaryColor }} />
                     Special Benefits
                   </h3>
-                  <div className="space-y-1.5 max-h-16 overflow-y-auto custom-scrollbar">
-                    {program.loyaltySpecialConditions
-                      .filter(condition => condition.isActive)
-                      .map((condition, index) => (
-                        <div 
-                          key={index} 
-                          className="flex items-start gap-2 bg-gradient-to-br from-purple-50 to-blue-50 rounded p-2 border border-purple-200"
-                        >
-                          <Star className="w-3 h-3 flex-shrink-0 mt-0.5" style={{ color: primaryColor }} />
-                          <span className="text-xs text-gray-900 font-semibold">{condition.title}</span>
-                        </div>
-                      ))}
+                  <div className="relative">
+                    <div 
+                      className={`space-y-1.5 transition-all duration-300 ${
+                        showAllBenefits ? 'max-h-none' : 'max-h-12 overflow-hidden'
+                      }`}
+                    >
+                      {program.loyaltySpecialConditions
+                        .filter(condition => condition.isActive)
+                        .map((condition, index) => (
+                          <div 
+                            key={index} 
+                            className="flex items-start gap-2 bg-gradient-to-br from-purple-50 to-blue-50 rounded p-2 border border-purple-200"
+                          >
+                            <Star className="w-3 h-3 flex-shrink-0 mt-0.5" style={{ color: primaryColor }} />
+                            <span className="text-xs text-gray-900 font-semibold">{condition.title}</span>
+                          </div>
+                        ))}
+                    </div>
+                    
+                    {/* Show Read More/Less button only if content exceeds max-h-16 (about 2-3 items) */}
+                    {program.loyaltySpecialConditions.filter(c => c.isActive).length > 2 && (
+                      <button
+                        onClick={() => setShowAllBenefits(!showAllBenefits)}
+                        className="mt-2 text-xs font-semibold hover:underline transition-all flex items-center gap-1"
+                        style={{ color: primaryColor }}
+                      >
+                        {showAllBenefits ? (
+                          <>
+                            Show Less
+                            <svg 
+                              className="w-3 h-3 transition-transform" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                            </svg>
+                          </>
+                        ) : (
+                          <>
+                            Read More ({program.loyaltySpecialConditions.filter(c => c.isActive).length - 2} more)
+                            <svg 
+                              className="w-3 h-3 transition-transform" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </>
+                        )}
+                      </button>
+                    )}
                   </div>
                 </div>
               )}
@@ -313,7 +355,7 @@ export const LoyaltyProgramBanner = ({
               <div className="flex items-center gap-2 flex-wrap-reverse md:flex-nowrap">
                 {/* Discount Badge - Won't Break */}
                 <div 
-                  className="px-3 py-1.5 rounded-lg text-white text-sm font-bold whitespace-nowrap flex-shrink-0"
+                  className="px-2.5 py-1 rounded-lg text-white text-xs font-bold whitespace-nowrap flex-shrink-0"
                   style={{ backgroundColor: primaryColor }}
                 >
                   {getDiscountDisplay()}

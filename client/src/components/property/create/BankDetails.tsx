@@ -69,10 +69,13 @@ export default function BankDetails() {
   // Fetch master payment integrations
   useEffect(() => {
     const fetchIntegrations = async () => {
+      if(!propertyId){
+        return
+      }
       if (isSuperAdmin) {
         setLoadingIntegrations(true);
         try {
-          const response = await getPaymentIntegrations();
+          const response = await getPaymentIntegrations(propertyId);
           if (response.success) {
             setMasterIntegrations(response.data);
           } else {

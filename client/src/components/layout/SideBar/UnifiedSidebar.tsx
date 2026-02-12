@@ -31,7 +31,7 @@ import {
   ClipboardCheck
 } from 'lucide-react';
 import { useAppSelector } from '@/redux/hooks';
-import { useState } from 'react';
+import { useEffect, useRef, useState, memo } from 'react';
 
 interface NavItem {
   name: string;
@@ -70,6 +70,9 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
   // const { creationId } = useParams();
   const { user } = useAppSelector((state) => state.user);
   const location = useLocation();
+  const navRef = useRef<HTMLDivElement | null>(null);
+const scrollPosition = useRef(0);
+
   const navigate = useNavigate();
   const [isManagementOpen, setIsManagementOpen] = useState(false);
   const [isRatesOpen, setIsRatesOpen] = useState(false);
@@ -77,6 +80,25 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
   const [isLoyaltyOpen, setIsLoyaltyOpen] = useState(false);
   const [isPromotionsOpen, setIsPromotionsOpen] = useState(false);
   const [isAgencyOpen, setIsAgencyOpen] = useState(false);
+
+  // Save scroll position before state changes
+  const saveScrollPosition = () => {
+    if (navRef.current) {
+      scrollPosition.current = navRef.current.scrollTop;
+    }
+  };
+
+  // Restore scroll position after render
+  const restoreScrollPosition = () => {
+    if (navRef.current) {
+      navRef.current.scrollTop = scrollPosition.current;
+    }
+  };
+
+  // Restore scroll position after state changes
+  useEffect(() => {
+    restoreScrollPosition();
+  }, [isManagementOpen, isRatesOpen, isRestrictionsOpen, isLoyaltyOpen, isPromotionsOpen, isAgencyOpen]);
 
   const handleLogout = () => {
     localStorage.removeItem('isAuthenticated');
@@ -159,8 +181,159 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
   ];
   // const isLoyaltyContext = location.pathname.includes('/app/property');
 
-  const SidebarContent = () => (
-    <div className='flex flex-col h-full bg-white border-r w-full'>
+  return (
+    <>
+      {/* Mobile Sidebar (Slide-out Sheet) */}
+      <div className="md:hidden">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="fixed top-4 left-4 z-50 bg-white/50 backdrop-blur-sm">
+              <Menu className="h-6 w-6" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="p-0 w-56">
+            <SidebarContent
+              isSidebarOpen={isSidebarOpen}
+              toggleSidebar={toggleSidebar}
+              navRef={navRef}
+              filteredNavigation={filteredNavigation}
+              filteredLoyaltyItems={filteredLoyaltyItems}
+              filteredAgencyItems={filteredAgencyItems}
+              filteredPropertyNavigation={filteredPropertyNavigation}
+              filteredManagementItems={filteredManagementItems}
+              ratesItems={ratesItems}
+              promotionsItems={promotionsItems}
+              restrictionsItems={restrictionsItems}
+              isPropertyContext={isPropertyContext}
+              user={user}
+              location={location}
+              propertyId={propertyId}
+              isManagementOpen={isManagementOpen}
+              setIsManagementOpen={setIsManagementOpen}
+              isRatesOpen={isRatesOpen}
+              setIsRatesOpen={setIsRatesOpen}
+              isRestrictionsOpen={isRestrictionsOpen}
+              setIsRestrictionsOpen={setIsRestrictionsOpen}
+              isLoyaltyOpen={isLoyaltyOpen}
+              setIsLoyaltyOpen={setIsLoyaltyOpen}
+              isPromotionsOpen={isPromotionsOpen}
+              setIsPromotionsOpen={setIsPromotionsOpen}
+              isAgencyOpen={isAgencyOpen}
+              setIsAgencyOpen={setIsAgencyOpen}
+              saveScrollPosition={saveScrollPosition}
+              handleLogout={handleLogout}
+            />
+          </SheetContent>
+        </Sheet>
+      </div>
+
+      {/* Desktop Sidebar (Permanent Flex Item) */}
+      <aside className={cn(
+        'hidden md:flex flex-col border-gray-200 transition-all duration-300 ease-in-out',
+        isSidebarOpen ? 'w-56' : 'w-20'
+      )}>
+        <SidebarContent
+          isSidebarOpen={isSidebarOpen}
+          toggleSidebar={toggleSidebar}
+          navRef={navRef}
+          filteredNavigation={filteredNavigation}
+          filteredLoyaltyItems={filteredLoyaltyItems}
+          filteredAgencyItems={filteredAgencyItems}
+          filteredPropertyNavigation={filteredPropertyNavigation}
+          filteredManagementItems={filteredManagementItems}
+          ratesItems={ratesItems}
+          promotionsItems={promotionsItems}
+          restrictionsItems={restrictionsItems}
+          isPropertyContext={isPropertyContext}
+          user={user}
+          location={location}
+          propertyId={propertyId}
+          isManagementOpen={isManagementOpen}
+          setIsManagementOpen={setIsManagementOpen}
+          isRatesOpen={isRatesOpen}
+          setIsRatesOpen={setIsRatesOpen}
+          isRestrictionsOpen={isRestrictionsOpen}
+          setIsRestrictionsOpen={setIsRestrictionsOpen}
+          isLoyaltyOpen={isLoyaltyOpen}
+          setIsLoyaltyOpen={setIsLoyaltyOpen}
+          isPromotionsOpen={isPromotionsOpen}
+          setIsPromotionsOpen={setIsPromotionsOpen}
+          isAgencyOpen={isAgencyOpen}
+          setIsAgencyOpen={setIsAgencyOpen}
+          saveScrollPosition={saveScrollPosition}
+          handleLogout={handleLogout}
+        />
+      </aside>
+    </>
+  );
+}
+
+// SidebarContent component moved outside to prevent re-creation on every render
+interface SidebarContentProps {
+  isSidebarOpen: boolean;
+  toggleSidebar: () => void;
+  navRef: React.RefObject<HTMLDivElement | null>;
+  filteredNavigation: NavItem[];
+  filteredLoyaltyItems: any[];
+  filteredAgencyItems: any[];
+  filteredPropertyNavigation: NavItem[];
+  filteredManagementItems: any[];
+  ratesItems: any[];
+  promotionsItems: any[];
+  restrictionsItems: any[];
+  isPropertyContext: boolean;
+  user: any;
+  location: any;
+  propertyId: string | undefined;
+  isManagementOpen: boolean;
+  setIsManagementOpen: (value: boolean) => void;
+  isRatesOpen: boolean;
+  setIsRatesOpen: (value: boolean) => void;
+  isRestrictionsOpen: boolean;
+  setIsRestrictionsOpen: (value: boolean) => void;
+  isLoyaltyOpen: boolean;
+  setIsLoyaltyOpen: (value: boolean) => void;
+  isPromotionsOpen: boolean;
+  setIsPromotionsOpen: (value: boolean) => void;
+  isAgencyOpen: boolean;
+  setIsAgencyOpen: (value: boolean) => void;
+  saveScrollPosition: () => void;
+  handleLogout: () => void;
+}
+
+const SidebarContent = memo<SidebarContentProps>(({
+  isSidebarOpen,
+  toggleSidebar,
+  navRef,
+  filteredNavigation,
+  filteredLoyaltyItems,
+  filteredAgencyItems,
+  filteredPropertyNavigation,
+  filteredManagementItems,
+  ratesItems,
+  promotionsItems,
+  restrictionsItems,
+  isPropertyContext,
+  user,
+  location,
+  propertyId,
+  isManagementOpen,
+  setIsManagementOpen,
+  isRatesOpen,
+  setIsRatesOpen,
+  isRestrictionsOpen,
+  setIsRestrictionsOpen,
+  isLoyaltyOpen,
+  setIsLoyaltyOpen,
+  isPromotionsOpen,
+  setIsPromotionsOpen,
+  isAgencyOpen,
+  setIsAgencyOpen,
+  saveScrollPosition,
+  handleLogout,
+}) => {
+  return (
+    <div className='flex flex-col h-full bg-white border-r w-full '>
       <div className="flex justify-around items-center h-16 px-2 border-b border-gray-200">
         <h1 className={cn(
           'font-bold text-xl ml-2 whitespace-nowrap transition-opacity duration-300',
@@ -175,7 +348,7 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
         </Button>
       </div>
 
-      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+      <nav className="flex-1 p-4 space-y-2 overflow-y-auto" ref={navRef}>
         {filteredNavigation.map((item) => {
           const targetHref = item.href === `/app/property` ? (
             user?.userLevel === 4 ? `/app/property/super/${user.creation}` :
@@ -211,7 +384,10 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
         {user?.creation && filteredLoyaltyItems.length > 0 && (
           <div>
             <button
-              onClick={() => setIsLoyaltyOpen(!isLoyaltyOpen)}
+              onClick={() => {
+                saveScrollPosition();
+                setIsLoyaltyOpen(!isLoyaltyOpen);
+              }}
               title="Loyalty"
               className={cn(
                 'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
@@ -258,7 +434,10 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
         {filteredAgencyItems.length > 0 && (
           <div>
             <button
-              onClick={() => setIsAgencyOpen(!isAgencyOpen)}
+              onClick={() => {
+                saveScrollPosition();
+                setIsAgencyOpen(!isAgencyOpen);
+              }}
               title="Agency"
               className={cn(
                 'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
@@ -328,7 +507,10 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
         {isPropertyContext && (
           <div>
             <button
-              onClick={() => setIsRatesOpen(!isRatesOpen)}
+              onClick={() => {
+                saveScrollPosition();
+                setIsRatesOpen(!isRatesOpen);
+              }}
               title="Rates"
               className={cn(
                 'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50',
@@ -372,7 +554,10 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
         {isPropertyContext && (
           <div>
             <button
-              onClick={() => setIsManagementOpen(!isManagementOpen)}
+              onClick={() => {
+                saveScrollPosition();
+                setIsManagementOpen(!isManagementOpen);
+              }}
               title="Management"
               className={cn(
                 'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50',
@@ -446,7 +631,7 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
                       : 'text-gray-600 hover:bg-gray-50'
                   )}
                 >
-                  Bank Details
+                  Payment Setup
                 </Link>
 
                 {/* New Management Items */}
@@ -472,7 +657,10 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
           isPropertyContext && (
             <div>
               <button
-                onClick={() => setIsPromotionsOpen(!isPromotionsOpen)}
+                onClick={() => {
+                  saveScrollPosition();
+                  setIsPromotionsOpen(!isPromotionsOpen);
+                }}
                 title="Promotions"
                 className={cn(
                   'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50',
@@ -558,7 +746,10 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
         {isPropertyContext && (
           <div>
             <button
-              onClick={() => setIsRestrictionsOpen(!isRestrictionsOpen)}
+              onClick={() => {
+                saveScrollPosition();
+                setIsRestrictionsOpen(!isRestrictionsOpen);
+              }}
               title="Restrictions"
               className={cn(
                 'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors text-gray-700 hover:bg-gray-50',
@@ -614,30 +805,7 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
       </div>
     </div>
   );
+});
 
-  return (
-    <>
-      {/* Mobile Sidebar (Slide-out Sheet) */}
-      <div className="md:hidden">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="ghost" size="icon" className="fixed top-4 left-4 z-50 bg-white/50 backdrop-blur-sm">
-              <Menu className="h-6 w-6" />
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="p-0 w-56">
-            <SidebarContent />
-          </SheetContent>
-        </Sheet>
-      </div>
-
-      {/* Desktop Sidebar (Permanent Flex Item) */}
-      <aside className={cn(
-        'hidden md:flex flex-col border-gray-200 transition-all duration-300 ease-in-out',
-        isSidebarOpen ? 'w-56' : 'w-20'
-      )}>
-        <SidebarContent />
-      </aside>
-    </>
-  );
-}
+// Add display name for better debugging
+SidebarContent.displayName = 'SidebarContent';

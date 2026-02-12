@@ -1,5 +1,6 @@
-import { BookingSource, BookingStatus, CurrencyCode, PaymentMethod ,DeviceType, ReservationPromotionType} from "@prisma/client";
+import { BookingSource, BookingStatus, CurrencyCode, PaymentMethod, DeviceType, ReservationPromotionType } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
+import { DiscountType } from "../../../../promocode/types";
 
 // ==================== PAYLOAD TYPES ====================
 export interface ICreateReservationPayload {
@@ -22,7 +23,7 @@ export interface IBookingDetails {
   promoCode: string | null;
   currency: CurrencyCode;
   bookingSource: BookingSource;
-  refundAmount:any
+  refundAmount: any
   email: string;
   phone: string;
   guests: {
@@ -68,7 +69,19 @@ export interface IFinalPrice {
     applied: IReservationPromotionCreate[];
     totalDiscount: number;
   };
-  addons?:any[];
+  addons?: any[];
+  loyaltyDiscount: {
+    amountAfterDiscount: number;
+    appliedTo: string;
+    currencyCode: CurrencyCode;
+    discountAmount: number
+    discountType: DiscountType
+    discountValue: number;
+    guestEmail: string
+    loyaltyMemberId: string;
+    originalAmount: number
+    propertyName: string
+  }
 }
 
 export interface IPriceBreakdown {
@@ -134,7 +147,7 @@ export interface ICReservation {
   bookedAt: Date;
 
   primaryGuestId: string;
-  guests: any; 
+  guests: any;
   bookingUserEmail: string;
   bookingUserPhone: string | null;
 
@@ -158,7 +171,7 @@ export interface ICReservation {
   promoId: string | null;
   countryCode: string;
   timezone: string;
-  deviceTypes:DeviceType
+  deviceTypes: DeviceType
   agencyId?: string | null; // ✅ ADD THIS
 }
 
@@ -189,9 +202,9 @@ export interface ICGuest {
   state: string | null;
   country: string | null;
   zipCode: string | null;
-  userIdentityCardType?: string | null;
-  identityCardNumber?: string | null;
-  identityCardImage?: string | null;
+  userIdentityCardType: string | null;
+  identityCardNumber: string | null;
+  identityCardImage: string | null;
 }
 
 export interface IGuests extends ICGuest {
@@ -313,6 +326,18 @@ export interface IReservationUpdatePayload {
       refundAmount: number;
       discount: number;
     };
+    loyaltyDiscount: {
+    amountAfterDiscount: number;
+    appliedTo: string;
+    currencyCode: CurrencyCode;
+    discountAmount: number
+    discountType: DiscountType
+    discountValue: number;
+    guestEmail: string
+    loyaltyMemberId: string;
+    originalAmount: number
+    propertyName: string
+  }
   };
   currencyCode: "USD" | "EUR" | "INR";
   bookingUserEmail: string;
@@ -376,7 +401,7 @@ export interface IBookingAddon extends IBookingAddonCreate {
 
 // ==================== RESERVATION PROMOTION TYPES ====================
 export interface IReservationPromotionCreate {
- bookingCode: string;
+  bookingCode: string;
   bookingId: string;
   promotionId?: string | null;
   mlosId?: string | null;
@@ -385,7 +410,7 @@ export interface IReservationPromotionCreate {
   promotionType: ReservationPromotionType;
 }
 export interface IReservationPromotionPayload {
- bookingCode: string;
+  bookingCode: string;
   bookingId: string;
   promotionId?: string | null;
   mlosId?: string | null;

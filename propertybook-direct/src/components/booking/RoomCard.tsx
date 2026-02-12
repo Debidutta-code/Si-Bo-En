@@ -8,18 +8,18 @@ import {
   ChevronRight,
   Ban,
   Tag,
-  ChevronDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 import { useBooking } from '@/contexts/BookingContext';
 import { cn } from '@/lib/utils';
 import type { IRoom, IRoomPrice } from '@/types/booking';
@@ -155,20 +155,14 @@ export function RoomCard({ room }: RoomCardProps) {
       ? state.selectedRatePlan.ratePlanCode 
       : room.room_price.length > 0 ? room.room_price[0].ratePlanCode : null
   );
+  const [isSheetOpen, setIsSheetOpen] = useState<boolean>(false);
 
   const handleSelectRatePlan = (ratePlan: IRoomPrice): void => {
     setSelectedPlanCode(ratePlan.ratePlanCode);
     selectRoom(room);
     selectRatePlan(ratePlan);
-  };
-
-  const handleRatePlanChange = (ratePlanCode: string): void => {
-    const selectedRatePlan = room.room_price.find(
-      (rp) => rp.ratePlanCode === ratePlanCode
-    );
-    if (selectedRatePlan) {
-      handleSelectRatePlan(selectedRatePlan);
-    }
+    // Close the sheet after selection
+    setIsSheetOpen(false);
   };
 
   const handleContinue = (): void => {
@@ -239,6 +233,8 @@ export function RoomCard({ room }: RoomCardProps) {
   const selectedRatePlan = room.room_price.find(
     (rp) => rp.ratePlanCode === selectedPlanCode
   );
+
+  const hasMultipleRates = room.room_price.length > 1;
 
   return (
     <div className={cn(
@@ -324,28 +320,6 @@ export function RoomCard({ room }: RoomCardProps) {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h4 className="font-semibold text-sm text-foreground">Select Rate</h4>
-                  
-                  {/* Show dropdown only if more than 1 rate plan */}
-                  {room.room_price.length > 1 && (
-                    <Select
-                      value={selectedPlanCode || undefined}
-                      onValueChange={handleRatePlanChange}
-                    >
-                      <SelectTrigger className="w-[200px] h-9">
-                        <SelectValue placeholder="View more rates" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {room.room_price.map((ratePlan) => (
-                          <SelectItem 
-                            key={ratePlan.ratePlanCode} 
-                            value={ratePlan.ratePlanCode}
-                          >
-                            {ratePlan.ratePlanName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
                 </div>
 
                 {/* Show the selected rate plan card */}
@@ -356,6 +330,40 @@ export function RoomCard({ room }: RoomCardProps) {
                     onSelect={() => handleSelectRatePlan(selectedRatePlan)}
                     nights={nights}
                   />
+                )}
+
+                {/* View more rates button - only show if there are multiple rates */}
+                {hasMultipleRates && (
+                  <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+                    <SheetTrigger asChild>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full"
+                      >
+                        View {room.room_price.length - 1} more rate{room.room_price.length - 1 > 1 ? 's' : ''}
+                      </Button>
+                    </SheetTrigger>
+                    <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
+                      <SheetHeader>
+                        <SheetTitle>Available Rates for {room.room_name}</SheetTitle>
+                        <SheetDescription>
+                          Select the rate plan that best suits your needs
+                        </SheetDescription>
+                      </SheetHeader>
+                      <div className="mt-6 space-y-4">
+                        {room.room_price.map((ratePlan) => (
+                          <RatePlanCard
+                            key={ratePlan.ratePlanCode}
+                            ratePlan={ratePlan}
+                            isSelected={ratePlan.ratePlanCode === selectedPlanCode}
+                            onSelect={() => handleSelectRatePlan(ratePlan)}
+                            nights={nights}
+                          />
+                        ))}
+                      </div>
+                    </SheetContent>
+                  </Sheet>
                 )}
               </div>
 

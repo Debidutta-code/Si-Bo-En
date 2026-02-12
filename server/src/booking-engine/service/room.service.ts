@@ -134,6 +134,7 @@ export class RoomBookingService {
 
                     touristTax = {
                         id: touristTaxData.id,
+                        name:touristTaxData.name||"",
                         discountType: touristTaxData.discountType,
                         discountValue: Number(touristTaxData.discountValue),
                         currencyCode: touristTaxData.currencyCode || 'USD',

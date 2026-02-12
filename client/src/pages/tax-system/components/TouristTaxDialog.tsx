@@ -43,6 +43,7 @@ export default function TouristTaxDialog({
         discountType: "flat",
         discountValue: 0,
         currencyCode: "USD",
+        name: ""
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -54,6 +55,7 @@ export default function TouristTaxDialog({
                     discountType: touristTax.discountType,
                     discountValue: touristTax.discountValue || 0,
                     currencyCode: touristTax.currencyCode || "USD",
+                    name: ""
                 });
             } else {
                 setFormData({
@@ -61,6 +63,7 @@ export default function TouristTaxDialog({
                     discountType: "flat",
                     discountValue: 0,
                     currencyCode: "USD",
+                    name: ""
                 });
             }
         }
@@ -84,6 +87,7 @@ export default function TouristTaxDialog({
     const resetForm = () => {
         if (mode === "create") {
             setFormData({
+                name: "",
                 ratePlanCode: "",
                 discountType: "flat",
                 discountValue: 0,
@@ -100,14 +104,29 @@ export default function TouristTaxDialog({
                         {mode === "create" ? "Create Additional Charge" : "Edit Additional Charge"}
                     </DialogTitle>
                     <DialogDescription>
-                        {mode === "create" 
-                            ? "Create a new tourist tax for your property" 
+                        {mode === "create"
+                            ? "Create a new tourist tax for your property"
                             : "Update the tourist tax details"}
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-4 py-4">
                     {/* Rate Plan Selection */}
+                    <div className="space-y-2">
+                        <Label htmlFor="name">Tourist Tax name *</Label>
+                        <Input
+                            id="name"
+                            placeholder={"Tourism Dhiram"}
+                            value={formData.name || ""}
+                            onChange={(e) =>
+                                setFormData({
+                                    ...formData,
+                                    name: e.target.value,
+                                })
+                            }
+                        />
+
+                    </div>
                     <div className="space-y-2">
                         <Label htmlFor="ratePlan">Rate Plan *</Label>
                         <Select

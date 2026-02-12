@@ -26,11 +26,11 @@ export class BankDetailsDao {
     }
   }
 
-  public static async getBankDetailsByPropertyId(id: string) {
+  public static async getBankDetailsByPropertyId(propertyId: string) {
     try {
       return await prisma.bankDetails.findUnique({
         where: {
-          propertyId: id,
+          propertyId: propertyId,
         },
       });
       
@@ -39,30 +39,29 @@ export class BankDetailsDao {
     }
   }
 
-  public static async updatePaymentMethods(
-    propertyId: string,
-    paymentGateway: boolean,
-    payAtHotel: boolean,
-  ) {
-    try {
-      const bankDetailsRes = await prisma.bankDetails.create({
-        data: {
-          propertyId: propertyId,
-          payAtHotel: payAtHotel,
-          paymentGateway: paymentGateway,
-        },
-      });
-//console.log("property id ",propertyId)
-      await prisma.property.update({
-        where: { id: propertyId },
-        data: { isDraft: true },
-      });
+  // public static async updatePaymentMethods(
+  //   propertyId: string,
+  //   paymentGateway: boolean,
+  //   payAtHotel: boolean,
+  // ) {
+  //   try {
+  //     const bankDetailsRes = await prisma.bankDetails.create({
+  //       data: {
+  //         propertyId: propertyId,
+  //         payAtHotel: payAtHotel,
+  //         paymentGateway: paymentGateway,
+  //       },
+  //     });
+  //     await prisma.property.update({
+  //       where: { id: propertyId },
+  //       data: { isDraft: true },
+  //     });
 
-      return bankDetailsRes;
-    } catch (error: any) {
-      throw new Error(error.message);
-    }
-  }
+  //     return bankDetailsRes;
+  //   } catch (error: any) {
+  //     throw new Error(error.message);
+  //   }
+  // }
 
 
 
@@ -90,13 +89,28 @@ export class BankDetailsDao {
 
 
 
-  public static async getIdFromPropertyCode(code: string) {
+  // public static async getIdFromPropertyCode(code: string) {
+  //   try {
+  //     return await prisma.property.findFirst({
+  //       where: { propertyCode: code },
+  //     });
+  //   } catch (error: any) {
+  //     throw new Error(error.message);
+  //   }
+  // }
+  public static async getPropertyPaymentIntegration(propertyId:string,paymentIntegrationId:string) {
     try {
-      return await prisma.property.findFirst({
-        where: { propertyCode: code },
+      return await prisma.propertyPaymentIntegration.findUnique({
+        where: {
+          propertyId_paymentIntegrationId: {
+            propertyId: propertyId,
+            paymentIntegrationId: paymentIntegrationId
+          }
+        }
       });
     } catch (error: any) {
       throw new Error(error.message);
     }
   }
+  
 }

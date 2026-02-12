@@ -1,6 +1,12 @@
 import createAxiosInstance from "@/components/axiosInstance";
-import type { IBankDetails,PaymentMethods } from "../../types/types";
+import type { IBankDetails } from "../../types/types";
 
+interface UpdatePaymentMethodPayload {
+  payAtHotel: boolean;
+  paymentGateway: boolean;
+  selectedPaymentIntegration: string | null;
+  outletId: string | null;
+}
 
 export const updateBankDetails=async(propertyId:string,bankDetails:IBankDetails)=>{
     const axiosInstance=createAxiosInstance()
@@ -11,10 +17,11 @@ export const updateBankDetails=async(propertyId:string,bankDetails:IBankDetails)
         return error?.response.data
     }
 }
-export const updatePaymentMethod=async(propertyId:string,bankDetails:PaymentMethods)=>{
+
+export const updatePaymentMethod=async(propertyId:string, payload: UpdatePaymentMethodPayload)=>{
     const axiosInstance=createAxiosInstance()
     try {
-        const res=await axiosInstance.put(`/property-management/property/${propertyId}/payment-details`,{activatedPaymentMethod:bankDetails})
+        const res=await axiosInstance.put(`/property-management/property/${propertyId}/payment-details`,{activatedPaymentMethod:payload})
         return res.data
     } catch (error:any) {
         return error?.response.data

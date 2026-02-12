@@ -1,16 +1,16 @@
 // services/bank.service.ts
+import { IApiResponse } from '../../utils';
 import { errorResponse, successResponse } from '../../utils/return';
 import { BankDetailsDao } from '../repository';
-import { PaymentIntegrationDao } from '../repository'; // You'll need to create this
+import { PaymentIntegrationDao } from '../repository';
 
 export class BankService {
   public static async getBankDetailsByPropertyId(propertyId: string) {
     try {
       const response = await BankDetailsDao.getBankDetailsByPropertyId(propertyId);
       if (response) {
-        // Fetch associated payment integrations
-        const paymentIntegrations = await PaymentIntegrationDao.getByPropertyId(propertyId);
-        
+        const paymentIntegrations = await PaymentIntegrationDao.getAllByPropertyId(propertyId);
+
         return successResponse('Bank details fetched Successfully', {
           ...response,
           selectedPaymentIntegrations: paymentIntegrations
@@ -30,48 +30,39 @@ export class BankService {
     propertyId: string,
     payAtHotel: boolean,
     paymentGateway: boolean,
-    selectedPaymentIntegrations: string[] = [],
-    userRole: string
+    selectedPaymentIntegration: string,
+    outletId: string | null
   ) {
     try {
-      // Check if paymentGateway is true
-      if (paymentGateway) {
-        // Check if user is super_admin
-        if (userRole !== 'super_admin') {
-          return errorResponse('Only super admin can enable payment gateway');
-        }
-
-        // Check if selectedPaymentIntegrations is provided
-        if (!selectedPaymentIntegrations || selectedPaymentIntegrations.length === 0) {
-          return errorResponse('Please select at least one payment integration');
-        }
-
-        // Validate that the selected payment integrations exist and are active
-        const validIntegrations = await PaymentIntegrationDao.validateMasterIntegrations(
-          selectedPaymentIntegrations
-        );
-        
-        if (!validIntegrations) {
-          return errorResponse('Invalid payment integration selected');
-        }
-      }
-
-      // Create bank details
       const response = await BankDetailsDao.addBankDetails(
         propertyId,
         payAtHotel,
         paymentGateway
       );
+      if (paymentGateway) {
 
-      if (response) {
-        // If paymentGateway is true, create PropertyPaymentIntegration records
-        if (paymentGateway && selectedPaymentIntegrations.length > 0) {
-          await PaymentIntegrationDao.createPropertyIntegrations(
-            propertyId,
-            selectedPaymentIntegrations
-          );
+        if (!selectedPaymentIntegration) {
+          return errorResponse('Please select a payment integration');
+        }
+        if (!outletId) {
+          return errorResponse('Please provide an outlet ID');
         }
 
+        const validIntegrations = await PaymentIntegrationDao.validateMasterIntegrations(
+          selectedPaymentIntegration
+        );
+
+        if (!validIntegrations) {
+          return errorResponse('Invalid payment integration selected');
+        }
+        await PaymentIntegrationDao.createPropertyIntegrations(
+          propertyId,
+          selectedPaymentIntegration,
+          outletId
+        );
+      }
+
+      if (response) {
         return successResponse('Bank details Added Successfully', response);
       } else {
         return errorResponse('Failed to add Bank details');
@@ -85,60 +76,67 @@ export class BankService {
   }
 
   public static async updatePaymentMethodsByPropertyId(
-  propertyId: string,
-  payAtHotel: boolean,
-  paymentGateway: boolean,
-  selectedPaymentIntegrations: string[] = [],
-  userRole: string
-) {
-  try {
-    // Check if paymentGateway is true
-    if (paymentGateway) {
-      // Check if user is super_admin
-      if (userRole !== 'super_admin') {
-        return errorResponse('Only super admin can enable payment gateway');
-      }
+    propertyId: string,
+    payAtHotel: boolean,
+    paymentGateway: boolean,
+    selectedPaymentIntegration: string,
+    outletId: string | null
+  ): Promise<IApiResponse> {
+    try {
 
-      // Check if selectedPaymentIntegrations is provided
-      if (!selectedPaymentIntegrations || selectedPaymentIntegrations.length === 0) {
-        return errorResponse('Please select at least one payment integration');
-      }
-
-      // Validate that the selected payment integrations exist and are active
-      const validIntegrations = await PaymentIntegrationDao.validateMasterIntegrations(
-        selectedPaymentIntegrations
-      );
-      
-      if (!validIntegrations) {
-        return errorResponse('Invalid payment integration selected');
-      }
-    }
-
-    const response = await BankDetailsDao.updatePaymentMethodsByPropertyId(
-      propertyId,
-      payAtHotel,
-      paymentGateway
-    );
-
-    if (response) {
-      // Update PropertyPaymentIntegration records
-      if (paymentGateway && selectedPaymentIntegrations.length > 0) {
-        // Replace existing integrations with new ones (atomic operation)
-        await PaymentIntegrationDao.updatePropertyIntegrations(
-          propertyId,
-          selectedPaymentIntegrations
+      if (paymentGateway) {
+        if (!selectedPaymentIntegration) {
+          return errorResponse('Please select a payment integration');
+        }
+        const validIntegrations = await PaymentIntegrationDao.validateMasterIntegrations(
+          selectedPaymentIntegration
         );
-      } else if (!paymentGateway) {
-        // If paymentGateway is disabled, delete all integrations
-        await PaymentIntegrationDao.deletePropertyIntegrations(propertyId);
-      }
+        if (!validIntegrations) {
+          return errorResponse('Invalid payment integration selected');
+        }
+        const isAlreadyExists = await BankDetailsDao.getPropertyPaymentIntegration(
+          propertyId,
+          selectedPaymentIntegration
+        );
+        console.log("Al Ready exist", isAlreadyExists)
+        if (isAlreadyExists) {
+          const isAnyRunning = await PaymentIntegrationDao.deactivatePropertyIntegrations(propertyId);
+          console.log("Checking if its running", isAnyRunning)
+          if (isAnyRunning) {
+            await PaymentIntegrationDao.togglePropertyIntegration(
+              isAnyRunning.id,
+              false
+            );
+            return this.updatePaymentMethodsByPropertyId(propertyId, payAtHotel, paymentGateway, selectedPaymentIntegration, outletId)
+          }
+          await PaymentIntegrationDao.togglePropertyIntegration(
+            isAlreadyExists.id,
+            true
+          )
 
-      return successResponse('Payment methods Updated Successfully', response);
-    } else {
-      return errorResponse('Failed to update payment methods');
+        } else {
+          if (!outletId) {
+            return errorResponse('Please provide an outlet ID');
+          }
+          await PaymentIntegrationDao.createPropertyIntegrations(
+            propertyId,
+            selectedPaymentIntegration,
+            outletId
+          );
+        }
+      }
+      const response = await BankDetailsDao.updatePaymentMethodsByPropertyId(
+        propertyId,
+        payAtHotel,
+        paymentGateway
+      );
+      if (response) {
+        return successResponse('Payment methods Updated Successfully', response);
+      } else {
+        return errorResponse('Failed to update payment methods');
+      }
+    } catch (error: any) {
+      return errorResponse('Internal server Error', error?.message);
     }
-  } catch (error: any) {
-    return errorResponse('Internal server Error', error?.message);
   }
-}
 }

@@ -699,13 +699,13 @@ const RoomCard: React.FC<RoomCardProps> = ({
                                 </span>
                                 <span className="text-sm">
                                   <span className="font-semibold text-amber-800">
-                                    Additional Charges: {ratePlan.currencyCode}{" "}
+                                    {ratePlan.touristTax ? ratePlan.touristTax.name : "Additional Charges:"} {ratePlan.currencyCode}{" "}
                                     {ratePlan.touristTax.calculatedTaxAmount.toFixed(
                                       2,
                                     )}
                                   </span>
                                   <span className="text-xs text-gray-600 ml-1">
-                                    (To be paid directly at hotel)
+                                    (To be paid directly at hotel per night)
                                   </span>
                                 </span>
                               </div>

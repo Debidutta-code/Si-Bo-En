@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { ChevronLeft, Users, Trash2 } from "lucide-react";
+import { ChevronLeft, Users, Trash2, User, Mail, Phone, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -24,28 +24,22 @@ import {
 } from "@/components/ui/alert-dialog";
 import Loader from "@/components/Loader/Loader";
 import { getLoyaltyGuestsForCreationService, deleteLoyaltyGuestService } from "./services/loyalty.guest.service";
+import type { ILoyalityGuestsWDP } from "./interfaces";
+import { Pagination } from "@/components/ui/pagination";
 
 interface ILoader {
   isLoading: boolean;
   message: string;
 }
 
-interface ILoyaltyGuest {
-  id: string;
-  guestId: string;
-  propertyId: string;
-  propertyCode: string;
-  creationLoyaltyConfigId: string;
-  createdAt: string;
-  updatedAt: string;
-}
 
 interface IPaginationData {
   currentPage: number;
-  totalPages: number;
+  limit: number;
   totalCount: number;
+  totalPages: number;
   hasNextPage: boolean;
-  hasPreviousPage: boolean;
+  hasPrevPage: boolean;
 }
 
 export default function PropertyLoyaltyGuests() {
@@ -55,13 +49,19 @@ export default function PropertyLoyaltyGuests() {
     isLoading: true,
     message: "Loading loyalty guests..."
   });
-  const [guests, setGuests] = useState<ILoyaltyGuest[]>([]);
+  const [metadataDialogOpen, setMetadataDialogOpen] = useState<boolean>(false);
+  const [selectedMetadata, setSelectedMetadata] = useState<any>(null);
+  // const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
+  // const [selectedGuestId, setSelectedGuestId] = useState<string | null>(null);
+
+  const [guests, setGuests] = useState<ILoyalityGuestsWDP[]>([]);
   const [pagination, setPagination] = useState<IPaginationData>({
     currentPage: 1,
-    totalPages: 1,
+    limit: 10,
     totalCount: 0,
+    totalPages: 0,
     hasNextPage: false,
-    hasPreviousPage: false
+    hasPrevPage: false,
   });
   const [deleteGuestId, setDeleteGuestId] = useState<string | null>(null);
 
@@ -80,13 +80,14 @@ export default function PropertyLoyaltyGuests() {
       const response = await getLoyaltyGuestsForCreationService(loyalityId, skip, limit);
 
       if (response.success && response.data) {
-        setGuests(response.data.data || []);
+        setGuests(response.data || []);
         setPagination({
           currentPage: response.data.currentPage || 1,
           totalPages: response.data.totalPages || 1,
           totalCount: response.data.totalCount || 0,
           hasNextPage: response.data.hasNextPage || false,
-          hasPreviousPage: response.data.hasPreviousPage || false
+          hasPrevPage: response.data.hasPrevPage || false,
+          limit: 10
         });
       } else {
         toast.error(response.message || "Failed to fetch loyalty guests");
@@ -101,31 +102,52 @@ export default function PropertyLoyaltyGuests() {
     }
   };
 
-  const handleDeleteGuest = async (guestId: string) => {
-    setLoader({ isLoading: true, message: "Deleting guest..." });
+  const handleDeleteGuest = async (guestId:string): Promise<void> => {
     try {
+      
+      if (!guestId) return;
+  
+      setLoader({ isLoading: true, message: "Deleting loyalty guest..." });
       const response = await deleteLoyaltyGuestService(guestId);
-
+  
       if (response.success) {
-        toast.success("Guest removed from loyalty program");
-        await fetchGuests(pagination.currentPage);
+        toast.success("Loyalty guest deleted successfully");
+        const currentPageGuests = guests.length;
+        if (currentPageGuests === 1 && pagination.currentPage > 1) {
+          fetchGuests(pagination.currentPage - 1, pagination.limit);
+        } else {
+          fetchGuests(pagination.currentPage, pagination.limit);
+        }
       } else {
-        toast.error(response.message || "Failed to remove guest");
       }
     } catch (error) {
-      toast.error("An error occurred while removing guest");
-    } finally {
+      
+      toast.error( "Failed to delete loyalty guest");
+    }finally{
       setLoader({ isLoading: false, message: "" });
-      setDeleteGuestId(null);
+
     }
   };
-
+  const openDeleteDialog = (guestId: string): void => {
+    setDeleteGuestId(guestId);
+    // setDeleteDialogOpen(true);
+  };
+  const openMetadataDialog = (metadata: any): void => {
+    setSelectedMetadata(metadata);
+    setMetadataDialogOpen(true);
+  };
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
       fetchGuests(newPage);
     }
   };
-
+  const formatDate = (date: Date | string): string => {
+    return new Date(date).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
   if (loader.isLoading) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -171,31 +193,76 @@ export default function PropertyLoyaltyGuests() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Guest ID</TableHead>
-                      <TableHead>Property Code</TableHead>
-                      <TableHead>Enrolled Date</TableHead>
+                      <TableHead>Guest Name</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Property</TableHead>
+                      <TableHead>Loyality Fields</TableHead>
+
+                      <TableHead>Enrolled On</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {guests.map((guest) => (
-                      <TableRow key={guest.id}>
-                        <TableCell className="font-medium">{guest.guestId}</TableCell>
-                        <TableCell>{guest.propertyCode}</TableCell>
+                    {guests.map((loyaltyGuest) => (
+                      <TableRow key={loyaltyGuest.id}>
+                        <TableCell className="font-medium">
+                          <div className="flex items-center gap-2">
+                            <User className="h-4 w-4 text-muted-foreground" />
+                            <span>
+                              {loyaltyGuest.guest && loyaltyGuest.guest.firstName}{" "}
+                              {loyaltyGuest.guest && loyaltyGuest.guest.lastName}
+                            </span>
+                          </div>
+                        </TableCell>
                         <TableCell>
-                          {new Date(guest.createdAt).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                          })}
+                          <div className="flex items-center gap-2">
+                            <Mail className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">
+                              {loyaltyGuest.guest && loyaltyGuest.guest.email || "N/A"}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <Phone className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-sm">
+                              {loyaltyGuest.guest && loyaltyGuest.guest.phoneNumber || "N/A"}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="space-y-1">
+                            <p className="font-medium text-sm">
+                              {loyaltyGuest.property.propertyName}
+                            </p>
+                          </div>
+                        </TableCell>
+
+
+                        <TableCell className="flex justify-center items-center">
+                          {loyaltyGuest.metaData ? (
+                            <span
+                              onClick={() => openMetadataDialog(loyaltyGuest.metaData)}
+                              className="gap-2"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </span>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">N/A</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {formatDate(loyaltyGuest.createdAt)}
                         </TableCell>
                         <TableCell className="text-right">
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => setDeleteGuestId(guest.id)}
+                            onClick={() => openDeleteDialog(loyaltyGuest.id)}
+                            className="hover:bg-destructive/10 hover:text-destructive"
                           >
-                            <Trash2 className="w-4 h-4 text-destructive" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -205,31 +272,15 @@ export default function PropertyLoyaltyGuests() {
               </div>
 
               {/* Pagination */}
-              {pagination.totalPages > 1 && (
-                <div className="flex items-center justify-between px-6 py-4 border-t">
-                  <div className="text-sm text-muted-foreground">
-                    Page {pagination.currentPage} of {pagination.totalPages}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage - 1)}
-                      disabled={!pagination.hasPreviousPage}
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pagination.currentPage + 1)}
-                      disabled={!pagination.hasNextPage}
-                    >
-                      Next
-                    </Button>
-                  </div>
-                </div>
-              )}
+              <div className="mt-4">
+                <Pagination
+                  currentPage={pagination.currentPage}
+                  totalPages={pagination.totalPages}
+                  onPageChange={handlePageChange}
+                  itemsPerPage={pagination.limit}
+                  totalItems={pagination.totalCount}
+                />
+              </div>
             </>
           )}
         </CardContent>
@@ -249,6 +300,39 @@ export default function PropertyLoyaltyGuests() {
             <AlertDialogAction onClick={() => deleteGuestId && handleDeleteGuest(deleteGuestId)}>
               Remove
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+
+      <AlertDialog open={metadataDialogOpen} onOpenChange={setMetadataDialogOpen}>
+        <AlertDialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Loyalty Program Fields</AlertDialogTitle>
+            <AlertDialogDescription>
+              Guest-specific loyalty program information
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-4 py-4">
+            {selectedMetadata && typeof selectedMetadata === 'object' ? (
+              Object.entries(selectedMetadata).map(([key, value]) => (
+                <div key={key} className="grid grid-cols-3 gap-4 items-start border-b pb-3 last:border-b-0">
+                  <div className="font-medium text-sm capitalize">
+                    {key.replace(/([A-Z])/g, ' $1').trim()}:
+                  </div>
+                  <div className="col-span-2 text-sm text-muted-foreground break-words">
+                    {typeof value === 'object' && value !== null
+                      ? JSON.stringify(value, null, 2)
+                      : String(value)}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground">No metadata available</p>
+            )}
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Close</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

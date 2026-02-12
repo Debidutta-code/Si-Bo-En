@@ -18,6 +18,7 @@ export class TouristTaxRepository {
         try {
             const createdTouristTax = await prisma.touristTaxes.create({
                 data: {
+                    name:touristTaxData.name,
                     ratePlanId: ratePlanId,
                     ratePlanCode: touristTaxData.ratePlanCode,
                     discountType: touristTaxData.discountType,

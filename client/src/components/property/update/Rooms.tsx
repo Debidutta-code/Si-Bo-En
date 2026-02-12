@@ -294,12 +294,6 @@ export default function Rooms({
                           >
                             Garden View
                           </SelectItem>
-                          <SelectItem
-                            value="others"
-                            className="hover:bg-gray-100"
-                          >
-                            Others
-                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>

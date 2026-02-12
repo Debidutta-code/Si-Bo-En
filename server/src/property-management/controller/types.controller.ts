@@ -338,29 +338,38 @@ export class PaymentIntegrationController {
 
   public static async getPaymentIntegrations(req: CustomRequest, res: Response) {
     try {
-      const serRes = await PaymentIntegrationService.getPaymentIntegrations();
+      const propertyId=req.query.propertyId as string ;
+      if(!propertyId){
+        return res.status(400).json(errorResponse('insufficient parameters'));
+      }
+      const serRes = await PaymentIntegrationService.getPaymentIntegrations(propertyId);
       if (serRes.success) {
         return res.status(200).json(serRes);
       } else {
         return res.status(400).json(serRes);
       }
-    } catch (error: any) {
+    } catch (error) {
+      if(error instanceof Error){
+        return res.status(500).json(errorResponse('Internal Server Error', error.message));
+      }
       return res
         .status(500)
-        .json(errorResponse('Internal Server Error', error?.message));
+        .json(errorResponse('Internal Server Error'));
     }
   }
 
   public static async updatePaymentIntegration(req: CustomRequest, res: Response) {
     try {
       const { id } = req.params;
-      const { name, isActive } = req.body;
-      
+      const { name } = req.body;
+      if(!name){
+        return res.status(400).json(errorResponse('Payment integration name is required to update'));
+      }
       if (!id) {
         return res.status(400).json(errorResponse('Payment integration ID is required'));
       }
 
-      const serRes = await PaymentIntegrationService.updatePaymentIntegration(id, name, isActive);
+      const serRes = await PaymentIntegrationService.updatePaymentIntegration(id, name);
       if (serRes.success) {
         return res.status(200).json(serRes);
       } else {

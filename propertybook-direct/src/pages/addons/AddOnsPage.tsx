@@ -6,71 +6,8 @@ import { PriceSummary } from '@/components/booking/PriceSummary';
 import { AddOnCard } from '@/components/booking/AddOnCard';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
-import type { AddOn } from '@/types/booking';
+import type { IAddon } from '@/types/booking';
 
-// Mock add-ons data - would come from API
-const mockAddOns: AddOn[] = [
-  {
-    id: 'breakfast',
-    name: 'Breakfast Buffet',
-    description: 'Start your day with our lavish breakfast spread featuring local and international cuisine.',
-    price: 25,
-    currency: 'USD',
-    priceType: 'per_person',
-    category: 'Dining',
-    icon: 'utensils',
-  },
-  {
-    id: 'airport-transfer',
-    name: 'Airport Transfer',
-    description: 'Comfortable private car transfer to/from the airport.',
-    price: 50,
-    currency: 'USD',
-    priceType: 'per_stay',
-    category: 'Transport',
-    icon: 'car',
-  },
-  {
-    id: 'spa-package',
-    name: 'Spa Package',
-    description: '60-minute relaxing massage and access to wellness facilities.',
-    price: 120,
-    currency: 'USD',
-    priceType: 'per_person',
-    category: 'Wellness',
-    icon: 'sparkles',
-  },
-  {
-    id: 'late-checkout',
-    name: 'Late Checkout',
-    description: 'Extend your stay until 4 PM on departure day.',
-    price: 40,
-    currency: 'USD',
-    priceType: 'per_stay',
-    category: 'Room',
-    icon: 'clock',
-  },
-  {
-    id: 'romantic-setup',
-    name: 'Romantic Room Setup',
-    description: 'Rose petals, candles, and a bottle of champagne waiting in your room.',
-    price: 75,
-    currency: 'USD',
-    priceType: 'per_stay',
-    category: 'Special Occasions',
-    icon: 'heart',
-  },
-  {
-    id: 'minibar',
-    name: 'Premium Minibar',
-    description: 'Daily restocked premium minibar with snacks and beverages.',
-    price: 35,
-    currency: 'USD',
-    priceType: 'per_night',
-    category: 'Room',
-    icon: 'wine',
-  },
-];
 
 export default function AddOnsPage() {
   const navigate = useNavigate();
@@ -87,15 +24,7 @@ export default function AddOnsPage() {
       </div>
     );
   }
-
-  // Group add-ons by category
-  const groupedAddOns = mockAddOns.reduce((acc, addOn) => {
-    if (!acc[addOn.category]) {
-      acc[addOn.category] = [];
-    }
-    acc[addOn.category].push(addOn);
-    return acc;
-  }, {} as Record<string, AddOn[]>);
+// http://localhost:8080/api/v1/addon/addon-datewise/available?propertyCode=4BTXDZ&startDate=2026-02-17&endDate=2026-02-18&ratePlanCode=SRYWE9
 
   return (
     <div className="min-h-screen bg-background pb-24 lg:pb-0">
