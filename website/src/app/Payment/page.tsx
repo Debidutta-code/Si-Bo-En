@@ -60,7 +60,7 @@ const BookingReviewPage = () => {
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
   const [fikafiLoading, setFikafiLoading] = useState(false);
   const [bookingCode, setBookingCodeValue] = useState<string>("");
-  const [bookingStatus, setBookingStatus] = useState<"pending" | "confirmed">(
+  const [bookingStatus, setLocalBookingStatus] = useState<"pending" | "confirmed">(
     "pending"
   );
 
@@ -166,7 +166,7 @@ const BookingReviewPage = () => {
         if (data.status === "success") {
           toast.success("Payment successful!");
 
-          setBookingStatus("confirmed");   // ⭐ update UI
+          setLocalBookingStatus("confirmed");   // ⭐ update UI
 
           setTimeout(() => {
             router.push("/PaymentSuccess");
@@ -354,7 +354,7 @@ const BookingReviewPage = () => {
       const newBookingCode = data.data.bookingCode;
       setBookingCodeValue(newBookingCode);
       dispatch(setBookingCode(newBookingCode));
-      dispatch(setBookingStatus(data.data.bookingStatus));
+      dispatch(setBookingStatus(data.data.bookingStatus||"pendin"));
       dispatch(setFullBookingDetails(data.data));
       document.cookie = "can_access_payment=true; path=/";
 
@@ -607,7 +607,7 @@ const BookingReviewPage = () => {
                 propertyID={PropertyId || "UNKNOWN_PROPERTY"}
                 checkInDate={checkIn}
                 numberOfNights={nights}
-                onPaymentLinkGenerated={(paymentLink, paymentId) => {
+                onPaymentLinkGenerated={(paymentLink: string) => {
                   console.log('Payment link generated:', paymentLink);
                   toast.success("Redirecting to payment...", { id: "fikafi-success" });
                 }}
