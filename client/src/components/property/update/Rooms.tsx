@@ -60,6 +60,7 @@ export default function Rooms({
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const updateRoom = (updates: Partial<IRoomDetails>) => {
+    
     updateRoomDetails((prev) => ({ ...prev, ...updates }));
     if (errors) {
       const updatedFields = Object.keys(updates);
@@ -138,14 +139,14 @@ export default function Rooms({
                         Room Type *
                       </Label>
                       <Input
-                      id="roomType"
-                      value={roomDetails.roomType || ""}
-                      onChange={(e) =>
-                        updateRoom({ roomType: e.target.value })
-                      }
-                      placeholder="e.g., Deluxe King Suite"
-                      className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
-                    />
+                        id="roomType"
+                        value={roomDetails.roomType || ""}
+                        onChange={(e) =>
+                          updateRoom({ roomType: e.target.value })
+                        }
+                        placeholder="e.g., Deluxe King Suite"
+                        className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
+                      />
                       {errors?.roomType?._errors[0] && (
                         <p className="text-red-500 text-sm mt-1">
                           {errors.roomType._errors[0]}
