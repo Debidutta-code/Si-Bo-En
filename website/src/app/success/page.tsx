@@ -138,7 +138,7 @@ export default function SuccessPage() {
         );
 
         setLoading(false);
-        router.replace(`/PaymentSuccess?bookingCode=${bookingCode}&status=pending`);
+        router.replace(`/PaymentSuccess?bookingCode=${bookingCode}&status=success`);
       }
     }, 1000);
   }, [router, searchParams, handlePaymentConfirmed]);
