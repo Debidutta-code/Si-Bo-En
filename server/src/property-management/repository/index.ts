@@ -8,15 +8,9 @@ import {
 import {PropertyConfigRepo} from "./property-config.repository"
 import { RoomAmenityDao, RoomDao } from "./room.repository";
 import {
-    CategoryDao,
     PropertyAmenitySelectionDao,
-    PropertyAminityDao,
     PropertyCategorySelectionDao,
     PropertyTypeSelectionDao,
-    PropertyTypesDao,
-    RoomAminityDao,
-    LoyaltyGuestFieldsDao,
-    PaymentIntegrationDao
     
 } from "./types.repository";
 export { PropertyVideoRepository, RoomVideoRepository } from "./vedio.repository";
@@ -29,13 +23,8 @@ export{
     PropertyAmenityDao,
     RoomAmenityDao,
     RoomDao,
-    CategoryDao,
     PropertyAmenitySelectionDao,
-    PropertyAminityDao,
     PropertyCategorySelectionDao,
     PropertyTypeSelectionDao,
-    PropertyTypesDao,
-    RoomAminityDao,
-    PropertyConfigRepo,LoyaltyGuestFieldsDao,
-    PaymentIntegrationDao
+    PropertyConfigRepo,
 }

@@ -1,9 +1,6 @@
 import { UpdatePlanData } from '../types/utills';
 import { formatDateToYYYYMMDD } from '../utils/date';
 import { IPaginatedResponse } from '../../utils/return';
-// import type { any } from "../../types/rateplan.type";
-// import type { IInventory } from '../types/inventory.types';
-// import type { ICharges } from "../types/charges.type"
 import prisma from '../../config/prisma.client';
 // import { MappedRate } from "../types/mapedRate.type"
 import { IRatePlanUpdate } from '../types/rateplan.type';
@@ -118,9 +115,9 @@ export class RatePlanRepository {
     try {
       // Map frontend field names to database field names
       const mappedData: any = { ...updateData };
-      
+
       // Handle the typo in the database schema: minimumLenghthOfStay
-      
+
       return await prisma.ratePlan.update({
         where: { ratePlanCode },
         data: mappedData,
@@ -134,102 +131,102 @@ export class RatePlanRepository {
   }
 
   public static async getMappedRatePlanByProperty(
-  propertyCode: string,
-  roomTypeCode?: string,
-  ratePlanCode?: string,
-  startDate?: Date,
-  endDate?: Date,
-  page: number = 1,
-  resultsPerPage: number = 20
-): Promise<IPaginatedResponse<any>> {
+    propertyCode: string,
+    roomTypeCode?: string,
+    ratePlanCode?: string,
+    startDate?: Date,
+    endDate?: Date,
+    page: number = 1,
+    resultsPerPage: number = 20
+  ): Promise<IPaginatedResponse<any>> {
 
-  const skip = (page - 1) * resultsPerPage;
-  
-  const startDateString = startDate
-    ? toUTC(startDate)
-    : nowUTC();
+    const skip = (page - 1) * resultsPerPage;
 
-  const endDateString = endDate
-    ? toUTC(endDate)
-    : toUTC(
-      new Date(new Date().setFullYear(new Date().getFullYear() + 1))
-    );
+    const startDateString = startDate
+      ? toUTC(startDate)
+      : nowUTC();
 
-  try {
-    // Build the where clause for charges
-    const chargeWhereClause = {
-      propertyCode,
-      ...(roomTypeCode && { roomTypeCode }),
-      ...(ratePlanCode && { ratePlanCode }),
-      date: {
-        gte:startDateString,
-        lte: endDateString,
-      },
-    };
+    const endDateString = endDate
+      ? toUTC(endDate)
+      : toUTC(
+        new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+      );
 
-    // Step 1: Get total count of charges (not inventories)
-    const totalResults = await prisma.charge.count({
-      where: chargeWhereClause,
-    });
+    try {
+      // Build the where clause for charges
+      const chargeWhereClause = {
+        propertyCode,
+        ...(roomTypeCode && { roomTypeCode }),
+        ...(ratePlanCode && { ratePlanCode }),
+        date: {
+          gte: startDateString,
+          lte: endDateString,
+        },
+      };
 
-    // //console.log("Total Charges:", totalResults);
+      // Step 1: Get total count of charges (not inventories)
+      const totalResults = await prisma.charge.count({
+        where: chargeWhereClause,
+      });
 
-    // Step 2: Get paginated charges directly
-    const charges = await prisma.charge.findMany({
-      where: chargeWhereClause,
-      include: {
-        baseGuestAmounts: true,
-        additionalGuestAmounts: true,
-      },
-      skip,
-      take: resultsPerPage,
-      orderBy: {
-        date: 'asc', // Add ordering for consistency
-      },
-    });
+      // //console.log("Total Charges:", totalResults);
 
-    // Step 3: Get inventory availability for each charge
-    const data = await Promise.all(
-      charges.map(async (charge) => {
-        const inventory = await prisma.inventory.findFirst({
-          where: {
-            propertyCode: charge.propertyCode,
-            roomTypeCode: charge.roomTypeCode,
-            date: (charge.date),
-          },
-          select: {
-            availability: true,
-          },
-        });
+      // Step 2: Get paginated charges directly
+      const charges = await prisma.charge.findMany({
+        where: chargeWhereClause,
+        include: {
+          baseGuestAmounts: true,
+          additionalGuestAmounts: true,
+        },
+        skip,
+        take: resultsPerPage,
+        orderBy: {
+          date: 'asc', // Add ordering for consistency
+        },
+      });
 
-        return {
-          ...charge,
-          availableRooms: inventory?.availability ?? 0,
-        };
-      })
-    );
+      // Step 3: Get inventory availability for each charge
+      const data = await Promise.all(
+        charges.map(async (charge) => {
+          const inventory = await prisma.inventory.findFirst({
+            where: {
+              propertyCode: charge.propertyCode,
+              roomTypeCode: charge.roomTypeCode,
+              date: (charge.date),
+            },
+            select: {
+              availability: true,
+            },
+          });
 
-    const totalPages = Math.ceil(totalResults / resultsPerPage);
+          return {
+            ...charge,
+            availableRooms: inventory?.availability ?? 0,
+          };
+        })
+      );
 
-    return {
-      data,
-      pagination: {
-        currentPage: page,
-        totalPages,
-        totalResults,
-        hasNextPage: page < totalPages,
-        hasPreviousPage: page > 1,
-        resultsPerPage,
-      },
-    };
-  } catch (error) {
-    console.error('Error in getMappedRatePlanByProperty:', error);
-    if (error instanceof Error) {
-      throw new Error(`Failed to fetch mapped rate plans: ${error.message}`);
+      const totalPages = Math.ceil(totalResults / resultsPerPage);
+
+      return {
+        data,
+        pagination: {
+          currentPage: page,
+          totalPages,
+          totalResults,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1,
+          resultsPerPage,
+        },
+      };
+    } catch (error) {
+      console.error('Error in getMappedRatePlanByProperty:', error);
+      if (error instanceof Error) {
+        throw new Error(`Failed to fetch mapped rate plans: ${error.message}`);
+      }
+      throw new Error('Unknown error occurred while fetching mapped rate plans');
     }
-    throw new Error('Unknown error occurred while fetching mapped rate plans');
   }
-}
 
   public static async updateCharges(
     chargeId: string,
@@ -328,7 +325,7 @@ export class RatePlanRepository {
   ): Promise<any> {
     try {
       return await prisma.ratePlan.update({
-        where: { ratePlanCode,taxGroupId },
+        where: { ratePlanCode, taxGroupId },
         data: {
           taxGroupId: null
         },
@@ -341,170 +338,182 @@ export class RatePlanRepository {
     }
   }
   // ✅ Updated RatePlanRepository.updateOrCreateChargesForDateRange
-public static async updateOrCreateChargesForDateRange(
-  propertyCode: string,
-  roomTypeCode: string,
-  ratePlanCode: string,
-  startDate: Date,
-  endDate: Date,
-  baseGuestAmounts: any[],
-  additionalGuestAmounts: any[]
-): Promise<{ updated: number; created: number; dates: string[] }> {
-  try {
-    // First, fetch the rate plan and room type names
-    const ratePlan = await prisma.ratePlan.findUnique({
-      where: { ratePlanCode },
-      select: { ratePlanName: true },
-    });
+  public static async updateOrCreateChargesForDateRange(
+    propertyCode: string,
+    roomTypeCode: string,
+    ratePlanCode: string,
+    startDate: Date,
+    endDate: Date,
+    baseGuestAmounts: any[],
+    additionalGuestAmounts: any[]
+  ): Promise<{ updated: number; created: number; dates: string[] }> {
+    try {
+      // First, fetch the rate plan and room type names
+      const ratePlan = await prisma.ratePlan.findUnique({
+        where: { ratePlanCode },
+        select: { ratePlanName: true },
+      });
 
-    const room = await prisma.room.findFirst({
-      where: { 
-        roomType: roomTypeCode,
-        property: { propertyCode }
-      },
-      select: { roomName: true },
-    });
-
-    if (!ratePlan) {
-      throw new Error(`Rate plan with code ${ratePlanCode} not found`);
-    }
-
-    if (!room) {
-      throw new Error(`Room type with code ${roomTypeCode} not found`);
-    }
-
-    const ratePlanName = ratePlan.ratePlanName;
-    const roomTypeName = room.roomName;
-
-    // Generate all dates in the range
-    const dates: Date[] = [];
-    const currentDate = new Date(startDate);
-    const end = new Date(endDate);
-
-    while (currentDate <= end) {
-      dates.push(new Date(currentDate));
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-
-    //console.log(`Processing ${dates.length} dates from ${startDate} to ${endDate}`);
-
-    // Find existing charges for these dates
-    const existingCharges = await prisma.charge.findMany({
-      where: {
-        propertyCode,
-        roomTypeCode,
-        ratePlanCode,
-        date: {
-          gte: startDate,
-          lte: endDate,
+      const room = await prisma.room.findFirst({
+        where: {
+          roomType: roomTypeCode,
+          property: { propertyCode }
         },
-      },
-      select: {
-        id: true,
-        date: true,
-      },
-    });
+        select: { roomName: true },
+      });
 
-    //console.log(`Found ${existingCharges.length} existing charges`);
-
-    // Create a map of existing charge dates
-    const existingDatesMap = new Map(
-      existingCharges.map((charge) => [
-        formatDateToYYYYMMDD(charge.date),
-        charge.id,
-      ])
-    );
-
-    let updatedCount = 0;
-    let createdCount = 0;
-    const processedDates: string[] = [];
-
-    // Process each date
-    for (const date of dates) {
-      const dateString = formatDateToYYYYMMDD(date);
-      const existingChargeId = existingDatesMap.get(dateString);
-
-      if (existingChargeId) {
-        // Update existing charge
-        await prisma.chargeBaseByGuest.deleteMany({
-          where: { chargeId: existingChargeId },
-        });
-
-        await prisma.chargeAdditionalGuest.deleteMany({
-          where: { chargeId: existingChargeId },
-        });
-
-        await prisma.charge.update({
-          where: { id: existingChargeId },
-          data: {
-            baseGuestAmounts: {
-              create: baseGuestAmounts.map((guest) => ({
-                numberOfGuests: guest.numberOfGuests,
-                amountBeforeTax: guest.amountBeforeTax,
-              })),
-            },
-            additionalGuestAmounts: {
-              create: additionalGuestAmounts.map((guest) => ({
-                ageQualifyingCode: guest.ageQualifyingCode,
-                amount: guest.amount,
-              })),
-            },
-          },
-        });
-
-        updatedCount++;
-        processedDates.push(dateString);
-        //console.log(`Updated charge for ${dateString}`);
-      } else {
-        // Create new charge
-        await prisma.charge.create({
-          data: {
-            propertyCode,
-            roomTypeCode,
-            ratePlanCode,
-            ratePlanName, // ✅ Added
-            roomTypeName, // ✅ Added
-            date: new Date(date),
-            baseGuestAmounts: {
-              create: baseGuestAmounts.map((guest) => ({
-                numberOfGuests: guest.numberOfGuests,
-                amountBeforeTax: guest.amountBeforeTax,
-              })),
-            },
-            additionalGuestAmounts: {
-              create: additionalGuestAmounts.map((guest) => ({
-                ageQualifyingCode: guest.ageQualifyingCode,
-                amount: guest.amount,
-              })),
-            },
-          },
-        });
-
-        createdCount++;
-        processedDates.push(dateString);
-        //console.log(`Created charge for ${dateString}`);
+      if (!ratePlan) {
+        throw new Error(`Rate plan with code ${ratePlanCode} not found`);
       }
-    }
 
-    //console.log(`Total: Updated ${updatedCount}, Created ${createdCount}`);
+      if (!room) {
+        throw new Error(`Room type with code ${roomTypeCode} not found`);
+      }
 
-    return {
-      updated: updatedCount,
-      created: createdCount,
-      dates: processedDates,
-    };
-  } catch (error) {
-    console.error('Error in updateOrCreateChargesForDateRange:', error);
-    if (error instanceof Error) {
+      const ratePlanName = ratePlan.ratePlanName;
+      const roomTypeName = room.roomName;
+
+      // Generate all dates in the range
+      const dates: Date[] = [];
+      const currentDate = new Date(startDate);
+      const end = new Date(endDate);
+
+      while (currentDate <= end) {
+        dates.push(new Date(currentDate));
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+      //console.log(`Processing ${dates.length} dates from ${startDate} to ${endDate}`);
+
+      // Find existing charges for these dates
+      const existingCharges = await prisma.charge.findMany({
+        where: {
+          propertyCode,
+          roomTypeCode,
+          ratePlanCode,
+          date: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+        select: {
+          id: true,
+          date: true,
+        },
+      });
+
+      //console.log(`Found ${existingCharges.length} existing charges`);
+
+      // Create a map of existing charge dates
+      const existingDatesMap = new Map(
+        existingCharges.map((charge) => [
+          formatDateToYYYYMMDD(charge.date),
+          charge.id,
+        ])
+      );
+
+      let updatedCount = 0;
+      let createdCount = 0;
+      const processedDates: string[] = [];
+
+      // Process each date
+      for (const date of dates) {
+        const dateString = formatDateToYYYYMMDD(date);
+        const existingChargeId = existingDatesMap.get(dateString);
+
+        if (existingChargeId) {
+          // Update existing charge
+          await prisma.chargeBaseByGuest.deleteMany({
+            where: { chargeId: existingChargeId },
+          });
+
+          await prisma.chargeAdditionalGuest.deleteMany({
+            where: { chargeId: existingChargeId },
+          });
+
+          await prisma.charge.update({
+            where: { id: existingChargeId },
+            data: {
+              baseGuestAmounts: {
+                create: baseGuestAmounts.map((guest) => ({
+                  numberOfGuests: guest.numberOfGuests,
+                  amountBeforeTax: guest.amountBeforeTax,
+                })),
+              },
+              additionalGuestAmounts: {
+                create: additionalGuestAmounts.map((guest) => ({
+                  ageQualifyingCode: guest.ageQualifyingCode,
+                  amount: guest.amount,
+                })),
+              },
+            },
+          });
+
+          updatedCount++;
+          processedDates.push(dateString);
+          //console.log(`Updated charge for ${dateString}`);
+        } else {
+          // Create new charge
+          await prisma.charge.create({
+            data: {
+              propertyCode,
+              roomTypeCode,
+              ratePlanCode,
+              ratePlanName, // ✅ Added
+              roomTypeName, // ✅ Added
+              date: new Date(date),
+              baseGuestAmounts: {
+                create: baseGuestAmounts.map((guest) => ({
+                  numberOfGuests: guest.numberOfGuests,
+                  amountBeforeTax: guest.amountBeforeTax,
+                })),
+              },
+              additionalGuestAmounts: {
+                create: additionalGuestAmounts.map((guest) => ({
+                  ageQualifyingCode: guest.ageQualifyingCode,
+                  amount: guest.amount,
+                })),
+              },
+            },
+          });
+
+          createdCount++;
+          processedDates.push(dateString);
+          //console.log(`Created charge for ${dateString}`);
+        }
+      }
+
+      //console.log(`Total: Updated ${updatedCount}, Created ${createdCount}`);
+
+      return {
+        updated: updatedCount,
+        created: createdCount,
+        dates: processedDates,
+      };
+    } catch (error) {
+      console.error('Error in updateOrCreateChargesForDateRange:', error);
+      if (error instanceof Error) {
+        throw new Error(
+          `Failed to update/create charges for date range: ${error.message}`
+        );
+      }
       throw new Error(
-        `Failed to update/create charges for date range: ${error.message}`
+        'Unknown error occurred while updating/creating charges for date range'
       );
     }
-    throw new Error(
-      'Unknown error occurred while updating/creating charges for date range'
-    );
   }
-}
+  public static async deleteCharges(roomType: string, propertyCode: string) {
+    try {
+      return await prisma.charge.deleteMany({
+        where: {
+          roomTypeCode: roomType,
+          propertyCode: propertyCode
+        }
+      })
+    } catch (error) {
+      throw new Error("Failed to delete charges")
+    }
+  }
 }
 
 

@@ -8,7 +8,6 @@ export interface IMasterIntegrations extends ICMasterIntegrations {
     id: string;
     createdAt: Date;
         isActive: boolean;
-
     requiredFieldsForMasterIntegration:IMasterIntegrationFields[];
     masterIntegrationURLFields:IMasterIntegrationUrlFields[];
 }
@@ -22,7 +21,7 @@ export interface ICMasterIntegrationUrlFields {
     name: string
     url: string
 }
-export interface IMasterIntegrationUrlFields extends ICMasterIntegrationIntegrationFields{
+export interface IMasterIntegrationUrlFields extends ICMasterIntegrationUrlFields{
     id:string
 }
 

@@ -1,7 +1,7 @@
 import { successResponse, errorResponse } from '../../utils/return';
 import { IApiResponse } from '../../utils/return.types';
 import { RoomDao, RoomAmenityDao } from '../repository';
-
+import {RatePlanRepository} from "../../ari/repository/ratePlan.repository"
 export class RoomService {
   public static async create(roomData: any) {
     try {
@@ -76,6 +76,12 @@ export class RoomService {
       if (!room) {
         return errorResponse('Room does not exists');
       }
+      const property=await RoomDao.findByRoomId(id)
+      const propertyCode=property?.property.propertyCode;
+      if(!propertyCode){
+        return errorResponse('Property code not found');
+      }
+      await RatePlanRepository.deleteCharges(room?.roomType,propertyCode);
       const deletedRoom = await RoomDao.delete(id);
       if (deletedRoom) {
         return successResponse('Room successfully', deletedRoom);

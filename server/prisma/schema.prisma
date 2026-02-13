@@ -541,6 +541,7 @@ model Room {
   agenticRooms  AgenticRoom[]
   geoRatePlans  GeoRatePlan[]
   promotions    Promotion[]
+  // charges       Charge[]
 
   createdAt                            DateTime                               @default(now())
   updatedAt                            DateTime                               @updatedAt
@@ -637,6 +638,8 @@ model Charge {
   restrictionNotes    String? @map("restriction_notes")
 
   // Relations
+  ratePlan               RatePlan              @relation(fields: [ratePlanCode], references: [ratePlanCode], onDelete: Cascade)
+  // room                   Room?                 @relation(fields: [roomId], references: [id], onDelete: Cascade)
   baseGuestAmounts       ChargeBaseByGuest[]
   additionalGuestAmounts ChargeAdditionalGuest[]
 
@@ -709,6 +712,7 @@ model RatePlan {
   b2bAvailable Boolean @default(false) @map("b2b_available")
   b2cAvailable Boolean @default(true) @map("b2c_available")
 
+  charges                                  Charge[]
   ratePlanRules                            RatePlanRule?
   Addons                                   RatePlanWithAddon[]
   geoRatePlans                             GeoRatePlan[]
@@ -1633,18 +1637,18 @@ model Payment {
 model MasterIntegrations {
   id       String           @id @default(uuid())
   type     IntegrationTypes @default(channel_manager)
-  name     String           @unique
+  name     String           
   isActive Boolean          @default(true)
 
   createdAt                          DateTime                            @default(now()) @map("created_at")
   propertyIntegrations               PropertyIntegrations[]
-  requiredFieldsForMasterIntegration RquiredFieldsForMasterIntegration[]
+  requiredFieldsForMasterIntegration MasterIntegrationRequiredFields[]
   masterIntegrationURLFields         MasterIntegrationURLFields[]
-
+@@unique([name,type])
   @@map("master_integrations")
 }
 
-model RquiredFieldsForMasterIntegration {
+model MasterIntegrationRequiredFields {
   id                  String @id @default(uuid())
   name                String
   masterIntegrationId String @map("master_integration_id")
@@ -1691,7 +1695,7 @@ model PropertyInregrationSecrets {
   requiredFieldId       String                            @map("required_field_id")
   value                 String
   PropertyIntegration   PropertyIntegrations              @relation(fields: [propertyIntegrationId], references: [id], onDelete: Cascade)
-  RequiredField         RquiredFieldsForMasterIntegration @relation(fields: [requiredFieldId], references: [id], onDelete: Cascade)
+  RequiredField         MasterIntegrationRequiredFields @relation(fields: [requiredFieldId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now()) @map("created_at")
 

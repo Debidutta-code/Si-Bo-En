@@ -1,5 +1,5 @@
 import { Response } from 'express';
-import { CustomRequest } from '../../utils/customRequest';
+import { CustomRequest, PropertyCustomRequest } from '../../utils/customRequest';
 import { RoomService, RoomAminityService } from '../services';
 import { errorResponse } from '../../utils/return';
 
@@ -142,6 +142,7 @@ export class RoomController {
   ): Promise<Response> {
     try {
       const { roomId } = req.params;
+      
       if (!roomId) {
         return res.status(400).json(errorResponse('Room id not found'));
       }

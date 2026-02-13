@@ -42,3 +42,4 @@ export interface IPaymentIntegration {
     outletId:string;
   }]
 }
+export * from "./integration.interface";
