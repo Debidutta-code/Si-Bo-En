@@ -100,7 +100,7 @@ export class NGeniusController {
       //console.log('\n🔍 Step 2: Calling N-Genius Service to Create Order...');
       const orderResponse = await ngeniusService.createOrder(orderData);
 
-      //console.log('\n✅ Order Created - Extracting Payment URL...');
+      console.log('\n✅ Order Created - Extracting Payment URL...');
       const paymentUrl = ngeniusService.getPaymentUrl(orderResponse);
       
       //console.log('\n📄 Preparing Response...');
@@ -115,7 +115,7 @@ export class NGeniusController {
       };
 
       //console.log('\n✅ Sending Success Response (201 Created)');
-      //console.log('📦 Response Data:', JSON.stringify(responseData, null, 2));
+      console.log('📦 Response Data:', JSON.stringify(responseData, null, 2));
       
       res.status(201).json(responseData);
     } catch (error) {

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { useRouter } from "next/navigation";
-import {ngeniusService} from "../../services/ngenius.service";
+import { ngeniusService } from "../../services/ngenius.service";
 import {
   DollarSign,
   CreditCard,
@@ -41,7 +41,7 @@ interface BankDetails {
   propertyId: string;
   createdAt: string;
   updatedAt: string;
-  selectedPaymentIntegrations?: PaymentIntegrationDetail[];
+  selectedPaymentIntegrations?: PaymentIntegrationDetail;
 }
 
 const BookingReviewPage = () => {
@@ -97,26 +97,10 @@ const BookingReviewPage = () => {
 
   // Helper function to check which gateway integration is available
   const getActiveGateway = (): 'fikafi' | 'ngenius' | null => {
-    if (!bankDetails?.selectedPaymentIntegrations || !bankDetails.paymentGateway) {
+    if (!bankDetails?.selectedPaymentIntegrations || !bankDetails.paymentGateway || !bankDetails.selectedPaymentIntegrations.paymentIntegration) {
       return null;
     }
-
-    // Check for Fikafi first (priority)
-    const hasFikafi = bankDetails.selectedPaymentIntegrations
-
-    if (hasFikafi) return 'fikafi';
-
-    // Check for Network Global (N-Genius)
-    const hasNgenius = bankDetails.selectedPaymentIntegrations.some(
-      integration => 
-        integration.paymentIntegration.name.toLowerCase() === 'network_global' &&
-        integration.isActive &&
-        integration.paymentIntegration.isActive
-    );
-
-    if (hasNgenius) return 'ngenius';
-
-    return null;
+    return bankDetails.selectedPaymentIntegrations.paymentIntegration.name === "fikafi" ? "fikafi" : "ngenius";
   };
 
   useEffect(() => {
@@ -179,7 +163,7 @@ const BookingReviewPage = () => {
     //console.log("🔌 selectedPaymentIntegrations:", bankDetails.selectedPaymentIntegrations);
 
     const methods: string[] = [];
-    
+
     // Add Pay at Hotel if enabled
     if (bankDetails.payAtHotel) {
       methods.push("payAtHotel");
@@ -738,11 +722,11 @@ const BookingReviewPage = () => {
                   key: "gateway",
                   label: "Pay Online",
                   icon: "💳",
-                  description: activeGateway === "fikafi" 
+                  description: activeGateway === "fikafi"
                     ? "Secure payment via Fikafi payment gateway"
                     : activeGateway === "ngenius"
-                    ? "Secure payment via Network International gateway"
-                    : "Secure online payment",
+                      ? "Secure payment via Network International gateway"
+                      : "Secure online payment",
                   isRecommended: true,
                 },
               ].map(({ key, label, icon, description, isRecommended }) => {

@@ -214,7 +214,7 @@ export class ReservationService {
             }
 
             const bookingCode = await this.generateBookingCode();
-            const paymentMethods =  this.mapPaymentMethod(paymentMethod);
+            const paymentMethods = this.mapPaymentMethod(paymentMethod);
             let paidAmount = 0
             if (paymentMethods === "payment_gateway") {
                 paidAmount = finalPrice.totalAmount
@@ -274,7 +274,7 @@ export class ReservationService {
                 requestedRooms: finalPrice.requestedRooms,
                 tax: finalPrice.taxes
             };
-            const loyalityBrakedown=finalPrice.loyaltyDiscount
+            const loyalityBrakedown = finalPrice.loyaltyDiscount
 
             await this.priceBrakeDownRepo.createpriceBrakeDowns([priceBreakdownPayload]);
             if (normalizedPayload.bookingDetails.selectedAddons && normalizedPayload.bookingDetails.selectedAddons.length > 0) {
@@ -346,27 +346,40 @@ export class ReservationService {
                 }]
             };
 
-            Promise.all([
+            const nonBlockingPromises: Promise<any>[] = [
                 this.ariManupulationRepo.decreaseAvailableRooms(ariPayload),
-                this.loyalityGuestRepo.addGuest(finalPrice?.loyaltyDiscount.loyaltyMemberId,primaryGuestId),
-                    this.emailService.reservationConfirmation({
-                        ...bookingDetails,
-                        guestDetails: guestDetails.map((guest: any) => ({
-                            type: guest.type,
-                            firstName: guest.firstName,
-                            lastName: guest.lastName,
-                            dateOfBirth: guest.dateOfBirth || guest.dob || '',
-                            email: guest.type === 'adult' ? email : undefined,
-                            phone: guest.type === 'adult' ? phone : undefined
-                        })),
-                        bookingCode: reservation.bookingCode,
-                        reservationId: reservation.id,
-                        bookedAt: reservation.bookedAt.toISOString(),
-                        bookingStatus: reservation.bookingStatus,
-                    })
-            ]).catch(error => {
+
+                this.emailService.reservationConfirmation({
+                    ...bookingDetails,
+                    guestDetails: guestDetails.map((guest: any) => ({
+                        type: guest.type,
+                        firstName: guest.firstName,
+                        lastName: guest.lastName,
+                        dateOfBirth: guest.dateOfBirth || guest.dob || '',
+                        email: guest.type === 'adult' ? email : undefined,
+                        phone: guest.type === 'adult' ? phone : undefined
+                    })),
+                    bookingCode: reservation.bookingCode,
+                    reservationId: reservation.id,
+                    bookedAt: reservation.bookedAt.toISOString(),
+                    bookingStatus: reservation.bookingStatus,
+                })
+            ];
+
+            // ✅ Add loyalty only if discount exists
+            if (finalPrice?.loyaltyDiscount?.loyaltyMemberId) {
+                nonBlockingPromises.push(
+                    this.loyalityGuestRepo.addGuest(
+                        finalPrice.loyaltyDiscount.loyaltyMemberId,
+                        primaryGuestId
+                    )
+                );
+            }
+
+            Promise.all(nonBlockingPromises).catch(error => {
                 console.error("Non-blocking operations failed:", error);
             });
+
 
             return successResponse("Reservation created successfully", reservation);
         } catch (error) {
@@ -667,7 +680,7 @@ export class ReservationService {
                         averagePerNight: updatePayload.finalPrice.breakdown.averagePerNight,
                         totalTax: updatePayload.finalPrice.totalTax
                     },
-                                        loyaltyDiscount:updatePayload.finalPrice.loyaltyDiscount
+                    loyaltyDiscount: updatePayload.finalPrice.loyaltyDiscount
 
                 },
                 promoCode: null,
@@ -1118,7 +1131,7 @@ export class ReservationService {
                         averagePerNight: reservation.finalPrice?.breakdown?.averagePerNight || 0,
                         totalTax: reservation.finalPrice?.totalTax || 0
                     },
-                    loyaltyDiscount:reservation.finalPrice.loyaltyDiscount
+                    loyaltyDiscount: reservation.finalPrice.loyaltyDiscount
                 },
                 promoCode: null,
                 currency: reservation.currencyCode,

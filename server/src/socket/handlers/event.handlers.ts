@@ -9,7 +9,17 @@ export class SocketEventHandlers {
   constructor(private connectionManager: ConnectionManager) {}
 
   /**
-   * Generate room name from order reference
+   * Normalize orderReference: strip any accidental 'payment:' prefix.
+   * Whether the frontend sends 'payment:REF-123' or just 'REF-123',
+   * we always store and track the raw orderReference.
+   */
+  private normalizeOrderReference(input: string): string {
+    const prefix = `${ROOM_PREFIX.PAYMENT}:`;
+    return input.startsWith(prefix) ? input.slice(prefix.length) : input;
+  }
+
+  /**
+   * Generate room name from order reference (always from raw ref)
    */
   private getRoomName(orderReference: string): string {
     return `${ROOM_PREFIX.PAYMENT}:${orderReference}`;
@@ -17,22 +27,25 @@ export class SocketEventHandlers {
 
   /**
    * Handle join-payment-room event
+   * Accepts both:
+   *   - 'REF-123'           (your N-Genius flow)
+   *   - 'payment:REF-123'   (her Fikafi frontend sends prefixed)
    */
-  handleJoinPaymentRoom(socket: Socket, orderReference: string): void {
-    if (!orderReference) {
+  handleJoinPaymentRoom(socket: Socket, rawInput: string): void {
+    if (!rawInput) {
       console.error('❌ join-payment-room: orderReference missing');
-      socket.emit('error', {
-        message: 'Order reference is required',
-      });
+      socket.emit('error', { message: 'Order reference is required' });
       return;
     }
 
+    const orderReference = this.normalizeOrderReference(rawInput);
     const room = this.getRoomName(orderReference);
+
     socket.join(room);
 
     this.connectionManager.addConnection(orderReference, socket.id);
 
-    console.log(`📌 Socket ${socket.id} joined room: ${room}`);
+    console.log(`📌 Socket ${socket.id} joined room: ${room} (orderRef: ${orderReference})`);
 
     const response: RoomJoinedResponse = {
       orderReference,
@@ -45,13 +58,15 @@ export class SocketEventHandlers {
   /**
    * Handle leave-payment-room event
    */
-  handleLeavePaymentRoom(socket: Socket, orderReference: string): void {
-    if (!orderReference) {
+  handleLeavePaymentRoom(socket: Socket, rawInput: string): void {
+    if (!rawInput) {
       console.error('❌ leave-payment-room: orderReference missing');
       return;
     }
 
+    const orderReference = this.normalizeOrderReference(rawInput);
     const room = this.getRoomName(orderReference);
+
     socket.leave(room);
     
     this.connectionManager.removeConnection(orderReference, socket.id);
@@ -83,12 +98,12 @@ export class SocketEventHandlers {
     // Register event listeners
     socket.on(
       SOCKET_EVENTS.JOIN_PAYMENT_ROOM,
-      (orderReference: string) => this.handleJoinPaymentRoom(socket, orderReference)
+      (rawInput: string) => this.handleJoinPaymentRoom(socket, rawInput)
     );
 
     socket.on(
       SOCKET_EVENTS.LEAVE_PAYMENT_ROOM,
-      (orderReference: string) => this.handleLeavePaymentRoom(socket, orderReference)
+      (rawInput: string) => this.handleLeavePaymentRoom(socket, rawInput)
     );
 
     socket.on(
