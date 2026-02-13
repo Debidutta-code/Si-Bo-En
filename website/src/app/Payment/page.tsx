@@ -102,12 +102,7 @@ const BookingReviewPage = () => {
     }
 
     // Check for Fikafi first (priority)
-    const hasFikafi = bankDetails.selectedPaymentIntegrations.some(
-      integration => 
-        integration.paymentIntegration.name.toLowerCase() === 'fikafi' &&
-        integration.isActive &&
-        integration.paymentIntegration.isActive
-    );
+    const hasFikafi = bankDetails.selectedPaymentIntegrations
 
     if (hasFikafi) return 'fikafi';
 

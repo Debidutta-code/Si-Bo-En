@@ -2,16 +2,19 @@
 import { Request, Response } from 'express';
 import { BankService } from '../services';
 import { errorResponse } from '../../utils/return';
-import { CustomRequest } from '../../utils';
+import { CustomRequest, PropertyRequest } from '../../utils';
 
 export class BankController {
-  public static async getBankDetailsByPropertyId(req: Request, res: Response) {
+  public static async getBankDetailsByPropertyId(req: PropertyRequest, res: Response) {
     try {
       const id = req.params.id;
+      const from=req.query.from as string;
+
+      
       if (!id) {
         return res.status(400).json(errorResponse('Property id not found'));
       }
-      const response = await BankService.getBankDetailsByPropertyId(id);
+      const response = await BankService.getBankDetailsByPropertyId(id,from);
       if (response.success) {
         return res.status(200).json(response);
       } else {

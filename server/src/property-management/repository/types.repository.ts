@@ -538,7 +538,8 @@ export class PaymentIntegrationDao {
         data: {
           propertyId,
           paymentIntegrationId: integrationId,
-          outletId
+          outletId,
+          isActive:true
         },
       });
     } catch (error: any) {
@@ -559,6 +560,21 @@ export class PaymentIntegrationDao {
       });
     } catch (error) {
       throw new Error("Failed to fetch property payment integrations");
+    }
+  }
+  public static async getActivatedPaymentMethod(propertyId: string):Promise<IPropertyPaymentIntegration|null>{
+    try {
+      return await prisma.propertyPaymentIntegration.findFirst({
+        where: {
+          propertyId,
+          isActive:true
+        },
+        include: {
+          paymentIntegration: true
+        }
+      })
+    } catch (error) {
+      throw new Error("Failed get active payment methods")
     }
   }
   public static async getAllForPropertyId(propertyId: string): Promise<IMasterPaymentIntegrationWithId[]> {

@@ -5,15 +5,18 @@ import { BankDetailsDao } from '../repository';
 import { PaymentIntegrationDao } from '../repository';
 
 export class BankService {
-  public static async getBankDetailsByPropertyId(propertyId: string) {
+  public static async getBankDetailsByPropertyId(propertyId: string,all?:string) {
     try {
       const response = await BankDetailsDao.getBankDetailsByPropertyId(propertyId);
       if (response) {
         const paymentIntegrations = await PaymentIntegrationDao.getAllByPropertyId(propertyId);
-
+        let activeIntegration;
+        if(!all){
+          activeIntegration=await PaymentIntegrationDao.getActivatedPaymentMethod(propertyId)
+        }
         return successResponse('Bank details fetched Successfully', {
           ...response,
-          selectedPaymentIntegrations: paymentIntegrations
+          selectedPaymentIntegrations: all?paymentIntegrations:activeIntegration
         });
       } else {
         return errorResponse('Bank details Not found');
