@@ -117,7 +117,7 @@ export class TouristTaxController {
         if (!isUpdate && !touristTaxData.ratePlanCode) {
             return 'Rate plan code is required';
         }
-console.log(typeof touristTaxData.discountValue);
+//console.log(typeof touristTaxData.discountValue);
 
         if (touristTaxData.discountType && 
             touristTaxData.discountType !== 'flat' && 

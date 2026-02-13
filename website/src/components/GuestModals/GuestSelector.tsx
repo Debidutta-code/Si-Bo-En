@@ -39,18 +39,54 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
   const [rooms, setRooms] = useState<Room[]>([{ adults: 1, children: 0 }]);
   const [totalRooms, setTotalRooms] = useState(1);
 
-  useEffect(() => {
-    if (bookingContext.guests && Array.isArray(bookingContext.guests.rooms)) {
-      setRooms(
-        bookingContext.guests.rooms.map((room: any, idx: number) => ({
-          adults: idx === 0 ? room.adults || 1 : room.adults || 0,
+
+useEffect(() => {
+  if (bookingContext.guests) {
+    // ✅ PRIORITY 1: Check for roomsArray first (detailed per-room data)
+    if (bookingContext.guests.roomsArray && Array.isArray(bookingContext.guests.roomsArray)) {
+      const mappedRooms = bookingContext.guests.roomsArray.map((room: any, idx: number) => {
+        const roomData = {
+          adults: room.adults || 0,
           children: room.children || 0,
-        }))
-      );
+        };
+        return roomData;
+      });
+      
+      setRooms(mappedRooms);
+      setTotalRooms(bookingContext.guests.roomsArray.length);
+    }
+    // ✅ PRIORITY 2: Check if rooms is an array
+    else if (Array.isArray(bookingContext.guests.rooms)) {
+      const mappedRooms = bookingContext.guests.rooms.map((room: any, idx: number) => {
+        const roomData = {
+          adults: room.adults || 0,
+          children: room.children || 0,
+        };
+        return roomData;
+      });
+      
+      setRooms(mappedRooms);
       setTotalRooms(bookingContext.guests.rooms.length);
     }
-  }, [bookingContext.guests]);
-
+    // ✅ PRIORITY 3: rooms is a number (only use this for initial load)
+    else if (typeof bookingContext.guests.rooms === 'number') {
+      const numRooms = bookingContext.guests.rooms;
+      const totalAdults = bookingContext.guests.adults || 1;
+      const totalChildren = bookingContext.guests.children || 0;
+      
+      const newRooms: Room[] = [];
+      for (let i = 0; i < numRooms; i++) {
+        newRooms.push({
+          adults: i === 0 ? totalAdults : 0,
+          children: i === 0 ? totalChildren : 0,
+        });
+      }
+      
+      setRooms(newRooms);
+      setTotalRooms(numRooms);
+    }
+  }
+}, [bookingContext.guests]);
   useEffect(() => {
     if (totalRooms > rooms.length) {
       const newRooms = [...rooms];
@@ -59,9 +95,10 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
       }
       setRooms(newRooms);
     } else if (totalRooms < rooms.length) {
-      setRooms(rooms.slice(0, totalRooms));
+      const slicedRooms = rooms.slice(0, totalRooms);
+      setRooms(slicedRooms);
     }
-  }, [totalRooms, rooms]);
+  }, [totalRooms]);
 
   const updateRoom = (
     roomIndex: number,
@@ -73,13 +110,11 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
 
     if (increment) {
       if (field === "adults") {
-        // Check if adding another adult would exceed max guests per room
         const currentTotal = room.adults + room.children;
         if (currentTotal < MAX_GUESTS_PER_ROOM && room.adults < MAX_ADULTS_PER_ROOM) {
           room.adults += 1;
         }
       } else if (field === "children") {
-        // Check if adding another child would exceed max guests per room
         const currentTotal = room.adults + room.children;
         if (currentTotal < MAX_GUESTS_PER_ROOM && room.children < MAX_CHILDREN_PER_ROOM) {
           room.children += 1;
@@ -110,12 +145,11 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
       summary += ` - ${totalChildren} child${totalChildren !== 1 ? "ren" : ""}`;
     }
     summary += ` - ${totalRooms} room${totalRooms !== 1 ? "s" : ""}`;
-
+    
     onApply(summary, { rooms });
     onClose();
   };
 
-  // Check if room is at max capacity
   const isRoomFull = (room: Room) => {
     return room.adults + room.children >= MAX_GUESTS_PER_ROOM;
   };
@@ -123,16 +157,13 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="bg-white max-w-lg sm:max-w-xl md:max-w-2xl max-h-[80vh] overflow-y-auto p-0 rounded-2xl shadow-2xl">
-        {/* Dialog Header */}
         <DialogHeader className="p-4 sm:p-6 border-b border-gray-200">
           <DialogTitle className="text-xl sm:text-2xl font-bold text-gray-900 text-left">
             Select Occupancy
           </DialogTitle>
         </DialogHeader>
 
-        {/* Dialog Body */}
         <div className="p-4 sm:p-6 space-y-4">
-          {/* Number of Rooms */}
           <div className="bg-gray-50 rounded-xl px-4 py-3">
             <div className="flex items-center justify-between">
               <Label className="text-base sm:text-lg font-semibold text-gray-900">
@@ -169,7 +200,6 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
             </div>
           </div>
 
-          {/* Room Configuration */}
           <div className="space-y-2">
             {rooms.map((room, index) => (
               <div
@@ -181,7 +211,6 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {/* Adults */}
                   <div className="bg-gray-50 rounded-lg px-3 py-3">
                     <div className="flex items-center justify-between">
                       <Label className="text-sm font-medium text-gray-700">
@@ -223,7 +252,6 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
                     </div>
                   </div>
 
-                  {/* Children */}
                   <div className="bg-gray-50 rounded-lg px-3 py-3">
                     <div className="flex items-center justify-between">
                       <div>
@@ -266,7 +294,6 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
                   </div>
                 </div>
                 
-                {/* Room capacity indicator */}
                 <div className="mt-3 text-xs text-gray-500 text-center">
                   {room.adults + room.children} of {MAX_GUESTS_PER_ROOM} guests
                 </div>
@@ -275,7 +302,6 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
           </div>
         </div>
 
-        {/* Dialog Footer - Apply Button */}
         <DialogFooter className="p-4 sm:p-6 border-t border-gray-200">
           <Button
             type="button"

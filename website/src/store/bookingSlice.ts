@@ -30,8 +30,12 @@ interface PropertyAddress {
 interface Guests {
   adults: number;
   children: number;
-  rooms: number;
-  // childAges: number[];
+  rooms: number | Room[]; // ✅ Allow rooms to be either number or array
+  roomsArray?: Room[]; // ✅ Add optional roomsArray for detailed data
+}
+interface Room {
+  adults: number;
+  children: number;
 }
 
 interface GuestDetail {
@@ -120,6 +124,7 @@ interface BookingState {
   bookingSource?: string;
   selectedAddons?: any[];
   selectedPromotions?: any[];
+  paymentMethod?:string;
 }
 
 const initialState: BookingState = {
@@ -147,6 +152,7 @@ const initialState: BookingState = {
   bookingCode: undefined,
   PropertyDetails: undefined,
   bookingSource: "direct",
+  paymentMethod:"pay_at_hotel"
 };
 
 const bookingSlice = createSlice({

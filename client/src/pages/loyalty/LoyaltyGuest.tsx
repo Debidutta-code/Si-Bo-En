@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { toast } from "sonner";
-import { Trash2, User, Mail, Phone, MapPin } from "lucide-react";
+import { Trash2, User, Mail, Phone, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import {
@@ -63,6 +63,8 @@ export default function LoyaltyGuest() {
   });
   const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
   const [selectedGuestId, setSelectedGuestId] = useState<string | null>(null);
+  const [metadataDialogOpen, setMetadataDialogOpen] = useState<boolean>(false);
+  const [selectedMetadata, setSelectedMetadata] = useState<any>(null);
 
   useEffect(() => {
     if (creationId) {
@@ -125,6 +127,11 @@ export default function LoyaltyGuest() {
   const openDeleteDialog = (guestId: string): void => {
     setSelectedGuestId(guestId);
     setDeleteDialogOpen(true);
+  };
+
+  const openMetadataDialog = (metadata: any): void => {
+    setSelectedMetadata(metadata);
+    setMetadataDialogOpen(true);
   };
 
   const handleDeleteGuest = async (): Promise<void> => {
@@ -194,8 +201,8 @@ export default function LoyaltyGuest() {
                       <TableHead>Email</TableHead>
                       <TableHead>Phone</TableHead>
                       <TableHead>Property</TableHead>
-                      <TableHead>Location</TableHead>
-                      <TableHead>User Type</TableHead>
+                      <TableHead>Loyality Fields</TableHead>
+
                       <TableHead>Enrolled On</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -207,8 +214,8 @@ export default function LoyaltyGuest() {
                           <div className="flex items-center gap-2">
                             <User className="h-4 w-4 text-muted-foreground" />
                             <span>
-                              {loyaltyGuest.guest.firstName}{" "}
-                              {loyaltyGuest.guest.lastName}
+                              {loyaltyGuest.guest&&loyaltyGuest.guest.firstName}{" "}
+                              {loyaltyGuest.guest&&loyaltyGuest.guest.lastName}
                             </span>
                           </div>
                         </TableCell>
@@ -216,7 +223,7 @@ export default function LoyaltyGuest() {
                           <div className="flex items-center gap-2">
                             <Mail className="h-4 w-4 text-muted-foreground" />
                             <span className="text-sm">
-                              {loyaltyGuest.guest.email || "N/A"}
+                              {loyaltyGuest.guest&&loyaltyGuest.guest.email || "N/A"}
                             </span>
                           </div>
                         </TableCell>
@@ -224,7 +231,7 @@ export default function LoyaltyGuest() {
                           <div className="flex items-center gap-2">
                             <Phone className="h-4 w-4 text-muted-foreground" />
                             <span className="text-sm">
-                              {loyaltyGuest.guest.phoneNumber || "N/A"}
+                              {loyaltyGuest.guest&&loyaltyGuest.guest.phoneNumber || "N/A"}
                             </span>
                           </div>
                         </TableCell>
@@ -233,30 +240,21 @@ export default function LoyaltyGuest() {
                             <p className="font-medium text-sm">
                               {loyaltyGuest.property.propertyName}
                             </p>
-                            <p className="text-xs text-muted-foreground">
-                              Code: {loyaltyGuest.property.propertyCode}
-                            </p>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <MapPin className="h-4 w-4 text-muted-foreground" />
-                            <div className="text-sm">
-                              {loyaltyGuest.guest.city || loyaltyGuest.guest.state
-                                ? `${loyaltyGuest.guest.city || ""}${
-                                    loyaltyGuest.guest.city &&
-                                    loyaltyGuest.guest.state
-                                      ? ", "
-                                      : ""
-                                  }${loyaltyGuest.guest.state || ""}`
-                                : "N/A"}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <span className="inline-flex items-center rounded-md bg-primary/10 px-2 py-1 text-xs font-medium capitalize text-primary">
-                            {loyaltyGuest.guest.userType}
-                          </span>
+                        
+                        
+                        <TableCell className="flex justify-center items-center">
+                          {loyaltyGuest.metaData ? (
+                            <span
+                              onClick={() => openMetadataDialog(loyaltyGuest.metaData)}
+                              className="gap-2"
+                            >
+                              <Eye className="h-4 w-4" />
+                            </span>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">N/A</span>
+                          )}
                         </TableCell>
                         <TableCell className="text-sm">
                           {formatDate(loyaltyGuest.createdAt)}
@@ -277,7 +275,6 @@ export default function LoyaltyGuest() {
                 </Table>
               </div>
 
-              {pagination.totalPages > 1 && (
                 <div className="mt-4">
                   <Pagination
                     currentPage={pagination.currentPage}
@@ -287,7 +284,6 @@ export default function LoyaltyGuest() {
                     totalItems={pagination.totalCount}
                   />
                 </div>
-              )}
             </>
           )}
         </CardContent>
@@ -310,6 +306,38 @@ export default function LoyaltyGuest() {
             >
               Delete
             </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={metadataDialogOpen} onOpenChange={setMetadataDialogOpen}>
+        <AlertDialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Loyalty Program Fields</AlertDialogTitle>
+            <AlertDialogDescription>
+              Guest-specific loyalty program information
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="space-y-4 py-4">
+            {selectedMetadata && typeof selectedMetadata === 'object' ? (
+              Object.entries(selectedMetadata).map(([key, value]) => (
+                <div key={key} className="grid grid-cols-3 gap-4 items-start border-b pb-3 last:border-b-0">
+                  <div className="font-medium text-sm capitalize">
+                    {key.replace(/([A-Z])/g, ' $1').trim()}:
+                  </div>
+                  <div className="col-span-2 text-sm text-muted-foreground break-words">
+                    {typeof value === 'object' && value !== null
+                      ? JSON.stringify(value, null, 2)
+                      : String(value)}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm text-muted-foreground">No metadata available</p>
+            )}
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Close</AlertDialogCancel>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

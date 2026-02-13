@@ -107,84 +107,53 @@ class InventoryRepository {
         }
     }
 
-  public static async createInventory(
-    repoData: ICreateInventoryRepo[],
-    pushFromCalender?: boolean
-) {
-    try {
-        // Build a list of unique keys and a map for quick lookup
-        const keyOf = (d: ICreateInventoryRepo) => `${d.propertyCode}__${d.roomTypeCode}__${d.date}`;
-        const inputMap = new Map<string, ICreateInventoryRepo>();
-        for (const d of repoData) inputMap.set(keyOf(d), d);
-// console.log(repoData);
-        // Fetch existing inventory rows for these (propertyCode, roomTypeCode, date) triples
-        const existing = await prisma.inventory.findMany({
-            where: {
-                OR: repoData.map((d) => ({
-                    propertyCode: d.propertyCode,
-                    roomTypeCode: d.roomTypeCode,
-                    date:toUTC( d.date),
-                })),
-            },
-            select: { id: true, propertyCode: true, roomTypeCode: true, date: true },
-        });
+    public static async createInventory(
+        repoData: ICreateInventoryRepo[]
+    ): Promise<boolean> {
+        try {
+            const ops: any[] = [];
 
-        const existingKeys = new Set(
-            existing.map((e) => `${e.propertyCode}__${e.roomTypeCode}__${e.date}`)
-        );
+            for (const item of repoData) {
+                const isExists = await prisma.inventory.findFirst({
+                    where: {
+                        propertyCode: item.propertyCode,
+                        roomTypeCode: item.roomTypeCode,
+                        date: toUTC(item.date)
+                    }
+                })
+                if (isExists) {
+                    ops.push(
+                        prisma.inventory.update({
+                            where: {
+                                id:isExists.id
+                            },
+                            data: { availability: item.availability },
+                        })
+                    )
 
-        // Prepare batched operations: update existing, create missing
-        const ops: any[] = [];
-        let updates = 0;
-        let creates = 0;
-        let skipped = 0;
-
-        for (const item of repoData) {
-            const key = keyOf(item);
-            if (existingKeys.has(key)) {
-                // If pushFromCalender is true, skip updating existing records
-                if (pushFromCalender) {
-                    skipped++;
-                    continue;
+                } else {
+                    ops.push(
+                        prisma.inventory.create({
+                            data: {
+                                ...item,
+                                date: toUTC(item.date),
+                            },
+                        })
+                    );
                 }
-                updates++;
-                ops.push(
-                    prisma.inventory.updateMany({
-                        where: {
-                            propertyCode: item.propertyCode,
-                            roomTypeCode: item.roomTypeCode,
-                            date:toUTC( item.date),
-                        },
-                        data: { availability: item.availability },
-                    })
-                );
-            } else {
-                creates++;
-                ops.push(
-                    prisma.inventory.create({
-                        data: {
-                            ...item,
-                            date:toUTC( item.date),
-                        },
-                    })
-                );
+
             }
-        }
 
-        if (ops.length > 0) {
-            await prisma.$transaction(ops);
-        }
+            if (ops.length > 0) {
+                await prisma.$transaction(ops);
+            }
 
-        return {
-            message: pushFromCalender
-                ? 'Inventory successfully created (existing records skipped).'
-                : 'Inventory successfully updated or created for the given date range.',
-            stats: { updated: updates, created: creates, skipped: skipped, total: repoData.length },
-        };
-    } catch (error: any) {
-        throw new Error(error.message);
+            return true
+
+        } catch (error: any) {
+            throw new Error(error.message);
+        }
     }
-}
 
 
 
@@ -321,60 +290,60 @@ class InventoryRepository {
         }
     }
     public static async checkInventoryAvailability(
-  propertyCode: string,
-  roomTypeCode: string,
-  startDate: string,
-  endDate: string
-) {
-  try {
-    // Generate all dates in the range
-    const allDates: Date[] = [];
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    
-    for (
-      let d = new Date(start.getTime());
-      d.getTime() <= end.getTime();
-      d.setDate(d.getDate() + 1)
+        propertyCode: string,
+        roomTypeCode: string,
+        startDate: string,
+        endDate: string
     ) {
-      allDates.push(toUTC(d));
-    }
+        try {
+            // Generate all dates in the range
+            const allDates: Date[] = [];
+            const start = new Date(startDate);
+            const end = new Date(endDate);
 
-    // Fetch inventory for the date range with availability > 0
-    const inventories = await prisma.inventory.findMany({
-      where: {
-        propertyCode,
-        roomTypeCode,
-        date: {
-          in: allDates
-        },
-        availability: {
-          gt: 0  // Only dates with availability > 0
+            for (
+                let d = new Date(start.getTime());
+                d.getTime() <= end.getTime();
+                d.setDate(d.getDate() + 1)
+            ) {
+                allDates.push(toUTC(d));
+            }
+
+            // Fetch inventory for the date range with availability > 0
+            const inventories = await prisma.inventory.findMany({
+                where: {
+                    propertyCode,
+                    roomTypeCode,
+                    date: {
+                        in: allDates
+                    },
+                    availability: {
+                        gt: 0  // Only dates with availability > 0
+                    }
+                },
+                select: {
+                    date: true,
+                    availability: true
+                }
+            });
+
+            // Get dates that have inventory with availability > 0
+            const availableDates = inventories.map(inv => inv.date);
+
+            // Find missing dates (dates without inventory or with 0 availability)
+            const missingDates = allDates.filter(date => !availableDates.includes(date));
+
+            return {
+                availableDates,
+                missingDates,
+                totalDates: allDates.length,
+                availableCount: availableDates.length,
+                missingCount: missingDates.length
+            };
+        } catch (error: any) {
+            throw new Error(error.message);
         }
-      },
-      select: {
-        date: true,
-        availability: true
-      }
-    });
-
-    // Get dates that have inventory with availability > 0
-    const availableDates = inventories.map(inv => inv.date);
-    
-    // Find missing dates (dates without inventory or with 0 availability)
-    const missingDates = allDates.filter(date => !availableDates.includes(date));
-
-    return {
-      availableDates,
-      missingDates,
-      totalDates: allDates.length,
-      availableCount: availableDates.length,
-      missingCount: missingDates.length
-    };
-  } catch (error: any) {
-    throw new Error(error.message);
-  }
-}
+    }
 }
 
 export default InventoryRepository;

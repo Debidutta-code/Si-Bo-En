@@ -1,5 +1,15 @@
 import { AmenityType } from "@prisma/client";
-import {prisma} from "../../config";
+import { prisma } from "../../config";
+import {
+  IMasterPaymentIntegrationWithId,
+  IPropertyPaymentIntegration,
+  ICMasterIntegrations,
+  IMasterIntegrations,
+  ICMasterIntegrationIntegrationFields,
+  IMasterIntegrationFields,
+  ICMasterIntegrationUrlFields,
+  IMasterIntegrationUrlFields
+} from "../types";
 
 export class RoomAminityDao {
   public static async getAllRoomAmenities() {
@@ -68,11 +78,11 @@ export class RoomAminityDao {
 }
 
 export class PropertyAminityDao {
-  public static async getAllPropertyAmenities(type:string="property") {
+  public static async getAllPropertyAmenities(type: string = "property") {
     try {
       return await prisma.masterAmenity.findMany({
         where: {
-          amenityType: type=== "property"?AmenityType.property: AmenityType.room,
+          amenityType: type === "property" ? AmenityType.property : AmenityType.room,
           isActive: true,
         },
         select: {
@@ -394,8 +404,8 @@ export class PropertyAmenitySelectionDao {
   }
 }
 
-export class LoyaltyGuestFieldsDao{
-  public static async createGuestFilelds(name:string[]){
+export class LoyaltyGuestFieldsDao {
+  public static async createGuestFilelds(name: string[]) {
     try {
       return await prisma.masterLoyaltyRegistrationFields.createMany({
         data: name.map(fieldName => ({ fieldName })),
@@ -404,18 +414,18 @@ export class LoyaltyGuestFieldsDao{
       throw new Error(`Error creating loyalty guest field`);
     }
   }
-  public static async deleteGuestField(id:string){
+  public static async deleteGuestField(id: string) {
     try {
       return await prisma.masterLoyaltyRegistrationFields.delete({
-        where:{
-          id:id
+        where: {
+          id: id
         }
       })
     } catch (error) {
       throw new Error(`Error deleting loyalty guest field`);
     }
   }
-  public static async getGuestFields(){
+  public static async getGuestFields() {
     try {
       return await prisma.masterLoyaltyRegistrationFields.findMany();
     } catch (error) {
@@ -423,3 +433,280 @@ export class LoyaltyGuestFieldsDao{
     }
   }
 }
+
+
+export class PaymentIntegrationDao {
+  // ============ Master Payment Integration Methods ============
+
+  public static async getPaymentIntegrationByName(name: string) {
+    try {
+      return await prisma.masterPaymentIntegration.findUnique({
+        where: {
+          name: name,
+        },
+      });
+    } catch (error: any) {
+      throw new Error(error?.message);
+    }
+  }
+
+  public static async createPaymentIntegration(name: string) {
+    try {
+      return await prisma.masterPaymentIntegration.create({
+        data: {
+          name,
+          isActive: true,
+        },
+      });
+    } catch (error: any) {
+      throw new Error(error?.message);
+    }
+  }
+
+  // public static async getPaymentIntegrations(propertyId:string) {
+  //   try {
+  //     return await prisma.masterPaymentIntegration.findMany({
+  //       where: {
+  //       },
+  //       orderBy: {
+  //         name: 'asc',
+  //       },
+  //       include:{
+  //         propertyPaymentIntegrations:{
+  //           where:{
+  //             propertyId
+  //           }
+  //         }
+  //       }
+  //     });
+  //   } catch (error: any) {
+  //     throw new Error(error?.message);
+  //   }
+  // }
+
+  public static async updatePaymentIntegration(
+    id: string,
+    name: string,
+    isActive: boolean
+  ) {
+    try {
+
+      return await prisma.masterPaymentIntegration.update({
+        where: { id },
+        data: {
+          name,
+          isActive
+        },
+      });
+    } catch (error: any) {
+      throw new Error(error?.message);
+    }
+  }
+
+  public static async deletePaymentIntegration(id: string) {
+    try {
+      return await prisma.masterPaymentIntegration.delete({
+        where: { id },
+      });
+    } catch (error: any) {
+      throw new Error(error?.message);
+    }
+  }
+  public static async validateMasterIntegrations(integrationId: string): Promise<boolean> {
+    try {
+      const count = await prisma.masterPaymentIntegration.count({
+        where: {
+          id: integrationId,
+          isActive: true
+        }
+      });
+      return count ? true : false;
+    } catch (error: any) {
+      throw new Error(error?.message);
+    }
+  }
+
+  public static async createPropertyIntegrations(
+    propertyId: string,
+    integrationId: string,
+    outletId: string
+  ): Promise<IPropertyPaymentIntegration> {
+    try {
+
+
+      return await prisma.propertyPaymentIntegration.create({
+        data: {
+          propertyId,
+          paymentIntegrationId: integrationId,
+          outletId,
+          isActive:true
+        },
+      });
+    } catch (error: any) {
+      throw new Error(error?.message);
+    }
+  }
+
+
+  public static async getAllByPropertyId(propertyId: string): Promise<IPropertyPaymentIntegration[]> {
+    try {
+      return await prisma.propertyPaymentIntegration.findMany({
+        where: {
+          propertyId
+        },
+        include: {
+          paymentIntegration: true
+        }
+      });
+    } catch (error) {
+      throw new Error("Failed to fetch property payment integrations");
+    }
+  }
+  public static async getActivatedPaymentMethod(propertyId: string):Promise<IPropertyPaymentIntegration|null>{
+    try {
+      return await prisma.propertyPaymentIntegration.findFirst({
+        where: {
+          propertyId,
+          isActive:true
+        },
+        include: {
+          paymentIntegration: true
+        }
+      })
+    } catch (error) {
+      throw new Error("Failed get active payment methods")
+    }
+  }
+  public static async getAllForPropertyId(propertyId: string): Promise<IMasterPaymentIntegrationWithId[]> {
+    try {
+      return await prisma.masterPaymentIntegration.findMany({
+        where: {
+        },
+        include: {
+          propertyPaymentIntegrations: {
+            where: {
+              propertyId
+            }
+          }
+        }
+      });
+    } catch (error) {
+      throw new Error("Failed to fetch property payment integrations");
+    }
+  }
+  public static async deletePropertyIntegrations(id: string): Promise<IPropertyPaymentIntegration> {
+    try {
+      return await prisma.propertyPaymentIntegration.delete({
+        where: { id }
+      });
+    } catch (error) {
+      throw new Error("Failed to delete property payment integrations");
+    }
+  }
+
+  public static async deactivatePropertyIntegrations(propertyId: string): Promise<IPropertyPaymentIntegration | null> {
+    try {
+      return await prisma.propertyPaymentIntegration.findFirst({
+        where: { propertyId, isActive: true },
+      });
+    } catch (error) {
+      throw new Error("Failed to deactivate property payment integrations");
+    }
+  }
+  public static async activatePropertyIntegrations(id: string) {
+    try {
+      return await prisma.propertyPaymentIntegration.updateMany({
+        where: { id },
+        data: { isActive: true }
+      });
+    } catch (error) {
+      throw new Error("Failed to activate property payment integrations");
+    }
+  }
+  public static async isIntegrationActiveForProperty(
+    propertyId: string,
+    integrationId: string
+  ): Promise<boolean> {
+    try {
+      const integration = await prisma.propertyPaymentIntegration.findFirst({
+        where: {
+          propertyId: propertyId,
+          paymentIntegrationId: integrationId,
+        }
+      });
+
+      return integration?.isActive ?? false;
+    } catch (error: any) {
+      throw new Error(error?.message);
+    }
+  }
+
+  public static async togglePropertyIntegration(
+    id: string,
+    isActive: boolean
+  ): Promise<IPropertyPaymentIntegration> {
+    try {
+      return await prisma.propertyPaymentIntegration.update({
+        where: {
+          id
+        },
+        data: { isActive }
+      });
+    } catch (error: any) {
+      throw new Error(error?.message);
+    }
+  }
+}
+
+// export class InragrationManagement {
+//   public async createMasterIntegrations(data: ICMasterIntegrations): Promise<IMasterIntegrations> {
+//     try {
+//       return await prisma.masterIntegrations.create({
+//         data, include: {
+//           masterIntegrationURLFields: true,
+//           requiredFieldsForMasterIntegration: true
+//         }
+//       },
+
+//       )
+//     } catch (error) {
+//       throw new Error("Failed to create master integration")
+//     }
+//   }
+
+//   public async getAllMasterIntegrations(): Promise<IMasterIntegrations[]> {
+//     try {
+//       return await prisma.masterIntegrations.findMany({
+//         include: {
+//           masterIntegrationURLFields: true,
+//           requiredFieldsForMasterIntegration: true
+//         }
+//       })
+//     } catch (error) {
+//       throw new Error("Failed to fetch all partner integrations")
+//     }
+//   }
+//   public async updateMasterIntegrations(id:string,data:ICMasterIntegrations):Promise<IMasterIntegrations>{
+//     try {
+//       return await prisma.masterIntegrations.update({
+//         where:{
+//           id
+//         },
+//         data:data,
+//         include:{
+//           masterIntegrationURLFields: true,
+//           requiredFieldsForMasterIntegration: true
+//         }
+//       })
+//     } catch (error) {
+//       throw new Error("Failed to update partner integrations")
+//     }
+//   }
+//   public async deleteMasterIntegrations(id:string):Promise<boolean>{
+//     try {
+      
+//     } catch (error) {
+//       throw new Error()
+//     }
+//   }
+// }

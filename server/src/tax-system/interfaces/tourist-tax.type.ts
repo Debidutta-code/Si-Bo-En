@@ -4,6 +4,7 @@ export type DiscountType = 'flat' | 'percentage';
 export type CurrencyCode = 'USD' | 'EUR' | 'INR';
 
 export interface ICTouristTax {
+    name:string
     ratePlanCode: string;
     discountType: DiscountType;
     discountValue?: number | null;

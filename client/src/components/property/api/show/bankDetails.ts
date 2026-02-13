@@ -2,7 +2,7 @@ import AxiosInstance from "@/components/axiosInstance";
 export const getBankDetailsByPropertyId = async (propertyId: string) => {
     try {
         const axiosInstance = AxiosInstance()
-        const response = await axiosInstance.get(`property-management/property/${propertyId}/payment-details`)
+        const response = await axiosInstance.get(`property-management/property/${propertyId}/payment-details?from="extranet"`)
         return response.data
     } catch (error: any) {
         return error?.response.data

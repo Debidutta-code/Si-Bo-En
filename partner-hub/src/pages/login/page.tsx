@@ -56,12 +56,6 @@ const [loginCred,setLoginCred] = useState<IAgentLogin>({
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="flex items-center gap-3 mb-8">
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-accent">
-                <Building2 className="h-8 w-8 text-accent-foreground" />
-              </div>
-              <span className="text-3xl font-bold">Partner Portal</span>
-            </div>
             <h1 className="text-4xl font-bold mb-4">
               Manage Your Properties<br />With Confidence
             </h1>
@@ -84,14 +78,13 @@ const [loginCred,setLoginCred] = useState<IAgentLogin>({
           transition={{ duration: 0.5, delay: 0.2 }}
           className="w-full max-w-md"
         >
-          {/* Mobile Logo */}
-          <div className="lg:hidden flex items-center justify-center gap-2 mb-8">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary">
-              <Building2 className="h-6 w-6 text-primary-foreground" />
-            </div>
-            <span className="text-2xl font-bold text-foreground">Partner Portal</span>
-          </div>
+          
+          <div
+          className='w-full flex flex-row justify-center '
+          >
 
+          <img src="/revchill.png" alt="Revchill Logo" className='w-3/4  '/>
+          </div>
           <Card className="border-0 shadow-lg">
             <CardHeader className="text-center pb-2">
               <CardTitle className="text-2xl">Welcome Back</CardTitle>

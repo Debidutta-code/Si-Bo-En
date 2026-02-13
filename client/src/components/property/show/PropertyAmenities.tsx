@@ -16,10 +16,10 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { updatePropertyAmenity } from "../api/create/propertyAmenity";
 import UpdatePropertyAminity from "../update/PropertyAmenities";
+import type { IAmenity } from "../types/amenity.types";
 interface PropertyId {
   propertyId: string;
 }
@@ -27,8 +27,9 @@ interface PropertyId {
 
 export default function PropertyAmenities({ propertyId }: PropertyId) {
   const [loading, setLoading] = useState(true);
-  const [propertyAmenities, setPropertyAmenities] = useState<string[]>([]);
+  const [propertyAmenities, setPropertyAmenities] = useState<IAmenity[]>([]);
   const [selectedAmenities, setSelectedAmenities] = useState<Record<string, boolean>>({});
+  const [isUpdateDialogOpen, setUpdateDialogOpen] = useState<boolean>(false)
   const fetchPropertyAmenity = async (propertyId: string) => {
     setLoading(true);
     try {
@@ -64,15 +65,20 @@ export default function PropertyAmenities({ propertyId }: PropertyId) {
     );
   }
   const updateAmenities = async (propertyId: string, selectedAmenities: any) => {
+    setLoading(true)
     try {
       const res = await updatePropertyAmenity(propertyId, selectedAmenities);
       if (res.success) {
+        setUpdateDialogOpen(false);
+fetchPropertyAmenity(propertyId)
         toast.success("Property Amenities Updated successfully")
       } else {
         toast.error(res.message || "Failed to update Amenities")
       }
     } catch (error: any) {
       toast.error(error?.message || "Failed to update the proprty amenities")
+    }finally{
+      setLoading(false)
     }
 
   }
@@ -88,47 +94,14 @@ export default function PropertyAmenities({ propertyId }: PropertyId) {
               {propertyAmenities.length} {propertyAmenities.length === 1 ? 'amenity' : 'amenities'} available
             </p>
           </div>
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button size="sm" className="gap-2 bg-primary hover:bg-primary/90">
-                <PenTool className="h-4 w-4" />
-                Edit Amenities
-              </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
-              <AlertDialogHeader>
-                <div className="flex w-full justify-between items-start">
-                  <div>
-                    <AlertDialogTitle className="text-xl">
-                      Update Property Amenities
-                    </AlertDialogTitle>
-                    <p className="text-sm text-gray-500 mt-1">
-                      Select or deselect amenities for this property
-                    </p>
-                  </div>
-                  <AlertDialogCancel className="rounded-full h-8 w-8 p-0 border-0 hover:bg-gray-100">
-                    <X className="h-4 w-4" />
-                  </AlertDialogCancel>
-                </div>
-                <UpdatePropertyAminity
-                  availableAmenities={propertyAmenities}
-                  setSelectedAmenities={setSelectedAmenities}
-                />
-              </AlertDialogHeader>
-              <AlertDialogFooter className="border-t pt-4">
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={(e: any) => {
-                    e.preventDefault();
-                    updateAmenities(propertyId, selectedAmenities);
-                  }}
-                  disabled={loading}
-                >
-                  {loading ? "Updating..." : "Update Amenities"}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+          <Button
+            size="sm"
+            className="gap-2 bg-primary hover:bg-primary/90"
+            onClick={() => setUpdateDialogOpen(true)}
+          >
+            <PenTool className="h-4 w-4" />
+            Edit Amenities
+          </Button>
         </div>
       </CardHeader>
 
@@ -137,12 +110,12 @@ export default function PropertyAmenities({ propertyId }: PropertyId) {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
             {propertyAmenities.map((amenity) => (
               <div
-                key={amenity}
+                key={amenity.id}
                 className="flex items-center gap-2 px-4 py-3 bg-gradient-to-br from-gray-50 to-gray-100/50 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors group"
               >
                 <div className="flex-shrink-0 w-2 h-2 rounded-full bg-primary-500 group-hover:bg-primary-600 transition-colors" />
                 <span className="text-sm font-medium text-gray-700 capitalize">
-                  {amenity.replace(/_/g, " ")}
+                  {amenity.name}
                 </span>
               </div>
             ))}
@@ -171,6 +144,43 @@ export default function PropertyAmenities({ propertyId }: PropertyId) {
           </div>
         )}
       </CardContent>
+
+      {/* Update Amenities Dialog */}
+      <AlertDialog open={isUpdateDialogOpen} onOpenChange={setUpdateDialogOpen}>
+        <AlertDialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
+          <AlertDialogHeader>
+            <div className="flex w-full justify-between items-start">
+              <div>
+                <AlertDialogTitle className="text-xl">
+                  Update Property Amenities
+                </AlertDialogTitle>
+                <p className="text-sm text-gray-500 mt-1">
+                  Select or deselect amenities for this property
+                </p>
+              </div>
+              <AlertDialogCancel className="rounded-full h-8 w-8 p-0 border-0 hover:bg-gray-100">
+                <X className="h-4 w-4" />
+              </AlertDialogCancel>
+            </div>
+            <UpdatePropertyAminity
+              availableAmenities={propertyAmenities}
+              setSelectedAmenities={setSelectedAmenities}
+            />
+          </AlertDialogHeader>
+          <AlertDialogFooter className="border-t pt-4">
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e: any) => {
+                e.preventDefault();
+                updateAmenities(propertyId, selectedAmenities);
+              }}
+              disabled={loading}
+            >
+              {loading ? "Updating..." : "Update Amenities"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   );
 }

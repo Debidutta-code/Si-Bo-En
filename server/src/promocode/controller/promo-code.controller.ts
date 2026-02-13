@@ -124,6 +124,26 @@ export class PromoCodeController {
         }
 
     }
+    public async validatePromoCodeController(req: PropertyRequest, res: Response): Promise<Response> {
+        try {
+            const {promocode}=req.body
+            const propertyId=req.property?.id
+            if(!propertyId){
+                return res.status(400).json(errorResponse("Property Id verification failed"))
+            }
+            if(promocode){
+                return res.status(400).json(errorResponse("Promocode required for verification"))
+            }
+            const serRes=await this.promoCodeService.validatePromoCode(propertyId,promocode)
+            return res.status(serRes.success?200:400).json(serRes)
+        } catch (error) {
+            if (error instanceof Error) {
+                return res.status(500).json(errorResponse("Error occur while verifying Promocode"));
+            }
+            return res.status(500).json(errorResponse('An unexpected error occurred'));
+
+        }
+    }
     public async updatePromoCode(req: Request, res: Response): Promise<Response> {
         try {
             const id = req.params.id;
@@ -153,7 +173,8 @@ export class PromoCodeController {
     }
     public async deletePromoCode(req: PropertyRequest, res: Response): Promise<Response> {
         try {
-            const { propertyId, id } = req.params;
+            const { id } = req.params;
+            const propertyId = req.property?.id
             const isHardDelete = req.query.hardDelete as string;
             if (!propertyId || !id) {
                 return res.status(400).json(errorResponse('Property ID and Promo Code ID are required'));

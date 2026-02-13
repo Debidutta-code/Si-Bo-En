@@ -164,41 +164,41 @@ export class ActivityLogger {
       path: req.path,
       query: req.query,
       params: req.params,
-      body: ActivityLogger.sanitizeBody(req.body),
-      headers: ActivityLogger.sanitizeHeaders(req.headers),
+      body: req.body,
+      headers: req.headers,
       cookies: req.cookies
     };
   }
   
-  private static sanitizeBody(body: any): any {
-    if (!body || typeof body !== 'object') return body;
+  // private static sanitizeBody(body: any): any {
+  //   if (!body || typeof body !== 'object') return body;
     
-    const sanitized = { ...body };
-    const sensitiveFields = ['password', 'newPassword', 'oldPassword', 'confirmPassword', 'token', 'accessToken', 'refreshToken', 'apiKey', 'secret', 'cardNumber', 'cvv', 'pin'];
+    // const sanitized = { ...body };
+    // const sensitiveFields = ['password', 'newPassword', 'oldPassword', 'confirmPassword', 'token', 'accessToken', 'refreshToken', 'apiKey', 'secret', 'cardNumber', 'cvv', 'pin'];
     
-    for (const field of sensitiveFields) {
-      if (sanitized[field]) {
-        sanitized[field] = '***REDACTED***';
-      }
-    }
+    // for (const field of sensitiveFields) {
+    //   if (sanitized[field]) {
+    //     sanitized[field] = '***REDACTED***';
+    //   }
+    // }
     
-    return sanitized;
-  }
+  //   return sanitized;
+  // }
   
-  private static sanitizeHeaders(headers: any): Record<string, any> {
-    if (!headers || typeof headers !== 'object') return {};
+  // private static sanitizeHeaders(headers: any): Record<string, any> {
+  //   if (!headers || typeof headers !== 'object') return {};
     
-    const sanitized = { ...headers };
-    const sensitiveHeaders = ['authorization', 'cookie', 'x-api-key', 'x-auth-token'];
+  //   const sanitized = { ...headers };
+  //   const sensitiveHeaders = ['authorization', 'cookie', 'x-api-key', 'x-auth-token'];
     
-    for (const header of sensitiveHeaders) {
-      if (sanitized[header]) {
-        sanitized[header] = '***REDACTED***';
-      }
-    }
+  //   for (const header of sensitiveHeaders) {
+  //     if (sanitized[header]) {
+  //       sanitized[header] = '***REDACTED***';
+  //     }
+  //   }
     
-    return sanitized;
-  }
+  //   return sanitized;
+  // }
   
   private static isSuccess(statusCode: number): boolean {
     return statusCode >= 200 && statusCode < 300;
@@ -266,7 +266,11 @@ export class ActivityLogger {
             entityCode: undefined
           }))
         : undefined;
-      
+      let ip=req.ip || req.socket.remoteAddress || (request.headers['x-forwarded-for'] as string)
+      // console.log('User IP:', ip);
+      if(ip && typeof ip === 'string' && (ip==="::ffff:127.0.0.1"||ip==="::1") ) {
+        ip="127.0.0.1"
+      }
       const activityData: ICreateActivityInput = {
         action,
         entity,
@@ -301,7 +305,7 @@ export class ActivityLogger {
         newState,
         
         metadata: {
-          ipAddress: req.ip || req.socket.remoteAddress || (request.headers['x-forwarded-for'] as string),
+          ipAddress: ip,
           userAgent: req.get('user-agent'),
           
           requestId: (request.headers['x-request-id'] as string),
@@ -362,6 +366,7 @@ export class ActivityLogger {
   }
   
   private static getBrowser(userAgent?: string): string | undefined {
+    // console.log('User-Agent:', userAgent);  
     if (!userAgent) return undefined;
     
     if (userAgent.includes('Chrome')) return 'Chrome';

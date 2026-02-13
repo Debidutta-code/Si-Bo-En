@@ -15,7 +15,7 @@ const PaymentSuccessPage = () => {
 
   // Get booking code from URL params (for Fikafi redirect)
   const urlBookingCode = searchParams?.get("bookingCode");
-  
+
   // Add the hook usage at the component level
   const { colors } = useBookingStorage({});
 
@@ -37,7 +37,12 @@ const PaymentSuccessPage = () => {
       }
     }
   }, []);
-
+ const formatPaymentMethod = (paymentMethod: string): string => {
+    return paymentMethod
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+        .join(' ');
+};
   // ✅ Clear cookie + block back navigation
   useEffect(() => {
     // Clear the access cookie
@@ -55,7 +60,6 @@ const PaymentSuccessPage = () => {
       window.removeEventListener("popstate", handlePopState);
     };
   }, []);
-
   const {
     startDate: checkIn,
     endDate: checkOut,
@@ -68,7 +72,7 @@ const PaymentSuccessPage = () => {
     bookingCode,
     bookingStatus,
   } = bookingData;
-  
+
   // ✅ Show success if either Redux has confirmed status OR localStorage has confirmation OR URL has booking code
   const isConfirmed = bookingStatus === "confirmed" || (localConfirmation?.status === "confirmed") || !!urlBookingCode;
 
@@ -160,10 +164,11 @@ const PaymentSuccessPage = () => {
               <p>
                 <strong>Email:</strong> {email}
               </p>
+
               <p>
                 <strong>Payment Method:</strong>{" "}
                 <span className="font-semibold" style={{ color: colors.primaryColor }}>
-                  Pay at Hotel
+                  {formatPaymentMethod(bookingData?.paymentMethod ||"pay_at_hotel")}
                 </span>
               </p>
             </div>

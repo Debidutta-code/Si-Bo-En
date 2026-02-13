@@ -10,4 +10,5 @@ export interface IUPropertyConfig {
   reservationResetMinutes: number,
   selfAriActive: boolean,
   timezone: string,
+  showVideo:boolean,
 }

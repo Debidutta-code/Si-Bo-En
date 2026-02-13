@@ -80,7 +80,6 @@ export class AgentBookingController {
                 }
             };
 
-            console.log("Creating agent booking with data:", JSON.stringify(enhancedPayload.data, null, 2));
 
             // Call the existing reservation service
             const serviceRes = await this.reservationService.createReservation(enhancedPayload.data);

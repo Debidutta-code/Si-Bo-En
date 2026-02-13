@@ -30,3 +30,15 @@ export interface ILoyaltyGuestField {
   createdAt?: string;
   updatedAt?: string;
 }
+export interface IPaymentIntegration {
+  id: string;
+  name: string;
+  isActive: boolean;
+  propertyPaymentIntegrations:[{
+    id:string;
+    propertyId:string;
+    paymentIntegrationId:string;
+    isActive:boolean;
+    outletId:string;
+  }]
+}

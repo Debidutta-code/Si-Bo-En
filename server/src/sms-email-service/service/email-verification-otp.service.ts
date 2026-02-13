@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 import { EmailOTPRepository } from "../reposititory";
-import { generateOTPEmailTemplate, generateWelcomeEmailTemplate, generatePasswordResetLinkTemplate } from "../templates";
+import { generateOTPEmailTemplate, 
+    generatePasswordResetLinkTemplate } from "../templatesss";
 import { config } from "../../config";
 
 export class EmailService {
@@ -14,8 +15,6 @@ export class EmailService {
         this.senderEmail = process.env.SENDER_EMAIL || "info@swiftrooms.ai";
         this.senderName = process.env.SENDER_NAME || "SwiftRooms";
 
-        // Initialize nodemailer transporter
-        // Use EMAIL_USER for Gmail authentication, SENDER_EMAIL for display
         this.transporter = nodemailer.createTransport({
             service: "gmail",
             auth: {
@@ -25,7 +24,6 @@ export class EmailService {
         });
     }
 
-    // Generate a 6-digit OTP
     private generateOTP(): string {
         return Math.floor(100000 + Math.random() * 900000).toString();
     }
@@ -109,60 +107,6 @@ export class EmailService {
         }
     }
 
-    // Send welcome email
-    async sendWelcomeEmail(
-        email: string,
-        name: string
-    ): Promise<{ success: boolean; message: string }> {
-        try {
-            const htmlContent = generateWelcomeEmailTemplate(name);
-
-            await this.transporter.sendMail({
-                from: `"${this.senderName}" <${this.senderEmail}>`,
-                to: email,
-                subject: "Welcome to SwiftRooms!",
-                html: htmlContent,
-            });
-
-            return {
-                success: true,
-                message: "Welcome email sent successfully",
-            };
-        } catch (error) {
-            console.error("Error sending welcome email:", error);
-            return {
-                success: false,
-                message: error instanceof Error ? error.message : "Failed to send welcome email",
-            };
-        }
-    }
-
-    // Send custom email
-    async sendCustomEmail(
-        to: string,
-        subject: string,
-        htmlContent: string
-    ): Promise<{ success: boolean; message: string }> {
-        try {
-            await this.transporter.sendMail({
-                from: `"${this.senderName}" <${this.senderEmail}>`,
-                to,
-                subject,
-                html: htmlContent,
-            });
-
-            return {
-                success: true,
-                message: "Email sent successfully",
-            };
-        } catch (error) {
-            console.error("Error sending custom email:", error);
-            return {
-                success: false,
-                message: error instanceof Error ? error.message : "Failed to send email",
-            };
-        }
-    }
 
     // Send password reset link
     async sendPasswordResetLink(email: string, resetToken: string): Promise<{ success: boolean; message: string }> {
@@ -196,18 +140,6 @@ export class EmailService {
         }
     }
 
-    // Clean up expired OTPs (can be run as a cron job)
-    async cleanupExpiredOTPs(): Promise<number> {
-        try {
-            const deletedCount = await this.otpRepository.deleteExpiredOTPs();
-            //console.log(`Cleaned up ${deletedCount} expired OTPs`);
-            return deletedCount;
-        } catch (error) {
-            console.error("Error cleaning up expired OTPs:", error);
-            return 0;
-        }
-    }
 }
 
-// Export singleton instance
 export const emailService = new EmailService();

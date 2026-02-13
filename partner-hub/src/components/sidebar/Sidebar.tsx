@@ -71,9 +71,9 @@ export default function Sidebar({
         {sidebarOpen && (
           <div className="flex items-center gap-2">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-sidebar-primary">
-              <Building2 className="h-5 w-5 text-sidebar-primary-foreground" />
+              <img src="/revchillicon.svg" alt="Revchill Logo" />
             </div>
-            <span className="text-lg font-semibold text-sidebar-foreground">Partner Portal</span>
+            <span className="text-sm font-semibold text-sidebar-foreground">Revchill Partner Portal</span>
           </div>
         )}
         <Button

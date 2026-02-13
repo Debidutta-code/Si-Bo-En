@@ -10,18 +10,33 @@ router.route("/").post(
     protect,
     attachPropertyDetails({
         identifierType: "id",
-        key: "promoCodeData.propertyId",
+        key: "propertyId",
         source: "body"
     }),
     promoCodeController.createPromoCode.bind(promoCodeController)
+
 );
+router.route("verify").post(
+    attachPropertyDetails({
+        identifierType:"code",
+        key:"propertyCode",
+        source:"body"
+    }),
+    promoCodeController.validatePromoCodeController.bind(promoCodeController)
+)
 router.route("/:id")
-    .patch(promoCodeController.updatePromoCode.bind(promoCodeController))
+    .patch(
+        attachPropertyDetails({
+            identifierType: "id",
+            key: "promoCodeData.propertyId",
+            source: "body"
+        }),
+        promoCodeController.updatePromoCode.bind(promoCodeController))
     .delete(
         attachPropertyDetails({
             identifierType: "id",
             key: "propertyId",
-            source: "params"
+            source: "query"
         }),
         promoCodeController.deletePromoCode.bind(promoCodeController)
     );

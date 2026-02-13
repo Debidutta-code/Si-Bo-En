@@ -8,7 +8,8 @@ import {AminityController,
     Category,
     PropertyType,
     RoomAminityControllerManagement,
-    LoyaltyGuestFieldControllers
+    LoyaltyGuestFieldControllers,
+    PaymentIntegrationController
 } from "./types.controller";
 import {uploadHandler} from "./upload.controller";
 import {PropertyConfigController} from "./property-config.controller";
@@ -31,5 +32,6 @@ export{
     uploadHandler,
     PropertyConfigController,
     BookingEngineController,
-    LoyaltyGuestFieldControllers
+    LoyaltyGuestFieldControllers,
+    PaymentIntegrationController
 }

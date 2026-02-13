@@ -34,45 +34,27 @@ export class RoomBookingService {
             current = toUTCDate(current); // Convert the incremented date back to UTC
         }
 
-        //console.log("📅 Dates for pricing:", dates.map(d => d.toISOString()));
-        //console.log("📅 Number of nights:", dates.length);
-
-        //console.log("📅 Date range:", dates);
-
         const totalGuests = guests.adults + guests.children;
         const numberOfNights = calculateNights(startDate, endDate);
         const rooms: IRoom[] = [];
 
         for (const room of property.propertyRooms) {
-            //console.log(`\n🏠 Processing room: ${room.roomName} (${room.roomType})`);
-
-            // Check inventory for all dates
             const inventory =
                 await RoomBookingRepository.getInventoryByProperty(
                     PropertyCode,
                     room.roomType,
                     dates
                 );
-            //console.log(inventory)
-            //console.log(`  📦 Inventory found:${inventory} ,${inventory.length} / ${dates.length} dates`);
-
             if (inventory.length !== dates.length) {
-                //console.log(`  ❌ Skipping room - insufficient inventory`);
                 continue;
             }
 
             const room_price: IRoomPrice[] = [];
 
             for (const ratePlan of property.ratePlans) {
-                //console.log(`\n  💳 Processing rate plan: ${ratePlan.ratePlanName} (${ratePlan.ratePlanCode})`);
-
                 // Get all addons for this rate plan
                 const ratePlanAddons =
                     await RoomBookingRepository.getRatePlanAddons(ratePlan.id);
-
-                //console.log(`    🎁 Addons found: ${ratePlanAddons.length}`);
-
-                // Check addon availability for all dates
                 let allAddonsAvailable = true;
                 const addonPrices: { [addonId: string]: number } = {};
 
@@ -82,15 +64,9 @@ export class RoomBookingService {
                             ratePlanAddon.addonId,
                             dates
                         );
-
-                    //console.log(`      🎁 Addon "${ratePlanAddon.addon.name}": ${addonAvailability.length} / ${dates.length} dates available`);
-
-                    // If any addon is not available for all dates, skip this rate plan
                     if (addonAvailability.length !== dates.length) {
                         allAddonsAvailable = false;
-                        //console.log(addonAvailability)
-                        //console.log(`❌ Addon not available for all dates`);
-                        break;
+                         break;
                     }
 
                     // Calculate addon price based on posting rhythm
@@ -158,6 +134,7 @@ export class RoomBookingService {
 
                     touristTax = {
                         id: touristTaxData.id,
+                        name:touristTaxData.name||"",
                         discountType: touristTaxData.discountType,
                         discountValue: Number(touristTaxData.discountValue),
                         currencyCode: touristTaxData.currencyCode || 'USD',
@@ -178,7 +155,7 @@ export class RoomBookingService {
                     const discountAmount =
                         devicePromotion.DiscountType === 'percentage'
                             ? totalAmount *
-                              (Number(devicePromotion.DiscountValue) / 100)
+                            (Number(devicePromotion.DiscountValue) / 100)
                             : Number(devicePromotion.DiscountValue);
 
                     totalAmount -= discountAmount;
@@ -338,8 +315,6 @@ export class RoomBookingService {
             });
         }
 
-        //console.log(`\n✅ Total rooms with valid rates: ${rooms.filter(r => r.has_valid_rate).length} / ${rooms.length}`);
-
         return {
             success: true,
             message: 'Rooms fetched successfully',
@@ -347,7 +322,7 @@ export class RoomBookingService {
                 propertyDetails: {
                     id: property.id,
                     propertyName: property.propertyName,
-                    propertyVideos: property.propertyVideos,
+                    propertyVideos: property.propertyConfigs?.showVideo ? property.propertyVideos:null,
                     loyaltyProgramConfig: property.loyaltyProgramConfig,
                     propertyCode: property.propertyCode,
                     starRating: property.starRating,
@@ -424,7 +399,7 @@ export class RoomBookingService {
                         (sum, avail) => sum + Number(avail.price),
                         0
                     ) / availabilities.length;
-                totalPrice = avgPricePerNight * totalGuests * numberOfNights;
+                totalPrice = avgPricePerNight * totalGuests ;
                 break;
 
             case 'per_person_per_stay':
@@ -473,7 +448,7 @@ export class RoomBookingService {
                         (sum, avail) => sum + Number(avail.price),
                         0
                     ) / availabilities.length;
-                totalPrice = dailyRoomPrice * numberOfRooms * numberOfNights;
+                totalPrice = dailyRoomPrice * numberOfRooms ;
                 break;
 
             default:

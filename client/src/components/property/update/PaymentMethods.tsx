@@ -1,82 +1,239 @@
-import {  CheckCircle } from "lucide-react";
+import { useEffect, useState } from 'react';
+import { CheckCircle, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { PaymentMethods } from "../types/types";
+import toast from 'react-hot-toast';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import type { IPaymentIntegration } from '@/pages/management/types';
+import { getPaymentIntegrationsService } from '@/pages/management/services/management.services';
 
+interface PaymentMethodSelection {
+  integrationId: string;
+  propertyPaymentIntegrationId?: string;
+  outletId: string;
+  isActive: boolean;
+}
 
 export default function PaymentMethodsUi({
-  paymentMethod,
-  setPaymentMethods,
+  paymentMethodId,
+  setActivePaymentMethodId,
+  propertyId,
+  onSelectionChange
 }: {
-  paymentMethod: PaymentMethods;
-  setPaymentMethods: React.Dispatch<React.SetStateAction<PaymentMethods>>;
+  paymentMethodId: string;
+  setActivePaymentMethodId: React.Dispatch<React.SetStateAction<string>>;
+  propertyId: string;
+  onSelectionChange: (selection: PaymentMethodSelection | null) => void;
 }) {
+  const [paymentIntegrations, setPaymentIntegrations] = useState<IPaymentIntegration[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [selectedIntegration, setSelectedIntegration] = useState<string | null>(paymentMethodId);
+  const [outletIds, setOutletIds] = useState<Record<string, string>>({});
 
-  // 🔁 Toggle individual payment method
-  const togglePaymentMethod = (method: keyof PaymentMethods) => {
-    setPaymentMethods((prev) => ({
+  useEffect(() => {
+    fetchPaymentIntegrations();
+  }, []);
+
+  const fetchPaymentIntegrations = async () => {
+    setLoading(true);
+    try {
+      const response = await getPaymentIntegrationsService(propertyId);
+      if (response.success) {
+        setPaymentIntegrations(response.data);
+        
+        // Initialize outlet IDs from existing data
+        const initialOutletIds: Record<string, string> = {};
+        response.data.forEach((integration: IPaymentIntegration) => {
+          if (integration.propertyPaymentIntegrations?.[0]?.outletId) {
+            initialOutletIds[integration.id] = integration.propertyPaymentIntegrations[0].outletId;
+          }
+        });
+        setOutletIds(initialOutletIds);
+      } else {
+        toast.error("Failed to fetch payment integrations");
+      }
+    } catch (error) {
+      toast.error("Error loading payment integrations");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleIntegrationToggle = (integrationId: string) => {
+    const integration = paymentIntegrations.find(pi => pi.id === integrationId);
+    if (!integration) return;
+
+    const propertyIntegration = integration.propertyPaymentIntegrations?.[0];
+    const outletId = outletIds[integrationId] || propertyIntegration?.outletId || '';
+
+    // If no outlet ID and no existing integration, show toast
+    if (!outletId && !propertyIntegration) {
+      toast.error("Please provide an outlet ID");
+      return;
+    }
+
+    // Toggle selection
+    if (selectedIntegration === integrationId) {
+      setSelectedIntegration(null);
+      setActivePaymentMethodId('');
+      onSelectionChange(null);
+    } else {
+      setSelectedIntegration(integrationId);
+      // Update the active payment method ID with the property integration ID
+      if (propertyIntegration?.id) {
+        setActivePaymentMethodId(propertyIntegration.id);
+      }
+      onSelectionChange({
+        integrationId: integration.id,
+        propertyPaymentIntegrationId: propertyIntegration?.id,
+        outletId: outletId,
+        isActive: true
+      });
+    }
+  };
+
+  const handleOutletIdChange = (integrationId: string, value: string) => {
+    setOutletIds(prev => ({
       ...prev,
-      [method]: !prev[method],
+      [integrationId]: value
     }));
   };
+  
+  const formatPaymentIntegrationName = (name: string): string => {
+    return name
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   return (
-    <div className=" bg-gray-50 ">
+    <div className="bg-gray-50">
       <div className="max-w-5xl mx-auto">
         <div className="bg-white shadow-xl border border-gray-200 rounded-3xl overflow-hidden">
-          
-
-          {/* Content */}
           <div className="px-6 py-8 bg-white">
             <div className="space-y-8">
-              
+              <div className="mt-6 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-200 rounded-2xl">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h4 className="font-semibold text-lg text-gray-900">
+                      Select Payment Integration
+                    </h4>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Choose one payment provider to enable online payments
+                    </p>
+                  </div>
+                  {loading && <Loader2 className="w-5 h-5 animate-spin text-blue-600" />}
+                </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {[
-                  {
-                    key: "payAtHotel",
-                    label: "Pay at Hotel",
-                    desc: "Guests can pay directly at the property upon arrival or departure.",
-                  },
-                  {
-                    key: "paymentGateway",
-                    label: "Payment Gateway",
-                    desc: "Accept credit/debit cards, net banking, and digital wallets.",
-                  },
-                ].map(({ key, label, desc }) => {
-                  const isSelected = Boolean(paymentMethod[key as keyof PaymentMethods]);
-
-                  return (
-                    <button
-                      type="button"
-                      key={key}
-                      onClick={() => togglePaymentMethod(key as keyof PaymentMethods)}
-                      className={cn(
-                        "p-5 rounded-xl border-2 text-left transition-all duration-200 hover:shadow-md focus:outline-none",
-                        isSelected
-                          ? "bg-black text-white border-black shadow-md"
-                          : "bg-white border-gray-300 text-gray-800 hover:border-black"
-                      )}
-                    >
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-semibold text-sm sm:text-base">{label}</h4>
+                {loading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {paymentIntegrations.map((integration) => {
+                      const propertyIntegration = integration.propertyPaymentIntegrations?.[0];
+                      const hasExistingIntegration = !!propertyIntegration;
+                      const isChecked = propertyIntegration?.id === paymentMethodId;
+                      const currentOutletId = outletIds[integration.id] || propertyIntegration?.outletId || '';
+                      
+                      return (
                         <div
+                          key={integration.id}
                           className={cn(
-                            "flex items-center justify-center w-6 h-6 rounded-full border-2",
-                            isSelected
-                              ? "bg-white border-white"
-                              : "border-gray-400 bg-white"
+                            "p-4 rounded-xl border-2 transition-all duration-200",
+                            isChecked
+                              ? "bg-white border-blue-500 shadow-md"
+                              : "bg-white/50 border-gray-200"
                           )}
                         >
-                          {isSelected && <CheckCircle className="w-4 h-4 text-black" />}
+                          <div className="flex items-start gap-4">
+                            <div className="flex items-center gap-4 flex-1">
+                              <Checkbox
+                                id={integration.id}
+                                checked={isChecked}
+                                onCheckedChange={() => handleIntegrationToggle(integration.id)}
+                                className="h-5 w-5 mt-1"
+                              />
+                              <div className="flex-1">
+                                <label
+                                  htmlFor={integration.id}
+                                  className="cursor-pointer"
+                                >
+                                  <div className="font-semibold text-gray-900 flex items-center gap-2">
+                                    {formatPaymentIntegrationName(integration.name)}
+                                    {isChecked && (
+                                      <span className="px-2 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">
+                                        Active
+                                      </span>
+                                    )}
+                                  </div>
+                                  <div className="text-xs text-gray-500 mt-0.5">
+                                    Payment Gateway Provider
+                                  </div>
+                                </label>
+
+                                {/* Outlet ID Section */}
+                                <div className="mt-3">
+                                  {hasExistingIntegration ? (
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-xs text-gray-600">PG ID:</span>
+                                      <span className="text-xs font-mono bg-gray-100 px-2 py-1 rounded">
+                                        {propertyIntegration.outletId}
+                                      </span>
+                                      {propertyIntegration.isActive ? (
+                                        <span className="text-xs text-green-600 flex items-center gap-1">
+                                          <div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>
+                                          Active
+                                        </span>
+                                      ) : (
+                                        <span className="text-xs text-gray-500 flex items-center gap-1">
+                                          <div className="w-1.5 h-1.5 bg-gray-400 rounded-full"></div>
+                                          Inactive
+                                        </span>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <div className="space-y-1">
+                                      <label className="text-xs text-gray-600">
+                                        PG Id (Required for integration)
+                                      </label>
+                                      <Input
+                                        type="text"
+                                        placeholder="Enter PG Id"
+                                        value={currentOutletId}
+                                        onChange={(e) => handleOutletIdChange(integration.id, e.target.value)}
+                                        className="h-8 text-sm"
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {isChecked && (
+                              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-100">
+                                <CheckCircle className="w-5 h-5 text-blue-600" />
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                      <p className="text-sm text-gray-500 leading-relaxed">{desc}</p>
-                    </button>
-                  );
-                })}
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Validation Warning */}
+                {!selectedIntegration && (
+                  <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <p className="text-sm text-yellow-700 font-medium">
+                      Please select one payment integration to enable online payments
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </div>

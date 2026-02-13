@@ -33,8 +33,8 @@ export const usePaymentSocket = ({
       return;
     }
 
-    console.log('🔌 Initializing Socket.IO connection...');
-    console.log('📦 Order Reference:', orderReference);
+    //console.log('🔌 Initializing Socket.IO connection...');
+    //console.log('📦 Order Reference:', orderReference);
 
     const socket = io(`${process.env.NEXT_PUBLIC_SOCKET_URL}`, {
       transports: ['websocket', 'polling'],
@@ -48,7 +48,7 @@ export const usePaymentSocket = ({
 
     // Connection event handlers
     socket.on('connect', () => {
-      console.log('✅ Socket connected:', socket.id);
+      //console.log('✅ Socket connected:', socket.id);
       setIsConnected(true);
       setConnectionError(null);
 
@@ -59,7 +59,7 @@ export const usePaymentSocket = ({
     });
 
     socket.on('disconnect', (reason: any) => {
-      console.log('🔌 Socket disconnected:', reason);
+      //console.log('🔌 Socket disconnected:', reason);
       setIsConnected(false);
     });
 
@@ -70,18 +70,18 @@ export const usePaymentSocket = ({
     });
 
     socket.on('room-joined', (data: any) => {
-      console.log('✅ Joined payment room:', data);
+      //console.log('✅ Joined payment room:', data);
     });
 
     // Listen for payment status updates
     socket.on('payment-status-update', (update: PaymentStatusUpdate) => {
-      console.log('📡 Received payment status update:', update);
+      //console.log('📡 Received payment status update:', update);
       onStatusUpdate(update);
     });
 
     // Cleanup on unmount
     return () => {
-      console.log('🧹 Cleaning up socket connection...');
+      //console.log('🧹 Cleaning up socket connection...');
       if (socket.connected) {
         socket.emit('leave-payment-room', orderReference);
         socket.disconnect();

@@ -85,7 +85,7 @@ export class AuthController {
             errorResponse("You don't have permission to create Level 3 User")
           );
       }
-      console.log(req.body);
+      //console.log(req.body);
       // console.log()
       const userData = {
         ...req.body,

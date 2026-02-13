@@ -120,7 +120,11 @@ export default class CreationDao {
           super: true,
           group: true,
           brand: true,
-          property: true,
+          property:{
+            where:{
+              isDeleted:false
+            }
+          }
         },
       });
     } catch (error: any) {

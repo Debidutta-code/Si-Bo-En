@@ -28,7 +28,7 @@ const PaymentCallbackPage = () => {
 
   // Handle payment status updates from socket
   const handlePaymentUpdate = useCallback((update: any) => {
-    console.log('🎯 Payment update received via socket:', update);
+    //console.log('🎯 Payment update received via socket:', update);
 
     if (update.status === 'success') {
       handleSuccessfulPayment(update.orderReference);
@@ -57,9 +57,9 @@ const PaymentCallbackPage = () => {
 
       if (storedBookingData) {
         bookingData = JSON.parse(storedBookingData);
-        console.log("📦 Using stored booking data");
+        //console.log("📦 Using stored booking data");
       } else {
-        console.log("⚠️ No stored data, using Redux state");
+        //console.log("⚠️ No stored data, using Redux state");
         bookingData = {
           data: {
             bookingDetails: {
@@ -76,7 +76,7 @@ const PaymentCallbackPage = () => {
               guests: booking.guests,
               guestDetails: booking.guestDetails,
               ratePlanCode: booking.ratePlanCode,
-              paymentMethod: "ngenius",
+              paymentMethod: "payment_gateway",
               bookingSource: booking.bookingSource,
             },
             guestDetails: booking.guestDetails,
@@ -87,10 +87,10 @@ const PaymentCallbackPage = () => {
       // Attach payment info to booking
       if (bookingData?.data?.bookingDetails) {
         bookingData.data.bookingDetails.ngeniusOrderRef = orderRef;
-        bookingData.data.bookingDetails.paymentMethod = "ngenius";
+        bookingData.data.bookingDetails.paymentMethod = "payment_gateway";
       }
 
-      console.log("📤 Sending booking request:", bookingData);
+      //console.log("📤 Sending booking request:", bookingData);
 
       // Create booking via backend
       const response = await fetch(
@@ -105,7 +105,7 @@ const PaymentCallbackPage = () => {
       );
 
       const result = await response.json();
-      console.log("📥 Booking Response:", result);
+      //console.log("📥 Booking Response:", result);
 
       if (!response.ok) {
         throw new Error(result.message || "Failed to create booking");
@@ -164,7 +164,7 @@ const PaymentCallbackPage = () => {
         const storedOrderRef = localStorage.getItem("ngeniusOrderRef");
         const orderRef = urlOrderRef || storedOrderRef;
 
-        console.log("🔍 Order Reference:", orderRef);
+        //console.log("🔍 Order Reference:", orderRef);
 
         if (!orderRef) {
           if (isMounted) {
@@ -182,14 +182,14 @@ const PaymentCallbackPage = () => {
         // Check if socket was pre-connected
         const wasSocketConnected = localStorage.getItem("socketConnected") === "true";
         if (wasSocketConnected) {
-          console.log("✅ Socket was pre-connected before payment");
+          //console.log("✅ Socket was pre-connected before payment");
           localStorage.removeItem("socketConnected");
         }
 
         // Wait for socket connection or fall back to polling after 15 seconds
         socketTimeout = setTimeout(() => {
           if (!isConnected && isMounted) {
-            console.log("⚠️ No webhook received in 15 seconds, falling back to polling");
+            //console.log("⚠️ No webhook received in 15 seconds, falling back to polling");
             setUsePolling(true);
             setMessage("Verifying payment status...");
             performPaymentCheck(orderRef, isMounted);
@@ -224,14 +224,14 @@ const PaymentCallbackPage = () => {
       setMessage("Checking payment status...");
 
       const orderStatus = await ngeniusService.getOrderStatus(orderRef);
-      console.log("✅ Order Status Response:", orderStatus);
+      //console.log("✅ Order Status Response:", orderStatus);
       setDebugInfo(orderStatus);
 
       const isSuccess = ngeniusService.isPaymentSuccessful(orderStatus);
       const paymentState = ngeniusService.getPaymentState(orderStatus);
 
-      console.log("💳 Payment State:", paymentState);
-      console.log("✔️ Is Successful:", isSuccess);
+      //console.log("💳 Payment State:", paymentState);
+      //console.log("✔️ Is Successful:", isSuccess);
 
       if (!isSuccess) {
         if (isMounted) {

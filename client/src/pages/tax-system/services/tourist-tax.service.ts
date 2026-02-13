@@ -9,6 +9,9 @@ import {
 import type { ICTouristTax, IUTouristTax } from "../interface";
 
 const validateTouristTaxData = (touristTaxData: ICTouristTax) => {
+    if(!touristTaxData.name||touristTaxData.name.trim()==""){
+        return {success:false,meassage:"Tourist Tax name is required"}
+    }
     if (!touristTaxData.ratePlanCode || touristTaxData.ratePlanCode.trim() === "") {
         return { success: false, message: "Rate plan is required for tourist tax." };
     }

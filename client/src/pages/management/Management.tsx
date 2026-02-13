@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, Tag, Home, Sparkles, Users } from "lucide-react";
 import toast from "react-hot-toast";
-import type { ICategory, IPropertyType, IAmenity, ILoyaltyGuestField } from "./types";
+import type { ICategory, IPropertyType, IAmenity, ILoyaltyGuestField, IPaymentIntegration } from "./types";
 import {
   getCategoriesService,
   createCategoryService,
@@ -26,6 +26,9 @@ import {
   getLoyaltyGuestFieldsService,
   createLoyaltyGuestFieldsService,
   deleteLoyaltyGuestFieldService,
+  // getPaymentIntegrationsService,
+  createPaymentIntegrationService,
+  deletePaymentIntegrationService,
 } from "./services/management.services";
 
 export default function ManagementPage() {
@@ -35,13 +38,14 @@ export default function ManagementPage() {
   const [propertyAmenities, setPropertyAmenities] = useState<IAmenity[]>([]);
   const [roomAmenities, setRoomAmenities] = useState<IAmenity[]>([]);
   const [loyaltyGuestFields, setLoyaltyGuestFields] = useState<ILoyaltyGuestField[]>([]);
-
+  const [paymentIntegrations, setPaymentIntegrations] = useState<IPaymentIntegration[]>([]);
   // Dialog states
   const [isCategoryDialogOpen, setIsCategoryDialogOpen] = useState(false);
   const [isPropertyTypeDialogOpen, setIsPropertyTypeDialogOpen] = useState(false);
   const [isPropertyAmenityDialogOpen, setIsPropertyAmenityDialogOpen] = useState(false);
   const [isRoomAmenityDialogOpen, setIsRoomAmenityDialogOpen] = useState(false);
   const [isLoyaltyFieldDialogOpen, setIsLoyaltyFieldDialogOpen] = useState(false);
+  const [isPaymentIntegrationDialogOpen, setIsPaymentIntegrationDialogOpen] = useState(false);
 
   // Form states
   const [categoryForm, setCategoryForm] = useState({ name: "", description: "" });
@@ -51,6 +55,7 @@ export default function ManagementPage() {
   const [amenitiesList, setAmenitiesList] = useState<string[]>([]);
   const [loyaltyFieldInput, setLoyaltyFieldInput] = useState("");
   const [loyaltyFieldsList, setLoyaltyFieldsList] = useState<string[]>([]);
+  const [paymentIntegrationInput, setPaymentIntegrationInput] = useState("");
 
   useEffect(() => {
     fetchAllData();
@@ -59,12 +64,15 @@ export default function ManagementPage() {
   const fetchAllData = async () => {
     setLoading(true);
     try {
-      const [catRes, propTypeRes, propAmenRes, roomAmenRes, loyaltyFieldsRes] = await Promise.all([
+      const [catRes, propTypeRes, propAmenRes, roomAmenRes, loyaltyFieldsRes, 
+        // paymentIntRes
+      ] = await Promise.all([
         getCategoriesService(),
         getPropertyTypesService(),
         getPropertyAmenitiesService("property"),
         getRoomAmenitiesService(),
         getLoyaltyGuestFieldsService(),
+        // getPaymentIntegrationsService(),
       ]);
 
       if (catRes.success) setCategories(catRes.data);
@@ -72,6 +80,8 @@ export default function ManagementPage() {
       if (propAmenRes.success) setPropertyAmenities(propAmenRes.data);
       if (roomAmenRes.success) setRoomAmenities(roomAmenRes.data);
       if (loyaltyFieldsRes.success) setLoyaltyGuestFields(loyaltyFieldsRes.data);
+      // if (paymentIntRes.success) setPaymentIntegrations(paymentIntRes.data);
+
     } catch (error: any) {
       toast.error("Failed to fetch management data");
     } finally {
@@ -228,7 +238,39 @@ export default function ManagementPage() {
       toast.error(response.message || "Failed to delete loyalty field");
     }
   };
+  // Payment Integration handlers
+  const handleCreatePaymentIntegration = async () => {
+    if (!paymentIntegrationInput.trim()) {
+      toast.error("Payment integration name is required");
+      return;
+    }
 
+    const response = await createPaymentIntegrationService(paymentIntegrationInput);
+    if (response.success) {
+      toast.success("Payment integration created successfully");
+      setPaymentIntegrations([...paymentIntegrations, response.data]);
+      setPaymentIntegrationInput("");
+      setIsPaymentIntegrationDialogOpen(false);
+    } else {
+      toast.error(response.message || "Failed to create payment integration");
+    }
+  };
+
+  const handleDeletePaymentIntegration = async (id: string) => {
+    const response = await deletePaymentIntegrationService(id);
+    if (response.success) {
+      toast.success("Payment integration deleted successfully");
+      setPaymentIntegrations(paymentIntegrations.filter((pi) => pi.id !== id));
+    } else {
+      toast.error(response.message || "Failed to delete payment integration");
+    }
+  };
+  const formatPaymentIntegrationName = (name: string): string => {
+  return name
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
   if (loading) {
     return (
       <div className="min-h-screen w-full flex justify-center items-center">
@@ -247,7 +289,7 @@ export default function ManagementPage() {
       </div>
 
       <Tabs defaultValue="categories" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full gap-2 lg:grid-cols-6">
           <TabsTrigger value="categories">
             <Tag className="h-4 w-4 mr-2" />
             Categories
@@ -267,6 +309,10 @@ export default function ManagementPage() {
           <TabsTrigger value="loyalty-fields">
             <Users className="h-4 w-4 mr-2" />
             Loyalty Fields
+          </TabsTrigger>
+          <TabsTrigger value="payment-integrations">
+            <Users className="h-4 w-4 mr-2" />
+            Payment Integrations
           </TabsTrigger>
         </TabsList>
 
@@ -708,6 +754,83 @@ export default function ManagementPage() {
                 {loyaltyGuestFields.length === 0 && (
                   <div className="w-full text-center py-12 text-gray-500">
                     No loyalty fields found. Create your first field to get started.
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+
+        <TabsContent value="payment-integrations">
+          <Card>
+            <CardHeader>
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle>Payment Integrations</CardTitle>
+                  <CardDescription>Manage payment integration providers</CardDescription>
+                </div>
+                <Dialog open={isPaymentIntegrationDialogOpen} onOpenChange={setIsPaymentIntegrationDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Payment Integration
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add Payment Integration</DialogTitle>
+                      <DialogDescription>Add a payment integration provider name</DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="paymentIntegrationName">Payment Integration Name</Label>
+                        <Input
+                          id="paymentIntegrationName"
+                          value={paymentIntegrationInput}
+                          onChange={(e) => setPaymentIntegrationInput(e.target.value)}
+                          placeholder="e.g., Stripe Payment, PayPal Gateway"
+                          onKeyPress={(e) => {
+                            if (e.key === "Enter") {
+                              e.preventDefault();
+                              handleCreatePaymentIntegration();
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setIsPaymentIntegrationDialogOpen(false);
+                          setPaymentIntegrationInput("");
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                      <Button onClick={handleCreatePaymentIntegration}>Create</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {paymentIntegrations.map((integration) => (
+                  <Badge key={integration.id} variant="outline" className="text-sm py-2 px-3">
+                    {formatPaymentIntegrationName(integration.name)}
+                    <button
+                      onClick={() => handleDeletePaymentIntegration(integration.id)}
+                      className="ml-2 hover:text-red-500"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </Badge>
+                ))}
+                {paymentIntegrations.length === 0 && (
+                  <div className="w-full text-center py-12 text-gray-500">
+                    No payment integrations found. Create your first payment integration to get started.
                   </div>
                 )}
               </div>

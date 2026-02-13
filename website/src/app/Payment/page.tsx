@@ -21,7 +21,19 @@ import HelpBox from "@/src/components/payment/HelpBox";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage";
 import FikafiPaymentButton from "@/src/components/payment/FikafiPaymentButton";
 
-// Simplified BankDetails interface based on current API response
+// Updated interface to match actual API response
+interface PaymentIntegrationDetail {
+  id: string;
+  propertyId: string;
+  paymentIntegrationId: string;
+  isActive: boolean;
+  paymentIntegration: {
+    id: string;
+    name: string;
+    isActive: boolean;
+  };
+}
+
 interface BankDetails {
   id: string;
   payAtHotel: boolean;
@@ -29,6 +41,7 @@ interface BankDetails {
   propertyId: string;
   createdAt: string;
   updatedAt: string;
+  selectedPaymentIntegrations?: PaymentIntegrationDetail;
 }
 
 const BookingReviewPage = () => {
@@ -58,7 +71,7 @@ const BookingReviewPage = () => {
   const [availableMethods, setAvailableMethods] = useState<string[]>([]);
   const [noAvailablePayment, setNoAvailablePayment] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
-  const [fikafiLoading, setFikafiLoading] = useState(false);
+  const [activeGateway, setActiveGateway] = useState<'fikafi' | 'ngenius' | null>(null);
   const [bookingCode, setBookingCodeValue] = useState<string>("");
   const [bookingStatus, setLocalBookingStatus] = useState<"pending" | "confirmed">(
     "pending"
@@ -72,7 +85,6 @@ const BookingReviewPage = () => {
   const [promoDetails, setPromoDetails] = useState<any>(null);
   const [discount, setDiscount] = useState(0);
 
-  // Add the hook usage at the component level
   const { colors } = useBookingStorage({});
 
   // Map frontend payment method names to database enum values
@@ -82,11 +94,17 @@ const BookingReviewPage = () => {
         return "pay_at_hotel";
       case "gateway":
         return "payment_gateway";
-      case "ngenius":
-        return "payment_gateway";
       default:
         return "pay_at_hotel";
     }
+  };
+
+  // Helper function to check which gateway integration is available
+  const getActiveGateway = (): 'fikafi' | 'ngenius' | null => {
+    if (!bankDetails?.selectedPaymentIntegrations || !bankDetails.paymentGateway || !bankDetails.selectedPaymentIntegrations.paymentIntegration) {
+      return null;
+    }
+    return bankDetails.selectedPaymentIntegrations.paymentIntegration.name === "fikafi" ? "fikafi" : "ngenius";
   };
 
   useEffect(() => {
@@ -122,6 +140,7 @@ const BookingReviewPage = () => {
           throw new Error(data?.message || "Failed to fetch payment details");
         }
 
+        //console.log("💳 Fetched Bank Details:", data?.data);
         setBankDetails(data?.data);
       } catch (error) {
         console.error("❌ Error fetching payment details:", error);
@@ -191,26 +210,31 @@ const BookingReviewPage = () => {
   useEffect(() => {
     if (!bankDetails) return;
 
-    // Debug log to check what payment methods are available
-    console.log("📋 Bank Details:", bankDetails);
-    console.log("💳 paymentGateway:", bankDetails.paymentGateway);
-    console.log("🏨 payAtHotel:", bankDetails.payAtHotel);
-    console.log("👀 Checking available payment methods...", bookingDetails);
+    //console.log("📋 Processing Bank Details:", bankDetails);
+    //console.log("💳 paymentGateway:", bankDetails.paymentGateway);
+    //console.log("🏨 payAtHotel:", bankDetails.payAtHotel);
+    //console.log("🔌 selectedPaymentIntegrations:", bankDetails.selectedPaymentIntegrations);
 
-    // Check which payment methods are available
     const methods: string[] = [];
 
+    // Add Pay at Hotel if enabled
     if (bankDetails.payAtHotel) {
       methods.push("payAtHotel");
+      //console.log("✅ Pay at Hotel is available");
     }
 
-    // Always add Fikafi option for testing
-    methods.push("fikafi");
+    // Determine which gateway is active
+    const gateway = getActiveGateway();
+    setActiveGateway(gateway);
 
-    console.log("✅ Available payment methods:", methods);
+    if (gateway) {
+      methods.push("gateway");
+      //console.log(`✅ Online Payment Gateway is available (${gateway})`);
+    } else if (bankDetails.paymentGateway) {
+      //console.log("⚠️ Payment Gateway is enabled but no valid integration found");
+    }
 
-    // N-Genius is always available as a payment option
-    methods.push("ngenius");
+    //console.log("✅ Final available payment methods:", methods);
 
     setAvailableMethods(methods);
     setNoAvailablePayment(methods.length === 0);
@@ -223,18 +247,13 @@ const BookingReviewPage = () => {
 
   // Check if a payment method is available
   const isMethodAvailable = (methodKey: string): boolean => {
-    // Always enable Fikafi for online payments
-    if (methodKey === "fikafi") return true;
-
     if (!bankDetails) return false;
 
     switch (methodKey) {
       case "payAtHotel":
         return bankDetails.payAtHotel;
       case "gateway":
-        return bankDetails.paymentGateway;
-      case "ngenius":
-        return true; // N-Genius is always available
+        return bankDetails.paymentGateway && activeGateway !== null;
       default:
         return false;
     }
@@ -290,13 +309,17 @@ const BookingReviewPage = () => {
     setLoading(true);
     setError(null);
     try {
-      // If N-Genius payment is selected, handle differently
-      if (selectedPayment === "ngenius") {
-        await handleNGeniusPayment();
-        return;
+      // If gateway payment is selected, route to appropriate handler
+      if (selectedPayment === "gateway") {
+        if (activeGateway === "ngenius") {
+          await handleNGeniusPayment();
+          return;
+        }
+        // For Fikafi, the FikafiPaymentButton handles the flow
+        // We just create the booking first
       }
 
-      // For other payment methods (payAtHotel, gateway), create booking directly
+      // For payAtHotel or Fikafi (before payment), create booking
       const bookingData = {
         data: {
           bookingDetails: {
@@ -441,7 +464,6 @@ const BookingReviewPage = () => {
 
       const orderReference = orderResponse.data.orderReference;
 
-      // Store order reference and booking data
       localStorage.setItem("ngeniusOrderRef", orderReference);
       localStorage.setItem(
         "pendingBookingData",
@@ -465,7 +487,7 @@ const BookingReviewPage = () => {
               guests: guests,
               guestDetails: guest,
               ratePlanCode: bookingDetails.ratePlanCode,
-              paymentMethod: mapPaymentMethodToEnum("ngenius"),
+              paymentMethod: mapPaymentMethodToEnum("gateway"),
               bookingSource: bookingDetails.bookingSource,
             },
             guestDetails: guest,
@@ -474,15 +496,12 @@ const BookingReviewPage = () => {
         })
       );
 
-      // Initialize WebSocket connection BEFORE redirecting
-      console.log("🔌 Establishing WebSocket connection before payment redirect...");
+      //console.log("🔌 Establishing WebSocket connection before payment redirect...");
       toast.loading("Connecting to payment system...", { id: "socket-connect" });
 
       try {
-        // Dynamically import socket.io-client
         const { default: io } = await import('socket.io-client');
 
-        // Connect to the payment-specific namespace
         const socket = io(`${process.env.NEXT_PUBLIC_SOCKET_URL}`, {
           transports: ['websocket', 'polling'],
           reconnection: true,
@@ -491,7 +510,6 @@ const BookingReviewPage = () => {
           autoConnect: true,
         });
 
-        // Wait for socket connection
         await new Promise<void>((resolve, reject) => {
           const timeout = setTimeout(() => {
             reject(new Error('Socket connection timeout'));
@@ -499,7 +517,7 @@ const BookingReviewPage = () => {
 
           socket.on('connect', () => {
             clearTimeout(timeout);
-            console.log('✅ Socket connected before payment redirect:', socket.id);
+            //console.log('✅ Socket connected before payment redirect:', socket.id);
 
             // Join payment room with order reference using correct format
             const roomName = `payment:${orderReference}`;
@@ -517,15 +535,13 @@ const BookingReviewPage = () => {
         });
 
         toast.dismiss("socket-connect");
-        console.log("✅ WebSocket connection established successfully");
+        //console.log("✅ WebSocket connection established successfully");
 
-        // Store socket connection info
         localStorage.setItem("socketConnected", "true");
 
       } catch (socketError) {
         console.warn("⚠️ Could not establish socket connection, will use fallback polling:", socketError);
         toast.dismiss("socket-connect");
-        // Continue anyway - callback page will handle fallback
       }
 
       toast.success("Redirecting to secure payment gateway...", {
@@ -579,20 +595,22 @@ const BookingReviewPage = () => {
           </div>
         );
 
-      case "fikafi":
-        return (
-          <div className="mt-4 p-4 border rounded-lg" style={{
-            backgroundColor: `${colors.secondaryColor}10`,
-            borderColor: colors.primaryColor
-          }}>
-            <h4 className="font-medium mb-2 flex items-center gap-2" style={{ color: colors.primaryColor }}>
-              <Wallet className="w-4 h-4" />
-              Secure Online Payment
-            </h4>
-            <p className="text-sm" style={{ color: colors.primaryColor }}>
-              You'll be redirected to our secure payment partner to complete your payment
-              using credit/debit card, net banking, or other online payment methods.
-            </p>
+      case "gateway":
+        // Render different content based on active gateway
+        if (activeGateway === "fikafi") {
+          return (
+            <div className="mt-4 p-4 border rounded-lg" style={{
+              backgroundColor: `${colors.secondaryColor}10`,
+              borderColor: colors.primaryColor
+            }}>
+              <h4 className="font-medium mb-2 flex items-center gap-2" style={{ color: colors.primaryColor }}>
+                <Wallet className="w-4 h-4" />
+                Secure Online Payment
+              </h4>
+              <p className="text-sm" style={{ color: colors.primaryColor }}>
+                You'll be redirected to our secure payment partner to complete your payment
+                using credit/debit card, net banking, or other online payment methods.
+              </p>
 
             {/* Fikafi Payment Button */}
             <div className="mt-4">
@@ -622,117 +640,89 @@ const BookingReviewPage = () => {
 
             </div>
 
-            <div className="mt-3 flex flex-wrap gap-3 items-center">
-              <div className="flex items-center gap-1 text-xs text-gray-600">
-                <CreditCard className="h-4 w-4" />
-                <span>Visa</span>
-              </div>
-              <div className="flex items-center gap-1 text-xs text-gray-600">
-                <CreditCard className="h-4 w-4" />
-                <span>Mastercard</span>
-              </div>
-              <div className="flex items-center gap-1 text-xs text-gray-600">
-                <DollarSign className="h-4 w-4" />
-                <span>Secure SSL</span>
+              <div className="mt-3 flex flex-wrap gap-3 items-center">
+                <div className="flex items-center gap-1 text-xs text-gray-600">
+                  <CreditCard className="h-4 w-4" />
+                  <span>Visa</span>
+                </div>
+                <div className="flex items-center gap-1 text-xs text-gray-600">
+                  <CreditCard className="h-4 w-4" />
+                  <span>Mastercard</span>
+                </div>
+                <div className="flex items-center gap-1 text-xs text-gray-600">
+                  <DollarSign className="h-4 w-4" />
+                  <span>Secure SSL</span>
+                </div>
               </div>
             </div>
-          </div>
-        );
+          );
+        } else if (activeGateway === "ngenius") {
+          return (
+            <div
+              className="mt-4 p-5 border rounded-xl shadow-sm"
+              style={{
+                backgroundColor: `${colors.secondaryColor}08`,
+                borderColor: `${colors.primaryColor}60`,
+              }}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <h4
+                  className="font-semibold text-lg"
+                  style={{ color: colors.primaryColor }}
+                >
+                  Pay with Card
+                </h4>
+                <div className="text-xs font-medium px-2.5 py-1 rounded-full bg-green-100 text-green-800">
+                  Secure
+                </div>
+              </div>
 
-      case "gateway":
-        return (
-          <div className="mt-4 p-4 border rounded-lg" style={{
-            backgroundColor: `${colors.secondaryColor}10`,
-            borderColor: colors.primaryColor
-          }}>
-            <h4 className="font-medium mb-2" style={{ color: colors.primaryColor }}>
-              Online Payment Gateway
-            </h4>
-            <p className="text-sm" style={{ color: colors.primaryColor }}>
-              You'll be redirected to a secure payment gateway where you can pay
-              using your credit/debit card, net banking, or other online payment methods.
-            </p>
-            <div className="mt-3 flex flex-wrap gap-3 items-center">
-              <div className="flex items-center gap-1 text-xs text-gray-600">
-                <CreditCard className="h-4 w-4" />
-                <span>Visa</span>
-              </div>
-              <div className="flex items-center gap-1 text-xs text-gray-600">
-                <CreditCard className="h-4 w-4" />
-                <span>Mastercard</span>
-              </div>
-              <div className="flex items-center gap-1 text-xs text-gray-600">
-                <DollarSign className="h-4 w-4" />
-                <span>Secure SSL</span>
-              </div>
-            </div>
-          </div>
-        );
-      case "ngenius":
-        return (
-          <div
-            className="mt-4 p-5 border rounded-xl shadow-sm"
-            style={{
-              backgroundColor: `${colors.secondaryColor}08`,
-              borderColor: `${colors.primaryColor}60`,
-            }}
-          >
-            <div className="flex items-center justify-between mb-3">
-              <h4
-                className="font-semibold text-lg"
+              <p
+                className="text-sm mb-4 leading-relaxed"
                 style={{ color: colors.primaryColor }}
               >
-                Pay with Card
-              </h4>
-              <div className="text-xs font-medium px-2.5 py-1 rounded-full bg-green-100 text-green-800">
-                Secure
+                Complete your payment securely via Network International payment gateway.
+                You will be redirected to their encrypted payment page.
+              </p>
+
+              <div className="flex flex-wrap gap-3 mb-4">
+                <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                  <CreditCard className="h-4 w-4" />
+                  <span>Visa</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                  <CreditCard className="h-4 w-4" />
+                  <span>Mastercard</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                  <CreditCard className="h-4 w-4" />
+                  <span>American Express</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-gray-600">
+                  <CreditCard className="h-4 w-4" />
+                  <span>Discover</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-xs text-green-700 font-medium">
+                  <ShieldCheck className="h-4 w-4 text-green-600" />
+                  <span>3D Secure</span>
+                </div>
               </div>
+
+              <div className="mt-2 p-3 bg-blue-50/70 border border-blue-200 rounded-lg text-xs text-blue-800 flex items-start gap-2">
+                <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                <span>
+                  You will be securely redirected to the payment page to
+                  complete your transaction.
+                </span>
+              </div>
+
+              <p className="mt-3 text-xs text-gray-500 italic">
+                Supported cards processed in seconds • No hidden fees
+              </p>
             </div>
-
-            <p
-              className="text-sm mb-4 leading-relaxed"
-              style={{ color: colors.primaryColor }}
-            >
-              Complete your payment securely via N-Genius payment gateway.
-              You will be redirected to their encrypted payment page.
-            </p>
-
-            <div className="flex flex-wrap gap-3 mb-4">
-              <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                <CreditCard className="h-4 w-4" />
-                <span>Visa</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                <CreditCard className="h-4 w-4" />
-                <span>Mastercard</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                <CreditCard className="h-4 w-4" />
-                <span>American Express</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-gray-600">
-                <CreditCard className="h-4 w-4" />
-                <span>Discover</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-green-700 font-medium">
-                <ShieldCheck className="h-4 w-4 text-green-600" />
-                <span>3D Secure</span>
-              </div>
-            </div>
-
-            <div className="mt-2 p-3 bg-blue-50/70 border border-blue-200 rounded-lg text-xs text-blue-800 flex items-start gap-2">
-              <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
-              <span>
-                You will be securely redirected to the N-Genius payment page to
-                complete your transaction.
-              </span>
-            </div>
-
-            <p className="mt-3 text-xs text-gray-500 italic">
-              Supported cards processed in seconds • No hidden fees
-            </p>
-          </div>
-        );
+          );
+        }
+        return null;
 
       default:
         return null;
@@ -799,10 +789,14 @@ const BookingReviewPage = () => {
                   description: "Pay directly at the property during check-in",
                 },
                 {
-                  key: "fikafi",
+                  key: "gateway",
                   label: "Pay Online",
                   icon: "💳",
-                  description: "Secure payment via credit/debit card or net banking",
+                  description: activeGateway === "fikafi"
+                    ? "Secure payment via Fikafi payment gateway"
+                    : activeGateway === "ngenius"
+                      ? "Secure payment via Network International gateway"
+                      : "Secure online payment",
                   isRecommended: true,
                 },
               ].map(({ key, label, icon, description, isRecommended }) => {
@@ -865,7 +859,8 @@ const BookingReviewPage = () => {
             </div>
           )}
 
-          {selectedPayment !== "fikafi" && (
+          {/* Only show confirm button for non-Fikafi payments or when Fikafi payment button is not rendered */}
+          {selectedPayment !== "gateway" || activeGateway !== "fikafi" ? (
             <button
               onClick={handleConfirmBooking}
               className={`mt-6 w-full py-3 px-4 rounded-xl font-medium transition-all transform ${loading ||
@@ -895,7 +890,7 @@ const BookingReviewPage = () => {
                 "Confirm Booking"
               )}
             </button>
-          )}
+          ) : null}
 
           {error && (
             <p className="mt-3 text-red-600 font-medium text-center text-sm bg-red-50 p-2 rounded">
@@ -923,4 +918,3 @@ const BookingReviewPage = () => {
 };
 
 export default BookingReviewPage;
-

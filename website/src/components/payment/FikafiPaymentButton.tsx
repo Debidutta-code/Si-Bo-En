@@ -13,6 +13,7 @@ interface FikafiPaymentButtonProps {
   propertyName: string;
   propertyID: string;
   checkInDate: string;
+    paymentMethod?: string; 
   numberOfNights: number;
   onPaymentLinkGenerated?: (paymentLink: string) => void;
   onPaymentError?: (error: string) => void;
@@ -33,6 +34,7 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
   numberOfNights,
   onPaymentLinkGenerated,
   onPaymentError,
+  paymentMethod = "payment_gateway",
   buttonText = "Pay with Fikafi",
   className = "",
 }) => {
@@ -108,9 +110,10 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
         return;
       }
 
-      console.log("🚀 Starting Fikafi payment flow...");
-      console.log("💰 Amount:", amount, currency);
-      console.log("👤 Guest:", guestName);
+      //console.log("🚀 Starting Fikafi payment flow...");
+      //console.log("📋 Booking Code:", bookingCode);
+      //console.log("💰 Amount:", amount, currency);
+      //console.log("👤 Guest:", guestName);
 
       // Generate unique references
       const bookingRefNum = bookingCode || generateBookingRef();
@@ -164,8 +167,7 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
         }
       };
 
-      console.log("📤 Sending request to Fikafi API...");
-      console.log("📤 Request body:", JSON.stringify(requestBody, null, 2));
+      //console.log("📤 Sending request to Fikafi API...");
 
       // Create payment link
       const response = await fetch(
@@ -179,10 +181,10 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
         }
       );
 
-      console.log("📥 Response status:", response.status);
+      //console.log("📥 Response status:", response.status);
 
       const data = await response.json();
-      console.log("📥 Response data:", JSON.stringify(data, null, 2));
+      //console.log("📥 Response data:", data);
 
       if (!response.ok) {
         throw new Error(data.message || `HTTP ${response.status}: Failed to create payment link`);
@@ -194,6 +196,8 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
           bookingCode: bookingRefNum,
           fikafiRefNum: data.data.referenceNumber || bookingRefNum,
           timestamp: Date.now(),
+          paymentId: data.data.paymentId,
+          paymentMethod: paymentMethod || "payment_gateway",
         };
         localStorage.setItem('fikafi_booking', JSON.stringify(bookingData));
         

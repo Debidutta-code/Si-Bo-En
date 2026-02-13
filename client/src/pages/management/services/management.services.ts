@@ -14,6 +14,9 @@ import {
   getLoyaltyGuestFields,
   createLoyaltyGuestFields,
   deleteLoyaltyGuestField,
+  getPaymentIntegrations,
+  createPaymentIntegration,
+  deletePaymentIntegration,
 } from "../api";
 
 // Category Services
@@ -332,6 +335,63 @@ export const deleteLoyaltyGuestFieldService = async (id: string) => {
     return {
       success: false,
       message: error.message || "Failed to delete loyalty guest field",
+    };
+  }
+};
+
+
+
+// Payment Integration Services
+export const getPaymentIntegrationsService = async (propertyId:string) => {
+  try {
+    return await getPaymentIntegrations(propertyId);
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || "Failed to fetch payment integrations",
+    };
+  }
+};
+
+export const createPaymentIntegrationService = async (name: string) => {
+  if (!name) {
+    return {
+      success: false,
+      message: "Payment integration name is required",
+    };
+  }
+
+  if (name.trim().length < 2) {
+    return {
+      success: false,
+      message: "Payment integration name must be at least 2 characters long",
+    };
+  }
+
+  try {
+    return await createPaymentIntegration(name.trim());
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || "Failed to create payment integration",
+    };
+  }
+};
+
+export const deletePaymentIntegrationService = async (id: string) => {
+  if (!id) {
+    return {
+      success: false,
+      message: "Payment integration ID is required",
+    };
+  }
+
+  try {
+    return await deletePaymentIntegration(id);
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || "Failed to delete payment integration",
     };
   }
 };

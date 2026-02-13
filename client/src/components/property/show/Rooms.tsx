@@ -98,6 +98,7 @@ export default function Rooms({ propertyId }: PropertyId) {
   const [isPanoramaViewerOpen, setIsPanoramaViewerOpen] = useState(false);
   const [panoramaUrl, setPanoramaUrl] = useState<string>("");
   const [panoramaRoomName, setPanoramaRoomName] = useState<string>("");
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     if (!propertyId) {
@@ -219,7 +220,7 @@ export default function Rooms({ propertyId }: PropertyId) {
       const response = await addVideoToRoom(selectedRoomId, videoUrl, thumbnailUrl);
 
       if (response.success) {
-        console.log('Video uploaded successfully:', { videoUrl, thumbnailUrl });
+        // console.log('Video uploaded successfully:', { videoUrl, thumbnailUrl });
         toast.success('Video uploaded and saved successfully!');
         await fetchRoom(propertyId);
       } else {
@@ -231,23 +232,22 @@ export default function Rooms({ propertyId }: PropertyId) {
     }
   };
 
-  const handleDeleteVideo = async (roomId: string) => {
-    if (!propertyId || !roomId) {
+  const handleDeleteVideo = async () => { // Remove parameter
+    if (!propertyId || !selectedRoomId) {
       toast.error("Property ID or Room ID is missing");
       return;
     }
 
-    if (!confirm("Are you sure you want to delete this video?")) {
-      return;
-    }
+    setIsDeleteDialogOpen(false); // Close dialog first
 
     try {
       setIsDeletingVideo(true);
-      const response = await deleteRoomVideo(roomId);
+      const response = await deleteRoomVideo(selectedRoomId); // Use selectedRoomId
 
       if (response.success) {
         toast.success('Video deleted successfully!');
         await fetchRoom(propertyId);
+        setSelectedRoomId(""); // Clear selected room ID after deletion
       } else {
         toast.error(response.message || 'Failed to delete video');
       }
@@ -469,6 +469,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                         </DropdownMenuItem>
 
                         {/* Delete Video */}
+
                         {room.roomVideos?.url && (
                           <DropdownMenuItem
                             className="p-0 focus:bg-transparent"
@@ -479,12 +480,12 @@ export default function Rooms({ propertyId }: PropertyId) {
                               className="w-full justify-start px-2 py-1.5 h-auto font-normal text-red-600 hover:text-red-700 hover:bg-red-50"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleDeleteVideo(room.id);
+                                setSelectedRoomId(room.id); // Store room ID for deletion
+                                setIsDeleteDialogOpen(true); // Open confirmation dialog
                               }}
-                              disabled={isDeletingVideo}
                             >
                               <Trash className="h-4 w-4 mr-2" />
-                              {isDeletingVideo ? 'Deleting...' : 'Remove Video'}
+                              Remove Video
                             </Button>
                           </DropdownMenuItem>
                         )}
@@ -788,6 +789,26 @@ export default function Rooms({ propertyId }: PropertyId) {
         onUploadSuccess={handleVideoUploadSuccess}
         title={`Upload Video for ${selectedRoomName}`}
       />
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure you want to delete this video?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the room video from the system.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteVideo} // Now calls without parameter
+              className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+              disabled={isDeletingVideo} // Added disabled state
+            >
+              {isDeletingVideo ? "Deleting..." : "Delete Video"} {/* Added loading text */}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

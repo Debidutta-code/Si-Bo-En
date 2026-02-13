@@ -88,7 +88,11 @@ export class LoyaltyGuestRepository {
                     },
                     CreationLoyaltyConfig:{
                         select:{
-
+                            id:true,
+                            loyaltyDiscountType:true,
+                            discountValue:true,
+                            currencyCode:true,
+                            createdAt:true
                         }
                     }
                 },
@@ -96,6 +100,7 @@ export class LoyaltyGuestRepository {
                 take
             });
         } catch (error) {
+            console.log(error)
             throw new Error("Failed to get loyalty guest for creation");
         }
     }
@@ -111,9 +116,6 @@ export class LoyaltyGuestRepository {
         }
     }
 
-    /**
-     * Create loyalty guest from booking engine (without existing guestId)
-     */
     public async createGuestsLoyaltyConfigFromBookingEngine(data: ICloyalityGuests): Promise<ILoyalityGuests> {
         try {
             return await prisma.loyalityGuest.create({
@@ -132,9 +134,6 @@ export class LoyaltyGuestRepository {
         }
     }
 
-    /**
-     * Get property loyalty config with creation loyalty details
-     */
     public async getPropertyLoyaltyConfig(propertyId: string): Promise<any> {
         try {
             return await prisma.propertyLoyaltyConfig.findUnique({
@@ -161,6 +160,19 @@ export class LoyaltyGuestRepository {
             });
         } catch (error) {
             throw new Error("Failed to get property loyalty config");
+        }
+    }
+    public async addGuest(id:string,guestId:string):Promise<ILoyalityGuests|null>{
+        try {
+            return await prisma.loyalityGuest.update({
+                where:{
+                    id
+                },data:{
+                    guestId
+                }
+            })
+        } catch (error) {
+            throw new Error("Failed to add guest")
         }
     }
 }

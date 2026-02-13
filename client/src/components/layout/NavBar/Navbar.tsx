@@ -43,7 +43,11 @@ useEffect(() => {
           navigate('/login');
           return;
         }
-        toast.error(error.response?.data?.message || "Error fetching user data.");
+        if(error.response?.data.message==="Token Expired ,Login again to continue"){
+navigate('/login');
+          return;
+        }
+        // toast.error(error.response?.data?.message || "Error fetching user data.");
         dispatch(clearUser());
       }
     };
