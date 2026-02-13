@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { fikafiPaymentService } from '../service/fikafi.service';
 import { PropertyRequest } from '../../utils';
 import prisma from '../../config/prisma.client';
-import { socketManager } from '../../socket/socket.manager';
+import { socketManager } from '../../socket';
 
 // Guest Details - minimal fields as per new spec
 interface FikafiGuestDetails {
