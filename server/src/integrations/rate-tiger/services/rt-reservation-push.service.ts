@@ -337,7 +337,7 @@ export class RTReservationPushService {
             // 8. Build final payload
             const payload: RTCommitModifyPayload = {
                 hotelReservation: {
-                    hotelCode: bookingDetails.propertyCode,
+                    hotelCode: rtConfig.rateTigerPropertyCode, // ✅ USE THIS instead of bookingDetails.propertyCode
                     resStatus: 'Commit',
                     createDateTime: new Date().toISOString(),
                     creatorID: config.rateTtigerPartnerName ?? 'REVCHILL',
@@ -579,7 +579,7 @@ export class RTReservationPushService {
 
             const payload: RTCommitModifyPayload = {
                 hotelReservation: {
-                    hotelCode: existingReservation.propertyCode ?? '',
+                    hotelCode: rtConfig.rateTigerPropertyCode,
                     resStatus: 'Modify',
                     createDateTime: existingReservation.bookedAt.toISOString(),
                     lastModifiedDateTime: new Date().toISOString(),
@@ -637,7 +637,7 @@ export class RTReservationPushService {
         try {
             const payload: RTCancelPayload = {
                 hotelReservation: {
-                    hotelCode: existingReservation.propertyCode ?? '',
+                    hotelCode: rtConfig.rateTigerPropertyCode,
                     resStatus: 'Cancel',
                     createDateTime: existingReservation.bookedAt.toISOString(),
                     lastModifiedDateTime: new Date().toISOString(),

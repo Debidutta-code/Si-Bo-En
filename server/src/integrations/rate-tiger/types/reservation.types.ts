@@ -204,6 +204,7 @@ export interface RTDynamicConfig {
     reservationUrl: string;
     partnerId: string;
     partnerName: string;
+    rateTigerPropertyCode: string; // ✅ ADD THIS
 }
 
 export interface GuestDetail {

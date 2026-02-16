@@ -288,6 +288,7 @@ export class ReservationService {
                 activeIntegrationName =
                     propertyIntegration?.MasterIntegration?.name ?? null;
             }
+            console.log("active",activeIntegrationName)
             let paidAmount = 0;
             if (paymentMethods === 'payment_gateway') {
                 paidAmount = finalPrice.totalAmount;

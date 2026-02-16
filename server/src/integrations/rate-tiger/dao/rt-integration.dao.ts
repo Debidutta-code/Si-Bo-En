@@ -1,3 +1,5 @@
+// src/integrations/rate-tiger/dao/rt-integration.dao.ts
+
 import { prisma } from '../../../config';
 
 export interface RTIntegrationConfig {
@@ -5,26 +7,30 @@ export interface RTIntegrationConfig {
     reservationUrl: string;
     partnerId: string;
     partnerName: string;
+    rateTigerPropertyCode: string; // ✅ ADD THIS
 }
 
 export class RTIntegrationDao {
 
+    /**
+     * Get RateTiger integration config for a property
+     * @param propertyId - The property ID
+     * @param integrationType - 'channel_manager' or 'pms'
+     * @returns RT config with URLs and RateTiger Property Code, or null
+     */
     public static async getRTConfig(
         propertyId: string,
         integrationType: 'channel_manager' | 'pms'
     ): Promise<RTIntegrationConfig | null> {
         try {
-            // 1. Find active property integration for this property
-            // where master integration name is 'Rate Tiger' and type matches
+            // 1. Find active property integration for RateTiger
             const propertyIntegration = await prisma.propertyIntegrations.findFirst({
                 where: {
                     propertyId,
                     isActive: true,
                     MasterIntegration: {
                         name: 'Rate Tiger',
-                        type: integrationType === 'channel_manager'
-                            ? 'channel_manager'
-                            : 'pms',
+                        type: integrationType,
                         isActive: true,
                     },
                 },
@@ -32,27 +38,57 @@ export class RTIntegrationDao {
                     MasterIntegration: {
                         include: {
                             masterIntegrationURLFields: true, // Auth + Reservation URLs
+                            requiredFieldsForMasterIntegration: true, // To match field names
+                        },
+                    },
+                    propertyIntegrationSecrets: {
+                        include: {
+                            RequiredField: true, // Get field name
                         },
                     },
                 },
             });
 
-            if (!propertyIntegration) return null;
+            if (!propertyIntegration) {
+                console.log(`❌ No active RateTiger integration found for property ${propertyId}`);
+                return null;
+            }
 
+            // 2. Extract URLs
             const urlFields = propertyIntegration.MasterIntegration.masterIntegrationURLFields;
-
-            // 2. Extract Auth and Reservation URLs by name
             const authUrl = urlFields.find(f => f.name === 'Authentication')?.url ?? '';
             const reservationUrl = urlFields.find(f => f.name === 'Reservation')?.url ?? '';
 
-            if (!authUrl || !reservationUrl) return null;
+            if (!authUrl || !reservationUrl) {
+                console.log(`❌ Missing Auth or Reservation URL for RateTiger integration`);
+                return null;
+            }
+
+            // 3. ✅ Extract RateTiger Property Code from secrets
+            const rateTigerPropertyCodeSecret = propertyIntegration.propertyIntegrationSecrets.find(
+                secret => secret.RequiredField.name === 'Rate Tiger Property Code'
+            );
+
+            if (!rateTigerPropertyCodeSecret || !rateTigerPropertyCodeSecret.value) {
+                console.log(`❌ RateTiger Property Code not found for property ${propertyId}`);
+                return null;
+            }
+
+            const rateTigerPropertyCode = rateTigerPropertyCodeSecret.value;
+
+            console.log(`✅ RateTiger config found:`, {
+                propertyId,
+                rateTigerPropertyCode,
+                authUrl,
+                reservationUrl,
+            });
 
             return {
                 authUrl,
                 reservationUrl,
-                // Secrets skipped for now — using env as fallback
-                partnerId: '',
-                partnerName: '',
+                partnerId: '', // Still using env fallback
+                partnerName: '', // Still using env fallback
+                rateTigerPropertyCode, // ✅ NEW
             };
         } catch (error) {
             console.error('Failed to fetch RT integration config:', error);
