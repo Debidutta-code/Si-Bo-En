@@ -165,6 +165,7 @@ partnerIntegrationRoute
             integrationPartnerController
         )
     );
+  
 partnerIntegrationRoute
     .route('/:id')
     .delete(

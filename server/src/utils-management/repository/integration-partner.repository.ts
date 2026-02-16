@@ -82,6 +82,19 @@ public async getByName(name:string,type:platformType):Promise<IMasterIntegration
       return false
     }
   }
+  public async getById(id: string): Promise<IMasterIntegrations | null> {
+    try {
+      return await prisma.masterIntegrations.findUnique({
+        where: { id },
+        include: {
+          masterIntegrationURLFields: true,
+          requiredFieldsForMasterIntegration: true
+        }
+      })
+    } catch (error) {
+      throw new Error("Failed to get master integration by ID")
+    }
+  }
 }
 
 export class IMasterIntegrationFieldsRepository {
@@ -206,6 +219,17 @@ export class IMasterIntegrationUrlFieldRepository {
       })
     } catch (error) {
       throw new Error("Failed to get by name")
+    }
+  }
+}
+export class PropertyConfigRepository {
+  public async getPropertyConfig(propertyId:string){
+    try {
+      return await prisma.propertyConfigs.findUnique({
+        where: { propertyId }
+      });
+    } catch (error) {
+      throw new Error("Failed to fetch property config")
     }
   }
 }

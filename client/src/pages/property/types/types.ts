@@ -1,3 +1,5 @@
+import type { IMasterPartnersWProperty } from "../property/types";
+
 export interface IProperty {
     id: string,
     propertyName: string;
@@ -150,4 +152,27 @@ export interface IGroupManagersMapping {
 }
 export interface IBrandManagersMapping {
     brandManagers: IUnmappedUsers[]
+}
+export interface IntegrationDialogProps {
+    isOpen: boolean;
+    onClose: () => void;
+    partner: IMasterPartnersWProperty | null;
+    propertyId: string;
+    onIntegrationSuccess: () => void;
+    onSubmit: (data: IntegrationSubmitData) => Promise<void>;
+
+}
+
+export interface IntegrationSubmitData {
+    propertyId: string;
+    masterIntegrationId: string;
+    fields: Array<{ requiredFieldId: string; value: string }>;
+}
+
+export interface FieldError {
+    [fieldId: string]: string;
+}
+
+export interface FieldValue {
+    [fieldId: string]: string;
 }

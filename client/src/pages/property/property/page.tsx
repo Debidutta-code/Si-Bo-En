@@ -22,15 +22,28 @@ import { updateCreationService } from '../service/creation-filter.service';
 import type { IUpdateCreation } from '../types/types';
 import {
     fetchPropertyConfigService,
-    updatePropertyConfigService
+    updatePropertyConfigService,
+    addPropertyIntegrationFieldService,
+    createPropertyIntegrationService,
+    deletePropertyIntegrationFieldService,
+    deletePropertyIntegrationService,
+    getAllPartnerIntegrationsService,
+    updatePropertyIntegrationFieldService,
+    updatePropertyIntegrationStatusService,
+
 
 } from "./services";
 import type {
-    IUPropertyConfig
+    IUPropertyConfig,
+    IMasterPartnersWProperty,
+    ImasterIntegrationURLFields,
+    IrequiredFieldsForMasterIntegration
 } from "./types";
 import { formatTimezoneLabel, getAllTimezones } from './utils/timezone.utils';
 import { minutesToTime, timeToMinutes } from './utils/time.utils';
 import DeleteCreationDialog from '@/components/Delete-Creation.dialog';
+import IntegrationDialog from './components/IntegrationDialog';
+
 export default function PropertyPage() {
     const { user } = useAppSelector((state) => state.user);
 
@@ -47,6 +60,7 @@ export default function PropertyPage() {
         timezone: "Asia/Kolkata",
         baseCurrency: "INR"
     })
+    const [masterPartners, setMasterPartners] = useState<IMasterPartnersWProperty[]>([]);
     const navigate = useNavigate();
     const [isLoading, setIsLoading] = useState(true);
     const [creationDetails, setCreationDetails] = useState<IpropertyCDetails>({
@@ -77,6 +91,11 @@ export default function PropertyPage() {
     const [isAssigningUser, setIsAssigningUser] = useState<boolean>(false);
     const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
     const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false);
+    
+    // Integration dialog state
+    const [isIntegrationDialogOpen, setIsIntegrationDialogOpen] = useState(false);
+    const [selectedPartner, setSelectedPartner] = useState<IMasterPartnersWProperty | null>(null);
+    
     const [updatePropertyDetails, setUpdatePropertyDetails] = useState<IUpdateCreation>({
         id: creationDetails.id,
         name: creationDetails.name,
@@ -85,34 +104,58 @@ export default function PropertyPage() {
     });
 
     useEffect(() => {
-        const fetchProperty = async () => {
-            try {
-                if (!creationId) {
-                    toast.error("Property ID is required");
-                    navigate('/app/property');
-                    return;
-                }
-
-                const response = await getPropertyCreationId(creationId);
-                if (response.success) {
-                    setIsCreationCompleted(response.isPropertyCreated);
-                    setCreationDetails(response.data.creationData);
-                    setPropertyDetails(response.data.propertyDetails);
-                    setIsDrafted(response.data.propertyDetails.isDrafted);
-                    // toast.success("Property fetched successfully");
-                } else {
-                    toast.error(response.message || "Failed to fetch property");
-                }
-            } catch (error) {
-                console.error("Error fetching property:", error);
-                toast.error("Failed to fetch property");
-            } finally {
-                setIsLoading(false);
-            }
-        };
 
         fetchProperty();
     }, [creationId, navigate]);
+    const initialFetch = async () => {
+        await Promise.all([
+            fetchProperty(),
+            fetchUsers()
+
+        ]);
+    }
+    const fetchProperty = async () => {
+        try {
+            if (!creationId) {
+                toast.error("Property ID is required");
+                navigate('/app/property');
+                return;
+            }
+
+            const response = await getPropertyCreationId(creationId);
+            if (response.success) {
+                setIsCreationCompleted(response.isPropertyCreated);
+                setCreationDetails(response.data.creationData);
+                setPropertyDetails(response.data.propertyDetails);
+                setIsDrafted(response.data.propertyDetails.isDrafted);
+                fetchPartners(response.data.propertyDetails.id);
+
+            } else {
+                toast.error(response.message || "Failed to fetch property");
+            }
+        } catch (error) {
+            console.error("Error fetching property:", error);
+            toast.error("Failed to fetch property");
+        } finally {
+
+            setIsLoading(false);
+        }
+    };
+
+    const fetchPartners = async (propertyId: string) => {
+        try {
+            const response = await getAllPartnerIntegrationsService(propertyId);
+            if (response.success) {
+                setMasterPartners(response.data);
+            } else {
+                toast.error(response.message || "Failed to fetch partners");
+            }
+        } catch (error) {
+            console.error("Error fetching partners:", error);
+            toast.error("Failed to fetch partners");
+        }
+    }
+
 
     const fetchUsers = async () => {
         try {
@@ -174,9 +217,6 @@ export default function PropertyPage() {
             setIsLoading(false)
         }
     }
-    useEffect(() => {
-        fetchUsers();
-    }, [])
     useEffect(() => {
         // console.log(propertyDetails)
         if (propertyDetails?.id) {
@@ -283,6 +323,40 @@ export default function PropertyPage() {
         } catch (err: any) {
             toast.error('Failed to update property');
         }
+    };
+
+    // Integration handlers
+    const handleIntegrateClick = (partner: IMasterPartnersWProperty) => {
+        setSelectedPartner(partner);
+        setIsIntegrationDialogOpen(true);
+    };
+
+    const handleIntegrationSubmit = async (data: {
+        propertyId: string;
+        masterIntegrationId: string;
+        fields: Array<{ requiredFieldId: string; value: string }>;
+    }) => {
+        try {
+            const response = await createPropertyIntegrationService(data);
+            if (response.success) {
+                toast.success(`Successfully integrated with ${selectedPartner?.name}`);
+                // Refresh partners to show updated status
+                if (propertyDetails?.id) {
+                    await fetchPartners(propertyDetails.id);
+                }
+            } else {
+                toast.error(response.message || 'Failed to integrate');
+                throw new Error(response.message);
+            }
+        } catch (error: any) {
+            toast.error(error?.message || 'Failed to integrate');
+            throw error;
+        }
+    };
+
+    const handleIntegrationSuccess = () => {
+        // This is called after successful integration
+        // Could add analytics or additional UI updates here
     };
 
     if (isLoading) {
@@ -401,7 +475,7 @@ export default function PropertyPage() {
                                             </Button>
                                         </DropdownMenuItem>
                                     </DialogTrigger>
-                                    <DialogContent className='sm:max-w-[500px] max-h-[80vh] overflow-y-auto'>
+                                    <DialogContent className='max-w-[800px] max-h-[80vh] overflow-y-auto'>
                                         <DialogHeader>
                                             <DialogTitle>Property Configuration</DialogTitle>
                                             <DialogDescription>
@@ -418,11 +492,74 @@ export default function PropertyPage() {
                                                     id='channelManager'
                                                     checked={propertyConfig.channelManagerIntegrationActive}
                                                     onCheckedChange={(checked) =>
-                                                        setPropertyConfig({ ...propertyConfig, channelManagerIntegrationActive: checked })
+                                                        setPropertyConfig({
+                                                            ...propertyConfig,
+                                                            channelManagerIntegrationActive: checked,
+                                                            pmsIntegrationActive: checked ? false : propertyConfig.pmsIntegrationActive,
+                                                            selfAriActive: checked ? false : propertyConfig.selfAriActive
+                                                        })
                                                     }
                                                 />
                                             </div>
+                                            {/* Partner Integration Section */}
+                                            {(propertyConfig.channelManagerIntegrationActive) && (
+                                                <div className='mt-6 pt-6 border-t'>
+                                                    <h3 className='text-lg font-semibold mb-4'>
+                                                        Available Channel Manager Partners
+                                                    </h3>
 
+                                                    {masterPartners.filter(partner =>
+                                                        partner.type === 'channel_manager'
+                                                    ).length === 0 ? (
+                                                        <div className='text-center py-8 bg-gray-50 rounded-lg'>
+                                                            <p className='text-gray-500'>No channel manager partners available</p>
+                                                        </div>
+                                                    ) : (
+                                                        <div className='grid gap-4 max-h-96 overflow-y-auto'>
+                                                            {masterPartners
+                                                                .filter(partner =>
+                                                                    partner.type === (propertyConfig.channelManagerIntegrationActive ? 'channel_manager' : 'pms')
+                                                                )
+                                                                .map((partner) => (
+                                                                    <div key={partner.id} className='p-4 border rounded-lg hover:shadow-md transition-shadow bg-white'>
+                                                                        <div className='flex justify-between items-start'>
+                                                                            <div className='flex-1'>
+                                                                                <h4 className='font-semibold text-lg'>{partner.name}</h4>
+                                                                                {partner.requiredFieldsForMasterIntegration.length > 0 && (
+                                                                                    <div className='mt-2'>
+                                                                                        <p className='text-xs font-medium text-gray-600'>Required Fields:</p>
+                                                                                        <div className='flex flex-wrap gap-1 mt-1'>
+                                                                                            {partner.requiredFieldsForMasterIntegration.map((field) => (
+                                                                                                <span key={field.id} className='px-2 py-1 bg-gray-100 rounded text-xs'>
+                                                                                                    {field.name}
+                                                                                                </span>
+                                                                                            ))}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+
+                                                                            <div className='ml-4'>
+                                                                                <Button
+                                                                                    size='sm'
+                                                                                    variant={partner.propertyIntegrations?.length > 0 ? 'default' : 'outline'}
+                                                                                    onClick={() => {
+                                                                                        if (partner.propertyIntegrations?.length === 0 || !partner.propertyIntegrations) {
+                                                                                            handleIntegrateClick(partner);
+                                                                                        }
+                                                                                    }}
+                                                                                    disabled={partner.propertyIntegrations?.[0].isActive}
+                                                                                >
+                                                                                    {partner.propertyIntegrations?.length > 0 ? 'Active' : 'Integrate'}
+                                                                                </Button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
                                             <div className='flex items-center justify-between space-x-2'>
                                                 <div className='space-y-0.5'>
                                                     <Label htmlFor='pmsIntegration'>PMS Integration</Label>
@@ -432,11 +569,75 @@ export default function PropertyPage() {
                                                     id='pmsIntegration'
                                                     checked={propertyConfig.pmsIntegrationActive}
                                                     onCheckedChange={(checked) =>
-                                                        setPropertyConfig({ ...propertyConfig, pmsIntegrationActive: checked })
+                                                        setPropertyConfig({
+                                                            ...propertyConfig,
+                                                            channelManagerIntegrationActive: checked ? false : propertyConfig.channelManagerIntegrationActive,
+                                                            pmsIntegrationActive: checked,
+                                                            selfAriActive: checked ? false : propertyConfig.selfAriActive
+                                                        })
                                                     }
                                                 />
                                             </div>
+                                            {/* Partner Integration Section */}
+                                            {(propertyConfig.pmsIntegrationActive ) && (
+                                                <div className='mt-6 pt-6 border-t'>
+                                                    <h3 className='text-lg font-semibold mb-4'>
+                                                        Available PMS Partners
+                                                    </h3>
 
+                                                    {masterPartners.filter(partner =>
+                                                        partner.type === 'pms'
+                                                    ).length === 0 ? (
+                                                        <div className='text-center py-8 bg-gray-50 rounded-lg'>
+                                                            <p className='text-gray-500'>No PMS partners available</p>
+                                                        </div>
+                                                    ) : (
+                                                        <div className='grid gap-4 max-h-96 overflow-y-auto'>
+                                                            {masterPartners
+                                                                .filter(partner =>
+                                                                    partner.type === (propertyConfig.channelManagerIntegrationActive ? 'channel_manager' : 'pms')
+                                                                )
+                                                                .map((partner) => (
+                                                                    <div key={partner.id} className='p-4 border rounded-lg hover:shadow-md transition-shadow bg-white'>
+                                                                        <div className='flex justify-between items-start'>
+                                                                            <div className='flex-1'>
+                                                                                <h4 className='font-semibold text-lg'>{partner.name}</h4>
+                                                                                {/* Required Fields */}
+                                                                                {partner.requiredFieldsForMasterIntegration.length > 0 && (
+                                                                                    <div className='mt-2'>
+                                                                                        <p className='text-xs font-medium text-gray-600'>Required Fields:</p>
+                                                                                        <div className='flex flex-wrap gap-1 mt-1'>
+                                                                                            {partner.requiredFieldsForMasterIntegration.map((field) => (
+                                                                                                <span key={field.id} className='px-2 py-1 bg-gray-100 rounded text-xs'>
+                                                                                                    {field.name}
+                                                                                                </span>
+                                                                                            ))}
+                                                                                        </div>
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+
+                                                                            <div className='ml-4'>
+                                                                                <Button
+                                                                                    size='sm'
+                                                                                    variant={partner.propertyIntegrations?.length > 0 ? 'default' : 'outline'}
+                                                                                    onClick={() => {
+                                                                                        if (partner.propertyIntegrations?.length === 0 || !partner.propertyIntegrations) {
+                                                                                            handleIntegrateClick(partner);
+                                                                                        }
+                                                                                    }}
+                                                                                    disabled={partner.propertyIntegrations?.length > 0}
+                                                                                >
+                                                                                    {partner.propertyIntegrations?.length > 0 ? 'Active' : 'Integrate'}
+                                                                                </Button>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
                                             <div className='flex items-center justify-between space-x-2'>
                                                 <div className='space-y-0.5'>
                                                     <Label htmlFor='selfAri'>Self ARI</Label>
@@ -446,7 +647,12 @@ export default function PropertyPage() {
                                                     id='selfAri'
                                                     checked={propertyConfig.selfAriActive}
                                                     onCheckedChange={(checked) =>
-                                                        setPropertyConfig({ ...propertyConfig, selfAriActive: checked })
+                                                        setPropertyConfig({
+                                                            ...propertyConfig,
+                                                            channelManagerIntegrationActive: checked ? false : propertyConfig.channelManagerIntegrationActive,
+                                                            pmsIntegrationActive: checked ? false : propertyConfig.pmsIntegrationActive,
+                                                            selfAriActive: checked
+                                                        })
                                                     }
                                                 />
                                             </div>
@@ -568,6 +774,8 @@ export default function PropertyPage() {
                                                 />
                                                 <p className='text-xs text-muted-foreground'>Format: HH.MM (24-hour format)</p>
                                             </div>
+
+
                                         </div>
                                         <DialogFooter>
                                             <Button onClick={updatePropertyConfig}>
@@ -810,6 +1018,19 @@ export default function PropertyPage() {
                     </div>
                 )}
             </div>
+
+            {/* Integration Dialog */}
+            <IntegrationDialog
+                isOpen={isIntegrationDialogOpen}
+                onClose={() => {
+                    setIsIntegrationDialogOpen(false);
+                    setSelectedPartner(null);
+                }}
+                partner={selectedPartner}
+                propertyId={propertyDetails?.id || ''}
+                onIntegrationSuccess={handleIntegrationSuccess}
+                onSubmit={handleIntegrationSubmit}
+            />
         </div>
     );
 }

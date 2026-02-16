@@ -28,3 +28,4 @@ export{
     PropertyTypeSelectionDao,
     PropertyConfigRepo,
 }
+export * from "./property-integration.repository"
