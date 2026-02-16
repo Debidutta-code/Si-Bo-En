@@ -1,6 +1,5 @@
 import { useState, type Dispatch, type SetStateAction } from "react";
 import { z } from "zod";
-import { uploadImages } from "../api/create/propertyinfo";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -578,7 +577,7 @@ export default function Rooms({
       <ImageUploadModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        uploadImages={uploadImages}
+        // uploadImages={uploadImages}
         onUploadSuccess={handleUploadSuccess}
       />
     </>

@@ -45,7 +45,6 @@ import type { IRoomDetails } from "../update/types/types";
 import { updateRoom, createRoom, deleteRoom, updateRoomAmenity, createRoomAmenity, addVideoToRoom, deleteRoomVideo } from "../api/show/room";
 import UpdateRoomAmenityUi from "../update/RoomAmenity"
 import Room360ViewModal from "../Room360ViewModal";
-import { uploadImages } from "../api/create/propertyinfo";
 import PanoramaViewer from "../PanoramaViewer";
 import {
   Dialog,
@@ -757,7 +756,6 @@ export default function Rooms({ propertyId }: PropertyId) {
           roomId={selected360Room.id}
           roomName={selected360Room.name}
           currentView360Link={selected360Room.view360Link}
-          uploadImages={uploadImages}
           onSuccess={() => {
             fetchRoom(propertyId);
           }}

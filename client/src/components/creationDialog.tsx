@@ -9,7 +9,6 @@ import type { INewGBP } from "@/pages/property/types/types";
 import { createEntity } from "./api/newEntity";
 import toast from "react-hot-toast";
 import ImageUploadModal from "@/components/property/ImageUploadModal";
-import { uploadImages } from "@/components/property/api/create/propertyinfo";
 import { Label } from "@/components/ui/label";
 const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, creationType }:
     {
@@ -202,7 +201,7 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
             <ImageUploadModal
                 isOpen={isImageUploadModalOpen}
                 onClose={() => setIsImageUploadModalOpen(false)}
-                uploadImages={uploadImages}
+                // uploadImages={uploadImages}
                 onUploadSuccess={handleUploadSuccess}
             />
         </AlertDialog>

@@ -6,7 +6,6 @@ import toast from "react-hot-toast";
 import {
   getAllCategory,
   getAllPropertyType,
-  uploadImages,
 } from "../api/create/propertyinfo";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -439,7 +438,7 @@ export default function PropertyInfo({
       <ImageUploadModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        uploadImages={uploadImages}
+        // uploadImages={uploadImages}
         onUploadSuccess={handleUploadSuccess}
       />
 

@@ -7,7 +7,6 @@ import {
   getAllPropertyType,
   createProperty,
   updatePropertyById,
-  uploadImages
 } from "../api/create/propertyinfo";
 import { cn } from "@/lib/utils";
 import { getPropertyDetails } from "../api/show/propertyDetails"
@@ -618,7 +617,7 @@ export default function PropertyInfo() {
       <ImageUploadModal
         isOpen={modalOpen}
         onClose={() => setModalOpen(false)}
-        uploadImages={uploadImages}
+        // uploadImages={uploadImages}
         onUploadSuccess={handleUploadSuccess}
       />
     </div>

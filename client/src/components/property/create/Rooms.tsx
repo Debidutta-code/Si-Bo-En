@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
 import { usePropertyForm } from '@/contexts/PropertyFormContext';
-import { uploadImages } from "../api/create/propertyinfo";
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -453,7 +452,7 @@ export default function Rooms() {
       <ImageUploadModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        uploadImages={uploadImages}
+        // uploadImages={uploadImages}
         onUploadSuccess={handleUploadSuccess}
       />
     </>
