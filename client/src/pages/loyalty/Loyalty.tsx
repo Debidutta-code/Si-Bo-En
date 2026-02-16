@@ -20,7 +20,6 @@ import Loader from "@/components/Loader/Loader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
 import ImageUploadModal from "@/components/property/ImageUploadModal";
-import { uploadImages } from "../property/booking-engine-config/api";
 import CreateLoyaltyForm from "./components/CreateLoyaltyForm";
 import DiscountsTab from "./components/DiscountsTab";
 import BasicConfigTab from "./components/BasicConfigTab";
@@ -396,7 +395,7 @@ export default function Loyalty() {
       <ImageUploadModal
         isOpen={isImageModalOpen}
         onClose={() => setIsImageModalOpen(false)}
-        uploadImages={uploadImages}
+        // uploadImages={uploadImages}
         onUploadSuccess={handleImageUploadSuccess}
       />
        {/* Add Property to Loyalty Program Section */}

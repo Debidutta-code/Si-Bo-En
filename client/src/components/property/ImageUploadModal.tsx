@@ -14,24 +14,50 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
+import toast from 'react-hot-toast'
 
 interface Props {
   isOpen: boolean
   onClose: () => void
-  uploadImages: (files: File[]) => Promise<string[]>
   onUploadSuccess: (uploadedUrls: string[]) => void
+}
+
+// Direct Cloudinary upload function
+const uploadToCloudinary = async (file: File): Promise<string> => {
+  const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME ;
+  const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET ;
+  
+  const formData = new FormData()
+  formData.append('file', file)
+  formData.append('upload_preset', uploadPreset)
+  formData.append('folder', 'SwiftRooms-Images')
+  
+  const response = await fetch(
+    `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+    {
+      method: 'POST',
+      body: formData,
+    }
+  )
+  
+  if (!response.ok) {
+    throw new Error(`Upload failed: ${response.statusText}`)
+  }
+  
+  const data = await response.json()
+  return data.secure_url
 }
 
 export default function ImageUploadModal({
   isOpen,
   onClose,
-  uploadImages,
   onUploadSuccess,
 }: Props) {
   const [files, setFiles] = React.useState<File[]>([])
   const [previews, setPreviews] = React.useState<string[]>([])
   const [isDragging, setIsDragging] = React.useState(false)
   const [isUploading, setIsUploading] = React.useState(false)
+  const [uploadProgress, setUploadProgress] = React.useState<string>('')
   const [error, setError] = React.useState('')
   const inputRef = React.useRef<HTMLInputElement>(null)
 
@@ -43,6 +69,7 @@ export default function ImageUploadModal({
       setFiles([])
       setPreviews([])
       setError('')
+      setUploadProgress('')
       if (inputRef.current) inputRef.current.value = ''
     }
   }, [isOpen])
@@ -109,15 +136,27 @@ export default function ImageUploadModal({
     }
 
     setIsUploading(true)
+    setError('')
+    const uploadedUrls: string[] = []
+    
     try {
-      const urls = await uploadImages(files)
-      onUploadSuccess(urls)
-      // Modal will close → cleanup happens in useEffect
+      // Upload files one by one to Cloudinary directly
+      for (let i = 0; i < files.length; i++) {
+        setUploadProgress(`Uploading ${i + 1} of ${files.length}...`)
+        const url = await uploadToCloudinary(files[i])
+        uploadedUrls.push(url)
+      }
+      
+      toast.success(`Successfully uploaded ${uploadedUrls.length} image(s)`)
+      onUploadSuccess(uploadedUrls)
       onClose()
-    } catch (err) {
-      setError('Upload failed. Please try again.')
+    } catch (err: any) {
+      console.error('Upload error:', err)
+      setError(err?.message || 'Upload failed. Please try again.')
+      toast.error('Failed to upload images')
     } finally {
       setIsUploading(false)
+      setUploadProgress('')
     }
   }
 
@@ -127,13 +166,20 @@ export default function ImageUploadModal({
     <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
       <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Upload  Images</DialogTitle>
-          <DialogDescription>Select images to  Upload.</DialogDescription>
+          <DialogTitle>Upload Images</DialogTitle>
+          <DialogDescription>Select images to Upload.</DialogDescription>
         </DialogHeader>
 
         {files.length > 0 && (
           <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
             <strong>{files.length}</strong> image(s) selected
+          </div>
+        )}
+
+        {uploadProgress && (
+          <div className="text-sm text-blue-600 bg-blue-50 p-2 rounded flex items-center gap-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            {uploadProgress}
           </div>
         )}
 
@@ -183,13 +229,20 @@ export default function ImageUploadModal({
         {error && <Badge variant="destructive">{error}</Badge>}
 
         <DialogFooter className="mt-6">
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button variant="outline" onClick={onClose} disabled={isUploading}>Cancel</Button>
           <Button
             onClick={handleUpload}
             disabled={isUploading || files.length === 0}
             className="bg-black text-white"
           >
-            {isUploading ? <Loader2 className="animate-spin" /> : `Upload ${files.length}`}
+            {isUploading ? (
+              <>
+                <Loader2 className="animate-spin mr-2 h-4 w-4" />
+                Uploading...
+              </>
+            ) : (
+              `Upload ${files.length}`
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

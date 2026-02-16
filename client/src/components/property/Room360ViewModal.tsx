@@ -25,7 +25,6 @@ interface Props {
     roomId: string
     roomName: string
     currentView360Link?: string
-    uploadImages: (files: File[]) => Promise<string[]>
     onSuccess: () => void
 }
 
@@ -36,7 +35,6 @@ export default function Room360ViewModal({
     roomId,
     roomName,
     currentView360Link = '',
-    uploadImages,
     onSuccess,
 }: Props) {
     const [view360Link, setView360Link] = React.useState(currentView360Link)
@@ -179,7 +177,7 @@ export default function Room360ViewModal({
             <ImageUploadModal
                 isOpen={isImageUploadOpen}
                 onClose={() => setIsImageUploadOpen(false)}
-                uploadImages={uploadImages}
+                // uploadImages={uploadImages}
                 onUploadSuccess={handleImageUploadSuccess}
             />
         </>

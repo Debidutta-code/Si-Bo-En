@@ -8,7 +8,6 @@ import { Card } from '@/components/ui/card';
 import ColorPicker from './ColorPicker';
 import LivePreview from './LivePreview';
 import type { BookingEngineConfig } from '../interface';
-import { uploadImages } from '../api';
 import ImageUploadModal from '@/components/property/ImageUploadModal';
 
 interface BookingConfigFormProps {
@@ -184,7 +183,7 @@ const handleUploadSuccess = (urls: string[]) => {
       <ImageUploadModal
         isOpen={uploadType !== null}
         onClose={() => setUploadType(null)}
-        uploadImages={uploadImages}
+        // uploadImages={uploadImages}
         onUploadSuccess={handleUploadSuccess}
       />
     </div>

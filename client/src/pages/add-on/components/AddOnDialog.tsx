@@ -19,7 +19,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { uploadImages } from "@/components/property/api/create/propertyinfo";
 import ImageUploadModal from "@/components/property/ImageUploadModal";
 import { X, Upload } from "lucide-react";
 import type { 
@@ -330,7 +329,7 @@ export default function AddOnDialog({
             <ImageUploadModal
                 isOpen={isImageModalOpen}
                 onClose={() => setIsImageModalOpen(false)}
-                uploadImages={uploadImages}
+                // uploadImages={uploadImages}
                 onUploadSuccess={handleImageUploadSuccess}
             />
         </Dialog>

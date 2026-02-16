@@ -18,7 +18,6 @@ import { Switch } from '@/components/ui/switch';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import ImageSlider from '@/components/shared/ImageSlider';
 import ImageUploadModal from '@/components/property/ImageUploadModal';
-import { uploadImages } from '@/components/property/api/create/propertyinfo';
 import { updateCreationService } from '../service/creation-filter.service';
 import type { IUpdateCreation } from '../types/types';
 import {
@@ -739,7 +738,7 @@ export default function PropertyPage() {
                     <ImageUploadModal
                         isOpen={isImageUploadModalOpen}
                         onClose={() => setIsImageUploadModalOpen(false)}
-                        uploadImages={uploadImages}
+                        // uploadImages={uploadImages}
                         onUploadSuccess={handleUploadSuccess}
                     />
 
