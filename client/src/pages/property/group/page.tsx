@@ -22,6 +22,7 @@ import ImageUploadModal from '@/components/property/ImageUploadModal';
 import { uploadImages } from '@/components/property/api/create/propertyinfo';
 import { updateCreationService } from '../service/creation-filter.service';
 import type { IUpdateCreation } from '../types/types';
+import DeleteCreationDialog from '@/components/Delete-Creation.dialog';
 
 export default function page() {
 
@@ -32,14 +33,14 @@ export default function page() {
     const [creations, setCreations] = useState<IGroupCreations>({
         brands: [],
         properties: [],
-        groupData:{
-            id:'',
+        groupData: {
+            id: '',
             createdAt: "",
-            isActive:true,
-            name:"",
-            superGroupName:"",
-            users:[],
-            images:[]
+            isActive: true,
+            name: "",
+            superGroupName: "",
+            users: [],
+            images: []
         }
     })
     const [isAssigningUser, setIsAssigningUser] = useState<boolean>(false)
@@ -93,7 +94,7 @@ export default function page() {
                 return [];
         }
     };
-    
+
     const fetchUsers = async () => {
         try {
             const response = await getUsersForMapping();
@@ -197,20 +198,20 @@ export default function page() {
     return (
         <div className="space-y-6 p-4">
             <BackButton />
-            
+
             {/* Group Details Section */}
             <div className="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-lg overflow-hidden">
                 {/* Hero Image Slider Section */}
                 {creations.groupData.images?.length > 0 && (
                     <div className="w-full">
-                        <ImageSlider 
-                            images={creations.groupData.images} 
+                        <ImageSlider
+                            images={creations.groupData.images}
                             alt={creations.groupData.name}
                             height="h-80"
                         />
                     </div>
                 )}
-                
+
                 <div className="p-6">
                     <div className="flex justify-between items-start mb-6">
                         <div>
@@ -219,11 +220,10 @@ export default function page() {
                                 <p className="text-sm text-gray-600">
                                     Parent: <span className="font-semibold text-gray-800">{creations.groupData.superGroupName}</span>
                                 </p>
-                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                                    creations.groupData.isActive 
-                                        ? 'bg-green-100 text-green-700 ring-1 ring-green-200' 
+                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${creations.groupData.isActive
+                                        ? 'bg-green-100 text-green-700 ring-1 ring-green-200'
                                         : 'bg-red-100 text-red-700 ring-1 ring-red-200'
-                                }`}>
+                                    }`}>
                                     {creations.groupData.isActive ? '● Active' : '● Inactive'}
                                 </span>
                             </div>
@@ -305,7 +305,7 @@ export default function page() {
                         View and manage all brands and properties under this group
                     </p>
                 </div>
-                
+
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <Button variant="outline" size="icon">
@@ -369,7 +369,10 @@ export default function page() {
                         </Dialog>
 
                         <div className="px-2">
-                            <CreateEntityDialog currentTab={currentTab} creationId={creationId ? creationId : ""} level={3} fetchProperties={fetchGroup} />
+                            <CreateEntityDialog creationType={"group"} currentTab={currentTab} creationId={creationId ? creationId : ""} level={3} fetchProperties={fetchGroup} />
+                        </div>
+                        <div className="px-2">
+                            <DeleteCreationDialog type={"group"} name={creations.groupData.name} id={creations.groupData.id} />
                         </div>
                     </DropdownMenuContent>
                 </DropdownMenu>
@@ -386,10 +389,10 @@ export default function page() {
                     <div className="space-y-4 py-2">
                         <div>
                             <Label className="text-sm font-medium">Name</Label>
-                            <Input 
-                                value={updateGroupDetails.name} 
-                                onChange={(e) => setUpdateGroupDetails({...updateGroupDetails, name: e.target.value})} 
-                                className="mt-1" 
+                            <Input
+                                value={updateGroupDetails.name}
+                                onChange={(e) => setUpdateGroupDetails({ ...updateGroupDetails, name: e.target.value })}
+                                className="mt-1"
                             />
                         </div>
 
@@ -408,38 +411,38 @@ export default function page() {
 
                             {/* Image Preview Grid */}
                             {/* In the Update Group Dialog - Image Preview Grid */}
-{updateGroupDetails.images.length > 0 && (
-  <div className="grid grid-cols-3 gap-2 mt-2">
-    {updateGroupDetails.images.map((url, index) => (
-      <div key={index} className="relative group aspect-square"> {/* Fixed aspect ratio */}
-        <img
-          src={url}
-          alt={`Preview ${index + 1}`}
-          className="w-full h-full object-cover rounded border"
-          onError={(e) => {
-            e.currentTarget.src = 'https://via.placeholder.com/150?text=Error';
-            e.currentTarget.className = 'w-full h-full object-contain rounded border bg-gray-100 p-2';
-          }}
-        />
-        <button
-          type="button"
-          onClick={() => handleRemoveImage(index)}
-          className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
-        >
-          <Trash2 className="h-3 w-3" />
-        </button>
-      </div>
-    ))}
-  </div>
-)}
+                            {updateGroupDetails.images.length > 0 && (
+                                <div className="grid grid-cols-3 gap-2 mt-2">
+                                    {updateGroupDetails.images.map((url, index) => (
+                                        <div key={index} className="relative group aspect-square"> {/* Fixed aspect ratio */}
+                                            <img
+                                                src={url}
+                                                alt={`Preview ${index + 1}`}
+                                                className="w-full h-full object-cover rounded border"
+                                                onError={(e) => {
+                                                    e.currentTarget.src = 'https://via.placeholder.com/150?text=Error';
+                                                    e.currentTarget.className = 'w-full h-full object-contain rounded border bg-gray-100 p-2';
+                                                }}
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => handleRemoveImage(index)}
+                                                className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                                            >
+                                                <Trash2 className="h-3 w-3" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex items-center gap-3">
-                            <input 
-                                id="active" 
-                                type="checkbox" 
-                                checked={updateGroupDetails.isActive} 
-                                onChange={(e) => setUpdateGroupDetails({...updateGroupDetails, isActive: e.target.checked})} 
+                            <input
+                                id="active"
+                                type="checkbox"
+                                checked={updateGroupDetails.isActive}
+                                onChange={(e) => setUpdateGroupDetails({ ...updateGroupDetails, isActive: e.target.checked })}
                             />
                             <Label htmlFor="active" className="text-sm cursor-pointer">Active</Label>
                         </div>
@@ -499,48 +502,48 @@ export default function page() {
                             Get started by creating your first {currentTab}.
                         </p>
                     </div>
-                ) :  (
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    {currentData?.map((item: ICreation) => (
-      <div
-        key={item.id}
-        className="border rounded-lg p-4 hover:shadow-md transition-shadow duration-200 flex flex-col"
-      >
-        {/* Image with fixed aspect ratio container */}
-        <div className="relative w-full h-48 mb-3 overflow-hidden rounded-lg">
-          <img 
-            src={item.images[0]} 
-            alt={item.name} 
-            className="w-full h-full object-cover rounded-lg hover:scale-105 transition-transform duration-300"
-            onError={(e) => {
-              // Fallback for broken images
-              e.currentTarget.src = 'https://via.placeholder.com/400x200?text=No+Image';
-              e.currentTarget.className = 'w-full h-full object-contain rounded-lg bg-gray-100 p-4';
-            }}
-          />
-        </div>
-        
-        <div className="flex-1"> {/* This pushes button to bottom */}
-          <div className="flex justify-between items-start mb-3">
-            <h3 className="font-semibold text-lg text-gray-900 line-clamp-2">
-              {item.name}
-            </h3>
-          </div>
-        </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {currentData?.map((item: ICreation) => (
+                            <div
+                                key={item.id}
+                                className="border rounded-lg p-4 hover:shadow-md transition-shadow duration-200 flex flex-col"
+                            >
+                                {/* Image with fixed aspect ratio container */}
+                                <div className="relative w-full h-48 mb-3 overflow-hidden rounded-lg">
+                                    <img
+                                        src={item.images[0]}
+                                        alt={item.name}
+                                        className="w-full h-full object-cover rounded-lg hover:scale-105 transition-transform duration-300"
+                                        onError={(e) => {
+                                            // Fallback for broken images
+                                            e.currentTarget.src = 'https://via.placeholder.com/400x200?text=No+Image';
+                                            e.currentTarget.className = 'w-full h-full object-contain rounded-lg bg-gray-100 p-4';
+                                        }}
+                                    />
+                                </div>
 
-        {/* Actions */}
-        <div className="mt-4 flex space-x-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="flex-1"
-            onClick={() => { navigate(`/app/property/${currentTab}/${item.id}`) }}
-          >
-            View Details
-          </Button>
-        </div>
-      </div>
-    ))}
+                                <div className="flex-1"> {/* This pushes button to bottom */}
+                                    <div className="flex justify-between items-start mb-3">
+                                        <h3 className="font-semibold text-lg text-gray-900 line-clamp-2">
+                                            {item.name}
+                                        </h3>
+                                    </div>
+                                </div>
+
+                                {/* Actions */}
+                                <div className="mt-4 flex space-x-2">
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="flex-1"
+                                        onClick={() => { navigate(`/app/property/${currentTab}/${item.id}`) }}
+                                    >
+                                        View Details
+                                    </Button>
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 )}
             </div>

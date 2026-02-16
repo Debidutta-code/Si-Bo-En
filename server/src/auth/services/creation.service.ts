@@ -238,6 +238,21 @@ export default class CreationService {
         }
 
     }
+    public static async deleteCreation(creationId: string) {
+        try {
+            const isExists = await CreationRepository.getSpecificCreation(creationId);
+            if (!isExists) {
+                return errorResponse('Creation not found');
+            }
+            const deleteResult = await CreationRepository.delete(creationId);
+            if (!deleteResult) {
+                return errorResponse('Failed to delete creation');
+            }
+            return successResponse('Creation deleted successfully');
+        } catch (error: any) {
+            return errorResponse('Failed to delete creation', error.message);
+        }
+    }
 }
 export class FetchByCreationId {
     public static async getBrandManagers(groupId: string, type: "group" | "brand" | "property") {

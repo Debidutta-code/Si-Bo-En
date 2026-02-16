@@ -250,7 +250,7 @@ export default function MembersPage() {
       width: 'w-40',
       render: (value: string) => (
         <Badge variant="outline">
-          {value ? capitalizeFirstLetter(value) : 'N/A'}
+          {value ? capitalizeFirstLetter(value.replaceAll("_", " ")) : 'N/A'}
         </Badge>
       )
     },

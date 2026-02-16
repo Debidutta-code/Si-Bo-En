@@ -218,11 +218,11 @@ model Creation {
   superId       String?    @map("super_id")
   superChildren Creation[] @relation("SuperRelation")
 
-  group         Creation?  @relation("GroupRelation", fields: [groupId], references: [id])
+  group         Creation?  @relation("GroupRelation", fields: [groupId], references: [id], onDelete: Cascade)
   groupId       String?    @map("group_id")
   groupChildren Creation[] @relation("GroupRelation")
 
-  brand         Creation?  @relation("BrandRelation", fields: [brandId], references: [id])
+  brand         Creation?  @relation("BrandRelation", fields: [brandId], references: [id], onDelete: Cascade)
   brandId       String?    @map("brand_id")
   brandChildren Creation[] @relation("BrandRelation")
 
@@ -322,7 +322,7 @@ model Property {
   createdBy   User   @relation("PropertyCreatedBy", fields: [createdById], references: [id])
   createdById String @map("created_by_id")
 
-  creation   Creation @relation(fields: [creationId], references: [id])
+  creation   Creation @relation(fields: [creationId], references: [id], onDelete: Cascade)
   creationId String   @unique @map("creation_id")
 
   // Embedded Data (1:1 relations)
@@ -365,7 +365,7 @@ model Property {
 
 model PropertyConfigs {
   id         String   @id @default(uuid())
-  property   Property @relation(fields: [propertyId], references: [id])
+  property   Property @relation(fields: [propertyId], references: [id],onDelete: Cascade)
   propertyId String   @unique @map("property_id")
 
   pmsIntegrationActive            Boolean      @default(true) @map("pms_integration_active")
@@ -445,7 +445,7 @@ model PropertyCategory {
   masterCategory   MasterPropertyCategory @relation(fields: [masterCategoryId], references: [id])
   masterCategoryId String                 @map("master_category_id")
 
-  property   Property @relation(fields: [propertyId], references: [id])
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   propertyId String   @unique @map("property_id")
 
   @@map("property_categories")
@@ -456,7 +456,7 @@ model PropertyType {
   masterPropertyType   MasterPropertyType @relation(fields: [masterPropertyTypeId], references: [id])
   masterPropertyTypeId String             @map("master_property_type_id")
 
-  property   Property @relation(fields: [propertyId], references: [id])
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   propertyId String   @unique @map("property_id")
 
   @@map("property_types")
@@ -465,7 +465,7 @@ model PropertyType {
 model PropertyAmenitySelection {
   id String @id @default(uuid())
 
-  property   Property @relation(fields: [propertyId], references: [id])
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   propertyId String   @map("property_id")
 
   amenity   MasterAmenity @relation(fields: [amenityId], references: [id])
@@ -479,7 +479,7 @@ model PropertyAmenitySelection {
 model RoomAmenitySelection {
   id String @id @default(uuid())
 
-  room   Room   @relation(fields: [roomId], references: [id])
+  room   Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
   roomId String @map("room_id")
 
   amenity   MasterAmenity @relation(fields: [amenityId], references: [id])
@@ -503,7 +503,7 @@ model PropertyAddress {
   latitude     Float
   longitude    Float
 
-  property   Property @relation(fields: [propertyId], references: [id])
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   propertyId String   @unique @map("property_id")
 
   @@map("property_addresses")
@@ -533,7 +533,7 @@ model Room {
   available          Boolean  @default(true)
   isDeleted          Boolean  @default(false) @map("is_deleted")
 
-  property   Property @relation(fields: [propertyId], references: [id])
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   propertyId String   @map("property_id")
 
   roomAmenities RoomAmenitySelection[]
@@ -694,7 +694,7 @@ model RatePlan {
   ratePlanCode    String       @unique @map("rate_plan_code")
   deviceType      DeviceType[] @map("device_type")
   // Back relation to Property
-  property        Property     @relation(fields: [propertyId], references: [id])
+  property        Property     @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   propertyId      String       @map("property_id")
   // Policies
   depositPolicy   Policy?      @relation("RateAmountToDepositPolicy", fields: [depositPolicyId], references: [id])
@@ -732,7 +732,7 @@ model Policy {
   type        PolicyType
   description String
   propertyId  String     @map("property_id")
-  property    Property   @relation(fields: [propertyId], references: [id])
+  property    Property   @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   // Reverse relations
   usedInDepositFor      RatePlan[] @relation("RateAmountToDepositPolicy")
@@ -752,7 +752,7 @@ model BankDetails {
   payAtHotel     Boolean @default(true) @map("pay_at_hotel")
   paymentGateway Boolean @default(false) @map("payment_gateway")
 
-  property   Property @relation(fields: [propertyId], references: [id])
+  property   Property @relation(fields: [propertyId], references: [id],onDelete: Cascade)
   propertyId String   @unique @map("property_id")
 
   createdAt DateTime @default(now())
@@ -763,7 +763,7 @@ model BankDetails {
 
 model BookingEngineConfigurations {
   id              String   @id @default(uuid())
-  property        Property @relation(fields: [propertyId], references: [id])
+  property        Property @relation(fields: [propertyId], references: [id],onDelete: Cascade)
   propertyId      String   @unique @map("property_id")
   primaryColor    String   @map("primary_color")
   secondaryColor  String   @map("secondary_color")
@@ -781,7 +781,7 @@ model PromoCode {
   code              String       @unique
   description       String?
   propertyId        String       @map("property_id")
-  property          Property     @relation(fields: [propertyId], references: [id])
+  property          Property     @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   discountType      DiscountType @map("discount_type")
   discountValue     Float        @map("discount_value")
   currencyCode      CurrencyCode @default(USD) @map("currency_code")
@@ -828,7 +828,7 @@ model TaxRule {
 
   // Relations
   propertyId String   @map("property_id")
-  property   Property @relation(fields: [propertyId], references: [id], name: "PropertyTaxRules")
+  property   Property @relation(fields: [propertyId], references: [id], name: "PropertyTaxRules", onDelete: Cascade)
 
   taxGroupRules TaxGroupRule[]
 
@@ -845,7 +845,7 @@ model TaxGroup {
   isActive Boolean @default(false) @map("is_active")
 
   propertyId    String         @map("property_id")
-  property      Property       @relation(fields: [propertyId], references: [id], name: "PropertyTaxGroups")
+  property      Property       @relation(fields: [propertyId],onDelete: Cascade, references: [id], name: "PropertyTaxGroups")
   taxGroupRules TaxGroupRule[]
   ratePlans     RatePlan[]
 
@@ -918,7 +918,7 @@ model Addon {
   images                            String[]
   createdAt                         DateTime                            @default(now())
   updatedAt                         DateTime                            @updatedAt
-  property                          Property                            @relation(fields: [propertyId], references: [id])
+  property                          Property                            @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   subCategory                       AddonSubCategory?                   @relation(fields: [subcategoryId], references: [id])
   category                          AddonCategory?                      @relation(fields: [categoryId], references: [id])
   addonVariant                      AddonVariant?                       @relation("AddonToVariant", fields: [variantId], references: [id])
@@ -932,8 +932,8 @@ model RatePlanWithAddon {
   id         String   @id @default(uuid())
   ratePlanId String   @map("rate_plan_id")
   addonId    String   @map("addon_id")
-  ratePlan   RatePlan @relation(fields: [ratePlanId], references: [id])
-  addon      Addon    @relation(fields: [addonId], references: [id])
+  ratePlan   RatePlan @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
+  addon      Addon    @relation(fields: [addonId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now()) @map("created_at")
 
   @@unique([ratePlanId, addonId])
@@ -970,7 +970,7 @@ model AddonAvailability {
   isAvailable  Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  addon        Addon    @relation(fields: [addonId], references: [id])
+  addon        Addon    @relation(fields: [addonId], references: [id],onDelete: Cascade)
 
   @@unique([addonId, date])
 }
@@ -1039,7 +1039,7 @@ model Reservation {
   updatedAt DateTime @updatedAt @map("updated_at")
   // Relations
 
-  property              Property                    @relation(fields: [propertyId], references: [id])
+  property              Property                    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   promo                 PromoCode?                  @relation(fields: [promoId], references: [id])
   addOns                BookingAddon[]
   priceBreakdowns       ReservationPriceBrakeDown[]
@@ -1090,7 +1090,7 @@ model Guests {
   primaryReservations  Reservation[]         @relation("ReservationPrimaryGuest")
   userType             GuestType             @default(adult) @map("user_type")
   propertyId           String                @map("property_id")
-  property             Property              @relation(fields: [propertyId], references: [id])
+  property             Property              @relation(fields: [propertyId], references: [id],onDelete: Cascade)
   address              String?
   city                 String?
   state                String?
@@ -1333,7 +1333,7 @@ model PropertyLoyaltyConfig {
   propertyId              String                @unique @map("property_id")
   propertyCode            String                @unique @map("property_code")
   propertyName            String                @map("property_name")
-  Property                Property              @relation(fields: [propertyId], references: [id])
+  Property                Property              @relation(fields: [propertyId], references: [id],onDelete: Cascade)
   isActive                Boolean               @default(true) @map("is_active")
 
   // @@unique([creationLoyaltyConfigId, propertyId,isActive])
@@ -1604,7 +1604,7 @@ model PropertyPaymentIntegration {
   isActive             Boolean @default(false) @map("is_active")
   outletId             String  @map("outlet_id")
 
-  property           Property                 @relation(fields: [propertyId], references: [id])
+  property           Property                 @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   paymentIntegration MasterPaymentIntegration @relation(fields: [paymentIntegrationId], references: [id])
   payments           Payment[]
 
@@ -1625,7 +1625,7 @@ model Payment {
   propertyId    String @map("property_id")
   reservationId String @map("reservation_id")
 
-  Property                   Property                    @relation(fields: [propertyId], references: [id])
+  Property                   Property                    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   Reservation                Reservation                 @relation(fields: [reservationId], references: [id])
   createdAt                  DateTime                    @default(now()) @map("created_at")
   PropertyPaymentIntegration PropertyPaymentIntegration? @relation(fields: [propertyPaymentIntegrationId], references: [id])
