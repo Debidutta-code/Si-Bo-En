@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "@/src/store/store";
@@ -26,27 +26,29 @@ const PaymentCallbackPage = () => {
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [usePolling, setUsePolling] = useState(false);
 
-  // Handle payment status updates from socket
-  const handlePaymentUpdate = useCallback((update: any) => {
-    //console.log('🎯 Payment update received via socket:', update);
+  // Use a ref for booking to access latest state without triggering re-renders
+  const bookingRef = useRef(booking);
 
-    if (update.status === 'success') {
-      handleSuccessfulPayment(update.orderReference);
-    } else if (update.status === 'failed') {
-      handleFailedPayment(update.message);
-    } else {
-      setMessage(update.message || 'Processing payment...');
-    }
-  }, []);
+  useEffect(() => {
+    bookingRef.current = booking;
+  }, [booking]);
 
-  // Initialize socket connection
-  const { isConnected, connectionError } = usePaymentSocket({
-    orderReference,
-    onStatusUpdate: handlePaymentUpdate,
-    enabled: !!orderReference && !usePolling,
-  });
+  const handleFailedPayment = useCallback((errorMessage: string) => {
+    setStatus("failed");
+    setMessage(errorMessage || "Payment failed. Please try again.");
+    toast.error("Payment was not successful. Please try again.", {
+      id: "payment-failed",
+    });
 
-  const handleSuccessfulPayment = async (orderRef: string) => {
+    localStorage.removeItem("ngeniusOrderRef");
+    localStorage.removeItem("pendingBookingData");
+
+    setTimeout(() => {
+      router.replace("/Payment");
+    }, 3000);
+  }, [router]);
+
+  const handleSuccessfulPayment = useCallback(async (orderRef: string) => {
     try {
       setStatus("success");
       setMessage("Payment successful! Creating your booking...");
@@ -60,26 +62,29 @@ const PaymentCallbackPage = () => {
         //console.log("📦 Using stored booking data");
       } else {
         //console.log("⚠️ No stored data, using Redux state");
+        // Use ref here to avoid dependency on 'booking'
+        const currentBooking = bookingRef.current;
+
         bookingData = {
           data: {
             bookingDetails: {
-              startDate: booking.startDate,
-              endDate: booking.endDate,
-              propertyCode: booking.PropertyCode,
-              hotelName: booking.hotelName,
-              roomTypeCode: booking.roomTypeCode,
-              numberOfRooms: booking.numberOfRooms || 1,
-              finalPrice: booking.finalPrice,
-              currency: booking.finalPrice?.dailyBreakdown?.[0]?.currencyCode || "AED",
-              email: booking.email,
-              phone: booking.phone,
-              guests: booking.guests,
-              guestDetails: booking.guestDetails,
-              ratePlanCode: booking.ratePlanCode,
+              startDate: currentBooking.startDate,
+              endDate: currentBooking.endDate,
+              propertyCode: currentBooking.PropertyCode,
+              hotelName: currentBooking.hotelName,
+              roomTypeCode: currentBooking.roomTypeCode,
+              numberOfRooms: currentBooking.numberOfRooms || 1,
+              finalPrice: currentBooking.finalPrice,
+              currency: currentBooking.finalPrice?.dailyBreakdown?.[0]?.currencyCode || "AED",
+              email: currentBooking.email,
+              phone: currentBooking.phone,
+              guests: currentBooking.guests,
+              guestDetails: currentBooking.guestDetails,
+              ratePlanCode: currentBooking.ratePlanCode,
               paymentMethod: "payment_gateway",
-              bookingSource: booking.bookingSource,
+              bookingSource: currentBooking.bookingSource,
             },
-            guestDetails: booking.guestDetails,
+            guestDetails: currentBooking.guestDetails,
           },
         };
       }
@@ -136,22 +141,62 @@ const PaymentCallbackPage = () => {
         id: "booking-error",
       });
     }
-  };
+  }, [dispatch, router]);
 
-  const handleFailedPayment = (errorMessage: string) => {
-    setStatus("failed");
-    setMessage(errorMessage || "Payment failed. Please try again.");
-    toast.error("Payment was not successful. Please try again.", {
-      id: "payment-failed",
-    });
+  // Handle payment status updates from socket
+  const handlePaymentUpdate = useCallback((update: any) => {
+    //console.log('🎯 Payment update received via socket:', update);
 
-    localStorage.removeItem("ngeniusOrderRef");
-    localStorage.removeItem("pendingBookingData");
+    if (update.status === 'success') {
+      handleSuccessfulPayment(update.orderReference);
+    } else if (update.status === 'failed') {
+      handleFailedPayment(update.message);
+    } else {
+      setMessage(update.message || 'Processing payment...');
+    }
+  }, [handleSuccessfulPayment, handleFailedPayment]);
 
-    setTimeout(() => {
-      router.replace("/Payment");
-    }, 3000);
-  };
+  // Initialize socket connection
+  const { isConnected } = usePaymentSocket({
+    orderReference,
+    onStatusUpdate: handlePaymentUpdate,
+    enabled: !!orderReference && !usePolling,
+  });
+
+  // Fallback polling function
+  const performPaymentCheck = useCallback(async (orderRef: string, isMounted: boolean) => {
+    try {
+      setMessage("Checking payment status...");
+
+      const orderStatus = await ngeniusService.getOrderStatus(orderRef);
+      //console.log("✅ Order Status Response:", orderStatus);
+      setDebugInfo(orderStatus);
+
+      const isSuccess = ngeniusService.isPaymentSuccessful(orderStatus);
+      const paymentState = ngeniusService.getPaymentState(orderStatus);
+
+      //console.log("💳 Payment State:", paymentState);
+      //console.log("✔️ Is Successful:", isSuccess);
+
+      if (!isSuccess) {
+        if (isMounted) {
+          handleFailedPayment(`Payment ${paymentState.toLowerCase()}`);
+        }
+        return;
+      }
+
+      // Payment successful
+      if (isMounted) {
+        await handleSuccessfulPayment(orderRef);
+      }
+    } catch (err: any) {
+      console.error("❌ Payment check error:", err);
+      if (isMounted) {
+        setStatus("error");
+        setMessage(err?.message || "Failed to verify payment");
+      }
+    }
+  }, [handleSuccessfulPayment, handleFailedPayment]);
 
   useEffect(() => {
     let isMounted = true;
@@ -187,6 +232,8 @@ const PaymentCallbackPage = () => {
         }
 
         // Wait for socket connection or fall back to polling after 15 seconds
+        // TODO: Uncomment this block when N-Genius webhooks are working correctly
+        /*
         socketTimeout = setTimeout(() => {
           if (!isConnected && isMounted) {
             //console.log("⚠️ No webhook received in 15 seconds, falling back to polling");
@@ -199,6 +246,17 @@ const PaymentCallbackPage = () => {
         return () => {
           clearTimeout(socketTimeout);
         };
+        */
+
+        // START: Temporary fix for N-Genius webhook issue
+        // Immediately start polling instead of waiting for socket
+        if (isMounted) {
+          //console.log("⚠️ Webhook disabled temporarily, starting polling immediately");
+          setUsePolling(true);
+          setMessage("Verifying payment status...");
+          performPaymentCheck(orderRef, isMounted);
+        }
+        // END: Temporary fix
       } catch (err: any) {
         console.error("❌ Payment initialization error:", err);
         if (isMounted) {
@@ -212,46 +270,12 @@ const PaymentCallbackPage = () => {
 
     return () => {
       isMounted = false;
-      if (socketTimeout) {
-        clearTimeout(socketTimeout);
-      }
+      // Socket timeout is commented out above, so we don't need to clear it here
+      // if (socketTimeout) {
+      //   clearTimeout(socketTimeout);
+      // }
     };
-  }, [searchParams, isConnected]);
-
-  // Fallback polling function
-  const performPaymentCheck = async (orderRef: string, isMounted: boolean) => {
-    try {
-      setMessage("Checking payment status...");
-
-      const orderStatus = await ngeniusService.getOrderStatus(orderRef);
-      //console.log("✅ Order Status Response:", orderStatus);
-      setDebugInfo(orderStatus);
-
-      const isSuccess = ngeniusService.isPaymentSuccessful(orderStatus);
-      const paymentState = ngeniusService.getPaymentState(orderStatus);
-
-      //console.log("💳 Payment State:", paymentState);
-      //console.log("✔️ Is Successful:", isSuccess);
-
-      if (!isSuccess) {
-        if (isMounted) {
-          handleFailedPayment(`Payment ${paymentState.toLowerCase()}`);
-        }
-        return;
-      }
-
-      // Payment successful
-      if (isMounted) {
-        await handleSuccessfulPayment(orderRef);
-      }
-    } catch (err: any) {
-      console.error("❌ Payment check error:", err);
-      if (isMounted) {
-        setStatus("error");
-        setMessage(err?.message || "Failed to verify payment");
-      }
-    }
-  };
+  }, [searchParams, isConnected, performPaymentCheck]);
 
   const renderIcon = () => {
     switch (status) {
