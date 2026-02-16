@@ -137,7 +137,11 @@ export class PropertyIntegrationRepository {
               propertyId
             },
             include:{
-              propertyIntegrationSecrets: true
+              propertyIntegrationSecrets: {
+                include: {
+                  RequiredField: true
+                }
+              }
             }
           }
         }

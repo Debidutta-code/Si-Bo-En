@@ -42,19 +42,17 @@ export class PropertyIntegrationController{
     }
     public async updatePropertyIntegrationStatus(req: CustomRequest, res: Response): Promise<Response> {
         try {
-            const { status } = req.body;
-            if (!status) {
-                return res.status(400).json(errorResponse("Integration ID is required"));
+            const { isActive } = req.body;
+            if (typeof isActive !== "boolean") {
+                return res.status(400).json(errorResponse("Invalid active value"));
             }
             const { id } = req.params;
             if (!id) {
                 return res.status(400).json(errorResponse("Integration ID is required"));
             }
-            if (typeof status !== "boolean") {
-                return res.status(400).json(errorResponse("Invalid status value"));
-            }
+            
 
-            const result = await this.propertyIntegrationService.updatePropertyIntegrationStatus(id, status);
+            const result = await this.propertyIntegrationService.updatePropertyIntegrationStatus(id, isActive);
             return res.status(result.success ? 200 : 400).json(result);
         } catch (error) {
             if (error instanceof Error) {
@@ -106,7 +104,8 @@ export class PropertyFieldIntegrationController{
 
     public async updateFields(req: CustomRequest, res: Response): Promise<Response> {
         try {
-            const { id, value } = req.body;
+            const { id } = req.params;
+            const { value } = req.body;
             if (!id) {
                 return res.status(400).json(errorResponse("Integration ID is required"));
             }

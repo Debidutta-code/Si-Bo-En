@@ -29,6 +29,7 @@ export interface IpropertyIntegrations{
     propertyId: string;
     masterIntegrationId: string;
     isActive: boolean;
+    createdAt?: string;
     propertyIntegrationSecrets:IpropertyIntegrationSecrets[];
 }
 export interface IpropertyIntegrationSecrets{
@@ -36,6 +37,8 @@ export interface IpropertyIntegrationSecrets{
     propertyIntegrationId: string;
     requiredFieldId: string;
     value: string;
+    createdAt?: string;
+    RequiredField?: IrequiredFieldsForMasterIntegration;
 }
 export interface ImasterIntegrationURLFields{
     id: string;
