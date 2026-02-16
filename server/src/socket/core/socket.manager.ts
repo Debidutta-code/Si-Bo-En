@@ -40,7 +40,7 @@ class SocketManager {
 
     this.setupEventHandlers();
 
-    console.log('✅ Socket.IO initialized (default namespace)');
+    console.log('✅ Socket.IO initialized');
   }
 
   /**

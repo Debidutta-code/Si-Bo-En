@@ -8,12 +8,12 @@ export const protect = async (
   res: Response,
   next: NextFunction
 ) => {
-  if (!req.cookies.accessToken) {
+  if (!req.cookies.revChillAccess) {
     return res
       .status(401)
       .json(errorResponse('Access token Not found, Login again'));
   }
-  const token = req.cookies.accessToken;
+  const token = req.cookies.revChillAccess;
   try {
     const decoded = await decodeToken(token, process.env.JWT_SECRET_KEY_DEV!);
 

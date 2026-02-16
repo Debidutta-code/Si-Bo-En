@@ -99,7 +99,7 @@ class FikafiPaymentService {
         this.baseUrl = process.env.FIKAFI_BASE_URL!;
 
         console.log('🔑 Fikafi Config loaded:');
-        console.log('  Base URL:', this.baseUrl);
+        // console.log('  Base URL:', this.baseUrl);
 
         this.client = axios.create({
             baseURL: this.baseUrl,

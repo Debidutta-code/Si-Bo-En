@@ -32,7 +32,7 @@ import {
 } from 'lucide-react';
 import { useAppSelector } from '@/redux/hooks';
 import { useEffect, useRef, useState, memo } from 'react';
-
+import createAxiosInstance from '@/components/axiosInstance';
 interface NavItem {
   name: string;
   href: string;
@@ -100,9 +100,18 @@ const scrollPosition = useRef(0);
     restoreScrollPosition();
   }, [isManagementOpen, isRatesOpen, isRestrictionsOpen, isLoyaltyOpen, isPromotionsOpen, isAgencyOpen]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('isAuthenticated');
-    navigate('/');
+  const handleLogout = async () => {
+    const axiosInstance = createAxiosInstance();
+    try {
+      const response = await axiosInstance.post('/auth/logout');
+      if(response.data.success) {
+        navigate('/');
+      }else{
+        navigate('/');
+      }
+    } catch (error) {
+      navigate('/');
+    }
   };
 
   const ratesItems = [

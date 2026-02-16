@@ -18,6 +18,8 @@ const config={
 
     cloudinaryUrl: process.env.CLOUDINARY_URL,
 
+    frontendUrl: process.env.FRONTEND_URL,
+
     allowedOrigins: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ["*"],
 
 

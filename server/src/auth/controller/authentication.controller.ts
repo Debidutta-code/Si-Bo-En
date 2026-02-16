@@ -19,7 +19,7 @@ export class AuthController {
         // console.log(response?.data?.accessToken);
         return res
           .status(200)
-          .cookie('accessToken', response?.data?.accessToken, {
+          .cookie('revChillAccess', response?.data?.accessToken, {
             httpOnly: true,
             secure: true,
           })
@@ -34,7 +34,7 @@ export class AuthController {
     }
   }
   public static async logout(req: Request, res: Response) {
-    res.clearCookie('accessToken');
+    res.clearCookie('revChillAccess');
     res.status(200).json({
       status: 'success',
       message: 'User logged out successfully',

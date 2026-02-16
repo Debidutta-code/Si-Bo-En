@@ -16,7 +16,7 @@ export const generateOTPEmailTemplate = (otp: string, purpose: string, email?: s
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>${purposeText} - SwiftRooms</title>
+            <title>${purposeText} - RevChill </title>
             <style>
                 body {
                     font-family: Arial, sans-serif;
@@ -97,7 +97,7 @@ export const generateOTPEmailTemplate = (otp: string, purpose: string, email?: s
         <body>
             <div class="container">
                 <div class="header">
-                    <div class="logo">SwiftRooms</div>
+                    <div class="logo">RevChill</div>
                     <h2>${purposeText}</h2>
                 </div>
                 
@@ -127,11 +127,11 @@ export const generateOTPEmailTemplate = (otp: string, purpose: string, email?: s
                 </div>
                 
                 <div class="warning">
-                    <strong>Security Notice:</strong> Never share this OTP with anyone. SwiftRooms staff will never ask for your OTP.
+                    <strong>Security Notice:</strong> Never share this OTP with anyone. RevChill staff will never ask for your OTP.
                 </div>
                 
                 <div class="footer">
-                    <p>© ${new Date().getFullYear()} SwiftRooms. All rights reserved.</p>
+                    <p>© ${new Date().getFullYear()} RevChill. All rights reserved.</p>
                     <p>This is an automated email, please do not reply.</p>
                 </div>
             </div>
@@ -147,7 +147,7 @@ export const generateWelcomeEmailTemplate = (name: string): string => {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Welcome to SwiftRooms</title>
+            <title>Welcome to RevChill</title>
             <style>
                 body {
                     font-family: Arial, sans-serif;
@@ -186,20 +186,20 @@ export const generateWelcomeEmailTemplate = (name: string): string => {
         <body>
             <div class="container">
                 <div class="header">
-                    <div class="logo">SwiftRooms</div>
+                    <div class="logo">RevChill</div>
                     <h2>Welcome Aboard!</h2>
                 </div>
                 
                 <div class="content">
                     <p>Dear ${name},</p>
-                    <p>Welcome to SwiftRooms! We're excited to have you on board.</p>
+                    <p>Welcome to RevChill! We're excited to have you on board.</p>
                     <p>Your account has been successfully verified and you can now access all features of our property management system.</p>
                     <p>If you have any questions or need assistance, please don't hesitate to contact our support team.</p>
-                    <p>Best regards,<br>The SwiftRooms Team</p>
+                    <p>Best regards,<br>The RevChill Team</p>
                 </div>
                 
                 <div class="footer">
-                    <p>© ${new Date().getFullYear()} SwiftRooms. All rights reserved.</p>
+                    <p>© ${new Date().getFullYear()} RevChill. All rights reserved.</p>
                 </div>
             </div>
         </body>
