@@ -20,7 +20,9 @@ export class PaymentIntegrationDao {
         where: {
           propertyId: propertyId,
           isActive:true
-        },
+        },include:{
+          paymentIntegration: true
+        }
       });
     } catch (error: any) {
       throw new Error(error?.message);
