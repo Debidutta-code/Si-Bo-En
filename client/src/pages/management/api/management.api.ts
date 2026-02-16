@@ -197,6 +197,14 @@ export const getPaymentIntegrations = async (propertyId:string) => {
     throw error.response?.data;
   }
 };
+export const getMasterPaymentIntegrations = async () => {
+  try {
+    const response = await axios.get(`/property-management/property/management/payment-integrations/master-payment-integrations`);
+    return response.data;
+  } catch (error: any) {
+    throw error.response?.data;
+  }
+};
 
 export const createPaymentIntegration = async (name: string) => {
   try {

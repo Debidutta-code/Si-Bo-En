@@ -27,6 +27,14 @@ export class PaymentIntegrationService {
       return errorResponse('Failed to fetch payment integrations', error?.message);
     }
   }
+   public static async getMasterPaymentIntegrations():Promise<IApiResponse> {
+    try {
+      const daoRes = await PaymentIntegrationDao.getAll();
+      return successResponse('Payment integrations fetched successfully', daoRes);
+    } catch (error: any) {
+      return errorResponse('Failed to fetch payment integrations', error?.message);
+    }
+  }
 
   public static async updatePaymentIntegration(id: string, name: string):Promise<IApiResponse> {
     try {

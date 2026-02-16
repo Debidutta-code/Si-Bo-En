@@ -199,6 +199,12 @@ export interface SelectedAddon {
     totalPrice: number;
     type: string;
 }
+export interface RTDynamicConfig {
+    authUrl: string;
+    reservationUrl: string;
+    partnerId: string;
+    partnerName: string;
+}
 
 export interface GuestDetail {
     type: 'adult' | 'child';

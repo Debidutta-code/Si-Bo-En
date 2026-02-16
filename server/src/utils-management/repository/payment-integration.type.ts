@@ -28,6 +28,17 @@ export class PaymentIntegrationDao {
       throw new Error(error?.message);
     }
   }
+    public static async getAll() {
+    try {
+      return await prisma.masterPaymentIntegration.findMany({
+        where: {
+          isActive:true
+        }
+      });
+    } catch (error: any) {
+      throw new Error(error?.message);
+    }
+  }
   public static async createPaymentIntegration(name: string) {
     try {
       return await prisma.masterPaymentIntegration.create({

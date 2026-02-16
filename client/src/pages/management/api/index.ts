@@ -18,6 +18,7 @@ import {
     createPaymentIntegration,
     deletePaymentIntegration,
     getPaymentIntegrations,
+    getMasterPaymentIntegrations
 } from "./management.api";
 
 export{
@@ -38,5 +39,6 @@ export{
     deleteLoyaltyGuestField,
     createPaymentIntegration,
     deletePaymentIntegration,
-    getPaymentIntegrations
+    getPaymentIntegrations,
+    getMasterPaymentIntegrations
 }

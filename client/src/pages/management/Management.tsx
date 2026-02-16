@@ -12,6 +12,7 @@ import {
   getPropertyAmenitiesService,
   getRoomAmenitiesService,
   getLoyaltyGuestFieldsService,
+  getMasterPaymentIntegrationService,
 } from "./services/management.services";
 import { getAllMasterIntegrationsService } from "./services/integration.services";
 import CategoriesTab from "./components/CategoriesTab";
@@ -31,7 +32,6 @@ export default function ManagementPage() {
   const [roomAmenities, setRoomAmenities] = useState<IAmenity[]>([]);
   const [loyaltyGuestFields, setLoyaltyGuestFields] = useState<ILoyaltyGuestField[]>([]);
   const [paymentIntegrations, setPaymentIntegrations] = useState<IPaymentIntegration[]>([]);
-  // const [propertyIntegrations, setPropertyIntegrations] = useState<IPaymentIntegration[]>([]);
   const [masterIntegrations, setMasterIntegrations] = useState<IMasterIntegrations[]>([]);
 
   useEffect(() => {
@@ -41,23 +41,26 @@ export default function ManagementPage() {
   const fetchAllData = async () => {
     setLoading(true);
     try {
-      const [catRes, propTypeRes, propAmenRes, roomAmenRes, loyaltyFieldsRes, masterIntegrationsRes] = await Promise.all([
+      const [catRes, propTypeRes, propAmenRes, roomAmenRes, loyaltyFieldsRes, masterIntegrationsRes,masterPaymentIntegrationRes] = await Promise.all([
         getCategoriesService(),
         getPropertyTypesService(),
         getPropertyAmenitiesService("property"),
         getRoomAmenitiesService(),
         getLoyaltyGuestFieldsService(),
         getAllMasterIntegrationsService(),
+        getMasterPaymentIntegrationService()
       ]);
 
       if (catRes.success) setCategories(catRes.data);
       if (propTypeRes.success) setPropertyTypes(propTypeRes.data);
       if (propAmenRes.success) setPropertyAmenities(propAmenRes.data);
       if (roomAmenRes.success) setRoomAmenities(roomAmenRes.data);
+
       if (loyaltyFieldsRes.success) setLoyaltyGuestFields(loyaltyFieldsRes.data);
       if (masterIntegrationsRes.success && masterIntegrationsRes.data) {
         setMasterIntegrations(masterIntegrationsRes.data);
       }
+      if(masterPaymentIntegrationRes.success) setPaymentIntegrations(masterPaymentIntegrationRes?.data)
     } catch (error: any) {
       toast.error("Failed to fetch management data");
     } finally {

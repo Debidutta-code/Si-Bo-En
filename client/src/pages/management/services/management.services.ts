@@ -17,6 +17,7 @@ import {
   getPaymentIntegrations,
   createPaymentIntegration,
   deletePaymentIntegration,
+  getMasterPaymentIntegrations,
 } from "../api";
 
 // Category Services
@@ -352,6 +353,17 @@ export const getPaymentIntegrationsService = async (propertyId:string) => {
     };
   }
 };
+export const getMasterPaymentIntegrationService = async () => {
+  try {
+    return await getMasterPaymentIntegrations();
+  } catch (error: any) {
+    return {
+      success: false,
+      message: error.message || "Failed to fetch payment integrations",
+    };
+  }
+};
+
 
 export const createPaymentIntegrationService = async (name: string) => {
   if (!name) {

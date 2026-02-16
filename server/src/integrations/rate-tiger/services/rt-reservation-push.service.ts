@@ -14,6 +14,7 @@ import {
     RTUpdatePayload,
     PAYMENT_TO_GUARANTEE_MAP,
     PaymentMethodType,
+    RTDynamicConfig,
 } from '../types';
 import { config } from '../../../config';
 
@@ -24,20 +25,19 @@ interface CachedToken {
     expiresAt: Date;
 }
 
-let tokenCache: CachedToken | null = null;
+const tokenCacheMap = new Map<string, CachedToken>();
 
 // ─── Service ──────────────────────────────────────────────────────────────────
 
 export class RTReservationPushService {
-
     // ── 1. Auth ───────────────────────────────────────────────────────────────
 
-    private static async getAuthToken(): Promise<string> {
-        if (
-            tokenCache &&
-            tokenCache.expiresAt > new Date(Date.now() + 5 * 60 * 1000)
-        ) {
-            return tokenCache.token;
+    private static async getAuthToken(
+        rtConfig: RTDynamicConfig
+    ): Promise<string> {
+        const cached = tokenCacheMap.get(rtConfig.authUrl);
+        if (cached && cached.expiresAt > new Date(Date.now() + 5 * 60 * 1000)) {
+            return cached.token;
         }
 
         const credentials = Buffer.from(
@@ -45,7 +45,7 @@ export class RTReservationPushService {
         ).toString('base64');
 
         const response = await axios.post(
-            config.rateTigerAuthUrl,
+            rtConfig.authUrl, // ← DB URL
             {
                 'API-Key': config.rateTigerApiKey,
                 partner_id: config.rateTigerPartnerId,
@@ -61,10 +61,10 @@ export class RTReservationPushService {
 
         const { access_token, expires_in } = response.data;
 
-        tokenCache = {
+        tokenCacheMap.set(rtConfig.authUrl, {
             token: access_token,
             expiresAt: new Date(expires_in),
-        };
+        });
 
         return access_token;
     }
@@ -72,10 +72,12 @@ export class RTReservationPushService {
     // ── 2. Core Push ──────────────────────────────────────────────────────────
 
     private static async pushToRT(
-        payload: RTReservationPayload
+        payload: RTReservationPayload,
+        rtConfig: RTDynamicConfig
     ): Promise<RTReservationResponse> {
         const makeRequest = async (token: string) =>
-            axios.post(config.rateTigerReservationUrl, payload, {
+            axios.post(rtConfig.reservationUrl, payload, {
+                // ← DB URL
                 headers: {
                     Authorization: `Bearer ${token}`,
                     'API-Key': config.rateTigerApiKey,
@@ -85,14 +87,14 @@ export class RTReservationPushService {
             });
 
         try {
-            const token = await RTReservationPushService.getAuthToken();
+            const token = await RTReservationPushService.getAuthToken(rtConfig);
             const response = await makeRequest(token);
             return response.data as RTReservationResponse;
         } catch (error: any) {
             if (error?.response?.status === 401) {
-                tokenCache = null;
+                tokenCacheMap.delete(rtConfig.authUrl); // ← clear only this property
                 const freshToken =
-                    await RTReservationPushService.getAuthToken();
+                    await RTReservationPushService.getAuthToken(rtConfig);
                 const response = await makeRequest(freshToken);
                 return response.data as RTReservationResponse;
             }
@@ -102,7 +104,6 @@ export class RTReservationPushService {
             );
         }
     }
-
     // ── 3. Response Handler ───────────────────────────────────────────────────
 
     private static handleRTResponse(response: RTReservationResponse): {
@@ -147,7 +148,8 @@ export class RTReservationPushService {
 
     public static async pushCommit(
         incomingPayload: IncomingBookingPayload,
-        bookingCode: string
+        bookingCode: string,
+        rtConfig: RTDynamicConfig // ← ADD
     ): Promise<{ success: boolean; message: string }> {
         try {
             const { bookingDetails, guestDetails } = incomingPayload;
@@ -158,16 +160,20 @@ export class RTReservationPushService {
             const numberOfRooms = bookingDetails.numberOfRooms;
 
             // 2. Rates — baseRate is already per room in dailyBreakdown
-            const ratesPerRoom = finalPrice.dailyBreakdown.map((day, index) => ({
-                effectiveDate: RTReservationPushService.toDateString(day.date),
-                expireDate: finalPrice.dailyBreakdown[index + 1]
-                    ? RTReservationPushService.toDateString(
-                          finalPrice.dailyBreakdown[index + 1].date
-                      )
-                    : bookingDetails.endDate,
-                currencyCode: day.currencyCode ?? bookingDetails.currency,
-                amountAfterTax: day.baseRate.toFixed(2), // baseRate = per room
-            }));
+            const ratesPerRoom = finalPrice.dailyBreakdown.map(
+                (day, index) => ({
+                    effectiveDate: RTReservationPushService.toDateString(
+                        day.date
+                    ),
+                    expireDate: finalPrice.dailyBreakdown[index + 1]
+                        ? RTReservationPushService.toDateString(
+                              finalPrice.dailyBreakdown[index + 1].date
+                          )
+                        : bookingDetails.endDate,
+                    currencyCode: day.currencyCode ?? bookingDetails.currency,
+                    amountAfterTax: day.baseRate.toFixed(2), // baseRate = per room
+                })
+            );
 
             // 3. Financial split per room
             const totalAmountPerRoom = finalPrice.totalAmount / numberOfRooms;
@@ -209,98 +215,103 @@ export class RTReservationPushService {
             // 5. Build one roomStay per room using roomsArray
             // Each room gets its own guest count from roomsArray
             // All rooms reference guestID '1' (primary guest)
-            const roomStays = roomsArray.length > 0
-                ? roomsArray.map((room, index) => {
-                      const guestCount = [
-                          ...(room.adults > 0
-                              ? [
-                                    {
-                                        ageQualifyingCode: '10' as const,
-                                        count: room.adults.toString(),
-                                    },
-                                ]
-                              : []),
-                          ...(room.children > 0
-                              ? [
-                                    {
-                                        ageQualifyingCode: '8' as const,
-                                        count: room.children.toString(),
-                                    },
-                                ]
-                              : []),
-                      ];
-
-                      return {
-                          roomStayID: (index + 1).toString(),
-                          mealPlanIndicator: '0',
-                          isGuestPerRoom: '1',
-                          guestCount,
-                          roomRates: [
-                              {
-                                  invCode: bookingDetails.roomTypeCode,
-                                  ratePlanCode: bookingDetails.ratePlanCode,
-                                  numberOfUnits: '1', // 1 unit per roomStay
-                                  rates: ratesPerRoom,
-                              },
-                          ],
-                          timeSpan: {
-                              start: bookingDetails.startDate,
-                              end: bookingDetails.endDate,
-                          },
-                          totalPrice: {
-                              amountAfterTax: totalAmountPerRoom.toFixed(2),
-                              taxAmount: totalTaxPerRoom.toFixed(2),
-                          },
-                          guestIDs: ['1'], // primary guest in all rooms
-                          comments: [{ text: '', guestViewable: '1' }],
-                          specialRequests: [{ requestCode: '', text: '' }],
-                      };
-                  })
-                : [
-                      // Fallback if roomsArray missing — single roomStay with totals
-                      {
-                          roomStayID: '1',
-                          mealPlanIndicator: '0',
-                          isGuestPerRoom: '0',
-                          guestCount: [
-                              ...(bookingDetails.guests.adults > 0
+            const roomStays =
+                roomsArray.length > 0
+                    ? roomsArray.map((room, index) => {
+                          const guestCount = [
+                              ...(room.adults > 0
                                   ? [
                                         {
                                             ageQualifyingCode: '10' as const,
-                                            count: bookingDetails.guests.adults.toString(),
+                                            count: room.adults.toString(),
                                         },
                                     ]
                                   : []),
-                              ...(bookingDetails.guests.children > 0
+                              ...(room.children > 0
                                   ? [
                                         {
                                             ageQualifyingCode: '8' as const,
-                                            count: bookingDetails.guests.children.toString(),
+                                            count: room.children.toString(),
                                         },
                                     ]
                                   : []),
-                          ],
-                          roomRates: [
-                              {
-                                  invCode: bookingDetails.roomTypeCode,
-                                  ratePlanCode: bookingDetails.ratePlanCode,
-                                  numberOfUnits: numberOfRooms.toString(),
-                                  rates: ratesPerRoom,
+                          ];
+
+                          return {
+                              roomStayID: (index + 1).toString(),
+                              mealPlanIndicator: '0',
+                              isGuestPerRoom: '1',
+                              guestCount,
+                              roomRates: [
+                                  {
+                                      invCode: bookingDetails.roomTypeCode,
+                                      ratePlanCode: bookingDetails.ratePlanCode,
+                                      numberOfUnits: '1', // 1 unit per roomStay
+                                      rates: ratesPerRoom,
+                                  },
+                              ],
+                              timeSpan: {
+                                  start: bookingDetails.startDate,
+                                  end: bookingDetails.endDate,
                               },
-                          ],
-                          timeSpan: {
-                              start: bookingDetails.startDate,
-                              end: bookingDetails.endDate,
+                              totalPrice: {
+                                  amountAfterTax: totalAmountPerRoom.toFixed(2),
+                                  taxAmount: totalTaxPerRoom.toFixed(2),
+                              },
+                              guestIDs: ['1'], // primary guest in all rooms
+                              comments: [{ text: '', guestViewable: '1' }],
+                              specialRequests: [{ requestCode: '', text: '' }],
+                          };
+                      })
+                    : [
+                          // Fallback if roomsArray missing — single roomStay with totals
+                          {
+                              roomStayID: '1',
+                              mealPlanIndicator: '0',
+                              isGuestPerRoom: '0',
+                              guestCount: [
+                                  ...(bookingDetails.guests.adults > 0
+                                      ? [
+                                            {
+                                                ageQualifyingCode:
+                                                    '10' as const,
+                                                count: bookingDetails.guests.adults.toString(),
+                                            },
+                                        ]
+                                      : []),
+                                  ...(bookingDetails.guests.children > 0
+                                      ? [
+                                            {
+                                                ageQualifyingCode: '8' as const,
+                                                count: bookingDetails.guests.children.toString(),
+                                            },
+                                        ]
+                                      : []),
+                              ],
+                              roomRates: [
+                                  {
+                                      invCode: bookingDetails.roomTypeCode,
+                                      ratePlanCode: bookingDetails.ratePlanCode,
+                                      numberOfUnits: numberOfRooms.toString(),
+                                      rates: ratesPerRoom,
+                                  },
+                              ],
+                              timeSpan: {
+                                  start: bookingDetails.startDate,
+                                  end: bookingDetails.endDate,
+                              },
+                              totalPrice: {
+                                  amountAfterTax:
+                                      finalPrice.totalAmount.toFixed(2),
+                                  taxAmount: (finalPrice.totalTax ?? 0).toFixed(
+                                      2
+                                  ),
+                              },
+                              guestIDs: ['1'],
+                              comments: [{ text: '', guestViewable: '1' }],
+                              specialRequests: [{ requestCode: '', text: '' }],
                           },
-                          totalPrice: {
-                              amountAfterTax: finalPrice.totalAmount.toFixed(2),
-                              taxAmount: (finalPrice.totalTax ?? 0).toFixed(2),
-                          },
-                          guestIDs: ['1'],
-                          comments: [{ text: '', guestViewable: '1' }],
-                          specialRequests: [{ requestCode: '', text: '' }],
-                      },
-                  ];
+                      ];
 
             // 6. Services from addons
             const services: RTService[] = bookingDetails.selectedAddons.map(
@@ -319,10 +330,9 @@ export class RTReservationPushService {
             );
 
             // 7. Guarantee from payment method
-            const guarantee =
-                PAYMENT_TO_GUARANTEE_MAP[
-                    bookingDetails.paymentMethod as PaymentMethodType
-                ] ?? { guaranteeType: 'None' as const };
+            const guarantee = PAYMENT_TO_GUARANTEE_MAP[
+                bookingDetails.paymentMethod as PaymentMethodType
+            ] ?? { guaranteeType: 'None' as const };
 
             // 8. Build final payload
             const payload: RTCommitModifyPayload = {
@@ -333,8 +343,14 @@ export class RTReservationPushService {
                     creatorID: config.rateTtigerPartnerName ?? 'REVCHILL',
                     timeStamp: new Date().toISOString(),
                     pos: {
-                        channelCode: config.rateTigerPartnerId ?? '',
-                        channelName: config.rateTtigerPartnerName ?? 'Revchill',
+                        channelCode:
+                            rtConfig.partnerId ||
+                            config.rateTigerPartnerId ||
+                            '',
+                        channelName:
+                            rtConfig.partnerName ||
+                            config.rateTtigerPartnerName ||
+                            'Revchill',
                     },
                     currency: bookingDetails.currency,
                     uniqueID: {
@@ -356,7 +372,10 @@ export class RTReservationPushService {
                 },
             };
 
-            const response = await RTReservationPushService.pushToRT(payload);
+            const response = await RTReservationPushService.pushToRT(
+                payload,
+                rtConfig
+            );
             console.log('RT Commit response:', response);
             return RTReservationPushService.handleRTResponse(response);
         } catch (error: any) {
@@ -372,7 +391,8 @@ export class RTReservationPushService {
 
     public static async pushModify(
         existingReservation: ExistingReservation,
-        updatePayload: RTUpdatePayload
+        updatePayload: RTUpdatePayload,
+        rtConfig: RTDynamicConfig // ← ADD
     ): Promise<{ success: boolean; message: string }> {
         try {
             const guests = Array.isArray(existingReservation.guests)
@@ -406,8 +426,7 @@ export class RTReservationPushService {
                           surName: primaryGuest.lastName,
                       },
                       telePhone: {
-                          phoneNo:
-                              existingReservation.bookingUserPhone ?? '',
+                          phoneNo: existingReservation.bookingUserPhone ?? '',
                           phoneTechType: '1',
                           locationType: '7',
                       },
@@ -418,8 +437,7 @@ export class RTReservationPushService {
                           city: '',
                           postalCode: '',
                           state: '',
-                          countryCode:
-                              existingReservation.countryCode ?? 'IN',
+                          countryCode: existingReservation.countryCode ?? 'IN',
                       },
                   }
                 : null;
@@ -428,7 +446,10 @@ export class RTReservationPushService {
             const roomStays =
                 storedRoomsArray.length > 0
                     ? storedRoomsArray.map(
-                          (room: { adults: number; children: number }, index: number) => ({
+                          (
+                              room: { adults: number; children: number },
+                              index: number
+                          ) => ({
                               roomStayID: (index + 1).toString(),
                               mealPlanIndicator: '0',
                               isGuestPerRoom: '1',
@@ -436,7 +457,8 @@ export class RTReservationPushService {
                                   ...(room.adults > 0
                                       ? [
                                             {
-                                                ageQualifyingCode: '10' as const,
+                                                ageQualifyingCode:
+                                                    '10' as const,
                                                 count: room.adults.toString(),
                                             },
                                         ]
@@ -481,15 +503,13 @@ export class RTReservationPushService {
                                   amountAfterTax: (
                                       updatePayload.amount / numberOfRooms
                                   ).toFixed(2),
-                                  taxAmount: (
-                                      totalTax / numberOfRooms
-                                  ).toFixed(2),
+                                  taxAmount: (totalTax / numberOfRooms).toFixed(
+                                      2
+                                  ),
                               },
                               guestIDs: ['1'],
                               comments: [{ text: '', guestViewable: '1' }],
-                              specialRequests: [
-                                  { requestCode: '', text: '' },
-                              ],
+                              specialRequests: [{ requestCode: '', text: '' }],
                           })
                       )
                     : [
@@ -553,9 +573,7 @@ export class RTReservationPushService {
                               },
                               guestIDs: ['1'],
                               comments: [{ text: '', guestViewable: '1' }],
-                              specialRequests: [
-                                  { requestCode: '', text: '' },
-                              ],
+                              specialRequests: [{ requestCode: '', text: '' }],
                           },
                       ];
 
@@ -568,9 +586,14 @@ export class RTReservationPushService {
                     creatorID: config.rateTtigerPartnerName ?? 'REVCHILL',
                     timeStamp: new Date().toISOString(),
                     pos: {
-                        channelCode: config.rateTigerPartnerId ?? '',
+                        channelCode:
+                            rtConfig.partnerId ||
+                            config.rateTigerPartnerId ||
+                            '',
                         channelName:
-                            config.rateTtigerPartnerName ?? 'Revchill',
+                            rtConfig.partnerName ||
+                            config.rateTtigerPartnerName ||
+                            'Revchill',
                     },
                     currency: existingReservation.currencyCode,
                     uniqueID: {
@@ -590,7 +613,10 @@ export class RTReservationPushService {
                 },
             };
 
-            const response = await RTReservationPushService.pushToRT(payload);
+            const response = await RTReservationPushService.pushToRT(
+                payload,
+                rtConfig
+            );
             console.log('RT Modify response:', response);
             return RTReservationPushService.handleRTResponse(response);
         } catch (error: any) {
@@ -605,7 +631,8 @@ export class RTReservationPushService {
     // ── Cancel ────────────────────────────────────────────────────────────────
 
     public static async pushCancel(
-        existingReservation: ExistingReservation
+        existingReservation: ExistingReservation,
+        rtConfig: RTDynamicConfig // ← ADD
     ): Promise<{ success: boolean; message: string }> {
         try {
             const payload: RTCancelPayload = {
@@ -617,9 +644,14 @@ export class RTReservationPushService {
                     creatorID: config.rateTtigerPartnerName ?? 'REVCHILL',
                     timeStamp: new Date().toISOString(),
                     pos: {
-                        channelCode: config.rateTigerPartnerId ?? '',
+                        channelCode:
+                            rtConfig.partnerId ||
+                            config.rateTigerPartnerId ||
+                            '',
                         channelName:
-                            config.rateTtigerPartnerName ?? 'Revchill',
+                            rtConfig.partnerName ||
+                            config.rateTtigerPartnerName ||
+                            'Revchill',
                     },
                     uniqueID: {
                         type: '14',
@@ -632,7 +664,10 @@ export class RTReservationPushService {
                 },
             };
 
-            const response = await RTReservationPushService.pushToRT(payload);
+            const response = await RTReservationPushService.pushToRT(
+                payload,
+                rtConfig
+            );
             console.log('RT Cancel response:', response);
             return RTReservationPushService.handleRTResponse(response);
         } catch (error: any) {
