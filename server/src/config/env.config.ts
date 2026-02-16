@@ -43,7 +43,10 @@ const config={
     rateTigerPassword: process.env.RATETIGER_PASSWORD,
     rateTigerApiKey: process.env.RATETIGER_API_KEY,
     rateTigerPartnerId: process.env.RATETIGER_PARTNER_ID,
+    rateTtigerPartnerName:process.env.RATETIGER_PARTNER_NAME,
     rateTigerJwtSecret: process.env.RATETIGER_JWT_SECRET || 'your-secret-key',
     rateTigerJwtExpiresIn: 24 * 60 * 60,
+    rateTigerReservationUrl: process.env.RATETIGER_RESERVATION_URL || '',
+    rateTigerAuthUrl:process.env.RATETIGER_AUTHENTICATION_URL||''
 }       
 export default config;

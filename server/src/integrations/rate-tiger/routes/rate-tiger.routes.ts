@@ -3,6 +3,7 @@
 import { Router } from 'express';
 import { RateTigerMiddleware } from '../middleware/rate-tiger.middleware';
 import { InventoryUpdateController, PricePullController, RateTigerController } from '../controllers';
+import { ARIController } from '../controllers/ari-update.controller';
 
 const rateTigerRoute = Router();
 
@@ -13,32 +14,10 @@ rateTigerRoute.post(
   RateTigerController.authenticate
 );
 
-// Room type and rate plan pull endpoint
-rateTigerRoute.post(
-  '/room-rateplan-pull',
-  RateTigerMiddleware.validateBearerToken,
-  RateTigerController.roomRatePlanPull
-);
-rateTigerRoute.post(
-  '/inventory-pull',
-  RateTigerMiddleware.validateBearerToken,
-  RateTigerController.inventoryPull
-);
-rateTigerRoute.post(
-  '/price-pull',
-  RateTigerMiddleware.validateBearerToken,
-  PricePullController.pricePull
-);
-// Add to routes/ratetiger.routes.ts
 
 rateTigerRoute.post(
-  '/price-update',
-  RateTigerMiddleware.validateBearerToken,
-  RateTigerController.priceUpdate
-);
-rateTigerRoute.post(
-  '/inventory-update',
-  RateTigerMiddleware.validateBearerToken,
-  InventoryUpdateController.inventoryUpdate
+    '/ari',
+    RateTigerMiddleware.validateBearerToken,
+    ARIController.handleARI
 );
 export default rateTigerRoute;
