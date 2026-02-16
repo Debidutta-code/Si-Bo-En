@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { useRouter } from "next/navigation";
-import {ngeniusService} from "../../services/ngenius.service";
+import { ngeniusService } from "../../services/ngenius.service";
 import {
   DollarSign,
   CreditCard,
@@ -41,7 +41,7 @@ interface BankDetails {
   propertyId: string;
   createdAt: string;
   updatedAt: string;
-  selectedPaymentIntegrations?: PaymentIntegrationDetail[];
+  selectedPaymentIntegrations?: PaymentIntegrationDetail;
 }
 
 const BookingReviewPage = () => {
@@ -73,6 +73,10 @@ const BookingReviewPage = () => {
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
   const [activeGateway, setActiveGateway] = useState<'fikafi' | 'ngenius' | null>(null);
   const [bookingCode, setBookingCodeValue] = useState<string>("");
+  const [bookingStatus, setLocalBookingStatus] = useState<"pending" | "confirmed">(
+    "pending"
+  );
+
 
   const dispatch = useDispatch();
   const nights = finalPrice?.numberOfNights || 0;
@@ -97,31 +101,10 @@ const BookingReviewPage = () => {
 
   // Helper function to check which gateway integration is available
   const getActiveGateway = (): 'fikafi' | 'ngenius' | null => {
-    if (!bankDetails?.selectedPaymentIntegrations || !bankDetails.paymentGateway) {
+    if (!bankDetails?.selectedPaymentIntegrations || !bankDetails.paymentGateway || !bankDetails.selectedPaymentIntegrations.paymentIntegration) {
       return null;
     }
-
-    // Check for Fikafi first (priority)
-    const hasFikafi = bankDetails.selectedPaymentIntegrations.some(
-      integration => 
-        integration.paymentIntegration.name.toLowerCase() === 'fikafi' &&
-        integration.isActive &&
-        integration.paymentIntegration.isActive
-    );
-
-    if (hasFikafi) return 'fikafi';
-
-    // Check for Network Global (N-Genius)
-    const hasNgenius = bankDetails.selectedPaymentIntegrations.some(
-      integration => 
-        integration.paymentIntegration.name.toLowerCase() === 'network_global' &&
-        integration.isActive &&
-        integration.paymentIntegration.isActive
-    );
-
-    if (hasNgenius) return 'ngenius';
-
-    return null;
+    return bankDetails.selectedPaymentIntegrations.paymentIntegration.name === "fikafi" ? "fikafi" : "ngenius";
   };
 
   useEffect(() => {
@@ -176,6 +159,55 @@ const BookingReviewPage = () => {
   }, [PropertyId]);
 
   useEffect(() => {
+    if (!bookingCode) return;
+
+    let socket: any;
+
+    const initSocket = async () => {
+      const { default: io } = await import("socket.io-client");
+
+      socket = io(process.env.NEXT_PUBLIC_SOCKET_URL!, {
+        transports: ["websocket", "polling"],
+      });
+
+      socket.on("connect", () => {
+        console.log("🔌 Socket connected:", socket.id);
+
+        // Join payment room with correct format matching server's payment:{bookingCode}
+        const roomName = `payment:${bookingCode}`;
+        socket.emit("join-payment-room", roomName);
+        console.log(`📌 Joined payment room: ${roomName}`);
+      });
+
+      socket.on("payment-status-update", (data: any) => {
+        console.log("📡 Payment update received:", data);
+
+        if (data.status === "success") {
+          toast.success("Payment successful!");
+
+          setLocalBookingStatus("confirmed");   // ⭐ update UI
+
+          setTimeout(() => {
+            router.push("/PaymentSuccess");
+          }, 800);
+        }
+
+      });
+
+      socket.on("disconnect", () => {
+        console.log("Socket disconnected");
+      });
+    };
+
+    initSocket();
+
+    return () => {
+      socket?.disconnect();
+    };
+  }, [bookingCode]);
+
+
+  useEffect(() => {
     if (!bankDetails) return;
 
     //console.log("📋 Processing Bank Details:", bankDetails);
@@ -184,7 +216,7 @@ const BookingReviewPage = () => {
     //console.log("🔌 selectedPaymentIntegrations:", bankDetails.selectedPaymentIntegrations);
 
     const methods: string[] = [];
-    
+
     // Add Pay at Hotel if enabled
     if (bankDetails.payAtHotel) {
       methods.push("payAtHotel");
@@ -345,17 +377,31 @@ const BookingReviewPage = () => {
       const newBookingCode = data.data.bookingCode;
       setBookingCodeValue(newBookingCode);
       dispatch(setBookingCode(newBookingCode));
-      dispatch(setBookingStatus(data.data.bookingStatus));
+      dispatch(setBookingStatus(data.data.bookingStatus||"pendin"));
       dispatch(setFullBookingDetails(data.data));
       document.cookie = "can_access_payment=true; path=/";
 
-      // If Fikafi gateway, trigger Fikafi payment flow
-      if (selectedPayment === "gateway" && activeGateway === "fikafi") {
-        toast.success("Booking confirmed! Redirecting to payment...", {
+      // If Fikafi is selected, trigger Fikafi payment flow after booking is confirmed
+      if (selectedPayment === "fikafi") {
+        // Store booking code in localStorage for the Fikafi button to access
+        localStorage.setItem('currentBookingCode', newBookingCode);
+        
+        toast.success("Booking confirmed! Initiating payment...", {
           id: "booking-success",
           duration: 2000,
         });
-        // The FikafiPaymentButton will handle the payment flow
+        
+        // Trigger Fikafi payment after a short delay
+        setTimeout(() => {
+          // Find the Fikafi button and click it programmatically
+          const fikafiButton = document.querySelector('[data-fikafi-button]') as HTMLButtonElement;
+          if (fikafiButton) {
+            fikafiButton.click();
+          } else {
+            // Fallback: reload page with booking code or show payment section
+            console.error('Fikafi button not found');
+          }
+        }, 500);
         return;
       }
 
@@ -473,8 +519,10 @@ const BookingReviewPage = () => {
             clearTimeout(timeout);
             //console.log('✅ Socket connected before payment redirect:', socket.id);
 
-            socket.emit('join-payment-room', orderReference);
-            //console.log(`📌 Joined payment room: payment:${orderReference}`);
+            // Join payment room with order reference using correct format
+            const roomName = `payment:${orderReference}`;
+            socket.emit('join-payment-room', roomName);
+            console.log(`📌 Joined payment room: ${roomName}`);
 
             resolve();
           });
@@ -564,32 +612,33 @@ const BookingReviewPage = () => {
                 using credit/debit card, net banking, or other online payment methods.
               </p>
 
-              {/* Fikafi Payment Button */}
-              <div className="mt-4">
-                <FikafiPaymentButton
-                  bookingCode={bookingCode || "PENDING_BOOKING"}
-                  amount={updatedPrice}
-                  currency={currencyCode}
-                  guestName={getGuestName()}
-                  guestEmail={getGuestEmail()}
-                  guestPhone={getGuestPhone()}
-                  propertyName={propertyName}
-                  propertyId={PropertyId || "UNKNOWN_PROPERTY"}
-                  checkInDate={checkIn}
-                  numberOfNights={nights}
-                  paymentMethod="payment_gateway"
-                  onPaymentLinkGenerated={(paymentLink, paymentId) => {
-                    //console.log('Payment link generated:', paymentLink);
-                    toast.success("Redirecting to payment...", { id: "fikafi-success" });
-                  }}
-                  onPaymentError={(error) => {
-                    console.error('Fikafi error:', error);
-                    toast.error("Payment failed. Please try again.", { id: "fikafi-error" });
-                  }}
-                  buttonText="Pay Now"
-                  className="w-full"
-                />
-              </div>
+            {/* Fikafi Payment Button */}
+            <div className="mt-4">
+              <FikafiPaymentButton
+                bookingCode={bookingCode}
+                amount={updatedPrice}
+                currency={currencyCode}
+                guestName={getGuestName()}
+                guestEmail={getGuestEmail()}
+                guestPhone={getGuestPhone()}
+                propertyName={propertyName}
+                propertyID={PropertyId || "UNKNOWN_PROPERTY"}
+                checkInDate={checkIn}
+                numberOfNights={nights}
+                onPaymentLinkGenerated={(paymentLink: string) => {
+                  console.log('Payment link generated:', paymentLink);
+                  toast.success("Redirecting to payment...", { id: "fikafi-success" });
+                }}
+                onPaymentError={(error) => {
+                  console.error('Fikafi error:', error);
+                  toast.error("Payment failed. Please try again.", { id: "fikafi-error" });
+                }}
+                buttonText="Pay Now with Fikafi"
+                className="w-full"
+                data-fikafi-button="true"
+              />
+
+            </div>
 
               <div className="mt-3 flex flex-wrap gap-3 items-center">
                 <div className="flex items-center gap-1 text-xs text-gray-600">
@@ -743,11 +792,11 @@ const BookingReviewPage = () => {
                   key: "gateway",
                   label: "Pay Online",
                   icon: "💳",
-                  description: activeGateway === "fikafi" 
+                  description: activeGateway === "fikafi"
                     ? "Secure payment via Fikafi payment gateway"
                     : activeGateway === "ngenius"
-                    ? "Secure payment via Network International gateway"
-                    : "Secure online payment",
+                      ? "Secure payment via Network International gateway"
+                      : "Secure online payment",
                   isRecommended: true,
                 },
               ].map(({ key, label, icon, description, isRecommended }) => {

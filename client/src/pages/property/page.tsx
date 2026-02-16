@@ -85,7 +85,7 @@ console.log(creations.properties)
             Manage all your hotel properties and their performance
           </p>
         </div>
-        <CreateEntityDialog currentTab={currentTab} creationId={creationId?creationId:""} level={4} fetchProperties={fetchProperties} />
+        <CreateEntityDialog creationType={"super"} currentTab={currentTab} creationId={creationId?creationId:""} level={4} fetchProperties={fetchProperties} />
       </div>
 
       <div className="flex space-x-2 border-b">

@@ -55,6 +55,7 @@ const GuestFormModal: React.FC<Props> = ({
   const [isLoyaltyMember, setIsLoyaltyMember] = useState(false);
   const [loyaltyDiscount, setLoyaltyDiscount] = useState<any>(null);
   const [verifyingLoyalty, setVerifyingLoyalty] = useState(false);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Auto-fill email if loyalty member
   useEffect(() => {
@@ -65,41 +66,59 @@ const GuestFormModal: React.FC<Props> = ({
     }
   }, [loyaltyMemberEmail]);
 
-  // Verify loyalty membership when email changes
+  // Verify loyalty membership when email changes with debouncing
   const verifyLoyaltyMembership = async (email: string) => {
     if (!email || !propertyId) return;
 
+    // Clear any existing timer
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
     setVerifyingLoyalty(true);
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/loyalty/guest/check-discount`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            email: email,
-            propertyId: propertyId,
-          }),
+
+    // Set up new debounce timer
+    debounceTimerRef.current = setTimeout(async () => {
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/loyalty/guest/check-discount`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: email,
+              propertyId: propertyId,
+            }),
+          }
+        );
+
+        const data = await response.json();
+
+        if (response.ok && data.success && data.data?.isLoyaltyMember) {
+          setIsLoyaltyMember(true);
+          setLoyaltyDiscount(data.data.discount);
+        } else {
+          setIsLoyaltyMember(false);
+          setLoyaltyDiscount(null);
         }
-      );
-
-      const data = await response.json();
-
-      if (response.ok && data.success && data.data?.isLoyaltyMember) {
-        setIsLoyaltyMember(true);
-        setLoyaltyDiscount(data.data.discount);
-      } else {
+      } catch (error) {
+        console.error("Error verifying loyalty membership:", error);
         setIsLoyaltyMember(false);
         setLoyaltyDiscount(null);
+      } finally {
+        setVerifyingLoyalty(false);
       }
-    } catch (error) {
-      console.error("Error verifying loyalty membership:", error);
-      setIsLoyaltyMember(false);
-      setLoyaltyDiscount(null);
-    } finally {
-      setVerifyingLoyalty(false);
-    }
+    }, 800); // 800ms debounce delay
   };
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -376,12 +395,9 @@ if (!contactInfo.phoneNumber.trim()) {
                     value={contactInfo.email}
                     onChange={(e: any) => {
                       handleFieldChange('contact', 'email', 'email', e.target.value);
-                      // Verify loyalty when email changes
+                      // Verify loyalty when email changes (debounced)
                       if (e.target.value && propertyId) {
-                        const timer = setTimeout(() => {
-                          verifyLoyaltyMembership(e.target.value);
-                        }, 500);
-                        return () => clearTimeout(timer);
+                        verifyLoyaltyMembership(e.target.value);
                       }
                     }}
                     placeholder="your@email.com"
@@ -518,7 +534,7 @@ if (!contactInfo.phoneNumber.trim()) {
                               </div>
                               <div className="flex justify-between font-bold text-base pt-1 border-t">
                                 <span>Grand Total:</span>
-                                <span>${finalPrice.totalAmount || finalPrice.priceAfterTax}</span>
+                                <span>${(finalPrice.totalAmount).toFixed(2) }</span>
                               </div>
                             </div>
                           </>
@@ -568,7 +584,7 @@ if (!contactInfo.phoneNumber.trim()) {
                     <div className="flex justify-between items-center font-bold text-lg">
                       <span>Grand Total:</span>
                       <span style={{ color: colors.primaryColor }}>
-                        ${finalPrice.totalAmount || finalPrice.priceAfterTax}
+                        ${(finalPrice.totalAmount).toFixed(2) }
                       </span>
                     </div>
                     <div className="text-xs text-gray-500 mt-1">

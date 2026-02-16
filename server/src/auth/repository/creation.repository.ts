@@ -66,9 +66,8 @@ export default class CreationDao {
 
   public static async delete(creationId: string) {
     try {
-      return await prisma.creation.update({
-        where: { id: toStringId(creationId) },
-        data: { isDeleted: true },
+      return await prisma.creation.delete({
+        where: { id: creationId },
       });
     } catch (error: any) {
       throw new Error(`Failed to mark as deleted: ${error.message}`);

@@ -12,8 +12,8 @@ export class EmailService {
 
     constructor() {
         this.otpRepository = new EmailOTPRepository();
-        this.senderEmail = process.env.SENDER_EMAIL || "info@swiftrooms.ai";
-        this.senderName = process.env.SENDER_NAME || "SwiftRooms";
+        this.senderEmail = config.senderEmail!;
+        this.senderName = config.senderName!;
 
         this.transporter = nodemailer.createTransport({
             service: "gmail",
@@ -52,9 +52,9 @@ export class EmailService {
             // Prepare email content
             const htmlContent = generateOTPEmailTemplate(otp, purpose, email);
             const subject = {
-                email_verification: "Verify Your Email - SwiftRooms",
-                password_reset: "Reset Your Password - SwiftRooms",
-                login: "Your Login Code - SwiftRooms",
+                email_verification: "Verify Your Email - RevChill",
+                password_reset: "Reset Your Password - RevChill",
+                login: "Your Login Code - RevChill",
             }[purpose];
 
             // Send email
@@ -112,12 +112,12 @@ export class EmailService {
     async sendPasswordResetLink(email: string, resetToken: string): Promise<{ success: boolean; message: string }> {
         try {
             // Generate reset link
-            const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+            const frontendUrl = config.frontendUrl || "http://localhost:5173";
             const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
 
             // Prepare email content
             const htmlContent = generatePasswordResetLinkTemplate(resetLink);
-            const subject = "Reset Your Password - SwiftRooms";
+            const subject = "Reset Your Password - RevChill";
 
             // Send email
             await this.transporter.sendMail({

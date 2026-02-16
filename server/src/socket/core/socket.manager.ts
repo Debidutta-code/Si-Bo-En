@@ -5,10 +5,10 @@ import { Server as HTTPServer } from 'http';
 import { ConnectionManager } from '../managers/connection.manager';
 import { SocketEventHandlers } from '../handlers/event.handlers';
 import { PaymentStatusUpdate, ConnectionStats } from '../types';
-import { 
-  SOCKET_EVENTS, 
-  ROOM_PREFIX, 
-  DEFAULT_TRANSPORTS, 
+import {
+  SOCKET_EVENTS,
+  ROOM_PREFIX,
+  DEFAULT_TRANSPORTS,
   CORS_METHODS,
   SOCKET_CONFIG
 } from '../constants';
@@ -40,7 +40,7 @@ class SocketManager {
 
     this.setupEventHandlers();
 
-    console.log('✅ Socket.IO initialized (default namespace)');
+    console.log('✅ Socket.IO initialized');
   }
 
   /**
@@ -74,12 +74,15 @@ class SocketManager {
       return;
     }
 
-    const room = this.getRoomName(orderReference);
-    const activeClients = this.connectionManager.getActiveConnectionCount(orderReference);
+    // Normalize: guard against accidental double-prefix
+    const normalizedRef = orderReference.startsWith(`${ROOM_PREFIX.PAYMENT}:`)
+      ? orderReference.replace(`${ROOM_PREFIX.PAYMENT}:`, '')
+      : orderReference;
 
-    console.log(`📡 Emitting payment update`);
-    console.log(`➡️ Room: ${room}`);
-    console.log(`👥 Active clients: ${activeClients}`);
+    const room = this.getRoomName(normalizedRef);
+    const activeClients = this.connectionManager.getActiveConnectionCount(normalizedRef);
+
+    console.log(`📡 Emitting payment update to room: ${room} (${activeClients} clients)`);
     console.log(`📦 Payload:`, update);
 
     this.io.to(room).emit(SOCKET_EVENTS.PAYMENT_STATUS_UPDATE, update);

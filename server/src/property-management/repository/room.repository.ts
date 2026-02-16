@@ -67,6 +67,21 @@ export class RoomDao {
       throw new Error(error?.message);
     }
   }
+  public static async findByRoomId(roomId: string) {
+    try {
+      const rooms = await prisma.room.findUnique({
+        where: {
+          id: roomId,
+        },
+        select:{
+          property: true
+        }
+      });
+      return rooms;
+    } catch (error: any) {
+      throw new Error(error?.message);
+    }
+  }
 
   public static async findByRoomName(
     propertyId: string,

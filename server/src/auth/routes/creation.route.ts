@@ -1,6 +1,6 @@
 import { Router } from "express"
 import CreationController, { fetchCreationAndPropertyDetails } from "../controller/creation.controller"
-import { protect } from "../../middlewares/auth.middleware";
+import { protect, restrictTo } from "../../middlewares/auth.middleware";
 const creationRoute = Router()
 
 creationRoute.route("/").post(protect, CreationController.createController)
@@ -11,5 +11,6 @@ creationRoute.route("/getDetails/creationId").get(protect, fetchCreationAndPrope
 creationRoute.route("/getDetails/byUserId").get(protect, fetchCreationAndPropertyDetails.byUserId)
 creationRoute.route("/getCreations").get(protect, CreationController.getCrationByRole);
 creationRoute.route("/getSpecificCreation/:creationId").get(protect, CreationController.getSpecificCreation);
+creationRoute.route("/remove/:id").delete(protect, restrictTo("super_admin"), CreationController.deleteCreation);
 export default creationRoute;
 

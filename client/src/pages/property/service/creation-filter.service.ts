@@ -1,5 +1,5 @@
 
-import { getCreationsByRole, getCreationId, getUnMappedUsers, updateCreation } from "../api/api";
+import { getCreationsByRole, getCreationId, getUnMappedUsers, updateCreation, deleteCreation } from "../api/api";
 import type { ICreation } from "../types/types";
 export async function getCreation() {
     try {
@@ -200,6 +200,24 @@ export const updateCreationService=async(id:string,name:string,images:string[],i
         return {
             success: false,
             message: "Failed to update creation"
+        }
+    }
+}
+
+export const deleteCreationService=async(id:string)=>{
+    try {
+        if(!id){
+            return {
+                success:false,
+                message:"Select a creation to delete"
+            }
+        }
+        const response=await deleteCreation(id)
+        return response
+    } catch (error) {
+        return {
+            success: false,
+            message: "Failed to delete creation"
         }
     }
 }

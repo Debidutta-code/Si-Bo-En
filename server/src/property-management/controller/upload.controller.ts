@@ -7,7 +7,7 @@ import fs from 'fs/promises';
 export const uploadHandler = async (req: CustomRequest, res: Response) => {
   const files = req.files;
   const cloudinaryFolderName =
-    process.env.CLOUDINARY_FOLDER_NAME || 'SwiftRooms-Images';
+    process.env.CLOUDINARY_FOLDER_NAME || 'RevChill-Images';
 
   if (!files || !Array.isArray(files) || files.length === 0) {
     return res.status(400).json(errorResponse('Upload at least one file'));

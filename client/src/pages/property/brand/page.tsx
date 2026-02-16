@@ -19,6 +19,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import ImageSlider from '@/components/shared/ImageSlider';
 import ImageUploadModal from '@/components/property/ImageUploadModal';
 import { uploadImages } from '@/components/property/api/create/propertyinfo';
+import DeleteCreationDialog from '@/components/Delete-Creation.dialog';
 
 
 export default function page() {
@@ -336,7 +337,10 @@ export default function page() {
                         </Dialog>
 
                         <div className="px-2">
-                            <CreateEntityDialog currentTab={currentTab} creationId={creationId ? creationId : ""} level={2} fetchProperties={fetchGroup} />
+                            <CreateEntityDialog creationType={"brand"} currentTab={currentTab} creationId={creationId ? creationId : ""} level={2} fetchProperties={fetchGroup} />
+                        </div>
+                        <div className="px-2">
+                            <DeleteCreationDialog type={"brand"} name={updateBrandDetails.name} id={creationId ? creationId : ""} />
                         </div>
                     </DropdownMenuContent>
 

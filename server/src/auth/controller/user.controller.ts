@@ -122,63 +122,63 @@ export class UserController {
     }
   }
   public static async updateUserById(req: CustomRequest, res: Response) {
-    try {
-      const id = req.params.id;
-      const { firstName, lastName, email, password, role, propertyId, name,level } =
-        req.body;
-      // console.log('user details', userDetails);
-      if (
-        level == 0 &&
-        !req?.permission?.canUpdateLevel0User
-      ) {
-        return res
-          .status(403)
-          .json(errorResponse('You did not access to update this role'));
-      } else if (
-        level == 1 &&
-        !req?.permission?.canUpdateLevel1User
-      ) {
-        return res
-          .status(403)
-          .json(errorResponse('You did not access to update this role'));
-      } else if (
-        level == 2 &&
-        !req?.permission?.canUpdateLevel2User
-      ) {
-        return res
-          .status(403)
-          .json(errorResponse('You did not access to update this role'));
-      } else if (
-        level == 3 &&
-        !req?.permission?.canUpdateLevel3User
-      ) {
-        return res
-          .status(403)
-          .json(errorResponse('You did not access to update this role'));
-      }
-      
-      const updateRes = await AuthService.updateUserProfile({
-        id,
-        firstName,
-        lastName,
-        email,
-        password,
-        role,
-        propertyId,
-        name,
-      });
-      if (updateRes.success) {
-        return res.status(200).json(updateRes);
-      } else {
-        return res.status(400).json(updateRes);
-      }
-    } catch (error: any) {
-      // console.log(error)
-      return res
-        .status(500)
-        .json(errorResponse('Internal Server Error', error?.message));
+        try {
+            const id = req.params.id;
+            const {
+                firstName,
+                lastName,
+                email,
+                password,
+                propertyId,
+                level,
+            } = req.body;
+            // console.log('user details', userDetails);
+            if (level == 0 && !req?.permission?.canUpdateLevel0User) {
+                return res
+                    .status(403)
+                    .json(
+                        errorResponse('You did not access to update this role')
+                    );
+            } else if (level == 1 && !req?.permission?.canUpdateLevel1User) {
+                return res
+                    .status(403)
+                    .json(
+                        errorResponse('You did not access to update this role')
+                    );
+            } else if (level == 2 && !req?.permission?.canUpdateLevel2User) {
+                return res
+                    .status(403)
+                    .json(
+                        errorResponse('You did not access to update this role')
+                    );
+            } else if (level == 3 && !req?.permission?.canUpdateLevel3User) {
+                return res
+                    .status(403)
+                    .json(
+                        errorResponse('You did not access to update this role')
+                    );
+            }
+
+            const updateRes = await AuthService.updateUserProfile({
+                id,
+                firstName,
+                lastName,
+                email,
+                password,
+                propertyId,
+            });
+            if (updateRes.success) {
+                return res.status(200).json(updateRes);
+            } else {
+                return res.status(400).json(updateRes);
+            }
+        } catch (error: any) {
+            // console.log(error)
+            return res
+                .status(500)
+                .json(errorResponse('Internal Server Error', error?.message));
+        }
     }
-  }
   public static async mapUser(req: CustomRequest, res: Response) {
     try {
       const { creationId, role, userId } = req.body;

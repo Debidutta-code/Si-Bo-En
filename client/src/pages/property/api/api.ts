@@ -101,3 +101,19 @@ export async function updateCreation(id:string,data:{name:string,images:string[]
     }
 
 }
+export async function deleteCreation(id:string) {
+    try {
+        const response = await axiosInstance.delete(`/create/remove/${id}`)
+        return response.data;
+
+    } catch (error: any) {
+        if (!error?.response?.data?.success) {
+            return error.response.data
+        } else {
+            return {
+                success: false,
+                message: error?.message
+            }
+        }
+    }
+}

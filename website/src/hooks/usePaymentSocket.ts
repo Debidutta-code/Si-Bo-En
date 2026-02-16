@@ -52,9 +52,10 @@ export const usePaymentSocket = ({
       setIsConnected(true);
       setConnectionError(null);
 
-      // Join payment room
-      socket.emit('join-payment-room', orderReference);
-      //console.log(`📌 Joining payment room: payment:${orderReference}`);
+      // Join payment room with correct format matching server's payment:{orderReference}
+      const roomName = `payment:${orderReference}`;
+      socket.emit('join-payment-room', roomName);
+      console.log(`📌 Joining payment room: ${roomName}`);
     });
 
     socket.on('disconnect', (reason: any) => {

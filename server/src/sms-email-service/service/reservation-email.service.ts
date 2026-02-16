@@ -43,7 +43,7 @@ export class ReservationEmailService {
                 reservation: bookingDetails,
                 propertyAddress: propertyDetails.propertyAddress,
             })
-            const res=await sendEmail(bookingDetails.email, "Your Reservation Confirmation - SwiftRooms", htmlTemplete);
+            const res=await sendEmail(bookingDetails.email, "Your Reservation Confirmation - RevChill", htmlTemplete);
             //console.log("Email sent successfully:", res);
 
         } catch (error) {
@@ -90,7 +90,7 @@ export class ReservationEmailService {
 
             const res = await sendEmail(
                 bookingDetails.email, 
-                "Your Reservation Has Been Updated - SwiftRooms", 
+                "Your Reservation Has Been Updated - RevChill", 
                 htmlTemplate
             );
             //console.log("Reservation updated email sent successfully:", res);
@@ -141,7 +141,7 @@ export class ReservationEmailService {
 
             const res = await sendEmail(
                 bookingDetails.email, 
-                "Your Reservation Cancellation Confirmation - SwiftRooms", 
+                "Your Reservation Cancellation Confirmation - RevChill", 
                 htmlTemplate
             );
             //console.log("Reservation cancellation email sent successfully:", res);

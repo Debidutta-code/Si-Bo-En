@@ -1,40 +1,33 @@
 import axios, { AxiosInstance } from 'axios';
-import crypto from 'crypto';
 
 /* =====================================================
    Types
 ===================================================== */
 
-interface FikafiConfig {
-    baseUrl: string;
-    clientId: string;
-    secretKey: string;
-}
-
+// Guest Details - minimal fields as per new spec
 interface GuestDetails {
     guestName: string;
-    phoneNum?: string;
     email: string;
-    country?: string; // ✅ Added country as per Fikafi docs
+    phoneNum?: string;
+    country?: string;
 }
 
+// Booking Details - simplified as per new spec
 interface BookingDetails {
-    propertyID?: string; // Optional - Fikafi may not require it
-    propertyName: string; // Required by Fikafi
+    propertyID: string;
     referenceDetails: string;
     communicationMode: 'WHATSAPP' | 'EMAIL';
     arrivalDate: string;
     numberOfNights: number;
 }
 
+// Payment - simplified as per new spec
 interface Payment {
-    paymentNumber: number;
-    paymentName?: string;
     amount: number;
-    date?: string;
-    dueDate?: string; // Support both date and dueDate
+    date: string; // Ensure the date property is included
 }
 
+// Payment Details - simplified as per new spec
 interface PaymentDetails {
     currency: string;
     totalAmounts: number;
@@ -43,32 +36,55 @@ interface PaymentDetails {
     payments: Payment[];
 }
 
+// Webhook - minimal as per new spec
+interface Webhook {
+    payment_event_url: string;
+    payment_details_url?: string;
+}
+
+// Return URL - optional, used internally for redirects
 interface ReturnUrl {
     success_url: string;
     failed_url: string;
 }
 
-interface Webhook {
-    payment_details_url: string;
-    payment_event_url: string;
-}
-
+// Full Payment Request - matches new spec
 export interface FikafiPaymentRequest {
     bookingRefNum: string;
     guestDetails: GuestDetails;
-    country?: string; // ✅ Made optional since it's now inside guestDetails
     bookingDetails: BookingDetails;
     paymentDetails: PaymentDetails;
+    webhook: Webhook;
     returnURL?: ReturnUrl;
-    webhook?: Webhook;
 }
 
+// Fikafi API Response - new format
 export interface FikafiPaymentResponse {
+    referenceNumber: string;
+    paymentLink: string;
+    status: string;
+}
+
+// Service response wrapper
+export interface FikafiServiceResponse {
     success: boolean;
     message?: string;
-    data?: any;
+    data?: FikafiPaymentResponse;
     error?: string;
+    code?: string;
     details?: any;
+}
+
+// Token response interface
+export interface FikafiTokenResponse {
+    success: boolean;
+    token?: string;
+    error?: string;
+}
+
+interface FikafiPayment {
+    amount: number;
+    date: string; // Added the required 'date' property
 }
 
 /* =====================================================
@@ -77,52 +93,21 @@ export interface FikafiPaymentResponse {
 
 class FikafiPaymentService {
     private client: AxiosInstance;
-    private config: FikafiConfig;
-
-    private token: string | null = null;
-    private tokenExpiry = 0;
+    private baseUrl: string;
 
     constructor() {
-        this.config = {
-            baseUrl:
-                process.env.FIKAFI_BASE_URL ||
-                'http://localhost:8080', // Default to local for testing
+        this.baseUrl = process.env.FIKAFI_BASE_URL!;
 
-            clientId: process.env.FIKAFI_CLIENT_ID || '',
-            secretKey: process.env.FIKAFI_SECRET_KEY || '',
-        };
-
-        //console.log('🔑 Fikafi Config loaded:');
-        //console.log('  Base URL:', this.config.baseUrl);
-        //console.log(
-        //     '  Client ID:',
-        //     this.config.clientId
-        //         ? this.config.clientId.substring(0, 8) + '...'
-        //         : 'NOT SET'
-        // );
+        console.log('🔑 Fikafi Config loaded:');
+        // console.log('  Base URL:', this.baseUrl);
 
         this.client = axios.create({
-            baseURL: this.config.baseUrl,
+            baseURL: this.baseUrl,
             headers: { 'Content-Type': 'application/json' },
             timeout: 30000,
         });
 
-        /* ==============================
-       Attach token automatically
-    ============================== */
-        const useFake = process.env.USE_FAKE_FIKAFI === 'true';
-
-        if (!useFake) {
-            this.client.interceptors.request.use(async config => {
-                const token = await this.getToken();
-                config.headers.Authorization = `Bearer ${token}`;
-                return config;
-            });
-        }
-
-        /* ==============================
-       Error handler
-    ============================== */
+        // Error handler
         this.client.interceptors.response.use(
             res => res,
             err => {
@@ -135,155 +120,211 @@ class FikafiPaymentService {
         );
     }
 
-    /* =====================================================
-     TOKEN HANDLING - Uses Basic Auth
-  ===================================================== */
+    /**
+     * Generate Fikafi Bearer token using client credentials
+     */
+    private async generateFikafiToken(): Promise<string> {
+        const clientId = process.env.FIKAFI_CLIENT_ID;
+        const key = process.env.FIKAFI_SECRET_KEY;
+        const tokenBaseUrl = process.env.FIKAFI_TOKEN_BASE_URL;
 
-    private async getToken(): Promise<string> {
-        const now = Date.now();
-
-        if (this.token && now < this.tokenExpiry) {
-            //console.log('♻️ Using cached Fikafi token');
-            return this.token;
-        }
-
-        //console.log('🔐 Fetching new Fikafi token...');
+        const tokenUrl = tokenBaseUrl!;
 
         try {
-            const res = await axios.post(
-                `${this.config.baseUrl}/auth/token`,
+            console.log('🔄 Generating new Fikafi token...');
+
+            const response = await axios.post(
+                tokenUrl,
                 {
-                    clientId: process.env.FIKAFI_CLIENT_ID,
-                    key: process.env.FIKAFI_SECRET_KEY,
+                    clientId,
+                    key,
                 },
                 {
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    timeout: 15000,
                 }
             );
 
-            //console.log('📥 Token response status:', res.status);
-            //console.log(
-            //     '📥 Token response data:',
-            //     JSON.stringify(res.data).substring(0, 200)
-            // );
+            console.log('✅ Token API response:', response.data);
 
-            const { accessToken, expiresIn } = res.data;
+            // 🔥 IMPORTANT: handle both possibilities
+            const token =
+                response.data.accessToken ||
+                response.data.token ||
+                response.data.Token;
 
-            this.token = accessToken;
-            this.tokenExpiry = now + expiresIn * 1000 - 60000;
+            if (!token) {
+                throw new Error('Token missing in response');
+            }
 
-            //console.log('✅ Token obtained successfully');
-
-            return this.token!;
+            return token;
         } catch (error: any) {
-            console.error(
-                '❌ Token fetch error:',
-                error.response?.data || error.message
-            );
-            throw error;
+            console.error('❌ Full token error:');
+            console.error('status:', error.response?.status);
+            console.error('data:', error.response?.data);
+            console.error('message:', error.message);
+
+            throw new Error('Failed to generate Fikafi token');
         }
     }
 
-    /* =====================================================
-     CREATE PAYMENT LINK
-  ===================================================== */
+    /**
+     * Get Fikafi token for frontend use
+     */
+    public async getFikafiToken(): Promise<FikafiTokenResponse> {
+        try {
+            const token = await this.generateFikafiToken();
+            return {
+                success: true,
+                token,
+            };
+        } catch (error) {
+            console.error('❌ Error generating Fikafi token:', error);
+            return {
+                success: false,
+                error: 'Fikafi credentials not configured',
+            };
+        }
+    }
 
     public async createPaymentLink(
-        request: FikafiPaymentRequest
-    ): Promise<FikafiPaymentResponse> {
+        request: FikafiPaymentRequest,
+        fikafiToken?: string
+    ): Promise<FikafiServiceResponse> {
         try {
-            //console.log('📤 Creating payment link...');
-
-            /* ===============================
-           ✅ MOCK MODE (LOCAL SERVER)
-        =============================== */
-if (process.env.PAYMENT_MODE === 'mock') {
-                //console.log('🧪 Using MOCK payment server');
-
-                const mockRes = await axios.post(
-                    'http://localhost:8080/createPayment',
-                    request
-                );
-
-                return {
-                    success: true,
-                    data: mockRes.data,
-                };
-            }
-
-            /* ===============================
-           ✅ REAL FIKAFI (SANDBOX/PROD)
-        =============================== */
+            console.log('📤 Creating Fikafi payment link...');
 
             const body = {
                 bookingRefNum: request.bookingRefNum,
-
                 guestDetails: {
                     guestName: request.guestDetails.guestName,
+                    phoneNum: request.guestDetails.phoneNum || '',
                     email: request.guestDetails.email,
+                    country: request.guestDetails.country || '',
                 },
-
-bookingDetails: {
-                  propertyID: request.bookingDetails.propertyID || request.bookingDetails.propertyName, // ✅ Fikafi requires propertyID
-                  propertyName: request.bookingDetails.propertyName,
-                  referenceDetails: request.bookingDetails.referenceDetails,
-                  communicationMode: request.bookingDetails.communicationMode,
-                  arrivalDate: request.bookingDetails.arrivalDate,
-                  numberOfNights: request.bookingDetails.numberOfNights,
-                },
-
+                bookingDetails: request.bookingDetails,
                 paymentDetails: {
-                    currency: request.paymentDetails.currency,
-                    totalAmounts: request.paymentDetails.totalAmounts,
-                    numOfPayments: 1,
-                    validity: '24 hours',
-                    payments: [{ amount: request.paymentDetails.totalAmounts }],
+                    ...request.paymentDetails,
+                    payments: request.paymentDetails.payments.map(
+                        (payment, index) => ({
+                            paymentNumber: index + 1,
+                            amount: payment.amount,
+                            date: payment.date || '',
+                        })
+                    ),
                 },
-
-                webhook: request.webhook,
+                returnURL: {
+                    success_url: request.returnURL?.success_url || '',
+                    failed_url: request.returnURL?.failed_url || '',
+                },
+                webhook: {
+                    payment_details_url: request.webhook.payment_details_url || undefined,
+                    payment_event_url: request.webhook.payment_event_url,
+                },
             };
 
-            //console.log('📤 Real Fikafi body:', JSON.stringify(body, null, 2));
-
-const response = await this.client.post(
-                '/payment/createPayment',
-                body
+            console.log(
+                '📤 Fikafi request body:',
+                JSON.stringify(body, null, 2)
             );
 
-            return response.data;
+            // Check if token is provided, otherwise generate a new one
+            let tokenValue = fikafiToken;
+            if (!tokenValue) {
+                console.log('🔄 Generating new Fikafi token...');
+                const tokenResponse = await this.getFikafiToken();
+                if (tokenResponse.success && tokenResponse.token) {
+                    tokenValue = tokenResponse.token;
+                } else {
+                    console.error(
+                        '❌ Failed to generate Fikafi token:',
+                        tokenResponse.error
+                    );
+                    return {
+                        success: false,
+                        error:
+                            tokenResponse.error || 'Failed to generate token',
+                    };
+                }
+            }
+
+            console.log(
+                '📤 Using Fikafi token from frontend header:',
+                tokenValue.substring(0, 20) + '...'
+            );
+
+            const headers: Record<string, string> = {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${tokenValue}`,
+            };
+
+            const paymentBaseUrl = process.env.FIKAFI_BASE_URL;
+            if (!paymentBaseUrl) {
+                throw new Error('Fikafi payment base URL is not configured.');
+            }
+
+            try {
+                const response = await axios.post(paymentBaseUrl, body, {
+                    headers,
+                });
+
+                const data = response.data;
+
+                console.log(
+                    '📥 Fikafi raw response:',
+                    JSON.stringify(data, null, 2)
+                );
+
+                if (data.status === false) {
+                    console.error('❌ Fikafi API error:', data);
+                    return {
+                        success: false,
+                        error: data.message || 'Fikafi API error',
+                        code: data.code,
+                    };
+                }
+
+                return {
+                    success: true,
+                    message: 'Payment link created successfully',
+                    data: {
+                        referenceNumber: data.fikafiRefNum,
+                        paymentLink: data.url,
+                        status: data.status || 'CREATED',
+                    },
+                };
+            } catch (apiError: any) {
+                console.error('❌ Payment link error:', {
+                    message: apiError.message,
+                    response: apiError.response?.data,
+                    headers: apiError.config?.headers,
+                    body: apiError.config?.data,
+                    stack: apiError.stack,
+                });
+
+                return {
+                    success: false,
+                    error: apiError.response?.data || apiError.message,
+                };
+            }
         } catch (error: any) {
-            console.error('❌ Payment link error:', error.message);
+            console.error('❌ Unexpected error in createPaymentLink:', {
+                message: error.message,
+                stack: error.stack,
+            });
 
             return {
                 success: false,
-                error: error.message,
+                error: error.message || 'Unexpected error occurred.',
             };
         }
     }
-
-    /* =====================================================
-     PAYMENT STATUS
-  ===================================================== */
 
     public async getPaymentStatus(paymentId: string) {
         const response = await this.client.get(`/payment/status/${paymentId}`);
         return response.data;
-    }
-
-    /* =====================================================
-     WEBHOOK VERIFY
-  ===================================================== */
-
-    public verifyWebhookSignature(payload: string, signature: string): boolean {
-        const secret = process.env.FIKAFI_WEBHOOK_SECRET;
-        if (!secret) return false;
-
-        const expected = crypto
-            .createHmac('sha256', secret)
-            .update(payload)
-            .digest('hex');
-
-        return expected === signature;
     }
 }
 

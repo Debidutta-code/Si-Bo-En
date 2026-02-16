@@ -2,10 +2,10 @@ import {
     ReservationRepository,
     PriceBrakeDownRepo,
     AriManupulationRepo,
-    GuestRepository,
-} from '../repository';
-import { successResponse, errorResponse } from '../../../../utils/return';
-import { IApiResponse } from '../../../../utils/return.types';
+    GuestRepository
+} from "../repository";
+import { successResponse, errorResponse } from "../../../../utils/return";
+import { IApiResponse } from "../../../../utils/return.types";
 import {
     ICReservation,
     IReservationPriceBrakeDownR,
@@ -15,22 +15,19 @@ import {
     IReservationUpdatePayload,
     IReservationPromotionCreate,
     IBookingAddonCreate,
-    IBookingDetails,
-} from '../types';
-import { prisma } from '../../../../config';
-import { IPropertyCodeAndIds } from '../../../../dashboard/types';
-import { DashUtilsRepo } from '../../../../dashboard/repository';
-import { Decimal } from '@prisma/client/runtime/library';
-import { BookingStatus, CurrencyCode } from '@prisma/client';
-import { nowUTC, toUTC, toUTCDate } from '../../../../utils';
+    IBookingDetails
+} from "../types";
+import { prisma } from "../../../../config";
+import { IPropertyCodeAndIds } from "../../../../dashboard/types";
+import { DashUtilsRepo } from "../../../../dashboard/repository";
+import { Decimal } from "@prisma/client/runtime/library";
+import { BookingStatus, CurrencyCode } from "@prisma/client";
+import { nowUTC, toUTC, toUTCDate } from "../../../../utils";
+import { BookingAddonRepository, ReservationPromotionRepository } from "../repository/reservation.repository";
 import {
-    BookingAddonRepository,
-    ReservationPromotionRepository,
-} from '../repository/reservation.repository';
-import { ReservationEmailService } from '../../../../sms-email-service/service';
-import { LoyaltyGuestRepository } from '../../../../loyalty/repository';
-import { RTReservationPushService } from '../../../../integrations/rate-tiger/services/rt-reservation-push.service';
-import { PropertyConfigService } from '../../../../property-management/services';
+    ReservationEmailService
+} from "../../../../sms-email-service/service"
+import { LoyaltyGuestRepository } from "../../../../loyalty/repository";
 export class ReservationService {
     reservationRepository: ReservationRepository;
     priceBrakeDownRepo: PriceBrakeDownRepo;
@@ -40,8 +37,7 @@ export class ReservationService {
     bookingAddonRepository: BookingAddonRepository;
     reservationPromotionRepository: ReservationPromotionRepository;
     emailService: ReservationEmailService;
-    loyalityGuestRepo: LoyaltyGuestRepository;
-    propertyConfigService:PropertyConfigService;
+    loyalityGuestRepo: LoyaltyGuestRepository
     constructor() {
         this.reservationRepository = new ReservationRepository();
         this.priceBrakeDownRepo = new PriceBrakeDownRepo();
@@ -49,18 +45,14 @@ export class ReservationService {
         this.guestRepository = new GuestRepository();
         this.dashUtils = new DashUtilsRepo();
         this.bookingAddonRepository = new BookingAddonRepository();
-        this.reservationPromotionRepository =
-            new ReservationPromotionRepository();
+        this.reservationPromotionRepository = new ReservationPromotionRepository();
         this.emailService = new ReservationEmailService();
-        this.loyalityGuestRepo = new LoyaltyGuestRepository();
-        this.propertyConfigService = new PropertyConfigService();
+        this.loyalityGuestRepo = new LoyaltyGuestRepository;
     }
 
     private async generateBookingCode(): Promise<string> {
-        const code =
-            'BOOK-' + Math.random().toString(36).substr(2, 9).toUpperCase();
-        const existingReservation =
-            await this.reservationRepository.getReservaltionByCode(code);
+        const code = 'BOOK-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        const existingReservation = await this.reservationRepository.getReservaltionByCode(code);
 
         if (existingReservation !== null) {
             return this.generateBookingCode();
@@ -77,37 +69,28 @@ export class ReservationService {
         const endMs = end.getTime();
         const oneDayMs = 24 * 60 * 60 * 1000;
 
-        for (
-            let currentMs = startMs;
-            currentMs < endMs;
-            currentMs += oneDayMs
-        ) {
+        for (let currentMs = startMs; currentMs < endMs; currentMs += oneDayMs) {
             dates.push(new Date(currentMs));
         }
 
         return dates;
     }
 
-    private mapPaymentMethod(
-        method: string
-    ): 'pay_at_hotel' | 'net_banking' | 'upi' | 'payment_gateway' {
-        const methodMap: Record<
-            string,
-            'pay_at_hotel' | 'net_banking' | 'upi' | 'payment_gateway'
-        > = {
-            payAtHotel: 'pay_at_hotel',
-            pay_at_hotel: 'pay_at_hotel',
-            netBanking: 'net_banking',
-            net_banking: 'net_banking',
-            upi: 'upi',
-            paymentGateway: 'payment_gateway',
-            ngenius: 'payment_gateway',
-            payment_gateway: 'payment_gateway',
+    private mapPaymentMethod(method: string): "pay_at_hotel" | "net_banking" | "upi" | "payment_gateway" {
+        const methodMap: Record<string, "pay_at_hotel" | "net_banking" | "upi" | "payment_gateway"> = {
+            "payAtHotel": "pay_at_hotel",
+            "pay_at_hotel": "pay_at_hotel",
+            "netBanking": "net_banking",
+            "net_banking": "net_banking",
+            "upi": "upi",
+            "paymentGateway": "payment_gateway",
+            "ngenius": "payment_gateway",
+            "payment_gateway": "payment_gateway"
         };
-        return methodMap[method] || 'pay_at_hotel';
+        return methodMap[method] || "pay_at_hotel";
     }
 
-    private normalizePayload(payload: any): ICreateReservationPayload['data'] {
+    private normalizePayload(payload: any): ICreateReservationPayload["data"] {
         const { bookingDetails, guestDetails } = payload;
         const { finalPrice } = bookingDetails;
 
@@ -117,56 +100,46 @@ export class ReservationService {
         }
         let selectedPromotions = bookingDetails.selectedPromotions || [];
 
-        if (
-            finalPrice.promotions?.applied &&
-            Array.isArray(finalPrice.promotions.applied)
-        ) {
-            selectedPromotions = finalPrice.promotions.applied.map(
-                (promo: any) => {
-                    // Check if it's MLOS type
-                    if (promo.promotionType === 'mlos') {
-                        return {
-                            id: promo.id || promo.promotionId,
-                            promotionType: 'mlos',
-                            ratePlanName: promo.ratePlanName,
-                            discountValue: promo.discountValue,
-                            discountType: promo.discountType,
-                            amount: promo.discountAmount, // ✅ Use calculated amount
-                        };
-                    } else {
-                        return {
-                            id: promo.id || promo.promotionId,
-                            promotionType: promo.promotionType,
-                            promotionName: promo.promotionName,
-                            discountValue: promo.discountValue,
-                            discountType: promo.discountType,
-                            amount: promo.discountAmount, // ✅ Use calculated amount
-                        };
-                    }
+        if (finalPrice.promotions?.applied && Array.isArray(finalPrice.promotions.applied)) {
+            selectedPromotions = finalPrice.promotions.applied.map((promo: any) => {
+                // Check if it's MLOS type
+                if (promo.promotionType === 'mlos') {
+                    return {
+                        id: promo.id || promo.promotionId,
+                        promotionType: 'mlos',
+                        ratePlanName: promo.ratePlanName,
+                        discountValue: promo.discountValue,
+                        discountType: promo.discountType,
+                        amount: promo.discountAmount // ✅ Use calculated amount
+                    };
+                } else {
+                    return {
+                        id: promo.id || promo.promotionId,
+                        promotionType: promo.promotionType,
+                        promotionName: promo.promotionName,
+                        discountValue: promo.discountValue,
+                        discountType: promo.discountType,
+                        amount: promo.discountAmount // ✅ Use calculated amount
+                    };
                 }
-            );
+            });
         }
 
         // ✅ NEW: Extract addons from finalPrice.userAddons.selected
         let selectedAddons = bookingDetails.selectedAddons || [];
 
-        if (
-            finalPrice.userAddons?.selected &&
-            Array.isArray(finalPrice.userAddons.selected)
-        ) {
-            selectedAddons = finalPrice.userAddons.selected.map(
-                (addon: any) => ({
-                    addonId: addon.addonId,
-                    addonName: addon.name,
-                    addonCode: addon.code,
-                    availabilityId: addon.availabilityId,
-                    date: addon.date,
-                    price: addon.price,
-                    quantity: addon.quantity,
-                    totalPrice: addon.totalPrice,
-                    type: addon.type,
-                })
-            );
+        if (finalPrice.userAddons?.selected && Array.isArray(finalPrice.userAddons.selected)) {
+            selectedAddons = finalPrice.userAddons.selected.map((addon: any) => ({
+                addonId: addon.addonId,
+                addonName: addon.name,
+                addonCode: addon.code,
+                availabilityId: addon.availabilityId,
+                date: addon.date,
+                price: addon.price,
+                quantity: addon.quantity,
+                totalPrice: addon.totalPrice,
+                type: addon.type
+            }));
         }
 
         return {
@@ -174,10 +147,10 @@ export class ReservationService {
                 ...bookingDetails,
                 finalPrice,
                 selectedPromotions,
-                selectedAddons,
+                selectedAddons
             },
             guestDetails: guestDetails,
-            bankDetails: payload.bankDetails,
+            bankDetails: payload.bankDetails
         };
     }
 
@@ -185,7 +158,7 @@ export class ReservationService {
         try {
             // Normalize the payload first
             const normalizedPayload = this.normalizePayload(payload);
-            const { bookingDetails, guestDetails } = normalizedPayload;
+            const { bookingDetails, guestDetails, } = normalizedPayload;
 
             const {
                 startDate,
@@ -205,17 +178,16 @@ export class ReservationService {
 
             const propertyId = await this.getPropertyIdByCode(propertyCode);
             if (!propertyId) {
-                return errorResponse('Property not found');
+                return errorResponse("Property not found");
             }
 
             const primaryGuestData = guestDetails[0];
             if (!primaryGuestData) {
-                return errorResponse('At least one guest is required');
+                return errorResponse("At least one guest is required");
             }
 
             let primaryGuestId: string;
-            const existingGuest =
-                await this.guestRepository.getGuestByEmail(email);
+            const existingGuest = await this.guestRepository.getGuestByEmail(email);
 
             if (existingGuest) {
                 primaryGuestId = existingGuest.id;
@@ -226,10 +198,7 @@ export class ReservationService {
                     email: email,
                     phoneNumber: phone || null,
                     propertyId: propertyId,
-                    userType: primaryGuestData.type as
-                        | 'adult'
-                        | 'child'
-                        | 'infant',
+                    userType: primaryGuestData.type as "adult" | "child" | "infant",
                     address: null,
                     city: null,
                     state: null,
@@ -237,37 +206,18 @@ export class ReservationService {
                     zipCode: null,
                     identityCardImage: null,
                     identityCardNumber: null,
-                    userIdentityCardType: null,
+                    userIdentityCardType: null
                 };
 
-                const newGuest =
-                    await this.guestRepository.createGuest(newGuestPayload);
+                const newGuest = await this.guestRepository.createGuest(newGuestPayload);
                 primaryGuestId = newGuest.id;
             }
-            // const propertyConfig = await prisma.propertyConfigs.findUnique({
-            //     where: { propertyId },
-            //     select: { pmsIntegrationActive: true },
-            // });
-            const propertyConfig =await this.propertyConfigService.getPropertyConfig(payload.bankDetails.propertyId);
-            const isPmsActive = propertyConfig?.data?.pmsIntegrationActive ?? false;
+
             const bookingCode = await this.generateBookingCode();
-
-            if (isPmsActive) {
-                const rtResult = await RTReservationPushService.pushCommit(
-                    payload, // the raw payload that came into createReservation
-                    bookingCode
-                );
-
-                if (!rtResult.success) {
-                    return errorResponse(
-                        `PMS sync failed: ${rtResult.message}`
-                    );
-                }
-            }
             const paymentMethods = this.mapPaymentMethod(paymentMethod);
-            let paidAmount = 0;
-            if (paymentMethods === 'payment_gateway') {
-                paidAmount = finalPrice.totalAmount;
+            let paidAmount = 0
+            if (paymentMethods === "payment_gateway") {
+                paidAmount = finalPrice.totalAmount
             }
             const reservationPayload: ICReservation = {
                 bookingCode,
@@ -293,30 +243,22 @@ export class ReservationService {
                 paidAmount: paidAmount,
                 extraAmountToPay: 0,
                 refundAmount: 0,
-                timezone: payload.timezone || 'Asia/Kolkata',
-                countryCode: payload.countryCode || 'IN',
+                timezone: payload.timezone || "Asia/Kolkata",
+                countryCode: payload.countryCode || "IN",
                 paymentMethod: paymentMethods,
                 paymentImages: null,
 
-                bookingStatus: 'confirmed',
+                bookingStatus: "confirmed",
                 cancellationReason: null,
-                deviceTypes: payload.deviceTypes || 'desktop',
-                bookingSource: bookingSource || 'direct',
+                deviceTypes: payload.deviceTypes || "desktop",
+                bookingSource: bookingSource || "direct",
 
-                isPromoUsed: !!(
-                    bookingDetails.promoCode ||
-                    (normalizedPayload.bookingDetails.selectedPromotions &&
-                        normalizedPayload.bookingDetails.selectedPromotions
-                            .length > 0)
-                ),
+                isPromoUsed: !!(bookingDetails.promoCode || (normalizedPayload.bookingDetails.selectedPromotions && normalizedPayload.bookingDetails.selectedPromotions.length > 0)),
                 promoId: null,
-                agencyId: agencyId || null,
+                agencyId: agencyId || null
             };
 
-            const reservation =
-                await this.reservationRepository.createReservation(
-                    reservationPayload
-                );
+            const reservation = await this.reservationRepository.createReservation(reservationPayload);
 
             const priceBreakdownPayload: IReservationPriceBrakeDownR = {
                 reservationId: reservation.id,
@@ -325,78 +267,63 @@ export class ReservationService {
                 numberOfNights: finalPrice.numberOfNights,
                 priceAfterTax: new Decimal(finalPrice.totalAmount),
                 totalAmount: new Decimal(finalPrice.totalAmount),
-                totalTax: new Decimal(
-                    finalPrice.totalAmount - finalPrice.totalTax
-                ),
+                totalTax: new Decimal(finalPrice.totalAmount - finalPrice.totalTax),
                 breakdown: finalPrice.breakdown,
                 dailyBreakdown: finalPrice.dailyBreakdown,
                 availableRooms: finalPrice.availableRooms,
                 requestedRooms: finalPrice.requestedRooms,
-                tax: finalPrice.taxes,
+                tax: finalPrice.taxes
             };
-            const loyalityBrakedown = finalPrice.loyaltyDiscount;
+            const loyalityBrakedown = finalPrice.loyaltyDiscount
 
-            await this.priceBrakeDownRepo.createpriceBrakeDowns([
-                priceBreakdownPayload,
-            ]);
-            if (
-                normalizedPayload.bookingDetails.selectedAddons &&
-                normalizedPayload.bookingDetails.selectedAddons.length > 0
-            ) {
-                const addonPayloads: IBookingAddonCreate[] =
-                    normalizedPayload.bookingDetails.selectedAddons.map(
-                        (addon: any) => ({
-                            reservationId: reservation.id,
-                            addonId: addon.addonId,
-                            name: addon.addonName || addon.name,
-                            unitPrice: addon.price, // ✅ Use provided price
-                            quantity: addon.quantity,
-                            totalPrice: addon.totalPrice, // ✅ Use pre-calculated total
-                            currencyCode: currency,
-                            specialInstructions: null,
-                            date: new Date(addon.date),
-                        })
-                    );
+            await this.priceBrakeDownRepo.createpriceBrakeDowns([priceBreakdownPayload]);
+            if (normalizedPayload.bookingDetails.selectedAddons && normalizedPayload.bookingDetails.selectedAddons.length > 0) {
+                const addonPayloads: IBookingAddonCreate[] = normalizedPayload.bookingDetails.selectedAddons.map((addon: any) => ({
+                    reservationId: reservation.id,
+                    addonId: addon.addonId,
+                    name: addon.addonName || addon.name,
+                    unitPrice: addon.price,          // ✅ Use provided price
+                    quantity: addon.quantity,
+                    totalPrice: addon.totalPrice,    // ✅ Use pre-calculated total
+                    currencyCode: currency,
+                    specialInstructions: null,
+                    date: new Date(addon.date)
+                }));
 
-                await this.bookingAddonRepository.createBookingAddons(
-                    addonPayloads
-                );
+                await this.bookingAddonRepository.createBookingAddons(addonPayloads);
             }
 
-            if (
-                normalizedPayload.bookingDetails.selectedPromotions &&
-                normalizedPayload.bookingDetails.selectedPromotions.length > 0
-            ) {
+            if (normalizedPayload.bookingDetails.selectedPromotions && normalizedPayload.bookingDetails.selectedPromotions.length > 0) {
                 const promotionPayloads: IReservationPromotionCreate[] = [];
 
-                for (const promo of normalizedPayload.bookingDetails
-                    .selectedPromotions) {
+                for (const promo of normalizedPayload.bookingDetails.selectedPromotions) {
                     if (promo.promotionType === 'mlos') {
                         if (!promo.id) {
                             console.warn('MLOS promotion missing id:', promo);
-                            return errorResponse('MLOS promotion missing id');
+                            return errorResponse('MLOS promotion missing id')
                         }
 
                         promotionPayloads.push({
                             bookingCode: bookingCode,
                             bookingId: reservation.id,
-                            promotionId: null, // ✅ NULL for MLOS
-                            mlosId: promo.id, // ✅ Use the id directly - it's the RatePlanRule ID
+                            promotionId: null,           // ✅ NULL for MLOS
+                            mlosId: promo.id,            // ✅ Use the id directly - it's the RatePlanRule ID
                             amount: promo.amount, // ✅ Use pre-calculated amount
                             currency: currency as CurrencyCode,
                             promotionType: promo.promotionType,
                         });
+
                     } else {
                         if (!promo.id) {
                             console.warn('Promotion missing id:', promo);
-                            return errorResponse('Promotion missing id');
+                            return errorResponse('Promotion missing id')
                         }
 
                         promotionPayloads.push({
                             bookingCode: bookingCode,
                             bookingId: reservation.id,
-                            promotionId: promo.id, // ✅ Use the id - it's the Promotion ID
-                            mlosId: null, // ✅ NULL for regular promotions
+                            promotionId: promo.id,        // ✅ Use the id - it's the Promotion ID
+                            mlosId: null,                 // ✅ NULL for regular promotions
                             amount: promo.amount, // ✅ Use pre-calculated amount
                             currency: currency as CurrencyCode,
                             promotionType: promo.promotionType,
@@ -405,30 +332,23 @@ export class ReservationService {
                 }
 
                 if (promotionPayloads.length > 0) {
-                    await this.reservationPromotionRepository.createReservationPromotions(
-                        promotionPayloads
-                    );
+                    await this.reservationPromotionRepository.createReservationPromotions(promotionPayloads);
                 }
             }
 
-            const reservationDates = this.generateDateRange(
-                toUTCDate(startDate),
-                toUTCDate(endDate)
-            );
+            const reservationDates = this.generateDateRange(toUTCDate(startDate), toUTCDate(endDate));
             const ariPayload: IAriManulupulation = {
                 propertyCode,
                 dates: reservationDates,
-                roomInfos: [
-                    {
-                        roomTypeCode,
-                        numberOfRooms: finalPrice.requestedRooms || 1,
-                    },
-                ],
+                roomInfos: [{
+                    roomTypeCode,
+                    numberOfRooms: finalPrice.requestedRooms || 1
+                }]
             };
 
-            // Build non-blocking tasks array
-            const nonBlockingTasks: Promise<any>[] = [
-                // Email always runs regardless of PMS
+            const nonBlockingPromises: Promise<any>[] = [
+                this.ariManupulationRepo.decreaseAvailableRooms(ariPayload),
+
                 this.emailService.reservationConfirmation({
                     ...bookingDetails,
                     guestDetails: guestDetails.map((guest: any) => ({
@@ -437,55 +357,44 @@ export class ReservationService {
                         lastName: guest.lastName,
                         dateOfBirth: guest.dateOfBirth || guest.dob || '',
                         email: guest.type === 'adult' ? email : undefined,
-                        phone: guest.type === 'adult' ? phone : undefined,
+                        phone: guest.type === 'adult' ? phone : undefined
                     })),
                     bookingCode: reservation.bookingCode,
                     reservationId: reservation.id,
                     bookedAt: reservation.bookedAt.toISOString(),
                     bookingStatus: reservation.bookingStatus,
-                }),
-
-                // Loyalty always runs regardless of PMS
-                this.loyalityGuestRepo.addGuest(
-                    finalPrice?.loyaltyDiscount?.loyaltyMemberId,
-                    primaryGuestId
-                ),
+                })
             ];
 
-            // ARI only runs if PMS is NOT active
-            // When PMS is active, RT/PMS handles the inventory
-            if (!isPmsActive) {
-                nonBlockingTasks.push(
-                    this.ariManupulationRepo.decreaseAvailableRooms(ariPayload)
+            // ✅ Add loyalty only if discount exists
+            if (finalPrice?.loyaltyDiscount?.loyaltyMemberId) {
+                nonBlockingPromises.push(
+                    this.loyalityGuestRepo.addGuest(
+                        finalPrice.loyaltyDiscount.loyaltyMemberId,
+                        primaryGuestId
+                    )
                 );
             }
 
-            Promise.all(nonBlockingTasks).catch(error => {
-                console.error('Non-blocking operations failed:', error);
+            Promise.all(nonBlockingPromises).catch(error => {
+                console.error("Non-blocking operations failed:", error);
             });
 
-            return successResponse(
-                'Reservation created successfully',
-                reservation
-            );
+
+            return successResponse("Reservation created successfully", reservation);
         } catch (error) {
-            console.error('Error creating reservation:', error);
+            console.error("Error creating reservation:", error);
             if (error instanceof Error) {
-                return errorResponse(
-                    'Failed to create reservation',
-                    error.message
-                );
+                return errorResponse("Failed to create reservation", error.message);
             }
-            return errorResponse('Failed to create reservation');
+            return errorResponse("Failed to create reservation");
         }
     }
-    private async getPropertyIdByCode(
-        propertyCode: string
-    ): Promise<string | null> {
+    private async getPropertyIdByCode(propertyCode: string): Promise<string | null> {
         try {
             const property = await prisma.property.findUnique({
                 where: { propertyCode },
-                select: { id: true },
+                select: { id: true }
             });
             return property?.id || null;
         } catch (error) {
@@ -493,30 +402,19 @@ export class ReservationService {
         }
     }
 
-    public async getReservaltionByCode(
-        reservationCode: string
-    ): Promise<IApiResponse> {
+    public async getReservaltionByCode(reservationCode: string): Promise<IApiResponse> {
         try {
-            const reservation =
-                await this.reservationRepository.getReservaltionByCode(
-                    reservationCode
-                );
+            const reservation = await this.reservationRepository.getReservaltionByCode(reservationCode);
 
             if (!reservation) {
-                return errorResponse('Reservation not found');
+                return errorResponse("Reservation not found");
             }
-            return successResponse(
-                'Reservation fetched successfully',
-                reservation
-            );
+            return successResponse("Reservation fetched successfully", reservation);
         } catch (error) {
             if (error instanceof Error) {
-                return errorResponse(
-                    'Failed to fetch reservation',
-                    error.message
-                );
+                return errorResponse("Failed to fetch reservation", error.message);
             }
-            return errorResponse('Failed to fetch reservation');
+            return errorResponse("Failed to fetch reservation");
         }
     }
     public async updateReservation(
@@ -525,59 +423,25 @@ export class ReservationService {
     ): Promise<IApiResponse> {
         try {
             // 1. Get existing reservation
-            const existingReservation =
-                await this.reservationRepository.getReservaltionByCode(
-                    reservationCode
-                );
+            const existingReservation = await this.reservationRepository.getReservaltionByCode(reservationCode);
 
             if (!existingReservation) {
-                return errorResponse('Reservation not found');
+                return errorResponse("Reservation not found");
             }
 
             // 2. Validate property matches
-            if (
-                existingReservation.propertyCode !== updatePayload.propertyCode
-            ) {
-                return errorResponse(
-                    'Cannot change property for existing reservation'
-                );
+            if (existingReservation.propertyCode !== updatePayload.propertyCode) {
+                return errorResponse("Cannot change property for existing reservation");
             }
 
-            if (
-                existingReservation.roomTypeCode !== updatePayload.roomTypeCode
-            ) {
-                return errorResponse(
-                    'Cannot change room type for existing reservation'
-                );
+            if (existingReservation.roomTypeCode !== updatePayload.roomTypeCode) {
+                return errorResponse("Cannot change room type for existing reservation");
             }
 
-            if (
-                existingReservation.ratePlanCode !== updatePayload.ratePlanCode
-            ) {
-                return errorResponse(
-                    'Cannot change rate plan for existing reservation'
-                );
+            if (existingReservation.ratePlanCode !== updatePayload.ratePlanCode) {
+                return errorResponse("Cannot change rate plan for existing reservation");
             }
-            // const propertyConfig = await prisma.propertyConfigs.findUnique({
-            //     where: { propertyId: existingReservation.propertyId },
-            //     select: { pmsIntegrationActive: true },
-            // });
-            const propertyConfig =await this.propertyConfigService.getPropertyConfig(existingReservation.propertyId);
 
-            const isPmsActive = propertyConfig?.data?.pmsIntegrationActive ?? false;
-            if (isPmsActive) {
-                const rtResult = await RTReservationPushService.pushModify(
-                    existingReservation,
-                    updatePayload
-                );
-
-                if (!rtResult.success) {
-                    return errorResponse(
-                        `PMS sync failed: ${rtResult.message}`
-                    );
-                }
-                // Skip the entire ARI transaction block below
-            }
             // 3. Parse dates
             const newCheckInDate = new Date(updatePayload.checkInDate);
             const newCheckOutDate = new Date(updatePayload.checkOutDate);
@@ -586,9 +450,7 @@ export class ReservationService {
 
             // Validate new dates
             if (newCheckInDate >= newCheckOutDate) {
-                return errorResponse(
-                    'Check-in date must be before check-out date'
-                );
+                return errorResponse("Check-in date must be before check-out date");
             }
 
             // 4. Generate date ranges for ARI comparison
@@ -603,37 +465,27 @@ export class ReservationService {
             );
 
             // 5. Calculate ARI changes
-            const oldRooms =
-                existingReservation.finalPrice?.requestedRooms || 1;
+            const oldRooms = existingReservation.finalPrice?.requestedRooms || 1;
             const newRooms = updatePayload.requestedRooms;
 
             // Determine dates that need ARI updates
-            const datesToFree = oldDates.filter(
-                date => !newDates.includes(date)
-            );
-            const datesToReserve = newDates.filter(
-                date => !oldDates.includes(date)
-            );
-            const commonDates = oldDates.filter(date =>
-                newDates.includes(date)
-            );
+            const datesToFree = oldDates.filter(date => !newDates.includes(date));
+            const datesToReserve = newDates.filter(date => !oldDates.includes(date));
+            const commonDates = oldDates.filter(date => newDates.includes(date));
 
             // 6. Check availability for new requirements
             if (datesToReserve.length > 0 || newRooms > oldRooms) {
                 const allNewDates = [...new Set([...newDates])]; // Unique dates
 
-                const isAvailable =
-                    await this.reservationRepository.checkRoomAvailability(
-                        updatePayload.propertyCode,
-                        updatePayload.roomTypeCode,
-                        allNewDates,
-                        newRooms
-                    );
+                const isAvailable = await this.reservationRepository.checkRoomAvailability(
+                    updatePayload.propertyCode,
+                    updatePayload.roomTypeCode,
+                    allNewDates,
+                    newRooms
+                );
 
                 if (!isAvailable) {
-                    return errorResponse(
-                        'Not enough rooms available for the selected dates'
-                    );
+                    return errorResponse("Not enough rooms available for the selected dates");
                 }
             }
 
@@ -652,91 +504,84 @@ export class ReservationService {
             }
 
             // 8. Update ARI in a transaction
-            if (!isPmsActive) {
-                await prisma.$transaction(async tx => {
-                    // Free up old inventory for dates that are no longer needed
-                    if (datesToFree.length > 0) {
-                        const freeAriPayload: IAriManulupulation = {
-                            propertyCode: updatePayload.propertyCode,
-                            dates: datesToFree,
-                            roomInfos: [
-                                {
-                                    roomTypeCode: updatePayload.roomTypeCode,
-                                    numberOfRooms: oldRooms,
-                                },
-                            ],
-                        };
+            await prisma.$transaction(async (tx) => {
+                // Free up old inventory for dates that are no longer needed
+                if (datesToFree.length > 0) {
+                    const freeAriPayload: IAriManulupulation = {
+                        propertyCode: updatePayload.propertyCode,
+                        dates: datesToFree,
+                        roomInfos: [{
+                            roomTypeCode: updatePayload.roomTypeCode,
+                            numberOfRooms: oldRooms
+                        }]
+                    };
 
-                        // Use direct prisma call since AriManupulationRepo doesn't have transaction support
-                        for (const room of freeAriPayload.roomInfos) {
-                            await tx.inventory.updateMany({
-                                where: {
-                                    propertyCode: freeAriPayload.propertyCode,
-                                    roomTypeCode: room.roomTypeCode,
-                                    date: { in: freeAriPayload.dates },
-                                },
-                                data: {
-                                    availability: {
-                                        increment: room.numberOfRooms,
-                                    },
-                                },
-                            });
-                        }
+                    // Use direct prisma call since AriManupulationRepo doesn't have transaction support
+                    for (const room of freeAriPayload.roomInfos) {
+                        await tx.inventory.updateMany({
+                            where: {
+                                propertyCode: freeAriPayload.propertyCode,
+                                roomTypeCode: room.roomTypeCode,
+                                date: { in: freeAriPayload.dates }
+                            },
+                            data: {
+                                availability: {
+                                    increment: room.numberOfRooms
+                                }
+                            }
+                        });
                     }
+                }
 
-                    // For common dates, adjust if room count changed
-                    if (commonDates.length > 0 && oldRooms !== newRooms) {
-                        const roomDifference = newRooms - oldRooms;
-                        if (roomDifference !== 0) {
-                            const adjustment =
-                                roomDifference > 0
-                                    ? { decrement: Math.abs(roomDifference) }
-                                    : { increment: Math.abs(roomDifference) };
+                // For common dates, adjust if room count changed
+                if (commonDates.length > 0 && oldRooms !== newRooms) {
+                    const roomDifference = newRooms - oldRooms;
+                    if (roomDifference !== 0) {
+                        const adjustment = roomDifference > 0 ?
+                            { decrement: Math.abs(roomDifference) } :
+                            { increment: Math.abs(roomDifference) };
 
-                            await tx.inventory.updateMany({
-                                where: {
-                                    propertyCode: updatePayload.propertyCode,
-                                    roomTypeCode: updatePayload.roomTypeCode,
-                                    date: { in: commonDates },
-                                },
-                                data: {
-                                    availability: adjustment,
-                                },
-                            });
-                        }
+                        await tx.inventory.updateMany({
+                            where: {
+                                propertyCode: updatePayload.propertyCode,
+                                roomTypeCode: updatePayload.roomTypeCode,
+                                date: { in: commonDates }
+                            },
+                            data: {
+                                availability: adjustment
+                            }
+                        });
                     }
+                }
 
-                    // Reserve new inventory for new dates
-                    if (datesToReserve.length > 0) {
-                        const reserveAriPayload: IAriManulupulation = {
-                            propertyCode: updatePayload.propertyCode,
-                            dates: datesToReserve,
-                            roomInfos: [
-                                {
-                                    roomTypeCode: updatePayload.roomTypeCode,
-                                    numberOfRooms: newRooms,
-                                },
-                            ],
-                        };
+                // Reserve new inventory for new dates
+                if (datesToReserve.length > 0) {
+                    const reserveAriPayload: IAriManulupulation = {
+                        propertyCode: updatePayload.propertyCode,
+                        dates: datesToReserve,
+                        roomInfos: [{
+                            roomTypeCode: updatePayload.roomTypeCode,
+                            numberOfRooms: newRooms
+                        }]
+                    };
 
-                        for (const room of reserveAriPayload.roomInfos) {
-                            await tx.inventory.updateMany({
-                                where: {
-                                    propertyCode:
-                                        reserveAriPayload.propertyCode,
-                                    roomTypeCode: room.roomTypeCode,
-                                    date: { in: reserveAriPayload.dates },
-                                },
-                                data: {
-                                    availability: {
-                                        decrement: room.numberOfRooms,
-                                    },
-                                },
-                            });
-                        }
+                    for (const room of reserveAriPayload.roomInfos) {
+                        await tx.inventory.updateMany({
+                            where: {
+                                propertyCode: reserveAriPayload.propertyCode,
+                                roomTypeCode: room.roomTypeCode,
+                                date: { in: reserveAriPayload.dates }
+                            },
+                            data: {
+                                availability: {
+                                    decrement: room.numberOfRooms
+                                }
+                            }
+                        });
                     }
-                });
-            }
+                }
+            });
+
             // 9. Update reservation record
             const updateData: Partial<ICReservation> = {
                 checkInDate: newCheckInDate,
@@ -746,39 +591,29 @@ export class ReservationService {
                 guests: updatePayload.guests,
                 bookingUserEmail: updatePayload.bookingUserEmail,
                 bookingUserPhone: updatePayload.bookingUserPhone || null,
-                bookingStatus: 'modified' as BookingStatus,
-                extraAmountToPay:
-                    existingReservation.extraAmountToPay + extraAmountToPay,
-                refundAmount: existingReservation.refundAmount + refundAmount,
+                bookingStatus: "modified" as BookingStatus,
+                extraAmountToPay: existingReservation.extraAmountToPay + extraAmountToPay,
+                refundAmount: existingReservation.refundAmount + refundAmount
             };
 
-            const updatedReservation =
-                await this.reservationRepository.updateReservationWithTransaction(
-                    existingReservation.id,
-                    updateData,
-                    {
-                        reservationId: existingReservation.id,
-                        additionalGuestCharges:
-                            updatePayload.finalPrice.additionalGuestCharges,
-                        baseRatePerNight:
-                            updatePayload.finalPrice.baseRatePerNight,
-                        numberOfNights: updatePayload.finalPrice.numberOfNights,
-                        priceAfterTax: new Decimal(
-                            updatePayload.finalPrice.priceAfterTax
-                        ),
-                        totalAmount: new Decimal(
-                            updatePayload.finalPrice.totalAmount
-                        ),
-                        totalTax: new Decimal(
-                            updatePayload.finalPrice.totalTax
-                        ),
-                        breakdown: updatePayload.finalPrice.breakdown,
-                        dailyBreakdown: updatePayload.finalPrice.dailyBreakdown,
-                        availableRooms: updatePayload.finalPrice.availableRooms,
-                        requestedRooms: updatePayload.requestedRooms,
-                        tax: updatePayload.finalPrice.tax,
-                    }
-                );
+            const updatedReservation = await this.reservationRepository.updateReservationWithTransaction(
+                existingReservation.id,
+                updateData,
+                {
+                    reservationId: existingReservation.id,
+                    additionalGuestCharges: updatePayload.finalPrice.additionalGuestCharges,
+                    baseRatePerNight: updatePayload.finalPrice.baseRatePerNight,
+                    numberOfNights: updatePayload.finalPrice.numberOfNights,
+                    priceAfterTax: new Decimal(updatePayload.finalPrice.priceAfterTax),
+                    totalAmount: new Decimal(updatePayload.finalPrice.totalAmount),
+                    totalTax: new Decimal(updatePayload.finalPrice.totalTax),
+                    breakdown: updatePayload.finalPrice.breakdown,
+                    dailyBreakdown: updatePayload.finalPrice.dailyBreakdown,
+                    availableRooms: updatePayload.finalPrice.availableRooms,
+                    requestedRooms: updatePayload.requestedRooms,
+                    tax: updatePayload.finalPrice.tax
+                }
+            );
 
             // 10. Prepare response with change summary
             const modificationSummary = {
@@ -789,7 +624,7 @@ export class ReservationService {
                     roomsFreed: oldRooms,
                     roomsReserved: newRooms,
                     commonDates: commonDates,
-                    roomChange: newRooms - oldRooms,
+                    roomChange: newRooms - oldRooms
                 },
                 financialSummary: {
                     oldAmount,
@@ -797,20 +632,16 @@ export class ReservationService {
                     difference: priceDifference,
                     extraAmountToPay,
                     refundAmount,
-                    totalExtraAmountToPay:
-                        existingReservation.extraAmountToPay + extraAmountToPay,
-                    totalRefundAmount:
-                        existingReservation.refundAmount + refundAmount,
+                    totalExtraAmountToPay: existingReservation.extraAmountToPay + extraAmountToPay,
+                    totalRefundAmount: existingReservation.refundAmount + refundAmount
                 },
                 dateChanges: {
                     oldCheckIn: oldCheckInDate,
                     oldCheckOut: oldCheckOutDate,
                     newCheckIn: newCheckInDate,
                     newCheckOut: newCheckOutDate,
-                    nightsChanged:
-                        updatePayload.finalPrice.numberOfNights -
-                        (existingReservation.finalPrice?.numberOfNights || 1),
-                },
+                    nightsChanged: updatePayload.finalPrice.numberOfNights - (existingReservation.finalPrice?.numberOfNights || 1)
+                }
             };
 
             // Send reservation updated email (non-blocking)
@@ -827,40 +658,30 @@ export class ReservationService {
                     totalAmount: updatePayload.finalPrice.totalAmount,
                     numberOfNights: updatePayload.finalPrice.numberOfNights,
                     baseRatePerNight: updatePayload.finalPrice.baseRatePerNight,
-                    additionalGuestCharges:
-                        updatePayload.finalPrice.additionalGuestCharges,
+                    additionalGuestCharges: updatePayload.finalPrice.additionalGuestCharges,
                     breakdown: {
                         ...updatePayload.finalPrice.breakdown,
-                        totalTax: updatePayload.finalPrice.totalTax,
+                        totalTax: updatePayload.finalPrice.totalTax
                     },
-                    dailyBreakdown: updatePayload.finalPrice.dailyBreakdown.map(
-                        day => ({
-                            ...day,
-                            childrenChargesBreakdown: [],
-                        })
-                    ),
+                    dailyBreakdown: updatePayload.finalPrice.dailyBreakdown.map(day => ({
+                        ...day,
+                        childrenChargesBreakdown: []
+                    })),
                     availableRooms: updatePayload.finalPrice.availableRooms,
                     requestedRooms: updatePayload.requestedRooms,
                     totalTax: updatePayload.finalPrice.totalTax,
                     taxes: [], // Simplified tax structure for email
-                    subtotal:
-                        updatePayload.finalPrice.totalAmount -
-                        updatePayload.finalPrice.totalTax,
+                    subtotal: updatePayload.finalPrice.totalAmount - updatePayload.finalPrice.totalTax,
                     taxBreakdown: {
-                        totalBaseAmount:
-                            updatePayload.finalPrice.breakdown.totalBaseAmount,
-                        totalAdditionalCharges:
-                            updatePayload.finalPrice.breakdown
-                                .totalAdditionalCharges,
-                        totalAmount:
-                            updatePayload.finalPrice.breakdown.totalAmount,
-                        numberOfNights:
-                            updatePayload.finalPrice.breakdown.numberOfNights,
-                        averagePerNight:
-                            updatePayload.finalPrice.breakdown.averagePerNight,
-                        totalTax: updatePayload.finalPrice.totalTax,
+                        totalBaseAmount: updatePayload.finalPrice.breakdown.totalBaseAmount,
+                        totalAdditionalCharges: updatePayload.finalPrice.breakdown.totalAdditionalCharges,
+                        totalAmount: updatePayload.finalPrice.breakdown.totalAmount,
+                        numberOfNights: updatePayload.finalPrice.breakdown.numberOfNights,
+                        averagePerNight: updatePayload.finalPrice.breakdown.averagePerNight,
+                        totalTax: updatePayload.finalPrice.totalTax
                     },
-                    loyaltyDiscount: updatePayload.finalPrice.loyaltyDiscount,
+                    loyaltyDiscount: updatePayload.finalPrice.loyaltyDiscount
+
                 },
                 promoCode: null,
                 currency: updatePayload.currencyCode,
@@ -868,29 +689,17 @@ export class ReservationService {
                 email: updatePayload.bookingUserEmail,
                 phone: updatePayload.bookingUserPhone,
                 guests: {
-                    adults: updatePayload.rooms.reduce(
-                        (sum, room) => sum + room.adults,
-                        0
-                    ),
-                    children: updatePayload.rooms.reduce(
-                        (sum, room) => sum + room.children,
-                        0
-                    ),
-                    rooms: updatePayload.rooms.length,
+                    adults: updatePayload.rooms.reduce((sum, room) => sum + room.adults, 0),
+                    children: updatePayload.rooms.reduce((sum, room) => sum + room.children, 0),
+                    rooms: updatePayload.rooms.length
                 },
                 guestDetails: updatePayload.guests.map(guest => ({
                     type: guest.type,
                     firstName: guest.firstName,
                     lastName: guest.lastName,
                     dateOfBirth: guest.dob,
-                    email:
-                        guest.type === 'adult'
-                            ? updatePayload.bookingUserEmail
-                            : undefined,
-                    phone:
-                        guest.type === 'adult'
-                            ? updatePayload.bookingUserPhone
-                            : undefined,
+                    email: guest.type === 'adult' ? updatePayload.bookingUserEmail : undefined,
+                    phone: guest.type === 'adult' ? updatePayload.bookingUserPhone : undefined
                 })),
                 paymentMethod: existingReservation.paymentMethod,
                 bookingCode: existingReservation.bookingCode,
@@ -899,28 +708,18 @@ export class ReservationService {
                 bookingStatus: 'modified' as BookingStatus,
             };
 
-            this.emailService
-                .reservationUpdatedEmail(emailBookingDetails)
-                .catch(error => {
-                    console.error(
-                        'Failed to send reservation update email:',
-                        error
-                    );
-                });
+            this.emailService.reservationUpdatedEmail(emailBookingDetails).catch(error => {
+                console.error("Failed to send reservation update email:", error);
+            });
 
-            return successResponse(
-                'Reservation updated successfully',
-                modificationSummary
-            );
+            return successResponse("Reservation updated successfully", modificationSummary);
+
         } catch (error) {
-            console.error('Error updating reservation:', error);
+            console.error("Error updating reservation:", error);
             if (error instanceof Error) {
-                return errorResponse(
-                    'Failed to update reservation',
-                    error.message
-                );
+                return errorResponse("Failed to update reservation", error.message);
             }
-            return errorResponse('Failed to update reservation');
+            return errorResponse("Failed to update reservation");
         }
     }
     private async getAccessiblePropertyIds(
@@ -938,68 +737,40 @@ export class ReservationService {
 
                 switch (userLevel) {
                     case 4:
-                        daoRes =
-                            await this.dashUtils.getPropertyIdsAndCodesForLevel4(
-                                creationId
-                            );
+                        daoRes = await this.dashUtils.getPropertyIdsAndCodesForLevel4(creationId);
                         break;
                     case 3:
-                        daoRes =
-                            await this.dashUtils.getPropertyIdsAndCodesForLevel3(
-                                creationId
-                            );
+                        daoRes = await this.dashUtils.getPropertyIdsAndCodesForLevel3(creationId);
                         break;
                     case 2:
-                        daoRes =
-                            await this.dashUtils.getPropertyIdsAndCodesForLevel2(
-                                creationId
-                            );
+                        daoRes = await this.dashUtils.getPropertyIdsAndCodesForLevel2(creationId);
                         break;
                     case 1:
                     case 0:
-                        daoRes =
-                            await this.dashUtils.getPropertyIdAndCodeForLevel0And1(
-                                creationId
-                            );
+                        daoRes = await this.dashUtils.getPropertyIdAndCodeForLevel0And1(creationId);
                         break;
                     default:
-                        return {
-                            success: false,
-                            propertyIds: [],
-                            message: 'Invalid user level',
-                        };
+                        return { success: false, propertyIds: [], message: "Invalid user level" };
                 }
 
                 if (!daoRes.success) {
-                    return {
-                        success: false,
-                        propertyIds: [],
-                        message: daoRes.message,
-                    };
+                    return { success: false, propertyIds: [], message: daoRes.message };
                 }
 
                 allAccessibleProperties = daoRes.data;
 
                 // Validate access to specific property
-                const hasAccess = allAccessibleProperties.some(
-                    p =>
-                        p.id === specificPropertyId ||
-                        p.code === specificPropertyCode
+                const hasAccess = allAccessibleProperties.some(p =>
+                    p.id === specificPropertyId || p.code === specificPropertyCode
                 );
 
                 if (!hasAccess) {
-                    return {
-                        success: false,
-                        propertyIds: [],
-                        message: 'Access denied to this property',
-                    };
+                    return { success: false, propertyIds: [], message: "Access denied to this property" };
                 }
 
                 // Return only the specific property ID
-                const specificProperty = allAccessibleProperties.find(
-                    p =>
-                        p.id === specificPropertyId ||
-                        p.code === specificPropertyCode
+                const specificProperty = allAccessibleProperties.find(p =>
+                    p.id === specificPropertyId || p.code === specificPropertyCode
                 );
                 return { success: true, propertyIds: [specificProperty!.id] };
             }
@@ -1008,56 +779,34 @@ export class ReservationService {
             let daoRes: any;
             switch (userLevel) {
                 case 4:
-                    daoRes =
-                        await this.dashUtils.getPropertyIdsAndCodesForLevel4(
-                            creationId
-                        );
+                    daoRes = await this.dashUtils.getPropertyIdsAndCodesForLevel4(creationId);
                     break;
                 case 3:
-                    daoRes =
-                        await this.dashUtils.getPropertyIdsAndCodesForLevel3(
-                            creationId
-                        );
+                    daoRes = await this.dashUtils.getPropertyIdsAndCodesForLevel3(creationId);
                     break;
                 case 2:
-                    daoRes =
-                        await this.dashUtils.getPropertyIdsAndCodesForLevel2(
-                            creationId
-                        );
+                    daoRes = await this.dashUtils.getPropertyIdsAndCodesForLevel2(creationId);
                     break;
                 case 1:
                 case 0:
-                    daoRes =
-                        await this.dashUtils.getPropertyIdAndCodeForLevel0And1(
-                            creationId
-                        );
+                    daoRes = await this.dashUtils.getPropertyIdAndCodeForLevel0And1(creationId);
                     break;
                 default:
-                    return {
-                        success: false,
-                        propertyIds: [],
-                        message: 'Invalid user level',
-                    };
+                    return { success: false, propertyIds: [], message: "Invalid user level" };
             }
 
             if (!daoRes.success) {
-                return {
-                    success: false,
-                    propertyIds: [],
-                    message: daoRes.message,
-                };
+                return { success: false, propertyIds: [], message: daoRes.message };
             }
 
-            const propertyIds = daoRes.data.map(
-                (p: IPropertyCodeAndIds) => p.id
-            );
+            const propertyIds = daoRes.data.map((p: IPropertyCodeAndIds) => p.id);
             return { success: true, propertyIds };
+
         } catch (error) {
             return {
                 success: false,
                 propertyIds: [],
-                message:
-                    error instanceof Error ? error.message : 'Unknown error',
+                message: error instanceof Error ? error.message : "Unknown error"
             };
         }
     }
@@ -1071,13 +820,13 @@ export class ReservationService {
         specificPropertyId?: string,
         specificPropertyCode?: string,
         bookingStatus?: string,
-        bookingSource?: string, // ← Add these
-        deviceType?: string, // ← Add these
-        bookingCode?: string, // ← Add these
-        guestName?: string, // ← Add these
-        promoCode?: string, // ← Add these
-        countryCode?: string, // ← Add these
-        dateFilterType?: 'checkin' | 'booking' | 'modification' // ← Add these
+        bookingSource?: string,        // ← Add these
+        deviceType?: string,           // ← Add these
+        bookingCode?: string,          // ← Add these
+        guestName?: string,            // ← Add these
+        promoCode?: string,            // ← Add these
+        countryCode?: string,          // ← Add these
+        dateFilterType?: 'checkin' | 'booking' | 'modification'  // ← Add these
     ): Promise<IApiResponse> {
         try {
             const accessResult = await this.getAccessiblePropertyIds(
@@ -1088,53 +837,46 @@ export class ReservationService {
             );
 
             if (!accessResult.success) {
-                return errorResponse(
-                    accessResult.message ||
-                        'Failed to get accessible properties'
-                );
+                return errorResponse(accessResult.message || "Failed to get accessible properties");
             }
 
             if (accessResult.propertyIds.length === 0) {
-                return successResponse('No reservations found', [], {
+                return successResponse("No reservations found", [], {
                     currentPage: page,
                     totalPages: 0,
                     totalResults: 0,
                     hasNextPage: false,
                     hasPreviousPage: false,
-                    resultsPerPage: limit,
+                    resultsPerPage: limit
                 });
             }
 
-            const result =
-                await this.reservationRepository.getReservationsForDateRange(
-                    accessResult.propertyIds,
-                    startDate,
-                    endDate,
-                    page,
-                    limit,
-                    bookingStatus,
-                    bookingSource, // ← Add these
-                    deviceType, // ← Add these
-                    bookingCode, // ← Add these
-                    guestName, // ← Add these
-                    promoCode, // ← Add these
-                    countryCode, // ← Add these
-                    dateFilterType // ← Add these
-                );
+            const result = await this.reservationRepository.getReservationsForDateRange(
+                accessResult.propertyIds,
+                startDate,
+                endDate,
+                page,
+                limit,
+                bookingStatus,
+                bookingSource,        // ← Add these
+                deviceType,           // ← Add these
+                bookingCode,          // ← Add these
+                guestName,            // ← Add these
+                promoCode,            // ← Add these
+                countryCode,          // ← Add these
+                dateFilterType        // ← Add these
+            );
 
             return successResponse(
-                'Reservations fetched successfully',
+                "Reservations fetched successfully",
                 result.data,
                 result.pagination
             );
         } catch (error) {
             if (error instanceof Error) {
-                return errorResponse(
-                    'Failed to fetch reservations',
-                    error.message
-                );
+                return errorResponse("Failed to fetch reservations", error.message);
             }
-            return errorResponse('Failed to fetch reservations');
+            return errorResponse("Failed to fetch reservations");
         }
     }
 
@@ -1158,20 +900,17 @@ export class ReservationService {
             );
 
             if (!accessResult.success) {
-                return errorResponse(
-                    accessResult.message ||
-                        'Failed to get accessible properties'
-                );
+                return errorResponse(accessResult.message || "Failed to get accessible properties");
             }
 
             if (accessResult.propertyIds.length === 0) {
-                return successResponse('No arrivals found', [], {
+                return successResponse("No arrivals found", [], {
                     currentPage: page,
                     totalPages: 0,
                     totalResults: 0,
                     hasNextPage: false,
                     hasPreviousPage: false,
-                    resultsPerPage: limit,
+                    resultsPerPage: limit
                 });
             }
 
@@ -1184,16 +923,12 @@ export class ReservationService {
                 bookingStatus
             );
 
-            return successResponse(
-                'Arrivals fetched successfully',
-                result.data,
-                result.pagination
-            );
+            return successResponse("Arrivals fetched successfully", result.data, result.pagination);
         } catch (error) {
             if (error instanceof Error) {
-                return errorResponse('Failed to fetch arrivals', error.message);
+                return errorResponse("Failed to fetch arrivals", error.message);
             }
-            return errorResponse('Failed to fetch arrivals');
+            return errorResponse("Failed to fetch arrivals");
         }
     }
 
@@ -1217,20 +952,17 @@ export class ReservationService {
             );
 
             if (!accessResult.success) {
-                return errorResponse(
-                    accessResult.message ||
-                        'Failed to get accessible properties'
-                );
+                return errorResponse(accessResult.message || "Failed to get accessible properties");
             }
 
             if (accessResult.propertyIds.length === 0) {
-                return successResponse('No departures found', [], {
+                return successResponse("No departures found", [], {
                     currentPage: page,
                     totalPages: 0,
                     totalResults: 0,
                     hasNextPage: false,
                     hasPreviousPage: false,
-                    resultsPerPage: limit,
+                    resultsPerPage: limit
                 });
             }
 
@@ -1243,19 +975,12 @@ export class ReservationService {
                 bookingStatus
             );
 
-            return successResponse(
-                'Departures fetched successfully',
-                result.data,
-                result.pagination
-            );
+            return successResponse("Departures fetched successfully", result.data, result.pagination);
         } catch (error) {
             if (error instanceof Error) {
-                return errorResponse(
-                    'Failed to fetch departures',
-                    error.message
-                );
+                return errorResponse("Failed to fetch departures", error.message);
             }
-            return errorResponse('Failed to fetch departures');
+            return errorResponse("Failed to fetch departures");
         }
     }
 
@@ -1278,20 +1003,17 @@ export class ReservationService {
             );
 
             if (!accessResult.success) {
-                return errorResponse(
-                    accessResult.message ||
-                        'Failed to get accessible properties'
-                );
+                return errorResponse(accessResult.message || "Failed to get accessible properties");
             }
 
             if (accessResult.propertyIds.length === 0) {
-                return successResponse('No check-ins found', [], {
+                return successResponse("No check-ins found", [], {
                     currentPage: page,
                     totalPages: 0,
                     totalResults: 0,
                     hasNextPage: false,
                     hasPreviousPage: false,
-                    resultsPerPage: limit,
+                    resultsPerPage: limit
                 });
             }
 
@@ -1303,19 +1025,12 @@ export class ReservationService {
                 limit
             );
 
-            return successResponse(
-                'Checked-in reservations fetched successfully',
-                result.data,
-                result.pagination
-            );
+            return successResponse("Checked-in reservations fetched successfully", result.data, result.pagination);
         } catch (error) {
             if (error instanceof Error) {
-                return errorResponse(
-                    'Failed to fetch checked-in reservations',
-                    error.message
-                );
+                return errorResponse("Failed to fetch checked-in reservations", error.message);
             }
-            return errorResponse('Failed to fetch checked-in reservations');
+            return errorResponse("Failed to fetch checked-in reservations");
         }
     }
 
@@ -1338,20 +1053,17 @@ export class ReservationService {
             );
 
             if (!accessResult.success) {
-                return errorResponse(
-                    accessResult.message ||
-                        'Failed to get accessible properties'
-                );
+                return errorResponse(accessResult.message || "Failed to get accessible properties");
             }
 
             if (accessResult.propertyIds.length === 0) {
-                return successResponse('No check-outs found', [], {
+                return successResponse("No check-outs found", [], {
                     currentPage: page,
                     totalPages: 0,
                     totalResults: 0,
                     hasNextPage: false,
                     hasPreviousPage: false,
-                    resultsPerPage: limit,
+                    resultsPerPage: limit
                 });
             }
 
@@ -1363,40 +1075,23 @@ export class ReservationService {
                 limit
             );
 
-            return successResponse(
-                'Checked-out reservations fetched successfully',
-                result.data,
-                result.pagination
-            );
+            return successResponse("Checked-out reservations fetched successfully", result.data, result.pagination);
         } catch (error) {
             if (error instanceof Error) {
-                return errorResponse(
-                    'Failed to fetch checked-out reservations',
-                    error.message
-                );
+                return errorResponse("Failed to fetch checked-out reservations", error.message);
             }
-            return errorResponse('Failed to fetch checked-out reservations');
+            return errorResponse("Failed to fetch checked-out reservations");
         }
     }
 
-    public async deleteReservation(
-        reservationId: string
-    ): Promise<IApiResponse> {
+    public async deleteReservation(reservationId: string): Promise<IApiResponse> {
         try {
-            const reservation =
-                await this.reservationRepository.getReservationById(
-                    reservationId
-                );
+            const reservation = await this.reservationRepository.getReservationById(reservationId);
 
             if (!reservation) {
-                return errorResponse('Reservation not found');
+                return errorResponse("Reservation not found");
             }
-            // const propertyConfig = await prisma.propertyConfigs.findUnique({
-            //     where: { propertyId: reservation.propertyId },
-            //     select: { pmsIntegrationActive: true },
-            // });
-            const propertyConfig =await this.propertyConfigService.getPropertyConfig(reservation.propertyId);
-            
+
             // Generate dates for ARI increase
             const reservationDates = this.generateDateRange(
                 reservation.checkInDate,
@@ -1404,23 +1099,7 @@ export class ReservationService {
             );
 
             // Cancel reservation
-            const isPmsActive = propertyConfig?.data?.pmsIntegrationActive ?? false;
-
-            // ADD before cancelling in DB:
-            if (isPmsActive) {
-                const rtResult =
-                    await RTReservationPushService.pushCancel(reservation);
-
-                if (!rtResult.success) {
-                    return errorResponse(
-                        `PMS sync failed: ${rtResult.message}`
-                    );
-                }
-            }
-            const cancelledReservation =
-                await this.reservationRepository.deleteReservation(
-                    reservationId
-                );
+            const cancelledReservation = await this.reservationRepository.deleteReservation(reservationId);
 
             // Prepare email booking details for cancellation email
             const emailBookingDetails: IBookingDetails = {
@@ -1433,43 +1112,26 @@ export class ReservationService {
                 ratePlanCode: reservation.ratePlanCode || '',
                 numberOfRooms: reservation.finalPrice?.requestedRooms || 1,
                 finalPrice: {
-                    totalAmount:
-                        reservation.finalPrice?.totalAmount ||
-                        reservation.amount,
+                    totalAmount: reservation.finalPrice?.totalAmount || reservation.amount,
                     numberOfNights: reservation.finalPrice?.numberOfNights || 1,
-                    baseRatePerNight:
-                        reservation.finalPrice?.baseRatePerNight || 0,
-                    additionalGuestCharges:
-                        reservation.finalPrice?.additionalGuestCharges || 0,
+                    baseRatePerNight: reservation.finalPrice?.baseRatePerNight || 0,
+                    additionalGuestCharges: reservation.finalPrice?.additionalGuestCharges || 0,
                     breakdown: reservation.finalPrice?.breakdown || {},
-                    dailyBreakdown:
-                        reservation.finalPrice?.dailyBreakdown || [],
+                    dailyBreakdown: reservation.finalPrice?.dailyBreakdown || [],
                     availableRooms: reservation.finalPrice?.availableRooms || 0,
                     requestedRooms: reservation.finalPrice?.requestedRooms || 1,
                     totalTax: reservation.finalPrice?.totalTax || 0,
                     taxes: [],
-                    subtotal:
-                        (reservation.finalPrice?.totalAmount ||
-                            reservation.amount) -
-                        (reservation.finalPrice?.totalTax || 0),
+                    subtotal: (reservation.finalPrice?.totalAmount || reservation.amount) - (reservation.finalPrice?.totalTax || 0),
                     taxBreakdown: {
-                        totalBaseAmount:
-                            reservation.finalPrice?.breakdown
-                                ?.totalBaseAmount || 0,
-                        totalAdditionalCharges:
-                            reservation.finalPrice?.breakdown
-                                ?.totalAdditionalCharges || 0,
-                        totalAmount:
-                            reservation.finalPrice?.breakdown?.totalAmount || 0,
-                        numberOfNights:
-                            reservation.finalPrice?.breakdown?.numberOfNights ||
-                            1,
-                        averagePerNight:
-                            reservation.finalPrice?.breakdown
-                                ?.averagePerNight || 0,
-                        totalTax: reservation.finalPrice?.totalTax || 0,
+                        totalBaseAmount: reservation.finalPrice?.breakdown?.totalBaseAmount || 0,
+                        totalAdditionalCharges: reservation.finalPrice?.breakdown?.totalAdditionalCharges || 0,
+                        totalAmount: reservation.finalPrice?.breakdown?.totalAmount || 0,
+                        numberOfNights: reservation.finalPrice?.breakdown?.numberOfNights || 1,
+                        averagePerNight: reservation.finalPrice?.breakdown?.averagePerNight || 0,
+                        totalTax: reservation.finalPrice?.totalTax || 0
                     },
-                    loyaltyDiscount: reservation.finalPrice.loyaltyDiscount,
+                    loyaltyDiscount: reservation.finalPrice.loyaltyDiscount
                 },
                 promoCode: null,
                 currency: reservation.currencyCode,
@@ -1477,34 +1139,18 @@ export class ReservationService {
                 email: reservation.bookingUserEmail,
                 phone: reservation.bookingUserPhone || '',
                 guests: {
-                    adults: Array.isArray(reservation.guests)
-                        ? reservation.guests.filter(
-                              (g: any) => g.type === 'adult'
-                          ).length
-                        : 1,
-                    children: Array.isArray(reservation.guests)
-                        ? reservation.guests.filter(
-                              (g: any) => g.type === 'child'
-                          ).length
-                        : 0,
-                    rooms: 1,
+                    adults: Array.isArray(reservation.guests) ? reservation.guests.filter((g: any) => g.type === 'adult').length : 1,
+                    children: Array.isArray(reservation.guests) ? reservation.guests.filter((g: any) => g.type === 'child').length : 0,
+                    rooms: 1
                 },
-                guestDetails: Array.isArray(reservation.guests)
-                    ? reservation.guests.map((guest: any) => ({
-                          type: guest.type,
-                          firstName: guest.firstName,
-                          lastName: guest.lastName,
-                          dateOfBirth: guest.dateOfBirth || guest.dob,
-                          email:
-                              guest.type === 'adult'
-                                  ? reservation.bookingUserEmail
-                                  : undefined,
-                          phone:
-                              guest.type === 'adult'
-                                  ? reservation.bookingUserPhone || undefined
-                                  : undefined,
-                      }))
-                    : [],
+                guestDetails: Array.isArray(reservation.guests) ? reservation.guests.map((guest: any) => ({
+                    type: guest.type,
+                    firstName: guest.firstName,
+                    lastName: guest.lastName,
+                    dateOfBirth: guest.dateOfBirth || guest.dob,
+                    email: guest.type === 'adult' ? reservation.bookingUserEmail : undefined,
+                    phone: guest.type === 'adult' ? (reservation.bookingUserPhone || undefined) : undefined
+                })) : [],
                 paymentMethod: reservation.paymentMethod,
                 bookingCode: reservation.bookingCode,
                 reservationId: reservation.id,
@@ -1512,63 +1158,42 @@ export class ReservationService {
                 bookingStatus: 'cancelled' as BookingStatus,
             };
 
-            if (!isPmsActive &&reservation.propertyCode && reservation.roomTypeCode) {
+            if (reservation.propertyCode && reservation.roomTypeCode) {
                 Promise.all([
                     this.ariManupulationRepo.increaseAvailableRooms({
                         propertyCode: reservation.propertyCode,
                         dates: reservationDates,
-                        roomInfos: [
-                            {
-                                roomTypeCode: reservation.roomTypeCode,
-                                numberOfRooms:
-                                    reservation.finalPrice?.requestedRooms,
-                            },
-                        ],
+                        roomInfos: [{
+                            roomTypeCode: reservation.roomTypeCode,
+                            numberOfRooms: reservation.finalPrice?.requestedRooms
+                        }]
                     }),
-                    this.emailService.reservationCancelEmail(
-                        emailBookingDetails
-                    ),
+                    this.emailService.reservationCancelEmail(emailBookingDetails)
                 ]).catch(error => {
-                    console.error('Non-blocking operations failed:', error);
+                    console.error("Non-blocking operations failed:", error);
                 });
             } else {
                 // If no room info, just send the email
-                this.emailService
-                    .reservationCancelEmail(emailBookingDetails)
-                    .catch(error => {
-                        console.error(
-                            'Failed to send cancellation email:',
-                            error
-                        );
-                    });
+                this.emailService.reservationCancelEmail(emailBookingDetails).catch(error => {
+                    console.error("Failed to send cancellation email:", error);
+                });
             }
 
-            return successResponse(
-                'Reservation cancelled successfully',
-                cancelledReservation
-            );
+            return successResponse("Reservation cancelled successfully", cancelledReservation);
         } catch (error) {
             if (error instanceof Error) {
-                return errorResponse(
-                    'Failed to cancel reservation',
-                    error.message
-                );
+                return errorResponse("Failed to cancel reservation", error.message);
             }
-            return errorResponse('Failed to cancel reservation');
+            return errorResponse("Failed to cancel reservation");
         }
     }
 
-    public async noShowReservation(
-        reservationId: string
-    ): Promise<IApiResponse> {
+    public async noShowReservation(reservationId: string): Promise<IApiResponse> {
         try {
-            const reservation =
-                await this.reservationRepository.getReservationById(
-                    reservationId
-                );
+            const reservation = await this.reservationRepository.getReservationById(reservationId);
 
             if (!reservation) {
-                return errorResponse('Reservation not found');
+                return errorResponse("Reservation not found");
             }
 
             const currentCheckout = reservation.checkOutDate;
@@ -1577,47 +1202,34 @@ export class ReservationService {
                 currentCheckout
             );
 
-            const noShowReservation =
-                await this.reservationRepository.NoShow(reservationId);
+            const noShowReservation = await this.reservationRepository.NoShow(reservationId);
 
             // Increase room availability back
             if (reservation.propertyCode && reservation.roomTypeCode) {
                 await this.ariManupulationRepo.increaseAvailableRooms({
                     propertyCode: reservation.propertyCode,
                     dates: additionalDates,
-                    roomInfos: [
-                        {
-                            roomTypeCode: reservation.roomTypeCode,
-                            numberOfRooms:
-                                reservation.finalPrice?.requestedRooms,
-                        },
-                    ],
+                    roomInfos: [{
+                        roomTypeCode: reservation.roomTypeCode,
+                        numberOfRooms: reservation.finalPrice?.requestedRooms
+                    }]
                 });
             }
 
-            return successResponse('Status updated to No show', reservation);
+            return successResponse("Status updated to No show", reservation);
         } catch (error) {
             if (error instanceof Error) {
-                return errorResponse(
-                    'Failed to update reservation status',
-                    error.message
-                );
+                return errorResponse("Failed to update reservation status", error.message);
             }
-            return errorResponse('Failed to update reservation status');
+            return errorResponse("Failed to update reservation status");
         }
     }
-    public async amendReservation(
-        reservationId: string,
-        newCheckoutDate: Date
-    ): Promise<IApiResponse> {
+    public async amendReservation(reservationId: string, newCheckoutDate: Date): Promise<IApiResponse> {
         try {
-            const reservation =
-                await this.reservationRepository.getReservationById(
-                    reservationId
-                );
+            const reservation = await this.reservationRepository.getReservationById(reservationId);
 
             if (!reservation) {
-                return errorResponse('Reservation not found');
+                return errorResponse("Reservation not found");
             }
 
             // Calculate additional dates needed
@@ -1627,43 +1239,28 @@ export class ReservationService {
                 newCheckoutDate
             );
 
-            if (
-                additionalDates.length > 0 &&
-                reservation.propertyCode &&
-                reservation.roomTypeCode
-            ) {
+            if (additionalDates.length > 0 && reservation.propertyCode && reservation.roomTypeCode) {
                 // Decrease availability for extended dates
                 await this.ariManupulationRepo.decreaseAvailableRooms({
                     propertyCode: reservation.propertyCode,
                     dates: additionalDates,
-                    roomInfos: [
-                        {
-                            roomTypeCode: reservation.roomTypeCode,
-                            numberOfRooms: 1,
-                        },
-                    ],
+                    roomInfos: [{
+                        roomTypeCode: reservation.roomTypeCode,
+                        numberOfRooms: 1
+                    }]
                 });
             }
 
             // Update reservation
-            const updatedReservation =
-                await this.reservationRepository.amendReservation(
-                    reservationId,
-                    newCheckoutDate
-                );
+            const updatedReservation = await this.reservationRepository.amendReservation(reservationId, newCheckoutDate);
 
-            return successResponse(
-                'Reservation amended successfully',
-                updatedReservation
-            );
+            return successResponse("Reservation amended successfully", updatedReservation);
         } catch (error) {
             if (error instanceof Error) {
-                return errorResponse(
-                    'Failed to amend reservation',
-                    error.message
-                );
+                return errorResponse("Failed to amend reservation", error.message);
             }
-            return errorResponse('Failed to amend reservation');
+            return errorResponse("Failed to amend reservation");
         }
     }
+
 }

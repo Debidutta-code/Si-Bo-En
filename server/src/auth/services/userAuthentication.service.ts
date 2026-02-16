@@ -131,52 +131,64 @@ export class AuthService {
     }
   }
   public static async updateUserProfile({
-    id,
-    firstName,
-    lastName,
-    email,
-    password,
-    role,
-    propertyId,
-    name,
-  }: {
-    id: string;
-    firstName?: string;
-    lastName?: string;
-    email?: string;
-    password?: string;
-    role?: "superAdmin" | "groupManager" | "hotelManager" | "staff" | "brandManager" | "revenueManager";
-    propertyId?: string;
-    name?: string;
-  }) {
-    try {
-      const oldUser = await UserAuthRepository.findUserById(id);
-      if (!oldUser) {
-        return errorResponse('User Not found');
-      }
-      // console.log(oldUser)
-      let newUser: any = {};
-      if (password) {
-        const isOldPassword = await compareHash(password, oldUser.password);
-        if (isOldPassword) {
-          return errorResponse('New password cannot same as last password');
+        id,
+        firstName,
+        lastName,
+        email,
+        password,
+        propertyId,
+    }: {
+        id: string;
+        firstName?: string;
+        lastName?: string;
+        email?: string;
+        password?: string;
+        role?:
+            | 'superAdmin'
+            | 'groupManager'
+            | 'hotelManager'
+            | 'staff'
+            | 'brandManager'
+            | 'revenueManager';
+        propertyId?: string;
+        name?: string;
+    }) {
+        try {
+            const oldUser = await UserAuthRepository.findUserById(id);
+            if (!oldUser) {
+                return errorResponse('User Not found');
+            }
+            // console.log(oldUser)
+            let newUser: any = {};
+            if (password) {
+                const isOldPassword = await compareHash(
+                    password,
+                    oldUser.password
+                );
+                if (isOldPassword) {
+                    return errorResponse(
+                        'New password cannot same as last password'
+                    );
+                }
+                const newHashedPassword = await createHash(password);
+                if (password) newUser.password = newHashedPassword;
+            }
+            if (firstName) newUser.firstName = firstName;
+            if (lastName) newUser.lastName = lastName;
+            if (email) newUser.email = email;
+            if (propertyId) newUser.propertyId = new Types.ObjectId(propertyId);
+            const updateRes = await UserAuthRepository.updateUser(id, {
+                firstName: newUser.firstName,
+                lastName: newUser.lastName,
+                email: newUser.email,
+                password: newUser.password,
+                creationId: newUser.propertyId,
+            });
+            return successResponse('User Modified Successfully', { updateRes });
+        } catch (error: any) {
+            throw new Error(error?.message);
         }
-        const newHashedPassword = await createHash(password);
-        if (password) newUser.password = newHashedPassword;
-      }
-      if (firstName) newUser.firstName = firstName;
-      if (lastName) newUser.lastName = lastName;
-      if (email) newUser.email = email;
-      if (propertyId) newUser.propertyId = new Types.ObjectId(propertyId)
-      const updateRes = await UserAuthRepository.updateUser(id, { firstName: newUser.firstName, lastName: newUser.lastName, email: newUser.email, password: newUser.password, creationId: newUser.propertyId });
-      // if (role || role != "" || role != oldUser.role) {
-
-      // }
-      return successResponse('User Modified Successfully', { updateRes });
-    } catch (error: any) {
-      throw new Error(error?.message)
     }
-  }
   public static async getUserForMapping(userId: string, role: string) {
     try {
       const users = await Users.unMappedUser(userId, role)
