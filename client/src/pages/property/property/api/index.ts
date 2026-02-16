@@ -1,5 +1,20 @@
-import {updatePropertyConfig,fetchPropertyConfig} from "./property-config.api";
+import {updatePropertyConfig,fetchPropertyConfig,
+    getAllPartnerIntegrations,
+    addPropertyIntegrationField,
+    createPropertyIntegration,
+    deletePropertyIntegration,
+    deletePropertyIntegrationField,
+    updatePropertyIntegrationField,
+    updatePropertyIntegrationStatus
+} from "./property-config.api";
 export{
     updatePropertyConfig,
-    fetchPropertyConfig
+    fetchPropertyConfig,
+    getAllPartnerIntegrations,
+    addPropertyIntegrationField,
+    createPropertyIntegration,
+    deletePropertyIntegration,
+    deletePropertyIntegrationField,
+    updatePropertyIntegrationField,
+    updatePropertyIntegrationStatus
 }

@@ -10,6 +10,7 @@ import { roomAminityRoute } from "./roomAmenity.route";
 import { managementRoute } from "./management.route";
 import { bookingEngineRoute } from './bookingEngine.routes';
 import { attachPropertyDetails } from '../../middlewares/property.middleware';
+import {propertyPartnerRouter} from "./property-integration.route"
 import {
   vedioRouter
 } from "./vedio.route"
@@ -20,6 +21,8 @@ propertyRouter
 propertyRouter.use('/management', protect, managementRoute);
 propertyRouter.use('/booking-engine',  bookingEngineRoute)
 propertyRouter.use("/video", vedioRouter)
+propertyRouter.use("/integration", propertyPartnerRouter)
+
 propertyRouter
   .route('/:id')
   .get(

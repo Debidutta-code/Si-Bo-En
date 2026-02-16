@@ -1,7 +1,13 @@
 import type {
-    IUPropertyConfig
+    IUPropertyConfig,
+    IMasterPartnersWProperty,
+    ImasterIntegrationURLFields,
+    IrequiredFieldsForMasterIntegration
 } from "./property-config.type";
 
 export type {
-IUPropertyConfig
+IUPropertyConfig,
+IMasterPartnersWProperty,
+ImasterIntegrationURLFields,
+IrequiredFieldsForMasterIntegration
 }

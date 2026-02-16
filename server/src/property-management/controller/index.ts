@@ -23,3 +23,4 @@ export{
     PropertyConfigController,
     BookingEngineController,
 }
+export * from "./property-integration.controller";

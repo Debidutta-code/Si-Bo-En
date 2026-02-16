@@ -1,7 +1,21 @@
 import {updatePropertyConfigService,
-    fetchPropertyConfigService
+    fetchPropertyConfigService,
+    addPropertyIntegrationFieldService,
+    createPropertyIntegrationService,
+    deletePropertyIntegrationFieldService,
+    deletePropertyIntegrationService,
+    getAllPartnerIntegrationsService,
+    updatePropertyIntegrationFieldService,
+    updatePropertyIntegrationStatusService
 } from "./property-config.services";
 export{
     updatePropertyConfigService,
-    fetchPropertyConfigService
+    fetchPropertyConfigService,
+    addPropertyIntegrationFieldService,
+    createPropertyIntegrationService,
+    deletePropertyIntegrationFieldService,
+    deletePropertyIntegrationService,
+    getAllPartnerIntegrationsService,
+    updatePropertyIntegrationFieldService,
+    updatePropertyIntegrationStatusService
 }

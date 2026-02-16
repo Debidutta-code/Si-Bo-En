@@ -27,3 +27,4 @@ export {
     RoomService,
     BookingEngineService,
 }
+export * from "../services/property-integration.service";

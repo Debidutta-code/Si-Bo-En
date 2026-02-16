@@ -645,8 +645,7 @@ model Charge {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  @@unique([propertyCode, roomTypeCode, date])
-  @@index([propertyCode, roomTypeCode, ratePlanCode, date])
+  @@unique([propertyCode, roomTypeCode, ratePlanCode, date])
   @@map("charges")
 }
 
@@ -685,6 +684,7 @@ model Inventory {
 
   @@index([propertyCode])
   @@index([roomTypeCode])
+  @@unique([propertyCode, roomTypeCode, date])
   @@map("inventories")
 }
 

@@ -173,6 +173,7 @@ partnerIntegrationRoute.route('/')
     restrictTo("super_admin"),
     integrationPartnerController.getAllPartners.bind(integrationPartnerController)
   );
+  
 partnerIntegrationRoute.route('/:id')
   .delete(
     protect,
