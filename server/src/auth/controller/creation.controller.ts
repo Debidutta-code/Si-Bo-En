@@ -35,6 +35,15 @@ export default class CreationController {
             return res.status(500).json(errorResponse("Internal server error", error?.message));
         }
     }
+    public static async deleteCreation(req: CustomRequest, res: Response) {
+        try {
+            const id = req.params.id;
+            const serRes = await CreationService.deleteCreation(id);
+            return res.status(serRes.success ? 200 : 400).json(serRes);
+        } catch (error: any) {
+            return res.status(500).json(errorResponse("Internal server error", error?.message));
+        }
+    }
     public static async toggleDraftController(req: CustomRequest, res: Response) {
         try {
             const { val } = req.body;

@@ -116,7 +116,6 @@ export default function MembersPage() {
   // Update User Handler
   const handleUpdateUser = async (formData: ICreateUser) => {
     if (!editingUser) return;
-
     setErrors([]);
     setLoading(true);
     const finalSchema = z.object({
@@ -125,20 +124,21 @@ export default function MembersPage() {
       email: z.string().email({ message: "Invalid email address" }),
       password: z
         .string()
-        .min(6, { message: "Password must be at least 6 characters long." })
-        .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter." })
-        .regex(/[@$&]/, { message: "Password must contain one of the special characters: @, $, &." })
-        .regex(/[0-9]/, { message: "Password must contain at least one number." }),
-      confirmPassword: z
-        .string()
-        .min(6, { message: "Password must be at least 6 characters long." })
-        .regex(/[A-Z]/, { message: "Password must contain at least one uppercase letter." })
-        .regex(/[@$&]/, { message: "Password must contain one of the special characters: @, $, &." })
-        .regex(/[0-9]/, { message: "Password must contain at least one number." }),
+        .optional()
+        .refine((val) => !val || val.length >= 6, { message: "Password must be at least 6 characters long." })
+        .refine((val) => !val || /[A-Z]/.test(val), { message: "Password must contain at least one uppercase letter." })
+        .refine((val) => !val || /[@$&]/.test(val), { message: "Password must contain one of the special characters: @, $, &." })
+        .refine((val) => !val || /[0-9]/.test(val), { message: "Password must contain at least one number." }),
+      confirmPassword: z.string().optional(),
       role: z.string().min(1, 'Role is required.'),
       level: z.number()
     }).refine(
-      (data) => data.password === data.confirmPassword,
+      (data) => {
+        if (data.password && data.password !== '') {
+          return data.password === data.confirmPassword;
+        }
+        return true;
+      },
       {
         message: "Passwords don't match.",
         path: ['confirmPassword'],
@@ -196,6 +196,7 @@ export default function MembersPage() {
 
 
 
+
   const confirmDeleteUser = async () => {
     // console.log(userToDelete)
     if (!userToDelete) {
@@ -250,7 +251,7 @@ export default function MembersPage() {
       width: 'w-40',
       render: (value: string) => (
         <Badge variant="outline">
-          {value ? capitalizeFirstLetter(value) : 'N/A'}
+          {value ? capitalizeFirstLetter(value.replaceAll("_", " ")) : 'N/A'}
         </Badge>
       )
     },

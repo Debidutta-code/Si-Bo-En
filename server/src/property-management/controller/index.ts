@@ -4,13 +4,7 @@ import {Property,
     PropertyAminityController
 } from "./property.controller";
 import {RoomAminityController,RoomController} from "./room.controller";
-import {AminityController,
-    Category,
-    PropertyType,
-    RoomAminityControllerManagement,
-    LoyaltyGuestFieldControllers,
-    PaymentIntegrationController
-} from "./types.controller";
+
 import {uploadHandler} from "./upload.controller";
 import {PropertyConfigController} from "./property-config.controller";
 import {BookingEngineController} from "./bookingEngine.controller";
@@ -25,13 +19,7 @@ export{
     PropertyAminityController,
     RoomAminityController,
     RoomController,
-    AminityController,
-    Category,
-    PropertyType,
-    RoomAminityControllerManagement,
     uploadHandler,
     PropertyConfigController,
     BookingEngineController,
-    LoyaltyGuestFieldControllers,
-    PaymentIntegrationController
 }

@@ -8,14 +8,7 @@ import {
     RoomAminityService,
     RoomService
 } from "./room.service";
-import {
-    AminityServices,
-    CategoryService,
-    PropertyTypeService,
-    RoomAmenityServices,
-    LoyaltyGuestFields,
-    PaymentIntegrationService
-} from "./types.service";
+
 
 
 import {PropertyConfigService} from "./property-config.service";
@@ -27,16 +20,10 @@ import { BookingEngineService } from "./bookingEngine.service";
 export {
     PropertyConfigService,
     BankService,
-    AminityServices,
-    CategoryService,
     PropertyAddressService,
     PropertyAminityService,
     PropertyService,
     RoomAminityService,
     RoomService,
-    PropertyTypeService,
-    RoomAmenityServices,
     BookingEngineService,
-    LoyaltyGuestFields,
-    PaymentIntegrationService
 }

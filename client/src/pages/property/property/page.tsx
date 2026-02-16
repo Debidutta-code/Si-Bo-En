@@ -31,6 +31,7 @@ import type {
 } from "./types";
 import { formatTimezoneLabel, getAllTimezones } from './utils/timezone.utils';
 import { minutesToTime, timeToMinutes } from './utils/time.utils';
+import DeleteCreationDialog from '@/components/Delete-Creation.dialog';
 export default function PropertyPage() {
     const { user } = useAppSelector((state) => state.user);
 
@@ -661,7 +662,9 @@ export default function PropertyPage() {
                                 </DialogContent>
                             </Dialog>
 
-
+                            <div className='ml-5'>
+                                <DeleteCreationDialog type={"property"} name={creationDetails.name} id={creationDetails.id} />
+                            </div>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>

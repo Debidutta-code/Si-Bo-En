@@ -1,8 +1,8 @@
 // services/bank.service.ts
 import { IApiResponse } from '../../utils';
+import { PaymentIntegrationDao } from '../../utils-management/repository';
 import { errorResponse, successResponse } from '../../utils/return';
 import { BankDetailsDao } from '../repository';
-import { PaymentIntegrationDao } from '../repository';
 
 export class BankService {
   public static async getBankDetailsByPropertyId(propertyId: string,all?:string) {
@@ -12,7 +12,7 @@ export class BankService {
         const paymentIntegrations = await PaymentIntegrationDao.getAllByPropertyId(propertyId);
         let activeIntegration;
         if(!all){
-          activeIntegration=await PaymentIntegrationDao.getActivatedPaymentMethod(propertyId)
+          activeIntegration=await PaymentIntegrationDao.getPaymentIntegrationById(propertyId)
         }
         return successResponse('Bank details fetched Successfully', {
           ...response,

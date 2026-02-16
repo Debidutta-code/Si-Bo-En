@@ -11,7 +11,15 @@ import toast from "react-hot-toast";
 import ImageUploadModal from "@/components/property/ImageUploadModal";
 import { uploadImages } from "@/components/property/api/create/propertyinfo";
 import { Label } from "@/components/ui/label";
-const CreateEntityDialog = ({ currentTab, creationId, level ,fetchProperties}: { currentTab: string, creationId: string, level: number, fetchProperties: () => void }) => {
+const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, creationType }:
+    {
+        currentTab: string,
+        creationId: string,
+        level: number,
+        fetchProperties: () => void,
+        creationType: "brand" | "group" | "super"
+    }
+) => {
     const [newGBP, setNewGBP] = useState<INewGBP>({
         name: "",
         type: "property",
@@ -116,9 +124,23 @@ const CreateEntityDialog = ({ currentTab, creationId, level ,fetchProperties}: {
                                 <SelectValue placeholder="Select type" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="group">Group</SelectItem>
-                                <SelectItem value="brand">Brand</SelectItem>
-                                <SelectItem value="property">Property</SelectItem>
+                                {creationType === "group" && (
+                                    <>
+                                        <SelectItem value="brand">Brand</SelectItem>
+                                        <SelectItem value="property">Property</SelectItem>
+                                    </>
+                                )} {creationType === "brand" && (
+                                    <>
+                                        <SelectItem value="property">Property</SelectItem>
+                                    </>
+                                )}
+                                {creationType === "super" && (
+                                    <>
+                                        <SelectItem value="group">Group</SelectItem>
+                                        <SelectItem value="brand">Brand</SelectItem>
+                                        <SelectItem value="property">Property</SelectItem>
+                                    </>
+                                )}
                             </SelectContent>
                         </Select>
                     </div>
@@ -136,7 +158,7 @@ const CreateEntityDialog = ({ currentTab, creationId, level ,fetchProperties}: {
                                 Upload Images
                             </Button>
                         </div>
-                        
+
                         {newGBP.images.length > 0 && (
                             <div className="mt-3 grid grid-cols-3 gap-2">
                                 {newGBP.images.map((url, index) => (

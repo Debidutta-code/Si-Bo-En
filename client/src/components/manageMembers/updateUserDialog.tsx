@@ -127,7 +127,7 @@ export default function EditMemberDialog({
             <Input
               id="email"
               type="email"
-              value={formData.email}
+              value={formData.email || ''}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               aria-invalid={!!getErrorMessage('email')}
               aria-describedby={getErrorMessage('email') ? "email-error" : undefined}
@@ -234,7 +234,7 @@ export default function EditMemberDialog({
                   roles.map((item, index) => (
                     item.level <= (currentUser?.userLevel ?? 0) && (
                       <SelectItem key={index} value={item.role}>
-                        {capitalizeFirstLetter(item.role)}
+                        {capitalizeFirstLetter(item.role).replace(/_/g, ' ')}
                       </SelectItem>
                     )
                   ))
