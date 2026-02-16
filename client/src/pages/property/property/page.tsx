@@ -14,7 +14,6 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useAppSelector } from '@/redux/hooks';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import ImageSlider from '@/components/shared/ImageSlider';
 import ImageUploadModal from '@/components/property/ImageUploadModal';
@@ -23,26 +22,22 @@ import type { IUpdateCreation } from '../types/types';
 import {
     fetchPropertyConfigService,
     updatePropertyConfigService,
-    addPropertyIntegrationFieldService,
     createPropertyIntegrationService,
-    deletePropertyIntegrationFieldService,
-    deletePropertyIntegrationService,
-    getAllPartnerIntegrationsService,
-    updatePropertyIntegrationFieldService,
     updatePropertyIntegrationStatusService,
-
-
+    getAllPartnerIntegrationsService,
+    addPropertyIntegrationFieldService,
+    updatePropertyIntegrationFieldService,
+    deletePropertyIntegrationFieldService,
 } from "./services";
 import type {
     IUPropertyConfig,
     IMasterPartnersWProperty,
-    ImasterIntegrationURLFields,
-    IrequiredFieldsForMasterIntegration
 } from "./types";
-import { formatTimezoneLabel, getAllTimezones } from './utils/timezone.utils';
-import { minutesToTime, timeToMinutes } from './utils/time.utils';
 import DeleteCreationDialog from '@/components/Delete-Creation.dialog';
 import IntegrationDialog from './components/IntegrationDialog';
+import PropertyConfigDialog from './components/PropertyConfigDialog';
+import ViewIntegrationDetailsDialog from './components/ViewIntegrationDetailsDialog';
+import ManageIntegrationFieldsDialog from './components/ManageIntegrationFieldsDialog';
 
 export default function PropertyPage() {
     const { user } = useAppSelector((state) => state.user);
@@ -95,6 +90,9 @@ export default function PropertyPage() {
     // Integration dialog state
     const [isIntegrationDialogOpen, setIsIntegrationDialogOpen] = useState(false);
     const [selectedPartner, setSelectedPartner] = useState<IMasterPartnersWProperty | null>(null);
+    const [isPropertyConfigDialogOpen, setIsPropertyConfigDialogOpen] = useState(false);
+    const [isViewDetailsDialogOpen, setIsViewDetailsDialogOpen] = useState(false);
+    const [isManageFieldsDialogOpen, setIsManageFieldsDialogOpen] = useState(false);
     
     const [updatePropertyDetails, setUpdatePropertyDetails] = useState<IUpdateCreation>({
         id: creationDetails.id,
@@ -105,7 +103,7 @@ export default function PropertyPage() {
 
     useEffect(() => {
 
-        fetchProperty();
+        initialFetch();
     }, [creationId, navigate]);
     const initialFetch = async () => {
         await Promise.all([
@@ -359,6 +357,92 @@ export default function PropertyPage() {
         // Could add analytics or additional UI updates here
     };
 
+    const handleToggleIntegrationStatus = async (integrationId: string, currentStatus: boolean) => {
+        try {
+            const newStatus = !currentStatus;
+            const response = await updatePropertyIntegrationStatusService(integrationId, newStatus);
+            
+            if (response.success) {
+                toast.success(`Integration ${newStatus ? 'activated' : 'deactivated'} successfully`);
+                // Refresh partners to show updated status
+                if (propertyDetails?.id) {
+                    await fetchPartners(propertyDetails.id);
+                }
+            } else {
+                toast.error(response.message || 'Failed to update integration status');
+            }
+        } catch (error: any) {
+            toast.error(error?.message || 'Failed to update integration status');
+        }
+    };
+
+    const handleViewIntegrationDetails = (partner: IMasterPartnersWProperty) => {
+        setSelectedPartner(partner);
+        setIsViewDetailsDialogOpen(true);
+    };
+
+    const handleManageIntegrationFields = (partner: IMasterPartnersWProperty) => {
+        setSelectedPartner(partner);
+        setIsManageFieldsDialogOpen(true);
+    };
+
+    const handleAddIntegrationField = async (integrationId: string, data: { requiredFieldId: string; value: string }) => {
+        try {
+            const response = await addPropertyIntegrationFieldService(integrationId, data);
+            if (response.success) {
+                toast.success('Field added successfully');
+                // Refresh partners
+                if (propertyDetails?.id) {
+                    await fetchPartners(propertyDetails.id);
+                }
+            } else {
+                toast.error(response.message || 'Failed to add field');
+                throw new Error(response.message);
+            }
+        } catch (error: any) {
+            toast.error(error?.message || 'Failed to add field');
+            throw error;
+        }
+    };
+
+    const handleUpdateIntegrationField = async (fieldId: string, value: string) => {
+        try {
+            const response = await updatePropertyIntegrationFieldService(fieldId, { value });
+            if (response.success) {
+                toast.success('Field updated successfully');
+                // Refresh partners
+                if (propertyDetails?.id) {
+                    await fetchPartners(propertyDetails.id);
+                }
+            } else {
+                toast.error(response.message || 'Failed to update field');
+                throw new Error(response.message);
+            }
+        } catch (error: any) {
+            toast.error(error?.message || 'Failed to update field');
+            throw error;
+        }
+    };
+
+    const handleDeleteIntegrationField = async (fieldId: string) => {
+        try {
+            const response = await deletePropertyIntegrationFieldService(fieldId);
+            if (response.success) {
+                toast.success('Field deleted successfully');
+                // Refresh partners
+                if (propertyDetails?.id) {
+                    await fetchPartners(propertyDetails.id);
+                }
+            } else {
+                toast.error(response.message || 'Failed to delete field');
+                throw new Error(response.message);
+            }
+        } catch (error: any) {
+            toast.error(error?.message || 'Failed to delete field');
+            throw error;
+        }
+    };
+
     if (isLoading) {
         return (
             <div className='min-h-screen w-full flex justify-center items-center'>
@@ -467,323 +551,17 @@ export default function PropertyPage() {
                             </DropdownMenuItem>
 
                             {user?.role === "super_admin" && propertyDetails?.id && (
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-pointer">
-                                            <Button variant={"secondary"}>
-                                                <Settings className='h-4 w-4 mr-2' /> Property Config
-                                            </Button>
-                                        </DropdownMenuItem>
-                                    </DialogTrigger>
-                                    <DialogContent className='max-w-[800px] max-h-[80vh] overflow-y-auto'>
-                                        <DialogHeader>
-                                            <DialogTitle>Property Configuration</DialogTitle>
-                                            <DialogDescription>
-                                                Update property settings and integrations. Only Super Admin can modify these settings.
-                                            </DialogDescription>
-                                        </DialogHeader>
-                                        <div className='space-y-4 py-4'>
-                                            <div className='flex items-center justify-between space-x-2'>
-                                                <div className='space-y-0.5'>
-                                                    <Label htmlFor='channelManager'>Channel Manager Integration</Label>
-                                                    <p className='text-xs text-muted-foreground'>Enable channel manager integration</p>
-                                                </div>
-                                                <Switch
-                                                    id='channelManager'
-                                                    checked={propertyConfig.channelManagerIntegrationActive}
-                                                    onCheckedChange={(checked) =>
-                                                        setPropertyConfig({
-                                                            ...propertyConfig,
-                                                            channelManagerIntegrationActive: checked,
-                                                            pmsIntegrationActive: checked ? false : propertyConfig.pmsIntegrationActive,
-                                                            selfAriActive: checked ? false : propertyConfig.selfAriActive
-                                                        })
-                                                    }
-                                                />
-                                            </div>
-                                            {/* Partner Integration Section */}
-                                            {(propertyConfig.channelManagerIntegrationActive) && (
-                                                <div className='mt-6 pt-6 border-t'>
-                                                    <h3 className='text-lg font-semibold mb-4'>
-                                                        Available Channel Manager Partners
-                                                    </h3>
-
-                                                    {masterPartners.filter(partner =>
-                                                        partner.type === 'channel_manager'
-                                                    ).length === 0 ? (
-                                                        <div className='text-center py-8 bg-gray-50 rounded-lg'>
-                                                            <p className='text-gray-500'>No channel manager partners available</p>
-                                                        </div>
-                                                    ) : (
-                                                        <div className='grid gap-4 max-h-96 overflow-y-auto'>
-                                                            {masterPartners
-                                                                .filter(partner =>
-                                                                    partner.type === (propertyConfig.channelManagerIntegrationActive ? 'channel_manager' : 'pms')
-                                                                )
-                                                                .map((partner) => (
-                                                                    <div key={partner.id} className='p-4 border rounded-lg hover:shadow-md transition-shadow bg-white'>
-                                                                        <div className='flex justify-between items-start'>
-                                                                            <div className='flex-1'>
-                                                                                <h4 className='font-semibold text-lg'>{partner.name}</h4>
-                                                                                {partner.requiredFieldsForMasterIntegration.length > 0 && (
-                                                                                    <div className='mt-2'>
-                                                                                        <p className='text-xs font-medium text-gray-600'>Required Fields:</p>
-                                                                                        <div className='flex flex-wrap gap-1 mt-1'>
-                                                                                            {partner.requiredFieldsForMasterIntegration.map((field) => (
-                                                                                                <span key={field.id} className='px-2 py-1 bg-gray-100 rounded text-xs'>
-                                                                                                    {field.name}
-                                                                                                </span>
-                                                                                            ))}
-                                                                                        </div>
-                                                                                    </div>
-                                                                                )}
-                                                                            </div>
-
-                                                                            <div className='ml-4'>
-                                                                                <Button
-                                                                                    size='sm'
-                                                                                    variant={partner.propertyIntegrations?.length > 0 ? 'default' : 'outline'}
-                                                                                    onClick={() => {
-                                                                                        if (partner.propertyIntegrations?.length === 0 || !partner.propertyIntegrations) {
-                                                                                            handleIntegrateClick(partner);
-                                                                                        }
-                                                                                    }}
-                                                                                    disabled={partner.propertyIntegrations?.[0].isActive}
-                                                                                >
-                                                                                    {partner.propertyIntegrations?.length > 0 ? 'Active' : 'Integrate'}
-                                                                                </Button>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                ))}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                            <div className='flex items-center justify-between space-x-2'>
-                                                <div className='space-y-0.5'>
-                                                    <Label htmlFor='pmsIntegration'>PMS Integration</Label>
-                                                    <p className='text-xs text-muted-foreground'>Enable PMS integration</p>
-                                                </div>
-                                                <Switch
-                                                    id='pmsIntegration'
-                                                    checked={propertyConfig.pmsIntegrationActive}
-                                                    onCheckedChange={(checked) =>
-                                                        setPropertyConfig({
-                                                            ...propertyConfig,
-                                                            channelManagerIntegrationActive: checked ? false : propertyConfig.channelManagerIntegrationActive,
-                                                            pmsIntegrationActive: checked,
-                                                            selfAriActive: checked ? false : propertyConfig.selfAriActive
-                                                        })
-                                                    }
-                                                />
-                                            </div>
-                                            {/* Partner Integration Section */}
-                                            {(propertyConfig.pmsIntegrationActive ) && (
-                                                <div className='mt-6 pt-6 border-t'>
-                                                    <h3 className='text-lg font-semibold mb-4'>
-                                                        Available PMS Partners
-                                                    </h3>
-
-                                                    {masterPartners.filter(partner =>
-                                                        partner.type === 'pms'
-                                                    ).length === 0 ? (
-                                                        <div className='text-center py-8 bg-gray-50 rounded-lg'>
-                                                            <p className='text-gray-500'>No PMS partners available</p>
-                                                        </div>
-                                                    ) : (
-                                                        <div className='grid gap-4 max-h-96 overflow-y-auto'>
-                                                            {masterPartners
-                                                                .filter(partner =>
-                                                                    partner.type === (propertyConfig.channelManagerIntegrationActive ? 'channel_manager' : 'pms')
-                                                                )
-                                                                .map((partner) => (
-                                                                    <div key={partner.id} className='p-4 border rounded-lg hover:shadow-md transition-shadow bg-white'>
-                                                                        <div className='flex justify-between items-start'>
-                                                                            <div className='flex-1'>
-                                                                                <h4 className='font-semibold text-lg'>{partner.name}</h4>
-                                                                                {/* Required Fields */}
-                                                                                {partner.requiredFieldsForMasterIntegration.length > 0 && (
-                                                                                    <div className='mt-2'>
-                                                                                        <p className='text-xs font-medium text-gray-600'>Required Fields:</p>
-                                                                                        <div className='flex flex-wrap gap-1 mt-1'>
-                                                                                            {partner.requiredFieldsForMasterIntegration.map((field) => (
-                                                                                                <span key={field.id} className='px-2 py-1 bg-gray-100 rounded text-xs'>
-                                                                                                    {field.name}
-                                                                                                </span>
-                                                                                            ))}
-                                                                                        </div>
-                                                                                    </div>
-                                                                                )}
-                                                                            </div>
-
-                                                                            <div className='ml-4'>
-                                                                                <Button
-                                                                                    size='sm'
-                                                                                    variant={partner.propertyIntegrations?.length > 0 ? 'default' : 'outline'}
-                                                                                    onClick={() => {
-                                                                                        if (partner.propertyIntegrations?.length === 0 || !partner.propertyIntegrations) {
-                                                                                            handleIntegrateClick(partner);
-                                                                                        }
-                                                                                    }}
-                                                                                    disabled={partner.propertyIntegrations?.length > 0}
-                                                                                >
-                                                                                    {partner.propertyIntegrations?.length > 0 ? 'Active' : 'Integrate'}
-                                                                                </Button>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                ))}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            )}
-                                            <div className='flex items-center justify-between space-x-2'>
-                                                <div className='space-y-0.5'>
-                                                    <Label htmlFor='selfAri'>Self ARI</Label>
-                                                    <p className='text-xs text-muted-foreground'>Enable self availability, rates, and inventory</p>
-                                                </div>
-                                                <Switch
-                                                    id='selfAri'
-                                                    checked={propertyConfig.selfAriActive}
-                                                    onCheckedChange={(checked) =>
-                                                        setPropertyConfig({
-                                                            ...propertyConfig,
-                                                            channelManagerIntegrationActive: checked ? false : propertyConfig.channelManagerIntegrationActive,
-                                                            pmsIntegrationActive: checked ? false : propertyConfig.pmsIntegrationActive,
-                                                            selfAriActive: checked
-                                                        })
-                                                    }
-                                                />
-                                            </div>
-
-                                            <div className='flex items-center justify-between space-x-2'>
-                                                <div className='space-y-0.5'>
-                                                    <Label htmlFor='isB2bAvailable'>B2B Availability</Label>
-                                                    <p className='text-xs text-muted-foreground'>Enable B2B booking channel</p>
-                                                </div>
-                                                <Switch
-                                                    id='isB2bAvailable'
-                                                    checked={propertyConfig.isB2bAvailable}
-                                                    onCheckedChange={(checked) =>
-                                                        setPropertyConfig({ ...propertyConfig, isB2bAvailable: checked })
-                                                    }
-                                                />
-                                            </div>
-
-                                            <div className='flex items-center justify-between space-x-2'>
-                                                <div className='space-y-0.5'>
-                                                    <Label htmlFor='isB2cAvailable'>B2C Availability</Label>
-                                                    <p className='text-xs text-muted-foreground'>Enable B2C booking channel</p>
-                                                </div>
-                                                <Switch
-                                                    id='isB2cAvailable'
-                                                    checked={propertyConfig.isB2cAvailable}
-                                                    onCheckedChange={(checked) =>
-                                                        setPropertyConfig({ ...propertyConfig, isB2cAvailable: checked })
-                                                    }
-                                                />
-                                            </div>
-
-                                            <div className='flex items-center justify-between space-x-2'>
-                                                <div className='space-y-0.5'>
-                                                    <Label htmlFor='commission'>Commission</Label>
-                                                    <p className='text-xs text-muted-foreground'>Enable commission on bookings</p>
-                                                </div>
-                                                <Switch
-                                                    id='commission'
-                                                    checked={propertyConfig.commission}
-                                                    onCheckedChange={(checked) =>
-                                                        setPropertyConfig({ ...propertyConfig, commission: checked })
-                                                    }
-                                                />
-                                            </div>
-
-                                            {user?.userLevel === 4 && (
-                                                <div className="flex items-center justify-between space-x-2">
-                                                    <div className="space-y-0.5">
-                                                        <Label htmlFor="showVideo">Show Video In Booking Engine</Label>
-                                                        <p className="text-xs text-muted-foreground">
-                                                            Enable this to show property video in booking engine
-                                                        </p>
-                                                    </div>
-                                                    <Switch
-                                                        id="showVideo"
-                                                        checked={propertyConfig.showVideo}
-                                                        onCheckedChange={(checked) =>
-                                                            setPropertyConfig({ ...propertyConfig, showVideo: checked })
-                                                        }
-                                                    />
-                                                </div>
-                                            )}
-
-
-                                            <div className='space-y-2'>
-                                                <Label htmlFor='timezone'>Timezone</Label>
-                                                <Select
-                                                    value={propertyConfig.timezone}
-                                                    onValueChange={(value) =>
-                                                        setPropertyConfig({ ...propertyConfig, timezone: value })
-                                                    }
-                                                >
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder='Select timezone' />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {getAllTimezones().map((tz) => (
-                                                            <SelectItem key={tz} value={tz}>
-                                                                {formatTimezoneLabel(tz)}
-                                                            </SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-
-                                            <div className='space-y-2'>
-                                                <Label htmlFor='baseCurrency'>Base Currency</Label>
-                                                <Select
-                                                    value={propertyConfig.baseCurrency}
-                                                    onValueChange={(value) =>
-                                                        setPropertyConfig({ ...propertyConfig, baseCurrency: value })
-                                                    }
-                                                >
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder='Select currency' />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="USD">USD ($)</SelectItem>
-                                                        <SelectItem value="EUR">EUR (€)</SelectItem>
-                                                        <SelectItem value="INR">INR (₹)</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                            </div>
-
-                                            <div className='space-y-2'>
-                                                <Label htmlFor='resetTime'>Reservation Reset Time</Label>
-                                                <Input
-                                                    id='resetTime'
-                                                    type='text'
-                                                    placeholder='e.g., 9.30'
-                                                    value={minutesToTime(propertyConfig.reservationResetMinutes)}
-                                                    onChange={(e) =>
-                                                        setPropertyConfig({
-                                                            ...propertyConfig,
-                                                            reservationResetMinutes: timeToMinutes(e.target.value)
-                                                        })
-                                                    }
-                                                />
-                                                <p className='text-xs text-muted-foreground'>Format: HH.MM (24-hour format)</p>
-                                            </div>
-
-
-                                        </div>
-                                        <DialogFooter>
-                                            <Button onClick={updatePropertyConfig}>
-                                                Save Configuration
-                                            </Button>
-                                        </DialogFooter>
-                                    </DialogContent>
-                                </Dialog>
+                                <DropdownMenuItem 
+                                    onSelect={(e) => {
+                                        e.preventDefault();
+                                        setIsPropertyConfigDialogOpen(true);
+                                    }} 
+                                    className="cursor-pointer"
+                                >
+                                    <Button variant={"secondary"}>
+                                        <Settings className='h-4 w-4 mr-2' /> Property Config
+                                    </Button>
+                                </DropdownMenuItem>
                             )}
 
                             <Dialog onOpenChange={handleDialogOpenChange}>
@@ -1030,6 +808,44 @@ export default function PropertyPage() {
                 propertyId={propertyDetails?.id || ''}
                 onIntegrationSuccess={handleIntegrationSuccess}
                 onSubmit={handleIntegrationSubmit}
+            />
+
+            {/* Property Config Dialog */}
+            <PropertyConfigDialog
+                isOpen={isPropertyConfigDialogOpen}
+                onClose={() => setIsPropertyConfigDialogOpen(false)}
+                propertyConfig={propertyConfig}
+                setPropertyConfig={setPropertyConfig}
+                masterPartners={masterPartners}
+                onIntegrate={handleIntegrateClick}
+                onToggleStatus={handleToggleIntegrationStatus}
+                onViewDetails={handleViewIntegrationDetails}
+                onManageFields={handleManageIntegrationFields}
+                onSave={updatePropertyConfig}
+                userLevel={user?.userLevel}
+            />
+
+            {/* View Integration Details Dialog */}
+            <ViewIntegrationDetailsDialog
+                isOpen={isViewDetailsDialogOpen}
+                onClose={() => {
+                    setIsViewDetailsDialogOpen(false);
+                    setSelectedPartner(null);
+                }}
+                partner={selectedPartner}
+            />
+
+            {/* Manage Integration Fields Dialog */}
+            <ManageIntegrationFieldsDialog
+                isOpen={isManageFieldsDialogOpen}
+                onClose={() => {
+                    setIsManageFieldsDialogOpen(false);
+                    setSelectedPartner(null);
+                }}
+                partner={selectedPartner}
+                onAddField={handleAddIntegrationField}
+                onUpdateField={handleUpdateIntegrationField}
+                onDeleteField={handleDeleteIntegrationField}
             />
         </div>
     );
