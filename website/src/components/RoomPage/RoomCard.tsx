@@ -20,10 +20,8 @@ import RoomDetails from "./RoomDetails";
 import AddonSelectionModal from "./AddonSelectionModal";
 import { Room } from "../../store/roomsSlice";
 import { useBookingStorage } from "../../hooks/useBookingStorage";
-import { useSelector } from "react-redux";
-import { RootState } from "@/src/store/store";
-import { useCurrencyConverter } from "@/src/hooks/useCurrencyConverter";
 import toast from "react-hot-toast";
+import { IPropertyLoyalityWithLoyality } from "@/src/app/Rooms/interface";
 
 interface RoomCardProps {
   room: Room;
@@ -48,6 +46,8 @@ interface RoomCardProps {
   activeRatePlan?: string | null;
   selectedBoardType?: string;
   loyaltyMemberEmail?: string;
+  loyalty: IPropertyLoyalityWithLoyality | null;
+  onUnlockLoyalty?: () => void;
 }
 
 // Helper to get dates between check-in and check-out (excluding checkout date)
@@ -115,9 +115,16 @@ const RoomCard: React.FC<RoomCardProps> = ({
   activeRatePlan,
   selectedBoardType,
   loyaltyMemberEmail,
+  onUnlockLoyalty,
 }) => {
   // const { currency: selectedCurrency } = useSelector((state: RootState) => state.booking);
   const [loadingPriceFor, setLoadingPriceFor] = useState<string | null>(null);
+
+  // Get loyalty program info from bookingContext
+  const loyaltyProgram = bookingContext?.loyaltyProgram;
+  const loyaltyDiscount = loyaltyProgram?.CreationLoyaltyConfig;
+  const isLoyaltyMember = !!loyaltyMemberEmail;
+
   const isLoadingForRatePlan = (ratePlanCode: string) => {
     return (
       loadingPriceFor === ratePlanCode ||
@@ -641,6 +648,28 @@ const RoomCard: React.FC<RoomCardProps> = ({
             const basePrice = ratePlan.totalAmount || 0;
             const currency = ratePlan.currencyCode || "USD";
 
+            // Calculate loyalty discount for display purposes (even for non-members)
+            let priceBeforeLoyalty = basePrice;
+            let priceAfterLoyalty = basePrice;
+            let loyaltyDiscountAmount = 0;
+            let loyaltyDiscountPercentage = 0;
+
+            // Calculate potential discount for both members and non-members
+            if (loyaltyDiscount) {
+              if (loyaltyDiscount.loyaltyDiscountType === "percentage") {
+                loyaltyDiscountAmount = (basePrice * loyaltyDiscount.discountValue) / 100;
+                priceAfterLoyalty = basePrice - loyaltyDiscountAmount;
+                loyaltyDiscountPercentage = loyaltyDiscount.discountValue;
+              } else if (loyaltyDiscount.loyaltyDiscountType === "fixed") {
+                loyaltyDiscountAmount = loyaltyDiscount.discountValue;
+                priceAfterLoyalty = basePrice - loyaltyDiscountAmount;
+                loyaltyDiscountPercentage = Math.round((loyaltyDiscountAmount / basePrice) * 100);
+              }
+            }
+
+            // Display price: loyalty members get discount, non-members see regular price
+            const displayPrice = isLoyaltyMember ? priceAfterLoyalty : basePrice;
+
             // //console.log(ratePlan, 'ratePlan');
 
             // const { convertedAmount } = useCurrencyConverter(basePrice);
@@ -648,7 +677,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
             return (
               <div
                 key={`${ratePlan.ratePlanCode}-${index}`}
-                className={`bg-white rounded-lg shadow-md overflow-hidden border-2 transition-all ${isExpanded ? "border-orange-400" : "border-gray-200"}`}
+                className={`bg-white rounded-xl shadow-lg overflow-hidden border transition-all ${isExpanded ? "border-orange-400 shadow-xl" : "border-gray-200"}`}
               >
                 {/* Rate Plan Header */}
                 <div
@@ -656,29 +685,106 @@ const RoomCard: React.FC<RoomCardProps> = ({
                 >
                   <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      {/* Inside ratePlan header section */}
-                      <div className="flex flex-wrap items-center gap-2 mb-2">
-                        <h3 className="text-base md:text-lg font-bold text-gray-900 leading-tight">
+                      {/* Rate Plan Name with Cancellation Badge */}
+                      <div className="flex flex-wrap items-center gap-2 mb-3">
+                        <h3 className="text-lg md:text-xl font-bold text-gray-900 leading-tight uppercase">
                           {ratePlan.ratePlanName || ratePlan.ratePlanCode}
                         </h3>
+
+                        {/* NON-REFUNDABLE / FLEXIBLE Badge */}
+                        {ratePlan.policy?.cancellationPolicy?.isNonRefundable ? (
+                          <span className="px-3 py-1  text-white text-xs font-bold rounded-md uppercase whitespace-nowrap">
+                            Non-Refundable
+                          </span>
+                        ) : (
+                          <span className="px-3 py-1 text-white text-xs font-bold rounded-md uppercase whitespace-nowrap">
+                            Flexible
+                          </span>
+                        )}
+
+                        {/* Urgency Badge - Show if low availability */}
+                        {ratePlan.availableRooms && ratePlan.availableRooms <= 5 && ratePlan.availableRooms > 0 && (
+                          <span className="px-3 py-1 bg-red-50 text-red-600 border border-red-200 text-xs font-bold rounded-md uppercase whitespace-nowrap animate-pulse">
+                            ⚠ Only {ratePlan.availableRooms} Room{ratePlan.availableRooms !== 1 ? 's' : ''} Left!
+                          </span>
+                        )}
                       </div>
                       {!isCollapsed && (
                         <>
-                          <div className="space-y-1 text-xs md:text-sm text-gray-700 mb-2">
-                            {ratePlan.policy?.cancellationPolicy
-                              ?.description && (
-                                <div className="flex items-start gap-1.5">
-                                  <span className="text-green-600 mt-0.5 flex-shrink-0">
-                                    ✓
-                                  </span>
-                                  <span className="line-clamp-1">
-                                    {
-                                      ratePlan.policy.cancellationPolicy
-                                        .description
-                                    }
-                                  </span>
+                          {/* Tax Information Banner - Prominent Display */}
+                          {ratePlan.touristTax?.calculatedTaxAmount > 0 && (
+                            <div className="mb-3 p-3 bg-yellow-50 border-l-4 border-yellow-400 rounded-lg">
+                              <div className="flex items-start gap-2">
+                                <svg className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <div className="flex-1">
+                                  <p className="text-xs font-bold text-yellow-900 uppercase">
+                                    Tax Not Included
+                                  </p>
+                                  <p className="text-xs text-yellow-800 mt-1">
+                                    <span className="font-semibold">
+                                      {ratePlan.touristTax ? ratePlan.touristTax.name : "Additional Charges:"} {ratePlan.currencyCode}{" "}
+                                      {ratePlan.touristTax.calculatedTaxAmount.toFixed(2)}
+                                    </span>
+                                    <span className="text-xs"> (Pay at the hotel)</span>
+                                  </p>
                                 </div>
-                              )}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Cancellation Policy & Special Conditions */}
+                          {ratePlan.policy?.cancellationPolicy?.isNonRefundable && (
+                            <div className="mb-3 p-3 bg-red-50 border-l-4 border-red-400 rounded-lg">
+                              <div className="flex items-start gap-2">
+                                <svg className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                </svg>
+                                <div className="flex-1">
+                                  <p className="text-sm font-bold text-red-900">
+                                    ***The hotel will charge the booking's amount anytime prior to arrival***
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {ratePlan.policy?.cancellationPolicy?.isNonRefundable === false && (
+                            <div className="mb-3 p-3 bg-green-50 border-l-4 border-green-400 rounded-lg">
+                              <div className="flex items-start gap-2">
+                                <svg className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                <div className="flex-1">
+                                  <p className="text-sm font-bold text-green-900 uppercase">
+                                    Payment at Hotel
+                                  </p>
+                                  {ratePlan.policy?.cancellationPolicy?.description && (
+                                    <p className="text-xs text-green-800 mt-1">
+                                      {ratePlan.policy.cancellationPolicy.description}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Promotional Rate Badge */}
+                          {selectedPromotions[ratePlan.ratePlanCode]?.length > 0 && (
+                            <div className="mb-3 p-2 bg-blue-50 border border-blue-200 rounded-lg">
+                              <div className="flex items-center gap-2">
+                                <svg className="w-4 h-4 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                                <span className="text-xs font-semibold text-blue-900">
+                                  Promotional rate
+                                </span>
+                              </div>
+                            </div>
+                          )}
+
+                          <div className="space-y-1 text-xs md:text-sm text-gray-700 mb-2">
                             <div className="flex items-start gap-1.5">
                               <span className="text-green-600 mt-0.5 flex-shrink-0">
                                 ✓
@@ -691,32 +797,13 @@ const RoomCard: React.FC<RoomCardProps> = ({
                               </span>
                               <span>24/7 Room Service</span>
                             </div>
-
-                            {ratePlan.touristTax?.calculatedTaxAmount > 0 && (
-                              <div className="flex items-start gap-1.5">
-                                <span className="text-amber-600 mt-0.5 flex-shrink-0">
-                                  $
-                                </span>
-                                <span className="text-sm">
-                                  <span className="font-semibold text-amber-800">
-                                    {ratePlan.touristTax ? ratePlan.touristTax.name : "Additional Charges:"} {ratePlan.currencyCode}{" "}
-                                    {ratePlan.touristTax.calculatedTaxAmount.toFixed(
-                                      2,
-                                    )}
-                                  </span>
-                                  <span className="text-xs text-gray-600 ml-1">
-                                    (To be paid directly at hotel per night)
-                                  </span>
-                                </span>
-                              </div>
-                            )}
                           </div>
 
                           <button
                             onClick={() => handleViewDetails(ratePlan)}
                             className="text-xs md:text-sm text-blue-600 hover:text-blue-700 font-medium hover:underline"
                           >
-                            View Details →
+                            Booking conditions →
                           </button>
                           {/* ✅ NEW: PROMOTION LINK */}
                           {ratePlan.availablePromotions?.length > 0 && (
@@ -1002,19 +1089,106 @@ const RoomCard: React.FC<RoomCardProps> = ({
                       )}
                     </div>
                     {/* ✅ EXPANDED PROMOTIONS SECTION */}
+                    {loyaltyDiscount
 
-                    <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:gap-2 sm:min-w-[180px] md:min-w-[200px]">
+                    }
+                    <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2 sm:gap-2 sm:min-w-[180px] md:min-w-[220px]">
                       {!isCollapsed && (
                         <div className="text-left sm:text-right">
-                          <div className="flex items-baseline gap-1.5">
-                            <span className="text-xl md:text-2xl font-bold text-orange-600">
+                          {/* Show loyalty unlock message if not a member but loyalty program exists */}
+                          {!isLoyaltyMember && loyaltyProgram && loyaltyDiscountAmount > 0 && (
+                            <div className="mb-3">
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  if (onUnlockLoyalty) {
+                                    onUnlockLoyalty();
+                                  }
+                                }}
+                                className="group flex flex-col items-end gap-1.5 text-right hover:opacity-90 transition-all"
+                              >
+                                {/* Lock icon with discount badge */}
+                                <div className="flex items-center gap-1.5">
+                                  <svg className="w-4 h-4 text-blue-600 group-hover:text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                                  </svg>
+                                  <span className="text-xs font-semibold text-blue-600 group-hover:text-blue-700">
+                                    Unlock {loyaltyDiscountPercentage}% discount
+                                  </span>
+                                </div>
+                                
+                                {/* Show discounted price they could get */}
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm text-gray-500 line-through">
+                                    {currency === "USD" ? "$" : currency}{" "}
+                                    {basePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </span>
+                                  <span className="text-lg font-bold text-blue-600 group-hover:text-blue-700">
+                                    {currency === "USD" ? "$" : currency}{" "}
+                                    {priceAfterLoyalty.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </span>
+                                </div>
+                                
+                                <span className="text-[10px] text-gray-500 italic">
+                                  Sign in to unlock member price
+                                </span>
+                              </button>
+                            </div>
+                          )}
+
+                          {/* Show loyalty member badge if logged in */}
+                          {isLoyaltyMember && loyaltyDiscountAmount > 0 && (
+                            <div className="mb-2 px-2 py-1 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg inline-block">
+                              <div className="flex items-center gap-1.5">
+                                <svg className="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                </svg>
+                                <span className="text-xs font-bold text-purple-900">
+                                  {loyaltyDiscountPercentage}% Loyalty Discount Applied
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Original Price with Strikethrough */}
+                          {((ratePlan.originalPrice && ratePlan.originalPrice > basePrice) || (isLoyaltyMember && loyaltyDiscountAmount > 0)) && (
+                            <div className="flex items-center justify-start sm:justify-end gap-2 mb-1">
+                              <span className="text-lg md:text-xl font-semibold line-through text-gray-400">
+                                {currency === "USD" ? "$" : currency}{" "}
+                                {isLoyaltyMember && loyaltyDiscountAmount > 0
+                                  ? priceBeforeLoyalty.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                                  : ratePlan.originalPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                                }
+                              </span>
+                              <span className="px-2 py-0.5 bg-green-500 text-white text-xs font-bold rounded">
+                                {isLoyaltyMember && loyaltyDiscountAmount > 0
+                                  ? `-${loyaltyDiscountPercentage}%`
+                                  : `-${Math.round(((ratePlan.originalPrice - basePrice) / ratePlan.originalPrice) * 100)}%`
+                                }
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Discount Label */}
+                          {((ratePlan.originalPrice && ratePlan.originalPrice > basePrice) || (isLoyaltyMember && loyaltyDiscountAmount > 0)) && (
+                            <p className="text-xs text-gray-500 mb-1">Price with discount</p>
+                          )}
+
+                          {/* Discounted Price - Large and Prominent */}
+                          <div className="flex items-baseline gap-1.5 justify-start sm:justify-end">
+                            <span className="text-2xl md:text-3xl font-bold text-green-600">
                               {currency === "USD" ? "$" : currency}{" "}
-                              {basePrice.toLocaleString()}
+                              {displayPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                           </div>
                           <span className="text-xs text-gray-500">
                             per night
                           </span>
+
+                          {/* Tax Note */}
+                          <p className="text-[10px] text-gray-400 mt-1">
+                            Not included: Taxes
+                          </p>
                         </div>
                       )}
 
@@ -1025,10 +1199,10 @@ const RoomCard: React.FC<RoomCardProps> = ({
                           isExpanded
                         }
                         style={{
-                          backgroundColor: primaryColor || "#FF6B35", // ✅ Add fallback
-                          color: buttonTextColor || "#FFFFFF", // ✅ Add fallback
+                          backgroundColor: primaryColor || "#777777",
+                          color: buttonTextColor || "#FFFFFF",
                         }}
-                        className="px-4 md:px-5 py-2 rounded-lg font-semibold text-sm md:text-base transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg whitespace-nowrap hover:opacity-90"
+                        className="px-6 md:px-8 py-2.5 md:py-3 rounded-lg font-bold text-sm md:text-base uppercase transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl whitespace-nowrap hover:opacity-90 hover:scale-105 active:scale-95"
                       >
                         {isLoadingForRatePlan(ratePlan.ratePlanCode) ? (
                           <div className="flex items-center justify-center gap-2">
@@ -1038,7 +1212,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                         ) : isExpanded ? (
                           "Selected"
                         ) : (
-                          "Book Now"
+                          "Add"
                         )}
                       </button>
                     </div>

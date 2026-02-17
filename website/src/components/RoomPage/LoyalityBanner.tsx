@@ -9,12 +9,16 @@ import { Button } from "../ui/button";
 
 export const LoyaltyProgramBanner = ({ 
   loyaltyProgram, 
-  primaryColor 
+  primaryColor,
+  showSignUpModal: externalShowSignUpModal,
+  onShowSignUpModalChange,
 }: { 
   loyaltyProgram: IPropertyLoyalityWithLoyality; 
   primaryColor: string;
+  showSignUpModal?: boolean;
+  onShowSignUpModalChange?: (show: boolean) => void;
 }) => {
-  const [showSignUpModal, setShowSignUpModal] = useState(false);
+  const [internalShowSignUpModal, setInternalShowSignUpModal] = useState(false);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
@@ -26,6 +30,10 @@ export const LoyaltyProgramBanner = ({
     value: number;
     currencyCode: string;
   } | null>(null);
+
+  // Use external control if provided, otherwise use internal state
+  const showSignUpModal = externalShowSignUpModal !== undefined ? externalShowSignUpModal : internalShowSignUpModal;
+  const setShowSignUpModal = onShowSignUpModalChange || setInternalShowSignUpModal;
 
   const program = loyaltyProgram.CreationLoyaltyConfig;
   const isBasicProgram = program.BasicLoyaltyProgram !== null;
