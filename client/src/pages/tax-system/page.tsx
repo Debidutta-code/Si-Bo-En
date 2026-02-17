@@ -541,6 +541,7 @@ export default function TaxSystem() {
 
     // Rate Plan action handlers
     const handleAddRatePlanToGroup = async () => {
+        console.log("add called")
         if (!ratePlanActionDialog.ratePlanId || !ratePlanActionDialog.selectedGroupId) return;
         setLoader({ isLoading: true, message: "Adding rate plan to tax group..." });
         try {

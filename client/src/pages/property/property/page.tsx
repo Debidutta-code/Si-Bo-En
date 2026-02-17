@@ -57,7 +57,8 @@ export default function PropertyPage() {
     })
     const [masterPartners, setMasterPartners] = useState<IMasterPartnersWProperty[]>([]);
     const navigate = useNavigate();
-    const [isLoading, setIsLoading] = useState(true);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+    const [isIntegrating, setIsIntegrating] = useState<{ [key: string]: boolean }>({});
     const [creationDetails, setCreationDetails] = useState<IpropertyCDetails>({
         id: '',
         name: "",
@@ -358,6 +359,7 @@ export default function PropertyPage() {
     };
 
     const handleToggleIntegrationStatus = async (integrationId: string, currentStatus: boolean) => {
+        setIsIntegrating(prev => ({ ...prev, [integrationId]: true }));
         try {
             const newStatus = !currentStatus;
             const response = await updatePropertyIntegrationStatusService(integrationId, newStatus);
@@ -373,6 +375,8 @@ export default function PropertyPage() {
             }
         } catch (error: any) {
             toast.error(error?.message || 'Failed to update integration status');
+        }finally{
+            setIsIntegrating(prev => ({ ...prev, [integrationId]: false }));
         }
     };
 
@@ -823,6 +827,7 @@ export default function PropertyPage() {
                 onManageFields={handleManageIntegrationFields}
                 onSave={updatePropertyConfig}
                 userLevel={user?.userLevel}
+                isLoading={isIntegrating}
             />
 
             {/* View Integration Details Dialog */}

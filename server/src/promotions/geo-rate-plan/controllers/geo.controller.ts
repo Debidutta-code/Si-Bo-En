@@ -68,8 +68,8 @@ public static async createGeoRatePlan(req: PropertyCustomRequest, res: Response)
       }
 
       const filters: any = {};
-      if (roomTypeCode) filters.roomTypeCode = roomTypeCode as string;
-      if (ratePlanCode) filters.ratePlanCode = ratePlanCode as string;
+      if (roomTypeCode && roomTypeCode !== 'all') filters.roomTypeCode = roomTypeCode as string;
+      if (ratePlanCode && ratePlanCode !== 'all') filters.ratePlanCode = ratePlanCode as string;
       if (countryCode) filters.countryCode = countryCode as string;
       if (isActive !== undefined) filters.isActive = isActive === 'true';
 

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, CheckCircle, Loader2, DollarSign, AlertCircle } from "lucide-react";
 import { usePropertyForm } from "@/contexts/PropertyFormContext";
-import { cn } from "@/lib/utils";
+import { capitalizeFirstLetter, cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { addBankDetails } from "../api/create/bankDetails";
 import { useNavigate } from "react-router-dom";
@@ -325,7 +325,7 @@ export default function BankDetails() {
                               htmlFor={integration.id}
                               className="flex-1 cursor-pointer text-sm font-medium text-gray-900"
                             >
-                              {integration.name}
+                              {capitalizeFirstLetter(integration.name.replaceAll("_", " ")  )}
                             </Label>
                           </div>
                         ))}

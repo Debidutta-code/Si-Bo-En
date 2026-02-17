@@ -22,6 +22,7 @@ interface PropertyConfigDialogProps {
     onSave: () => void;
     isSaving?: boolean;
     userLevel?: number;
+    isLoading: { [key: string]: boolean; }
 }
 
 export default function PropertyConfigDialog({
@@ -36,7 +37,8 @@ export default function PropertyConfigDialog({
     onManageFields,
     onSave,
     isSaving = false,
-    userLevel
+    userLevel,
+    isLoading
 }: PropertyConfigDialogProps) {
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -47,7 +49,7 @@ export default function PropertyConfigDialog({
                         Update property settings and integrations. Only Super Admin can modify these settings.
                     </DialogDescription>
                 </DialogHeader>
-                
+
                 <div className='space-y-4 py-4'>
                     {/* Channel Manager Integration */}
                     <div className='flex items-center justify-between space-x-2'>
@@ -79,6 +81,7 @@ export default function PropertyConfigDialog({
                             onToggleStatus={onToggleStatus}
                             onViewDetails={onViewDetails}
                             onManageFields={onManageFields}
+                            isLoading={isLoading}
                         />
                     )}
 
@@ -112,6 +115,8 @@ export default function PropertyConfigDialog({
                             onToggleStatus={onToggleStatus}
                             onViewDetails={onViewDetails}
                             onManageFields={onManageFields}
+                            isLoading={isLoading}
+
                         />
                     )}
 

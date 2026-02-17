@@ -929,9 +929,7 @@ export class ReservationService {
                     requestedRooms: updatePayload.requestedRooms,
                     totalTax: updatePayload.finalPrice.totalTax,
                     taxes: [], // Simplified tax structure for email
-                    subtotal:
-                        updatePayload.finalPrice.totalAmount -
-                        updatePayload.finalPrice.totalTax,
+                    
                     taxBreakdown: {
                         totalBaseAmount:
                             updatePayload.finalPrice.breakdown.totalBaseAmount,
@@ -1564,10 +1562,7 @@ export class ReservationService {
                     requestedRooms: reservation.finalPrice?.requestedRooms || 1,
                     totalTax: reservation.finalPrice?.totalTax || 0,
                     taxes: [],
-                    subtotal:
-                        (reservation.finalPrice?.totalAmount ||
-                            reservation.amount) -
-                        (reservation.finalPrice?.totalTax || 0),
+                    
                     taxBreakdown: {
                         totalBaseAmount:
                             reservation.finalPrice?.breakdown

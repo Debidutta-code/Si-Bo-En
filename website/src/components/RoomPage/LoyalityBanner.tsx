@@ -264,7 +264,6 @@ export const LoyaltyProgramBanner = ({
                 </div>
               </div>
 
-              {/* Program Terms - Full Width, Scrollable */}
               {program.loyaltyConditions && program.loyaltyConditions.filter(c => c.isActive).length > 0 && (
                 <div className="mb-3">
                   <h3 className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
@@ -274,6 +273,8 @@ export const LoyaltyProgramBanner = ({
                   <div className="space-y-1.5 max-h-20 overflow-y-auto custom-scrollbar">
                     {program.loyaltyConditions
                       .filter(condition => condition.isActive)
+                                              .slice(0,  2)
+
                       .map((condition, index) => (
                         <div 
                           key={index} 
@@ -287,7 +288,6 @@ export const LoyaltyProgramBanner = ({
                 </div>
               )}
 
-              {/* Special Benefits - Like Program Terms with Scroll */}
               {program.loyaltySpecialConditions && program.loyaltySpecialConditions.filter(c => c.isActive).length > 0 && (
                 <div className="mb-2">
                   <h3 className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
@@ -295,58 +295,21 @@ export const LoyaltyProgramBanner = ({
                     Special Benefits
                   </h3>
                   <div className="relative">
-                    <div 
-                      className={`space-y-1.5 transition-all duration-300 ${
-                        showAllBenefits ? 'max-h-none' : 'max-h-12 overflow-hidden'
-                      }`}
-                    >
+                    {/* Show only first 2 benefits initially, or all if showAllBenefits is true */}
+                    <div className="space-y-1.5">
                       {program.loyaltySpecialConditions
                         .filter(condition => condition.isActive)
+                        .slice(0, showAllBenefits ? undefined : 1)
                         .map((condition, index) => (
                           <div 
                             key={index} 
                             className="flex items-start gap-2 bg-gradient-to-br from-purple-50 to-blue-50 rounded p-2 border border-purple-200"
                           >
                             <Star className="w-3 h-3 flex-shrink-0 mt-0.5" style={{ color: primaryColor }} />
-                            <span className="text-xs text-gray-900 font-semibold">{condition.title}</span>
+                            <span className="text-xs text-gray-900 font-semibold">{condition.subTitle}</span>
                           </div>
                         ))}
                     </div>
-                    
-                    {/* Show Read More/Less button only if content exceeds max-h-16 (about 2-3 items) */}
-                    {program.loyaltySpecialConditions.filter(c => c.isActive).length > 2 && (
-                      <button
-                        onClick={() => setShowAllBenefits(!showAllBenefits)}
-                        className="mt-2 text-xs font-semibold hover:underline transition-all flex items-center gap-1"
-                        style={{ color: primaryColor }}
-                      >
-                        {showAllBenefits ? (
-                          <>
-                            Show Less
-                            <svg 
-                              className="w-3 h-3 transition-transform" 
-                              fill="none" 
-                              stroke="currentColor" 
-                              viewBox="0 0 24 24"
-                            >
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                            </svg>
-                          </>
-                        ) : (
-                          <>
-                            Read More ({program.loyaltySpecialConditions.filter(c => c.isActive).length - 2} more)
-                            <svg 
-                              className="w-3 h-3 transition-transform" 
-                              fill="none" 
-                              stroke="currentColor" 
-                              viewBox="0 0 24 24"
-                            >
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                            </svg>
-                          </>
-                        )}
-                      </button>
-                    )}
                   </div>
                 </div>
               )}

@@ -684,7 +684,7 @@ model Inventory {
 
   @@index([propertyCode])
   @@index([roomTypeCode])
-  @@unique([propertyCode, roomTypeCode, date])
+  // @@unique([propertyCode, roomTypeCode, date])
   @@map("inventories")
 }
 

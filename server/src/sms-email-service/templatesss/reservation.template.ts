@@ -1,4 +1,5 @@
 import { IBookingDetails, IGuestDetail, ITax } from "../../pms/frontoffice/reservation/types";
+import { capitalizeFirstLetter } from "../utils/capitalizefirstLetter.util";
 
 
 interface PropertyDetails {
@@ -61,13 +62,16 @@ const getMapUrl = (latitude: number, longitude: number): string => {
 };
 
 
-// ==================== BOOKING CONFIRMATION EMAIL ====================
 export const BookingConfirmationEmail = ({
   reservation,
   property,
   propertyAddress,
   room
 }: EmailTemplateProps): string => {
+  console.log("Generating booking confirmation email...");
+  console.log(reservation)
+  console.log(property)
+
   const { finalPrice, guests, guestDetails, startDate, endDate } = reservation;
   const primaryGuest = guestDetails[0];
 
@@ -359,10 +363,7 @@ export const BookingConfirmationEmail = ({
           <span class="price-value">${formatCurrency(addon.totalPrice, reservation.currency)}</span>
         </div>
         `).join('') : ''}
-        <div class="price-row">
-          <span class="price-label">Subtotal</span>
-          <span class="price-value">${formatCurrency(finalPrice.subtotal, reservation.currency)}</span>
-        </div>
+        
         ${finalPrice.taxes.map((tax: ITax) => `
         <div class="price-row">
           <span class="price-label">${tax.name} (${formatCurrency(tax.amount, reservation.currency)})</span>
@@ -385,14 +386,14 @@ export const BookingConfirmationEmail = ({
         <strong>📋 Important Information:</strong>
         <ul style="margin: 10px 0 0 20px; line-height: 1.8;">
           <li>Valid government-issued photo ID required at check-in</li>
-          <li>Payment method: ${reservation.paymentMethod}</li>
-        </ul>
+          <li>Payment method: ${reservation.paymentMethod.split("_").map((txt) => capitalizeFirstLetter(txt)).join(" ")}</li>
+        </ul> 
       </div>
     </div>
 
     <!-- Footer -->
     <div class="footer">
-      <p>Need to make changes? <a href="https://bookings.revchilltech.com">Manage your booking</a></p>
+      <p>Need to make changes? <a href="https://bookings.revchilltech.com/my-trip/">Manage your booking</a></p>
       <p style="margin-top: 10px;">Questions? Contact us at <a href="mailto:${property.propertyEmail}">${property.propertyEmail}</a></p>
       <p style="margin-top: 15px; font-size: 12px; color: #999;">
         This is an automated confirmation email. Please do not reply directly to this message.
@@ -709,12 +710,7 @@ export const BookingAmendmentEmail = ({
           <span class="price-value">${formatCurrency(addon.totalPrice, reservation.currency)}</span>
         </div>
         `).join('') : ''}
-        ${finalPrice.subtotal > 0 ? `
-          <div class="price-row">
-            <span class="price-label">Subtotal</span>
-            <span class="price-value">${formatCurrency(finalPrice.subtotal, reservation.currency)}</span>
-          </div>
-        ` : ''}
+        
         ${finalPrice.taxes.map((tax: ITax) => `
         <div class="price-row">
           <span class="price-label">${tax.name} (${formatCurrency(tax.amount, reservation.currency)})</span>
@@ -735,7 +731,7 @@ export const BookingAmendmentEmail = ({
 
     <!-- Footer -->
     <div class="footer">
-      <p>Need further changes? <a href="https://bookings.revchilltech.com/">Manage your booking</a></p>
+      <p>Need further changes? <a href="https://bookings.revchilltech.com/my-trip">Manage your booking</a></p>
       <p style="margin-top: 10px;">Questions? Contact us at <a href="mailto:${property.propertyEmail}">${property.propertyEmail}</a></p>
       <p style="margin-top: 15px; font-size: 12px; color: #999;">
         This is an automated confirmation email. Please do not reply directly to this message.
@@ -1004,7 +1000,7 @@ ${reservation.refundAmount && `
 
     <!-- Footer -->
     <div class="footer">
-      <p>Want to book again? <a href="https://bookings.revchilltech.com">Browse available rooms</a></p>
+      <p>Want to book again? <a href="https://bookings.revchilltech.com/my-trip/">Browse available rooms</a></p>
       <p style="margin-top: 10px;">Questions about your cancellation? Contact us at <a href="mailto:${property.propertyEmail}">${property.propertyEmail}</a></p>
       <p style="margin-top: 15px; font-size: 12px; color: #999;">
         This is an automated cancellation confirmation. Please do not reply directly to this message.

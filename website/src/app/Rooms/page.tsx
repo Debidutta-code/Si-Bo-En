@@ -120,7 +120,7 @@ const Rooms = () => {
   const [loadingPrice, setLoadingPrice] = useState(false);
   const [errorPrice, setErrorPrice] = useState<string | null>(null);
   const [errorRooms, setErrorRooms] = useState<string | null>(null);
-  const [loadingRooms, setLoadingRooms] = useState<boolean>(false);
+  // const [loadingRooms, setLoadingRooms] = useState<boolean>(false);
   const [loadingBookNow, setLoadingBookNow] = useState<string | null>(null);
   const initializedRef = useRef(false); // Prevent double initialization
   const [roomsData, setRoomsData] = useState<any[]>([]);
@@ -346,7 +346,7 @@ if (Array.isArray(rawRooms)) {
       return;
     }
 
-    setLoadingRooms(true);
+    setInitialLoading(true);
     setErrorRooms("");
     dispatch({ type: "rooms/setRooms", payload: [] });
     setRoomsData([]);
@@ -354,7 +354,7 @@ if (Array.isArray(rawRooms)) {
     setPropertyDetails(null);
     setShowPriceSummary(false);
     setPriceSummaryData(null);
-
+    setLoyaltyProgram(null);
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/fetch-rooms`,
@@ -409,22 +409,7 @@ if (Array.isArray(rawRooms)) {
           logoIcon: bookingEngineColor.logo,
         };
         localStorage.setItem("bookingstorage", JSON.stringify(bookingStorage));
-      } else {
-        const defaultBookingStorage = {
-          colors: {
-            primaryColor: "#2F2A1F",
-            secondaryColor: "#E8DFC9",
-            tertiaryColor: "#7D7566",
-            buttonTextColor: "#FFFFFF",
-            logoIcon: null,
-          },
-          logoIcon: null,
-        };
-        localStorage.setItem(
-          "bookingstorage",
-          JSON.stringify(defaultBookingStorage),
-        );
-      }
+      } 
 
       dispatch({ type: "rooms/setRooms", payload: data.data || [] });
       setRoomsData(data.data?.rooms || []);
@@ -445,8 +430,7 @@ if (Array.isArray(rawRooms)) {
       toast.error(err.message || "Something went wrong while fetching rooms.");
       dispatch({ type: "rooms/setRooms", payload: [] });
     } finally {
-      setLoadingRooms(false);
-      setInitialLoading(false); // ✅ Always turn off loader after API call
+      setInitialLoading(false);
     }
   };
 
@@ -669,7 +653,6 @@ if (Array.isArray(rawRooms)) {
       };
 
       dispatch(setBookingContext(updatedContext));
-      localStorage.setItem("bookingContext", JSON.stringify(updatedContext));
       handleSearchStart(updatedContext);
     }
   }, [searchParams.get("code")]);
@@ -693,10 +676,7 @@ if (Array.isArray(rawRooms)) {
 
   const { primaryColor } = useBookingColors();
 
-  const handleCloseUrgencyBanner = () => {
-    setShowUrgencyBanner(false);
-    localStorage.setItem("urgencyBannerDismissed", "true");
-  };
+
 
   useEffect(() => {
     const isDismissed = localStorage.getItem("urgencyBannerDismissed");
@@ -716,9 +696,6 @@ if (Array.isArray(rawRooms)) {
     ),
   );
 
-  const handleOpenUrgencyModal = () => {
-    setUrgencyModalOpen(true);
-  };
 
   // NEW: Simple spinner loader for external requests only
   if (initialLoading && isExternalRequest) {
@@ -821,7 +798,7 @@ if (Array.isArray(rawRooms)) {
                 <div></div>
 
                 <div className="px-4 sm:px-4 py-4 bg-white border border-gray-200 rounded-xl">
-                  {loadingRooms ? (
+                  {initialLoading ? (
                     <div className="text-center py-20">
                       <div
                         className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 mx-auto"
