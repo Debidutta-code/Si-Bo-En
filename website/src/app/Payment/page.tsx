@@ -205,42 +205,40 @@ const BookingReviewPage = () => {
     return () => {
       socket?.disconnect();
     };
-  }, [bookingCode]);
+   }, [bookingCode, router]); 
 
 
   useEffect(() => {
     if (!bankDetails) return;
 
-    //console.log("📋 Processing Bank Details:", bankDetails);
-    //console.log("💳 paymentGateway:", bankDetails.paymentGateway);
-    //console.log("🏨 payAtHotel:", bankDetails.payAtHotel);
-    //console.log("🔌 selectedPaymentIntegrations:", bankDetails.selectedPaymentIntegrations);
+    // Moved inline to avoid exhaustive-deps warning
+    const resolveActiveGateway = (): 'fikafi' | 'ngenius' | null => {
+      if (
+        !bankDetails?.selectedPaymentIntegrations ||
+        !bankDetails.paymentGateway ||
+        !bankDetails.selectedPaymentIntegrations.paymentIntegration
+      ) {
+        return null;
+      }
+      return bankDetails.selectedPaymentIntegrations.paymentIntegration.name === "fikafi"
+        ? "fikafi"
+        : "ngenius";
+    };
 
     const methods: string[] = [];
-
-    // Add Pay at Hotel if enabled
     if (bankDetails.payAtHotel) {
       methods.push("payAtHotel");
-      //console.log("✅ Pay at Hotel is available");
     }
-
-    // Determine which gateway is active
-    const gateway = getActiveGateway();
+    const gateway = resolveActiveGateway();  // ✅ defined inside effect
     setActiveGateway(gateway);
 
     if (gateway) {
       methods.push("gateway");
-      //console.log(`✅ Online Payment Gateway is available (${gateway})`);
-    } else if (bankDetails.paymentGateway) {
-      //console.log("⚠️ Payment Gateway is enabled but no valid integration found");
     }
-
-    //console.log("✅ Final available payment methods:", methods);
 
     setAvailableMethods(methods);
     setNoAvailablePayment(methods.length === 0);
 
-    // Auto-select the first available method if none is selected
     if (!selectedPayment && methods.length > 0) {
       setSelectedPayment(methods[0]);
     }
@@ -614,7 +612,7 @@ const BookingReviewPage = () => {
                 Secure Online Payment
               </h4>
               <p className="text-sm" style={{ color: colors.primaryColor }}>
-                You'll be redirected to our secure payment partner to complete your payment
+                You&apos;ll be redirected to our secure payment partner to complete your payment
                 using credit/debit card, net banking, or other online payment methods.
               </p>
 
