@@ -40,6 +40,8 @@ export interface CreateEarlyBirdPromotion {
   satApplicable: boolean;
   sunApplicable: boolean;
   advanceBookingDays?: number;
+    isAutoApplied: boolean;
+
 }
 
 // Update Early Bird Promotion payload
@@ -59,6 +61,8 @@ export interface UpdateEarlyBirdPromotion {
   sunApplicable?: boolean;
   isActive?: boolean;
   advanceBookingDays?: number;
+    isAutoApplied: boolean;
+
 }
 
 // Early Bird Promotion response with RatePlan details
@@ -95,6 +99,8 @@ export interface EarlyBirdPromotionWithRatePlan {
     b2cAvailable: boolean;
   };
   roomRatePlans?: RoomRatePlanPair[];
+    isAutoApplied: boolean;
+
 }
 
 // Convert backend format to frontend format

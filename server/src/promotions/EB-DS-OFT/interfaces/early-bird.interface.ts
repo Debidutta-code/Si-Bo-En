@@ -31,6 +31,7 @@ export interface IEarlyBirdPromotion extends IEarlyBirdPromotionBase {
   friApplicable: boolean;
   satApplicable: boolean;
   sunApplicable: boolean;
+  isAutoApplied: boolean;
 }
 
 // Update interface for early-bird promotion
@@ -49,7 +50,9 @@ export interface IEarlyBirdPromotionUpdate {
   satApplicable?: boolean;
   sunApplicable?: boolean;
   isActive?: boolean;
-  advanceBookingDays?:number
+  advanceBookingDays?: number;
+  isAutoApplied: boolean;
+
 }
 
 // Response interface for early-bird promotion

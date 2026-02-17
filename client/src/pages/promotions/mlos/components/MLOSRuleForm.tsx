@@ -33,7 +33,7 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
   const [discountType, setDiscountType] = useState<'percentage' | 'flat' | ''>('');
   const [discountValue, setDiscountValue] = useState<string>('');
   const [isActive, setIsActive] = useState(true);
-
+  const [isAutoApplied, setIsAutoApplied] = useState<boolean>(false);
   useEffect(() => {
     if (editData) {
       setSelectedRatePlan(editData.ratePlanId);
@@ -44,6 +44,7 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
       setDiscountType(editData.discountType || '');
       setDiscountValue(editData.discountValue?.toString() || '');
       setIsActive(editData.isActive);
+      setIsAutoApplied(editData.isAutoApplied);
     }
   }, [editData]);
 
@@ -63,7 +64,8 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
       maxLos: maxLos ? parseInt(maxLos) : null,
       discountType: discountType || null,
       discountValue: discountValue ? parseFloat(discountValue) : null,
-      isActive
+      isActive,
+      isAutoApplied
     };
 
     await onSubmit(payload);
@@ -246,7 +248,21 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
             )}
           </div>
         </div>
-
+        <div className="flex items-center space-x-3 p-3 bg-muted/20 rounded-lg border border-border">
+          <input
+            type="checkbox"
+            id="isAutoApplied"
+            checked={isAutoApplied}
+            onChange={(e) => setIsAutoApplied(e.target.checked)}
+            className="w-5 h-5 text-primary border-border rounded focus:ring-2 focus:ring-primary"
+          />
+          <label htmlFor="isAutoApplied" className="text-sm font-medium text-foreground cursor-pointer flex-1">
+            Auto Applied 
+            <span className="block text-xs text-muted-foreground font-normal mt-0.5">
+              {isAutoApplied ? 'This MLOS rule is auto applied to reservations' : 'This MLOS rule is not auto applied'}
+            </span>
+          </label>
+        </div>
         {/* Status Toggle */}
         <div className="flex items-center space-x-3 p-3 bg-muted/20 rounded-lg border border-border">
           <input

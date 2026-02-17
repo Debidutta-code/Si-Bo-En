@@ -21,6 +21,8 @@ export interface IGeoRatePlanBulkInput {
   currencyCode?: CurrencyCode;
   countryCode: string[];
   isActive?: boolean;
+    isAutoApplied: boolean;
+
 }
 
 // This is for INDIVIDUAL record creation (used internally)
@@ -35,6 +37,8 @@ export interface IGeoRatePlanCreate {
   currencyCode?: CurrencyCode;
   countryCode: string[];
   isActive?: boolean;
+    isAutoApplied: boolean;
+
 }
 
 export interface IGeoRatePlanUpdate {
@@ -47,6 +51,9 @@ export interface IGeoRatePlanUpdate {
   currencyCode?: CurrencyCode;
   countryCode?: string[];
   isActive?: boolean;
+
+    isAutoApplied: boolean;
+
 }
 
 export interface IGeoRatePlan {
@@ -62,6 +69,8 @@ export interface IGeoRatePlan {
   countryCode: string[];
   isActive: boolean;
   createdAt: string;
+    isAutoApplied: boolean;
+
 }
 
 export type geoRestrictionType = "percentage" | "fixed" | "restricted";

@@ -39,6 +39,7 @@ export class OfferForTonightPromotionDao {
               friApplicable: data.friApplicable,
               satApplicable: data.satApplicable,
               sunApplicable: data.sunApplicable,
+              isAutoApplied: data.isAutoApplied,
             },
             include: {
               property: true,
@@ -135,7 +136,7 @@ export class OfferForTonightPromotionDao {
       if (updateData.satApplicable !== undefined) data.satApplicable = updateData.satApplicable;
       if (updateData.sunApplicable !== undefined) data.sunApplicable = updateData.sunApplicable;
       if (updateData.isActive !== undefined) data.isActive = updateData.isActive;
-
+data.isAutoApplied = updateData.isAutoApplied;
       return await prisma.promotion.update({
         where: { id },
         data,

@@ -109,7 +109,8 @@ export const DeviceSpecificPromotionList: React.FC = () => {
         friApplicable: payload.friApplicable,
         satApplicable: payload.satApplicable,
         sunApplicable: payload.sunApplicable,
-        isActive: payload.isActive
+        isActive: payload.isActive,
+        isAutoApplied: payload.isAutoApplied
       };
 
       const result = await updateDeviceSpecificPromotionService(editData.id, updatePayload);

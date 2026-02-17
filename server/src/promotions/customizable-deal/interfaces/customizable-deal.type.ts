@@ -8,6 +8,8 @@ export interface ICCreateCustomizableDeal {
     applicableRoomTypes: string[]; // Array of room IDs
     applicableRatePlans: string[]; // Array of rate plan IDs
     applicableAddons: string[];    // Array of addon IDs
+      isAutoApplied: boolean;
+
 }
 
 export interface ICUpdateCustomizableDeal {
@@ -17,6 +19,8 @@ export interface ICUpdateCustomizableDeal {
     applicableRoomTypes?: string[];
     applicableRatePlans?: string[];
     applicableAddons?: string[];
+      isAutoApplied: boolean;
+
 }
 
 export interface IGetCustomizableDeal {
@@ -56,6 +60,8 @@ export interface IGetCustomizableDeal {
             code: string;
         };
     }>;
+      isAutoApplied: boolean;
+
 }
 
 export interface ICustomizableDealWithDetails extends IGetCustomizableDeal {

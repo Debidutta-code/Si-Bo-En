@@ -105,7 +105,9 @@ export const GeoRatePlanList: React.FC = () => {
         restrictionValue: payload.restrictionValue,
         currencyCode: payload.currencyCode,
         countryCode: payload.countryCode,
-        isActive: payload.isActive
+        isActive: payload.isActive,
+        isAutoApplied: payload.isAutoApplied
+
       });
 
       if (result.success) {

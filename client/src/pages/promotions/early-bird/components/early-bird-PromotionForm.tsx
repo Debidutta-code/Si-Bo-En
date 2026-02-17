@@ -46,7 +46,7 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
   const [hasEndDate, setHasEndDate] = useState<boolean>(false);
   const [advanceBookingDays, setAdvanceBookingDays] = useState<string>("7");
   const [isActive, setIsActive] = useState(true);
-
+  const [isAutoApplied, setIsAutoApplied] = useState<boolean>(false);
   // Room and Rate Plan Selection
   const [selectionMode, setSelectionMode] = useState<"all" | "specific">("all");
   const [selectedRooms, setSelectedRooms] = useState<string[]>([]);
@@ -238,6 +238,7 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
       advanceBookingDays: advanceBookingDays
         ? parseInt(advanceBookingDays)
         : undefined,
+        isAutoApplied
     };
 
     await onSubmit(payload);
@@ -840,7 +841,27 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
             </span>
           </label>
         </div>
-
+        {/* Status Toggle */}
+        <div className="flex items-center space-x-3 p-3 bg-muted/20 rounded-lg border border-border">
+          <input
+            type="checkbox"
+            id="isAutoApplied"
+            checked={isAutoApplied}
+            onChange={(e) => setIsAutoApplied(e.target.checked)}
+            className="w-5 h-5 text-primary border-border rounded focus:ring-2 focus:ring-primary"
+          />
+          <label
+            htmlFor="isAutoApplied"
+            className="text-sm font-medium text-foreground cursor-pointer flex-1"
+          >
+            Auto Applied
+            <span className="block text-xs text-muted-foreground font-normal mt-0.5">
+              {isAutoApplied
+                ? "This promotion is currently auto-applied"
+                : "This promotion is currently not auto-applied"}
+            </span>
+          </label>
+        </div>
         {/* Action Buttons */}
         <div className="flex justify-end space-x-3 pt-4 border-t border-border">
           <button

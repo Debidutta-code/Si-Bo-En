@@ -16,6 +16,7 @@ export class MLOSController {
         discountType,
         discountValue,
         isActive,
+        isAutoApplied
       } = req.body;
 
       // Validation: Required fields
@@ -64,6 +65,7 @@ export class MLOSController {
         discountType: discountType || null,
         discountValue: discountValue || null,
         isActive,
+        isAutoApplied
       };
 
       const serRes = await MLOSService.createRatePlanRule(ruleData);
@@ -76,10 +78,6 @@ export class MLOSController {
     }
   }
 
-  /**
-   * Get rate plan rule by rate plan ID
-   * GET /api/rate-plan-rules/:ratePlanId
-   */
   public static async getRatePlanRuleByRatePlanId(
     req: CustomRequest,
     res: Response

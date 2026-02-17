@@ -34,6 +34,7 @@ const DeviceSpecificPromotionForm: React.FC<DeviceSpecificPromotionFormProps> = 
   editData,
   isLoading
 }) => {
+  //needs refactor
   const [selectedRatePlan, setSelectedRatePlan] = useState<string>('');
   const [selectedRatePlanCode, setSelectedRatePlanCode] = useState<string>('');
   const [promotionName, setPromotionName] = useState<string>('');
@@ -46,7 +47,7 @@ const DeviceSpecificPromotionForm: React.FC<DeviceSpecificPromotionFormProps> = 
   const [ratePlanType, setRatePlanType] = useState<'b2b' | 'b2c'>('b2c');
   const [isActive, setIsActive] = useState(true);
   const [selectedDevices, setSelectedDevices] = useState<DeviceType[]>(['mobile' as DeviceType]);
-  
+  const [isAutoApplied, setIsAutoApplied] = useState<boolean>(false);
   const [applicableDays, setApplicableDays] = useState({
     monday: true,
     tuesday: true,
@@ -173,7 +174,8 @@ const DeviceSpecificPromotionForm: React.FC<DeviceSpecificPromotionFormProps> = 
       friApplicable: applicableDays.friday,
       satApplicable: applicableDays.saturday,
       sunApplicable: applicableDays.sunday,
-      isActive
+      isActive,
+      isAutoApplied: isAutoApplied
     };
 
     await onSubmit(payload);
@@ -522,7 +524,21 @@ const DeviceSpecificPromotionForm: React.FC<DeviceSpecificPromotionFormProps> = 
             required
           />
         </div>
-
+<div className="flex items-center space-x-3 p-3 bg-muted/20 rounded-lg border border-border">
+          <input
+            type="checkbox"
+            id="isActive"
+            checked={isAutoApplied}
+            onChange={(e) => setIsAutoApplied(e.target.checked)}
+            className="w-5 h-5 text-primary border-border rounded focus:ring-2 focus:ring-primary"
+          />
+          <label htmlFor="isActive" className="text-sm font-medium text-foreground cursor-pointer flex-1">
+            Auto Apply
+            <span className="block text-xs text-muted-foreground font-normal mt-0.5">
+              {isAutoApplied ? 'This promotion is currently auto applied to the reservation' : 'This promotion is currently not auto applied'}
+            </span>
+          </label>
+        </div>
         {/* Status Toggle */}
         <div className="flex items-center space-x-3 p-3 bg-muted/20 rounded-lg border border-border">
           <input

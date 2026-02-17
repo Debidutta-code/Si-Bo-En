@@ -9,6 +9,7 @@ export interface IMLOSCreate {
   discountType?: DiscountType;
   discountValue?: number | null;
   isActive: boolean;
+  isAutoApplied: boolean;
 }
 
 export interface IMLOSUpdate {
@@ -19,6 +20,8 @@ export interface IMLOSUpdate {
   discountType?: DiscountType;
   discountValue?: number | null;
   isActive?: boolean;
+    isAutoApplied: boolean;
+
 }
 
 export interface IMLOS {
@@ -33,6 +36,8 @@ export interface IMLOS {
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
+    isAutoApplied: boolean;
+
 }
 
 // Validation types

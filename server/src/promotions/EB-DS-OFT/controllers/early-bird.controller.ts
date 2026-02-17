@@ -26,7 +26,8 @@ export class EarlyBirdPromotionController {
         friApplicable,
         satApplicable,
         sunApplicable,
-        advanceBookingDays
+        advanceBookingDays,
+        isAutoApplied
       } = req.body;
 
       // Basic validation
@@ -75,7 +76,8 @@ export class EarlyBirdPromotionController {
         friApplicable: friApplicable ?? true,
         satApplicable: satApplicable ?? true,
         sunApplicable: sunApplicable ?? true,
-        advanceBookingDays
+        advanceBookingDays,
+        isAutoApplied
       };
 
       const result = await EarlyBirdPromotionService.createEarlyBirdPromotion(promotionData);

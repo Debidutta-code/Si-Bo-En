@@ -160,7 +160,7 @@ export class EarlyBirdPromotionService {
         return errorResponse('Early-bird promotion not found');
       }
 
-      const updatedPromotion = await EarlyBirdPromotionDao.updateEarlyBirdPromotion(id, { isActive });
+      const updatedPromotion = await EarlyBirdPromotionDao.updateEarlyBirdPromotion(id, { ...existingPromotion, isActive });
 
       if (updatedPromotion) {
         return successResponse(

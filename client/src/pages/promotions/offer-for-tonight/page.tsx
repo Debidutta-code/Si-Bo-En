@@ -137,6 +137,7 @@ export const OfferForTonightList: React.FC = () => {
                 satApplicable: payload.satApplicable,
                 sunApplicable: payload.sunApplicable,
                 isActive: true,
+                isAutoApplied: payload.isAutoApplied
             };
 
             const result = await updateOfferForTonightService(editData.id, updatePayload);

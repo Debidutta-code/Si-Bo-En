@@ -137,7 +137,8 @@ export const EarlyBirdPromotionList: React.FC = () => {
                 satApplicable: payload.satApplicable,
                 sunApplicable: payload.sunApplicable,
                 isActive: true,
-                advanceBookingDays: payload.advanceBookingDays
+                advanceBookingDays: payload.advanceBookingDays,
+                isAutoApplied: payload.isAutoApplied
             };
 
             const result = await updateEarlyBirdPromotionService(editData.id, updatePayload);

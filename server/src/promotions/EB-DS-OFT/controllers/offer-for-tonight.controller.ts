@@ -25,6 +25,7 @@ export class OfferForTonightPromotionController {
         friApplicable,
         satApplicable,
         sunApplicable,
+        isAutoApplied
       } = req.body;
 
       // Basic validation
@@ -71,6 +72,7 @@ export class OfferForTonightPromotionController {
         friApplicable: friApplicable ?? true,
         satApplicable: satApplicable ?? true,
         sunApplicable: sunApplicable ?? true,
+          isAutoApplied
       };
 
       const result = await OfferForTonightPromotionService.createOfferForTonightPromotion(promotionData);

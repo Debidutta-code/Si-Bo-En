@@ -147,7 +147,7 @@ export class DeviceSpecificPromotionService {
         return errorResponse('Device-specific promotion not found');
       }
 
-      const updatedPromotion = await DeviceSpecificPromotionDao.updateDeviceSpecificPromotion(id, { isActive });
+      const updatedPromotion = await DeviceSpecificPromotionDao.updateDeviceSpecificPromotion(id, { ...existingPromotion, isActive });
 
       if (updatedPromotion) {
         return successResponse(

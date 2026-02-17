@@ -19,6 +19,7 @@ export class MLOSDao {
           discountType: data.discountType,
           discountValue: data.discountValue,
           isActive: data.isActive,
+          isAutoApplied: data.isAutoApplied
         },
       });
     } catch (error) {

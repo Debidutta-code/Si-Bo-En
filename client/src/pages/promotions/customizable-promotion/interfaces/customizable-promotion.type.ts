@@ -9,6 +9,8 @@ export interface CreateCustomizableDeal {
   applicableRoomTypes: string[]; // Array of room IDs
   applicableRatePlans: string[]; // Array of rate plan IDs
   applicableAddons: string[];    // Array of addon IDs
+    isAutoApplied: boolean;
+
 }
 
 // Update Customizable Deal payload
@@ -19,6 +21,8 @@ export interface UpdateCustomizableDeal {
   applicableRoomTypes?: string[];
   applicableRatePlans?: string[];
   applicableAddons?: string[];
+    isAutoApplied: boolean;
+
 }
 
 // Room Type interface for the deal
@@ -68,6 +72,8 @@ export interface CustomizableDeal {
   CustomizableDealsApplicableRoomTypes: DealApplicableRoomType[];
   CustomizableDealsApplicableRatePlanTypes: DealApplicableRatePlan[];
   CustomizableDealsApplicableAddons: DealApplicableAddon[];
+    isAutoApplied: boolean;
+
 }
 
 export interface ApiResponse<T> {

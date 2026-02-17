@@ -18,6 +18,7 @@ export interface IOfferForTonightPromotionBase {
   currencyCode?: CurrencyCode;
   validFrom: Date;
   validTo?: Date;
+  
 }
 
 // Offer for Tonight Promotion (has time, array of room-rateplan pairs)
@@ -30,6 +31,8 @@ export interface IOfferForTonightPromotion extends IOfferForTonightPromotionBase
   friApplicable: boolean;
   satApplicable: boolean;
   sunApplicable: boolean;
+    isAutoApplied: boolean;
+
 }
 
 // Update interface for offer-for-tonight promotion
@@ -48,6 +51,8 @@ export interface IOfferForTonightPromotionUpdate {
   satApplicable?: boolean;
   sunApplicable?: boolean;
   isActive?: boolean;
+    isAutoApplied: boolean;
+
 }
 
 // Response interface for offer-for-tonight promotion

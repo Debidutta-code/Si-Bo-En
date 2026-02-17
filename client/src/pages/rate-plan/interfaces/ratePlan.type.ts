@@ -44,6 +44,7 @@ export interface RatePlanRule {
     discountType?: "percentage" | "flat" | null;
     discountValue?: number | null;
     isActive: boolean;
+    isAutoApplied: boolean;
 }
 export interface LoaderProps {
     isLoading: boolean;

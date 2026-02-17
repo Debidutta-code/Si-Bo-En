@@ -36,6 +36,8 @@ export interface CreateGeoRatePlan {
   currencyCode?: CurrencyCode | null;
   countryCode: string[];
   isActive: boolean;
+    isAutoApplied: boolean;
+
 }
 
 export interface UpdateGeoRatePlan {
@@ -45,6 +47,8 @@ export interface UpdateGeoRatePlan {
   currencyCode?: CurrencyCode | null;
   countryCode?: string[];
   isActive?: boolean;
+    isAutoApplied?: boolean;
+
 }
 
 export interface GeoRatePlanFilters {

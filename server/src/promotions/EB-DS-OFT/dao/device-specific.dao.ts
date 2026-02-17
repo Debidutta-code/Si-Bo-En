@@ -30,6 +30,7 @@ export class DeviceSpecificPromotionDao {
           friApplicable: data.friApplicable,
           satApplicable: data.satApplicable,
           sunApplicable: data.sunApplicable,
+          isAutoApplied: data.isAutoApplied
         },
         include: {
           property: true,

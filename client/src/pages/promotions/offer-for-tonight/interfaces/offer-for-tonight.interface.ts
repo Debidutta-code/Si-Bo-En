@@ -40,6 +40,8 @@ export interface CreateOfferForTonight {
   satApplicable: boolean;
   sunApplicable: boolean;
   advanceBookingDays?: number;
+    isAutoApplied: boolean;
+
 }
 
 // Update Early Bird Promotion payload
@@ -59,6 +61,8 @@ export interface UpdateOfferForTonight {
   sunApplicable?: boolean;
   isActive?: boolean;
   advanceBookingDays?: number;
+    isAutoApplied: boolean;
+
 }
 
 // Early Bird Promotion response with RatePlan details

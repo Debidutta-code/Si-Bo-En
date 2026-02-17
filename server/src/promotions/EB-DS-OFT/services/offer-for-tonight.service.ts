@@ -155,7 +155,7 @@ export class OfferForTonightPromotionService {
         return errorResponse('Offer-for-tonight promotion not found');
       }
 
-      const updatedPromotion = await OfferForTonightPromotionDao.updateOfferForTonightPromotion(id, { isActive });
+      const updatedPromotion = await OfferForTonightPromotionDao.updateOfferForTonightPromotion(id, { ...existingPromotion, isActive });
 
       if (updatedPromotion) {
         return successResponse(

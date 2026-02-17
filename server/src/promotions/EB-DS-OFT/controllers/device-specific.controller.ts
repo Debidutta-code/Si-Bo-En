@@ -28,6 +28,7 @@ export class DeviceSpecificPromotionController {
         friApplicable,
         satApplicable,
         sunApplicable,
+        isAutoApplied
       } = req.body;
 
       // Basic validation
@@ -73,6 +74,7 @@ export class DeviceSpecificPromotionController {
         friApplicable: friApplicable ?? true,
         satApplicable: satApplicable ?? true,
         sunApplicable: sunApplicable ?? true,
+        isAutoApplied
       };
 
       const result = await DeviceSpecificPromotionService.createDeviceSpecificPromotion(promotionData);

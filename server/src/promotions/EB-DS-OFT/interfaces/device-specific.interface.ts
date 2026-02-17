@@ -24,6 +24,7 @@ export interface IDeviceSpecificPromotion extends IDeviceSpecificPromotionBase {
   friApplicable: boolean;
   satApplicable: boolean;
   sunApplicable: boolean;
+  isAutoApplied: boolean;
 }
 
 // Update interface for device-specific promotion
@@ -43,6 +44,7 @@ export interface IDeviceSpecificPromotionUpdate {
   satApplicable?: boolean;
   sunApplicable?: boolean;
   isActive?: boolean;
+  isAutoApplied: boolean;
 }
 
 // Response interface for device-specific promotion

@@ -27,6 +27,8 @@ export interface DeviceSpecificPromotion {
     saturday: boolean;
     sunday: boolean;
   };
+    isAutoApplied: boolean;
+
   isActive: boolean;
   createdAt?: string;
   updatedAt?: string;
@@ -62,6 +64,8 @@ export interface CreateDeviceSpecificPromotion {
   satApplicable: boolean;
   sunApplicable: boolean;
   isActive: boolean;
+    isAutoApplied: boolean;
+
 }
 
 export interface UpdateDeviceSpecificPromotion {
@@ -79,6 +83,8 @@ export interface UpdateDeviceSpecificPromotion {
   satApplicable?: boolean;
   sunApplicable?: boolean;
   isActive?: boolean;
+    isAutoApplied: boolean;
+
 }
 
 // Helper to convert frontend applicableDays to backend format

@@ -50,6 +50,7 @@ public static async createGeoRatePlanBulk(data: IGeoRatePlanBulkInput) {
           currencyCode: data.currencyCode,
           countryCode: data.countryCode,
           isActive: data.isActive ?? true,
+          isAutoApplied: data.isAutoApplied ,
         });
       }
     }

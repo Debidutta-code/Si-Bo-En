@@ -21,6 +21,7 @@ public static async createGeoRatePlan(dataArray: IGeoRatePlanCreate[]): Promise<
             currencyCode: data.currencyCode || null,
             countryCode: data.countryCode,
             isActive: data.isActive ?? true,
+            isAutoApplied: data.isAutoApplied
           },
           include: {
             property: {

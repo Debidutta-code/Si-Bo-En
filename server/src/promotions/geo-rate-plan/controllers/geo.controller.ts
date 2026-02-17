@@ -9,7 +9,7 @@ export class GeoRatePlanController {
 
 public static async createGeoRatePlan(req: PropertyCustomRequest, res: Response) {
   try {
-    const { rooms, ratePlans, restrictionType, restrictionValue, currencyCode, countryCode, isActive } = req.body;
+    const { rooms, ratePlans, restrictionType, restrictionValue, currencyCode,isAutoApplied, countryCode, isActive } = req.body;
     const propertyId = req.query.propertyId as string;
 
     if (!propertyId) {
@@ -48,7 +48,8 @@ public static async createGeoRatePlan(req: PropertyCustomRequest, res: Response)
       restrictionValue,
       currencyCode,
       countryCode,
-      isActive
+      isActive,
+      isAutoApplied
     });
 
     const status = serviceRes.success ? 200 : 400;
