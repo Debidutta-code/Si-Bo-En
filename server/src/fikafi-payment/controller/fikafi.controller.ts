@@ -372,7 +372,7 @@ export class FikafiPaymentController {
             const payload = req.body;
 
             console.log(
-                '🔥 Fikafi Webhook received:',
+                'Fikafi Webhook received:',
                 JSON.stringify(payload, null, 2)
             );
 
@@ -402,7 +402,6 @@ export class FikafiPaymentController {
                     message: 'bookingRefNum/referenceNumber missing',
                 });
             }
-
             // success check - handle various status formats
             const isPaid =
                 status === 'PAID' ||
@@ -435,7 +434,7 @@ export class FikafiPaymentController {
 
             return res.status(200).json({
                 success: true,
-                message: 'Webhook processed',
+                message: 'Payment event processed successfully',
             });
         } catch (error) {
             console.error('❌ Webhook processing error:', error);
