@@ -28,6 +28,8 @@ const PaymentCallbackPage = () => {
 
   // Use a ref for booking to access latest state without triggering re-renders
   const bookingRef = useRef(booking);
+  // Ref to track if we've already performed a fallback check
+  const hasCheckedRef = useRef(false);
 
   useEffect(() => {
     bookingRef.current = booking;
@@ -157,7 +159,7 @@ const PaymentCallbackPage = () => {
   }, [handleSuccessfulPayment, handleFailedPayment]);
 
   // Initialize socket connection
-  const { isConnected } = usePaymentSocket({
+  const { isConnected, connectionError } = usePaymentSocket({
     orderReference,
     onStatusUpdate: handlePaymentUpdate,
     enabled: !!orderReference && !usePolling,
@@ -231,32 +233,29 @@ const PaymentCallbackPage = () => {
           localStorage.removeItem("socketConnected");
         }
 
+        // Handle connection error immediately if it happens
+        if (connectionError && isMounted && !hasCheckedRef.current) {
+          console.log("⚠️ Connection error detected, falling back to polling immediately");
+          setUsePolling(true);
+          hasCheckedRef.current = true;
+          performPaymentCheck(orderRef, isMounted);
+          return;
+        }
+
         // Wait for socket connection or fall back to polling after 15 seconds
-        // TODO: Uncomment this block when N-Genius webhooks are working correctly
-        /*
         socketTimeout = setTimeout(() => {
-          if (!isConnected && isMounted) {
+          if (!isConnected && isMounted && !hasCheckedRef.current) {
             //console.log("⚠️ No webhook received in 15 seconds, falling back to polling");
             setUsePolling(true);
             setMessage("Verifying payment status...");
+            hasCheckedRef.current = true;
             performPaymentCheck(orderRef, isMounted);
           }
-        }, 15000); // Changed from 5000 to 15000 (15 seconds)
+        }, 15000);
 
         return () => {
           clearTimeout(socketTimeout);
         };
-        */
-
-        // START: Temporary fix for N-Genius webhook issue
-        // Immediately start polling instead of waiting for socket
-        if (isMounted) {
-          //console.log("⚠️ Webhook disabled temporarily, starting polling immediately");
-          setUsePolling(true);
-          setMessage("Verifying payment status...");
-          performPaymentCheck(orderRef, isMounted);
-        }
-        // END: Temporary fix
       } catch (err: any) {
         console.error("❌ Payment initialization error:", err);
         if (isMounted) {
@@ -275,7 +274,7 @@ const PaymentCallbackPage = () => {
       //   clearTimeout(socketTimeout);
       // }
     };
-  }, [searchParams, isConnected, performPaymentCheck]);
+  }, [searchParams, isConnected, performPaymentCheck, connectionError]);
 
   const renderIcon = () => {
     switch (status) {
