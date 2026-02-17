@@ -27,6 +27,7 @@ interface PaymentIntegrationDetail {
   propertyId: string;
   paymentIntegrationId: string;
   isActive: boolean;
+  outletId?: string;
   paymentIntegration: {
     id: string;
     name: string;
@@ -377,7 +378,7 @@ const BookingReviewPage = () => {
       const newBookingCode = data.data.bookingCode;
       setBookingCodeValue(newBookingCode);
       dispatch(setBookingCode(newBookingCode));
-      dispatch(setBookingStatus(data.data.bookingStatus||"pendin"));
+      dispatch(setBookingStatus(data.data.bookingStatus || "pendin"));
       dispatch(setFullBookingDetails(data.data));
       document.cookie = "can_access_payment=true; path=/";
 
@@ -385,12 +386,12 @@ const BookingReviewPage = () => {
       if (selectedPayment === "fikafi") {
         // Store booking code in localStorage for the Fikafi button to access
         localStorage.setItem('currentBookingCode', newBookingCode);
-        
+
         toast.success("Booking confirmed! Initiating payment...", {
           id: "booking-success",
           duration: 2000,
         });
-        
+
         // Trigger Fikafi payment after a short delay
         setTimeout(() => {
           // Find the Fikafi button and click it programmatically
@@ -443,6 +444,10 @@ const BookingReviewPage = () => {
 
       toast.loading("Creating secure payment order...", { id: "ngenius-order" });
 
+      const outletId = bankDetails?.selectedPaymentIntegrations?.paymentIntegration?.name === "ngenius"
+        ? bankDetails?.selectedPaymentIntegrations?.outletId
+        : undefined;
+
       const orderResponse = await ngeniusService.createOrder({
         action: "PURCHASE",
         amount: {
@@ -454,6 +459,7 @@ const BookingReviewPage = () => {
           skipConfirmationPage: true,
         },
         emailAddress: email.trim(),
+        outletId: outletId,
       });
 
       if (!orderResponse?.data?.orderReference || !orderResponse?.data?.paymentUrl) {
@@ -612,33 +618,33 @@ const BookingReviewPage = () => {
                 using credit/debit card, net banking, or other online payment methods.
               </p>
 
-            {/* Fikafi Payment Button */}
-            <div className="mt-4">
-              <FikafiPaymentButton
-                bookingCode={bookingCode}
-                amount={updatedPrice}
-                currency={currencyCode}
-                guestName={getGuestName()}
-                guestEmail={getGuestEmail()}
-                guestPhone={getGuestPhone()}
-                propertyName={propertyName}
-                propertyID={PropertyId || "UNKNOWN_PROPERTY"}
-                checkInDate={checkIn}
-                numberOfNights={nights}
-                onPaymentLinkGenerated={(paymentLink: string) => {
-                  console.log('Payment link generated:', paymentLink);
-                  toast.success("Redirecting to payment...", { id: "fikafi-success" });
-                }}
-                onPaymentError={(error) => {
-                  console.error('Fikafi error:', error);
-                  toast.error("Payment failed. Please try again.", { id: "fikafi-error" });
-                }}
-                buttonText="Pay Now with Fikafi"
-                className="w-full"
-                data-fikafi-button="true"
-              />
+              {/* Fikafi Payment Button */}
+              <div className="mt-4">
+                <FikafiPaymentButton
+                  bookingCode={bookingCode}
+                  amount={updatedPrice}
+                  currency={currencyCode}
+                  guestName={getGuestName()}
+                  guestEmail={getGuestEmail()}
+                  guestPhone={getGuestPhone()}
+                  propertyName={propertyName}
+                  propertyID={PropertyId || "UNKNOWN_PROPERTY"}
+                  checkInDate={checkIn}
+                  numberOfNights={nights}
+                  onPaymentLinkGenerated={(paymentLink: string) => {
+                    console.log('Payment link generated:', paymentLink);
+                    toast.success("Redirecting to payment...", { id: "fikafi-success" });
+                  }}
+                  onPaymentError={(error) => {
+                    console.error('Fikafi error:', error);
+                    toast.error("Payment failed. Please try again.", { id: "fikafi-error" });
+                  }}
+                  buttonText="Pay Now with Fikafi"
+                  className="w-full"
+                  data-fikafi-button="true"
+                />
 
-            </div>
+              </div>
 
               <div className="mt-3 flex flex-wrap gap-3 items-center">
                 <div className="flex items-center gap-1 text-xs text-gray-600">

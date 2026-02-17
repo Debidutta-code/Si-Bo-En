@@ -20,10 +20,10 @@ class NGeniusService {
     //console.log('\n========================================');
     //console.log('🔑 REQUESTING ACCESS TOKEN');
     //console.log('========================================');
-    
+
     try {
       const url = `${NGeniusConfig.baseUrl}${NGeniusConfig.endpoints.token}`;
-      
+
       //console.log('📍 Full Request URL:', url);
       //console.log('🌐 Base URL:', NGeniusConfig.baseUrl);
       //console.log('🔗 Token Endpoint:', NGeniusConfig.endpoints.token);
@@ -67,7 +67,7 @@ class NGeniusService {
     } catch (error) {
       console.error('\n❌ TOKEN REQUEST FAILED');
       console.error('⏰ Error Time:', new Date().toISOString());
-      
+
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError<NGeniusErrorResponse>;
         console.error('📊 Error Status:', axiosError.response?.status);
@@ -76,7 +76,7 @@ class NGeniusService {
         console.error('🔍 Error Message:', axiosError.message);
         console.error('🔍 Error Code:', axiosError.code);
       }
-      
+
       this.handleError(error, 'Failed to get access token');
       //console.log('========================================\n');
       throw error;
@@ -89,15 +89,15 @@ class NGeniusService {
   private async getValidToken(): Promise<string> {
     //console.log('\n🔍 Checking Token Validity...');
     //console.log('⏰ Current Time:', new Date().toISOString());
-    
+
     if (this.accessToken && this.tokenExpiry) {
       const now = new Date();
       const timeUntilExpiry = this.tokenExpiry.getTime() - now.getTime();
       const minutesUntilExpiry = Math.floor(timeUntilExpiry / 1000 / 60);
-      
+
       //console.log('📅 Token Expiry Time:', this.tokenExpiry.toISOString());
       //console.log('⏰ Time Until Expiry:', minutesUntilExpiry, 'minutes');
-      
+
       if (this.tokenExpiry > now) {
         //console.log('✅ Using Cached Token (valid for', minutesUntilExpiry, 'more minutes)');
         return this.accessToken;
@@ -121,7 +121,7 @@ class NGeniusService {
     //console.log('\n========================================');
     //console.log('🛒 CREATING N-GENIUS ORDER');
     //console.log('========================================');
-    
+
     try {
       // Get valid access token
       //console.log('🔐 Step 1: Getting Valid Access Token...');
@@ -129,7 +129,9 @@ class NGeniusService {
       //console.log('✅ Token Retrieved Successfully');
       //console.log('🔑 Using Token (first 30 chars):', token.substring(0, 30) + '...');
 
-      const url = `${NGeniusConfig.baseUrl}${NGeniusConfig.endpoints.orders}/${NGeniusConfig.outletId}/orders`;
+      // Use dynamic outlet ID if provided, otherwise fallback to config
+      const targetOutletId = orderData.outletId || NGeniusConfig.outletId;
+      const url = `${NGeniusConfig.baseUrl}${NGeniusConfig.endpoints.orders}/${targetOutletId}/orders`;
 
       //console.log('\n📍 ORDER CREATION REQUEST DETAILS:');
       //console.log('🌐 Base URL:', NGeniusConfig.baseUrl);
@@ -137,10 +139,10 @@ class NGeniusService {
       //console.log('🏪 Outlet ID:', NGeniusConfig.outletId);
       //console.log('📍 Full URL:', url);
       //console.log('🔧 HTTP Method: POST');
-      
+
       //console.log('\n📦 Request Body (Order Data):');
       //console.log(JSON.stringify(orderData, null, 2));
-      
+
       //console.log('\n📋 Request Headers:');
       const headers = {
         'Content-Type': 'application/vnd.ni-payment.v2+json',
@@ -185,29 +187,29 @@ class NGeniusService {
     } catch (error) {
       console.error('\n❌ ORDER CREATION FAILED');
       console.error('⏰ Error Time:', new Date().toISOString());
-      
+
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError<NGeniusErrorResponse>;
-        
+
         console.error('\n📊 ERROR RESPONSE DETAILS:');
         console.error('Status Code:', axiosError.response?.status);
         console.error('Status Text:', axiosError.response?.statusText);
         console.error('\n📄 Error Response Data:');
         console.error(JSON.stringify(axiosError.response?.data, null, 2));
-        
+
         console.error('\n📋 Error Response Headers:');
         console.error(JSON.stringify(axiosError.response?.headers, null, 2));
-        
+
         console.error('\n🔍 Axios Error Details:');
         console.error('Error Message:', axiosError.message);
         console.error('Error Code:', axiosError.code);
-        
+
         console.error('\n📤 REQUEST THAT FAILED:');
         console.error('URL:', axiosError.config?.url);
         console.error('Method:', axiosError.config?.method);
         console.error('Headers:', JSON.stringify(axiosError.config?.headers, null, 2));
         console.error('Body:', axiosError.config?.data);
-        
+
         // Check for specific error codes
         if (axiosError.response?.status === 403) {
           console.error('\n🚨 403 FORBIDDEN ERROR - POSSIBLE CAUSES:');
@@ -224,7 +226,7 @@ class NGeniusService {
           console.error('5. Verify you\'re using correct environment (sandbox/production)');
         }
       }
-      
+
       this.handleError(error, 'Failed to create order');
       //console.log('========================================\n');
       throw error;
@@ -240,7 +242,7 @@ class NGeniusService {
     //console.log('\n========================================');
     //console.log('📊 FETCHING ORDER STATUS');
     //console.log('========================================');
-    
+
     try {
       //console.log('🔐 Getting Valid Access Token...');
       const token = await this.getValidToken();
@@ -277,13 +279,13 @@ class NGeniusService {
     } catch (error) {
       console.error('\n❌ FAILED TO GET ORDER STATUS');
       console.error('Order Reference:', orderReference);
-      
+
       if (axios.isAxiosError(error)) {
         const axiosError = error as AxiosError<NGeniusErrorResponse>;
         console.error('Status:', axiosError.response?.status);
         console.error('Error Data:', JSON.stringify(axiosError.response?.data, null, 2));
       }
-      
+
       this.handleError(error, 'Failed to get order status');
       //console.log('========================================\n');
       throw error;
