@@ -7,7 +7,9 @@ export interface RateTigerAuthRequest {
 
 export interface RateTigerAuthResponse {
   access_token: string;
-  expires_in: string; // ISO 8601 timestamp
+  expires_in: string; 
+  message?:string;
+  status?:string;
 }
 
 export interface RateTigerOTAHotelAvailRQ {
