@@ -4,34 +4,34 @@ import { MLOSController } from '../controllers';
 import { checkRoleBased } from '../../../middlewares/checkRole.middleware';
 
 export const mlosRouter = Router();
-
+const mlosController = new MLOSController();
 mlosRouter
 .route('/')
   .post(
     protect,
     checkRoleBased('canCreateRatePlan'),
-    MLOSController.createRatePlanRule
+    mlosController.createRatePlanRule.bind(mlosController)
   );
 
 mlosRouter
   .route('/:ratePlanId')
   .get(
     protect,
-    MLOSController.getRatePlanRuleByRatePlanId
+    mlosController.getRatePlanRuleByRatePlanId.bind(mlosController)
   )
   .put(
     protect,
     checkRoleBased('canUpdateRatePlan'),
-    MLOSController.updateRatePlanRule
+    mlosController.updateRatePlanRule.bind(mlosController)
   )
   .delete(
     protect,
     checkRoleBased('canDeleteRatePlan'),
-    MLOSController.deleteRatePlanRule
+    mlosController.deleteRatePlanRule.bind(mlosController)
   );
 mlosRouter
   .route('/property/:propertyId')
   .get(
     protect,
-    MLOSController.getRatePlanRulesByPropertyId
+    mlosController.getRatePlanRulesByPropertyId.bind(mlosController)
   );

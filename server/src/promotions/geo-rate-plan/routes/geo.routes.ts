@@ -7,7 +7,7 @@ import { attachPropertyDetails } from '../../../middlewares/property.middleware'
 import { GeoRatePlanController } from '../controllers/geo.controller';
 
 export const geoRatePlanRouter = Router();
-
+const geoController = new GeoRatePlanController();
 // Create geo rate plan
 geoRatePlanRouter
   .route('/')
@@ -19,10 +19,9 @@ geoRatePlanRouter
       key: 'propertyId',
       source: 'query'
     }),
-    GeoRatePlanController.createGeoRatePlan
+    geoController.createGeoRatePlan.bind(geoController)
   );
 
-// Get geo rate plans by property ID with filters
 geoRatePlanRouter
   .route('/property/:propertyId')
   .get(
@@ -32,31 +31,22 @@ geoRatePlanRouter
       key: 'propertyId',
       source: 'params'
     }),
-    GeoRatePlanController.getGeoRatePlansByPropertyId
+    geoController.getGeoRatePlansByPropertyId.bind(geoController)
   );
 
-// Get geo rate plans by filters
-geoRatePlanRouter
-  .route('/filter')
-  .get(
-    protect,
-    GeoRatePlanController.getGeoRatePlansByFilters
-  );
-
-// Get, update, delete geo rate plan by ID
 geoRatePlanRouter
   .route('/:id')
   .get(
     protect,
-    GeoRatePlanController.getGeoRatePlanById
+    geoController.getGeoRatePlanById.bind(geoController)
   )
   .patch(
     protect,
     checkRoleBased('canUpdateRatePlan'),
-    GeoRatePlanController.updateGeoRatePlan
+    geoController.updateGeoRatePlan.bind(geoController)
   )
   .delete(
     protect,
     checkRoleBased('canDeleteRatePlan'),
-    GeoRatePlanController.deleteGeoRatePlan
+    geoController.deleteGeoRatePlan.bind(geoController)
   );
