@@ -11,7 +11,7 @@ export interface IRatePlanInput {
   id: string;
   code: string;
 }
-
+export type restrictionTypeAction= "increase" | "decrease";
 export interface IGeoRatePlanInput {
   propertyId: string;
   rooms: IRoomInput[];
@@ -22,7 +22,7 @@ export interface IGeoRatePlanInput {
   countryCode: string[];
   isActive: boolean;
   isAutoApplied: boolean;
-
+restrictionTypeAction:restrictionTypeAction
 }
 
 // This is for INDIVIDUAL record creation (used internally)
@@ -38,6 +38,8 @@ export interface IGeoRatePlanCreate {
   countryCode: string[];
   isActive: boolean;
   isAutoApplied: boolean;
+  restrictionTypeAction?:restrictionTypeAction
+
 
 }
 
@@ -60,6 +62,8 @@ export interface IGeoRatePlan {
   property:IProperty;
   room:IRoom|null;
   ratePlan:IRatePlan;
+  restrictionTypeAction:restrictionTypeAction
+
 
 }
 

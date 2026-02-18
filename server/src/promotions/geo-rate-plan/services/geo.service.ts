@@ -15,7 +15,6 @@ export class GeoRatePlanService {
         try {
 
 
-            // Set restrictionValue to null if type is 'restricted'
             let finalRestrictionValue = data.restrictionValue;
             if (data.restrictionType === 'restricted') {
                 finalRestrictionValue = null;
@@ -23,13 +22,13 @@ export class GeoRatePlanService {
 
             // Generate all combinations of rooms x ratePlans
             const geoRatePlanData: IGeoRatePlanCreate[] = [];
-
-            for (const room of data.rooms) {
+            console.log(geoRatePlanData);
+            if (!data.rooms || data.rooms.length === 0) {
                 for (const ratePlan of data.ratePlans) {
                     geoRatePlanData.push({
                         propertyId: data.propertyId,
-                        roomId: room.id,
-                        roomType: room.type,
+                        roomId: null,
+                        roomType: null,
                         ratePlanId: ratePlan.id,
                         ratePlanCode: ratePlan.code,
                         restrictionType: data.restrictionType,
@@ -38,11 +37,32 @@ export class GeoRatePlanService {
                         countryCode: data.countryCode,
                         isActive: data.isActive ?? true,
                         isAutoApplied: data.isAutoApplied,
+                        restrictionTypeAction: data.restrictionTypeAction
                     });
+                }
+            } else {
+                for (const room of data.rooms) {
+                    for (const ratePlan of data.ratePlans) {
+                        geoRatePlanData.push({
+                            propertyId: data.propertyId,
+                            roomId: room.id,
+                            roomType: room.type,
+                            ratePlanId: ratePlan.id,
+                            ratePlanCode: ratePlan.code,
+                            restrictionType: data.restrictionType,
+                            restrictionValue: finalRestrictionValue,
+                            currencyCode: data.currencyCode,
+                            countryCode: data.countryCode,
+                            isActive: data.isActive ?? true,
+                            isAutoApplied: data.isAutoApplied,
+                            restrictionTypeAction: data.restrictionTypeAction
+                        });
+                    }
                 }
             }
 
-            await this.geoRatePlanRepository.createGeoRatePlan(geoRatePlanData);
+            const daoRes = await this.geoRatePlanRepository.createGeoRatePlan(geoRatePlanData);
+            console.log("Dao Response:", daoRes);
             return successResponse(
                 `Successfully created geo rate plan`,
             );
@@ -62,7 +82,7 @@ export class GeoRatePlanService {
                 propertyId,
                 filters
             );
-
+            
             return successResponse('Geo rate plans fetched successfully', geoRatePlans);
         } catch (error) {
             if (error instanceof Error) {

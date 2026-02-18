@@ -14,7 +14,7 @@ export class GeoRatePlanController {
 
   public  async createGeoRatePlan(req: PropertyCustomRequest, res: Response) {
     try {
-      const { rooms, ratePlans, restrictionType, restrictionValue, currencyCode, isAutoApplied, countryCode, isActive } = req.body;
+      const { rooms, ratePlans, restrictionType, restrictionValue, currencyCode, isAutoApplied, countryCode, isActive, restrictionTypeAction } = req.body;
       const propertyId = req.query.propertyId as string;
 
       if (!propertyId) {
@@ -54,7 +54,8 @@ export class GeoRatePlanController {
         currencyCode,
         countryCode,
         isActive,
-        isAutoApplied
+        isAutoApplied,
+        restrictionTypeAction
       });
 
       const status = serviceRes.success ? 200 : 400;
@@ -76,8 +77,6 @@ export class GeoRatePlanController {
       const filters: any = {};
       if (roomTypeCode && roomTypeCode !== 'all') filters.roomTypeCode = roomTypeCode as string;
       if (ratePlanCode && ratePlanCode !== 'all') filters.ratePlanCode = ratePlanCode as string;
-      if (countryCode) filters.countryCode = countryCode as string;
-      if (isActive !== undefined) filters.isActive = isActive === 'true';
 
       const geoRatePlans = await this.geoRatePlanService.getGeoRatePlansByPropertyId(propertyId, filters);
 

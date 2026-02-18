@@ -1,5 +1,5 @@
 import { prisma } from '../../../config';
-import { IGeoRatePlanCreate, IGeoRatePlan, IGeoRatePlanFilter } from '../interfaces';
+import { IGeoRatePlanCreate, IGeoRatePlan, IGeoRatePlanFilter, restrictionTypeAction } from '../interfaces';
 
 export class GeoRatePlanDao {
 
@@ -20,7 +20,8 @@ export class GeoRatePlanDao {
               currencyCode: data.currencyCode || null,
               countryCode: data.countryCode,
               isActive: data.isActive ?? true,
-              isAutoApplied: data.isAutoApplied
+              isAutoApplied: data.isAutoApplied,
+              restrictionTypeAction: data.restrictionTypeAction 
             },
             include: {
               property: {
@@ -59,16 +60,13 @@ export class GeoRatePlanDao {
     propertyId: string,
     filters?: IGeoRatePlanFilter
   ): Promise<IGeoRatePlan[]> {
+    console.log("Dao filters",filters);
     try {
       const whereClause: any = {
         propertyId,
-        isActive: true
-      };
+        };
       if(filters?.roomTypeCode){
         whereClause.roomType = filters.roomTypeCode;
-      }
-      if(filters?.roomTypeCode){
-        whereClause.roomId = filters.roomTypeCode;
       }
       return await prisma.geoRatePlan.findMany({
         where: whereClause,
