@@ -20,42 +20,6 @@ export class MLOSService {
         return errorResponse('Rate plan rule already exists for this rate plan. Please update the existing rule instead.');
       }
 
-      // Validation: minLos must be at least 1
-      if (data.minLos < 1) {
-        return errorResponse('Minimum length of stay must be at least 1');
-      }
-
-      // Validation: maxLos must be >= minLos if provided
-      if (data.maxLos !== null && data.maxLos !== undefined && data.maxLos < data.minLos) {
-        return errorResponse('Maximum length of stay must be greater than or equal to minimum length of stay');
-      }
-
-      // Validation: Date range validation
-      if (data.startDate && data.endDate) {
-        const start = new Date(data.startDate);
-        const end = new Date(data.endDate);
-        if (end < start) {
-          return errorResponse('End date must be after start date');
-        }
-      }
-
-      // Validation: Discount validation
-      if (data.discountType && !data.discountValue) {
-        return errorResponse('Discount value is required when discount type is specified');
-      }
-
-      if (data.discountValue && !data.discountType) {
-        return errorResponse('Discount type is required when discount value is specified');
-      }
-
-      if (data.discountType === 'percentage' && data.discountValue && data.discountValue > 100) {
-        return errorResponse('Percentage discount cannot exceed 100%');
-      }
-
-      if (data.discountValue && data.discountValue < 0) {
-        return errorResponse('Discount value cannot be negative');
-      }
-
       const response = await MLOSDao.createRatePlanRule(data);
 
       if (response) {

@@ -16,7 +16,7 @@ import type {
   RoomRatePlanPair,
 } from "../interfaces";
 import { Clock } from "lucide-react";
-import type { CurrencyCode } from "../../mobile-only/interfaces";
+import type { CurrencyCode } from "../../device-specific/interfaces";
 
 interface OfferForTonightFormProps {
   ratePlans: RatePlan[];
@@ -77,7 +77,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
       setDiscountType(editData.DiscountType);
       setDiscountValue(editData.DiscountValue.toString());
       setCurrencyCode(editData.currencyCode || "USD");
-
+      setIsAutoApplied(editData.isAutoApplied);
       // Extract date and time from validFrom and validTo
       if (editData.validFrom) {
         const fromDate = new Date(editData.validFrom);

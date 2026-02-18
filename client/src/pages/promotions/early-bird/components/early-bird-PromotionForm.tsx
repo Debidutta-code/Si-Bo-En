@@ -16,7 +16,7 @@ import type {
   RoomRatePlanPair,
 } from "../interfaces";
 import { Calendar } from "lucide-react";
-import type { CurrencyCode } from "../../mobile-only/interfaces";
+import type { CurrencyCode } from "../../device-specific/interfaces";
 
 interface EarlyBirdPromotionFormProps {
   ratePlans: RatePlan[];

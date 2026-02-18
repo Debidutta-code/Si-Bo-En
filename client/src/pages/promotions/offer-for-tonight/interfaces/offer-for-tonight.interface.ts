@@ -23,7 +23,7 @@ export interface ApplicableDays {
 
 // Create Early Bird Promotion payload
 export interface CreateOfferForTonight {
-  promotionName: string;
+  promotionNae: string;
   propertyId: string;
   promotionType: PromotionType;
   discountType: DiscountType;
@@ -87,6 +87,7 @@ export interface OfferForTonightWithRatePlan {
   friApplicable: boolean;
   satApplicable: boolean;
   sunApplicable: boolean;
+  isAutoApplied: boolean
   isActive: boolean;
   advanceBookingDays: number | null;
   createdAt: string;

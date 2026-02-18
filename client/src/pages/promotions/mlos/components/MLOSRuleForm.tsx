@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import type { RatePlanRule } from '@/pages/rate-plan/interfaces/ratePlan.type';
+import BackButton from '@/components/shared/BackButton';
 
 interface MLOSRuleFormProps {
   ratePlans: RatePlan[];
@@ -72,14 +73,15 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
   };
 
   const showDiscountFields = discountType !== '';
-
-  return (
-    <div className="bg-card rounded-lg border border-border shadow-sm relative">
-      {isLoading && (
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center rounded-lg">
+if(isLoading){
+ <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center rounded-lg">
           <Loader text="Processing..." />
         </div>
-      )}
+}
+  return (
+    <>
+              // <BackButton/>
+    <div className="bg-card rounded-lg border border-border shadow-sm relative">
       
       <form onSubmit={handleSubmit} className="p-6 space-y-4">
         {/* Rate Plan Selection */}
@@ -300,6 +302,7 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
         </div>
       </form>
     </div>
+    </>
   );
 };
 

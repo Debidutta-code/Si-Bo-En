@@ -72,7 +72,7 @@ const DeviceSpecificPromotionForm: React.FC<DeviceSpecificPromotionFormProps> = 
       setApplicableDays(editData.applicableDays);
       setIsActive(editData.isActive);
       setSelectedDevices(editData.deviceType);
-      
+      setIsAutoApplied(editData.isAutoApplied);
       // Set rate plan type based on the rate plan
       if (editData.ratePlan.b2bAvailable) {
         setRatePlanType('b2b');

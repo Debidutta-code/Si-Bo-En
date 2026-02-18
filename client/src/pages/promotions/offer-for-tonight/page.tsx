@@ -25,8 +25,8 @@ import {
 } from './interfaces';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Calendar, Clock, Edit, MoreVertical, Trash2 } from 'lucide-react';
-import { convertBackendToApplicableDays } from '../mobile-only/interfaces/mobilePromotion.type';
+import { Calendar, Check, Clock, Edit, MoreVertical, Trash2, X } from 'lucide-react';
+import { convertBackendToApplicableDays } from '../device-specific/interfaces/mobilePromotion.type';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 export const OfferForTonightList: React.FC = () => {
@@ -44,60 +44,60 @@ export const OfferForTonightList: React.FC = () => {
         loadData();
     }, [propertyId]);
 
-   const loadData = async () => {
-    setIsLoading(true);
-    try {
-        if (!propertyId) {
-            return;
-        }
+    const loadData = async () => {
+        setIsLoading(true);
+        try {
+            if (!propertyId) {
+                return;
+            }
 
-        const [promotionsResponse, plansResponse, roomsResponse] = await Promise.all([
-            getOfferForTonightByPropertyService(propertyId),
-            fetchRatePlansService(propertyId),
-            fetchRoomTypesService(propertyId)
-        ]);
+            const [promotionsResponse, plansResponse, roomsResponse] = await Promise.all([
+                getOfferForTonightByPropertyService(propertyId),
+                fetchRatePlansService(propertyId),
+                fetchRoomTypesService(propertyId)
+            ]);
 
-        if (promotionsResponse.success) {
-            // Group promotions by id and construct roomRatePlans array
-            const promotionsMap = new Map<string, OfferForTonightWithRatePlan>();
-            
-            (promotionsResponse.data || []).forEach((promo: any) => {
-                if (!promotionsMap.has(promo.id)) {
-                    // First occurrence of this promotion
-                    promotionsMap.set(promo.id, {
-                        ...promo,
-                        applicableDays: convertBackendToApplicableDays(promo),
-                        roomRatePlans: []
-                    });
-                }
-                
-                // Add room-rateplan pair to the array
-                const promotion = promotionsMap.get(promo.id)!;
-                if (promo.roomId && promo.ratePlanId) {
-                    promotion.roomRatePlans!.push({
-                        roomId: promo.roomId,
-                        roomType: promo.roomType || undefined,
-                        ratePlanId: promo.ratePlanId,
-                        ratePlanCode: promo.ratePlanCode
-                    });
-                }
-            });
-            
-            setPromotions(Array.from(promotionsMap.values()));
+            if (promotionsResponse.success) {
+                // Group promotions by id and construct roomRatePlans array
+                const promotionsMap = new Map<string, OfferForTonightWithRatePlan>();
+
+                (promotionsResponse.data || []).forEach((promo: any) => {
+                    if (!promotionsMap.has(promo.id)) {
+                        // First occurrence of this promotion
+                        promotionsMap.set(promo.id, {
+                            ...promo,
+                            applicableDays: convertBackendToApplicableDays(promo),
+                            roomRatePlans: []
+                        });
+                    }
+
+                    // Add room-rateplan pair to the array
+                    const promotion = promotionsMap.get(promo.id)!;
+                    if (promo.roomId && promo.ratePlanId) {
+                        promotion.roomRatePlans!.push({
+                            roomId: promo.roomId,
+                            roomType: promo.roomType || undefined,
+                            ratePlanId: promo.ratePlanId,
+                            ratePlanCode: promo.ratePlanCode
+                        });
+                    }
+                });
+
+                setPromotions(Array.from(promotionsMap.values()));
+            }
+            if (plansResponse.success) {
+                setRatePlans(plansResponse.data || []);
+            }
+            if (roomsResponse.success) {
+                setRoomTypes(roomsResponse.data || []);
+            }
+        } catch (error) {
+            console.error('Error loading data:', error);
+            toast.error('Failed to load Offer For Tonight promotions');
+        } finally {
+            setIsLoading(false);
         }
-        if (plansResponse.success) {
-            setRatePlans(plansResponse.data || []);
-        }
-        if (roomsResponse.success) {
-            setRoomTypes(roomsResponse.data || []);
-        }
-    } catch (error) {
-        console.error('Error loading data:', error);
-        toast.error('Failed to load Offer For Tonight promotions');
-    } finally {
-        setIsLoading(false);
-    }
-};
+    };
 
     const handleCreate = async (payload: CreateOfferForTonight) => {
         setIsLoading(true);
@@ -294,6 +294,7 @@ export const OfferForTonightList: React.FC = () => {
                                 <TableHead>Start Date</TableHead>
                                 <TableHead>End Date</TableHead>
                                 <TableHead>Active Days</TableHead>
+                                <TableHead>Auto Applied</TableHead>
                                 <TableHead>Status</TableHead>
                                 <TableHead>Actions</TableHead>
                             </TableRow>
@@ -347,10 +348,18 @@ export const OfferForTonightList: React.FC = () => {
                                                 {getActiveDays(promotion.applicableDays)}
                                             </span>
                                         </TableCell>
+                                        <TableCell className='flex items-center justify-center'>
+                                            <span className={`px-3 py-1  rounded text-xs ${promotion.isAutoApplied
+                                                ? ' text-success '
+                                                : ' text-destructive'
+                                                }`}>
+                                                {promotion.isAutoApplied ? <Check className='h-4 w-4'/> : <X className='h-4 w-4'/>}
+                                            </span>
+                                        </TableCell>
                                         <TableCell>
                                             <span className={`px-3 py-1 rounded text-xs font-medium ${promotion.isActive
-                                                    ? 'bg-success/10 text-success'
-                                                    : 'bg-muted text-muted-foreground'
+                                                ? 'bg-success/10 text-success'
+                                                : 'bg-muted text-muted-foreground'
                                                 }`}>
                                                 {promotion.isActive ? 'Active' : 'Inactive'}
                                             </span>

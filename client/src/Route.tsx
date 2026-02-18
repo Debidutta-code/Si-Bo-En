@@ -43,7 +43,7 @@ import Loyalty from "./pages/loyalty/Loyalty.tsx";
 
 import GeoRatePlanList from "./pages/promotions/geo/page.tsx";
 import MLOSRuleList from "./pages/promotions/mlos/page.tsx";
-import { DeviceSpecificPromotionList } from "./pages/promotions/mobile-only/page.tsx";
+import { DeviceSpecificPromotionList } from "./pages/promotions/device-specific/page.tsx";
 import { EarlyBirdPromotionList } from "./pages/promotions/early-bird/page.tsx";
 import  {OfferForTonightList}  from "./pages/promotions/offer-for-tonight/page.tsx";
 import CustomizablePromotionList from "./pages/promotions/customizable-promotion/page.tsx";

@@ -23,9 +23,10 @@ import {
 } from './interfaces';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Smartphone, Tablet, Monitor, MoreVertical, Edit, Trash2 } from 'lucide-react';
+import { Smartphone, Tablet, Monitor, MoreVertical, Edit, Trash2, Check, X } from 'lucide-react';
 import { convertBackendToApplicableDays } from './interfaces/mobilePromotion.type';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import BackButton from '@/components/shared/BackButton';
 
 export const DeviceSpecificPromotionList: React.FC = () => {
   const { propertyId } = useParams<{ propertyId: string }>();
@@ -232,6 +233,7 @@ export const DeviceSpecificPromotionList: React.FC = () => {
 
   return (
     <div className="space-y-4">
+      <BackButton/>
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Device-Specific Promotions</h2>
@@ -256,18 +258,19 @@ export const DeviceSpecificPromotionList: React.FC = () => {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Rate Plan</TableHead>
-                <TableHead>Promotion Name</TableHead>
-                <TableHead>Devices</TableHead>
-                <TableHead>Discount</TableHead>
-                <TableHead>Start Date</TableHead>
-                <TableHead>End Date</TableHead>
-                <TableHead>Active Days</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Actions</TableHead>
+                <TableHead className='text-center'>Rate Plan</TableHead>
+                <TableHead className='text-center'>Promotion Name</TableHead>
+                <TableHead className='text-center'>Devices</TableHead>
+                <TableHead className='text-center'>Discount</TableHead>
+                <TableHead className='text-center'>Start Date</TableHead>
+                <TableHead className='text-center'>End Date</TableHead>
+                <TableHead className='text-center'>Active Days</TableHead>
+                <TableHead className='text-center'>Status</TableHead>
+                <TableHead className='text-center'>Auto Applied</TableHead>
+                <TableHead className='text-center'>Actions</TableHead>
               </TableRow>
             </TableHeader>
-            <TableBody>
+            <TableBody className='text-center'>
               {promotions.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
@@ -314,10 +317,18 @@ export const DeviceSpecificPromotionList: React.FC = () => {
                         {getActiveDays(promotion.applicableDays)}
                       </span>
                     </TableCell>
+                    <TableCell className='flex items-center justify-center'>
+                      <span className={`px-3 py-1  rounded text-xs ${promotion.isAutoApplied
+                        ? ' text-success '
+                        : ' text-destructive'
+                        }`}>
+                        {promotion.isAutoApplied ? <Check className='h-4 w-4' /> : <X className='h-4 w-4' />}
+                      </span>
+                    </TableCell>
                     <TableCell>
                       <span className={`px-3 py-1 rounded text-xs font-medium ${promotion.isActive
-                          ? 'bg-success/10 text-success'
-                          : 'bg-muted text-muted-foreground'
+                        ? 'bg-success/10 text-success'
+                        : 'bg-muted text-muted-foreground'
                         }`}>
                         {promotion.isActive ? 'Active' : 'Inactive'}
                       </span>

@@ -18,7 +18,8 @@ import type { RatePlanRule } from '@/pages/rate-plan/interfaces/ratePlan.type';
 import { getRatePlanRulesByPropertyIdService } from './services';
 import { deleteRatePlanRule } from '@/pages/rate-plan/api/api';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Edit, MoreVertical, Trash2 } from 'lucide-react';
+import { Check, Edit, MoreVertical, Trash2, X } from 'lucide-react';
+import BackButton from '@/components/shared/BackButton';
 
 interface RatePlanRuleWithRatePlan extends RatePlanRule {
   ratePlan: {
@@ -33,7 +34,7 @@ export const MLOSRuleList: React.FC = () => {
   const [mlosRules, setMlosRules] = useState<RatePlanRuleWithRatePlan[]>([]);
   const [ratePlans, setRatePlans] = useState<RatePlan[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [showForm, setShowForm] = useState(false);
+  const [showForm, setShowForm] = useState<boolean>(false);
   const [editData, setEditData] = useState<RatePlanRuleWithRatePlan | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [ruleToDelete, setRuleToDelete] = useState<string | null>(null);
@@ -158,7 +159,13 @@ export const MLOSRuleList: React.FC = () => {
     return type === 'percentage' ? `${value}%` : `₹${value}`;
   };
 
+  // Debug logging
+  console.log('Component State:', { showForm, editData, isLoading });
+  console.log('Rate Plans Count:', ratePlans.length);
+  console.log('MLOS Rules Count:', mlosRules.length);
+
   if (showForm) {
+    console.log('Rendering form, editData:', editData);
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -180,14 +187,19 @@ export const MLOSRuleList: React.FC = () => {
     );
   }
 
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
+        <BackButton/>
         <h2 className="text-2xl font-bold text-foreground">MLOS Rules</h2>
         <button
-          onClick={() => setShowForm(true)}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-          disabled={ratePlans.filter(rp => !rp.ratePlanRules).length === 0}
+          onClick={() => {
+            console.log('Button clicked, showForm:', showForm);
+            setShowForm(true);
+          }}
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          title={'Create a new MLOS rule'}
         >
           + Create MLOS Rule
         </button>
@@ -207,7 +219,9 @@ export const MLOSRuleList: React.FC = () => {
                 <TableHead>Min LOS</TableHead>
                 <TableHead>Max LOS</TableHead>
                 <TableHead>Discount</TableHead>
+                <TableHead className='text-center'>Auto Applied</TableHead>
                 <TableHead>Status</TableHead>
+
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -252,16 +266,24 @@ export const MLOSRuleList: React.FC = () => {
                     </TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded text-xs font-medium ${rule.discountType && rule.discountValue
-                          ? 'bg-success/10 text-success'
-                          : 'bg-muted text-muted-foreground'
+                        ? 'bg-success/10 text-success'
+                        : 'bg-muted text-muted-foreground'
                         }`}>
                         {formatDiscount(rule.discountType || null, rule.discountValue || null)}
                       </span>
                     </TableCell>
+                    <TableCell >
+                      <div className={`px-3 py-1  flex items-center justify-center  rounded text-xs ${rule.isAutoApplied
+                        ? ' text-success '
+                        : ' text-destructive'
+                        }`}>
+                        {rule.isAutoApplied ? <Check className='h-4 w-4' /> : <X className='h-4 w-4' />}
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <span className={`px-3 py-1 rounded text-xs font-medium ${rule.isActive
-                          ? 'bg-success/10 text-success'
-                          : 'bg-muted text-muted-foreground'
+                        ? 'bg-success/10 text-success'
+                        : 'bg-muted text-muted-foreground'
                         }`}>
                         {rule.isActive ? 'Active' : 'Inactive'}
                       </span>

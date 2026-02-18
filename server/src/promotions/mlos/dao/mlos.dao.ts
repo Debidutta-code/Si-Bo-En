@@ -12,8 +12,8 @@ export class MLOSDao {
       return await prisma.ratePlanRule.create({
         data: {
           ratePlanId: data.ratePlanId,
-          startDate: data.startDate ? new Date(data.startDate) : null,
-          endDate: data.endDate ? new Date(data.endDate) : null,
+          startDate: data.startDate,
+          endDate: data.endDate,
           minLos: data.minLos,
           maxLos: data.maxLos,
           discountType: data.discountType,
@@ -72,7 +72,7 @@ export class MLOSDao {
     updateData: IMLOSUpdate
   ): Promise<any> {
     try {
-      const dataToUpdate: any = {};
+      const dataToUpdate: any = {isAutoApplied: updateData.isAutoApplied}; 
 
       if (updateData.startDate !== undefined) {
         dataToUpdate.startDate = updateData.startDate ? new Date(updateData.startDate) : null;
