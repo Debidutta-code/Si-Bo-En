@@ -8,6 +8,7 @@ import {
   NGeniusOrderStatusResponse,
   NGeniusErrorResponse,
 } from '../types/ngenius.types';
+import { prisma } from '../../config/db.config';
 
 class NGeniusService {
   private accessToken: string | null = null;
@@ -182,6 +183,33 @@ class NGeniusService {
       //console.log('🎬 Action:', response.data.action);
       //console.log('🔗 Payment URL:', response.data._links?.payment?.href);
       //console.log('========================================\n');
+
+      if (orderData.propertyCode) {
+        try {
+          const property = await prisma.property.findFirst({
+            where: { propertyCode: orderData.propertyCode },
+          });
+
+          if (property) {
+            await prisma.payment.create({
+              data: {
+                amount: orderData.amount.value / 100,
+                currency: (orderData.amount.currencyCode as any) || "AED",
+                status: "pending",
+                paymentMethod: "ngenius" as any,
+                propertyId: property.id,
+                reservationId: response.data.reference,
+                paymentIntentId: response.data.reference,
+              },
+            });
+            console.log("✅ Payment record created in database");
+          } else {
+            console.warn(`⚠️ Property not found for code: ${orderData.propertyCode}`);
+          }
+        } catch (dbError) {
+          console.error("❌ Failed to store payment record:", dbError);
+        }
+      }
 
       return response.data;
     } catch (error) {

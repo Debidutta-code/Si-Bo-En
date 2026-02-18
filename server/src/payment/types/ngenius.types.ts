@@ -21,6 +21,7 @@ export interface NGeniusOrderRequest {
   merchantAttributes?: {
     redirectUrl?: string;
   };
+  propertyCode?: string;
 }
 
 // Order Response

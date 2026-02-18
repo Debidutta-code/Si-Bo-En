@@ -460,6 +460,7 @@ const BookingReviewPage = () => {
         },
         emailAddress: email.trim(),
         outletId: outletId,
+        propertyCode: searchParams.get("code") || undefined,
       });
 
       if (!orderResponse?.data?.orderReference || !orderResponse?.data?.paymentUrl) {
