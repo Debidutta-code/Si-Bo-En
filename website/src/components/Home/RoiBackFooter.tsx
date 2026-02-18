@@ -45,25 +45,15 @@ const Footer = () => {
                 <div className="flex flex-col md:flex-row items-center justify-between gap-6">
                     {/* Logo Section */}
                     <div className="flex-shrink-0">
-                        {logoIcon ? (
-                            <div className="relative w-32 h-20">
-                                <Image
-                                    src={logoIcon}
-                                    alt="Hotel Logo"
-                                    fill
-                                    className="object-contain"
-                                    unoptimized
-                                />
-                            </div>
-                        ) : (
+                        <div className="relative w-32 h-20">
                             <Image
-                                src={isHomePage ? ZLogo : SLogo}
-                                alt="Company Logo"
-                                width={isHomePage ? 140 : 180}
-                                height={80}
+                                src={isHomePage ? ZLogo : (logoIcon || ZLogo)}
+                                alt="Hotel Logo"
+                                fill
                                 className="object-contain"
+                                unoptimized={!!logoIcon}
                             />
-                        )}
+                        </div>
                     </div>
 
                     {/* Address Section */}

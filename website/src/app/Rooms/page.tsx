@@ -241,6 +241,7 @@ const Rooms = () => {
       ratePlanCode: ratePlan.ratePlanCode,
       startDate: bookingContext.startDate,
       endDate: bookingContext.endDate,
+      promocode:bookingContext.promocode,
       noOfAdults,
       noOfChildrens,
       noOfRooms,
@@ -328,6 +329,7 @@ const Rooms = () => {
   };
 
   const handleSearchStart = async (payload: any) => {
+    console.log("boking call",payload)
     const bookingCtx = payload || bookingContext;
 
     if (!bookingCtx?.PropertyCode) {
@@ -446,6 +448,7 @@ const Rooms = () => {
     const adults = searchParams.get("adults");
     const children = searchParams.get("children");
     const rooms = searchParams.get("rooms");
+    const promocode = searchParams.get("promoCode");
     const bookingSource = searchParams.get("utm_source") || "direct";
 
     // Check if we have external params (checkin/checkout indicates external source)
@@ -508,6 +511,7 @@ const Rooms = () => {
         roomsDetail: roomsArray, // ✅ Keep detailed array separately
         location: "",
         numberOfRooms: numRooms,
+        promocode: promocode || "",
         isExternal: true,
         bookingSource: bookingSource,
       };
@@ -550,9 +554,16 @@ const Rooms = () => {
           endDate: paramsData.endDate || defaultEndDate,
           numberOfRooms: paramsData.numberOfRooms || 1,
           location: paramsData.location || "",
+          promocode: paramsData.location || ""
         };
         dispatch(setBookingSource(paramsData.bookingSource));
         dispatch(setBookingContext(contextWithDates));
+        // Store the referrer so navbar logo can go back
+        const referrer = document.referrer;
+        if (referrer) {
+          dispatch(setSenderUrl(referrer));
+          sessionStorage.setItem("senderUrl", referrer);
+        }
         localStorage.setItem(
           "bookingContext",
           JSON.stringify(contextWithDates),
@@ -608,6 +619,7 @@ const Rooms = () => {
             },
             location: "",
             numberOfRooms: 1,
+            promocode: ""
           };
 
           //console.log("🆕 Creating default context:", defaultContext);
@@ -699,14 +711,100 @@ const Rooms = () => {
   );
 
 
-  // NEW: Simple spinner loader for external requests only
-  if (initialLoading && isExternalRequest) {
+  if (initialLoading) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-white z-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-gray-300 border-t-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600 text-lg">Loading...</p>
+      <div className="w-full min-h-screen bg-gray-50">
+        {/* Navbar Skeleton */}
+        <div className="fixed top-0 left-0 right-0 z-50 bg-white shadow">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
+            <div className="flex items-center justify-between h-20 lg:h-24">
+              <div className="w-28 h-10 bg-gray-200 rounded-lg animate-pulse" />
+              <div className="hidden lg:flex items-center gap-6">
+                <div className="w-24 h-8 bg-gray-200 rounded animate-pulse" />
+              </div>
+            </div>
+          </div>
         </div>
+
+        {/* SearchWidget Skeleton */}
+        <div className="w-full bg-[#F4EFE6] border-b border-[#D4CABA] px-4 py-3 mt-20 lg:mt-24">
+          <div className="max-w-[1400px] mx-auto flex items-center justify-between gap-4">
+            <div className="w-32 h-12 bg-gray-200 rounded-lg animate-pulse" />
+            <div className="hidden md:flex items-center gap-4">
+              <div className="w-64 h-14 bg-gray-200 rounded-[40px] animate-pulse" />
+              <div className="w-32 h-14 bg-gray-200 rounded-xl animate-pulse" />
+              <div className="w-24 h-8 bg-gray-200 rounded-lg animate-pulse" />
+              <div className="w-28 h-12 bg-gray-200 rounded-full animate-pulse" />
+            </div>
+            <div className="w-24 h-6 bg-gray-200 rounded animate-pulse" />
+          </div>
+        </div>
+
+        {/* Main Content Skeleton */}
+        <div className="max-w-7xl mx-auto px-4 py-6 mt-4 space-y-6">
+          {/* Urgency banner skeleton */}
+          <div className="w-full h-16 bg-gray-200 rounded-xl animate-pulse" />
+
+          {/* Room cards skeleton */}
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white border border-gray-200 rounded-xl overflow-hidden animate-pulse">
+              <div className="flex flex-col md:flex-row">
+                <div className="w-full md:w-72 h-52 bg-gray-200 flex-shrink-0" />
+                <div className="flex-1 p-5 space-y-4">
+                  <div className="h-6 bg-gray-200 rounded w-1/3" />
+                  <div className="flex gap-2">
+                    <div className="h-5 w-16 bg-gray-200 rounded-full" />
+                    <div className="h-5 w-20 bg-gray-200 rounded-full" />
+                    <div className="h-5 w-14 bg-gray-200 rounded-full" />
+                  </div>
+                  <div className="space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-full" />
+                    <div className="h-4 bg-gray-200 rounded w-4/5" />
+                    <div className="h-4 bg-gray-200 rounded w-3/5" />
+                  </div>
+                  <div className="flex gap-3">
+                    {[1, 2, 3, 4].map((j) => (
+                      <div key={j} className="h-8 w-20 bg-gray-200 rounded-lg" />
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between pt-2">
+                    <div className="space-y-1">
+                      <div className="h-4 w-20 bg-gray-200 rounded" />
+                      <div className="h-8 w-32 bg-gray-200 rounded" />
+                    </div>
+                    <div className="h-11 w-32 bg-gray-200 rounded-full" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer Skeleton */}
+        <footer className="fixed bottom-0 left-0 right-0 z-[9999] bg-white">
+          <div className="bg-gray-200 animate-pulse">
+            <div className="max-w-7xl mx-auto px-6 py-6">
+              <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="w-32 h-20 bg-gray-300 rounded-lg flex-shrink-0" />
+                <div className="flex-1 max-w-2xl space-y-2 text-center">
+                  <div className="h-4 bg-gray-300 rounded w-full" />
+                  <div className="h-4 bg-gray-300 rounded w-4/5 mx-auto" />
+                </div>
+                <div className="flex items-center gap-4 flex-shrink-0">
+                  <div className="w-6 h-6 bg-gray-300 rounded-full" />
+                  <div className="w-6 h-6 bg-gray-300 rounded-full" />
+                  <div className="w-6 h-6 bg-gray-300 rounded-full" />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="py-3 border-t bg-white">
+            <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-2">
+              <div className="h-4 w-72 bg-gray-200 rounded animate-pulse" />
+              <div className="h-4 w-32 bg-gray-200 rounded animate-pulse" />
+            </div>
+          </div>
+        </footer>
       </div>
     );
   }
@@ -723,7 +821,7 @@ const Rooms = () => {
           }`}
         onLoad={() => setLoaded(true)}
       >
-        <div className="sticky top-0 z-40 bg-white/90 backdrop-blur shadow-sm">
+        <div className=" z-40 bg-white/90 backdrop-blur shadow-sm">
           <SearchWidget
             onSearchStart={(payload) => {
               // Don't trigger if we're loading from external source
@@ -735,6 +833,7 @@ const Rooms = () => {
         </div>
         <div className="px-4 py-3">
           <div className="max-w-7xl mx-auto">
+
             {showUrgencyBanner && (
               <div className="mb-4 relative">
                 <div
@@ -822,11 +921,13 @@ const Rooms = () => {
 
         <div className="px-4 pb-2">
           <div className="max-w-7xl mx-auto mt-10">
+
             <div className="flex gap-6">
               <div
                 className={`flex-1 ${showPriceSummary ? "lg:w-2/3" : "w-full"} transition-all duration-300`}
               >
                 <div className="px-4 sm:px-4 py-4 bg-white border border-gray-200 rounded-xl">
+
                   {initialLoading ? (
                     <div className="text-center py-20">
                       <div
@@ -1043,96 +1144,6 @@ const Rooms = () => {
             router.push("/Payment");
           }}
         />
-      )}
-
-      {/* Social Media Footer */}
-      {propertyDetails && (
-        <footer className="bg-gray-50 border-t border-gray-200 py-8 mt-12">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-              {/* Property Info */}
-              <div className="text-center md:text-left">
-                <a
-                  href={propertyDetails.website || "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xl font-bold hover:opacity-80 transition-opacity"
-                  style={{ color: primaryColor }}
-                >
-                  {propertyDetails.propertyName}
-                </a>
-                <p className="text-sm text-gray-600 mt-1">
-                  {propertyDetails.address?.city || propertyDetails.address?.addressLine1 || ""}
-                  {propertyDetails.address?.state && `, ${propertyDetails.address.state}`}
-                  {propertyDetails.address?.country && `, ${propertyDetails.address.country}`}
-                </p>
-              </div>
-
-              {/* Social Media Links */}
-              <div className="flex items-center gap-4">
-                {propertyDetails.facebookUrl && (
-                  <a
-                    href={propertyDetails.facebookUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 rounded-full bg-white border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all group"
-                    title="Facebook"
-                  >
-                    <Facebook className="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors" />
-                  </a>
-                )}
-                {propertyDetails.instagramUrl && (
-                  <a
-                    href={propertyDetails.instagramUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 rounded-full bg-white border border-gray-200 hover:border-pink-500 hover:bg-pink-50 transition-all group"
-                    title="Instagram"
-                  >
-                    <Instagram className="w-5 h-5 text-gray-600 group-hover:text-pink-600 transition-colors" />
-                  </a>
-                )}
-                {propertyDetails.youtubeUrl && (
-                  <a
-                    href={propertyDetails.youtubeUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 rounded-full bg-white border border-gray-200 hover:border-red-500 hover:bg-red-50 transition-all group"
-                    title="YouTube"
-                  >
-                    <Youtube className="w-5 h-5 text-gray-600 group-hover:text-red-600 transition-colors" />
-                  </a>
-                )}
-                {propertyDetails.website && (
-                  <a
-                    href={propertyDetails.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 rounded-full bg-white border border-gray-200 hover:border-gray-500 hover:bg-gray-100 transition-all group"
-                    title="Website"
-                  >
-                    <Globe className="w-5 h-5 text-gray-600 group-hover:text-gray-900 transition-colors" />
-                  </a>
-                )}
-              </div>
-            </div>
-
-            {/* Privacy & Terms */}
-            <div className="mt-6 pt-6 border-t border-gray-200 text-center text-xs text-gray-500">
-              <p>
-                This site is protected by reCAPTCHA and the Google{" "}
-                <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">
-                  Privacy Policy
-                </a>
-                {" "}and{" "}
-                <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">
-                  Terms of Service
-                </a>
-                {" "}apply.
-              </p>
-            </div>
-          </div>
-        </footer>
       )}
     </div>
   );

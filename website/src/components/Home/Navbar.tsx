@@ -1,245 +1,228 @@
 "use client";
 
-import { useState } from "react";
-import { Menu, X, Phone } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Menu, X } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import Image from "next/image";
-import SLogo from "../assets/SLogo.png";
-import ZLogo from "../assets/ZLogo.png";
-import toast from "react-hot-toast";
+import ZLogo from "../assets/revchilli.png";
 import { useDispatch, useSelector } from "react-redux";
-import { setBookingContext, clearSenderUrl, setSenderUrl } from "@/src/store/bookingSlice";
-import axios from "axios";
+import { setSenderUrl } from "@/src/store/bookingSlice";
 import { RootState } from "../../store/store";
 
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [dynamicLogo, setDynamicLogo] = useState<string | null>(null);
   const pathname = usePathname();
   const isHomePage = pathname === "/";
+  const isRoomsPage = pathname.includes("/Rooms");
   const dispatch = useDispatch();
   const router = useRouter();
   const bookingContext = useSelector((state: RootState) => state.booking);
   const senderUrl = useSelector((state: RootState) => state.booking.senderUrl);
+  const agenturl = "https://agent.revchilltech.com";
+  useEffect(() => {
+    const updateLogo = () => {
+      const logoFromContext =
+        bookingContext?.bookingEngineColor?.logo ||
+        bookingContext?.PropertyDetails?.bookingEngineConfig?.logo;
 
-  const staticBookingData = {
-    PropertyCode: "WOQDD3",
-  };
+      if (logoFromContext) {
+        setDynamicLogo(logoFromContext);
+        return;
+      }
 
-  const handleBookNowClick = async () => {
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(today.getDate() + 1);
-    const dayAfterTomorrow = new Date(today);
-    dayAfterTomorrow.setDate(today.getDate() + 2);
+      try {
+        const stored = localStorage.getItem("bookingstorage");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (parsed.logoIcon) {
+            setDynamicLogo(parsed.logoIcon);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error("Error reading logo from storage:", error);
+      }
 
-    const startDate = tomorrow.toISOString().split("T")[0];
-    const endDate = dayAfterTomorrow.toISOString().split("T")[0];
-
-    const basePayload = {
-      startDate,
-      endDate,
-      guests: { adults: 1, children: 0, rooms: 1, childAges: [] },
-      PropertyCode:
-        bookingContext.PropertyCode || staticBookingData.PropertyCode,
-      location: "DefaultCity",
-      numberOfRooms: 1,
+      setDynamicLogo(null);
     };
 
-    setLoading(true);
-
-    try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/pms/room/rooms_by_propertyId2?code=${staticBookingData.PropertyCode}`,
-        basePayload
-      );
-
-      const hotelName = response.data?.propertyName || "Hotel";
-
-      const finalPayload = { ...basePayload, hotelName };
-
-      dispatch(setBookingContext(finalPayload));
-      localStorage.setItem("bookingContext", JSON.stringify(finalPayload));
-
-      const queryParams = new URLSearchParams({
-        code: staticBookingData.PropertyCode,
-      });
-      router.push(`/Rooms?${queryParams.toString()}`);
-    } catch (err: any) {
-      console.error(err);
-      toast.error(err.message || "Something went wrong.");
-    } finally {
-      setLoading(false);
-    }
-  };
+    updateLogo();
+    window.addEventListener("storage", updateLogo);
+    window.addEventListener("bookingStorageUpdated", updateLogo);
+    return () => {
+      window.removeEventListener("storage", updateLogo);
+      window.removeEventListener("bookingStorageUpdated", updateLogo);
+    };
+  }, [
+    bookingContext?.bookingEngineColor?.logo,
+    bookingContext?.PropertyDetails?.bookingEngineConfig?.logo,
+  ]);
 
   const handleHomeClick = () => {
     let url = senderUrl;
-
-    // If Redux is empty (page reload), read from sessionStorage
     if (!url) {
       url = sessionStorage.getItem("senderUrl") || undefined;
-      if (url) dispatch(setSenderUrl(url)); // sync back to Redux
+      if (url) dispatch(setSenderUrl(url));
     }
-
     if (url) {
       window.location.href = url;
     } else {
       router.push("/");
     }
-
-    setIsMenuOpen(false); // close mobile menu if open
+    setIsMenuOpen(false);
   };
 
+  const renderLogo = () => {
+    // On home page always show default logo
+    if (isHomePage) {
+      return (
+        <Image src={ZLogo} alt="Logo" width={120} height={40} className="object-contain" />
+      );
+    }
+
+    // On other pages show dynamic logo if available
+    if (dynamicLogo) {
+      return (
+        <div className="relative w-32 h-10 sm:w-40 sm:h-12">
+          <Image src={dynamicLogo} alt="Hotel Logo" fill className="object-contain" unoptimized />
+        </div>
+      );
+    }
+
+    // Fallback
+    return (
+      <Image src={ZLogo} alt="Logo" width={120} height={40} className="object-contain" />
+    );
+  };
+
+  // Nav bg logic
+  const navBg = isHomePage
+    ? "bg-white/80 backdrop-blur-md text-black shadow-sm" // milky on home
+    : "bg-white text-black shadow";
 
   return (
-    <nav
-      className={`fixed top-0 left-0 right-0 z-50 ${isHomePage ? "bg-black text-white" : "bg-white text-black shadow"
-        }`}
-    >
+    <nav className={`fixed top-0 left-0 right-0 z-50 ${navBg}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-20 lg:h-24">
 
+          {/* Logo */}
           <div className="flex-shrink-0">
-            <button
-              onClick={handleHomeClick}
-              className="flex items-center focus:outline-none"
-            >
-              <Image
-                src={isHomePage ? ZLogo : SLogo}
-                alt="Logo"
-                width={isHomePage ? 120 : 160}
-                height={isHomePage ? 40 : 70}
-                className="object-contain"
-              />
+            <button onClick={handleHomeClick} className="flex items-center focus:outline-none">
+              {renderLogo()}
             </button>
           </div>
 
-
           {/* Desktop Nav */}
-          <div className="hidden lg:flex items-center md:space-x-4 lg:space-x-6 text-sm font-medium">
-            <button onClick={handleHomeClick} className="hover:text-amber-400">
-              Home
+          <div className="hidden lg:flex items-center space-x-6 text-sm font-medium">
+            {/* Show nav links only on home page */}
+            {isHomePage && (
+              <>
+                <button onClick={handleHomeClick} className="hover:text-amber-500">Home</button>
+                <p onClick={() => document.querySelector("#service")?.scrollIntoView({ behavior: "smooth" })} className="cursor-pointer hover:text-amber-500">Services</p>
+                <p onClick={() => document.querySelector("#facilities")?.scrollIntoView({ behavior: "smooth" })} className="cursor-pointer hover:text-amber-500">Facilities</p>
+                <p onClick={() => document.querySelector("#testimonials")?.scrollIntoView({ behavior: "smooth" })} className="cursor-pointer hover:text-amber-500">Testimonials</p>
+                <p onClick={() => document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" })} className="cursor-pointer hover:text-amber-500">Attractions</p>
+              </>
+            )}
+
+            {isRoomsPage && (
+              <button
+                onClick={() => window.open(agenturl, '_blank')} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                style={{
+                  backgroundColor: dynamicLogo ? `${bookingContext?.bookingEngineColor?.primaryColor}20` : "#F4EFE6",
+                  color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+                Partner Login
+              </button>
+            )}
+
+            <button
+              onClick={() => router.push("/my-trip")}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
+                  ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
+                  : "#F4EFE6",
+                color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+                <rect x="9" y="3" width="6" height="4" rx="1" />
+              </svg>
+              My Booking
             </button>
-
-            <p
-              onClick={() => document.querySelector("#service")?.scrollIntoView({ behavior: "smooth" })}
-              className="cursor-pointer hover:text-amber-400"
-            >
-              Services
-            </p>
-            <p
-              onClick={() => document.querySelector("#facilities")?.scrollIntoView({ behavior: "smooth" })}
-              className="cursor-pointer hover:text-amber-400"
-            >
-              Facilities
-            </p>
-            <p
-              onClick={() => document.querySelector("#testimonials")?.scrollIntoView({ behavior: "smooth" })}
-              className="cursor-pointer hover:text-amber-400"
-            >
-              Testimonials
-            </p>
-            <p
-              onClick={() => document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" })}
-              className="cursor-pointer hover:text-amber-400"
-            >
-              Contact Us
-            </p>
-
-            <div className="hidden lg:flex items-center space-x-4">
-              {isHomePage && (
-                <button
-                  onClick={handleBookNowClick}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm"
-                >
-                  View Room
-                </button>
-              )}
-              <div className="flex items-center space-x-2 bg-amber-500 px-3 py-1 rounded-full">
-                <Phone className="w-4 h-4" />
-                <span className="no-underline">+91 9777403555</span>
-              </div>
-            </div>
           </div>
 
           {/* Mobile Toggle */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            aria-label="Toggle menu"
-            className={`lg:hidden ${isHomePage ? "text-white" : "text-black"
-              } hover:opacity-80 transition duration-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded`}
+            className="lg:hidden hover:opacity-80 transition duration-200 focus:outline-none"
           >
-            {isMenuOpen ? (
-              <X className="w-6 h-6" />
-            ) : (
-              <Menu className="w-6 h-6" />
-            )}
+            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
         </div>
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div
-            className={`lg:hidden ${isHomePage
-                ? "bg-black bg-opacity-90 text-white"
-                : "bg-white text-black"
-              } rounded-md mt-2 py-4 px-4 space-y-3 text-sm`}
-          >
-            <button
-              onClick={() => {
-                setIsMenuOpen(false);
-                handleHomeClick();
-              }}
-              className="block w-full text-left"
-            >
-              Home
-            </button>
-            <p
-              onClick={() => { setIsMenuOpen(false); document.querySelector("#service")?.scrollIntoView({ behavior: "smooth" }) }}
-              className="cursor-pointer hover:text-amber-400"
-            >
-              Services
-            </p>
-            <p
-              onClick={() => { setIsMenuOpen(false); document.querySelector("#facilities")?.scrollIntoView({ behavior: "smooth" }) }}
-              className="cursor-pointer hover:text-amber-400"
-            >
-              Facilities
-            </p>
-            <p
-              onClick={() => { setIsMenuOpen(false); document.querySelector("#testimonials")?.scrollIntoView({ behavior: "smooth" }) }}
-              className="cursor-pointer hover:text-amber-400"
-            >
-              Testimonials
-            </p>
-            <p
-              onClick={() => {
-                setIsMenuOpen(false);
-                document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" });
-              }}
-              className="block w-full text-left cursor-pointer"
-            >
-              Contact Us
-            </p>
+          <div className="lg:hidden bg-white text-black rounded-md mt-2 py-4 px-4 space-y-3 text-sm shadow-lg">
+            {/* Show nav links only on home page */}
+            {isHomePage && (
+              <>
+                <button onClick={() => { setIsMenuOpen(false); handleHomeClick(); }} className="block w-full text-left hover:text-amber-500">
+                  Home
+                </button>
+                <p onClick={() => { setIsMenuOpen(false); document.querySelector("#service")?.scrollIntoView({ behavior: "smooth" }); }} className="cursor-pointer hover:text-amber-500">Services</p>
+                <p onClick={() => { setIsMenuOpen(false); document.querySelector("#facilities")?.scrollIntoView({ behavior: "smooth" }); }} className="cursor-pointer hover:text-amber-500">Facilities</p>
+                <p onClick={() => { setIsMenuOpen(false); document.querySelector("#testimonials")?.scrollIntoView({ behavior: "smooth" }); }} className="cursor-pointer hover:text-amber-500">Testimonials</p>
+                <p onClick={() => { setIsMenuOpen(false); document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" }); }} className="cursor-pointer hover:text-amber-500">Contact Us</p>
+              </>
+            )}
+
+            {isRoomsPage && (
+              <button
+                onClick={() => { setIsMenuOpen(false); window.open(agenturl, '_blank'); }}
+                className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors"
+                style={{
+                  backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
+                    ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
+                    : "#F4EFE6",
+                  color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
+                }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
+                Partner Login
+              </button>
+            )}
 
             <button
-              onClick={() => {
-                setIsMenuOpen(false);
-                handleBookNowClick();
+              onClick={() => { setIsMenuOpen(false); router.push("/my-trip"); }}
+              className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
+                  ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
+                  : "#F4EFE6",
+                color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
               }}
-              className="w-full bg-indigo-600 text-white py-2 rounded"
             >
-              View Room
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+                <rect x="9" y="3" width="6" height="4" rx="1" />
+              </svg>
+              My Booking
             </button>
-
-            <div className="flex items-center space-x-2 mt-4">
-              <Phone className="w-4 h-4" />
-              <span>+91 9777403555</span>
-            </div>
+            
           </div>
         )}
-
       </div>
     </nav>
   );

@@ -16,7 +16,7 @@ const Hero = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 w-full md:pt-14 pb-14 pt-32">
+      <div className="relative z-10 w-full  pb-14 ">
         <div className="text-center mb-8 px-4">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
             Find Next Place To Visit

@@ -9,6 +9,7 @@ import Facilities from "@/src/components/Home/Facilities";
 import Location from "@/src/components/Home/Locations";
 import Testimonials from "@/src/components/Home/Testimonials";
 import NearbyPlaces from "@/src/components/Home/NearByPlaces";
+import Navbar from "../components/Home/Navbar";
 
 export default function Home() {
 

@@ -16,6 +16,7 @@ export const metadata: Metadata = {
 import ReduxProviderWrapper from '@/src/hooks/ReduxProviderWrapper';
 import { Toaster } from 'react-hot-toast';
 import Footer from '../components/Home/RoiBackFooter';
+import Navbar from '../components/Home/Navbar';
 
 export default function RootLayout({
   children,
@@ -26,9 +27,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.className} antialiased`}>
         <ReduxProviderWrapper>
-          {/* <Navbar /> */}
-          <main className="min-h-screen space-y-6">{children}
-           <Toaster position="top-right" reverseOrder={false} /> {/* ✅ Mount globally */}
+          <Navbar />
+          <main className="min-h-screen space-y-6 pt-[calc(5rem)] lg:pt-[calc(6rem)]">
+            {children}
+            <Toaster position="top-right" reverseOrder={false} /> {/* ✅ Mount globally */}
 
           </main>
           <Footer />

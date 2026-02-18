@@ -19,7 +19,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { setBookingContext, setSenderUrl } from "../../store/bookingSlice";
 import toast from "react-hot-toast";
 import { RootState } from "@/src/store/store";
-import { useBookingColors } from "../../hooks/useBookingColors";
 import React from "react";
 import Image from "next/image";
 import { createPortal } from "react-dom";
@@ -31,6 +30,7 @@ interface SearchWidgetProps {
     endDate: string;
     guests: any;
     PropertyCode: string;
+    promocode: string;
   }) => void;
 }
 
@@ -102,7 +102,7 @@ const DatePickerWithHover = ({
       endDate={temporaryCheckOut || checkOut}
       selectsStart
       selectsEnd
-      monthsShown={2}
+      monthsShown={typeof window !== 'undefined' && window.innerWidth < 640 ? 1 : 2}
       inline
       calendarClassName="terra-solis-calendar"
       popperClassName="terra-solis-popper"
@@ -120,9 +120,8 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
     "1 adults - 0 children - 1 room",
   );
   const userTriggeredSearch = useRef(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isRoomsPage, setIsRoomsPage] = useState(false);
-  const agenturl = "https://agent.revchilltech.com";
+
 
 
   interface GuestInfo {
@@ -148,11 +147,9 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
 
-  const dayAfterTomorrow = new Date(today);
-  dayAfterTomorrow.setDate(today.getDate() + 2);
-
-  const [checkIn, setCheckIn] = useState<Date | null>(tomorrow);
-  const [checkOut, setCheckOut] = useState<Date | null>(dayAfterTomorrow);
+  const [checkIn, setCheckIn] = useState<Date | null>(today);
+  const [checkOut, setCheckOut] = useState<Date | null>(tomorrow);
+  const [promocode, setPromocode] = useState<string>("")
   const [loading, setLoading] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [temporaryCheckOut, setTemporaryCheckOut] = useState<Date | null>(null);
@@ -326,19 +323,16 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
     } else if (checkOut <= checkIn) {
       toast.error("Check-out date must be after check-in date.");
       return;
-    } else if (checkIn < new Date()) {
-      toast.error("Check-in date cannot be earlier than today.");
-      return;
     }
 
     setLoading(true);
-    setIsMobileMenuOpen(false);
 
     const payload = {
       startDate: checkIn.toISOString().split("T")[0],
       endDate: checkOut.toISOString().split("T")[0],
       guests: guestInfo,
       PropertyCode: hotelcode,
+      promocode: promocode,
     };
 
     try {
@@ -510,7 +504,6 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
 
   return (
     <>
-      {/* Backdrop Overlays */}
       {isCalendarOpen && (
         <div
           className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9998]"
@@ -518,377 +511,176 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
         />
       )}
 
-      {isMobileMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9998] md:hidden"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
-      )}
-
       <div className="w-full bg-[#F4EFE6] border-b border-[#D4CABA]">
-        {/* UNIFIED RESPONSIVE LAYOUT */}
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
-          {/* Top Bar: Logo + Actions */}
-          <div className="flex items-center justify-between py-3 lg:py-0">
-            {/* Logo */}
-            <button
-              onClick={handleHomeClick}
-              className="flex items-center focus:outline-none"
+        <div className="mx-auto px-4 sm:px-6 py-3 flex justify-center">
+          {/* Widget Row */}
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 lg:gap-4 xl:gap-6 w-full max-w-[900px]">
+
+            {/* Date Selector */}
+            <div
+              onClick={openCalendar}
+              className="bg-white border-2 rounded-xl lg:rounded-[40px] px-4 lg:px-6 py-3 lg:py-4 flex items-center gap-3 lg:gap-6 shadow-sm cursor-pointer hover:border-[#7D7566] transition-colors flex-1 lg:flex-initial"
+              style={{ borderColor: tertiaryColor }}
             >
-              {currentLogo ? (
-                <div className="relative w-32 h-12 sm:w-40 sm:h-14 lg:w-44 lg:h-20 xl:h-32">
-                  <Image
-                    src={currentLogo}
-                    alt="Hotel Logo"
-                    fill
-                    className="object-contain"
-                    unoptimized
-                  />
-                </div>
-              ) : (
-                <div className="relative w-32 h-12 sm:w-40 sm:h-14 lg:w-44 lg:h-20 xl:h-32">
-                  <Image
-                    src={defaultLogo}
-                    alt="Hotel Logo"
-                    fill
-                    className="object-contain"
-                    unoptimized
-                  />
-                </div>
-              )}
-            </button>
-            <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:block flex justify-center items-center`}>
-              <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 md:gap-3 lg:gap-4 xl:gap-6">
-                {/* Date Selector */}
-                <div
-                  onClick={openCalendar}
-                  className="bg-white border-2 rounded-xl lg:rounded-[40px] px-3 sm:px-4 lg:px-6 py-2.5 sm:py-3 lg:py-4 flex items-center gap-2 sm:gap-3 lg:gap-6 shadow-sm cursor-pointer hover:border-[#7D7566] transition-colors w-full md:w-auto md:flex-1 lg:flex-initial"
-                  style={{ borderColor: tertiaryColor }}
-                >
-                  {/* Check-in */}
-                  <div className="text-center flex-1 min-w-[60px] sm:min-w-[70px] lg:min-w-[100px]">
-                    <p
-                      className="text-[8px] sm:text-[9px] tracking-[0.15em] font-medium mb-0.5 sm:mb-1"
-                      style={{ color: tertiaryColor }}
-                    >
-                      CHECK-IN
-                    </p>
-                    <p
-                      className="text-xl sm:text-2xl lg:text-[40px] font-semibold leading-none mb-0.5 sm:mb-1"
-                      style={{ color: primaryColor }}
-                    >
-                      {checkIn?.getDate()}
-                    </p>
-                    <p
-                      className="text-[8px] sm:text-[9px] lg:text-[10px] uppercase tracking-wider font-medium"
-                      style={{ color: tertiaryColor }}
-                    >
-                      {checkIn?.toLocaleDateString("en-US", {
-                        month: "short",
-                        year: typeof window !== 'undefined' && window.innerWidth >= 640 ? "numeric" : undefined,
-                      })}
-                    </p>
-                  </div>
-
-                  {/* Arrow Separator */}
-                  <div
-                    className="text-lg sm:text-xl lg:text-[32px] font-light leading-none px-1 lg:px-2 flex-shrink-0"
-                    style={{ color: tertiaryColor }}
-                  >
-                    ›
-                  </div>
-
-                  {/* Check-out */}
-                  <div className="text-center flex-1 min-w-[60px] sm:min-w-[70px] lg:min-w-[100px]">
-                    <p
-                      className="text-[8px] sm:text-[9px] tracking-[0.15em] font-medium mb-0.5 sm:mb-1"
-                      style={{ color: tertiaryColor }}
-                    >
-                      CHECK-OUT
-                    </p>
-                    <p
-                      className="text-xl sm:text-2xl lg:text-[40px] font-semibold leading-none mb-0.5 sm:mb-1"
-                      style={{ color: primaryColor }}
-                    >
-                      {checkOut?.getDate() ?? "--"}
-                    </p>
-                    <p
-                      className="text-[8px] sm:text-[9px] lg:text-[10px] uppercase tracking-wider font-medium"
-                      style={{ color: tertiaryColor }}
-                    >
-                      {checkOut
-                        ? checkOut.toLocaleDateString("en-US", {
-                          month: "short",
-                          year: typeof window !== 'undefined' && window.innerWidth >= 640 ? "numeric" : undefined,
-                        })
-                        : "Select"}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Occupancy Selector */}
-                <button
-                  onClick={() => {
-                    setIsGuestSelectorOpen(true);
-                    setIsMobileMenuOpen(false);
-                  }}
-                  className="bg-white border rounded-lg lg:rounded-xl px-2.5 sm:px-3 lg:px-4 py-2.5 sm:py-3 min-w-[110px] sm:min-w-[120px] lg:min-w-[140px] hover:bg-[#FAFAF8] transition-colors shadow-sm w-full md:w-auto"
-                  style={{ borderColor: "#C4BAA5" }}
-                >
-                  <p
-                    className="text-[8px] sm:text-[9px] tracking-[0.15em] font-medium mb-1.5 sm:mb-2"
-                    style={{ color: tertiaryColor }}
-                  >
-                    OCCUPANCY
-                  </p>
-                  <div className="flex items-center justify-center gap-1.5 sm:gap-2 lg:gap-3">
-                    {/* Rooms */}
-                    <div className="flex items-center gap-0.5 sm:gap-1">
-                      <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 bg-[#F4EFE6] rounded-full flex items-center justify-center">
-                        <svg
-                          width="8"
-                          height="8"
-                          className="sm:w-[10px] sm:h-[10px]"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="#5B543F"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                          <polyline points="9 22 9 12 15 12 15 22" />
-                        </svg>
-                      </div>
-                      <span
-                        className="text-[10px] sm:text-xs font-bold"
-                        style={{ color: primaryColor }}
-                      >
-                        {Array.isArray(guestInfo.rooms)
-                          ? guestInfo.rooms.length
-                          : guestInfo.rooms || 1}
-                      </span>
-                    </div>
-
-                    {/* Adults */}
-                    <div className="flex items-center gap-0.5 sm:gap-1">
-                      <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 bg-[#F4EFE6] rounded-full flex items-center justify-center">
-                        <Users
-                          className="w-1.5 h-1.5 sm:w-2 sm:h-2 lg:w-2.5 lg:h-2.5"
-                          style={{ color: "#5B543F" }}
-                        />
-                      </div>
-                      <span
-                        className="text-[10px] sm:text-xs font-bold"
-                        style={{ color: primaryColor }}
-                      >
-                        {Array.isArray(guestInfo.rooms)
-                          ? guestInfo.rooms.reduce(
-                            (sum, room) => sum + (room.adults || 0),
-                            0,
-                          )
-                          : guestInfo.adults || 1}
-                      </span>
-                    </div>
-
-                    {/* Children */}
-                    <div className="flex items-center gap-0.5 sm:gap-1">
-                      <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 bg-[#F4EFE6] rounded-full flex items-center justify-center">
-                        <svg
-                          width="8"
-                          height="8"
-                          className="sm:w-[10px] sm:h-[10px]"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="#5B543F"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M9 12h.01M15 12h.01M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5" />
-                          <circle cx="12" cy="12" r="10" />
-                        </svg>
-                      </div>
-                      <span
-                        className="text-[10px] sm:text-xs font-bold"
-                        style={{ color: primaryColor }}
-                      >
-                        {Array.isArray(guestInfo.rooms)
-                          ? guestInfo.rooms.reduce(
-                            (sum, room) => sum + (room.children || 0),
-                            0,
-                          )
-                          : guestInfo.children || 0}
-                      </span>
-                    </div>
-                  </div>
-                </button>
-
-                {/* Promo Code - Hidden on small screens, shown lg+ */}
-                <div className="hidden lg:flex flex-col min-w-[130px] xl:min-w-[180px]">
-                  <input
-                    type="text"
-                    placeholder="PROMO CODE"
-                    className="bg-transparent border-b-2 pb-1.5 lg:pb-2 text-[9px] lg:text-[10px] tracking-[0.15em] placeholder-[#9B8B6F] focus:outline-none transition-colors"
-                    style={{
-                      borderColor: tertiaryColor,
-                      color: tertiaryColor,
-                    }}
-                  />
-                </div>
-
-                {/* Book Button */}
-                <button
-                  onClick={handleSearch}
-                  disabled={loading}
-                  className="w-full md:w-auto px-4 sm:px-6 lg:px-10 py-2.5 sm:py-3 lg:py-4 rounded-full text-[10px] sm:text-xs lg:text-[11px] font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm hover:opacity-90 whitespace-nowrap"
-                  style={{
-                    backgroundColor: secondaryColor,
-                    color: calculatedButtonTextColor,
-                  }}
-                >
-                  {loading ? "LOADING..." : "BOOK NOW"}
-                </button>
+              {/* Check-in */}
+              <div className="text-center flex-1 min-w-[70px] lg:min-w-[100px]">
+                <p className="text-[9px] tracking-[0.15em] font-medium mb-1" style={{ color: tertiaryColor }}>
+                  CHECK-IN
+                </p>
+                <p className="text-2xl lg:text-[40px] font-semibold leading-none mb-1" style={{ color: primaryColor }}>
+                  {checkIn?.getDate()}
+                </p>
+                <p className="text-[9px] lg:text-[10px] uppercase tracking-wider font-medium" style={{ color: tertiaryColor }}>
+                  {checkIn?.toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+                </p>
               </div>
 
-              {/* Mobile: Additional Options */}
-              {isMobileMenuOpen && (
-                <div className="md:hidden mt-3 pt-3 border-t border-[#D4CABA] space-y-2.5">
-                  {/* Promo Code for Mobile */}
-                  <div>
-                    <p
-                      className="text-[10px] font-semibold mb-1.5 tracking-wider"
-                      style={{ color: primaryColor }}
-                    >
-                      PROMO CODE
-                    </p>
-                    <input
-                      type="text"
-                      placeholder="Enter code"
-                      className="w-full bg-[#F4EFE6] border border-[#D4CABA] rounded-lg px-3 py-2.5 text-xs placeholder-[#9B8B6F] focus:outline-none focus:border-[#7D7566] transition-colors"
-                      style={{ color: primaryColor }}
-                    />
+              {/* Arrow */}
+              <div className="text-xl lg:text-[32px] font-light px-2 flex-shrink-0" style={{ color: tertiaryColor }}>
+                ›
+              </div>
+
+              {/* Check-out */}
+              <div className="text-center flex-1 min-w-[70px] lg:min-w-[100px]">
+                <p className="text-[9px] tracking-[0.15em] font-medium mb-1" style={{ color: tertiaryColor }}>
+                  CHECK-OUT
+                </p>
+                <p className="text-2xl lg:text-[40px] font-semibold leading-none mb-1" style={{ color: primaryColor }}>
+                  {checkOut?.getDate() ?? "--"}
+                </p>
+                <p className="text-[9px] lg:text-[10px] uppercase tracking-wider font-medium" style={{ color: tertiaryColor }}>
+                  {checkOut
+                    ? checkOut.toLocaleDateString("en-US", { month: "short", year: "numeric" })
+                    : "Select"}
+                </p>
+              </div>
+            </div>
+
+            {/* Occupancy */}
+            <button
+              onClick={() => setIsGuestSelectorOpen(true)}
+              className="bg-white border rounded-xl px-4 py-3 hover:bg-[#FAFAF8] transition-colors shadow-sm w-full md:w-auto"
+              style={{ borderColor: "#C4BAA5" }}
+            >
+              <p className="text-[9px] tracking-[0.15em] font-medium mb-2" style={{ color: tertiaryColor }}>
+                OCCUPANCY
+              </p>
+              <div className="flex items-center justify-center gap-3">
+                {/* Rooms */}
+                <div className="flex items-center gap-1">
+                  <div className="w-5 h-5 bg-[#F4EFE6] rounded-full flex items-center justify-center">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#5B543F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                      <polyline points="9 22 9 12 15 12 15 22" />
+                    </svg>
                   </div>
-
-                  {/* My Booking Links for Mobile */}
-                  {isRoomsPage && (
-                    <button
-                      className="w-full text-center text-xs font-semibold py-2.5 rounded-lg hover:bg-[#F4EFE6] transition-colors"
-                      style={{ color: primaryColor }}
-                      onClick={() => {
-                        window.open(agenturl, '_blank');
-                        setIsMobileMenuOpen(false);
-                      }}
-                    >
-                      PARTNER LOGIN
-                    </button>
-                  )}
-                  <button
-                    className="w-full text-center text-xs font-semibold py-2.5 rounded-lg hover:bg-[#F4EFE6] transition-colors"
-                    style={{ color: primaryColor }}
-                    onClick={() => {
-                      router.push(`/my-trip`);
-                      setIsMobileMenuOpen(false);
-                    }}
-                  >
-                    MY BOOKING
-                  </button>
+                  <span className="text-xs font-bold" style={{ color: primaryColor }}>
+                    {Array.isArray(guestInfo.rooms) ? guestInfo.rooms.length : guestInfo.rooms || 1}
+                  </span>
                 </div>
-              )}
-            </div>
-            {/* Desktop: My Booking / Mobile: Menu */}
-            <div className="flex items-center gap-3">
-              {/* My Booking - Hidden on mobile, shown md+ */}
-              {isRoomsPage && (
-                <button
-                  className="hidden md:block text-xs lg:text-sm font-semibold tracking-[0.1em] hover:opacity-80 transition-colors"
-                  style={{ color: primaryColor }}
-                  onClick={() => window.open(agenturl, '_blank')}
-                >
-                  PARTNER LOGIN
-                </button>
-              )}
-              <button
-                className="hidden md:block text-xs lg:text-sm font-semibold tracking-[0.1em] hover:opacity-80 transition-colors"
-                style={{ color: primaryColor }}
-                onClick={() => router.push(`/my-trip`)}
-              >
-                MY BOOKING
-              </button>
+                {/* Adults */}
+                <div className="flex items-center gap-1">
+                  <div className="w-5 h-5 bg-[#F4EFE6] rounded-full flex items-center justify-center">
+                    <Users className="w-2.5 h-2.5" style={{ color: "#5B543F" }} />
+                  </div>
+                  <span className="text-xs font-bold" style={{ color: primaryColor }}>
+                    {Array.isArray(guestInfo.rooms)
+                      ? guestInfo.rooms.reduce((sum, room) => sum + (room.adults || 0), 0)
+                      : guestInfo.adults || 1}
+                  </span>
+                </div>
+                {/* Children */}
+                <div className="flex items-center gap-1">
+                  <div className="w-5 h-5 bg-[#F4EFE6] rounded-full flex items-center justify-center">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#5B543F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 12h.01M15 12h.01M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5" />
+                      <circle cx="12" cy="12" r="10" />
+                    </svg>
+                  </div>
+                  <span className="text-xs font-bold" style={{ color: primaryColor }}>
+                    {Array.isArray(guestInfo.rooms)
+                      ? guestInfo.rooms.reduce((sum, room) => sum + (room.children || 0), 0)
+                      : guestInfo.children || 0}
+                  </span>
+                </div>
+              </div>
+            </button>
 
-              {/* Mobile Menu Toggle */}
-              <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="md:hidden p-2"
-              >
-                {isMobileMenuOpen ? (
-                  <X className="w-6 h-6" style={{ color: primaryColor }} />
-                ) : (
-                  <Menu className="w-6 h-6" style={{ color: primaryColor }} />
-                )}
-              </button>
+            {/* Promo Code */}
+            <div className="flex flex-col min-w-[130px] xl:min-w-[180px]">
+              <input
+                type="text"
+                value={promocode}
+                onChange={(e) => setPromocode(e.target.value)}
+                placeholder="PROMO CODE"
+                className="bg-transparent border-b-2 pb-2 text-[10px] tracking-[0.15em] placeholder-[#9B8B6F] focus:outline-none transition-colors w-full"
+                style={{ borderColor: tertiaryColor, color: tertiaryColor }}
+              />
             </div>
+
+            {/* Book Button */}
+            <button
+              onClick={handleSearch}
+              disabled={loading}
+              className="w-full md:w-auto px-6 lg:px-10 py-3 lg:py-4 rounded-full text-xs lg:text-[11px] font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm hover:opacity-90 whitespace-nowrap"
+              style={{ backgroundColor: secondaryColor, color: calculatedButtonTextColor }}
+            >
+              {loading ? "LOADING..." : "BOOK NOW"}
+            </button>
           </div>
-
-
         </div>
 
-        {/* CALENDAR MODAL - Rendered via Portal */}
-        {isCalendarOpen &&
-          createPortal(
-            <>
-              <div
-                className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9998]"
+        {/* Calendar Modal */}
+        {isCalendarOpen && createPortal(
+          <>
+            <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9998]" onClick={() => setIsCalendarOpen(false)} />
+            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-4 overflow-auto">
+              <button
                 onClick={() => setIsCalendarOpen(false)}
-              />
-
-              <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-4 overflow-auto">
-                <button
-                  onClick={() => setIsCalendarOpen(false)}
-                  className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10 p-1.5 sm:p-2 rounded-full bg-white/80 hover:bg-white transition-colors shadow-md"
-                >
-                  <X className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: primaryColor }} />
-                </button>
-
-                <div className="p-3 sm:p-6 md:p-8 w-full max-w-md sm:max-w-2xl">
-                  <DatePickerWithHover
-                    checkIn={checkIn}
-                    checkOut={checkOut}
-                    temporaryCheckOut={temporaryCheckOut}
-                    onDateSelect={(date: Date) => {
-                      if (selectionMode === "checkin") {
+                className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10 p-2 rounded-full bg-white/80 hover:bg-white transition-colors shadow-md"
+              >
+                <X className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: primaryColor }} />
+              </button>
+              {/* Mobile: single month, Desktop: two months */}
+              <div className="p-3 sm:p-6 w-full max-w-sm sm:max-w-2xl">
+                <DatePickerWithHover
+                  checkIn={checkIn}
+                  checkOut={checkOut}
+                  temporaryCheckOut={temporaryCheckOut}
+                  onDateSelect={(date: Date) => {
+                    if (selectionMode === "checkin") {
+                      setCheckIn(date);
+                      setCheckOut(null);
+                      setSelectionMode("checkout");
+                      setIsSelectingRange(true);
+                    } else {
+                      if (date > checkIn!) {
+                        setCheckOut(date);
+                        setIsSelectingRange(false);
+                        setTimeout(() => setIsCalendarOpen(false), 300);
+                        setSelectionMode("checkin");
+                        setTemporaryCheckOut(null);
+                      } else {
                         setCheckIn(date);
                         setCheckOut(null);
                         setSelectionMode("checkout");
                         setIsSelectingRange(true);
-                      } else {
-                        if (date > checkIn!) {
-                          setCheckOut(date);
-                          setIsSelectingRange(false);
-                          setTimeout(() => setIsCalendarOpen(false), 300);
-                          setSelectionMode("checkin");
-                          setTemporaryCheckOut(null);
-                        } else {
-                          setCheckIn(date);
-                          setCheckOut(null);
-                          setSelectionMode("checkout");
-                          setIsSelectingRange(true);
-                        }
                       }
-                    }}
-                    onDayMouseEnter={(date: Date) => {
-                      if (isSelectingRange && checkIn && date > checkIn) {
-                        setTemporaryCheckOut(date);
-                      }
-                    }}
-                    onDayMouseLeave={() => setTemporaryCheckOut(null)}
-                    isSelectingRange={isSelectingRange}
-                  />
-                </div>
+                    }
+                  }}
+                  onDayMouseEnter={(date: Date) => {
+                    if (isSelectingRange && checkIn && date > checkIn) {
+                      setTemporaryCheckOut(date);
+                    }
+                  }}
+                  onDayMouseLeave={() => setTemporaryCheckOut(null)}
+                  isSelectingRange={isSelectingRange}
+                />
               </div>
-            </>,
-            document.body,
-          )}
+            </div>
+          </>,
+          document.body
+        )}
 
         <GuestSelector
           isOpen={isGuestSelectorOpen}

@@ -102,6 +102,7 @@ interface BookingState {
   startDate: string;
   endDate: string;
   guests: Guests;
+  promocode:string;
   location: string;
   roomId?: string;
   currency?: string;
@@ -137,6 +138,7 @@ const initialState: BookingState = {
     rooms: 1,
     //  childAges: []
   },
+  promocode:"",
   location: "",
   roomId: undefined,
   currency: undefined,
