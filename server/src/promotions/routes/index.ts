@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { geoRatePlanRouter } from "../geo-rate-plan/routes/geo.routes";
 import { mlosRouter } from "../mlos/routes";
-import { deviceSpecificPromotionRouter, earlyBirdPromotionRouter, offerForTonightPromotionRouter } from "../EB-DS-OFT/routes";
+import { deviceSpecificPromotionRouter, earlyBirdPromotionRouter, offerForTonightPromotionRouter } from "../eb-ds-oftc/routes";
 import { customizableDealRouter } from "../customizable-deal/routes";
 
 const promotionRouter = Router();

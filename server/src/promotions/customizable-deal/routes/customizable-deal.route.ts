@@ -21,7 +21,6 @@ customizableDealRouter.route("/")
 // Get all customizable deals for a property
 customizableDealRouter.route("/property/:propertyId")
     .get(
-        protect,
         attachPropertyDetails({
             identifierType: "id",
             key: "propertyId",

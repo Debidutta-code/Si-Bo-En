@@ -1,15 +1,9 @@
-import { PromotionType, DiscountType, CurrencyCode } from '@prisma/client';
-
-// Room-RatePlan pair for early-bird promotions
-export interface IRoomRatePlanPair {
-  roomId?: string;
-  roomType?: string;
-  ratePlanId: string;
-  ratePlanCode: string;
-}
+import { PromotionType } from "@prisma/client";
+import { DeviceType } from "../../../agent-paltform/property/types";
+import { CurrencyCode, DiscountType } from "../../customizable-deal/interfaces";
 
 // Base promotion interface
-export interface IEarlyBirdPromotionBase {
+export interface IDeviceSpecificPromotionBase {
   promotionName: string;
   propertyId: string;
   promotionType: PromotionType;
@@ -18,12 +12,13 @@ export interface IEarlyBirdPromotionBase {
   currencyCode?: CurrencyCode;
   validFrom: Date;
   validTo?: Date;
-  advanceBookingDays?: number;
 }
 
-// Early Bird Promotion (array of room-rateplan pairs)
-export interface IEarlyBirdPromotion extends IEarlyBirdPromotionBase {
-  roomRatePlans: IRoomRatePlanPair[];
+// Device Specific Promotion (no room, has device types)
+export interface IDeviceSpecificPromotion extends IDeviceSpecificPromotionBase {
+  deviceType: DeviceType[];
+  ratePlanId: string;
+  ratePlanCode: string;
   monApplicable: boolean;
   tueApplicable: boolean;
   wedApplicable: boolean;
@@ -34,14 +29,15 @@ export interface IEarlyBirdPromotion extends IEarlyBirdPromotionBase {
   isAutoApplied: boolean;
 }
 
-// Update interface for early-bird promotion
-export interface IEarlyBirdPromotionUpdate {
+// Update interface for device-specific promotion
+export interface IDeviceSpecificPromotionUpdate {
   promotionName?: string;
   validFrom?: Date;
   validTo?: Date;
   discountType?: DiscountType;
   discountValue?: number;
   currencyCode?: CurrencyCode;
+  deviceType?: DeviceType[];
   monApplicable?: boolean;
   tueApplicable?: boolean;
   wedApplicable?: boolean;
@@ -50,21 +46,18 @@ export interface IEarlyBirdPromotionUpdate {
   satApplicable?: boolean;
   sunApplicable?: boolean;
   isActive?: boolean;
-  advanceBookingDays?: number;
   isAutoApplied: boolean;
-
 }
 
-// Response interface for early-bird promotion
-export interface IEarlyBirdPromotionResponse {
+// Response interface for device-specific promotion
+export interface IDeviceSpecificPromotionResponse {
   id: string;
   promotionName: string;
   propertyId: string;
   validFrom: Date | null;
   validTo: Date | null;
   promotionType: PromotionType;
-  roomId: string | null;
-  roomType: string | null;
+  deviceType: DeviceType[];
   ratePlanId: string;
   ratePlanCode: string;
   discountType: DiscountType;

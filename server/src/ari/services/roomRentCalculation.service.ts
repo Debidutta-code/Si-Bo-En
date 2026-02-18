@@ -125,8 +125,8 @@ export interface Promotion {
     deviceType: ("mobile" | "tablet" | "desktop")[];
     ratePlanId: string;
     ratePlanCode: string;
-    DiscountType: "percentage" | "flat";
-    DiscountValue: Decimal | null
+    discountType: "percentage" | "flat";
+    discountValue: Decimal | null
     currencyCode: CurrencyCode | null;
     monApplicable: boolean;
     tueApplicable: boolean;
@@ -335,8 +335,8 @@ export class RoomRentCalculationService {
                     {
                         promotionType: "device_specific",
                         deviceType: [deviceType],
-                        DiscountType: "percentage",
-                        DiscountValue: new Decimal(0),
+                        discountType: "percentage",
+                        discountValue: new Decimal(0),
                         // This will fetch from database
                     } as any,
                     new Decimal(currentPrice),
@@ -1097,7 +1097,7 @@ export class RoomRentCalculationService {
                 return errorResponse("Advance booking days not configured for this promotion");
             }
 
-            if (!promotion.DiscountValue) {
+            if (!promotion.discountValue) {
                 return errorResponse("Discount value not configured for this promotion");
             }
 
@@ -1114,12 +1114,12 @@ export class RoomRentCalculationService {
             // Calculate discount based on type
             let discountAmount = 0;
             const baseAmountNumber = Number(baseAmount);
-            const discountValue = Number(promotion.DiscountValue);
+            const discountValue = Number(promotion.discountValue);
 
-            if (promotion.DiscountType === "percentage") {
+            if (promotion.discountType === "percentage") {
                 // Percentage discount
                 discountAmount = (baseAmountNumber * discountValue) / 100;
-            } else if (promotion.DiscountType === "flat") {
+            } else if (promotion.discountType === "flat") {
                 // Flat/fixed discount
                 discountAmount = discountValue;
             }
@@ -1128,7 +1128,7 @@ export class RoomRentCalculationService {
                 promotionName: promotion.promotionName,
                 daysInAdvance,
                 requiredDays: promotion.advanceBookingDays,
-                discountType: promotion.DiscountType,
+                discountType: promotion.discountType,
                 discountValue: discountValue,
                 discountAmount: Number(discountAmount.toFixed(2)),
                 currencyCode: promotion.currencyCode
@@ -1142,7 +1142,7 @@ export class RoomRentCalculationService {
     }
     private static async offerForTonightService(promotion: Promotion, startDate: Date, baseAmount: Decimal): Promise<IApiResponse> {
         try {
-            if (promotion.DiscountValue === null || promotion.DiscountValue === undefined) {
+            if (promotion.discountValue === null || promotion.discountValue === undefined) {
                 return errorResponse("Discount value not configured for this promotion");
             }
 
@@ -1194,11 +1194,11 @@ export class RoomRentCalculationService {
 
             let discountAmount = 0;
             const baseAmountNumber = Number(baseAmount);
-            const discountValue = Number(promotion.DiscountValue);
+            const discountValue = Number(promotion.discountValue);
 
-            if (promotion.DiscountType === "percentage") {
+            if (promotion.discountType === "percentage") {
                 discountAmount = (baseAmountNumber * discountValue) / 100;
-            } else if (promotion.DiscountType === "flat") {
+            } else if (promotion.discountType === "flat") {
                 discountAmount = discountValue;
             }
 
@@ -1209,7 +1209,7 @@ export class RoomRentCalculationService {
                 checkInDate: checkInDateOnly.toISOString(),
                 dayOfWeek: checkInDayOfWeek,
                 daysDifference,
-                discountType: promotion.DiscountType,
+                discountType: promotion.discountType,
                 discountValue: discountValue,
                 discountAmount: Number(discountAmount.toFixed(2)),
                 currencyCode: promotion.currencyCode
@@ -1239,13 +1239,13 @@ export class RoomRentCalculationService {
             }
 
             // Rest of your existing logic...
-            const discountValue = Number(devicePromo.DiscountValue);
+            const discountValue = Number(devicePromo.discountType);
             const baseAmountNumber = Number(baseAmount);
             let discountAmount = 0;
 
-            if (devicePromo.DiscountType === "percentage") {
+            if (devicePromo.discountType === "percentage") {
                 discountAmount = (baseAmountNumber * discountValue) / 100;
-            } else if (devicePromo.DiscountType === "flat") {
+            } else if (devicePromo.discountType === "flat") {
                 discountAmount = discountValue;
             }
 
@@ -1254,7 +1254,7 @@ export class RoomRentCalculationService {
                 promotionName: devicePromo.promotionName,
                 userDevice: userDeviceType,
                 allowedDevices: devicePromo.deviceType,
-                discountType: devicePromo.DiscountType,
+                discountType: devicePromo.discountType,
                 discountValue: discountValue,
                 discountAmount: Number(discountAmount.toFixed(2)),
                 currencyCode: devicePromo.currencyCode

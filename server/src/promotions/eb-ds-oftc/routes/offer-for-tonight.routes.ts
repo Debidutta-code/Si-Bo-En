@@ -5,7 +5,7 @@ import { attachPropertyDetails } from '../../../middlewares/property.middleware'
 import { OfferForTonightPromotionController } from '../controllers';
 
 export const offerForTonightPromotionRouter = Router();
-
+const offerForTonightController = new OfferForTonightPromotionController();
 // Create offer-for-tonight promotion
 offerForTonightPromotionRouter
   .route('/')
@@ -17,7 +17,7 @@ offerForTonightPromotionRouter
       key: 'propertyId',
       source: 'body'
     }),
-    OfferForTonightPromotionController.createOfferForTonightPromotion
+    offerForTonightController.createOfferForTonightPromotion.bind(offerForTonightController)
   );
 
 // Get all offer-for-tonight promotions by property ID
@@ -30,7 +30,7 @@ offerForTonightPromotionRouter
       key: 'propertyId',
       source: 'params'
     }),
-    OfferForTonightPromotionController.getOfferForTonightPromotionsByProperty
+    offerForTonightController.getOfferForTonightPromotionsByProperty.bind(offerForTonightController)
   );
 
 // Get, update, delete offer-for-tonight promotion by ID
@@ -38,24 +38,15 @@ offerForTonightPromotionRouter
   .route('/:promotionId')
   .get(
     protect,
-    OfferForTonightPromotionController.getOfferForTonightPromotionById
+    offerForTonightController.getOfferForTonightPromotionById.bind(offerForTonightController)
   )
   .patch(
     protect,
     checkRoleBased('canUpdateRatePlan'),
-    OfferForTonightPromotionController.updateOfferForTonightPromotion
+    offerForTonightController.updateOfferForTonightPromotion.bind(offerForTonightController)
   )
   .delete(
     protect,
     checkRoleBased('canDeleteRatePlan'),
-    OfferForTonightPromotionController.deleteOfferForTonightPromotion
-  );
-
-// Toggle offer-for-tonight promotion status
-offerForTonightPromotionRouter
-  .route('/:promotionId/toggle-status')
-  .patch(
-    protect,
-    checkRoleBased('canUpdateRatePlan'),
-    OfferForTonightPromotionController.toggleOfferForTonightPromotionStatus
+    offerForTonightController.deleteOfferForTonightPromotion.bind(offerForTonightController)
   );
