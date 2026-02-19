@@ -181,55 +181,55 @@ const Rooms = () => {
     let noOfRooms = 1;
 
     // ✅ FIXED CODE
-if (Array.isArray(rawRooms)) {
-  noOfRooms = rawRooms.length;
-  rawRooms.forEach((room) => {
-    for (let i = 0; i < (room.adults || 0); i++) {
-      allGuests.push({
-        type: "adult",
-        firstName: "",
-        lastName: "",
-        dateOfBirth: "",
+    if (Array.isArray(rawRooms)) {
+      noOfRooms = rawRooms.length;
+      rawRooms.forEach((room) => {
+        for (let i = 0; i < (room.adults || 0); i++) {
+          allGuests.push({
+            type: "adult",
+            firstName: "",
+            lastName: "",
+            dateOfBirth: "",
+          });
+        }
+        for (let i = 0; i < (room.children || 0); i++) {
+          allGuests.push({
+            type: "child",
+            firstName: "",
+            lastName: "",
+            dateOfBirth: "",
+          });
+        }
       });
+      noOfAdults = allGuests.filter((g) => g.type === "adult").length;
+      noOfChildrens = allGuests.filter((g) => g.type === "child").length;
+    } else {
+      noOfAdults = bookingContext.guests?.adults || 1;
+      noOfChildrens = bookingContext.guests?.children || 0;
+      // ✅ FIX: Ensure rooms is always a number
+      noOfRooms = typeof bookingContext.guests?.rooms === 'number'
+        ? bookingContext.guests.rooms
+        : Array.isArray(bookingContext.guests?.rooms)
+          ? bookingContext.guests.rooms.length
+          : 1;
+
+      for (let i = 0; i < noOfAdults; i++) {
+        allGuests.push({
+          type: "adult",
+          firstName: "",
+          lastName: "",
+          dateOfBirth: "",
+        });
+      }
+      for (let i = 0; i < noOfChildrens; i++) {
+        allGuests.push({
+          type: "child",
+          firstName: "",
+          lastName: "",
+          dateOfBirth: "",
+        });
+      }
     }
-    for (let i = 0; i < (room.children || 0); i++) {
-      allGuests.push({
-        type: "child",
-        firstName: "",
-        lastName: "",
-        dateOfBirth: "",
-      });
-    }
-  });
-  noOfAdults = allGuests.filter((g) => g.type === "adult").length;
-  noOfChildrens = allGuests.filter((g) => g.type === "child").length;
-} else {
-  noOfAdults = bookingContext.guests?.adults || 1;
-  noOfChildrens = bookingContext.guests?.children || 0;
-  // ✅ FIX: Ensure rooms is always a number
-  noOfRooms = typeof bookingContext.guests?.rooms === 'number'
-    ? bookingContext.guests.rooms
-    : Array.isArray(bookingContext.guests?.rooms)
-      ? bookingContext.guests.rooms.length
-      : 1;
-  
-  for (let i = 0; i < noOfAdults; i++) {
-    allGuests.push({
-      type: "adult",
-      firstName: "",
-      lastName: "",
-      dateOfBirth: "",
-    });
-  }
-  for (let i = 0; i < noOfChildrens; i++) {
-    allGuests.push({
-      type: "child",
-      firstName: "",
-      lastName: "",
-      dateOfBirth: "",
-    });
-  }
-}
 
     setGuestForms(allGuests);
 
@@ -377,14 +377,14 @@ if (Array.isArray(rawRooms)) {
       setLoyaltyProgram(propertyDetails?.loyaltyProgramConfig || null);
       const bookingEngineColor = propertyDetails?.bookingEngineConfig
         ? {
-            primaryColor: propertyDetails.bookingEngineConfig.primaryColor,
-            secondaryColor: propertyDetails.bookingEngineConfig.secondaryColor,
-            tertiaryColor: propertyDetails.bookingEngineConfig.tertiaryColor,
-            buttonTextColor:
-              propertyDetails.bookingEngineConfig.buttonTextColor,
-            bgImage: propertyDetails.bookingEngineConfig.bannerImage,
-            logo: propertyDetails.bookingEngineConfig.logo,
-          }
+          primaryColor: propertyDetails.bookingEngineConfig.primaryColor,
+          secondaryColor: propertyDetails.bookingEngineConfig.secondaryColor,
+          tertiaryColor: propertyDetails.bookingEngineConfig.tertiaryColor,
+          buttonTextColor:
+            propertyDetails.bookingEngineConfig.buttonTextColor,
+          bgImage: propertyDetails.bookingEngineConfig.bannerImage,
+          logo: propertyDetails.bookingEngineConfig.logo,
+        }
         : undefined;
 
       const updatedContext = {
@@ -660,11 +660,11 @@ if (Array.isArray(rawRooms)) {
         startDate:
           bookingContext.startDate || today.toISOString().split("T")[0],
         endDate: bookingContext.endDate || tomorrow.toISOString().split("T")[0],
-         numberOfRooms: typeof bookingContext.guests?.rooms === 'number' 
-    ? bookingContext.guests.rooms 
-    : Array.isArray(bookingContext.guests?.rooms) 
-      ? bookingContext.guests.rooms.length 
-      : 1,
+        numberOfRooms: typeof bookingContext.guests?.rooms === 'number'
+          ? bookingContext.guests.rooms
+          : Array.isArray(bookingContext.guests?.rooms)
+            ? bookingContext.guests.rooms.length
+            : 1,
         location: bookingContext.location || "",
       };
 
@@ -740,9 +740,8 @@ if (Array.isArray(rawRooms)) {
         </div>
       )}
       <div
-        className={`min-h-screen bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${
-          loaded ? "opacity-100" : "opacity-0"
-        }`}
+        className={`min-h-screen bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${loaded ? "opacity-100" : "opacity-0"
+          }`}
         onLoad={() => setLoaded(true)}
       >
         <div className="sticky top-0 z-40 bg-white/90 backdrop-blur shadow-sm">
@@ -775,7 +774,7 @@ if (Array.isArray(rawRooms)) {
                       <video
                         className="w-full h-full object-cover"
                         autoPlay
-                        
+
                         loop
                         muted
                         playsInline
@@ -838,8 +837,8 @@ if (Array.isArray(rawRooms)) {
                       No rooms available for this hotel.
                     </div>
                   ) : roomsData.filter(
-                      (room: Room) => room.has_valid_rate === true,
-                    ).length === 0 ? (
+                    (room: Room) => room.has_valid_rate === true,
+                  ).length === 0 ? (
                     <div className="text-center py-10 text-gray-600 text-lg font-medium">
                       No rooms available
                     </div>
@@ -908,7 +907,7 @@ if (Array.isArray(rawRooms)) {
                 Best Price Guarantee
               </h4>
               <p className="text-blue-700 text-sm">
-                We guarantee that you won't find a lower price for the same
+                We guarantee that you won&apos;t find a lower price for the same
                 room, dates, and conditions anywhere else online.
               </p>
             </div>
@@ -1023,7 +1022,7 @@ if (Array.isArray(rawRooms)) {
             });
 
             document.cookie = "can_access_payment=true; path=/; max-age=300";
-            router.push("/Payment");
+            router.push(`/Payment?code=${bookingContext.PropertyCode || searchParams.get("code")}`);
           }}
         />
       )}
