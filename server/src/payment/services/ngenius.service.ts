@@ -191,18 +191,29 @@ class NGeniusService {
           });
 
           if (property) {
-            await prisma.payment.create({
-              data: {
-                amount: orderData.amount.value / 100,
-                currency: (orderData.amount.currencyCode as any) || "AED",
-                status: "pending",
-                paymentMethod: "ngenius" as any,
-                propertyId: property.id,
-                reservationId: response.data.reference,
-                paymentIntentId: response.data.reference,
-              },
-            });
-            console.log("✅ Payment record created in database");
+            const ngeniusState = response.data._embedded?.payment?.[0]?.state || "STARTED";
+            const mappedStatus = this.mapNGeniusState(ngeniusState);
+
+            try {
+              const payment = await prisma.payment.create({
+                data: {
+                  amount: orderData.amount.value / 100,
+                  currency: (orderData.amount.currencyCode as any) || "AED",
+                  status: mappedStatus as any,
+                  paymentMethod: "payment_gateway",
+                  propertyId: property.id,
+                  reservationId: (orderData.reservationId || null) as any,
+                  paymentIntentId: response.data.reference,
+                },
+              });
+              console.log(`✅ N-Genius Payment record created in database:
+  - ID: ${payment.id}
+  - Status: ${mappedStatus}
+  - Amount: ${payment.amount} ${payment.currency}
+  - Order Reference: ${response.data.reference}`);
+            } catch (dbError) {
+              console.error(`❌ Failed to create N-Genius payment record in database for order ${response.data.reference}:`, dbError);
+            }
           } else {
             console.warn(`⚠️ Property not found for code: ${orderData.propertyCode}`);
           }
@@ -328,6 +339,19 @@ class NGeniusService {
     const paymentUrl = orderResponse._links.payment.href;
     //console.log('Payment URL:', paymentUrl);
     return paymentUrl;
+  }
+
+  /**
+   * Map N-Genius payment state to internal PaymentStatus
+   */
+  private mapNGeniusState(state: string): string {
+    const successStates = ["CAPTURED", "PURCHASED", "AUTHORISED"];
+    const failedStates = ["FAILED", "DECLINED", "CANCELLED"];
+
+    const upperState = state.toUpperCase();
+    if (successStates.includes(upperState)) return "confirmed";
+    if (failedStates.includes(upperState)) return "cancelled";
+    return "pending";
   }
 
   /**

@@ -288,7 +288,7 @@ export class ReservationService {
                 activeIntegrationName =
                     propertyIntegration?.MasterIntegration?.name ?? null;
             }
-            console.log("active",activeIntegrationName)
+            console.log("active", activeIntegrationName)
             let paidAmount = 0;
             if (paymentMethods === 'payment_gateway') {
                 paidAmount = finalPrice.totalAmount;
@@ -367,6 +367,27 @@ export class ReservationService {
                 await this.reservationRepository.createReservation(
                     reservationPayload
                 );
+
+            // Link reservation with payment record if N-Genius order reference is provided
+            const ngeniusOrderRef = bookingDetails.ngeniusOrderRef;
+            if (ngeniusOrderRef) {
+                try {
+                    const updateResult = await prisma.payment.updateMany({
+                        where: { paymentIntentId: ngeniusOrderRef },
+                        data: { reservationId: reservation.id },
+                    });
+
+                    if (updateResult.count > 0) {
+                        console.log(`✅ Linked reservation ${reservation.id} to N-Genius payment record:
+  - Order Reference: ${ngeniusOrderRef}
+  - Records Updated: ${updateResult.count}`);
+                    } else {
+                        console.warn(`⚠️ No N-Genius payment record found with reference ${ngeniusOrderRef} to link with reservation ${reservation.id}`);
+                    }
+                } catch (linkError) {
+                    console.error(`❌ Database Error linking reservation ${reservation.id} to payment ${ngeniusOrderRef}:`, linkError);
+                }
+            }
 
             const priceBreakdownPayload: IReservationPriceBrakeDownR = {
                 reservationId: reservation.id,
@@ -483,10 +504,10 @@ export class ReservationService {
                 // Only run self ARI if no external integration is active
                 ...(selfAriActive && !activeIntegrationType
                     ? [
-                          this.ariManupulationRepo.decreaseAvailableRooms(
-                              ariPayload
-                          ),
-                      ]
+                        this.ariManupulationRepo.decreaseAvailableRooms(
+                            ariPayload
+                        ),
+                    ]
                     : []),
 
                 this.emailService.reservationConfirmation({
@@ -704,8 +725,8 @@ export class ReservationService {
                 updatePropConfig?.channelManagerIntegrationActive
                     ? 'channel_manager'
                     : updatePropConfig?.pmsIntegrationActive
-                      ? 'pms'
-                      : null;
+                        ? 'pms'
+                        : null;
 
             if (activeIntegrationTypeU) {
                 const rtConfig = await RTIntegrationDao.getRTConfig(
@@ -1176,7 +1197,7 @@ export class ReservationService {
             if (!accessResult.success) {
                 return errorResponse(
                     accessResult.message ||
-                        'Failed to get accessible properties'
+                    'Failed to get accessible properties'
                 );
             }
 
@@ -1246,7 +1267,7 @@ export class ReservationService {
             if (!accessResult.success) {
                 return errorResponse(
                     accessResult.message ||
-                        'Failed to get accessible properties'
+                    'Failed to get accessible properties'
                 );
             }
 
@@ -1305,7 +1326,7 @@ export class ReservationService {
             if (!accessResult.success) {
                 return errorResponse(
                     accessResult.message ||
-                        'Failed to get accessible properties'
+                    'Failed to get accessible properties'
                 );
             }
 
@@ -1366,7 +1387,7 @@ export class ReservationService {
             if (!accessResult.success) {
                 return errorResponse(
                     accessResult.message ||
-                        'Failed to get accessible properties'
+                    'Failed to get accessible properties'
                 );
             }
 
@@ -1426,7 +1447,7 @@ export class ReservationService {
             if (!accessResult.success) {
                 return errorResponse(
                     accessResult.message ||
-                        'Failed to get accessible properties'
+                    'Failed to get accessible properties'
                 );
             }
 
@@ -1504,8 +1525,8 @@ export class ReservationService {
                 delPropConfig?.channelManagerIntegrationActive
                     ? 'channel_manager'
                     : delPropConfig?.pmsIntegrationActive
-                      ? 'pms'
-                      : null;
+                        ? 'pms'
+                        : null;
 
             // 4. ── RT pushCancel FIRST ──
             if (activeIntegrationTypeD) {
@@ -1595,31 +1616,31 @@ export class ReservationService {
                 guests: {
                     adults: Array.isArray(reservation.guests)
                         ? reservation.guests.filter(
-                              (g: any) => g.type === 'adult'
-                          ).length
+                            (g: any) => g.type === 'adult'
+                        ).length
                         : 1,
                     children: Array.isArray(reservation.guests)
                         ? reservation.guests.filter(
-                              (g: any) => g.type === 'child'
-                          ).length
+                            (g: any) => g.type === 'child'
+                        ).length
                         : 0,
                     rooms: 1,
                 },
                 guestDetails: Array.isArray(reservation.guests)
                     ? reservation.guests.map((guest: any) => ({
-                          type: guest.type,
-                          firstName: guest.firstName,
-                          lastName: guest.lastName,
-                          dateOfBirth: guest.dateOfBirth || guest.dob,
-                          email:
-                              guest.type === 'adult'
-                                  ? reservation.bookingUserEmail
-                                  : undefined,
-                          phone:
-                              guest.type === 'adult'
-                                  ? reservation.bookingUserPhone || undefined
-                                  : undefined,
-                      }))
+                        type: guest.type,
+                        firstName: guest.firstName,
+                        lastName: guest.lastName,
+                        dateOfBirth: guest.dateOfBirth || guest.dob,
+                        email:
+                            guest.type === 'adult'
+                                ? reservation.bookingUserEmail
+                                : undefined,
+                        phone:
+                            guest.type === 'adult'
+                                ? reservation.bookingUserPhone || undefined
+                                : undefined,
+                    }))
                     : [],
                 paymentMethod: reservation.paymentMethod,
                 bookingCode: reservation.bookingCode,

@@ -41,6 +41,7 @@ export interface IBookingDetails {
   reservationId?: string;
   bookedAt?: string;
   bookingStatus?: BookingStatus;
+  ngeniusOrderRef?: string;
 }
 
 export interface IGuestDetail {
@@ -327,17 +328,17 @@ export interface IReservationUpdatePayload {
       discount: number;
     };
     loyaltyDiscount: {
-    amountAfterDiscount: number;
-    appliedTo: string;
-    currencyCode: CurrencyCode;
-    discountAmount: number
-    discountType: DiscountType
-    discountValue: number;
-    guestEmail: string
-    loyaltyMemberId: string;
-    originalAmount: number
-    propertyName: string
-  }
+      amountAfterDiscount: number;
+      appliedTo: string;
+      currencyCode: CurrencyCode;
+      discountAmount: number
+      discountType: DiscountType
+      discountValue: number;
+      guestEmail: string
+      loyaltyMemberId: string;
+      originalAmount: number
+      propertyName: string
+    }
   };
   currencyCode: "USD" | "EUR" | "INR";
   bookingUserEmail: string;

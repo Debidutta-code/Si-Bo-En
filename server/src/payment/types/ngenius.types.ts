@@ -22,6 +22,7 @@ export interface NGeniusOrderRequest {
     redirectUrl?: string;
   };
   propertyCode?: string;
+  reservationId?: string;
 }
 
 // Order Response

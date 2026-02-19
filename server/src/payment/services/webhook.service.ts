@@ -2,6 +2,7 @@
 import * as crypto from 'crypto';
 import { NGeniusWebhookPayload } from '../types/webhook.types';
 import { socketManager } from '../../socket';
+import { prisma } from '../../config/db.config';
 
 class WebhookService {
   /**
@@ -66,19 +67,19 @@ class WebhookService {
     //console.log('Order ID:', payload.order._id);
     //console.log('Order Action:', payload.order.action);
     //console.log('Amount:', `${payload.order.amount.value} ${payload.order.amount.currencyCode}`);
-    
+
     // Extract payment details if available
     let paymentDetails: any = null;
     if (payload.order._embedded?.payment && payload.order._embedded.payment.length > 0) {
       const payment = payload.order._embedded.payment[0];
       //console.log('Payment State:', payment.state);
       //console.log('Payment Reference:', payment.reference);
-      
+
       if (payment.paymentMethod) {
         //console.log('Payment Method:', payment.paymentMethod.name);
         //console.log('Card PAN:', payment.paymentMethod.pan);
       }
-      
+
       if (payment.authResponse) {
         //console.log('Auth Code:', payment.authResponse.authorizationCode);
         //console.log('Auth Result:', payment.authResponse.resultMessage);
@@ -91,7 +92,7 @@ class WebhookService {
         authResponse: payment.authResponse,
       };
     }
-    
+
     //console.log('========================================');
 
     // Determine payment status
@@ -101,7 +102,7 @@ class WebhookService {
     // Emit to Socket.IO
     const orderReference = payload.order.reference;
     //console.log(`🔔 Emitting payment update for order: ${orderReference}`);
-    
+
     socketManager.emitPaymentUpdate(orderReference, {
       orderReference,
       eventName: payload.eventName,
@@ -111,8 +112,37 @@ class WebhookService {
       paymentDetails,
     });
 
+    // Update database status
+    this.updatePaymentDatabase(orderReference, status);
+
     //console.log('✅ Webhook Event Processed & Emitted to Socket.IO');
     //console.log('========================================');
+  }
+
+  /**
+   * Update payment record in database
+   */
+  private async updatePaymentDatabase(orderReference: string, status: 'success' | 'failed' | 'pending'): Promise<void> {
+    try {
+      // Map 'success' to 'confirmed', 'failed' to 'cancelled'
+      const dbStatus = status === 'success' ? 'confirmed' : status === 'failed' ? 'cancelled' : 'pending';
+
+      const updateResult = await prisma.payment.updateMany({
+        where: { paymentIntentId: orderReference },
+        data: { status: dbStatus as any },
+      });
+
+      if (updateResult.count > 0) {
+        console.log(`✅ Database Payment Update Successful:
+  - Order Reference: ${orderReference}
+  - Status Updated To: ${dbStatus}
+  - Records Affected: ${updateResult.count}`);
+      } else {
+        console.warn(`⚠️ No payment record found in database for order reference: ${orderReference}. Status was not updated to ${dbStatus}.`);
+      }
+    } catch (error) {
+      console.error(`❌ Database Error updating payment status for order ${orderReference}:`, error);
+    }
   }
 
   /**
