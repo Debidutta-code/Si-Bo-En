@@ -887,8 +887,8 @@ const Rooms = () => {
                               loyaltyMemberEmail={loyaltyMemberEmail}
                               loyalty={loyaltyProgram}
                               onUnlockLoyalty={() => {
-  setLoyaltyMemberEmail(`toggle_guest_${loyaltyProgram?.propertyId}`);
-}}
+                                setShowLoyaltySignup(true);
+                              }}
                             />
                           ))}
                       </div>
