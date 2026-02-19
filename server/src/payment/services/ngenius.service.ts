@@ -8,6 +8,7 @@ import {
   NGeniusOrderStatusResponse,
   NGeniusErrorResponse,
 } from '../types/ngenius.types';
+import { prisma } from '../../config/db.config';
 
 class NGeniusService {
   private accessToken: string | null = null;
@@ -183,6 +184,44 @@ class NGeniusService {
       //console.log('🔗 Payment URL:', response.data._links?.payment?.href);
       //console.log('========================================\n');
 
+      if (orderData.propertyCode) {
+        try {
+          const property = await prisma.property.findFirst({
+            where: { propertyCode: orderData.propertyCode },
+          });
+
+          if (property) {
+            const ngeniusState = response.data._embedded?.payment?.[0]?.state || "STARTED";
+            const mappedStatus = this.mapNGeniusState(ngeniusState);
+
+            try {
+              const payment = await prisma.payment.create({
+                data: {
+                  amount: orderData.amount.value / 100,
+                  currency: "USD",
+                  status: mappedStatus as any,
+                  paymentMethod: "payment_gateway",
+                  propertyId: property.id,
+                  reservationId: (orderData.reservationId || null) as any,
+                  paymentIntentId: response.data.reference,
+                },
+              });
+              console.log(`✅ N-Genius Payment record created in database:
+  - ID: ${payment.id}
+  - Status: ${mappedStatus}
+  - Amount: ${payment.amount} ${payment.currency}
+  - Order Reference: ${response.data.reference}`);
+            } catch (dbError) {
+              console.error(`❌ Failed to create N-Genius payment record in database for order ${response.data.reference}:`, dbError);
+            }
+          } else {
+            console.warn(`⚠️ Property not found for code: ${orderData.propertyCode}`);
+          }
+        } catch (dbError) {
+          console.error("❌ Failed to store payment record:", dbError);
+        }
+      }
+
       return response.data;
     } catch (error) {
       console.error('\n❌ ORDER CREATION FAILED');
@@ -300,6 +339,19 @@ class NGeniusService {
     const paymentUrl = orderResponse._links.payment.href;
     //console.log('Payment URL:', paymentUrl);
     return paymentUrl;
+  }
+
+  /**
+   * Map N-Genius payment state to internal PaymentStatus
+   */
+  private mapNGeniusState(state: string): string {
+    const successStates = ["CAPTURED", "PURCHASED", "AUTHORISED"];
+    const failedStates = ["FAILED", "DECLINED", "CANCELLED"];
+
+    const upperState = state.toUpperCase();
+    if (successStates.includes(upperState)) return "confirmed";
+    if (failedStates.includes(upperState)) return "cancelled";
+    return "pending";
   }
 
   /**

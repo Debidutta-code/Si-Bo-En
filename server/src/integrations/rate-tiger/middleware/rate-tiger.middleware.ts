@@ -7,13 +7,16 @@ import { RateTigerRequest } from '../../../utils';
 import { config } from '../../../config';
 
 export class RateTigerMiddleware {
-  public static validateAuthCredentials(
+ public static validateAuthCredentials(
     req: RateTigerRequest,
     res: Response,
     next: NextFunction
   ) {
     try {
-      const authHeader = req.headers.authorization;
+      // ✅ Check both — BasicAuth (RT standard) and Authorization (fallback for testing)
+      const authHeader = 
+        (req.headers['basicauth'] as string) ?? 
+        (req.headers['authorization'] as string);
       
       if (!authHeader || !authHeader.startsWith('Basic ')) {
         return res.status(401).json({
@@ -21,14 +24,18 @@ export class RateTigerMiddleware {
           message: 'Missing or invalid Authorization header'
         });
       }
+
       const base64Credentials = authHeader.split(' ')[1];
-      console.log("base cred",base64Credentials)
-      const credentials = Buffer.from(base64Credentials, 'base64').toString('utf-8');
-      const [username, password] = credentials.split(':');
-      console.log({
-        username,
-        password
-      })
+      console.log("base cred", base64Credentials);
+
+      const decoded = Buffer.from(base64Credentials, 'base64').toString('utf-8');
+
+      // ✅ Safe split — handles passwords containing ':'
+      const colonIndex = decoded.indexOf(':');
+      const username = decoded.substring(0, colonIndex);
+      const password = decoded.substring(colonIndex + 1);
+
+      console.log({ username, password });
 
       // Validate credentials
       const expectedUsername = config.rateTigerUsername;

@@ -39,7 +39,7 @@ export class RTReservationPushService {
         if (cached && cached.expiresAt > new Date(Date.now() + 5 * 60 * 1000)) {
             return cached.token;
         }
-
+console.log("rtConfig",rtConfig)
         const credentials = Buffer.from(
             `${config.rateTigerUsername}:${config.rateTigerPassword}`
         ).toString('base64');
@@ -52,13 +52,13 @@ export class RTReservationPushService {
             },
             {
                 headers: {
-                    Authorization: `Basic ${credentials}`,
+                    BasicAuth: `Basic ${credentials}`,
                     'Content-Type': 'application/json',
                 },
                 timeout: 10000,
             }
         );
-
+console.log('RT Auth response:', response.data);
         const { access_token, expires_in } = response.data;
 
         tokenCacheMap.set(rtConfig.authUrl, {
@@ -75,7 +75,9 @@ export class RTReservationPushService {
         payload: RTReservationPayload,
         rtConfig: RTDynamicConfig
     ): Promise<RTReservationResponse> {
+        console.log('RT Commit payload:', JSON.stringify(payload, null, 2));
         const makeRequest = async (token: string) =>
+            
             axios.post(rtConfig.reservationUrl, payload, {
                 // ← DB URL
                 headers: {
@@ -371,7 +373,7 @@ export class RTReservationPushService {
                     },
                 },
             };
-
+console.log("payload",payload)
             const response = await RTReservationPushService.pushToRT(
                 payload,
                 rtConfig

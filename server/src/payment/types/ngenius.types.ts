@@ -21,6 +21,8 @@ export interface NGeniusOrderRequest {
   merchantAttributes?: {
     redirectUrl?: string;
   };
+  propertyCode?: string;
+  reservationId?: string;
 }
 
 // Order Response

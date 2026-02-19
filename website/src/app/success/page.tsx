@@ -29,7 +29,7 @@ export default function SuccessPage() {
     // Redirect to PaymentSuccess page
     setLoading(false);
     router.replace(`/PaymentSuccess?bookingCode=${bookingCode}`);
-  }, [router, searchParams]);
+  }, [router]);
 
   const handlePaymentTimeout = useCallback((bookingCode: string) => {
     console.log("⏰ Payment confirmation timeout - redirecting with pending status");
@@ -71,7 +71,7 @@ export default function SuccessPage() {
       socket.on('connect', () => {
         console.log("🔌 Socket connected:", socket.id);
         socketConnectedRef.current = true;
-        
+
         // Join the payment room with correct format matching server's payment:{bookingCode}
         const roomName = `payment:${bookingCode}`;
         socket.emit('join-payment-room', roomName);
@@ -80,7 +80,7 @@ export default function SuccessPage() {
 
       socket.on('payment-status-update', (data: { orderReference: string; status: string }) => {
         console.log("🎉 Payment status update received:", data);
-        
+
         if (data.orderReference === bookingCode && data.status === 'success') {
           handlePaymentConfirmed(bookingCode);
         }
@@ -138,16 +138,18 @@ export default function SuccessPage() {
       return;
     }
 
+    const confirmedBookingCode = bookingCode;
+
     // Setup WebSocket connection - this is the PRIMARY way to receive payment confirmation
     // The reservation is created in DB ONLY after Fikafi sends webhook to backend
     // So we wait for WebSocket event which is triggered after webhook processes
-    setupSocket(bookingCode);
+    setupSocket(confirmedBookingCode);
 
     // Set a timeout as fallback (e.g., 5 minutes) - in case WebSocket fails
     // This is just a safety net, the main flow should be WebSocket
     paymentTimeoutRef.current = setTimeout(() => {
       console.log("⚠️ WebSocket timeout reached, using fallback");
-      handlePaymentTimeout(bookingCode);
+      handlePaymentTimeout(confirmedBookingCode);
     }, 5 * 60 * 1000); // 5 minutes timeout
 
     // Cleanup on unmount

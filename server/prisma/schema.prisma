@@ -1629,10 +1629,10 @@ model Payment {
   paymentIntentId              String?       @map("payment_intent_id")
 
   propertyId    String @map("property_id")
-  reservationId String @map("reservation_id")
+  reservationId String? @map("reservation_id")
 
   Property                   Property                    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  Reservation                Reservation                 @relation(fields: [reservationId], references: [id])
+  Reservation                Reservation?                @relation(fields: [reservationId], references: [id])
   createdAt                  DateTime                    @default(now()) @map("created_at")
   PropertyPaymentIntegration PropertyPaymentIntegration? @relation(fields: [propertyPaymentIntegrationId], references: [id])
 

@@ -16,36 +16,38 @@ import { config } from '../../../config';
 export class RateTigerService {
 
   public static async generateAuthToken(
-    apiKey: string,
-    partnerId: string
-  ): Promise<IApiResponse<RateTigerAuthResponse>> {
-    try {
-      const jwtSecret = config.rateTigerJwtSecret || 'your-secret-key';
-      const expiresIn = config.rateTigerJwtExpiresIn;
+  apiKey: string,
+  partnerId: string
+): Promise<IApiResponse<RateTigerAuthResponse>> {
+  try {
+    const jwtSecret = config.rateTigerJwtSecret || 'your-secret-key';
+    const expiresIn = config.rateTigerJwtExpiresIn;
 
+    const payload: RateTigerTokenPayload = {
+      partnerId,
+      apiKey,
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + expiresIn
+    };
 
-      const payload: RateTigerTokenPayload = {
-        partnerId,
-        apiKey,
-        iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + expiresIn
-      };
+    const token = jwt.sign(payload, jwtSecret);
 
-      const token = jwt.sign(payload, jwtSecret);
+    const expiryDate = new Date();
+    expiryDate.setSeconds(expiryDate.getSeconds() + expiresIn);
 
-      const expiryDate = new Date();
-      expiryDate.setSeconds(expiryDate.getSeconds() + expiresIn);
+    // ✅ Return in RT-expected format directly
+    const response: RateTigerAuthResponse = {
+      access_token: token,
+      expires_in: expiryDate.toISOString(),
+      message: 'Valid User',   // ← RT expects this
+      status: 'SUCCESS'        // ← RT expects this
+    };
 
-      const response: RateTigerAuthResponse = {
-        access_token: token,
-        expires_in: expiryDate.toISOString()
-      };
-
-      return successResponse('Authentication token generated successfully', response);
-    } catch (error: any) {
-      return errorResponse('Failed to generate authentication token', error?.message);
-    }
+    return successResponse('Authentication token generated successfully', response);
+  } catch (error: any) {
+    return errorResponse('Failed to generate authentication token', error?.message);
   }
+}
 
   /**
    * Get room types and rate plans for a property

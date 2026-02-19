@@ -14,6 +14,7 @@ export interface CreateOrderPayload {
   };
   emailAddress?: string;
   outletId?: string;
+  propertyCode?: string;
 }
 
 export interface NGeniusOrderResponse {

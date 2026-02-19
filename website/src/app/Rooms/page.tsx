@@ -925,7 +925,7 @@ const Rooms = () => {
                 Best Price Guarantee
               </h4>
               <p className="text-blue-700 text-sm">
-                We guarantee that you won't find a lower price for the same
+                We guarantee that you won&apos;t find a lower price for the same
                 room, dates, and conditions anywhere else online.
               </p>
             </div>
@@ -1040,7 +1040,7 @@ const Rooms = () => {
             });
 
             document.cookie = "can_access_payment=true; path=/; max-age=300";
-            router.push("/Payment");
+            router.push(`/Payment?code=${bookingContext.PropertyCode || searchParams.get("code")}`);
           }}
         />
       )}
