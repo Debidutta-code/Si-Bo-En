@@ -126,10 +126,6 @@ const PriceDetails: React.FC<PriceDetailsProps> = ({ bookingDetails, onPriceUpda
         <span className="font-semibold text-gray-900">Total Amount</span>
         <span className="font-bold text-orange-600 text-xl">{formatCurrency(totalPrice)}</span>
       </div>
-      <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
-        <CheckCircle className="h-3 w-3 text-green-500" />
-        <span>GST included</span>
-      </div>
 
       {/* Secure Payment */}
       <div className="mt-4 text-xs text-gray-700 bg-orange-50 p-3 rounded-xl">

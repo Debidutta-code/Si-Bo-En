@@ -1,39 +1,30 @@
-// Rate Plan Rule Types
+import { Decimal } from "@prisma/client/runtime/library";
+import { DiscountType } from "../../customizable-deal/interfaces";
 
 export interface IMLOSCreate {
   ratePlanId: string;
-  startDate?: string | null;
-  endDate?: string | null;
+  startDate: Date | null;
+  endDate: Date | null;
   minLos: number;
-  maxLos?: number | null;
-  discountType?: DiscountType;
-  discountValue?: number | null;
+  maxLos: number | null;
+  discountType: DiscountType|null;
+  discountValue: Decimal | null;
   isActive: boolean;
+  isAutoApplied: boolean;
 }
 
-export interface IMLOSUpdate {
-  startDate?: string | null;
-  endDate?: string | null;
-  minLos?: number;
-  maxLos?: number | null;
-  discountType?: DiscountType;
-  discountValue?: number | null;
-  isActive?: boolean;
-}
+
 
 export interface IMLOS {
   id: string;
   ratePlanId: string;
-  startDate: string | null;
-  endDate: string | null;
+  startDate: Date | null;
+  endDate: Date | null;
   minLos: number;
   maxLos: number | null;
-  discountType:DiscountType ;
-  discountValue: number | null;
+  discountType: DiscountType|null;
+  discountValue: Decimal | null;
   isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
+  isAutoApplied: boolean;
 
-// Validation types
-export type DiscountType = "percentage" | "flat";
+}

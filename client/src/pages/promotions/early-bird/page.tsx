@@ -25,8 +25,8 @@ import {
 } from './interfaces';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import { Calendar, Clock, Edit, MoreVertical, Trash2 } from 'lucide-react';
-import { convertBackendToApplicableDays } from '../mobile-only/interfaces/mobilePromotion.type';
+import { Calendar, Check, Clock, Edit, MoreVertical, Trash2, X } from 'lucide-react';
+import { convertBackendToApplicableDays } from '../device-specific/interfaces/mobilePromotion.type';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 export const EarlyBirdPromotionList: React.FC = () => {
@@ -137,7 +137,8 @@ export const EarlyBirdPromotionList: React.FC = () => {
                 satApplicable: payload.satApplicable,
                 sunApplicable: payload.sunApplicable,
                 isActive: true,
-                advanceBookingDays: payload.advanceBookingDays
+                advanceBookingDays: payload.advanceBookingDays,
+                isAutoApplied: payload.isAutoApplied
             };
 
             const result = await updateEarlyBirdPromotionService(editData.id, updatePayload);
@@ -279,6 +280,7 @@ export const EarlyBirdPromotionList: React.FC = () => {
                                 <TableHead>End Date</TableHead>
                                 <TableHead>Active Days</TableHead>
                                 <TableHead>Status</TableHead>
+                                <TableHead>Auto Applied</TableHead>
                                 <TableHead>Actions</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -329,6 +331,14 @@ export const EarlyBirdPromotionList: React.FC = () => {
                                         <TableCell>
                                             <span className="text-xs text-muted-foreground">
                                                 {getActiveDays(promotion.applicableDays)}
+                                            </span>
+                                        </TableCell>
+                                        <TableCell className='flex items-center justify-center'>
+                                            <span className={`px-3 py-1  rounded text-xs ${promotion.isAutoApplied
+                                                ? ' text-success '
+                                                : ' text-destructive'
+                                                }`}>
+                                                {promotion.isAutoApplied ? <Check className='h-4 w-4'/> : <X className='h-4 w-4'/>}
                                             </span>
                                         </TableCell>
                                         <TableCell>

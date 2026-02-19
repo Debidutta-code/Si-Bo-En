@@ -1,65 +1,83 @@
+import { Decimal } from "@prisma/client/runtime/library";
+
 export type DiscountType = 'percentage' | 'flat';
 export type CurrencyCode = 'USD' | 'EUR' | 'INR';
 
-export interface ICCreateCustomizableDeal {
+export interface ICCreateCustomizableDealS {
     discountType: DiscountType;
-    discountValue: number;
-    currencyCode?: CurrencyCode;
-    applicableRoomTypes: string[]; // Array of room IDs
-    applicableRatePlans: string[]; // Array of rate plan IDs
-    applicableAddons: string[];    // Array of addon IDs
+    discountValue: Decimal;
+    currencyCode: CurrencyCode | null;
+    applicableRoomTypes: string[];
+    applicableRatePlans: string[];
+    applicableAddons: string[];
+    isAutoApplied: boolean;
+
+}
+export interface ICCreateCustomizableDealR {
+    discountType: DiscountType;
+    discountValue: Decimal;
+    currencyCode: CurrencyCode | null;
+    applicableRoomTypes: IRoom[];
+    applicableRatePlans: IRatePlan[];
+    applicableAddons: IAddOn[];
+    isAutoApplied: boolean;
+
+}
+export interface IUCustomizableDealS {
+    discountType: DiscountType;
+    discountValue: Decimal;
+    currencyCode: CurrencyCode | null;
+    applicableRoomTypes: string[];
+    applicableRatePlans: string[];
+    applicableAddons: string[];
+    isAutoApplied: boolean;
+
 }
 
-export interface ICUpdateCustomizableDeal {
-    discountType?: DiscountType;
-    discountValue?: number;
-    currencyCode?: CurrencyCode;
-    applicableRoomTypes?: string[];
-    applicableRatePlans?: string[];
-    applicableAddons?: string[];
-}
-
-export interface IGetCustomizableDeal {
+export interface ICustomizableDeals {
     id: string;
     propertyId: string;
     propertyCode: string;
     discountType: DiscountType;
-    discountValue: number;
-    currencyCode: CurrencyCode;
+    discountValue: Decimal;
+    currencyCode: CurrencyCode | null;
     createdAt: Date;
-    applicableRoomTypes: Array<{
-        id: string;
-        roomId: string;
-        roomTypeCode: string;
-        Room: {
-            id: string;
-            roomName: string;
-            roomType: string;
-        };
-    }>;
-    applicableRatePlans: Array<{
-        id: string;
-        ratePlanId: string;
-        ratePlanCode: string;
-        RatePlan: {
-            id: string;
-            ratePlanName: string;
-            ratePlanCode: string;
-        };
-    }>;
-    applicableAddons: Array<{
-        id: string;
-        addOnId: string;
-        AddOn: {
-            id: string;
-            name: string;
-            code: string;
-        };
-    }>;
+}
+export interface ICustomizableDealWDetails extends ICustomizableDeals {
+
+    CustomizableDealsApplicableRoomTypes: ICustomizableDealsApplicableRoomTypes[];
+    CustomizableDealsApplicableRatePlanTypes: ICustomizableDealsApplicableRatePlans[];
+    CustomizableDealsApplicableAddons: ICustomizableDealsApplicableAddons[];
+
 }
 
-export interface ICustomizableDealWithDetails extends IGetCustomizableDeal {
-    totalApplicableRooms: number;
-    totalApplicableRatePlans: number;
-    totalApplicableAddons: number;
+
+export interface ICustomizableDealsApplicableRoomTypes {
+    roomId: string;
+    roomTypeCode: string;
+    Room: IRoom;
+}
+export interface ICustomizableDealsApplicableRatePlans {
+    ratePlanId: string;
+    ratePlanCode: string;
+    RatePlan: IRatePlan;
+}
+export interface ICustomizableDealsApplicableAddons {
+    addOnId: string;
+    AddOn: IAddOn;
+}
+export interface IRoom {
+    id: string;
+    roomName: string;
+    roomType: string;
+}
+export interface IRatePlan {
+    id: string;
+    ratePlanName: string;
+    ratePlanCode: string;
+}
+export interface IAddOn {
+    id: string;
+    code: string;
+    name: string;
 }

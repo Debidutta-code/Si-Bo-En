@@ -6,6 +6,7 @@ import { RootState } from "../../store/store";
 import SearchWidget from "../../components/Home/SearchWidget";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
+import { Facebook, Instagram, Youtube, Globe } from "lucide-react";
 import {
   setBookingContext,
   setBookingSource,
@@ -105,13 +106,14 @@ const Rooms = () => {
   const [bookingSelectedPromotions, setBookingSelectedPromotions] = useState<
     any[]
   >([]);
-
+  const [isLoyaltyGuest, setIsLoyaltyGuest] = useState<boolean>(false);
   const [bookingRoom, setBookingRoom] = useState<Room | null>(null);
   const [currentRatePlan, setCurrentRatePlan] = useState<any>(null);
   const [selectedAddons, setSelectedAddons] = useState<any[]>([]);
   const [guestForms, setGuestForms] = useState<Guest[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [loyaltyMemberEmail, setLoyaltyMemberEmail] = useState<string>("");
+  const [showLoyaltySignup, setShowLoyaltySignup] = useState(false);
   const [contactInfo, setContactInfo] = useState({
     email: "",
     phoneNumber: "",
@@ -120,7 +122,7 @@ const Rooms = () => {
   const [loadingPrice, setLoadingPrice] = useState(false);
   const [errorPrice, setErrorPrice] = useState<string | null>(null);
   const [errorRooms, setErrorRooms] = useState<string | null>(null);
-  const [loadingRooms, setLoadingRooms] = useState<boolean>(false);
+  // const [loadingRooms, setLoadingRooms] = useState<boolean>(false);
   const [loadingBookNow, setLoadingBookNow] = useState<string | null>(null);
   const initializedRef = useRef(false); // Prevent double initialization
   const [roomsData, setRoomsData] = useState<any[]>([]);
@@ -181,55 +183,55 @@ const Rooms = () => {
     let noOfRooms = 1;
 
     // ✅ FIXED CODE
-if (Array.isArray(rawRooms)) {
-  noOfRooms = rawRooms.length;
-  rawRooms.forEach((room) => {
-    for (let i = 0; i < (room.adults || 0); i++) {
-      allGuests.push({
-        type: "adult",
-        firstName: "",
-        lastName: "",
-        dateOfBirth: "",
+    if (Array.isArray(rawRooms)) {
+      noOfRooms = rawRooms.length;
+      rawRooms.forEach((room) => {
+        for (let i = 0; i < (room.adults || 0); i++) {
+          allGuests.push({
+            type: "adult",
+            firstName: "",
+            lastName: "",
+            dateOfBirth: "",
+          });
+        }
+        for (let i = 0; i < (room.children || 0); i++) {
+          allGuests.push({
+            type: "child",
+            firstName: "",
+            lastName: "",
+            dateOfBirth: "",
+          });
+        }
       });
+      noOfAdults = allGuests.filter((g) => g.type === "adult").length;
+      noOfChildrens = allGuests.filter((g) => g.type === "child").length;
+    } else {
+      noOfAdults = bookingContext.guests?.adults || 1;
+      noOfChildrens = bookingContext.guests?.children || 0;
+      // ✅ FIX: Ensure rooms is always a number
+      noOfRooms = typeof bookingContext.guests?.rooms === 'number'
+        ? bookingContext.guests.rooms
+        : Array.isArray(bookingContext.guests?.rooms)
+          ? bookingContext.guests.rooms.length
+          : 1;
+
+      for (let i = 0; i < noOfAdults; i++) {
+        allGuests.push({
+          type: "adult",
+          firstName: "",
+          lastName: "",
+          dateOfBirth: "",
+        });
+      }
+      for (let i = 0; i < noOfChildrens; i++) {
+        allGuests.push({
+          type: "child",
+          firstName: "",
+          lastName: "",
+          dateOfBirth: "",
+        });
+      }
     }
-    for (let i = 0; i < (room.children || 0); i++) {
-      allGuests.push({
-        type: "child",
-        firstName: "",
-        lastName: "",
-        dateOfBirth: "",
-      });
-    }
-  });
-  noOfAdults = allGuests.filter((g) => g.type === "adult").length;
-  noOfChildrens = allGuests.filter((g) => g.type === "child").length;
-} else {
-  noOfAdults = bookingContext.guests?.adults || 1;
-  noOfChildrens = bookingContext.guests?.children || 0;
-  // ✅ FIX: Ensure rooms is always a number
-  noOfRooms = typeof bookingContext.guests?.rooms === 'number'
-    ? bookingContext.guests.rooms
-    : Array.isArray(bookingContext.guests?.rooms)
-      ? bookingContext.guests.rooms.length
-      : 1;
-  
-  for (let i = 0; i < noOfAdults; i++) {
-    allGuests.push({
-      type: "adult",
-      firstName: "",
-      lastName: "",
-      dateOfBirth: "",
-    });
-  }
-  for (let i = 0; i < noOfChildrens; i++) {
-    allGuests.push({
-      type: "child",
-      firstName: "",
-      lastName: "",
-      dateOfBirth: "",
-    });
-  }
-}
 
     setGuestForms(allGuests);
 
@@ -346,7 +348,7 @@ if (Array.isArray(rawRooms)) {
       return;
     }
 
-    setLoadingRooms(true);
+    setInitialLoading(true);
     setErrorRooms("");
     dispatch({ type: "rooms/setRooms", payload: [] });
     setRoomsData([]);
@@ -354,7 +356,7 @@ if (Array.isArray(rawRooms)) {
     setPropertyDetails(null);
     setShowPriceSummary(false);
     setPriceSummaryData(null);
-
+    setLoyaltyProgram(null);
     try {
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/fetch-rooms`,
@@ -377,14 +379,14 @@ if (Array.isArray(rawRooms)) {
       setLoyaltyProgram(propertyDetails?.loyaltyProgramConfig || null);
       const bookingEngineColor = propertyDetails?.bookingEngineConfig
         ? {
-            primaryColor: propertyDetails.bookingEngineConfig.primaryColor,
-            secondaryColor: propertyDetails.bookingEngineConfig.secondaryColor,
-            tertiaryColor: propertyDetails.bookingEngineConfig.tertiaryColor,
-            buttonTextColor:
-              propertyDetails.bookingEngineConfig.buttonTextColor,
-            bgImage: propertyDetails.bookingEngineConfig.bannerImage,
-            logo: propertyDetails.bookingEngineConfig.logo,
-          }
+          primaryColor: propertyDetails.bookingEngineConfig.primaryColor,
+          secondaryColor: propertyDetails.bookingEngineConfig.secondaryColor,
+          tertiaryColor: propertyDetails.bookingEngineConfig.tertiaryColor,
+          buttonTextColor:
+            propertyDetails.bookingEngineConfig.buttonTextColor,
+          bgImage: propertyDetails.bookingEngineConfig.bannerImage,
+          logo: propertyDetails.bookingEngineConfig.logo,
+        }
         : undefined;
 
       const updatedContext = {
@@ -409,21 +411,6 @@ if (Array.isArray(rawRooms)) {
           logoIcon: bookingEngineColor.logo,
         };
         localStorage.setItem("bookingstorage", JSON.stringify(bookingStorage));
-      } else {
-        const defaultBookingStorage = {
-          colors: {
-            primaryColor: "#2F2A1F",
-            secondaryColor: "#E8DFC9",
-            tertiaryColor: "#7D7566",
-            buttonTextColor: "#FFFFFF",
-            logoIcon: null,
-          },
-          logoIcon: null,
-        };
-        localStorage.setItem(
-          "bookingstorage",
-          JSON.stringify(defaultBookingStorage),
-        );
       }
 
       dispatch({ type: "rooms/setRooms", payload: data.data || [] });
@@ -445,8 +432,7 @@ if (Array.isArray(rawRooms)) {
       toast.error(err.message || "Something went wrong while fetching rooms.");
       dispatch({ type: "rooms/setRooms", payload: [] });
     } finally {
-      setLoadingRooms(false);
-      setInitialLoading(false); // ✅ Always turn off loader after API call
+      setInitialLoading(false);
     }
   };
 
@@ -660,16 +646,15 @@ if (Array.isArray(rawRooms)) {
         startDate:
           bookingContext.startDate || today.toISOString().split("T")[0],
         endDate: bookingContext.endDate || tomorrow.toISOString().split("T")[0],
-         numberOfRooms: typeof bookingContext.guests?.rooms === 'number' 
-    ? bookingContext.guests.rooms 
-    : Array.isArray(bookingContext.guests?.rooms) 
-      ? bookingContext.guests.rooms.length 
-      : 1,
+        numberOfRooms: typeof bookingContext.guests?.rooms === 'number'
+          ? bookingContext.guests.rooms
+          : Array.isArray(bookingContext.guests?.rooms)
+            ? bookingContext.guests.rooms.length
+            : 1,
         location: bookingContext.location || "",
       };
 
       dispatch(setBookingContext(updatedContext));
-      localStorage.setItem("bookingContext", JSON.stringify(updatedContext));
       handleSearchStart(updatedContext);
     }
   }, [searchParams.get("code")]);
@@ -693,10 +678,7 @@ if (Array.isArray(rawRooms)) {
 
   const { primaryColor } = useBookingColors();
 
-  const handleCloseUrgencyBanner = () => {
-    setShowUrgencyBanner(false);
-    localStorage.setItem("urgencyBannerDismissed", "true");
-  };
+
 
   useEffect(() => {
     const isDismissed = localStorage.getItem("urgencyBannerDismissed");
@@ -716,9 +698,6 @@ if (Array.isArray(rawRooms)) {
     ),
   );
 
-  const handleOpenUrgencyModal = () => {
-    setUrgencyModalOpen(true);
-  };
 
   // NEW: Simple spinner loader for external requests only
   if (initialLoading && isExternalRequest) {
@@ -740,9 +719,8 @@ if (Array.isArray(rawRooms)) {
         </div>
       )}
       <div
-        className={`min-h-screen bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${
-          loaded ? "opacity-100" : "opacity-0"
-        }`}
+        className={`min-h-screen bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${loaded ? "opacity-100" : "opacity-0"
+          }`}
         onLoad={() => setLoaded(true)}
       >
         <div className="sticky top-0 z-40 bg-white/90 backdrop-blur shadow-sm">
@@ -755,11 +733,39 @@ if (Array.isArray(rawRooms)) {
             }}
           />
         </div>
-
-        {/* Loyalty Program Banner */}
-
         <div className="px-4 py-3">
           <div className="max-w-7xl mx-auto">
+            {showUrgencyBanner && (
+              <div className="mb-4 relative">
+                <div
+                  className="rounded-xl p-4 shadow-md border-2"
+                  style={{
+                    backgroundColor: `${primaryColor}15`,
+                    borderColor: `${primaryColor}40`
+                  }}
+                >
+                  <button
+                    onClick={() => {
+                      setShowUrgencyBanner(false);
+                      localStorage.setItem("urgencyBannerDismissed", "true");
+                    }}
+                    className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                  <div className="text-center">
+                    <h3 className="text-lg font-bold text-gray-900 mb-1 uppercase">
+                      You will get the best available price if you book now!
+                    </h3>
+                    <p className="text-sm font-semibold text-gray-700 uppercase">
+                      The prices can rise at any moment. Don't wait any longer!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
               {propertyDetails?.propertyVideos && (
                 <div
@@ -775,7 +781,7 @@ if (Array.isArray(rawRooms)) {
                       <video
                         className="w-full h-full object-cover"
                         autoPlay
-                        
+
                         loop
                         muted
                         playsInline
@@ -805,6 +811,8 @@ if (Array.isArray(rawRooms)) {
                   <LoyaltyProgramBanner
                     loyaltyProgram={loyaltyProgram}
                     primaryColor={primaryColor}
+                    showSignUpModal={showLoyaltySignup}
+                    onShowSignUpModalChange={setShowLoyaltySignup}
                   />
                 </div>
               )}
@@ -818,10 +826,8 @@ if (Array.isArray(rawRooms)) {
               <div
                 className={`flex-1 ${showPriceSummary ? "lg:w-2/3" : "w-full"} transition-all duration-300`}
               >
-                <div></div>
-
                 <div className="px-4 sm:px-4 py-4 bg-white border border-gray-200 rounded-xl">
-                  {loadingRooms ? (
+                  {initialLoading ? (
                     <div className="text-center py-20">
                       <div
                         className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 mx-auto"
@@ -838,8 +844,8 @@ if (Array.isArray(rawRooms)) {
                       No rooms available for this hotel.
                     </div>
                   ) : roomsData.filter(
-                      (room: Room) => room.has_valid_rate === true,
-                    ).length === 0 ? (
+                    (room: Room) => room.has_valid_rate === true,
+                  ).length === 0 ? (
                     <div className="text-center py-10 text-gray-600 text-lg font-medium">
                       No rooms available
                     </div>
@@ -860,6 +866,17 @@ if (Array.isArray(rawRooms)) {
                               onPriceUpdate={handlePriceUpdate}
                               selectedBoardType={selectedBoardType}
                               loyaltyMemberEmail={loyaltyMemberEmail}
+                              loyalty={loyaltyProgram}
+                              onUnlockLoyalty={() => {
+                                setShowLoyaltySignup(true);
+                                // Scroll to loyalty banner
+                                setTimeout(() => {
+                                  const loyaltyBanner = document.querySelector('[data-loyalty-banner]');
+                                  if (loyaltyBanner) {
+                                    loyaltyBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                  }
+                                }, 100);
+                              }}
                             />
                           ))}
                       </div>
@@ -1026,6 +1043,96 @@ if (Array.isArray(rawRooms)) {
             router.push("/Payment");
           }}
         />
+      )}
+
+      {/* Social Media Footer */}
+      {propertyDetails && (
+        <footer className="bg-gray-50 border-t border-gray-200 py-8 mt-12">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              {/* Property Info */}
+              <div className="text-center md:text-left">
+                <a
+                  href={propertyDetails.website || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xl font-bold hover:opacity-80 transition-opacity"
+                  style={{ color: primaryColor }}
+                >
+                  {propertyDetails.propertyName}
+                </a>
+                <p className="text-sm text-gray-600 mt-1">
+                  {propertyDetails.address?.city || propertyDetails.address?.addressLine1 || ""}
+                  {propertyDetails.address?.state && `, ${propertyDetails.address.state}`}
+                  {propertyDetails.address?.country && `, ${propertyDetails.address.country}`}
+                </p>
+              </div>
+
+              {/* Social Media Links */}
+              <div className="flex items-center gap-4">
+                {propertyDetails.facebookUrl && (
+                  <a
+                    href={propertyDetails.facebookUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 rounded-full bg-white border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all group"
+                    title="Facebook"
+                  >
+                    <Facebook className="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors" />
+                  </a>
+                )}
+                {propertyDetails.instagramUrl && (
+                  <a
+                    href={propertyDetails.instagramUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 rounded-full bg-white border border-gray-200 hover:border-pink-500 hover:bg-pink-50 transition-all group"
+                    title="Instagram"
+                  >
+                    <Instagram className="w-5 h-5 text-gray-600 group-hover:text-pink-600 transition-colors" />
+                  </a>
+                )}
+                {propertyDetails.youtubeUrl && (
+                  <a
+                    href={propertyDetails.youtubeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 rounded-full bg-white border border-gray-200 hover:border-red-500 hover:bg-red-50 transition-all group"
+                    title="YouTube"
+                  >
+                    <Youtube className="w-5 h-5 text-gray-600 group-hover:text-red-600 transition-colors" />
+                  </a>
+                )}
+                {propertyDetails.website && (
+                  <a
+                    href={propertyDetails.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 rounded-full bg-white border border-gray-200 hover:border-gray-500 hover:bg-gray-100 transition-all group"
+                    title="Website"
+                  >
+                    <Globe className="w-5 h-5 text-gray-600 group-hover:text-gray-900 transition-colors" />
+                  </a>
+                )}
+              </div>
+            </div>
+
+            {/* Privacy & Terms */}
+            <div className="mt-6 pt-6 border-t border-gray-200 text-center text-xs text-gray-500">
+              <p>
+                This site is protected by reCAPTCHA and the Google{" "}
+                <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">
+                  Privacy Policy
+                </a>
+                {" "}and{" "}
+                <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">
+                  Terms of Service
+                </a>
+                {" "}apply.
+              </p>
+            </div>
+          </div>
+        </footer>
       )}
     </div>
   );

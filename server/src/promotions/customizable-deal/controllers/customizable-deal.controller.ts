@@ -1,10 +1,9 @@
 import { CustomizableDealService } from '../services';
-import { Response } from 'express';
+import { Response ,Request} from 'express';
 import {
-    ICCreateCustomizableDeal,
-    ICUpdateCustomizableDeal,
+    ICCreateCustomizableDealS
 } from '../interfaces';
-import { errorResponse, PropertyRequest } from '../../../utils';
+import { errorResponse, PropertyCustomRequest, PropertyRequest } from '../../../utils';
 
 export class CustomizableDealController {
     customizableDealService: CustomizableDealService;
@@ -14,7 +13,7 @@ export class CustomizableDealController {
     }
 
     public async createCustomizableDealController(
-        req: PropertyRequest,
+        req: PropertyCustomRequest,
         res: Response
     ) {
         try {
@@ -24,7 +23,7 @@ export class CustomizableDealController {
                     .json(errorResponse('Property information is required'));
             }
 
-            const dealData: ICCreateCustomizableDeal = req.body;
+            const dealData: ICCreateCustomizableDealS = req.body;
 
             const validationError = this.validateDealData(dealData);
             if (validationError) {
@@ -38,8 +37,8 @@ export class CustomizableDealController {
                     dealData
                 );
 
-            const status = serviceRes.success ? 201 : 400;
-            return res.status(status).json(serviceRes);
+
+                return res.status(serviceRes.success?200:400).json(serviceRes);
         } catch (error: any) {
             return res
                 .status(500)
@@ -73,7 +72,7 @@ export class CustomizableDealController {
     }
 
     public async getCustomizableDealByIdController(
-        req: PropertyRequest,
+        req: Request,
         res: Response
     ) {
         try {
@@ -100,7 +99,7 @@ export class CustomizableDealController {
     }
 
     public async updateCustomizableDealController(
-        req: PropertyRequest,
+        req: PropertyCustomRequest,
         res: Response
     ) {
         try {
@@ -111,7 +110,7 @@ export class CustomizableDealController {
             }
 
             const dealId = req.params.dealId;
-            const dealData: ICUpdateCustomizableDeal = req.body;
+            const dealData: ICCreateCustomizableDealS = req.body;
 
             if (!dealId) {
                 return res
@@ -119,7 +118,7 @@ export class CustomizableDealController {
                     .json(errorResponse('Deal ID is required'));
             }
 
-            const validationError = this.validateUpdateDealData(dealData);
+            const validationError = this.validateDealData(dealData);
             if (validationError) {
                 return res.status(400).json(errorResponse(validationError));
             }
@@ -141,7 +140,7 @@ export class CustomizableDealController {
     }
 
     public async deleteCustomizableDealController(
-        req: PropertyRequest,
+        req: PropertyCustomRequest,
         res: Response
     ) {
         try {
@@ -175,20 +174,19 @@ export class CustomizableDealController {
     }
 
     private validateDealData(
-        dealData: ICCreateCustomizableDeal
+        dealData: ICCreateCustomizableDealS
     ): string | null {
         if (!dealData.discountType) {
             return 'Discount type is required';
         }
 
         if (
-            dealData.discountValue === undefined ||
-            dealData.discountValue === null
+            !dealData.discountValue
         ) {
             return 'Discount value is required';
         }
 
-        if (dealData.discountValue < 0) {
+        if (Number(dealData.discountValue) < 0) {
             return 'Discount value cannot be negative';
         }
 
@@ -201,7 +199,7 @@ export class CustomizableDealController {
 
         if (
             dealData.discountType === 'percentage' &&
-            dealData.discountValue > 100
+            Number(dealData.discountValue) > 100
         ) {
             return 'Percentage discount cannot be greater than 100';
         }
@@ -223,46 +221,4 @@ export class CustomizableDealController {
         return null;
     }
 
-    private validateUpdateDealData(
-        dealData: ICUpdateCustomizableDeal
-    ): string | null {
-        if (
-            dealData.discountValue !== undefined &&
-            dealData.discountValue < 0
-        ) {
-            return 'Discount value cannot be negative';
-        }
-
-        if (
-            dealData.discountType &&
-            dealData.discountType !== 'percentage' &&
-            dealData.discountType !== 'flat'
-        ) {
-            return 'Discount type must be either percentage or flat';
-        }
-
-        if (
-            dealData.discountType === 'percentage' &&
-            dealData.discountValue !== undefined &&
-            dealData.discountValue > 100
-        ) {
-            return 'Percentage discount cannot be greater than 100';
-        }
-
-        if (
-            dealData.applicableRoomTypes !== undefined &&
-            dealData.applicableRoomTypes.length === 0
-        ) {
-            return 'At least one room type must be selected';
-        }
-
-        if (
-            dealData.applicableRatePlans !== undefined &&
-            dealData.applicableRatePlans.length === 0
-        ) {
-            return 'At least one rate plan must be selected';
-        }
-
-        return null;
-    }
 }

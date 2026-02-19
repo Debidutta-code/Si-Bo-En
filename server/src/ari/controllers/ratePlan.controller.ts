@@ -194,7 +194,7 @@ export class RatePlanController {
           .status(400)
           .json(errorResponse('Rate Plan code and Tax Group ID are required'));
       }
-      const response = await RatePlanServices.addTaxGroupToRatePlan(
+      const response = await RatePlanServices.removeTaxGroupFromRatePlan(
         ratePlanCode,
         taxGroupId
       );

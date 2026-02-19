@@ -122,7 +122,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   const userTriggeredSearch = useRef(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isRoomsPage, setIsRoomsPage] = useState(false);
-  const agenturl = process.env.NEXT_PUBLIC_AGENT_URL;
+  const agenturl = "https://agent.revchilltech.com";
 
 
   interface GuestInfo {
@@ -168,7 +168,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   const [currentLogo, setCurrentLogo] = useState<string | null>(logoIcon);
   const { primaryColor, secondaryColor, tertiaryColor, buttonTextColor } =
     colors;
-  const hotelcode = bookingContext?.PropertyCode || "4BTXDZ";
+  const hotelcode = bookingContext?.PropertyCode || "T4QAH3";
   const PathName = usePathname();
 
   // //console.log("guestInfo", guestInfo);
@@ -510,7 +510,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
 
   return (
     <>
-      {/* Backdrop Overlay */}
+      {/* Backdrop Overlays */}
       {isCalendarOpen && (
         <div
           className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9998]"
@@ -518,7 +518,6 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
         />
       )}
 
-      {/* Mobile Menu Backdrop */}
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9998] md:hidden"
@@ -527,131 +526,129 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
       )}
 
       <div className="w-full bg-[#F4EFE6] border-b border-[#D4CABA]">
-        {/* BREAKPOINT 1: Desktop (1280px and above) - Original full design */}
-        <div className="hidden xl:block">
-          <div className="max-w-[1400px] mx-auto px-6">
-            <div className="flex items-center justify-between gap-8">
-              {/* LEFT: LOGO */}
-              <button
-                onClick={handleHomeClick}
-                className="flex items-center focus:outline-none"
-              >
-                {currentLogo ? (
-                  <div className="relative w-44 h-32">
-                    <Image
-                      src={currentLogo}
-                      alt="Hotel Logo"
-                      fill
-                      className="object-contain"
-                      unoptimized
-                    />
-                  </div>
-                ) : (
-                  <div className="relative w-44 h-32">
-                    <Image
-                      src={defaultLogo}
-                      alt="Hotel Logo"
-                      fill
-                      className="object-contain"
-                      unoptimized
-                    />
-                  </div>
-                )}
-              </button>
-
-              {/* CENTER: BOOKING CONTROLS */}
-              <div className="flex items-center gap-3 flex-1 justify-center">
-                {/* CHECK-IN / CHECK-OUT CONTAINER */}
+        {/* UNIFIED RESPONSIVE LAYOUT */}
+        <div className="max-w-[1400px] mx-auto px-4 sm:px-6">
+          {/* Top Bar: Logo + Actions */}
+          <div className="flex items-center justify-between py-3 lg:py-0">
+            {/* Logo */}
+            <button
+              onClick={handleHomeClick}
+              className="flex items-center focus:outline-none"
+            >
+              {currentLogo ? (
+                <div className="relative w-32 h-12 sm:w-40 sm:h-14 lg:w-44 lg:h-20 xl:h-32">
+                  <Image
+                    src={currentLogo}
+                    alt="Hotel Logo"
+                    fill
+                    className="object-contain"
+                    unoptimized
+                  />
+                </div>
+              ) : (
+                <div className="relative w-32 h-12 sm:w-40 sm:h-14 lg:w-44 lg:h-20 xl:h-32">
+                  <Image
+                    src={defaultLogo}
+                    alt="Hotel Logo"
+                    fill
+                    className="object-contain"
+                    unoptimized
+                  />
+                </div>
+              )}
+            </button>
+            <div className={`${isMobileMenuOpen ? 'block' : 'hidden'} md:block flex justify-center items-center`}>
+              <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 md:gap-3 lg:gap-4 xl:gap-6">
+                {/* Date Selector */}
                 <div
-                  className="bg-white border-2 rounded-[40px] px-6 py-3 flex items-center gap-6 shadow-sm"
+                  onClick={openCalendar}
+                  className="bg-white border-2 rounded-xl lg:rounded-[40px] px-3 sm:px-4 lg:px-6 py-2.5 sm:py-3 lg:py-4 flex items-center gap-2 sm:gap-3 lg:gap-6 shadow-sm cursor-pointer hover:border-[#7D7566] transition-colors w-full md:w-auto md:flex-1 lg:flex-initial"
                   style={{ borderColor: tertiaryColor }}
                 >
-                  {/* CHECK-IN */}
-                  <div
-                    onClick={openCalendar}
-                    className="cursor-pointer text-center min-w-[100px]"
-                  >
+                  {/* Check-in */}
+                  <div className="text-center flex-1 min-w-[60px] sm:min-w-[70px] lg:min-w-[100px]">
                     <p
-                      className="text-[9px] tracking-[0.15em] font-medium mb-1"
+                      className="text-[8px] sm:text-[9px] tracking-[0.15em] font-medium mb-0.5 sm:mb-1"
                       style={{ color: tertiaryColor }}
                     >
                       CHECK-IN
                     </p>
                     <p
-                      className="text-[40px] font-semibold leading-none mb-1"
+                      className="text-xl sm:text-2xl lg:text-[40px] font-semibold leading-none mb-0.5 sm:mb-1"
                       style={{ color: primaryColor }}
                     >
                       {checkIn?.getDate()}
                     </p>
                     <p
-                      className="text-[10px] uppercase tracking-wider font-medium"
+                      className="text-[8px] sm:text-[9px] lg:text-[10px] uppercase tracking-wider font-medium"
                       style={{ color: tertiaryColor }}
                     >
                       {checkIn?.toLocaleDateString("en-US", {
                         month: "short",
-                        year: "numeric",
+                        year: typeof window !== 'undefined' && window.innerWidth >= 640 ? "numeric" : undefined,
                       })}
                     </p>
                   </div>
 
-                  {/* ARROW SEPARATOR */}
+                  {/* Arrow Separator */}
                   <div
-                    className="text-[32px] font-light leading-none px-2"
+                    className="text-lg sm:text-xl lg:text-[32px] font-light leading-none px-1 lg:px-2 flex-shrink-0"
                     style={{ color: tertiaryColor }}
                   >
                     ›
                   </div>
 
-                  {/* CHECK-OUT */}
-                  <div
-                    onClick={openCalendar}
-                    className="cursor-pointer text-center min-w-[100px]"
-                  >
+                  {/* Check-out */}
+                  <div className="text-center flex-1 min-w-[60px] sm:min-w-[70px] lg:min-w-[100px]">
                     <p
-                      className="text-[9px] tracking-[0.15em] font-medium mb-1"
+                      className="text-[8px] sm:text-[9px] tracking-[0.15em] font-medium mb-0.5 sm:mb-1"
                       style={{ color: tertiaryColor }}
                     >
                       CHECK-OUT
                     </p>
                     <p
-                      className="text-[40px] font-semibold leading-none mb-1"
+                      className="text-xl sm:text-2xl lg:text-[40px] font-semibold leading-none mb-0.5 sm:mb-1"
                       style={{ color: primaryColor }}
                     >
                       {checkOut?.getDate() ?? "--"}
                     </p>
                     <p
-                      className="text-[10px] uppercase tracking-wider font-medium"
+                      className="text-[8px] sm:text-[9px] lg:text-[10px] uppercase tracking-wider font-medium"
                       style={{ color: tertiaryColor }}
                     >
                       {checkOut
                         ? checkOut.toLocaleDateString("en-US", {
                           month: "short",
-                          year: "numeric",
+                          year: typeof window !== 'undefined' && window.innerWidth >= 640 ? "numeric" : undefined,
                         })
                         : "Select"}
                     </p>
                   </div>
                 </div>
 
-                {/* OCCUPANCY */}
+                {/* Occupancy Selector */}
                 <button
-                  onClick={() => setIsGuestSelectorOpen(true)}
-                  className="bg-white border rounded-lg px-4 py-3 min-w-[140px] hover:bg-[#FAFAF8] transition-colors shadow-sm"
+                  onClick={() => {
+                    setIsGuestSelectorOpen(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="bg-white border rounded-lg lg:rounded-xl px-2.5 sm:px-3 lg:px-4 py-2.5 sm:py-3 min-w-[110px] sm:min-w-[120px] lg:min-w-[140px] hover:bg-[#FAFAF8] transition-colors shadow-sm w-full md:w-auto"
                   style={{ borderColor: "#C4BAA5" }}
                 >
                   <p
-                    className="text-[9px] tracking-[0.15em] font-medium mb-2"
+                    className="text-[8px] sm:text-[9px] tracking-[0.15em] font-medium mb-1.5 sm:mb-2"
                     style={{ color: tertiaryColor }}
                   >
                     OCCUPANCY
                   </p>
-                  <div className="flex items-center justify-center gap-3">
+                  <div className="flex items-center justify-center gap-1.5 sm:gap-2 lg:gap-3">
                     {/* Rooms */}
-                    <div className="flex items-center gap-1">
-                      <div className="w-5 h-5 bg-[#F4EFE6] rounded-full flex items-center justify-center">
+                    <div className="flex items-center gap-0.5 sm:gap-1">
+                      <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 bg-[#F4EFE6] rounded-full flex items-center justify-center">
                         <svg
-                          width="10"
-                          height="10"
+                          width="8"
+                          height="8"
+                          className="sm:w-[10px] sm:h-[10px]"
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="#5B543F"
@@ -664,7 +661,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                         </svg>
                       </div>
                       <span
-                        className="text-xs font-bold"
+                        className="text-[10px] sm:text-xs font-bold"
                         style={{ color: primaryColor }}
                       >
                         {Array.isArray(guestInfo.rooms)
@@ -674,15 +671,15 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                     </div>
 
                     {/* Adults */}
-                    <div className="flex items-center gap-1">
-                      <div className="w-5 h-5 bg-[#F4EFE6] rounded-full flex items-center justify-center">
+                    <div className="flex items-center gap-0.5 sm:gap-1">
+                      <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 bg-[#F4EFE6] rounded-full flex items-center justify-center">
                         <Users
-                          className="w-2.5 h-2.5"
+                          className="w-1.5 h-1.5 sm:w-2 sm:h-2 lg:w-2.5 lg:h-2.5"
                           style={{ color: "#5B543F" }}
                         />
                       </div>
                       <span
-                        className="text-xs font-bold"
+                        className="text-[10px] sm:text-xs font-bold"
                         style={{ color: primaryColor }}
                       >
                         {Array.isArray(guestInfo.rooms)
@@ -695,11 +692,12 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                     </div>
 
                     {/* Children */}
-                    <div className="flex items-center gap-1">
-                      <div className="w-5 h-5 bg-[#F4EFE6] rounded-full flex items-center justify-center">
+                    <div className="flex items-center gap-0.5 sm:gap-1">
+                      <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 lg:w-5 lg:h-5 bg-[#F4EFE6] rounded-full flex items-center justify-center">
                         <svg
-                          width="10"
-                          height="10"
+                          width="8"
+                          height="8"
+                          className="sm:w-[10px] sm:h-[10px]"
                           viewBox="0 0 24 24"
                           fill="none"
                           stroke="#5B543F"
@@ -712,7 +710,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                         </svg>
                       </div>
                       <span
-                        className="text-xs font-bold"
+                        className="text-[10px] sm:text-xs font-bold"
                         style={{ color: primaryColor }}
                       >
                         {Array.isArray(guestInfo.rooms)
@@ -726,697 +724,24 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   </div>
                 </button>
 
-                {/* PROMOTIONAL CODE */}
-                <div className="flex flex-col min-w-[180px]">
-                  <input
-                    type="text"
-                    placeholder="PROMOTIONAL CODE"
-                    className="bg-transparent border-b-2 pb-2 text-[10px] tracking-[0.15em] placeholder-[#9B8B6F] focus:outline-none transition-colors"
-                    style={{
-                      borderColor: tertiaryColor,
-                      color: tertiaryColor,
-                    }}
-                  />
-                </div>
-
-                {/* BOOK BUTTON */}
-                <button
-                  onClick={handleSearch}
-                  disabled={loading}
-                  className="px-10 py-4 rounded-full text-[11px] font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm hover:opacity-90"
-                  style={{
-                    backgroundColor: secondaryColor,
-                    color: calculatedButtonTextColor,
-                  }}
-                >
-                  {loading ? "LOADING..." : "BOOK"}
-                </button>
-
-
-                {/* RIGHT: MY BOOKING */}
-                <div className="min-w-[140px] flex justify-end gap-4">
-                  {isRoomsPage && (
-                    <button
-                      className="text-[11px] font-semibold tracking-[0.1em] hover:opacity-80 transition-colors"
-                      style={{ color: primaryColor }}
-                      onClick={() => window.open(agenturl, '_blank')}
-                    >
-                        
-                    </button>
-                  )}
-                  <button
-                    className="text-[11px] font-semibold tracking-[0.1em] hover:opacity-80 transition-colors"
-                    style={{ color: primaryColor }}
-                    onClick={() => router.push(`/my-trip`)}
-                  >
-                    MY BOOKING
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* BREAKPOINT 2: Laptop (1024px - 1279px) - Compact desktop design */}
-        <div className="hidden lg:block xl:hidden">
-          <div className="max-w-[1400px] mx-auto px-6 py-3">
-            <div className="flex items-center justify-between gap-6">
-              {/* LEFT: LOGO - Compact */}
-              <button
-                onClick={handleHomeClick}
-                className="flex items-center focus:outline-none"
-              >
-                {currentLogo ? (
-                  <div className="relative w-44 h-20">
-                    <Image
-                      src={currentLogo}
-                      alt="Hotel Logo"
-                      fill
-                      className="object-contain"
-                      unoptimized
-                    />
-                  </div>
-                ) : (
-                  <div className="relative w-44 h-20">
-                    <Image
-                      src={defaultLogo}
-                      alt="Hotel Logo"
-                      fill
-                      className="object-contain"
-                      unoptimized
-                    />
-                  </div>
-                )}
-              </button>
-
-              {/* CENTER: COMPACT BOOKING CONTROLS */}
-              <div className="flex items-center gap-3 flex-1 justify-center max-w-[850px]">
-                {/* COMPACT DATES */}
-                <div
-                  onClick={openCalendar}
-                  className="bg-white border-2 rounded-[32px] px-5 py-2.5 flex items-center gap-4 shadow-sm cursor-pointer hover:border-[#7D7566] transition-colors"
-                  style={{ borderColor: tertiaryColor }}
-                >
-                  <div className="text-center min-w-[85px]">
-                    <p
-                      className="text-[9px] tracking-[0.15em] font-medium mb-1"
-                      style={{ color: tertiaryColor }}
-                    >
-                      CHECK-IN
-                    </p>
-                    <p
-                      className="text-[28px] font-semibold leading-none mb-1"
-                      style={{ color: primaryColor }}
-                    >
-                      {checkIn?.getDate()}
-                    </p>
-                    <p
-                      className="text-[9px] uppercase tracking-wider font-medium"
-                      style={{ color: tertiaryColor }}
-                    >
-                      {checkIn?.toLocaleDateString("en-US", {
-                        month: "short",
-                      })}
-                    </p>
-                  </div>
-
-                  <div
-                    className="text-[24px] font-light leading-none"
-                    style={{ color: tertiaryColor }}
-                  >
-                    ›
-                  </div>
-
-                  <div className="text-center min-w-[85px]">
-                    <p
-                      className="text-[9px] tracking-[0.15em] font-medium mb-1"
-                      style={{ color: tertiaryColor }}
-                    >
-                      CHECK-OUT
-                    </p>
-                    <p
-                      className="text-[28px] font-semibold leading-none mb-1"
-                      style={{ color: primaryColor }}
-                    >
-                      {checkOut?.getDate() ?? "--"}
-                    </p>
-                    <p
-                      className="text-[9px] uppercase tracking-wider font-medium"
-                      style={{ color: tertiaryColor }}
-                    >
-                      {checkOut
-                        ? checkOut.toLocaleDateString("en-US", {
-                          month: "short",
-                        })
-                        : "Select"}
-                    </p>
-                  </div>
-                </div>
-
-                {/* COMPACT OCCUPANCY */}
-                <button
-                  onClick={() => setIsGuestSelectorOpen(true)}
-                  className="bg-white border rounded-lg px-3 py-2 min-w-[120px] hover:bg-[#FAFAF8] transition-colors shadow-sm"
-                  style={{ borderColor: "#C4BAA5" }}
-                >
-                  <p
-                    className="text-[9px] tracking-[0.15em] font-medium mb-2"
-                    style={{ color: tertiaryColor }}
-                  >
-                    OCCUPANCY
-                  </p>
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="flex items-center gap-1">
-                      <div className="w-4 h-4 bg-[#F4EFE6] rounded-full flex items-center justify-center">
-                        <svg
-                          width="8"
-                          height="8"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="#5B543F"
-                          strokeWidth="2"
-                        >
-                          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                          <polyline points="9 22 9 12 15 12 15 22" />
-                        </svg>
-                      </div>
-                      <span
-                        className="text-xs font-bold"
-                        style={{ color: primaryColor }}
-                      >
-                        {Array.isArray(guestInfo.rooms)
-                          ? guestInfo.rooms.length
-                          : guestInfo.rooms || 1}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <div className="w-4 h-4 bg-[#F4EFE6] rounded-full flex items-center justify-center">
-                        <Users
-                          className="w-2 h-2"
-                          style={{ color: "#5B543F" }}
-                        />
-                      </div>
-                      <span
-                        className="text-xs font-bold"
-                        style={{ color: primaryColor }}
-                      >
-                        {Array.isArray(guestInfo.rooms)
-                          ? guestInfo.rooms.reduce(
-                            (sum, room) => sum + (room.adults || 0),
-                            0,
-                          )
-                          : guestInfo.adults || 1}
-                      </span>
-                    </div>
-                  </div>
-                </button>
-
-                {/* COMPACT PROMO CODE */}
-                <div className="flex flex-col min-w-[140px]">
+                {/* Promo Code - Hidden on small screens, shown lg+ */}
+                <div className="hidden lg:flex flex-col min-w-[130px] xl:min-w-[180px]">
                   <input
                     type="text"
                     placeholder="PROMO CODE"
-                    className="bg-transparent border-b-2 pb-1.5 text-[9px] tracking-[0.15em] placeholder-[#9B8B6F] focus:outline-none"
+                    className="bg-transparent border-b-2 pb-1.5 lg:pb-2 text-[9px] lg:text-[10px] tracking-[0.15em] placeholder-[#9B8B6F] focus:outline-none transition-colors"
                     style={{
                       borderColor: tertiaryColor,
                       color: tertiaryColor,
                     }}
                   />
-                </div>
-
-                {/* COMPACT BOOK BUTTON */}
-                {/* <button
-                  onClick={handleSearch}
-                  disabled={loading}
-                  className="px-6 py-3 rounded-full text-[10px] font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm min-w-[90px] hover:opacity-90"
-                  style={{
-                    backgroundColor: secondaryColor,
-                    color: calculatedButtonTextColor,
-                  }}
-                >
-                  {loading ? "LOADING..." : "BOOK"}
-                </button> */}
-              </div>
-              <button
-                onClick={handleSearch}
-                disabled={loading}
-                className="w-full py-4 rounded-full text-sm font-semibold disabled:opacity-60 transition-all shadow-sm hover:opacity-90"
-                style={{
-                  backgroundColor: secondaryColor,
-                  color: calculatedButtonTextColor,
-                }}
-              >
-                {loading ? "LOADING..." : "BOOK NOW"}
-              </button>
-              <div className="min-w-[100px] flex justify-end gap-3">
-                {isRoomsPage && (
-                  <button
-                    className="text-[10px] font-semibold tracking-[0.1em] hover:opacity-80 transition-colors"
-                    style={{ color: primaryColor }}
-                    onClick={() => window.open(agenturl, '_blank')}
-                  >
-                    PARTNER LOGIN
-                  </button>
-                )}
-                <button
-                  className="text-[10px] font-semibold tracking-[0.1em] hover:opacity-80 transition-colors"
-                  style={{ color: primaryColor }}
-                  onClick={() => router.push(`/my-trip`)}
-                >
-                  MY BOOKING
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* BREAKPOINT 3: Tablet (768px - 1023px) - Grid layout */}
-        <div className="hidden md:block lg:hidden">
-          <div className="max-w-[1400px] mx-auto px-6 py-4">
-            <div className="flex flex-col gap-4">
-              {/* Top Row */}
-              <div className="flex items-center justify-between">
-                {/* Logo */}
-                <button
-                  onClick={handleHomeClick}
-                  className="flex items-center focus:outline-none"
-                >
-                  {currentLogo ? (
-                    <div className="relative w-44 h-16">
-                      <Image
-                        src={currentLogo}
-                        alt="Hotel Logo"
-                        fill
-                        className="object-contain"
-                        unoptimized
-                      />
-                    </div>
-                  ) : (
-                    <div className="relative w-44 h-16">
-                      <Image
-                        src={defaultLogo}
-                        alt="Hotel Logo"
-                        fill
-                        className="object-contain"
-                        unoptimized
-                      />
-                    </div>
-                  )}
-                </button>
-                {/* <button
-                  onClick={handleSearch}
-                  disabled={loading}
-                  className="w-full py-4 rounded-full text-sm font-semibold disabled:opacity-60 transition-all shadow-sm hover:opacity-90"
-                  style={{
-                    backgroundColor: secondaryColor,
-                    color: calculatedButtonTextColor,
-                  }}
-                >
-                  {loading ? "LOADING..." : "BOOK NOW"}
-                </button> */}
-                <div className="flex items-center justify-between gap-3">
-                  {isRoomsPage && (
-                    <button
-                      className="text-xs font-semibold tracking-[0.1em] hover:opacity-80 transition-colors"
-                      style={{ color: primaryColor }}
-                      onClick={() => window.open(agenturl, '_blank')}
-                    >
-                      PARTNER LOGIN
-                    </button>
-                  )}
-                  <button
-                    className="text-xs font-semibold tracking-[0.1em] hover:opacity-80 transition-colors"
-                    style={{ color: primaryColor }}
-                    onClick={() => router.push(`/my-trip`)}
-                  >
-                    MY BOOKING
-                  </button>
-                </div>
-              </div>
-
-              {/* Booking Controls Grid */}
-              <div className="grid grid-cols-2 gap-3">
-                {/* Dates */}
-                <div
-                  onClick={openCalendar}
-                  className="bg-white border-2 rounded-2xl p-4 cursor-pointer hover:border-[#7D7566] transition-colors col-span-2"
-                  style={{ borderColor: tertiaryColor }}
-                >
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Calendar
-                        className="w-4 h-4"
-                        style={{ color: tertiaryColor }}
-                      />
-                      <span
-                        className="text-xs font-semibold tracking-[0.1em]"
-                        style={{ color: primaryColor }}
-                      >
-                        DATES
-                      </span>
-                    </div>
-                    <span className="text-xs" style={{ color: tertiaryColor }}>
-                      Edit
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="text-center">
-                      <p
-                        className="text-[12px] mb-1"
-                        style={{ color: tertiaryColor }}
-                      >
-                        Check-in
-                      </p>
-                      <p
-                        className="text-2xl font-bold"
-                        style={{ color: primaryColor }}
-                      >
-                        {checkIn?.getDate()}
-                      </p>
-                      <p className="text-xs" style={{ color: tertiaryColor }}>
-                        {checkIn?.toLocaleDateString("en-US", {
-                          month: "short",
-                        })}
-                      </p>
-                    </div>
-                    <ChevronRight
-                      className="w-6 h-6"
-                      style={{ color: tertiaryColor }}
-                    />
-                    <div className="text-center">
-                      <p
-                        className="text-[12px] mb-1"
-                        style={{ color: tertiaryColor }}
-                      >
-                        Check-out
-                      </p>
-                      <p
-                        className="text-2xl font-bold"
-                        style={{ color: primaryColor }}
-                      >
-                        {checkOut?.getDate() ?? "--"}
-                      </p>
-                      <p className="text-xs" style={{ color: tertiaryColor }}>
-                        {checkOut
-                          ? checkOut.toLocaleDateString("en-US", {
-                            month: "short",
-                          })
-                          : "Select"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Occupancy */}
-                <button
-                  onClick={() => setIsGuestSelectorOpen(true)}
-                  className="bg-white border rounded-2xl p-4 text-left hover:border-[#9B8B6F] transition-colors"
-                  style={{ borderColor: "#C4BAA5" }}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <Users
-                      className="w-4 h-4"
-                      style={{ color: tertiaryColor }}
-                    />
-                    <span
-                      className="text-xs font-semibold"
-                      style={{ color: primaryColor }}
-                    >
-                      GUESTS
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="text-sm font-semibold"
-                      style={{ color: primaryColor }}
-                    >
-                      {totalGuests} guest{totalGuests !== 1 ? "s" : ""}
-                    </span>
-                    <ChevronRight
-                      className="w-4 h-4 ml-auto"
-                      style={{ color: tertiaryColor }}
-                    />
-                  </div>
-                </button>
-
-                {/* Promo Code */}
-                <div
-                  className="bg-white border rounded-2xl p-4 hover:border-[#9B8B6F] transition-colors"
-                  style={{ borderColor: "#C4BAA5" }}
-                >
-                  <div
-                    className="text-xs font-semibold mb-2"
-                    style={{ color: primaryColor }}
-                  >
-                    PROMO CODE
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Enter code"
-                    className="w-full bg-transparent text-sm placeholder-[#9B8B6F] focus:outline-none"
-                    style={{ color: primaryColor }}
-                  />
-                </div>
-              </div>
-
-              {/* Search Button */}
-              <button
-                onClick={handleSearch}
-                disabled={loading}
-                className="w-full py-4 rounded-full text-sm font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm hover:opacity-90"
-                style={{
-                  backgroundColor: secondaryColor,
-                  color: calculatedButtonTextColor,
-                }}
-              >
-                {loading ? "LOADING..." : "BOOK NOW"}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* BREAKPOINT 4: Mobile (Below 768px) */}
-        <div className="md:hidden">
-          {/* Top Bar */}
-          <div className="px-4 py-3 flex items-center justify-between">
-            {/* Logo */}
-            <button
-              onClick={handleHomeClick}
-              className="flex items-center focus:outline-none"
-            >
-              {currentLogo ? (
-                <div className="relative w-44 h-12">
-                  <Image
-                    src={currentLogo}
-                    alt="Hotel Logo"
-                    fill
-                    className="object-contain"
-                    unoptimized
-                  />
-                </div>
-              ) : (
-                <div className="relative w-44 h-12">
-                  <Image
-                    src={defaultLogo}
-                    alt="Hotel Logo"
-                    fill
-                    className="object-contain"
-                    unoptimized
-                  />
-                </div>
-              )}
-            </button>
-
-            <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2"
-            >
-              {isMobileMenuOpen ? (
-                <X className="w-6 h-6" style={{ color: primaryColor }} />
-              ) : (
-                <Menu className="w-6 h-6" style={{ color: primaryColor }} />
-              )}
-            </button>
-          </div>
-
-          {/* Mobile Menu Panel */}
-          {isMobileMenuOpen && (
-            <div className="fixed top-[73px] left-0 right-0 bg-white border-t border-[#D4CABA] z-[9999] shadow-lg max-h-[calc(100vh-73px)] overflow-y-auto">
-              <div className="p-4 space-y-6">
-                {/* Dates Section */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Calendar
-                      className="w-5 h-5"
-                      style={{ color: tertiaryColor }}
-                    />
-                    <span
-                      className="text-sm font-semibold"
-                      style={{ color: primaryColor }}
-                    >
-                      SELECT DATES
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div
-                      onClick={openCalendar}
-                      className="bg-[#F4EFE6] border border-[#D4CABA] rounded-xl p-4 text-center cursor-pointer"
-                    >
-                      <p className="text-xs text-[#7D7566] mb-1">Check-in</p>
-                      <p
-                        className="text-2xl font-bold"
-                        style={{ color: primaryColor }}
-                      >
-                        {checkIn?.getDate()}
-                      </p>
-                      <p className="text-xs text-[#7D7566]">
-                        {checkIn?.toLocaleDateString("en-US", {
-                          month: "short",
-                        })}
-                      </p>
-                    </div>
-                    <div
-                      onClick={openCalendar}
-                      className="bg-[#F4EFE6] border border-[#D4CABA] rounded-xl p-4 text-center cursor-pointer"
-                    >
-                      <p className="text-xs text-[#7D7566] mb-1">Check-out</p>
-                      <p
-                        className="text-2xl font-bold"
-                        style={{ color: primaryColor }}
-                      >
-                        {checkOut?.getDate() ?? "--"}
-                      </p>
-                      <p className="text-xs text-[#7D7566]">
-                        {checkOut
-                          ? checkOut.toLocaleDateString("en-US", {
-                            month: "short",
-                          })
-                          : "Select"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Occupancy Section */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Users
-                      className="w-5 h-5"
-                      style={{ color: tertiaryColor }}
-                    />
-                    <span
-                      className="text-sm font-semibold"
-                      style={{ color: primaryColor }}
-                    >
-                      OCCUPANCY
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => {
-                      setIsGuestSelectorOpen(true);
-                      setIsMobileMenuOpen(false);
-                    }}
-                    className="w-full bg-[#F4EFE6] border border-[#D4CABA] rounded-xl p-4 flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-1">
-                        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="#5B543F"
-                            strokeWidth="2"
-                          >
-                            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-                            <polyline points="9 22 9 12 15 12 15 22" />
-                          </svg>
-                        </div>
-                        <div className="text-left">
-                          <p className="text-xs text-[#7D7566]">Rooms</p>
-                          <p
-                            className="text-sm font-bold"
-                            style={{ color: primaryColor }}
-                          >
-                            {Array.isArray(guestInfo.rooms)
-                              ? guestInfo.rooms.length
-                              : guestInfo.rooms || 1}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-                          <User
-                            className="w-4 h-4"
-                            style={{ color: "#5B543F" }}
-                          />
-                        </div>
-                        <div className="text-left">
-                          <p className="text-xs text-[#7D7566]">Adults</p>
-                          <p
-                            className="text-sm font-bold"
-                            style={{ color: primaryColor }}
-                          >
-                            {Array.isArray(guestInfo.rooms)
-                              ? guestInfo.rooms.reduce(
-                                (sum, room) => sum + (room.adults || 0),
-                                0,
-                              )
-                              : guestInfo.adults || 1}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <ChevronRight
-                      className="w-5 h-5"
-                      style={{ color: tertiaryColor }}
-                    />
-                  </button>
-                </div>
-
-                {/* Promo Code Section */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="text-sm font-semibold"
-                      style={{ color: primaryColor }}
-                    >
-                      PROMO CODE
-                    </span>
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Enter code"
-                    className="w-full bg-[#F4EFE6] border border-[#D4CABA] rounded-xl p-4 text-sm placeholder-[#9B8B6F] focus:outline-none focus:border-[#7D7566]"
-                    style={{ color: primaryColor }}
-                  />
-                </div>
-
-                <div className="space-y-3 border-t border-[#D4CABA] pt-4">
-                  {isRoomsPage && (
-                    <button
-                      className="w-full text-center text-sm font-semibold py-3"
-                      style={{ color: primaryColor }}
-                      onClick={() => window.open(agenturl, '_blank')}
-                    >
-                      PARTNER LOGIN
-                    </button>
-                  )}
-                  <button
-                    className="w-full text-center text-sm font-semibold py-3"
-                    style={{ color: primaryColor }}
-                    onClick={() => router.push(`/my-trip`)}
-                  >
-                    MY BOOKING
-                  </button>
                 </div>
 
                 {/* Book Button */}
                 <button
                   onClick={handleSearch}
                   disabled={loading}
-                  className="w-full py-4 rounded-full text-sm font-semibold disabled:opacity-60 transition-all shadow-sm hover:opacity-90"
+                  className="w-full md:w-auto px-4 sm:px-6 lg:px-10 py-2.5 sm:py-3 lg:py-4 rounded-full text-[10px] sm:text-xs lg:text-[11px] font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm hover:opacity-90 whitespace-nowrap"
                   style={{
                     backgroundColor: secondaryColor,
                     color: calculatedButtonTextColor,
@@ -1425,12 +750,90 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   {loading ? "LOADING..." : "BOOK NOW"}
                 </button>
               </div>
+
+              {/* Mobile: Additional Options */}
+              {isMobileMenuOpen && (
+                <div className="md:hidden mt-3 pt-3 border-t border-[#D4CABA] space-y-2.5">
+                  {/* Promo Code for Mobile */}
+                  <div>
+                    <p
+                      className="text-[10px] font-semibold mb-1.5 tracking-wider"
+                      style={{ color: primaryColor }}
+                    >
+                      PROMO CODE
+                    </p>
+                    <input
+                      type="text"
+                      placeholder="Enter code"
+                      className="w-full bg-[#F4EFE6] border border-[#D4CABA] rounded-lg px-3 py-2.5 text-xs placeholder-[#9B8B6F] focus:outline-none focus:border-[#7D7566] transition-colors"
+                      style={{ color: primaryColor }}
+                    />
+                  </div>
+
+                  {/* My Booking Links for Mobile */}
+                  {isRoomsPage && (
+                    <button
+                      className="w-full text-center text-xs font-semibold py-2.5 rounded-lg hover:bg-[#F4EFE6] transition-colors"
+                      style={{ color: primaryColor }}
+                      onClick={() => {
+                        window.open(agenturl, '_blank');
+                        setIsMobileMenuOpen(false);
+                      }}
+                    >
+                      PARTNER LOGIN
+                    </button>
+                  )}
+                  <button
+                    className="w-full text-center text-xs font-semibold py-2.5 rounded-lg hover:bg-[#F4EFE6] transition-colors"
+                    style={{ color: primaryColor }}
+                    onClick={() => {
+                      router.push(`/my-trip`);
+                      setIsMobileMenuOpen(false);
+                    }}
+                  >
+                    MY BOOKING
+                  </button>
+                </div>
+              )}
             </div>
-          )}
+            {/* Desktop: My Booking / Mobile: Menu */}
+            <div className="flex items-center gap-3">
+              {/* My Booking - Hidden on mobile, shown md+ */}
+              {isRoomsPage && (
+                <button
+                  className="hidden md:block text-xs lg:text-sm font-semibold tracking-[0.1em] hover:opacity-80 transition-colors"
+                  style={{ color: primaryColor }}
+                  onClick={() => window.open(agenturl, '_blank')}
+                >
+                  PARTNER LOGIN
+                </button>
+              )}
+              <button
+                className="hidden md:block text-xs lg:text-sm font-semibold tracking-[0.1em] hover:opacity-80 transition-colors"
+                style={{ color: primaryColor }}
+                onClick={() => router.push(`/my-trip`)}
+              >
+                MY BOOKING
+              </button>
+
+              {/* Mobile Menu Toggle */}
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="md:hidden p-2"
+              >
+                {isMobileMenuOpen ? (
+                  <X className="w-6 h-6" style={{ color: primaryColor }} />
+                ) : (
+                  <Menu className="w-6 h-6" style={{ color: primaryColor }} />
+                )}
+              </button>
+            </div>
+          </div>
+
+
         </div>
 
-        {/* CALENDAR MODAL */}
-        {/* CALENDAR MODAL - Rendered via Portal at root level */}
+        {/* CALENDAR MODAL - Rendered via Portal */}
         {isCalendarOpen &&
           createPortal(
             <>
@@ -1439,15 +842,15 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 onClick={() => setIsCalendarOpen(false)}
               />
 
-              <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-auto">
+              <div className="fixed inset-0 z-[9999] flex items-center justify-center p-2 sm:p-4 overflow-auto">
                 <button
                   onClick={() => setIsCalendarOpen(false)}
-                  className="absolute top-4 right-4 z-10 p-2 rounded-full bg-white/80 hover:bg-white transition-colors shadow-md"
+                  className="absolute top-2 right-2 sm:top-4 sm:right-4 z-10 p-1.5 sm:p-2 rounded-full bg-white/80 hover:bg-white transition-colors shadow-md"
                 >
-                  <X className="w-5 h-5" style={{ color: primaryColor }} />
+                  <X className="w-4 h-4 sm:w-5 sm:h-5" style={{ color: primaryColor }} />
                 </button>
 
-                <div className="p-6 md:p-8">
+                <div className="p-3 sm:p-6 md:p-8 w-full max-w-md sm:max-w-2xl">
                   <DatePickerWithHover
                     checkIn={checkIn}
                     checkOut={checkOut}
@@ -1498,3 +901,4 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
 };
 
 export default SearchWidget;
+

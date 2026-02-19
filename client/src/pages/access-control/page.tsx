@@ -18,6 +18,7 @@ import type { IAccess } from './types/type';
 import { getAllRoles, getAccessByRole, createNewRole, modifyStaff, deleteRole } from './api/index';
 import Loader from '@/components/Loader/Loader';
 import toast from 'react-hot-toast';
+import { capitalizeFirstLetter } from '@/lib/utils';
 
 export default function AccessControlPage() {
   const [roles, setRoles] = useState<IAccess[]>([]);
@@ -353,40 +354,40 @@ export default function AccessControlPage() {
             </DropdownMenu>
           </div>
         </div>
+        {
+          selectedRole && (
+            <Card className="bg-card border border-border mb-6">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center text-lg text-foreground">
+                  <Users className="h-5 w-5 mr-2 text-primary" />
+                  Select Role
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Select
+                  value={selectedRole.role}
+                  onValueChange={handleRoleChange}
+                >
+                  <SelectTrigger className="w-full sm:w-72 h-12 text-sm">
+                    <SelectValue placeholder="Select a role to manage" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roles.map((role) => (
+                      <SelectItem key={role.role} value={role.role}>
+                        <div className="flex items-center justify-between w-full">
+                          <span className="font-medium">{capitalizeFirstLetter(role.role.replaceAll('_', ' '))}</span>
 
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </CardContent>
+            </Card>
+          )
+        }
         {/* Role Selector */}
-        <Card className="bg-card border border-border mb-6">
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center text-lg text-foreground">
-              <Users className="h-5 w-5 mr-2 text-primary" />
-              Select Role
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Select
-              value={selectedRole?.role || ''}
-              onValueChange={handleRoleChange}
-            >
-              <SelectTrigger className="w-full sm:w-72 h-12 text-sm">
-                <SelectValue placeholder="Select a role to manage" />
-              </SelectTrigger>
-              <SelectContent>
-                {roles.map((role) => (
-                  <SelectItem key={role.role} value={role.role}>
-                    <div className="flex items-center justify-between w-full">
-                      <span className="font-medium">{role.role}</span>
-                      {role.level !== undefined && (
-                        <Badge variant="secondary" className="ml-2 px-2 text-xs">
-                          L{role.level}
-                        </Badge>
-                      )}
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </CardContent>
-        </Card>
+
 
         {/* Permissions Editor */}
         {selectedRole && (
@@ -399,12 +400,10 @@ export default function AccessControlPage() {
                   </div>
                   <div>
                     <CardTitle className="text-xl font-bold text-foreground">
-                      {selectedRole.role}
+                      {capitalizeFirstLetter(selectedRole.role.replaceAll('_', ' '))}
                     </CardTitle>
                     <div className="flex flex-wrap items-center gap-2 mt-1">
-                      <Badge variant="outline" className="text-primary border-primary text-sm px-2.5">
-                        Level {selectedRole.level}
-                      </Badge>
+                      
                       <Badge
                         variant={selectedRole.isActive ? 'default' : 'secondary'}
                         className="flex items-center text-xs"

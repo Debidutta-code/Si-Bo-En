@@ -196,6 +196,7 @@ enum LoyaltyProgramLevel {
 enum Languages {
   en
 }
+
 enum IntegrationTypes {
   channel_manager
   pms
@@ -365,7 +366,7 @@ model Property {
 
 model PropertyConfigs {
   id         String   @id @default(uuid())
-  property   Property @relation(fields: [propertyId], references: [id],onDelete: Cascade)
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   propertyId String   @unique @map("property_id")
 
   pmsIntegrationActive            Boolean      @default(true) @map("pms_integration_active")
@@ -638,13 +639,14 @@ model Charge {
   restrictionNotes    String? @map("restriction_notes")
 
   // Relations
-  ratePlan               RatePlan              @relation(fields: [ratePlanCode], references: [ratePlanCode], onDelete: Cascade)
+  ratePlan               RatePlan                @relation(fields: [ratePlanCode], references: [ratePlanCode], onDelete: Cascade)
   // room                   Room?                 @relation(fields: [roomId], references: [id], onDelete: Cascade)
   baseGuestAmounts       ChargeBaseByGuest[]
   additionalGuestAmounts ChargeAdditionalGuest[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
   @@unique([propertyCode, roomTypeCode, ratePlanCode, date])
   @@map("charges")
 }
@@ -684,7 +686,6 @@ model Inventory {
 
   @@index([propertyCode])
   @@index([roomTypeCode])
-  @@unique([propertyCode, roomTypeCode, date])
   @@map("inventories")
 }
 
@@ -752,7 +753,7 @@ model BankDetails {
   payAtHotel     Boolean @default(true) @map("pay_at_hotel")
   paymentGateway Boolean @default(false) @map("payment_gateway")
 
-  property   Property @relation(fields: [propertyId], references: [id],onDelete: Cascade)
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   propertyId String   @unique @map("property_id")
 
   createdAt DateTime @default(now())
@@ -763,7 +764,7 @@ model BankDetails {
 
 model BookingEngineConfigurations {
   id              String   @id @default(uuid())
-  property        Property @relation(fields: [propertyId], references: [id],onDelete: Cascade)
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   propertyId      String   @unique @map("property_id")
   primaryColor    String   @map("primary_color")
   secondaryColor  String   @map("secondary_color")
@@ -845,7 +846,7 @@ model TaxGroup {
   isActive Boolean @default(false) @map("is_active")
 
   propertyId    String         @map("property_id")
-  property      Property       @relation(fields: [propertyId],onDelete: Cascade, references: [id], name: "PropertyTaxGroups")
+  property      Property       @relation(fields: [propertyId], onDelete: Cascade, references: [id], name: "PropertyTaxGroups")
   taxGroupRules TaxGroupRule[]
   ratePlans     RatePlan[]
 
@@ -970,7 +971,7 @@ model AddonAvailability {
   isAvailable  Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  addon        Addon    @relation(fields: [addonId], references: [id],onDelete: Cascade)
+  addon        Addon    @relation(fields: [addonId], references: [id], onDelete: Cascade)
 
   @@unique([addonId, date])
 }
@@ -1070,13 +1071,13 @@ model ReservationPromotion {
   bookingId     String                   @map("booking_id")
   Reservation   Reservation              @relation(fields: [bookingId], references: [id])
   promotionType ReservationPromotionType @default(mlos) @map("promotion_type")
-
-  promotionId  String?       @map("promotion_id")
-  mlosId       String?       @map("mlos_id")
-  Promotion    Promotion?    @relation(fields: [promotionId], references: [id])
-  RatePlanRule RatePlanRule? @relation(fields: [mlosId], references: [id])
-  amount       Float         @map("amount")
-  currency     CurrencyCode  @default(USD) @map("currency")
+  // isAutoApplied  Boolean                   @default(false) @map("is_auto_applied")
+  promotionId   String?                  @map("promotion_id")
+  mlosId        String?                  @map("mlos_id")
+  Promotion     Promotion?               @relation(fields: [promotionId], references: [id])
+  RatePlanRule  RatePlanRule?            @relation(fields: [mlosId], references: [id])
+  amount        Float                    @map("amount")
+  currency      CurrencyCode             @default(USD) @map("currency")
 
   @@map("reservation_promotions")
 }
@@ -1090,7 +1091,7 @@ model Guests {
   primaryReservations  Reservation[]         @relation("ReservationPrimaryGuest")
   userType             GuestType             @default(adult) @map("user_type")
   propertyId           String                @map("property_id")
-  property             Property              @relation(fields: [propertyId], references: [id],onDelete: Cascade)
+  property             Property              @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   address              String?
   city                 String?
   state                String?
@@ -1161,9 +1162,9 @@ model RatePlanRule {
   startDate DateTime? @map("start_date")
   endDate   DateTime? @map("end_date")
 
-  minLos Int  @default(1) @map("min_los")
-  maxLos Int? @map("max_los")
-
+  minLos               Int                    @default(1) @map("min_los")
+  maxLos               Int?                   @map("max_los")
+  isAutoApplied        Boolean                @default(false) @map("is_auto_applied")
   discountType         DiscountType?          @map("discount_type")
   discountValue        Decimal?               @map("discount_value") @db.Decimal(10, 2)
   ReservationPromotion ReservationPromotion[]
@@ -1333,7 +1334,7 @@ model PropertyLoyaltyConfig {
   propertyId              String                @unique @map("property_id")
   propertyCode            String                @unique @map("property_code")
   propertyName            String                @map("property_name")
-  Property                Property              @relation(fields: [propertyId], references: [id],onDelete: Cascade)
+  Property                Property              @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   isActive                Boolean               @default(true) @map("is_active")
 
   // @@unique([creationLoyaltyConfigId, propertyId,isActive])
@@ -1440,8 +1441,8 @@ model GeoRatePlan {
   currencyCode          CurrencyCode?            @default(USD) @map("currency_code")
   countryCode           String[]                 @map("country_code")
   isActive              Boolean                  @default(true) @map("is_active")
-
-  createdAt DateTime @default(now()) @map("created_at")
+  isAutoApplied         Boolean                  @default(false) @map("is_auto_applied")
+  createdAt             DateTime                 @default(now()) @map("created_at")
 
   @@index([propertyId, roomId, ratePlanId])
   @@map("geo_rate_plan")
@@ -1454,34 +1455,34 @@ enum PromotionType {
 }
 
 model Promotion {
-  id                 String        @id @default(uuid())
-  promotionName      String        @map("promotion_name")
-  propertyId         String        @map("property_id")
-  validFrom          DateTime?     @map("valid_from")
-  validTo            DateTime?     @map("valid_to")
-  advanceBookingDays Int?          @default(0) @map("advance_booking_days")
-  property           Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  promotionType      PromotionType @map("promotion_type")
-  roomId             String?       @map("room_id")
-  roomType           String?       @map("room_type")
-  deviceType         DeviceType[]  @default([]) @map("device_type")
-  room               Room?         @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  ratePlanId         String        @map("rate_plan_id")
-  ratePlanCode       String        @map("rate_plan_code")
-  ratePlan           RatePlan      @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
-  DiscountType       DiscountType  @default(percentage) @map("discount_type")
-  DiscountValue      Decimal?      @map("discount_value")
-  currencyCode       CurrencyCode? @default(USD) @map("currency_code")
-  monApplicable      Boolean       @default(true) @map("mon_applicable")
-  tueApplicable      Boolean       @default(true) @map("tue_applicable")
-  wedApplicable      Boolean       @default(true) @map("wed_applicable")
-  thuApplicable      Boolean       @default(true) @map("thu_applicable")
-  friApplicable      Boolean       @default(true) @map("fri_applicable")
-  satApplicable      Boolean       @default(true) @map("sat_applicable")
-  sunApplicable      Boolean       @default(true) @map("sun_applicable")
-  isActive           Boolean       @default(true) @map("is_active")
-
+  id                    String                 @id @default(uuid())
+  promotionName         String                 @map("promotion_name")
+  propertyId            String                 @map("property_id")
+  validFrom             DateTime?              @map("valid_from")
+  validTo               DateTime?              @map("valid_to")
+  advanceBookingDays    Int?                   @default(0) @map("advance_booking_days")
+  promotionType         PromotionType          @map("promotion_type")
+  roomId                String?                @map("room_id")
+  roomType              String?                @map("room_type")
+  deviceType            DeviceType[]           @default([]) @map("device_type")
+  ratePlanId            String                 @map("rate_plan_id")
+  ratePlanCode          String                 @map("rate_plan_code")
+  discountType          DiscountType           @default(percentage) @map("discount_type")
+  discountValue         Decimal?               @map("discount_value")
+  currencyCode          CurrencyCode?          @default(USD) @map("currency_code")
+  monApplicable         Boolean                @default(true) @map("mon_applicable")
+  tueApplicable         Boolean                @default(true) @map("tue_applicable")
+  wedApplicable         Boolean                @default(true) @map("wed_applicable")
+  thuApplicable         Boolean                @default(true) @map("thu_applicable")
+  friApplicable         Boolean                @default(true) @map("fri_applicable")
+  satApplicable         Boolean                @default(true) @map("sat_applicable")
+  sunApplicable         Boolean                @default(true) @map("sun_applicable")
+  isActive              Boolean                @default(true) @map("is_active")
+  isAutoApplied         Boolean                @default(false) @map("is_auto_applied")
   createdAt             DateTime               @default(now()) @map("created_at")
+  property              Property               @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  room                  Room?                  @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  ratePlan              RatePlan               @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
   reservationPromotions ReservationPromotion[]
 
   @@index([propertyId, roomId, ratePlanId])
@@ -1509,18 +1510,20 @@ model LoyalityGuest {
 model CustomizableDeal {
   id String @id @default(uuid())
 
-  propertyId   String   @map("property_id")
-  propertyCode String   @map("property_code")
-  Property     Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId   String @map("property_id")
+  propertyCode String @map("property_code")
 
   discountType  DiscountType  @default(percentage) @map("discount_type")
-  discountValue Decimal?      @map("discount_value")
+  discountValue Decimal      @map("discount_value")
   currencyCode  CurrencyCode? @default(USD) @map("currency_code")
+  isAutoApplied Boolean       @default(false) @map("is_auto_applied")
 
+  createdAt DateTime @default(now()) @map("created_at")
+
+  Property                                 Property                                   @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   CustomizableDealsApplicableRoomTypes     CustomizableDealsApplicableRoomTypes[]
   CustomizableDealsApplicableRatePlanTypes CustomizableDealsApplicableRatePlanTypes[]
   CustomizableDealsApplicableAddons        CustomizableDealsApplicableAddons[]
-  createdAt                                DateTime                                   @default(now()) @map("created_at")
 
   @@map("customizable_deals")
 }
@@ -1528,14 +1531,15 @@ model CustomizableDeal {
 model CustomizableDealsApplicableRoomTypes {
   id String @id @default(uuid())
 
-  customizableDealId String           @map("customizable_deal_id")
-  CustomizableDeal   CustomizableDeal @relation(fields: [customizableDealId], references: [id], onDelete: Cascade)
+  customizableDealId String @map("customizable_deal_id")
 
   roomId       String @map("room_id")
   roomTypeCode String @map("room_type_code")
-  Room         Room   @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now()) @map("created_at")
+
+  Room             Room             @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  CustomizableDeal CustomizableDeal @relation(fields: [customizableDealId], references: [id], onDelete: Cascade)
 
   @@unique([customizableDealId, roomId])
   @@map("customizable_deals_applicable_room_types")
@@ -1544,14 +1548,15 @@ model CustomizableDealsApplicableRoomTypes {
 model CustomizableDealsApplicableRatePlanTypes {
   id String @id @default(uuid())
 
-  customizableDealId String           @map("customizable_deal_id")
-  CustomizableDeal   CustomizableDeal @relation(fields: [customizableDealId], references: [id], onDelete: Cascade)
+  customizableDealId String @map("customizable_deal_id")
 
-  ratePlanId   String   @map("rate_plan_id")
-  ratePlanCode String   @map("rate_plan_code")
-  RatePlan     RatePlan @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
+  ratePlanId   String @map("rate_plan_id")
+  ratePlanCode String @map("rate_plan_code")
 
   createdAt DateTime @default(now()) @map("created_at")
+
+  RatePlan         RatePlan         @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
+  CustomizableDeal CustomizableDeal @relation(fields: [customizableDealId], references: [id], onDelete: Cascade)
 
   @@unique([customizableDealId, ratePlanId])
   @@map("customizable_deals_applicable_rate_plan_types")
@@ -1560,30 +1565,31 @@ model CustomizableDealsApplicableRatePlanTypes {
 model CustomizableDealsApplicableAddons {
   id String @id @default(uuid())
 
-  customizableDealId String           @map("customizable_deal_id")
-  CustomizableDeal   CustomizableDeal @relation(fields: [customizableDealId], references: [id], onDelete: Cascade)
-
-  addOnId String @map("add_on_id")
-  AddOn   Addon  @relation(fields: [addOnId], references: [id], onDelete: Cascade)
+  customizableDealId String @map("customizable_deal_id")
+  addOnId            String @map("add_on_id")
 
   createdAt DateTime @default(now()) @map("created_at")
+
+  CustomizableDeal CustomizableDeal @relation(fields: [customizableDealId], references: [id], onDelete: Cascade)
+  AddOn            Addon            @relation(fields: [addOnId], references: [id], onDelete: Cascade)
 
   @@unique([customizableDealId, addOnId])
   @@map("customizable_deals_applicable_addons")
 }
 
 model TouristTaxes {
-  id           String   @id @default(uuid())
-  name         String? //remove this ? when there is a need for db push
-  ratePlanId   String   @map("rate_plan_id")
-  ratePlanCode String   @map("rate_plan_code")
-  ratePlan     RatePlan @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
+  id String @id @default(uuid())
 
-  discountType  DiscountType  @default(flat) @map("discount_type")
-  discountValue Decimal?      @map("discount_value")
-  currencyCode  CurrencyCode? @default(USD) @map("currency_code")
+  name          String? //remove this ? when there is a need for db push
+  ratePlanId    String   @map("rate_plan_id")
+  ratePlanCode  String   @map("rate_plan_code")
+  discountValue Decimal? @map("discount_value")
 
   createdAt DateTime @default(now()) @map("created_at")
+
+  discountType DiscountType  @default(flat) @map("discount_type")
+  ratePlan     RatePlan      @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
+  currencyCode CurrencyCode? @default(USD) @map("currency_code")
 
   @@map("tourist_taxes")
 }
@@ -1633,18 +1639,18 @@ model Payment {
   @@map("payments")
 }
 
-
 model MasterIntegrations {
   id       String           @id @default(uuid())
   type     IntegrationTypes @default(channel_manager)
-  name     String           
+  name     String
   isActive Boolean          @default(true)
 
-  createdAt                          DateTime                            @default(now()) @map("created_at")
+  createdAt                          DateTime                          @default(now()) @map("created_at")
   propertyIntegrations               PropertyIntegrations[]
   requiredFieldsForMasterIntegration MasterIntegrationRequiredFields[]
   masterIntegrationURLFields         MasterIntegrationURLFields[]
-@@unique([name,type])
+
+  @@unique([name, type])
   @@map("master_integrations")
 }
 
@@ -1655,7 +1661,8 @@ model MasterIntegrationRequiredFields {
 
   MasterIntegration          MasterIntegrations           @relation(fields: [masterIntegrationId], references: [id], onDelete: Cascade)
   propertyInregrationSecrets PropertyInregrationSecrets[]
-  @@unique([masterIntegrationId,name])
+
+  @@unique([masterIntegrationId, name])
   @@index([masterIntegrationId])
   @@map("required_fields_for_master_integration")
 }
@@ -1690,11 +1697,11 @@ model PropertyIntegrations {
 }
 
 model PropertyInregrationSecrets {
-  id                    String                            @id @default(uuid())
-  propertyIntegrationId String                            @map("property_integration_id")
-  requiredFieldId       String                            @map("required_field_id")
+  id                    String                          @id @default(uuid())
+  propertyIntegrationId String                          @map("property_integration_id")
+  requiredFieldId       String                          @map("required_field_id")
   value                 String
-  PropertyIntegration   PropertyIntegrations              @relation(fields: [propertyIntegrationId], references: [id], onDelete: Cascade)
+  PropertyIntegration   PropertyIntegrations            @relation(fields: [propertyIntegrationId], references: [id], onDelete: Cascade)
   RequiredField         MasterIntegrationRequiredFields @relation(fields: [requiredFieldId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now()) @map("created_at")

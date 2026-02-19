@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Eye, Power, Settings2, Plug, CheckCircle, Shield } from 'lucide-react';
 import type { IMasterPartnersWProperty } from '../types';
+import { capitalizeFirstLetter } from '@/lib/utils';
 
 interface PartnerIntegrationSectionProps {
     title: string;
@@ -11,6 +12,7 @@ interface PartnerIntegrationSectionProps {
     onToggleStatus?: (integrationId: string, currentStatus: boolean) => void;
     onViewDetails?: (partner: IMasterPartnersWProperty) => void;
     onManageFields?: (partner: IMasterPartnersWProperty) => void;
+    isLoading: { [key: string]: boolean; }
 }
 
 export default function PartnerIntegrationSection({
@@ -20,8 +22,10 @@ export default function PartnerIntegrationSection({
     onIntegrate,
     onToggleStatus,
     onViewDetails,
-    onManageFields
+    onManageFields,
+    isLoading
 }: PartnerIntegrationSectionProps) {
+    console.log(isLoading)
     const filteredPartners = partners.filter(partner => partner.type === type);
 
     if (filteredPartners.length === 0) {
@@ -125,7 +129,7 @@ export default function PartnerIntegrationSection({
                                                         key={field.id} 
                                                         className='px-3 py-1 bg-gradient-to-r from-indigo-100 to-purple-100 border border-indigo-200 rounded-full text-xs font-medium text-indigo-800'
                                                     >
-                                                        {field.name}
+                                                        {capitalizeFirstLetter(field.name.replaceAll('_', ' '))}
                                                     </span>
                                                 ))}
                                             </div>
@@ -178,7 +182,7 @@ export default function PartnerIntegrationSection({
                                                 className='w-full'
                                             >
                                                 <Power className='h-3 w-3 mr-2' />
-                                                {isActive ? 'Deactivate' : 'Activate'}
+                                                {isLoading[integration?.id || ''] ? (isActive ? 'Deactivating...' : 'Activating...') : isActive ? 'Deactivate' : 'Activate'}
                                             </Button>
                                             
                                             <Button
@@ -189,7 +193,7 @@ export default function PartnerIntegrationSection({
                                                         onViewDetails(partner);
                                                     }
                                                 }}
-                                                className='w-full hover:bg-purple-50 hover:border-purple-300'
+                                                className='w-full'
                                             >
                                                 <Eye className='h-3 w-3 mr-2' />
                                                 View
@@ -203,7 +207,7 @@ export default function PartnerIntegrationSection({
                                                         onManageFields(partner);
                                                     }
                                                 }}
-                                                className='w-full hover:bg-green-50 hover:border-green-300'
+                                                className='w-full'
                                             >
                                                 <Settings2 className='h-3 w-3 mr-2' />
                                                 Manage

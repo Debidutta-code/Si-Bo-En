@@ -63,7 +63,7 @@ export interface IFinalPrice {
   requestedRooms: number;
   totalTax: number;
   taxes: ITax[];
-  subtotal: number;
+  // subtotal: number;
   taxBreakdown: ITaxBreakdown;
   promotions?: {
     applied: IReservationPromotionCreate[];
