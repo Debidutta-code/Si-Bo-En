@@ -41,7 +41,7 @@ export interface RatePlanRule {
     endDate?: string | null;
     minLos: number;
     maxLos?: number | null;
-    discountType?: "percentage" | "flat" | null;
+    discountType?: "percentage" | "flat" | "none";
     discountValue?: number | null;
     isActive: boolean;
     isAutoApplied: boolean;

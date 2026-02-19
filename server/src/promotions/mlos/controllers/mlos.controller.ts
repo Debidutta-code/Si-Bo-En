@@ -2,6 +2,7 @@
 import { Response } from 'express';
 import { CustomRequest, errorResponse, IApiResponse } from '../../../utils';
 import { MLOSService } from '../services';
+import { Decimal } from '@prisma/client/runtime/library';
 
 export class MLOSController {
     mlosService: MLOSService
@@ -49,13 +50,6 @@ export class MLOSController {
                 return res.status(400).json(errorResponse('Active status must be a boolean'));
             }
 
-            // Validation: Discount type enum
-            if (discountType && !['percentage', 'flat'].includes(discountType)) {
-                return res.status(400).json(
-                    errorResponse('Discount type must be either percentage or flat')
-                );
-            }
-
             if (discountValue !== null && discountValue !== undefined && typeof discountValue !== 'number') {
                 return res.status(400).json(errorResponse('Discount value must be a number'));
             }
@@ -66,8 +60,8 @@ export class MLOSController {
                 endDate: endDate || null,
                 minLos,
                 maxLos: maxLos || null,
-                discountType: discountType || null,
-                discountValue: discountValue || null,
+                discountType: discountType === "none" ? null : discountType,
+                discountValue: discountValue ? new Decimal(discountValue) : null,
                 isActive,
                 isAutoApplied
             };

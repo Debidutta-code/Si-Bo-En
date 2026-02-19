@@ -20,6 +20,7 @@ import { deleteRatePlanRule } from '@/pages/rate-plan/api/api';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Check, Edit, MoreVertical, Trash2, X } from 'lucide-react';
 import BackButton from '@/components/shared/BackButton';
+import type { ILoader } from '@/pages/dashboard/interface';
 
 interface RatePlanRuleWithRatePlan extends RatePlanRule {
   ratePlan: {
@@ -33,7 +34,10 @@ export const MLOSRuleList: React.FC = () => {
   const { propertyId } = useParams<{ propertyId: string }>();
   const [mlosRules, setMlosRules] = useState<RatePlanRuleWithRatePlan[]>([]);
   const [ratePlans, setRatePlans] = useState<RatePlan[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<ILoader>({
+    isLoading: false,
+    message: ''
+  })
   const [showForm, setShowForm] = useState<boolean>(false);
   const [editData, setEditData] = useState<RatePlanRuleWithRatePlan | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -44,7 +48,10 @@ export const MLOSRuleList: React.FC = () => {
   }, [propertyId]);
 
   const loadData = async () => {
-    setIsLoading(true);
+    setIsLoading({
+      isLoading: true,
+      message: 'Loading MLOS rules...'
+    });
     try {
       if (!propertyId) {
         return;
@@ -65,12 +72,18 @@ export const MLOSRuleList: React.FC = () => {
       console.error('Error loading data:', error);
       toast.error('Failed to load MLOS rules');
     } finally {
-      setIsLoading(false);
+      setIsLoading({
+        isLoading: false,
+        message: ''
+      });
     }
   };
 
   const handleCreate = async (payload: Partial<RatePlanRule>) => {
-    setIsLoading(true);
+    setIsLoading({
+      isLoading: true,
+      message: 'Creating MLOS rule...'
+    });
     try {
       const result = await createRatePlanRuleService(payload);
       if (result.success) {
@@ -83,14 +96,20 @@ export const MLOSRuleList: React.FC = () => {
     } catch (error) {
       toast.error('An error occurred while creating the MLOS rule');
     } finally {
-      setIsLoading(false);
+      setIsLoading({
+        isLoading: false,
+        message: ''
+      });
     }
   };
 
   const handleUpdate = async (payload: Partial<RatePlanRule>) => {
     if (!editData) return;
 
-    setIsLoading(true);
+    setIsLoading({
+      isLoading: true,
+      message: 'Updating MLOS rule...'
+    });
     try {
       const result = await updateRatePlanRuleService(editData.ratePlanId, payload);
 
@@ -105,7 +124,10 @@ export const MLOSRuleList: React.FC = () => {
     } catch (error) {
       toast.error('An error occurred while updating the MLOS rule');
     } finally {
-      setIsLoading(false);
+      setIsLoading({
+        isLoading: false,
+        message: ''
+      });
     }
   };
 
@@ -117,7 +139,10 @@ export const MLOSRuleList: React.FC = () => {
   const handleDeleteConfirm = async () => {
     if (!ruleToDelete) return;
 
-    setIsLoading(true);
+    setIsLoading({
+      isLoading: true,
+      message: 'Deleting MLOS rule...'
+    });
     try {
       const result = await deleteRatePlanRule(ruleToDelete);
       if (result.success) {
@@ -129,7 +154,10 @@ export const MLOSRuleList: React.FC = () => {
     } catch (error) {
       toast.error('An error occurred while deleting the MLOS rule');
     } finally {
-      setIsLoading(false);
+      setIsLoading({
+        isLoading: false,
+        message: ''
+      });
       setDeleteDialogOpen(false);
       setRuleToDelete(null);
     }
@@ -159,13 +187,7 @@ export const MLOSRuleList: React.FC = () => {
     return type === 'percentage' ? `${value}%` : `₹${value}`;
   };
 
-  // Debug logging
-  console.log('Component State:', { showForm, editData, isLoading });
-  console.log('Rate Plans Count:', ratePlans.length);
-  console.log('MLOS Rules Count:', mlosRules.length);
-
   if (showForm) {
-    console.log('Rendering form, editData:', editData);
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-between">
@@ -190,8 +212,8 @@ export const MLOSRuleList: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between">
         <BackButton/>
+      <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-foreground">MLOS Rules</h2>
         <button
           onClick={() => {
@@ -206,9 +228,9 @@ export const MLOSRuleList: React.FC = () => {
       </div>
 
       <div className="bg-card rounded-lg border border-border overflow-hidden">
-        {isLoading ? (
+        {isLoading.isLoading ? (
           <div className="py-12">
-            <Loader text="Loading..." />
+            <Loader text={isLoading.message} />
           </div>
         ) : (
           <Table>
@@ -337,16 +359,16 @@ export const MLOSRuleList: React.FC = () => {
                 <button
                   onClick={handleDeleteCancel}
                   className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
-                  disabled={isLoading}
+                  disabled={isLoading.isLoading}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDeleteConfirm}
                   className="px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors"
-                  disabled={isLoading}
+                  disabled={isLoading.isLoading}
                 >
-                  {isLoading ? 'Deleting...' : 'Delete'}
+                  {isLoading.isLoading ? 'Deleting...' : 'Delete'}
                 </button>
               </div>
             </div>

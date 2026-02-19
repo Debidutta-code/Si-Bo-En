@@ -26,6 +26,7 @@ import toast from 'react-hot-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Check, Edit, MoreVertical, Trash2, X } from 'lucide-react';
 import type { ILoader } from '@/pages/dashboard/interface';
+import BackButton from '@/components/shared/BackButton';
 
 
 export const GeoRatePlanList: React.FC = () => {
@@ -221,6 +222,7 @@ export const GeoRatePlanList: React.FC = () => {
 
   return (
     <div className="space-y-4">
+    <BackButton/>
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-foreground">Geo Rate Plans</h2>
         <button
