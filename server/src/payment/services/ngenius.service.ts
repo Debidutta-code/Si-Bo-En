@@ -141,8 +141,8 @@ class NGeniusService {
       //console.log('📍 Full URL:', url);
       //console.log('🔧 HTTP Method: POST');
 
-      //console.log('\n📦 Request Body (Order Data):');
-      //console.log(JSON.stringify(orderData, null, 2));
+      console.log('\n📦 Request Body (Order Data):');
+      console.log(JSON.stringify(orderData, null, 2));
 
       //console.log('\n📋 Request Headers:');
       const headers = {

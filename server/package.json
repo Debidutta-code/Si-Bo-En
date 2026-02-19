@@ -18,7 +18,8 @@
     "format:write": "prettier --write .",
     "lint:check": "eslint .",
     "lint:fix": "eslint --fix .",
-    "test": "jest"
+    "test": "jest",
+    "check-payment": "ts-node src/payment/check-payment.ts"
   },
   "author": "Quotus",
   "license": "ISC",
