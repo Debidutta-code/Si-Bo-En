@@ -287,7 +287,7 @@ const Rooms = () => {
       }
 
       setFinalPrice(data.data);
-      setPrice(data?.data?.totalAmount || null);
+      setPrice(data?.data?.totalAmount ?? null);
       setBookingRoom(room);
       setCurrentRatePlan(ratePlan);
       setSelectedAddons(selectedAddonsList);
@@ -989,7 +989,7 @@ const Rooms = () => {
       </Dialog>
 
       {/* Guest Form Modal */}
-      {bookingRoom && price && (
+      {bookingRoom && price !== null && (
         <GuestFormModal
           guestForms={guestForms}
           contactInfo={contactInfo}

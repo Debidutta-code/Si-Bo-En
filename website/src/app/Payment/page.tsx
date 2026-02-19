@@ -915,7 +915,7 @@ const BookingReviewPage = () => {
           }}
         />
 
-        <HelpBox />
+        <HelpBox hotelEmail={PropertyDetails?.property_email} />
       </div>
     </div>
   );
