@@ -23,6 +23,7 @@ export interface RateTigerAvailStatusMessageUpdate {
   ratePlanCode?: string;
   lengthOfStay?: RateTigerLengthOfStayUpdate[];
   restrictionStatus?: RateTigerRestrictionStatusUpdate[];
+  daysOfWeek?: string[];
 }
 
 export interface RateTigerInventoryUpdateRQ {

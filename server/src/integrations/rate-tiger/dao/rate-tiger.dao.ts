@@ -172,14 +172,6 @@ export class RateTigerDao {
     }
   }
 
-
-  // Add to repository/ratetiger.repository.ts
-
-// REMOVE these two separate methods:
-// getInventoryData() ← remove
-// getChargeRestrictions() ← remove
-
-// ADD this one combined method:
 public static async getDailyInventoryAndRestrictions(
   propertyCode: string,
   roomTypeCode: string,
@@ -243,22 +235,33 @@ public static async getDailyInventoryAndRestrictions(
     ])
   );
 
-  // Build combined daily results
-  // Use charge dates as the base since restrictions live there
-  const allDates = new Set([
-    ...inventories.map(i => i.date.toISOString().split('T')[0]),
-    ...charges.map(c => c.date.toISOString().split('T')[0])
-  ]);
+  // ✅ FIX: Generate ALL dates in the requested range
+  // Don't just return dates that have records - fill in missing dates with defaults
+  const result: Array<{
+    date: Date;
+    availability: number;
+    isSaleStopped: boolean;
+    isClosedToArrival: boolean;
+    isClosedToDeparture: boolean;
+  }> = [];
 
-  return Array.from(allDates)
-    .sort()
-    .map(dateStr => ({
-      date: new Date(dateStr),
+  const currentDate = new Date(startDate);
+  while (currentDate <= endDate) {
+    const dateStr = currentDate.toISOString().split('T')[0];
+    const chargeData = chargeMap.get(dateStr);
+
+    result.push({
+      date: new Date(currentDate),
       availability: inventoryMap.get(dateStr) ?? 0,
-      isSaleStopped: chargeMap.get(dateStr)?.isSaleStopped ?? false,
-      isClosedToArrival: chargeMap.get(dateStr)?.isClosedToArrival ?? false,
-      isClosedToDeparture: chargeMap.get(dateStr)?.isClosedToDeparture ?? false
-    }));
+      isSaleStopped: chargeData?.isSaleStopped ?? false,
+      isClosedToArrival: chargeData?.isClosedToArrival ?? false,
+      isClosedToDeparture: chargeData?.isClosedToDeparture ?? false
+    });
+
+    currentDate.setDate(currentDate.getDate() + 1);
+  }
+
+  return result;
 }
 public static async getRatePlanRules(
   propertyCode: string,
