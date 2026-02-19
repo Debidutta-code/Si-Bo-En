@@ -938,6 +938,20 @@ const BookingReviewPage = () => {
           <HelpBox />
         </div>
       </div>
+
+      {/* Right Side */}
+      <div className="space-y-6">
+        <PriceDetails
+          bookingDetails={bookingDetails}
+          onPriceUpdate={(total, discountAmount, promo) => {
+            setUpdatedPrice(total);
+            setDiscount(discountAmount);
+            setPromoDetails(promo);
+          }}
+        />
+
+        <HelpBox hotelEmail={PropertyDetails?.property_email} />
+      </div>
     </div>
   );
 };
