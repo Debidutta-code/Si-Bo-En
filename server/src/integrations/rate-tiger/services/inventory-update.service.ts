@@ -27,7 +27,8 @@ export class InventoryUpdateService {
           ratePlanCode,
           bookingLimit,
           lengthOfStay,
-          restrictionStatus
+          restrictionStatus,
+          daysOfWeek
         } = message;
 
         // Parse MinLOS / MaxLOS from lengthOfStay array
@@ -84,8 +85,15 @@ export class InventoryUpdateService {
         const startDate = new Date(message.start);
         const endDate = new Date(message.end);
         const currentDate = new Date(startDate);
-
-        while (currentDate <= endDate) {
+while (currentDate <= endDate) {
+        // ✅ ADD DOW FILTERING HERE
+        if (daysOfWeek && daysOfWeek.length > 0) {
+          const dayName = currentDate.toLocaleDateString('en-US', { weekday: 'long' });
+          if (!daysOfWeek.includes(dayName)) {
+            currentDate.setDate(currentDate.getDate() + 1);
+            continue; // Skip this date
+          }
+        }
           await InventoryUpdateDao.upsertInventoryAndRestrictions({
             propertyCode: hotelCode,
             roomTypeCode,
