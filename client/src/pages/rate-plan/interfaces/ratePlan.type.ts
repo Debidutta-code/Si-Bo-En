@@ -1,3 +1,5 @@
+import type { CurrencyCode } from "@/pages/tax-system/interface";
+
 export interface CreateRatePlan {
     ratePlanName: string;
     b2bAvailable: boolean;
@@ -45,6 +47,19 @@ export interface RatePlanRule {
     discountValue?: number | null;
     isActive: boolean;
     isAutoApplied: boolean;
+    currencyCode:CurrencyCode
+}
+export interface ICRatePlanRule{
+    ratePlanId: string;
+    startDate?: string | null;
+    endDate?: string | null;
+    minLos: number;
+    maxLos?: number | null;
+    discountType?: "percentage" | "flat" | "none";
+    discountValue?: number | null;
+    isActive: boolean;
+    isAutoApplied: boolean;
+    currencyCode:CurrencyCode
 }
 export interface LoaderProps {
     isLoading: boolean;

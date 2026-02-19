@@ -13,17 +13,7 @@ export interface CreateCustomizableDeal {
 
 }
 
-// Update Customizable Deal payload
-export interface UpdateCustomizableDeal {
-  discountType?: DiscountType;
-  discountValue?: number;
-  currencyCode?: CurrencyCode;
-  applicableRoomTypes?: string[];
-  applicableRatePlans?: string[];
-  applicableAddons?: string[];
-    isAutoApplied: boolean;
 
-}
 
 // Room Type interface for the deal
 export interface DealApplicableRoomType {
@@ -80,4 +70,14 @@ export interface ApiResponse<T> {
   success: boolean;
   message?: string;
   data?: T;
+}
+
+export interface ICCustomizableDeals{
+  discountType:DiscountType;
+  discountValue:number;
+  currencyCode:CurrencyCode;
+  applicableRoomTypes:string[];
+  applicableRatePlans:string[];
+  applicableAddons:string[];
+  isAutoApplied:boolean;
 }

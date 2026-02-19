@@ -8,13 +8,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import type { RatePlanRule } from "@/pages/rate-plan/interfaces/ratePlan.type";
+import type {
+  ICRatePlanRule,
+  RatePlanRule,
+} from "@/pages/rate-plan/interfaces/ratePlan.type";
 import type { ILoader } from "@/pages/dashboard/interface";
 import type { IMLOScu } from "../interfaces";
+import type { CurrencyCode } from "@/pages/tax-system/interface";
 
 interface MLOSRuleFormProps {
   ratePlans: RatePlan[];
-  onSubmit: (payload: Partial<RatePlanRule>) => Promise<void>;
+  onSubmit: (payload: ICRatePlanRule) => Promise<void>;
   onCancel: () => void;
   editData?:
     | (RatePlanRule & {
@@ -31,20 +35,21 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
   editData,
   isLoading,
 }) => {
-    const [mlos,setMlos]=useState<IMLOScu>({
-        selectedRatePlan:"",
-        startDate:"",
-        endDate:"",
-        minLos:"1",
-        maxLos:"",
-        discountType:"percentage",
-        discountValue:"",
-        isActive:true,
-        isAutoApplied:false
-    })
+  const [mlos, setMlos] = useState<IMLOScu>({
+    selectedRatePlan: "",
+    startDate: "",
+    endDate: "",
+    minLos: "1",
+    maxLos: "",
+    discountType: "percentage",
+    discountValue: "",
+    isActive: true,
+    isAutoApplied: false,
+    currencyCode: "USD",
+  });
   useEffect(() => {
     if (editData) {
-setMlos({
+      setMlos({
     selectedRatePlan:editData.ratePlanId,
     startDate:editData.startDate?new Date(editData.startDate).toISOString().split("T")[0]:"",
     endDate:editData.endDate?new Date(editData.endDate).toISOString().split("T")[0]:"",
@@ -53,7 +58,8 @@ setMlos({
     discountType:editData.discountType||"percentage",
     discountValue:editData.discountValue?.toString()||"",
     isActive:editData.isActive,
-    isAutoApplied:editData.isAutoApplied
+    isAutoApplied:editData.isAutoApplied,
+    currencyCode:editData.currencyCode
 })
     }
   }, [editData]);
@@ -66,7 +72,7 @@ setMlos({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const payload: Partial<RatePlanRule> = {
+    const payload: ICRatePlanRule = {
       ratePlanId: mlos.selectedRatePlan,
       startDate: mlos.startDate,
       endDate: mlos.endDate,
@@ -75,7 +81,8 @@ setMlos({
       discountType: mlos.discountType ,
       discountValue: mlos.discountValue ? parseFloat(mlos.discountValue) : null,
       isActive:mlos.isActive,
-      isAutoApplied:mlos.isAutoApplied
+      isAutoApplied:mlos.isAutoApplied,
+      currencyCode:mlos.currencyCode
     };
 
     await onSubmit(payload);
@@ -253,7 +260,7 @@ setMlos({
                       onChange={(e) => setMlos({...mlos,discountValue:e.target.value})}
                       min="0"
                       max={mlos.discountType === "percentage" ? "100" : undefined}
-                      step="0.01"
+                      step="0.1"
                       className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground pr-8"
                       placeholder={
                         mlos.discountType === "percentage" ? "e.g., 10" : "e.g., 50"
@@ -267,6 +274,42 @@ setMlos({
                     )}
                   </div>
                 </div>
+              )}
+              {mlos.discountType === "flat" && (
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-foreground mb-2">
+                      Currency
+                    </label>
+                    <Select
+                      value={mlos.currencyCode || "USD"}
+                      onValueChange={(value) =>
+                        setMlos({ ...mlos, currencyCode: value as CurrencyCode })
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select currency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="USD">USD - US Dollar</SelectItem>
+                        <SelectItem value="EUR">EUR - Euro</SelectItem>
+                        <SelectItem value="INR">INR - Indian Rupee</SelectItem>
+                        {/* <SelectItem value="AED">AED - UAE Dirham</SelectItem>
+                        <SelectItem value="SAR">SAR - Saudi Riyal</SelectItem> */}
+                        <SelectItem value="SGD">
+                          SGD - Singapore Dollar
+                        </SelectItem>
+                        <SelectItem value="AUD">
+                          AUD - Australian Dollar
+                        </SelectItem>
+                        <SelectItem value="CAD">
+                          CAD - Canadian Dollar
+                        </SelectItem>
+                        <SelectItem value="JPY">JPY - Japanese Yen</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
               )}
             </div>
           </div>

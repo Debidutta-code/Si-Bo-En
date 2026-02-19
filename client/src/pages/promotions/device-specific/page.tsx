@@ -27,13 +27,17 @@ import { Smartphone, Tablet, Monitor, MoreVertical, Edit, Trash2, Check, X } fro
 import { convertBackendToApplicableDays } from './interfaces/mobilePromotion.type';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import BackButton from '@/components/shared/BackButton';
+import type { ILoader } from '@/pages/dashboard/interface';
 
 export const DeviceSpecificPromotionList: React.FC = () => {
   const { propertyId } = useParams<{ propertyId: string }>();
   const [promotions, setPromotions] = useState<DeviceSpecificPromotionWithRatePlan[]>([]);
   const [ratePlans, setRatePlans] = useState<RatePlan[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [showForm, setShowForm] = useState(false);
+  const [isLoading, setIsLoading] = useState<ILoader>({
+    isLoading: false,
+    message: ''
+  });
+  const [showForm, setShowForm] = useState<boolean>(false);
   const [editData, setEditData] = useState<DeviceSpecificPromotionWithRatePlan | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [promotionToDelete, setPromotionToDelete] = useState<string | null>(null);
@@ -43,7 +47,10 @@ export const DeviceSpecificPromotionList: React.FC = () => {
   }, [propertyId]);
 
   const loadData = async () => {
-    setIsLoading(true);
+    setIsLoading({
+      isLoading: true,
+      message: 'Loading device-specific promotions...'
+    });
     try {
       if (!propertyId) {
         return;
@@ -69,12 +76,18 @@ export const DeviceSpecificPromotionList: React.FC = () => {
       console.error('Error loading data:', error);
       toast.error('Failed to load device-specific promotions');
     } finally {
-      setIsLoading(false);
+      setIsLoading({
+        isLoading: false,
+        message: ''
+      });
     }
   };
 
   const handleCreate = async (payload: CreateDeviceSpecificPromotion) => {
-    setIsLoading(true);
+    setIsLoading({
+      isLoading: true,
+      message: 'Creating device-specific promotion...'
+    });
     try {
       const result = await createDeviceSpecificPromotionService(payload);
       if (result.success) {
@@ -87,14 +100,20 @@ export const DeviceSpecificPromotionList: React.FC = () => {
     } catch (error) {
       toast.error('An error occurred while creating the device-specific promotion');
     } finally {
-      setIsLoading(false);
+      setIsLoading({
+        isLoading: false,
+        message: ''
+      });
     }
   };
 
   const handleUpdate = async (payload: CreateDeviceSpecificPromotion) => {
     if (!editData) return;
 
-    setIsLoading(true);
+    setIsLoading({
+      isLoading: true,
+      message: 'Updating device-specific promotion...'
+    });
     try {
       const updatePayload = {
         promotionName: payload.promotionName,
@@ -127,7 +146,10 @@ export const DeviceSpecificPromotionList: React.FC = () => {
     } catch (error) {
       toast.error('An error occurred while updating the device-specific promotion');
     } finally {
-      setIsLoading(false);
+      setIsLoading({
+        isLoading: false,
+        message: ''
+      });
     }
   };
 
@@ -139,7 +161,10 @@ export const DeviceSpecificPromotionList: React.FC = () => {
   const handleDeleteConfirm = async () => {
     if (!promotionToDelete) return;
 
-    setIsLoading(true);
+    setIsLoading({
+      isLoading: true,
+      message: 'Deleting device-specific promotion...'
+    });
     try {
       const result = await deleteDeviceSpecificPromotionService(promotionToDelete);
       if (result.success) {
@@ -151,7 +176,10 @@ export const DeviceSpecificPromotionList: React.FC = () => {
     } catch (error) {
       toast.error('An error occurred while deleting the device-specific promotion');
     } finally {
-      setIsLoading(false);
+      setIsLoading({
+        isLoading: false,
+        message: ''
+      });
       setDeleteDialogOpen(false);
       setPromotionToDelete(null);
     }
@@ -201,10 +229,10 @@ export const DeviceSpecificPromotionList: React.FC = () => {
   };
 
   const getDiscountDisplay = (promotion: DeviceSpecificPromotionWithRatePlan) => {
-    if (promotion.DiscountType === 'percentage') {
-      return `${promotion.DiscountValue}% OFF`;
+    if (promotion.discountType === 'percentage') {
+      return `${promotion.discountValue}% OFF`;
     } else {
-      return `${promotion.currencyCode || 'USD'} ${promotion.DiscountValue} OFF`;
+      return `${promotion.currencyCode || 'USD'} ${promotion.discountValue} OFF`;
     }
   };
 
@@ -250,9 +278,9 @@ export const DeviceSpecificPromotionList: React.FC = () => {
       </div>
 
       <div className="bg-card rounded-lg border border-border overflow-hidden">
-        {isLoading ? (
+        {isLoading.isLoading? (
           <div className="py-12">
-            <Loader text="Loading..." />
+            <Loader text={isLoading.message} />
           </div>
         ) : (
           <Table>
@@ -382,16 +410,16 @@ export const DeviceSpecificPromotionList: React.FC = () => {
                 <button
                   onClick={handleDeleteCancel}
                   className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
-                  disabled={isLoading}
+                  disabled={isLoading.isLoading}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDeleteConfirm}
                   className="px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors"
-                  disabled={isLoading}
+                  disabled={isLoading.isLoading}
                 >
-                  {isLoading ? 'Deleting...' : 'Delete'}
+                  {isLoading.isLoading ? 'Deleting...' : 'Delete'}
                 </button>
               </div>
             </div>

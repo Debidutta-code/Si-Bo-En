@@ -29,6 +29,7 @@ export class MLOSService {
                 return errorResponse('Failed to create rate plan rule');
             }
         } catch (error) {
+            
             if (error instanceof Error) {
                 return errorResponse('Failed to create rate plan rule', error?.message);
             }

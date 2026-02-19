@@ -3,18 +3,7 @@ import { PropertyDao } from "../../../property-management/repository";
 import { errorResponse, IApiResponse, successResponse } from "../../../utils";
 import { CustomizableDealDao } from "../dao";
 import {
-    CurrencyCode,
-    DiscountType,
-    IAddOn,
-    ICCreateCustomizableDealR,
     ICCreateCustomizableDealS,
-    ICustomizableDealsApplicableAddons,
-    ICustomizableDealsApplicableRatePlans,
-    ICustomizableDealsApplicableRoomTypes,
-    ICustomizableDealWDetails,
-    IRatePlan,
-    IRoom,
-    ICustomizableDeals,
     IUCustomizableDealS
 } from "../interfaces";
 

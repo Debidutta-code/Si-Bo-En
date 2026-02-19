@@ -1,4 +1,4 @@
-import type { CreateRatePlan, RatePlanRule } from "../interfaces/ratePlan.type";
+import type { CreateRatePlan, ICRatePlanRule, RatePlanRule } from "../interfaces/ratePlan.type";
 import createAxiosInstance from "@/components/axiosInstance";
 const axiosInstance = createAxiosInstance();
 
@@ -68,7 +68,7 @@ export async function updateRatePlan(ratePlanCode:string,payload: Partial<Create
 
 
 
-export async function createRatePlanRule(payload: Partial<RatePlanRule>) {
+export async function createRatePlanRule(payload: ICRatePlanRule) {
     try {
         const response = await axiosInstance.post(`/promotions/mlos`, payload);
         return response.data;
@@ -100,7 +100,7 @@ export async function getRatePlanRule(ratePlanId: string) {
     }
 }
 
-export async function updateRatePlanRule(ratePlanId: string, payload: Partial<RatePlanRule>) {
+export async function updateRatePlanRule(ratePlanId: string, payload: ICRatePlanRule) {
     try {
         const response = await axiosInstance.put(`/promotions/mlos/${ratePlanId}`, payload);
         return response.data;

@@ -1,6 +1,6 @@
 
 import { Response } from 'express';
-import { CustomRequest, errorResponse, IApiResponse } from '../../../utils';
+import { CustomRequest, errorResponse, IApiResponse, toUTC, toUTCDate } from '../../../utils';
 import { MLOSService } from '../services';
 import { Decimal } from '@prisma/client/runtime/library';
 
@@ -21,10 +21,10 @@ export class MLOSController {
                 discountType,
                 discountValue,
                 isActive,
-                isAutoApplied
+                isAutoApplied,
+                currencyCode
             } = req.body;
 
-            // Validation: Required fields
             if (!ratePlanId) {
                 return res.status(400).json(errorResponse('Rate plan ID is required'));
             }
@@ -56,14 +56,15 @@ export class MLOSController {
 
             const ruleData = {
                 ratePlanId,
-                startDate: startDate || null,
-                endDate: endDate || null,
+                startDate: toUTCDate(startDate) || null,
+                endDate: toUTCDate(endDate) || null,
                 minLos,
                 maxLos: maxLos || null,
                 discountType: discountType === "none" ? null : discountType,
                 discountValue: discountValue ? new Decimal(discountValue) : null,
                 isActive,
-                isAutoApplied
+                isAutoApplied,
+                currencyCode
             };
 
             const serRes = await this.mlosService.createRatePlanRule(ruleData);
@@ -130,12 +131,7 @@ export class MLOSController {
                 return res.status(400).json(errorResponse('Active status must be a boolean'));
             }
 
-            // Validation: Discount type enum
-            if (updateData.discountType && !['percentage', 'flat'].includes(updateData.discountType)) {
-                return res.status(400).json(
-                    errorResponse('Discount type must be either percentage or flat')
-                );
-            }
+            
 
             if (updateData.discountValue !== undefined && updateData.discountValue !== null && typeof updateData.discountValue !== 'number') {
                 return res.status(400).json(errorResponse('Discount value must be a number'));
@@ -143,7 +139,13 @@ export class MLOSController {
 
             const response = await this.mlosService.updateRatePlanRule(
                 ratePlanId,
-                updateData
+                {
+                    ...updateData,
+                    startDate: toUTCDate(updateData.startDate) || null,
+                    endDate: toUTCDate(updateData.endDate) || null,
+                    discountType: updateData.discountType === "none" ? null : updateData.discountType,
+                    discountValue: updateData.discountValue ? new Decimal(updateData.discountValue) : null,
+                }
             );
             const status = response.success ? 200 : 400;
             return res.status(status).json(response);

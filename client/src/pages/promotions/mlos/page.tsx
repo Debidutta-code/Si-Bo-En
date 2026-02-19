@@ -14,7 +14,7 @@ import { createRatePlanRuleService, fetchRatePlansService, updateRatePlanRuleSer
 import type { RatePlan } from '@/pages/rate-plan/interfaces';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import type { RatePlanRule } from '@/pages/rate-plan/interfaces/ratePlan.type';
+import type { ICRatePlanRule, RatePlanRule } from '@/pages/rate-plan/interfaces/ratePlan.type';
 import { getRatePlanRulesByPropertyIdService } from './services';
 import { deleteRatePlanRule } from '@/pages/rate-plan/api/api';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -79,7 +79,7 @@ export const MLOSRuleList: React.FC = () => {
     }
   };
 
-  const handleCreate = async (payload: Partial<RatePlanRule>) => {
+  const handleCreate = async (payload: ICRatePlanRule) => {
     setIsLoading({
       isLoading: true,
       message: 'Creating MLOS rule...'
@@ -103,7 +103,7 @@ export const MLOSRuleList: React.FC = () => {
     }
   };
 
-  const handleUpdate = async (payload: Partial<RatePlanRule>) => {
+  const handleUpdate = async (payload: ICRatePlanRule) => {
     if (!editData) return;
 
     setIsLoading({
@@ -184,7 +184,7 @@ export const MLOSRuleList: React.FC = () => {
 
   const formatDiscount = (type: string | null, value: number | null) => {
     if (!type || !value) return 'No discount';
-    return type === 'percentage' ? `${value}%` : `₹${value}`;
+    return type === 'percentage' ? `${value}%` : `$ ${value}`;
   };
 
   if (showForm) {

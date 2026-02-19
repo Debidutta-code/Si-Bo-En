@@ -1,5 +1,6 @@
 import { Decimal } from "@prisma/client/runtime/library";
 import { DiscountType } from "../../customizable-deal/interfaces";
+import { CurrencyCode } from "../../../pms/frontoffice/payment/types";
 
 export interface IMLOSCreate {
   ratePlanId: string;
@@ -11,6 +12,7 @@ export interface IMLOSCreate {
   discountValue: Decimal | null;
   isActive: boolean;
   isAutoApplied: boolean;
+  currencyCode: CurrencyCode;
 }
 
 
@@ -26,5 +28,6 @@ export interface IMLOS {
   discountValue: Decimal | null;
   isActive: boolean;
   isAutoApplied: boolean;
+  currencyCode: CurrencyCode;
 
 }

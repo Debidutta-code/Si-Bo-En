@@ -13,8 +13,8 @@ export interface DeviceSpecificPromotion {
   ratePlanId: string;
   ratePlanCode: string;
   deviceType: DeviceType[];
-  DiscountType: DiscountType;
-  DiscountValue: number;
+  discountType: DiscountType;
+  discountValue: number;
   currencyCode?: CurrencyCode;
   validFrom: string;
   validTo?: string | null;

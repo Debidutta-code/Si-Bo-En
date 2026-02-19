@@ -77,8 +77,8 @@ export interface EarlyBirdPromotionWithRatePlan {
   roomType: string | null;
   ratePlanId: string;
   ratePlanCode: string;
-  DiscountType: DiscountType;
-  DiscountValue: number;
+  discountType: DiscountType;
+  discountValue: number;
   currencyCode: CurrencyCode | null;
   monApplicable: boolean;
   tueApplicable: boolean;

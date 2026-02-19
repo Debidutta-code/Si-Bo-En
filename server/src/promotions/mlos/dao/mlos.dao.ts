@@ -19,11 +19,11 @@ export class MLOSDao {
           discountType: data.discountType,
           discountValue: data.discountValue,
           isActive: data.isActive,
-          isAutoApplied: data.isAutoApplied
+          isAutoApplied: data.isAutoApplied,
+          currencyCode: data.currencyCode
         },
       });
     } catch (error) {
-      
       throw new Error('Unknown error occurred while creating rate plan rule');
     }
   }
