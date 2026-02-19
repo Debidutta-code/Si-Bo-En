@@ -7,10 +7,7 @@ import SearchWidget from "../../components/Home/SearchWidget";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { Facebook, Instagram, Youtube, Globe } from "lucide-react";
-import {
-  setBookingContext,
-  setBookingSource,
-} from "../../store/bookingSlice";
+import { setBookingContext, setBookingSource } from "../../store/bookingSlice";
 import { useBookingColors } from "../../hooks/useBookingColors";
 import RoomCard from "@/src/components/RoomPage/RoomCard";
 import PriceSummarySidebar from "../../components/RoomPage/Pricesummerysidebar";
@@ -208,11 +205,12 @@ const Rooms = () => {
       noOfAdults = bookingContext.guests?.adults || 1;
       noOfChildrens = bookingContext.guests?.children || 0;
       // ✅ FIX: Ensure rooms is always a number
-      noOfRooms = typeof bookingContext.guests?.rooms === 'number'
-        ? bookingContext.guests.rooms
-        : Array.isArray(bookingContext.guests?.rooms)
-          ? bookingContext.guests.rooms.length
-          : 1;
+      noOfRooms =
+        typeof bookingContext.guests?.rooms === "number"
+          ? bookingContext.guests.rooms
+          : Array.isArray(bookingContext.guests?.rooms)
+            ? bookingContext.guests.rooms.length
+            : 1;
 
       for (let i = 0; i < noOfAdults; i++) {
         allGuests.push({
@@ -378,14 +376,14 @@ const Rooms = () => {
       setLoyaltyProgram(propertyDetails?.loyaltyProgramConfig || null);
       const bookingEngineColor = propertyDetails?.bookingEngineConfig
         ? {
-          primaryColor: propertyDetails.bookingEngineConfig.primaryColor,
-          secondaryColor: propertyDetails.bookingEngineConfig.secondaryColor,
-          tertiaryColor: propertyDetails.bookingEngineConfig.tertiaryColor,
-          buttonTextColor:
-            propertyDetails.bookingEngineConfig.buttonTextColor,
-          bgImage: propertyDetails.bookingEngineConfig.bannerImage,
-          logo: propertyDetails.bookingEngineConfig.logo,
-        }
+            primaryColor: propertyDetails.bookingEngineConfig.primaryColor,
+            secondaryColor: propertyDetails.bookingEngineConfig.secondaryColor,
+            tertiaryColor: propertyDetails.bookingEngineConfig.tertiaryColor,
+            buttonTextColor:
+              propertyDetails.bookingEngineConfig.buttonTextColor,
+            bgImage: propertyDetails.bookingEngineConfig.bannerImage,
+            logo: propertyDetails.bookingEngineConfig.logo,
+          }
         : undefined;
 
       const updatedContext = {
@@ -645,11 +643,12 @@ const Rooms = () => {
         startDate:
           bookingContext.startDate || today.toISOString().split("T")[0],
         endDate: bookingContext.endDate || tomorrow.toISOString().split("T")[0],
-        numberOfRooms: typeof bookingContext.guests?.rooms === 'number'
-          ? bookingContext.guests.rooms
-          : Array.isArray(bookingContext.guests?.rooms)
-            ? bookingContext.guests.rooms.length
-            : 1,
+        numberOfRooms:
+          typeof bookingContext.guests?.rooms === "number"
+            ? bookingContext.guests.rooms
+            : Array.isArray(bookingContext.guests?.rooms)
+              ? bookingContext.guests.rooms.length
+              : 1,
         location: bookingContext.location || "",
       };
 
@@ -677,8 +676,6 @@ const Rooms = () => {
 
   const { primaryColor } = useBookingColors();
 
-
-
   useEffect(() => {
     const isDismissed = localStorage.getItem("urgencyBannerDismissed");
     if (isDismissed === "true") {
@@ -696,7 +693,6 @@ const Rooms = () => {
         ),
     ),
   );
-
 
   // NEW: Simple spinner loader for external requests only
   if (initialLoading && isExternalRequest) {
@@ -718,8 +714,9 @@ const Rooms = () => {
         </div>
       )}
       <div
-        className={`min-h-screen bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${loaded ? "opacity-100" : "opacity-0"
-          }`}
+        className={`min-h-screen bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${
+          loaded ? "opacity-100" : "opacity-0"
+        }`}
         onLoad={() => setLoaded(true)}
       >
         <div className="sticky top-0 z-40 bg-white/90 backdrop-blur shadow-sm">
@@ -740,7 +737,7 @@ const Rooms = () => {
                   className="rounded-xl p-4 shadow-md border-2"
                   style={{
                     backgroundColor: `${primaryColor}15`,
-                    borderColor: `${primaryColor}40`
+                    borderColor: `${primaryColor}40`,
                   }}
                 >
                   <button
@@ -750,8 +747,18 @@ const Rooms = () => {
                     }}
                     className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 transition-colors"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
                   <div className="text-center">
@@ -780,7 +787,6 @@ const Rooms = () => {
                       <video
                         className="w-full h-full object-cover"
                         autoPlay
-
                         loop
                         muted
                         playsInline
@@ -828,7 +834,12 @@ const Rooms = () => {
                   toggleOn={!!loyaltyMemberEmail}
                   onToggleChange={(isOn) => {
                     if (isOn) {
-                      setLoyaltyMemberEmail(`toggle_guest_${loyaltyProgram?.propertyId}`);
+                      const storedEmail = localStorage.getItem(
+                        `loyalty_member_${loyaltyProgram?.propertyId}`,
+                      );
+                      if (storedEmail) {
+                        setLoyaltyMemberEmail(storedEmail);
+                      }
                     } else {
                       setLoyaltyMemberEmail("");
                     }
@@ -863,8 +874,8 @@ const Rooms = () => {
                       No rooms available for this hotel.
                     </div>
                   ) : roomsData.filter(
-                    (room: Room) => room.has_valid_rate === true,
-                  ).length === 0 ? (
+                      (room: Room) => room.has_valid_rate === true,
+                    ).length === 0 ? (
                     <div className="text-center py-10 text-gray-600 text-lg font-medium">
                       No rooms available
                     </div>
@@ -1052,7 +1063,9 @@ const Rooms = () => {
             });
 
             document.cookie = "can_access_payment=true; path=/; max-age=300";
-            router.push(`/Payment?code=${bookingContext.PropertyCode || searchParams.get("code")}`);
+            router.push(
+              `/Payment?code=${bookingContext.PropertyCode || searchParams.get("code")}`,
+            );
           }}
         />
       )}
@@ -1074,9 +1087,13 @@ const Rooms = () => {
                   {propertyDetails.propertyName}
                 </a>
                 <p className="text-sm text-gray-600 mt-1">
-                  {propertyDetails.address?.city || propertyDetails.address?.addressLine1 || ""}
-                  {propertyDetails.address?.state && `, ${propertyDetails.address.state}`}
-                  {propertyDetails.address?.country && `, ${propertyDetails.address.country}`}
+                  {propertyDetails.address?.city ||
+                    propertyDetails.address?.addressLine1 ||
+                    ""}
+                  {propertyDetails.address?.state &&
+                    `, ${propertyDetails.address.state}`}
+                  {propertyDetails.address?.country &&
+                    `, ${propertyDetails.address.country}`}
                 </p>
               </div>
 
@@ -1133,14 +1150,24 @@ const Rooms = () => {
             <div className="mt-6 pt-6 border-t border-gray-200 text-center text-xs text-gray-500">
               <p>
                 This site is protected by reCAPTCHA and the Google{" "}
-                <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">
+                <a
+                  href="https://policies.google.com/privacy"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-gray-700"
+                >
                   Privacy Policy
-                </a>
-                {" "}and{" "}
-                <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">
+                </a>{" "}
+                and{" "}
+                <a
+                  href="https://policies.google.com/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="underline hover:text-gray-700"
+                >
                   Terms of Service
-                </a>
-                {" "}apply.
+                </a>{" "}
+                apply.
               </p>
             </div>
           </div>
