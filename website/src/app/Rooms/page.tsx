@@ -10,8 +10,6 @@ import { Facebook, Instagram, Youtube, Globe } from "lucide-react";
 import {
   setBookingContext,
   setBookingSource,
-  setCurrency,
-  setSenderUrl,
 } from "../../store/bookingSlice";
 import { useBookingColors } from "../../hooks/useBookingColors";
 import RoomCard from "@/src/components/RoomPage/RoomCard";
@@ -25,8 +23,9 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/src/components/ui/dialog";
-import { ICreationLoyality, IPropertyLoyalityWithLoyality } from "./interface";
+import { IPropertyLoyalityWithLoyality } from "./interface";
 import { LoyaltyProgramBanner } from "@/src/components/RoomPage/LoyalityBanner";
+import { LoyaltyContainer } from "../../components/RoomPage/LoyalityContainer";
 
 interface Guest {
   type: "adult" | "child";
@@ -806,6 +805,7 @@ const Rooms = () => {
               )}
               {loyaltyProgram && (
                 <div
+                  data-loyalty-banner=""
                   className={`${propertyDetails?.propertyVideos ? "lg:col-span-5" : "lg:col-span-12"}`}
                 >
                   <LoyaltyProgramBanner
@@ -817,6 +817,25 @@ const Rooms = () => {
                 </div>
               )}
             </div>
+            {/* mt-4 section — was the 3-bullet benefits + dismiss button div */}
+            {loyaltyProgram && (
+              <div className="mt-4">
+                <LoyaltyContainer
+                  loyaltyProgram={loyaltyProgram!}
+                  primaryColor={primaryColor}
+                  showSignUpModal={showLoyaltySignup}
+                  onShowSignUpModalChange={setShowLoyaltySignup}
+                  toggleOn={!!loyaltyMemberEmail}
+                  onToggleChange={(isOn) => {
+                    if (isOn) {
+                      setLoyaltyMemberEmail(`toggle_guest_${loyaltyProgram?.propertyId}`);
+                    } else {
+                      setLoyaltyMemberEmail("");
+                    }
+                  }}
+                />
+              </div>
+            )}
           </div>
         </div>
 
@@ -868,15 +887,8 @@ const Rooms = () => {
                               loyaltyMemberEmail={loyaltyMemberEmail}
                               loyalty={loyaltyProgram}
                               onUnlockLoyalty={() => {
-                                setShowLoyaltySignup(true);
-                                // Scroll to loyalty banner
-                                setTimeout(() => {
-                                  const loyaltyBanner = document.querySelector('[data-loyalty-banner]');
-                                  if (loyaltyBanner) {
-                                    loyaltyBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                  }
-                                }, 100);
-                              }}
+  setLoyaltyMemberEmail(`toggle_guest_${loyaltyProgram?.propertyId}`);
+}}
                             />
                           ))}
                       </div>
