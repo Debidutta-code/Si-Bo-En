@@ -198,7 +198,7 @@ class NGeniusService {
               const payment = await prisma.payment.create({
                 data: {
                   amount: orderData.amount.value / 100,
-                  currency: (orderData.amount.currencyCode as any) || "AED",
+                  currency: "USD",
                   status: mappedStatus as any,
                   paymentMethod: "payment_gateway",
                   propertyId: property.id,
