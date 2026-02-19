@@ -357,6 +357,7 @@ model Property {
   propertyPaymentIntegrations PropertyPaymentIntegration[]
   payments                    Payment[]
   propertyIntegrations        PropertyIntegrations[]
+  bookingOffsets              BookingOffset[]
 
   @@index([createdById])
   @@index([creationId])
@@ -722,9 +723,29 @@ model RatePlan {
   createdAt                                DateTime                                   @default(now())
   updatedAt                                DateTime                                   @updatedAt
   customizableDealsApplicableRatePlanTypes CustomizableDealsApplicableRatePlanTypes[]
+  bookingOffsets                           BookingOffset[]
 
   @@index([propertyId])
   @@map("rate_plans")
+}
+
+model BookingOffset {
+  id String @id @default(uuid())
+
+  propertyId String   @map("property_id")
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  ratePlanCode String   @map("rate_plan_code")
+  ratePlanId   String   @map("rate_plan_id")
+  ratePlanName String   @map("rate_plan_name")
+  ratePlan     RatePlan @relation(fields: [ratePlanCode], references: [ratePlanCode], onDelete: Cascade)
+
+  minimumAdvanceBookingOffset Int @map("minimum_advance_booking_offset")
+  maximumAdvanceBookingOffset Int @map("maximum_advance_booking_offset")
+
+  date DateTime @db.Date
+
+  @@map("booking_offsets")
 }
 
 model Policy {
@@ -1162,7 +1183,7 @@ model RatePlanRule {
   startDate DateTime? @map("start_date")
   endDate   DateTime? @map("end_date")
 
-  minLos               Int                    @default(1) @map("min_los")
+  minLos               Int                    @default(0) @map("min_los")
   maxLos               Int?                   @map("max_los")
   isAutoApplied        Boolean                @default(false) @map("is_auto_applied")
   discountType         DiscountType?          @map("discount_type")
@@ -1515,7 +1536,7 @@ model CustomizableDeal {
   propertyCode String @map("property_code")
 
   discountType  DiscountType  @default(percentage) @map("discount_type")
-  discountValue Decimal      @map("discount_value")
+  discountValue Decimal       @map("discount_value")
   currencyCode  CurrencyCode? @default(USD) @map("currency_code")
   isAutoApplied Boolean       @default(false) @map("is_auto_applied")
 
@@ -1629,7 +1650,7 @@ model Payment {
   propertyPaymentIntegrationId String?
   paymentIntentId              String?       @map("payment_intent_id")
 
-  propertyId    String @map("property_id")
+  propertyId    String  @map("property_id")
   reservationId String? @map("reservation_id")
 
   Property                   Property                    @relation(fields: [propertyId], references: [id], onDelete: Cascade)

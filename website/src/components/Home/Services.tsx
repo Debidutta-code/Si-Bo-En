@@ -1,5 +1,6 @@
 import React from "react";
 import revchilliLogo from "../assets/revchilli.png";
+import { FaFacebookF, FaInstagram, FaLinkedinIn } from "react-icons/fa";
 
 const services = [
   {
@@ -125,32 +126,58 @@ export default function Services() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#1A98A6] text-white py-12 px-6">
-        <div className="max-w-6xl mx-auto grid md:grid-cols-3 gap-8 text-center md:text-left">
-          <div>
-            <h4 className="font-semibold mb-2">Phone</h4>
-            <p>+971 (04) 5878 776</p>
-          </div>
-          <div>
-            <h4 className="font-semibold mb-2">Email</h4>
-            <p>info@revchill.com</p>
-          </div>
-          <div>
-            <h4 className="font-semibold mb-2">Follow</h4>
-            <div className="flex justify-center md:justify-start space-x-4 mt-2">
-              <div className="w-8 h-8 bg-white text-[#1A98A6] rounded-full flex items-center justify-center">
-                f
-              </div>
-              <div className="w-8 h-8 bg-white text-[#1A98A6] rounded-full flex items-center justify-center">
-                in
-              </div>
-              <div className="w-8 h-8 bg-white text-[#1A98A6] rounded-full flex items-center justify-center">
-                ig
+      <footer className="bg-[#1A98A6] pt-14 pb-10 px-6">
+        <div className="max-w-5xl mx-auto bg-[#f2f2f2] rounded-3xl px-8 py-10 md:px-14">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
+            <div>
+              <h4 className="font-semibold text-black mb-4 text-base md:text-lg">
+                Phone
+              </h4>
+              <p className="text-black text-base md:text-lg">+971 (04) 5878 776</p>
+            </div>
+            <div>
+              <h4 className="font-semibold text-black mb-4 text-base md:text-lg">
+                Email
+              </h4>
+              <p className="text-black text-base md:text-lg">info@revchill.com</p>
+            </div>
+            <div>
+              <h4 className="font-semibold text-black mb-4 text-base md:text-lg">
+                Follow
+              </h4>
+              <div className="flex justify-center md:justify-start space-x-3">
+                <a
+                  href="https://www.facebook.com/revchill.FZ?rdid=SxLrgKTGxx2TDvFV&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F1CQZoXKB8D%2F#"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="RevChill Facebook"
+                  className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center"
+                >
+                  <FaFacebookF size={13} />
+                </a>
+                <a
+                  href="https://www.linkedin.com/company/revchill/?viewAsMember=true"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="RevChill LinkedIn"
+                  className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center"
+                >
+                  <FaLinkedinIn size={13} />
+                </a>
+                <a
+                  href="https://www.instagram.com/revchill_/?igsh=MWoyc2UyMWtvOTZvbg%3D%3D#"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label="RevChill Instagram"
+                  className="w-8 h-8 bg-black text-white rounded-full flex items-center justify-center"
+                >
+                  <FaInstagram size={13} />
+                </a>
               </div>
             </div>
           </div>
         </div>
-        <p className="text-center mt-10 text-sm opacity-80">
+        <p className="text-center mt-8 text-white text-sm md:text-base font-semibold">
           ©2020 by RevChill
         </p>
       </footer>
