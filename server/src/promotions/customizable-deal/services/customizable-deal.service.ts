@@ -1,8 +1,11 @@
-import { prisma } from "../../../config";
+// import { prisma } from "../../../config";
 import { PropertyDao } from "../../../property-management/repository";
 import { errorResponse, IApiResponse, successResponse } from "../../../utils";
 import { CustomizableDealDao } from "../dao";
-import { ICCreateCustomizableDeal, ICUpdateCustomizableDeal } from "../interfaces";
+import {
+    ICCreateCustomizableDealS,
+    IUCustomizableDealS
+} from "../interfaces";
 
 
 export class CustomizableDealService {
@@ -15,61 +18,36 @@ export class CustomizableDealService {
     public async createCustomizableDeal(
         propertyId: string,
         propertyCode: string,
-        dealData: ICCreateCustomizableDeal
+        dealData: ICCreateCustomizableDealS
     ): Promise<IApiResponse> {
         try {
-            // Validate property exists
             const property = await PropertyDao.getPropertyById(propertyId, true);
             if (!property) {
-                return errorResponse('Property not found');
+                return errorResponse('Property not found', "property not found or drafted");
             }
-
-            // Validate rooms exist and belong to property
-            if (dealData.applicableRoomTypes.length > 0) {
-                const rooms = await prisma.room.findMany({
-                    where: {
-                        id: { in: dealData.applicableRoomTypes },
-                        propertyId
-                    }
-                });
-
-                if (rooms.length !== dealData.applicableRoomTypes.length) {
-                    return errorResponse('Some rooms not found or do not belong to this property');
-                }
+            const [rooms, ratePlans, addons] = await Promise.all([
+                this.customizableDealRepository.findRoomTypes(dealData.applicableRoomTypes, propertyId),
+                this.customizableDealRepository.findRatePlans(dealData.applicableRatePlans, propertyId),
+                this.customizableDealRepository.findAddons(dealData.applicableAddons, propertyId)
+            ])
+            if(rooms.length !== dealData.applicableRoomTypes.length){
+                return errorResponse('Some room types are invalid or not found');
             }
-
-            // Validate rate plans exist and belong to property
-            if (dealData.applicableRatePlans.length > 0) {
-                const ratePlans = await prisma.ratePlan.findMany({
-                    where: {
-                        id: { in: dealData.applicableRatePlans },
-                        propertyId
-                    }
-                });
-
-                if (ratePlans.length !== dealData.applicableRatePlans.length) {
-                    return errorResponse('Some rate plans not found or do not belong to this property');
-                }
+            if(ratePlans.length !== dealData.applicableRatePlans.length){
+                return errorResponse('Some rate plans are invalid or not found');
             }
-
-            // Validate addons exist and belong to property
-            if (dealData.applicableAddons.length > 0) {
-                const addons = await prisma.addon.findMany({
-                    where: {
-                        id: { in: dealData.applicableAddons },
-                        propertyId
-                    }
-                });
-
-                if (addons.length !== dealData.applicableAddons.length) {
-                    return errorResponse('Some addons not found or do not belong to this property');
-                }
+            if(addons.length !== dealData.applicableAddons.length){
+                return errorResponse('Some addons are invalid or not found');
             }
-
             const newDeal = await this.customizableDealRepository.createCustomizableDeal(
                 propertyId,
                 propertyCode,
-                dealData
+                {
+                    ...dealData,
+                    applicableRoomTypes: rooms,
+                    applicableRatePlans: ratePlans,
+                    applicableAddons: addons
+                }
             );
 
             if (newDeal) {
@@ -102,7 +80,7 @@ export class CustomizableDealService {
     public async getCustomizableDealById(dealId: string): Promise<IApiResponse> {
         try {
             const deal = await this.customizableDealRepository.getCustomizableDealById(dealId);
-            
+
             if (!deal) {
                 return errorResponse('Customizable Deal not found');
             }
@@ -120,7 +98,7 @@ export class CustomizableDealService {
     public async updateCustomizableDeal(
         dealId: string,
         propertyId: string,
-        dealData: ICUpdateCustomizableDeal
+        dealData: IUCustomizableDealS
     ): Promise<IApiResponse> {
         try {
             const exists = await this.customizableDealRepository.getCustomizableDealById(dealId);
@@ -128,56 +106,33 @@ export class CustomizableDealService {
                 return errorResponse('Customizable Deal does not exist');
             }
 
-            // Verify deal belongs to property
             if (exists.propertyId !== propertyId) {
                 return errorResponse('Customizable Deal does not belong to this property');
             }
 
-            // Validate rooms if provided
-            if (dealData.applicableRoomTypes && dealData.applicableRoomTypes.length > 0) {
-                const rooms = await prisma.room.findMany({
-                    where: {
-                        id: { in: dealData.applicableRoomTypes },
-                        propertyId
-                    }
-                });
-
-                if (rooms.length !== dealData.applicableRoomTypes.length) {
-                    return errorResponse('Some rooms not found or do not belong to this property');
-                }
+            const [rooms, ratePlans, addons] = await Promise.all([
+                this.customizableDealRepository.findRoomTypes(dealData.applicableRoomTypes, propertyId),
+                this.customizableDealRepository.findRatePlans(dealData.applicableRatePlans, propertyId),
+                this.customizableDealRepository.findAddons(dealData.applicableAddons, propertyId)
+            ])
+            if(rooms.length !== dealData.applicableRoomTypes.length){
+                return errorResponse('Some room types are invalid or not found');
             }
-
-            // Validate rate plans if provided
-            if (dealData.applicableRatePlans && dealData.applicableRatePlans.length > 0) {
-                const ratePlans = await prisma.ratePlan.findMany({
-                    where: {
-                        id: { in: dealData.applicableRatePlans },
-                        propertyId
-                    }
-                });
-
-                if (ratePlans.length !== dealData.applicableRatePlans.length) {
-                    return errorResponse('Some rate plans not found or do not belong to this property');
-                }
+            if(ratePlans.length !== dealData.applicableRatePlans.length){
+                return errorResponse('Some rate plans are invalid or not found');
             }
-
-            // Validate addons if provided
-            if (dealData.applicableAddons && dealData.applicableAddons.length > 0) {
-                const addons = await prisma.addon.findMany({
-                    where: {
-                        id: { in: dealData.applicableAddons },
-                        propertyId
-                    }
-                });
-
-                if (addons.length !== dealData.applicableAddons.length) {
-                    return errorResponse('Some addons not found or do not belong to this property');
-                }
+            if(addons.length !== dealData.applicableAddons.length){
+                return errorResponse('Some addons are invalid or not found');
             }
 
             const updatedDeal = await this.customizableDealRepository.updateCustomizableDeal(
                 dealId,
-                dealData
+                {
+                    ...dealData,
+                    applicableAddons:addons,
+                    applicableRatePlans:ratePlans,
+                    applicableRoomTypes:rooms
+                }
             );
 
             if (updatedDeal) {
@@ -200,14 +155,12 @@ export class CustomizableDealService {
             if (!exists) {
                 return errorResponse('Customizable Deal does not exist');
             }
-
-            // Verify deal belongs to property
             if (exists.propertyId !== propertyId) {
                 return errorResponse('Customizable Deal does not belong to this property');
             }
 
             const deletedDeal = await this.customizableDealRepository.deleteCustomizableDeal(dealId);
-            
+
             if (deletedDeal) {
                 return successResponse('Customizable Deal deleted successfully', deletedDeal);
             } else {

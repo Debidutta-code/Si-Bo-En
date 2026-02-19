@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import SearchWidget from "../../components/Home/SearchWidget";
 import { ngeniusService } from "../../services/ngenius.service";
 import {
   DollarSign,
@@ -27,6 +28,7 @@ interface PaymentIntegrationDetail {
   propertyId: string;
   paymentIntegrationId: string;
   isActive: boolean;
+  outletId?: string;
   paymentIntegration: {
     id: string;
     name: string;
@@ -64,6 +66,7 @@ const BookingReviewPage = () => {
   const PropertyId = bookingDetails.PropertyDetails?.id;
   const propertyName = PropertyDetails?.propertyName || hotelName || "";
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [bankDetailsLoading, setBankDetailsLoading] = useState(true);
@@ -204,42 +207,40 @@ const BookingReviewPage = () => {
     return () => {
       socket?.disconnect();
     };
-  }, [bookingCode]);
+  }, [bookingCode, router]);
 
 
   useEffect(() => {
     if (!bankDetails) return;
 
-    //console.log("📋 Processing Bank Details:", bankDetails);
-    //console.log("💳 paymentGateway:", bankDetails.paymentGateway);
-    //console.log("🏨 payAtHotel:", bankDetails.payAtHotel);
-    //console.log("🔌 selectedPaymentIntegrations:", bankDetails.selectedPaymentIntegrations);
+    // Moved inline to avoid exhaustive-deps warning
+    const resolveActiveGateway = (): 'fikafi' | 'ngenius' | null => {
+      if (
+        !bankDetails?.selectedPaymentIntegrations ||
+        !bankDetails.paymentGateway ||
+        !bankDetails.selectedPaymentIntegrations.paymentIntegration
+      ) {
+        return null;
+      }
+      return bankDetails.selectedPaymentIntegrations.paymentIntegration.name === "fikafi"
+        ? "fikafi"
+        : "ngenius";
+    };
 
     const methods: string[] = [];
-
-    // Add Pay at Hotel if enabled
     if (bankDetails.payAtHotel) {
       methods.push("payAtHotel");
-      //console.log("✅ Pay at Hotel is available");
     }
-
-    // Determine which gateway is active
-    const gateway = getActiveGateway();
+    const gateway = resolveActiveGateway();  // ✅ defined inside effect
     setActiveGateway(gateway);
 
     if (gateway) {
       methods.push("gateway");
-      //console.log(`✅ Online Payment Gateway is available (${gateway})`);
-    } else if (bankDetails.paymentGateway) {
-      //console.log("⚠️ Payment Gateway is enabled but no valid integration found");
     }
-
-    //console.log("✅ Final available payment methods:", methods);
 
     setAvailableMethods(methods);
     setNoAvailablePayment(methods.length === 0);
 
-    // Auto-select the first available method if none is selected
     if (!selectedPayment && methods.length > 0) {
       setSelectedPayment(methods[0]);
     }
@@ -377,7 +378,7 @@ const BookingReviewPage = () => {
       const newBookingCode = data.data.bookingCode;
       setBookingCodeValue(newBookingCode);
       dispatch(setBookingCode(newBookingCode));
-      dispatch(setBookingStatus(data.data.bookingStatus||"pendin"));
+      dispatch(setBookingStatus(data.data.bookingStatus || "pendin"));
       dispatch(setFullBookingDetails(data.data));
       document.cookie = "can_access_payment=true; path=/";
 
@@ -385,12 +386,12 @@ const BookingReviewPage = () => {
       if (selectedPayment === "fikafi") {
         // Store booking code in localStorage for the Fikafi button to access
         localStorage.setItem('currentBookingCode', newBookingCode);
-        
+
         toast.success("Booking confirmed! Initiating payment...", {
           id: "booking-success",
           duration: 2000,
         });
-        
+
         // Trigger Fikafi payment after a short delay
         setTimeout(() => {
           // Find the Fikafi button and click it programmatically
@@ -443,6 +444,10 @@ const BookingReviewPage = () => {
 
       toast.loading("Creating secure payment order...", { id: "ngenius-order" });
 
+      const outletId = bankDetails?.selectedPaymentIntegrations?.paymentIntegration?.name === "ngenius"
+        ? bankDetails?.selectedPaymentIntegrations?.outletId
+        : undefined;
+
       const orderResponse = await ngeniusService.createOrder({
         action: "PURCHASE",
         amount: {
@@ -454,6 +459,8 @@ const BookingReviewPage = () => {
           skipConfirmationPage: true,
         },
         emailAddress: email.trim(),
+        outletId: outletId,
+        propertyCode: searchParams.get("code") || undefined,
       });
 
       if (!orderResponse?.data?.orderReference || !orderResponse?.data?.paymentUrl) {
@@ -608,37 +615,37 @@ const BookingReviewPage = () => {
                 Secure Online Payment
               </h4>
               <p className="text-sm" style={{ color: colors.primaryColor }}>
-                You'll be redirected to our secure payment partner to complete your payment
+                You&apos;ll be redirected to our secure payment partner to complete your payment
                 using credit/debit card, net banking, or other online payment methods.
               </p>
 
-            {/* Fikafi Payment Button */}
-            <div className="mt-4">
-              <FikafiPaymentButton
-                bookingCode={bookingCode}
-                amount={updatedPrice}
-                currency={currencyCode}
-                guestName={getGuestName()}
-                guestEmail={getGuestEmail()}
-                guestPhone={getGuestPhone()}
-                propertyName={propertyName}
-                propertyID={PropertyId || "UNKNOWN_PROPERTY"}
-                checkInDate={checkIn}
-                numberOfNights={nights}
-                onPaymentLinkGenerated={(paymentLink: string) => {
-                  console.log('Payment link generated:', paymentLink);
-                  toast.success("Redirecting to payment...", { id: "fikafi-success" });
-                }}
-                onPaymentError={(error) => {
-                  console.error('Fikafi error:', error);
-                  toast.error("Payment failed. Please try again.", { id: "fikafi-error" });
-                }}
-                buttonText="Pay Now with Fikafi"
-                className="w-full"
-                data-fikafi-button="true"
-              />
+              {/* Fikafi Payment Button */}
+              <div className="mt-4">
+                <FikafiPaymentButton
+                  bookingCode={bookingCode}
+                  amount={updatedPrice}
+                  currency={currencyCode}
+                  guestName={getGuestName()}
+                  guestEmail={getGuestEmail()}
+                  guestPhone={getGuestPhone()}
+                  propertyName={propertyName}
+                  propertyID={PropertyId || "UNKNOWN_PROPERTY"}
+                  checkInDate={checkIn}
+                  numberOfNights={nights}
+                  onPaymentLinkGenerated={(paymentLink: string) => {
+                    console.log('Payment link generated:', paymentLink);
+                    toast.success("Redirecting to payment...", { id: "fikafi-success" });
+                  }}
+                  onPaymentError={(error) => {
+                    console.error('Fikafi error:', error);
+                    toast.error("Payment failed. Please try again.", { id: "fikafi-error" });
+                  }}
+                  buttonText="Pay Now with Fikafi"
+                  className="w-full"
+                  data-fikafi-button="true"
+                />
 
-            </div>
+              </div>
 
               <div className="mt-3 flex flex-wrap gap-3 items-center">
                 <div className="flex items-center gap-1 text-xs text-gray-600">
@@ -730,179 +737,183 @@ const BookingReviewPage = () => {
   };
 
   return (
-    <div className="max-w-6xl pt-32 mx-auto p-6 grid md:grid-cols-3 gap-6">
-      {/* Left Side */}
-      <div className="md:col-span-2 space-y-6">
-        {/* Booking Summary */}
-        <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-5">
-          <h2 className="text-lg font-semibold mb-4" style={{ color: colors.primaryColor }}>
-            Booking Summary
-          </h2>
-          <div className="text-sm text-gray-800 space-y-1">
-            <p>
-              <strong>Stay Dates:</strong> {checkIn} - {checkOut} ({nights}{" "}
-              night{nights > 1 ? "s" : ""})
-            </p>
-            <p>
-              <strong>Guests:</strong> {rooms || 1} Room · {adults || 1} Adult
-              {adults !== 1 ? "s" : ""}
-              {children > 0
-                ? ` · ${children} Child${children !== 1 ? "ren" : ""}`
-                : ""}
-            </p>
-            <p>
-              <strong>Guest Name:</strong>{" "}
-              {guest && guest.length > 0
-                ? `${guest[0].firstName} ${guest[0].lastName}`
-                : ""}{" "}
-              <br />
-              <span className="text-gray-500">
-                <strong>Email:</strong> {email}
-              </span>
-            </p>
+    <div className="w-full">
+      <div className="sticky top-0 z-40 bg-white/90 backdrop-blur shadow-sm">
+        
+      </div>
+      <div className="max-w-6xl mx-auto p-6 grid md:grid-cols-3 gap-6">
+        {/* Left Side */}
+        <div className="md:col-span-2 space-y-6">
+          {/* Booking Summary */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-5">
+            <h2 className="text-lg font-semibold mb-4" style={{ color: colors.primaryColor }}>
+              Booking Summary
+            </h2>
+            <div className="text-sm text-gray-800 space-y-1">
+              <p>
+                <strong>Stay Dates:</strong> {checkIn} - {checkOut} ({nights}{" "}
+                night{nights > 1 ? "s" : ""})
+              </p>
+              <p>
+                <strong>Guests:</strong> {rooms || 1} Room · {adults || 1} Adult
+                {adults !== 1 ? "s" : ""}
+                {children > 0
+                  ? ` · ${children} Child${children !== 1 ? "ren" : ""}`
+                  : ""}
+              </p>
+              <p>
+                <strong>Guest Name:</strong>{" "}
+                {guest && guest.length > 0
+                  ? `${guest[0].firstName} ${guest[0].lastName}`
+                  : ""}{" "}
+                <br />
+                <span className="text-gray-500">
+                  <strong>Email:</strong> {email}
+                </span>
+              </p>
+            </div>
+          </div>
+
+          {/* Payment Method */}
+          <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-5">
+            <h2 className="text-lg font-semibold mb-4" style={{ color: colors.primaryColor }}>
+              Choose Payment Method
+            </h2>
+
+            {noAvailablePayment ? (
+              <div className="px-4 py-3 rounded-lg mb-4 text-sm" style={{
+                backgroundColor: `${colors.secondaryColor}20`,
+                color: colors.primaryColor
+              }}>
+                <strong>No payment methods available</strong>
+                <p className="mt-1">
+                  Please contact the hotel directly for payment arrangements.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {[
+                  {
+                    key: "payAtHotel",
+                    label: "Pay at Hotel",
+                    icon: "🏨",
+                    description: "Pay directly at the property during check-in",
+                  },
+                  {
+                    key: "gateway",
+                    label: "Pay Online",
+                    icon: "💳",
+                    description: activeGateway === "fikafi"
+                      ? "Secure payment via Fikafi payment gateway"
+                      : activeGateway === "ngenius"
+                        ? "Secure payment via Network International gateway"
+                        : "Secure online payment",
+                    isRecommended: true,
+                  },
+                ].map(({ key, label, icon, description, isRecommended }) => {
+                  const isActive = isMethodAvailable(key);
+                  const isSelected = selectedPayment === key;
+
+                  return (
+                    <div
+                      key={key}
+                      className={`border-2 rounded-xl transition-all ${isActive
+                        ? isSelected
+                          ? `bg-orange-50`
+                          : "border-gray-200 hover:border-gray-300 bg-white"
+                        : "border-gray-100 bg-gray-50 opacity-60 cursor-not-allowed"
+                        }`}
+                      style={isActive && isSelected ? {
+                        borderColor: colors.primaryColor,
+                        backgroundColor: `${colors.secondaryColor}10`
+                      } : {}}
+                    >
+                      <label
+                        className={`block p-4 ${isActive ? "cursor-pointer" : "cursor-not-allowed"
+                          }`}
+                      >
+                        <div className="flex items-start space-x-3">
+                          <input
+                            type="radio"
+                            name="paymentMethod"
+                            disabled={!isActive}
+                            checked={isSelected}
+                            onChange={() => isActive && setSelectedPayment(key)}
+                            className="mt-1 h-4 w-4"
+                            style={{ accentColor: colors.primaryColor }}
+                          />
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-lg">{icon}</span>
+                              <span className="font-medium text-gray-900">
+                                {label}
+                              </span>
+                              {isRecommended && isActive && (
+                                <span className="text-xs text-white bg-green-500 px-2 py-1 rounded">
+                                  Recommended
+                                </span>
+                              )}
+                              {!isActive && (
+                                <span className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded">
+                                  Not Available
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-600">{description}</p>
+                            {renderPaymentDetails(key)}
+                          </div>
+                        </div>
+                      </label>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Only show confirm button for non-Fikafi payments or when Fikafi payment button is not rendered */}
+            {selectedPayment !== "gateway" || activeGateway !== "fikafi" ? (
+              <button
+                onClick={handleConfirmBooking}
+                className={`mt-6 w-full py-3 px-4 rounded-xl font-medium transition-all transform ${loading ||
+                  noAvailablePayment ||
+                  !selectedPayment
+                  ? "bg-gray-400 cursor-not-allowed opacity-50"
+                  : "text-white hover:scale-[1.02]"
+                  }`}
+                style={!(loading || noAvailablePayment || !selectedPayment) ? {
+                  backgroundColor: colors.primaryColor,
+                  color: colors.buttonTextColor
+                } : {}}
+                disabled={
+                  loading ||
+                  noAvailablePayment ||
+                  !selectedPayment
+                }
+              >
+                {loading ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Processing...
+                  </div>
+                ) : !selectedPayment ? (
+                  "Select Payment Method"
+                ) : (
+                  "Confirm Booking"
+                )}
+              </button>
+            ) : null}
+
+            {error && (
+              <p className="mt-3 text-red-600 font-medium text-center text-sm bg-red-50 p-2 rounded">
+                {error}
+              </p>
+            )}
           </div>
         </div>
 
-        {/* Payment Method */}
-        <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-5">
-          <h2 className="text-lg font-semibold mb-4" style={{ color: colors.primaryColor }}>
-            Choose Payment Method
-          </h2>
-
-          {noAvailablePayment ? (
-            <div className="px-4 py-3 rounded-lg mb-4 text-sm" style={{
-              backgroundColor: `${colors.secondaryColor}20`,
-              color: colors.primaryColor
-            }}>
-              <strong>No payment methods available</strong>
-              <p className="mt-1">
-                Please contact the hotel directly for payment arrangements.
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {[
-                {
-                  key: "payAtHotel",
-                  label: "Pay at Hotel",
-                  icon: "🏨",
-                  description: "Pay directly at the property during check-in",
-                },
-                {
-                  key: "gateway",
-                  label: "Pay Online",
-                  icon: "💳",
-                  description: activeGateway === "fikafi"
-                    ? "Secure payment via Fikafi payment gateway"
-                    : activeGateway === "ngenius"
-                      ? "Secure payment via Network International gateway"
-                      : "Secure online payment",
-                  isRecommended: true,
-                },
-              ].map(({ key, label, icon, description, isRecommended }) => {
-                const isActive = isMethodAvailable(key);
-                const isSelected = selectedPayment === key;
-
-                return (
-                  <div
-                    key={key}
-                    className={`border-2 rounded-xl transition-all ${isActive
-                      ? isSelected
-                        ? `bg-orange-50`
-                        : "border-gray-200 hover:border-gray-300 bg-white"
-                      : "border-gray-100 bg-gray-50 opacity-60 cursor-not-allowed"
-                      }`}
-                    style={isActive && isSelected ? {
-                      borderColor: colors.primaryColor,
-                      backgroundColor: `${colors.secondaryColor}10`
-                    } : {}}
-                  >
-                    <label
-                      className={`block p-4 ${isActive ? "cursor-pointer" : "cursor-not-allowed"
-                        }`}
-                    >
-                      <div className="flex items-start space-x-3">
-                        <input
-                          type="radio"
-                          name="paymentMethod"
-                          disabled={!isActive}
-                          checked={isSelected}
-                          onChange={() => isActive && setSelectedPayment(key)}
-                          className="mt-1 h-4 w-4"
-                          style={{ accentColor: colors.primaryColor }}
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-lg">{icon}</span>
-                            <span className="font-medium text-gray-900">
-                              {label}
-                            </span>
-                            {isRecommended && isActive && (
-                              <span className="text-xs text-white bg-green-500 px-2 py-1 rounded">
-                                Recommended
-                              </span>
-                            )}
-                            {!isActive && (
-                              <span className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded">
-                                Not Available
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-sm text-gray-600">{description}</p>
-                          {renderPaymentDetails(key)}
-                        </div>
-                      </div>
-                    </label>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Only show confirm button for non-Fikafi payments or when Fikafi payment button is not rendered */}
-          {selectedPayment !== "gateway" || activeGateway !== "fikafi" ? (
-            <button
-              onClick={handleConfirmBooking}
-              className={`mt-6 w-full py-3 px-4 rounded-xl font-medium transition-all transform ${loading ||
-                noAvailablePayment ||
-                !selectedPayment
-                ? "bg-gray-400 cursor-not-allowed opacity-50"
-                : "text-white hover:scale-[1.02]"
-                }`}
-              style={!(loading || noAvailablePayment || !selectedPayment) ? {
-                backgroundColor: colors.primaryColor,
-                color: colors.buttonTextColor
-              } : {}}
-              disabled={
-                loading ||
-                noAvailablePayment ||
-                !selectedPayment
-              }
-            >
-              {loading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Processing...
-                </div>
-              ) : !selectedPayment ? (
-                "Select Payment Method"
-              ) : (
-                "Confirm Booking"
-              )}
-            </button>
-          ) : null}
-
-          {error && (
-            <p className="mt-3 text-red-600 font-medium text-center text-sm bg-red-50 p-2 rounded">
-              {error}
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* Right Side */}
-      <div className="space-y-6">
-        <PriceDetails
+        {/* Right Side */}
+        <div className="space-y-6">
+          <PriceDetails
           bookingDetails={bookingDetails}
           onPriceUpdate={(total, discountAmount, promo) => {
             setUpdatedPrice(total);
@@ -910,9 +921,10 @@ const BookingReviewPage = () => {
             setPromoDetails(promo);
           }}
         />
-
-        <HelpBox />
+        <HelpBox hotelEmail={PropertyDetails?.property_email} />
+        </div>
       </div>
+
     </div>
   );
 };

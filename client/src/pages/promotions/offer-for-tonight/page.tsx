@@ -28,13 +28,17 @@ import toast from 'react-hot-toast';
 import { Calendar, Check, Clock, Edit, MoreVertical, Trash2, X } from 'lucide-react';
 import { convertBackendToApplicableDays } from '../device-specific/interfaces/mobilePromotion.type';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import type { ILoader } from '@/pages/dashboard/interface';
 
 export const OfferForTonightList: React.FC = () => {
     const { propertyId } = useParams<{ propertyId: string }>();
     const [promotions, setPromotions] = useState<OfferForTonightWithRatePlan[]>([]);
     const [ratePlans, setRatePlans] = useState<RatePlan[]>([]);
     const [roomTypes, setRoomTypes] = useState<RoomTypes[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState<ILoader>({
+        isLoading: false,
+        message: ''
+    });
     const [showForm, setShowForm] = useState(false);
     const [editData, setEditData] = useState<OfferForTonightWithRatePlan | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -45,7 +49,10 @@ export const OfferForTonightList: React.FC = () => {
     }, [propertyId]);
 
     const loadData = async () => {
-        setIsLoading(true);
+        setIsLoading({
+            isLoading: true,
+            message: 'Loading Offer For Tonight promotions...'
+        });
         try {
             if (!propertyId) {
                 return;
@@ -95,12 +102,18 @@ export const OfferForTonightList: React.FC = () => {
             console.error('Error loading data:', error);
             toast.error('Failed to load Offer For Tonight promotions');
         } finally {
-            setIsLoading(false);
+            setIsLoading({
+                isLoading: false,
+                message: ''
+            });
         }
     };
 
     const handleCreate = async (payload: CreateOfferForTonight) => {
-        setIsLoading(true);
+        setIsLoading({
+            isLoading: true,
+            message: 'Creating Offer For Tonight promotion...'
+        });
         try {
             const result = await createOfferForTonightService(payload);
             if (result.success) {
@@ -113,14 +126,20 @@ export const OfferForTonightList: React.FC = () => {
         } catch (error) {
             toast.error('An error occurred while creating the Offer For Tonight promotion');
         } finally {
-            setIsLoading(false);
+            setIsLoading({
+                isLoading: false,
+                message: ''
+            });
         }
     };
 
     const handleUpdate = async (payload: CreateOfferForTonight) => {
         if (!editData) return;
 
-        setIsLoading(true);
+        setIsLoading({
+            isLoading: true,
+            message: 'Updating Offer For Tonight promotion...'
+        });
         try {
             const updatePayload = {
                 promotionName: payload.promotionName,
@@ -136,7 +155,7 @@ export const OfferForTonightList: React.FC = () => {
                 friApplicable: payload.friApplicable,
                 satApplicable: payload.satApplicable,
                 sunApplicable: payload.sunApplicable,
-                isActive: true,
+                isActive: payload.isActive,
                 isAutoApplied: payload.isAutoApplied
             };
 
@@ -153,7 +172,10 @@ export const OfferForTonightList: React.FC = () => {
         } catch (error) {
             toast.error('An error occurred while updating the Offer For Tonight promotion');
         } finally {
-            setIsLoading(false);
+            setIsLoading({
+                isLoading: false,
+                message: ''
+            });
         }
     };
 
@@ -165,7 +187,10 @@ export const OfferForTonightList: React.FC = () => {
     const handleDeleteConfirm = async () => {
         if (!promotionToDelete) return;
 
-        setIsLoading(true);
+        setIsLoading({
+            isLoading: true,
+            message: 'Deleting Offer For Tonight promotion...'
+        });
         try {
             const result = await deleteOfferForTonightService(promotionToDelete);
             if (result.success) {
@@ -177,7 +202,10 @@ export const OfferForTonightList: React.FC = () => {
         } catch (error) {
             toast.error('An error occurred while deleting the Offer For Tonight promotion');
         } finally {
-            setIsLoading(false);
+            setIsLoading({
+                isLoading: false,
+                message: ''
+            });
             setDeleteDialogOpen(false);
             setPromotionToDelete(null);
         }
@@ -223,10 +251,10 @@ export const OfferForTonightList: React.FC = () => {
     };
 
     const getDiscountDisplay = (promotion: OfferForTonightWithRatePlan) => {
-        if (promotion.DiscountType === 'percentage') {
-            return `${promotion.DiscountValue}% OFF`;
+        if (promotion.discountType === 'percentage') {
+            return `${promotion.discountValue}% OFF`;
         } else {
-            return `${promotion.currencyCode || 'USD'} ${promotion.DiscountValue} OFF`;
+            return `${promotion.currencyCode || 'USD'} ${promotion.discountValue} OFF`;
         }
     };
 
@@ -279,9 +307,9 @@ export const OfferForTonightList: React.FC = () => {
             </div>
 
             <div className="bg-card rounded-lg border border-border overflow-hidden">
-                {isLoading ? (
+                {isLoading.isLoading ? (
                     <div className="py-12">
-                        <Loader text="Loading..." />
+                        <Loader text={isLoading.message} />
                     </div>
                 ) : (
                     <Table>
@@ -413,16 +441,16 @@ export const OfferForTonightList: React.FC = () => {
                                 <button
                                     onClick={handleDeleteCancel}
                                     className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
-                                    disabled={isLoading}
+                                    disabled={isLoading.isLoading}
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleDeleteConfirm}
                                     className="px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors"
-                                    disabled={isLoading}
+                                    disabled={isLoading.isLoading}
                                 >
-                                    {isLoading ? 'Deleting...' : 'Delete'}
+                                    {isLoading.isLoading ? 'Deleting...' : 'Delete'}
                                 </button>
                             </div>
                         </div>

@@ -12,11 +12,11 @@ import {
 import type {
   CreateEarlyBirdPromotion,
   EarlyBirdPromotionWithRatePlan,
-  DiscountType,
   RoomRatePlanPair,
 } from "../interfaces";
 import { Calendar } from "lucide-react";
 import type { CurrencyCode } from "../../device-specific/interfaces";
+import type { ILoader } from "@/pages/dashboard/interface";
 
 interface EarlyBirdPromotionFormProps {
   ratePlans: RatePlan[];
@@ -25,8 +25,29 @@ interface EarlyBirdPromotionFormProps {
   onSubmit: (payload: CreateEarlyBirdPromotion) => Promise<void>;
   onCancel: () => void;
   editData?: EarlyBirdPromotionWithRatePlan | null;
-  isLoading: boolean;
+  isLoading: ILoader;
 }
+
+const defaultPromotion = (propertyId: string): CreateEarlyBirdPromotion => ({
+  propertyId,
+  promotionType: "early_bird",
+  promotionName: "",
+  discountType: "percentage",
+  discountValue: 10,
+  currencyCode: "USD" as CurrencyCode,
+  validFrom: "",
+  validTo: null,
+  roomRatePlans: [],
+  monApplicable: true,
+  tueApplicable: true,
+  wedApplicable: true,
+  thuApplicable: true,
+  friApplicable: true,
+  satApplicable: true,
+  sunApplicable: true,
+  advanceBookingDays: 7,
+  isAutoApplied: false,
+});
 
 const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
   ratePlans,
@@ -37,57 +58,65 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
   editData,
   isLoading,
 }) => {
-  const [promotionName, setPromotionName] = useState<string>("");
-  const [discountType, setDiscountType] = useState<DiscountType>("percentage");
-  const [discountValue, setDiscountValue] = useState<string>("10");
-  const [currencyCode, setCurrencyCode] = useState<CurrencyCode>("USD");
-  const [validFrom, setValidFrom] = useState<string>("");
-  const [validTo, setValidTo] = useState<string>("");
+  const [earlyBirdPromotion, setEarlyBirdPromotion] =
+    useState<CreateEarlyBirdPromotion>(defaultPromotion(propertyId));
   const [hasEndDate, setHasEndDate] = useState<boolean>(false);
-  const [advanceBookingDays, setAdvanceBookingDays] = useState<string>("7");
-  const [isActive, setIsActive] = useState(true);
-  const [isAutoApplied, setIsAutoApplied] = useState<boolean>(false);
-  // Room and Rate Plan Selection
   const [selectionMode, setSelectionMode] = useState<"all" | "specific">("all");
   const [selectedRooms, setSelectedRooms] = useState<string[]>([]);
   const [selectedRatePlans, setSelectedRatePlans] = useState<string[]>([]);
 
-  const [applicableDays, setApplicableDays] = useState({
-    monday: true,
-    tuesday: true,
-    wednesday: true,
-    thursday: true,
-    friday: true,
-    saturday: true,
-    sunday: true,
-  });
+  // Helper to get applicableDays as an object for the UI
+  const applicableDays = {
+    monday: earlyBirdPromotion.monApplicable,
+    tuesday: earlyBirdPromotion.tueApplicable,
+    wednesday: earlyBirdPromotion.wedApplicable,
+    thursday: earlyBirdPromotion.thuApplicable,
+    friday: earlyBirdPromotion.friApplicable,
+    saturday: earlyBirdPromotion.satApplicable,
+    sunday: earlyBirdPromotion.sunApplicable,
+  };
+
+  const dayToField: Record<string, keyof CreateEarlyBirdPromotion> = {
+    monday: "monApplicable",
+    tuesday: "tueApplicable",
+    wednesday: "wedApplicable",
+    thursday: "thuApplicable",
+    friday: "friApplicable",
+    saturday: "satApplicable",
+    sunday: "sunApplicable",
+  };
 
   useEffect(() => {
     if (editData) {
-      setPromotionName(editData.promotionName);
-      setDiscountType(editData.DiscountType);
-      setDiscountValue(editData.DiscountValue.toString());
-      setCurrencyCode(editData.currencyCode || "USD");
-      setValidFrom(
-        editData.validFrom
+      setEarlyBirdPromotion({
+        propertyId,
+        promotionType: "early_bird",
+        promotionName: editData.promotionName,
+        discountType: editData.discountType,
+        discountValue: editData.discountValue,
+        currencyCode: editData.currencyCode || ("USD" as CurrencyCode),
+        validFrom: editData.validFrom
           ? new Date(editData.validFrom).toISOString().split("T")[0]
           : "",
-      );
-      setValidTo(
-        editData.validTo
+        validTo: editData.validTo
           ? new Date(editData.validTo).toISOString().split("T")[0]
-          : "",
-      );
+          : null,
+        roomRatePlans: editData.roomRatePlans || [],
+        monApplicable: editData.applicableDays.monday,
+        tueApplicable: editData.applicableDays.tuesday,
+        wedApplicable: editData.applicableDays.wednesday,
+        thuApplicable: editData.applicableDays.thursday,
+        friApplicable: editData.applicableDays.friday,
+        satApplicable: editData.applicableDays.saturday,
+        sunApplicable: editData.applicableDays.sunday,
+        advanceBookingDays: editData.advanceBookingDays || 7,
+        isAutoApplied: editData.isAutoApplied,
+      });
       setHasEndDate(!!editData.validTo);
-      setApplicableDays(editData.applicableDays);
-      setIsActive(editData.isActive);
-      setAdvanceBookingDays(editData.advanceBookingDays?.toString() || "7");
 
       // Check if it's "all" mode or specific selection
       if (editData.roomRatePlans && editData.roomRatePlans.length > 0) {
         setSelectionMode("specific");
-
-        // Extract unique room IDs
         const roomIds = [
           ...new Set(
             editData.roomRatePlans
@@ -95,8 +124,6 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
               .filter((id): id is string => !!id),
           ),
         ];
-
-        // Extract unique rate plan IDs
         const ratePlanIds = [
           ...new Set(
             editData.roomRatePlans
@@ -104,7 +131,6 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
               .filter((id): id is string => !!id),
           ),
         ];
-
         setSelectedRooms(roomIds);
         setSelectedRatePlans(ratePlanIds);
       }
@@ -127,25 +153,27 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
     }
   };
 
-  const handleDayToggle = (day: keyof typeof applicableDays) => {
-    setApplicableDays((prev) => ({
-      ...prev,
-      [day]: !prev[day],
-    }));
+  const handleDayToggle = (day: string) => {
+    const field = dayToField[day];
+    if (!field) return;
+    setEarlyBirdPromotion({
+      ...earlyBirdPromotion,
+      [field]: !applicableDays[day as keyof typeof applicableDays],
+    });
   };
 
   const handleSelectAllDays = () => {
     const allSelected = Object.values(applicableDays).every((v) => v);
-    const newState = {
-      monday: !allSelected,
-      tuesday: !allSelected,
-      wednesday: !allSelected,
-      thursday: !allSelected,
-      friday: !allSelected,
-      saturday: !allSelected,
-      sunday: !allSelected,
-    };
-    setApplicableDays(newState);
+    setEarlyBirdPromotion({
+      ...earlyBirdPromotion,
+      monApplicable: !allSelected,
+      tueApplicable: !allSelected,
+      wedApplicable: !allSelected,
+      thuApplicable: !allSelected,
+      friApplicable: !allSelected,
+      satApplicable: !allSelected,
+      sunApplicable: !allSelected,
+    });
   };
 
   const getActiveDaysSummary = () => {
@@ -171,7 +199,6 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
     let roomRatePlans: RoomRatePlanPair[] = [];
 
     if (selectionMode === "all") {
-      // Apply to all room types and all rate plans
       roomTypes.forEach((room) => {
         ratePlans.forEach((plan) => {
           roomRatePlans.push({
@@ -183,9 +210,7 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
         });
       });
     } else {
-      // Apply to selected rooms and rate plans
       if (selectedRooms.length === 0) {
-        // If no rooms selected, apply to all rooms with selected rate plans
         roomTypes.forEach((room) => {
           selectedRatePlans.forEach((planId) => {
             const plan = ratePlans.find((p) => p.id === planId);
@@ -200,7 +225,6 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
           });
         });
       } else {
-        // Apply to selected rooms and rate plans
         selectedRooms.forEach((roomId) => {
           const room = roomTypes.find((r) => r.id === roomId);
           selectedRatePlans.forEach((planId) => {
@@ -219,42 +243,29 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
     }
 
     const payload: CreateEarlyBirdPromotion = {
-      propertyId,
-      promotionType: "early_bird",
-      promotionName,
-      discountType,
-      discountValue: parseFloat(discountValue),
-      currencyCode: discountType === "flat" ? currencyCode : undefined,
-      validFrom,
-      validTo: hasEndDate ? validTo || null : null,
+      ...earlyBirdPromotion,
       roomRatePlans,
-      monApplicable: applicableDays.monday,
-      tueApplicable: applicableDays.tuesday,
-      wedApplicable: applicableDays.wednesday,
-      thuApplicable: applicableDays.thursday,
-      friApplicable: applicableDays.friday,
-      satApplicable: applicableDays.saturday,
-      sunApplicable: applicableDays.sunday,
-      advanceBookingDays: advanceBookingDays
-        ? parseInt(advanceBookingDays)
-        : undefined,
-        isAutoApplied
+      currencyCode:
+        earlyBirdPromotion.discountType === "flat"
+          ? earlyBirdPromotion.currencyCode
+          : undefined,
+      validTo: hasEndDate ? earlyBirdPromotion.validTo || null : null,
     };
 
     await onSubmit(payload);
   };
 
   const getDiscountDisplayText = () => {
-    if (discountType === "percentage") {
-      return `${discountValue}% OFF`;
+    if (earlyBirdPromotion.discountType === "percentage") {
+      return `${earlyBirdPromotion.discountValue}% OFF`;
     } else {
-      return `${currencyCode} ${discountValue} OFF`;
+      return `${earlyBirdPromotion.currencyCode} ${earlyBirdPromotion.discountValue} OFF`;
     }
   };
 
   return (
     <div className="bg-card rounded-lg border border-border shadow-sm relative">
-      {isLoading && (
+      {isLoading.isLoading && (
         <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center rounded-lg">
           <Loader text="Processing..." />
         </div>
@@ -289,8 +300,15 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
           <div className="flex items-center space-x-3">
             <input
               type="number"
-              value={advanceBookingDays}
-              onChange={(e) => setAdvanceBookingDays(e.target.value)}
+              value={earlyBirdPromotion.advanceBookingDays || ""}
+              onChange={(e) =>
+                setEarlyBirdPromotion({
+                  ...earlyBirdPromotion,
+                  advanceBookingDays: e.target.value
+                    ? parseInt(e.target.value)
+                    : undefined,
+                })
+              }
               min="1"
               className="w-24 px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
               required
@@ -298,17 +316,18 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
             <span className="text-sm text-foreground">Day(s) or more</span>
           </div>
 
-          {advanceBookingDays && parseInt(advanceBookingDays) > 0 && (
-            <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-              <p className="text-xs text-blue-700 dark:text-blue-300">
-                Guests must book at least{" "}
-                <span className="font-semibold">
-                  {advanceBookingDays} day(s)
-                </span>{" "}
-                before check-in to qualify for this promotion
-              </p>
-            </div>
-          )}
+          {earlyBirdPromotion.advanceBookingDays &&
+            earlyBirdPromotion.advanceBookingDays > 0 && (
+              <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                <p className="text-xs text-blue-700 dark:text-blue-300">
+                  Guests must book at least{" "}
+                  <span className="font-semibold">
+                    {earlyBirdPromotion.advanceBookingDays} day(s)
+                  </span>{" "}
+                  before check-in to qualify for this promotion
+                </p>
+              </div>
+            )}
         </div>
 
         {/* Room Types and Rate Plans */}
@@ -610,8 +629,13 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input
                   type="radio"
-                  checked={discountType === "percentage"}
-                  onChange={() => setDiscountType("percentage")}
+                  checked={earlyBirdPromotion.discountType === "percentage"}
+                  onChange={() =>
+                    setEarlyBirdPromotion({
+                      ...earlyBirdPromotion,
+                      discountType: "percentage",
+                    })
+                  }
                   className="w-4 h-4 text-primary border-border focus:ring-2 focus:ring-primary"
                 />
                 <span className="text-sm text-foreground">
@@ -621,8 +645,13 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input
                   type="radio"
-                  checked={discountType === "flat"}
-                  onChange={() => setDiscountType("flat")}
+                  checked={earlyBirdPromotion.discountType === "flat"}
+                  onChange={() =>
+                    setEarlyBirdPromotion({
+                      ...earlyBirdPromotion,
+                      discountType: "flat",
+                    })
+                  }
                   className="w-4 h-4 text-primary border-border focus:ring-2 focus:ring-primary"
                 />
                 <span className="text-sm text-foreground">
@@ -640,29 +669,47 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
               <div className="relative">
                 <input
                   type="number"
-                  value={discountValue}
-                  onChange={(e) => setDiscountValue(e.target.value)}
+                  value={earlyBirdPromotion.discountValue}
+                  onChange={(e) =>
+                    setEarlyBirdPromotion({
+                      ...earlyBirdPromotion,
+                      discountValue: parseFloat(e.target.value) || 0,
+                    })
+                  }
                   min="1"
-                  max={discountType === "percentage" ? "100" : undefined}
-                  step={discountType === "percentage" ? "1" : "0.01"}
+                  max={
+                    earlyBirdPromotion.discountType === "percentage"
+                      ? "100"
+                      : undefined
+                  }
+                  step={
+                    earlyBirdPromotion.discountType === "percentage"
+                      ? "1"
+                      : "0.01"
+                  }
                   className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground pr-12"
                   required
                 />
                 <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground font-medium">
-                  {discountType === "percentage" ? "% off" : currencyCode}
+                  {earlyBirdPromotion.discountType === "percentage"
+                    ? "% off"
+                    : earlyBirdPromotion.currencyCode}
                 </span>
               </div>
             </div>
 
-            {discountType === "flat" && (
+            {earlyBirdPromotion.discountType === "flat" && (
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
                   Currency *
                 </label>
                 <Select
-                  value={currencyCode}
+                  value={earlyBirdPromotion.currencyCode || "USD"}
                   onValueChange={(value) =>
-                    setCurrencyCode(value as CurrencyCode)
+                    setEarlyBirdPromotion({
+                      ...earlyBirdPromotion,
+                      currencyCode: value as CurrencyCode,
+                    })
                   }
                 >
                   <SelectTrigger className="w-full">
@@ -702,8 +749,13 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
                 </label>
                 <input
                   type="date"
-                  value={validFrom}
-                  onChange={(e) => setValidFrom(e.target.value)}
+                  value={earlyBirdPromotion.validFrom}
+                  onChange={(e) =>
+                    setEarlyBirdPromotion({
+                      ...earlyBirdPromotion,
+                      validFrom: e.target.value,
+                    })
+                  }
                   className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
                   required
                 />
@@ -716,7 +768,11 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
                   checked={hasEndDate}
                   onChange={(e) => {
                     setHasEndDate(e.target.checked);
-                    if (!e.target.checked) setValidTo("");
+                    if (!e.target.checked)
+                      setEarlyBirdPromotion({
+                        ...earlyBirdPromotion,
+                        validTo: null,
+                      });
                   }}
                   className="w-4 h-4 text-primary border-border rounded focus:ring-2 focus:ring-primary"
                 />
@@ -735,9 +791,14 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
                   </label>
                   <input
                     type="date"
-                    value={validTo}
-                    onChange={(e) => setValidTo(e.target.value)}
-                    min={validFrom}
+                    value={earlyBirdPromotion.validTo || ""}
+                    onChange={(e) =>
+                      setEarlyBirdPromotion({
+                        ...earlyBirdPromotion,
+                        validTo: e.target.value,
+                      })
+                    }
+                    min={earlyBirdPromotion.validFrom}
                     className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
                   />
                 </div>
@@ -771,9 +832,7 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
                   <input
                     type="checkbox"
                     checked={isChecked}
-                    onChange={() =>
-                      handleDayToggle(day as keyof typeof applicableDays)
-                    }
+                    onChange={() => handleDayToggle(day)}
                     className="w-4 h-4 text-primary border-border rounded focus:ring-2 focus:ring-primary"
                   />
                   <span className="text-sm text-foreground capitalize">
@@ -790,9 +849,11 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
                 </p>
                 <p className="text-sm text-blue-900 dark:text-blue-100 font-medium mt-1">
                   {getDiscountDisplayText()}: Valid from{" "}
-                  {validFrom || "start date"}
-                  {hasEndDate && validTo ? ` to ${validTo}` : " onwards"},
-                  including {getActiveDaysSummary()}.
+                  {earlyBirdPromotion.validFrom || "start date"}
+                  {hasEndDate && earlyBirdPromotion.validTo
+                    ? ` to ${earlyBirdPromotion.validTo}`
+                    : " onwards"}
+                  , including {getActiveDaysSummary()}.
                 </p>
               </div>
             )}
@@ -812,9 +873,14 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
           </p>
           <input
             type="text"
-            value={promotionName}
-            onChange={(e) => setPromotionName(e.target.value)}
-            placeholder={`${getDiscountDisplayText()} - Early Bird - ${validFrom || "Start Date"}`}
+            value={earlyBirdPromotion.promotionName}
+            onChange={(e) =>
+              setEarlyBirdPromotion({
+                ...earlyBirdPromotion,
+                promotionName: e.target.value,
+              })
+            }
+            placeholder={`${getDiscountDisplayText()} - Early Bird - ${earlyBirdPromotion.validFrom || "Start Date"}`}
             className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
             required
           />
@@ -825,8 +891,13 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
           <input
             type="checkbox"
             id="isActive"
-            checked={isActive}
-            onChange={(e) => setIsActive(e.target.checked)}
+            checked={earlyBirdPromotion.isAutoApplied}
+            onChange={(e) =>
+              setEarlyBirdPromotion({
+                ...earlyBirdPromotion,
+                isAutoApplied: e.target.checked,
+              })
+            }
             className="w-5 h-5 text-primary border-border rounded focus:ring-2 focus:ring-primary"
           />
           <label
@@ -835,19 +906,24 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
           >
             Active Status
             <span className="block text-xs text-muted-foreground font-normal mt-0.5">
-              {isActive
+              {earlyBirdPromotion.isAutoApplied
                 ? "This promotion is currently active"
                 : "This promotion is currently inactive"}
             </span>
           </label>
         </div>
-        {/* Status Toggle */}
+        {/* Auto Applied Toggle */}
         <div className="flex items-center space-x-3 p-3 bg-muted/20 rounded-lg border border-border">
           <input
             type="checkbox"
             id="isAutoApplied"
-            checked={isAutoApplied}
-            onChange={(e) => setIsAutoApplied(e.target.checked)}
+            checked={earlyBirdPromotion.isAutoApplied}
+            onChange={(e) =>
+              setEarlyBirdPromotion({
+                ...earlyBirdPromotion,
+                isAutoApplied: e.target.checked,
+              })
+            }
             className="w-5 h-5 text-primary border-border rounded focus:ring-2 focus:ring-primary"
           />
           <label
@@ -856,7 +932,7 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
           >
             Auto Applied
             <span className="block text-xs text-muted-foreground font-normal mt-0.5">
-              {isAutoApplied
+              {earlyBirdPromotion.isAutoApplied
                 ? "This promotion is currently auto-applied"
                 : "This promotion is currently not auto-applied"}
             </span>
@@ -868,7 +944,7 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
             type="button"
             onClick={onCancel}
             className="px-6 py-2.5 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/90 transition-colors font-medium"
-            disabled={isLoading}
+            disabled={isLoading.isLoading}
           >
             Cancel
           </button>
@@ -876,9 +952,9 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
             type="submit"
             className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm"
             disabled={
-              isLoading ||
-              !promotionName ||
-              !validFrom ||
+              isLoading.isLoading ||
+              !earlyBirdPromotion.promotionName ||
+              !earlyBirdPromotion.validFrom ||
               (selectionMode === "specific" &&
                 selectedRatePlans.length === 0) ||
               !Object.values(applicableDays).some((v) => v)

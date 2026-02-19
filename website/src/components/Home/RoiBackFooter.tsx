@@ -37,7 +37,7 @@ const Footer = () => {
     return (
         <footer
             id="contact"
-            className="text-white"
+            className={`text-white ${isHomePage ? "hidden" : ""}`}
             style={{ backgroundColor: `${primaryColor}80` }}
         >
             {/* Main Footer Content */}

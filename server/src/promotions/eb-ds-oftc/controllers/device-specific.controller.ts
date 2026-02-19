@@ -3,14 +3,18 @@ import { PropertyCustomRequest } from '../../../utils/customRequest';
 import { errorResponse } from '../../../utils/return';
 import { DeviceSpecificPromotionService } from '../services';
 import { CustomRequest } from '../../../utils/customRequest';
+import { ICEbDsOftc, PromotionType } from '../interfaces';
 
 export class DeviceSpecificPromotionController {
-  /**
-   * Create a device-specific promotion
-   */
-  public static async createDeviceSpecificPromotion(req: PropertyCustomRequest, res: Response) {
+  deviceSpecificPromotionService: DeviceSpecificPromotionService;
+
+  constructor() {
+    this.deviceSpecificPromotionService = new DeviceSpecificPromotionService();
+  }
+
+  public async createDeviceSpecificPromotion(req: PropertyCustomRequest, res: Response): Promise<Response> {
     try {
-      const { 
+      const {
         promotionName,
         propertyId,
         discountType,
@@ -28,21 +32,20 @@ export class DeviceSpecificPromotionController {
         friApplicable,
         satApplicable,
         sunApplicable,
-        isAutoApplied
-      } = req.body;
-
+        isAutoApplied,
+        isActive
+      }: ICEbDsOftc = req.body;
       // Basic validation
-      if (!promotionName || !propertyId || !discountType || discountValue === undefined) {
+      if (!promotionName || !propertyId || !discountType || !discountValue) {
         return res.status(400).json(
           errorResponse('Promotion name, property ID, discount type, and discount value are required')
         );
       }
 
       if (!validFrom) {
-        return res.status(400).json(errorResponse('Valid from date is required'));
+        return res.status(400).json(errorResponse('Promotion applicable start date is required'));
       }
 
-      // Device-specific validation
       if (!deviceType || deviceType.length === 0) {
         return res.status(400).json(
           errorResponse('At least one device type is required for device-specific promotion')
@@ -58,12 +61,12 @@ export class DeviceSpecificPromotionController {
       const promotionData = {
         promotionName,
         propertyId,
-        promotionType: 'device_specific' as const,
+        promotionType: 'device_specific' as PromotionType,
         discountType,
         discountValue,
         currencyCode,
         validFrom: new Date(validFrom),
-        validTo: validTo ? new Date(validTo) : undefined,
+        validTo: validTo ? new Date(validTo) : null,
         deviceType,
         ratePlanId,
         ratePlanCode,
@@ -74,23 +77,33 @@ export class DeviceSpecificPromotionController {
         friApplicable: friApplicable ?? true,
         satApplicable: satApplicable ?? true,
         sunApplicable: sunApplicable ?? true,
-        isAutoApplied
+        isAutoApplied,
+        isActive
       };
 
-      const result = await DeviceSpecificPromotionService.createDeviceSpecificPromotion(promotionData);
+      const result = await this.deviceSpecificPromotionService.createDeviceSpecificPromotion({
+        ...promotionData,
+        roomId: null,
+        advanceBookingDays: null,
+        roomType: null
+      });
       const status = result.success ? 201 : 400;
       return res.status(status).json(result);
-    } catch (error: any) {
+    } catch (error) {
+      if (error instanceof Error) {
+
+        return res.status(500).json(
+          errorResponse('Internal server error', error?.message)
+        );
+      }
       return res.status(500).json(
-        errorResponse('Internal server error', error?.message)
+        errorResponse('Internal server error')
       );
     }
   }
 
-  /**
-   * Get all device-specific promotions by property
-   */
-  public static async getDeviceSpecificPromotionsByProperty(req: PropertyCustomRequest, res: Response) {
+
+  public async getDeviceSpecificPromotionsByProperty(req: PropertyCustomRequest, res: Response) {
     try {
       const propertyId = req.params.propertyId;
 
@@ -98,7 +111,7 @@ export class DeviceSpecificPromotionController {
         return res.status(400).json(errorResponse('Property ID is required'));
       }
 
-      const result = await DeviceSpecificPromotionService.getDeviceSpecificPromotionsByProperty(propertyId);
+      const result = await this.deviceSpecificPromotionService.getDeviceSpecificPromotionsByProperty(propertyId);
       const status = result.success ? 200 : 400;
       return res.status(status).json(result);
     } catch (error: any) {
@@ -108,10 +121,7 @@ export class DeviceSpecificPromotionController {
     }
   }
 
-  /**
-   * Get device-specific promotion by ID
-   */
-  public static async getDeviceSpecificPromotionById(req: CustomRequest, res: Response) {
+  public async getDeviceSpecificPromotionById(req: CustomRequest, res: Response) {
     try {
       const promotionId = req.params.promotionId;
 
@@ -119,7 +129,7 @@ export class DeviceSpecificPromotionController {
         return res.status(400).json(errorResponse('Promotion ID is required'));
       }
 
-      const result = await DeviceSpecificPromotionService.getDeviceSpecificPromotionById(promotionId);
+      const result = await this.deviceSpecificPromotionService.getDeviceSpecificPromotionById(promotionId);
       const status = result.success ? 200 : 400;
       return res.status(status).json(result);
     } catch (error: any) {
@@ -129,10 +139,7 @@ export class DeviceSpecificPromotionController {
     }
   }
 
-  /**
-   * Update device-specific promotion
-   */
-  public static async updateDeviceSpecificPromotion(req: CustomRequest, res: Response) {
+  public async updateDeviceSpecificPromotion(req: CustomRequest, res: Response) {
     try {
       const promotionId = req.params.promotionId;
       const updateData = req.body;
@@ -149,7 +156,7 @@ export class DeviceSpecificPromotionController {
         updateData.validTo = new Date(updateData.validTo);
       }
 
-      const result = await DeviceSpecificPromotionService.updateDeviceSpecificPromotion(promotionId, updateData);
+      const result = await this.deviceSpecificPromotionService.updateDeviceSpecificPromotion(promotionId, updateData);
       const status = result.success ? 200 : 400;
       return res.status(status).json(result);
     } catch (error: any) {
@@ -159,10 +166,7 @@ export class DeviceSpecificPromotionController {
     }
   }
 
-  /**
-   * Delete device-specific promotion
-   */
-  public static async deleteDeviceSpecificPromotion(req: CustomRequest, res: Response) {
+  public async deleteDeviceSpecificPromotion(req: CustomRequest, res: Response) {
     try {
       const promotionId = req.params.promotionId;
 
@@ -170,7 +174,7 @@ export class DeviceSpecificPromotionController {
         return res.status(400).json(errorResponse('Promotion ID is required'));
       }
 
-      const result = await DeviceSpecificPromotionService.deleteDeviceSpecificPromotion(promotionId);
+      const result = await this.deviceSpecificPromotionService.deleteDeviceSpecificPromotion(promotionId);
       const status = result.success ? 200 : 400;
       return res.status(status).json(result);
     } catch (error: any) {
@@ -180,29 +184,5 @@ export class DeviceSpecificPromotionController {
     }
   }
 
-  /**
-   * Toggle device-specific promotion status
-   */
-  public static async toggleDeviceSpecificPromotionStatus(req: CustomRequest, res: Response) {
-    try {
-      const promotionId = req.params.promotionId;
-      const { isActive } = req.body;
 
-      if (!promotionId) {
-        return res.status(400).json(errorResponse('Promotion ID is required'));
-      }
-
-      if (typeof isActive !== 'boolean') {
-        return res.status(400).json(errorResponse('isActive must be a boolean value'));
-      }
-
-      const result = await DeviceSpecificPromotionService.toggleDeviceSpecificPromotionStatus(promotionId, isActive);
-      const status = result.success ? 200 : 400;
-      return res.status(status).json(result);
-    } catch (error: any) {
-      return res.status(500).json(
-        errorResponse('Internal server error', error?.message)
-      );
-    }
-  }
 }

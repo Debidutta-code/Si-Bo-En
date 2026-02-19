@@ -1,7 +1,7 @@
 import { createRatePlan, deleteRatePlan, getRatePlans, updateRatePlan } from "../api";
 import { addAddonToRatePlan, createRatePlanRule, getAddonsByRatePlanCode, removeAddonFromRatePlan, updateRatePlanRule } from "../api/api";
 import type { CreateRatePlan } from "../interfaces";
-import type { RatePlanRule } from "../interfaces/ratePlan.type";
+import type { ICRatePlanRule } from "../interfaces/ratePlan.type";
 
 export async function createRatePlanService(propertyId: string, payload: CreateRatePlan) {
     if (!propertyId) {
@@ -59,7 +59,7 @@ export async function updateRatePlanService(ratePlanCode: string, payload: Parti
     return result;
 }
 
-export async function createRatePlanRuleService(payload: Partial<RatePlanRule>) {
+export async function createRatePlanRuleService(payload: ICRatePlanRule) {
     
     if (!payload.ratePlanId) {
         return {
@@ -72,7 +72,7 @@ export async function createRatePlanRuleService(payload: Partial<RatePlanRule>) 
     return result;
 }
 
-export async function updateRatePlanRuleService(ratePlanId: string, payload: Partial<RatePlanRule>) {
+export async function updateRatePlanRuleService(ratePlanId: string, payload: ICRatePlanRule) {
     if (!ratePlanId) {
         return {
             success: false,

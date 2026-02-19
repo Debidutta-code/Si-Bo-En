@@ -12,11 +12,11 @@ import {
 import type {
   CreateOfferForTonight,
   OfferForTonightWithRatePlan,
-  DiscountType,
   RoomRatePlanPair,
+  CurrencyCode,
 } from "../interfaces";
 import { Clock } from "lucide-react";
-import type { CurrencyCode } from "../../device-specific/interfaces";
+import type { ILoader } from "@/pages/dashboard/interface";
 
 interface OfferForTonightFormProps {
   ratePlans: RatePlan[];
@@ -25,8 +25,29 @@ interface OfferForTonightFormProps {
   onSubmit: (payload: CreateOfferForTonight) => Promise<void>;
   onCancel: () => void;
   editData?: OfferForTonightWithRatePlan | null;
-  isLoading: boolean;
+  isLoading: ILoader;
 }
+
+const defaultPromotion = (propertyId: string): CreateOfferForTonight => ({
+  propertyId,
+  promotionType: "offer_for_tonight",
+  promotionName: "",
+  discountType: "percentage",
+  discountValue: 10,
+  currencyCode: "USD" as CurrencyCode,
+  validFrom: "",
+  validTo: null,
+  roomRatePlans: [],
+  monApplicable: true,
+  tueApplicable: true,
+  wedApplicable: true,
+  thuApplicable: true,
+  friApplicable: true,
+  satApplicable: true,
+  sunApplicable: true,
+  isAutoApplied: false,
+  isActive: false,
+});
 
 const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
   ratePlans,
@@ -37,32 +58,40 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
   editData,
   isLoading,
 }) => {
-  //needs refactor
-  const [promotionName, setPromotionName] = useState<string>("");
-  const [discountType, setDiscountType] = useState<DiscountType>("percentage");
-  const [discountValue, setDiscountValue] = useState<string>("10");
-  const [currencyCode, setCurrencyCode] = useState<CurrencyCode>("USD");
-  const [bookingTimeFrom, setBookingTimeFrom] = useState<string>("12:00");
-  const [bookingTimeTo, setBookingTimeTo] = useState<string>("18:00");
-  const [startDate, setStartDate] = useState<string>("");
+  const [offerForTonight, setOfferForTonight] = useState<CreateOfferForTonight>(
+    defaultPromotion(propertyId),
+  );
+
+  // UI-only states
   const [hasEndDate, setHasEndDate] = useState<boolean>(false);
-  const [endDate, setEndDate] = useState<string>("");
-  const [isActive, setIsActive] = useState(true);
-  const [isAutoApplied, setIsAutoApplied] = useState<boolean>(false);
-  // Room and Rate Plan Selection
   const [selectionMode, setSelectionMode] = useState<"all" | "specific">("all");
   const [selectedRooms, setSelectedRooms] = useState<string[]>([]);
   const [selectedRatePlans, setSelectedRatePlans] = useState<string[]>([]);
+  const [bookingTimeFrom, setBookingTimeFrom] = useState<string>("12:00");
+  const [bookingTimeTo, setBookingTimeTo] = useState<string>("18:00");
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
 
-  const [applicableDays, setApplicableDays] = useState({
-    monday: true,
-    tuesday: true,
-    wednesday: true,
-    thursday: true,
-    friday: true,
-    saturday: true,
-    sunday: true,
-  });
+  // Helper to get applicableDays as an object for the UI
+  const applicableDays = {
+    monday: offerForTonight.monApplicable,
+    tuesday: offerForTonight.tueApplicable,
+    wednesday: offerForTonight.wedApplicable,
+    thursday: offerForTonight.thuApplicable,
+    friday: offerForTonight.friApplicable,
+    saturday: offerForTonight.satApplicable,
+    sunday: offerForTonight.sunApplicable,
+  };
+
+  const dayToField: Record<string, keyof CreateOfferForTonight> = {
+    monday: "monApplicable",
+    tuesday: "tueApplicable",
+    wednesday: "wedApplicable",
+    thursday: "thuApplicable",
+    friday: "friApplicable",
+    saturday: "satApplicable",
+    sunday: "sunApplicable",
+  };
 
   // Set today's date as default start date
   useEffect(() => {
@@ -71,13 +100,30 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
       setStartDate(today);
     }
   }, [editData]);
+
   useEffect(() => {
     if (editData) {
-      setPromotionName(editData.promotionName);
-      setDiscountType(editData.DiscountType);
-      setDiscountValue(editData.DiscountValue.toString());
-      setCurrencyCode(editData.currencyCode || "USD");
-      setIsAutoApplied(editData.isAutoApplied);
+      setOfferForTonight({
+        propertyId,
+        promotionType: "offer_for_tonight",
+        promotionName: editData.promotionName,
+        discountType: editData.discountType,
+        discountValue: editData.discountValue,
+        currencyCode: editData.currencyCode || ("USD" as CurrencyCode),
+        validFrom: "",
+        validTo: null,
+        roomRatePlans: editData.roomRatePlans || [],
+        monApplicable: editData.applicableDays.monday,
+        tueApplicable: editData.applicableDays.tuesday,
+        wedApplicable: editData.applicableDays.wednesday,
+        thuApplicable: editData.applicableDays.thursday,
+        friApplicable: editData.applicableDays.friday,
+        satApplicable: editData.applicableDays.saturday,
+        sunApplicable: editData.applicableDays.sunday,
+        isAutoApplied: editData.isAutoApplied,
+        isActive: editData.isActive,
+      });
+
       // Extract date and time from validFrom and validTo
       if (editData.validFrom) {
         const fromDate = new Date(editData.validFrom);
@@ -91,14 +137,9 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
         setHasEndDate(true);
       }
 
-      setApplicableDays(editData.applicableDays);
-      setIsActive(editData.isActive);
-
       // Check if it's "all" mode or specific selection
       if (editData.roomRatePlans && editData.roomRatePlans.length > 0) {
         setSelectionMode("specific");
-
-        // Extract unique room IDs
         const roomIds = [
           ...new Set(
             editData.roomRatePlans
@@ -106,8 +147,6 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
               .filter((id): id is string => !!id),
           ),
         ];
-
-        // Extract unique rate plan IDs
         const ratePlanIds = [
           ...new Set(
             editData.roomRatePlans
@@ -115,7 +154,6 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
               .filter((id): id is string => !!id),
           ),
         ];
-
         setSelectedRooms(roomIds);
         setSelectedRatePlans(ratePlanIds);
       }
@@ -138,25 +176,27 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
     }
   };
 
-  const handleDayToggle = (day: keyof typeof applicableDays) => {
-    setApplicableDays((prev) => ({
-      ...prev,
-      [day]: !prev[day],
-    }));
+  const handleDayToggle = (day: string) => {
+    const field = dayToField[day];
+    if (!field) return;
+    setOfferForTonight({
+      ...offerForTonight,
+      [field]: !applicableDays[day as keyof typeof applicableDays],
+    });
   };
 
   const handleSelectAllDays = () => {
     const allSelected = Object.values(applicableDays).every((v) => v);
-    const newState = {
-      monday: !allSelected,
-      tuesday: !allSelected,
-      wednesday: !allSelected,
-      thursday: !allSelected,
-      friday: !allSelected,
-      saturday: !allSelected,
-      sunday: !allSelected,
-    };
-    setApplicableDays(newState);
+    setOfferForTonight({
+      ...offerForTonight,
+      monApplicable: !allSelected,
+      tueApplicable: !allSelected,
+      wedApplicable: !allSelected,
+      thuApplicable: !allSelected,
+      friApplicable: !allSelected,
+      satApplicable: !allSelected,
+      sunApplicable: !allSelected,
+    });
   };
 
   const getActiveDaysSummary = () => {
@@ -196,7 +236,6 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
     let roomRatePlans: RoomRatePlanPair[] = [];
 
     if (selectionMode === "all") {
-      // Apply to all room types and all rate plans
       roomTypes.forEach((room) => {
         ratePlans.forEach((plan) => {
           roomRatePlans.push({
@@ -208,9 +247,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
         });
       });
     } else {
-      // Apply to selected rooms and rate plans
       if (selectedRooms.length === 0) {
-        // If no rooms selected, apply to all rooms with selected rate plans
         roomTypes.forEach((room) => {
           selectedRatePlans.forEach((planId) => {
             const plan = ratePlans.find((p) => p.id === planId);
@@ -225,7 +262,6 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
           });
         });
       } else {
-        // Apply to selected rooms and rate plans
         selectedRooms.forEach((roomId) => {
           const room = roomTypes.find((r) => r.id === roomId);
           selectedRatePlans.forEach((planId) => {
@@ -248,48 +284,38 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
     const validFrom = validFromDateTime.toISOString();
 
     // Combine date and time to create ISO timestamp for validTo
-    // If no end date is set, use the same start date with the "to" time
     let validTo: string | null = null;
     const dateForValidTo = hasEndDate && endDate ? endDate : startDate;
     const validToDateTime = new Date(`${dateForValidTo}T${bookingTimeTo}:00`);
     validTo = validToDateTime.toISOString();
 
     const payload: CreateOfferForTonight = {
-      propertyId,
-      promotionType: "offer_for_tonight",
-      promotionName,
-      discountType,
-      discountValue: parseFloat(discountValue),
-      currencyCode: discountType === "flat" ? currencyCode : undefined,
+      ...offerForTonight,
+      roomRatePlans,
+      currencyCode:
+        offerForTonight.discountType === "flat"
+          ? offerForTonight.currencyCode
+          : undefined,
       validFrom,
       validTo,
-      roomRatePlans,
-      monApplicable: applicableDays.monday,
-      tueApplicable: applicableDays.tuesday,
-      wedApplicable: applicableDays.wednesday,
-      thuApplicable: applicableDays.thursday,
-      friApplicable: applicableDays.friday,
-      satApplicable: applicableDays.saturday,
-      sunApplicable: applicableDays.sunday,
-      isAutoApplied: isAutoApplied
     };
 
     await onSubmit(payload);
   };
 
   const getDiscountDisplayText = () => {
-    if (discountType === "percentage") {
-      return `${discountValue}% OFF`;
+    if (offerForTonight.discountType === "percentage") {
+      return `${offerForTonight.discountValue}% OFF`;
     } else {
-      return `${currencyCode} ${discountValue} OFF`;
+      return `${offerForTonight.currencyCode} ${offerForTonight.discountValue} OFF`;
     }
   };
 
   return (
     <div className="bg-card rounded-lg border border-border shadow-sm relative">
-      {isLoading && (
+      {isLoading.isLoading && (
         <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center rounded-lg">
-          <Loader text="Processing..." />
+          <Loader text={isLoading.message} />
         </div>
       )}
 
@@ -672,8 +698,13 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input
                   type="radio"
-                  checked={discountType === "percentage"}
-                  onChange={() => setDiscountType("percentage")}
+                  checked={offerForTonight.discountType === "percentage"}
+                  onChange={() =>
+                    setOfferForTonight({
+                      ...offerForTonight,
+                      discountType: "percentage",
+                    })
+                  }
                   className="w-4 h-4 text-primary border-border focus:ring-2 focus:ring-primary"
                 />
                 <span className="text-sm text-foreground">
@@ -683,8 +714,13 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input
                   type="radio"
-                  checked={discountType === "flat"}
-                  onChange={() => setDiscountType("flat")}
+                  checked={offerForTonight.discountType === "flat"}
+                  onChange={() =>
+                    setOfferForTonight({
+                      ...offerForTonight,
+                      discountType: "flat",
+                    })
+                  }
                   className="w-4 h-4 text-primary border-border focus:ring-2 focus:ring-primary"
                 />
                 <span className="text-sm text-foreground">
@@ -702,29 +738,45 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
               <div className="relative">
                 <input
                   type="number"
-                  value={discountValue}
-                  onChange={(e) => setDiscountValue(e.target.value)}
+                  value={offerForTonight.discountValue}
+                  onChange={(e) =>
+                    setOfferForTonight({
+                      ...offerForTonight,
+                      discountValue: parseFloat(e.target.value) || 0,
+                    })
+                  }
                   min="1"
-                  max={discountType === "percentage" ? "100" : undefined}
-                  step={discountType === "percentage" ? "1" : "0.01"}
+                  max={
+                    offerForTonight.discountType === "percentage"
+                      ? "100"
+                      : undefined
+                  }
+                  step={
+                    offerForTonight.discountType === "percentage" ? "1" : "0.01"
+                  }
                   className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground pr-12"
                   required
                 />
                 <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground font-medium">
-                  {discountType === "percentage" ? "% off" : currencyCode}
+                  {offerForTonight.discountType === "percentage"
+                    ? "% off"
+                    : offerForTonight.currencyCode}
                 </span>
               </div>
             </div>
 
-            {discountType === "flat" && (
+            {offerForTonight.discountType === "flat" && (
               <div>
                 <label className="block text-sm font-medium text-foreground mb-2">
                   Currency *
                 </label>
                 <Select
-                  value={currencyCode}
+                  value={offerForTonight.currencyCode || "USD"}
                   onValueChange={(value) =>
-                    setCurrencyCode(value as CurrencyCode)
+                    setOfferForTonight({
+                      ...offerForTonight,
+                      currencyCode: value as CurrencyCode,
+                    })
                   }
                 >
                   <SelectTrigger className="w-full">
@@ -842,9 +894,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
                   <input
                     type="checkbox"
                     checked={isChecked}
-                    onChange={() =>
-                      handleDayToggle(day as keyof typeof applicableDays)
-                    }
+                    onChange={() => handleDayToggle(day)}
                     className="w-4 h-4 text-primary border-border rounded focus:ring-2 focus:ring-primary"
                   />
                   <span className="text-sm text-foreground capitalize">
@@ -892,28 +942,39 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
           </p>
           <input
             type="text"
-            value={promotionName}
-            onChange={(e) => setPromotionName(e.target.value)}
+            value={offerForTonight.promotionName}
+            onChange={(e) =>
+              setOfferForTonight({
+                ...offerForTonight,
+                promotionName: e.target.value,
+              })
+            }
             placeholder={`${getDiscountDisplayText()} - Offer For Tonight - ${startDate || "Start Date"}`}
             className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
             required
           />
         </div>
+        {/* Auto Applied Toggle */}
         <div className="flex items-center space-x-3 p-3 bg-muted/20 rounded-lg border border-border">
           <input
             type="checkbox"
-            id="isActive"
-            checked={isAutoApplied}
-            onChange={(e) => setIsAutoApplied(e.target.checked)}
+            id="isAutoApplied"
+            checked={offerForTonight.isAutoApplied}
+            onChange={(e) =>
+              setOfferForTonight({
+                ...offerForTonight,
+                isAutoApplied: e.target.checked,
+              })
+            }
             className="w-5 h-5 text-primary border-border rounded focus:ring-2 focus:ring-primary"
           />
           <label
-            htmlFor="isActive"
+            htmlFor="isAutoApplied"
             className="text-sm font-medium text-foreground cursor-pointer flex-1"
           >
             Auto Applied
             <span className="block text-xs text-muted-foreground font-normal mt-0.5">
-              {isAutoApplied
+              {offerForTonight.isAutoApplied
                 ? "This promotion is currently auto applied"
                 : "This promotion is currently not auto applied"}
             </span>
@@ -924,8 +985,13 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
           <input
             type="checkbox"
             id="isActive"
-            checked={isActive}
-            onChange={(e) => setIsActive(e.target.checked)}
+            checked={offerForTonight?.isActive}
+            onChange={(e) =>
+              setOfferForTonight({
+                ...offerForTonight,
+                isActive: e.target.checked,
+              })
+            }
             className="w-5 h-5 text-primary border-border rounded focus:ring-2 focus:ring-primary"
           />
           <label
@@ -934,7 +1000,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
           >
             Active Status
             <span className="block text-xs text-muted-foreground font-normal mt-0.5">
-              {isActive
+              {editData?.isActive
                 ? "This promotion is currently active"
                 : "This promotion is currently inactive"}
             </span>
@@ -947,7 +1013,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
             type="button"
             onClick={onCancel}
             className="px-6 py-2.5 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/90 transition-colors font-medium"
-            disabled={isLoading}
+            disabled={isLoading.isLoading}
           >
             Cancel
           </button>
@@ -955,8 +1021,8 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
             type="submit"
             className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm"
             disabled={
-              isLoading ||
-              !promotionName ||
+              isLoading.isLoading ||
+              !offerForTonight.promotionName ||
               !startDate ||
               (selectionMode === "specific" &&
                 selectedRatePlans.length === 0) ||

@@ -24,7 +24,9 @@ import type { CreateGeoRatePlan, GeoRatePlan } from './interfaces';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Edit, MoreVertical, Trash2 } from 'lucide-react';
+import { Check, Edit, MoreVertical, Trash2, X } from 'lucide-react';
+import type { ILoader } from '@/pages/dashboard/interface';
+import BackButton from '@/components/shared/BackButton';
 
 
 export const GeoRatePlanList: React.FC = () => {
@@ -32,7 +34,10 @@ export const GeoRatePlanList: React.FC = () => {
   const [geoRatePlans, setGeoRatePlans] = useState<GeoRatePlan[]>([]);
   const [roomTypes, setRoomTypes] = useState<RoomTypes[]>([]);
   const [ratePlans, setRatePlans] = useState<RatePlan[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<ILoader>({
+    isLoading: true,
+    message: 'Loading MLOS RatePlans ...'
+  });
   const [showForm, setShowForm] = useState(false);
   const [editData, setEditData] = useState<GeoRatePlan | null>(null);
 
@@ -46,7 +51,10 @@ export const GeoRatePlanList: React.FC = () => {
   }, [propertyId, selectedRoomType, selectedRatePlan]);
 
   const loadData = async () => {
-    setIsLoading(true);
+    setIsLoading({
+      isLoading: true,
+      message: 'Loading MLOS RatePlans ...'
+    });
     try {
       if (!propertyId) {
         return;
@@ -72,12 +80,18 @@ export const GeoRatePlanList: React.FC = () => {
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
-      setIsLoading(false);
+      setIsLoading({
+        isLoading: false,
+        message: ''
+      });
     }
   };
 
   const handleCreate = async (payload: CreateGeoRatePlan) => {
-    setIsLoading(true);
+    setIsLoading({
+      isLoading: true,
+      message: 'Creating Geo Rate Plan ...'
+    });
     try {
       const result = await createGeoRatePlanService(payload);
       if (result.success) {
@@ -90,14 +104,20 @@ export const GeoRatePlanList: React.FC = () => {
     } catch (error) {
       toast.error('An error occurred while creating the Geo Rate Plan');
     } finally {
-      setIsLoading(false);
+      setIsLoading({
+        isLoading: false,
+        message: ''
+      });
     }
   };
 
   const handleUpdate = async (payload: CreateGeoRatePlan) => {
     if (!editData) return;
 
-    setIsLoading(true);
+    setIsLoading({
+      isLoading: true,
+      message: 'Updating Geo Rate Plan ...'
+    });
     try {
       const result = await updateGeoRatePlanService(editData.id, {
         restrictionType: payload.restrictionType,
@@ -121,7 +141,10 @@ export const GeoRatePlanList: React.FC = () => {
     } catch (error) {
       toast.error('An error occurred while updating the Geo Rate Plan');
     } finally {
-      setIsLoading(false);
+      setIsLoading({
+        isLoading: false,
+        message: ''
+      });
     }
   };
 
@@ -133,7 +156,10 @@ export const GeoRatePlanList: React.FC = () => {
   const handleDeleteConfirm = async () => {
     if (!planToDelete) return;
 
-    setIsLoading(true);
+    setIsLoading({
+      isLoading: true,
+      message: 'Deleting Geo Rate Plan ...'
+    });
     try {
       const result = await removeGeoRatePlanService(planToDelete);
       if (result.success) {
@@ -145,7 +171,10 @@ export const GeoRatePlanList: React.FC = () => {
     } catch (error) {
       toast.error('An error occurred while deleting the Geo Rate Plan');
     } finally {
-      setIsLoading(false);
+      setIsLoading({
+        isLoading: false,
+        message: ''
+      });
       setDeleteDialogOpen(false);
       setPlanToDelete(null);
     }
@@ -156,23 +185,6 @@ export const GeoRatePlanList: React.FC = () => {
     setPlanToDelete(null);
   };
 
-  const handleToggleStatus = async (id: string, currentStatus: boolean) => {
-    setIsLoading(true);
-    try {
-      const result = await updateGeoRatePlanService(id, {
-        isActive: !currentStatus
-      });
-      if (result.success) {
-        loadData();
-      } else {
-        toast.error(result.message || 'Failed to toggle status');
-      }
-    } catch (error) {
-      toast.error('An error occurred while toggling status');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleEdit = (plan: GeoRatePlan) => {
     setEditData(plan);
@@ -210,6 +222,7 @@ export const GeoRatePlanList: React.FC = () => {
 
   return (
     <div className="space-y-4">
+    <BackButton/>
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-foreground">Geo Rate Plans</h2>
         <button
@@ -231,7 +244,7 @@ export const GeoRatePlanList: React.FC = () => {
       />
 
       <div className="bg-card rounded-lg border border-border overflow-hidden">
-        {isLoading ? (
+        {isLoading.isLoading ? (
           <div className="py-12">
             <Loader text="Loading..." />
           </div>
@@ -246,6 +259,7 @@ export const GeoRatePlanList: React.FC = () => {
                 <TableHead>Value</TableHead>
                 <TableHead>Countries</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Auto Applied</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -260,11 +274,11 @@ export const GeoRatePlanList: React.FC = () => {
                 geoRatePlans.map((plan) => (
                   <TableRow key={plan.id}>
                     <TableCell>{plan.roomType || 'All Rooms'}</TableCell>
-                    <TableCell>{plan.ratePlanCode}</TableCell>
+                    <TableCell>{plan.ratePlan?.ratePlanName}</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded text-xs font-medium ${plan.restrictionType === 'restricted'
-                          ? 'bg-destructive/10 text-destructive'
-                          : 'bg-primary/10 text-primary'
+                        ? 'bg-destructive/10 text-destructive'
+                        : 'bg-primary/10 text-primary'
                         }`}>
                         {plan.restrictionType === 'percentage' ? 'Percentage' :
                           plan.restrictionType === 'fixed' ? 'Fixed Amount' : 'Restricted'}
@@ -273,8 +287,8 @@ export const GeoRatePlanList: React.FC = () => {
                     <TableCell>
                       {plan.restrictionTypeAction ? (
                         <span className={`px-2 py-1 rounded text-xs font-medium ${plan.restrictionTypeAction === 'increase'
-                            ? 'bg-destructive/10 text-destructive'
-                            : 'bg-success/10 text-success'
+                          ? 'bg-destructive/10 text-destructive'
+                          : 'bg-success/10 text-success'
                           }`}>
                           {plan.restrictionTypeAction === 'increase' ? '↑ Increase' : '↓ Decrease'}
                         </span>
@@ -299,16 +313,23 @@ export const GeoRatePlanList: React.FC = () => {
                         )}
                       </div>
                     </TableCell>
+                     <TableCell >
+                      <div className={`px-3 py-1  flex items-center justify-center  rounded text-xs ${plan.isAutoApplied
+                        ? ' text-success '
+                        : ' text-destructive'
+                        }`}>
+                        {plan.isAutoApplied ? <Check className='h-4 w-4' /> : <X className='h-4 w-4' />}
+                      </div>
+                    </TableCell>
                     <TableCell>
-                      <button
-                        onClick={() => handleToggleStatus(plan.id, plan.isActive)}
+                      <span
                         className={`px-3 py-1 rounded text-xs font-medium transition-colors ${plan.isActive
-                            ? 'bg-success/10 text-success hover:bg-success/20'
-                            : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                          ? 'bg-success/10 text-success hover:bg-success/20'
+                          : 'bg-muted text-muted-foreground hover:bg-muted/80'
                           }`}
                       >
                         {plan.isActive ? 'Active' : 'Inactive'}
-                      </button>
+                      </span>
                     </TableCell>
                     <TableCell className="text-right">
                       <DropdownMenu>
@@ -358,16 +379,16 @@ export const GeoRatePlanList: React.FC = () => {
                 <button
                   onClick={handleDeleteCancel}
                   className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
-                  disabled={isLoading}
+                  disabled={isLoading.isLoading}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleDeleteConfirm}
                   className="px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors"
-                  disabled={isLoading}
+                  disabled={isLoading.isLoading}
                 >
-                  {isLoading ? 'Deleting...' : 'Delete'}
+                  {isLoading.isLoading ? 'Deleting...' : 'Delete'}
                 </button>
               </div>
             </div>

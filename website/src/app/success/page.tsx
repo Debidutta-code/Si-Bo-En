@@ -9,45 +9,15 @@ export default function SuccessPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const socketRef = useRef<any>(null);
-  const pollingRef = useRef<NodeJS.Timeout | null>(null);
-  const maxAttempts = 30; // Poll for maximum 30 seconds (30 * 1000ms)
-  const attemptsRef = useRef(0);
   const socketConnectedRef = useRef(false);
-
-  const checkBackendUrl = () => {
-    let backendUrl = (process.env.NEXT_PUBLIC_BACKEND_URL || "").trim();
-    backendUrl = backendUrl.replace(/\/+$/, "");
-    backendUrl = backendUrl.replace(/\/api\/v1\/?$/, "");
-    return backendUrl;
-  };
-
-  const checkPaymentStatus = async (bookingCode: string) => {
-    const backendUrl = checkBackendUrl();
-    try {
-      const response = await fetch(
-        `${backendUrl}/api/v1/fikafi/reservation/${bookingCode}`
-      );
-      const data = await response.json();
-
-      if (data.success && data.data) {
-        return {
-          bookingStatus: data.data.bookingStatus,
-          isPaid: data.data.paidAmount > 0 || data.data.bookingStatus === 'confirmed',
-        };
-      }
-      return null;
-    } catch (err) {
-      console.error("Error checking payment status:", err);
-      return null;
-    }
-  };
+  const paymentTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const handlePaymentConfirmed = useCallback((bookingCode: string, paymentId?: string) => {
-    console.log("✅ Payment confirmed!");
+    console.log("✅ Payment confirmed via WebSocket!");
 
-    // Clear polling
-    if (pollingRef.current) {
-      clearInterval(pollingRef.current);
+    // Clear timeout
+    if (paymentTimeoutRef.current) {
+      clearTimeout(paymentTimeoutRef.current);
     }
 
     // Disconnect socket
@@ -56,10 +26,33 @@ export default function SuccessPage() {
       socketRef.current = null;
     }
 
-
     // Redirect to PaymentSuccess page
     setLoading(false);
     router.replace(`/PaymentSuccess?bookingCode=${bookingCode}`);
+  }, [router]);
+
+  const handlePaymentTimeout = useCallback((bookingCode: string) => {
+    console.log("⏰ Payment confirmation timeout - redirecting with pending status");
+
+    // Disconnect socket
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current = null;
+    }
+
+    // Store pending status
+    localStorage.setItem(
+      "bookingConfirmation",
+      JSON.stringify({
+        bookingCode,
+        status: "pending",
+        timestamp: Date.now(),
+        paymentId: searchParams?.get("ref"),
+      })
+    );
+
+    setLoading(false);
+    router.replace(`/PaymentSuccess?bookingCode=${bookingCode}&status=pending`);
   }, [router, searchParams]);
 
   const setupSocket = useCallback((bookingCode: string) => {
@@ -68,7 +61,7 @@ export default function SuccessPage() {
     // Dynamically import socket.io-client
     import('socket.io-client').then(({ default: io }) => {
       const socket = io(socketUrl, {
-        transports: ['websocket', 'polling'],
+        transports: ['websocket'],
         reconnection: false,
         autoConnect: true,
       });
@@ -78,7 +71,7 @@ export default function SuccessPage() {
       socket.on('connect', () => {
         console.log("🔌 Socket connected:", socket.id);
         socketConnectedRef.current = true;
-        
+
         // Join the payment room with correct format matching server's payment:{bookingCode}
         const roomName = `payment:${bookingCode}`;
         socket.emit('join-payment-room', roomName);
@@ -87,7 +80,7 @@ export default function SuccessPage() {
 
       socket.on('payment-status-update', (data: { orderReference: string; status: string }) => {
         console.log("🎉 Payment status update received:", data);
-        
+
         if (data.orderReference === bookingCode && data.status === 'success') {
           handlePaymentConfirmed(bookingCode);
         }
@@ -106,42 +99,6 @@ export default function SuccessPage() {
       console.error("Failed to load socket.io-client:", err);
     });
   }, [handlePaymentConfirmed]);
-
-  const startPolling = useCallback((bookingCode: string) => {
-    console.log("📡 Starting polling fallback...");
-    
-    pollingRef.current = setInterval(async () => {
-      attemptsRef.current += 1;
-      console.log(`🔄 Checking payment status (attempt ${attemptsRef.current})...`);
-
-      const status = await checkPaymentStatus(bookingCode);
-
-      if (status?.isPaid || status?.bookingStatus === 'confirmed') {
-        handlePaymentConfirmed(bookingCode);
-      } else if (attemptsRef.current >= maxAttempts) {
-        // Max attempts reached, redirect anyway with pending status
-        console.log("⏰ Max polling attempts reached, redirecting...");
-
-        if (pollingRef.current) {
-          clearInterval(pollingRef.current);
-        }
-
-        // Store pending status
-        localStorage.setItem(
-          "bookingConfirmation",
-          JSON.stringify({
-            bookingCode,
-            status: "pending",
-            timestamp: Date.now(),
-            paymentId: searchParams?.get("ref"),
-          })
-        );
-
-        setLoading(false);
-        router.replace(`/PaymentSuccess?bookingCode=${bookingCode}&status=success`);
-      }
-    }, 1000);
-  }, [router, searchParams, handlePaymentConfirmed]);
 
   useEffect(() => {
     // Get reference number from URL first, then localStorage
@@ -181,22 +138,30 @@ export default function SuccessPage() {
       return;
     }
 
-    // Setup WebSocket connection
-    setupSocket(bookingCode);
+    const confirmedBookingCode = bookingCode;
 
-    // Start polling fallback (will be stopped if socket confirms payment)
-    startPolling(bookingCode);
+    // Setup WebSocket connection - this is the PRIMARY way to receive payment confirmation
+    // The reservation is created in DB ONLY after Fikafi sends webhook to backend
+    // So we wait for WebSocket event which is triggered after webhook processes
+    setupSocket(confirmedBookingCode);
+
+    // Set a timeout as fallback (e.g., 5 minutes) - in case WebSocket fails
+    // This is just a safety net, the main flow should be WebSocket
+    paymentTimeoutRef.current = setTimeout(() => {
+      console.log("⚠️ WebSocket timeout reached, using fallback");
+      handlePaymentTimeout(confirmedBookingCode);
+    }, 5 * 60 * 1000); // 5 minutes timeout
 
     // Cleanup on unmount
     return () => {
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current);
+      if (paymentTimeoutRef.current) {
+        clearTimeout(paymentTimeoutRef.current);
       }
       if (socketRef.current) {
         socketRef.current.disconnect();
       }
     };
-  }, [searchParams, setupSocket, startPolling]);
+  }, [searchParams, setupSocket, handlePaymentTimeout]);
 
   if (error) {
     return (

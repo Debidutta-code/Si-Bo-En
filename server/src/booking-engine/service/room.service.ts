@@ -153,10 +153,10 @@ export class RoomBookingService {
                 let deviceDiscountApplied = 0;
                 if (devicePromotion) {
                     const discountAmount =
-                        devicePromotion.DiscountType === 'percentage'
+                        devicePromotion.discountType === 'percentage'
                             ? totalAmount *
-                            (Number(devicePromotion.DiscountValue) / 100)
-                            : Number(devicePromotion.DiscountValue);
+                            (Number(devicePromotion.discountValue) / 100)
+                            : Number(devicePromotion.discountValue);
 
                     totalAmount -= discountAmount;
                     deviceDiscountApplied = discountAmount;
@@ -217,8 +217,8 @@ export class RoomBookingService {
                         id: promo.id,
                         promotionName: promo.promotionName,
                         promotionType: promo.promotionType,
-                        discountType: promo.DiscountType,
-                        discountValue: Number(promo.DiscountValue),
+                        discountType: promo.discountType,
+                        discountValue: Number(promo.discountValue),
                         validFrom: promo.validFrom,
                         validTo: promo.validTo,
                         advanceBookingDays: promo.advanceBookingDays ?? 0,

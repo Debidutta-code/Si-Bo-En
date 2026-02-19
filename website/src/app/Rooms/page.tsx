@@ -7,12 +7,7 @@ import SearchWidget from "../../components/Home/SearchWidget";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import { Facebook, Instagram, Youtube, Globe } from "lucide-react";
-import {
-  setBookingContext,
-  setBookingSource,
-  setCurrency,
-  setSenderUrl,
-} from "../../store/bookingSlice";
+import { setBookingContext, setBookingSource, setSenderUrl } from "../../store/bookingSlice";
 import { useBookingColors } from "../../hooks/useBookingColors";
 import RoomCard from "@/src/components/RoomPage/RoomCard";
 import PriceSummarySidebar from "../../components/RoomPage/Pricesummerysidebar";
@@ -25,8 +20,9 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/src/components/ui/dialog";
-import { ICreationLoyality, IPropertyLoyalityWithLoyality } from "./interface";
+import { IPropertyLoyalityWithLoyality } from "./interface";
 import { LoyaltyProgramBanner } from "@/src/components/RoomPage/LoyalityBanner";
+import { LoyaltyContainer } from "../../components/RoomPage/LoyalityContainer";
 
 interface Guest {
   type: "adult" | "child";
@@ -209,11 +205,12 @@ const Rooms = () => {
       noOfAdults = bookingContext.guests?.adults || 1;
       noOfChildrens = bookingContext.guests?.children || 0;
       // ✅ FIX: Ensure rooms is always a number
-      noOfRooms = typeof bookingContext.guests?.rooms === 'number'
-        ? bookingContext.guests.rooms
-        : Array.isArray(bookingContext.guests?.rooms)
-          ? bookingContext.guests.rooms.length
-          : 1;
+      noOfRooms =
+        typeof bookingContext.guests?.rooms === "number"
+          ? bookingContext.guests.rooms
+          : Array.isArray(bookingContext.guests?.rooms)
+            ? bookingContext.guests.rooms.length
+            : 1;
 
       for (let i = 0; i < noOfAdults; i++) {
         allGuests.push({
@@ -289,7 +286,7 @@ const Rooms = () => {
       }
 
       setFinalPrice(data.data);
-      setPrice(data?.data?.totalAmount || null);
+      setPrice(data?.data?.totalAmount ?? null);
       setBookingRoom(room);
       setCurrentRatePlan(ratePlan);
       setSelectedAddons(selectedAddonsList);
@@ -381,14 +378,14 @@ const Rooms = () => {
       setLoyaltyProgram(propertyDetails?.loyaltyProgramConfig || null);
       const bookingEngineColor = propertyDetails?.bookingEngineConfig
         ? {
-          primaryColor: propertyDetails.bookingEngineConfig.primaryColor,
-          secondaryColor: propertyDetails.bookingEngineConfig.secondaryColor,
-          tertiaryColor: propertyDetails.bookingEngineConfig.tertiaryColor,
-          buttonTextColor:
-            propertyDetails.bookingEngineConfig.buttonTextColor,
-          bgImage: propertyDetails.bookingEngineConfig.bannerImage,
-          logo: propertyDetails.bookingEngineConfig.logo,
-        }
+            primaryColor: propertyDetails.bookingEngineConfig.primaryColor,
+            secondaryColor: propertyDetails.bookingEngineConfig.secondaryColor,
+            tertiaryColor: propertyDetails.bookingEngineConfig.tertiaryColor,
+            buttonTextColor:
+              propertyDetails.bookingEngineConfig.buttonTextColor,
+            bgImage: propertyDetails.bookingEngineConfig.bannerImage,
+            logo: propertyDetails.bookingEngineConfig.logo,
+          }
         : undefined;
 
       const updatedContext = {
@@ -658,11 +655,12 @@ const Rooms = () => {
         startDate:
           bookingContext.startDate || today.toISOString().split("T")[0],
         endDate: bookingContext.endDate || tomorrow.toISOString().split("T")[0],
-        numberOfRooms: typeof bookingContext.guests?.rooms === 'number'
-          ? bookingContext.guests.rooms
-          : Array.isArray(bookingContext.guests?.rooms)
-            ? bookingContext.guests.rooms.length
-            : 1,
+        numberOfRooms:
+          typeof bookingContext.guests?.rooms === "number"
+            ? bookingContext.guests.rooms
+            : Array.isArray(bookingContext.guests?.rooms)
+              ? bookingContext.guests.rooms.length
+              : 1,
         location: bookingContext.location || "",
       };
 
@@ -690,8 +688,6 @@ const Rooms = () => {
 
   const { primaryColor } = useBookingColors();
 
-
-
   useEffect(() => {
     const isDismissed = localStorage.getItem("urgencyBannerDismissed");
     if (isDismissed === "true") {
@@ -709,7 +705,6 @@ const Rooms = () => {
         ),
     ),
   );
-
 
   if (initialLoading) {
     return (
@@ -817,8 +812,9 @@ const Rooms = () => {
         </div>
       )}
       <div
-        className={`min-h-screen bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${loaded ? "opacity-100" : "opacity-0"
-          }`}
+        className={`min-h-screen bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${
+          loaded ? "opacity-100" : "opacity-0"
+        }`}
         onLoad={() => setLoaded(true)}
       >
         <div className=" z-40 bg-white/90 backdrop-blur shadow-sm">
@@ -840,7 +836,7 @@ const Rooms = () => {
                   className="rounded-xl p-4 shadow-md border-2"
                   style={{
                     backgroundColor: `${primaryColor}15`,
-                    borderColor: `${primaryColor}40`
+                    borderColor: `${primaryColor}40`,
                   }}
                 >
                   <button
@@ -850,8 +846,18 @@ const Rooms = () => {
                     }}
                     className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 transition-colors"
                   >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
                     </svg>
                   </button>
                   <div className="text-center">
@@ -880,7 +886,6 @@ const Rooms = () => {
                       <video
                         className="w-full h-full object-cover"
                         autoPlay
-
                         loop
                         muted
                         playsInline
@@ -905,6 +910,7 @@ const Rooms = () => {
               )}
               {loyaltyProgram && (
                 <div
+                  data-loyalty-banner=""
                   className={`${propertyDetails?.propertyVideos ? "lg:col-span-5" : "lg:col-span-12"}`}
                 >
                   <LoyaltyProgramBanner
@@ -916,6 +922,30 @@ const Rooms = () => {
                 </div>
               )}
             </div>
+            {/* mt-4 section — was the 3-bullet benefits + dismiss button div */}
+            {loyaltyProgram && (
+              <div className="mt-4">
+                <LoyaltyContainer
+                  loyaltyProgram={loyaltyProgram!}
+                  primaryColor={primaryColor}
+                  showSignUpModal={showLoyaltySignup}
+                  onShowSignUpModalChange={setShowLoyaltySignup}
+                  toggleOn={!!loyaltyMemberEmail}
+                  onToggleChange={(isOn) => {
+                    if (isOn) {
+                      const storedEmail = localStorage.getItem(
+                        `loyalty_member_${loyaltyProgram?.propertyId}`,
+                      );
+                      if (storedEmail) {
+                        setLoyaltyMemberEmail(storedEmail);
+                      }
+                    } else {
+                      setLoyaltyMemberEmail("");
+                    }
+                  }}
+                />
+              </div>
+            )}
           </div>
         </div>
 
@@ -945,8 +975,8 @@ const Rooms = () => {
                       No rooms available for this hotel.
                     </div>
                   ) : roomsData.filter(
-                    (room: Room) => room.has_valid_rate === true,
-                  ).length === 0 ? (
+                      (room: Room) => room.has_valid_rate === true,
+                    ).length === 0 ? (
                     <div className="text-center py-10 text-gray-600 text-lg font-medium">
                       No rooms available
                     </div>
@@ -970,13 +1000,6 @@ const Rooms = () => {
                               loyalty={loyaltyProgram}
                               onUnlockLoyalty={() => {
                                 setShowLoyaltySignup(true);
-                                // Scroll to loyalty banner
-                                setTimeout(() => {
-                                  const loyaltyBanner = document.querySelector('[data-loyalty-banner]');
-                                  if (loyaltyBanner) {
-                                    loyaltyBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                  }
-                                }, 100);
                               }}
                             />
                           ))}
@@ -1026,7 +1049,7 @@ const Rooms = () => {
                 Best Price Guarantee
               </h4>
               <p className="text-blue-700 text-sm">
-                We guarantee that you won't find a lower price for the same
+                We guarantee that you won&apos;t find a lower price for the same
                 room, dates, and conditions anywhere else online.
               </p>
             </div>
@@ -1078,7 +1101,7 @@ const Rooms = () => {
       </Dialog>
 
       {/* Guest Form Modal */}
-      {bookingRoom && price && (
+      {bookingRoom && price !== null && (
         <GuestFormModal
           guestForms={guestForms}
           contactInfo={contactInfo}
@@ -1141,9 +1164,101 @@ const Rooms = () => {
             });
 
             document.cookie = "can_access_payment=true; path=/; max-age=300";
-            router.push("/Payment");
+            router.push(
+              `/Payment?code=${bookingContext.PropertyCode || searchParams.get("code")}`,
+            );
           }}
         />
+      )}
+
+      {/* Social Media Footer */}
+      {propertyDetails && (
+        <footer className="bg-gray-50 border-t border-gray-200 py-8 mt-12">
+          <div className="max-w-7xl mx-auto px-4">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+              {/* Property Info */}
+              <div className="text-center md:text-left">
+                <a
+                  href={propertyDetails.website || "#"}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xl font-bold hover:opacity-80 transition-opacity"
+                  style={{ color: primaryColor }}
+                >
+                  {propertyDetails.propertyName}
+                </a>
+                <p className="text-sm text-gray-600 mt-1">
+                  {propertyDetails.address?.city || propertyDetails.address?.addressLine1 || ""}
+                  {propertyDetails.address?.state && `, ${propertyDetails.address.state}`}
+                  {propertyDetails.address?.country && `, ${propertyDetails.address.country}`}
+                </p>
+              </div>
+
+              {/* Social Media Links */}
+              <div className="flex items-center gap-4">
+                {propertyDetails.facebookUrl && (
+                  <a
+                    href={propertyDetails.facebookUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 rounded-full bg-white border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all group"
+                    title="Facebook"
+                  >
+                    <Facebook className="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors" />
+                  </a>
+                )}
+                {propertyDetails.instagramUrl && (
+                  <a
+                    href={propertyDetails.instagramUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 rounded-full bg-white border border-gray-200 hover:border-pink-500 hover:bg-pink-50 transition-all group"
+                    title="Instagram"
+                  >
+                    <Instagram className="w-5 h-5 text-gray-600 group-hover:text-pink-600 transition-colors" />
+                  </a>
+                )}
+                {propertyDetails.youtubeUrl && (
+                  <a
+                    href={propertyDetails.youtubeUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 rounded-full bg-white border border-gray-200 hover:border-red-500 hover:bg-red-50 transition-all group"
+                    title="YouTube"
+                  >
+                    <Youtube className="w-5 h-5 text-gray-600 group-hover:text-red-600 transition-colors" />
+                  </a>
+                )}
+                {propertyDetails.website && (
+                  <a
+                    href={propertyDetails.website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="p-2 rounded-full bg-white border border-gray-200 hover:border-gray-500 hover:bg-gray-100 transition-all group"
+                    title="Website"
+                  >
+                    <Globe className="w-5 h-5 text-gray-600 group-hover:text-gray-900 transition-colors" />
+                  </a>
+                )}
+              </div>
+            </div>
+
+            {/* Privacy & Terms */}
+            <div className="mt-6 pt-6 border-t border-gray-200 text-center text-xs text-gray-500">
+              <p>
+                This site is protected by reCAPTCHA and the Google{" "}
+                <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">
+                  Privacy Policy
+                </a>
+                {" "}and{" "}
+                <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">
+                  Terms of Service
+                </a>
+                {" "}apply.
+              </p>
+            </div>
+          </div>
+        </footer>
       )}
     </div>
   );

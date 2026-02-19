@@ -1,15 +1,20 @@
 import { Response } from 'express';
 import { CustomRequest, PropertyCustomRequest } from '../../../utils/customRequest';
 import { errorResponse } from '../../../utils/return';
-import { OfferForTonightPromotionService } from '../services';
+import { EarlyBirdPromotionService } from '../services';
+import { toUTCDate } from '../../../utils';
+import { ICEbDsOftc, PromotionType } from '../interfaces';
 
-export class OfferForTonightPromotionController {
-  /**
-   * Create an offer-for-tonight promotion
-   */
-  public static async createOfferForTonightPromotion(req: PropertyCustomRequest, res: Response) {
+export class EarlyBirdPromotionController {
+  earlyBirdPromotionService: EarlyBirdPromotionService;
+
+  constructor() {
+    this.earlyBirdPromotionService = new EarlyBirdPromotionService();
+  }
+
+  public async createEarlyBirdPromotion(req: PropertyCustomRequest, res: Response):Promise<Response> {
     try {
-      const { 
+      const {
         promotionName,
         propertyId,
         discountType,
@@ -25,10 +30,10 @@ export class OfferForTonightPromotionController {
         friApplicable,
         satApplicable,
         sunApplicable,
+        advanceBookingDays,
         isAutoApplied
       } = req.body;
 
-      // Basic validation
       if (!promotionName || !propertyId || !discountType || discountValue === undefined) {
         return res.status(400).json(
           errorResponse('Promotion name, property ID, discount type, and discount value are required')
@@ -39,14 +44,14 @@ export class OfferForTonightPromotionController {
         return res.status(400).json(errorResponse('Valid from date is required'));
       }
 
-      // Offer-for-tonight specific validation
       if (!roomRatePlans || roomRatePlans.length === 0) {
         return res.status(400).json(
-          errorResponse('At least one room-rateplan pair is required for offer-for-tonight promotion')
+          errorResponse('At least one room-rateplan pair is required for early-bird promotion')
         );
       }
-
-      // Validate each room-rateplan pair
+      if (!advanceBookingDays) {
+        return res.status(400).json(errorResponse('Advance booking days is required for early-bird promotion'));
+      }
       for (const pair of roomRatePlans) {
         if (!pair.ratePlanId || !pair.ratePlanCode) {
           return res.status(400).json(
@@ -54,28 +59,31 @@ export class OfferForTonightPromotionController {
           );
         }
       }
-
+      if (validTo && validFrom > validTo) {
+        return res.status(400).json(errorResponse('Valid from date must be before valid to date'));
+      }
       const promotionData = {
         promotionName,
         propertyId,
-        promotionType: 'offer_for_tonight' as const,
         discountType,
+        promotionType: 'early_bird' as PromotionType,
         discountValue,
         currencyCode,
-        validFrom: new Date(validFrom),
-        validTo: validTo ? new Date(validTo) : undefined,
+        validFrom: toUTCDate(validFrom),
+        validTo: validTo ? toUTCDate(validTo) : undefined,
         roomRatePlans,
-        monApplicable: monApplicable ?? true,
-        tueApplicable: tueApplicable ?? true,
-        wedApplicable: wedApplicable ?? true,
-        thuApplicable: thuApplicable ?? true,
-        friApplicable: friApplicable ?? true,
-        satApplicable: satApplicable ?? true,
-        sunApplicable: sunApplicable ?? true,
-          isAutoApplied
+        monApplicable,
+        tueApplicable,
+        wedApplicable,
+        thuApplicable,
+        friApplicable,
+        satApplicable,
+        sunApplicable,
+        advanceBookingDays,
+        isAutoApplied
       };
 
-      const result = await OfferForTonightPromotionService.createOfferForTonightPromotion(promotionData);
+      const result = await this.earlyBirdPromotionService.createEarlyBirdPromotion(promotionData);
       const status = result.success ? 201 : 400;
       return res.status(status).json(result);
     } catch (error: any) {
@@ -85,10 +93,7 @@ export class OfferForTonightPromotionController {
     }
   }
 
-  /**
-   * Get all offer-for-tonight promotions by property
-   */
-  public static async getOfferForTonightPromotionsByProperty(req: PropertyCustomRequest, res: Response) {
+  public  async getEarlyBirdPromotionsByProperty(req: PropertyCustomRequest, res: Response):Promise<Response> {
     try {
       const propertyId = req.params.propertyId;
 
@@ -96,7 +101,7 @@ export class OfferForTonightPromotionController {
         return res.status(400).json(errorResponse('Property ID is required'));
       }
 
-      const result = await OfferForTonightPromotionService.getOfferForTonightPromotionsByProperty(propertyId);
+      const result = await this.earlyBirdPromotionService.getEarlyBirdPromotionsByProperty(propertyId);
       const status = result.success ? 200 : 400;
       return res.status(status).json(result);
     } catch (error: any) {
@@ -106,10 +111,7 @@ export class OfferForTonightPromotionController {
     }
   }
 
-  /**
-   * Get offer-for-tonight promotion by ID
-   */
-  public static async getOfferForTonightPromotionById(req: CustomRequest, res: Response) {
+  public  async getEarlyBirdPromotionById(req: CustomRequest, res: Response) :Promise<Response>{
     try {
       const promotionId = req.params.promotionId;
 
@@ -117,7 +119,7 @@ export class OfferForTonightPromotionController {
         return res.status(400).json(errorResponse('Promotion ID is required'));
       }
 
-      const result = await OfferForTonightPromotionService.getOfferForTonightPromotionById(promotionId);
+      const result = await this.earlyBirdPromotionService.getEarlyBirdPromotionById(promotionId);
       const status = result.success ? 200 : 400;
       return res.status(status).json(result);
     } catch (error: any) {
@@ -127,27 +129,23 @@ export class OfferForTonightPromotionController {
     }
   }
 
-  /**
-   * Update offer-for-tonight promotion
-   */
-  public static async updateOfferForTonightPromotion(req: CustomRequest, res: Response) {
+  public  async updateEarlyBirdPromotion(req: CustomRequest, res: Response):Promise<Response> {
     try {
       const promotionId = req.params.promotionId;
-      const updateData = req.body;
+      const updateData:ICEbDsOftc = req.body;
 
       if (!promotionId) {
         return res.status(400).json(errorResponse('Promotion ID is required'));
       }
 
-      // Convert date strings to Date objects if present
       if (updateData.validFrom) {
-        updateData.validFrom = new Date(updateData.validFrom);
+        updateData.validFrom = toUTCDate(updateData.validFrom);
       }
       if (updateData.validTo) {
-        updateData.validTo = new Date(updateData.validTo);
+        updateData.validTo = toUTCDate(updateData.validTo);
       }
 
-      const result = await OfferForTonightPromotionService.updateOfferForTonightPromotion(promotionId, updateData);
+      const result = await this.earlyBirdPromotionService.updateEarlyBirdPromotion(promotionId, updateData);
       const status = result.success ? 200 : 400;
       return res.status(status).json(result);
     } catch (error: any) {
@@ -157,10 +155,7 @@ export class OfferForTonightPromotionController {
     }
   }
 
-  /**
-   * Delete offer-for-tonight promotion
-   */
-  public static async deleteOfferForTonightPromotion(req: CustomRequest, res: Response) {
+  public  async deleteEarlyBirdPromotion(req: CustomRequest, res: Response):Promise<Response> {
     try {
       const promotionId = req.params.promotionId;
 
@@ -168,7 +163,7 @@ export class OfferForTonightPromotionController {
         return res.status(400).json(errorResponse('Promotion ID is required'));
       }
 
-      const result = await OfferForTonightPromotionService.deleteOfferForTonightPromotion(promotionId);
+      const result = await this.earlyBirdPromotionService.deleteEarlyBirdPromotion(promotionId);
       const status = result.success ? 200 : 400;
       return res.status(status).json(result);
     } catch (error: any) {
@@ -178,29 +173,4 @@ export class OfferForTonightPromotionController {
     }
   }
 
-  /**
-   * Toggle offer-for-tonight promotion status
-   */
-  public static async toggleOfferForTonightPromotionStatus(req: CustomRequest, res: Response) {
-    try {
-      const promotionId = req.params.promotionId;
-      const { isActive } = req.body;
-
-      if (!promotionId) {
-        return res.status(400).json(errorResponse('Promotion ID is required'));
-      }
-
-      if (typeof isActive !== 'boolean') {
-        return res.status(400).json(errorResponse('isActive must be a boolean value'));
-      }
-
-      const result = await OfferForTonightPromotionService.toggleOfferForTonightPromotionStatus(promotionId, isActive);
-      const status = result.success ? 200 : 400;
-      return res.status(status).json(result);
-    } catch (error: any) {
-      return res.status(500).json(
-        errorResponse('Internal server error', error?.message)
-      );
-    }
-  }
 }

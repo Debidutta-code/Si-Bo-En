@@ -13,6 +13,8 @@ export interface CreateOrderPayload {
     skipConfirmationPage?: boolean;
   };
   emailAddress?: string;
+  outletId?: string;
+  propertyCode?: string;
 }
 
 export interface NGeniusOrderResponse {
@@ -131,11 +133,11 @@ class NGeniusService {
 
   isPaymentSuccessful(orderStatus: OrderStatusResponse): boolean {
     const payment = orderStatus.data._embedded?.payment?.[0];
-    
+
     if (!payment) return false;
 
     const successStates = ['PURCHASED', 'AUTHORISED', 'CAPTURED'];
-    
+
     return successStates.includes(payment.state);
   }
 

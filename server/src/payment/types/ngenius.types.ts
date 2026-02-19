@@ -17,9 +17,12 @@ export interface NGeniusOrderRequest {
     value: number;
   };
   emailAddress?: string;
+  outletId?: string;
   merchantAttributes?: {
     redirectUrl?: string;
   };
+  propertyCode?: string;
+  reservationId?: string;
 }
 
 // Order Response

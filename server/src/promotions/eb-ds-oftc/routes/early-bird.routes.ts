@@ -5,7 +5,7 @@ import { attachPropertyDetails } from '../../../middlewares/property.middleware'
 import { EarlyBirdPromotionController } from '../controllers';
 
 export const earlyBirdPromotionRouter = Router();
-
+const earlyBirdPromotionController = new EarlyBirdPromotionController();
 // Create early-bird promotion
 earlyBirdPromotionRouter
   .route('/')
@@ -17,7 +17,7 @@ earlyBirdPromotionRouter
       key: 'propertyId',
       source: 'body'
     }),
-    EarlyBirdPromotionController.createEarlyBirdPromotion
+    earlyBirdPromotionController.createEarlyBirdPromotion.bind(earlyBirdPromotionController)
   );
 
 // Get all early-bird promotions by property ID
@@ -30,7 +30,7 @@ earlyBirdPromotionRouter
       key: 'propertyId',
       source: 'params'
     }),
-    EarlyBirdPromotionController.getEarlyBirdPromotionsByProperty
+    earlyBirdPromotionController.getEarlyBirdPromotionsByProperty.bind(earlyBirdPromotionController)
   );
 
 // Get, update, delete early-bird promotion by ID
@@ -38,24 +38,16 @@ earlyBirdPromotionRouter
   .route('/:promotionId')
   .get(
     protect,
-    EarlyBirdPromotionController.getEarlyBirdPromotionById
+    earlyBirdPromotionController.getEarlyBirdPromotionById.bind(earlyBirdPromotionController)
   )
   .patch(
     protect,
     checkRoleBased('canUpdateRatePlan'),
-    EarlyBirdPromotionController.updateEarlyBirdPromotion
+    earlyBirdPromotionController.updateEarlyBirdPromotion.bind(earlyBirdPromotionController)
   )
   .delete(
     protect,
     checkRoleBased('canDeleteRatePlan'),
-    EarlyBirdPromotionController.deleteEarlyBirdPromotion
+    earlyBirdPromotionController.deleteEarlyBirdPromotion.bind(earlyBirdPromotionController)
   );
 
-// Toggle early-bird promotion status
-earlyBirdPromotionRouter
-  .route('/:promotionId/toggle-status')
-  .patch(
-    protect,
-    checkRoleBased('canUpdateRatePlan'),
-    EarlyBirdPromotionController.toggleEarlyBirdPromotionStatus
-  );

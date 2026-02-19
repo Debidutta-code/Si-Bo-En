@@ -1,6 +1,7 @@
-// interfaces/geoRatePlan.interface.ts
+import { Decimal } from "@prisma/client/runtime/library";
+import { IProperty } from "../../../agency/types";
+import { IRatePlan, IRoom } from "../../customizable-deal/interfaces";
 
-// Input structures
 export interface IRoomInput {
   id: string;
   type: string;
@@ -10,51 +11,39 @@ export interface IRatePlanInput {
   id: string;
   code: string;
 }
-
-// This is the BULK input (what you receive from the request)
-export interface IGeoRatePlanBulkInput {
+export type restrictionTypeAction= "increase" | "decrease";
+export interface IGeoRatePlanInput {
   propertyId: string;
   rooms: IRoomInput[];
   ratePlans: IRatePlanInput[];
   restrictionType: geoRestrictionType;
-  restrictionValue?: number | null;
-  currencyCode?: CurrencyCode;
+  restrictionValue: Decimal | null;
+  currencyCode: CurrencyCode;
   countryCode: string[];
-  isActive?: boolean;
-    isAutoApplied: boolean;
-
+  isActive: boolean;
+  isAutoApplied: boolean;
+restrictionTypeAction:restrictionTypeAction
 }
 
 // This is for INDIVIDUAL record creation (used internally)
 export interface IGeoRatePlanCreate {
   propertyId: string;
-  roomId?: string;
-  roomType?: string;
+  roomId: string|null;
+  roomType: string|null;
   ratePlanId: string;
   ratePlanCode: string;
   restrictionType: geoRestrictionType;
-  restrictionValue?: number | null;
-  currencyCode?: CurrencyCode;
+  restrictionValue: Decimal | null;
+  currencyCode: CurrencyCode | null;
   countryCode: string[];
-  isActive?: boolean;
-    isAutoApplied: boolean;
+  isActive: boolean;
+  isAutoApplied: boolean;
+  restrictionTypeAction?:restrictionTypeAction
+
 
 }
 
-export interface IGeoRatePlanUpdate {
-  roomId?: string;
-  roomType?: string;
-  ratePlanId?: string;
-  ratePlanCode?: string;
-  restrictionType?: geoRestrictionType;
-  restrictionValue?: number | null;
-  currencyCode?: CurrencyCode;
-  countryCode?: string[];
-  isActive?: boolean;
 
-    isAutoApplied: boolean;
-
-}
 
 export interface IGeoRatePlan {
   id: string;
@@ -64,12 +53,17 @@ export interface IGeoRatePlan {
   ratePlanId: string;
   ratePlanCode: string;
   restrictionType: geoRestrictionType;
-  restrictionValue: number | null;
+  restrictionValue: Decimal | null;
   currencyCode: CurrencyCode | null;
   countryCode: string[];
   isActive: boolean;
-  createdAt: string;
-    isAutoApplied: boolean;
+  createdAt: Date;
+  isAutoApplied: boolean;
+  property:IProperty;
+  room:IRoom|null;
+  ratePlan:IRatePlan;
+  restrictionTypeAction:restrictionTypeAction
+
 
 }
 
@@ -84,12 +78,12 @@ export interface IGeoRatePlanFilter {
   isActive?: boolean;
 }
 
-export interface IBulkCreateResponse {
-  totalCreated: number;
-  createdRecords: any[];
-  summary: {
-    totalRooms: number;
-    totalRatePlans: number;
-    totalCombinations: number;
-  };
-}
+// export interface IBulkCreateResponse {
+//   totalCreated: number;
+//   createdRecords: any[];
+//   summary: {
+//     totalRooms: number;
+//     totalRatePlans: number;
+//     totalCombinations: number;
+//   };
+// }

@@ -95,7 +95,7 @@ const PriceDetails: React.FC<PriceDetailsProps> = ({ bookingDetails, onPriceUpda
       <h2 className="text-lg font-semibold text-orange-600 mb-4">Price Details</h2>
 
       {/* Promo Code Section */}
-      <div className="bg-orange-50 p-3 rounded-xl mb-4">
+      {/* <div className="bg-orange-50 p-3 rounded-xl mb-4">
         <div className="flex gap-2 flex-wrap">
           <input
             type="text"
@@ -119,7 +119,7 @@ const PriceDetails: React.FC<PriceDetailsProps> = ({ bookingDetails, onPriceUpda
             Promo applied! You saved {formatCurrency(discount)}
           </p>
         )}
-      </div>
+      </div> */}
 
       {/* Total Amount */}
       <div className="flex justify-between items-center text-base border-t pt-3">

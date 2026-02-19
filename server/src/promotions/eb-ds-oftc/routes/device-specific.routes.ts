@@ -5,7 +5,7 @@ import { attachPropertyDetails } from '../../../middlewares/property.middleware'
 import { DeviceSpecificPromotionController } from '../controllers';
 
 export const deviceSpecificPromotionRouter = Router();
-
+const deviceSpecificPromotionController = new DeviceSpecificPromotionController();
 // Create device-specific promotion
 deviceSpecificPromotionRouter
   .route('/')
@@ -17,7 +17,7 @@ deviceSpecificPromotionRouter
       key: 'propertyId',
       source: 'body'
     }),
-    DeviceSpecificPromotionController.createDeviceSpecificPromotion
+    deviceSpecificPromotionController.createDeviceSpecificPromotion.bind(deviceSpecificPromotionController)
   );
 
 // Get all device-specific promotions by property ID
@@ -30,7 +30,7 @@ deviceSpecificPromotionRouter
       key: 'propertyId',
       source: 'params'
     }),
-    DeviceSpecificPromotionController.getDeviceSpecificPromotionsByProperty
+    deviceSpecificPromotionController.getDeviceSpecificPromotionsByProperty.bind(deviceSpecificPromotionController)
   );
 
 // Get, update, delete device-specific promotion by ID
@@ -38,24 +38,16 @@ deviceSpecificPromotionRouter
   .route('/:promotionId')
   .get(
     protect,
-    DeviceSpecificPromotionController.getDeviceSpecificPromotionById
+    deviceSpecificPromotionController.getDeviceSpecificPromotionById.bind(deviceSpecificPromotionController)
   )
   .patch(
     protect,
     checkRoleBased('canUpdateRatePlan'),
-    DeviceSpecificPromotionController.updateDeviceSpecificPromotion
+    deviceSpecificPromotionController.updateDeviceSpecificPromotion.bind(deviceSpecificPromotionController)
   )
   .delete(
     protect,
     checkRoleBased('canDeleteRatePlan'),
-    DeviceSpecificPromotionController.deleteDeviceSpecificPromotion
+    deviceSpecificPromotionController.deleteDeviceSpecificPromotion.bind(deviceSpecificPromotionController)
   );
 
-// Toggle device-specific promotion status
-deviceSpecificPromotionRouter
-  .route('/:promotionId/toggle-status')
-  .patch(
-    protect,
-    checkRoleBased('canUpdateRatePlan'),
-    DeviceSpecificPromotionController.toggleDeviceSpecificPromotionStatus
-  );

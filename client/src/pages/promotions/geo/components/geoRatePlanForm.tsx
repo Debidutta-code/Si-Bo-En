@@ -1,16 +1,11 @@
 import type { RoomTypes } from '@/pages/inventory/types';
 import type { RatePlan } from '@/pages/rate-plan/interfaces';
 import React, { useState, useEffect } from 'react';
-import type { CreateGeoRatePlan, CurrencyCode, GeoRatePlan, GeoRestrictionType, GeoRestrictionTypeAction } from '../interfaces';
+import type { CreateGeoRatePlan, CurrencyCode, GeoRatePlan, GeoRestrictionType, GeoRestrictionTypeAction, IGeoRatePlanUORC } from '../interfaces';
 import { countries, searchCountries } from '@/pages/bookings/utils/country.utils';
 import Loader from '@/components/Loader/Loader';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { ILoader } from '@/pages/dashboard/interface';
 
 interface GeoRatePlanFormProps {
   propertyId: string;
@@ -19,7 +14,7 @@ interface GeoRatePlanFormProps {
   onSubmit: (payload: CreateGeoRatePlan) => Promise<void>;
   onCancel: () => void;
   editData?: GeoRatePlan | null;
-  isLoading: boolean;
+  isLoading: ILoader;
 }
 
 const GeoRatePlanForm: React.FC<GeoRatePlanFormProps> = ({
@@ -31,89 +26,93 @@ const GeoRatePlanForm: React.FC<GeoRatePlanFormProps> = ({
   editData,
   isLoading
 }) => {
-  const [selectedRooms, setSelectedRooms] = useState<string[]>([]);
-  const [selectedRatePlans, setSelectedRatePlans] = useState<string[]>([]);
-  const [restrictionType, setRestrictionType] = useState<GeoRestrictionType>("percentage");
-  const [restrictionAction, setRestrictionAction] = useState<GeoRestrictionTypeAction>("increase");
-  const [restrictionValue, setRestrictionValue] = useState<string>('');
-  const [currencyCode, setCurrencyCode] = useState<CurrencyCode>("USD");
-  const [selectedCountries, setSelectedCountries] = useState<string[]>([]);
+  console.log("Qsie",editData)
+  const [geoRatePlan, setGeoRatePlan] = useState<IGeoRatePlanUORC>({
+    selectedRooms: [],
+    selectedRatePlans: [],
+    restrictionType: "percentage",
+    restrictionTypeAction: "increase",
+    restrictionValue: null,
+    currencyCode: "USD",
+    countryCode: [],
+    isActive: true,
+    isAutoApplied: false,
+  });
   const [countrySearch, setCountrySearch] = useState('');
-  const [isActive, setIsActive] = useState(true);
+
+  // Helper to update a single field
+  const updateField = <K extends keyof IGeoRatePlanUORC>(key: K, value: IGeoRatePlanUORC[K]) => {
+    setGeoRatePlan(prev => ({ ...prev, [key]: value }));
+  };
 
   useEffect(() => {
     if (editData) {
-     if (editData.roomId) {
-  setSelectedRooms([editData.roomId]);
-}
-      setSelectedRatePlans([editData.ratePlanId]);
-      setRestrictionType(editData.restrictionType);
-      if (editData.restrictionTypeAction) {
-        setRestrictionAction(editData.restrictionTypeAction);
-      }
-      setRestrictionValue(editData.restrictionValue?.toString() || '');
-      if (editData.currencyCode) {
-        setCurrencyCode(editData.currencyCode);
-      }
-      setSelectedCountries(editData.countryCode);
-      setIsActive(editData.isActive);
+      setGeoRatePlan(prev => ({
+        ...prev,
+        selectedRooms: editData.roomId ? [editData.roomId] : [],
+        selectedRatePlans: [editData.ratePlanId],
+        restrictionType: editData.restrictionType,
+        restrictionTypeAction: editData.restrictionTypeAction ?? "increase",
+        restrictionValue: editData.restrictionValue ?? null,
+        currencyCode: editData.currencyCode ?? "USD",
+        countryCode: editData.countryCode,
+        isActive: editData.isActive,
+        isAutoApplied: editData.isAutoApplied,
+      }));
     }
   }, [editData]);
 
-  const filteredCountries = countrySearch
-    ? searchCountries(countrySearch)
-    : countries;
+  const filteredCountries = countrySearch ? searchCountries(countrySearch) : countries;
 
   const handleCountryToggle = (code: string) => {
-    setSelectedCountries(prev =>
-      prev.includes(code)
-        ? prev.filter(c => c !== code)
-        : [...prev, code]
+    updateField(
+      'countryCode',
+      geoRatePlan.countryCode.includes(code)
+        ? geoRatePlan.countryCode.filter(c => c !== code)
+        : [...geoRatePlan.countryCode, code]
     );
   };
 
-
   const handleSelectAllRatePlans = () => {
-    if (selectedRatePlans.length === ratePlans.length) {
-      setSelectedRatePlans([]);
-    } else {
-      setSelectedRatePlans(ratePlans.map(plan => plan.id));
-    }
+    updateField(
+      'selectedRatePlans',
+      geoRatePlan.selectedRatePlans.length === ratePlans.length
+        ? []
+        : ratePlans.map(plan => plan.id)
+    );
   };
 
   const handleSelectAllCountries = () => {
-    if (selectedCountries.length === filteredCountries.length) {
-      setSelectedCountries([]);
-    } else {
-      setSelectedCountries(filteredCountries.map(country => country.code));
-    }
+    updateField(
+      'countryCode',
+      geoRatePlan.countryCode.length === filteredCountries.length
+        ? []
+        : filteredCountries.map(country => country.code)
+    );
   };
 
   const handleSelectAllRooms = () => {
-    if (selectedRooms.length === roomTypes.length) {
-      setSelectedRooms([]);
-    } else {
-      setSelectedRooms(roomTypes.map(room => room.id));
-    }
+    updateField(
+      'selectedRooms',
+      geoRatePlan.selectedRooms.length === roomTypes.length
+        ? []
+        : roomTypes.map(room => room.id)
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-   const roomsPayload = selectedRooms.map(roomId => {
-  const room = roomTypes.find(r => r.id === roomId);
-  return {
-    id: roomId,
-    type: room?.roomType || ''
-  };
-});
+    const { selectedRooms, selectedRatePlans, restrictionType, restrictionTypeAction, restrictionValue, currencyCode, countryCode, isActive } = geoRatePlan;
+
+    const roomsPayload = selectedRooms.map(roomId => {
+      const room = roomTypes.find(r => r.id === roomId);
+      return { id: roomId, type: room?.roomType || '' };
+    });
 
     const ratePlansPayload = selectedRatePlans.map(ratePlanId => {
       const plan = ratePlans.find(p => p.id === ratePlanId);
-      return {
-        id: ratePlanId,
-        code: plan?.ratePlanCode || ''
-      };
+      return { id: ratePlanId, code: plan?.ratePlanCode || '' };
     });
 
     const payload: CreateGeoRatePlan = {
@@ -121,321 +120,272 @@ const GeoRatePlanForm: React.FC<GeoRatePlanFormProps> = ({
       rooms: roomsPayload,
       ratePlans: ratePlansPayload,
       restrictionType,
-      restrictionTypeAction: restrictionType === "restricted" ? null : restrictionAction,
-      restrictionValue: restrictionType === "restricted" ? null : parseFloat(restrictionValue) || null,
+      restrictionTypeAction: restrictionType === "restricted" ? null : restrictionTypeAction,
+      restrictionValue: restrictionType === "restricted" ? null : restrictionValue,
       currencyCode: restrictionType === "fixed" ? currencyCode : null,
-      countryCode: selectedCountries,
-      isActive
+      countryCode,
+      isActive,
+      isAutoApplied
     };
 
     await onSubmit(payload);
   };
 
+  const { selectedRooms, selectedRatePlans, restrictionType, restrictionTypeAction, restrictionValue, currencyCode, countryCode, isActive,isAutoApplied } = geoRatePlan;
+
   const showRestrictionValue = restrictionType !== "restricted";
   const showCurrencyCode = restrictionType === "fixed";
   const showRestrictionAction = restrictionType !== "restricted";
+if(isLoading.isLoading){
 
-  return (
-    <div className="bg-card rounded-lg border border-border shadow-sm relative">
-      {isLoading && (
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center rounded-lg">
-          <Loader text="Processing..." />
+        <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-50 rounded-lg">
+          <Loader text={isLoading.message} />
         </div>
-      )}
-      
-      <form onSubmit={handleSubmit} className="p-6 space-y-4">
-        {/* Room Selection */}
-        {/* Room Selection */}
-<div className="space-y-3">
-  <div className="flex items-center justify-between">
-    <label className="text-sm font-semibold text-foreground">
-      Room Selection
-    </label>
-    <button
-      type="button"
-      onClick={handleSelectAllRooms}
-      className="text-xs text-primary hover:text-primary/80 font-medium"
-    >
-      {selectedRooms.length === roomTypes.length ? 'Deselect All' : 'Select All'}
-    </button>
-  </div>
-  
-  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-64 overflow-y-auto border border-border rounded-lg p-4 bg-muted/30">
-    {roomTypes.length === 0 ? (
-      <p className="text-sm text-muted-foreground text-center py-4 col-span-full">No rooms available</p>
-    ) : (
-      roomTypes.map((room) => (
-        <label 
-          key={room.id} 
-          className="flex items-start space-x-3 cursor-pointer hover:bg-muted/50 p-3 rounded-md transition-colors border border-transparent hover:border-border"
-        >
-          <input
-            type="checkbox"
-            checked={selectedRooms.includes(room.id)}
-            onChange={() => {
-              setSelectedRooms(prev =>
-                prev.includes(room.id)
-                  ? prev.filter(id => id !== room.id)
-                  : [...prev, room.id]
-              );
-            }}
-            className="w-4 h-4 text-primary border-border rounded focus:ring-2 focus:ring-primary mt-0.5"
-          />
-          <div className="flex-1 min-w-0">
-            <div className="text-sm font-medium text-foreground truncate">{room.roomName}</div>
-            <div className="text-xs text-muted-foreground">({room.roomType})</div>
-          </div>
-        </label>
-      ))
-    )}
-  </div>
-</div>
-
-        {/* Rate Plans Selection */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-semibold text-foreground">
-              Rate Plans *
-            </label>
-            <button
-              type="button"
-              onClick={handleSelectAllRatePlans}
-              className="text-xs text-primary hover:text-primary/80 font-medium"
-            >
-              {selectedRatePlans.length === ratePlans.length ? 'Deselect All' : 'Select All'}
-            </button>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-64 overflow-y-auto border border-border rounded-lg p-4 bg-muted/30">
-            {ratePlans.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4 col-span-full">No rate plans available</p>
-            ) : (
-              ratePlans.map((plan) => (
-                <label 
-                  key={plan.id} 
-                  className="flex items-start space-x-3 cursor-pointer hover:bg-muted/50 p-3 rounded-md transition-colors border border-transparent hover:border-border"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedRatePlans.includes(plan.id)}
-                    onChange={() => {
-                      setSelectedRatePlans(prev =>
-                        prev.includes(plan.id)
-                          ? prev.filter(id => id !== plan.id)
-                          : [...prev, plan.id]
-                      );
-                    }}
-                    className="w-4 h-4 text-primary border-border rounded focus:ring-2 focus:ring-primary mt-0.5"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-foreground truncate">{plan.ratePlanName}</div>
-                    <div className="text-xs text-muted-foreground">({plan.ratePlanCode})</div>
-                  </div>
-                </label>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Restriction Configuration */}
-        <div className="space-y-4 p-4 bg-muted/20 rounded-lg border border-border">
-          <h3 className="text-sm font-semibold text-foreground">Pricing Configuration</h3>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">
-                Restriction Type *
-              </label>
-              <Select
-                value={restrictionType}
-                onValueChange={(value) => {
-                  setRestrictionType(value as GeoRestrictionType);
-                  if (value === "restricted") {
-                    setRestrictionValue('');
-                  }
-                }}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="percentage">Percentage Adjustment</SelectItem>
-                  <SelectItem value="fixed">Fixed Amount Adjustment</SelectItem>
-                  <SelectItem value="restricted">Block Access</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {showRestrictionAction && (
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Price Action *
-                </label>
-                <Select
-                  value={restrictionAction}
-                  onValueChange={(value) => setRestrictionAction(value as GeoRestrictionTypeAction)}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="increase">⬆ Increase Price</SelectItem>
-                    <SelectItem value="decrease">⬇ Decrease Price</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
-
-          {showRestrictionValue && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  {restrictionType === "percentage" ? 'Percentage Value *' : 'Amount *'}
-                </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    value={restrictionValue}
-                    onChange={(e) => setRestrictionValue(e.target.value)}
-                    min="0"
-                    max={restrictionType === "percentage" ? "100" : undefined}
-                    step="0.01"
-                    className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground pr-8"
-                    placeholder={restrictionType === "percentage" ? "e.g., 10" : "e.g., 50"}
-                    required
-                  />
-                  {restrictionType === "percentage" && (
-                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground font-medium">
-                      %
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              {showCurrencyCode && (
-                <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Currency *
-                  </label>
-                  <Select
-                    value={currencyCode}
-                    onValueChange={(value) => setCurrencyCode(value as CurrencyCode)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="USD"> USD - US Dollar</SelectItem>
-                      <SelectItem value="EUR"> EUR - Euro</SelectItem>
-                      <SelectItem value="INR"> INR - Indian Rupee</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
-          )}
-
-          {restrictionType === "restricted" && (
-            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3">
-              <p className="text-sm text-destructive font-medium">⚠ Selected countries will be completely blocked from booking</p>
-            </div>
-          )}
-        </div>
-
-        {/* Country Selection */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-semibold text-foreground">
-              Target Countries * 
-              {selectedCountries.length > 0 && (
-                <span className="ml-2 text-xs font-normal text-muted-foreground">
-                  ({selectedCountries.length} selected)
-                </span>
-              )}
-            </label>
-            <button
-              type="button"
-              onClick={handleSelectAllCountries}
-              className="text-xs text-primary hover:text-primary/80 font-medium"
-            >
-              {selectedCountries.length === filteredCountries.length ? 'Deselect All' : 'Select All'}
-            </button>
-          </div>
-          
-          <input
-            type="text"
-            value={countrySearch}
-            onChange={(e) => setCountrySearch(e.target.value)}
-            placeholder="Search countries..."
-            className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
-          />
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 max-h-80 overflow-y-auto border border-border rounded-lg p-4 bg-muted/30">
-            {filteredCountries.length === 0 ? (
-              <p className="text-sm text-muted-foreground text-center py-4 col-span-full">No countries found</p>
-            ) : (
-              filteredCountries.map((country) => (
-                <label
-                  key={country.code}
-                  className="flex items-center space-x-3 cursor-pointer hover:bg-muted/50 p-2.5 rounded-md transition-colors border border-transparent hover:border-border"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedCountries.includes(country.code)}
-                    onChange={() => handleCountryToggle(country.code)}
-                    className="w-4 h-4 text-primary border-border rounded focus:ring-2 focus:ring-primary"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium text-foreground truncate">{country.name} <span>({country.code})</span></div>
-                  </div>
-                </label>
-              ))
-            )}
-          </div>
-        </div>
-
-        {/* Status Toggle */}
-        <div className="flex items-center space-x-3 p-3 bg-muted/20 rounded-lg border border-border">
-          <input
-            type="checkbox"
-            id="isActive"
-            checked={isActive}
-            onChange={(e) => setIsActive(e.target.checked)}
-            className="w-5 h-5 text-primary border-border rounded focus:ring-2 focus:ring-primary"
-          />
-          <label htmlFor="isActive" className="text-sm font-medium text-foreground cursor-pointer flex-1">
-            Active Status
-            <span className="block text-xs text-muted-foreground font-normal mt-0.5">
-              {isActive ? 'This rate plan is currently active' : 'This rate plan is currently inactive'}
-            </span>
-          </label>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex justify-end space-x-3 pt-4 border-t border-border">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-6 py-2.5 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/90 transition-colors font-medium"
-            disabled={isLoading}
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm"
-           disabled={
-  isLoading ||  
-  selectedRatePlans.length === 0 || 
-  selectedCountries.length === 0
 }
-          >
-            {editData ? '✓ Update' : '+ Create'} Geo Rate Plan
+  return (
+    <form onSubmit={handleSubmit} className="space-y-6">
+
+
+      {/* Room Selection */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-semibold text-foreground">Room Selection</label>
+          <button type="button" onClick={handleSelectAllRooms} className="text-xs text-primary hover:underline">
+            {selectedRooms.length === roomTypes.length ? 'Deselect All' : 'Select All'}
           </button>
         </div>
-      </form>
-    </div>
+        <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border border-border rounded-md p-3">
+          {roomTypes.length === 0 ? (
+            <p className="text-sm text-muted-foreground col-span-2 text-center py-2">No rooms available</p>
+          ) : (
+            roomTypes.map((room) => (
+              <label key={room.id} className="flex items-start gap-2 cursor-pointer hover:bg-accent rounded p-1.5">
+                <input
+                  type="checkbox"
+                  checked={selectedRooms.includes(room.id)}
+                  onChange={() =>
+                    updateField(
+                      'selectedRooms',
+                      selectedRooms.includes(room.id)
+                        ? selectedRooms.filter(id => id !== room.id)
+                        : [...selectedRooms, room.id]
+                    )
+                  }
+                  className="w-4 h-4 text-primary border-border rounded focus:ring-2 focus:ring-primary mt-0.5"
+                />
+                <div>
+                  <p className="text-sm font-medium text-foreground">{room.roomName}</p>
+                  <p className="text-xs text-muted-foreground">({room.roomType})</p>
+                </div>
+              </label>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Rate Plans Selection */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-semibold text-foreground">Rate Plans *</label>
+          <button type="button" onClick={handleSelectAllRatePlans} className="text-xs text-primary hover:underline">
+            {selectedRatePlans.length === ratePlans.length ? 'Deselect All' : 'Select All'}
+          </button>
+        </div>
+        <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto border border-border rounded-md p-3">
+          {ratePlans.length === 0 ? (
+            <p className="text-sm text-muted-foreground col-span-2 text-center py-2">No rate plans available</p>
+          ) : (
+            ratePlans.map((plan) => (
+              <label key={plan.id} className="flex items-start gap-2 cursor-pointer hover:bg-accent rounded p-1.5">
+                <input
+                  type="checkbox"
+                  checked={selectedRatePlans.includes(plan.id)}
+                  onChange={() =>
+                    updateField(
+                      'selectedRatePlans',
+                      selectedRatePlans.includes(plan.id)
+                        ? selectedRatePlans.filter(id => id !== plan.id)
+                        : [...selectedRatePlans, plan.id]
+                    )
+                  }
+                  className="w-4 h-4 text-primary border-border rounded focus:ring-2 focus:ring-primary mt-0.5"
+                />
+                <div>
+                  <p className="text-sm font-medium text-foreground">{plan.ratePlanName}</p>
+                  <p className="text-xs text-muted-foreground">({plan.ratePlanCode})</p>
+                </div>
+              </label>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Pricing Configuration */}
+      <div className="space-y-4 p-4 bg-accent/30 rounded-lg border border-border">
+        <h3 className="text-sm font-semibold text-foreground">Pricing Configuration</h3>
+
+        <div className="space-y-1.5">
+          <label className="text-sm font-medium text-foreground">Restriction Type *</label>
+          <Select
+            value={restrictionType}
+            onValueChange={(value) => {
+              updateField('restrictionType', value as GeoRestrictionType);
+              if (value === "restricted") updateField('restrictionValue', null);
+            }}
+          >
+            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="percentage">Percentage Adjustment</SelectItem>
+              <SelectItem value="fixed">Fixed Amount Adjustment</SelectItem>
+              <SelectItem value="restricted">Block Access</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {showRestrictionAction && (
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground">Price Action *</label>
+            <Select
+              value={restrictionTypeAction ?? "increase"}
+              onValueChange={(value) => updateField('restrictionTypeAction', value as GeoRestrictionTypeAction)}
+            >
+              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="increase">⬆ Increase Price</SelectItem>
+                <SelectItem value="decrease">⬇ Decrease Price</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {showRestrictionValue && (
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground">
+              {restrictionType === "percentage" ? 'Percentage Value *' : 'Amount *'}
+            </label>
+            <div className="relative">
+              <input
+                type="number"
+                value={restrictionValue ?? ''}
+                onChange={(e) => updateField('restrictionValue', e.target.value ? parseFloat(e.target.value) : null)}
+                min="0"
+                max={restrictionType === "percentage" ? "100" : undefined}
+                step="0.01"
+                className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground pr-8"
+                placeholder={restrictionType === "percentage" ? "e.g., 10" : "e.g., 50"}
+                required
+              />
+              {restrictionType === "percentage" && (
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">%</span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {showCurrencyCode && (
+          <div className="space-y-1.5">
+            <label className="text-sm font-medium text-foreground">Currency *</label>
+            <Select
+              value={currencyCode ?? "USD"}
+              onValueChange={(value) => updateField('currencyCode', value as CurrencyCode)}
+            >
+              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="USD">USD - US Dollar</SelectItem>
+                <SelectItem value="EUR">EUR - Euro</SelectItem>
+                <SelectItem value="INR">INR - Indian Rupee</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {restrictionType === "restricted" && (
+          <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+            <span className="text-destructive text-sm">⚠ Selected countries will be completely blocked from booking</span>
+          </div>
+        )}
+      </div>
+
+      {/* Country Selection */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <label className="text-sm font-semibold text-foreground">
+            Target Countries *
+            {countryCode.length > 0 && (
+              <span className="ml-2 text-xs text-muted-foreground">({countryCode.length} selected)</span>
+            )}
+          </label>
+          <button type="button" onClick={handleSelectAllCountries} className="text-xs text-primary hover:underline">
+            {countryCode.length === filteredCountries.length ? 'Deselect All' : 'Select All'}
+          </button>
+        </div>
+        <input
+          type="text"
+          value={countrySearch}
+          onChange={(e) => setCountrySearch(e.target.value)}
+          placeholder="Search countries..."
+          className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
+        />
+        <div className="grid grid-cols-2 gap-1.5 max-h-48 overflow-y-auto border border-border rounded-md p-3">
+          {filteredCountries.length === 0 ? (
+            <p className="text-sm text-muted-foreground col-span-2 text-center py-2">No countries found</p>
+          ) : (
+            filteredCountries.map((country) => (
+              <label key={country.code} className="flex items-center gap-2 cursor-pointer hover:bg-accent rounded p-1">
+                <input
+                  type="checkbox"
+                  checked={countryCode.includes(country.code)}
+                  onChange={() => handleCountryToggle(country.code)}
+                  className="w-4 h-4 text-primary border-border rounded focus:ring-2 focus:ring-primary"
+                />
+                <span className="text-sm text-foreground">{country.name} ({country.code})</span>
+              </label>
+            ))
+          )}
+        </div>
+      </div>
+      <div className="flex items-center gap-3 p-3 bg-accent/30 rounded-lg border border-border">
+        <input
+          type="checkbox"
+          id="isAutoApplied"
+          checked={isAutoApplied}
+          onChange={(e) => updateField('isAutoApplied', e.target.checked)}
+          className="w-5 h-5 text-primary border-border rounded focus:ring-2 focus:ring-primary"
+        />
+        <div>
+          <label htmlFor="isAutoApplied" className="text-sm font-medium text-foreground cursor-pointer">Active Status</label>
+          <p className="text-xs text-muted-foreground">
+            {isAutoApplied ? 'This rate plan is currently auto applied' : 'This rate plan is currently not auto applied'}
+          </p>
+        </div>
+      </div>
+      {/* Status Toggle */}
+      <div className="flex items-center gap-3 p-3 bg-accent/30 rounded-lg border border-border">
+        <input
+          type="checkbox"
+          id="isActive"
+          checked={isActive}
+          onChange={(e) => updateField('isActive', e.target.checked)}
+          className="w-5 h-5 text-primary border-border rounded focus:ring-2 focus:ring-primary"
+        />
+        <div>
+          <label htmlFor="isActive" className="text-sm font-medium text-foreground cursor-pointer">Active Status</label>
+          <p className="text-xs text-muted-foreground">
+            {isActive ? 'This rate plan is currently active' : 'This rate plan is currently inactive'}
+          </p>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex gap-3 pt-2">
+        <button type="button" onClick={onCancel} className="flex-1 px-4 py-2.5 border border-border rounded-md text-foreground hover:bg-accent transition-colors text-sm font-medium">
+          Cancel
+        </button>
+        <button type="submit" className="flex-1 px-4 py-2.5 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm font-medium">
+          {editData ? '✓ Update' : '+ Create'} Geo Rate Plan
+        </button>
+      </div>
+    </form>
   );
 };
 
