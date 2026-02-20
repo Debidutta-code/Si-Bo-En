@@ -293,8 +293,8 @@ export const DeviceSpecificPromotionList: React.FC = () => {
                 <TableHead className='text-center'>Start Date</TableHead>
                 <TableHead className='text-center'>End Date</TableHead>
                 <TableHead className='text-center'>Active Days</TableHead>
-                <TableHead className='text-center'>Status</TableHead>
                 <TableHead className='text-center'>Auto Applied</TableHead>
+                <TableHead className='text-center'>Status</TableHead>
                 <TableHead className='text-center'>Actions</TableHead>
               </TableRow>
             </TableHeader>

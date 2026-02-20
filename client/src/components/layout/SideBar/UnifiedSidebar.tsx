@@ -187,6 +187,8 @@ const scrollPosition = useRef(0);
   );  const restrictionsItems = [
     { name: 'Start/Stop Sell', href: `/property/start-stop-sell/${propertyId}` },
     { name: 'CTA-CTD', href: `/property/cta-ctd/${propertyId}` },
+    { name: 'Booking Offset', href: `/property/booking-offset/${propertyId}` },
+
   ];
   // const isLoyaltyContext = location.pathname.includes('/app/property');
 
