@@ -33,6 +33,26 @@ const INITIAL_FORM: ICBookingOffsetS = {
   maximumCancelBookingOffset: null,
 };
 
+type Unit = "hours" | "days";
+type UnitsMap = Record<keyof ICBookingOffsetS, Unit>;
+
+const defaultUnits = (): UnitsMap => {
+  const units = {} as UnitsMap;
+  for (const field of OFFSET_FIELDS) {
+    units[field.key] = "hours";
+  }
+  return units;
+};
+
+const toDisplay = (hours: number | null, unit: Unit): string => {
+  if (hours === null) return "";
+  return unit === "days" ? String(hours / 24) : String(hours);
+};
+
+const toHours = (displayVal: number, unit: Unit): number => {
+  return unit === "days" ? displayVal * 24 : displayVal;
+};
+
 export default function CreateBookingOffsetForm({
   propertyId,
   ratePlans,
@@ -43,10 +63,21 @@ export default function CreateBookingOffsetForm({
   onSuccess,
 }: CreateBookingOffsetFormProps) {
   const [form, setForm] = useState<ICBookingOffsetS>({ ...INITIAL_FORM });
+  const [units, setUnits] = useState<UnitsMap>(defaultUnits);
   const [ratePlanId, setRatePlanId] = useState(selectedRatePlan?.id || "");
   const [createStartDate, setCreateStartDate] = useState(startDate);
   const [createEndDate, setCreateEndDate] = useState(endDate);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleValueChange = (key: keyof ICBookingOffsetS, rawValue: string) => {
+    if (rawValue === "") {
+      setForm((prev) => ({ ...prev, [key]: null }));
+      return;
+    }
+    const numVal = Number(rawValue);
+    const hours = toHours(numVal, units[key]);
+    setForm((prev) => ({ ...prev, [key]: hours }));
+  };
 
   const handleSubmit = async () => {
     if (!ratePlanId) {
@@ -148,19 +179,29 @@ export default function CreateBookingOffsetForm({
               <label className="block text-sm font-medium text-muted-foreground mb-1">
                 {field.label}
               </label>
-              <input
-                type="number"
-                className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                value={form[field.key] ?? ""}
-                onChange={(e) =>
-                  setForm((prev) => ({
-                    ...prev,
-                    [field.key]:
-                      e.target.value === "" ? null : Number(e.target.value),
-                  }))
-                }
-                placeholder="—"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  min="0"
+                  className="flex-1 px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                  value={toDisplay(form[field.key], units[field.key])}
+                  onChange={(e) => handleValueChange(field.key, e.target.value)}
+                  placeholder="—"
+                />
+                <select
+                  className="px-2 py-2 bg-background border border-border rounded-md text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  value={units[field.key]}
+                  onChange={(e) =>
+                    setUnits((prev) => ({
+                      ...prev,
+                      [field.key]: e.target.value as Unit,
+                    }))
+                  }
+                >
+                  <option value="hours">Hours</option>
+                  <option value="days">Days</option>
+                </select>
+              </div>
             </div>
           ))}
         </div>
