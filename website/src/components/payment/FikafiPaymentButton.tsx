@@ -126,20 +126,8 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
       backendUrl = backendUrl.replace(/\/api\/v1\/?$/, "");
 
       // Get the website URL for redirects
-      let websiteUrl = (process.env.NEXT_PUBLIC_WEBSITE_URL || "").trim();
+      let websiteUrl = (process.env.NEXT_PUBLIC_WEBSITE_URL || "http://localhost:3000").trim();
       websiteUrl = websiteUrl.replace(/\/+$/, "");
-      
-      // Get the webhook URL - use dedicated env variable or fallback to backend URL
-      let webhookBaseUrl = (process.env.NEXT_PUBLIC_FIKAFI_WEBHOOK_URL || backendUrl).trim();
-      // If the webhook URL already contains the full path, use it as is
-      if (!webhookBaseUrl.includes('/api/v1/fikafi/webhook')) {
-        webhookBaseUrl = webhookBaseUrl.replace(/\/+$/, "");
-      }
-      
-      console.log('🔍 DEBUG: Environment URLs:');
-      console.log('  backendUrl:', backendUrl);
-      console.log('  websiteUrl:', websiteUrl);
-      console.log('  webhookBaseUrl:', webhookBaseUrl);
 
       // Build request matching the exact format
       const requestBody = {
@@ -175,9 +163,7 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
           failed_url: `${websiteUrl}/PaymentSuccess?ref=${bookingRefNum}&status=failed`
         },
         webhook: {
-          payment_event_url: webhookBaseUrl.includes('/api/v1/fikafi/webhook') 
-            ? webhookBaseUrl 
-            : `${webhookBaseUrl}/api/v1/fikafi/webhook/payment-event`
+          payment_event_url: `${backendUrl}/api/v1/fikafi/webhook/payment-event`
         }
       };
 

@@ -416,17 +416,6 @@ export class FikafiPaymentController {
 
             if (isPaid) {
                 console.log(`📡 Emitting socket event for ${bookingRefNum}`);
-                
-                // Check if socket manager is initialized
-                const io = socketManager.getIO();
-                console.log('🔍 Socket.IO instance:', io ? 'initialized' : 'NOT initialized');
-                
-                // Check active connections
-                const activeCount = socketManager.getActiveConnectionCount(bookingRefNum);
-                console.log(`🔍 Active connections for ${bookingRefNum}:`, activeCount);
-                
-                const activeOrders = socketManager.getActiveOrders();
-                console.log('🔍 All active orders:', activeOrders);
 
                 socketManager.emitPaymentUpdate(bookingRefNum, {
                     orderReference: bookingRefNum,
