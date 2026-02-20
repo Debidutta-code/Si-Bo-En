@@ -53,14 +53,9 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
       try {
         const { default: io } = await import("socket.io-client");
         
-        const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL!;
-        console.log('🔌 Connecting to socket:', socketUrl);
-        
-        const socket = io(socketUrl, {
-          transports: ["polling", "websocket"], // Try polling first for better compatibility
-          reconnection: true,
-          reconnectionAttempts: 5,
-          reconnectionDelay: 1000,
+        const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL!, {
+          transports: ["websocket", "polling"],
+          reconnection: false,
         });
 
         socketRef.current = socket;
@@ -92,8 +87,7 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
         });
 
         socket.on("connect_error", (error: any) => {
-          console.error("❌ Fikafi socket connection error:", error.message);
-          console.log("💡 Tip: Check if the server has WebSocket support enabled");
+          console.error("❌ Fikafi socket connection error:", error);
         });
       } catch (error) {
         console.error("Failed to initialize socket:", error);
