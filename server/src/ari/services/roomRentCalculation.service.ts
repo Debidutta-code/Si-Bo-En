@@ -457,7 +457,7 @@ export class RoomRentCalculationService {
 
             // === RETURN COMPREHENSIVE BREAKDOWN ===
             return successResponse("Price calculated successfully", {
-                totalAmount: finalPrice,  // ✅ Change from null
+                totalAmount: finalPrice,
                 numberOfNights,
                 baseRatePerNight: totalBaseAmount / numberOfNights / noOfRooms,
                 additionalGuestCharges: totalAdditionalCharges,
@@ -469,8 +469,8 @@ export class RoomRentCalculationService {
                     totalBaseAmount: adjustedBasePrice,
                     totalAdditionalCharges,
                     totalTax,
-                    totalAmount: finalPrice,  // ✅ Change from null
-                    averagePerNight: finalPrice / numberOfNights  // ✅ Change from null
+                    totalAmount: finalPrice,
+                    averagePerNight: finalPrice / numberOfNights
                 },
 
                 dailyBreakdown: rateCalculation.data!.dailyBreakdown,
@@ -485,7 +485,7 @@ export class RoomRentCalculationService {
 
                 userAddons: {
                     selected: userAddonsDetails,
-                    totalAmount: userAddonsTotal  // ✅ Change from null
+                    totalAmount: userAddonsTotal
                 },
 
                 loyaltyDiscount: loyaltyDiscountInfo,
@@ -493,7 +493,7 @@ export class RoomRentCalculationService {
                 tax: taxCalculation.taxDetails,
                 totalTax,
 
-                priceAfterTax: finalPrice  // ✅ Change from null
+                priceAfterTax: finalPrice
             });
         } catch (error) {
             console.error('Error in getRoomRentService:', error);
@@ -1239,7 +1239,7 @@ export class RoomRentCalculationService {
             }
 
             // Rest of your existing logic...
-            const discountValue = Number(devicePromo.discountType);
+            const discountValue = Number(devicePromo.discountValue);
             const baseAmountNumber = Number(baseAmount);
             let discountAmount = 0;
 
