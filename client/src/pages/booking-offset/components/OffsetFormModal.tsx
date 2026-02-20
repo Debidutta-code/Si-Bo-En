@@ -18,7 +18,6 @@ const getInitialUnits = (form: ICBookingOffsetS): UnitsMap => {
   const units = {} as UnitsMap;
   for (const field of OFFSET_FIELDS) {
     const val = form[field.key];
-    // Default to days if the value is >= 24 and evenly divisible
     units[field.key] =
       val !== null && val >= 24 && val % 24 === 0 ? "days" : "hours";
   }
@@ -65,17 +64,12 @@ export default function OffsetFormModal({
 }: OffsetFormModalProps) {
   const [units, setUnits] = useState<UnitsMap>(() => getInitialUnits(form));
 
-  // Re-sync units when form changes externally (e.g. modal re-opens)
   useEffect(() => {
     setUnits(getInitialUnits(form));
   }, []);
 
   const handleUnitChange = (key: keyof ICBookingOffsetS, newUnit: Unit) => {
-    const currentHours = form[key];
     setUnits((prev) => ({ ...prev, [key]: newUnit }));
-    // Value stays the same in hours – only display changes
-    // But if user already typed a display value, we need to keep the hours value stable
-    // The form already stores hours, so nothing else to do
   };
 
   const handleValueChange = (key: keyof ICBookingOffsetS, rawValue: string) => {
