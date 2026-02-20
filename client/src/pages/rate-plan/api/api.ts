@@ -1,4 +1,4 @@
-import type { CreateRatePlan, ICRatePlanRule, RatePlanRule } from "../interfaces/ratePlan.type";
+import type { CreateRatePlan, ICRatePlanRule } from "../interfaces/ratePlan.type";
 import createAxiosInstance from "@/components/axiosInstance";
 const axiosInstance = createAxiosInstance();
 

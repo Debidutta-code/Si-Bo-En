@@ -5,7 +5,7 @@ import {
   updateCustomizableDeal,
   deleteCustomizableDeal
 } from "../apis";
-import type { CreateCustomizableDeal, UpdateCustomizableDeal } from "../interfaces";
+import type { CreateCustomizableDeal } from "../interfaces";
 
 export async function createCustomizableDealService(payload: CreateCustomizableDeal, propertyId: string) {
   if (!propertyId) {
@@ -78,7 +78,7 @@ export async function getCustomizableDealByIdService(dealId: string) {
   return result;
 }
 
-export async function updateCustomizableDealService(dealId: string, payload: UpdateCustomizableDeal, propertyId: string) {
+export async function updateCustomizableDealService(dealId: string, payload: CreateCustomizableDeal, propertyId: string) {
   if (!dealId) {
     return {
       success: false,

@@ -29,6 +29,7 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import type { RatePlanRule } from "../interfaces/ratePlan.type";
 import { createRatePlanRuleService, updateRatePlanRuleService } from "../services";
+import type { CurrencyCode } from "@/pages/tax-system/interface";
 
 interface RatePlanRulesDialogProps {
   open: boolean;
@@ -44,9 +45,11 @@ interface RatePlanRuleFormData {
   endDate: Date | null;
   minLos: number;
   maxLos: number | null;
-  discountType: "percentage" | "flat" | null;
+  discountType: "percentage" | "flat" | "none";
   discountValue: number | null;
   isActive: boolean;
+  isAutoApplied: boolean;
+  currencyCode: CurrencyCode;
 }
 
 const DISCOUNT_TYPES = [
@@ -74,9 +77,11 @@ export default function RatePlanRulesDialog({
     endDate: null,
     minLos: 1,
     maxLos: null,
-    discountType: null,
+    discountType: "none",
     discountValue: null,
     isActive: true,
+    isAutoApplied: false,
+    currencyCode: "USD",
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -90,9 +95,11 @@ export default function RatePlanRulesDialog({
         endDate: parseDate(existingRule.endDate),
         minLos: existingRule.minLos || 1,
         maxLos: existingRule.maxLos || null,
-        discountType: existingRule.discountType || null,
+        discountType: existingRule.discountType || "none",
         discountValue: existingRule.discountValue ? Number(existingRule.discountValue) : null,
         isActive: existingRule.isActive ?? true,
+        isAutoApplied: existingRule.isAutoApplied ?? false,
+        currencyCode: existingRule.currencyCode || "USD",
       });
     } else {
       // Reset form when creating new rule
@@ -101,9 +108,11 @@ export default function RatePlanRulesDialog({
         endDate: null,
         minLos: 1,
         maxLos: null,
-        discountType: null,
+        discountType: "none",
         discountValue: null,
-        isActive: true,
+        isActive: true, 
+        isAutoApplied: false,
+        currencyCode: "USD",
       });
     }
   }, [existingRule, open]);
@@ -158,6 +167,8 @@ export default function RatePlanRulesDialog({
         discountType: formData.discountType,
         discountValue: formData.discountValue,
         isActive: formData.isActive,
+        isAutoApplied: formData.isAutoApplied,
+        currencyCode: formData.currencyCode,
       };
 
       // Call API - create if no existing rule, update if exists
@@ -336,7 +347,7 @@ export default function RatePlanRulesDialog({
                   onValueChange={(value) =>
                     setFormData({
                       ...formData,
-                      discountType: value as "percentage" | "flat" | null,
+                      discountType: value as "percentage" | "flat" | "none",
                     })
                   }
                 >

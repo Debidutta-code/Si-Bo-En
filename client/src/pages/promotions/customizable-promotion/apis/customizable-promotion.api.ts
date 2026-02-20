@@ -1,5 +1,5 @@
 import createAxiosInstance from "@/components/axiosInstance";
-import type { CreateCustomizableDeal, UpdateCustomizableDeal } from "../interfaces";
+import type { CreateCustomizableDeal } from "../interfaces";
 
 const axiosInstance = createAxiosInstance();
 
@@ -66,7 +66,7 @@ export async function getCustomizableDealById(dealId: string) {
 /**
  * Update customizable deal
  */
-export async function updateCustomizableDeal(dealId: string, payload: UpdateCustomizableDeal, propertyId: string) {
+export async function updateCustomizableDeal(dealId: string, payload: CreateCustomizableDeal, propertyId: string) {
   try {
     const response = await axiosInstance.put(`/promotions/customizable-deal/${dealId}`, {
       ...payload,
