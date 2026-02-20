@@ -1239,7 +1239,7 @@ export class RoomRentCalculationService {
             }
 
             // Rest of your existing logic...
-            const discountValue = Number(devicePromo.discountType);
+            const discountValue = Number(devicePromo.discountValue);
             const baseAmountNumber = Number(baseAmount);
             let discountAmount = 0;
 

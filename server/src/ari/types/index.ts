@@ -47,3 +47,5 @@ export type {
     IRatePlanWithAddon,
     IRemoveAddonFromRatePlan
 }
+
+export * from "./booking-offset.types"
