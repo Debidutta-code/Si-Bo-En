@@ -1,7 +1,7 @@
-// controllers/ari.controller.ts
+// controllers/ari-update.controller.ts
 
 import { Response } from 'express';
-import { errorResponse, RateTigerRequest } from '../../../utils';
+import { RateTigerRequest } from '../../../utils';
 import { RateTigerValidation } from '../validations/request.validation';
 import { RateTigerService } from '../services/rate-tiger.service';
 import { PricePullService } from '../services/price-pull.service';
@@ -13,133 +13,143 @@ import {
 } from '../types';
 import { RateTigerOTAHotelRatePlanRQ } from '../types/price-pull.types';
 import { RateTigerInventoryUpdateRQ } from '../types/inventory-update.types';
-import { RTIntegrationDao } from '../dao/rt-integration.dao';
-
-// controllers/ari.controller.ts
 
 export class ARIController {
-
     public static async handleARI(req: RateTigerRequest, res: Response) {
         try {
             const body = req.body;
+            const propertyCode = req.rateTiger?.propertyCode;
 
-            // ─── Resolve RT hotelCode → internal propertyCode ─────
-            const rtHotelCode =
-                body.otaHotelAvailRQ?.hotelCode ||
-                body.otaHotelAvailGetRQ?.hotelCode ||
-                body.otaHotelRatePlanRQ?.hotelCode ||
-                body.rateAmountMessages?.hotelCode ||
-                body.otaHotelAvailNotifRQ?.hotelCode;
-
-            if (!rtHotelCode) {
-                return res.status(400).json({
+            if (!propertyCode) {
+                return res.status(500).json({
                     success: false,
-                    message: 'Missing hotelCode in request body',
+                    message:
+                        'Property code could not be resolved. Ensure withHotelCodeConversion wrapper is applied.',
                 });
             }
-
-            // Look up internal property code using RT property code
-            const propertyInfo = await RTIntegrationDao.getPropertyCodeByRTCode(rtHotelCode);
-
-            if (!propertyInfo) {
-                return res.status(404).json({
-                    success: false,
-                    message: `No property found for RateTiger hotel code: ${rtHotelCode}`,
-                });
-            }
-
-            const { propertyCode } = propertyInfo;
-
-            // ─── Room/RatePlan Pull ───────────────────────────────
             if (body.otaHotelAvailRQ) {
-                const validationError = RateTigerValidation.validateRoomRatePlanPull(body);
+                const validationError =
+                    RateTigerValidation.validateRoomRatePlanPull(body);
                 if (validationError) {
-                    return res.status(400).json({ success: false, message: validationError });
+                    return res
+                        .status(400)
+                        .json({ success: false, message: validationError });
                 }
 
                 const { otaHotelAvailRQ } = body as RateTigerOTAHotelAvailRQ;
-                const result = await RateTigerService.getRoomTypeRatePlanMapping(
-                    propertyCode, // ✅ internal code
-                    otaHotelAvailRQ.requestId
-                );
+                const result =
+                    await RateTigerService.getRoomTypeRatePlanMapping(
+                        propertyCode,
+                        otaHotelAvailRQ.requestId
+                    );
 
-                return res.status(result.success ? 200 : 400).json(result);
+                const status =
+                    result.otaHotelAvailRS.success === 'true' ? 200 : 400;
+                return res.status(status).json(result);
             }
 
-            // ─── Inventory Pull ───────────────────────────────────
             if (body.otaHotelAvailGetRQ) {
-                const validationError = RateTigerValidation.validateInventoryPull(body);
+                const validationError =
+                    RateTigerValidation.validateInventoryPull(body);
                 if (validationError) {
-                    return res.status(400).json({ success: false, message: validationError });
+                    return res
+                        .status(400)
+                        .json({ success: false, message: validationError });
                 }
 
-                const { otaHotelAvailGetRQ } = body as RateTigerOTAHotelAvailGetRQ;
+                const { otaHotelAvailGetRQ } =
+                    body as RateTigerOTAHotelAvailGetRQ;
                 const result = await RateTigerService.getInventoryPull(
-                    propertyCode, // ✅ internal code
+                    propertyCode,
                     otaHotelAvailGetRQ.requestId,
                     otaHotelAvailGetRQ.hotelAvailRequest
                 );
 
-                return res.status(result.success ? 200 : 400).json(result);
+                const status =
+                    result.otaHotelAvailGetRS.success === 'true' ? 200 : 400;
+                return res.status(status).json(result);
             }
 
-            // ─── Price Pull ───────────────────────────────────────
             if (body.otaHotelRatePlanRQ) {
-                const validationError = RateTigerValidation.validatePricePull(body);
+                const validationError =
+                    RateTigerValidation.validatePricePull(body);
                 if (validationError) {
-                    return res.status(400).json({ success: false, message: validationError });
+                    return res
+                        .status(400)
+                        .json({ success: false, message: validationError });
                 }
 
-                const { otaHotelRatePlanRQ } = body as RateTigerOTAHotelRatePlanRQ;
+                const { otaHotelRatePlanRQ } =
+                    body as RateTigerOTAHotelRatePlanRQ;
                 const result = await PricePullService.getPricePull(
-                    propertyCode, // ✅ internal code
+                    propertyCode,
                     otaHotelRatePlanRQ.requestId,
                     otaHotelRatePlanRQ.ratePlans
                 );
 
-                return res.status(result.success ? 200 : 400).json(result);
+                const status =
+                    result.otaHotelRatePlanRS.success === 'true' ? 200 : 400;
+                return res.status(status).json(result);
             }
 
-            // ─── Price Update ─────────────────────────────────────
             if (body.rateAmountMessages) {
-                const validationError = RateTigerValidation.validatePriceUpdate(body);
+                const validationError =
+                    RateTigerValidation.validatePriceUpdate(body);
                 if (validationError) {
-                    return res.status(400).json({ success: false, message: validationError });
+                    return res
+                        .status(400)
+                        .json({ success: false, message: validationError });
                 }
 
-                // Inject resolved propertyCode into body before processing
-                body.rateAmountMessages.hotelCode = propertyCode; // ✅ override with internal code
+                // Inject resolved propertyCode so the service works with internal code
+                body.rateAmountMessages.hotelCode = propertyCode;
 
-                const result = await PriceUpdateService.processPriceUpdate(body);
-                return res.status(result.success ? 200 : 400).json(result);
+                const result =
+                    await PriceUpdateService.processPriceUpdate(body);
+                const status =
+                    result.otaRateAmountNotifRS.success === 'true' ? 200 : 400;
+                // withHotelCodeConversion will swap propertyCode → rtHotelCode in the response
+                return res.status(status).json(result);
             }
 
-            // ─── Inventory Update ─────────────────────────────────
             if (body.otaHotelAvailNotifRQ) {
-                const validationError = RateTigerValidation.validateInventoryUpdate(body);
+                const validationError =
+                    RateTigerValidation.validateInventoryUpdate(body);
                 if (validationError) {
-                    return res.status(400).json({ success: false, message: validationError });
+                    return res
+                        .status(400)
+                        .json({ success: false, message: validationError });
                 }
 
-                // Inject resolved propertyCode
-                body.otaHotelAvailNotifRQ.hotelCode = propertyCode; // ✅ override with internal code
+                body.otaHotelAvailNotifRQ.hotelCode = propertyCode;
 
-                const result = await InventoryUpdateService.processInventoryUpdate(
-                    body as RateTigerInventoryUpdateRQ
-                );
-                return res.status(result.success ? 200 : 400).json(result);
+                const result =
+                    await InventoryUpdateService.processInventoryUpdate(
+                        body as RateTigerInventoryUpdateRQ
+                    );
+                const status =
+                    result.otaHotelAvailNotifRS.success === 'true' ? 200 : 400;
+                // withHotelCodeConversion will swap propertyCode → rtHotelCode in the response
+                return res.status(status).json(result);
             }
 
             return res.status(400).json({
                 success: false,
                 message: 'Unknown ARI message type',
             });
-
         } catch (error: any) {
             console.error('ARI Error:', error);
-            return res.status(500).json(
-                errorResponse('Internal server error during ARI operation', error?.message)
-            );
+            return res.status(500).json({
+                success: 'false',
+                timeStamp: new Date().toISOString(),
+                error: {
+                    type: 'ProcessingError',
+                    errorCode: '500',
+                    text:
+                        error?.message ||
+                        'Internal server error during ARI operation',
+                },
+            });
         }
     }
 }
