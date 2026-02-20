@@ -16,7 +16,6 @@ import {
 import { RotateCcwKey, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-
 export default function Navbar({ isOpen }: { isOpen: boolean }) {
   const dispatch = useAppDispatch();
   const { user } = useAppSelector((state) => state.user);
@@ -109,7 +108,7 @@ navigate('/login');
                   <span className="text-sm capitalize">{user.role.replace('_', ' ')}</span>
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem className="cursor-default focus:bg-transparent">
+              <DropdownMenuItem className="cursor-default focus:bg-transparent" onClick={()=>{navigate("/forgot-password")}}>
                 <RotateCcwKey className="mr-2 h-4 w-4" />
                 <span className="text-sm capitalize" >Change Password</span>
               </DropdownMenuItem>
