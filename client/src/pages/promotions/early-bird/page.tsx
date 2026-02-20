@@ -304,8 +304,8 @@ export const EarlyBirdPromotionList: React.FC = () => {
                                 <TableHead>Start Date</TableHead>
                                 <TableHead>End Date</TableHead>
                                 <TableHead>Active Days</TableHead>
-                                <TableHead>Status</TableHead>
                                 <TableHead>Auto Applied</TableHead>
+                                <TableHead>Status</TableHead>
                                 <TableHead>Actions</TableHead>
                             </TableRow>
                         </TableHeader>

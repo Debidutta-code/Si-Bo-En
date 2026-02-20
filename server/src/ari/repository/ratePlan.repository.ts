@@ -514,6 +514,17 @@ export class RatePlanRepository {
       throw new Error("Failed to delete charges")
     }
   }
+  public static async getRateplanById(ratePlanId:string){
+    try {
+      return await prisma.ratePlan.findUnique({
+        where: {
+          id: ratePlanId
+        }
+      })
+    } catch (error) {
+      throw new Error("Failed to get rate plan")
+    }
+  }
 }
 
 

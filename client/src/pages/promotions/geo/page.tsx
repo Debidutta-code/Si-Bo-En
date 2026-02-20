@@ -258,8 +258,8 @@ export const GeoRatePlanList: React.FC = () => {
                 <TableHead>Action</TableHead>
                 <TableHead>Value</TableHead>
                 <TableHead>Countries</TableHead>
-                <TableHead>Status</TableHead>
                 <TableHead>Auto Applied</TableHead>
+                <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>

@@ -7,17 +7,18 @@ export const toUTC = (date: Date | string): Date => {
   ).toUTC().toJSDate();
 };
 export const toUTCDate = (date: Date | string): Date => {
+  console.log(date)
   const d = typeof date === "string" ? new Date(date) : date;
   return new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0));
 };
 export const toPropertyTime = (
   utcDate: Date | string,
-  propertyTimeZone: string
+  timeZone: string
 ) => {
   return DateTime.fromJSDate(
     typeof utcDate === "string" ? new Date(utcDate) : utcDate,
     { zone: "utc" }
-  ).setZone(propertyTimeZone);
+  ).setZone(timeZone);
 };
 
 export const nowUTC = (): Date => {

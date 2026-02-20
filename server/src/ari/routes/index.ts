@@ -7,6 +7,7 @@ import startStopSellRoute from './start-stop-sell.route';
 import {restrictionRouter} from "./restriction.routes";
 import {availabilityRouter} from "./availibility.route";
 import ratePlanWithAddonRouter from './Rateplanwithaddon.routes';
+import { bookingOffsetRouter } from './booking-offset.route';
 const AriRouter = Router();
 AriRouter.use('/inventory', inventoryRouter);
 
@@ -20,4 +21,5 @@ AriRouter.use('/price', roomRentPriceRouter);
 AriRouter.use('/start-stop-sell', startStopSellRoute);
 AriRouter.use('/cta-ctd',restrictionRouter);
 AriRouter.use('/analysis',availabilityRouter)
+AriRouter.use('/booking-offset',bookingOffsetRouter)
 export  {AriRouter};

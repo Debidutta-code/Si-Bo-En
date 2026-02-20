@@ -14,6 +14,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import Loader from '@/components/Loader/Loader';
 import createAxiosInstance from '@/components/axiosInstance';
+import BackButton from '@/components/shared/BackButton';
 
 interface IAgency {
   id: string;
@@ -84,12 +85,17 @@ const PropertyAgenciesPage: React.FC = () => {
   };
 
   if (loading) {
-    return <Loader text="Loading agencies..." />;
+    return (
+      <div className='h-screen flex justify-center items-center'>
+        <Loader text="Loading agencies..." />;
+      </div>
+    )
   }
 
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
+      <BackButton/>
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Property Agencies</h1>
         <p className="text-gray-500 mt-1">

@@ -38,6 +38,8 @@ export interface ILoyalityGuestsWDP extends ILoyalityGuests{
         propertyCode:string;
     };
     guest?:IGuests;
-    metaData:JSON
+    metaData:JSON;
+    guestEmail:string;
+    
     
 }
