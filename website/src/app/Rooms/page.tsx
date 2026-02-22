@@ -551,7 +551,7 @@ const Rooms = () => {
           endDate: paramsData.endDate || defaultEndDate,
           numberOfRooms: paramsData.numberOfRooms || 1,
           location: paramsData.location || "",
-          promocode: paramsData.location || ""
+          promocode: paramsData.promocode || ""
         };
         dispatch(setBookingSource(paramsData.bookingSource));
         dispatch(setBookingContext(contextWithDates));

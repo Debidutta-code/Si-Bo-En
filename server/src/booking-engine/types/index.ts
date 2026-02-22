@@ -5,7 +5,8 @@ import type {
     IPromotion,
     IAddonInfo,
     IBaseByGuestAmount,
-    ITouristTax
+    ITouristTax,
+    IAppliedDiscount
 } from './room.type';
 export {
     IBookingSearchPayload,
@@ -14,5 +15,6 @@ export {
     IPromotion,
     IAddonInfo,
     IBaseByGuestAmount,
-    ITouristTax
+    ITouristTax,
+    IAppliedDiscount
 };
