@@ -1096,47 +1096,47 @@ const RoomCard: React.FC<RoomCardProps> = ({
 
                           {/* NON-MEMBER: Unlock loyalty box */}
                           {!isLoyaltyMember && loyaltyProgram && loyaltyDiscountAmount > 0 && (
-                            <div className="mb-2 flex items-center justify-end gap-2">
+                            <div className="mb-2 flex flex-wrap sm:flex-nowrap items-center justify-end gap-2">
                               <button
                                 onClick={(e) => { e.stopPropagation(); if (onUnlockLoyalty) onUnlockLoyalty(); }}
-                                className="flex flex-col items-center justify-center border-2 border-dashed border-gray-400 rounded-lg px-3 py-2 hover:border-blue-500 transition-all group"
+                                className="flex flex-col items-center justify-center border-2 border-dashed border-gray-400 rounded-lg px-2.5 sm:px-3 py-1.5 sm:py-2 hover:border-blue-500 transition-all group"
                               >
-                                <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1">— UNLOCK —</span>
+                                <span className="text-[8px] sm:text-[9px] font-bold text-gray-500 uppercase tracking-widest mb-1">— UNLOCK —</span>
                                 <div className="flex items-center gap-1">
-                                  <svg className="w-3.5 h-3.5 text-gray-600 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <svg className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-gray-600 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
                                   </svg>
-                                  <span className="text-sm font-bold text-gray-800">
+                                  <span className="text-xs sm:text-sm font-bold text-gray-800">
                                     {currency} {priceAfterLoyalty.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                   </span>
                                 </div>
                               </button>
 
-                              {/* Price info + ADD button all in one row */}
+                              {/* Price info */}
                               <div className="flex flex-col items-start">
                                 <div className="flex items-center gap-1 mb-0.5">
-                                  <span className="text-xs text-gray-400 line-through">
+                                  <span className="text-[10px] sm:text-xs text-gray-400 line-through">
                                     {currency} {basePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                   </span>
-                                  <span className="px-1.5 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded">
+                                  <span className="px-1 sm:px-1.5 py-0.5 bg-green-500 text-white text-[9px] sm:text-[10px] font-bold rounded">
                                     -{loyaltyDiscountPercentage}%
                                   </span>
                                 </div>
-                                <span className="text-lg font-bold text-gray-800">
+                                <span className="text-base sm:text-lg font-bold text-gray-800">
                                   {currency} {basePrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </span>
                               </div>
 
-                              {/* ADD button inline */}
+                              {/* ADD button */}
                               <button
                                 onClick={() => handleBookNowClick(ratePlan)}
                                 disabled={isLoadingForRatePlan(ratePlan.ratePlanCode) || isExpanded}
                                 style={{ backgroundColor: primaryColor || "#777777", color: buttonTextColor || "#FFFFFF" }}
-                                className="px-5 py-3 rounded-lg font-bold text-sm uppercase transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl whitespace-nowrap hover:opacity-90 hover:scale-105 active:scale-95 self-center"
+                                className="px-3 sm:px-5 py-2 sm:py-3 rounded-lg font-bold text-xs sm:text-sm uppercase transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl whitespace-nowrap hover:opacity-90 hover:scale-105 active:scale-95 self-center"
                               >
                                 {isLoadingForRatePlan(ratePlan.ratePlanCode) ? (
-                                  <div className="flex items-center gap-2">
-                                    <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                  <div className="flex items-center gap-1.5 sm:gap-2">
+                                    <div className="h-3.5 w-3.5 sm:h-4 sm:w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                                     <span>Loading...</span>
                                   </div>
                                 ) : isExpanded ? "Selected" : "ADD"}
@@ -1144,52 +1144,47 @@ const RoomCard: React.FC<RoomCardProps> = ({
                             </div>
                           )}
 
-                          {/* MEMBER: Loyalty icon + discounted price + ADD button */}
+                          {/* MEMBER: Loyalty discounted price + ADD button */}
                           {isLoyaltyMember && loyaltyDiscountAmount > 0 && (
-                            <div className="mb-2 flex items-center justify-end gap-2">
-                              {/* <div className="flex items-center justify-center w-9 h-9 bg-gray-900 rounded-lg flex-shrink-0">
-                                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                </svg>
-                              </div> */}
-
+                            <div className="mb-2 flex flex-wrap sm:flex-nowrap items-center justify-end gap-2">
                               <div className="flex flex-col items-start">
                                 <div className="flex items-center gap-1 mb-0.5">
-                                  <span className="text-xs text-gray-400 line-through">
+                                  <span className="text-[10px] sm:text-xs text-gray-400 line-through">
                                     {currency} {priceBeforeLoyalty.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                   </span>
-                                  <span className="px-1.5 py-0.5 bg-green-500 text-white text-[10px] font-bold rounded">
+                                  <span className="px-1 sm:px-1.5 py-0.5 bg-green-500 text-white text-[9px] sm:text-[10px] font-bold rounded">
                                     -{loyaltyDiscountPercentage}%
                                   </span>
                                 </div>
-                                <span className="text-lg font-bold text-gray-800">
+                                <span className="text-base sm:text-lg font-bold text-gray-800">
                                   {currency} {priceAfterLoyalty.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                 </span>
                               </div>
 
-                              {/* ADD button inline */}
+                              {/* ADD button */}
                               <button
                                 onClick={() => handleBookNowClick(ratePlan)}
                                 disabled={isLoadingForRatePlan(ratePlan.ratePlanCode) || isExpanded}
                                 style={{ backgroundColor: primaryColor || "#777777", color: buttonTextColor || "#FFFFFF" }}
-                                className="px-5 py-3 rounded-lg font-bold text-sm uppercase transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl whitespace-nowrap hover:opacity-90 hover:scale-105 active:scale-95 self-center"
+                                className="px-3 sm:px-5 py-2 sm:py-3 rounded-lg font-bold text-xs sm:text-sm uppercase transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl whitespace-nowrap hover:opacity-90 hover:scale-105 active:scale-95 self-center"
                               >
                                 {isLoadingForRatePlan(ratePlan.ratePlanCode) ? (
-                                  <div className="flex items-center gap-2">
-                                    <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                  <div className="flex items-center gap-1.5 sm:gap-2">
+                                    <div className="h-3.5 w-3.5 sm:h-4 sm:w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                                     <span>Loading...</span>
                                   </div>
                                 ) : isExpanded ? "Selected" : "ADD"}
                               </button>
                             </div>
                           )}
-                          {/* NON-LOYALTY original price strikethrough (only when no loyalty involved) */}
+
+                          {/* NON-LOYALTY original price strikethrough */}
                           {!isLoyaltyMember && ratePlan.originalPrice && ratePlan.originalPrice > basePrice && (
-                            <div className="flex items-center justify-end gap-2 mb-1">
-                              <span className="text-sm font-semibold line-through text-gray-400">
+                            <div className="flex items-center justify-end gap-1.5 sm:gap-2 mb-1">
+                              <span className="text-xs sm:text-sm font-semibold line-through text-gray-400">
                                 {currency} {ratePlan.originalPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                               </span>
-                              <span className="px-2 py-0.5 bg-green-500 text-white text-xs font-bold rounded">
+                              <span className="px-1.5 sm:px-2 py-0.5 bg-green-500 text-white text-[10px] sm:text-xs font-bold rounded">
                                 -{Math.round(((ratePlan.originalPrice - basePrice) / ratePlan.originalPrice) * 100)}%
                               </span>
                             </div>
@@ -1197,25 +1192,25 @@ const RoomCard: React.FC<RoomCardProps> = ({
 
                           {/* Main price + ADD button — only when NO loyalty */}
                           {!(loyaltyDiscountAmount > 0 && (isLoyaltyMember || (!isLoyaltyMember && loyaltyProgram))) && (
-                            <div className="flex items-center justify-end gap-3 mt-1">
+                            <div className="flex items-center justify-end gap-2 sm:gap-3 mt-1">
                               <div className="text-right">
                                 <div className="flex items-baseline gap-1 justify-end">
-                                  <span className="text-2xl md:text-3xl font-bold text-green-600">
+                                  <span className="text-xl sm:text-2xl md:text-3xl font-bold text-green-600">
                                     {currency} {displayPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                   </span>
                                 </div>
-                                <span className="text-xs text-gray-500">per night</span>
-                                <p className="text-[10px] text-gray-400">Not included: Taxes</p>
+                                <span className="text-[10px] sm:text-xs text-gray-500">per night</span>
+                                <p className="text-[9px] sm:text-[10px] text-gray-400">Not included: Taxes</p>
                               </div>
                               <button
                                 onClick={() => handleBookNowClick(ratePlan)}
                                 disabled={isLoadingForRatePlan(ratePlan.ratePlanCode) || isExpanded}
                                 style={{ backgroundColor: primaryColor || "#777777", color: buttonTextColor || "#FFFFFF" }}
-                                className="px-5 py-3 rounded-lg font-bold text-sm uppercase transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl whitespace-nowrap hover:opacity-90 hover:scale-105 active:scale-95 self-center"
+                                className="px-3 sm:px-5 py-2 sm:py-3 rounded-lg font-bold text-xs sm:text-sm uppercase transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl whitespace-nowrap hover:opacity-90 hover:scale-105 active:scale-95 self-center"
                               >
                                 {isLoadingForRatePlan(ratePlan.ratePlanCode) ? (
-                                  <div className="flex items-center gap-2">
-                                    <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                  <div className="flex items-center gap-1.5 sm:gap-2">
+                                    <div className="h-3.5 w-3.5 sm:h-4 sm:w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                                     <span>Loading...</span>
                                   </div>
                                 ) : isExpanded ? "Selected" : "ADD"}
@@ -1226,20 +1221,17 @@ const RoomCard: React.FC<RoomCardProps> = ({
                         </div>
                       )}
 
-                      {/* When collapsed, just show the button */}
+                      {/* Collapsed: just the button */}
                       {isCollapsed && (
                         <button
                           onClick={() => handleBookNowClick(ratePlan)}
                           disabled={isLoadingForRatePlan(ratePlan.ratePlanCode) || isExpanded}
-                          style={{
-                            backgroundColor: primaryColor || "#777777",
-                            color: buttonTextColor || "#FFFFFF",
-                          }}
-                          className="px-5 py-3 rounded-lg font-bold text-sm uppercase transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg whitespace-nowrap hover:opacity-90"
+                          style={{ backgroundColor: primaryColor || "#777777", color: buttonTextColor || "#FFFFFF" }}
+                          className="px-3 sm:px-5 py-2 sm:py-3 rounded-lg font-bold text-xs sm:text-sm uppercase transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg whitespace-nowrap hover:opacity-90"
                         >
                           {isLoadingForRatePlan(ratePlan.ratePlanCode) ? (
-                            <div className="flex items-center gap-2">
-                              <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                            <div className="flex items-center gap-1.5 sm:gap-2">
+                              <div className="h-3.5 w-3.5 sm:h-4 sm:w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                               <span>Loading...</span>
                             </div>
                           ) : isExpanded ? "Selected" : "ADD"}

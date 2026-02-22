@@ -6,7 +6,6 @@ import { RootState } from "../../store/store";
 import SearchWidget from "../../components/Home/SearchWidget";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
-import { Facebook, Instagram, Youtube, Globe } from "lucide-react";
 import { setBookingContext, setBookingSource, setSenderUrl } from "../../store/bookingSlice";
 import { useBookingColors } from "../../hooks/useBookingColors";
 import RoomCard from "@/src/components/RoomPage/RoomCard";
@@ -238,7 +237,7 @@ const Rooms = () => {
       ratePlanCode: ratePlan.ratePlanCode,
       startDate: bookingContext.startDate,
       endDate: bookingContext.endDate,
-      promocode:bookingContext.promocode,
+      promocode: bookingContext.promocode,
       noOfAdults,
       noOfChildrens,
       noOfRooms,
@@ -326,7 +325,7 @@ const Rooms = () => {
   };
 
   const handleSearchStart = async (payload: any) => {
-    console.log("boking call",payload)
+    console.log("boking call", payload)
     const bookingCtx = payload || bookingContext;
 
     if (!bookingCtx?.PropertyCode) {
@@ -378,14 +377,14 @@ const Rooms = () => {
       setLoyaltyProgram(propertyDetails?.loyaltyProgramConfig || null);
       const bookingEngineColor = propertyDetails?.bookingEngineConfig
         ? {
-            primaryColor: propertyDetails.bookingEngineConfig.primaryColor,
-            secondaryColor: propertyDetails.bookingEngineConfig.secondaryColor,
-            tertiaryColor: propertyDetails.bookingEngineConfig.tertiaryColor,
-            buttonTextColor:
-              propertyDetails.bookingEngineConfig.buttonTextColor,
-            bgImage: propertyDetails.bookingEngineConfig.bannerImage,
-            logo: propertyDetails.bookingEngineConfig.logo,
-          }
+          primaryColor: propertyDetails.bookingEngineConfig.primaryColor,
+          secondaryColor: propertyDetails.bookingEngineConfig.secondaryColor,
+          tertiaryColor: propertyDetails.bookingEngineConfig.tertiaryColor,
+          buttonTextColor:
+            propertyDetails.bookingEngineConfig.buttonTextColor,
+          bgImage: propertyDetails.bookingEngineConfig.bannerImage,
+          logo: propertyDetails.bookingEngineConfig.logo,
+        }
         : undefined;
 
       const updatedContext = {
@@ -812,9 +811,8 @@ const Rooms = () => {
         </div>
       )}
       <div
-        className={`min-h-screen bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${
-          loaded ? "opacity-100" : "opacity-0"
-        }`}
+        className={`min-h-screen bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${loaded ? "opacity-100" : "opacity-0"
+          }`}
         onLoad={() => setLoaded(true)}
       >
         <div className=" z-40 bg-white/90 backdrop-blur shadow-sm">
@@ -975,8 +973,8 @@ const Rooms = () => {
                       No rooms available for this hotel.
                     </div>
                   ) : roomsData.filter(
-                      (room: Room) => room.has_valid_rate === true,
-                    ).length === 0 ? (
+                    (room: Room) => room.has_valid_rate === true,
+                  ).length === 0 ? (
                     <div className="text-center py-10 text-gray-600 text-lg font-medium">
                       No rooms available
                     </div>
@@ -1169,96 +1167,6 @@ const Rooms = () => {
             );
           }}
         />
-      )}
-
-      {/* Social Media Footer */}
-      {propertyDetails && (
-        <footer className="bg-gray-50 border-t border-gray-200 py-8 mt-12">
-          <div className="max-w-7xl mx-auto px-4">
-            <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-              {/* Property Info */}
-              <div className="text-center md:text-left">
-                <a
-                  href={propertyDetails.website || "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xl font-bold hover:opacity-80 transition-opacity"
-                  style={{ color: primaryColor }}
-                >
-                  {propertyDetails.propertyName}
-                </a>
-                <p className="text-sm text-gray-600 mt-1">
-                  {propertyDetails.address?.city || propertyDetails.address?.addressLine1 || ""}
-                  {propertyDetails.address?.state && `, ${propertyDetails.address.state}`}
-                  {propertyDetails.address?.country && `, ${propertyDetails.address.country}`}
-                </p>
-              </div>
-
-              {/* Social Media Links */}
-              <div className="flex items-center gap-4">
-                {propertyDetails.facebookUrl && (
-                  <a
-                    href={propertyDetails.facebookUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 rounded-full bg-white border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-all group"
-                    title="Facebook"
-                  >
-                    <Facebook className="w-5 h-5 text-gray-600 group-hover:text-blue-600 transition-colors" />
-                  </a>
-                )}
-                {propertyDetails.instagramUrl && (
-                  <a
-                    href={propertyDetails.instagramUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 rounded-full bg-white border border-gray-200 hover:border-pink-500 hover:bg-pink-50 transition-all group"
-                    title="Instagram"
-                  >
-                    <Instagram className="w-5 h-5 text-gray-600 group-hover:text-pink-600 transition-colors" />
-                  </a>
-                )}
-                {propertyDetails.youtubeUrl && (
-                  <a
-                    href={propertyDetails.youtubeUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 rounded-full bg-white border border-gray-200 hover:border-red-500 hover:bg-red-50 transition-all group"
-                    title="YouTube"
-                  >
-                    <Youtube className="w-5 h-5 text-gray-600 group-hover:text-red-600 transition-colors" />
-                  </a>
-                )}
-                {propertyDetails.website && (
-                  <a
-                    href={propertyDetails.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="p-2 rounded-full bg-white border border-gray-200 hover:border-gray-500 hover:bg-gray-100 transition-all group"
-                    title="Website"
-                  >
-                    <Globe className="w-5 h-5 text-gray-600 group-hover:text-gray-900 transition-colors" />
-                  </a>
-                )}
-              </div>
-            </div>
-
-            {/* Privacy & Terms */}
-            <div className="mt-6 pt-6 border-t border-gray-200 text-center text-xs text-gray-500">
-              <p>
-                This site is protected by reCAPTCHA and the Google{" "}
-                <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">
-                  Privacy Policy
-                </a>
-                {" "}and{" "}
-                <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-700">
-                  Terms of Service
-                </a>
-                {" "}apply.
-              </p>
-            </div>
-          </div>
-        </footer>
       )}
     </div>
   );

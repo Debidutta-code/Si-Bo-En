@@ -224,7 +224,7 @@ export const LoyaltyProgramBanner = ({
 
   return (
     <>
-      <div className=" h-full">
+      <div className="h-full">
         <div className="max-w-7xl h-full mx-auto">
           <div
             className="relative h-full overflow-hidden rounded-xl shadow-md border"
@@ -234,127 +234,130 @@ export const LoyaltyProgramBanner = ({
               background: 'white'
             }}
           >
-            {/* Show loading overlay while verifying */}
+            {/* Loading overlay while verifying */}
             {isVerifying && (
               <div className="absolute inset-0 bg-white/90 backdrop-blur-sm flex items-center justify-center z-20">
                 <div className="flex items-center gap-2">
-                  <div className="animate-spin rounded-full h-4 w-4 border-2 border-gray-200" style={{ borderTopColor: primaryColor }}></div>
+                  <div
+                    className="animate-spin rounded-full h-4 w-4 border-2 border-gray-200"
+                    style={{ borderTopColor: primaryColor }}
+                  ></div>
                   <span className="text-xs font-medium text-gray-600">Verifying...</span>
                 </div>
               </div>
             )}
 
-            <div className="p-3 md:p-4 h-full flex flex-col">
-              {/* Header: Logo (left) + Icon + Hotel Name + Loyalty Program (right) */}
-              <div className="flex items-start justify-between gap-4 mb-3">
-                {/* Logo - Left */}
+            <div className="p-3 sm:p-4 h-full flex flex-col gap-2.5">
+
+              {/* Header Row: Logo + Property Name + Badge */}
+              <div className="flex items-center gap-2 sm:gap-3">
+                {/* Logo */}
                 <div className="flex-shrink-0">
                   {loyaltyLogo ? (
-                    <div className="bg-gray-50 rounded-lg p-2 border border-gray-200">
+                    <div className="bg-gray-50 rounded-lg p-1.5 border border-gray-200">
                       <img
                         src={loyaltyLogo}
                         alt="Loyalty Program"
-                        className="w-12 h-8 rounded object-contain"
+                        className="w-10 h-8 sm:w-12 sm:h-9 rounded object-contain"
                       />
                     </div>
                   ) : (
                     <div
-                      className="bg-gray-50 rounded-lg p-2 border flex items-center justify-center w-12 h-12"
+                      className="bg-gray-50 rounded-lg p-2 border flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0"
                       style={{ borderColor: `${primaryColor}20` }}
                     >
-                      <Award className="w-6 h-6 opacity-20" style={{ color: primaryColor }} />
+                      <Award className="w-5 h-5 sm:w-6 sm:h-6 opacity-20" style={{ color: primaryColor }} />
                     </div>
                   )}
                 </div>
 
-                {/* Icon + Hotel Name + Loyalty Program - Right - Single Line */}
-                <div className="flex-1 text-right">
-                  <div className="flex items-center justify-end gap-2">
-                    <Award className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" style={{ color: primaryColor }} />
-                    <h2 className="text-base md:text-lg font-bold text-gray-900 whitespace-nowrap">
+                {/* Property Name + Label */}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" style={{ color: primaryColor }} />
+                    <h2 className="text-sm sm:text-base font-bold text-gray-900 truncate">
                       {loyaltyProgram.propertyName}
                     </h2>
-                    <span className="text-xs text-gray-500 whitespace-nowrap">Loyalty Program</span>
+                    <span className="text-[10px] sm:text-xs text-gray-500 whitespace-nowrap">Loyalty Program</span>
                   </div>
+                </div>
+
+                {/* Basic / Premium Badge - right side of header on all screens */}
+                <div className="flex-shrink-0">
+                  {isBasicProgram && (
+                    <span className="px-2 py-0.5 bg-blue-500 text-white rounded text-[10px] sm:text-xs font-semibold whitespace-nowrap">
+                      Basic
+                    </span>
+                  )}
+                  {isAdvancedProgram && (
+                    <span className="px-2 py-0.5 bg-purple-500 text-white rounded text-[10px] sm:text-xs font-semibold whitespace-nowrap">
+                      Premium
+                    </span>
+                  )}
                 </div>
               </div>
 
+              {/* Program Terms */}
               {program.loyaltyConditions && program.loyaltyConditions.filter(c => c.isActive).length > 0 && (
-                <div className="mb-3">
-                  <h3 className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
+                <div>
+                  <h3 className="text-[10px] sm:text-xs font-semibold text-gray-700 mb-1.5 flex items-center gap-1">
                     <CheckCircle2 className="w-3 h-3" style={{ color: primaryColor }} />
                     Program Terms
                   </h3>
-                  <div className="space-y-1.5 max-h-20 overflow-y-auto custom-scrollbar">
+                  <div className="space-y-1 max-h-20 overflow-y-auto custom-scrollbar">
                     {program.loyaltyConditions
                       .filter(condition => condition.isActive)
                       .slice(0, 2)
-
                       .map((condition, index) => (
                         <div
                           key={index}
-                          className="flex items-start gap-2 bg-gray-50 rounded p-2"
+                          className="flex items-start gap-1.5 bg-gray-50 rounded p-1.5"
                         >
                           <CheckCircle2 className="w-3 h-3 flex-shrink-0 mt-0.5" style={{ color: primaryColor }} />
-                          <span className="text-xs text-gray-700">{condition.text}</span>
+                          <span className="text-[10px] sm:text-xs text-gray-700 leading-snug">{condition.text}</span>
                         </div>
                       ))}
                   </div>
                 </div>
               )}
 
+              {/* Special Benefits */}
               {program.loyaltySpecialConditions && program.loyaltySpecialConditions.filter(c => c.isActive).length > 0 && (
-                <div className="mb-2">
-                  <h3 className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
+                <div>
+                  <h3 className="text-[10px] sm:text-xs font-semibold text-gray-700 mb-1.5 flex items-center gap-1">
                     <Star className="w-3 h-3" style={{ color: primaryColor }} />
                     Special Benefits
                   </h3>
-                  <div className="relative">
-                    {/* Show only first 2 benefits initially, or all if showAllBenefits is true */}
-                    <div className="space-y-1.5">
-                      {program.loyaltySpecialConditions
-                        .filter(condition => condition.isActive)
-                        .slice(0, showAllBenefits ? undefined : 1)
-                        .map((condition, index) => (
-                          <div
-                            key={index}
-                            className="flex items-start gap-2 bg-gradient-to-br from-purple-50 to-blue-50 rounded p-2 border border-purple-200"
-                          >
-                            <Star className="w-3 h-3 flex-shrink-0 mt-0.5" style={{ color: primaryColor }} />
-                            <span className="text-xs text-gray-900 font-semibold">{condition.subTitle}</span>
-                          </div>
-                        ))}
-                    </div>
+                  <div className="space-y-1">
+                    {program.loyaltySpecialConditions
+                      .filter(condition => condition.isActive)
+                      .slice(0, showAllBenefits ? undefined : 1)
+                      .map((condition, index) => (
+                        <div
+                          key={index}
+                          className="flex items-start gap-1.5 bg-gradient-to-br from-purple-50 to-blue-50 rounded p-1.5 border border-purple-200 overflow-hidden min-w-0"
+                        >
+                          <Star className="w-3 h-3 flex-shrink-0 mt-0.5" style={{ color: primaryColor }} />
+                          <span className="text-[10px] sm:text-xs text-gray-900 font-semibold leading-snug">{condition.subTitle}</span>
+                        </div>
+                      ))}
                   </div>
                 </div>
               )}
 
-              {/* Bottom Row: Discount + Basic + Join/Logout - Single Row, No Break */}
-              <div className="flex items-center gap-2 flex-wrap-reverse md:flex-nowrap">
-                {/* Discount Badge - Won't Break */}
+              {/* Bottom Row: Discount Badge + Spacer + (Join/Logout) */}
+              <div className="flex items-center gap-2 mt-auto flex-wrap sm:flex-nowrap">
+                {/* Discount Badge */}
                 <div
-                  className="px-2.5 py-1 rounded-lg text-white text-xs font-bold whitespace-nowrap flex-shrink-0"
+                  className="px-2.5 py-1 rounded-lg text-white text-[10px] sm:text-xs font-bold whitespace-nowrap flex-shrink-0"
                   style={{ backgroundColor: primaryColor }}
                 >
                   {getDiscountDisplay()}
                 </div>
 
-                {/* Basic/Premium Badge */}
-                {isBasicProgram && (
-                  <span className="px-2.5 py-1 bg-blue-500 text-white rounded text-xs font-semibold whitespace-nowrap flex-shrink-0">
-                    Basic
-                  </span>
-                )}
-                {isAdvancedProgram && (
-                  <span className="px-2.5 py-1 bg-purple-500 text-white rounded text-xs font-semibold whitespace-nowrap flex-shrink-0">
-                    Premium
-                  </span>
-                )}
+                <div className="flex-1" />
 
-                {/* Spacer to push button to right */}
-                <div className="flex-1"></div>
-
-                {/* Join Program or Logout Button */}
+                {/* Commented-out Join/Logout buttons preserved as-is */}
                 {/* {!isRegistered ? (
                   <button
                     onClick={() => setShowSignUpModal(true)}
@@ -383,7 +386,6 @@ export const LoyaltyProgramBanner = ({
                         </div>
                       </div>
                     </div>
-
                     <button
                       onClick={handleLogout}
                       className="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold transition-all flex items-center justify-center gap-1 border border-red-200 whitespace-nowrap flex-shrink-0"
@@ -394,6 +396,7 @@ export const LoyaltyProgramBanner = ({
                   </div>
                 )} */}
               </div>
+
             </div>
           </div>
         </div>
@@ -402,13 +405,13 @@ export const LoyaltyProgramBanner = ({
       {/* Sign Up Modal */}
       {showSignUpModal && (
         <Dialog open={showSignUpModal} onOpenChange={setShowSignUpModal}>
-          <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-xl font-bold flex items-center gap-2">
-                <Award className="w-5 h-5" style={{ color: primaryColor }} />
+              <DialogTitle className="text-lg sm:text-xl font-bold flex items-center gap-2">
+                <Award className="w-5 h-5 flex-shrink-0" style={{ color: primaryColor }} />
                 Join {loyaltyProgram.propertyName}
               </DialogTitle>
-              <DialogDescription className="text-sm">
+              <DialogDescription className="text-xs sm:text-sm">
                 Register to get {getDiscountDisplay()} on all bookings
               </DialogDescription>
             </DialogHeader>
@@ -424,16 +427,16 @@ export const LoyaltyProgramBanner = ({
                   }}
                 >
                   <div
-                    className="p-2 rounded-lg"
+                    className="p-2 rounded-lg flex-shrink-0"
                     style={{ backgroundColor: primaryColor }}
                   >
-                    <Gift className="w-5 h-5 text-white" />
+                    <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </div>
                   <div>
-                    <p className="font-bold text-gray-900 text-sm">
+                    <p className="font-bold text-gray-900 text-xs sm:text-sm">
                       {getDiscountDisplay()} Discount
                     </p>
-                    <p className="text-xs text-gray-600">
+                    <p className="text-[10px] sm:text-xs text-gray-600">
                       Auto-applied on every booking
                     </p>
                   </div>
@@ -441,7 +444,7 @@ export const LoyaltyProgramBanner = ({
 
                 {/* Email Field */}
                 <div className="space-y-1.5">
-                  <Label htmlFor="email" className="text-sm font-medium">
+                  <Label htmlFor="email" className="text-xs sm:text-sm font-medium">
                     Email Address <span className="text-red-500">*</span>
                   </Label>
                   <Input
@@ -451,19 +454,21 @@ export const LoyaltyProgramBanner = ({
                     required
                     value={formData.email || ""}
                     onChange={(e) => handleFieldChange("email", e.target.value)}
-                    className="w-full"
+                    className="w-full text-sm"
                   />
                 </div>
 
-                {/* Other Fields */}
+                {/* Dynamic Fields */}
                 {program.LoyaltyProgramFieldConfig &&
-                  program.LoyaltyProgramFieldConfig.filter(field => field.visibleInRegistration && field.fieldName.toLowerCase() !== 'email').length > 0 && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  program.LoyaltyProgramFieldConfig.filter(
+                    field => field.visibleInRegistration && field.fieldName.toLowerCase() !== 'email'
+                  ).length > 0 && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {program.LoyaltyProgramFieldConfig
                         .filter(field => field.visibleInRegistration && field.fieldName.toLowerCase() !== 'email')
                         .map((field) => (
                           <div key={field.id} className="space-y-1.5">
-                            <Label htmlFor={field.fieldName} className="text-sm font-medium">
+                            <Label htmlFor={field.fieldName} className="text-xs sm:text-sm font-medium">
                               {field.fieldName.charAt(0).toUpperCase() + field.fieldName.slice(1).replaceAll("_", " ")}
                               {field.required && <span className="text-red-500">*</span>}
                             </Label>
@@ -474,7 +479,7 @@ export const LoyaltyProgramBanner = ({
                               required={field.required}
                               value={formData[field.fieldName] || ""}
                               onChange={(e) => handleFieldChange(field.fieldName, e.target.value)}
-                              className="w-full"
+                              className="w-full text-sm"
                             />
                           </div>
                         ))}
@@ -483,7 +488,7 @@ export const LoyaltyProgramBanner = ({
               </div>
 
               {/* Buttons */}
-              <div className="flex gap-2 mt-6">
+              <div className="flex flex-col-reverse sm:flex-row gap-2 mt-6">
                 <Button
                   type="button"
                   variant="outline"
@@ -491,24 +496,24 @@ export const LoyaltyProgramBanner = ({
                     setShowSignUpModal(false);
                     setFormData({});
                   }}
-                  className="flex-1"
+                  className="flex-1 text-sm"
                   disabled={isSubmitting}
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
-                  className="flex-1 text-white font-semibold"
+                  className="flex-1 text-white font-semibold text-sm"
                   style={{ backgroundColor: primaryColor }}
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
-                    <span className="flex items-center gap-1.5">
+                    <span className="flex items-center justify-center gap-1.5">
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                       Registering...
                     </span>
                   ) : (
-                    <span className="flex items-center gap-1.5">
+                    <span className="flex items-center justify-center gap-1.5">
                       <User className="w-4 h-4" />
                       Sign Up
                     </span>
