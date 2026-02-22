@@ -3,7 +3,13 @@ import { useParams } from "react-router-dom";
 import { toast } from "sonner";
 import { Trash2, User, Mail, Phone, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -30,6 +36,7 @@ import {
 } from "./services/loyalty.guest.service";
 import { getLoyalityByCreationService } from "./services";
 import type { ILoyalityGuestsWDP } from "./interfaces";
+import BackButton from "@/components/shared/BackButton";
 
 interface ILoader {
   isLoading: boolean;
@@ -51,7 +58,9 @@ export default function LoyaltyGuest() {
     isLoading: true,
     message: "Loading loyalty configuration...",
   });
-  const [creationLoyaltyId, setCreationLoyaltyId] = useState<string | null>(null);
+  const [creationLoyaltyId, setCreationLoyaltyId] = useState<string | null>(
+    null,
+  );
   const [guests, setGuests] = useState<ILoyalityGuestsWDP[]>([]);
   const [pagination, setPagination] = useState<IPaginationData>({
     currentPage: 1,
@@ -95,7 +104,10 @@ export default function LoyaltyGuest() {
     }
   };
 
-  const fetchLoyaltyGuests = async (page: number, limit: number = 10): Promise<void> => {
+  const fetchLoyaltyGuests = async (
+    page: number,
+    limit: number = 10,
+  ): Promise<void> => {
     if (!creationLoyaltyId) {
       return;
     }
@@ -105,7 +117,7 @@ export default function LoyaltyGuest() {
     const response = await getLoyaltyGuestsForCreationService(
       creationLoyaltyId,
       skip,
-      limit
+      limit,
     );
 
     if (response.success && response.data) {
@@ -175,6 +187,7 @@ export default function LoyaltyGuest() {
 
   return (
     <div className="p-6 space-y-6">
+      <BackButton />
       <Card>
         <CardHeader>
           <CardTitle className="text-2xl font-bold">Loyalty Guests</CardTitle>
@@ -184,15 +197,32 @@ export default function LoyaltyGuest() {
         </CardHeader>
         <CardContent>
           {guests.length === 0 ? (
-            <div className="text-center py-12">
-              <User className="mx-auto h-12 w-12 text-muted-foreground opacity-50" />
-              <h3 className="mt-4 text-lg font-semibold">No Loyalty Guests</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                No guests have enrolled in this loyalty program yet.
-              </p>
+            <div className="flex flex-col items-center justify-center py-16 space-y-4">
+              <div className="rounded-full bg-muted p-4">
+                <User className="h-10 w-10 text-muted-foreground" />
+              </div>
+              <div className="text-center space-y-1">
+                <h3 className="text-lg font-semibold text-foreground">
+                  No Loyalty Guests
+                </h3>
+                <p className="text-sm text-muted-foreground max-w-sm">
+                  No guests have enrolled in this loyalty program yet.
+                </p>
+              </div>
             </div>
           ) : (
             <>
+              <div className="flex items-start gap-2 rounded-md border border-border bg-muted/50 px-4 py-3 mb-4">
+                <span className="text-primary text-lg leading-none mt-0.5">
+                  ℹ
+                </span>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  Guests whose details are marked as{" "}
+                  <strong className="text-foreground">N/A</strong> have
+                  registered as loyalty guests but don't have any reservations
+                  yet.
+                </p>
+              </div>
               <div className="rounded-md border">
                 <Table>
                   <TableHeader>
@@ -214,8 +244,9 @@ export default function LoyaltyGuest() {
                           <div className="flex items-center gap-2">
                             <User className="h-4 w-4 text-muted-foreground" />
                             <span>
-                              {loyaltyGuest.guest&&loyaltyGuest.guest.firstName}{" "}
-                              {loyaltyGuest.guest&&loyaltyGuest.guest.lastName}
+                              {loyaltyGuest.guest
+                                ? `${loyaltyGuest.guest.firstName} ${loyaltyGuest.guest.lastName}`
+                                : "N/A"}
                             </span>
                           </div>
                         </TableCell>
@@ -223,7 +254,7 @@ export default function LoyaltyGuest() {
                           <div className="flex items-center gap-2">
                             <Mail className="h-4 w-4 text-muted-foreground" />
                             <span className="text-sm">
-                              {loyaltyGuest.guest&&loyaltyGuest.guest.email || "N/A"}
+                              {loyaltyGuest.guestEmail || "N/A"}
                             </span>
                           </div>
                         </TableCell>
@@ -231,7 +262,9 @@ export default function LoyaltyGuest() {
                           <div className="flex items-center gap-2">
                             <Phone className="h-4 w-4 text-muted-foreground" />
                             <span className="text-sm">
-                              {loyaltyGuest.guest&&loyaltyGuest.guest.phoneNumber || "N/A"}
+                              {(loyaltyGuest.guest &&
+                                loyaltyGuest.guest.phoneNumber) ||
+                                "N/A"}
                             </span>
                           </div>
                         </TableCell>
@@ -242,18 +275,22 @@ export default function LoyaltyGuest() {
                             </p>
                           </div>
                         </TableCell>
-                        
-                        
+
                         <TableCell className="flex justify-center items-center">
                           {loyaltyGuest.metaData ? (
                             <span
-                              onClick={() => openMetadataDialog(loyaltyGuest.metaData)}
+                              onClick={() =>
+                                openMetadataDialog(loyaltyGuest.metaData)
+                              }
                               className="gap-2"
                             >
                               <Eye className="h-4 w-4" />
+                              View
                             </span>
                           ) : (
-                            <span className="text-sm text-muted-foreground">N/A</span>
+                            <span className="text-sm text-muted-foreground">
+                              N/A
+                            </span>
                           )}
                         </TableCell>
                         <TableCell className="text-sm">
@@ -275,15 +312,15 @@ export default function LoyaltyGuest() {
                 </Table>
               </div>
 
-                <div className="mt-4">
-                  <Pagination
-                    currentPage={pagination.currentPage}
-                    totalPages={pagination.totalPages}
-                    onPageChange={handlePageChange}
-                    itemsPerPage={pagination.limit}
-                    totalItems={pagination.totalCount}
-                  />
-                </div>
+              <div className="mt-4">
+                <Pagination
+                  currentPage={pagination.currentPage}
+                  totalPages={pagination.totalPages}
+                  onPageChange={handlePageChange}
+                  itemsPerPage={pagination.limit}
+                  totalItems={pagination.totalCount}
+                />
+              </div>
             </>
           )}
         </CardContent>
@@ -310,7 +347,10 @@ export default function LoyaltyGuest() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={metadataDialogOpen} onOpenChange={setMetadataDialogOpen}>
+      <AlertDialog
+        open={metadataDialogOpen}
+        onOpenChange={setMetadataDialogOpen}
+      >
         <AlertDialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <AlertDialogHeader>
             <AlertDialogTitle>Loyalty Program Fields</AlertDialogTitle>
@@ -319,21 +359,26 @@ export default function LoyaltyGuest() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="space-y-4 py-4">
-            {selectedMetadata && typeof selectedMetadata === 'object' ? (
+            {selectedMetadata && typeof selectedMetadata === "object" ? (
               Object.entries(selectedMetadata).map(([key, value]) => (
-                <div key={key} className="grid grid-cols-3 gap-4 items-start border-b pb-3 last:border-b-0">
+                <div
+                  key={key}
+                  className="grid grid-cols-3 gap-4 items-start border-b pb-3 last:border-b-0"
+                >
                   <div className="font-medium text-sm capitalize">
-                    {key.replace(/([A-Z])/g, ' $1').trim()}:
+                    {key.replace(/([A-Z])/g, " $1").trim()}:
                   </div>
                   <div className="col-span-2 text-sm text-muted-foreground break-words">
-                    {typeof value === 'object' && value !== null
+                    {typeof value === "object" && value !== null
                       ? JSON.stringify(value, null, 2)
                       : String(value)}
                   </div>
                 </div>
               ))
             ) : (
-              <p className="text-sm text-muted-foreground">No metadata available</p>
+              <p className="text-sm text-muted-foreground">
+                No metadata available
+              </p>
             )}
           </div>
           <AlertDialogFooter>
