@@ -5,7 +5,7 @@ export interface BookingEngineConfig {
   secondaryColor: string;
   tertiaryColor: string;
   buttonTextColor: string;
-  // bannerImage: string;
+  url: string;
   logo: string;
 }
 
@@ -16,7 +16,7 @@ export interface BookingEngineData {
   secondaryColor: string;
   tertiaryColor: string;
   buttonTextColor: string;
-  // bannerImage: string;
+  url: string;
   logo: string;
 }
 
