@@ -76,13 +76,7 @@ export class InventoryUpdateDao {
                 ...(isClosedToArrival !== undefined && { isClosedToArrival }),
                 ...(isClosedToDeparture !== undefined && {
                     isClosedToDeparture,
-                }),
-                ...(minAdvanceBookingDays !== undefined && {
-                    minAdvanceBookingDays,
-                }),
-                ...(maxAdvanceBookingDays !== undefined && {
-                    maxAdvanceBookingDays,
-                }),
+                })
             };
 
             if (existingCharge) {
@@ -168,5 +162,69 @@ export class InventoryUpdateDao {
                 });
             }
         }
+    }
+    public static async upsertBookingOffset(params: {
+        propertyCode: string;
+        ratePlanCode: string;
+        date: Date;
+        minAdvanceBookingDays?: number;
+        maxAdvanceBookingDays?: number;
+    }): Promise<void> {
+        const {
+            propertyCode,
+            ratePlanCode,
+            date,
+            minAdvanceBookingDays,
+            maxAdvanceBookingDays,
+        } = params;
+
+        // Find rate plan
+        const ratePlan = await prisma.ratePlan.findFirst({
+            where: {
+                ratePlanCode,
+                property: { propertyCode },
+            },
+            select: { id: true, ratePlanName: true, propertyId: true },
+        });
+
+        if (!ratePlan) return;
+
+        // Convert days to hours
+        const minHours =
+            minAdvanceBookingDays !== undefined
+                ? minAdvanceBookingDays * 24
+                : undefined;
+
+        const maxHours =
+            maxAdvanceBookingDays !== undefined
+                ? maxAdvanceBookingDays * 24
+                : undefined;
+
+        // Upsert BookingOffset
+        await prisma.bookingOffset.upsert({
+            where: {
+                ratePlanId_date: {
+                    ratePlanId: ratePlan.id,
+                    date,
+                },
+            },
+            update: {
+                ...(minHours !== undefined && {
+                    minimumAdvanceBookingOffset: minHours,
+                }),
+                ...(maxHours !== undefined && {
+                    maximumAdvanceBookingOffset: maxHours,
+                }),
+            },
+            create: {
+                propertyId: ratePlan.propertyId,
+                ratePlanId: ratePlan.id,
+                ratePlanCode,
+                ratePlanName: ratePlan.ratePlanName,
+                date,
+                minimumAdvanceBookingOffset: minHours ?? null,
+                maximumAdvanceBookingOffset: maxHours ?? null,
+            },
+        });
     }
 }

@@ -184,6 +184,8 @@ public static async getDailyInventoryAndRestrictions(
   isSaleStopped: boolean;
   isClosedToArrival: boolean;
   isClosedToDeparture: boolean;
+  minAdvanceBookingDays: number | null;  // ✅ ADD
+  maxAdvanceBookingDays: number | null;  // ✅ ADD
 }>> {
   // Fetch inventory and charges in parallel
   const [inventories, charges] = await Promise.all([
@@ -237,29 +239,69 @@ public static async getDailyInventoryAndRestrictions(
 
   // ✅ FIX: Generate ALL dates in the requested range
   // Don't just return dates that have records - fill in missing dates with defaults
-  const result: Array<{
-    date: Date;
-    availability: number;
-    isSaleStopped: boolean;
-    isClosedToArrival: boolean;
-    isClosedToDeparture: boolean;
-  }> = [];
+// Query BookingOffset (ADD THIS - before the result array)
+const property = await prisma.property.findUnique({
+  where: { propertyCode },
+  select: { id: true }
+});
 
-  const currentDate = new Date(startDate);
-  while (currentDate <= endDate) {
-    const dateStr = currentDate.toISOString().split('T')[0];
-    const chargeData = chargeMap.get(dateStr);
-
-    result.push({
-      date: new Date(currentDate),
-      availability: inventoryMap.get(dateStr) ?? 0,
-      isSaleStopped: chargeData?.isSaleStopped ?? false,
-      isClosedToArrival: chargeData?.isClosedToArrival ?? false,
-      isClosedToDeparture: chargeData?.isClosedToDeparture ?? false
-    });
-
-    currentDate.setDate(currentDate.getDate() + 1);
+const bookingOffsets = await prisma.bookingOffset.findMany({
+  where: {
+    propertyId: property!.id,
+    ratePlanCode: ratePlanCode,
+    date: { gte: startDate, lte: endDate }
+  },
+  select: {
+    date: true,
+    minimumAdvanceBookingOffset: true,
+    maximumAdvanceBookingOffset: true
   }
+});
+
+// Create offset lookup map (convert hours to days)
+const offsetMap = new Map(
+  bookingOffsets.map(o => [
+    o.date.toISOString().split('T')[0],
+    {
+      minAdvanceBookingDays: o.minimumAdvanceBookingOffset 
+        ? Math.round(o.minimumAdvanceBookingOffset / 24) 
+        : null,
+      maxAdvanceBookingDays: o.maximumAdvanceBookingOffset 
+        ? Math.round(o.maximumAdvanceBookingOffset / 24) 
+        : null
+    }
+  ])
+);
+
+// ✅ UPDATE result array type definition
+const result: Array<{
+  date: Date;
+  availability: number;
+  isSaleStopped: boolean;
+  isClosedToArrival: boolean;
+  isClosedToDeparture: boolean;
+  minAdvanceBookingDays: number | null;  // ✅ ADD
+  maxAdvanceBookingDays: number | null;  // ✅ ADD
+}> = [];
+
+const currentDate = new Date(startDate);
+while (currentDate <= endDate) {
+  const dateStr = currentDate.toISOString().split('T')[0];
+  const chargeData = chargeMap.get(dateStr);
+  const offsetData = offsetMap.get(dateStr); // ✅ ADD
+
+  result.push({
+    date: new Date(currentDate),
+    availability: inventoryMap.get(dateStr) ?? 0,
+    isSaleStopped: chargeData?.isSaleStopped ?? false,
+    isClosedToArrival: chargeData?.isClosedToArrival ?? false,
+    isClosedToDeparture: chargeData?.isClosedToDeparture ?? false,
+    minAdvanceBookingDays: offsetData?.minAdvanceBookingDays ?? null, // ✅ ADD
+    maxAdvanceBookingDays: offsetData?.maxAdvanceBookingDays ?? null  // ✅ ADD
+  });
+
+  currentDate.setDate(currentDate.getDate() + 1);
+}
 
   return result;
 }
@@ -312,6 +354,37 @@ public static async getRatePlanRules(
   } catch (error) {
     throw new Error(`Failed to fetch rate plan rules: ${error instanceof Error ? error.message : 'Unknown error'}`);
   }
+}
+
+
+public static async getBookingOffsets(
+  propertyCode: string,
+  ratePlanCode: string,
+  startDate: Date,
+  endDate: Date
+): Promise<Array<{
+  date: Date;
+  minimumAdvanceBookingOffset: number | null;
+  maximumAdvanceBookingOffset: number | null;
+}>> {
+  const offsets = await prisma.bookingOffset.findMany({
+    where: {
+      property: { propertyCode },
+      ratePlanCode,
+      date: {
+        gte: startDate,
+        lte: endDate
+      }
+    },
+    select: {
+      date: true,
+      minimumAdvanceBookingOffset: true,
+      maximumAdvanceBookingOffset: true
+    },
+    orderBy: { date: 'asc' }
+  });
+
+  return offsets;
 }
 }
 

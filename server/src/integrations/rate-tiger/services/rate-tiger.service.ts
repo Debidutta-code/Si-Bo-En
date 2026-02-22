@@ -259,6 +259,21 @@ export class RateTigerService {
                                 restriction: 'Departure',
                             },
                         ];
+                        if (
+                            group.minAdvanceBookingDays !== null ||
+                            group.maxAdvanceBookingDays !== null
+                        ) {
+                            const cutoffEntry: any = {};
+
+                            if (group.minAdvanceBookingDays !== null) {
+                                cutoffEntry.minAdvanceBookingOffSet = `P${group.minAdvanceBookingDays}D`;
+                            }
+                            if (group.maxAdvanceBookingDays !== null) {
+                                cutoffEntry.maxAdvanceBookingOffSet = `P${group.maxAdvanceBookingDays}D`;
+                            }
+
+                            message.restrictionStatus.push(cutoffEntry);
+                        }
                     }
 
                     availStatusMessages.push(message);
@@ -300,6 +315,8 @@ export class RateTigerService {
             isSaleStopped: boolean;
             isClosedToArrival: boolean;
             isClosedToDeparture: boolean;
+            minAdvanceBookingDays: number | null; // ✅ ADD
+            maxAdvanceBookingDays: number | null;
         }>,
         checkAvailability: boolean,
         checkRestrictions: boolean
@@ -310,6 +327,8 @@ export class RateTigerService {
         isSaleStopped: boolean;
         isClosedToArrival: boolean;
         isClosedToDeparture: boolean;
+        minAdvanceBookingDays: number | null; // ✅ ADD
+        maxAdvanceBookingDays: number | null;
     }> {
         if (dailyData.length === 0) return [];
 
@@ -320,6 +339,8 @@ export class RateTigerService {
             isSaleStopped: boolean;
             isClosedToArrival: boolean;
             isClosedToDeparture: boolean;
+            minAdvanceBookingDays: number | null; // ✅ ADD
+            maxAdvanceBookingDays: number | null;
         }> = [];
 
         let currentGroup = {
@@ -329,6 +350,8 @@ export class RateTigerService {
             isSaleStopped: dailyData[0].isSaleStopped,
             isClosedToArrival: dailyData[0].isClosedToArrival,
             isClosedToDeparture: dailyData[0].isClosedToDeparture,
+            minAdvanceBookingDays: dailyData[0].minAdvanceBookingDays, // ✅ ADD
+            maxAdvanceBookingDays: dailyData[0].maxAdvanceBookingDays,
         };
 
         for (let i = 1; i < dailyData.length; i++) {
@@ -344,7 +367,11 @@ export class RateTigerService {
                 (day.isSaleStopped === currentGroup.isSaleStopped &&
                     day.isClosedToArrival === currentGroup.isClosedToArrival &&
                     day.isClosedToDeparture ===
-                        currentGroup.isClosedToDeparture);
+                        currentGroup.isClosedToDeparture &&
+                    day.minAdvanceBookingDays ===
+                        currentGroup.minAdvanceBookingDays &&
+                    day.maxAdvanceBookingDays ===
+                        currentGroup.maxAdvanceBookingDays);
 
             if (availabilityMatches && restrictionsMatch) {
                 currentGroup.end = dateStr;
@@ -357,6 +384,8 @@ export class RateTigerService {
                     isSaleStopped: day.isSaleStopped,
                     isClosedToArrival: day.isClosedToArrival,
                     isClosedToDeparture: day.isClosedToDeparture,
+                    minAdvanceBookingDays: day.minAdvanceBookingDays, // ✅ ADD
+                    maxAdvanceBookingDays: day.maxAdvanceBookingDays,
                 };
             }
         }

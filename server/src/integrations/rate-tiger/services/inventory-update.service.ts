@@ -130,7 +130,18 @@ export class InventoryUpdateService {
                         minLos,
                         maxLos,
                     });
-
+                    if (
+                        minAdvanceBookingDays !== undefined ||
+                        maxAdvanceBookingDays !== undefined
+                    ) {
+                        await InventoryUpdateDao.upsertBookingOffset({
+                            propertyCode: hotelCode,
+                            ratePlanCode: ratePlanCode ?? '',
+                            date: new Date(currentDate),
+                            minAdvanceBookingDays,
+                            maxAdvanceBookingDays,
+                        });
+                    }
                     currentDate.setDate(currentDate.getDate() + 1);
                 }
             }
