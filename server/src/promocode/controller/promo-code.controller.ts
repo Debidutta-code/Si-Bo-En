@@ -33,12 +33,12 @@ export class PromoCodeController {
                     isApplicableForDesktop: promoCodeData.isApplicableForDesktop,
                     isApplicableForTablet: promoCodeData.isApplicableForTablet,
 
-                    isApplicableForWalkIn: promoCodeData.isApplicableForWalkIn,
-                    isApplicableForOTA: promoCodeData.isApplicableForOTA,
-                    isApplicableForCorporate: promoCodeData.isApplicableForCorporate,
+                    // isApplicableForWalkIn: promoCodeData.isApplicableForWalkIn,
+                    // isApplicableForOTA: promoCodeData.isApplicableForOTA,
+                    // isApplicableForCorporate: promoCodeData.isApplicableForCorporate,
 
                     usageLimit: promoCodeData.usageLimit,
-                    usageLimitPerUser: promoCodeData.usageLimitPerUser,
+                    // usageLimitPerUser: promoCodeData.usageLimitPerUser,
                     applicableRoomTypes: (promoCodeData.applicableRoomTypes && promoCodeData.applicableRoomTypes.length > 0) ? promoCodeData.applicableRoomTypes : ["all"],
                     applicableRatePlans: (promoCodeData.applicableRatePlans && promoCodeData.applicableRatePlans.length > 0) ? promoCodeData.applicableRatePlans : ["all"],
                 }
@@ -92,18 +92,18 @@ export class PromoCodeController {
         if (promoCodeData.usageLimit && promoCodeData.usageLimit < 0) {
             return 'Usage limit cannot be negative';
         }
-        if (promoCodeData.usageLimitPerUser && promoCodeData.usageLimitPerUser < 0) {
-            return 'Per user limit cannot be negative';
-        }
+        // if (promoCodeData.usageLimitPerUser && promoCodeData.usageLimitPerUser < 0) {
+        //     return 'Per user limit cannot be negative';
+        // }
         if (promoCodeData.code.length < 8 || promoCodeData.code.length > 12) {
             return 'Promo code must be between 8 to 12 characters';
         }
         if (promoCodeData.isApplicableForDesktop === false && promoCodeData.isApplicableForMobileApp === false && promoCodeData.isApplicableForTablet === false) {
             return 'Promo code must be applicable for at least one platform (Desktop, Mobile App, Tablet)';
         }
-        if (promoCodeData.isApplicableForWalkIn === false && promoCodeData.isApplicableForOTA === false && promoCodeData.isApplicableForCorporate === false) {
-            return 'Promo code must be applicable for at least one booking source (Walk-In, OTA, Corporate)';
-        }
+        // if (promoCodeData.isApplicableForWalkIn === false && promoCodeData.isApplicableForOTA === false && promoCodeData.isApplicableForCorporate === false) {
+        //     return 'Promo code must be applicable for at least one booking source (Walk-In, OTA, Corporate)';
+        // }
     }
     public async getPromoCodeByParams(req: PropertyRequest, res: Response): Promise<Response> {
         try {
