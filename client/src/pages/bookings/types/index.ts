@@ -8,3 +8,4 @@ export type {
     IReservationFilters,
     IReservationResponse
 } from "./reservation";
+export * from "./amend.types";

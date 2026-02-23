@@ -180,10 +180,6 @@ export default function ReservationsPage() {
       toast.error(error.message || "Failed to mark reservation as no-show");
     }
   };
-  // const handleAmendReservation = (reservationId: string) => {
-  //   // Navigate to amendment page or open modal
-  //   // router(`/reservations/amend/${reservationId}`);
-  // };
 
   const getReservationTypeLabel = () => {
     switch (filters.reservationType) {
