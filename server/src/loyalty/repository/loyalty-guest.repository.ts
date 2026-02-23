@@ -23,6 +23,7 @@ export class LoyaltyGuestRepository {
                 }
             })
         } catch (error) {
+            console.log(error)
             throw new Error("Failed to get loyalty guest by property and guest");
         }
     }

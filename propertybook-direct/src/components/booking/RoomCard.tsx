@@ -1,17 +1,18 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  Users, 
-  Maximize2, 
-  Eye, 
-  Check, 
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Users,
+  Maximize2,
+  Eye,
+  Check,
   ChevronRight,
   Ban,
   Tag,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+  Lock,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
   Sheet,
   SheetContent,
@@ -19,13 +20,14 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
-} from '@/components/ui/sheet';
-import { useBooking } from '@/contexts/BookingContext';
-import { cn } from '@/lib/utils';
-import type { IRoom, IRoomPrice } from '@/types/booking';
+} from "@/components/ui/sheet";
+import { useBooking } from "@/contexts/BookingContext";
+import { cn } from "@/lib/utils";
+import type { IRoom, IRoomPrice } from "@/types/booking";
 
 interface RoomCardProps {
   room: IRoom;
+  onUnlockClick?: () => void;
 }
 
 interface RatePlanCardProps {
@@ -33,38 +35,75 @@ interface RatePlanCardProps {
   isSelected: boolean;
   onSelect: () => void;
   nights: number;
+  onUnlockClick?: () => void;
 }
 
-function RatePlanCard({ ratePlan, isSelected, onSelect, nights }: RatePlanCardProps) {
+function RatePlanCard({
+  ratePlan,
+  isSelected,
+  onSelect,
+  nights,
+  onUnlockClick,
+}: RatePlanCardProps) {
+  const { state } = useBooking();
   const formatCurrency = (amount: number): string => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
       currency: ratePlan.currencyCode,
       minimumFractionDigits: 0,
     }).format(amount);
   };
 
-  const pricePerNight = nights > 0 ? ratePlan.totalAmount / nights : ratePlan.totalAmount;
-  
+  const pricePerNight =
+    nights > 0 ? ratePlan.totalAmount / nights : ratePlan.totalAmount;
+
   const isCancellable = ratePlan.policy?.cancellationPolicy !== null;
-  
-  const hasTax = ratePlan.touristTax && ratePlan.touristTax.calculatedTaxAmount > 0;
+
+  const hasTax =
+    ratePlan.touristTax && ratePlan.touristTax.calculatedTaxAmount > 0;
+
+  // Loyalty discount calculations
+  const loyaltyConfig = state.propertyDetails?.loyaltyProgramConfig;
+  const loyaltyApplied = state.loyaltyInfo?.isApplied;
+  const hasLoyalty =
+    loyaltyConfig?.isActive && loyaltyConfig?.CreationLoyaltyConfig;
+
+  let unlockPricePerNight = pricePerNight;
+  if (hasLoyalty) {
+    const discountType =
+      loyaltyConfig.CreationLoyaltyConfig.loyaltyDiscountType;
+    const discountValue = loyaltyConfig.CreationLoyaltyConfig.discountValue;
+    if (discountType === "percentage" || discountType === "PERCENTAGE") {
+      unlockPricePerNight = pricePerNight * (1 - discountValue / 100);
+    } else {
+      unlockPricePerNight = Math.max(0, pricePerNight - discountValue);
+    }
+  }
+  const discountBadgeText = hasLoyalty
+    ? loyaltyConfig.CreationLoyaltyConfig.loyaltyDiscountType ===
+        "percentage" ||
+      loyaltyConfig.CreationLoyaltyConfig.loyaltyDiscountType === "PERCENTAGE"
+      ? `-${loyaltyConfig.CreationLoyaltyConfig.discountValue}%`
+      : `-${formatCurrency(loyaltyConfig.CreationLoyaltyConfig.discountValue)}`
+    : "";
 
   return (
     <button
       onClick={onSelect}
       className={cn(
-        'w-full text-left p-4 rounded-lg border-2 transition-all duration-200',
+        "w-full text-left p-4 rounded-lg border-2 transition-all duration-200",
         isSelected
-          ? 'border-primary bg-primary/5 shadow-card-hover'
-          : 'border-border hover:border-primary/30 hover:bg-muted/50'
+          ? "border-primary bg-primary/5 shadow-card-hover"
+          : "border-border hover:border-primary/30 hover:bg-muted/50",
       )}
     >
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 space-y-2">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-semibold text-foreground">{ratePlan.ratePlanName}</span>
-            
+            <span className="font-semibold text-foreground">
+              {ratePlan.ratePlanName}
+            </span>
+
             {/* Show promotions */}
             {ratePlan.availablePromotions.length > 0 && (
               <Badge variant="default" className="gap-1 bg-green-600">
@@ -73,19 +112,21 @@ function RatePlanCard({ ratePlan, isSelected, onSelect, nights }: RatePlanCardPr
               </Badge>
             )}
           </div>
-          
+
           {/* Show pricing breakdown by guest */}
           {ratePlan.baseByGuestAmts.length > 0 && (
             <p className="text-sm text-muted-foreground">
               {ratePlan.baseByGuestAmts.map((base, idx) => (
                 <span key={idx}>
-                  {base.numberOfGuests} guest{base.numberOfGuests > 1 ? 's' : ''}: {formatCurrency(base.amountBeforeTax)}
-                  {idx < ratePlan.baseByGuestAmts.length - 1 ? ' • ' : ''}
+                  {base.numberOfGuests} guest
+                  {base.numberOfGuests > 1 ? "s" : ""}:{" "}
+                  {formatCurrency(base.amountBeforeTax)}
+                  {idx < ratePlan.baseByGuestAmts.length - 1 ? " • " : ""}
                 </span>
               ))}
             </p>
           )}
-          
+
           <div className="flex items-center gap-2 text-xs flex-wrap">
             {isCancellable ? (
               <span className="text-success flex items-center gap-1">
@@ -103,7 +144,8 @@ function RatePlanCard({ ratePlan, isSelected, onSelect, nights }: RatePlanCardPr
             )}
             {ratePlan.addons.length > 0 && (
               <span className="text-muted-foreground">
-                • {ratePlan.addons.length} add-on{ratePlan.addons.length > 1 ? 's' : ''} available
+                • {ratePlan.addons.length} add-on
+                {ratePlan.addons.length > 1 ? "s" : ""} available
               </span>
             )}
           </div>
@@ -112,20 +154,64 @@ function RatePlanCard({ ratePlan, isSelected, onSelect, nights }: RatePlanCardPr
           {ratePlan.availablePromotions.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-1">
               {ratePlan.availablePromotions.slice(0, 2).map((promo) => (
-                <span key={promo.id} className="text-xs text-green-600 font-medium">
+                <span
+                  key={promo.id}
+                  className="text-xs text-green-600 font-medium"
+                >
                   Save {promo.discountValue}
-                  {promo.discountType === 'PERCENTAGE' ? '%' : ` ${ratePlan.currencyCode}`}
+                  {promo.discountType === "PERCENTAGE"
+                    ? "%"
+                    : ` ${ratePlan.currencyCode}`}
                   {promo.minLos && ` (Min ${promo.minLos} nights)`}
                 </span>
               ))}
             </div>
           )}
         </div>
-        
+
         <div className="text-right flex-shrink-0">
-          <div className="text-2xl font-bold text-foreground">
-            {formatCurrency(pricePerNight)}
-          </div>
+          {/* Unlock box — shown when loyalty is available but NOT yet applied */}
+          {hasLoyalty && !loyaltyApplied && onUnlockClick && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onUnlockClick();
+              }}
+              className="mb-2 border-2 border-dashed border-gray-300 rounded-lg px-3 py-1.5 hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer group"
+            >
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 group-hover:text-primary/70">
+                — Unlock —
+              </span>
+              <div className="flex items-center gap-1 justify-end">
+                <Lock className="h-3 w-3 text-gray-400 group-hover:text-primary" />
+                <span className="text-sm font-bold text-gray-600 group-hover:text-primary">
+                  {formatCurrency(unlockPricePerNight)}
+                </span>
+              </div>
+            </button>
+          )}
+
+          {/* Price display */}
+          {loyaltyApplied && hasLoyalty ? (
+            <>
+              <div className="flex items-center gap-1.5 justify-end">
+                <span className="text-sm text-muted-foreground line-through">
+                  {formatCurrency(pricePerNight)}
+                </span>
+                <Badge className="bg-green-600 text-[10px] px-1.5 py-0.5">
+                  {discountBadgeText}
+                </Badge>
+              </div>
+              <div className="text-2xl font-bold text-green-700">
+                {formatCurrency(unlockPricePerNight)}
+              </div>
+            </>
+          ) : (
+            <div className="text-2xl font-bold text-foreground">
+              {formatCurrency(pricePerNight)}
+            </div>
+          )}
           <div className="text-xs text-muted-foreground">per night</div>
           {nights > 1 && (
             <div className="text-xs text-muted-foreground mt-1">
@@ -134,7 +220,7 @@ function RatePlanCard({ ratePlan, isSelected, onSelect, nights }: RatePlanCardPr
           )}
         </div>
       </div>
-      
+
       {isSelected && (
         <div className="mt-3 pt-3 border-t border-primary/20">
           <div className="flex items-center gap-2 text-sm text-primary font-medium">
@@ -147,13 +233,15 @@ function RatePlanCard({ ratePlan, isSelected, onSelect, nights }: RatePlanCardPr
   );
 }
 
-export function RoomCard({ room }: RoomCardProps) {
+export function RoomCard({ room, onUnlockClick }: RoomCardProps) {
   const navigate = useNavigate();
   const { state, selectRoom, selectRatePlan } = useBooking();
   const [selectedPlanCode, setSelectedPlanCode] = useState<string | null>(
-    state.selectedRoom?.id === room.id && state.selectedRatePlan 
-      ? state.selectedRatePlan.ratePlanCode 
-      : room.room_price.length > 0 ? room.room_price[0].ratePlanCode : null
+    state.selectedRoom?.id === room.id && state.selectedRatePlan
+      ? state.selectedRatePlan.ratePlanCode
+      : room.room_price.length > 0
+        ? room.room_price[0].ratePlanCode
+        : null,
   );
   const [isSheetOpen, setIsSheetOpen] = useState<boolean>(false);
 
@@ -167,51 +255,51 @@ export function RoomCard({ room }: RoomCardProps) {
 
   const handleContinue = (): void => {
     if (selectedPlanCode) {
-      navigate('/add-ons');
+      navigate("/add-ons");
     }
   };
 
   // Calculate nights from search criteria
-  const nights = state.searchCriteria 
+  const nights = state.searchCriteria
     ? Math.ceil(
-        (new Date(state.searchCriteria.endDate).getTime() - 
-         new Date(state.searchCriteria.startDate).getTime()) / 
-        (1000 * 60 * 60 * 24)
+        (new Date(state.searchCriteria.endDate).getTime() -
+          new Date(state.searchCriteria.startDate).getTime()) /
+          (1000 * 60 * 60 * 24),
       )
     : 1;
 
   const amenityIcons: Record<string, string> = {
-    'Free WiFi': '📶',
-    'WiFi': '📶',
-    'Air Conditioning': '❄️',
-    'AC': '❄️',
-    'Smart TV': '📺',
-    'TV': '📺',
-    'Television': '📺',
-    'Mini Bar': '🍷',
-    'Minibar': '🍷',
-    'In-room Safe': '🔒',
-    'Safe': '🔒',
-    'Lounge Access': '🏢',
-    'Butler Service': '🛎️',
-    'Work Desk': '💼',
-    'Desk': '💼',
-    'Balcony': '🏝️',
-    'Ocean View': '🌊',
-    'Sea View': '🌊',
-    'City View': '🏙️',
-    'Garden View': '🌳',
-    'Coffee Maker': '☕',
-    'Coffee': '☕',
-    'Bathroom': '🚿',
-    'Shower': '🚿',
-    'Bathtub': '🛁',
-    'Bath': '🛁',
-    'Hair Dryer': '💨',
-    'Hairdryer': '💨',
-    'Iron': '👔',
-    'Telephone': '📞',
-    'Phone': '📞',
+    "Free WiFi": "📶",
+    WiFi: "📶",
+    "Air Conditioning": "❄️",
+    AC: "❄️",
+    "Smart TV": "📺",
+    TV: "📺",
+    Television: "📺",
+    "Mini Bar": "🍷",
+    Minibar: "🍷",
+    "In-room Safe": "🔒",
+    Safe: "🔒",
+    "Lounge Access": "🏢",
+    "Butler Service": "🛎️",
+    "Work Desk": "💼",
+    Desk: "💼",
+    Balcony: "🏝️",
+    "Ocean View": "🌊",
+    "Sea View": "🌊",
+    "City View": "🏙️",
+    "Garden View": "🌳",
+    "Coffee Maker": "☕",
+    Coffee: "☕",
+    Bathroom: "🚿",
+    Shower: "🚿",
+    Bathtub: "🛁",
+    Bath: "🛁",
+    "Hair Dryer": "💨",
+    Hairdryer: "💨",
+    Iron: "👔",
+    Telephone: "📞",
+    Phone: "📞",
   };
 
   const getAmenityIcon = (amenityName: string): string => {
@@ -219,28 +307,30 @@ export function RoomCard({ room }: RoomCardProps) {
     if (amenityIcons[amenityName]) {
       return amenityIcons[amenityName];
     }
-    
+
     // Try partial match (case insensitive)
     for (const [key, icon] of Object.entries(amenityIcons)) {
       if (amenityName.toLowerCase().includes(key.toLowerCase())) {
         return icon;
       }
     }
-    
-    return '✓';
+
+    return "✓";
   };
 
   const selectedRatePlan = room.room_price.find(
-    (rp) => rp.ratePlanCode === selectedPlanCode
+    (rp) => rp.ratePlanCode === selectedPlanCode,
   );
 
   const hasMultipleRates = room.room_price.length > 1;
 
   return (
-    <div className={cn(
-      'bg-card rounded-xl overflow-hidden shadow-card border transition-all duration-300',
-      'hover:shadow-card-hover fade-in'
-    )}>
+    <div
+      className={cn(
+        "bg-card rounded-xl overflow-hidden shadow-card border transition-all duration-300",
+        "hover:shadow-card-hover fade-in",
+      )}
+    >
       <div className="flex flex-col lg:flex-row">
         {/* Room Image */}
         <div className="lg:w-2/5 relative">
@@ -265,8 +355,12 @@ export function RoomCard({ room }: RoomCardProps) {
         <div className="lg:w-3/5 p-6 space-y-4">
           {/* Header */}
           <div>
-            <h3 className="text-xl font-bold text-foreground">{room.room_name}</h3>
-            <p className="text-sm text-muted-foreground mt-1">{room.room_type}</p>
+            <h3 className="text-xl font-bold text-foreground">
+              {room.room_name}
+            </h3>
+            <p className="text-sm text-muted-foreground mt-1">
+              {room.room_type}
+            </p>
           </div>
 
           {/* Description if available */}
@@ -280,7 +374,9 @@ export function RoomCard({ room }: RoomCardProps) {
           <div className="flex flex-wrap gap-4 text-sm">
             <div className="flex items-center gap-2 text-muted-foreground">
               <Maximize2 className="h-4 w-4" />
-              <span>{room.room_size} {room.room_unit}</span>
+              <span>
+                {room.room_size} {room.room_unit}
+              </span>
             </div>
             <div className="flex items-center gap-2 text-muted-foreground">
               <Eye className="h-4 w-4" />
@@ -296,17 +392,21 @@ export function RoomCard({ room }: RoomCardProps) {
           {room.amenities.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {room.amenities
-                .filter(amenity => amenity.isActive)
+                .filter((amenity) => amenity.isActive)
                 .slice(0, 5)
                 .map((amenity) => (
-                  <Badge key={amenity.id} variant="outline" className="gap-1.5 py-1 px-2.5">
+                  <Badge
+                    key={amenity.id}
+                    variant="outline"
+                    className="gap-1.5 py-1 px-2.5"
+                  >
                     <span>{getAmenityIcon(amenity.amenityName)}</span>
                     {amenity.amenityName}
                   </Badge>
                 ))}
-              {room.amenities.filter(a => a.isActive).length > 5 && (
+              {room.amenities.filter((a) => a.isActive).length > 5 && (
                 <Badge variant="outline" className="py-1 px-2.5">
-                  +{room.amenities.filter(a => a.isActive).length - 5} more
+                  +{room.amenities.filter((a) => a.isActive).length - 5} more
                 </Badge>
               )}
             </div>
@@ -319,7 +419,9 @@ export function RoomCard({ room }: RoomCardProps) {
               {/* Rate Plans */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-semibold text-sm text-foreground">Select Rate</h4>
+                  <h4 className="font-semibold text-sm text-foreground">
+                    Select Rate
+                  </h4>
                 </div>
 
                 {/* Show the selected rate plan card */}
@@ -329,6 +431,7 @@ export function RoomCard({ room }: RoomCardProps) {
                     isSelected={true}
                     onSelect={() => handleSelectRatePlan(selectedRatePlan)}
                     nights={nights}
+                    onUnlockClick={onUnlockClick}
                   />
                 )}
 
@@ -336,17 +439,19 @@ export function RoomCard({ room }: RoomCardProps) {
                 {hasMultipleRates && (
                   <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
                     <SheetTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="w-full"
-                      >
-                        View {room.room_price.length - 1} more rate{room.room_price.length - 1 > 1 ? 's' : ''}
+                      <Button variant="outline" size="sm" className="w-full">
+                        View {room.room_price.length - 1} more rate
+                        {room.room_price.length - 1 > 1 ? "s" : ""}
                       </Button>
                     </SheetTrigger>
-                    <SheetContent side="right" className="w-full sm:max-w-lg overflow-y-auto">
+                    <SheetContent
+                      side="right"
+                      className="w-full sm:max-w-lg overflow-y-auto"
+                    >
                       <SheetHeader>
-                        <SheetTitle>Available Rates for {room.room_name}</SheetTitle>
+                        <SheetTitle>
+                          Available Rates for {room.room_name}
+                        </SheetTitle>
                         <SheetDescription>
                           Select the rate plan that best suits your needs
                         </SheetDescription>
@@ -356,9 +461,12 @@ export function RoomCard({ room }: RoomCardProps) {
                           <RatePlanCard
                             key={ratePlan.ratePlanCode}
                             ratePlan={ratePlan}
-                            isSelected={ratePlan.ratePlanCode === selectedPlanCode}
+                            isSelected={
+                              ratePlan.ratePlanCode === selectedPlanCode
+                            }
                             onSelect={() => handleSelectRatePlan(ratePlan)}
                             nights={nights}
+                            onUnlockClick={onUnlockClick}
                           />
                         ))}
                       </div>

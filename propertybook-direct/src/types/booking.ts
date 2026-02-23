@@ -202,7 +202,6 @@ export interface IBookingEngineConfig {
   secondaryColor: string;
   tertiaryColor: string;
   buttonTextColor: string;
-  bannerImage: string | null;
   logo: string;
 }
 
@@ -230,7 +229,7 @@ export interface IPropertyDetails {
   loyaltyProgramConfig: ILoyaltyProgramConfig | null;
   propertyCode: string;
   starRating: number;
-  bookingEngineConfig: IBookingEngineConfig;
+  bookingEngineConfig: IBookingEngineConfig|null;
   address: IAddress;
 }
 
