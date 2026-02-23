@@ -24,12 +24,12 @@ export const LoyaltyContainer = ({
 }) => {
   const [internalShowSignUpModal, setInternalShowSignUpModal] = useState(false);
   const [isToggleOn, setIsToggleOn] = useState(false);
-  
+
   // Sync external toggleOn prop into internal state
   useEffect(() => {
     if (toggleOn !== undefined) setIsToggleOn(toggleOn);
   }, [toggleOn]);
-  
+
   const [showIdentifyModal, setShowIdentifyModal] = useState(false);
   const [identifyEmail, setIdentifyEmail] = useState("");
   const [isIdentifying, setIsIdentifying] = useState(false);
@@ -209,7 +209,7 @@ export const LoyaltyContainer = ({
     <>
       <div className="w-full">
         <div
-          className="relative w-full bg-white border border-gray-200 rounded-xl shadow-sm px-6 py-5 overflow-hidden"
+          className="relative w-full bg-white border border-gray-200 rounded-xl shadow-sm px-3 py-4 sm:px-6 sm:py-5 overflow-hidden"
           data-loyalty-banner
         >
           {isVerifying && (
@@ -221,13 +221,15 @@ export const LoyaltyContainer = ({
             </div>
           )}
 
-          <div className="flex items-start gap-6">
-            {/* LEFT: Benefits */}
-            <div className="flex-1 min-w-0 grid grid-cols-2 gap-x-8 gap-y-3">
+          {/* Mobile layout: stacked. md+: side by side */}
+          <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-6">
+
+            {/* LEFT: Benefits Grid */}
+            <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-2.5">
               {benefitItems.map((item, index) => (
                 <div key={index} className="flex items-start gap-2 min-w-0">
                   <CheckCircle2 className="w-4 h-4 flex-shrink-0 mt-0.5 text-gray-400" />
-                  <span className="text-sm text-gray-800 leading-snug line-clamp-2 min-w-0">
+                  <span className="text-xs sm:text-sm text-gray-800 leading-snug line-clamp-2 min-w-0 break-words">
                     {item.bold && <span className="font-semibold">{item.bold}</span>}
                     <span>{item.normal}</span>
                   </span>
@@ -235,115 +237,129 @@ export const LoyaltyContainer = ({
               ))}
             </div>
 
+            {/* Divider — horizontal on mobile, vertical on md+ */}
+            <div className="block md:hidden h-px w-full bg-gray-100" />
+
             {/* RIGHT: Logo + toggle controls */}
-            <div className="flex flex-col items-end gap-3 flex-shrink-0 self-start">
-              {/* Logo */}
+            <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-start gap-3 flex-shrink-0 md:self-start">
+
+              {/* Logo — left on mobile, top on md+ */}
               {loyaltyLogo ? (
-                <img src={loyaltyLogo} alt="Loyalty Program Logo" className="w-12 h-12 rounded-lg object-contain border border-gray-200" />
+                <img
+                  src={loyaltyLogo}
+                  alt="Loyalty Program Logo"
+                  className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-contain border border-gray-200 flex-shrink-0"
+                />
               ) : (
-                <div className="w-12 h-12 rounded-lg border border-gray-200 flex items-center justify-center bg-gray-50">
-                  <Award className="w-6 h-6 text-gray-400" />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg border border-gray-200 flex items-center justify-center bg-gray-50 flex-shrink-0">
+                  <Award className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
                 </div>
               )}
 
-              {!isRegistered ? (
-                <>
-                  {/* ← CHANGED: toggle just flips on/off, no modal */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-700 font-medium whitespace-nowrap">Join Program</span>
-                    <button
-                      onClick={handleToggle}
-                      aria-label="Toggle loyalty program"
-                      className="relative inline-flex items-center w-11 h-6 rounded-full focus:outline-none flex-shrink-0 transition-colors duration-200"
-                      style={{ backgroundColor: isToggleOn ? "#22C55E" : "#D1D5DB" }}
-                    >
-                      <span
-                        className={`inline-block w-4 h-4 bg-white rounded-full shadow transform transition-transform duration-200 ${isToggleOn ? "translate-x-6" : "translate-x-1"}`}
-                      />
-                    </button>
-                  </div>
-
-                  {/* "Identify yourself" → opens sign up modal */}
-                  <p className="text-xs text-gray-500 whitespace-nowrap">
-                    Are you registered?{" "}
-                    <button
-                      onClick={() => setShowSignUpModal(true)}
-                      className="underline text-gray-700 font-medium hover:text-gray-900 transition-colors"
-                    >
-                      Identify yourself
-                    </button>
-                  </p>
-                </>
-              ) : (
-                <div className="flex flex-col items-end gap-2">
-                  {/* Toggle for registered members too */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-700 font-medium whitespace-nowrap">Loyalty Discount</span>
-                    <button
-                      onClick={handleToggle}
-                      aria-label="Toggle loyalty discount"
-                      className="relative inline-flex items-center w-11 h-6 rounded-full focus:outline-none flex-shrink-0 transition-colors duration-200"
-                      style={{ backgroundColor: isToggleOn ? "#22C55E" : "#D1D5DB" }}
-                    >
-                      <span
-                        className={`inline-block w-4 h-4 bg-white rounded-full shadow transform transition-transform duration-200 ${isToggleOn ? "translate-x-6" : "translate-x-1"}`}
-                      />
-                    </button>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border"
-                      style={{ backgroundColor: `${primaryColor}10`, borderColor: `${primaryColor}30` }}
-                    >
-                      <Award className="w-4 h-4 flex-shrink-0" style={{ color: primaryColor }} />
-                      <div>
-                        <p className="text-xs font-bold text-gray-900 leading-tight whitespace-nowrap">Active Member</p>
-                        <p className="text-[10px] text-gray-500 truncate max-w-[100px]" title={registeredEmail}>{registeredEmail}</p>
-                      </div>
+              {/* Controls — right on mobile, below logo on md+ */}
+              <div className="flex flex-col items-end gap-2">
+                {!isRegistered ? (
+                  <>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs sm:text-sm text-gray-700 font-medium whitespace-nowrap">Join Program</span>
+                      <button
+                        onClick={handleToggle}
+                        aria-label="Toggle loyalty program"
+                        className="relative inline-flex items-center w-10 sm:w-11 h-5 sm:h-6 rounded-full focus:outline-none flex-shrink-0 transition-colors duration-200"
+                        style={{ backgroundColor: isToggleOn ? "#22C55E" : "#D1D5DB" }}
+                      >
+                        <span
+                          className={`inline-block w-3.5 sm:w-4 h-3.5 sm:h-4 bg-white rounded-full shadow transform transition-transform duration-200 ${isToggleOn ? "translate-x-5 sm:translate-x-6" : "translate-x-1"}`}
+                        />
+                      </button>
                     </div>
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-xs font-semibold border border-red-200 transition-colors whitespace-nowrap"
-                    >
-                      <LogOut className="w-3.5 h-3.5" />
-                      Logout
-                    </button>
+
+                    <p className="text-[10px] sm:text-xs text-gray-500 whitespace-nowrap text-right">
+                      Are you registered?{" "}
+                      <button
+                        onClick={() => setShowSignUpModal(true)}
+                        className="underline text-gray-700 font-medium hover:text-gray-900 transition-colors"
+                      >
+                        Identify yourself
+                      </button>
+                    </p>
+                  </>
+                ) : (
+                  <div className="flex flex-col items-end gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs sm:text-sm text-gray-700 font-medium whitespace-nowrap">Loyalty Discount</span>
+                      <button
+                        onClick={handleToggle}
+                        aria-label="Toggle loyalty discount"
+                        className="relative inline-flex items-center w-10 sm:w-11 h-5 sm:h-6 rounded-full focus:outline-none flex-shrink-0 transition-colors duration-200"
+                        style={{ backgroundColor: isToggleOn ? "#22C55E" : "#D1D5DB" }}
+                      >
+                        <span
+                          className={`inline-block w-3.5 sm:w-4 h-3.5 sm:h-4 bg-white rounded-full shadow transform transition-transform duration-200 ${isToggleOn ? "translate-x-5 sm:translate-x-6" : "translate-x-1"}`}
+                        />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-wrap justify-end">
+                      <div
+                        className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg border"
+                        style={{ backgroundColor: `${primaryColor}10`, borderColor: `${primaryColor}30` }}
+                      >
+                        <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" style={{ color: primaryColor }} />
+                        <div>
+                          <p className="text-[10px] sm:text-xs font-bold text-gray-900 leading-tight whitespace-nowrap">Active Member</p>
+                          <p className="text-[9px] sm:text-[10px] text-gray-500 truncate max-w-[80px] sm:max-w-[100px]" title={registeredEmail}>
+                            {registeredEmail}
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={handleLogout}
+                        className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-[10px] sm:text-xs font-semibold border border-red-200 transition-colors whitespace-nowrap"
+                      >
+                        <LogOut className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+                        Logout
+                      </button>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Sign Up Modal — only opened by "Identify yourself" */}
+      {/* Sign Up Modal */}
       {showSignUpModal && (
         <Dialog open={showSignUpModal} onOpenChange={setShowSignUpModal}>
-          <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle className="text-xl font-bold flex items-center gap-2">
-                <Award className="w-5 h-5" style={{ color: primaryColor }} />
+              <DialogTitle className="text-lg sm:text-xl font-bold flex items-center gap-2">
+                <Award className="w-5 h-5 flex-shrink-0" style={{ color: primaryColor }} />
                 Join {loyaltyProgram.propertyName}
               </DialogTitle>
-              <DialogDescription className="text-sm">
+              <DialogDescription className="text-xs sm:text-sm">
                 Register to get {getDiscountDisplay()} off on all bookings
               </DialogDescription>
             </DialogHeader>
 
             <form onSubmit={handleSignUpSubmit} className="mt-4">
               <div className="space-y-4">
-                <div className="p-3 rounded-lg border flex items-center gap-3" style={{ backgroundColor: `${primaryColor}10`, borderColor: `${primaryColor}40` }}>
-                  <div className="p-2 rounded-lg" style={{ backgroundColor: primaryColor }}>
-                    <Gift className="w-5 h-5 text-white" />
+                <div
+                  className="p-3 rounded-lg border flex items-center gap-3"
+                  style={{ backgroundColor: `${primaryColor}10`, borderColor: `${primaryColor}40` }}
+                >
+                  <div className="p-2 rounded-lg flex-shrink-0" style={{ backgroundColor: primaryColor }}>
+                    <Gift className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
                   </div>
                   <div>
-                    <p className="font-bold text-gray-900 text-sm">{getDiscountDisplay()} Discount</p>
-                    <p className="text-xs text-gray-600">Auto-applied on every booking</p>
+                    <p className="font-bold text-gray-900 text-xs sm:text-sm">{getDiscountDisplay()} Discount</p>
+                    <p className="text-[10px] sm:text-xs text-gray-600">Auto-applied on every booking</p>
                   </div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label htmlFor="email" className="text-sm font-medium">
+                  <Label htmlFor="email" className="text-xs sm:text-sm font-medium">
                     Email Address <span className="text-red-500">*</span>
                   </Label>
                   <Input
@@ -353,18 +369,18 @@ export const LoyaltyContainer = ({
                     required
                     value={formData.email || ""}
                     onChange={(e) => handleFieldChange("email", e.target.value)}
-                    className="w-full"
+                    className="w-full text-sm"
                   />
                 </div>
 
                 {program.LoyaltyProgramFieldConfig &&
                   program.LoyaltyProgramFieldConfig.filter(f => f.visibleInRegistration && f.fieldName.toLowerCase() !== "email").length > 0 && (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {program.LoyaltyProgramFieldConfig
                         .filter(f => f.visibleInRegistration && f.fieldName.toLowerCase() !== "email")
                         .map((field) => (
                           <div key={field.id} className="space-y-1.5">
-                            <Label htmlFor={field.fieldName} className="text-sm font-medium">
+                            <Label htmlFor={field.fieldName} className="text-xs sm:text-sm font-medium">
                               {field.fieldName.charAt(0).toUpperCase() + field.fieldName.slice(1).replaceAll("_", " ")}
                               {field.required && <span className="text-red-500">*</span>}
                             </Label>
@@ -375,7 +391,7 @@ export const LoyaltyContainer = ({
                               required={field.required}
                               value={formData[field.fieldName] || ""}
                               onChange={(e) => handleFieldChange(field.fieldName, e.target.value)}
-                              className="w-full"
+                              className="w-full text-sm"
                             />
                           </div>
                         ))}
@@ -383,18 +399,29 @@ export const LoyaltyContainer = ({
                   )}
               </div>
 
-              <div className="flex gap-2 mt-6">
-                <Button type="button" variant="outline" onClick={() => { setShowSignUpModal(false); setFormData({}); }} className="flex-1" disabled={isSubmitting}>
+              <div className="flex flex-col-reverse sm:flex-row gap-2 mt-6">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => { setShowSignUpModal(false); setFormData({}); }}
+                  className="flex-1 text-sm"
+                  disabled={isSubmitting}
+                >
                   Cancel
                 </Button>
-                <Button type="submit" className="flex-1 text-white font-semibold" style={{ backgroundColor: primaryColor }} disabled={isSubmitting}>
+                <Button
+                  type="submit"
+                  className="flex-1 text-white font-semibold text-sm"
+                  style={{ backgroundColor: primaryColor }}
+                  disabled={isSubmitting}
+                >
                   {isSubmitting ? (
-                    <span className="flex items-center gap-1.5">
+                    <span className="flex items-center justify-center gap-1.5">
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                       Registering...
                     </span>
                   ) : (
-                    <span className="flex items-center gap-1.5">
+                    <span className="flex items-center justify-center gap-1.5">
                       <User className="w-4 h-4" />
                       Sign Up
                     </span>
