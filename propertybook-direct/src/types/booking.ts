@@ -202,7 +202,6 @@ export interface IBookingEngineConfig {
   secondaryColor: string;
   tertiaryColor: string;
   buttonTextColor: string;
-  bannerImage: string | null;
   logo: string;
 }
 
