@@ -83,10 +83,10 @@ export class PromoCodeController {
         if (promoCodeData.validFrom && promoCodeData.validTo && promoCodeData.validFrom > promoCodeData.validTo) {
             return 'Invalid validity period';
         }
-        if (!promoCodeData.minBookingAmount || promoCodeData.minBookingAmount < 0) {
+        if (promoCodeData.minBookingAmount!==null && (!promoCodeData.minBookingAmount || promoCodeData.minBookingAmount < 0)) {
             return 'Minimum booking amount cannot be negative';
         }
-        if (!promoCodeData.maxDiscountAmount || promoCodeData.maxDiscountAmount < 0) {
+        if (promoCodeData.maxDiscountAmount!==null && (!promoCodeData.maxDiscountAmount || promoCodeData.maxDiscountAmount < 0)) {
             return 'Maximum discount amount cannot be negative';
         }
         if (promoCodeData.usageLimit && promoCodeData.usageLimit < 0) {
