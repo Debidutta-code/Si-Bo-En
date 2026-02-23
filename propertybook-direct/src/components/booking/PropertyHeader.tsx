@@ -9,17 +9,17 @@ interface PropertyHeaderProps {
 
 export function PropertyHeader({ className, showBanner = false }: PropertyHeaderProps) {
   const { state } = useBooking();
-  const { config } = state;
+  const { propertyDetails } = state;
 
-  if (!config) return null;
+  if (!propertyDetails) return null;
 
   return (
-    <header className={cn('relative', className)}>
-      {showBanner && config.bannerImage && (
+    <header className={cn('relative', className) + "bg-rose-700"}>
+      {showBanner && propertyDetails?.bookingEngineConfig?.bannerImage && (
         <div className="absolute inset-0 -z-10">
           <img
-            src={config.bannerImage}
-            alt={config.propertyName}
+            src={propertyDetails?.bookingEngineConfig?.bannerImage}
+            alt={propertyDetails.propertyName}
             className="w-full h-full object-cover"
           />
           <div className="absolute inset-0 bg-gradient-to-b from-background/80 via-background/60 to-background" />
@@ -27,23 +27,23 @@ export function PropertyHeader({ className, showBanner = false }: PropertyHeader
       )}
       
       <div className="container py-6 flex items-center gap-4">
-        {config.logo && (
+        {propertyDetails?.bookingEngineConfig?.logo && (
           <img
-            src={config.logo}
-            alt={`${config.propertyName} logo`}
+            src={propertyDetails?.bookingEngineConfig?.logo}
+            alt={`${propertyDetails.propertyName} logo`}
             className="h-12 w-auto object-contain rounded"
           />
         )}
         
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold text-foreground">{config.propertyName}</h1>
+            <h1 className="text-xl font-bold text-foreground">{propertyDetails.propertyName}</h1>
           </div>
           
-          <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
+          {/* <div className="flex items-center gap-1 text-sm text-muted-foreground mt-1">
             <MapPin className="h-3.5 w-3.5" />
-            <span>{config.propertyAddress}</span>
-          </div>
+            <span>{propertyDetails.address}</span>
+          </div> */}
         </div>
       </div>
     </header>

@@ -3,7 +3,6 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { useBooking } from '@/contexts/BookingContext';
 import { useFetchRooms } from '@/hooks/useFetchRooms';
 import { PropertyHeader } from '@/components/booking/PropertyHeader';
-import { BookingProgress } from '@/components/booking/BookingProgress';
 import { RoomCard } from '@/components/booking/RoomCard';
 import { PriceSummary } from '@/components/booking/PriceSummary';
 import { LoyaltySignup } from '@/components/booking/LoyaltySignup';
@@ -11,7 +10,7 @@ import { PropertyVideo } from '@/components/booking/PropertyVideo';
 import { RoomCardSkeleton } from '@/components/booking/Skeleton';
 import { AlertCircle, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
+import {Helmet} from "react-helmet";
 export default function RoomsPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -66,8 +65,12 @@ export default function RoomsPage() {
 
   return (
     <div className="min-h-screen bg-background pb-24 lg:pb-0">
+      <Helmet>
+        <title>Book your stay with {state.propertyDetails?.propertyName}</title>
+        <meta name="description" content={`Book your stay with ${state.propertyDetails?.propertyName}`} />
+      </Helmet>
       <PropertyHeader />
-      <BookingProgress />
+      {/* <BookingProgress /> */}
 
       <main className="container py-8">
         <div className="flex flex-col lg:flex-row gap-8">
