@@ -21,7 +21,6 @@ rateTigerRoute.post(
 
 rateTigerRoute.post(
     '/ari',
-    RateTigerMiddleware.validateBearerToken,
     withHotelCodeConversion(ARIController.handleARI)
 );
 

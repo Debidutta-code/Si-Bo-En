@@ -56,8 +56,8 @@ export class MLOSController {
 
             const ruleData = {
                 ratePlanId,
-                startDate: toUTCDate(startDate) || null,
-                endDate: toUTCDate(endDate) || null,
+                startDate: startDate&&toUTCDate(startDate) || null,
+                endDate: endDate&&toUTCDate(endDate) || null,
                 minLos,
                 maxLos: maxLos || null,
                 discountType: discountType === "none" ? null : discountType,
@@ -141,8 +141,8 @@ export class MLOSController {
                 ratePlanId,
                 {
                     ...updateData,
-                    startDate: toUTCDate(updateData.startDate) || null,
-                    endDate: toUTCDate(updateData.endDate) || null,
+                    startDate: updateData.startDate&&toUTCDate(updateData.startDate) || null,
+                    endDate: updateData.endDate&&toUTCDate(updateData.endDate) || null,
                     discountType: updateData.discountType === "none" ? null : updateData.discountType,
                     discountValue: updateData.discountValue ? new Decimal(updateData.discountValue) : null,
                 }

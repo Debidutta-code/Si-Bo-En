@@ -806,6 +806,7 @@ model BookingEngineConfigurations {
   buttonTextColor String   @map("button_text_color")
   bannerImage     String?  @map("banner_image")
   logo            String
+  url             String?   @map("website_url")
 
   @@map("booking_engine_configurations")
 }
@@ -829,12 +830,12 @@ model PromoCode {
   isApplicableForDesktop   Boolean @default(false) @map("is_applicable_for_desktop")
   isApplicableForTablet    Boolean @default(false) @map("is_applicable_for_tablet")
 
-  isApplicableForWalkIn    Boolean @default(false) @map("is_applicable_for_walk_in")
-  isApplicableForOTA       Boolean @default(false) @map("is_applicable_for_ota")
-  isApplicableForCorporate Boolean @default(false) @map("is_applicable_for_corporate")
+  // isApplicableForWalkIn    Boolean @default(false) @map("is_applicable_for_walk_in")
+  // isApplicableForOTA       Boolean @default(false) @map("is_applicable_for_ota")
+  // isApplicableForCorporate Boolean @default(false) @map("is_applicable_for_corporate")
 
   usageLimit          Int?          @map("usage_limit")
-  usageLimitPerUser   Int?          @map("usage_limit_per_user")
+  // usageLimitPerUser   Int?          @map("usage_limit_per_user")
   applicableRoomTypes Json[]        @map("applicable_room_types")
   applicableRatePlans Json[]        @map("applicable_rate_plans")
   isActive            Boolean       @default(true) @map("is_active")
@@ -1476,7 +1477,7 @@ model GeoRatePlan {
   currencyCode          CurrencyCode?            @default(USD) @map("currency_code")
   countryCode           String[]                 @map("country_code")
   isActive              Boolean                  @default(true) @map("is_active")
-  isAutoApplied         Boolean                  @default(false) @map("is_auto_applied")
+  isAutoApplied         Boolean                  @default(true) @map("is_auto_applied")
   createdAt             DateTime                 @default(now()) @map("created_at")
 
   @@index([propertyId, roomId, ratePlanId])

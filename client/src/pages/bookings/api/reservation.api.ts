@@ -1,4 +1,5 @@
 import createAxiosInstance from "@/components/axiosInstance";
+import type { IPriceCheckRequest, IPriceCheckResponse } from "../types";
 
 const axiosInstance = createAxiosInstance();
 
@@ -290,6 +291,73 @@ export const fetchReportTypes = async () => {
     return {
       success: false,
       message: error?.response?.data?.message || "Failed to fetch report types"
+    };
+  }
+};
+
+export const checkAmendPrice = async (
+  payload: IPriceCheckRequest
+): Promise<{ success: boolean; data?: IPriceCheckResponse; message?: string }> => {
+  try {
+    const response = await axiosInstance.post(
+      "/ari/price/get-price",
+      payload
+    );
+
+    const resData = response.data;
+
+    if (!resData || resData.success === false) {
+      return {
+        success: false,
+        message: resData?.message || "Failed to fetch updated price",
+      };
+    }
+
+    // The actual price data might be nested under resData.data
+    return {
+      success: true,
+      data: resData.data ?? resData,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message:
+        error?.response?.data?.message ||
+        error?.message ||
+        "Failed to fetch updated price",
+    };
+  }
+};
+
+// ─── Amend / Update Reservation ──────────────────────────────────────────────
+
+export const amendReservationApi = async (
+  bookingCode: string,
+  payload: Record<string, unknown>
+): Promise<{ success: boolean; message?: string; data?: any }> => {
+  try {
+    const response = await axiosInstance.patch(
+      `/pms/front-office/reservations/update/${bookingCode}`,
+      payload
+    );
+
+    const resData = response.data;
+
+    if (!resData || resData.success === false) {
+      return {
+        success: false,
+        message: resData?.message || "Failed to amend reservation",
+      };
+    }
+
+    return { success: true, data: resData };
+  } catch (error: any) {
+    return {
+      success: false,
+      message:
+        error?.response?.data?.message ||
+        error?.message ||
+        "Something went wrong. Please try again.",
     };
   }
 };

@@ -59,6 +59,7 @@ export interface IRoomPrice {
   };
   addons: IAddonInfo[];
   availablePromotions: IPromotion[];
+   appliedDiscounts: IAppliedDiscount[];
    touristTax?: ITouristTax | null;
 }
 export interface ITouristTax {
@@ -68,6 +69,14 @@ export interface ITouristTax {
   discountValue: number;
   currencyCode: string;
   calculatedTaxAmount?:number;
+}
+export interface IAppliedDiscount {
+    id: string;
+    promotionName: string;
+    promotionType: string;
+    discountType: string;
+    discountValue: number;
+    calculatedDiscountAmount: number; 
 }
 export interface IRoom {
   id: string;

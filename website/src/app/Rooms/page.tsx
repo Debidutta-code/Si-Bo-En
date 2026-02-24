@@ -550,7 +550,7 @@ const Rooms = () => {
           endDate: paramsData.endDate || defaultEndDate,
           numberOfRooms: paramsData.numberOfRooms || 1,
           location: paramsData.location || "",
-          promocode: paramsData.location || ""
+          promocode: paramsData.promocode || ""
         };
         dispatch(setBookingSource(paramsData.bookingSource));
         dispatch(setBookingContext(contextWithDates));
@@ -588,6 +588,7 @@ const Rooms = () => {
               children: 0,
             },
             location: parsedContext.location || "",
+            promocode: parsedContext.promocode || "",
             numberOfRooms:
               parsedContext.numberOfRooms || parsedContext.guests?.rooms || 1,
           };

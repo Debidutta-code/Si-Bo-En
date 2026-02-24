@@ -14,12 +14,12 @@ const createPromoCodeService =(promoCodeData:ICreatePromoCode)=>{
                 message:"Promo code must be applicable for at least one platform (Desktop, Mobile App, Tablet)"
             }
         }
-        if(promoCodeData.isApplicableForWalkIn===false && promoCodeData.isApplicableForOTA===false && promoCodeData.isApplicableForCorporate===false){
-            return {
-                success:false,
-                message:"Promo code must be applicable for at least one booking source (Walk-In, OTA, Corporate)"
-            }
-        }
+        // if(promoCodeData.isApplicableForWalkIn===false && promoCodeData.isApplicableForOTA===false && promoCodeData.isApplicableForCorporate===false){
+        //     return {
+        //         success:false,
+        //         message:"Promo code must be applicable for at least one booking source (Walk-In, OTA, Corporate)"
+        //     }
+        // }
         if(promoCodeData.discountType==="percentage"){
             if(promoCodeData.discountValue<=0 || promoCodeData.discountValue>100){
                 return {

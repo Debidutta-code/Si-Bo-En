@@ -19,10 +19,12 @@ import {
 import type { IReservation } from "../types";
 import ReservationCard from "./ReservationCard";
 import NoShowConfirmationModal from "./NoShowModal";
-import { 
+import {
   // downloadBookingInvoice, 
-  downloadBookingVoucher } from "../api/reservation.api";
+  downloadBookingVoucher
+} from "../api/reservation.api";
 import toast from "react-hot-toast";
+import AmendReservationModal from "./Amendreservationmodal";
 
 // Modal to show ReservationCard
 interface ViewDetailsModalProps {
@@ -133,6 +135,7 @@ export default function ReservationsTable({
 }: ReservationsTableProps) {
   const [selectedReservation, setSelectedReservation] = useState<IReservation | null>(null);
   const [reservationToCancel, setReservationToCancel] = useState<IReservation | null>(null);
+  const [reservationToAmend, setReservationToAmend] = useState<IReservation | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
   const [reservationToNoShow, setReservationToNoShow] = useState<IReservation | null>(null);
   const [isMarkingNoShow, setIsMarkingNoShow] = useState(false);
@@ -187,8 +190,8 @@ export default function ReservationsTable({
     setSelectedReservation(reservation);
   };
 
-  const handleAmend = (reservationId: string) => {
-    console.log("Amend reservation:", reservationId);
+  const handleAmendClick = (reservation: IReservation) => {
+    setReservationToAmend(reservation);
   };
 
   const handleCancelClick = (reservation: IReservation) => {
@@ -226,28 +229,28 @@ export default function ReservationsTable({
       setIsMarkingNoShow(false);
     }
   };
-// Add these functions inside your ReservationsTable component
-const handleDownloadVoucher = async (bookingCode: string) => {
-  try {
-    const response = await downloadBookingVoucher(bookingCode);
-    if (!response.success) {
-      toast.error(response.message || "Failed to download voucher");
+  // Add these functions inside your ReservationsTable component
+  const handleDownloadVoucher = async (bookingCode: string) => {
+    try {
+      const response = await downloadBookingVoucher(bookingCode);
+      if (!response.success) {
+        toast.error(response.message || "Failed to download voucher");
+      }
+    } catch (error) {
+      toast.error("Failed to download voucher");
     }
-  } catch (error) {
-    toast.error("Failed to download voucher");
-  }
-};
+  };
 
-// const handleDownloadInvoice = async (bookingCode: string) => {
-//   try {
-//     const response = await downloadBookingInvoice(bookingCode);
-//     if (!response.success) {
-//       toast.error(response.message || "Failed to download invoice");
-//     }
-//   } catch (error) {
-//     toast.error("Failed to download invoice");
-//   }
-// };
+  // const handleDownloadInvoice = async (bookingCode: string) => {
+  //   try {
+  //     const response = await downloadBookingInvoice(bookingCode);
+  //     if (!response.success) {
+  //       toast.error(response.message || "Failed to download invoice");
+  //     }
+  //   } catch (error) {
+  //     toast.error("Failed to download invoice");
+  //   }
+  // };
   return (
     <>
       <div className="bg-card rounded-lg border border-border overflow-hidden">
@@ -307,10 +310,10 @@ const handleDownloadVoucher = async (bookingCode: string) => {
                 <TableCell>{formatDate(reservation.checkOutDate)}</TableCell>
                 <TableCell>{getStatusBadge(reservation.bookingStatus)}</TableCell>
                 <TableCell className="uppercase text-[12px]">
-                {reservation.bookingSource}
+                  {reservation.bookingSource}
                 </TableCell>
                 <TableCell>{reservation.finalPrice?.totalAmount}</TableCell>
-                <TableCell>{reservation.finalPrice?.totalAmount-reservation.finalPrice?.totalTax}</TableCell>
+                <TableCell>{reservation.finalPrice?.totalAmount - reservation.finalPrice?.totalTax}</TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -327,13 +330,13 @@ const handleDownloadVoucher = async (bookingCode: string) => {
                         View Details
                       </DropdownMenuItem>
                       <DropdownMenuItem
-    onClick={() => handleDownloadVoucher(reservation.bookingCode)}
-    className="cursor-pointer"
-  >
-    <FileText className="w-4 h-4 mr-3" />
-    Download Voucher
-  </DropdownMenuItem>
-  {/* <DropdownMenuItem
+                        onClick={() => handleDownloadVoucher(reservation.bookingCode)}
+                        className="cursor-pointer"
+                      >
+                        <FileText className="w-4 h-4 mr-3" />
+                        Download Voucher
+                      </DropdownMenuItem>
+                      {/* <DropdownMenuItem
     onClick={() => handleDownloadInvoice(reservation.bookingCode)}
     className="cursor-pointer"
   >
@@ -341,7 +344,7 @@ const handleDownloadVoucher = async (bookingCode: string) => {
     Download Invoice
   </DropdownMenuItem> */}
                       <DropdownMenuItem
-                        onClick={() => handleAmend(reservation.id)}
+                        onClick={() => handleAmendClick(reservation)}
                         className="cursor-pointer"
                       >
                         <Edit className="w-4 h-4 mr-3" />
@@ -399,6 +402,15 @@ const handleDownloadVoucher = async (bookingCode: string) => {
           onConfirm={handleConfirmNoShow}
           onCancel={() => setReservationToNoShow(null)}
           isLoading={isMarkingNoShow}
+        />
+      )}
+      {reservationToAmend && (
+        <AmendReservationModal
+          reservation={reservationToAmend}
+          onClose={() => setReservationToAmend(null)}
+          onSuccess={() => {
+            setReservationToAmend(null);
+          }}
         />
       )}
     </>

@@ -25,7 +25,7 @@ export class BookingEngineController {
   public static async addConfig(req: PropertyCustomRequest, res: Response) {
     try {
       const propertyId = req.params.id;
-      const { primaryColor, secondaryColor, tertiaryColor, buttonTextColor, bannerImage, logo } =
+      const { primaryColor, secondaryColor, tertiaryColor, buttonTextColor, bannerImage, logo ,url } =
         req.body;
 
       if (!propertyId)
@@ -46,6 +46,7 @@ export class BookingEngineController {
         buttonTextColor,
         bannerImage,
         logo,
+        url
       });
 
       const status = response.success ? 200 : 400;
@@ -60,7 +61,7 @@ export class BookingEngineController {
   public static async updateConfigByPropertyId(req: PropertyCustomRequest, res: Response) {
     try {
       const propertyId = req.params.id;
-      const { primaryColor, secondaryColor, tertiaryColor, bannerImage, logo } =
+      const { primaryColor, secondaryColor, tertiaryColor, bannerImage, logo , url } =
         req.body;
 
       if (!propertyId)
@@ -70,7 +71,7 @@ export class BookingEngineController {
 
       const response = await BookingEngineService.updateConfigByPropertyId(
         propertyId,
-        { primaryColor, secondaryColor, tertiaryColor, bannerImage, logo }
+        { primaryColor, secondaryColor, tertiaryColor, bannerImage, logo ,url}
       );
 
       const status = response.success ? 200 : 400;

@@ -7,4 +7,5 @@ export interface IBookingEngineConfig {
   buttonTextColor: string; // new field
   bannerImage: string;
   logo: string;
+  url:string;
 }

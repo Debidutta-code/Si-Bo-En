@@ -12,8 +12,8 @@ export class MLOSDao {
       return await prisma.ratePlanRule.create({
         data: {
           ratePlanId: data.ratePlanId,
-          startDate: data.startDate,
-          endDate: data.endDate,
+          startDate: data.startDate?data.startDate:null,
+          endDate: data.endDate?data.endDate:null,
           minLos: data.minLos,
           maxLos: data.maxLos,
           discountType: data.discountType,
