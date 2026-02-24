@@ -142,7 +142,7 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
           country: "IN"
         },
         bookingDetails: {
-          propertyID: "KSA_MUK_01",
+          propertyID: propertyID,
           referenceDetails: bookingRefNum,
           communicationMode: guestEmail ? "EMAIL" : "WHATSAPP",
           arrivalDate: checkInDate,

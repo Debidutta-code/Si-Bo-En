@@ -3,6 +3,7 @@ import { fikafiPaymentService } from '../service/fikafi.service';
 import { PropertyRequest } from '../../utils';
 import prisma from '../../config/prisma.client';
 import { socketManager } from '../../socket';
+import redis from '../../config/redis.client';
 
 // Guest Details - minimal fields as per new spec
 interface FikafiGuestDetails {
@@ -431,6 +432,15 @@ export class FikafiPaymentController {
                     console.error(`❌ Failed to update reservation in DB:`, dbError);
                     // Don't throw - still emit socket so frontend isn't blocked
                 }
+
+                // Store payment result in Redis (TTL: 10 minutes)
+                await redis.set(
+                    `payment:confirmed:${bookingRefNum}`,
+                    JSON.stringify({ amount, status, confirmedAt: Date.now() }),
+                    'EX',
+                    600
+                );
+                console.log(`✅ Payment result stored in Redis for ${bookingRefNum}`);
 
                 console.log(`📡 Emitting socket event for ${bookingRefNum}`);
 

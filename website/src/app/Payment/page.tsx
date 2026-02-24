@@ -621,7 +621,7 @@ const BookingReviewPage = () => {
                     guestEmail={getGuestEmail()}
                     guestPhone={getGuestPhone()}
                     propertyName={propertyName}
-                    propertyID={PropertyId || "UNKNOWN_PROPERTY"}
+                    propertyID={bankDetails?.selectedPaymentIntegrations?.outletId || ""}
                     checkInDate={checkIn}
                     numberOfNights={nights}
                     onPaymentLinkGenerated={(paymentLink: string) => {

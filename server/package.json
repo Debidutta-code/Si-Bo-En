@@ -41,6 +41,7 @@
     "express-async-handler": "^1.2.0",
     "geoip-lite": "^1.4.10",
     "html-pdf-node": "^1.0.7",
+    "ioredis": "^5.9.3",
     "jsonwebtoken": "^9.0.2",
     "luxon": "^3.7.2",
     "mongodb": "^6.20.0",

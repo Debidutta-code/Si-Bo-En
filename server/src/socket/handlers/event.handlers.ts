@@ -4,6 +4,7 @@ import { Socket } from 'socket.io';
 import { ConnectionManager } from '../managers/connection.manager';
 import { SOCKET_EVENTS, ROOM_PREFIX } from '../constants';
 import { RoomJoinedResponse } from '../types';
+import redis from '../../config/redis.client';
 
 export class SocketEventHandlers {
   constructor(private connectionManager: ConnectionManager) {}
@@ -31,7 +32,7 @@ export class SocketEventHandlers {
    *   - 'REF-123'           (your N-Genius flow)
    *   - 'payment:REF-123'   (her Fikafi frontend sends prefixed)
    */
-  handleJoinPaymentRoom(socket: Socket, rawInput: string): void {
+  async handleJoinPaymentRoom(socket: Socket, rawInput: string): Promise<void> {
     if (!rawInput) {
       console.error('❌ join-payment-room: orderReference missing');
       socket.emit('error', { message: 'Order reference is required' });
@@ -41,7 +42,7 @@ export class SocketEventHandlers {
     const orderReference = this.normalizeOrderReference(rawInput);
     const room = this.getRoomName(orderReference);
 
-    socket.join(room);
+    await socket.join(room);
 
     this.connectionManager.addConnection(orderReference, socket.id);
 
@@ -53,6 +54,21 @@ export class SocketEventHandlers {
     };
 
     socket.emit(SOCKET_EVENTS.ROOM_JOINED, response);
+
+    // Check if payment was already confirmed while client was away
+    // Use GETDEL for atomic get + delete - prevents double delivery
+    const cached = await redis.getdel(`payment:confirmed:${orderReference}`);
+    if (cached) {
+      console.log(`🔑 Redis cache hit for ${orderReference} - emitting immediately`);
+      const paymentData = JSON.parse(cached);
+      socket.emit('payment-status-update', {
+        orderReference,
+        eventName: 'payment-confirmed',
+        status: 'success',
+        message: 'Payment successful',
+        paymentDetails: paymentData,
+      });
+    }
   }
 
   /**
