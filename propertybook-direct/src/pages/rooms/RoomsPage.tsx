@@ -116,7 +116,7 @@ export default function RoomsPage() {
             </div>
 
             {/* Loyalty Program - Only show if available and active */}
-            {state.propertyDetails?.loyaltyProgramConfig?.isActive && (
+            {state.propertyDetails?.loyaltyProgramConfig && (
               <div ref={loyaltyRef}>
                 <LoyaltySignup />
               </div>
