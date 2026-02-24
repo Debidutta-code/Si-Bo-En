@@ -17,7 +17,13 @@ export class RoomBookingService {
         if (!property || !property.isAvailable) {
             return { success: false, message: 'Property not available' };
         }
-
+        let promoCodeData = null;
+        if (payload.promocode) {
+            promoCodeData = await RoomBookingRepository.getPromoCodeByPropertyAndCode(
+                property.id,
+                payload.promocode
+            );
+        }
         // Build date array (check-in inclusive, check-out exclusive)
         const dates: Date[] = [];
         let current = toUTCDate(startDate);
@@ -42,7 +48,8 @@ export class RoomBookingService {
                     guests,
                     payload,
                     countryCode,
-                    deviceType
+                    deviceType,
+                    promoCodeData
                 )
             )
         );
@@ -82,7 +89,8 @@ export class RoomBookingService {
         guests: IBookingSearchPayload['guests'],
         payload: IBookingSearchPayload,
         countryCode?: string,
-        deviceType?: string
+        deviceType?: string,
+        promoCodeData?: any
     ): Promise<IRoom | null> {
         // Check inventory first
         const inventory = await RoomBookingRepository.getInventoryByProperty(
@@ -105,7 +113,8 @@ export class RoomBookingService {
                     guests,
                     payload,
                     countryCode,
-                    deviceType
+                    deviceType,
+                    promoCodeData
                 )
             )
         );
@@ -143,7 +152,8 @@ export class RoomBookingService {
         guests: IBookingSearchPayload['guests'],
         payload: IBookingSearchPayload,
         countryCode?: string,
-        deviceType?: string
+        deviceType?: string,
+        promoCodeData?: any
     ): Promise<IRoomPrice | null> {
         const today = new Date();
         const checkInDate = dates[0];
@@ -288,7 +298,7 @@ export class RoomBookingService {
                 geoRatePlan.restrictionTypeAction,
                 restrictionValue
             );
-            if (geoRatePlan.isAutoApplied) {
+            if (geoRatePlan) {
                 totalAutoDiscount += geoDiscount;
                 appliedDiscounts.push({
                     id: geoRatePlan.id,
@@ -297,16 +307,6 @@ export class RoomBookingService {
                     discountType: geoRatePlan.restrictionType === 'percentage' ? 'percentage' : 'flat',
                     discountValue: Number(geoRatePlan.restrictionValue ?? 0),
                     calculatedDiscountAmount: geoDiscount,
-                });
-            } else {
-                availablePromotions.push({
-                    id: geoRatePlan.id,
-                    promotionName: `Geo rate adjustment`,
-                    promotionType: 'geo',
-                    discountType: geoRatePlan.restrictionType === 'percentage' ? 'percentage' : 'flat',
-                    discountValue: geoDiscount,
-                    validFrom: null,
-                    validTo: null,
                 });
             }
         }
@@ -395,6 +395,54 @@ export class RoomBookingService {
             (sum, price) => sum + price,
             0
         );
+        // ── Promo code ───────────────────────────────────────────────────────────────
+        if (promoCodeData) {
+            const roomApplicable =
+                promoCodeData.applicableRoomTypes.includes('all') ||
+                promoCodeData.applicableRoomTypes.includes(room.roomType);
+
+            const ratePlanApplicable =
+                promoCodeData.applicableRatePlans.includes('all') ||
+                promoCodeData.applicableRatePlans.includes(ratePlan.ratePlanCode);
+
+            const deviceApplicable =
+                !deviceType ||
+                (deviceType === 'mobile' && promoCodeData.isApplicableForMobileApp) ||
+                (deviceType === 'tablet' && promoCodeData.isApplicableForTablet) ||
+                (deviceType === 'desktop' && promoCodeData.isApplicableForDesktop);
+
+            const now = new Date();
+            // ✅ fix
+            const dateValid =
+                (!promoCodeData.validFrom || new Date(promoCodeData.validFrom) <= now) &&
+                (!promoCodeData.validTo || new Date(promoCodeData.validTo) >= now);
+
+            const minAmountValid =
+                !promoCodeData.minBookingAmount ||
+                baseAmount >= Number(promoCodeData.minBookingAmount);
+
+            if (roomApplicable && ratePlanApplicable && deviceApplicable && dateValid && minAmountValid) {
+                let promoDiscount = this.calculateDiscount(
+                    baseAmount,
+                    promoCodeData.discountType,
+                    Number(promoCodeData.discountValue)
+                );
+
+                if (promoCodeData.maxDiscountAmount && promoDiscount > Number(promoCodeData.maxDiscountAmount)) {
+                    promoDiscount = Number(promoCodeData.maxDiscountAmount);
+                }
+
+                totalAutoDiscount += promoDiscount;
+                appliedDiscounts.push({
+                    id: promoCodeData.id,
+                    promotionName: promoCodeData.name,
+                    promotionType: 'promocode',
+                    discountType: promoCodeData.discountType,
+                    discountValue: Number(promoCodeData.discountValue),
+                    calculatedDiscountAmount: promoDiscount,
+                });
+            }
+        }
         const totalAmount = baseAmount - totalAutoDiscount + totalAddonPrice;
 
         let touristTax: ITouristTax | null = null;

@@ -8,7 +8,7 @@ import console from "console";
 export class RoomBookingController {
   public static async fetchRooms(req: PropertyRequest, res: Response) {
     try {
-      const { PropertyCode, startDate, endDate, guests } = req.body || {};
+      const { PropertyCode, startDate, endDate, guests, promocode } = req.body || {};
 
       // 🔐 Required payload validation
       if (
@@ -27,9 +27,9 @@ export class RoomBookingController {
       }
 
       // Extract country code from geo-location
-      const geoDetails = getGeoLocationDetails(req);
+      const geoDetails = await getGeoLocationDetails(req);
       const countryCode = geoDetails.country;
-      console.log(countryCode)
+      // console.log(countryCode)
       const deviceInfo = getDeviceInfo(req);
       const deviceType = deviceInfo.deviceType as "mobile" | "tablet" | "desktop";
       console.log(deviceType)
@@ -43,6 +43,7 @@ export class RoomBookingController {
         guests,
         countryCode,
         deviceType,
+        promocode
       });
 
       const status = response.success ? 200 : 400;

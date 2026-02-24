@@ -787,17 +787,86 @@ const RoomCard: React.FC<RoomCardProps> = ({
 
                           <div className="space-y-1 text-xs md:text-sm text-gray-700 mb-2">
                             <div className="flex items-start gap-1.5">
-                              <span className="text-green-600 mt-0.5 flex-shrink-0">
-                                ✓
-                              </span>
+                              <span className="text-green-600 mt-0.5 flex-shrink-0">✓</span>
                               <span>Complimentary WiFi included</span>
                             </div>
                             <div className="flex items-start gap-1.5">
-                              <span className="text-green-600 mt-0.5 flex-shrink-0">
-                                ✓
-                              </span>
+                              <span className="text-green-600 mt-0.5 flex-shrink-0">✓</span>
                               <span>24/7 Room Service</span>
                             </div>
+                          </div>
+
+                          {/* ── Price Breakdown Grid ─────────────────────────────── */}
+                          <div className="mt-3 grid grid-cols-1 lg:grid-cols-3 gap-2">
+
+                            {/* Base Price */}
+                            <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2">
+                              <p className="text-[10px] text-gray-500 uppercase font-semibold tracking-wide mb-1">Base Price</p>
+                              <p className="text-sm font-bold text-gray-800">
+                                {ratePlan.currencyCode}{' '}
+                                {(
+                                  ratePlan.totalAmount +
+                                  (ratePlan.appliedDiscounts?.reduce((sum: number, d: any) => sum + d.calculatedDiscountAmount, 0) ?? 0) -
+                                  (ratePlan.addons?.reduce((sum: number, a: any) => sum + a.price, 0) ?? 0)
+                                ).toFixed(2)}
+                              </p>
+                              <p className="text-[10px] text-gray-400">per night</p>
+                            </div>
+
+                            {/* Applied Discounts */}
+                            <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                              <p className="text-[10px] text-green-700 uppercase font-semibold tracking-wide mb-1">
+                                Auto-Applied Discounts ( On base Price )
+                              </p>
+                              {ratePlan.appliedDiscounts?.length > 0 ? (
+                                <div className="space-y-1">
+                                  {ratePlan.appliedDiscounts.map((discount: any) => (
+                                    <div key={discount.id} className="flex items-center justify-between gap-2">
+                                      <span className="text-[11px] text-green-800 truncate">
+                                        {discount.promotionType === 'promocode'
+                                          ? `🎟 ${discount.promotionName}`
+                                          : discount.promotionType === 'early_bird'
+                                            ? `🐦 ${discount.promotionName}`
+                                            : discount.promotionType === 'geo'
+                                              ? `🌍 ${discount.promotionName}`
+                                              : discount.promotionType === 'mlos'
+                                                ? `🌙 ${discount.promotionName}`
+                                                : `✓ ${discount.promotionName}`}
+                                      </span>
+                                      <span className="text-[11px] font-bold text-green-700 whitespace-nowrap flex-shrink-0">
+                                        -{ratePlan.currencyCode} {discount.calculatedDiscountAmount.toFixed(2)}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-[11px] text-green-600 italic">No discounts applied</p>
+                              )}
+                            </div>
+
+                            {/* Selected Addons */}
+                            <div className="bg-orange-50 border border-orange-200 rounded-lg px-3 py-2">
+                              <p className="text-[10px] text-orange-700 uppercase font-semibold tracking-wide mb-1">
+                                Included Addons
+                              </p>
+                              {ratePlan.addons?.filter((a: any) => a.price > 0).length > 0 ? (
+                                <div className="space-y-1">
+                                  {ratePlan.addons.filter((a: any) => a.price > 0).map((addon: any) => (
+                                    <div key={addon.id} className="flex items-center justify-between gap-2">
+                                      <span className="text-[11px] text-orange-800 truncate">
+                                        🍽 {addon.name}
+                                      </span>
+                                      <span className="text-[11px] font-bold text-orange-700 whitespace-nowrap flex-shrink-0">
+                                        +{ratePlan.currencyCode} {addon.price.toFixed(2)}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-[11px] text-orange-600 italic">No addons included</p>
+                              )}
+                            </div>
+
                           </div>
 
                           <button

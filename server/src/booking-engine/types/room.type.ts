@@ -10,8 +10,9 @@ export interface IBookingSearchPayload {
     rooms: number;
   };
   PropertyCode: string;
-  countryCode?: string; // For geo-based pricing
-  deviceType?: DeviceType; // For device-specific promotions (mobile, tablet, desktop)
+  countryCode?: string; 
+  deviceType?: DeviceType;
+  promocode?: string;
 }
 
 export interface IBaseByGuestAmount {
