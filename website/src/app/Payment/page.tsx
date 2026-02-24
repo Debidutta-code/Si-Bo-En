@@ -4,13 +4,10 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { useRouter, useSearchParams } from "next/navigation";
-import SearchWidget from "../../components/Home/SearchWidget";
 import { ngeniusService } from "../../services/ngenius.service";
 import {
   DollarSign,
   CreditCard,
-  Check,
-  Loader2,
   ShieldCheck,
   Info,
   Wallet,
@@ -79,6 +76,7 @@ const BookingReviewPage = () => {
   const [bookingStatus, setLocalBookingStatus] = useState<"pending" | "confirmed">(
     "pending"
   );
+  const [bookingConfirmedForFikafi, setBookingConfirmedForFikafi] = useState(false);
 
 
   const dispatch = useDispatch();
@@ -383,26 +381,15 @@ const BookingReviewPage = () => {
       document.cookie = "can_access_payment=true; path=/";
 
       // If Fikafi is selected, trigger Fikafi payment flow after booking is confirmed
-      if (selectedPayment === "fikafi") {
+      if (selectedPayment === "gateway" && activeGateway === "fikafi") {
         // Store booking code in localStorage for the Fikafi button to access
         localStorage.setItem('currentBookingCode', newBookingCode);
+        setBookingConfirmedForFikafi(true);
 
-        toast.success("Booking confirmed! Initiating payment...", {
+        toast.success("Booking confirmed! Click 'Pay Now' to proceed to payment.", {
           id: "booking-success",
-          duration: 2000,
+          duration: 3000,
         });
-
-        // Trigger Fikafi payment after a short delay
-        setTimeout(() => {
-          // Find the Fikafi button and click it programmatically
-          const fikafiButton = document.querySelector('[data-fikafi-button]') as HTMLButtonElement;
-          if (fikafiButton) {
-            fikafiButton.click();
-          } else {
-            // Fallback: reload page with booking code or show payment section
-            console.error('Fikafi button not found');
-          }
-        }, 500);
         return;
       }
 
@@ -619,32 +606,36 @@ const BookingReviewPage = () => {
                 using credit/debit card, net banking, or other online payment methods.
               </p>
 
-              {/* Fikafi Payment Button */}
+              {/* Fikafi Payment Button - only show after booking is confirmed */}
               <div className="mt-4">
-                <FikafiPaymentButton
-                  bookingCode={bookingCode}
-                  amount={updatedPrice}
-                  currency={currencyCode}
-                  guestName={getGuestName()}
-                  guestEmail={getGuestEmail()}
-                  guestPhone={getGuestPhone()}
-                  propertyName={propertyName}
-                  propertyID={PropertyId || "UNKNOWN_PROPERTY"}
-                  checkInDate={checkIn}
-                  numberOfNights={nights}
-                  onPaymentLinkGenerated={(paymentLink: string) => {
-                    console.log('Payment link generated:', paymentLink);
-                    toast.success("Redirecting to payment...", { id: "fikafi-success" });
-                  }}
-                  onPaymentError={(error) => {
-                    console.error('Fikafi error:', error);
-                    toast.error("Payment failed. Please try again.", { id: "fikafi-error" });
-                  }}
-                  buttonText="Pay Now with Fikafi"
-                  className="w-full"
-                  data-fikafi-button="true"
-                />
-
+                {!bookingConfirmedForFikafi ? (
+                  <p className="text-sm text-gray-500 mt-2 p-3 bg-gray-50 rounded-lg">
+                    Click <strong>&quot;Confirm Booking&quot;</strong> below to create your reservation, then you&apos;ll be able to proceed to payment.
+                  </p>
+                ) : (
+                  <FikafiPaymentButton
+                    bookingCode={bookingCode}
+                    amount={updatedPrice}
+                    currency={currencyCode}
+                    guestName={getGuestName()}
+                    guestEmail={getGuestEmail()}
+                    guestPhone={getGuestPhone()}
+                    propertyName={propertyName}
+                    propertyID={PropertyId || "UNKNOWN_PROPERTY"}
+                    checkInDate={checkIn}
+                    numberOfNights={nights}
+                    onPaymentLinkGenerated={(paymentLink: string) => {
+                      console.log('Payment link generated:', paymentLink);
+                      toast.success("Redirecting to payment...", { id: "fikafi-success" });
+                    }}
+                    onPaymentError={(error) => {
+                      console.error('Fikafi error:', error);
+                      toast.error("Payment failed. Please try again.", { id: "fikafi-error" });
+                    }}
+                    buttonText="Pay Now with Fikafi"
+                    className="w-full"
+                  />
+                )}
               </div>
 
               <div className="mt-3 flex flex-wrap gap-3 items-center">
@@ -870,8 +861,8 @@ const BookingReviewPage = () => {
               </div>
             )}
 
-            {/* Only show confirm button for non-Fikafi payments or when Fikafi payment button is not rendered */}
-            {selectedPayment !== "gateway" || activeGateway !== "fikafi" ? (
+            {/* Show confirm button for non-Fikafi payments, or for Fikafi before booking is confirmed */}
+            {selectedPayment !== "gateway" || activeGateway !== "fikafi" || !bookingConfirmedForFikafi ? (
               <button
                 onClick={handleConfirmBooking}
                 className={`mt-6 w-full py-3 px-4 rounded-xl font-medium transition-all transform ${loading ||
@@ -897,6 +888,8 @@ const BookingReviewPage = () => {
                   </div>
                 ) : !selectedPayment ? (
                   "Select Payment Method"
+                ) : bookingConfirmedForFikafi ? (
+                  "Booking Confirmed ✓"
                 ) : (
                   "Confirm Booking"
                 )}

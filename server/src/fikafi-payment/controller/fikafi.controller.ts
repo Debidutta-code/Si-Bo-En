@@ -383,9 +383,9 @@ export class FikafiPaymentController {
                 payload.bookingRef ||
                 payload.ref;
             const status =
-                payload.status || payload.paymentStatus || payload.state;
+                payload.payment?.status || payload.status || payload.paymentStatus || payload.state;
             const amount =
-                payload.amount || payload.totalAmount || payload.paymentAmount;
+                payload.payment?.amount || payload.amount || payload.totalAmount || payload.paymentAmount;
 
             console.log('📋 Extracted fields:', {
                 bookingRefNum,
@@ -404,6 +404,7 @@ export class FikafiPaymentController {
             }
             // success check - handle various status formats
             const isPaid =
+                status === 'Paid' ||
                 status === 'PAID' ||
                 status === 'success' ||
                 status === 'SUCCESS' ||
@@ -415,6 +416,22 @@ export class FikafiPaymentController {
             );
 
             if (isPaid) {
+                // Persist payment confirmation to DB
+                try {
+                    await prisma.reservation.update({
+                        where: { bookingCode: bookingRefNum },
+                        data: {
+                            bookingStatus: 'confirmed',
+                            paidAmount: amount,
+                            paymentMethod: 'payment_gateway',
+                        },
+                    });
+                    console.log(`✅ Reservation ${bookingRefNum} updated in DB`);
+                } catch (dbError) {
+                    console.error(`❌ Failed to update reservation in DB:`, dbError);
+                    // Don't throw - still emit socket so frontend isn't blocked
+                }
+
                 console.log(`📡 Emitting socket event for ${bookingRefNum}`);
 
                 socketManager.emitPaymentUpdate(bookingRefNum, {
