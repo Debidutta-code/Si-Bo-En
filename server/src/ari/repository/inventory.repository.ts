@@ -301,8 +301,8 @@ class InventoryRepository {
         endDate: string
     ) {
         try {
-            // Generate all dates in the range
-            const allDates: Date[] = [];
+            // Generate all dates in the range as ISO strings for comparison
+            const allDateStrings: string[] = [];
             const start = new Date(startDate);
             const end = new Date(endDate);
 
@@ -311,7 +311,7 @@ class InventoryRepository {
                 d.getTime() <= end.getTime();
                 d.setDate(d.getDate() + 1)
             ) {
-                allDates.push(toUTC(d));
+                allDateStrings.push(d.toISOString().split('T')[0]);
             }
 
             // Fetch inventory for the date range with availability > 0
@@ -319,9 +319,6 @@ class InventoryRepository {
                 where: {
                     propertyCode,
                     roomTypeCode,
-                    date: {
-                        in: allDates
-                    },
                     availability: {
                         gt: 0  // Only dates with availability > 0
                     }
@@ -332,16 +329,20 @@ class InventoryRepository {
                 }
             });
 
-            // Get dates that have inventory with availability > 0
-            const availableDates = inventories.map(inv => inv.date);
+            // Get dates that have inventory with availability > 0 (as ISO strings)
+            const availableDateStrings = inventories.map(inv => inv.date.toISOString().split('T')[0]);
 
             // Find missing dates (dates without inventory or with 0 availability)
-            const missingDates = allDates.filter(date => !availableDates.includes(date));
+            const missingDateStrings = allDateStrings.filter(dateStr => !availableDateStrings.includes(dateStr));
+
+            // Convert back to Date objects for return
+            const availableDates = [...new Set(availableDateStrings)].map(ds => new Date(ds));
+            const missingDates = missingDateStrings.map(ds => new Date(ds));
 
             return {
                 availableDates,
                 missingDates,
-                totalDates: allDates.length,
+                totalDates: allDateStrings.length,
                 availableCount: availableDates.length,
                 missingCount: missingDates.length
             };
