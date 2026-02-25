@@ -77,13 +77,17 @@ class InventoryRepository {
 
     public static async getRoom(propertyId: string, roomType: string) {
         try {
-            return await prisma.room.findFirst({
+            console.log(`🔍 getRoom called with propertyId: ${propertyId}, roomType: ${roomType}`);
+            const room = await prisma.room.findFirst({
                 where: {
                     propertyId,
                     roomType,
                 },
             });
+            console.log(`🏨 getRoom result:`, room ? `Found: ${room.roomType} (${room.id})` : 'Not found');
+            return room;
         } catch (error: any) {
+            console.error('❌ getRoom error:', error);
             throw new Error(error?.message);
         }
     }
@@ -240,8 +244,9 @@ class InventoryRepository {
                 } else {
                     chargeUpdates.push(
                         prisma.charge.create({
-                            data: chargeDoc,
-                        })
+                            data: chargeDoc
+                        }
+                    )
                     );
                 }
             }
