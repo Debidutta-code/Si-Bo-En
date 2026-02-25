@@ -741,7 +741,6 @@ model BookingOffset {
   // for booking
   minimumAdvanceBookingOffset Int? @map("minimum_advance_booking_offset")
   maximumAdvanceBookingOffset Int? @map("maximum_advance_booking_offset")
-Rate
   // for amend
   minimumAmendBookingOffset Int? @map("minimum_amend_booking_offset")
   maximumAmendBookingOffset Int? @map("maximum_amend_booking_offset")
