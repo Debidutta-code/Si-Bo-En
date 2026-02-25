@@ -78,7 +78,7 @@ class WebhookService {
     const orderReference = payload.order.reference;
 
     // Store payment result in Redis if successful (TTL: 10 minutes)
-    // Using matching pattern from fikafi-payment for SocketEventHandlers to pick up
+    // Standard pattern matching fikafi-payment and SocketEventHandlers recovery logic
     if (status === 'success') {
       const redisKey = `payment:confirmed:${orderReference}`;
       const redisValue = JSON.stringify({
@@ -86,7 +86,7 @@ class WebhookService {
         status,
         eventName: payload.eventName,
         confirmedAt: Date.now(),
-        ...paymentDetails
+        // Standard details consistent with Fikafi
       });
 
       redis.set(redisKey, redisValue, 'EX', 600)
@@ -100,7 +100,11 @@ class WebhookService {
       status,
       message,
       eventId: payload.eventId,
-      paymentDetails,
+      paymentDetails: {
+        amount: payload.order.amount?.value,
+        status,
+        ...paymentDetails
+      },
     });
 
     // Update database status
