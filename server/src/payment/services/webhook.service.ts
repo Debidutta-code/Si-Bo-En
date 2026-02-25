@@ -56,7 +56,7 @@ class WebhookService {
    * 
    * @param payload - Webhook payload
    */
-  processWebhookEvent(payload: NGeniusWebhookPayload): void {
+  async processWebhookEvent(payload: NGeniusWebhookPayload): Promise<void> {
     // Extract payment details if available
     let paymentDetails: any = null;
     if (payload.order._embedded?.payment && payload.order._embedded.payment.length > 0) {
@@ -77,21 +77,28 @@ class WebhookService {
     // Emit to Socket.IO
     const orderReference = payload.order.reference;
 
-    // Store payment result in Redis if successful (TTL: 10 minutes)
-    // Standard pattern matching fikafi-payment and SocketEventHandlers recovery logic
-    if (status === 'success') {
+    // Store payment result in Redis if terminal (success/failed) (TTL: 10 minutes)
+    if (status === 'success' || status === 'failed') {
       const redisKey = `payment:confirmed:${orderReference}`;
       const redisValue = JSON.stringify({
         amount: payload.order.amount?.value,
         status,
         eventName: payload.eventName,
+        message,
         confirmedAt: Date.now(),
-        // Standard details consistent with Fikafi
+        paymentDetails: {
+          amount: payload.order.amount?.value,
+          status,
+          ...paymentDetails
+        }
       });
 
-      redis.set(redisKey, redisValue, 'EX', 600)
-        .then(() => console.log(`✅ Payment result stored in Redis for ${orderReference}`))
-        .catch((err: any) => console.error(`❌ Failed to store payment result in Redis for ${orderReference}`, err));
+      try {
+        await redis.set(redisKey, redisValue, 'EX', 600);
+        console.log(`✅ Payment result (${status}) stored in Redis for ${orderReference}`);
+      } catch (err: any) {
+        console.error(`❌ Failed to store payment result in Redis for ${orderReference}`, err);
+      }
     }
 
     socketManager.emitPaymentUpdate(orderReference, {

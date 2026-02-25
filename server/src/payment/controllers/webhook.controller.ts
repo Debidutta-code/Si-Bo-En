@@ -64,7 +64,7 @@ export class WebhookController {
       }
 
       // Process the webhook event (log it)
-      webhookService.processWebhookEvent(payload);
+      await webhookService.processWebhookEvent(payload);
 
       // Calculate processing time
       const processingTime = Date.now() - startTime;
@@ -109,7 +109,7 @@ export class WebhookController {
       // Use payload directly from request body
       const payload = req.body as NGeniusWebhookPayload;
 
-      webhookService.processWebhookEvent(payload);
+      await webhookService.processWebhookEvent(payload);
 
       res.status(200).json({
         success: true,

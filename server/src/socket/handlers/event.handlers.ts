@@ -61,12 +61,20 @@ export class SocketEventHandlers {
     if (cached) {
       console.log(`🔑 Redis cache hit for ${orderReference} - emitting immediately`);
       const paymentData = JSON.parse(cached);
+
+      // Universal mapping logic to handle native statuses and Fikafi developer's statuses
+      const rawStatus = paymentData.status || 'success';
+      const successStates = ['success', 'PAID', 'SUCCESS', 'COMPLETED', 'APPROVED', 'CONFIRMED'];
+      const failedStates = ['failed', 'FAILED', 'DECLINED', 'CANCELLED'];
+
+      const status = successStates.includes(rawStatus) ? 'success' : (failedStates.includes(rawStatus) ? 'failed' : 'pending');
+
       socket.emit('payment-status-update', {
         orderReference,
-        eventName: paymentData.eventName || 'payment-confirmed',
-        status: 'success',
-        message: 'Payment successful',
-        paymentDetails: paymentData,
+        eventName: paymentData.eventName || 'payment-status-update',
+        status,
+        message: paymentData.message || (status === 'failed' ? 'Payment failed' : 'Payment successful'),
+        paymentDetails: paymentData.paymentDetails || paymentData,
       });
     }
   }
