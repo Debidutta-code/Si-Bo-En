@@ -7,7 +7,7 @@ import { RoomJoinedResponse } from '../types';
 import redis from '../../config/redis.client';
 
 export class SocketEventHandlers {
-  constructor(private connectionManager: ConnectionManager) {}
+  constructor(private connectionManager: ConnectionManager) { }
 
   /**
    * Normalize orderReference: strip any accidental 'payment:' prefix.
@@ -63,7 +63,7 @@ export class SocketEventHandlers {
       const paymentData = JSON.parse(cached);
       socket.emit('payment-status-update', {
         orderReference,
-        eventName: 'payment-confirmed',
+        eventName: paymentData.eventName || 'payment-confirmed',
         status: 'success',
         message: 'Payment successful',
         paymentDetails: paymentData,
@@ -84,7 +84,7 @@ export class SocketEventHandlers {
     const room = this.getRoomName(orderReference);
 
     socket.leave(room);
-    
+
     this.connectionManager.removeConnection(orderReference, socket.id);
 
     console.log(`📌 Socket ${socket.id} left room: ${room}`);
