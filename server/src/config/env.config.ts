@@ -40,6 +40,12 @@ const config={
     fikafiClientID: process.env.FIKAFI_CLIENT_ID,
     fikafiSecretKey: process.env.FIKAFI_SECRET_KEY,
 
+    // N-Genius Payment Configuration
+    ngenius: {
+        baseUrl: process.env.NGENIUS_BASE_URL,
+        apiKey: process.env.NGENIUS_API_KEY,
+        outletId: process.env.NGENIUS_OUTLET_ID,
+    },
 
     rateTigerUsername: process.env.RATETIGER_USERNAME,
     rateTigerPassword: process.env.RATETIGER_PASSWORD,
