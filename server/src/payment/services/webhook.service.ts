@@ -3,6 +3,7 @@ import * as crypto from 'crypto';
 import { NGeniusWebhookPayload } from '../types/webhook.types';
 import { socketManager } from '../../socket';
 import { prisma } from '../../config/db.config';
+import redis from '../../config/redis.client';
 
 class WebhookService {
   /**
@@ -75,6 +76,23 @@ class WebhookService {
 
     // Emit to Socket.IO
     const orderReference = payload.order.reference;
+
+    // Store payment result in Redis if successful (TTL: 10 minutes)
+    // Using matching pattern from fikafi-payment for SocketEventHandlers to pick up
+    if (status === 'success') {
+      const redisKey = `payment:confirmed:${orderReference}`;
+      const redisValue = JSON.stringify({
+        amount: payload.order.amount?.value,
+        status,
+        eventName: payload.eventName,
+        confirmedAt: Date.now(),
+        ...paymentDetails
+      });
+
+      redis.set(redisKey, redisValue, 'EX', 600)
+        .then(() => console.log(`✅ Payment result stored in Redis for ${orderReference}`))
+        .catch((err: any) => console.error(`❌ Failed to store payment result in Redis for ${orderReference}`, err));
+    }
 
     socketManager.emitPaymentUpdate(orderReference, {
       orderReference,
