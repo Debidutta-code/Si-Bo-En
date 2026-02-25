@@ -1131,7 +1131,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                               <button
                                 onClick={() => handleBookNowClick(ratePlan)}
                                 disabled={isLoadingForRatePlan(ratePlan.ratePlanCode) || isExpanded}
-                                style={{ backgroundColor: primaryColor || "#777777", color: buttonTextColor || "#FFFFFF" }}
+                                style={{ backgroundColor: primaryColor || "#000000", color: buttonTextColor || "#FFFFFF" }}
                                 className="px-3 sm:px-5 py-2 sm:py-3 rounded-lg font-bold text-xs sm:text-sm uppercase transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl whitespace-nowrap hover:opacity-90 hover:scale-105 active:scale-95 self-center"
                               >
                                 {isLoadingForRatePlan(ratePlan.ratePlanCode) ? (
@@ -1139,7 +1139,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                                     <div className="h-3.5 w-3.5 sm:h-4 sm:w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                                     <span>Loading...</span>
                                   </div>
-                                ) : isExpanded ? "Selected" : "ADD"}
+                                ) : isExpanded ? "Selected" : "ADDdddd"}
                               </button>
                             </div>
                           )}

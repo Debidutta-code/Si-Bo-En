@@ -1,3 +1,4 @@
+import { Decimal } from '@prisma/client/runtime/library';
 import { calculateNights, toUTCDate } from '../../utils';
 import { RoomBookingRepository } from '../repository';
 import {
@@ -263,7 +264,7 @@ export class RoomBookingService {
                     promotionName: devicePromotion.promotionName,
                     promotionType: devicePromotion.promotionType,
                     discountType: devicePromotion.discountType,
-                    discountValue: Number(devicePromotion.discountValue),
+                    discountValue: devicePromotion.discountValue,
                     validFrom: devicePromotion.validFrom,
                     validTo: devicePromotion.validTo,
                     advanceBookingDays: devicePromotion.advanceBookingDays ?? 0,
@@ -304,9 +305,10 @@ export class RoomBookingService {
                     promotionName: `Geo rate adjustment`,
                     promotionType: 'geo',
                     discountType: geoRatePlan.restrictionType === 'percentage' ? 'percentage' : 'flat',
-                    discountValue: geoDiscount,
+                    discountValue: new Decimal(geoDiscount),
                     validFrom: null,
                     validTo: null,
+                    advanceBookingDays: null
                 });
             }
         }
@@ -333,7 +335,7 @@ export class RoomBookingService {
                     promotionName: promo.promotionName,
                     promotionType: promo.promotionType,
                     discountType: promo.discountType,
-                    discountValue: Number(promo.discountValue),
+                    discountValue: promo.discountValue,
                     validFrom: promo.validFrom,
                     validTo: promo.validTo,
                     advanceBookingDays: promo.advanceBookingDays ?? 0,
@@ -383,11 +385,12 @@ export class RoomBookingService {
                     promotionName: `Minimum ${ratePlanRule.minLos} nights stay`,
                     promotionType: 'mlos',
                     discountType: ratePlanRule.discountType,
-                    discountValue: Number(ratePlanRule.discountValue),
+                    discountValue: ratePlanRule.discountValue,
                     minLos: ratePlanRule.minLos,
                     maxLos: ratePlanRule.maxLos || undefined,
                     validFrom: ratePlanRule.startDate,
                     validTo: ratePlanRule.endDate,
+                    advanceBookingDays: null
                 });
             }
         }
@@ -408,7 +411,7 @@ export class RoomBookingService {
                 id: touristTaxData.id,
                 name: touristTaxData.name || '',
                 discountType: touristTaxData.discountType,
-                discountValue: Number(touristTaxData.discountValue),
+                discountValue: touristTaxData.discountValue,
                 currencyCode: touristTaxData.currencyCode || 'USD',
                 calculatedTaxAmount,
             };

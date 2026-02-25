@@ -6,7 +6,7 @@ export interface policyInterface {
 
 export interface IRatePlanMetadata {
   propertyId: string;
-  propertyCode: string;
+  // propertyCode: string;
   ratePlanName: string;
   ratePlanDescription?: string;
   ratePlanCode: string;
@@ -29,6 +29,6 @@ export interface IRatePlanUpdate {
 
 export interface IRatePlan extends IRatePlanMetadata {
   id: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
 }

@@ -42,7 +42,22 @@ export interface IGeoRatePlanCreate {
 
 
 }
-
+export interface IGeoRatePlanWithoutRatePlan{
+  id: string;
+  propertyId: string;
+  roomId: string | null;
+  roomType: string | null;
+  ratePlanId: string;
+  ratePlanCode: string;
+  restrictionType: geoRestrictionType;
+  restrictionValue: Decimal | null;
+  currencyCode: CurrencyCode | null;
+  countryCode: string[];
+  isActive: boolean;
+  createdAt: Date;
+  isAutoApplied: boolean;
+  restrictionTypeAction:restrictionTypeAction
+}
 
 
 export interface IGeoRatePlan {

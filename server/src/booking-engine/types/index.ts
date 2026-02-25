@@ -18,3 +18,4 @@ export {
     ITouristTax,
     IAppliedDiscount
 };
+export * from "./pricing.type";

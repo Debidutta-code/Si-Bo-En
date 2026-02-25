@@ -340,8 +340,8 @@ class InventoryRepository {
                 availableCount: availableDates.length,
                 missingCount: missingDates.length
             };
-        } catch (error: any) {
-            throw new Error(error.message);
+        } catch (error) {
+            throw new Error("Error checking inventory availability");
         }
     }
 }

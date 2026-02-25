@@ -244,8 +244,11 @@ class InventoryServices {
     } else {
       return errorResponse('Failed to map rate plans');
     }
-  } catch (error: any) {
-    //console.log('Error', error?.message);
+  } catch (error) {
+    console.log(error)
+    if(error instanceof Error){
+      return errorResponse("Failed to map room with rate plan",error.message);
+    }
     return errorResponse('Failed to map room with rate plan');
   }
 }

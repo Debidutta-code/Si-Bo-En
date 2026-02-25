@@ -1,2 +1,4 @@
 import{RoomBookingController}from "./room.controller";
-export {RoomBookingController}
+import {PricingController} from "./pricing.controller";
+export {RoomBookingController,
+    PricingController}

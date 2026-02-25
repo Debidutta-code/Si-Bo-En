@@ -1,3 +1,5 @@
+import { CurrencyCode } from "../../tax-system/interfaces/tourist-tax.type";
+
 export interface IAddonAvailability {
     id: string;
     addonId: string;

@@ -1,5 +1,7 @@
 import { DeviceType } from "@prisma/client";
 import { IRoomVideo } from "../../property-management/types";
+import { Decimal } from "@prisma/client/runtime/library";
+import { CurrencyCode } from "../../pms/frontoffice/payment/types";
 
 export interface IBookingSearchPayload {
   startDate: string;
@@ -31,12 +33,12 @@ export interface IPromotion {
   promotionName: string;
   promotionType: string; // "early_bird" | "offer_for_tonight" | "mlos"
   discountType: string; // "percentage" | "flat"
-  discountValue: number;
+  discountValue: Decimal|null;
   minLos?: number; // For MLOS promotions
   maxLos?: number; // For MLOS promotions
   validFrom?: Date | null;
   validTo?: Date | null;
-  advanceBookingDays?: number;
+  advanceBookingDays: number|null;
   monApplicable?: boolean;
   tueApplicable?: boolean;
   wedApplicable?: boolean;
@@ -64,10 +66,10 @@ export interface IRoomPrice {
 }
 export interface ITouristTax {
   id: string;
-  name?:string;
+  name:string|null;
   discountType: string;
-  discountValue: number;
-  currencyCode: string;
+  discountValue: Decimal|null;
+  currencyCode: CurrencyCode|null;
   calculatedTaxAmount?:number;
 }
 export interface IAppliedDiscount {

@@ -61,12 +61,12 @@ export default function Rooms({
   const updateRoom = (updates: Partial<IRoomDetails>) => {
     
     updateRoomDetails((prev) => ({ ...prev, ...updates }));
-    if (errors) {
-      const updatedFields = Object.keys(updates);
-      const newErrors = { ...errors };
-      updatedFields.forEach((field) => delete (newErrors as any)[field]);
-      setErrors(newErrors);
-    }
+    // if (errors) {
+    //   const updatedFields = Object.keys(updates);
+    //   const newErrors = { ...errors };
+    //   updatedFields.forEach((field) => delete (newErrors as any)[field]);
+    //   setErrors(newErrors);
+    // }
   };
 
   const handleUploadSuccess = (newImageUrls: string[]) => {

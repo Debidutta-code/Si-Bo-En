@@ -702,7 +702,7 @@ model RatePlan {
   depositPolicy   Policy?      @relation("RateAmountToDepositPolicy", fields: [depositPolicyId], references: [id])
   depositPolicyId String?      @map("deposit_policy_id")
 
-  cancellationPolicy   Policy? @relation("RateAmountToCancellationPolicy", fields: [cancellationPolicyId], references: [id])
+  cancellationPolicy   Policy? @relation("FRateAmountToCancellationPolicy", fields: [cancellationPolicyId], references: [id])
   cancellationPolicyId String? @map("cancellation_policy_id")
 
   guaranteePolicy   Policy? @relation("RateAmountToGuaranteePolicy", fields: [guaranteePolicyId], references: [id])
@@ -741,7 +741,6 @@ model BookingOffset {
   // for booking
   minimumAdvanceBookingOffset Int? @map("minimum_advance_booking_offset")
   maximumAdvanceBookingOffset Int? @map("maximum_advance_booking_offset")
-Rate
   // for amend
   minimumAmendBookingOffset Int? @map("minimum_amend_booking_offset")
   maximumAmendBookingOffset Int? @map("maximum_amend_booking_offset")
@@ -897,8 +896,8 @@ model TaxGroupRule {
   taxGroupId String @map("tax_group_id")
   taxRuleId  String @map("tax_rule_id")
 
-  taxGroup TaxGroup @relation(fields: [taxGroupId], references: [id])
-  taxRule  TaxRule  @relation(fields: [taxRuleId], references: [id])
+  taxGroup TaxGroup @relation(fields: [taxGroupId], references: [id], onDelete: Cascade)
+  taxRule  TaxRule  @relation(fields: [taxRuleId], references: [id], onDelete: Cascade)
 
   @@unique([taxGroupId, taxRuleId])
   @@map("tax_group_rules")

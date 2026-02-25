@@ -17,13 +17,12 @@ interface BookingStorage {
 const STORAGE_KEY = 'bookingstorage';
 
 const DEFAULT_COLORS: BookingColors = {
-  primaryColor: "#2F2A1F",
-  secondaryColor: "#E8DFC9",
-  tertiaryColor: "#7D7566",
-  buttonTextColor: "#2F2A1F",
+  primaryColor: "#1E3A8A",      
+  secondaryColor: "#DBEAFE",    
+  tertiaryColor: "#3B82F6",     
+  buttonTextColor: "#FFFFFF",
   logoIcon: null,
 };
-
 const getContrastTextColor = (bgColor: string): string => {
   const hex = bgColor.replace('#', '');
   const r = parseInt(hex.substring(0, 2), 16);

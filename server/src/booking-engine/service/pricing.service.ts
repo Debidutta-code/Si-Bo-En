@@ -1,0 +1,722 @@
+import { IMLOS } from '../../promotions/mlos/interfaces';
+import { CurrencyCode } from '../../tax-system/interfaces/tourist-tax.type';
+import { errorResponse, IApiResponse, successResponse } from '../../utils';
+import { PricingRepository } from '../repository';
+import {
+    AddOnBrakeDown,
+    DailyPriceBrakeDown,
+    IAddOn,
+    ICharge,
+    IPromotion,
+    IRatePlan,
+    IRatePlanWithAddon,
+    ISelectedAddonsR,
+    ISelectedAddonsS,
+    ISelectedPromotion,
+    ITaxGroup,
+    PriceBrakeDown,
+    PromotionBrakeDown,
+    TaxBrakeDown,
+} from '../types';
+export class PricingService {
+    private pricingRepository: PricingRepository;
+    constructor() {
+        this.pricingRepository = new PricingRepository();
+    }
+    public async getRoomRentService(
+        propertyCode: string,
+        propertyId: string,
+        invTypeCode: string,
+        startDate: Date,
+        endDate: Date,
+        ratePlanCode: string,
+        rooms: number,
+        adults: number,
+        children?: number,
+        guestEmail?: string,
+        userCountryCode?: string,
+        detectedDeviceType?: string,
+        promotions?: any,
+        parsedAddons?: ISelectedAddonsS[]
+    ): Promise<IApiResponse<PriceBrakeDown>> {
+        try {
+            const [ratePlan, selectedAddons, appliedPromotions] =
+                await Promise.all([
+                    this.pricingRepository.validateRatePlan(
+                        ratePlanCode,
+                        invTypeCode,
+                        startDate,
+                        endDate
+                    ),
+                    this.fetchAddons(parsedAddons),
+                    this.fetchAllPromotions(promotions),
+                ]);
+            if (!ratePlan) {
+                return errorResponse('Rate plan not found');
+            }
+            const basePrice = new BasePriceClass(
+                startDate,
+                endDate,
+                adults,
+                children ? children : 0,
+                rooms,
+                ratePlan.charges,
+                ratePlan.taxGroup
+            );
+            let priceBrakedowns = basePrice.calculateTotalPrice();
+            const addOnPrice = new AddOnPriceClass(
+                selectedAddons,
+                ratePlan.Addons,
+                priceBrakedowns,
+                rooms,
+                Math.ceil(
+                    (endDate.getTime() - startDate.getTime()) /
+                        (1000 * 60 * 60 * 24)
+                ),
+                adults + (children ? children : 0),
+                startDate,
+                endDate
+            );
+            priceBrakedowns = addOnPrice.addonBrakeDowns();
+            return successResponse('Rate plan found', priceBrakedowns);
+        } catch (error) {
+            if (error instanceof Error) {
+                return errorResponse(
+                    'Failed to calculate Room Price',
+                    error?.message
+                );
+            }
+            return errorResponse('Failed to calculate Room Price');
+        }
+    }
+    private async fetchAddons(parsedAddons?: ISelectedAddonsS[]) {
+        try {
+            if (!parsedAddons) {
+                return [];
+            }
+            const parsedAddonsR: ISelectedAddonsR[] = parsedAddons.map(
+                addon => {
+                    return {
+                        addOnId: addon.addOnId,
+                        dates: addon.availability.map(
+                            availability => availability.date
+                        ),
+                    };
+                }
+            );
+            const addons =
+                await this.pricingRepository.getAddons(parsedAddonsR);
+            return addons;
+        } catch (error) {
+            throw new Error('Failed to fetch addons');
+        }
+    }
+    private async fetchAllPromotions(
+        userAppliedPromotions?: ISelectedPromotion[]
+    ) {
+        try {
+            if (!userAppliedPromotions) {
+                return { mlos: null, promotions: null };
+            }
+            const mlosId = userAppliedPromotions.filter(
+                promotion => promotion.promotionType === 'mlos'
+            ).map(promotion => promotion.id);
+            const promotionIds: string[] = userAppliedPromotions
+                .filter(promotion => promotion.promotionType === 'normal')
+                .map(promotion => promotion.id);
+            const [mlos, promotions] = await Promise.all([
+                 this.fetchMLOS(mlosId),
+                this.fetchPromotions(promotionIds),
+            ]);
+            return { mlos, promotions };
+        } catch (error) {
+            throw new Error(
+                error instanceof Error
+                    ? error.message
+                    : 'Failed to fetch promotions'
+            );
+        }
+    }
+    private async fetchMLOS(mlosId: string[]): Promise<IMLOS[] | null> {
+        try {
+            const mlos = await this.pricingRepository.getMlos(mlosId);
+            return mlos;
+        } catch (error) {
+            throw new Error('Failed to fetch mlos');
+        }
+    }
+    private async fetchPromotions(promotionIds: string[]) {
+        try {
+            const promotions =
+                await this.pricingRepository.getPromotions(promotionIds);
+            return promotions;
+        } catch (error) {
+            throw new Error('Failed to fetch promotions');
+        }
+    }
+}
+class BasePriceClass {
+    startDate: Date;
+    endDate: Date;
+    adults: number;
+    children: number;
+    rooms: number;
+    charges: ICharge[];
+    taxGroup: ITaxGroup | null;
+    constructor(
+        startDate: Date,
+        endDate: Date,
+        adults: number,
+        children: number,
+        rooms: number,
+        charges: ICharge[],
+        taxGroup: ITaxGroup | null
+    ) {
+        if (!charges || charges.length == 0) {
+            throw new Error('Charges not found');
+        }
+        if (startDate > endDate) {
+            throw new Error('Start date cannot be greater than end date');
+        }
+        if (adults <= 0) {
+            throw new Error('Adults must be greater than 0');
+        }
+        if (rooms <= 0) {
+            throw new Error('Rooms must be greater than 0');
+        }
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.adults = adults;
+        this.children = children;
+        this.rooms = rooms;
+        this.charges = charges;
+        this.taxGroup = taxGroup || null;
+    }
+    private differenceReservationDays(startDate: Date, endDate: Date): number {
+        const msPerDay = 1000 * 60 * 60 * 24;
+        const diffInMs = endDate.getTime() - startDate.getTime();
+        return Math.ceil(diffInMs / msPerDay);
+    }
+    public calculateTotalPrice(): PriceBrakeDown {
+        const diffInDays = this.differenceReservationDays(
+            this.startDate,
+            this.endDate
+        );
+        if (diffInDays + 1 != this.charges.length) {
+            throw new Error('Charges not found for the given date range');
+        }
+
+        this.checkCTA();
+        this.checkCTD();
+        this.checkIsSaleStopped();
+        let { dailyPriceBrakeDown } = this.calculateBasePrice();
+        dailyPriceBrakeDown = this.addTax(dailyPriceBrakeDown);
+
+        // Compute global totals from daily breakdowns
+        let totalAmount = 0;
+        let amountBeforeTax = 0;
+        let taxedAmount = 0;
+        const globalTaxMap = new Map<
+            string,
+            {
+                taxedAmount: number;
+                currencyCode: (typeof dailyPriceBrakeDown)[0]['currencyCode'];
+            }
+        >();
+
+        dailyPriceBrakeDown.forEach(day => {
+            totalAmount += day.totalAmount;
+            amountBeforeTax +=
+                day.baseChargesAmount + day.additionalChargesAmount;
+            taxedAmount += day.totalDailyTaxedAmount;
+
+            day.taxBrakeDown.forEach(tax => {
+                const existing = globalTaxMap.get(tax.name);
+                if (existing) {
+                    existing.taxedAmount += tax.taxedAmount;
+                } else {
+                    globalTaxMap.set(tax.name, {
+                        taxedAmount: tax.taxedAmount,
+                        currencyCode: tax.currencyCode,
+                    });
+                }
+            });
+        });
+
+        const taxBrakeDown: TaxBrakeDown[] = Array.from(
+            globalTaxMap.entries()
+        ).map(([name, data]) => ({
+            name,
+            taxedAmount: data.taxedAmount,
+            currencyCode: data.currencyCode,
+        }));
+
+        return {
+            totalAmount,
+            amountBeforeTax,
+            taxedAmount,
+            totalAddonAmount: 0,
+            totalPromotionAmount: 0,
+            currencyCode: dailyPriceBrakeDown[0]?.currencyCode,
+            dailyPriceBrakeDown,
+            taxBrakeDown,
+            addonBrakeDown: [],
+            promotionBrakeDown: [],
+        };
+    }
+    private checkCTA() {
+        const checkInDateCharge = this.charges.find(
+            charge => charge.date.getTime() === this.startDate.getTime()
+        );
+        if (!checkInDateCharge) {
+            throw new Error('Check-in date charge not found');
+        }
+        if (checkInDateCharge.isClosedToArrival) {
+            throw new Error('Check-in date is closed for booking');
+        }
+    }
+    private checkCTD() {
+        const checkOutDateCharge = this.charges.find(
+            charge => charge.date.getTime() === this.endDate.getTime()
+        );
+        if (!checkOutDateCharge) {
+            throw new Error('Check-out date charge not found');
+        }
+        if (checkOutDateCharge.isClosedToDeparture) {
+            throw new Error('Check-out date is closed for booking');
+        }
+    }
+    private checkIsSaleStopped() {
+        const isSaleStopped = this.charges.find(charge => charge.isSaleStopped);
+        if (isSaleStopped) {
+            throw new Error(
+                `Sale is stopped for the given ${isSaleStopped.date.toDateString()} date for ${isSaleStopped.restrictionNotes}`
+            );
+        }
+    }
+    private calculateBasePrice(): {
+        totalAmount: number;
+        dailyPriceBrakeDown: DailyPriceBrakeDown[];
+    } {
+        let basePrice = 0;
+        const dailyPriceBrakeDown: DailyPriceBrakeDown[] = [];
+        const totalPersons = this.adults + this.children;
+        this.charges.sort((a, b) => a.date.getTime() - b.date.getTime());
+        this.charges.pop();
+        this.charges.forEach(charge => {
+            if (totalPersons > charge.baseGuestAmounts.length) {
+                if (this.adults > charge.baseGuestAmounts.length) {
+                    charge.baseGuestAmounts.sort(
+                        (a, b) => b.numberOfGuests - a.numberOfGuests
+                    );
+                    const maxAdultCharges =
+                        charge.baseGuestAmounts[
+                            charge.baseGuestAmounts.length - 1
+                        ];
+                    const remainningAdults =
+                        this.adults - maxAdultCharges.numberOfGuests;
+                    let totalChargesForRemainningAdults = 0;
+                    if (remainningAdults > 0) {
+                        const chargesForRemainingAdults =
+                            charge.additionalGuestAmounts.find(
+                                additionalGuestAmount =>
+                                    additionalGuestAmount.ageQualifyingCode ===
+                                    '10'
+                            );
+                        if (!chargesForRemainingAdults) {
+                            totalChargesForRemainningAdults = 0;
+                        } else {
+                            totalChargesForRemainningAdults =
+                                remainningAdults *
+                                Number(chargesForRemainingAdults.amount);
+                        }
+                    }
+                    let totalChargesForChildren = 0;
+                    if (this.children > 0) {
+                        const chargesForChildren =
+                            charge.additionalGuestAmounts.find(
+                                additionalGuestAmount =>
+                                    additionalGuestAmount.ageQualifyingCode ===
+                                    '8'
+                            );
+                        if (!chargesForChildren) {
+                            totalChargesForChildren = 0;
+                        } else {
+                            totalChargesForChildren =
+                                this.children *
+                                Number(chargesForChildren.amount);
+                        }
+                    }
+                    const totalChargesForBaseGuest = Number(
+                        maxAdultCharges.amountBeforeTax
+                    );
+                    const totalCharges =
+                        totalChargesForBaseGuest +
+                        totalChargesForRemainningAdults +
+                        totalChargesForChildren;
+                    basePrice += totalCharges;
+                    dailyPriceBrakeDown.push({
+                        date: charge.date.toDateString(),
+                        baseChargesAmount: totalChargesForBaseGuest,
+                        additionalChargesAmount:
+                            totalChargesForRemainningAdults +
+                            totalChargesForChildren,
+                        taxBrakeDown: [],
+                        addOnBrakeDown: [],
+                        totalAmount: totalCharges,
+                        currencyCode: charge.currencyCode,
+                        totalDailyTaxedAmount: 0,
+                    });
+                } else {
+                    const baseGuestAmount = charge.baseGuestAmounts.find(
+                        baseGuestAmount =>
+                            baseGuestAmount.numberOfGuests === this.adults
+                    );
+                    if (!baseGuestAmount) {
+                        throw new Error(
+                            `Base amount not found for the given date ${charge.date.toDateString()} for ${this.adults} persons`
+                        );
+                    }
+                    basePrice += Number(baseGuestAmount.amountBeforeTax);
+                    dailyPriceBrakeDown.push({
+                        date: charge.date.toDateString(),
+                        baseChargesAmount: Number(
+                            baseGuestAmount.amountBeforeTax
+                        ),
+                        additionalChargesAmount: 0,
+                        taxBrakeDown: [],
+                        addOnBrakeDown: [],
+                        totalAmount: Number(baseGuestAmount.amountBeforeTax),
+                        currencyCode: charge.currencyCode,
+                        totalDailyTaxedAmount: 0,
+                    });
+                }
+            } else {
+                const baseGuestAmount = charge.baseGuestAmounts.find(
+                    baseGuestAmount =>
+                        baseGuestAmount.numberOfGuests === totalPersons
+                );
+                if (!baseGuestAmount) {
+                    throw new Error(
+                        `Base amount not found for the given date ${charge.date.toDateString()} for ${totalPersons} persons`
+                    );
+                }
+                basePrice += Number(baseGuestAmount.amountBeforeTax);
+                dailyPriceBrakeDown.push({
+                    date: charge.date.toDateString(),
+                    baseChargesAmount: Number(baseGuestAmount.amountBeforeTax),
+                    additionalChargesAmount: 0,
+                    taxBrakeDown: [],
+                    addOnBrakeDown: [],
+                    totalAmount: Number(baseGuestAmount.amountBeforeTax),
+                    currencyCode: charge.currencyCode,
+                    totalDailyTaxedAmount: 0,
+                });
+            }
+        });
+        return { totalAmount: basePrice, dailyPriceBrakeDown };
+    }
+    private addTax(
+        dailyPriceBrakeDown: DailyPriceBrakeDown[]
+    ): DailyPriceBrakeDown[] {
+        if (!this.taxGroup) {
+            return dailyPriceBrakeDown;
+        }
+        const sortedTaxRules = this.taxGroup.taxGroupRules.sort(
+            (a, b) => a.taxRule.priority - b.taxRule.priority
+        );
+        const dailyPriceBrakeDownWithTax: DailyPriceBrakeDown[] = [];
+
+        dailyPriceBrakeDown.forEach(day => {
+            const dailyTaxBrakeDown: TaxBrakeDown[] = [];
+            let runningTotal = day.totalAmount;
+
+            sortedTaxRules.forEach(rule => {
+                let taxForThisRule = 0;
+                if (rule.taxRule.type === 'fixed') {
+                    taxForThisRule = Number(rule.taxRule.value);
+                } else {
+                    taxForThisRule =
+                        (Number(rule.taxRule.value) * runningTotal) / 100;
+                }
+                if (rule.taxRule.applicableOn == 'total_amount') {
+                    runningTotal += taxForThisRule;
+                } else {
+                    runningTotal = runningTotal + taxForThisRule * this.rooms;
+                }
+
+                dailyTaxBrakeDown.push({
+                    name: rule.taxRule.name,
+                    taxedAmount:
+                        rule.taxRule.applicableOn == 'total_amount'
+                            ? taxForThisRule
+                            : taxForThisRule * this.rooms,
+                    currencyCode: day.currencyCode,
+                });
+            });
+
+            dailyPriceBrakeDownWithTax.push({
+                date: day.date,
+                baseChargesAmount: day.baseChargesAmount,
+                additionalChargesAmount: day.additionalChargesAmount,
+                taxBrakeDown: dailyTaxBrakeDown,
+                addOnBrakeDown: day.addOnBrakeDown,
+                totalAmount: runningTotal,
+                currencyCode: day.currencyCode,
+                totalDailyTaxedAmount: runningTotal - day.totalAmount,
+            });
+        });
+
+        return dailyPriceBrakeDownWithTax;
+    }
+}
+
+class AddOnPriceClass {
+    addons: IAddOn[] | null;
+    addonsWithRatePlans: IRatePlanWithAddon[] | null;
+    priceBrakedowns: PriceBrakeDown;
+    numberOfRooms: number;
+    noOfDays: number;
+    noOfPersons: number;
+    startDate: Date;
+    endDate: Date;
+    constructor(
+        addons: IAddOn[] | null,
+        ratePlanAddons: IRatePlanWithAddon[] | null,
+        priceBrakedowns: PriceBrakeDown,
+        numberOfRooms: number,
+        noOfDays: number,
+        noOfPersons: number,
+        startDate: Date,
+        endDate: Date
+    ) {
+        this.addons = addons;
+        this.addonsWithRatePlans = ratePlanAddons;
+        this.priceBrakedowns = priceBrakedowns;
+        this.numberOfRooms = numberOfRooms;
+        this.noOfDays = noOfDays;
+        this.noOfPersons = noOfPersons;
+        this.startDate = startDate;
+        this.endDate = endDate;
+    }
+    public addonBrakeDowns(): PriceBrakeDown {
+        const userAppliedAddons = this.calculateAddOnPrice();
+        const ratePlanAddons = this.calculateRatePlanAddOnPrice();
+        this.priceBrakedowns.addonBrakeDown = [
+            ...userAppliedAddons,
+            ...ratePlanAddons,
+        ];
+        return this.priceBrakedowns;
+    }
+    
+    private calculateAddOnPrice(): AddOnBrakeDown[] {
+        if (!this.addons || this.addons.length === 0) {
+            return [];
+        }
+        const addonBrakeDown: AddOnBrakeDown[] = [];
+
+        this.addons.forEach(addon => {
+            const availableEntries = addon.availability.filter(avail => {
+                const availDate = new Date(avail.date);
+                return (
+                    availDate >= this.startDate &&
+                    availDate < this.endDate &&
+                    avail.isAvailable
+                );
+            });
+
+            if (availableEntries.length === 0) return;
+
+            // sum up per-date prices
+            const perDateTotal = availableEntries.reduce(
+                (sum, avail) => sum + Number(avail.price),
+                0
+            );
+            const currencyCode = availableEntries[0].currencyCode;
+
+            let quantity = 1;
+            switch (addon.postingRhythm) {
+                case 'per_night':
+                    quantity = availableEntries.length;
+                    break;
+                case 'per_stay':
+                    quantity = 1;
+                    break;
+                case 'per_person_per_night':
+                    quantity = this.noOfPersons * availableEntries.length;
+                    break;
+                case 'per_person_per_stay':
+                    quantity = this.noOfPersons;
+                    break;
+                case 'per_room':
+                    quantity = this.numberOfRooms;
+                    break;
+                case 'per_room_per_night':
+                    quantity = this.numberOfRooms * availableEntries.length;
+                    break;
+                case 'per_person_per_room':
+                    quantity = this.noOfPersons * this.numberOfRooms;
+                    break;
+                default:
+                    quantity = 1;
+            }
+
+            const avgPrice = perDateTotal / availableEntries.length;
+            const totalAmount = avgPrice * quantity;
+
+            addonBrakeDown.push({
+                name: addon.name,
+                amount: avgPrice,
+                quantity,
+                totalAmount,
+                currencyCode: addon.availability[0]
+                    .currencyCode as CurrencyCode,
+            });
+        });
+
+        return addonBrakeDown;
+    }
+    private calculateRatePlanAddOnPrice(): AddOnBrakeDown[] {
+        if (
+            !this.addonsWithRatePlans ||
+            this.addonsWithRatePlans.length === 0
+        ) {
+            return [];
+        }
+        const addonBrakeDown: AddOnBrakeDown[] = [];
+
+        this.addonsWithRatePlans.forEach(addon => {
+            const availableEntries = addon.addon.availability.filter(avail => {
+                const availDate = new Date(avail.date);
+                return (
+                    availDate >= this.startDate &&
+                    availDate < this.endDate &&
+                    avail.isAvailable
+                );
+            });
+
+            if (availableEntries.length === 0) return;
+
+            // sum up per-date prices
+            const perDateTotal = availableEntries.reduce(
+                (sum, avail) => sum + Number(avail.price),
+                0
+            );
+            const currencyCode = availableEntries[0].currencyCode;
+
+            let quantity = 1;
+            switch (addon.addon.postingRhythm) {
+                case 'per_night':
+                    quantity = availableEntries.length;
+                    break;
+                case 'per_stay':
+                    quantity = 1;
+                    break;
+                case 'per_person_per_night':
+                    quantity = this.noOfPersons * availableEntries.length;
+                    break;
+                case 'per_person_per_stay':
+                    quantity = this.noOfPersons;
+                    break;
+                case 'per_room':
+                    quantity = this.numberOfRooms;
+                    break;
+                case 'per_room_per_night':
+                    quantity = this.numberOfRooms * availableEntries.length;
+                    break;
+                case 'per_person_per_room':
+                    quantity = this.noOfPersons * this.numberOfRooms;
+                    break;
+                default:
+                    quantity = 1;
+            }
+
+            const avgPrice = perDateTotal / availableEntries.length;
+            const totalAmount = avgPrice * quantity;
+
+            addonBrakeDown.push({
+                name: addon.addon.name,
+                amount: avgPrice,
+                quantity,
+                totalAmount,
+                currencyCode: addon.addon.availability[0]
+                    .currencyCode as CurrencyCode,
+            });
+        });
+
+        return addonBrakeDown;
+    }
+}
+
+class PromotionClass {
+    pricingRepository: PricingRepository;
+    startDate: Date;
+    endDate: Date;
+    mlos: IMLOS;
+    promotions: IPromotion[];
+    ratePlanId: string;
+    baseAmount: number;
+    constructor(
+        startDate: Date,
+        endDate: Date,
+        mlos: IMLOS,
+        promotions: IPromotion[],
+        ratePlanId: string,
+        baseAmount: number
+    ) {
+        this.startDate = startDate;
+        this.endDate = endDate;
+        this.mlos = mlos;
+        this.promotions = promotions;
+        this.ratePlanId = ratePlanId;
+        this.pricingRepository = new PricingRepository();
+        this.baseAmount = baseAmount;
+    }
+    public async promotionPrices(){
+        const { autoAppliedMLOS, autoAppliedPromotions } = await this.fetchAllAutoAppliedPromotions();
+        
+    }
+    private differenceReservationDays(startDate: Date, endDate: Date): number {
+        const msPerDay = 1000 * 60 * 60 * 24;
+        const diffInMs = endDate.getTime() - startDate.getTime();
+        return Math.ceil(diffInMs / msPerDay);
+    }
+    private async fetchAllAutoAppliedPromotions() {
+        const [autoAppliedMLOS, autoAppliedPromotions] = await Promise.all([
+            this.pricingRepository.fetchAutoAppliedMLOS(
+                this.ratePlanId,
+                this.startDate,
+                this.endDate
+            ),
+            this.pricingRepository.getAutoAppliedPromotions(
+                this.ratePlanId,
+                this.startDate,
+                this.endDate
+            ),
+        ]);
+        return { autoAppliedMLOS, autoAppliedPromotions };
+    }
+    private calculatePromotionPrices(){
+        
+    }
+    private calculateAutoAppliedMLOSPrices(mlos:IMLOS[]){
+        const differenceReservationDays=this.differenceReservationDays(this.startDate,this.endDate);
+        if(mlos.length==0){
+            return [];
+        }
+        const mlosBrakeDown:PromotionBrakeDown[]=[];
+        mlos.forEach(mlos=>{
+            if(mlos.minLos<differenceReservationDays){ //nned to debug here if problem for mlos minLos
+                if(mlos.maxLos&&mlos.maxLos<=differenceReservationDays){ //nned to debug here if problem for mlos maxLos
+                    
+                }
+                
+            }
+        })
+        return mlosBrakeDown;
+    }
+    private calculateAutoAppliedPromotionPrices(autoAppliedPromotions:IPromotion[]){
+        
+    }
+
+}
