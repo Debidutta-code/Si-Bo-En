@@ -50,11 +50,21 @@ export class PricingRepository {
                             },
                         },
                     },
-                    customizableDealsApplicableRatePlanTypes: {
-                        include: {
-                            CustomizableDeal: true,
+                    customizableDeals: {          // ← updated relation name
+                    where: {
+                        roomType:roomTypeCode,         // filter by room type
+                        startDate: { lte: startDate },
+                        endDate: { gte: endDate },
+                        isActive: true,
+                    },
+                    include: {
+                        CustomizableDealsApplicableAddons: {
+                            include: {
+                                AddOn: true,
+                            },
                         },
                     },
+                },
                     bookingOffsets: {
                         where: {
                             date: {

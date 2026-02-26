@@ -1,18 +1,13 @@
-// import { prisma } from "../../../config";
 import { PropertyDao } from "../../../property-management/repository";
 import { errorResponse, IApiResponse, successResponse } from "../../../utils";
 import { CustomizableDealDao } from "../dao";
-import {
-    ICCreateCustomizableDealS,
-    IUCustomizableDealS
-} from "../interfaces";
-
+import { ICCreateCustomizableDealS, IUCustomizableDealS } from "../interfaces";
 
 export class CustomizableDealService {
-    customizableDealRepository: CustomizableDealDao;
+    private repo: CustomizableDealDao;
 
     constructor() {
-        this.customizableDealRepository = new CustomizableDealDao();
+        this.repo = new CustomizableDealDao();
     }
 
     public async createCustomizableDeal(
@@ -22,76 +17,51 @@ export class CustomizableDealService {
     ): Promise<IApiResponse> {
         try {
             const property = await PropertyDao.getPropertyById(propertyId, true);
-            if (!property) {
-                return errorResponse('Property not found', "property not found or drafted");
-            }
-            const [rooms, ratePlans, addons] = await Promise.all([
-                this.customizableDealRepository.findRoomTypes(dealData.applicableRoomTypes, propertyId),
-                this.customizableDealRepository.findRatePlans(dealData.applicableRatePlans, propertyId),
-                this.customizableDealRepository.findAddons(dealData.applicableAddons, propertyId)
-            ])
-            if(rooms.length !== dealData.applicableRoomTypes.length){
-                return errorResponse('Some room types are invalid or not found');
-            }
-            if(ratePlans.length !== dealData.applicableRatePlans.length){
-                return errorResponse('Some rate plans are invalid or not found');
-            }
-            if(addons.length !== dealData.applicableAddons.length){
+            if (!property) return errorResponse('Property not found or drafted');
+
+            const [room, ratePlan, addons] = await Promise.all([
+                this.repo.findRoom(dealData.roomId, propertyId),
+                this.repo.findRatePlan(dealData.ratePlanId, propertyId),
+                dealData.applicableAddons.length > 0
+                    ? this.repo.findAddons(dealData.applicableAddons, propertyId)
+                    : Promise.resolve([])
+            ]);
+
+            if (!room) return errorResponse('Room not found or does not belong to this property');
+            if (!ratePlan) return errorResponse('Rate plan not found or does not belong to this property');
+            if (addons.length !== dealData.applicableAddons.length) {
                 return errorResponse('Some addons are invalid or not found');
             }
-            const newDeal = await this.customizableDealRepository.createCustomizableDeal(
-                propertyId,
-                propertyCode,
-                {
-                    ...dealData,
-                    applicableRoomTypes: rooms,
-                    applicableRatePlans: ratePlans,
-                    applicableAddons: addons
-                }
-            );
 
-            if (newDeal) {
-                return successResponse('Customizable Deal created successfully', newDeal);
-            } else {
-                return errorResponse('Failed to create Customizable Deal');
-            }
+            const newDeal = await this.repo.createCustomizableDeal(propertyId, propertyCode, {
+                ...dealData,
+                roomType: room.roomType,
+                ratePlanCode: ratePlan.ratePlanCode,
+                applicableAddons: addons,
+            });
+
+            return successResponse('Customizable Deal created successfully', newDeal);
         } catch (error) {
-            if (error instanceof Error) {
-                return errorResponse('Failed to create Customizable Deal', error.message);
-            } else {
-                return errorResponse('Failed to create Customizable Deal', 'Unknown error occurred');
-            }
+            return errorResponse('Failed to create Customizable Deal', error instanceof Error ? error.message : 'Unknown error');
         }
     }
 
     public async getCustomizableDealsByPropertyId(propertyId: string): Promise<IApiResponse> {
         try {
-            const deals = await this.customizableDealRepository.getCustomizableDealsByPropertyId(propertyId);
+            const deals = await this.repo.getCustomizableDealsByPropertyId(propertyId);
             return successResponse('Customizable Deals fetched successfully', deals);
         } catch (error) {
-            if (error instanceof Error) {
-                return errorResponse('Failed to get Customizable Deals', error.message);
-            } else {
-                return errorResponse('Failed to get Customizable Deals', 'Unknown error occurred');
-            }
+            return errorResponse('Failed to get Customizable Deals', error instanceof Error ? error.message : 'Unknown error');
         }
     }
 
     public async getCustomizableDealById(dealId: string): Promise<IApiResponse> {
         try {
-            const deal = await this.customizableDealRepository.getCustomizableDealById(dealId);
-
-            if (!deal) {
-                return errorResponse('Customizable Deal not found');
-            }
-
+            const deal = await this.repo.getCustomizableDealById(dealId);
+            if (!deal) return errorResponse('Customizable Deal not found');
             return successResponse('Customizable Deal fetched successfully', deal);
         } catch (error) {
-            if (error instanceof Error) {
-                return errorResponse('Failed to get Customizable Deal', error.message);
-            } else {
-                return errorResponse('Failed to get Customizable Deal', 'Unknown error occurred');
-            }
+            return errorResponse('Failed to get Customizable Deal', error instanceof Error ? error.message : 'Unknown error');
         }
     }
 
@@ -101,77 +71,63 @@ export class CustomizableDealService {
         dealData: IUCustomizableDealS
     ): Promise<IApiResponse> {
         try {
-            const exists = await this.customizableDealRepository.getCustomizableDealById(dealId);
-            if (!exists) {
-                return errorResponse('Customizable Deal does not exist');
-            }
+            const exists = await this.repo.getCustomizableDealById(dealId);
+            if (!exists) return errorResponse('Customizable Deal does not exist');
+            if (exists.propertyId !== propertyId) return errorResponse('Customizable Deal does not belong to this property');
 
-            if (exists.propertyId !== propertyId) {
-                return errorResponse('Customizable Deal does not belong to this property');
-            }
+            const [room, ratePlan, addons] = await Promise.all([
+                dealData.roomId
+                    ? this.repo.findRoom(dealData.roomId, propertyId)
+                    : Promise.resolve(null),
+                dealData.ratePlanId
+                    ? this.repo.findRatePlan(dealData.ratePlanId, propertyId)
+                    : Promise.resolve(null),
+                dealData.applicableAddons
+                    ? this.repo.findAddons(dealData.applicableAddons, propertyId)
+                    : Promise.resolve(null)
+            ]);
 
-            const [rooms, ratePlans, addons] = await Promise.all([
-                this.customizableDealRepository.findRoomTypes(dealData.applicableRoomTypes, propertyId),
-                this.customizableDealRepository.findRatePlans(dealData.applicableRatePlans, propertyId),
-                this.customizableDealRepository.findAddons(dealData.applicableAddons, propertyId)
-            ])
-            if(rooms.length !== dealData.applicableRoomTypes.length){
-                return errorResponse('Some room types are invalid or not found');
+            if (dealData.roomId && !room) {
+                return errorResponse('Room not found or does not belong to this property');
             }
-            if(ratePlans.length !== dealData.applicableRatePlans.length){
-                return errorResponse('Some rate plans are invalid or not found');
+            if (dealData.ratePlanId && !ratePlan) {
+                return errorResponse('Rate plan not found or does not belong to this property');
             }
-            if(addons.length !== dealData.applicableAddons.length){
+            if (dealData.applicableAddons && addons!.length !== dealData.applicableAddons.length) {
                 return errorResponse('Some addons are invalid or not found');
             }
 
-            const updatedDeal = await this.customizableDealRepository.updateCustomizableDeal(
-                dealId,
-                {
-                    ...dealData,
-                    applicableAddons:addons,
-                    applicableRatePlans:ratePlans,
-                    applicableRoomTypes:rooms
-                }
-            );
+            const updatedDeal = await this.repo.updateCustomizableDeal(dealId, {
+                discountType: dealData.discountType ?? exists.discountType,
+                discountValue: dealData.discountValue ?? exists.discountValue,
+                currencyCode: dealData.currencyCode ?? exists.currencyCode,
+                startDate: dealData.startDate ?? exists.startDate,
+                endDate: dealData.endDate ?? exists.endDate,
+                isAutoApplied: dealData.isAutoApplied ?? exists.isAutoApplied,
+                isActive: dealData.isActive ?? exists.isActive,
+                roomId: room?.id ?? exists.roomId,
+                roomType: room?.roomType ?? exists.roomType,
+                ratePlanId: ratePlan?.id ?? exists.ratePlanId,
+                ratePlanCode: ratePlan?.ratePlanCode ?? exists.ratePlanCode,
+                ...(addons && { applicableAddons: addons }),
+            });
 
-            if (updatedDeal) {
-                return successResponse('Customizable Deal updated successfully', updatedDeal);
-            } else {
-                return errorResponse('Failed to update Customizable Deal');
-            }
+            return successResponse('Customizable Deal updated successfully', updatedDeal);
         } catch (error) {
-            if (error instanceof Error) {
-                return errorResponse('Failed to update Customizable Deal', error.message);
-            } else {
-                return errorResponse('Failed to update Customizable Deal', 'Unknown error occurred');
-            }
+            return errorResponse('Failed to update Customizable Deal', error instanceof Error ? error.message : 'Unknown error');
         }
     }
 
     public async deleteCustomizableDeal(dealId: string, propertyId: string): Promise<IApiResponse> {
         try {
-            const exists = await this.customizableDealRepository.getCustomizableDealById(dealId);
-            if (!exists) {
-                return errorResponse('Customizable Deal does not exist');
-            }
-            if (exists.propertyId !== propertyId) {
-                return errorResponse('Customizable Deal does not belong to this property');
-            }
+            const exists = await this.repo.getCustomizableDealById(dealId);
+            if (!exists) return errorResponse('Customizable Deal does not exist');
+            if (exists.propertyId !== propertyId) return errorResponse('Customizable Deal does not belong to this property');
 
-            const deletedDeal = await this.customizableDealRepository.deleteCustomizableDeal(dealId);
-
-            if (deletedDeal) {
-                return successResponse('Customizable Deal deleted successfully', deletedDeal);
-            } else {
-                return errorResponse('Failed to delete Customizable Deal');
-            }
+            const deleted = await this.repo.deleteCustomizableDeal(dealId);
+            return successResponse('Customizable Deal deleted successfully', deleted);
         } catch (error) {
-            if (error instanceof Error) {
-                return errorResponse('Failed to delete Customizable Deal', error.message);
-            } else {
-                return errorResponse('Failed to delete Customizable Deal', 'Unknown error occurred');
-            }
+            return errorResponse('Failed to delete Customizable Deal', error instanceof Error ? error.message : 'Unknown error');
         }
     }
 }

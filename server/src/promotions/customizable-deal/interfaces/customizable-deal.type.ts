@@ -6,32 +6,42 @@ export type CurrencyCode = 'USD' | 'EUR' | 'INR';
 export interface ICCreateCustomizableDealS {
     discountType: DiscountType;
     discountValue: Decimal;
-    currencyCode: CurrencyCode | null;
-    applicableRoomTypes: string[];
-    applicableRatePlans: string[];
+    currencyCode?: CurrencyCode | null;
+    startDate: Date;
+    endDate: Date;
+    roomId: string;
+    ratePlanId: string;
     applicableAddons: string[];
     isAutoApplied: boolean;
-
+    isActive?: boolean;
 }
+
+export interface IUCustomizableDealS {
+    discountType?: DiscountType;
+    discountValue?: Decimal;
+    currencyCode?: CurrencyCode | null;
+    startDate?: Date;
+    endDate?: Date;
+    roomId?: string;
+    ratePlanId?: string;
+    applicableAddons?: string[];
+    isAutoApplied?: boolean;
+    isActive?: boolean;
+}
+
 export interface ICCreateCustomizableDealR {
     discountType: DiscountType;
     discountValue: Decimal;
-    currencyCode: CurrencyCode | null;
-    applicableRoomTypes: IRoom[];
-    applicableRatePlans: IRatePlan[];
+    currencyCode?: CurrencyCode | null;
+    startDate: Date;
+    endDate: Date;
+    roomId: string;
+    roomType: string;
+    ratePlanId: string;
+    ratePlanCode: string;
     applicableAddons: IAddOn[];
     isAutoApplied: boolean;
-
-}
-export interface IUCustomizableDealS {
-    discountType: DiscountType;
-    discountValue: Decimal;
-    currencyCode: CurrencyCode | null;
-    applicableRoomTypes: string[];
-    applicableRatePlans: string[];
-    applicableAddons: string[];
-    isAutoApplied: boolean;
-
+    isActive?: boolean;
 }
 
 export interface ICustomizableDeals {
@@ -41,41 +51,40 @@ export interface ICustomizableDeals {
     discountType: DiscountType;
     discountValue: Decimal;
     currencyCode: CurrencyCode | null;
-    createdAt: Date;
-}
-export interface ICustomizableDealWDetails extends ICustomizableDeals {
-
-    CustomizableDealsApplicableRoomTypes: ICustomizableDealsApplicableRoomTypes[];
-    CustomizableDealsApplicableRatePlanTypes: ICustomizableDealsApplicableRatePlans[];
-    CustomizableDealsApplicableAddons: ICustomizableDealsApplicableAddons[];
-
-}
-
-
-export interface ICustomizableDealsApplicableRoomTypes {
+    startDate: Date;
+    endDate: Date;
     roomId: string;
-    roomTypeCode: string;
-    Room: IRoom;
-}
-export interface ICustomizableDealsApplicableRatePlans {
+    roomType: string;
     ratePlanId: string;
     ratePlanCode: string;
-    RatePlan: IRatePlan;
+    isAutoApplied: boolean;
+    isActive: boolean;
+    createdAt: Date;
 }
+
+export interface ICustomizableDealWDetails extends ICustomizableDeals {
+    Room: IRoom;
+    RatePlan: IRatePlan;
+    CustomizableDealsApplicableAddons: ICustomizableDealsApplicableAddons[];
+}
+
 export interface ICustomizableDealsApplicableAddons {
     addOnId: string;
     AddOn: IAddOn;
 }
+
 export interface IRoom {
     id: string;
     roomName: string;
     roomType: string;
 }
+
 export interface IRatePlan {
     id: string;
     ratePlanName: string;
     ratePlanCode: string;
 }
+
 export interface IAddOn {
     id: string;
     code: string;
