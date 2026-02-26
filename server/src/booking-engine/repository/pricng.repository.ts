@@ -4,6 +4,7 @@ import { IAddOn, IPromotion, IRatePlan, ISelectedAddonsR } from '../types';
 import { IMLOS } from '../../promotions/mlos/interfaces';
 import { ICEbDsOftc } from '../../promotions/eb-ds-oftc/interfaces';
 import { IPromoCode } from '../../ari/types/promoCode.type';
+import { ITCreationLoyality } from '../../loyalty/types';
 
 export class PricingRepository {
     public async validateRatePlan(
@@ -210,7 +211,7 @@ export class PricingRepository {
             throw new Error('Failed to get auto applied MLOS');
         }
     }
-    public async fincPromoCode(code: string): Promise<IPromoCode | null> {
+    public async findPromoCode(code: string): Promise<IPromoCode | null> {
         try {
             return await prisma.promoCode.findUnique({
                 where: {
@@ -220,6 +221,45 @@ export class PricingRepository {
             })
         } catch (error) {
             throw new Error("Failed to fetch promocode details")
+        }
+    }
+    public async findLoyalityGuest(guestEmail: string, propertyId: string): Promise<boolean> {
+        try {
+            const isLoyalityGuest=  await prisma.loyalityGuest.findUnique({
+                where:{
+                    propertyId_guestEmail:{
+                        propertyId,
+                        guestEmail
+                    }
+                }
+            })
+            return isLoyalityGuest ? true : false
+        } catch (error) {
+            throw new Error("Failed to fetch loyality discount")
+        }
+    }
+    public async findPropertyLoyalityConfig(propertyId: string): Promise<string|null> {
+        try {
+            const propertyLoyalty=  await prisma.propertyLoyaltyConfig.findUnique({
+                where:{
+                    propertyId:propertyId,
+                    isActive:true
+                }
+            })
+            return propertyLoyalty ? propertyLoyalty.creationLoyaltyConfigId:null
+        } catch (error) {
+            throw new Error("Failed to fetch loyality discount")
+        }
+    }
+    public async findLoyalityConfig(loyalityConfigId: string): Promise<ITCreationLoyality|null> {
+        try {
+            return  await prisma.creationLoyaltyConfig.findUnique({
+                where:{
+                    id:loyalityConfigId
+                }
+            })
+        } catch (error) {
+            throw new Error("Failed to fetch loyality discount")
         }
     }
 }

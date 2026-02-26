@@ -173,11 +173,13 @@ export interface PriceBrakeDown{
     totalPromotionAmount:number;
     currentChargeableAmount:number;
     latterpayableAmount:number;
+    promoCodeDiscount:number;
     currencyCode:CurrencyCode;
     dailyPriceBrakeDown:DailyPriceBrakeDown[];
     taxBrakeDown:TaxBrakeDown[];
     addonBrakeDown:AddOnBrakeDown[];
     promotionBrakeDown:PromotionBrakeDown[];
+    loyalityDiscount:number;
     
 }
 export interface DailyPriceBrakeDown {

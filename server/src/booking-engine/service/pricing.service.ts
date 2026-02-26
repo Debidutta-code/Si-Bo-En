@@ -1,6 +1,11 @@
 import { IMLOS } from '../../promotions/mlos/interfaces';
 import { CurrencyCode } from '../../tax-system/interfaces/tourist-tax.type';
-import { errorResponse, IApiResponse, nowUTC, successResponse } from '../../utils';
+import {
+    errorResponse,
+    IApiResponse,
+    nowUTC,
+    successResponse,
+} from '../../utils';
 import { PricingRepository } from '../repository';
 import {
     AddOnBrakeDown,
@@ -18,15 +23,17 @@ import {
     TaxBrakeDown,
 } from '../types';
 import { DeviceType } from '../../agent-paltform/property/types';
-import { IGeoRatePlan, IGeoRatePlanWithoutRatePlan } from '../../promotions/geo-rate-plan/interfaces';
+import {
+    IGeoRatePlanWithoutRatePlan,
+} from '../../promotions/geo-rate-plan/interfaces';
 import { ICEbDsOftc } from '../../promotions/eb-ds-oftc/interfaces';
+import { IPromoCode } from '../../ari/types/promoCode.type';
 export class PricingService {
     private pricingRepository: PricingRepository;
     constructor() {
         this.pricingRepository = new PricingRepository();
     }
     public async getRoomRentService(
-        propertyCode: string,
         propertyId: string,
         invTypeCode: string,
         startDate: Date,
@@ -39,7 +46,8 @@ export class PricingService {
         userCountryCode?: string,
         detectedDeviceType?: string,
         promotions?: any,
-        parsedAddons?: ISelectedAddonsS[]
+        parsedAddons?: ISelectedAddonsS[],
+        promoCode?: string
     ): Promise<IApiResponse<PriceBrakeDown>> {
         try {
             const [ratePlan, selectedAddons, appliedPromotions] =
@@ -66,7 +74,7 @@ export class PricingService {
                 ratePlan.taxGroup
             );
             let priceBrakedowns = basePrice.calculateTotalPrice();
-
+            // console.log("priceBrakedowns base price", priceBrakedowns);
             const addOnPrice = new AddOnPriceClass(
                 selectedAddons,
                 ratePlan.Addons,
@@ -74,13 +82,14 @@ export class PricingService {
                 rooms,
                 Math.ceil(
                     (endDate.getTime() - startDate.getTime()) /
-                    (1000 * 60 * 60 * 24)
+                        (1000 * 60 * 60 * 24)
                 ),
                 adults + (children ? children : 0),
                 startDate,
                 endDate
             );
             priceBrakedowns = addOnPrice.addonBrakeDowns();
+            // console.log("priceBrakedowns addons price", priceBrakedowns);
 
             const promotionClass = new PromotionClass(
                 startDate,
@@ -92,16 +101,39 @@ export class PricingService {
                 priceBrakedowns.amountBeforeTax,
                 invTypeCode,
                 (detectedDeviceType as DeviceType) || null,
-                priceBrakedowns,
-
+                priceBrakedowns
             );
-            priceBrakedowns = await promotionClass.promotionPrices(userCountryCode);
+            priceBrakedowns =
+                await promotionClass.promotionPrices(userCountryCode);
+            // console.log("priceBrakedowns promotions price", priceBrakedowns);
+
             const touristTaxClass = new TouristTaxClass(
                 ratePlan.TouristTaxs,
-                priceBrakedowns,
-
+                priceBrakedowns
             );
-            priceBrakedowns= touristTaxClass.findTouristTax()
+            priceBrakedowns = touristTaxClass.findTouristTax();
+            // console.log("priceBrakedowns tourist tax price", priceBrakedowns);
+            if (guestEmail) {
+                const loyalityDiscountClass = new LoyalityDiscountClass(
+                    guestEmail,
+                    propertyId,
+                    priceBrakedowns
+                );
+                priceBrakedowns =
+                    await loyalityDiscountClass.findLoyalityDiscount();
+                // console.log("priceBrakedowns loyality discount price", priceBrakedowns);
+            }
+            if(detectedDeviceType&&promoCode){
+                const deviceDiscountClass = new PromoCodeDiscountClass(
+                    priceBrakedowns,
+                    promoCode,
+                    invTypeCode,
+                    ratePlanCode,
+                    detectedDeviceType as DeviceType
+                );
+                priceBrakedowns = await deviceDiscountClass.findPromoCodeDiscount()
+                // console.log("priceBrakedowns device discount price", priceBrakedowns);
+            }
             return successResponse('Rate plan found', priceBrakedowns);
         } catch (error) {
             if (error instanceof Error) {
@@ -142,9 +174,9 @@ export class PricingService {
             if (!userAppliedPromotions) {
                 return { mlos: null, promotions: null };
             }
-            const mlosId = userAppliedPromotions.filter(
-                promotion => promotion.promotionType === 'mlos'
-            ).map(promotion => promotion.id);
+            const mlosId = userAppliedPromotions
+                .filter(promotion => promotion.promotionType === 'mlos')
+                .map(promotion => promotion.id);
             const promotionIds: string[] = userAppliedPromotions
                 .filter(promotion => promotion.promotionType === 'normal')
                 .map(promotion => promotion.id);
@@ -169,7 +201,9 @@ export class PricingService {
             throw new Error('Failed to fetch mlos');
         }
     }
-    private async fetchPromotions(promotionIds: string[]): Promise<ICEbDsOftc[] | null> {
+    private async fetchPromotions(
+        promotionIds: string[]
+    ): Promise<ICEbDsOftc[] | null> {
         try {
             const promotions =
                 await this.pricingRepository.getPromotions(promotionIds);
@@ -281,8 +315,10 @@ class BasePriceClass {
             taxedAmount,
             totalAddonAmount: 0,
             totalPromotionAmount: 0,
-            currentChargeableAmount:totalAmount,
-            latterpayableAmount:0,
+            currentChargeableAmount: totalAmount,
+            latterpayableAmount: 0,
+            loyalityDiscount: 0,
+            promoCodeDiscount: 0,
             currencyCode: dailyPriceBrakeDown[0]?.currencyCode,
             dailyPriceBrakeDown,
             taxBrakeDown,
@@ -337,7 +373,7 @@ class BasePriceClass {
                     );
                     const maxAdultCharges =
                         charge.baseGuestAmounts[
-                        charge.baseGuestAmounts.length - 1
+                            charge.baseGuestAmounts.length - 1
                         ];
                     const remainningAdults =
                         this.adults - maxAdultCharges.numberOfGuests;
@@ -528,11 +564,20 @@ class AddOnPriceClass {
     public addonBrakeDowns(): PriceBrakeDown {
         const userAppliedAddons = this.calculateAddOnPrice();
         const ratePlanAddons = this.calculateRatePlanAddOnPrice();
-        this.priceBrakedowns.addonBrakeDown = [
-            ...userAppliedAddons,
-            ...ratePlanAddons,
-        ];
-        return this.priceBrakedowns;
+        const sumAddons = [...userAppliedAddons, ...ratePlanAddons];
+        const sumAddonsAmount = sumAddons.reduce(
+            (sum, addon) => sum + addon.totalAmount,
+            0
+        );
+
+        return {
+            ...this.priceBrakedowns,
+            addonBrakeDown: sumAddons,
+            totalAddonAmount: sumAddonsAmount,
+            totalAmount: this.priceBrakedowns.totalAmount + sumAddonsAmount,
+            currentChargeableAmount:
+                this.priceBrakedowns.currentChargeableAmount + sumAddonsAmount,
+        };
     }
 
     private calculateAddOnPrice(): AddOnBrakeDown[] {
@@ -679,7 +724,7 @@ class PromotionClass {
     endDate: Date;
     mlos: IMLOS[];
     promotions: ICEbDsOftc[];
-    geoRatePlans: IGeoRatePlanWithoutRatePlan[]
+    geoRatePlans: IGeoRatePlanWithoutRatePlan[];
     ratePlanId: string;
     roomType: string;
     baseAmount: number;
@@ -695,7 +740,7 @@ class PromotionClass {
         baseAmount: number,
         roomType: string,
         detectedDeviceType: DeviceType | null,
-        priceBrakeDown: PriceBrakeDown,
+        priceBrakeDown: PriceBrakeDown
     ) {
         this.startDate = startDate;
         this.endDate = endDate;
@@ -707,36 +752,48 @@ class PromotionClass {
         this.roomType = roomType;
         this.detectedDeviceType = detectedDeviceType;
         this.priceBrakeDown = priceBrakeDown;
-        this.geoRatePlans = geoRatePlans
+        this.geoRatePlans = geoRatePlans;
     }
     public async promotionPrices(country?: string): Promise<PriceBrakeDown> {
-        const { autoAppliedMLOS, autoAppliedPromotions } = await this.fetchAllAutoAppliedPromotions();
-        const autoAppliedMlosBrakeDown = this.calculateAutoAppliedMLOSPrices(autoAppliedMLOS);
-        const autoAppliedPromotionBrakeDown = this.calculateAutoAppliedPromotionPrices(autoAppliedPromotions);
+        const { autoAppliedMLOS, autoAppliedPromotions } =
+            await this.fetchAllAutoAppliedPromotions();
+        const autoAppliedMlosBrakeDown =
+            this.calculateAutoAppliedMLOSPrices(autoAppliedMLOS);
+        const autoAppliedPromotionBrakeDown =
+            this.calculateAutoAppliedPromotionPrices(autoAppliedPromotions);
         const mlsoBrakeDown = this.calculateAutoAppliedMLOSPrices(this.mlos);
-        const promotionBrakeDown = this.calculateAutoAppliedPromotionPrices(this.promotions);
-        const geoPriceBrakedown = this.calculateGeoLocation(country)
+        const promotionBrakeDown = this.calculateAutoAppliedPromotionPrices(
+            this.promotions
+        );
+        const geoPriceBrakedown = this.calculateGeoLocation(country);
 
         const totalPromotionalBrakeDown = [
             ...autoAppliedMlosBrakeDown,
             ...autoAppliedPromotionBrakeDown,
             ...mlsoBrakeDown,
             ...promotionBrakeDown,
-            ...geoPriceBrakedown
+            ...geoPriceBrakedown,
         ];
-        const totalPromotionaalDiscountedAmount = totalPromotionalBrakeDown.reduce((sum, promo) => {
-            if (promo.restrictionType === "decrease") {
-                return sum - promo.discountAmount;
-            } else {
-                return sum + promo.discountAmount;
-            }
-        }, 0);
+        const totalPromotionaalDiscountedAmount =
+            totalPromotionalBrakeDown.reduce((sum, promo) => {
+                if (promo.restrictionType === 'decrease') {
+                    return sum + promo.discountAmount; // debug here for promotion decrease
+                } else {
+                    return sum - promo.discountAmount;
+                }
+            }, 0);
+        console.log(
+            'totalPromotionaalDiscountedAmount',
+            totalPromotionaalDiscountedAmount
+        );
         return {
             ...this.priceBrakeDown,
             totalPromotionAmount: totalPromotionaalDiscountedAmount,
-            totalAmount: this.priceBrakeDown.totalAmount - totalPromotionaalDiscountedAmount,
-            promotionBrakeDown: totalPromotionalBrakeDown
-        }
+            totalAmount:
+                this.priceBrakeDown.totalAmount -
+                totalPromotionaalDiscountedAmount,
+            promotionBrakeDown: totalPromotionalBrakeDown,
+        };
     }
     private differenceReservationDays(startDate: Date, endDate: Date): number {
         const msPerDay = 1000 * 60 * 60 * 24;
@@ -759,60 +816,67 @@ class PromotionClass {
         return { autoAppliedMLOS, autoAppliedPromotions };
     }
     private calculateAutoAppliedMLOSPrices(mlos: IMLOS[]) {
-        const differenceReservationDays = this.differenceReservationDays(this.startDate, this.endDate);
+        const differenceReservationDays = this.differenceReservationDays(
+            this.startDate,
+            this.endDate
+        );
         if (mlos.length == 0) {
             return [];
         }
         const mlosBrakeDown: PromotionBrakeDown[] = [];
         mlos.forEach(mlos => {
-            if (mlos.minLos <= differenceReservationDays && (mlos.maxLos == null || mlos.maxLos >= differenceReservationDays)) {
+            if (
+                mlos.minLos <= differenceReservationDays &&
+                (mlos.maxLos == null ||
+                    mlos.maxLos >= differenceReservationDays)
+            ) {
                 if (mlos.discountType == 'percentage') {
                     mlosBrakeDown.push({
-                        name: "MLOS",
+                        name: 'MLOS',
                         currencyCode: mlos.currencyCode,
-                        discountAmount: (this.baseAmount * Number(mlos.discountValue)) / 100,
+                        discountAmount:
+                            (this.baseAmount * Number(mlos.discountValue)) /
+                            100,
                         discountType: 'percentage',
                         discountValue: Number(mlos.discountValue),
-                        restrictionType: "decrease"
-
-                    })
+                        restrictionType: 'decrease',
+                    });
                 } else if (mlos.discountType == 'flat') {
                     mlosBrakeDown.push({
-                        name: "MLOS",
+                        name: 'MLOS',
                         currencyCode: mlos.currencyCode,
                         discountAmount: Number(mlos.discountValue),
                         discountValue: Number(mlos.discountValue),
-                        discountType: "flat",
-                        restrictionType: "decrease"
-
-                    })
+                        discountType: 'flat',
+                        restrictionType: 'decrease',
+                    });
                 }
-
             }
-        })
+        });
         return mlosBrakeDown;
     }
-    private calculateAutoAppliedPromotionPrices(autoAppliedPromotions: ICEbDsOftc[]): PromotionBrakeDown[] {
-
+    private calculateAutoAppliedPromotionPrices(
+        autoAppliedPromotions: ICEbDsOftc[]
+    ): PromotionBrakeDown[] {
         const promotionBrakeDown: PromotionBrakeDown[] = [];
         autoAppliedPromotions.forEach(promotion => {
-            if (promotion.promotionType === "early_bird") {
-                const earlyBirdPromotionBrakeDown = this.calculateEarlyBirdPromotionPrices(promotion);
+            if (promotion.promotionType === 'early_bird') {
+                const earlyBirdPromotionBrakeDown =
+                    this.calculateEarlyBirdPromotionPrices(promotion);
                 if (!earlyBirdPromotionBrakeDown) {
                     return;
                 }
                 promotionBrakeDown.push(earlyBirdPromotionBrakeDown);
-            }
-            else if (promotion.promotionType === "offer_for_tonight") {
-                const offerForTonightPromotionBrakeDown = this.calculateOfferForTonightPromotionPrices(promotion);
+            } else if (promotion.promotionType === 'offer_for_tonight') {
+                const offerForTonightPromotionBrakeDown =
+                    this.calculateOfferForTonightPromotionPrices(promotion);
                 if (!offerForTonightPromotionBrakeDown) {
                     return;
                 }
                 promotionBrakeDown.push(offerForTonightPromotionBrakeDown);
-            }
-            else if (promotion.promotionType === "device_specific") {
-
-                const deviceBasedPromotionBrakeDown = this.calculateDeviceBasedPromotionPrices(promotion);
+            } else if (promotion.promotionType === 'device_specific') {
+                const deviceBasedPromotionBrakeDown =
+                    this.calculateDeviceBasedPromotionPrices(promotion);
                 if (!deviceBasedPromotionBrakeDown) {
                     return;
                 }
@@ -820,83 +884,95 @@ class PromotionClass {
             }
         });
         return promotionBrakeDown;
-
-
     }
-    private calculateDeviceBasedPromotionPrices(promotion: ICEbDsOftc): PromotionBrakeDown | null {
+    private calculateDeviceBasedPromotionPrices(
+        promotion: ICEbDsOftc
+    ): PromotionBrakeDown | null {
         if (!this.detectedDeviceType) {
             return null;
         }
         if (promotion.roomType && promotion.roomType !== this.roomType) {
             return null;
         }
-        const checkPromotionDayApplicability = this.checkIfPromotionActiveForDay(promotion, this.startDate);
+        const checkPromotionDayApplicability =
+            this.checkIfPromotionActiveForDay(promotion, this.startDate);
         if (!checkPromotionDayApplicability) {
             return null;
         }
         if (promotion.deviceType.includes(this.detectedDeviceType)) {
             if (promotion.discountType == 'percentage') {
                 return {
-                    name: "Device Specific",
+                    name: 'Device Specific',
                     currencyCode: promotion.currencyCode,
-                    discountAmount: (this.baseAmount * Number(promotion.discountValue)) / 100,
+                    discountAmount:
+                        (this.baseAmount * Number(promotion.discountValue)) /
+                        100,
                     discountType: 'percentage',
                     discountValue: Number(promotion.discountValue),
-                    restrictionType: "decrease"
-
-                }
+                    restrictionType: 'decrease',
+                };
             } else if (promotion.discountType == 'flat') {
                 return {
-                    name: "Device Specific",
+                    name: 'Device Specific',
                     currencyCode: promotion.currencyCode,
                     discountAmount: Number(promotion.discountValue),
                     discountType: 'flat',
                     discountValue: Number(promotion.discountValue),
-                    restrictionType: "decrease"
-
-                }
+                    restrictionType: 'decrease',
+                };
             }
         }
         return null;
     }
-    private calculateEarlyBirdPromotionPrices(promotion: ICEbDsOftc): PromotionBrakeDown | null {
+    private calculateEarlyBirdPromotionPrices(
+        promotion: ICEbDsOftc
+    ): PromotionBrakeDown | null {
         if (!promotion.advanceBookingDays) {
             return null;
         }
         if (promotion.roomType && promotion.roomType !== this.roomType) {
             return null;
         }
-        const checkPromotionDayApplicability = this.checkIfPromotionActiveForDay(promotion, this.startDate);
+        const checkPromotionDayApplicability =
+            this.checkIfPromotionActiveForDay(promotion, this.startDate);
         if (!checkPromotionDayApplicability) {
             return null;
         }
         const todayDate = nowUTC();
-        const advanceBookingDays = Math.ceil((this.startDate.getTime() - todayDate.getTime()) / (1000 * 60 * 60 * 24));
+        const advanceBookingDays = Math.ceil(
+            (this.startDate.getTime() - todayDate.getTime()) /
+                (1000 * 60 * 60 * 24)
+        );
         if (advanceBookingDays >= promotion.advanceBookingDays) {
             if (promotion.discountType == 'percentage') {
                 return {
-                    name: "Early Bird",
+                    name: 'Early Bird',
                     currencyCode: promotion.currencyCode,
-                    discountAmount: (this.baseAmount * Number(promotion.discountValue)) / 100,
+                    discountAmount:
+                        (this.baseAmount * Number(promotion.discountValue)) /
+                        100,
                     discountType: 'percentage',
                     discountValue: Number(promotion.discountValue),
-                    restrictionType: "decrease"
-                }
+                    restrictionType: 'decrease',
+                };
             } else if (promotion.discountType == 'flat') {
                 return {
-                    name: "Early Bird",
+                    name: 'Early Bird',
                     currencyCode: promotion.currencyCode,
                     discountAmount: Number(promotion.discountValue),
                     discountType: 'flat',
                     discountValue: Number(promotion.discountValue),
-                    restrictionType: "decrease"
-                }
+                    restrictionType: 'decrease',
+                };
             }
         }
         return null;
     }
-    private calculateOfferForTonightPromotionPrices(promotion: ICEbDsOftc): PromotionBrakeDown | null {
-        const checkPromotionDayApplicability = this.checkIfPromotionActiveForDay(promotion, this.startDate);
+    private calculateOfferForTonightPromotionPrices(
+        promotion: ICEbDsOftc
+    ): PromotionBrakeDown | null {
+        const checkPromotionDayApplicability =
+            this.checkIfPromotionActiveForDay(promotion, this.startDate);
         if (!checkPromotionDayApplicability) {
             return null;
         }
@@ -904,33 +980,39 @@ class PromotionClass {
             return null;
         }
         const todayDate = nowUTC();
-        const isOfferForTonightApplicable = this.startDate.getTime() - todayDate.getTime() <= (1000 * 60 * 60 * 24) && this.startDate.getTime() - todayDate.getTime() > 0;
+        const isOfferForTonightApplicable =
+            this.startDate.getTime() - todayDate.getTime() <=
+                1000 * 60 * 60 * 24 &&
+            this.startDate.getTime() - todayDate.getTime() > 0;
         if (isOfferForTonightApplicable) {
             if (promotion.discountType == 'percentage') {
                 return {
-                    name: "Offer For Tonight",
+                    name: 'Offer For Tonight',
                     currencyCode: promotion.currencyCode,
-                    discountAmount: (this.baseAmount * Number(promotion.discountValue)) / 100,
+                    discountAmount:
+                        (this.baseAmount * Number(promotion.discountValue)) /
+                        100,
                     discountType: 'percentage',
                     discountValue: Number(promotion.discountValue),
-                    restrictionType: "decrease"
-
-                }
+                    restrictionType: 'decrease',
+                };
             } else if (promotion.discountType == 'flat') {
                 return {
-                    name: "Offer For Tonight",
+                    name: 'Offer For Tonight',
                     currencyCode: promotion.currencyCode,
                     discountAmount: Number(promotion.discountValue),
                     discountType: 'flat',
                     discountValue: Number(promotion.discountValue),
-                    restrictionType: "decrease"
-
-                }
+                    restrictionType: 'decrease',
+                };
             }
         }
         return null;
     }
-    private checkIfPromotionActiveForDay(promotion: ICEbDsOftc, date: Date): boolean {
+    private checkIfPromotionActiveForDay(
+        promotion: ICEbDsOftc,
+        date: Date
+    ): boolean {
         const day = date.getDay();
         switch (day) {
             case 0:
@@ -951,91 +1033,249 @@ class PromotionClass {
         return false;
     }
     private calculateGeoLocation(country?: string): PromotionBrakeDown[] {
-        let promotionBrakehown: PromotionBrakeDown[] = []
+        let promotionBrakehown: PromotionBrakeDown[] = [];
         if (!country) {
-            return []
+            return [];
         }
         this.geoRatePlans.map(geo => {
             if (geo.roomType && geo.roomType !== this.roomType) {
                 return null;
             }
             if (geo.countryCode.includes(country)) {
-                if (geo.restrictionType === "restricted") {
-                    throw new Error(`This room is restricted for this country  `)
-                }
-                else if (geo.restrictionType == "fixed") {
+                if (geo.restrictionType === 'restricted') {
+                    throw new Error(
+                        `This room is restricted for this country  `
+                    );
+                } else if (geo.restrictionType == 'fixed') {
                     promotionBrakehown.push({
                         currencyCode: geo.currencyCode,
                         discountAmount: Number(geo.restrictionValue),
-                        discountType: "flat",
+                        discountType: 'flat',
                         discountValue: Number(geo.restrictionValue),
-                        name: "Geo Restriction",
-                        restrictionType: geo.restrictionTypeAction
-                    })
-                }
-                else if (geo.restrictionType === "percentage") {
+                        name: 'Geo Restriction',
+                        restrictionType: geo.restrictionTypeAction,
+                    });
+                } else if (geo.restrictionType === 'percentage') {
                     promotionBrakehown.push({
                         currencyCode: geo.currencyCode,
-                        discountAmount: (this.baseAmount * Number(geo.restrictionValue) % 100),
-                        discountType: "flat",
+                        discountAmount:
+                            (this.baseAmount * Number(geo.restrictionValue)) %
+                            100,
+                        discountType: 'flat',
                         discountValue: Number(geo.restrictionValue),
-                        name: "Geo Restriction",
-                        restrictionType: geo.restrictionTypeAction
-                    })
+                        name: 'Geo Restriction',
+                        restrictionType: geo.restrictionTypeAction,
+                    });
                 }
             }
-
-        })
-        return []
-
+        });
+        return [];
     }
-
 }
 
 class TouristTaxClass {
     touristTax: ITouristTax[];
-    priceBrakedown: PriceBrakeDown
-    constructor(
-        touristTax: ITouristTax[],
-        priceBrakeDown: PriceBrakeDown
-    ) {
+    priceBrakedown: PriceBrakeDown;
+    constructor(touristTax: ITouristTax[], priceBrakeDown: PriceBrakeDown) {
         this.touristTax = touristTax;
         this.priceBrakedown = priceBrakeDown;
     }
     public findTouristTax(): PriceBrakeDown {
-        let touristTaxes: PromotionBrakeDown[] = []
+        let touristTaxes: PromotionBrakeDown[] = [];
 
         this.touristTax.map(tax => {
-            touristTaxes.push(this.calculateTouristTaxvalue(tax))
-        })
-        const totalTouristCharges = touristTaxes.reduce((sum, tax) => sum + tax.discountAmount, 0)
+            touristTaxes.push(this.calculateTouristTaxvalue(tax));
+        });
+        const totalTouristCharges = touristTaxes.reduce(
+            (sum, tax) => sum + tax.discountAmount,
+            0
+        );
         return {
             ...this.priceBrakedown,
             latterpayableAmount: totalTouristCharges,
             totalAmount: this.priceBrakedown.totalAmount + totalTouristCharges,
-            promotionBrakeDown: [...this.priceBrakedown.promotionBrakeDown, ...touristTaxes]
-        }
+            promotionBrakeDown: [
+                ...this.priceBrakedown.promotionBrakeDown,
+                ...touristTaxes,
+            ],
+        };
     }
-    private calculateTouristTaxvalue(touristTax: ITouristTax): PromotionBrakeDown {
-        if (touristTax.discountType === "percentage") {
+    private calculateTouristTaxvalue(
+        touristTax: ITouristTax
+    ): PromotionBrakeDown {
+        if (touristTax.discountType === 'percentage') {
             return {
-                name: touristTax.name ? touristTax.name : "Tourist Tax",
+                name: touristTax.name ? touristTax.name : 'Tourist Tax',
                 discountType: touristTax.discountType,
                 discountValue: Number(touristTax.discountValue),
                 currencyCode: touristTax.currencyCode,
-                        discountAmount: (this.priceBrakedown.totalAmount * Number(touristTax.discountValue) / 100),
-                restrictionType: "payLater"
-            }
+                discountAmount:
+                    (this.priceBrakedown.amountBeforeTax *
+                        Number(touristTax.discountValue)) /
+                    100,
+                restrictionType: 'payLater',
+            };
         } else {
             return {
-                name: touristTax.name ? touristTax.name : "Tourist Tax",
+                name: touristTax.name ? touristTax.name : 'Tourist Tax',
                 discountType: touristTax.discountType,
                 discountValue: Number(touristTax.discountValue),
                 currencyCode: touristTax.currencyCode,
                 discountAmount: Number(touristTax.discountValue),
-                restrictionType: "payLater"
-            }
+                restrictionType: 'payLater',
+            };
         }
+    }
+}
 
+class LoyalityDiscountClass {
+    guestEmail: string;
+    propertyId: string;
+    priceBrakedown: PriceBrakeDown;
+    private pricingRepository: PricingRepository;
+
+    constructor(
+        guestEmail: string,
+        propertyId: string,
+        priceBrakedown: PriceBrakeDown
+    ) {
+        this.pricingRepository = new PricingRepository();
+        this.guestEmail = guestEmail;
+        this.propertyId = propertyId;
+        this.priceBrakedown = priceBrakedown;
+    }
+    public async findLoyalityDiscount(): Promise<PriceBrakeDown> {
+        const checkIfguestIsMember =
+            await this.pricingRepository.findLoyalityGuest(
+                this.guestEmail,
+                this.propertyId
+            );
+        if (!checkIfguestIsMember) {
+            return this.priceBrakedown;
+        }
+        const checkIfPropertyLoyalityIsActive =
+            await this.pricingRepository.findPropertyLoyalityConfig(
+                this.propertyId
+            );
+        if (!checkIfPropertyLoyalityIsActive) {
+            return this.priceBrakedown;
+        }
+        const loyality = await this.pricingRepository.findLoyalityConfig(
+            checkIfPropertyLoyalityIsActive
+        );
+        if (!loyality) {
+            return this.priceBrakedown;
+        }
+        if (loyality.loyaltyDiscountType === 'percentage') {
+            const loyaltyDiscount =
+                (this.priceBrakedown.amountBeforeTax * loyality.discountValue) /
+                100;
+            return {
+                ...this.priceBrakedown,
+                loyalityDiscount: loyaltyDiscount,
+                totalAmount: this.priceBrakedown.totalAmount - loyaltyDiscount,
+            };
+        } else {
+            return {
+                ...this.priceBrakedown,
+                loyalityDiscount: loyality.discountValue,
+                totalAmount:
+                    this.priceBrakedown.totalAmount - loyality.discountValue,
+            };
+        }
+    }
+}
+class PromoCodeDiscountClass {
+    priceBrakedown: PriceBrakeDown;
+    promoCode: string;
+    roomType: string;
+    ratePlan: string;
+    deviceType: DeviceType;
+    private pricingRepository: PricingRepository;
+
+    constructor(
+        priceBrakedown: PriceBrakeDown,
+        promoCode: string,
+        roomType: string,
+        ratePlan: string,
+        deviceType: DeviceType
+    ) {
+        this.priceBrakedown = priceBrakedown;
+        this.promoCode = promoCode;
+        this.pricingRepository = new PricingRepository();
+        this.roomType = roomType;
+        this.ratePlan = ratePlan;
+        this.deviceType = deviceType;
+    }
+    public async findPromoCodeDiscount(): Promise<PriceBrakeDown> {
+        const checkIfPromoCodeIsValid =
+            await this.pricingRepository.findPromoCode(this.promoCode);
+        if (!checkIfPromoCodeIsValid) {
+            return this.priceBrakedown;
+        }
+        if (
+            !this.checkIfPromoCodeIsAppliedToDevice(
+                this.deviceType,
+                checkIfPromoCodeIsValid
+            )
+        ) {
+            return this.priceBrakedown;
+        }
+        if (
+            checkIfPromoCodeIsValid.minBookingAmount && //chck for minimum booking amount
+            checkIfPromoCodeIsValid.minBookingAmount >
+                this.priceBrakedown.amountBeforeTax
+        ) {
+            return this.priceBrakedown;
+        }
+        if (checkIfPromoCodeIsValid.discountType === 'percentage') {
+            let promoCodeDiscountAmount =
+                (this.priceBrakedown.amountBeforeTax *
+                    checkIfPromoCodeIsValid.discountValue) /
+                100;
+            if (
+                checkIfPromoCodeIsValid.maxDiscountAmount &&
+                promoCodeDiscountAmount >
+                    checkIfPromoCodeIsValid.maxDiscountAmount
+            ) {
+                promoCodeDiscountAmount =
+                    checkIfPromoCodeIsValid.maxDiscountAmount;
+            }
+            return {
+                ...this.priceBrakedown,
+                promoCodeDiscount: promoCodeDiscountAmount,
+                totalAmount:
+                    this.priceBrakedown.totalAmount - promoCodeDiscountAmount,
+            };
+        } else {
+            let promoCodeDiscountAmount = checkIfPromoCodeIsValid.discountValue;
+            if (
+                checkIfPromoCodeIsValid.maxDiscountAmount &&
+                promoCodeDiscountAmount >
+                    checkIfPromoCodeIsValid.maxDiscountAmount
+            ) {
+                promoCodeDiscountAmount =
+                    checkIfPromoCodeIsValid.maxDiscountAmount;
+            }
+            return {
+                ...this.priceBrakedown,
+                promoCodeDiscount: promoCodeDiscountAmount,
+                totalAmount:
+                    this.priceBrakedown.totalAmount - promoCodeDiscountAmount,
+            };
+        }
+    }
+    private checkIfPromoCodeIsAppliedToDevice(
+        deviceType: DeviceType,
+        promoCode: IPromoCode
+    ): boolean {
+        if (deviceType === 'desktop') {
+            return promoCode.isApplicableForDesktop;
+        } else if (deviceType === 'mobile') {
+            return promoCode.isApplicableForMobileApp;
+        } else if (deviceType === 'tablet') {
+            return promoCode.isApplicableForTablet;
+        }
+        return false;
     }
 }
