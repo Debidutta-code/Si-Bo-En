@@ -47,8 +47,10 @@ type ARIHandler = (req: RateTigerRequest, res: Response) => Promise<any>;
 
 export function withHotelCodeConversion(handler: ARIHandler): ARIHandler {
     return async (req: RateTigerRequest, res: Response) => {
-        console.log('request body from rate tiger',req.body)
-        const rtHotelCode = extractRtHotelCode(req.body);
+        console.log(
+            'request body from rate tiger:',
+            JSON.stringify(req.body, null, 2)
+        ); const rtHotelCode = extractRtHotelCode(req.body);
 
         if (!rtHotelCode) {
             return res.status(400).json({
