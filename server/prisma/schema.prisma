@@ -830,12 +830,8 @@ model PromoCode {
   isApplicableForDesktop   Boolean @default(false) @map("is_applicable_for_desktop")
   isApplicableForTablet    Boolean @default(false) @map("is_applicable_for_tablet")
 
-  // isApplicableForWalkIn    Boolean @default(false) @map("is_applicable_for_walk_in")
-  // isApplicableForOTA       Boolean @default(false) @map("is_applicable_for_ota")
-  // isApplicableForCorporate Boolean @default(false) @map("is_applicable_for_corporate")
 
   usageLimit          Int?          @map("usage_limit")
-  // usageLimitPerUser   Int?          @map("usage_limit_per_user")
   applicableRoomTypes Json[]        @map("applicable_room_types")
   applicableRatePlans Json[]        @map("applicable_rate_plans")
   isActive            Boolean       @default(true) @map("is_active")
@@ -1553,13 +1549,16 @@ model CustomizableDeal {
   discountType  DiscountType  @default(percentage) @map("discount_type")
   discountValue Decimal       @map("discount_value")
   currencyCode  CurrencyCode? @default(USD) @map("currency_code")
+  startDate     DateTime      @map("start_date") @db.Date
+  endDate       DateTime      @map("end_date") @db.Date
+  isActive      Boolean       @default(true) @map("is_active")
   isAutoApplied Boolean       @default(false) @map("is_auto_applied")
 
   createdAt DateTime @default(now()) @map("created_at")
 
   Property                                 Property                                   @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  CustomizableDealsApplicableRoomTypes     CustomizableDealsApplicableRoomTypes[]
-  CustomizableDealsApplicableRatePlanTypes CustomizableDealsApplicableRatePlanTypes[]
+  CustomizableDealsApplicableRoomTypes     CustomizableDealsApplicableRoomTypes
+  CustomizableDealsApplicableRatePlanTypes CustomizableDealsApplicableRatePlanTypes
   CustomizableDealsApplicableAddons        CustomizableDealsApplicableAddons[]
 
   @@map("customizable_deals")
