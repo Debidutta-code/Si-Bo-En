@@ -22,9 +22,7 @@ export interface IPromoCode {
     isApplicableForTablet: boolean
 
     // Booking source applicability
-    isApplicableForWalkIn: boolean
-    isApplicableForOTA: boolean
-    isApplicableForCorporate: boolean
+    
 
     usageLimit?: number | null
     usageLimitPerUser?: number | null

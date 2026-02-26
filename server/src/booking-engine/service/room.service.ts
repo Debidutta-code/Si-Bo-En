@@ -305,18 +305,19 @@ export class RoomBookingService {
                     discountValue: Number(geoRatePlan.restrictionValue ?? 0),
                     calculatedDiscountAmount: geoDiscount,
                 });
-            } else {
-                availablePromotions.push({
-                    id: geoRatePlan.id,
-                    promotionName: `Geo rate adjustment`,
-                    promotionType: 'geo',
-                    discountType: geoRatePlan.restrictionType === 'percentage' ? 'percentage' : 'flat',
-                    discountValue: new Decimal(geoDiscount),
-                    validFrom: null,
-                    validTo: null,
-                    advanceBookingDays: null
-                });
-            }
+            } 
+            // else {
+            //     availablePromotions.push({
+            //         id: geoRatePlan.id,
+            //         promotionName: `Geo rate adjustment`,
+            //         promotionType: 'geo',
+            //         discountType: geoRatePlan.restrictionType === 'percentage' ? 'percentage' : 'flat',
+            //         discountValue: new Decimal(geoDiscount),
+            //         validFrom: null,
+            //         validTo: null,
+            //         advanceBookingDays: null
+            //     });
+            // }
         }
 
         for (const promo of promotions) {

@@ -81,7 +81,7 @@ export class PricingController {
                     .json(errorResponse('At least 1 room is required'));
             }
 
-            const geoDetails = getGeoLocationDetails(req);
+            const geoDetails = await getGeoLocationDetails(req);
             const userCountryCode =
                 geoDetails.country !== 'Unknown'
                     ? geoDetails.country
