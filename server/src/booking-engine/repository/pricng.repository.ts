@@ -3,6 +3,7 @@ import { IGeoRatePlanWithoutRatePlan } from '../../promotions/geo-rate-plan/inte
 import { IAddOn, IPromotion, IRatePlan, ISelectedAddonsR } from '../types';
 import { IMLOS } from '../../promotions/mlos/interfaces';
 import { ICEbDsOftc } from '../../promotions/eb-ds-oftc/interfaces';
+import { IPromoCode } from '../../ari/types/promoCode.type';
 
 export class PricingRepository {
     public async validateRatePlan(
@@ -86,7 +87,15 @@ export class PricingRepository {
                         },
                     },
                     geoRatePlans: true,
-                    TouristTaxs: true,
+                    TouristTaxs: {
+                        select: {
+                            id: true,
+                            name: true,
+                            discountType: true,
+                            discountValue: true,
+                            currencyCode: true
+                        }
+                    }
                 },
             });
         } catch (error) {
@@ -201,5 +210,16 @@ export class PricingRepository {
             throw new Error('Failed to get auto applied MLOS');
         }
     }
-    
+    public async fincPromoCode(code: string): Promise<IPromoCode | null> {
+        try {
+            return await prisma.promoCode.findUnique({
+                where: {
+                    code,
+                    isActive: true
+                }
+            })
+        } catch (error) {
+            throw new Error("Failed to fetch promocode details")
+        }
+    }
 }

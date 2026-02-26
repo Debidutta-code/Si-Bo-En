@@ -1,7 +1,6 @@
-import e from 'express';
 import { IMLOS } from '../../promotions/mlos/interfaces';
 import { CurrencyCode } from '../../tax-system/interfaces/tourist-tax.type';
-import { errorResponse, IApiResponse,  nowUTC, successResponse } from '../../utils';
+import { errorResponse, IApiResponse, nowUTC, successResponse } from '../../utils';
 import { PricingRepository } from '../repository';
 import {
     AddOnBrakeDown,
@@ -13,6 +12,7 @@ import {
     ISelectedAddonsS,
     ISelectedPromotion,
     ITaxGroup,
+    ITouristTax,
     PriceBrakeDown,
     PromotionBrakeDown,
     TaxBrakeDown,
@@ -96,8 +96,12 @@ export class PricingService {
 
             );
             priceBrakedowns = await promotionClass.promotionPrices(userCountryCode);
+            const touristTaxClass = new TouristTaxClass(
+                ratePlan.TouristTaxs,
+                priceBrakedowns,
 
-
+            );
+            priceBrakedowns= touristTaxClass.findTouristTax()
             return successResponse('Rate plan found', priceBrakedowns);
         } catch (error) {
             if (error instanceof Error) {
@@ -165,7 +169,7 @@ export class PricingService {
             throw new Error('Failed to fetch mlos');
         }
     }
-    private async fetchPromotions(promotionIds: string[]):Promise<ICEbDsOftc[] | null> {
+    private async fetchPromotions(promotionIds: string[]): Promise<ICEbDsOftc[] | null> {
         try {
             const promotions =
                 await this.pricingRepository.getPromotions(promotionIds);
@@ -277,6 +281,8 @@ class BasePriceClass {
             taxedAmount,
             totalAddonAmount: 0,
             totalPromotionAmount: 0,
+            currentChargeableAmount:totalAmount,
+            latterpayableAmount:0,
             currencyCode: dailyPriceBrakeDown[0]?.currencyCode,
             dailyPriceBrakeDown,
             taxBrakeDown,
@@ -673,7 +679,7 @@ class PromotionClass {
     endDate: Date;
     mlos: IMLOS[];
     promotions: ICEbDsOftc[];
-    geoRatePlans:IGeoRatePlanWithoutRatePlan[]
+    geoRatePlans: IGeoRatePlanWithoutRatePlan[]
     ratePlanId: string;
     roomType: string;
     baseAmount: number;
@@ -684,7 +690,7 @@ class PromotionClass {
         endDate: Date,
         mlos: IMLOS[],
         promotions: ICEbDsOftc[],
-        geoRatePlans:IGeoRatePlanWithoutRatePlan[],
+        geoRatePlans: IGeoRatePlanWithoutRatePlan[],
         ratePlanId: string,
         baseAmount: number,
         roomType: string,
@@ -701,16 +707,16 @@ class PromotionClass {
         this.roomType = roomType;
         this.detectedDeviceType = detectedDeviceType;
         this.priceBrakeDown = priceBrakeDown;
-        this.geoRatePlans=geoRatePlans
+        this.geoRatePlans = geoRatePlans
     }
-    public async promotionPrices(country?:string): Promise<PriceBrakeDown> {
+    public async promotionPrices(country?: string): Promise<PriceBrakeDown> {
         const { autoAppliedMLOS, autoAppliedPromotions } = await this.fetchAllAutoAppliedPromotions();
         const autoAppliedMlosBrakeDown = this.calculateAutoAppliedMLOSPrices(autoAppliedMLOS);
         const autoAppliedPromotionBrakeDown = this.calculateAutoAppliedPromotionPrices(autoAppliedPromotions);
         const mlsoBrakeDown = this.calculateAutoAppliedMLOSPrices(this.mlos);
         const promotionBrakeDown = this.calculateAutoAppliedPromotionPrices(this.promotions);
-            const geoPriceBrakedown=this.calculateGeoLocation(country)
-        
+        const geoPriceBrakedown = this.calculateGeoLocation(country)
+
         const totalPromotionalBrakeDown = [
             ...autoAppliedMlosBrakeDown,
             ...autoAppliedPromotionBrakeDown,
@@ -721,9 +727,9 @@ class PromotionClass {
         const totalPromotionaalDiscountedAmount = totalPromotionalBrakeDown.reduce((sum, promo) => {
             if (promo.restrictionType === "decrease") {
                 return sum - promo.discountAmount;
-            } else  {
+            } else {
                 return sum + promo.discountAmount;
-            } 
+            }
         }, 0);
         return {
             ...this.priceBrakeDown,
@@ -767,7 +773,7 @@ class PromotionClass {
                         discountAmount: (this.baseAmount * Number(mlos.discountValue)) / 100,
                         discountType: 'percentage',
                         discountValue: Number(mlos.discountValue),
-                                            restrictionType:"decrease"
+                        restrictionType: "decrease"
 
                     })
                 } else if (mlos.discountType == 'flat') {
@@ -777,7 +783,7 @@ class PromotionClass {
                         discountAmount: Number(mlos.discountValue),
                         discountValue: Number(mlos.discountValue),
                         discountType: "flat",
-                                            restrictionType:"decrease"
+                        restrictionType: "decrease"
 
                     })
                 }
@@ -786,7 +792,7 @@ class PromotionClass {
         })
         return mlosBrakeDown;
     }
-    private calculateAutoAppliedPromotionPrices(autoAppliedPromotions: ICEbDsOftc[]):PromotionBrakeDown[] {
+    private calculateAutoAppliedPromotionPrices(autoAppliedPromotions: ICEbDsOftc[]): PromotionBrakeDown[] {
 
         const promotionBrakeDown: PromotionBrakeDown[] = [];
         autoAppliedPromotions.forEach(promotion => {
@@ -836,7 +842,7 @@ class PromotionClass {
                     discountAmount: (this.baseAmount * Number(promotion.discountValue)) / 100,
                     discountType: 'percentage',
                     discountValue: Number(promotion.discountValue),
-                                        restrictionType:"decrease"
+                    restrictionType: "decrease"
 
                 }
             } else if (promotion.discountType == 'flat') {
@@ -846,7 +852,7 @@ class PromotionClass {
                     discountAmount: Number(promotion.discountValue),
                     discountType: 'flat',
                     discountValue: Number(promotion.discountValue),
-                                        restrictionType:"decrease"
+                    restrictionType: "decrease"
 
                 }
             }
@@ -874,7 +880,7 @@ class PromotionClass {
                     discountAmount: (this.baseAmount * Number(promotion.discountValue)) / 100,
                     discountType: 'percentage',
                     discountValue: Number(promotion.discountValue),
-                    restrictionType:"decrease"
+                    restrictionType: "decrease"
                 }
             } else if (promotion.discountType == 'flat') {
                 return {
@@ -883,7 +889,7 @@ class PromotionClass {
                     discountAmount: Number(promotion.discountValue),
                     discountType: 'flat',
                     discountValue: Number(promotion.discountValue),
-                    restrictionType:"decrease"
+                    restrictionType: "decrease"
                 }
             }
         }
@@ -907,7 +913,7 @@ class PromotionClass {
                     discountAmount: (this.baseAmount * Number(promotion.discountValue)) / 100,
                     discountType: 'percentage',
                     discountValue: Number(promotion.discountValue),
-                                        restrictionType:"decrease"
+                    restrictionType: "decrease"
 
                 }
             } else if (promotion.discountType == 'flat') {
@@ -917,7 +923,7 @@ class PromotionClass {
                     discountAmount: Number(promotion.discountValue),
                     discountType: 'flat',
                     discountValue: Number(promotion.discountValue),
-                                        restrictionType:"decrease"
+                    restrictionType: "decrease"
 
                 }
             }
@@ -944,41 +950,41 @@ class PromotionClass {
         }
         return false;
     }
-    private calculateGeoLocation(country?:string):PromotionBrakeDown[]{
-        let promotionBrakehown:PromotionBrakeDown[]=[]
-        if(!country){
+    private calculateGeoLocation(country?: string): PromotionBrakeDown[] {
+        let promotionBrakehown: PromotionBrakeDown[] = []
+        if (!country) {
             return []
         }
-        this.geoRatePlans.map(geo=>{
+        this.geoRatePlans.map(geo => {
             if (geo.roomType && geo.roomType !== this.roomType) {
                 return null;
             }
-            if(geo.countryCode.includes(country)){
-                if(geo.restrictionType==="restricted"){
+            if (geo.countryCode.includes(country)) {
+                if (geo.restrictionType === "restricted") {
                     throw new Error(`This room is restricted for this country  `)
                 }
-                else if(geo.restrictionType=="fixed"){
+                else if (geo.restrictionType == "fixed") {
                     promotionBrakehown.push({
-                        currencyCode:geo.currencyCode,
-                        discountAmount:Number(geo.restrictionValue),
-                        discountType:"flat",
-                        discountValue:Number(geo.restrictionValue),
-                        name:"Geo Restriction",
-                        restrictionType:geo.restrictionTypeAction
+                        currencyCode: geo.currencyCode,
+                        discountAmount: Number(geo.restrictionValue),
+                        discountType: "flat",
+                        discountValue: Number(geo.restrictionValue),
+                        name: "Geo Restriction",
+                        restrictionType: geo.restrictionTypeAction
                     })
                 }
-                else if(geo.restrictionType==="percentage"){
+                else if (geo.restrictionType === "percentage") {
                     promotionBrakehown.push({
-                        currencyCode:geo.currencyCode,
-                        discountAmount:(this.baseAmount*Number(geo.restrictionValue)%100),
-                        discountType:"flat",
-                        discountValue:Number(geo.restrictionValue),
-                        name:"Geo Restriction",
-                        restrictionType:geo.restrictionTypeAction
+                        currencyCode: geo.currencyCode,
+                        discountAmount: (this.baseAmount * Number(geo.restrictionValue) % 100),
+                        discountType: "flat",
+                        discountValue: Number(geo.restrictionValue),
+                        name: "Geo Restriction",
+                        restrictionType: geo.restrictionTypeAction
                     })
                 }
             }
-            
+
         })
         return []
 
@@ -986,3 +992,50 @@ class PromotionClass {
 
 }
 
+class TouristTaxClass {
+    touristTax: ITouristTax[];
+    priceBrakedown: PriceBrakeDown
+    constructor(
+        touristTax: ITouristTax[],
+        priceBrakeDown: PriceBrakeDown
+    ) {
+        this.touristTax = touristTax;
+        this.priceBrakedown = priceBrakeDown;
+    }
+    public findTouristTax(): PriceBrakeDown {
+        let touristTaxes: PromotionBrakeDown[] = []
+
+        this.touristTax.map(tax => {
+            touristTaxes.push(this.calculateTouristTaxvalue(tax))
+        })
+        const totalTouristCharges = touristTaxes.reduce((sum, tax) => sum + tax.discountAmount, 0)
+        return {
+            ...this.priceBrakedown,
+            latterpayableAmount: totalTouristCharges,
+            totalAmount: this.priceBrakedown.totalAmount + totalTouristCharges,
+            promotionBrakeDown: [...this.priceBrakedown.promotionBrakeDown, ...touristTaxes]
+        }
+    }
+    private calculateTouristTaxvalue(touristTax: ITouristTax): PromotionBrakeDown {
+        if (touristTax.discountType === "percentage") {
+            return {
+                name: touristTax.name ? touristTax.name : "Tourist Tax",
+                discountType: touristTax.discountType,
+                discountValue: Number(touristTax.discountValue),
+                currencyCode: touristTax.currencyCode,
+                        discountAmount: (this.priceBrakedown.totalAmount * Number(touristTax.discountValue) / 100),
+                restrictionType: "payLater"
+            }
+        } else {
+            return {
+                name: touristTax.name ? touristTax.name : "Tourist Tax",
+                discountType: touristTax.discountType,
+                discountValue: Number(touristTax.discountValue),
+                currencyCode: touristTax.currencyCode,
+                discountAmount: Number(touristTax.discountValue),
+                restrictionType: "payLater"
+            }
+        }
+
+    }
+}

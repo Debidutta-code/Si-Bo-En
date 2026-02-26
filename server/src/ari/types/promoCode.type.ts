@@ -2,27 +2,29 @@
 // All promo code functionality is now in the dedicated /src/promocode folder
 // Please use the new location instead
 
+import { DiscountType } from "../../promocode/types";
+
 export interface IPromoCode {
     name: string
     code: string
-    description?: string
+    description: string|null;
     propertyId: string
-    discountType: "percentage" | "amount"
+    discountType: DiscountType
     discountValue: number
     validFrom: Date | string
     validTo: Date | string
-    minBookingAmount?: number | null
-    maxDiscountAmount?: number | null
+    minBookingAmount: number | null
+    maxDiscountAmount: number | null
 
     // Platform applicability
-    isApplicableForMobileApp?: boolean
-    isApplicableForDesktop?: boolean
-    isApplicableForTablet?: boolean
+    isApplicableForMobileApp: boolean
+    isApplicableForDesktop: boolean
+    isApplicableForTablet: boolean
 
     // Booking source applicability
-    isApplicableForWalkIn?: boolean
-    isApplicableForOTA?: boolean
-    isApplicableForCorporate?: boolean
+    isApplicableForWalkIn: boolean
+    isApplicableForOTA: boolean
+    isApplicableForCorporate: boolean
 
     usageLimit?: number | null
     usageLimitPerUser?: number | null

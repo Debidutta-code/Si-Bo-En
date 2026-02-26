@@ -1617,8 +1617,8 @@ model TouristTaxes {
   id String @id @default(uuid())
 
   name          String? //remove this ? when there is a need for db push
-  ratePlanId    String   @map("rate_plan_id")
-  ratePlanCode  String   @map("rate_plan_code")
+  ratePlanId    String @unique  @map("rate_plan_id")
+  ratePlanCode  String @unique  @map("rate_plan_code")
   discountValue Decimal? @map("discount_value")
 
   createdAt DateTime @default(now()) @map("created_at")

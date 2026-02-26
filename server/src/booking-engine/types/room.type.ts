@@ -3,6 +3,7 @@ import { IRoomVideo } from "../../property-management/types";
 import { Decimal } from "@prisma/client/runtime/library";
 import { CurrencyCode } from "../../pms/frontoffice/payment/types";
 import { PromotionType } from "../../promotions/eb-ds-oftc/interfaces";
+import { DiscountType } from "../../promocode/types";
 
 export interface IBookingSearchPayload {
   startDate: string;
@@ -73,7 +74,7 @@ export interface IRoomPrice {
 export interface ITouristTax {
   id: string;
   name:string|null;
-  discountType: string;
+  discountType: DiscountType;
   discountValue: Decimal|null;
   currencyCode: CurrencyCode|null;
   calculatedTaxAmount?:number;

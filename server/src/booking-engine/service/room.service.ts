@@ -71,9 +71,6 @@ export class RoomBookingService {
             },
         };
     }
-
-    // ─── Room Processing ────────────────────────────────────────────────────────
-
     private static async processRoom(
         room: any,
         property: any,
@@ -131,8 +128,6 @@ export class RoomBookingService {
             roomVideos: room.roomVideos || null,
         };
     }
-
-    // ─── Rate Plan Processing ────────────────────────────────────────────────────
 
     private static async processRatePlan(
         ratePlan: any,

@@ -171,6 +171,8 @@ export interface PriceBrakeDown{
     taxedAmount:number;
     totalAddonAmount:number;
     totalPromotionAmount:number;
+    currentChargeableAmount:number;
+    latterpayableAmount:number;
     currencyCode:CurrencyCode;
     dailyPriceBrakeDown:DailyPriceBrakeDown[];
     taxBrakeDown:TaxBrakeDown[];
@@ -208,6 +210,6 @@ export interface PromotionBrakeDown{
     discountValue:number;
     currencyCode:CurrencyCode|null;
     discountAmount:number;
-    restrictionType:restrictionTypeAction
+    restrictionType:restrictionTypeAction|"payLater"
     
 }
