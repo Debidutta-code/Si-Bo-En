@@ -2,6 +2,7 @@ import { prisma } from '../../config';
 import { IGeoRatePlanWithoutRatePlan } from '../../promotions/geo-rate-plan/interfaces';
 import { IAddOn, IPromotion, IRatePlan, ISelectedAddonsR } from '../types';
 import { IMLOS } from '../../promotions/mlos/interfaces';
+import { ICEbDsOftc } from '../../promotions/eb-ds-oftc/interfaces';
 
 export class PricingRepository {
     public async validateRatePlan(
@@ -104,7 +105,7 @@ export class PricingRepository {
             throw new Error('Failed to get geo rate plan');
         }
     }
-    public async getPromotions(promotionIds: string[]): Promise<IPromotion[]> {
+    public async getPromotions(promotionIds: string[]): Promise<ICEbDsOftc[]> {
         try {
             return await prisma.promotion.findMany({
                 where: {
@@ -146,7 +147,7 @@ export class PricingRepository {
         ratePlanId: string,
         startDate: Date,
         endDate: Date
-    ): Promise<IPromotion[]> {
+    ): Promise<ICEbDsOftc[]> {
         try {
             return await prisma.promotion.findMany({
                 where: {
@@ -200,4 +201,5 @@ export class PricingRepository {
             throw new Error('Failed to get auto applied MLOS');
         }
     }
+    
 }

@@ -275,6 +275,7 @@ export class RoomBookingService {
                     friApplicable: devicePromotion.friApplicable,
                     satApplicable: devicePromotion.satApplicable,
                     sunApplicable: devicePromotion.sunApplicable,
+
                 });
             }
         }
@@ -383,7 +384,7 @@ export class RoomBookingService {
                 availablePromotions.push({
                     id: ratePlanRule.id,
                     promotionName: `Minimum ${ratePlanRule.minLos} nights stay`,
-                    promotionType: 'mlos',
+                    promotionType: '',
                     discountType: ratePlanRule.discountType,
                     discountValue: ratePlanRule.discountValue,
                     minLos: ratePlanRule.minLos,

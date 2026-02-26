@@ -41,6 +41,7 @@ export interface CreateEarlyBirdPromotion {
   sunApplicable: boolean;
   advanceBookingDays?: number;
     isAutoApplied: boolean;
+    isActive:boolean
 
 }
 

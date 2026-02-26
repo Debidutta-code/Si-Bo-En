@@ -702,7 +702,7 @@ model RatePlan {
   depositPolicy   Policy?      @relation("RateAmountToDepositPolicy", fields: [depositPolicyId], references: [id])
   depositPolicyId String?      @map("deposit_policy_id")
 
-  cancellationPolicy   Policy? @relation("FRateAmountToCancellationPolicy", fields: [cancellationPolicyId], references: [id])
+  cancellationPolicy   Policy? @relation("RateAmountToCancellationPolicy", fields: [cancellationPolicyId], references: [id])
   cancellationPolicyId String? @map("cancellation_policy_id")
 
   guaranteePolicy   Policy? @relation("RateAmountToGuaranteePolicy", fields: [guaranteePolicyId], references: [id])
@@ -1513,6 +1513,7 @@ model Promotion {
   satApplicable         Boolean                @default(true) @map("sat_applicable")
   sunApplicable         Boolean                @default(true) @map("sun_applicable")
   isActive              Boolean                @default(true) @map("is_active")
+  
   isAutoApplied         Boolean                @default(false) @map("is_auto_applied")
   createdAt             DateTime               @default(now()) @map("created_at")
   property              Property               @relation(fields: [propertyId], references: [id], onDelete: Cascade)

@@ -152,7 +152,7 @@ export const EarlyBirdPromotionList: React.FC = () => {
                 friApplicable: payload.friApplicable,
                 satApplicable: payload.satApplicable,
                 sunApplicable: payload.sunApplicable,
-                isActive: true,
+                isActive: payload.isActive,
                 advanceBookingDays: payload.advanceBookingDays,
                 isAutoApplied: payload.isAutoApplied
             };

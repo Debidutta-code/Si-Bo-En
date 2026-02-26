@@ -2,6 +2,7 @@ import { DeviceType } from "@prisma/client";
 import { IRoomVideo } from "../../property-management/types";
 import { Decimal } from "@prisma/client/runtime/library";
 import { CurrencyCode } from "../../pms/frontoffice/payment/types";
+import { PromotionType } from "../../promotions/eb-ds-oftc/interfaces";
 
 export interface IBookingSearchPayload {
   startDate: string;
@@ -46,6 +47,11 @@ export interface IPromotion {
   friApplicable?: boolean;
   satApplicable?: boolean;
   sunApplicable?: boolean;
+
+  
+  // roomType:string|null;
+  // deviceType:DeviceType[]
+  // currencyCode:CurrencyCode|null;
 }
 
 export interface IRoomPrice {

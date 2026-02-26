@@ -74,6 +74,7 @@ export interface UpdateDeviceSpecificPromotion {
   discountValue?: number;
   currencyCode?: CurrencyCode;
   validFrom?: string;
+    deviceType: DeviceType[];
   validTo?: string | null;
   monApplicable?: boolean;
   tueApplicable?: boolean;

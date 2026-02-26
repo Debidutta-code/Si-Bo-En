@@ -37,7 +37,7 @@ export interface IDeviceSpecificPromotionUpdate {
   discountType?: DiscountType;
   discountValue?: number;
   currencyCode?: CurrencyCode;
-  deviceType?: DeviceType[];
+  deviceType: DeviceType[];
   monApplicable?: boolean;
   tueApplicable?: boolean;
   wedApplicable?: boolean;

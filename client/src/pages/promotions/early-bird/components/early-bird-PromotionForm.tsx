@@ -47,6 +47,7 @@ const defaultPromotion = (propertyId: string): CreateEarlyBirdPromotion => ({
   sunApplicable: true,
   advanceBookingDays: 7,
   isAutoApplied: false,
+  isActive:false
 });
 
 const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
@@ -111,6 +112,7 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
         sunApplicable: editData.applicableDays.sunday,
         advanceBookingDays: editData.advanceBookingDays || 7,
         isAutoApplied: editData.isAutoApplied,
+        isActive: editData.isActive
       });
       setHasEndDate(!!editData.validTo);
 
@@ -891,11 +893,11 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
           <input
             type="checkbox"
             id="isActive"
-            checked={earlyBirdPromotion.isAutoApplied}
+            checked={earlyBirdPromotion.isActive}
             onChange={(e) =>
               setEarlyBirdPromotion({
                 ...earlyBirdPromotion,
-                isAutoApplied: e.target.checked,
+                isActive: e.target.checked,
               })
             }
             className="w-5 h-5 text-primary border-border rounded focus:ring-2 focus:ring-primary"
@@ -906,7 +908,7 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
           >
             Active Status
             <span className="block text-xs text-muted-foreground font-normal mt-0.5">
-              {earlyBirdPromotion.isAutoApplied
+              {earlyBirdPromotion.isActive
                 ? "This promotion is currently active"
                 : "This promotion is currently inactive"}
             </span>

@@ -136,6 +136,7 @@ const DeviceSpecificPromotionForm: React.FC<
   };
 
   const handleDeviceToggle = (device: DeviceType) => {
+    
     const prev = devicePromotion.deviceType;
     if (prev.includes(device)) {
       if (prev.length === 1) return;

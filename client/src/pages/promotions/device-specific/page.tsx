@@ -120,6 +120,7 @@ export const DeviceSpecificPromotionList: React.FC = () => {
         discountType: payload.discountType,
         discountValue: payload.discountValue,
         currencyCode: payload.currencyCode,
+        deviceType: payload.deviceType,
         validFrom: payload.validFrom,
         validTo: payload.validTo,
         monApplicable: payload.monApplicable,

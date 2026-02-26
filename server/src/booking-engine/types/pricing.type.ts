@@ -10,6 +10,7 @@ import {
     CurrencyCode,
     IGeoRatePlan,
     IGeoRatePlanWithoutRatePlan,
+    restrictionTypeAction,
 } from '../../promotions/geo-rate-plan/interfaces';
 import { IMLOS } from '../../promotions/mlos/interfaces';
 import {
@@ -205,7 +206,8 @@ export interface PromotionBrakeDown{
     name:string;
     discountType:DiscountType;
     discountValue:number;
-    currencyCode:CurrencyCode;
+    currencyCode:CurrencyCode|null;
     discountAmount:number;
+    restrictionType:restrictionTypeAction
     
 }
