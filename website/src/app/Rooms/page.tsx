@@ -588,6 +588,7 @@ const Rooms = () => {
               children: 0,
             },
             location: parsedContext.location || "",
+            promocode: parsedContext.promocode || "",
             numberOfRooms:
               parsedContext.numberOfRooms || parsedContext.guests?.rooms || 1,
           };

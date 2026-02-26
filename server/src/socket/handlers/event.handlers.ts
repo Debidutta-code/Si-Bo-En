@@ -4,9 +4,10 @@ import { Socket } from 'socket.io';
 import { ConnectionManager } from '../managers/connection.manager';
 import { SOCKET_EVENTS, ROOM_PREFIX } from '../constants';
 import { RoomJoinedResponse } from '../types';
+import redis from '../../config/redis.client';
 
 export class SocketEventHandlers {
-  constructor(private connectionManager: ConnectionManager) {}
+  constructor(private connectionManager: ConnectionManager) { }
 
   /**
    * Normalize orderReference: strip any accidental 'payment:' prefix.
@@ -31,7 +32,7 @@ export class SocketEventHandlers {
    *   - 'REF-123'           (your N-Genius flow)
    *   - 'payment:REF-123'   (her Fikafi frontend sends prefixed)
    */
-  handleJoinPaymentRoom(socket: Socket, rawInput: string): void {
+  async handleJoinPaymentRoom(socket: Socket, rawInput: string): Promise<void> {
     if (!rawInput) {
       console.error('❌ join-payment-room: orderReference missing');
       socket.emit('error', { message: 'Order reference is required' });
@@ -41,7 +42,7 @@ export class SocketEventHandlers {
     const orderReference = this.normalizeOrderReference(rawInput);
     const room = this.getRoomName(orderReference);
 
-    socket.join(room);
+    await socket.join(room);
 
     this.connectionManager.addConnection(orderReference, socket.id);
 
@@ -53,6 +54,29 @@ export class SocketEventHandlers {
     };
 
     socket.emit(SOCKET_EVENTS.ROOM_JOINED, response);
+
+    // Check if payment was already confirmed while client was away
+    // Use GETDEL for atomic get + delete - prevents double delivery
+    const cached = await redis.getdel(`payment:confirmed:${orderReference}`);
+    if (cached) {
+      console.log(`🔑 Redis cache hit for ${orderReference} - emitting immediately`);
+      const paymentData = JSON.parse(cached);
+
+      // Universal mapping logic to handle native statuses and Fikafi developer's statuses
+      const rawStatus = paymentData.status || 'success';
+      const successStates = ['success', 'PAID', 'SUCCESS', 'COMPLETED', 'APPROVED', 'CONFIRMED'];
+      const failedStates = ['failed', 'FAILED', 'DECLINED', 'CANCELLED'];
+
+      const status = successStates.includes(rawStatus) ? 'success' : (failedStates.includes(rawStatus) ? 'failed' : 'pending');
+
+      socket.emit('payment-status-update', {
+        orderReference,
+        eventName: paymentData.eventName || 'payment-status-update',
+        status,
+        message: paymentData.message || (status === 'failed' ? 'Payment failed' : 'Payment successful'),
+        paymentDetails: paymentData.paymentDetails || paymentData,
+      });
+    }
   }
 
   /**
@@ -68,7 +92,7 @@ export class SocketEventHandlers {
     const room = this.getRoomName(orderReference);
 
     socket.leave(room);
-    
+
     this.connectionManager.removeConnection(orderReference, socket.id);
 
     console.log(`📌 Socket ${socket.id} left room: ${room}`);

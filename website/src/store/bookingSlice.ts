@@ -10,6 +10,7 @@ interface BookingEngineConfig {
   buttonTextColor: string;
   bannerImage: string;
   logo: string;
+  url: string;
 }
 
 interface PropertyAddress {
@@ -78,6 +79,7 @@ export interface BookingEngineColor {
   buttonTextColor: string;
   bgImage?: string;
   logo?: string;
+  url?: string;
 }
 
 interface FinalPrice {

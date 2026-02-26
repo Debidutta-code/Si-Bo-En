@@ -60,11 +60,17 @@ const Navbar = () => {
   ]);
 
   const handleHomeClick = () => {
-    let url = senderUrl;
+    // 1. Try booking engine config URL first
+    const bookingEngineUrl = bookingContext?.PropertyDetails?.bookingEngineConfig?.url
+      || bookingContext?.bookingEngineColor?.url;
+
+    // 2. Then try senderUrl from redux/session
+    let url = bookingEngineUrl || senderUrl;
     if (!url) {
       url = sessionStorage.getItem("senderUrl") || undefined;
       if (url) dispatch(setSenderUrl(url));
     }
+
     if (url) {
       window.location.href = url;
     } else {
@@ -220,7 +226,7 @@ const Navbar = () => {
               </svg>
               My Booking
             </button>
-            
+
           </div>
         )}
       </div>

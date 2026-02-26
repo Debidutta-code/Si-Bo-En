@@ -289,10 +289,24 @@ export class ReservationService {
                     propertyIntegration?.MasterIntegration?.name ?? null;
             }
             console.log("active", activeIntegrationName)
+
+            // Check if payment gateway is Fikafi - if so, payment is pending until webhook confirms
+            const isFikafiPayment = payload.bankDetails?.selectedPaymentIntegrations?.paymentIntegration?.name === 'fikafi';
+
             let paidAmount = 0;
+            let initialBookingStatus: 'pending' | 'confirmed' = 'confirmed';
+
             if (paymentMethods === 'payment_gateway') {
-                paidAmount = finalPrice.totalAmount;
+                if (isFikafiPayment) {
+                    // For Fikafi, payment is pending until webhook confirms successful payment
+                    paidAmount = 0;
+                    initialBookingStatus = 'pending';
+                } else {
+                    // For other payment gateways (like N-Genius), payment is confirmed immediately
+                    paidAmount = finalPrice.totalAmount;
+                }
             }
+
             const reservationPayload: ICReservation = {
                 bookingCode,
                 propertyId,
@@ -322,7 +336,7 @@ export class ReservationService {
                 paymentMethod: paymentMethods,
                 paymentImages: null,
 
-                bookingStatus: 'confirmed',
+                bookingStatus: initialBookingStatus,
                 cancellationReason: null,
                 deviceTypes: payload.deviceTypes || 'desktop',
                 bookingSource: bookingSource || 'direct',

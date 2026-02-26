@@ -183,6 +183,9 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
       if (bookingContext.endDate) {
         setCheckOut(new Date(bookingContext.endDate));
       }
+      if (bookingContext.promocode) {
+        setPromocode(bookingContext.promocode);
+      }
       if (bookingContext.guests) {
         const g = bookingContext.guests;
         let totalAdults = 0;
@@ -316,78 +319,41 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
 
   const router = useRouter();
 
+  const promocodeRef = useRef(promocode);
+  useEffect(() => {
+    promocodeRef.current = promocode;
+  }, [promocode]);
+
   const handleSearch = async () => {
     if (!checkIn || !checkOut) {
       toast.error("Please select valid check-in and check-out dates.");
       return;
-    } else if (checkOut <= checkIn) {
+    }
+    if (checkOut <= checkIn) {
       toast.error("Check-out date must be after check-in date.");
       return;
     }
 
-    setLoading(true);
-
     const payload = {
+      ...bookingContext,
       startDate: checkIn.toISOString().split("T")[0],
       endDate: checkOut.toISOString().split("T")[0],
       guests: guestInfo,
       PropertyCode: hotelcode,
-      promocode: promocode,
+      promocode: promocodeRef.current, // ✅ always fresh, no stale closure
     };
 
-    try {
-      if (onSearchStart) {
-        onSearchStart(payload);
-      }
+    // ✅ Single source of truth — Redux only, no localStorage
+    dispatch(setBookingContext(payload));
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/fetch-rooms`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        },
-      );
-      const data = await response.json();
+    if (onSearchStart) {
+      onSearchStart(payload); // ✅ Rooms.tsx does the one and only fetch
+    }
 
-      if (!response.ok || data.status === "fail") {
-        const msg = data.message || "Failed to load rooms.";
-        toast.error(msg);
-        return;
-      }
-
-      const fullContext = {
-        ...bookingContext,
-        ...payload,
-        hotelName: data?.propertyName || "Hotel",
-        PropertyDetails: data.propertyDetails,
-        bookingEngineColor: data.bookingEngineColor,
-      };
-      dispatch(setBookingContext(fullContext));
-
-      const localContext = {
-        startDate: payload.startDate,
-        endDate: payload.endDate,
-        guests: payload.guests,
-        PropertyCode: payload.PropertyCode,
-        hotelName: fullContext.hotelName,
-      };
-
-      localStorage.setItem("bookingContext", JSON.stringify(localContext));
-      dispatch({ type: "rooms/setRooms", payload: data.data || [] });
-
-      const queryParams = new URLSearchParams({ code: hotelcode });
-      if (PathName === "/") {
-        router.push(`Rooms/?${queryParams.toString()}`);
-      }
-    } catch (err: any) {
-      console.error(err);
-      toast.error(err.message || "Something went wrong");
-    } finally {
-      setLoading(false);
+    if (PathName === "/") {
+      router.push(`Rooms/?${new URLSearchParams({ code: hotelcode }).toString()}`);
     }
   };
-
   useEffect(() => {
     if (typeof window !== "undefined") {
       const storedContext = window.localStorage.getItem("bookingContext");
@@ -611,7 +577,10 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
               <input
                 type="text"
                 value={promocode}
-                onChange={(e) => setPromocode(e.target.value)}
+                onChange={(e) => {
+                  setPromocode(e.target.value);
+                  promocodeRef.current = e.target.value; // ✅ sync immediately, no useEffect lag
+                }}
                 placeholder="PROMO CODE"
                 className="bg-transparent border-b-2 pb-2 text-[10px] tracking-[0.15em] placeholder-[#9B8B6F] focus:outline-none transition-colors w-full"
                 style={{ borderColor: tertiaryColor, color: tertiaryColor }}

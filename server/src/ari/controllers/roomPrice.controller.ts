@@ -58,7 +58,7 @@ export class RoomRentCalculationController {
       }
 
       // Get user's geo-location from IP
-      const geoDetails = getGeoLocationDetails(req);
+      const geoDetails = await getGeoLocationDetails(req);
       const userCountryCode = geoDetails.country !== 'Unknown' ? geoDetails.country : undefined;
 
       // console.log('User geo-location:', {

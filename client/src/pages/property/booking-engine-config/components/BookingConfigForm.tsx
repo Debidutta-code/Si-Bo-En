@@ -62,7 +62,7 @@ const handleUploadSuccess = (urls: string[]) => {
       <div className="space-y-6">
         <Card className="p-6">
           <div>
-            <h2 className="text-xl font-bold ">Booking Engine URL</h2>
+            <h2 className="text-xl font-bold ">Hotel Website URL</h2>
             <input
               type="text"
               placeholder="Paste url here"

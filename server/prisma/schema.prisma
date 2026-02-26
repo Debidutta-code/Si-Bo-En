@@ -732,15 +732,16 @@ model RatePlan {
 model BookingOffset {
   id String @id @default(uuid())
 
-  propertyId String   @map("property_id")
+  propertyId String @map("property_id")
 
-  ratePlanCode String   @map("rate_plan_code")
-  ratePlanId   String   @map("rate_plan_id")
-  ratePlanName String   @map("rate_plan_name")
+  ratePlanCode                String @map("rate_plan_code")
+  ratePlanId                  String @map("rate_plan_id")
+  ratePlanName                String @map("rate_plan_name")
   //these payments are to be set in hours format
   // for booking
-  minimumAdvanceBookingOffset Int? @map("minimum_advance_booking_offset")
-  maximumAdvanceBookingOffset Int? @map("maximum_advance_booking_offset")
+  minimumAdvanceBookingOffset Int?   @map("minimum_advance_booking_offset")
+  maximumAdvanceBookingOffset Int?   @map("maximum_advance_booking_offset")
+
   // for amend
   minimumAmendBookingOffset Int? @map("minimum_amend_booking_offset")
   maximumAmendBookingOffset Int? @map("maximum_amend_booking_offset")
@@ -753,10 +754,10 @@ model BookingOffset {
 
   createdAt DateTime @default(now())
 
+  ratePlan RatePlan @relation(fields: [ratePlanCode], references: [ratePlanCode], onDelete: Cascade)
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
-  ratePlan     RatePlan @relation(fields: [ratePlanCode], references: [ratePlanCode], onDelete: Cascade)
-  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-@@unique([ratePlanId,date])
+  @@unique([ratePlanId, date])
   @@map("booking_offsets")
 }
 
@@ -805,7 +806,7 @@ model BookingEngineConfigurations {
   buttonTextColor String   @map("button_text_color")
   bannerImage     String?  @map("banner_image")
   logo            String
-  url             String   @map("website_url")
+  url             String?  @map("website_url")
 
   @@map("booking_engine_configurations")
 }
@@ -829,12 +830,12 @@ model PromoCode {
   isApplicableForDesktop   Boolean @default(false) @map("is_applicable_for_desktop")
   isApplicableForTablet    Boolean @default(false) @map("is_applicable_for_tablet")
 
-  isApplicableForWalkIn    Boolean @default(false) @map("is_applicable_for_walk_in")
-  isApplicableForOTA       Boolean @default(false) @map("is_applicable_for_ota")
-  isApplicableForCorporate Boolean @default(false) @map("is_applicable_for_corporate")
+  // isApplicableForWalkIn    Boolean @default(false) @map("is_applicable_for_walk_in")
+  // isApplicableForOTA       Boolean @default(false) @map("is_applicable_for_ota")
+  // isApplicableForCorporate Boolean @default(false) @map("is_applicable_for_corporate")
 
   usageLimit          Int?          @map("usage_limit")
-  usageLimitPerUser   Int?          @map("usage_limit_per_user")
+  // usageLimitPerUser   Int?          @map("usage_limit_per_user")
   applicableRoomTypes Json[]        @map("applicable_room_types")
   applicableRatePlans Json[]        @map("applicable_rate_plans")
   isActive            Boolean       @default(true) @map("is_active")
@@ -1490,30 +1491,30 @@ enum PromotionType {
 }
 
 model Promotion {
-  id                    String                 @id @default(uuid())
-  promotionName         String                 @map("promotion_name")
-  propertyId            String                 @map("property_id")
-  validFrom             DateTime?              @map("valid_from")
-  validTo               DateTime?              @map("valid_to")
-  advanceBookingDays    Int?                   @default(0) @map("advance_booking_days")
-  promotionType         PromotionType          @map("promotion_type")
-  roomId                String?                @map("room_id")
-  roomType              String?                @map("room_type")
-  deviceType            DeviceType[]           @default([]) @map("device_type")
-  ratePlanId            String                 @map("rate_plan_id")
-  ratePlanCode          String                 @map("rate_plan_code")
-  discountType          DiscountType           @default(percentage) @map("discount_type")
-  discountValue         Decimal?               @map("discount_value")
-  currencyCode          CurrencyCode?          @default(USD) @map("currency_code")
-  monApplicable         Boolean                @default(true) @map("mon_applicable")
-  tueApplicable         Boolean                @default(true) @map("tue_applicable")
-  wedApplicable         Boolean                @default(true) @map("wed_applicable")
-  thuApplicable         Boolean                @default(true) @map("thu_applicable")
-  friApplicable         Boolean                @default(true) @map("fri_applicable")
-  satApplicable         Boolean                @default(true) @map("sat_applicable")
-  sunApplicable         Boolean                @default(true) @map("sun_applicable")
-  isActive              Boolean                @default(true) @map("is_active")
-  
+  id                 String        @id @default(uuid())
+  promotionName      String        @map("promotion_name")
+  propertyId         String        @map("property_id")
+  validFrom          DateTime?     @map("valid_from")
+  validTo            DateTime?     @map("valid_to")
+  advanceBookingDays Int?          @default(0) @map("advance_booking_days")
+  promotionType      PromotionType @map("promotion_type")
+  roomId             String?       @map("room_id")
+  roomType           String?       @map("room_type")
+  deviceType         DeviceType[]  @default([]) @map("device_type")
+  ratePlanId         String        @map("rate_plan_id")
+  ratePlanCode       String        @map("rate_plan_code")
+  discountType       DiscountType  @default(percentage) @map("discount_type")
+  discountValue      Decimal?      @map("discount_value")
+  currencyCode       CurrencyCode? @default(USD) @map("currency_code")
+  monApplicable      Boolean       @default(true) @map("mon_applicable")
+  tueApplicable      Boolean       @default(true) @map("tue_applicable")
+  wedApplicable      Boolean       @default(true) @map("wed_applicable")
+  thuApplicable      Boolean       @default(true) @map("thu_applicable")
+  friApplicable      Boolean       @default(true) @map("fri_applicable")
+  satApplicable      Boolean       @default(true) @map("sat_applicable")
+  sunApplicable      Boolean       @default(true) @map("sun_applicable")
+  isActive           Boolean       @default(true) @map("is_active")
+
   isAutoApplied         Boolean                @default(false) @map("is_auto_applied")
   createdAt             DateTime               @default(now()) @map("created_at")
   property              Property               @relation(fields: [propertyId], references: [id], onDelete: Cascade)
@@ -1617,8 +1618,8 @@ model TouristTaxes {
   id String @id @default(uuid())
 
   name          String? //remove this ? when there is a need for db push
-  ratePlanId    String @unique  @map("rate_plan_id")
-  ratePlanCode  String @unique  @map("rate_plan_code")
+  ratePlanId    String   @unique @map("rate_plan_id")
+  ratePlanCode  String   @unique @map("rate_plan_code")
   discountValue Decimal? @map("discount_value")
 
   createdAt DateTime @default(now()) @map("created_at")

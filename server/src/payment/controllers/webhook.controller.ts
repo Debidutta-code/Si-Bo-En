@@ -46,16 +46,12 @@ export class WebhookController {
 
       if (secretKey) {
         // Encrypted payload - decrypt it
-        console.log('🔓 Decrypting webhook payload...');
-
         // For encrypted payloads, the body will be a string
         const encryptedData = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
 
         try {
           payload = webhookService.decryptPayload(encryptedData, secretKey);
-          console.log('✅ Payload decrypted successfully');
         } catch (decryptError) {
-          console.error('❌ Decryption failed:', decryptError);
           res.status(400).json({
             success: false,
             message: 'Failed to decrypt webhook payload',
@@ -64,16 +60,14 @@ export class WebhookController {
         }
       } else {
         // Unencrypted payload - use as is
-        console.log('📄 Processing unencrypted webhook payload');
         payload = req.body as NGeniusWebhookPayload;
       }
 
       // Process the webhook event (log it)
-      webhookService.processWebhookEvent(payload);
+      await webhookService.processWebhookEvent(payload);
 
       // Calculate processing time
       const processingTime = Date.now() - startTime;
-      console.log(`⏱️  Processing time: ${processingTime}ms`);
 
       // Respond with 200 OK (within 15 seconds as required)
       res.status(200).json({
@@ -84,8 +78,6 @@ export class WebhookController {
         processingTime: `${processingTime}ms`,
       });
     } catch (error) {
-      console.error('❌ Error processing webhook:', error);
-
       // Still respond with 200 to acknowledge receipt
       // (N-Genius doesn't retry, so we should acknowledge even on error)
       res.status(200).json({
@@ -106,8 +98,6 @@ export class WebhookController {
     next: NextFunction
   ): Promise<void> {
     try {
-      console.log('🧪 Test webhook triggered from Postman');
-
       if (!req.body || Object.keys(req.body).length === 0) {
         res.status(400).json({
           success: false,
@@ -119,9 +109,7 @@ export class WebhookController {
       // Use payload directly from request body
       const payload = req.body as NGeniusWebhookPayload;
 
-      console.log('📦 Incoming test webhook payload:', payload);
-
-      webhookService.processWebhookEvent(payload);
+      await webhookService.processWebhookEvent(payload);
 
       res.status(200).json({
         success: true,

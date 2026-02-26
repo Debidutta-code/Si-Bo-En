@@ -3,6 +3,7 @@ import * as crypto from 'crypto';
 import { NGeniusWebhookPayload } from '../types/webhook.types';
 import { socketManager } from '../../socket';
 import { prisma } from '../../config/db.config';
+import redis from '../../config/redis.client';
 
 class WebhookService {
   /**
@@ -46,7 +47,6 @@ class WebhookService {
 
       return payload;
     } catch (error) {
-      console.error('Error decrypting webhook payload:', error);
       throw new Error('Failed to decrypt webhook payload');
     }
   }
@@ -56,34 +56,11 @@ class WebhookService {
    * 
    * @param payload - Webhook payload
    */
-  processWebhookEvent(payload: NGeniusWebhookPayload): void {
-    //console.log('========================================');
-    //console.log('📥 N-Genius Webhook Event Received');
-    //console.log('========================================');
-    //console.log('Event ID:', payload.eventId);
-    //console.log('Event Name:', payload.eventName);
-    //console.log('Outlet ID:', payload.outletId);
-    //console.log('Order Reference:', payload.order.reference);
-    //console.log('Order ID:', payload.order._id);
-    //console.log('Order Action:', payload.order.action);
-    //console.log('Amount:', `${payload.order.amount.value} ${payload.order.amount.currencyCode}`);
-
+  async processWebhookEvent(payload: NGeniusWebhookPayload): Promise<void> {
     // Extract payment details if available
     let paymentDetails: any = null;
     if (payload.order._embedded?.payment && payload.order._embedded.payment.length > 0) {
       const payment = payload.order._embedded.payment[0];
-      //console.log('Payment State:', payment.state);
-      //console.log('Payment Reference:', payment.reference);
-
-      if (payment.paymentMethod) {
-        //console.log('Payment Method:', payment.paymentMethod.name);
-        //console.log('Card PAN:', payment.paymentMethod.pan);
-      }
-
-      if (payment.authResponse) {
-        //console.log('Auth Code:', payment.authResponse.authorizationCode);
-        //console.log('Auth Result:', payment.authResponse.resultMessage);
-      }
 
       paymentDetails = {
         state: payment.state,
@@ -93,15 +70,36 @@ class WebhookService {
       };
     }
 
-    //console.log('========================================');
-
     // Determine payment status
     const status = this.determinePaymentStatus(payload.eventName);
     const message = this.getStatusMessage(payload.eventName);
 
     // Emit to Socket.IO
     const orderReference = payload.order.reference;
-    //console.log(`🔔 Emitting payment update for order: ${orderReference}`);
+
+    // Store payment result in Redis if terminal (success/failed) (TTL: 10 minutes)
+    if (status === 'success' || status === 'failed') {
+      const redisKey = `payment:confirmed:${orderReference}`;
+      const redisValue = JSON.stringify({
+        amount: payload.order.amount?.value,
+        status,
+        eventName: payload.eventName,
+        message,
+        confirmedAt: Date.now(),
+        paymentDetails: {
+          amount: payload.order.amount?.value,
+          status,
+          ...paymentDetails
+        }
+      });
+
+      try {
+        await redis.set(redisKey, redisValue, 'EX', 600);
+        console.log(`✅ Payment result (${status}) stored in Redis for ${orderReference}`);
+      } catch (err: any) {
+        console.error(`❌ Failed to store payment result in Redis for ${orderReference}`, err);
+      }
+    }
 
     socketManager.emitPaymentUpdate(orderReference, {
       orderReference,
@@ -109,14 +107,15 @@ class WebhookService {
       status,
       message,
       eventId: payload.eventId,
-      paymentDetails,
+      paymentDetails: {
+        amount: payload.order.amount?.value,
+        status,
+        ...paymentDetails
+      },
     });
 
     // Update database status
     this.updatePaymentDatabase(orderReference, status);
-
-    //console.log('✅ Webhook Event Processed & Emitted to Socket.IO');
-    //console.log('========================================');
   }
 
   /**
@@ -137,11 +136,9 @@ class WebhookService {
   - Order Reference: ${orderReference}
   - Status Updated To: ${dbStatus}
   - Records Affected: ${updateResult.count}`);
-      } else {
-        console.warn(`⚠️ No payment record found in database for order reference: ${orderReference}. Status was not updated to ${dbStatus}.`);
       }
     } catch (error) {
-      console.error(`❌ Database Error updating payment status for order ${orderReference}:`, error);
+      // Error logging removed as per request
     }
   }
 
@@ -209,23 +206,19 @@ class WebhookService {
   validateWebhookRequest(body: any, headers: any): boolean {
     // Basic validation - ensure body is not empty
     if (!body) {
-      console.error('Webhook validation failed: Empty body');
       return false;
     }
 
     // If encrypted, ensure secret header is present
     if (headers['x-webhook-secret']) {
-      //console.log('🔒 Encrypted webhook detected');
       return true;
     }
 
     // If not encrypted, check if it's a valid JSON payload
     if (typeof body === 'object' && body.eventId && body.eventName && body.order) {
-      //console.log('📄 Unencrypted webhook detected');
       return true;
     }
 
-    console.error('Webhook validation failed: Invalid payload structure');
     return false;
   }
 }

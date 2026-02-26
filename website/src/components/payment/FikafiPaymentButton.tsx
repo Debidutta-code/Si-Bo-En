@@ -42,11 +42,6 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
   const [paymentLink, setPaymentLink] = useState<string | null>(null);
   const socketRef = useRef<any>(null);
 
-  // Generate a unique booking reference
-  const generateBookingRef = useCallback(() => {
-    return `BKGY${Math.random().toString(36).substr(2, 8).toUpperCase()}`;
-  }, []);
-
   // Initialize socket connection for payment updates
   const initializeSocket = useCallback((ref: string) => {
     const init = async () => {
@@ -115,8 +110,16 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
       //console.log("💰 Amount:", amount, currency);
       //console.log("👤 Guest:", guestName);
 
-      // Generate unique references
-      const bookingRefNum = bookingCode || generateBookingRef();
+      // Require booking code - reservation must exist first
+      if (!bookingCode) {
+        toast.error("Please confirm your booking first before payment");
+        onPaymentError?.("Booking code is required - reservation must exist");
+        setLoading(false);
+        return;
+      }
+
+      // Use the provided booking code (reservation already exists)
+      const bookingRefNum = bookingCode;
       
       console.log("📋 Booking Ref:", bookingRefNum);
 
@@ -139,7 +142,7 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
           country: "IN"
         },
         bookingDetails: {
-          propertyID: "KSA_MUK_01",
+          propertyID: propertyID,
           referenceDetails: bookingRefNum,
           communicationMode: guestEmail ? "EMAIL" : "WHATSAPP",
           arrivalDate: checkInDate,
@@ -251,13 +254,18 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
   return (
     <button
       onClick={handleFikafiPayment}
-      disabled={loading}
+      disabled={loading || !bookingCode}
       className={`flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white font-medium py-3 px-6 rounded-lg transition-colors ${className}`}
     >
       {loading ? (
         <>
           <Loader2 className="w-5 h-5 animate-spin" />
           Processing Payment...
+        </>
+      ) : !bookingCode ? (
+        <>
+          <CreditCard className="w-5 h-5" />
+          Confirm Booking First
         </>
       ) : (
         <>

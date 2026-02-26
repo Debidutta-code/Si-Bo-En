@@ -60,7 +60,11 @@ export class RoomBookingRepository {
             },
         });
     }
-
+    public static async getPromoCodeByPropertyAndCode(propertyId: string, code: string) {
+        return prisma.promoCode.findUnique({
+            where: { code, propertyId, isDeleted: false },
+        });
+    }
     public static async getCharges(
         propertyCode: string,
         roomTypeCode: string,

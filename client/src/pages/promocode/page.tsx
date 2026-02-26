@@ -54,11 +54,11 @@ export default function PromoCodePage() {
         isApplicableForMobileApp: true,
         isApplicableForDesktop: true,
         isApplicableForTablet: true,
-        isApplicableForWalkIn: true,
-        isApplicableForOTA: true,
-        isApplicableForCorporate: true,
+        // isApplicableForWalkIn: true,
+        // isApplicableForOTA: true,
+        // isApplicableForCorporate: true,
         usageLimit: null,
-        usageLimitPerUser: null,
+        // usageLimitPerUser: null,
         applicableRoomTypes: [],
         applicableRatePlans: [],
     });
@@ -185,11 +185,11 @@ export default function PromoCodePage() {
             isApplicableForMobileApp: promoCode.isApplicableForMobileApp,
             isApplicableForDesktop: promoCode.isApplicableForDesktop,
             isApplicableForTablet: promoCode.isApplicableForTablet,
-            isApplicableForWalkIn: promoCode.isApplicableForWalkIn,
-            isApplicableForOTA: promoCode.isApplicableForOTA,
-            isApplicableForCorporate: promoCode.isApplicableForCorporate,
+            // isApplicableForWalkIn: promoCode.isApplicableForWalkIn,
+            // isApplicableForOTA: promoCode.isApplicableForOTA,
+            // isApplicableForCorporate: promoCode.isApplicableForCorporate,
             usageLimit: promoCode.usageLimit,
-            usageLimitPerUser: promoCode.usageLimitPerUser,
+            // usageLimitPerUser: promoCode.usageLimitPerUser,
             applicableRoomTypes: promoCode.applicableRoomTypes,
             applicableRatePlans: promoCode.applicableRatePlans,
         });
@@ -218,11 +218,11 @@ export default function PromoCodePage() {
             isApplicableForMobileApp: true,
             isApplicableForDesktop: true,
             isApplicableForTablet: true,
-            isApplicableForWalkIn: true,
-            isApplicableForOTA: true,
-            isApplicableForCorporate: true,
+            // isApplicableForWalkIn: true,
+            // isApplicableForOTA: true,
+            // isApplicableForCorporate: true,
             usageLimit: null,
-            usageLimitPerUser: null,
+            // usageLimitPerUser: null,
             applicableRoomTypes: [],
             applicableRatePlans: [],
         });
@@ -415,7 +415,7 @@ export default function PromoCodePage() {
                                             placeholder="Unlimited"
                                         />
                                     </div>
-                                    <div className="space-y-2">
+                                    {/* <div className="space-y-2">
                                         <Label htmlFor="usageLimitPerUser">Usage Limit Per User</Label>
                                         <Input
                                             id="usageLimitPerUser"
@@ -425,7 +425,7 @@ export default function PromoCodePage() {
                                             onChange={(e) => setFormData({ ...formData, usageLimitPerUser: e.target.value ? parseInt(e.target.value) : null })}
                                             placeholder="Unlimited"
                                         />
-                                    </div>
+                                    </div> */}
                                 </div>
                             </div>
 
@@ -470,10 +470,10 @@ export default function PromoCodePage() {
                                     </div>
                                 </div>
                             </div>
-
+{/* 
                             <Separator />
 
-                            {/* Booking Source Applicability */}
+                           
                             <div className="space-y-4">
                                 <h3 className="text-lg font-semibold">Booking Source Applicability</h3>
                                 <div className="space-y-3">
@@ -502,9 +502,9 @@ export default function PromoCodePage() {
                                         />
                                     </div>
                                 </div>
-                            </div>
+                            </div>*/}
 
-                            <Separator />
+                            <Separator /> 
 
                             {/* Room Type Applicability */}
                             <div className="space-y-4">

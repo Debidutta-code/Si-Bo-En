@@ -392,7 +392,7 @@ export default function MyTripPage() {
             <div>
               <p className="text-gray-500 font-medium">Payment Method</p>
               <p className="text-purple-700 capitalize">
-                {bookingData.paymenttype || "Pay at Hotel"}
+                {bookingData.paymentMethod?.replace(/_/g, ' ') || "Pay at Hotel"}
               </p>
             </div>
             <div>
