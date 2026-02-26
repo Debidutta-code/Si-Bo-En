@@ -28,7 +28,7 @@ export class PricingController {
                 parsedAddons,
                 promotions,
                 guestEmail,
-                promoCode
+                promoCode,
             } = req.body;
 
             const propertyId = req.property?.id;
@@ -90,23 +90,21 @@ export class PricingController {
             const deviceInfo = getDeviceInfo(req);
             const detectedDeviceType = deviceInfo.deviceType;
 
-            
-
-            const response =await this.pricingService.getRoomRentService(
+            const response = await this.pricingService.getRoomRentService(
                 propertyId,
-                        invTypeCode,
-                        startDate,
-                        endDate,
-                        ratePlanCode,
-                        rooms,
-                        adults,
-                        children?children:0,
-                        guestEmail?guestEmail:"",
-                        userCountryCode?userCountryCode:"",
-                        detectedDeviceType?detectedDeviceType:"",
-                        promotions?promotions:[],
-                        parsedAddons?parsedAddons:[],
-                        promoCode
+                invTypeCode,
+                startDate,
+                endDate,
+                ratePlanCode,
+                rooms,
+                adults,
+                children ? children : 0,
+                guestEmail ? guestEmail : '',
+                userCountryCode ? userCountryCode : '',
+                detectedDeviceType ? detectedDeviceType : '',
+                promotions ? promotions : [],
+                parsedAddons ? parsedAddons : [],
+                promoCode
             );
 
             return res.status(response.success ? 200 : 400).json(response);
