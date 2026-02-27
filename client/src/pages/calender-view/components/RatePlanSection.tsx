@@ -1,9 +1,3 @@
-// components/RatePlanSection.tsx
-// ✅ CHANGES MADE:
-// 1. Added "Save Rate Plan Changes" label in left column when there are pending LOS changes
-// 2. Updated saveLOSChanges call to pass ratePlanType as the new ratePlanCode parameter
-// 3. Made Min/Max LOS inputs read-only in data section (removed ability to edit directly)
-// 4. Kept bulk input functionality in the labels section
 
 import React, { useState, useEffect } from "react";
 import {
@@ -143,6 +137,141 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
       const offsetDate = new Date(offset.date).toISOString().split("T")[0];
       return offsetDate === day.fullDate;
     });
+  };
+
+  // ============================================
+  // PER-CELL UNIT STATE  (key = `${field}-${dayIndex}`)
+  // ============================================
+  type OffsetField =
+    | "maximumAdvanceBookingOffset"
+    | "minimumAdvanceBookingOffset"
+    | "maximumAmendBookingOffset"
+    | "minimumAmendBookingOffset"
+    | "maximumCancelBookingOffset"
+    | "minimumCancelBookingOffset";
+
+  type CellUnitKey = `${OffsetField}-${number}`;
+  const [cellUnits, setCellUnits] = useState<Map<CellUnitKey, "hours" | "days">>(new Map());
+
+  const getCellUnit = (field: OffsetField, dayIndex: number): "hours" | "days" => {
+    return cellUnits.get(`${field}-${dayIndex}` as CellUnitKey) ?? "hours";
+  };
+
+  const setCellUnit = (field: OffsetField, dayIndex: number, unit: "hours" | "days") => {
+    setCellUnits((prev) => {
+      const next = new Map(prev);
+      next.set(`${field}-${dayIndex}` as CellUnitKey, unit);
+      return next;
+    });
+  };
+
+  // Convert hours→display value based on cell unit
+  const toDisplay = (hours: number | null | undefined, unit: "hours" | "days"): string => {
+    if (hours == null) return "";
+    if (unit === "days") {
+      // Show whole days if divisible, otherwise fractional
+      return String(hours % 24 === 0 ? hours / 24 : +(hours / 24).toFixed(2));
+    }
+    return String(hours);
+  };
+
+  // Convert user input→hours to store
+  const toHours = (val: string, unit: "hours" | "days"): string => {
+    if (val === "") return "";
+    return unit === "days" ? String(Number(val) * 24) : val;
+  };
+
+  // Build a reusable offset cell renderer
+  const renderOffsetCell = (
+    day: InventoryDay,
+    index: number,
+    field: OffsetField,
+  ) => {
+    const offset = getOffsetForDay(day);
+    const editKey = generateKey.bookingOffset(roomType, ratePlanType, index, field);
+    const edit = state.bookingOffsetEdits.get(editKey);
+    const apiValue: number | null | undefined = offset?.[field];
+    // raw value stored is always in HOURS
+    const rawHours: number | null = edit != null ? Number(edit.value) : (apiValue ?? null);
+    const unit = getCellUnit(field, index);
+    const displayValue = toDisplay(rawHours, unit);
+    const hasChanges = state.pendingChanges.has(editKey);
+
+    return (
+      <div
+        key={index}
+        className={`h-14 w-32 flex-shrink-0 flex flex-col items-center justify-center border-r border-b border-gray-300 px-1 gap-0.5 ${hasChanges ? "bg-orange-50" : "bg-purple-50"}`}
+      >
+        {/* Unit selector */}
+        <div className="flex rounded overflow-hidden border border-purple-300 text-[9px] font-semibold">
+          <button
+            onClick={() => setCellUnit(field, index, "hours")}
+            className={`px-1.5 py-0.5 transition-colors ${unit === "hours" ? "bg-purple-600 text-white" : "bg-white text-purple-600 hover:bg-purple-50"}`}
+          >
+            Hr
+          </button>
+          <button
+            onClick={() => setCellUnit(field, index, "days")}
+            className={`px-1.5 py-0.5 transition-colors ${unit === "days" ? "bg-purple-600 text-white" : "bg-white text-purple-600 hover:bg-purple-50"}`}
+          >
+            Day
+          </button>
+        </div>
+        {/* Value input + apply-to-right button */}
+        <div className="flex items-center gap-0.5">
+          <input
+            type="number"
+            min="0"
+            value={displayValue}
+            placeholder="-"
+            onChange={(e) => {
+              const newEdits = new Map(state.bookingOffsetEdits);
+              const newPending = new Set(state.pendingChanges);
+              newEdits.set(editKey, {
+                roomType,
+                ratePlan: ratePlanType,
+                dayIndex: index,
+                field,
+                value: toHours(e.target.value, unit),
+              });
+              newPending.add(editKey);
+              state.setBookingOffsetEdits(newEdits);
+              state.setPendingChanges(newPending);
+            }}
+            className={`w-14 h-7 text-center text-xs font-bold rounded border ${hasChanges ? "border-orange-400 bg-orange-50" : "border-gray-300"} focus:outline-none focus:ring-2 focus:ring-purple-400`}
+          />
+          {edit && (
+            <button
+              onClick={() => {
+                const newEdits = new Map(state.bookingOffsetEdits);
+                const newPending = new Set(state.pendingChanges);
+                days.forEach((_, idx) => {
+                  if (idx >= index) {
+                    const k = generateKey.bookingOffset(roomType, ratePlanType, idx, field);
+                    newEdits.set(k, {
+                      roomType,
+                      ratePlan: ratePlanType,
+                      dayIndex: idx,
+                      field,
+                      value: edit.value, // already stored in hours
+                    });
+                    newPending.add(k);
+                    // propagate same unit to remaining cells
+                    setCellUnit(field, idx, unit);
+                  }
+                });
+                state.setBookingOffsetEdits(newEdits);
+                state.setPendingChanges(newPending);
+              }}
+              className="p-1 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors flex-shrink-0"
+              title="Apply to remaining dates"
+            >
+              <ArrowRight className="w-3 h-3" />
+            </button>
+          )}
+        </div>
+      </div>
+    );
   };
 
   const formatDateForStartStop = (day: InventoryDay): string => {
@@ -819,11 +948,11 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                 />
               </div>
             </div>
-            {/* Cut-off Unit Toggle */}
+            {/* Cut-off Unit Toggle — applies to bulk inputs below */}
             <div className="h-10 flex border-b border-gray-300">
               <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-100">
                 <span className="font-semibold text-purple-700 text-xs">
-                  Cut-off Unit
+                  Bulk Cut-off Unit
                 </span>
               </div>
               <div className="w-40 flex items-center justify-center px-2 bg-purple-100">
@@ -1737,545 +1866,48 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
           </div>
 
           {/* Cut-off Unit Toggle Spacer (data side) */}
-          <div className="flex h-10 border-b border-gray-300 bg-purple-100">
+          {/* Cut-off section header — each cell has its own Hr/Day selector */}
+          <div className="flex h-8 border-b border-gray-300 bg-purple-100">
             {days.map((_, index) => (
               <div
                 key={index}
                 className="w-32 flex-shrink-0 border-r border-gray-300 flex items-center justify-center"
               >
-                <span className="text-[10px] text-purple-600 font-medium">
-                  {state.cutoffUnit === "days" ? "days" : "hours"}
+                <span className="text-[9px] text-purple-600 font-medium italic">
+                  Hr / Day per cell
                 </span>
               </div>
             ))}
           </div>
 
           {/* Max Booking Cut-off Data */}
-          <div className="flex h-12 border-b border-gray-300">
-            {days.map((day, index) => {
-              const offset = getOffsetForDay(day);
-              const editKey = generateKey.bookingOffset(
-                roomType,
-                ratePlanType,
-                index,
-                "maximumAdvanceBookingOffset",
-              );
-              const edit = state.bookingOffsetEdits.get(editKey);
-              const apiValue = offset?.maximumAdvanceBookingOffset;
-              const rawValue = edit ? Number(edit.value) : apiValue;
-              const displayValue =
-                rawValue != null
-                  ? state.cutoffUnit === "days"
-                    ? `${rawValue / 24}`
-                    : `${rawValue}`
-                  : "";
-              const hasChanges = state.pendingChanges.has(editKey);
-              return (
-                <div
-                  key={index}
-                  className={`h-12 w-32 flex-shrink-0 flex items-center justify-center border-r border-b border-gray-300 px-1 ${hasChanges ? "bg-orange-50" : "bg-purple-50"}`}
-                >
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="number"
-                      min="0"
-                      value={displayValue}
-                      placeholder="-"
-                      onChange={(e) => {
-                        const newEdits = new Map(state.bookingOffsetEdits);
-                        const newPending = new Set(state.pendingChanges);
-                        newEdits.set(editKey, {
-                          roomType,
-                          ratePlan: ratePlanType,
-                          dayIndex: index,
-                          field: "maximumAdvanceBookingOffset",
-                          value:
-                            state.cutoffUnit === "days"
-                              ? String(Number(e.target.value) * 24)
-                              : e.target.value,
-                        });
-                        newPending.add(editKey);
-                        state.setBookingOffsetEdits(newEdits);
-                        state.setPendingChanges(newPending);
-                      }}
-                      className={`w-14 h-7 text-center text-xs font-bold rounded border ${hasChanges ? "border-orange-400 bg-orange-50" : "border-gray-300"} focus:outline-none focus:ring-2 focus:ring-purple-400`}
-                    />
-                    {edit && (
-                      <button
-                        onClick={() => {
-                          const newEdits = new Map(state.bookingOffsetEdits);
-                          const newPending = new Set(state.pendingChanges);
-                          days.forEach((_, idx) => {
-                            if (idx >= index) {
-                              const k = generateKey.bookingOffset(
-                                roomType,
-                                ratePlanType,
-                                idx,
-                                "maximumAdvanceBookingOffset",
-                              );
-                              newEdits.set(k, {
-                                roomType,
-                                ratePlan: ratePlanType,
-                                dayIndex: idx,
-                                field: "maximumAdvanceBookingOffset",
-                                value: edit.value,
-                              });
-                              newPending.add(k);
-                            }
-                          });
-                          state.setBookingOffsetEdits(newEdits);
-                          state.setPendingChanges(newPending);
-                        }}
-                        className="p-1 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors flex-shrink-0"
-                        title="Apply to remaining dates"
-                      >
-                        <ArrowRight className="w-3 h-3" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+          <div className="flex border-b border-gray-300">
+            {days.map((day, index) => renderOffsetCell(day, index, "maximumAdvanceBookingOffset"))}
           </div>
 
           {/* Min Booking Cut-off Data */}
-          <div className="flex h-12 border-b border-gray-300">
-            {days.map((day, index) => {
-              const offset = getOffsetForDay(day);
-              const editKey = generateKey.bookingOffset(
-                roomType,
-                ratePlanType,
-                index,
-                "minimumAdvanceBookingOffset",
-              );
-              const edit = state.bookingOffsetEdits.get(editKey);
-              const apiValue = offset?.minimumAdvanceBookingOffset;
-              const rawValue = edit ? Number(edit.value) : apiValue;
-              const displayValue =
-                rawValue != null
-                  ? state.cutoffUnit === "days"
-                    ? `${rawValue / 24}`
-                    : `${rawValue}`
-                  : "";
-              const hasChanges = state.pendingChanges.has(editKey);
-              return (
-                <div
-                  key={index}
-                  className={`h-12 w-32 flex-shrink-0 flex items-center justify-center border-r border-b border-gray-300 px-1 ${hasChanges ? "bg-orange-50" : "bg-purple-50"}`}
-                >
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="number"
-                      min="0"
-                      value={displayValue}
-                      placeholder="-"
-                      onChange={(e) => {
-                        const newEdits = new Map(state.bookingOffsetEdits);
-                        const newPending = new Set(state.pendingChanges);
-                        newEdits.set(editKey, {
-                          roomType,
-                          ratePlan: ratePlanType,
-                          dayIndex: index,
-                          field: "minimumAdvanceBookingOffset",
-                          value:
-                            state.cutoffUnit === "days"
-                              ? String(Number(e.target.value) * 24)
-                              : e.target.value,
-                        });
-                        newPending.add(editKey);
-                        state.setBookingOffsetEdits(newEdits);
-                        state.setPendingChanges(newPending);
-                      }}
-                      className={`w-14 h-7 text-center text-xs font-bold rounded border ${hasChanges ? "border-orange-400 bg-orange-50" : "border-gray-300"} focus:outline-none focus:ring-2 focus:ring-purple-400`}
-                    />
-                    {edit && (
-                      <button
-                        onClick={() => {
-                          const newEdits = new Map(state.bookingOffsetEdits);
-                          const newPending = new Set(state.pendingChanges);
-                          days.forEach((_, idx) => {
-                            if (idx >= index) {
-                              const k = generateKey.bookingOffset(
-                                roomType,
-                                ratePlanType,
-                                idx,
-                                "minimumAdvanceBookingOffset",
-                              );
-                              newEdits.set(k, {
-                                roomType,
-                                ratePlan: ratePlanType,
-                                dayIndex: idx,
-                                field: "minimumAdvanceBookingOffset",
-                                value: edit.value,
-                              });
-                              newPending.add(k);
-                            }
-                          });
-                          state.setBookingOffsetEdits(newEdits);
-                          state.setPendingChanges(newPending);
-                        }}
-                        className="p-1 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors flex-shrink-0"
-                        title="Apply to remaining dates"
-                      >
-                        <ArrowRight className="w-3 h-3" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+          <div className="flex border-b border-gray-300">
+            {days.map((day, index) => renderOffsetCell(day, index, "minimumAdvanceBookingOffset"))}
           </div>
 
           {/* Max Booking Amend Cut-off Data */}
-          <div className="flex h-12 border-b border-gray-300">
-            {days.map((day, index) => {
-              const offset = getOffsetForDay(day);
-              const editKey = generateKey.bookingOffset(
-                roomType,
-                ratePlanType,
-                index,
-                "maximumAmendBookingOffset",
-              );
-              const edit = state.bookingOffsetEdits.get(editKey);
-              const apiValue = offset?.maximumAmendBookingOffset;
-              const rawValue = edit ? Number(edit.value) : apiValue;
-              const displayValue =
-                rawValue != null
-                  ? state.cutoffUnit === "days"
-                    ? `${rawValue / 24}`
-                    : `${rawValue}`
-                  : "";
-              const hasChanges = state.pendingChanges.has(editKey);
-              return (
-                <div
-                  key={index}
-                  className={`h-12 w-32 flex-shrink-0 flex items-center justify-center border-r border-b border-gray-300 px-1 ${hasChanges ? "bg-orange-50" : "bg-purple-50"}`}
-                >
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="number"
-                      min="0"
-                      value={displayValue}
-                      placeholder="-"
-                      onChange={(e) => {
-                        const newEdits = new Map(state.bookingOffsetEdits);
-                        const newPending = new Set(state.pendingChanges);
-                        newEdits.set(editKey, {
-                          roomType,
-                          ratePlan: ratePlanType,
-                          dayIndex: index,
-                          field: "maximumAmendBookingOffset",
-                          value:
-                            state.cutoffUnit === "days"
-                              ? String(Number(e.target.value) * 24)
-                              : e.target.value,
-                        });
-                        newPending.add(editKey);
-                        state.setBookingOffsetEdits(newEdits);
-                        state.setPendingChanges(newPending);
-                      }}
-                      className={`w-14 h-7 text-center text-xs font-bold rounded border ${hasChanges ? "border-orange-400 bg-orange-50" : "border-gray-300"} focus:outline-none focus:ring-2 focus:ring-purple-400`}
-                    />
-                    {edit && (
-                      <button
-                        onClick={() => {
-                          const newEdits = new Map(state.bookingOffsetEdits);
-                          const newPending = new Set(state.pendingChanges);
-                          days.forEach((_, idx) => {
-                            if (idx >= index) {
-                              const k = generateKey.bookingOffset(
-                                roomType,
-                                ratePlanType,
-                                idx,
-                                "maximumAmendBookingOffset",
-                              );
-                              newEdits.set(k, {
-                                roomType,
-                                ratePlan: ratePlanType,
-                                dayIndex: idx,
-                                field: "maximumAmendBookingOffset",
-                                value: edit.value,
-                              });
-                              newPending.add(k);
-                            }
-                          });
-                          state.setBookingOffsetEdits(newEdits);
-                          state.setPendingChanges(newPending);
-                        }}
-                        className="p-1 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors flex-shrink-0"
-                        title="Apply to remaining dates"
-                      >
-                        <ArrowRight className="w-3 h-3" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+          <div className="flex border-b border-gray-300">
+            {days.map((day, index) => renderOffsetCell(day, index, "maximumAmendBookingOffset"))}
           </div>
 
           {/* Min Booking Amend Cut-off Data */}
-          <div className="flex h-12 border-b border-gray-300">
-            {days.map((day, index) => {
-              const offset = getOffsetForDay(day);
-              const editKey = generateKey.bookingOffset(
-                roomType,
-                ratePlanType,
-                index,
-                "minimumAmendBookingOffset",
-              );
-              const edit = state.bookingOffsetEdits.get(editKey);
-              const apiValue = offset?.minimumAmendBookingOffset;
-              const rawValue = edit ? Number(edit.value) : apiValue;
-              const displayValue =
-                rawValue != null
-                  ? state.cutoffUnit === "days"
-                    ? `${rawValue / 24}`
-                    : `${rawValue}`
-                  : "";
-              const hasChanges = state.pendingChanges.has(editKey);
-              return (
-                <div
-                  key={index}
-                  className={`h-12 w-32 flex-shrink-0 flex items-center justify-center border-r border-b border-gray-300 px-1 ${hasChanges ? "bg-orange-50" : "bg-purple-50"}`}
-                >
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="number"
-                      min="0"
-                      value={displayValue}
-                      placeholder="-"
-                      onChange={(e) => {
-                        const newEdits = new Map(state.bookingOffsetEdits);
-                        const newPending = new Set(state.pendingChanges);
-                        newEdits.set(editKey, {
-                          roomType,
-                          ratePlan: ratePlanType,
-                          dayIndex: index,
-                          field: "minimumAmendBookingOffset",
-                          value:
-                            state.cutoffUnit === "days"
-                              ? String(Number(e.target.value) * 24)
-                              : e.target.value,
-                        });
-                        newPending.add(editKey);
-                        state.setBookingOffsetEdits(newEdits);
-                        state.setPendingChanges(newPending);
-                      }}
-                      className={`w-14 h-7 text-center text-xs font-bold rounded border ${hasChanges ? "border-orange-400 bg-orange-50" : "border-gray-300"} focus:outline-none focus:ring-2 focus:ring-purple-400`}
-                    />
-                    {edit && (
-                      <button
-                        onClick={() => {
-                          const newEdits = new Map(state.bookingOffsetEdits);
-                          const newPending = new Set(state.pendingChanges);
-                          days.forEach((_, idx) => {
-                            if (idx >= index) {
-                              const k = generateKey.bookingOffset(
-                                roomType,
-                                ratePlanType,
-                                idx,
-                                "minimumAmendBookingOffset",
-                              );
-                              newEdits.set(k, {
-                                roomType,
-                                ratePlan: ratePlanType,
-                                dayIndex: idx,
-                                field: "minimumAmendBookingOffset",
-                                value: edit.value,
-                              });
-                              newPending.add(k);
-                            }
-                          });
-                          state.setBookingOffsetEdits(newEdits);
-                          state.setPendingChanges(newPending);
-                        }}
-                        className="p-1 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors flex-shrink-0"
-                        title="Apply to remaining dates"
-                      >
-                        <ArrowRight className="w-3 h-3" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+          <div className="flex border-b border-gray-300">
+            {days.map((day, index) => renderOffsetCell(day, index, "minimumAmendBookingOffset"))}
           </div>
 
           {/* Max Booking Cancel Cut-off Data */}
-          <div className="flex h-12 border-b border-gray-300">
-            {days.map((day, index) => {
-              const offset = getOffsetForDay(day);
-              const editKey = generateKey.bookingOffset(
-                roomType,
-                ratePlanType,
-                index,
-                "maximumCancelBookingOffset",
-              );
-              const edit = state.bookingOffsetEdits.get(editKey);
-              const apiValue = offset?.maximumCancelBookingOffset;
-              const rawValue = edit ? Number(edit.value) : apiValue;
-              const displayValue =
-                rawValue != null
-                  ? state.cutoffUnit === "days"
-                    ? `${rawValue / 24}`
-                    : `${rawValue}`
-                  : "";
-              const hasChanges = state.pendingChanges.has(editKey);
-              return (
-                <div
-                  key={index}
-                  className={`h-12 w-32 flex-shrink-0 flex items-center justify-center border-r border-b border-gray-300 px-1 ${hasChanges ? "bg-orange-50" : "bg-purple-50"}`}
-                >
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="number"
-                      min="0"
-                      value={displayValue}
-                      placeholder="-"
-                      onChange={(e) => {
-                        const newEdits = new Map(state.bookingOffsetEdits);
-                        const newPending = new Set(state.pendingChanges);
-                        newEdits.set(editKey, {
-                          roomType,
-                          ratePlan: ratePlanType,
-                          dayIndex: index,
-                          field: "maximumCancelBookingOffset",
-                          value:
-                            state.cutoffUnit === "days"
-                              ? String(Number(e.target.value) * 24)
-                              : e.target.value,
-                        });
-                        newPending.add(editKey);
-                        state.setBookingOffsetEdits(newEdits);
-                        state.setPendingChanges(newPending);
-                      }}
-                      className={`w-14 h-7 text-center text-xs font-bold rounded border ${hasChanges ? "border-orange-400 bg-orange-50" : "border-gray-300"} focus:outline-none focus:ring-2 focus:ring-purple-400`}
-                    />
-                    {edit && (
-                      <button
-                        onClick={() => {
-                          const newEdits = new Map(state.bookingOffsetEdits);
-                          const newPending = new Set(state.pendingChanges);
-                          days.forEach((_, idx) => {
-                            if (idx >= index) {
-                              const k = generateKey.bookingOffset(
-                                roomType,
-                                ratePlanType,
-                                idx,
-                                "maximumCancelBookingOffset",
-                              );
-                              newEdits.set(k, {
-                                roomType,
-                                ratePlan: ratePlanType,
-                                dayIndex: idx,
-                                field: "maximumCancelBookingOffset",
-                                value: edit.value,
-                              });
-                              newPending.add(k);
-                            }
-                          });
-                          state.setBookingOffsetEdits(newEdits);
-                          state.setPendingChanges(newPending);
-                        }}
-                        className="p-1 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors flex-shrink-0"
-                        title="Apply to remaining dates"
-                      >
-                        <ArrowRight className="w-3 h-3" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+          <div className="flex border-b border-gray-300">
+            {days.map((day, index) => renderOffsetCell(day, index, "maximumCancelBookingOffset"))}
           </div>
 
           {/* Min Booking Cancel Cut-off Data */}
-          <div className="flex h-12 border-b border-gray-300">
-            {days.map((day, index) => {
-              const offset = getOffsetForDay(day);
-              const editKey = generateKey.bookingOffset(
-                roomType,
-                ratePlanType,
-                index,
-                "minimumCancelBookingOffset",
-              );
-              const edit = state.bookingOffsetEdits.get(editKey);
-              const apiValue = offset?.minimumCancelBookingOffset;
-              const rawValue = edit ? Number(edit.value) : apiValue;
-              const displayValue =
-                rawValue != null
-                  ? state.cutoffUnit === "days"
-                    ? `${rawValue / 24}`
-                    : `${rawValue}`
-                  : "";
-              const hasChanges = state.pendingChanges.has(editKey);
-              return (
-                <div
-                  key={index}
-                  className={`h-12 w-32 flex-shrink-0 flex items-center justify-center border-r border-b border-gray-300 px-1 ${hasChanges ? "bg-orange-50" : "bg-purple-50"}`}
-                >
-                  <div className="flex items-center gap-1">
-                    <input
-                      type="number"
-                      min="0"
-                      value={displayValue}
-                      placeholder="-"
-                      onChange={(e) => {
-                        const newEdits = new Map(state.bookingOffsetEdits);
-                        const newPending = new Set(state.pendingChanges);
-                        newEdits.set(editKey, {
-                          roomType,
-                          ratePlan: ratePlanType,
-                          dayIndex: index,
-                          field: "minimumCancelBookingOffset",
-                          value:
-                            state.cutoffUnit === "days"
-                              ? String(Number(e.target.value) * 24)
-                              : e.target.value,
-                        });
-                        newPending.add(editKey);
-                        state.setBookingOffsetEdits(newEdits);
-                        state.setPendingChanges(newPending);
-                      }}
-                      className={`w-14 h-7 text-center text-xs font-bold rounded border ${hasChanges ? "border-orange-400 bg-orange-50" : "border-gray-300"} focus:outline-none focus:ring-2 focus:ring-purple-400`}
-                    />
-                    {edit && (
-                      <button
-                        onClick={() => {
-                          const newEdits = new Map(state.bookingOffsetEdits);
-                          const newPending = new Set(state.pendingChanges);
-                          days.forEach((_, idx) => {
-                            if (idx >= index) {
-                              const k = generateKey.bookingOffset(
-                                roomType,
-                                ratePlanType,
-                                idx,
-                                "minimumCancelBookingOffset",
-                              );
-                              newEdits.set(k, {
-                                roomType,
-                                ratePlan: ratePlanType,
-                                dayIndex: idx,
-                                field: "minimumCancelBookingOffset",
-                                value: edit.value,
-                              });
-                              newPending.add(k);
-                            }
-                          });
-                          state.setBookingOffsetEdits(newEdits);
-                          state.setPendingChanges(newPending);
-                        }}
-                        className="p-1 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors flex-shrink-0"
-                        title="Apply to remaining dates"
-                      >
-                        <ArrowRight className="w-3 h-3" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+          <div className="flex border-b border-gray-300">
+            {days.map((day, index) => renderOffsetCell(day, index, "minimumCancelBookingOffset"))}
           </div>
 
           {/* ✅ Save Button Row - DATA SECTION */}

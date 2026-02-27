@@ -1,5 +1,3 @@
-"use client";
-
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom"; // or 'react-router-dom'
 import { InventoryTable } from "./components/InventoryTable";
