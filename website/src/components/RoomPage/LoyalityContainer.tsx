@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import Image from "next/image";
 
 export const LoyaltyContainer = ({
   loyaltyProgram,
@@ -48,9 +49,20 @@ export const LoyaltyContainer = ({
   const setShowSignUpModal = onShowSignUpModalChange || setInternalShowSignUpModal;
 
   const handleToggle = () => {
+    if (isRegistered) {
+      // Once registered, the toggle cannot be disabled.
+      return;
+    }
+
     const next = !isToggleOn;
-    setIsToggleOn(next);
-    onToggleChange?.(next);
+    if (next) {
+      // If toggling ON and not registered, open the sign-up modal
+      setShowSignUpModal(true);
+    } else {
+      // If toggling OFF (only possible when not registered)
+      setIsToggleOn(false);
+      onToggleChange?.(false);
+    }
   };
 
   useEffect(() => {
@@ -93,7 +105,7 @@ export const LoyaltyContainer = ({
     };
 
     verifyLoyaltyMembership();
-  }, [loyaltyProgram?.propertyId]);
+  }, [loyaltyProgram, onToggleChange]);
 
   if (!loyaltyProgram || !loyaltyProgram.CreationLoyaltyConfig) return null;
 
@@ -245,11 +257,14 @@ export const LoyaltyContainer = ({
 
               {/* Logo — left on mobile, top on md+ */}
               {loyaltyLogo ? (
-                <img
-                  src={loyaltyLogo}
-                  alt="Loyalty Program Logo"
-                  className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg object-contain border border-gray-200 flex-shrink-0"
-                />
+                <div className="relative w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0">
+                  <Image
+                    src={loyaltyLogo}
+                    alt="Loyalty Program Logo"
+                    fill
+                    className="rounded-lg object-contain border border-gray-200"
+                  />
+                </div>
               ) : (
                 <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-lg border border-gray-200 flex items-center justify-center bg-gray-50 flex-shrink-0">
                   <Award className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
@@ -264,8 +279,9 @@ export const LoyaltyContainer = ({
                       <span className="text-xs sm:text-sm text-gray-700 font-medium whitespace-nowrap">Join Program</span>
                       <button
                         onClick={handleToggle}
+                        disabled={isRegistered}
                         aria-label="Toggle loyalty program"
-                        className="relative inline-flex items-center w-10 sm:w-11 h-5 sm:h-6 rounded-full focus:outline-none flex-shrink-0 transition-colors duration-200"
+                        className={`relative inline-flex items-center w-10 sm:w-11 h-5 sm:h-6 rounded-full focus:outline-none flex-shrink-0 transition-colors duration-200 ${isRegistered ? "opacity-90 cursor-default" : ""}`}
                         style={{ backgroundColor: isToggleOn ? "#22C55E" : "#D1D5DB" }}
                       >
                         <span
@@ -290,8 +306,9 @@ export const LoyaltyContainer = ({
                       <span className="text-xs sm:text-sm text-gray-700 font-medium whitespace-nowrap">Loyalty Discount</span>
                       <button
                         onClick={handleToggle}
+                        disabled={isRegistered}
                         aria-label="Toggle loyalty discount"
-                        className="relative inline-flex items-center w-10 sm:w-11 h-5 sm:h-6 rounded-full focus:outline-none flex-shrink-0 transition-colors duration-200"
+                        className={`relative inline-flex items-center w-10 sm:w-11 h-5 sm:h-6 rounded-full focus:outline-none flex-shrink-0 transition-colors duration-200 ${isRegistered ? "opacity-90 cursor-default" : ""}`}
                         style={{ backgroundColor: isToggleOn ? "#22C55E" : "#D1D5DB" }}
                       >
                         <span

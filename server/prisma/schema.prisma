@@ -739,9 +739,8 @@ model BookingOffset {
   ratePlanName                String @map("rate_plan_name")
   //these payments are to be set in hours format
   // for booking
-  minimumAdvanceBookingOffset Int?   @map("minimum_advance_booking_offset")
-  maximumAdvanceBookingOffset Int?   @map("maximum_advance_booking_offset")
-
+  minimumAdvanceBookingOffset Int? @map("minimum_advance_booking_offset")
+  maximumAdvanceBookingOffset Int? @map("maximum_advance_booking_offset")
   // for amend
   minimumAmendBookingOffset Int? @map("minimum_amend_booking_offset")
   maximumAmendBookingOffset Int? @map("maximum_amend_booking_offset")
