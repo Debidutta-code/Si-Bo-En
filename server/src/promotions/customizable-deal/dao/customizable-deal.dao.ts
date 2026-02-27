@@ -1,4 +1,3 @@
-import { IRooms } from "../../../agency/types";
 import { prisma } from "../../../config";
 import {
     ICCreateCustomizableDealR,
@@ -6,179 +5,74 @@ import {
     ICustomizableDeals,
     IRatePlan,
     IRoom,
-    IAddOn
-
+    IAddOn,
 } from "../interfaces";
 
+const dealInclude = {
+    Room: {
+        select: { id: true, roomName: true, roomType: true }
+    },
+    RatePlan: {
+        select: { id: true, ratePlanName: true, ratePlanCode: true }
+    },
+    CustomizableDealsApplicableAddons: {
+        include: {
+            AddOn: {
+                select: { id: true, name: true, code: true }
+            }
+        }
+    }
+} as const;
+
 export class CustomizableDealDao {
+
     public async createCustomizableDeal(
         propertyId: string,
         propertyCode: string,
         dealData: ICCreateCustomizableDealR
     ): Promise<ICustomizableDealWDetails> {
         try {
-            const { applicableRoomTypes, applicableRatePlans, applicableAddons, ...dealInfo } = dealData;
+            const { applicableAddons, ...dealInfo } = dealData;
 
-            const createdDeal = await prisma.customizableDeal.create({
+            return await prisma.customizableDeal.create({
                 data: {
                     propertyId,
                     propertyCode,
                     ...dealInfo,
-                    CustomizableDealsApplicableRoomTypes: {
-                        create: applicableRoomTypes.map(room => ({
-                            roomId: room.id,
-                            roomTypeCode: room.roomType
-                        }))
-                    },
-                    CustomizableDealsApplicableRatePlanTypes: {
-                        create: applicableRatePlans.map(ratePlan => ({
-                            ratePlanId: ratePlan.id,
-                            ratePlanCode: ratePlan.ratePlanCode
-                        }))
-                    },
                     CustomizableDealsApplicableAddons: {
-                        create: applicableAddons.map(addOn => ({
-                            addOnId: addOn.id
-                        }))
+                        create: applicableAddons.map(addon => ({ addOnId: addon.id }))
                     }
                 },
-                include: {
-                    CustomizableDealsApplicableRoomTypes: {
-                        include: {
-                            Room: {
-                                select: {
-                                    id: true,
-                                    roomName: true,
-                                    roomType: true
-                                }
-                            }
-                        }
-                    },
-                    CustomizableDealsApplicableRatePlanTypes: {
-                        include: {
-                            RatePlan: {
-                                select: {
-                                    id: true,
-                                    ratePlanName: true,
-                                    ratePlanCode: true
-                                }
-                            }
-                        }
-                    },
-                    CustomizableDealsApplicableAddons: {
-                        include: {
-                            AddOn: {
-                                select: {
-                                    id: true,
-                                    name: true,
-                                    code: true
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            return createdDeal;
+                include: dealInclude
+            }) as any;
         } catch (error) {
-            console.error('Repository Error:', error);
+            console.error('DAO Error - createCustomizableDeal:', error);
             throw new Error('Failed to create customizable deal');
         }
     }
 
-    /**
-     * Get all customizable deals by property ID
-     */
-    public async getCustomizableDealsByPropertyId(propertyId: string): Promise<ICustomizableDealWDetails[] | Error> {
+    public async getCustomizableDealsByPropertyId(
+        propertyId: string
+    ): Promise<ICustomizableDealWDetails[]> {
         try {
-            const deals = await prisma.customizableDeal.findMany({
+            return await prisma.customizableDeal.findMany({
                 where: { propertyId },
-                include: {
-                    CustomizableDealsApplicableRoomTypes: {
-                        include: {
-                            Room: {
-                                select: {
-                                    id: true,
-                                    roomName: true,
-                                    roomType: true
-                                }
-                            }
-                        }
-                    },
-                    CustomizableDealsApplicableRatePlanTypes: {
-                        include: {
-                            RatePlan: {
-                                select: {
-                                    id: true,
-                                    ratePlanName: true,
-                                    ratePlanCode: true
-                                }
-                            }
-                        }
-                    },
-                    CustomizableDealsApplicableAddons: {
-                        include: {
-                            AddOn: {
-                                select: {
-                                    id: true,
-                                    name: true,
-                                    code: true
-                                }
-                            }
-                        }
-                    }
-                },
+                include: dealInclude,
                 orderBy: { createdAt: 'desc' }
-            });
-
-            return deals as any;
+            }) as any;
         } catch (error) {
             throw new Error('Failed to fetch customizable deals');
         }
     }
 
-    public async getCustomizableDealById(dealId: string): Promise<ICustomizableDealWDetails | null> {
+    public async getCustomizableDealById(
+        dealId: string
+    ): Promise<ICustomizableDealWDetails | null> {
         try {
-            const deal = await prisma.customizableDeal.findUnique({
+            return await prisma.customizableDeal.findUnique({
                 where: { id: dealId },
-                include: {
-                    CustomizableDealsApplicableRoomTypes: {
-                        include: {
-                            Room: {
-                                select: {
-                                    id: true,
-                                    roomName: true,
-                                    roomType: true
-                                }
-                            }
-                        }
-                    },
-                    CustomizableDealsApplicableRatePlanTypes: {
-                        include: {
-                            RatePlan: {
-                                select: {
-                                    id: true,
-                                    ratePlanName: true,
-                                    ratePlanCode: true
-                                }
-                            }
-                        }
-                    },
-                    CustomizableDealsApplicableAddons: {
-                        include: {
-                            AddOn: {
-                                select: {
-                                    id: true,
-                                    name: true,
-                                    code: true
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-
-            return deal as any;
+                include: dealInclude
+            }) as any;
         } catch (error) {
             throw new Error('Failed to fetch customizable deal');
         }
@@ -186,148 +80,75 @@ export class CustomizableDealDao {
 
     public async updateCustomizableDeal(
         dealId: string,
-        updateData: ICCreateCustomizableDealR
-    ): Promise<ICustomizableDeals > {
+        dealInfo: Omit<ICCreateCustomizableDealR, 'applicableAddons'> & { applicableAddons?: IAddOn[] }
+    ): Promise<ICustomizableDealWDetails> {
         try {
-            const { applicableRoomTypes, applicableRatePlans, applicableAddons, ...dealInfo } = updateData;
+            const { applicableAddons, ...rest } = dealInfo;
 
-            const updatedDeal = await prisma.$transaction(async (tx) => {
-                const deal = await tx.customizableDeal.update({
+            return await prisma.$transaction(async (tx) => {
+                if (applicableAddons) {
+                    await tx.customizableDealsApplicableAddons.deleteMany({
+                        where: { customizableDealId: dealId }
+                    });
+                    await tx.customizableDealsApplicableAddons.createMany({
+                        data: applicableAddons.map(addon => ({
+                            customizableDealId: dealId,
+                            addOnId: addon.id
+                        }))
+                    });
+                }
+
+                return tx.customizableDeal.update({
                     where: { id: dealId },
-                    data: dealInfo,
-                    include: {
-                        CustomizableDealsApplicableRoomTypes: {
-                            include: {
-                                Room: {
-                                    select: {
-                                        id: true,
-                                        roomName: true,
-                                        roomType: true
-                                    }
-                                }
-                            }
-                        },
-                        CustomizableDealsApplicableRatePlanTypes: {
-                            include: {
-                                RatePlan: {
-                                    select: {
-                                        id: true,
-                                        ratePlanName: true,
-                                        ratePlanCode: true
-                                    }
-                                }
-                            }
-                        },
-                        CustomizableDealsApplicableAddons: {
-                            include: {
-                                AddOn: {
-                                    select: {
-                                        id: true,
-                                        name: true,
-                                        code: true
-                                    }
-                                }
-                            }
-                        }
-                    },
+                    data: rest,
+                    include: dealInclude
                 });
-                //delete all applicableRoomTypes,rateplans and addons
-                await Promise.all([
-                    applicableRoomTypes && tx.customizableDealsApplicableRoomTypes.deleteMany({
-                        where: { customizableDealId: dealId }
-                    }),
-                    applicableRatePlans && tx.customizableDealsApplicableRatePlanTypes.deleteMany({
-                        where: { customizableDealId: dealId }
-                    }),
-                    applicableAddons && tx.customizableDealsApplicableAddons.deleteMany({
-                        where: { customizableDealId: dealId }
-                    })
-                ]);
-                //create the new applicableRoomTypes, ratePlans and addons
-                await Promise.all([
-                    applicableRoomTypes && tx.customizableDealsApplicableRoomTypes.createMany({
-                        data: updateData.applicableRoomTypes.map(room => ({
-                            customizableDealId: dealId,
-                            roomId: room.id,
-                            roomTypeCode: room.roomType
-                        }))
-                    }),
-                    applicableRatePlans && tx.customizableDealsApplicableRatePlanTypes.createMany({
-                        data: updateData.applicableRatePlans.map(ratePlan => ({
-                            customizableDealId: dealId,
-                            ratePlanId: ratePlan.id,
-                            ratePlanCode: ratePlan.ratePlanCode
-                        }))
-                    }),
-                    applicableAddons && tx.customizableDealsApplicableAddons.createMany({
-                        data: updateData.applicableAddons.map(addOn => ({
-                            customizableDealId: dealId,
-                            addOnId: addOn.id
-                        }))
-                    })
-                ]);
-                return deal
-            });
-
-            return updatedDeal;
+            }) as any;
         } catch (error) {
             throw new Error('Failed to update customizable deal');
         }
     }
 
-    public async deleteCustomizableDeal(dealId: string): Promise<ICustomizableDeals > {
+    public async deleteCustomizableDeal(dealId: string): Promise<ICustomizableDeals> {
         try {
-            const deletedDeal = await prisma.customizableDeal.delete({
-                where: { id: dealId },
-                
-            });
-
-            return deletedDeal ;
+            return await prisma.customizableDeal.delete({
+                where: { id: dealId }
+            }) as any;
         } catch (error) {
             throw new Error('Failed to delete customizable deal');
         }
     }
-    public async findRoomTypes(roomTypes: string[], propertyId: string):Promise<IRooms[]> {
+
+    public async findRoom(roomId: string, propertyId: string): Promise<IRoom | null> {
         try {
-            const rooms = await prisma.room.findMany({
-                where: {
-                    id: { in: roomTypes },
-                    propertyId
-                }
+            return await prisma.room.findFirst({
+                where: { id: roomId, propertyId, isDeleted: false, available: true },
+                select: { id: true, roomName: true, roomType: true }
             });
-            return rooms;
         } catch (error) {
-            console.error('Error finding room types:', error);
-            throw new Error('Failed to find room types');
-        }
-    }
-    public async findRatePlans(ratePlanIds: string[], propertyId: string):Promise<IRatePlan[]> {
-        try {
-            const ratePlans = await prisma.ratePlan.findMany({
-                where: {
-                    id: { in: ratePlanIds },
-                    propertyId
-                }
-            });
-            return ratePlans;
-        } catch (error) {
-            console.error('Error finding rate plans:', error);
-            throw new Error('Failed to find rate plans');
-        }
-    }
-    public async findAddons(addonIds: string[], propertyId: string):Promise<IAddOn[]> {
-        try {
-            const addons = await prisma.addon.findMany({
-                where: {
-                    id: { in: addonIds },
-                    propertyId
-                }
-            });
-            return addons;
-        } catch (error) {
-            console.error('Error finding addons:', error);
-            throw new Error('Failed to find addons');
+            throw new Error('Failed to find room');
         }
     }
 
+    public async findRatePlan(ratePlanId: string, propertyId: string): Promise<IRatePlan | null> {
+        try {
+            return await prisma.ratePlan.findFirst({
+                where: { id: ratePlanId, propertyId },
+                select: { id: true, ratePlanName: true, ratePlanCode: true }
+            });
+        } catch (error) {
+            throw new Error('Failed to find rate plan');
+        }
+    }
+
+    public async findAddons(addonIds: string[], propertyId: string): Promise<IAddOn[]> {
+        try {
+            return await prisma.addon.findMany({
+                where: { id: { in: addonIds }, propertyId },
+                select: { id: true, name: true, code: true }
+            });
+        } catch (error) {
+            throw new Error('Failed to find addons');
+        }
+    }
 }

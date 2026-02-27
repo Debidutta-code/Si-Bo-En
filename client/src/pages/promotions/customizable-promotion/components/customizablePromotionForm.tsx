@@ -10,15 +10,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 import type {
   CreateCustomizableDeal,
   CustomizableDeal,
   CurrencyCode,
   ICCustomizableDeals,
 } from "../interfaces";
-import { Tag } from "lucide-react";
+import { Tag, CalendarIcon } from "lucide-react";
 import type { IAddon } from "@/pages/add-on/interface";
 import type { ILoader } from "@/pages/dashboard/interface";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
 interface CustomizableDealFormProps {
   ratePlans: RatePlan[];
@@ -39,116 +47,82 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
   editData,
   isLoading,
 }) => {
-  const [customizableDeal, setCustomizableDeal] = useState<ICCustomizableDeals>(
-    {
-      discountType: "percentage",
-      discountValue: 0,
-      currencyCode: "USD",
-      applicableRoomTypes: [],
-      applicableRatePlans: [],
-      applicableAddons: [],
-      isAutoApplied: false,
-    },
-  );
+  const [customizableDeal, setCustomizableDeal] = useState<ICCustomizableDeals>({
+    discountType: "percentage",
+    discountValue: 0,
+    currencyCode: "USD",
+    startDate: "",
+    endDate: "",
+    roomId: "",
+    ratePlanId: "",
+    applicableAddons: [],
+    isAutoApplied: false,
+    isActive: true,
+  });
+
+  const [startDateOpen, setStartDateOpen] = useState(false);
+  const [endDateOpen, setEndDateOpen] = useState(false);
 
   useEffect(() => {
     if (editData) {
-      const roomIds = editData.CustomizableDealsApplicableRoomTypes.map(
-        (rt) => rt.roomId,
-      );
-      const ratePlanIds = editData.CustomizableDealsApplicableRatePlanTypes.map(
-        (rp) => rp.ratePlanId,
-      );
-      const addonIds = editData.CustomizableDealsApplicableAddons.map(
-        (a) => a.addOnId,
-      );
-
       setCustomizableDeal({
         discountType: editData.discountType,
         discountValue: editData.discountValue,
         currencyCode: editData.currencyCode || "USD",
-        applicableRoomTypes: roomIds,
-        applicableRatePlans: ratePlanIds,
-        applicableAddons: addonIds,
+        startDate: editData.startDate,
+        endDate: editData.endDate,
+        roomId: editData.roomId,
+        ratePlanId: editData.ratePlanId,
+        applicableAddons: editData.CustomizableDealsApplicableAddons.map((a) => a.addOnId),
         isAutoApplied: editData.isAutoApplied,
+        isActive: editData.isActive,
       });
     }
   }, [editData]);
-
-  const handleSelectAllRooms = () => {
-    if (customizableDeal.applicableRoomTypes.length === roomTypes.length) {
-      setCustomizableDeal({ ...customizableDeal, applicableRoomTypes: [] });
-    } else {
-      setCustomizableDeal({
-        ...customizableDeal,
-        applicableRoomTypes: roomTypes.map((room) => room.id),
-      });
-    }
-  };
-
-  const handleSelectAllRatePlans = () => {
-    if (customizableDeal.applicableRatePlans.length === ratePlans.length) {
-      setCustomizableDeal({ ...customizableDeal, applicableRatePlans: [] });
-    } else {
-      setCustomizableDeal({
-        ...customizableDeal,
-        applicableRatePlans: ratePlans.map((plan) => plan.id),
-      });
-    }
-  };
-
-  const handleSelectAllAddons = () => {
-    if (customizableDeal.applicableAddons.length === addons.length) {
-      setCustomizableDeal({ ...customizableDeal, applicableAddons: [] });
-    } else {
-      setCustomizableDeal({
-        ...customizableDeal,
-        applicableAddons: addons.map((addon) => addon.id),
-      });
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (customizableDeal.discountValue <= 0) {
-      toast?.error?.("Please enter a valid discount value greater than 0") ||
-        alert("Please enter a valid discount value greater than 0");
+      toast.error("Please enter a valid discount value greater than 0");
       return;
     }
-
-    if (
-      customizableDeal.discountType === "percentage" &&
-      customizableDeal.discountValue > 100
-    ) {
-      toast?.error?.("Percentage discount cannot exceed 100") ||
-        alert("Percentage discount cannot exceed 100");
+    if (customizableDeal.discountType === "percentage" && customizableDeal.discountValue > 100) {
+      toast.error("Percentage discount cannot exceed 100");
       return;
     }
-
-    if (customizableDeal.applicableRoomTypes.length === 0) {
-      toast?.error?.("Please select at least one room type") ||
-        alert("Please select at least one room type");
+    if (!customizableDeal.roomId) {
+      toast.error("Please select a room");
       return;
     }
-
-    if (customizableDeal.applicableRatePlans.length === 0) {
-      toast?.error?.("Please select at least one rate plan") ||
-        alert("Please select at least one rate plan");
+    if (!customizableDeal.ratePlanId) {
+      toast.error("Please select a rate plan");
+      return;
+    }
+    if (!customizableDeal.startDate) {
+      toast.error("Please select a start date");
+      return;
+    }
+    if (!customizableDeal.endDate) {
+      toast.error("Please select an end date");
+      return;
+    }
+    if (new Date(customizableDeal.startDate) >= new Date(customizableDeal.endDate)) {
+      toast.error("Start date must be before end date");
       return;
     }
 
     const payload: CreateCustomizableDeal = {
       discountType: customizableDeal.discountType,
       discountValue: customizableDeal.discountValue,
-      currencyCode:
-        customizableDeal.discountType === "flat"
-          ? customizableDeal.currencyCode
-          : undefined,
-      applicableRoomTypes: customizableDeal.applicableRoomTypes,
-      applicableRatePlans: customizableDeal.applicableRatePlans,
+      currencyCode: customizableDeal.discountType === "flat" ? customizableDeal.currencyCode : undefined,
+      startDate: customizableDeal.startDate,
+      endDate: customizableDeal.endDate,
+      roomId: customizableDeal.roomId,
+      ratePlanId: customizableDeal.ratePlanId,
       applicableAddons: customizableDeal.applicableAddons,
       isAutoApplied: customizableDeal.isAutoApplied,
+      isActive: customizableDeal.isActive,
     };
 
     await onSubmit(payload);
@@ -157,9 +131,8 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
   const getDiscountDisplayText = () => {
     if (customizableDeal.discountType === "percentage") {
       return `${customizableDeal.discountValue}% OFF`;
-    } else {
-      return `${customizableDeal.currencyCode} ${customizableDeal.discountValue} OFF`;
     }
+    return `${customizableDeal.currencyCode} ${customizableDeal.discountValue} OFF`;
   };
 
   return (
@@ -177,16 +150,13 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
             {editData ? "Edit" : "Create"} Customizable Deal
           </h3>
           <p className="text-sm text-muted-foreground mt-1">
-            Create flexible deals by selecting specific room types, rate plans,
-            and add-ons
+            Create a flexible deal by selecting a room, rate plan, and date range
           </p>
         </div>
 
         {/* Discount Configuration */}
         <div className="space-y-4 p-4 bg-muted/20 rounded-lg border border-border">
-          <h4 className="text-sm font-semibold text-foreground">
-            Discount Configuration
-          </h4>
+          <h4 className="text-sm font-semibold text-foreground">Discount Configuration</h4>
 
           <div>
             <label className="block text-sm font-medium text-foreground mb-2">
@@ -197,33 +167,19 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
                 <input
                   type="radio"
                   checked={customizableDeal.discountType === "percentage"}
-                  onChange={() =>
-                    setCustomizableDeal({
-                      ...customizableDeal,
-                      discountType: "percentage",
-                    })
-                  }
+                  onChange={() => setCustomizableDeal({ ...customizableDeal, discountType: "percentage" })}
                   className="w-4 h-4 text-primary border-border focus:ring-2 focus:ring-primary"
                 />
-                <span className="text-sm text-foreground">
-                  Percentage discount
-                </span>
+                <span className="text-sm text-foreground">Percentage discount</span>
               </label>
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input
                   type="radio"
                   checked={customizableDeal.discountType === "flat"}
-                  onChange={() =>
-                    setCustomizableDeal({
-                      ...customizableDeal,
-                      discountType: "flat",
-                    })
-                  }
+                  onChange={() => setCustomizableDeal({ ...customizableDeal, discountType: "flat" })}
                   className="w-4 h-4 text-primary border-border focus:ring-2 focus:ring-primary"
                 />
-                <span className="text-sm text-foreground">
-                  Fixed amount discount
-                </span>
+                <span className="text-sm text-foreground">Fixed amount discount</span>
               </label>
             </div>
           </div>
@@ -238,48 +194,22 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
                   type="number"
                   value={customizableDeal.discountValue}
                   onChange={(e) =>
-                    setCustomizableDeal({
-                      ...customizableDeal,
-                      discountValue: parseFloat(e.target.value) || 0,
-                    })
+                    setCustomizableDeal({ ...customizableDeal, discountValue: parseFloat(e.target.value) || 0 })
                   }
                   onKeyDown={(e) => {
-                    // Prevent 'e', '+', '-' characters
-                    if (
-                      e.key === "e" ||
-                      e.key === "E" ||
-                      e.key === "+" ||
-                      e.key === "-"
-                    ) {
-                      e.preventDefault();
-                    }
+                    if (["e", "E", "+", "-"].includes(e.key)) e.preventDefault();
                   }}
-                  className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground pr-12"
-                  placeholder={
-                    customizableDeal.discountType === "percentage"
-                      ? "Enter percentage (1-100)"
-                      : "Enter amount"
-                  }
+                  className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground pr-16"
+                  placeholder={customizableDeal.discountType === "percentage" ? "Enter percentage (1-100)" : "Enter amount"}
                   required
                 />
                 <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-muted-foreground font-medium">
-                  {customizableDeal.discountType === "percentage"
-                    ? "% off"
-                    : customizableDeal.currencyCode}
+                  {customizableDeal.discountType === "percentage" ? "% off" : customizableDeal.currencyCode}
                 </span>
               </div>
-              {customizableDeal.discountValue <= 0 &&
-                customizableDeal.discountValue !== 0 && (
-                  <p className="text-xs text-destructive mt-1">
-                    Discount value must be greater than 0
-                  </p>
-                )}
-              {customizableDeal.discountType === "percentage" &&
-                customizableDeal.discountValue > 100 && (
-                  <p className="text-xs text-destructive mt-1">
-                    Percentage cannot exceed 100
-                  </p>
-                )}
+              {customizableDeal.discountType === "percentage" && customizableDeal.discountValue > 100 && (
+                <p className="text-xs text-destructive mt-1">Percentage cannot exceed 100</p>
+              )}
             </div>
 
             {customizableDeal.discountType === "flat" && (
@@ -290,10 +220,7 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
                 <Select
                   value={customizableDeal.currencyCode}
                   onValueChange={(value) =>
-                    setCustomizableDeal({
-                      ...customizableDeal,
-                      currencyCode: value as CurrencyCode,
-                    })
+                    setCustomizableDeal({ ...customizableDeal, currencyCode: value as CurrencyCode })
                   }
                 >
                   <SelectTrigger className="w-full">
@@ -310,206 +237,159 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
           </div>
 
           <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-            <p className="text-sm text-blue-900 dark:text-blue-100 font-medium">
-              Discount Preview
-            </p>
+            <p className="text-sm text-blue-900 dark:text-blue-100 font-medium">Discount Preview</p>
             <p className="text-lg text-blue-700 dark:text-blue-300 mt-1 font-semibold">
               {getDiscountDisplayText()}
             </p>
           </div>
         </div>
 
-        {/* Room Types Selection */}
+        {/* Date Range */}
         <div className="space-y-4 p-4 bg-muted/20 rounded-lg border border-border">
-          <div className="flex items-center justify-between">
+          <h4 className="text-sm font-semibold text-foreground">Deal Period *</h4>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Start Date */}
             <div>
-              <h4 className="text-sm font-semibold text-foreground">
-                Applicable Room Types *
-              </h4>
-              <p className="text-xs text-muted-foreground mt-1">
-                Select which room types this deal applies to
-              </p>
+              <label className="block text-sm font-medium text-foreground mb-2">Start Date *</label>
+              <Popover open={startDateOpen} onOpenChange={setStartDateOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className={cn(
+                      "w-full flex items-center justify-between px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm",
+                      !customizableDeal.startDate && "text-muted-foreground"
+                    )}
+                  >
+                    {customizableDeal.startDate
+                      ? format(new Date(customizableDeal.startDate), "PPP")
+                      : "Pick a start date"}
+                    <CalendarIcon className="w-4 h-4 ml-2 text-muted-foreground" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={customizableDeal.startDate ? new Date(customizableDeal.startDate) : undefined}
+                    onSelect={(date) => {
+                      if (date) {
+                        setCustomizableDeal({ ...customizableDeal, startDate: date.toISOString() });
+                        setStartDateOpen(false);
+                      }
+                    }}
+                    disabled={(date) => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
-            {!editData && (
-              <button
-                type="button"
-                onClick={handleSelectAllRooms}
-                className="text-xs text-primary hover:text-primary/80 font-medium"
-              >
-                {customizableDeal.applicableRoomTypes.length ===
-                roomTypes.length
-                  ? "Deselect All"
-                  : "Select All"}
-              </button>
-            )}
-          </div>
 
-          {editData ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-              {editData.CustomizableDealsApplicableRoomTypes.map((rt) => (
-                <div
-                  key={rt.id}
-                  className="px-3 py-2 bg-muted/30 border border-border rounded-md"
-                >
-                  <div className="text-sm font-medium text-foreground truncate">
-                    {rt.Room.roomName}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    ({rt.Room.roomType})
-                  </div>
-                </div>
-              ))}
+            {/* End Date */}
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">End Date *</label>
+              <Popover open={endDateOpen} onOpenChange={setEndDateOpen}>
+                <PopoverTrigger asChild>
+                  <button
+                    type="button"
+                    className={cn(
+                      "w-full flex items-center justify-between px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-sm",
+                      !customizableDeal.endDate && "text-muted-foreground"
+                    )}
+                  >
+                    {customizableDeal.endDate
+                      ? format(new Date(customizableDeal.endDate), "PPP")
+                      : "Pick an end date"}
+                    <CalendarIcon className="w-4 h-4 ml-2 text-muted-foreground" />
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={customizableDeal.endDate ? new Date(customizableDeal.endDate) : undefined}
+                    onSelect={(date) => {
+                      if (date) {
+                        setCustomizableDeal({ ...customizableDeal, endDate: date.toISOString() });
+                        setEndDateOpen(false);
+                      }
+                    }}
+                    disabled={(date) =>
+                      date < new Date(new Date().setHours(0, 0, 0, 0)) ||
+                      (customizableDeal.startDate ? date <= new Date(customizableDeal.startDate) : false)
+                    }
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-64 overflow-y-auto border border-border rounded-lg p-4 bg-background">
+          </div>
+        </div>
+
+        {/* Room Selection */}
+        <div className="space-y-4 p-4 bg-muted/20 rounded-lg border border-border">
+          <h4 className="text-sm font-semibold text-foreground">Applicable Room *</h4>
+          <Select
+            value={customizableDeal.roomId}
+            onValueChange={(value) => setCustomizableDeal({ ...customizableDeal, roomId: value })}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select a room" />
+            </SelectTrigger>
+            <SelectContent>
               {roomTypes.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4 col-span-full">
-                  No rooms available
-                </p>
+                <SelectItem value="none" disabled>No rooms available</SelectItem>
               ) : (
                 roomTypes.map((room) => (
-                  <label
-                    key={room.id}
-                    className="flex items-start space-x-3 cursor-pointer hover:bg-muted/50 p-3 rounded-md transition-colors border border-transparent hover:border-border"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={customizableDeal.applicableRoomTypes.includes(
-                        room.id,
-                      )}
-                      onChange={() => {
-                        setCustomizableDeal((prev) => ({
-                          ...prev,
-                          applicableRoomTypes:
-                            prev.applicableRoomTypes.includes(room.id)
-                              ? prev.applicableRoomTypes.filter(
-                                  (id) => id !== room.id,
-                                )
-                              : [...prev.applicableRoomTypes, room.id],
-                        }));
-                      }}
-                      className="w-4 h-4 text-primary border-border rounded focus:ring-2 focus:ring-primary mt-0.5"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-foreground truncate">
-                        {room.roomName}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        ({room.roomType})
-                      </div>
+                  <SelectItem key={room.id} value={room.id}>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{room.roomName}</span>
+                      <span className="text-xs text-muted-foreground">({room.roomType})</span>
                     </div>
-                  </label>
+                  </SelectItem>
                 ))
               )}
-            </div>
-          )}
+            </SelectContent>
+          </Select>
 
-          {!editData && customizableDeal.applicableRoomTypes.length > 0 && (
+          {customizableDeal.roomId && (
             <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
               <p className="text-xs text-blue-700 dark:text-blue-300">
-                Selected{" "}
-                <span className="font-semibold">
-                  {customizableDeal.applicableRoomTypes.length}
-                </span>{" "}
-                room type(s)
+                Selected: <span className="font-semibold">
+                  {roomTypes.find(r => r.id === customizableDeal.roomId)?.roomName}
+                </span>
               </p>
             </div>
           )}
         </div>
 
-        {/* Rate Plans Selection */}
+        {/* Rate Plan Selection */}
         <div className="space-y-4 p-4 bg-muted/20 rounded-lg border border-border">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="text-sm font-semibold text-foreground">
-                Applicable Rate Plans *
-              </h4>
-              <p className="text-xs text-muted-foreground mt-1">
-                Select which rate plans this deal applies to
-              </p>
-            </div>
-            {!editData && (
-              <button
-                type="button"
-                onClick={handleSelectAllRatePlans}
-                className="text-xs text-primary hover:text-primary/80 font-medium"
-              >
-                {customizableDeal.applicableRatePlans.length ===
-                ratePlans.length
-                  ? "Deselect All"
-                  : "Select All"}
-              </button>
-            )}
-          </div>
-
-          {editData ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-              {editData.CustomizableDealsApplicableRatePlanTypes.map((rp) => (
-                <div
-                  key={rp.id}
-                  className="px-3 py-2 bg-muted/30 border border-border rounded-md"
-                >
-                  <div className="text-sm font-medium text-foreground truncate">
-                    {rp.RatePlan.ratePlanName}
-                  </div>
-                  <div className="text-xs text-muted-foreground">
-                    ({rp.RatePlan.ratePlanCode})
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-64 overflow-y-auto border border-border rounded-lg p-4 bg-background">
+          <h4 className="text-sm font-semibold text-foreground">Applicable Rate Plan *</h4>
+          <Select
+            value={customizableDeal.ratePlanId}
+            onValueChange={(value) => setCustomizableDeal({ ...customizableDeal, ratePlanId: value })}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select a rate plan" />
+            </SelectTrigger>
+            <SelectContent>
               {ratePlans.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4 col-span-full">
-                  No rate plans available
-                </p>
+                <SelectItem value="none" disabled>No rate plans available</SelectItem>
               ) : (
                 ratePlans.map((plan) => (
-                  <label
-                    key={plan.id}
-                    className="flex items-start space-x-3 cursor-pointer hover:bg-muted/50 p-3 rounded-md transition-colors border border-transparent hover:border-border"
-                  >
-                    <input
-                      type="checkbox"
-                      checked={customizableDeal.applicableRatePlans.includes(
-                        plan.id,
-                      )}
-                      onChange={() => {
-                        setCustomizableDeal((prev) => ({
-                          ...prev,
-                          applicableRatePlans:
-                            prev.applicableRatePlans.includes(plan.id)
-                              ? prev.applicableRatePlans.filter(
-                                  (id) => id !== plan.id,
-                                )
-                              : [...prev.applicableRatePlans, plan.id],
-                        }));
-                      }}
-                      className="w-4 h-4 text-primary border-border rounded focus:ring-2 focus:ring-primary mt-0.5"
-                    />
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium text-foreground truncate">
-                        {plan.ratePlanName}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        ({plan.ratePlanCode})
-                      </div>
+                  <SelectItem key={plan.id} value={plan.id}>
+                    <div className="flex flex-col">
+                      <span className="font-medium">{plan.ratePlanName}</span>
+                      <span className="text-xs text-muted-foreground">({plan.ratePlanCode})</span>
                     </div>
-                  </label>
+                  </SelectItem>
                 ))
               )}
-            </div>
-          )}
+            </SelectContent>
+          </Select>
 
-          {!editData && customizableDeal.applicableRatePlans.length > 0 && (
+          {customizableDeal.ratePlanId && (
             <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
               <p className="text-xs text-blue-700 dark:text-blue-300">
-                Selected{" "}
-                <span className="font-semibold">
-                  {customizableDeal.applicableRatePlans.length}
-                </span>{" "}
-                rate plan(s)
+                Selected: <span className="font-semibold">
+                  {ratePlans.find(r => r.id === customizableDeal.ratePlanId)?.ratePlanName}
+                </span>
               </p>
             </div>
           )}
@@ -521,133 +401,102 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
             <div className="flex items-center space-x-2">
               <Tag className="w-4 h-4 text-primary" />
               <div>
-                <h4 className="text-sm font-semibold text-foreground">
-                  Applicable Add-ons
-                </h4>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Select which add-ons this deal applies to (optional)
-                </p>
+                <h4 className="text-sm font-semibold text-foreground">Applicable Add-ons</h4>
+                <p className="text-xs text-muted-foreground mt-1">Optional</p>
               </div>
             </div>
-            {!editData && addons.length > 0 && (
+            {addons.length > 0 && (
               <button
                 type="button"
-                onClick={handleSelectAllAddons}
+                onClick={() => {
+                  const allSelected = customizableDeal.applicableAddons.length === addons.length;
+                  setCustomizableDeal({
+                    ...customizableDeal,
+                    applicableAddons: allSelected ? [] : addons.map((a) => a.id),
+                  });
+                }}
                 className="text-xs text-primary hover:text-primary/80 font-medium"
               >
-                {customizableDeal.applicableAddons.length === addons.length
-                  ? "Deselect All"
-                  : "Select All"}
+                {customizableDeal.applicableAddons.length === addons.length ? "Deselect All" : "Select All"}
               </button>
             )}
           </div>
 
-          {editData ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-              {editData.CustomizableDealsApplicableAddons.length === 0 ? (
-                <p className="text-sm text-muted-foreground col-span-full">
-                  No add-ons selected
-                </p>
-              ) : (
-                editData.CustomizableDealsApplicableAddons.map((addon) => (
-                  <div
-                    key={addon.id}
-                    className="px-3 py-2 bg-muted/30 border border-border rounded-md"
-                  >
-                    <div className="text-sm font-medium text-foreground truncate">
-                      {addon.AddOn.name}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      ({addon.AddOn.code})
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+          {addons.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No add-ons available</p>
           ) : (
-            <>
-              {addons.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  No add-ons available
-                </p>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-64 overflow-y-auto border border-border rounded-lg p-4 bg-background">
-                  {addons.map((addon) => (
-                    <label
-                      key={addon.id}
-                      className="flex items-start space-x-3 cursor-pointer hover:bg-muted/50 p-3 rounded-md transition-colors border border-transparent hover:border-border"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={customizableDeal.applicableAddons.includes(
-                          addon.id,
-                        )}
-                        onChange={() => {
-                          setCustomizableDeal((prev) => ({
-                            ...prev,
-                            applicableAddons: prev.applicableAddons.includes(
-                              addon.id,
-                            )
-                              ? prev.applicableAddons.filter(
-                                  (id) => id !== addon.id,
-                                )
-                              : [...prev.applicableAddons, addon.id],
-                          }));
-                        }}
-                        className="w-4 h-4 text-primary border-border rounded focus:ring-2 focus:ring-primary mt-0.5"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium text-foreground truncate">
-                          {addon.name}
-                        </div>
-                        <div className="text-xs text-muted-foreground">
-                          ({addon.code})
-                        </div>
-                      </div>
-                    </label>
-                  ))}
-                </div>
-              )}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-48 overflow-y-auto border border-border rounded-lg p-4 bg-background">
+              {addons.map((addon) => (
+                <label
+                  key={addon.id}
+                  className="flex items-start space-x-3 cursor-pointer hover:bg-muted/50 p-3 rounded-md transition-colors border border-transparent hover:border-border"
+                >
+                  <input
+                    type="checkbox"
+                    checked={customizableDeal.applicableAddons.includes(addon.id)}
+                    onChange={() => {
+                      setCustomizableDeal((prev) => ({
+                        ...prev,
+                        applicableAddons: prev.applicableAddons.includes(addon.id)
+                          ? prev.applicableAddons.filter((id) => id !== addon.id)
+                          : [...prev.applicableAddons, addon.id],
+                      }));
+                    }}
+                    className="w-4 h-4 text-primary border-border rounded focus:ring-2 focus:ring-primary mt-0.5"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-foreground truncate">{addon.name}</div>
+                    <div className="text-xs text-muted-foreground">({addon.code})</div>
+                  </div>
+                </label>
+              ))}
+            </div>
+          )}
 
-              {customizableDeal.applicableAddons.length > 0 && (
-                <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-                  <p className="text-xs text-blue-700 dark:text-blue-300">
-                    Selected{" "}
-                    <span className="font-semibold">
-                      {customizableDeal.applicableAddons.length}
-                    </span>{" "}
-                    add-on(s)
-                  </p>
-                </div>
-              )}
-            </>
+          {customizableDeal.applicableAddons.length > 0 && (
+            <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+              <p className="text-xs text-blue-700 dark:text-blue-300">
+                Selected <span className="font-semibold">{customizableDeal.applicableAddons.length}</span> add-on(s)
+              </p>
+            </div>
           )}
         </div>
 
-        <div className="flex items-center space-x-3 p-3 bg-muted/20 rounded-lg border border-border">
-          <input
-            type="checkbox"
-            id="isAutoApplied"
-            checked={customizableDeal.isAutoApplied}
-            onChange={(e) =>
-              setCustomizableDeal({
-                ...customizableDeal,
-                isAutoApplied: e.target.checked,
-              })
-            }
-            className="w-5 h-5 text-primary border-border rounded focus:ring-2 focus:ring-primary"
-          />
-          <label
-            htmlFor="isAutoApplied"
-            className="text-sm font-medium text-foreground cursor-pointer flex-1"
-          >
-            Auto Apply
-            <span className="block text-xs text-muted-foreground font-normal mt-0.5">
-              {customizableDeal.isAutoApplied
-                ? "This promotion is currently auto applied to the reservation"
-                : "This promotion is currently not auto applied"}
-            </span>
-          </label>
+        {/* Auto Apply + Active */}
+        <div className="space-y-3">
+          <div className="flex items-center space-x-3 p-3 bg-muted/20 rounded-lg border border-border">
+            <input
+              type="checkbox"
+              id="isAutoApplied"
+              checked={customizableDeal.isAutoApplied}
+              onChange={(e) => setCustomizableDeal({ ...customizableDeal, isAutoApplied: e.target.checked })}
+              className="w-5 h-5 text-primary border-border rounded focus:ring-2 focus:ring-primary"
+            />
+            <label htmlFor="isAutoApplied" className="text-sm font-medium text-foreground cursor-pointer flex-1">
+              Auto Apply
+              <span className="block text-xs text-muted-foreground font-normal mt-0.5">
+                {customizableDeal.isAutoApplied
+                  ? "This deal is auto applied to reservations"
+                  : "This deal is not auto applied"}
+              </span>
+            </label>
+          </div>
+
+          <div className="flex items-center space-x-3 p-3 bg-muted/20 rounded-lg border border-border">
+            <input
+              type="checkbox"
+              id="isActive"
+              checked={customizableDeal.isActive}
+              onChange={(e) => setCustomizableDeal({ ...customizableDeal, isActive: e.target.checked })}
+              className="w-5 h-5 text-primary border-border rounded focus:ring-2 focus:ring-primary"
+            />
+            <label htmlFor="isActive" className="text-sm font-medium text-foreground cursor-pointer flex-1">
+              Active
+              <span className="block text-xs text-muted-foreground font-normal mt-0.5">
+                {customizableDeal.isActive ? "This deal is currently active" : "This deal is currently inactive"}
+              </span>
+            </label>
+          </div>
         </div>
 
         {/* Action Buttons */}
@@ -665,8 +514,10 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
             className="px-6 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium shadow-sm"
             disabled={
               isLoading.isLoading ||
-              customizableDeal.applicableRoomTypes.length === 0 ||
-              customizableDeal.applicableRatePlans.length === 0
+              !customizableDeal.roomId ||
+              !customizableDeal.ratePlanId ||
+              !customizableDeal.startDate ||
+              !customizableDeal.endDate
             }
           >
             {editData ? "Update Deal" : "Create Deal"}

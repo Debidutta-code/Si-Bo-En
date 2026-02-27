@@ -20,6 +20,36 @@ import {
 import { IPromotion, ITouristTax } from './room.type';
 import { IBookingOffset } from '../../ari/types';
 
+
+export interface ICustomizableDeal {
+    id: string;
+    propertyId: string;
+    propertyCode: string;
+    discountType: DiscountType;
+    discountValue: Decimal | null;
+    currencyCode: CurrencyCode | null;
+    startDate: Date;
+    endDate: Date;
+    roomId: string;
+    roomType: string;
+    ratePlanId: string;
+    ratePlanCode: string;
+    isAutoApplied: boolean;
+    isActive: boolean;
+    CustomizableDealsApplicableAddons: ICustomizableDealApplicableAddon[];
+}
+
+export interface ICustomizableDealApplicableAddon {
+    id: string;
+    customizableDealId: string;
+    addOnId: string;
+    AddOn: {
+        id: string;
+        name: string;
+        code: string;
+    };
+}
+
 export interface IRatePlan {
     id: string;
     ratePlanName: string;
@@ -28,26 +58,19 @@ export interface IRatePlan {
     propertyId: string;
     depositPolicy: IPolicy | null;
     depositPolicyId: string | null;
-
     cancellationPolicy: IPolicy | null;
     cancellationPolicyId: string | null;
-
     guaranteePolicy: IPolicy | null;
     guaranteePolicyId: string | null;
-
     taxGroup: ITaxGroup | null;
     taxGroupId: string | null;
-
     b2bAvailable: boolean;
     b2cAvailable: boolean;
-
     charges: ICharge[];
-    // ratePlanRules: IMLOS | null;
     Addons: IRatePlanWithAddon[];
     geoRatePlans: IGeoRatePlanWithoutRatePlan[];
-    // promotions: IPromotion[];
     TouristTaxs: ITouristTax[];
-    customizableDealsApplicableRatePlanTypes: ICustomizableDealsApplicableRatePlanTypes[];
+    customizableDeals: ICustomizableDeal[];   
     bookingOffsets: IBookingOffset[];
 }
 export interface ITaxGroup {
@@ -97,13 +120,14 @@ export interface IAddOn {
     availability: IAddonAvailability[];
 }
 
-export interface ICustomizableDealsApplicableRatePlanTypes {
-    id: string;
-    ratePlanId: string;
-    customizableDealId: string;
-    ratePlanCode: string;
-    CustomizableDeal: ICustomizableDeal;
-}
+// export interface ICustomizableDealsApplicableRatePlanTypes {
+//     id: string;
+//     ratePlanId: string;
+//     customizableDealId: string;
+//     ratePlanCode: string;
+//     CustomizableDeal: ICustomizableDeal;
+// }
+
 export interface ICustomizableDeal {
     id: string;
     propertyId: string;
