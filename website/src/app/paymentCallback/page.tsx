@@ -77,7 +77,7 @@ const PaymentCallbackPage = () => {
               roomTypeCode: currentBooking.roomTypeCode,
               numberOfRooms: currentBooking.numberOfRooms || 1,
               finalPrice: currentBooking.finalPrice,
-              currency: currentBooking.finalPrice?.dailyBreakdown?.[0]?.currencyCode || "AED",
+              currency: currentBooking.finalPrice?.dailyBreakdown?.[0]?.currencyCode || "USD",
               email: currentBooking.email,
               phone: currentBooking.phone,
               guests: currentBooking.guests,
