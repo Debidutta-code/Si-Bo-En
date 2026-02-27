@@ -5,13 +5,14 @@
 // 3. Made Min/Max LOS inputs read-only in data section (removed ability to edit directly)
 // 4. Kept bulk input functionality in the labels section
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   ChevronDown,
   ChevronUp,
   Save,
   X,
   Users,
+  ArrowRight,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -31,9 +32,7 @@ import {
   addAdditionalCharge,
   removeAdditionalCharge,
 } from "../features";
-import {
-  saveLOSChanges,
-} from "../features";
+import { saveLOSChanges, saveBookingOffsetChanges } from "../features";
 import type { InventoryDay } from "../types/inventory";
 import { Switch } from "@/components/ui/switch";
 import {
@@ -41,6 +40,8 @@ import {
   handleRatePlanRestrictionToggle,
 } from "../features/restrictionHandlers";
 import { useStartStopSellService } from "@/pages/start-stop-sell/services";
+import { fetchBookingOffsetsService } from "../services/inventory.service";
+import type { IBookingOffset } from "@/pages/booking-offset/interfaces";
 
 interface RatePlanSectionProps {
   roomType: string;
@@ -49,6 +50,7 @@ interface RatePlanSectionProps {
   state: any;
   hotelCode: string;
   propertyId: string;
+  ratePlanMap: Record<string, string>;
   onDataUpdate?: () => void;
   renderMode: "labels" | "data";
 }
@@ -60,6 +62,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
   state,
   hotelCode,
   propertyId,
+  ratePlanMap,
   onDataUpdate,
   renderMode,
 }) => {
@@ -92,20 +95,70 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
       ageCode: charge.ageQualifyingCode,
       id: `existing-${charge.ageQualifyingCode}-${idx}`,
       isExisting: true,
-    })
+    }),
   );
   const customChargesWithFlag = customData.additionalCharges.map(
     (charge: any) => ({
       ...charge,
       isExisting: false,
-    })
+    }),
   );
   const allCharges = [...existingAsInstances, ...customChargesWithFlag];
 
+  // ============================================
+  // BOOKING OFFSET DATA
+  // ============================================
+  const [bookingOffsetData, setBookingOffsetData] = useState<IBookingOffset[]>(
+    [],
+  );
+
+  useEffect(() => {
+    const fetchBookingOffsets = async () => {
+      const ratePlanId = ratePlanMap[ratePlanType];
+      if (!propertyId || !ratePlanId || days.length === 0) return;
+
+      try {
+        const startDate = days[0]?.fullDate || null;
+        const endDate = days[days.length - 1]?.fullDate || null;
+        const response = await fetchBookingOffsetsService(
+          propertyId,
+          ratePlanId,
+          startDate,
+          endDate,
+        );
+        if (response.success && response.data) {
+          setBookingOffsetData(response.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch booking offsets:", error);
+      }
+    };
+
+    fetchBookingOffsets();
+  }, [propertyId, ratePlanType, ratePlanMap, days]);
+
+  // Helper to find offset data for a given day
+  const getOffsetForDay = (day: InventoryDay): IBookingOffset | undefined => {
+    return bookingOffsetData.find((offset) => {
+      const offsetDate = new Date(offset.date).toISOString().split("T")[0];
+      return offsetDate === day.fullDate;
+    });
+  };
+
   const formatDateForStartStop = (day: InventoryDay): string => {
     const monthNames = [
-      "January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December",
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
     ];
     const monthNumber = monthNames.indexOf(day.month) + 1;
     const dateStr = `${day.year}-${String(monthNumber).padStart(2, "0")}-${String(day.date).padStart(2, "0")}`;
@@ -116,9 +169,14 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
     return (
       <>
         {/* Rate Plan Header */}
-        <div className={`${isExpanded ? "h-14" : "h-20"} flex border-b border-gray-300`}>
+        <div
+          className={`${isExpanded ? "h-14" : "h-20"} flex border-b border-gray-300`}
+        >
           <div className="w-40 flex flex-col items-start justify-center px-2 border-r border-gray-300 bg-gray-50 gap-1">
-            <span className="font-semibold text-gray-700 text-xs truncate w-full" title={ratePlanDetails?.ratePlan?.ratePlanName || ratePlanType}>
+            <span
+              className="font-semibold text-gray-700 text-xs truncate w-full"
+              title={ratePlanDetails?.ratePlan?.ratePlanName || ratePlanType}
+            >
               {ratePlanDetails?.ratePlan?.ratePlanName || ratePlanType}
             </span>
             {hasOccupancy && (
@@ -128,14 +186,18 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                     roomType,
                     ratePlanType,
                     state.expandedOccupancy,
-                    state.setExpandedOccupancy
+                    state.setExpandedOccupancy,
                   )
                 }
                 className="flex items-center gap-1 text-xs text-purple-600 hover:text-purple-800 transition-colors"
               >
                 <Users className="w-3 h-3" />
                 <span className="font-medium">Occupancy Based</span>
-                {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                {isExpanded ? (
+                  <ChevronUp className="w-3 h-3" />
+                ) : (
+                  <ChevronDown className="w-3 h-3" />
+                )}
               </button>
             )}
           </div>
@@ -147,38 +209,64 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                 <Switch
                   checked={(() => {
                     return days.every((day) => {
-                      const ratePlanDetails = getRatePlanDetails(day, roomType, ratePlanType);
-                      return ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus === "open";
+                      const ratePlanDetails = getRatePlanDetails(
+                        day,
+                        roomType,
+                        ratePlanType,
+                      );
+                      return (
+                        ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus ===
+                        "open"
+                      );
                     });
                   })()}
                   onCheckedChange={async (checked) => {
                     try {
                       const firstDate = formatDateForStartStop(days[0]);
-                      const lastDate = formatDateForStartStop(days[days.length - 1]);
+                      const lastDate = formatDateForStartStop(
+                        days[days.length - 1],
+                      );
 
-                      const response = await useStartStopSellService(propertyId, {
-                        from: firstDate,
-                        to: lastDate,
-                        ratePlanCode: ratePlanType,
-                        roomTypeCode: roomType,
-                        isSellStop: !checked,
-                      });
+                      const response = await useStartStopSellService(
+                        propertyId,
+                        {
+                          from: firstDate,
+                          to: lastDate,
+                          ratePlanCode: ratePlanType,
+                          roomTypeCode: roomType,
+                          isSellStop: !checked,
+                        },
+                      );
 
                       if (response.success) {
-                        toast.success(`Rate plan ${checked ? "opened" : "closed"} for ${days.length} dates`);
+                        toast.success(
+                          `Rate plan ${checked ? "opened" : "closed"} for ${days.length} dates`,
+                        );
                         if (onDataUpdate) await onDataUpdate();
                       } else {
                         throw new Error(response.message);
                       }
                     } catch (error: any) {
-                      console.error("Failed to update bulk rate plan status:", error);
-                      toast.error(error.message || "Failed to update rate plan status");
+                      console.error(
+                        "Failed to update bulk rate plan status:",
+                        error,
+                      );
+                      toast.error(
+                        error.message || "Failed to update rate plan status",
+                      );
                     }
                   }}
                   className={`${(() => {
                     const allOpen = days.every((day) => {
-                      const ratePlanDetails = getRatePlanDetails(day, roomType, ratePlanType);
-                      return ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus === "open";
+                      const ratePlanDetails = getRatePlanDetails(
+                        day,
+                        roomType,
+                        ratePlanType,
+                      );
+                      return (
+                        ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus ===
+                        "open"
+                      );
                     });
                     return allOpen
                       ? "data-[state=checked]:bg-green-500"
@@ -197,12 +285,23 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                       const newEdits = new Map(state.priceEdits);
                       const newPending = new Set(state.pendingChanges);
                       days.forEach((_, idx) => {
-                        const dayRatePlan = getRatePlanDetails(days[idx], roomType, ratePlanType);
-                        const hasOccupancy = (dayRatePlan?.ratePlan?.prices?.[0]?.baseByGuestAmts?.length ?? 0) > 0;
+                        const dayRatePlan = getRatePlanDetails(
+                          days[idx],
+                          roomType,
+                          ratePlanType,
+                        );
+                        const hasOccupancy =
+                          (dayRatePlan?.ratePlan?.prices?.[0]?.baseByGuestAmts
+                            ?.length ?? 0) > 0;
 
                         let key;
                         if (hasOccupancy) {
-                          key = generateKey.price(roomType, ratePlanType, idx, 1);
+                          key = generateKey.price(
+                            roomType,
+                            ratePlanType,
+                            idx,
+                            1,
+                          );
                           newEdits.set(key, {
                             roomType,
                             ratePlan: ratePlanType,
@@ -232,14 +331,23 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
               <Switch
                 checked={(() => {
                   return days.every((day) => {
-                    const ratePlanDetails = getRatePlanDetails(day, roomType, ratePlanType);
-                    return ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus === "open";
+                    const ratePlanDetails = getRatePlanDetails(
+                      day,
+                      roomType,
+                      ratePlanType,
+                    );
+                    return (
+                      ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus ===
+                      "open"
+                    );
                   });
                 })()}
                 onCheckedChange={async (checked) => {
                   try {
                     const firstDate = formatDateForStartStop(days[0]);
-                    const lastDate = formatDateForStartStop(days[days.length - 1]);
+                    const lastDate = formatDateForStartStop(
+                      days[days.length - 1],
+                    );
 
                     const response = await useStartStopSellService(propertyId, {
                       from: firstDate,
@@ -250,20 +358,34 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                     });
 
                     if (response.success) {
-                      toast.success(`Rate plan ${checked ? "opened" : "closed"} for ${days.length} dates`);
+                      toast.success(
+                        `Rate plan ${checked ? "opened" : "closed"} for ${days.length} dates`,
+                      );
                       if (onDataUpdate) await onDataUpdate();
                     } else {
                       throw new Error(response.message);
                     }
                   } catch (error: any) {
-                    console.error("Failed to update bulk rate plan status:", error);
-                    toast.error(error.message || "Failed to update rate plan status");
+                    console.error(
+                      "Failed to update bulk rate plan status:",
+                      error,
+                    );
+                    toast.error(
+                      error.message || "Failed to update rate plan status",
+                    );
                   }
                 }}
                 className={`${(() => {
                   const allOpen = days.every((day) => {
-                    const ratePlanDetails = getRatePlanDetails(day, roomType, ratePlanType);
-                    return ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus === "open";
+                    const ratePlanDetails = getRatePlanDetails(
+                      day,
+                      roomType,
+                      ratePlanType,
+                    );
+                    return (
+                      ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus ===
+                      "open"
+                    );
                   });
                   return allOpen
                     ? "data-[state=checked]:bg-green-500"
@@ -278,13 +400,19 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
         {isExpanded && (
           <>
             {allBaseGuests.map((guestTier: any, tierIndex: number) => (
-              <div key={`label-tier-${tierIndex}`} className="h-12 flex border-b border-gray-300">
+              <div
+                key={`label-tier-${tierIndex}`}
+                className="h-12 flex border-b border-gray-300"
+              >
                 <div className="w-40 flex items-center justify-between px-2 border-r border-gray-300 bg-purple-50">
                   <div className="flex items-center gap-1">
                     <span className="font-semibold text-purple-700 text-xs">
-                      {guestTier.numberOfGuests} {guestTier.numberOfGuests === 1 ? "Guest" : "Guests"}
+                      {guestTier.numberOfGuests}{" "}
+                      {guestTier.numberOfGuests === 1 ? "Guest" : "Guests"}
                     </span>
-                    <span className="text-xs text-gray-600">{ratePlanDetails?.currencyCode || "USD"}</span>
+                    <span className="text-xs text-gray-600">
+                      {ratePlanDetails?.currencyCode || "USD"}
+                    </span>
                   </div>
                   {customData.baseGuests.includes(guestTier.numberOfGuests) && (
                     <button
@@ -294,7 +422,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                           ratePlanType,
                           guestTier.numberOfGuests,
                           state.customTiers,
-                          state.setCustomTiers
+                          state.setCustomTiers,
                         )
                       }
                       className="text-red-500 hover:text-red-700"
@@ -316,7 +444,12 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                         const newEdits = new Map(state.priceEdits);
                         const newPending = new Set(state.pendingChanges);
                         days.forEach((_, idx) => {
-                          const key = generateKey.price(roomType, ratePlanType, idx, guestTier.numberOfGuests);
+                          const key = generateKey.price(
+                            roomType,
+                            ratePlanType,
+                            idx,
+                            guestTier.numberOfGuests,
+                          );
                           newEdits.set(key, {
                             roomType,
                             ratePlan: ratePlanType,
@@ -339,7 +472,10 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
             <div className="h-10 flex items-center px-2 border-b border-gray-300 bg-purple-100">
               <button
                 onClick={() => {
-                  const maxGuests = Math.max(...allBaseGuests.map((g: any) => g.numberOfGuests), 0);
+                  const maxGuests = Math.max(
+                    ...allBaseGuests.map((g: any) => g.numberOfGuests),
+                    0,
+                  );
                   addGuestTier(
                     roomType,
                     ratePlanType,
@@ -350,7 +486,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                     state.pendingChanges,
                     state.setCustomTiers,
                     state.setPriceEdits,
-                    state.setPendingChanges
+                    state.setPendingChanges,
                   );
                 }}
                 className="text-xs text-purple-700 hover:text-purple-900 font-medium flex items-center gap-1"
@@ -361,13 +497,18 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
 
             {allCharges.length > 0 &&
               allCharges.map((charge: any) => (
-                <div key={`label-age-${charge.id}`} className="h-12 flex border-b border-gray-300">
+                <div
+                  key={`label-age-${charge.id}`}
+                  className="h-12 flex border-b border-gray-300"
+                >
                   <div className="w-40 flex items-center justify-between px-2 border-r border-gray-300 bg-blue-50">
                     <div className="flex items-center gap-1">
                       <span className="font-semibold text-blue-700 text-xs">
                         Extra {AGE_LABELS[charge.ageCode] || "Guest"}
                       </span>
-                      <span className="text-xs text-gray-600">{ratePlanDetails?.currencyCode || "USD"}</span>
+                      <span className="text-xs text-gray-600">
+                        {ratePlanDetails?.currencyCode || "USD"}
+                      </span>
                     </div>
                     {!charge.isExisting && (
                       <button
@@ -382,7 +523,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                             state.pendingChanges,
                             state.setCustomTiers,
                             state.setPriceEdits,
-                            state.setPendingChanges
+                            state.setPendingChanges,
                           )
                         }
                         className="text-red-500 hover:text-red-700"
@@ -404,7 +545,12 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                           const newEdits = new Map(state.priceEdits);
                           const newPending = new Set(state.pendingChanges);
                           days.forEach((_, idx) => {
-                            const key = generateKey.additionalCharge(roomType, ratePlanType, idx, charge.id);
+                            const key = generateKey.additionalCharge(
+                              roomType,
+                              ratePlanType,
+                              idx,
+                              charge.id,
+                            );
                             newEdits.set(key, {
                               roomType,
                               ratePlan: ratePlanType,
@@ -438,7 +584,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                       state.pendingChanges,
                       state.setCustomTiers,
                       state.setPriceEdits,
-                      state.setPendingChanges
+                      state.setPendingChanges,
                     );
                     e.target.value = "";
                   }
@@ -446,10 +592,18 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                 className="text-xs text-blue-700 hover:text-blue-900 font-medium bg-transparent border-none cursor-pointer focus:outline-none w-full"
                 defaultValue=""
               >
-                <option value="" disabled>+ Add Charge Type</option>
-                {!allCharges.some((c) => c.ageCode === "10") && <option value="10">Adult</option>}
-                {!allCharges.some((c) => c.ageCode === "8") && <option value="8">Child</option>}
-                {!allCharges.some((c) => c.ageCode === "7") && <option value="7">Infant</option>}
+                <option value="" disabled>
+                  + Add Charge Type
+                </option>
+                {!allCharges.some((c) => c.ageCode === "10") && (
+                  <option value="10">Adult</option>
+                )}
+                {!allCharges.some((c) => c.ageCode === "8") && (
+                  <option value="8">Child</option>
+                )}
+                {!allCharges.some((c) => c.ageCode === "7") && (
+                  <option value="7">Infant</option>
+                )}
               </select>
             </div>
           </>
@@ -460,14 +614,23 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
           <>
             <div className="h-12 flex border-b border-gray-300">
               <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-50">
-                <span className="font-semibold text-purple-700 text-xs">Plan CTA</span>
+                <span className="font-semibold text-purple-700 text-xs">
+                  Plan CTA
+                </span>
               </div>
               <div className="w-40 flex items-center justify-center px-2 bg-purple-50">
                 <Switch
                   checked={(() => {
                     return days.every((day, idx) => {
-                      const uniqueKey = generateKey.restriction("CTA", idx, roomType, ratePlanType);
-                      const ratePlan = day.ratePlans?.find((rp) => rp.ratePlanCode === ratePlanType);
+                      const uniqueKey = generateKey.restriction(
+                        "CTA",
+                        idx,
+                        roomType,
+                        ratePlanType,
+                      );
+                      const ratePlan = day.ratePlans?.find(
+                        (rp) => rp.ratePlanCode === ratePlanType,
+                      );
                       const ctaValue = ratePlan?.cta || false;
                       return state.optimisticRestrictions.has(uniqueKey)
                         ? state.optimisticRestrictions.get(uniqueKey)!
@@ -484,13 +647,20 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                       hotelCode,
                       state.optimisticRestrictions,
                       state.setOptimisticRestrictions,
-                      onDataUpdate
+                      onDataUpdate,
                     );
                   }}
                   className={`${(() => {
                     const allEnabled = days.every((day, idx) => {
-                      const uniqueKey = generateKey.restriction("CTA", idx, roomType, ratePlanType);
-                      const ratePlan = day.ratePlans?.find((rp) => rp.ratePlanCode === ratePlanType);
+                      const uniqueKey = generateKey.restriction(
+                        "CTA",
+                        idx,
+                        roomType,
+                        ratePlanType,
+                      );
+                      const ratePlan = day.ratePlans?.find(
+                        (rp) => rp.ratePlanCode === ratePlanType,
+                      );
                       const ctaValue = ratePlan?.cta || false;
                       return state.optimisticRestrictions.has(uniqueKey)
                         ? state.optimisticRestrictions.get(uniqueKey)!
@@ -506,14 +676,23 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
 
             <div className="h-12 flex border-b border-gray-300">
               <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-50">
-                <span className="font-semibold text-purple-700 text-xs">Plan CTD</span>
+                <span className="font-semibold text-purple-700 text-xs">
+                  Plan CTD
+                </span>
               </div>
               <div className="w-40 flex items-center justify-center px-2 bg-purple-50">
                 <Switch
                   checked={(() => {
                     return days.every((day, idx) => {
-                      const uniqueKey = generateKey.restriction("CTD", idx, roomType, ratePlanType);
-                      const ratePlan = day.ratePlans?.find((rp) => rp.ratePlanCode === ratePlanType);
+                      const uniqueKey = generateKey.restriction(
+                        "CTD",
+                        idx,
+                        roomType,
+                        ratePlanType,
+                      );
+                      const ratePlan = day.ratePlans?.find(
+                        (rp) => rp.ratePlanCode === ratePlanType,
+                      );
                       const ctdValue = ratePlan?.ctd || false;
                       return state.optimisticRestrictions.has(uniqueKey)
                         ? state.optimisticRestrictions.get(uniqueKey)!
@@ -530,13 +709,20 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                       hotelCode,
                       state.optimisticRestrictions,
                       state.setOptimisticRestrictions,
-                      onDataUpdate
+                      onDataUpdate,
                     );
                   }}
                   className={`${(() => {
                     const allEnabled = days.every((day, idx) => {
-                      const uniqueKey = generateKey.restriction("CTD", idx, roomType, ratePlanType);
-                      const ratePlan = day.ratePlans?.find((rp) => rp.ratePlanCode === ratePlanType);
+                      const uniqueKey = generateKey.restriction(
+                        "CTD",
+                        idx,
+                        roomType,
+                        ratePlanType,
+                      );
+                      const ratePlan = day.ratePlans?.find(
+                        (rp) => rp.ratePlanCode === ratePlanType,
+                      );
                       const ctdValue = ratePlan?.ctd || false;
                       return state.optimisticRestrictions.has(uniqueKey)
                         ? state.optimisticRestrictions.get(uniqueKey)!
@@ -553,7 +739,9 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
             {/* ✅ BULK MIN LOS with Input */}
             <div className="h-12 flex border-b border-gray-300">
               <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-50">
-                <span className="font-semibold text-purple-700 text-xs">Plan Min LOS</span>
+                <span className="font-semibold text-purple-700 text-xs">
+                  Plan Min LOS
+                </span>
               </div>
               <div className="w-40 flex items-center justify-center px-2 bg-purple-50">
                 <input
@@ -566,7 +754,12 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                       const newEdits = new Map(state.losEdits);
                       const newPending = new Set(state.pendingChanges);
                       days.forEach((_, idx) => {
-                        const key = generateKey.los(roomType, ratePlanType, idx, "min");
+                        const key = generateKey.los(
+                          roomType,
+                          ratePlanType,
+                          idx,
+                          "min",
+                        );
                         newEdits.set(key, {
                           roomType,
                           ratePlan: ratePlanType,
@@ -588,7 +781,9 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
             {/* ✅ BULK MAX LOS with Input */}
             <div className="h-12 flex border-b border-gray-300">
               <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-50">
-                <span className="font-semibold text-purple-700 text-xs">Plan Max LOS</span>
+                <span className="font-semibold text-purple-700 text-xs">
+                  Plan Max LOS
+                </span>
               </div>
               <div className="w-40 flex items-center justify-center px-2 bg-purple-50">
                 <input
@@ -601,7 +796,12 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                       const newEdits = new Map(state.losEdits);
                       const newPending = new Set(state.pendingChanges);
                       days.forEach((_, idx) => {
-                        const key = generateKey.los(roomType, ratePlanType, idx, "max");
+                        const key = generateKey.los(
+                          roomType,
+                          ratePlanType,
+                          idx,
+                          "max",
+                        );
                         newEdits.set(key, {
                           roomType,
                           ratePlan: ratePlanType,
@@ -619,12 +819,296 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                 />
               </div>
             </div>
-
+            {/* Cut-off Unit Toggle */}
+            <div className="h-10 flex border-b border-gray-300">
+              <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-100">
+                <span className="font-semibold text-purple-700 text-xs">
+                  Cut-off Unit
+                </span>
+              </div>
+              <div className="w-40 flex items-center justify-center px-2 bg-purple-100">
+                <div className="flex rounded-md overflow-hidden border border-purple-300">
+                  <button
+                    onClick={() => state.setCutoffUnit("hours")}
+                    className={`px-2 py-0.5 text-[10px] font-semibold transition-colors ${state.cutoffUnit === "hours" ? "bg-purple-600 text-white" : "bg-white text-purple-600 hover:bg-purple-50"}`}
+                  >
+                    Hours
+                  </button>
+                  <button
+                    onClick={() => state.setCutoffUnit("days")}
+                    className={`px-2 py-0.5 text-[10px] font-semibold transition-colors ${state.cutoffUnit === "days" ? "bg-purple-600 text-white" : "bg-white text-purple-600 hover:bg-purple-50"}`}
+                  >
+                    Days
+                  </button>
+                </div>
+              </div>
+            </div>
+            {/* Max Booking  Cut-off */}
+            <div className="h-12 flex border-b border-gray-300">
+              <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-50">
+                <span className="font-semibold text-purple-700 text-xs">
+                  Max Booking Cut-off
+                </span>
+              </div>
+              <div className="w-40 flex items-center justify-center px-2 bg-purple-50">
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="Bulk"
+                  className="w-20 h-7 text-center text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      const newEdits = new Map(state.bookingOffsetEdits);
+                      const newPending = new Set(state.pendingChanges);
+                      days.forEach((_, idx) => {
+                        const key = generateKey.bookingOffset(
+                          roomType,
+                          ratePlanType,
+                          idx,
+                          "maximumAdvanceBookingOffset",
+                        );
+                        newEdits.set(key, {
+                          roomType,
+                          ratePlan: ratePlanType,
+                          dayIndex: idx,
+                          field: "maximumAdvanceBookingOffset",
+                          value:
+                            state.cutoffUnit === "days"
+                              ? String(Number(e.target.value) * 24)
+                              : e.target.value,
+                        });
+                        newPending.add(key);
+                      });
+                      state.setBookingOffsetEdits(newEdits);
+                      state.setPendingChanges(newPending);
+                    }
+                  }}
+                />
+              </div>
+            </div>
+            {/* Min Booking Cut-off */}
+            <div className="h-12 flex border-b border-gray-300">
+              <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-50">
+                <span className="font-semibold text-purple-700 text-xs">
+                  {" "}
+                  Min Booking Cut-off
+                </span>
+              </div>
+              <div className="w-40 flex items-center justify-center px-2 bg-purple-50">
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="Bulk"
+                  className="w-20 h-7 text-center text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      const newEdits = new Map(state.bookingOffsetEdits);
+                      const newPending = new Set(state.pendingChanges);
+                      days.forEach((_, idx) => {
+                        const key = generateKey.bookingOffset(
+                          roomType,
+                          ratePlanType,
+                          idx,
+                          "minimumAdvanceBookingOffset",
+                        );
+                        newEdits.set(key, {
+                          roomType,
+                          ratePlan: ratePlanType,
+                          dayIndex: idx,
+                          field: "minimumAdvanceBookingOffset",
+                          value:
+                            state.cutoffUnit === "days"
+                              ? String(Number(e.target.value) * 24)
+                              : e.target.value,
+                        });
+                        newPending.add(key);
+                      });
+                      state.setBookingOffsetEdits(newEdits);
+                      state.setPendingChanges(newPending);
+                    }
+                  }}
+                />
+              </div>
+            </div>
+            {/* Max Booking Amend Cut-off */}
+            <div className="h-12 flex border-b border-gray-300">
+              <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-50">
+                <span className="font-semibold text-purple-700 text-xs">
+                  Max Booking Amend Cut-off
+                </span>
+              </div>
+              <div className="w-40 flex items-center justify-center px-2 bg-purple-50">
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="Bulk"
+                  className="w-20 h-7 text-center text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      const newEdits = new Map(state.bookingOffsetEdits);
+                      const newPending = new Set(state.pendingChanges);
+                      days.forEach((_, idx) => {
+                        const key = generateKey.bookingOffset(
+                          roomType,
+                          ratePlanType,
+                          idx,
+                          "maximumAmendBookingOffset",
+                        );
+                        newEdits.set(key, {
+                          roomType,
+                          ratePlan: ratePlanType,
+                          dayIndex: idx,
+                          field: "maximumAmendBookingOffset",
+                          value:
+                            state.cutoffUnit === "days"
+                              ? String(Number(e.target.value) * 24)
+                              : e.target.value,
+                        });
+                        newPending.add(key);
+                      });
+                      state.setBookingOffsetEdits(newEdits);
+                      state.setPendingChanges(newPending);
+                    }
+                  }}
+                />
+              </div>
+            </div>
+            {/* Min Booking Amend Cut-off */}
+            <div className="h-12 flex border-b border-gray-300">
+              <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-50">
+                <span className="font-semibold text-purple-700 text-xs">
+                  {" "}
+                  Min Booking Amend Cut-off
+                </span>
+              </div>
+              <div className="w-40 flex items-center justify-center px-2 bg-purple-50">
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="Bulk"
+                  className="w-20 h-7 text-center text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      const newEdits = new Map(state.bookingOffsetEdits);
+                      const newPending = new Set(state.pendingChanges);
+                      days.forEach((_, idx) => {
+                        const key = generateKey.bookingOffset(
+                          roomType,
+                          ratePlanType,
+                          idx,
+                          "minimumAmendBookingOffset",
+                        );
+                        newEdits.set(key, {
+                          roomType,
+                          ratePlan: ratePlanType,
+                          dayIndex: idx,
+                          field: "minimumAmendBookingOffset",
+                          value:
+                            state.cutoffUnit === "days"
+                              ? String(Number(e.target.value) * 24)
+                              : e.target.value,
+                        });
+                        newPending.add(key);
+                      });
+                      state.setBookingOffsetEdits(newEdits);
+                      state.setPendingChanges(newPending);
+                    }
+                  }}
+                />
+              </div>
+            </div>
+            {/* Max Booking Cancel Cut-off */}
+            <div className="h-12 flex border-b border-gray-300">
+              <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-50">
+                <span className="font-semibold text-purple-700 text-xs">
+                  Max Booking Cancel Cut-off
+                </span>
+              </div>
+              <div className="w-40 flex items-center justify-center px-2 bg-purple-50">
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="Bulk"
+                  className="w-20 h-7 text-center text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      const newEdits = new Map(state.bookingOffsetEdits);
+                      const newPending = new Set(state.pendingChanges);
+                      days.forEach((_, idx) => {
+                        const key = generateKey.bookingOffset(
+                          roomType,
+                          ratePlanType,
+                          idx,
+                          "maximumCancelBookingOffset",
+                        );
+                        newEdits.set(key, {
+                          roomType,
+                          ratePlan: ratePlanType,
+                          dayIndex: idx,
+                          field: "maximumCancelBookingOffset",
+                          value:
+                            state.cutoffUnit === "days"
+                              ? String(Number(e.target.value) * 24)
+                              : e.target.value,
+                        });
+                        newPending.add(key);
+                      });
+                      state.setBookingOffsetEdits(newEdits);
+                      state.setPendingChanges(newPending);
+                    }
+                  }}
+                />
+              </div>
+            </div>
+            {/* Min Booking Cancel Cut-off */}
+            <div className="h-12 flex border-b border-gray-300">
+              <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-50">
+                <span className="font-semibold text-purple-700 text-xs">
+                  {" "}
+                  Min Booking Cancel Cut-off
+                </span>
+              </div>
+              <div className="w-40 flex items-center justify-center px-2 bg-purple-50">
+                <input
+                  type="number"
+                  min="0"
+                  placeholder="Bulk"
+                  className="w-20 h-7 text-center text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      const newEdits = new Map(state.bookingOffsetEdits);
+                      const newPending = new Set(state.pendingChanges);
+                      days.forEach((_, idx) => {
+                        const key = generateKey.bookingOffset(
+                          roomType,
+                          ratePlanType,
+                          idx,
+                          "minimumCancelBookingOffset",
+                        );
+                        newEdits.set(key, {
+                          roomType,
+                          ratePlan: ratePlanType,
+                          dayIndex: idx,
+                          field: "minimumCancelBookingOffset",
+                          value:
+                            state.cutoffUnit === "days"
+                              ? String(Number(e.target.value) * 24)
+                              : e.target.value,
+                        });
+                        newPending.add(key);
+                      });
+                      state.setBookingOffsetEdits(newEdits);
+                      state.setPendingChanges(newPending);
+                    }
+                  }}
+                />
+              </div>
+            </div>
             {/* ✅ NEW: Save Button Label in LEFT COLUMN */}
             {(Array.from(state.pendingChanges) as string[]).some(
               (k) =>
                 k.includes(`${roomType}-${ratePlanType}-`) &&
-                (k.includes("-min") || k.includes("-max"))
+                (k.includes("-min") || k.includes("-max")),
             ) && (
               <div className="h-12 flex items-center px-2 border-b border-gray-300 bg-green-50">
                 <span className="font-semibold text-green-700 text-xs">
@@ -642,9 +1126,15 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
   return (
     <>
       {/* Rate Plan Price Row */}
-      <div className={`flex ${isExpanded ? "h-14" : "h-20"} border-b border-gray-300`}>
+      <div
+        className={`flex ${isExpanded ? "h-14" : "h-20"} border-b border-gray-300`}
+      >
         {days.map((day, index) => {
-          const ratePlanDetails = getRatePlanDetails(day, roomType, ratePlanType);
+          const ratePlanDetails = getRatePlanDetails(
+            day,
+            roomType,
+            ratePlanType,
+          );
 
           return (
             <div
@@ -655,34 +1145,57 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                 <div className="flex items-center justify-center mb-1">
                   <Switch
                     checked={(() => {
-                      const ratePlanDetails = getRatePlanDetails(day, roomType, ratePlanType);
-                      return ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus === "open";
+                      const ratePlanDetails = getRatePlanDetails(
+                        day,
+                        roomType,
+                        ratePlanType,
+                      );
+                      return (
+                        ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus ===
+                        "open"
+                      );
                     })()}
                     onCheckedChange={async (checked) => {
                       try {
                         const dateStr = formatDateForStartStop(day);
-                        const response = await useStartStopSellService(propertyId, {
-                          from: dateStr,
-                          to: dateStr,
-                          ratePlanCode: ratePlanType,
-                          roomTypeCode: roomType,
-                          isSellStop: !checked,
-                        });
+                        const response = await useStartStopSellService(
+                          propertyId,
+                          {
+                            from: dateStr,
+                            to: dateStr,
+                            ratePlanCode: ratePlanType,
+                            roomTypeCode: roomType,
+                            isSellStop: !checked,
+                          },
+                        );
 
                         if (response.success) {
-                          toast.success(`Rate plan ${checked ? "opened" : "closed"} for ${day.month.slice(0, 3)} ${day.date}`);
+                          toast.success(
+                            `Rate plan ${checked ? "opened" : "closed"} for ${day.month.slice(0, 3)} ${day.date}`,
+                          );
                           if (onDataUpdate) await onDataUpdate();
                         } else {
                           throw new Error(response.message);
                         }
                       } catch (error: any) {
-console.error("Failed to update rate plan status:", error);
-                        toast.error(error.message || "Failed to update rate plan status");
+                        console.error(
+                          "Failed to update rate plan status:",
+                          error,
+                        );
+                        toast.error(
+                          error.message || "Failed to update rate plan status",
+                        );
                       }
                     }}
                     className={`${(() => {
-                      const ratePlanDetails = getRatePlanDetails(day, roomType, ratePlanType);
-                      const isOpen = ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus === "open";
+                      const ratePlanDetails = getRatePlanDetails(
+                        day,
+                        roomType,
+                        ratePlanType,
+                      );
+                      const isOpen =
+                        ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus ===
+                        "open";
                       return isOpen
                         ? "data-[state=checked]:bg-green-500"
                         : "data-[state=unchecked]:bg-red-500";
@@ -692,17 +1205,24 @@ console.error("Failed to update rate plan status:", error);
                 </div>
 
                 {(() => {
-                  const baseByGuest = ratePlanDetails?.ratePlan?.prices?.[0]?.baseByGuestAmts;
+                  const baseByGuest =
+                    ratePlanDetails?.ratePlan?.prices?.[0]?.baseByGuestAmts;
                   const hasBaseByGuest = baseByGuest && baseByGuest.length > 0;
 
                   if (isExpanded) {
                     return (
-                      <span className={`text-xs font-medium ${
-                        ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus === "open"
-                          ? "text-green-600"
-                          : "text-red-600"
-                      }`}>
-                        {ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus === "open" ? "Open" : "Closed"}
+                      <span
+                        className={`text-xs font-medium ${
+                          ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus ===
+                          "open"
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }`}
+                      >
+                        {ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus ===
+                        "open"
+                          ? "Open"
+                          : "Closed"}
                       </span>
                     );
                   }
@@ -716,13 +1236,25 @@ console.error("Failed to update rate plan status:", error);
                         currentPrice={
                           hasBaseByGuest
                             ? baseByGuest[0].amountBeforeTax
-                            : ratePlanDetails?.price ?? 0
+                            : (ratePlanDetails?.price ?? 0)
                         }
                         currencyCode={ratePlanDetails?.currencyCode ?? "USD"}
-                        numberOfGuests={hasBaseByGuest ? baseByGuest[0].numberOfGuests : undefined}
+                        numberOfGuests={
+                          hasBaseByGuest
+                            ? baseByGuest[0].numberOfGuests
+                            : undefined
+                        }
                         priceEdits={state.priceEdits}
-                        commissionAmount={hasBaseByGuest ? baseByGuest[0].commissionAmount || 0 : 0}
-                        totalAfterCommission={hasBaseByGuest ? baseByGuest[0].amountAfterCommission || 0 : 0}
+                        commissionAmount={
+                          hasBaseByGuest
+                            ? baseByGuest[0].commissionAmount || 0
+                            : 0
+                        }
+                        totalAfterCommission={
+                          hasBaseByGuest
+                            ? baseByGuest[0].amountAfterCommission || 0
+                            : 0
+                        }
                         pendingChanges={state.pendingChanges}
                         generateKey={generateKey.price}
                         onPriceChange={(rt, rp, di, val, ng) =>
@@ -735,7 +1267,7 @@ console.error("Failed to update rate plan status:", error);
                             state.priceEdits,
                             state.pendingChanges,
                             state.setPriceEdits,
-                            state.setPendingChanges
+                            state.setPendingChanges,
                           )
                         }
                         onApplyToRow={(rt, rp, di, ng) =>
@@ -748,7 +1280,7 @@ console.error("Failed to update rate plan status:", error);
                             state.priceEdits,
                             state.pendingChanges,
                             state.setPriceEdits,
-                            state.setPendingChanges
+                            state.setPendingChanges,
                           )
                         }
                       />
@@ -766,12 +1298,20 @@ console.error("Failed to update rate plan status:", error);
         <>
           {/* Base Guest Amount Data Rows */}
           {allBaseGuests.map((guestTier: any, tierIndex: number) => (
-            <div key={`tier-${tierIndex}`} className="flex h-12 border-b border-gray-300">
+            <div
+              key={`tier-${tierIndex}`}
+              className="flex h-12 border-b border-gray-300"
+            >
               {days.map((day, dayIndex) => {
-                const ratePlanDetails = getRatePlanDetails(day, roomType, ratePlanType);
-                const tierData = ratePlanDetails?.ratePlan?.prices?.[0]?.baseByGuestAmts?.find(
-                  (t: any) => t.numberOfGuests === guestTier.numberOfGuests
+                const ratePlanDetails = getRatePlanDetails(
+                  day,
+                  roomType,
+                  ratePlanType,
                 );
+                const tierData =
+                  ratePlanDetails?.ratePlan?.prices?.[0]?.baseByGuestAmts?.find(
+                    (t: any) => t.numberOfGuests === guestTier.numberOfGuests,
+                  );
 
                 return (
                   <div
@@ -788,7 +1328,9 @@ console.error("Failed to update rate plan status:", error);
                       showOnlyInput={true}
                       priceEdits={state.priceEdits}
                       commissionAmount={tierData?.commissionAmount || 0}
-                      totalAfterCommission={tierData?.amountAfterCommission || 0}
+                      totalAfterCommission={
+                        tierData?.amountAfterCommission || 0
+                      }
                       pendingChanges={state.pendingChanges}
                       generateKey={generateKey.price}
                       onPriceChange={(rt, rp, di, val, ng) =>
@@ -801,7 +1343,7 @@ console.error("Failed to update rate plan status:", error);
                           state.priceEdits,
                           state.pendingChanges,
                           state.setPriceEdits,
-                          state.setPendingChanges
+                          state.setPendingChanges,
                         )
                       }
                       onApplyToRow={(rt, rp, di, ng) =>
@@ -814,7 +1356,7 @@ console.error("Failed to update rate plan status:", error);
                           state.priceEdits,
                           state.pendingChanges,
                           state.setPriceEdits,
-                          state.setPendingChanges
+                          state.setPendingChanges,
                         )
                       }
                     />
@@ -828,7 +1370,10 @@ console.error("Failed to update rate plan status:", error);
           {allBaseGuests.length > 0 && (
             <div className="flex h-10 border-b border-gray-300 bg-purple-100">
               {days.map((_, dayIndex) => (
-                <div key={dayIndex} className="w-32 flex-shrink-0 border-r border-gray-300" />
+                <div
+                  key={dayIndex}
+                  className="w-32 flex-shrink-0 border-r border-gray-300"
+                />
               ))}
             </div>
           )}
@@ -836,14 +1381,22 @@ console.error("Failed to update rate plan status:", error);
           {/* Additional Charge Data Rows */}
           {allCharges.length > 0 &&
             allCharges.map((charge: any) => (
-              <div key={`age-row-${charge.id}`} className="flex h-12 border-b border-gray-300">
+              <div
+                key={`age-row-${charge.id}`}
+                className="flex h-12 border-b border-gray-300"
+              >
                 {days.map((day, dayIndex) => {
-                  const ratePlanDetails = getRatePlanDetails(day, roomType, ratePlanType);
+                  const ratePlanDetails = getRatePlanDetails(
+                    day,
+                    roomType,
+                    ratePlanType,
+                  );
                   const hasData =
-                    (ratePlanDetails?.ratePlan?.prices?.[0]?.additionalGuestAmounts?.length ?? 0) > 0;
+                    (ratePlanDetails?.ratePlan?.prices?.[0]
+                      ?.additionalGuestAmounts?.length ?? 0) > 0;
                   const chargeData = hasData
                     ? ratePlanDetails?.ratePlan?.prices?.[0]?.additionalGuestAmounts?.find(
-                        (c: any) => c.ageQualifyingCode === charge.ageCode
+                        (c: any) => c.ageQualifyingCode === charge.ageCode,
                       )
                     : null;
 
@@ -862,7 +1415,9 @@ console.error("Failed to update rate plan status:", error);
                         showOnlyInput={true}
                         priceEdits={state.priceEdits}
                         commissionAmount={chargeData?.commissionAmount || 0}
-                        totalAfterCommission={chargeData?.amountAfterCommission || 0}
+                        totalAfterCommission={
+                          chargeData?.amountAfterCommission || 0
+                        }
                         pendingChanges={state.pendingChanges}
                         generateKey={generateKey.additionalCharge}
                         onChargeChange={(rt, rp, di, val, ac) =>
@@ -875,7 +1430,7 @@ console.error("Failed to update rate plan status:", error);
                             state.priceEdits,
                             state.pendingChanges,
                             state.setPriceEdits,
-                            state.setPendingChanges
+                            state.setPendingChanges,
                           )
                         }
                         onApplyToRow={(rt, rp, di, ac) =>
@@ -888,7 +1443,7 @@ console.error("Failed to update rate plan status:", error);
                             state.priceEdits,
                             state.pendingChanges,
                             state.setPriceEdits,
-                            state.setPendingChanges
+                            state.setPendingChanges,
                           )
                         }
                       />
@@ -901,7 +1456,10 @@ console.error("Failed to update rate plan status:", error);
           {/* Spacer after charges - ALWAYS SHOW */}
           <div className="flex h-10 border-b border-gray-300 bg-blue-100">
             {days.map((_, dayIndex) => (
-              <div key={dayIndex} className="w-32 flex-shrink-0 border-r border-gray-300" />
+              <div
+                key={dayIndex}
+                className="w-32 flex-shrink-0 border-r border-gray-300"
+              />
             ))}
           </div>
         </>
@@ -913,8 +1471,15 @@ console.error("Failed to update rate plan status:", error);
           {/* CTA Data */}
           <div className="flex h-12 border-b border-gray-300">
             {days.map((day, index) => {
-              const uniqueKey = generateKey.restriction("CTA", index, roomType, ratePlanType);
-              const ratePlan = day.ratePlans?.find((rp) => rp.ratePlanCode === ratePlanType);
+              const uniqueKey = generateKey.restriction(
+                "CTA",
+                index,
+                roomType,
+                ratePlanType,
+              );
+              const ratePlan = day.ratePlans?.find(
+                (rp) => rp.ratePlanCode === ratePlanType,
+              );
               const ctaValue = ratePlan?.cta || false;
               const effectiveValue = state.optimisticRestrictions.has(uniqueKey)
                 ? state.optimisticRestrictions.get(uniqueKey)!
@@ -938,7 +1503,7 @@ console.error("Failed to update rate plan status:", error);
                         hotelCode,
                         state.optimisticRestrictions,
                         state.setOptimisticRestrictions,
-                        onDataUpdate
+                        onDataUpdate,
                       )
                     }
                     className={`${
@@ -955,8 +1520,15 @@ console.error("Failed to update rate plan status:", error);
           {/* CTD Data */}
           <div className="flex h-12 border-b border-gray-300">
             {days.map((day, index) => {
-              const uniqueKey = generateKey.restriction("CTD", index, roomType, ratePlanType);
-              const ratePlan = day.ratePlans?.find((rp) => rp.ratePlanCode === ratePlanType);
+              const uniqueKey = generateKey.restriction(
+                "CTD",
+                index,
+                roomType,
+                ratePlanType,
+              );
+              const ratePlan = day.ratePlans?.find(
+                (rp) => rp.ratePlanCode === ratePlanType,
+              );
               const ctdValue = ratePlan?.ctd || false;
               const effectiveValue = state.optimisticRestrictions.has(uniqueKey)
                 ? state.optimisticRestrictions.get(uniqueKey)!
@@ -980,7 +1552,7 @@ console.error("Failed to update rate plan status:", error);
                         hotelCode,
                         state.optimisticRestrictions,
                         state.setOptimisticRestrictions,
-                        onDataUpdate
+                        onDataUpdate,
                       )
                     }
                     className={`${
@@ -994,39 +1566,713 @@ console.error("Failed to update rate plan status:", error);
             })}
           </div>
 
-          {/* ✅ Min LOS Data - READ ONLY */}
+          {/* ✅ Min LOS Data */}
           <div className="flex h-12 border-b border-gray-300">
             {days.map((day, index) => {
-              const ratePlan = day.ratePlans?.find((rp: any) => rp.ratePlanCode === ratePlanType);
-              const currentValue = ratePlan?.minLengthOfStay || 0;
+              const ratePlan = day.ratePlans?.find(
+                (rp: any) => rp.ratePlanCode === ratePlanType,
+              );
+              const apiValue = ratePlan?.minLengthOfStay || 0;
+              const editKey = generateKey.los(
+                roomType,
+                ratePlanType,
+                index,
+                "min",
+              );
+              const edit = state.losEdits.get(editKey);
+              const displayValue = edit ? edit.value : `${apiValue}`;
+              const hasChanges = state.pendingChanges.has(editKey);
 
               return (
                 <div
                   key={index}
-                  className="h-12 w-32 flex-shrink-0 flex items-center justify-center border-r border-b border-gray-300 bg-purple-50 px-2"
+                  className={`h-12 w-32 flex-shrink-0 flex items-center justify-center border-r border-b border-gray-300 px-1 ${hasChanges ? "bg-orange-50" : "bg-purple-50"}`}
                 >
-                  <span className="text-sm font-medium text-gray-700">
-                    {currentValue}
-                  </span>
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      min="0"
+                      value={displayValue}
+                      onChange={(e) => {
+                        const newEdits = new Map(state.losEdits);
+                        const newPending = new Set(state.pendingChanges);
+                        newEdits.set(editKey, {
+                          roomType,
+                          ratePlan: ratePlanType,
+                          dayIndex: index,
+                          type: "min",
+                          value: e.target.value,
+                        });
+                        newPending.add(editKey);
+                        state.setLosEdits(newEdits);
+                        state.setPendingChanges(newPending);
+                      }}
+                      className={`w-14 h-7 text-center text-xs font-bold rounded border ${
+                        hasChanges
+                          ? "border-orange-400 bg-orange-50"
+                          : "border-gray-300"
+                      } focus:outline-none focus:ring-2 focus:ring-purple-400`}
+                    />
+                    {edit && (
+                      <button
+                        onClick={() => {
+                          const newEdits = new Map(state.losEdits);
+                          const newPending = new Set(state.pendingChanges);
+                          days.forEach((_, idx) => {
+                            if (idx >= index) {
+                              const rowKey = generateKey.los(
+                                roomType,
+                                ratePlanType,
+                                idx,
+                                "min",
+                              );
+                              newEdits.set(rowKey, {
+                                roomType,
+                                ratePlan: ratePlanType,
+                                dayIndex: idx,
+                                type: "min",
+                                value: edit.value,
+                              });
+                              newPending.add(rowKey);
+                            }
+                          });
+                          state.setLosEdits(newEdits);
+                          state.setPendingChanges(newPending);
+                        }}
+                        className="p-1 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors flex-shrink-0"
+                        title="Apply to remaining dates"
+                      >
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               );
             })}
           </div>
 
-          {/* ✅ Max LOS Data - READ ONLY */}
+          {/* ✅ Max LOS Data */}
           <div className="flex h-12 border-b border-gray-300">
             {days.map((day, index) => {
-              const ratePlan = day.ratePlans?.find((rp: any) => rp.ratePlanCode === ratePlanType);
-              const currentValue = ratePlan?.maxLengthOfStay || 0;
+              const ratePlan = day.ratePlans?.find(
+                (rp: any) => rp.ratePlanCode === ratePlanType,
+              );
+              const apiValue = ratePlan?.maxLengthOfStay || 0;
+              const editKey = generateKey.los(
+                roomType,
+                ratePlanType,
+                index,
+                "max",
+              );
+              const edit = state.losEdits.get(editKey);
+              const displayValue = edit ? edit.value : `${apiValue}`;
+              const hasChanges = state.pendingChanges.has(editKey);
 
               return (
                 <div
                   key={index}
-                  className="h-12 w-32 flex-shrink-0 flex items-center justify-center border-r border-b border-gray-300 bg-purple-50 px-2"
+                  className={`h-12 w-32 flex-shrink-0 flex items-center justify-center border-r border-b border-gray-300 px-1 ${hasChanges ? "bg-orange-50" : "bg-purple-50"}`}
                 >
-                  <span className="text-sm font-medium text-gray-700">
-                    {currentValue}
-                  </span>
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      min="0"
+                      value={displayValue}
+                      onChange={(e) => {
+                        const newEdits = new Map(state.losEdits);
+                        const newPending = new Set(state.pendingChanges);
+                        newEdits.set(editKey, {
+                          roomType,
+                          ratePlan: ratePlanType,
+                          dayIndex: index,
+                          type: "max",
+                          value: e.target.value,
+                        });
+                        newPending.add(editKey);
+                        state.setLosEdits(newEdits);
+                        state.setPendingChanges(newPending);
+                      }}
+                      className={`w-14 h-7 text-center text-xs font-bold rounded border ${
+                        hasChanges
+                          ? "border-orange-400 bg-orange-50"
+                          : "border-gray-300"
+                      } focus:outline-none focus:ring-2 focus:ring-purple-400`}
+                    />
+                    {edit && (
+                      <button
+                        onClick={() => {
+                          const newEdits = new Map(state.losEdits);
+                          const newPending = new Set(state.pendingChanges);
+                          days.forEach((_, idx) => {
+                            if (idx >= index) {
+                              const rowKey = generateKey.los(
+                                roomType,
+                                ratePlanType,
+                                idx,
+                                "max",
+                              );
+                              newEdits.set(rowKey, {
+                                roomType,
+                                ratePlan: ratePlanType,
+                                dayIndex: idx,
+                                type: "max",
+                                value: edit.value,
+                              });
+                              newPending.add(rowKey);
+                            }
+                          });
+                          state.setLosEdits(newEdits);
+                          state.setPendingChanges(newPending);
+                        }}
+                        className="p-1 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors flex-shrink-0"
+                        title="Apply to remaining dates"
+                      >
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Cut-off Unit Toggle Spacer (data side) */}
+          <div className="flex h-10 border-b border-gray-300 bg-purple-100">
+            {days.map((_, index) => (
+              <div
+                key={index}
+                className="w-32 flex-shrink-0 border-r border-gray-300 flex items-center justify-center"
+              >
+                <span className="text-[10px] text-purple-600 font-medium">
+                  {state.cutoffUnit === "days" ? "days" : "hours"}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Max Booking Cut-off Data */}
+          <div className="flex h-12 border-b border-gray-300">
+            {days.map((day, index) => {
+              const offset = getOffsetForDay(day);
+              const editKey = generateKey.bookingOffset(
+                roomType,
+                ratePlanType,
+                index,
+                "maximumAdvanceBookingOffset",
+              );
+              const edit = state.bookingOffsetEdits.get(editKey);
+              const apiValue = offset?.maximumAdvanceBookingOffset;
+              const rawValue = edit ? Number(edit.value) : apiValue;
+              const displayValue =
+                rawValue != null
+                  ? state.cutoffUnit === "days"
+                    ? `${rawValue / 24}`
+                    : `${rawValue}`
+                  : "";
+              const hasChanges = state.pendingChanges.has(editKey);
+              return (
+                <div
+                  key={index}
+                  className={`h-12 w-32 flex-shrink-0 flex items-center justify-center border-r border-b border-gray-300 px-1 ${hasChanges ? "bg-orange-50" : "bg-purple-50"}`}
+                >
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      min="0"
+                      value={displayValue}
+                      placeholder="-"
+                      onChange={(e) => {
+                        const newEdits = new Map(state.bookingOffsetEdits);
+                        const newPending = new Set(state.pendingChanges);
+                        newEdits.set(editKey, {
+                          roomType,
+                          ratePlan: ratePlanType,
+                          dayIndex: index,
+                          field: "maximumAdvanceBookingOffset",
+                          value:
+                            state.cutoffUnit === "days"
+                              ? String(Number(e.target.value) * 24)
+                              : e.target.value,
+                        });
+                        newPending.add(editKey);
+                        state.setBookingOffsetEdits(newEdits);
+                        state.setPendingChanges(newPending);
+                      }}
+                      className={`w-14 h-7 text-center text-xs font-bold rounded border ${hasChanges ? "border-orange-400 bg-orange-50" : "border-gray-300"} focus:outline-none focus:ring-2 focus:ring-purple-400`}
+                    />
+                    {edit && (
+                      <button
+                        onClick={() => {
+                          const newEdits = new Map(state.bookingOffsetEdits);
+                          const newPending = new Set(state.pendingChanges);
+                          days.forEach((_, idx) => {
+                            if (idx >= index) {
+                              const k = generateKey.bookingOffset(
+                                roomType,
+                                ratePlanType,
+                                idx,
+                                "maximumAdvanceBookingOffset",
+                              );
+                              newEdits.set(k, {
+                                roomType,
+                                ratePlan: ratePlanType,
+                                dayIndex: idx,
+                                field: "maximumAdvanceBookingOffset",
+                                value: edit.value,
+                              });
+                              newPending.add(k);
+                            }
+                          });
+                          state.setBookingOffsetEdits(newEdits);
+                          state.setPendingChanges(newPending);
+                        }}
+                        className="p-1 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors flex-shrink-0"
+                        title="Apply to remaining dates"
+                      >
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Min Booking Cut-off Data */}
+          <div className="flex h-12 border-b border-gray-300">
+            {days.map((day, index) => {
+              const offset = getOffsetForDay(day);
+              const editKey = generateKey.bookingOffset(
+                roomType,
+                ratePlanType,
+                index,
+                "minimumAdvanceBookingOffset",
+              );
+              const edit = state.bookingOffsetEdits.get(editKey);
+              const apiValue = offset?.minimumAdvanceBookingOffset;
+              const rawValue = edit ? Number(edit.value) : apiValue;
+              const displayValue =
+                rawValue != null
+                  ? state.cutoffUnit === "days"
+                    ? `${rawValue / 24}`
+                    : `${rawValue}`
+                  : "";
+              const hasChanges = state.pendingChanges.has(editKey);
+              return (
+                <div
+                  key={index}
+                  className={`h-12 w-32 flex-shrink-0 flex items-center justify-center border-r border-b border-gray-300 px-1 ${hasChanges ? "bg-orange-50" : "bg-purple-50"}`}
+                >
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      min="0"
+                      value={displayValue}
+                      placeholder="-"
+                      onChange={(e) => {
+                        const newEdits = new Map(state.bookingOffsetEdits);
+                        const newPending = new Set(state.pendingChanges);
+                        newEdits.set(editKey, {
+                          roomType,
+                          ratePlan: ratePlanType,
+                          dayIndex: index,
+                          field: "minimumAdvanceBookingOffset",
+                          value:
+                            state.cutoffUnit === "days"
+                              ? String(Number(e.target.value) * 24)
+                              : e.target.value,
+                        });
+                        newPending.add(editKey);
+                        state.setBookingOffsetEdits(newEdits);
+                        state.setPendingChanges(newPending);
+                      }}
+                      className={`w-14 h-7 text-center text-xs font-bold rounded border ${hasChanges ? "border-orange-400 bg-orange-50" : "border-gray-300"} focus:outline-none focus:ring-2 focus:ring-purple-400`}
+                    />
+                    {edit && (
+                      <button
+                        onClick={() => {
+                          const newEdits = new Map(state.bookingOffsetEdits);
+                          const newPending = new Set(state.pendingChanges);
+                          days.forEach((_, idx) => {
+                            if (idx >= index) {
+                              const k = generateKey.bookingOffset(
+                                roomType,
+                                ratePlanType,
+                                idx,
+                                "minimumAdvanceBookingOffset",
+                              );
+                              newEdits.set(k, {
+                                roomType,
+                                ratePlan: ratePlanType,
+                                dayIndex: idx,
+                                field: "minimumAdvanceBookingOffset",
+                                value: edit.value,
+                              });
+                              newPending.add(k);
+                            }
+                          });
+                          state.setBookingOffsetEdits(newEdits);
+                          state.setPendingChanges(newPending);
+                        }}
+                        className="p-1 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors flex-shrink-0"
+                        title="Apply to remaining dates"
+                      >
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Max Booking Amend Cut-off Data */}
+          <div className="flex h-12 border-b border-gray-300">
+            {days.map((day, index) => {
+              const offset = getOffsetForDay(day);
+              const editKey = generateKey.bookingOffset(
+                roomType,
+                ratePlanType,
+                index,
+                "maximumAmendBookingOffset",
+              );
+              const edit = state.bookingOffsetEdits.get(editKey);
+              const apiValue = offset?.maximumAmendBookingOffset;
+              const rawValue = edit ? Number(edit.value) : apiValue;
+              const displayValue =
+                rawValue != null
+                  ? state.cutoffUnit === "days"
+                    ? `${rawValue / 24}`
+                    : `${rawValue}`
+                  : "";
+              const hasChanges = state.pendingChanges.has(editKey);
+              return (
+                <div
+                  key={index}
+                  className={`h-12 w-32 flex-shrink-0 flex items-center justify-center border-r border-b border-gray-300 px-1 ${hasChanges ? "bg-orange-50" : "bg-purple-50"}`}
+                >
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      min="0"
+                      value={displayValue}
+                      placeholder="-"
+                      onChange={(e) => {
+                        const newEdits = new Map(state.bookingOffsetEdits);
+                        const newPending = new Set(state.pendingChanges);
+                        newEdits.set(editKey, {
+                          roomType,
+                          ratePlan: ratePlanType,
+                          dayIndex: index,
+                          field: "maximumAmendBookingOffset",
+                          value:
+                            state.cutoffUnit === "days"
+                              ? String(Number(e.target.value) * 24)
+                              : e.target.value,
+                        });
+                        newPending.add(editKey);
+                        state.setBookingOffsetEdits(newEdits);
+                        state.setPendingChanges(newPending);
+                      }}
+                      className={`w-14 h-7 text-center text-xs font-bold rounded border ${hasChanges ? "border-orange-400 bg-orange-50" : "border-gray-300"} focus:outline-none focus:ring-2 focus:ring-purple-400`}
+                    />
+                    {edit && (
+                      <button
+                        onClick={() => {
+                          const newEdits = new Map(state.bookingOffsetEdits);
+                          const newPending = new Set(state.pendingChanges);
+                          days.forEach((_, idx) => {
+                            if (idx >= index) {
+                              const k = generateKey.bookingOffset(
+                                roomType,
+                                ratePlanType,
+                                idx,
+                                "maximumAmendBookingOffset",
+                              );
+                              newEdits.set(k, {
+                                roomType,
+                                ratePlan: ratePlanType,
+                                dayIndex: idx,
+                                field: "maximumAmendBookingOffset",
+                                value: edit.value,
+                              });
+                              newPending.add(k);
+                            }
+                          });
+                          state.setBookingOffsetEdits(newEdits);
+                          state.setPendingChanges(newPending);
+                        }}
+                        className="p-1 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors flex-shrink-0"
+                        title="Apply to remaining dates"
+                      >
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Min Booking Amend Cut-off Data */}
+          <div className="flex h-12 border-b border-gray-300">
+            {days.map((day, index) => {
+              const offset = getOffsetForDay(day);
+              const editKey = generateKey.bookingOffset(
+                roomType,
+                ratePlanType,
+                index,
+                "minimumAmendBookingOffset",
+              );
+              const edit = state.bookingOffsetEdits.get(editKey);
+              const apiValue = offset?.minimumAmendBookingOffset;
+              const rawValue = edit ? Number(edit.value) : apiValue;
+              const displayValue =
+                rawValue != null
+                  ? state.cutoffUnit === "days"
+                    ? `${rawValue / 24}`
+                    : `${rawValue}`
+                  : "";
+              const hasChanges = state.pendingChanges.has(editKey);
+              return (
+                <div
+                  key={index}
+                  className={`h-12 w-32 flex-shrink-0 flex items-center justify-center border-r border-b border-gray-300 px-1 ${hasChanges ? "bg-orange-50" : "bg-purple-50"}`}
+                >
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      min="0"
+                      value={displayValue}
+                      placeholder="-"
+                      onChange={(e) => {
+                        const newEdits = new Map(state.bookingOffsetEdits);
+                        const newPending = new Set(state.pendingChanges);
+                        newEdits.set(editKey, {
+                          roomType,
+                          ratePlan: ratePlanType,
+                          dayIndex: index,
+                          field: "minimumAmendBookingOffset",
+                          value:
+                            state.cutoffUnit === "days"
+                              ? String(Number(e.target.value) * 24)
+                              : e.target.value,
+                        });
+                        newPending.add(editKey);
+                        state.setBookingOffsetEdits(newEdits);
+                        state.setPendingChanges(newPending);
+                      }}
+                      className={`w-14 h-7 text-center text-xs font-bold rounded border ${hasChanges ? "border-orange-400 bg-orange-50" : "border-gray-300"} focus:outline-none focus:ring-2 focus:ring-purple-400`}
+                    />
+                    {edit && (
+                      <button
+                        onClick={() => {
+                          const newEdits = new Map(state.bookingOffsetEdits);
+                          const newPending = new Set(state.pendingChanges);
+                          days.forEach((_, idx) => {
+                            if (idx >= index) {
+                              const k = generateKey.bookingOffset(
+                                roomType,
+                                ratePlanType,
+                                idx,
+                                "minimumAmendBookingOffset",
+                              );
+                              newEdits.set(k, {
+                                roomType,
+                                ratePlan: ratePlanType,
+                                dayIndex: idx,
+                                field: "minimumAmendBookingOffset",
+                                value: edit.value,
+                              });
+                              newPending.add(k);
+                            }
+                          });
+                          state.setBookingOffsetEdits(newEdits);
+                          state.setPendingChanges(newPending);
+                        }}
+                        className="p-1 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors flex-shrink-0"
+                        title="Apply to remaining dates"
+                      >
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Max Booking Cancel Cut-off Data */}
+          <div className="flex h-12 border-b border-gray-300">
+            {days.map((day, index) => {
+              const offset = getOffsetForDay(day);
+              const editKey = generateKey.bookingOffset(
+                roomType,
+                ratePlanType,
+                index,
+                "maximumCancelBookingOffset",
+              );
+              const edit = state.bookingOffsetEdits.get(editKey);
+              const apiValue = offset?.maximumCancelBookingOffset;
+              const rawValue = edit ? Number(edit.value) : apiValue;
+              const displayValue =
+                rawValue != null
+                  ? state.cutoffUnit === "days"
+                    ? `${rawValue / 24}`
+                    : `${rawValue}`
+                  : "";
+              const hasChanges = state.pendingChanges.has(editKey);
+              return (
+                <div
+                  key={index}
+                  className={`h-12 w-32 flex-shrink-0 flex items-center justify-center border-r border-b border-gray-300 px-1 ${hasChanges ? "bg-orange-50" : "bg-purple-50"}`}
+                >
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      min="0"
+                      value={displayValue}
+                      placeholder="-"
+                      onChange={(e) => {
+                        const newEdits = new Map(state.bookingOffsetEdits);
+                        const newPending = new Set(state.pendingChanges);
+                        newEdits.set(editKey, {
+                          roomType,
+                          ratePlan: ratePlanType,
+                          dayIndex: index,
+                          field: "maximumCancelBookingOffset",
+                          value:
+                            state.cutoffUnit === "days"
+                              ? String(Number(e.target.value) * 24)
+                              : e.target.value,
+                        });
+                        newPending.add(editKey);
+                        state.setBookingOffsetEdits(newEdits);
+                        state.setPendingChanges(newPending);
+                      }}
+                      className={`w-14 h-7 text-center text-xs font-bold rounded border ${hasChanges ? "border-orange-400 bg-orange-50" : "border-gray-300"} focus:outline-none focus:ring-2 focus:ring-purple-400`}
+                    />
+                    {edit && (
+                      <button
+                        onClick={() => {
+                          const newEdits = new Map(state.bookingOffsetEdits);
+                          const newPending = new Set(state.pendingChanges);
+                          days.forEach((_, idx) => {
+                            if (idx >= index) {
+                              const k = generateKey.bookingOffset(
+                                roomType,
+                                ratePlanType,
+                                idx,
+                                "maximumCancelBookingOffset",
+                              );
+                              newEdits.set(k, {
+                                roomType,
+                                ratePlan: ratePlanType,
+                                dayIndex: idx,
+                                field: "maximumCancelBookingOffset",
+                                value: edit.value,
+                              });
+                              newPending.add(k);
+                            }
+                          });
+                          state.setBookingOffsetEdits(newEdits);
+                          state.setPendingChanges(newPending);
+                        }}
+                        className="p-1 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors flex-shrink-0"
+                        title="Apply to remaining dates"
+                      >
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Min Booking Cancel Cut-off Data */}
+          <div className="flex h-12 border-b border-gray-300">
+            {days.map((day, index) => {
+              const offset = getOffsetForDay(day);
+              const editKey = generateKey.bookingOffset(
+                roomType,
+                ratePlanType,
+                index,
+                "minimumCancelBookingOffset",
+              );
+              const edit = state.bookingOffsetEdits.get(editKey);
+              const apiValue = offset?.minimumCancelBookingOffset;
+              const rawValue = edit ? Number(edit.value) : apiValue;
+              const displayValue =
+                rawValue != null
+                  ? state.cutoffUnit === "days"
+                    ? `${rawValue / 24}`
+                    : `${rawValue}`
+                  : "";
+              const hasChanges = state.pendingChanges.has(editKey);
+              return (
+                <div
+                  key={index}
+                  className={`h-12 w-32 flex-shrink-0 flex items-center justify-center border-r border-b border-gray-300 px-1 ${hasChanges ? "bg-orange-50" : "bg-purple-50"}`}
+                >
+                  <div className="flex items-center gap-1">
+                    <input
+                      type="number"
+                      min="0"
+                      value={displayValue}
+                      placeholder="-"
+                      onChange={(e) => {
+                        const newEdits = new Map(state.bookingOffsetEdits);
+                        const newPending = new Set(state.pendingChanges);
+                        newEdits.set(editKey, {
+                          roomType,
+                          ratePlan: ratePlanType,
+                          dayIndex: index,
+                          field: "minimumCancelBookingOffset",
+                          value:
+                            state.cutoffUnit === "days"
+                              ? String(Number(e.target.value) * 24)
+                              : e.target.value,
+                        });
+                        newPending.add(editKey);
+                        state.setBookingOffsetEdits(newEdits);
+                        state.setPendingChanges(newPending);
+                      }}
+                      className={`w-14 h-7 text-center text-xs font-bold rounded border ${hasChanges ? "border-orange-400 bg-orange-50" : "border-gray-300"} focus:outline-none focus:ring-2 focus:ring-purple-400`}
+                    />
+                    {edit && (
+                      <button
+                        onClick={() => {
+                          const newEdits = new Map(state.bookingOffsetEdits);
+                          const newPending = new Set(state.pendingChanges);
+                          days.forEach((_, idx) => {
+                            if (idx >= index) {
+                              const k = generateKey.bookingOffset(
+                                roomType,
+                                ratePlanType,
+                                idx,
+                                "minimumCancelBookingOffset",
+                              );
+                              newEdits.set(k, {
+                                roomType,
+                                ratePlan: ratePlanType,
+                                dayIndex: idx,
+                                field: "minimumCancelBookingOffset",
+                                value: edit.value,
+                              });
+                              newPending.add(k);
+                            }
+                          });
+                          state.setBookingOffsetEdits(newEdits);
+                          state.setPendingChanges(newPending);
+                        }}
+                        className="p-1 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors flex-shrink-0"
+                        title="Apply to remaining dates"
+                      >
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               );
             })}
@@ -1036,32 +2282,77 @@ console.error("Failed to update rate plan status:", error);
           {(Array.from(state.pendingChanges) as string[]).some(
             (k) =>
               k.includes(`${roomType}-${ratePlanType}-`) &&
-              (k.includes("-min") || k.includes("-max"))
+              (k.includes("-min") ||
+                k.includes("-max") ||
+                k.includes("-bookingOffset-")),
           ) && (
             <div className="flex h-12 border-b border-gray-300 bg-purple-50">
               {days.map((_, index) => (
-                <div key={index} className="w-32 flex-shrink-0 border-gray-300" />
+                <div
+                  key={index}
+                  className="w-32 flex-shrink-0 border-gray-300"
+                />
               ))}
               <div className="absolute left-0 right-0 h-12 flex items-center justify-center pointer-events-none">
                 <button
-                  onClick={() =>
-                    saveLOSChanges(
-                      roomType,
-                      ratePlanType,
-                      days,
-                      state.losEdits,
-                      state.pendingChanges,
-                      hotelCode,
-                      ratePlanType, // ✅ PASS ratePlanType as ratePlanCode parameter
-                      state.setLosEdits,
-                      state.setPendingChanges,
-                      onDataUpdate
-                    )
-                  }
+                  onClick={async () => {
+                    // Save LOS changes if any
+                    const hasLOS = (
+                      Array.from(state.pendingChanges) as string[]
+                    ).some(
+                      (k) =>
+                        k.includes(`${roomType}-${ratePlanType}-`) &&
+                        (k.includes("-min") || k.includes("-max")) &&
+                        !k.includes("-bookingOffset-"),
+                    );
+                    if (hasLOS) {
+                      await saveLOSChanges(
+                        roomType,
+                        ratePlanType,
+                        days,
+                        state.losEdits,
+                        state.pendingChanges,
+                        hotelCode,
+                        ratePlanType,
+                        state.setLosEdits,
+                        state.setPendingChanges,
+                        onDataUpdate,
+                      );
+                    }
+                    // Save booking offset changes if any
+                    const hasOffsets = (
+                      Array.from(state.pendingChanges) as string[]
+                    ).some(
+                      (k) =>
+                        k.includes(`${roomType}-${ratePlanType}-`) &&
+                        k.includes("-bookingOffset-"),
+                    );
+                    if (hasOffsets) {
+                      const ratePlanId = ratePlanMap[ratePlanType];
+                      if (!ratePlanId) {
+                        toast.error(
+                          `No rate plan ID found for ${ratePlanType}`,
+                        );
+                        return;
+                      }
+                      await saveBookingOffsetChanges(
+                        roomType,
+                        ratePlanType,
+                        days,
+                        state.bookingOffsetEdits,
+                        state.pendingChanges,
+                        propertyId,
+                        ratePlanId,
+                        state.setBookingOffsetEdits,
+                        state.setPendingChanges,
+                        onDataUpdate,
+                      );
+                    }
+                  }}
                   className="flex items-center gap-2 px-4 py-1.5 bg-green-500 text-white text-xs font-medium rounded hover:bg-green-600 transition-colors shadow-lg pointer-events-auto sticky left-1/2 -ml-24"
                 >
                   <Save className="w-3 h-3" />
-                  Save {ratePlanType} LOS Changes
+                  Save {ratePlanType} Changes
                 </button>
               </div>
             </div>

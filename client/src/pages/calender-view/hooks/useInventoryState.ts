@@ -31,6 +31,14 @@ interface CustomTier {
   additionalCharges: Array<{ ageCode: string; id: string }>;
 }
 
+export interface BookingOffsetEdit {
+  roomType: string;
+  ratePlan: string;
+  dayIndex: number;
+  field: string;
+  value: string;
+}
+
 export const useInventoryState = (_days: InventoryDay[]) => {
   // Scroll management
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -39,22 +47,38 @@ export const useInventoryState = (_days: InventoryDay[]) => {
   // UI toggles
   const [showRatePlans, setShowRatePlans] = useState(true);
   const [showRestrictions, setShowRestrictions] = useState(false);
-  const [expandedOccupancy, setExpandedOccupancy] = useState<Set<string>>(new Set());
+  const [expandedOccupancy, setExpandedOccupancy] = useState<Set<string>>(
+    new Set(),
+  );
 
   // Rate plan toggles
-  const [toggledRatePlans, setToggledRatePlans] = useState<Set<string>>(new Set());
+  const [toggledRatePlans, setToggledRatePlans] = useState<Set<string>>(
+    new Set(),
+  );
 
   // Edits
-  const [priceEdits, setPriceEdits] = useState<Map<string, PriceEdit>>(new Map());
+  const [priceEdits, setPriceEdits] = useState<Map<string, PriceEdit>>(
+    new Map(),
+  );
   const [losEdits, setLosEdits] = useState<Map<string, LOSEdit>>(new Map());
-  const [availabilityEdits, setAvailabilityEdits] = useState<Map<string, AvailabilityEdit>>(new Map());
+  const [availabilityEdits, setAvailabilityEdits] = useState<
+    Map<string, AvailabilityEdit>
+  >(new Map());
   const [pendingChanges, setPendingChanges] = useState<Set<string>>(new Set());
+  const [bookingOffsetEdits, setBookingOffsetEdits] = useState<
+    Map<string, BookingOffsetEdit>
+  >(new Map());
+  const [cutoffUnit, setCutoffUnit] = useState<"hours" | "days">("hours");
 
   // Custom tiers
-  const [customTiers, setCustomTiers] = useState<Map<string, CustomTier>>(new Map());
+  const [customTiers, setCustomTiers] = useState<Map<string, CustomTier>>(
+    new Map(),
+  );
 
   // Optimistic restrictions
-  const [optimisticRestrictions, setOptimisticRestrictions] = useState<Map<string, boolean>>(new Map());
+  const [optimisticRestrictions, setOptimisticRestrictions] = useState<
+    Map<string, boolean>
+  >(new Map());
 
   // Unsaved changes dialog
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false);
@@ -89,7 +113,7 @@ export const useInventoryState = (_days: InventoryDay[]) => {
   return {
     // Refs
     scrollContainerRef,
-    
+
     // State
     scrollLeft,
     showRatePlans,
@@ -104,6 +128,8 @@ export const useInventoryState = (_days: InventoryDay[]) => {
     optimisticRestrictions,
     showUnsavedDialog,
     pendingAction,
+    bookingOffsetEdits,
+    cutoffUnit,
 
     // Setters
     setShowRatePlans,
@@ -118,6 +144,8 @@ export const useInventoryState = (_days: InventoryDay[]) => {
     setOptimisticRestrictions,
     setShowUnsavedDialog,
     setPendingAction,
+    setBookingOffsetEdits,
+    setCutoffUnit,
 
     // Handlers
     scroll,

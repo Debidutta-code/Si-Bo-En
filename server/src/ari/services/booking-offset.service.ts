@@ -6,6 +6,7 @@ import {
     ICBookingOffsetR,
     ICBookingOffsetS,
     IUBookingOffsetR,
+    IUpsertBookingOffsetEntry,
 } from '../types';
 
 export class BookingOffsetService {
@@ -185,6 +186,47 @@ export class BookingOffsetService {
                 );
             }
             return errorResponse('Failed to delete booking offset');
+        }
+    }
+
+    public async upsertBookingOffsets(
+        propertyId: string,
+        ratePlanId: string,
+        entries: IUpsertBookingOffsetEntry[]
+    ): Promise<IApiResponse> {
+        try {
+            const ratePlan =
+                await RatePlanRepository.getRateplanById(ratePlanId);
+            if (!ratePlan) {
+                throw new Error('Rate plan not found');
+            }
+
+            const results = await Promise.all(
+                entries.map(entry => {
+                    const { date, ...fields } = entry;
+                    return this.bookingOffsetRepository.upsertBookingOffset(
+                        ratePlanId,
+                        toUTCDate(date),
+                        propertyId,
+                        ratePlan.ratePlanCode,
+                        ratePlan.ratePlanName,
+                        fields
+                    );
+                })
+            );
+
+            return successResponse(
+                `Booking offsets upserted successfully (${results.length} dates)`,
+                results
+            );
+        } catch (error) {
+            if (error instanceof Error) {
+                return errorResponse(
+                    'Failed to upsert booking offsets',
+                    error.message
+                );
+            }
+            return errorResponse('Failed to upsert booking offsets');
         }
     }
 }

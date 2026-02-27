@@ -39,3 +39,6 @@ export {
   handleSaveAndContinue,
   handleDiscardAndContinue,
 } from "./unsavedChangesHandler";
+
+// Export booking offset handlers
+export { saveBookingOffsetChanges } from "./bookingOffsetHandlers";

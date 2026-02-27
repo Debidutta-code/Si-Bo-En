@@ -748,7 +748,7 @@ model BookingOffset {
   // for cancel
   minimumCancelBookingOffset Int? @map("minimum_cancel_booking_offset")
   maximumCancelBookingOffset Int? @map("maximum_cancel_booking_offset")
-
+isActive Boolean @default(true) @map("is_active")
   date DateTime @db.Date
 
   createdAt DateTime @default(now())
