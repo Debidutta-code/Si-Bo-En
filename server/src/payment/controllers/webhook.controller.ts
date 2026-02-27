@@ -21,8 +21,15 @@ export class WebhookController {
     try {
       const startTime = Date.now();
       console.log('🔔 Webhook request received at:', new Date().toISOString());
+      console.log('📦 Raw Webhook Body:', JSON.stringify(req.body, null, 2));
+      console.log('📋 Webhook Headers:', JSON.stringify({
+        'x-webhook-secret': req.headers['x-webhook-secret'],
+        'content-type': req.headers['content-type'],
+        'user-agent': req.headers['user-agent']
+      }, null, 2));
 
       if (!req.body || Object.keys(req.body).length === 0) {
+        console.log('⚠️ Empty webhook payload received');
         res.status(200).json({
           success: false,
           message: 'Empty webhook payload',
@@ -32,6 +39,7 @@ export class WebhookController {
 
       // Validate webhook request
       if (!webhookService.validateWebhookRequest(req.body, req.headers)) {
+        console.log('❌ Invalid webhook payload validation failed');
         res.status(400).json({
           success: false,
           message: 'Invalid webhook payload',
@@ -45,13 +53,15 @@ export class WebhookController {
       const secretKey = req.headers['x-webhook-secret'] as string;
 
       if (secretKey) {
-        // Encrypted payload - decrypt it
+        console.log('🔐 Encrypted payload detected, decrypting...');
         // For encrypted payloads, the body will be a string
         const encryptedData = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
 
         try {
           payload = webhookService.decryptPayload(encryptedData, secretKey);
+          console.log('🔓 Decrypted Webhook Payload:', JSON.stringify(payload, null, 2));
         } catch (decryptError) {
+          console.error('❌ Failed to decrypt webhook payload:', decryptError);
           res.status(400).json({
             success: false,
             message: 'Failed to decrypt webhook payload',
@@ -59,8 +69,10 @@ export class WebhookController {
           return;
         }
       } else {
+        console.log('📝 Unencrypted payload received');
         // Unencrypted payload - use as is
         payload = req.body as NGeniusWebhookPayload;
+        console.log('🎯 Webhook Payload:', JSON.stringify(payload, null, 2));
       }
 
       // Process the webhook event (log it)

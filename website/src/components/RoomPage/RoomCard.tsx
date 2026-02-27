@@ -814,7 +814,9 @@ const RoomCard: React.FC<RoomCardProps> = ({
                             </div>
 
                             {/* Applied Discounts */}
-                            <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                            {
+                              ratePlan.appliedDiscounts?.length>0&&(
+<div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2">
                               <p className="text-[10px] text-green-700 uppercase font-semibold tracking-wide mb-1">
                                 Auto-Applied Discounts ( On base Price )
                               </p>
@@ -843,9 +845,13 @@ const RoomCard: React.FC<RoomCardProps> = ({
                                 <p className="text-[11px] text-green-600 italic">No discounts applied</p>
                               )}
                             </div>
+                              )
+                            }
+                            
 
                             {/* Selected Addons */}
-                            <div className="bg-orange-50 border border-orange-200 rounded-lg px-3 py-2">
+                            {ratePlan.addons?.filter((a: any) => a.price > 0).length > 0&&(
+                              <div className="bg-orange-50 border border-orange-200 rounded-lg px-3 py-2">
                               <p className="text-[10px] text-orange-700 uppercase font-semibold tracking-wide mb-1">
                                 Included Addons
                               </p>
@@ -866,6 +872,10 @@ const RoomCard: React.FC<RoomCardProps> = ({
                                 <p className="text-[11px] text-orange-600 italic">No addons included</p>
                               )}
                             </div>
+                            )
+
+                            }
+                            
 
                           </div>
 
@@ -1208,7 +1218,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                                     <div className="h-3.5 w-3.5 sm:h-4 sm:w-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                                     <span>Loading...</span>
                                   </div>
-                                ) : isExpanded ? "Selected" : "ADDdddd"}
+                                ) : isExpanded ? "Selected" : "Add"}
                               </button>
                             </div>
                           )}
