@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import Loader from "../../Loader/Loader";
 import toast from "react-hot-toast";
-import { type IPropertyDetails } from "../types/types";
+import { type IPropertyDetails, type IPropertyEmail } from "../types/types";
 import { getPropertyDetails } from "../api/show/propertyDetails";
 import { Button } from "../../ui/button";
-import { PenTool, X, AlertCircle, CheckCircle, Mail, Phone, Tag, House } from "lucide-react";
+import { PenTool, X, AlertCircle, CheckCircle, Mail, Phone, Tag, House, Plus, Pencil, Trash2, MailPlus } from "lucide-react";
 import ExpandableDescription from "@/components/ExplandableDescription";
 import {
   AlertDialog,
@@ -18,9 +18,25 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import PropertyInfo from "@/components/property/update/PropertyInfo";
 import { updatePropertyById } from "../api/create/propertyinfo";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  createPropertyEmail,
+  deletePropertyEmail,
+  getPropertyEmails,
+  updatePropertyEmail,
+} from "../api/create/propertyEmails.apis";
 
 export default function PropertyDetails({
   propertyId,
@@ -58,15 +74,102 @@ export default function PropertyDetails({
       }
     },
     image: [],
+    propertyEmails: [],
   });
-
+  // Property emails state
+  const [propertyEmails, setPropertyEmails] = useState<IPropertyEmail[]>([]);
+  const [emailsLoading, setEmailsLoading] = useState(false);
+  const [addEmailOpen, setAddEmailOpen] = useState(false);
+  const [addEmailValue, setAddEmailValue] = useState("");
+  const [addEmailLoading, setAddEmailLoading] = useState(false);
+  const [editEmailOpen, setEditEmailOpen] = useState(false);
+  const [editingEmail, setEditingEmail] = useState<IPropertyEmail | null>(null);
+  const [editEmailValue, setEditEmailValue] = useState("");
+  const [editEmailLoading, setEditEmailLoading] = useState(false);
+  const [deleteEmailId, setDeleteEmailId] = useState<string | null>(null);
+  const [deleteEmailLoading, setDeleteEmailLoading] = useState(false);
   useEffect(() => {
     if (!propertyId) {
       toast.error("Property id not found");
       return;
     }
     fetchPropertyDetails(propertyId);
+    fetchEmails(propertyId);
   }, [propertyId]);
+
+  const fetchEmails = async (propId: string) => {
+    setEmailsLoading(true);
+    try {
+      const response = await getPropertyEmails(propId);
+      if (response.success) {
+        setPropertyEmails(response.data || []);
+      }
+    } catch {
+      // silently fail — emails section shows empty state
+    } finally {
+      setEmailsLoading(false);
+    }
+  };
+
+  const handleAddEmail = async () => {
+    if (!addEmailValue.trim()) return;
+    setAddEmailLoading(true);
+    try {
+      const response = await createPropertyEmail(propertyId, addEmailValue.trim());
+      if (response.success) {
+        toast.success("Email added successfully");
+        setAddEmailValue("");
+        setAddEmailOpen(false);
+        fetchEmails(propertyId);
+      } else {
+        toast.error(response.message || "Failed to add email");
+      }
+    } catch {
+      toast.error("Failed to add email");
+    } finally {
+      setAddEmailLoading(false);
+    }
+  };
+
+  const handleEditEmail = async () => {
+    if (!editingEmail || !editEmailValue.trim()) return;
+    setEditEmailLoading(true);
+    try {
+      const response = await updatePropertyEmail(editingEmail.id, editEmailValue.trim());
+      if (response.success) {
+        toast.success("Email updated successfully");
+        setEditEmailOpen(false);
+        setEditingEmail(null);
+        setEditEmailValue("");
+        fetchEmails(propertyId);
+      } else {
+        toast.error(response.message || "Failed to update email");
+      }
+    } catch {
+      toast.error("Failed to update email");
+    } finally {
+      setEditEmailLoading(false);
+    }
+  };
+
+  const handleDeleteEmail = async () => {
+    if (!deleteEmailId) return;
+    setDeleteEmailLoading(true);
+    try {
+      const response = await deletePropertyEmail(deleteEmailId);
+      if (response.success) {
+        toast.success("Email deleted successfully");
+        setDeleteEmailId(null);
+        setPropertyEmails((prev) => prev.filter((e) => e.id !== deleteEmailId));
+      } else {
+        toast.error(response.message || "Failed to delete email");
+      }
+    } catch {
+      toast.error("Failed to delete email");
+    } finally {
+      setDeleteEmailLoading(false);
+    }
+  };
 
   const fetchPropertyDetails = async (propertyId: string) => {
     setLoading(true);
@@ -85,6 +188,7 @@ export default function PropertyDetails({
           propertyEmail: data.propertyEmail,
           propertyType: data.propertyType,
           image: data.image,
+          propertyEmails: data.propertyEmails || [],
         });
       } else {
         throw new Error(response.message || "Failed to fetch property details");
@@ -286,6 +390,172 @@ export default function PropertyDetails({
           </CardContent>
         </Card>
       </div>
+      {/* Property Emails */}
+      <Card>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                <MailPlus className="h-5 w-5 text-primary-600" />
+              </div>
+              <div>
+                <CardTitle className="text-lg font-semibold text-gray-900">Additional Emails</CardTitle>
+                <p className="text-xs text-gray-500 mt-0.5">Extra contact emails for this property</p>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => { setAddEmailValue(""); setAddEmailOpen(true); }}
+              className="flex items-center gap-1.5"
+            >
+              <Plus className="h-4 w-4" />
+              Add Email
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {emailsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            </div>
+          ) : propertyEmails.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 gap-3 text-center">
+              <div className="h-14 w-14 bg-gray-100 rounded-full flex items-center justify-center">
+                <Mail className="h-7 w-7 text-gray-400" />
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-700">No additional emails yet</p>
+                <p className="text-xs text-gray-500 mt-1">Add extra contact emails for this property</p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => { setAddEmailValue(""); setAddEmailOpen(true); }}
+                className="flex items-center gap-1.5"
+              >
+                <Plus className="h-4 w-4" />
+                Add First Email
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {propertyEmails.map((entry, index) => (
+                <div
+                  key={entry.id}
+                  className="flex items-center justify-between px-4 py-3 rounded-lg border border-gray-100 bg-gray-50 hover:bg-gray-100 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <Badge variant="outline" className="text-xs font-mono text-gray-500 px-2">
+                      {index + 1}
+                    </Badge>
+                    <span className="text-sm text-gray-800 font-medium">{entry.email}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-gray-500 hover:text-primary hover:bg-primary/10"
+                      onClick={() => {
+                        setEditingEmail(entry);
+                        setEditEmailValue(entry.email);
+                        setEditEmailOpen(true);
+                      }}
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-gray-500 hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => setDeleteEmailId(entry.id)}
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Add Email Dialog */}
+      <Dialog open={addEmailOpen} onOpenChange={setAddEmailOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Email Address</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <Label htmlFor="add-email">Email Address</Label>
+            <Input
+              id="add-email"
+              type="email"
+              placeholder="e.g. reservations@hotel.com"
+              value={addEmailValue}
+              onChange={(e) => setAddEmailValue(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleAddEmail()}
+            />
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" disabled={addEmailLoading} onClick={() => setAddEmailOpen(false)}>
+              Cancel
+            </Button>
+            <Button disabled={addEmailLoading || !addEmailValue.trim()} onClick={handleAddEmail}>
+              {addEmailLoading ? "Adding..." : "Add Email"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Email Dialog */}
+      <Dialog open={editEmailOpen} onOpenChange={(open) => { setEditEmailOpen(open); if (!open) setEditingEmail(null); }}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Email Address</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <Label htmlFor="edit-email">Email Address</Label>
+            <Input
+              id="edit-email"
+              type="email"
+              placeholder="e.g. reservations@hotel.com"
+              value={editEmailValue}
+              onChange={(e) => setEditEmailValue(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleEditEmail()}
+            />
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" disabled={editEmailLoading} onClick={() => setEditEmailOpen(false)}>
+              Cancel
+            </Button>
+            <Button disabled={editEmailLoading || !editEmailValue.trim()} onClick={handleEditEmail}>
+              {editEmailLoading ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Email Confirmation */}
+      <AlertDialog open={!!deleteEmailId} onOpenChange={(open) => { if (!open) setDeleteEmailId(null); }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Email Address?</AlertDialogTitle>
+          </AlertDialogHeader>
+          <p className="text-sm text-gray-600 px-1">
+            This will permanently remove the email address from this property. This action cannot be undone.
+          </p>
+          <AlertDialogFooter className="gap-2">
+            <AlertDialogCancel disabled={deleteEmailLoading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+              disabled={deleteEmailLoading}
+              onClick={(e) => { e.preventDefault(); handleDeleteEmail(); }}
+            >
+              {deleteEmailLoading ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

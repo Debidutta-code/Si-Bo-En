@@ -515,7 +515,6 @@ export class ReservationService {
 
             // ── Non-blocking tasks ────────────────────────────────────────────────────
             const nonBlockingPromises: Promise<any>[] = [
-                // Only run self ARI if no external integration is active
                 ...(selfAriActive && !activeIntegrationType
                     ? [
                         this.ariManupulationRepo.decreaseAvailableRooms(
@@ -523,9 +522,8 @@ export class ReservationService {
                         ),
                     ]
                     : []),
-
-                this.emailService.reservationConfirmation({
-                    ...bookingDetails,
+                    this.emailService.reservationConfirmation({
+                        ...bookingDetails,
                     guestDetails: guestDetails.map((guest: any) => ({
                         type: guest.type,
                         firstName: guest.firstName,

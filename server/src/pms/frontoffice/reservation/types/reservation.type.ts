@@ -10,7 +10,9 @@ export interface ICreateReservationPayload {
     guestDetails: IGuestDetail[];
   };
 }
-
+export interface IPropertyEmails{
+  email:string;
+}
 export interface IBookingDetails {
   startDate: string;
   endDate: string;

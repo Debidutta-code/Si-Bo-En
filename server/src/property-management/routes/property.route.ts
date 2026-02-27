@@ -11,6 +11,7 @@ import { managementRoute } from "./management.route";
 import { bookingEngineRoute } from './bookingEngine.routes';
 import { attachPropertyDetails } from '../../middlewares/property.middleware';
 import {propertyPartnerRouter} from "./property-integration.route"
+import { propertyEmailRouter } from './propertyEmails.route';
 import {
   vedioRouter
 } from "./vedio.route"
@@ -22,7 +23,7 @@ propertyRouter.use('/management', protect, managementRoute);
 propertyRouter.use('/booking-engine',  bookingEngineRoute)
 propertyRouter.use("/video", vedioRouter)
 propertyRouter.use("/integration", propertyPartnerRouter)
-
+propertyRouter.use("/emails", propertyEmailRouter)
 propertyRouter
   .route('/:id')
   .get(

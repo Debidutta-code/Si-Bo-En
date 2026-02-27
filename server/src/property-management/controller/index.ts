@@ -24,3 +24,4 @@ export{
     BookingEngineController,
 }
 export * from "./property-integration.controller";
+export * from "./propertyEmail.controller";

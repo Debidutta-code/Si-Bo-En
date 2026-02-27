@@ -70,7 +70,7 @@ export interface IRatePlan {
     Addons: IRatePlanWithAddon[];
     geoRatePlans: IGeoRatePlanWithoutRatePlan[];
     TouristTaxs: ITouristTax[];
-    customizableDeals: ICustomizableDeal[];   
+    // customizableDeals: ICustomizableDeal[];   
     bookingOffsets: IBookingOffset[];
 }
 export interface ITaxGroup {

@@ -337,7 +337,7 @@ model Property {
   Commissions                 PropertyCommission?
   loyaltyProgramConfig        PropertyLoyaltyConfig?
   LoyalityGuests              LoyalityGuest[]
-  // Children
+  propertyEmails                PropertyEmails[]
   reservations                Reservation[]
   propertyAmenities           PropertyAmenitySelection[]
   propertyRooms               Room[]
@@ -364,7 +364,13 @@ model Property {
   @@index([propertyCode])
   @@map("properties")
 }
-
+model PropertyEmails{
+  id String @id @default(uuid())
+  propertyId String @map("property_id")
+  email String
+  Property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  @@unique([propertyId, email])
+}
 model PropertyConfigs {
   id         String   @id @default(uuid())
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
@@ -1566,39 +1572,7 @@ model CustomizableDeal {
   @@map("customizable_deals")
 }
 
-// model CustomizableDealsApplicableRoomTypes {
-//   id String @id @default(uuid())
 
-//   customizableDealId String @map("customizable_deal_id")
-
-//   roomId       String @map("room_id")
-//   roomTypeCode String @map("room_type_code")
-
-//   createdAt DateTime @default(now()) @map("created_at")
-
-//   Room             Room             @relation(fields: [roomId], references: [id], onDelete: Cascade)
-//   CustomizableDeal CustomizableDeal @relation(fields: [customizableDealId], references: [id], onDelete: Cascade)
-
-//   @@unique([customizableDealId, roomId])
-//   @@map("customizable_deals_applicable_room_types")
-// }
-
-// model CustomizableDealsApplicableRatePlanTypes {
-//   id String @id @default(uuid())
-
-//   customizableDealId String @map("customizable_deal_id")
-
-//   ratePlanId   String @map("rate_plan_id")
-//   ratePlanCode String @map("rate_plan_code")
-
-//   createdAt DateTime @default(now()) @map("created_at")
-
-//   RatePlan         RatePlan         @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
-//   CustomizableDeal CustomizableDeal @relation(fields: [customizableDealId], references: [id], onDelete: Cascade)
-
-//   @@unique([customizableDealId, ratePlanId])
-//   @@map("customizable_deals_applicable_rate_plan_types")
-// }
 
 model CustomizableDealsApplicableAddons {
   id String @id @default(uuid())

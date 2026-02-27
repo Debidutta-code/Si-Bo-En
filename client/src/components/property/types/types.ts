@@ -1,4 +1,10 @@
 
+export interface IPropertyEmail {
+  id: string;
+  email: string;
+  propertyId: string;
+}
+
 export interface IPropertyDetails {
   propertyName: string;
   propertyEmail: string;
@@ -30,7 +36,8 @@ export interface IPropertyDetails {
 
   };
   description: string;
-  image: string[]
+  image: string[],
+  propertyEmails: IPropertyEmail[];
 }
 export interface IPropertyAddress {
   addressLine1: string;

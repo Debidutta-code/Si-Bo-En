@@ -6,27 +6,34 @@ import {
 import {
     EmailTemplates
 } from "../templatesss";
+import {
+    PropertyEmailRepository
+} from "../reposititory";
 export class ReservationEmailService {
-    public async reservationConfirmation(bookingDetails: IBookingDetails):Promise<void> {
-        //console.log(bookingDetails)
+    private propertyEmailRepository: PropertyEmailRepository;
+
+    constructor() {
+        this.propertyEmailRepository = new PropertyEmailRepository();
+    }
+
+    public async reservationConfirmation(bookingDetails: IBookingDetails): Promise<void> {
         try {
             const propertyDetails = await getPropertyDetails(bookingDetails.propertyCode, bookingDetails.roomTypeCode);
 
-            if(!propertyDetails) {
-                //console.log("Property Not found for sending an email")
+            if (!propertyDetails) {
                 return
             }
-            if(!propertyDetails.propertyAddress) {
-                //console.log("Property Address Not found for sending an email")
+            if (!propertyDetails.propertyAddress) {
                 return
             }
 
-            const room=propertyDetails.propertyRooms[0];
-            if(!room) {
-                //console.log("Room Not found for sending an email")
+            const room = propertyDetails.propertyRooms[0];
+            if (!room) {
                 return
             }
-            const htmlTemplete= EmailTemplates.BookingConfirmation({
+            const propertyEmails = await this.propertyEmailRepository.getPropertyEmails(propertyDetails.id);
+            const emailsToNotify = propertyEmails.map(email => email.email);
+            const htmlTemplete = EmailTemplates.BookingConfirmation({
                 property: {
                     propertyName: propertyDetails.propertyName,
                     description: propertyDetails.description,
@@ -43,8 +50,7 @@ export class ReservationEmailService {
                 reservation: bookingDetails,
                 propertyAddress: propertyDetails.propertyAddress,
             })
-            const res=await sendEmail(bookingDetails.email, "Your Reservation Confirmation - RevChill", htmlTemplete);
-            //console.log("Email sent successfully:", res);
+            await sendEmail(bookingDetails.email,[...emailsToNotify, propertyDetails.propertyEmail],  "Your Reservation Confirmation - RevChill", htmlTemplete);
 
         } catch (error) {
             console.error("Error sending reservation confirmation email:", error);
@@ -55,21 +61,19 @@ export class ReservationEmailService {
         try {
             const propertyDetails = await getPropertyDetails(bookingDetails.propertyCode, bookingDetails.roomTypeCode);
 
-            if(!propertyDetails) {
-                //console.log("Property Not found for sending an email")
+            if (!propertyDetails) {
                 return
             }
-            if(!propertyDetails.propertyAddress) {
-                //console.log("Property Address Not found for sending an email")
+            if (!propertyDetails.propertyAddress) {
                 return
             }
 
             const room = propertyDetails.propertyRooms[0];
-            if(!room) {
-                //console.log("Room Not found for sending an email")
+            if (!room) {
                 return
             }
-
+            const propertyEmails = await this.propertyEmailRepository.getPropertyEmails(propertyDetails.id);
+            const emailsToNotify = propertyEmails.map(email => email.email);
             const htmlTemplate = EmailTemplates.BookingAmendment({
                 property: {
                     propertyName: propertyDetails.propertyName,
@@ -88,9 +92,10 @@ export class ReservationEmailService {
                 propertyAddress: propertyDetails.propertyAddress,
             });
 
-            const res = await sendEmail(
-                bookingDetails.email, 
-                "Your Reservation Has Been Updated - RevChill", 
+            await sendEmail(
+                bookingDetails.email,
+                [...emailsToNotify, propertyDetails.propertyEmail],
+                "Your Reservation Has Been Updated - RevChill",
                 htmlTemplate
             );
             //console.log("Reservation updated email sent successfully:", res);
@@ -102,25 +107,23 @@ export class ReservationEmailService {
 
     public async reservationCancelEmail(bookingDetails: IBookingDetails): Promise<void> {
         try {
-                    //console.log(bookingDetails)
 
             const propertyDetails = await getPropertyDetails(bookingDetails.propertyCode, bookingDetails.roomTypeCode);
 
-            if(!propertyDetails) {
-                //console.log("Property Not found for sending an email")
+            if (!propertyDetails) {
                 return
             }
-            if(!propertyDetails.propertyAddress) {
-                //console.log("Property Address Not found for sending an email")
+            if (!propertyDetails.propertyAddress) {
                 return
             }
 
             const room = propertyDetails.propertyRooms[0];
-            if(!room) {
+            if (!room) {
                 //console.log("Room Not found for sending an email")
                 return
             }
-
+            const propertyEmails = await this.propertyEmailRepository.getPropertyEmails(propertyDetails.id);
+            const emailsToNotify = propertyEmails.map(email => email.email);
             const htmlTemplate = EmailTemplates.BookingCancellation({
                 property: {
                     propertyName: propertyDetails.propertyName,
@@ -139,9 +142,10 @@ export class ReservationEmailService {
                 propertyAddress: propertyDetails.propertyAddress,
             });
 
-            const res = await sendEmail(
-                bookingDetails.email, 
-                "Your Reservation Cancellation Confirmation - RevChill", 
+            await sendEmail(
+                bookingDetails.email,
+                [...emailsToNotify, propertyDetails.propertyEmail],
+                "Your Reservation Cancellation Confirmation - RevChill",
                 htmlTemplate
             );
             //console.log("Reservation cancellation email sent successfully:", res);

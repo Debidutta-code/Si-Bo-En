@@ -28,3 +28,4 @@ export {
     BookingEngineService,
 }
 export * from "../services/property-integration.service";
+export * from "../services/propertyEmails.service";
