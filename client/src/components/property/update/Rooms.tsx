@@ -55,7 +55,7 @@ export default function Rooms({
   updateRoomDetails: Dispatch<SetStateAction<IRoomDetails>>;
   isLoading: boolean;
 }) {
-  const [errors, setErrors] = useState<FormErrors | null>(null);
+  const [errors, _setErrors] = useState<FormErrors | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const updateRoom = (updates: Partial<IRoomDetails>) => {

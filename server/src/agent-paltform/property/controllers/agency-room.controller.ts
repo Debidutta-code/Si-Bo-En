@@ -16,7 +16,6 @@ export class AgenticRoomController{
 
             const propertyId = req.params.propertyId;
             const agencyId = req.agent?.agencyId;
-            console.log(propertyId, agencyId);
             if (!propertyId) {
                 return res.status(400).json(errorResponse("Property not found", "agent is not assigned or unauthorized"));
             }

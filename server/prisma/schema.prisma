@@ -337,7 +337,7 @@ model Property {
   Commissions                 PropertyCommission?
   loyaltyProgramConfig        PropertyLoyaltyConfig?
   LoyalityGuests              LoyalityGuest[]
-  // Children
+  propertyEmails                PropertyEmails[]
   reservations                Reservation[]
   propertyAmenities           PropertyAmenitySelection[]
   propertyRooms               Room[]
@@ -364,7 +364,13 @@ model Property {
   @@index([propertyCode])
   @@map("properties")
 }
-
+model PropertyEmails{
+  id String @id @default(uuid())
+  propertyId String @map("property_id")
+  email String
+  Property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  @@unique([propertyId, email])
+}
 model PropertyConfigs {
   id         String   @id @default(uuid())
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
@@ -547,7 +553,7 @@ model Room {
 
   createdAt                            DateTime                               @default(now())
   updatedAt                            DateTime                               @updatedAt
-  customizableDealsApplicableRoomTypes CustomizableDealsApplicableRoomTypes[]
+  customizableDeals                    CustomizableDeal[]
 
   @@index([propertyId])
   @@index([roomType])
@@ -722,7 +728,7 @@ model RatePlan {
   TouristTaxs                              TouristTaxes[]
   createdAt                                DateTime                                   @default(now())
   updatedAt                                DateTime                                   @updatedAt
-  customizableDealsApplicableRatePlanTypes CustomizableDealsApplicableRatePlanTypes[]
+  customizableDeals                        CustomizableDeal[]
   bookingOffsets                           BookingOffset[]
 
   @@index([propertyId])
@@ -739,9 +745,8 @@ model BookingOffset {
   ratePlanName                String @map("rate_plan_name")
   //these payments are to be set in hours format
   // for booking
-  minimumAdvanceBookingOffset Int?   @map("minimum_advance_booking_offset")
-  maximumAdvanceBookingOffset Int?   @map("maximum_advance_booking_offset")
-
+  minimumAdvanceBookingOffset Int? @map("minimum_advance_booking_offset")
+  maximumAdvanceBookingOffset Int? @map("maximum_advance_booking_offset")
   // for amend
   minimumAmendBookingOffset Int? @map("minimum_amend_booking_offset")
   maximumAmendBookingOffset Int? @map("maximum_amend_booking_offset")
@@ -749,7 +754,7 @@ model BookingOffset {
   // for cancel
   minimumCancelBookingOffset Int? @map("minimum_cancel_booking_offset")
   maximumCancelBookingOffset Int? @map("maximum_cancel_booking_offset")
-
+isActive Boolean @default(true) @map("is_active")
   date DateTime @db.Date
 
   createdAt DateTime @default(now())
@@ -1467,13 +1472,12 @@ model GeoRatePlan {
   ratePlanCode String   @map("rate_plan_code")
   ratePlan     RatePlan @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
 
-  restrictionType       geoRestrictionType       @default(percentage) @map("restriction_type")
-  restrictionTypeAction geoRestrictionTypeAction @default(increase) @map("restriction_type_action")
+  restrictionType       geoRestrictionType        @default(percentage) @map("restriction_type")
+  restrictionTypeAction geoRestrictionTypeAction? @default(increase) @map("restriction_type_action")
   restrictionValue      Decimal?                 @map("restriction_value")
   currencyCode          CurrencyCode?            @default(USD) @map("currency_code")
   countryCode           String[]                 @map("country_code")
   isActive              Boolean                  @default(true) @map("is_active")
-  isAutoApplied         Boolean                  @default(true) @map("is_auto_applied")
   createdAt             DateTime                 @default(now()) @map("created_at")
 
   @@index([propertyId, roomId, ratePlanId])
@@ -1553,50 +1557,21 @@ model CustomizableDeal {
   endDate       DateTime      @map("end_date") @db.Date
   isActive      Boolean       @default(true) @map("is_active")
   isAutoApplied Boolean       @default(false) @map("is_auto_applied")
-
+  roomType      String        @map("room_type")
+  roomId        String        @map("room_id")
+  ratePlanId    String        @map("rate_plan_id")
+  ratePlanCode  String        @map("rate_plan_code")
   createdAt DateTime @default(now()) @map("created_at")
 
   Property                                 Property                                   @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  CustomizableDealsApplicableRoomTypes     CustomizableDealsApplicableRoomTypes
-  CustomizableDealsApplicableRatePlanTypes CustomizableDealsApplicableRatePlanTypes
+  Room                                     Room                                       @relation(fields:[roomId] , references:[id], onDelete:Cascade)
+  RatePlan                                 RatePlan                                   @relation(fields:[ratePlanId] , references:[id] , onDelete: Cascade) 
   CustomizableDealsApplicableAddons        CustomizableDealsApplicableAddons[]
-
+  
   @@map("customizable_deals")
 }
 
-model CustomizableDealsApplicableRoomTypes {
-  id String @id @default(uuid())
 
-  customizableDealId String @map("customizable_deal_id")
-
-  roomId       String @map("room_id")
-  roomTypeCode String @map("room_type_code")
-
-  createdAt DateTime @default(now()) @map("created_at")
-
-  Room             Room             @relation(fields: [roomId], references: [id], onDelete: Cascade)
-  CustomizableDeal CustomizableDeal @relation(fields: [customizableDealId], references: [id], onDelete: Cascade)
-
-  @@unique([customizableDealId, roomId])
-  @@map("customizable_deals_applicable_room_types")
-}
-
-model CustomizableDealsApplicableRatePlanTypes {
-  id String @id @default(uuid())
-
-  customizableDealId String @map("customizable_deal_id")
-
-  ratePlanId   String @map("rate_plan_id")
-  ratePlanCode String @map("rate_plan_code")
-
-  createdAt DateTime @default(now()) @map("created_at")
-
-  RatePlan         RatePlan         @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
-  CustomizableDeal CustomizableDeal @relation(fields: [customizableDealId], references: [id], onDelete: Cascade)
-
-  @@unique([customizableDealId, ratePlanId])
-  @@map("customizable_deals_applicable_rate_plan_types")
-}
 
 model CustomizableDealsApplicableAddons {
   id String @id @default(uuid())

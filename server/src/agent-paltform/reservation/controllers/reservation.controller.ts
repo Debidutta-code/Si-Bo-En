@@ -191,13 +191,13 @@ export class AgentBookingController {
                 );
             }
 
-            const { bookingCode } = req.params;
+            const { bookingCode, propertyCode } = req.params;
 
-            if (!bookingCode) {
-                return res.status(400).json(errorResponse("Booking code is required"));
+            if (!bookingCode || !propertyCode) {
+                return res.status(400).json(errorResponse("Booking code and property code are required"));
             }
 
-            const serviceRes = await this.reservationService.getReservaltionByCode(bookingCode);
+            const serviceRes = await this.reservationService.getReservaltionByCode(bookingCode, propertyCode);
 
             if (!serviceRes.success) {
                 return res.status(404).json(serviceRes);

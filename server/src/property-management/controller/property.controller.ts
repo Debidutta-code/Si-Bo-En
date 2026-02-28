@@ -136,9 +136,6 @@ export class Property {
         .json(errorResponse('Internal Server Error', error?.message));
     }
   }
-  // Controller
-
-
 }
 export class PropertyAddressController {
   public static async createPropertyAddressController(

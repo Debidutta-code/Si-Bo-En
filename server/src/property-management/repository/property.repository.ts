@@ -125,7 +125,8 @@ export class PropertyDao {
               masterPropertyType: true,
             },
           }, propertyAddress: true,
-          propertyVideos:true
+          propertyVideos:true,
+          propertyEmails:true,
 
 
         },

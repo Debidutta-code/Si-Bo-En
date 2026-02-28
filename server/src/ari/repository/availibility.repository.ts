@@ -105,7 +105,6 @@ export class AvailabilityRepository {
       const startDateUTC = toUTCDate(startDate);
       const endDateUTC = toUTCDate(endDate);
       
-      // console.log(startDateUTC, endDateUTC);
 
       const whereClause: any = {
         propertyCode,

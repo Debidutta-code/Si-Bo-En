@@ -4,3 +4,4 @@ import {
 export{
     EmailOTPRepository
 }
+export * from "./property-email.respository";

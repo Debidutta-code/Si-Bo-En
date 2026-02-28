@@ -1,45 +1,19 @@
 export type DiscountType = 'percentage' | 'flat';
 export type CurrencyCode = 'USD' | 'EUR' | 'INR';
 
-// Create Customizable Deal payload
 export interface CreateCustomizableDeal {
   discountType: DiscountType;
   discountValue: number;
   currencyCode?: CurrencyCode;
-  applicableRoomTypes: string[]; // Array of room IDs
-  applicableRatePlans: string[]; // Array of rate plan IDs
-  applicableAddons: string[];    // Array of addon IDs
-    isAutoApplied: boolean;
-
-}
-
-
-
-// Room Type interface for the deal
-export interface DealApplicableRoomType {
-  id: string;
+  startDate: string;
+  endDate: string;
   roomId: string;
-  roomTypeCode: string;
-  Room: {
-    id: string;
-    roomName: string;
-    roomType: string;
-  };
-}
-
-// Rate Plan interface for the deal
-export interface DealApplicableRatePlan {
-  id: string;
   ratePlanId: string;
-  ratePlanCode: string;
-  RatePlan: {
-    id: string;
-    ratePlanName: string;
-    ratePlanCode: string;
-  };
+  applicableAddons: string[];
+  isAutoApplied: boolean;
+  isActive?: boolean;
 }
 
-// Addon interface for the deal
 export interface DealApplicableAddon {
   id: string;
   addOnId: string;
@@ -50,7 +24,6 @@ export interface DealApplicableAddon {
   };
 }
 
-// Customizable Deal response
 export interface CustomizableDeal {
   id: string;
   propertyId: string;
@@ -58,12 +31,26 @@ export interface CustomizableDeal {
   discountType: DiscountType;
   discountValue: number;
   currencyCode: CurrencyCode;
+  startDate: string;
+  endDate: string;
+  roomId: string;
+  roomType: string;
+  ratePlanId: string;
+  ratePlanCode: string;
+  isAutoApplied: boolean;
+  isActive: boolean;
   createdAt: string;
-  CustomizableDealsApplicableRoomTypes: DealApplicableRoomType[];
-  CustomizableDealsApplicableRatePlanTypes: DealApplicableRatePlan[];
+  Room: {
+    id: string;
+    roomName: string;
+    roomType: string;
+  };
+  RatePlan: {
+    id: string;
+    ratePlanName: string;
+    ratePlanCode: string;
+  };
   CustomizableDealsApplicableAddons: DealApplicableAddon[];
-    isAutoApplied: boolean;
-
 }
 
 export interface ApiResponse<T> {
@@ -72,12 +59,15 @@ export interface ApiResponse<T> {
   data?: T;
 }
 
-export interface ICCustomizableDeals{
-  discountType:DiscountType;
-  discountValue:number;
-  currencyCode:CurrencyCode;
-  applicableRoomTypes:string[];
-  applicableRatePlans:string[];
-  applicableAddons:string[];
-  isAutoApplied:boolean;
+export interface ICCustomizableDeals {
+  discountType: DiscountType;
+  discountValue: number;
+  currencyCode: CurrencyCode;
+  startDate: string;
+  endDate: string;
+  roomId: string;
+  ratePlanId: string;
+  applicableAddons: string[];
+  isAutoApplied: boolean;
+  isActive: boolean;
 }

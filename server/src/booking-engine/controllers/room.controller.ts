@@ -3,7 +3,6 @@ import { RoomBookingService } from "../service";
 import { PropertyRequest } from "../../utils";
 import { getGeoLocationDetails } from "../../utils/get-location.utils";
 import { getDeviceInfo } from "../../utils/device-type.util";
-import console from "console";
 
 export class RoomBookingController {
   public static async fetchRooms(req: PropertyRequest, res: Response) {
@@ -29,10 +28,8 @@ export class RoomBookingController {
       // Extract country code from geo-location
       const geoDetails = await getGeoLocationDetails(req);
       const countryCode = geoDetails.country;
-      // console.log(countryCode)
       const deviceInfo = getDeviceInfo(req);
       const deviceType = deviceInfo.deviceType as "mobile" | "tablet" | "desktop";
-      console.log(deviceType)
 
       // Detect device type from user agent
 

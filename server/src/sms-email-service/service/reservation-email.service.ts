@@ -1,32 +1,33 @@
 import { IBookingDetails } from "../../pms/frontoffice/reservation/types";
-import {
-    getPropertyDetails,
-    sendEmail
-} from "../utils";
-import {
-    EmailTemplates
-} from "../templatesss";
+import { getPropertyByPropertyCode, getPropertyDetails, sendEmail } from "../utils";
+import { EmailTemplates } from "../templatesss";
+import { PropertyEmailRepository } from "../reposititory";
+
 export class ReservationEmailService {
-    public async reservationConfirmation(bookingDetails: IBookingDetails):Promise<void> {
-        //console.log(bookingDetails)
+    private propertyEmailRepository: PropertyEmailRepository;
+
+    constructor() {
+        this.propertyEmailRepository = new PropertyEmailRepository();
+    }
+
+    public async reservationConfirmation(bookingDetails: IBookingDetails): Promise<void> {
+
         try {
-            const propertyDetails = await getPropertyDetails(bookingDetails.propertyCode, bookingDetails.roomTypeCode);
+            const property = await getPropertyByPropertyCode(bookingDetails.propertyCode);
+            if(!property) return;
 
-            if(!propertyDetails) {
-                //console.log("Property Not found for sending an email")
-                return
-            }
-            if(!propertyDetails.propertyAddress) {
-                //console.log("Property Address Not found for sending an email")
-                return
-            }
+            const propertyDetails = await getPropertyDetails(property.id, bookingDetails.roomTypeCode);
+            if (!propertyDetails || !propertyDetails.propertyAddress) return;
 
-            const room=propertyDetails.propertyRooms[0];
-            if(!room) {
-                //console.log("Room Not found for sending an email")
-                return
-            }
-            const htmlTemplete= EmailTemplates.BookingConfirmation({
+            const room = propertyDetails.propertyRooms[0];
+            if (!room) return;
+
+            const propertyEmails = await this.propertyEmailRepository.getPropertyEmails(propertyDetails.id);
+            const ccEmails = propertyEmails
+                .map(e => e.email)
+                .filter(e => e !== propertyDetails.propertyEmail);
+
+            const htmlTemplate = EmailTemplates.BookingConfirmation({
                 property: {
                     propertyName: propertyDetails.propertyName,
                     description: propertyDetails.description,
@@ -42,9 +43,23 @@ export class ReservationEmailService {
                 },
                 reservation: bookingDetails,
                 propertyAddress: propertyDetails.propertyAddress,
-            })
-            const res=await sendEmail(bookingDetails.email, "Your Reservation Confirmation - RevChill", htmlTemplete);
-            //console.log("Email sent successfully:", res);
+            });
+
+            // Email 1 - Customer
+            await sendEmail(
+                bookingDetails.email,
+                [],
+                "Your Reservation Confirmation - RevChill",
+                htmlTemplate
+            );
+
+            // Email 2 - Property (with other emails in CC)
+            await sendEmail(
+                propertyDetails.propertyEmail,
+                ccEmails,
+                "New Reservation - RevChill",
+                htmlTemplate
+            );
 
         } catch (error) {
             console.error("Error sending reservation confirmation email:", error);
@@ -54,21 +69,15 @@ export class ReservationEmailService {
     public async reservationUpdatedEmail(bookingDetails: IBookingDetails): Promise<void> {
         try {
             const propertyDetails = await getPropertyDetails(bookingDetails.propertyCode, bookingDetails.roomTypeCode);
-
-            if(!propertyDetails) {
-                //console.log("Property Not found for sending an email")
-                return
-            }
-            if(!propertyDetails.propertyAddress) {
-                //console.log("Property Address Not found for sending an email")
-                return
-            }
+            if (!propertyDetails || !propertyDetails.propertyAddress) return;
 
             const room = propertyDetails.propertyRooms[0];
-            if(!room) {
-                //console.log("Room Not found for sending an email")
-                return
-            }
+            if (!room) return;
+
+            const propertyEmails = await this.propertyEmailRepository.getPropertyEmails(propertyDetails.id);
+            const ccEmails = propertyEmails
+                .map(e => e.email)
+                .filter(e => e !== propertyDetails.propertyEmail);
 
             const htmlTemplate = EmailTemplates.BookingAmendment({
                 property: {
@@ -88,12 +97,21 @@ export class ReservationEmailService {
                 propertyAddress: propertyDetails.propertyAddress,
             });
 
-            const res = await sendEmail(
-                bookingDetails.email, 
-                "Your Reservation Has Been Updated - RevChill", 
+            // Email 1 - Customer
+            await sendEmail(
+                bookingDetails.email,
+                [],
+                "Your Reservation Has Been Updated - RevChill",
                 htmlTemplate
             );
-            //console.log("Reservation updated email sent successfully:", res);
+
+            // Email 2 - Property (with other emails in CC)
+            await sendEmail(
+                propertyDetails.propertyEmail,
+                ccEmails,
+                "Reservation Updated - RevChill",
+                htmlTemplate
+            );
 
         } catch (error) {
             console.error("Error sending reservation updated email:", error);
@@ -102,24 +120,16 @@ export class ReservationEmailService {
 
     public async reservationCancelEmail(bookingDetails: IBookingDetails): Promise<void> {
         try {
-                    //console.log(bookingDetails)
-
             const propertyDetails = await getPropertyDetails(bookingDetails.propertyCode, bookingDetails.roomTypeCode);
-
-            if(!propertyDetails) {
-                //console.log("Property Not found for sending an email")
-                return
-            }
-            if(!propertyDetails.propertyAddress) {
-                //console.log("Property Address Not found for sending an email")
-                return
-            }
+            if (!propertyDetails || !propertyDetails.propertyAddress) return;
 
             const room = propertyDetails.propertyRooms[0];
-            if(!room) {
-                //console.log("Room Not found for sending an email")
-                return
-            }
+            if (!room) return;
+
+            const propertyEmails = await this.propertyEmailRepository.getPropertyEmails(propertyDetails.id);
+            const ccEmails = propertyEmails
+                .map(e => e.email)
+                .filter(e => e !== propertyDetails.propertyEmail);
 
             const htmlTemplate = EmailTemplates.BookingCancellation({
                 property: {
@@ -139,12 +149,21 @@ export class ReservationEmailService {
                 propertyAddress: propertyDetails.propertyAddress,
             });
 
-            const res = await sendEmail(
-                bookingDetails.email, 
-                "Your Reservation Cancellation Confirmation - RevChill", 
+            // Email 1 - Customer
+            await sendEmail(
+                bookingDetails.email,
+                [],
+                "Your Reservation Cancellation Confirmation - RevChill",
                 htmlTemplate
             );
-            //console.log("Reservation cancellation email sent successfully:", res);
+
+            // Email 2 - Property (with other emails in CC)
+            await sendEmail(
+                propertyDetails.propertyEmail,
+                ccEmails,
+                "Reservation Cancelled - RevChill",
+                htmlTemplate
+            );
 
         } catch (error) {
             console.error("Error sending reservation cancellation email:", error);

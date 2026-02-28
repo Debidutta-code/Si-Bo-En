@@ -135,7 +135,6 @@ export class AgencyApplicationService {
             if (availableProperties && availableProperties.length > 0) {
                 //  Create agentic properties 
                 const agenticProperties = await this.agenticPropertyRepository.createAgenticProperties(newAgency.id, availableProperties);
-                // console.log("Agentic properties created:", agenticProperties.length);
 
                 // Step 5: For each agentic property, add all available rooms
                 if (agenticProperties && agenticProperties.length > 0) {
@@ -147,13 +146,11 @@ export class AgencyApplicationService {
                             );
                             
                             if (allAvailableRoomsForAgency && allAvailableRoomsForAgency.length > 0) {
-                                // console.log(`Adding ${allAvailableRoomsForAgency.length} rooms for property ${agenticProperty.propertyName}`);
                                 await this.agenticRoomRepository.addRoomsForAgenticProperty(
                                     agenticProperty.id, 
                                     allAvailableRoomsForAgency
                                 );
                             } else {
-                                // console.log(`No rooms found for property ${agenticProperty.propertyName}`);
                             }
                         } catch (roomError) {
                             console.error(`Failed to add rooms for property ${agenticProperty.id}:`, roomError);
@@ -161,7 +158,6 @@ export class AgencyApplicationService {
                     }));
                 }
             } else {
-                // console.log("No B2B properties available for this agency");
             }
 
             //  Update application status to approved

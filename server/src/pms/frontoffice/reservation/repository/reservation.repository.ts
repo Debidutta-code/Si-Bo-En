@@ -7,7 +7,7 @@ import {
     IReservationPriceBrakeDownR,
     IAriManulupulation
 } from "../types";
-import { BookingStatus, IBookingAddon, IBookingAddonCreate, IReservationPromotion, IReservationPromotionCreate } from "../types/reservation.type";
+import { BookingStatus, IBookingAddon, IBookingAddonCreate, IPropertyEmails, IReservationPromotion, IReservationPromotionCreate } from "../types/reservation.type";
 
 export class ReservationRepository {
     public async createReservation(data: ICReservation) {
@@ -613,10 +613,10 @@ export class ReservationRepository {
             throw new Error("Failed to delete ReservationDate");
         }
     }
-    public async getReservaltionByCode(reservationCode: string): Promise<IReservationWithAllDetails | null> {
+    public async getReservaltionByCode(reservationCode: string,propertyCode:string): Promise<IReservationWithAllDetails | null> {
         try {
             return await prisma.reservation.findUnique({
-                where: { bookingCode: reservationCode },
+                where: { bookingCode: reservationCode, propertyCode: propertyCode },
                 include: {
                     primaryGuest: true,
                     priceBreakdowns: true,
@@ -666,6 +666,18 @@ export class ReservationRepository {
             throw new Error("Failed to fetch reservation by Id");
         }
     }
+    public async getPropertyEmails(propertyId: string): Promise<IPropertyEmails[]> {
+        try {
+            const property = await prisma.propertyEmails.findMany({
+                where: { id: propertyId },
+                select: { email:true }
+            });
+            return property;
+        } catch (error) {
+                throw new Error(`Failed to fetch property emails`);
+        }
+    }
+            
 }
 
 export class PriceBrakeDownRepo {

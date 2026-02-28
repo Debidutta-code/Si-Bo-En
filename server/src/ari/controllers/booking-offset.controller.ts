@@ -5,6 +5,7 @@ import {
     IBookingOffset,
     ICBookingOffsetS,
     IUBookingOffsetR,
+    IUpsertBookingOffsetEntry,
 } from '../types/booking-offset.types';
 import { PropertyCustomRequest } from '../../utils';
 export class BookingOffsetController {
@@ -326,6 +327,61 @@ export class BookingOffsetController {
             return res
                 .status(500)
                 .json(errorResponse('Failed to delete booking offsets'));
+        }
+    }
+
+    public async upsertBookingOffsets(
+        req: PropertyCustomRequest,
+        res: Response
+    ): Promise<Response> {
+        try {
+            const {
+                ratePlanId,
+                entries,
+            }: {
+                ratePlanId: string;
+                entries: IUpsertBookingOffsetEntry[];
+            } = req.body;
+            const propertyId = req.property?.id;
+            if (!propertyId) {
+                return res
+                    .status(400)
+                    .json(errorResponse('Property identifier not found'));
+            }
+            if (!ratePlanId) {
+                return res
+                    .status(400)
+                    .json(errorResponse('Rate plan identifier not found'));
+            }
+            if (!entries || !Array.isArray(entries) || entries.length === 0) {
+                return res
+                    .status(400)
+                    .json(
+                        errorResponse(
+                            'Entries array is required and must not be empty'
+                        )
+                    );
+            }
+            const result = await this.bookingOffsetService.upsertBookingOffsets(
+                propertyId,
+                ratePlanId,
+                entries
+            );
+            return res.status(result.success ? 200 : 400).json(result);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse(
+                            'Failed to upsert booking offsets',
+                            error.message
+                        )
+                    );
+            }
+            return res
+                .status(500)
+                .json(errorResponse('Failed to upsert booking offsets'));
         }
     }
 }

@@ -1,6 +1,7 @@
 import { BookingSource, BookingStatus, CurrencyCode, PaymentMethod, DeviceType, ReservationPromotionType } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 import { DiscountType } from "../../../../promocode/types";
+import { PriceBrakeDown, DailyPriceBrakeDown, TaxBrakeDown, AddOnBrakeDown, PromotionBrakeDown } from "../../../../booking-engine/types/pricing.type";
 
 // ==================== PAYLOAD TYPES ====================
 export interface ICreateReservationPayload {
@@ -10,7 +11,9 @@ export interface ICreateReservationPayload {
     guestDetails: IGuestDetail[];
   };
 }
-
+export interface IPropertyEmails {
+  email: string;
+}
 export interface IBookingDetails {
   startDate: string;
   endDate: string;
@@ -19,6 +22,7 @@ export interface IBookingDetails {
   roomTypeCode: string;
   ratePlanCode: string;
   numberOfRooms: number;
+  numberOfNights?: number;
   finalPrice: IFinalPrice;
   promoCode: string | null;
   currency: CurrencyCode;
@@ -33,7 +37,7 @@ export interface IBookingDetails {
   };
   guestDetails: IGuestDetail[];
   paymentMethod: string;
-  selectedAddons?: IBookingAddonCreate[]; // ✅ ADD THIS
+  selectedAddons?: IBookingAddonCreate[];
   selectedPromotions?: IReservationPromotionCreate[];
   agencyId?: string | null;
   // Additional fields for email service
@@ -53,77 +57,37 @@ export interface IGuestDetail {
   phone?: string;
 }
 
+// New PriceBrakeDown-aligned IFinalPrice
 export interface IFinalPrice {
   totalAmount: number;
-  numberOfNights: number;
-  baseRatePerNight: number;
-  additionalGuestCharges: number;
-  breakdown: IPriceBreakdown;
-  dailyBreakdown: IDailyBreakdown[];
-  availableRooms: number;
-  requestedRooms: number;
-  totalTax: number;
-  taxes: ITax[];
-  // subtotal: number;
-  taxBreakdown: ITaxBreakdown;
-  promotions?: {
-    applied: IReservationPromotionCreate[];
-    totalDiscount: number;
-  };
-  addons?: any[];
-  loyaltyDiscount: {
+  amountBeforeTax: number;
+  taxedAmount: number;
+  totalAddonAmount: number;
+  totalPromotionAmount: number;
+  currentChargeableAmount: number;
+  latterpayableAmount: number;
+  promoCodeDiscount: number;
+  loyalityDiscount: number;
+  currencyCode: CurrencyCode;
+  dailyPriceBrakeDown: DailyPriceBrakeDown[];
+  taxBrakeDown: TaxBrakeDown[];
+  addonBrakeDown: AddOnBrakeDown[];
+  promotionBrakeDown: PromotionBrakeDown[];
+  // Fields preserved from old shape for backward compat / email usage
+  numberOfNights?: number;
+  requestedRooms?: number;
+  loyaltyDiscount?: {
     amountAfterDiscount: number;
     appliedTo: string;
     currencyCode: CurrencyCode;
-    discountAmount: number
-    discountType: DiscountType
+    discountAmount: number;
+    discountType: DiscountType;
     discountValue: number;
-    guestEmail: string
+    guestEmail: string;
     loyaltyMemberId: string;
-    originalAmount: number
-    propertyName: string
-  }
-}
-
-export interface IPriceBreakdown {
-  totalBaseAmount: number;
-  totalAdditionalCharges: number;
-  totalAmount: number;
-  numberOfNights: number;
-  averagePerNight: number;
-  totalTax: number;
-}
-
-export interface IDailyBreakdown {
-  date: string;
-  dayOfWeek: string;
-  baseRate: number;
-  additionalCharges: number;
-  totalPerRoom: number;
-  totalForAllRooms: number;
-  childrenChargesBreakdown: any[];
-}
-
-export interface ITax {
-  id: string;
-  name: string;
-  code: string;
-  type: string;
-  value: number;
-  applicableOn: string;
-  isInclusive: boolean;
-  baseAmount: number;
-  amount: number;
-  priority: number;
-}
-
-export interface ITaxBreakdown {
-  totalBaseAmount: number;
-  totalAdditionalCharges: number;
-  totalAmount: number;
-  numberOfNights: number;
-  averagePerNight: number;
-  totalTax: number;
+    originalAmount: number;
+    propertyName: string;
+  } | null;
 }
 
 export interface IBankDetails {
@@ -290,57 +254,8 @@ export interface IReservationUpdatePayload {
   roomTypeCode: string;
   ratePlanCode: string;
   amount: number;
-  finalPrice: {
-    totalAmount: number;
-    numberOfNights: number;
-    baseRatePerNight: number;
-    additionalGuestCharges: number;
-    breakdown: {
-      totalBaseAmount: number;
-      totalAdditionalCharges: number;
-      totalAmount: number;
-      numberOfNights: number;
-      averagePerNight: number;
-    };
-    dailyBreakdown: Array<{
-      date: string;
-      dayOfWeek: string;
-      ratePlanCode: string;
-      baseRate: number;
-      additionalCharges: number;
-      totalPerRoom: number;
-      totalForAllRooms: number;
-      currencyCode: string;
-      breakdown: any;
-    }>;
-    availableRooms: number;
-    requestedRooms: number;
-    tax: Array<{
-      name: string;
-      amount: number;
-      type: string;
-    }>;
-    totalTax: number;
-    priceAfterTax: number;
-    booking: {
-      finalPayable: number;
-      refundAmount: number;
-      discount: number;
-    };
-    loyaltyDiscount: {
-      amountAfterDiscount: number;
-      appliedTo: string;
-      currencyCode: CurrencyCode;
-      discountAmount: number
-      discountType: DiscountType
-      discountValue: number;
-      guestEmail: string
-      loyaltyMemberId: string;
-      originalAmount: number
-      propertyName: string
-    }
-  };
-  currencyCode: "USD" | "EUR" | "INR";
+  finalPrice: IFinalPrice;
+  currencyCode: CurrencyCode;
   bookingUserEmail: string;
   bookingUserPhone: string;
   status: "Modified";

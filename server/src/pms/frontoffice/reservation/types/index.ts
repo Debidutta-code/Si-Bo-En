@@ -12,30 +12,26 @@ import {
     IBookingDetails,
     ICGuest,
     ICreateReservationPayload,
-    IDailyBreakdown,
     IFinalPrice,
     IGuestDetail,
     IGuests,
-    IPriceBreakdown,
-    ITax,
-    ITaxBreakdown,
-IReservationModification,
-IReservationUpdatePayload,
-IUpdateReservationResult,
-IBookingAddonCreate,
-IBookingAddon,
-IReservationPromotionCreate,
-IReservationPromotion
+    IReservationModification,
+    IReservationUpdatePayload,
+    IUpdateReservationResult,
+    IBookingAddonCreate,
+    IBookingAddon,
+    IReservationPromotionCreate,
+    IReservationPromotion
 } from "./reservation.type";
 
 
 
-export{
+export {
     BookingSource,
     ICReservation,
     IReservation,
     IReservationWithAllDetails,
-    ReservationStatus ,
+    ReservationStatus,
     IReservationPriceBrakeDown,
     IReservationPriceBrakeDownR,
     AriManupulationRooms,
@@ -44,13 +40,9 @@ export{
     IBookingDetails,
     ICGuest,
     ICreateReservationPayload,
-    IDailyBreakdown,
     IFinalPrice,
     IGuestDetail,
     IGuests,
-    IPriceBreakdown,
-    ITax,
-    ITaxBreakdown,
     IReservationModification,
     IReservationUpdatePayload,
     IUpdateReservationResult,

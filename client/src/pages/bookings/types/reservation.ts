@@ -31,7 +31,59 @@ export interface IPriceBreakdown {
   availableRooms: number;
   requestedRooms: number;
 }
+export interface ITaxBreakdown {
+  name: string;
+  taxedAmount: number;
+  currencyCode: string;
+}
 
+export interface IAddonBreakdown {
+  name: string;
+  amount: number;
+  quantity: number;
+  totalAmount: number;
+  currencyCode: string;
+}
+
+export interface IDailyBreakdown {
+  date: string;
+  baseRate: number;
+  dayOfWeek: string;
+  totalAmount: number;
+  currencyCode: string;
+  ratePlanCode: string;
+  taxBrakeDown: ITaxBreakdown[];
+  totalPerRoom: number;
+  addOnBrakeDown: IAddonBreakdown[];
+  totalForAllRooms: number;
+  baseChargesAmount: number;
+  totalDailyTaxedAmount: number;
+  additionalChargesAmount: number;
+}
+
+export interface IFinalPrice {
+  taxedAmount: number;
+  totalAmount: number;
+  currencyCode: string;
+  taxBrakeDown: ITaxBreakdown[];
+  addonBrakeDown: IAddonBreakdown[];
+  dailyBreakdown: IDailyBreakdown[];
+  numberOfNights: number;
+  requestedRooms: number;
+  totalTaxAmount: number;
+  amountBeforeTax: number;
+  baseRatePerNight: number;
+  loyalityDiscount: number;
+  totalAddonAmount: number;
+  promoCodeDiscount: number;
+  promotionBrakeDown: any[];
+  dailyPriceBrakeDown: any[];
+  latterpayableAmount: number;
+  totalPromotionAmount: number;
+  additionalGuestCharges: number;
+  currentChargeableAmount: number;
+  
+}
 export interface IReservation {
   id: string;
   bookingCode: string;
@@ -49,12 +101,12 @@ export interface IReservation {
   bookingUserPhone?: string;
   amount: number;
   currencyCode: string;
-  finalPrice?: any;
+  finalPrice?: IFinalPrice;
   paidAmount: number;
   extraAmountToPay: number;
   refundAmount: number;
   paymentMethod: string;
-  bookingStatus: 'pending' | 'confirmed' | 'cancelled' | 'modified';
+  bookingStatus: 'pending' | 'confirmed' | 'cancelled' | 'modified' | 'no_show';
   bookingSource: string;
   isPromoUsed: boolean;
   createdAt: string;

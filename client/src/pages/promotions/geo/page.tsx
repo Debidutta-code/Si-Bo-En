@@ -24,7 +24,7 @@ import type { CreateGeoRatePlan, GeoRatePlan } from './interfaces';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Check, Edit, MoreVertical, Trash2, X } from 'lucide-react';
+import { Edit, MoreVertical, Trash2,  } from 'lucide-react';
 import type { ILoader } from '@/pages/dashboard/interface';
 import BackButton from '@/components/shared/BackButton';
 
@@ -126,7 +126,6 @@ export const GeoRatePlanList: React.FC = () => {
         currencyCode: payload.currencyCode,
         countryCode: payload.countryCode,
         isActive: payload.isActive,
-        isAutoApplied: payload.isAutoApplied
 
       });
 
@@ -258,7 +257,6 @@ export const GeoRatePlanList: React.FC = () => {
                 <TableHead>Action</TableHead>
                 <TableHead>Value</TableHead>
                 <TableHead>Countries</TableHead>
-                <TableHead>Auto Applied</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -313,14 +311,7 @@ export const GeoRatePlanList: React.FC = () => {
                         )}
                       </div>
                     </TableCell>
-                     <TableCell >
-                      <div className={`px-3 py-1  flex items-center justify-center  rounded text-xs ${plan.isAutoApplied
-                        ? ' text-success '
-                        : ' text-destructive'
-                        }`}>
-                        {plan.isAutoApplied ? <Check className='h-4 w-4' /> : <X className='h-4 w-4' />}
-                      </div>
-                    </TableCell>
+                     
                     <TableCell>
                       <span
                         className={`px-3 py-1 rounded text-xs font-medium transition-colors ${plan.isActive

@@ -1,5 +1,11 @@
 import React from "react";
-import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Save } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  Save,
+} from "lucide-react";
 
 // Hooks and Components
 import { useInventoryState } from "../hooks/useInventoryState";
@@ -23,13 +29,14 @@ interface InventoryTableProps {
   onMouseLeave: () => void;
   hotelCode: string;
   accessToken?: string;
-  propertyId:string,
-  roomSetupData: Array<{ // ✅ ADD THIS
+  propertyId: string;
+  roomSetupData: Array<{
     id: string;
     roomName: string;
     roomType: string;
     totalRoom: number;
   }>;
+  ratePlanMap: Record<string, string>;
   onDataUpdate?: () => void;
 }
 
@@ -40,6 +47,7 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
   hotelCode,
   propertyId,
   roomSetupData,
+  ratePlanMap,
   onDataUpdate,
 }) => {
   const state = useInventoryState(days);
@@ -50,10 +58,10 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
       action,
       state.pendingChanges,
       state.setPendingAction,
-      state.setShowUnsavedDialog
+      state.setShowUnsavedDialog,
     );
   };
- const handleSave = async () => {
+  const handleSave = async () => {
     await handleSaveAndContinue(
       state.losEdits,
       state.availabilityEdits,
@@ -71,10 +79,9 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
       state.setPendingAction,
       state.expandedOccupancy,
       state.customTiers,
-      onDataUpdate
+      onDataUpdate,
     );
   };
-
 
   const handleDiscard = () => {
     handleDiscardAndContinue(
@@ -85,33 +92,31 @@ export const InventoryTable: React.FC<InventoryTableProps> = ({
       state.setCustomTiers,
       state.setShowUnsavedDialog,
       state.pendingAction,
-      state.setPendingAction
+      state.setPendingAction,
     );
   };
 
-
-
-const saveAllAvailability = () => {
-  const roomTypesWithAvailability = new Set<string>();
-  state.availabilityEdits.forEach((edit) => {
-    roomTypesWithAvailability.add(edit.roomType);
-  });
-  Promise.all(
-    Array.from(roomTypesWithAvailability).map((rt) =>
-      saveAvailabilityChanges(
-        rt,
-        days,
-        state.availabilityEdits,
-        state.pendingChanges,
-        propertyId, // ✅ CHANGED: Pass propertyId instead of hotelCode
-        roomSetupData,
-        state.setAvailabilityEdits,
-        state.setPendingChanges,
-        onDataUpdate
-      )
-    )
-  );
-};
+  const saveAllAvailability = () => {
+    const roomTypesWithAvailability = new Set<string>();
+    state.availabilityEdits.forEach((edit) => {
+      roomTypesWithAvailability.add(edit.roomType);
+    });
+    Promise.all(
+      Array.from(roomTypesWithAvailability).map((rt) =>
+        saveAvailabilityChanges(
+          rt,
+          days,
+          state.availabilityEdits,
+          state.pendingChanges,
+          propertyId, // ✅ CHANGED: Pass propertyId instead of hotelCode
+          roomSetupData,
+          state.setAvailabilityEdits,
+          state.setPendingChanges,
+          onDataUpdate,
+        ),
+      ),
+    );
+  };
 
   // Save all pricing changes
   const saveAllPricing = () => {
@@ -136,10 +141,10 @@ const saveAllAvailability = () => {
             hotelCode,
             state.setPriceEdits,
             state.setPendingChanges,
-            onDataUpdate
-          )
-        )
-      )
+            onDataUpdate,
+          ),
+        ),
+      ),
     );
   };
 
@@ -160,7 +165,9 @@ const saveAllAvailability = () => {
         {/* Header with Navigation */}
         <div className="relative bg-gray-50 border-b border-gray-300 py-2">
           <div className="flex items-center justify-between px-3">
-            <h2 className="text-sm font-semibold text-gray-800">Inventory Overview</h2>
+            <h2 className="text-sm font-semibold text-gray-800">
+              Inventory Overview
+            </h2>
 
             <div className="flex items-center space-x-3 flex-wrap gap-2">
               {state.pendingChanges.size > 0 && (
@@ -170,7 +177,9 @@ const saveAllAvailability = () => {
               )}
 
               {/* Save Availability Button */}
-              {Array.from(state.pendingChanges).some((k) => k.includes("-availability-")) && (
+              {Array.from(state.pendingChanges).some((k) =>
+                k.includes("-availability-"),
+              ) && (
                 <button
                   onClick={saveAllAvailability}
                   className="flex items-center space-x-1 px-3 py-1 bg-green-500 text-white text-xs font-medium rounded hover:bg-green-600 transition-colors"
@@ -182,7 +191,9 @@ const saveAllAvailability = () => {
               )}
 
               {/* Save Pricing Button */}
-              {Array.from(state.pendingChanges).some((k) => k.includes("-price")) && (
+              {Array.from(state.pendingChanges).some((k) =>
+                k.includes("-price"),
+              ) && (
                 <button
                   onClick={saveAllPricing}
                   className="flex items-center space-x-1 px-3 py-1 bg-blue-500 text-white text-xs font-medium rounded hover:bg-blue-600 transition-colors"
@@ -194,25 +205,41 @@ const saveAllAvailability = () => {
               )}
 
               <button
-                onClick={() => checkChanges(() => state.setShowRestrictions(!state.showRestrictions))}
+                onClick={() =>
+                  checkChanges(() =>
+                    state.setShowRestrictions(!state.showRestrictions),
+                  )
+                }
                 className="flex items-center space-x-1 px-3 py-1 bg-purple-500 text-white text-xs font-medium rounded hover:bg-purple-600 transition-colors"
               >
                 <span className="hidden sm:inline">
                   {state.showRestrictions ? "Hide" : "Show"} Restrictions
                 </span>
                 <span className="sm:hidden">Restrictions</span>
-                {state.showRestrictions ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                {state.showRestrictions ? (
+                  <ChevronUp className="w-3 h-3" />
+                ) : (
+                  <ChevronDown className="w-3 h-3" />
+                )}
               </button>
 
               <button
-                onClick={() => checkChanges(() => state.setShowRatePlans(!state.showRatePlans))}
+                onClick={() =>
+                  checkChanges(() =>
+                    state.setShowRatePlans(!state.showRatePlans),
+                  )
+                }
                 className="flex items-center space-x-1 px-3 py-1 bg-blue-500 text-white text-xs font-medium rounded hover:bg-blue-600 transition-colors"
               >
                 <span className="hidden sm:inline">
                   {state.showRatePlans ? "Hide" : "Show"} Rate Plans
                 </span>
                 <span className="sm:hidden">Plans</span>
-                {state.showRatePlans ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                {state.showRatePlans ? (
+                  <ChevronUp className="w-3 h-3" />
+                ) : (
+                  <ChevronDown className="w-3 h-3" />
+                )}
               </button>
 
               <div className="flex items-center space-x-1">
@@ -236,31 +263,32 @@ const saveAllAvailability = () => {
 
         {/* Scrollable Content */}
         <div
-  ref={state.scrollContainerRef}
-  onScroll={state.handleScroll}
-  className="flex-1 overflow-x-auto overflow-y-auto scrollbar-hide"
-  style={{ 
-    scrollbarWidth: "none", 
-    msOverflowStyle: "none" 
-  }}
->
-  <div className="min-w-max">
-    {roomTypes.map((roomType) => (
-      <RoomTypeSection
-        roomSetupData={roomSetupData} // ✅ ADD THIS
-        key={roomType}
-        roomType={roomType}
-        days={days}
-        state={state}
-        hotelCode={hotelCode}
-        propertyId={propertyId}
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
-        onDataUpdate={onDataUpdate}
-      />
-    ))}
-  </div>
-</div>
+          ref={state.scrollContainerRef}
+          onScroll={state.handleScroll}
+          className="flex-1 overflow-x-auto overflow-y-auto scrollbar-hide"
+          style={{
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+          }}
+        >
+          <div className="min-w-max">
+            {roomTypes.map((roomType) => (
+              <RoomTypeSection
+                roomSetupData={roomSetupData}
+                key={roomType}
+                roomType={roomType}
+                days={days}
+                state={state}
+                hotelCode={hotelCode}
+                propertyId={propertyId}
+                ratePlanMap={ratePlanMap}
+                onMouseEnter={onMouseEnter}
+                onMouseLeave={onMouseLeave}
+                onDataUpdate={onDataUpdate}
+              />
+            ))}
+          </div>
+        </div>
 
         {/* Footer with Summary */}
         <div className="bg-gray-50 border-t border-gray-300 px-3 py-1">

@@ -77,14 +77,12 @@ class InventoryRepository {
 
     public static async getRoom(propertyId: string, roomType: string) {
         try {
-            console.log(`🔍 getRoom called with propertyId: ${propertyId}, roomType: ${roomType}`);
             const room = await prisma.room.findFirst({
                 where: {
                     propertyId,
                     roomType,
                 },
             });
-            console.log(`🏨 getRoom result:`, room ? `Found: ${room.roomType} (${room.id})` : 'Not found');
             return room;
         } catch (error: any) {
             console.error('❌ getRoom error:', error);

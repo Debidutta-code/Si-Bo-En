@@ -20,31 +20,31 @@ export class BookingOffsetRepository {
         }
     }
     public async getBookingOffsets(
-        propertyId:string,
-        ratePlanId:string,
-        startDate:Date|null,
-        endDate:Date|null
+        propertyId: string,
+        ratePlanId: string,
+        startDate: Date | null,
+        endDate: Date | null
     ): Promise<IBookingOffset[]> {
         try {
-            let where:any = {
+            let where: any = {
                 propertyId,
+            };
+            if (ratePlanId) {
+                where.ratePlanId = ratePlanId;
             }
-            if(ratePlanId){
-                where.ratePlanId = ratePlanId
-            }
-            if(startDate){
+            if (startDate) {
                 where.date = {
-                    gte:startDate
-                }
+                    gte: startDate,
+                };
             }
-            if(endDate){
+            if (endDate) {
                 where.date = {
-                    lte:endDate
-                }
+                    lte: endDate,
+                };
             }
             return await prisma.bookingOffset.findMany({
                 where: {
-                    ...where
+                    ...where,
                 },
             });
         } catch (error) {
@@ -52,32 +52,32 @@ export class BookingOffsetRepository {
         }
     }
     public async updateBookingOffsets(
-        condition:{
-            propertyId:string,
-            ratePlanId:string,
-            startDate:Date|null,
-            endDate:Date|null
+        condition: {
+            propertyId: string;
+            ratePlanId: string;
+            startDate: Date | null;
+            endDate: Date | null;
         },
         bookingOffsets: IUBookingOffsetR[]
     ): Promise<BatchPayload> {
         try {
-            let whereClause:any={
-                propertyId:condition.propertyId,
-                ratePlanId:condition.ratePlanId,
-            }
-            if(condition.startDate){
+            let whereClause: any = {
+                propertyId: condition.propertyId,
+                ratePlanId: condition.ratePlanId,
+            };
+            if (condition.startDate) {
                 whereClause.date = {
-                    gte:condition.startDate
-                }
+                    gte: condition.startDate,
+                };
             }
-            if(condition.endDate){
+            if (condition.endDate) {
                 whereClause.date = {
-                    lte:condition.endDate
-                }
+                    lte: condition.endDate,
+                };
             }
             return await prisma.bookingOffset.updateMany({
                 where: {
-                    ...whereClause
+                    ...whereClause,
                 },
                 data: bookingOffsets,
             });
@@ -85,32 +85,30 @@ export class BookingOffsetRepository {
             throw new Error('Failed to update booking offsets');
         }
     }
-    public async deleteBookingOffsets(
-        condition:{
-            propertyId:string,
-            ratePlanId:string,
-            startDate:Date|null,
-            endDate:Date|null
-        }
-    ): Promise<BatchPayload> {
+    public async deleteBookingOffsets(condition: {
+        propertyId: string;
+        ratePlanId: string;
+        startDate: Date | null;
+        endDate: Date | null;
+    }): Promise<BatchPayload> {
         try {
-            let whereClause:any={
-                propertyId:condition.propertyId,
-                ratePlanId:condition.ratePlanId,
-            }
-            if(condition.startDate){
+            let whereClause: any = {
+                propertyId: condition.propertyId,
+                ratePlanId: condition.ratePlanId,
+            };
+            if (condition.startDate) {
                 whereClause.date = {
-                    gte:condition.startDate
-                }
+                    gte: condition.startDate,
+                };
             }
-            if(condition.endDate){
+            if (condition.endDate) {
                 whereClause.date = {
-                    lte:condition.endDate
-                }
+                    lte: condition.endDate,
+                };
             }
             return await prisma.bookingOffset.deleteMany({
                 where: {
-                    ...whereClause
+                    ...whereClause,
                 },
             });
         } catch (error) {
@@ -118,54 +116,110 @@ export class BookingOffsetRepository {
         }
     }
 
-
-    public async updateById(id:string,data:IUBookingOffsetR): Promise<IBookingOffset> {
+    public async updateById(
+        id: string,
+        data: IUBookingOffsetR
+    ): Promise<IBookingOffset> {
         try {
             return await prisma.bookingOffset.update({
                 where: {
-                    id
+                    id,
                 },
-                data:data,
+                data: data,
             });
         } catch (error) {
             throw new Error('Failed to update booking offset');
         }
     }
-    public async deleteById(id:string): Promise<IBookingOffset> {
+    public async deleteById(id: string): Promise<IBookingOffset> {
         try {
             return await prisma.bookingOffset.delete({
                 where: {
-                    id
+                    id,
                 },
             });
         } catch (error) {
             throw new Error('Failed to delete booking offset');
         }
     }
-    public async getById(id:string): Promise<IBookingOffset|null> {
+    public async getById(id: string): Promise<IBookingOffset | null> {
         try {
             return await prisma.bookingOffset.findUnique({
                 where: {
-                    id
+                    id,
                 },
             });
         } catch (error) {
             throw new Error('Failed to get booking offset');
         }
     }
-    public async checkIfExists(ratePlanId:string,date:Date):Promise<boolean>{
+    public async checkIfExists(
+        ratePlanId: string,
+        date: Date
+    ): Promise<boolean> {
         try {
-            const isExist=await prisma.bookingOffset.findUnique({
+            const isExist = await prisma.bookingOffset.findUnique({
                 where: {
-                    ratePlanId_date:{
+                    ratePlanId_date: {
                         ratePlanId,
-                        date
-                    }
+                        date,
+                    },
                 },
             });
             return !!isExist;
         } catch (error) {
-            throw new Error("Failed to check if booking offset exists");
+            throw new Error('Failed to check if booking offset exists');
+        }
+    }
+    public async upsertBookingOffset(
+        ratePlanId: string,
+        date: Date,
+        propertyId: string,
+        ratePlanCode: string,
+        ratePlanName: string,
+        data: Partial<ICBookingOffsetS>
+    ): Promise<IBookingOffset> {
+        try {
+            // Build update data: only include fields that are explicitly provided
+            const updateData: any = {};
+            if (data.minimumAdvanceBookingOffset !== undefined)
+                updateData.minimumAdvanceBookingOffset =
+                    data.minimumAdvanceBookingOffset;
+            if (data.maximumAdvanceBookingOffset !== undefined)
+                updateData.maximumAdvanceBookingOffset =
+                    data.maximumAdvanceBookingOffset;
+            if (data.minimumAmendBookingOffset !== undefined)
+                updateData.minimumAmendBookingOffset =
+                    data.minimumAmendBookingOffset;
+            if (data.maximumAmendBookingOffset !== undefined)
+                updateData.maximumAmendBookingOffset =
+                    data.maximumAmendBookingOffset;
+            if (data.minimumCancelBookingOffset !== undefined)
+                updateData.minimumCancelBookingOffset =
+                    data.minimumCancelBookingOffset;
+            if (data.maximumCancelBookingOffset !== undefined)
+                updateData.maximumCancelBookingOffset =
+                    data.maximumCancelBookingOffset;
+
+            return await prisma.bookingOffset.upsert({
+                where: {
+                    ratePlanId_date: {
+                        ratePlanId,
+                        date,
+                    },
+                },
+                update: updateData,
+                create: {
+                    propertyId,
+                    ratePlanId,
+                    ratePlanCode,
+                    ratePlanName,
+                    date,
+                    ...updateData,
+                },
+            });
+        } catch (error) {
+            throw new Error('Failed to upsert booking offset');
         }
     }
 }

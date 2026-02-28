@@ -16,7 +16,6 @@ import {
   ChevronUp,
 } from "lucide-react";
 import toast from "react-hot-toast";
-import Loader from "@/components/Loader/Loader";
 import { checkAmendPrice, amendReservationApi } from "../api";
 import type {
   IAmendGuest,
@@ -585,49 +584,66 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
   const childCount = guestForms.filter((g) => g.type === "child").length;
 
   // ── Shared Check Availability Button ──
-  const CheckAvailabilityButton = () => (
-    <div className="pt-6 border-t border-border">
-      <button
-        onClick={handleCheckPrice}
-        disabled={priceLoading || !checkInDate || !checkOutDate}
-        className="w-full flex items-center justify-center gap-2.5 py-3 px-4 rounded-lg font-semibold text-sm transition-all
-          bg-primary text-primary-foreground hover:bg-primary/90
-          disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {priceLoading ? (
-          <Loader text="Checking availability..." />
-        ) : (
-          <>
-            <RefreshCw
-              className={`h-4 w-4 ${priceFetched ? "text-primary-foreground/80" : ""}`}
+const CheckAvailabilityButton = () => (
+  <div className="pt-6 border-t border-border">
+    <button
+      onClick={handleCheckPrice}
+      disabled={priceLoading || !checkInDate || !checkOutDate}
+      className="w-full flex items-center justify-center gap-2.5 py-3 px-4 rounded-lg font-semibold text-sm transition-all
+        bg-primary text-primary-foreground hover:bg-primary/90
+        disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {priceLoading ? (
+        <>
+          <svg
+            className="animate-spin h-4 w-4 text-primary-foreground"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
             />
-            {priceFetched
-              ? "Re-check Availability & Price"
-              : "Check Availability & Price"}
-          </>
-        )}
-      </button>
-
-      {priceFetched && !priceLoading && (
-        <div className="flex items-center justify-center gap-1.5 mt-3">
-          <CheckCircle2 className="h-4 w-4 text-green-600" />
-          <span className="text-sm text-green-700 dark:text-green-400 font-medium">
-            Availability confirmed
-          </span>
-        </div>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+            />
+          </svg>
+          Checking availability...
+        </>
+      ) : (
+        <>
+          <RefreshCw className={`h-4 w-4 ${priceFetched ? "text-primary-foreground/80" : ""}`} />
+          {priceFetched ? "Re-check Availability & Price" : "Check Availability & Price"}
+        </>
       )}
+    </button>
 
-      {priceFetchError && !priceLoading && (
-        <div className="flex items-center gap-2 mt-3 bg-destructive/10 border border-destructive/20 rounded-md px-3 py-2.5">
-          <AlertTriangle className="h-4 w-4 text-destructive flex-shrink-0" />
-          <p className="text-sm text-destructive">
-            Could not fetch price. Please try again.
-          </p>
-        </div>
-      )}
-    </div>
-  );
+    {priceFetched && !priceLoading && (
+      <div className="flex items-center justify-center gap-1.5 mt-3">
+        <CheckCircle2 className="h-4 w-4 text-green-600" />
+        <span className="text-sm text-green-700 dark:text-green-400 font-medium">
+          Availability confirmed
+        </span>
+      </div>
+    )}
 
+    {priceFetchError && !priceLoading && (
+      <div className="flex items-center gap-2 mt-3 bg-destructive/10 border border-destructive/20 rounded-md px-3 py-2.5">
+        <AlertTriangle className="h-4 w-4 text-destructive flex-shrink-0" />
+        <p className="text-sm text-destructive">
+          Could not fetch price. Please try again.
+        </p>
+      </div>
+    )}
+  </div>
+);
   // ─────────────────────────────────────────────────────────────────────────
 
   return (
@@ -1018,19 +1034,41 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
               Cancel
             </button>
             <button
-              onClick={handleConfirm}
-              disabled={priceFetchError || !priceFetched || loading}
-              className="flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold
-                bg-primary text-primary-foreground hover:bg-primary/90 transition-colors
-                disabled:opacity-50 disabled:cursor-not-allowed
-                flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <Loader text="Updating..." />
-              ) : (
-                "Confirm Amend"
-              )}
-            </button>
+  onClick={handleConfirm}
+  disabled={priceFetchError || !priceFetched || loading}
+  className="flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold
+    bg-primary text-primary-foreground hover:bg-primary/90 transition-colors
+    disabled:opacity-50 disabled:cursor-not-allowed
+    flex items-center justify-center gap-2"
+>
+  {loading ? (
+    <>
+      <svg
+        className="animate-spin h-4 w-4 text-primary-foreground"
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+      >
+        <circle
+          className="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="4"
+        />
+        <path
+          className="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+        />
+      </svg>
+      Updating...
+    </>
+  ) : (
+    "Confirm Amend"
+  )}
+</button>
           </div>
         </div>
       </div>

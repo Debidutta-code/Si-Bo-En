@@ -56,8 +56,6 @@ class InventoryServices {
     pushFromCalender?:boolean
   ) {
     try {
-      console.log(startDate)
-      console.log(endDate)
       const property = await InventoryDao.isPropertyExists(propertyCode);
       if (!property) {
         return errorResponse('Property not found');

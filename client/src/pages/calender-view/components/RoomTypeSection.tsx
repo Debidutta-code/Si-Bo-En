@@ -36,12 +36,12 @@ interface RoomTypeSectionProps {
   hotelCode: string;
   propertyId: string;
   roomSetupData: Array<{
-    // ✅ ADD THIS
     id: string;
     roomName: string;
     roomType: string;
     totalRoom: number;
   }>;
+  ratePlanMap: Record<string, string>;
   onMouseEnter: (index: number) => void;
   onMouseLeave: () => void;
   onDataUpdate?: () => void;
@@ -53,6 +53,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
   state,
   hotelCode,
   propertyId,
+  ratePlanMap,
   // roomSetupData,
   onMouseEnter,
   onMouseLeave,
@@ -131,7 +132,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                         const uniqueKey = generateKey.restriction(
                           "CTA",
                           idx,
-                          roomType
+                          roomType,
                         );
                         const ctaValue = day.restrictions?.CTA || false;
                         return state.optimisticRestrictions.has(uniqueKey)
@@ -148,7 +149,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                         hotelCode,
                         state.optimisticRestrictions,
                         state.setOptimisticRestrictions,
-                        onDataUpdate
+                        onDataUpdate,
                       );
                     }}
                     className={`${(() => {
@@ -156,7 +157,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                         const uniqueKey = generateKey.restriction(
                           "CTA",
                           idx,
-                          roomType
+                          roomType,
                         );
                         const ctaValue = day.restrictions?.CTA || false;
                         return state.optimisticRestrictions.has(uniqueKey)
@@ -184,7 +185,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                         const uniqueKey = generateKey.restriction(
                           "CTD",
                           idx,
-                          roomType
+                          roomType,
                         );
                         const ctdValue = day.restrictions?.CTD || false;
                         return state.optimisticRestrictions.has(uniqueKey)
@@ -201,7 +202,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                         hotelCode,
                         state.optimisticRestrictions,
                         state.setOptimisticRestrictions,
-                        onDataUpdate
+                        onDataUpdate,
                       );
                     }}
                     className={`${(() => {
@@ -209,7 +210,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                         const uniqueKey = generateKey.restriction(
                           "CTD",
                           idx,
-                          roomType
+                          roomType,
                         );
                         const ctdValue = day.restrictions?.CTD || false;
                         return state.optimisticRestrictions.has(uniqueKey)
@@ -246,7 +247,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                             roomType,
                             null,
                             idx,
-                            "min"
+                            "min",
                           );
                           newEdits.set(key, {
                             roomType,
@@ -288,7 +289,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                             roomType,
                             null,
                             idx,
-                            "max"
+                            "max",
                           );
                           newEdits.set(key, {
                             roomType,
@@ -312,7 +313,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
               {(Array.from(state.pendingChanges) as string[]).some(
                 (k) =>
                   k.includes(`${roomType}-roomtype-`) &&
-                  (k.includes("-min") || k.includes("-max"))
+                  (k.includes("-min") || k.includes("-max")),
               ) && (
                 <div className="h-12 flex items-center px-2 border-b border-gray-300 bg-green-50">
                   <span className="font-semibold text-green-700 text-xs">
@@ -334,6 +335,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                 state={state}
                 propertyId={propertyId}
                 hotelCode={hotelCode}
+                ratePlanMap={ratePlanMap}
                 onDataUpdate={onDataUpdate}
                 renderMode="labels"
               />
@@ -413,7 +415,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                           state.availabilityEdits,
                           state.pendingChanges,
                           state.setAvailabilityEdits,
-                          state.setPendingChanges
+                          state.setPendingChanges,
                         )
                       }
                       className={`w-14 h-7 text-center text-sm font-bold rounded border ${
@@ -432,7 +434,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                             state.availabilityEdits,
                             state.pendingChanges,
                             state.setAvailabilityEdits,
-                            state.setPendingChanges
+                            state.setPendingChanges,
                           )
                         }
                         className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
@@ -487,11 +489,11 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                     const uniqueKey = generateKey.restriction(
                       "CTA",
                       index,
-                      roomType
+                      roomType,
                     );
                     const ctaValue = day.restrictions?.CTA || false;
                     const effectiveValue = state.optimisticRestrictions.has(
-                      uniqueKey
+                      uniqueKey,
                     )
                       ? state.optimisticRestrictions.get(uniqueKey)!
                       : ctaValue;
@@ -513,7 +515,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                               hotelCode,
                               state.optimisticRestrictions,
                               state.setOptimisticRestrictions,
-                              onDataUpdate
+                              onDataUpdate,
                             )
                           }
                           className={`${
@@ -533,11 +535,11 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                     const uniqueKey = generateKey.restriction(
                       "CTD",
                       index,
-                      roomType
+                      roomType,
                     );
                     const ctdValue = day.restrictions?.CTD || false;
                     const effectiveValue = state.optimisticRestrictions.has(
-                      uniqueKey
+                      uniqueKey,
                     )
                       ? state.optimisticRestrictions.get(uniqueKey)!
                       : ctdValue;
@@ -559,7 +561,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                               hotelCode,
                               state.optimisticRestrictions,
                               state.setOptimisticRestrictions,
-                              onDataUpdate
+                              onDataUpdate,
                             )
                           }
                           className={`${
@@ -573,12 +575,12 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                   })}
                 </div>
 
-               {/* Min LOS Row - READ ONLY */}
+                {/* Min LOS Row - READ ONLY */}
                 <div className="flex h-12 border-b border-gray-300">
                   {days.map((day, index) => {
                     // Find the rate plan that has prices for this room type
                     const ratePlanForRoom = day.ratePlans?.find((rp: any) =>
-                      rp.prices?.some((p: any) => p.invTypeCode === roomType)
+                      rp.prices?.some((p: any) => p.invTypeCode === roomType),
                     );
                     const currentValue = ratePlanForRoom?.minLengthOfStay || 0;
 
@@ -600,7 +602,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                   {days.map((day, index) => {
                     // Find the rate plan that has prices for this room type
                     const ratePlanForRoom = day.ratePlans?.find((rp: any) =>
-                      rp.prices?.some((p: any) => p.invTypeCode === roomType)
+                      rp.prices?.some((p: any) => p.invTypeCode === roomType),
                     );
                     const currentValue = ratePlanForRoom?.maxLengthOfStay || 0;
 
@@ -618,11 +620,11 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                 </div>
 
                 {/* Save Button Row */}
-              {/* Save Button Row */}
+                {/* Save Button Row */}
                 {(Array.from(state.pendingChanges) as string[]).some(
                   (k) =>
                     k.includes(`${roomType}-roomtype-`) &&
-                    (k.includes("-min") || k.includes("-max"))
+                    (k.includes("-min") || k.includes("-max")),
                 ) && (
                   <div className="flex h-12 border-b border-gray-300 bg-blue-50">
                     {days.map((_, index) => (
@@ -644,7 +646,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                             null, // ✅ FIXED: Added ratePlanCode parameter (null for room type)
                             state.setLosEdits,
                             state.setPendingChanges,
-                            onDataUpdate
+                            onDataUpdate,
                           )
                         }
                         className="flex items-center gap-2 px-4 py-1.5 bg-green-500 text-white text-xs font-medium rounded hover:bg-green-600 transition-colors shadow-lg pointer-events-auto sticky left-1/2 -ml-24"
@@ -669,6 +671,7 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
                   state={state}
                   hotelCode={hotelCode}
                   propertyId={propertyId}
+                  ratePlanMap={ratePlanMap}
                   onDataUpdate={onDataUpdate}
                   renderMode="data"
                 />

@@ -36,7 +36,6 @@ export class GeoRatePlanService {
                         currencyCode: data.currencyCode,
                         countryCode: data.countryCode,
                         isActive: data.isActive ?? true,
-                        isAutoApplied: data.isAutoApplied,
                         restrictionTypeAction: data.restrictionTypeAction
                     });
                 }
@@ -54,7 +53,6 @@ export class GeoRatePlanService {
                             currencyCode: data.currencyCode,
                             countryCode: data.countryCode,
                             isActive: data.isActive ?? true,
-                            isAutoApplied: data.isAutoApplied,
                             restrictionTypeAction: data.restrictionTypeAction
                         });
                     }

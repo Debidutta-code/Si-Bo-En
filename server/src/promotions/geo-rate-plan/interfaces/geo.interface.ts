@@ -21,7 +21,6 @@ export interface IGeoRatePlanInput {
   currencyCode: CurrencyCode;
   countryCode: string[];
   isActive: boolean;
-  isAutoApplied: boolean;
 restrictionTypeAction:restrictionTypeAction
 }
 
@@ -37,8 +36,7 @@ export interface IGeoRatePlanCreate {
   currencyCode: CurrencyCode | null;
   countryCode: string[];
   isActive: boolean;
-  isAutoApplied: boolean;
-  restrictionTypeAction?:restrictionTypeAction
+  restrictionTypeAction:restrictionTypeAction|null
 
 
 }
@@ -55,8 +53,7 @@ export interface IGeoRatePlanWithoutRatePlan{
   countryCode: string[];
   isActive: boolean;
   createdAt: Date;
-  isAutoApplied: boolean;
-  restrictionTypeAction:restrictionTypeAction
+  restrictionTypeAction:restrictionTypeAction|null
 }
 
 
@@ -73,11 +70,9 @@ export interface IGeoRatePlan {
   countryCode: string[];
   isActive: boolean;
   createdAt: Date;
-  isAutoApplied: boolean;
-  property:IProperty;
   room:IRoom|null;
   ratePlan:IRatePlan;
-  restrictionTypeAction:restrictionTypeAction
+  restrictionTypeAction:restrictionTypeAction|null
 
 
 }

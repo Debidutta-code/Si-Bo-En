@@ -1,6 +1,6 @@
 import nodemailer from "nodemailer";
 import {config} from "../../config";
-export async function sendEmail(to: string, subject: string, htmlContent: string): Promise<boolean> {
+export async function sendEmail(to: string,cc: string[], subject: string, htmlContent: string): Promise<boolean> {
     const transporter = nodemailer.createTransport({
         host: config.smtpHost,
         port: parseInt(config.smtpPort!),
@@ -14,13 +14,14 @@ export async function sendEmail(to: string, subject: string, htmlContent: string
     const mailOptions = {
         from: `${config.senderEmail}`,
         to,
+        cc,
         subject,
         html: htmlContent
     };
 
     try {
         await transporter.sendMail(mailOptions);
-        //console.log("Email sent successfully");
+        console.log("Email sent successfully");
         return true;
     } catch (error) {
         console.error("Error sending email:", error);

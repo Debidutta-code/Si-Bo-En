@@ -50,11 +50,7 @@ export class PricingRepository {
                             },
                         },
                     },
-                    customizableDealsApplicableRatePlanTypes: {
-                        include: {
-                            CustomizableDeal: true,
-                        },
-                    },
+
                     bookingOffsets: {
                         where: {
                             date: {
@@ -63,16 +59,7 @@ export class PricingRepository {
                             },
                         },
                     },
-                    // ratePlanRules: {
-                    //     where: {
-                    //         startDate: {
-                    //             lte: startDate,
-                    //         },
-                    //         endDate: {
-                    //             gt: endDate,
-                    //         },
-                    //     },
-                    // },
+
                     charges: {
                         where: {
                             isSaleStopped: false,
@@ -96,10 +83,16 @@ export class PricingRepository {
                             discountValue: true,
                             currencyCode: true
                         }
-                    }
+                    },
+                    // customizableDeals:{
+                    //     include:{
+                    //         CustomizableDealsApplicableAddons:true
+                    //     }
+                    // }
                 },
             });
         } catch (error) {
+            console.log(error);
             throw new Error('Failed to validate rate plan');
         }
     }

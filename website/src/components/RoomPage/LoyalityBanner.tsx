@@ -6,17 +6,22 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
+import Image from "next/image";
 
 export const LoyaltyProgramBanner = ({
   loyaltyProgram,
   primaryColor,
   showSignUpModal: externalShowSignUpModal,
   onShowSignUpModalChange,
+  onSignUpSuccess,
+  onLogoutSuccess,
 }: {
   loyaltyProgram: IPropertyLoyalityWithLoyality | null;
   primaryColor: string;
   showSignUpModal?: boolean;
   onShowSignUpModalChange?: (show: boolean) => void;
+  onSignUpSuccess?: (email: string) => void;
+  onLogoutSuccess?: () => void;
 }) => {
   const [internalShowSignUpModal, setInternalShowSignUpModal] = useState(false);
   const [formData, setFormData] = useState<Record<string, any>>({});
@@ -31,26 +36,10 @@ export const LoyaltyProgramBanner = ({
     currencyCode: string;
   } | null>(null);
 
-  // Return early if loyaltyProgram is null or if CreationLoyaltyConfig is missing
-  // This must be after all hooks to avoid "Rendered more hooks than during the previous render" error
-  if (!loyaltyProgram || !loyaltyProgram.CreationLoyaltyConfig) {
-    return null;
-  }
-
-  // Use external control if provided, otherwise use internal state
-  const showSignUpModal = externalShowSignUpModal !== undefined ? externalShowSignUpModal : internalShowSignUpModal;
-  const setShowSignUpModal = onShowSignUpModalChange || setInternalShowSignUpModal;
-
-  const program = loyaltyProgram.CreationLoyaltyConfig;
-  const isBasicProgram = program.BasicLoyaltyProgram !== null;
-  const isAdvancedProgram = program.AdvanceLoyaltyProgram !== null;
-  const loyaltyLogo = isBasicProgram && program.BasicLoyaltyProgram?.logo?.[0]
-    ? program.BasicLoyaltyProgram.logo[0]
-    : null;
-
   // Check if user is already registered and verify with backend
   useEffect(() => {
     const verifyLoyaltyMembership = async () => {
+      if (!loyaltyProgram?.propertyId) return;
       setIsVerifying(true);
       const loyaltyMemberEmail = localStorage.getItem(`loyalty_member_${loyaltyProgram.propertyId}`);
 
@@ -97,7 +86,25 @@ export const LoyaltyProgramBanner = ({
     };
 
     verifyLoyaltyMembership();
-  }, [loyaltyProgram.propertyId]);
+  }, [loyaltyProgram]);
+
+  // Return early if loyaltyProgram is null or if CreationLoyaltyConfig is missing
+  // This must be after all hooks to avoid "Rendered more hooks than during the previous render" error
+  if (!loyaltyProgram || !loyaltyProgram.CreationLoyaltyConfig) {
+    return null;
+  }
+
+  // Always use internal state for the modal to avoid conflicts when multiple
+  // loyalty components share the same parent state and both register onOpenChange.
+  const showSignUpModal = internalShowSignUpModal;
+  const setShowSignUpModal = setInternalShowSignUpModal;
+
+  const program = loyaltyProgram.CreationLoyaltyConfig;
+  const isBasicProgram = program.BasicLoyaltyProgram !== null;
+  const isAdvancedProgram = program.AdvanceLoyaltyProgram !== null;
+  const loyaltyLogo = isBasicProgram && program.BasicLoyaltyProgram?.logo?.[0]
+    ? program.BasicLoyaltyProgram.logo[0]
+    : null;
 
   const handleFieldChange = (fieldName: string, value: any) => {
     setFormData(prev => ({
@@ -112,8 +119,7 @@ export const LoyaltyProgramBanner = ({
     setRegisteredEmail("");
     setDiscountInfo(null);
     toast.success("Successfully logged out from loyalty program");
-    // Reload the page to reset loyalty member email in parent component
-    window.location.reload();
+    onLogoutSuccess?.();
   };
 
   const handleSignUpSubmit = async (e: React.FormEvent) => {
@@ -165,8 +171,7 @@ export const LoyaltyProgramBanner = ({
           setShowSignUpModal(false);
           setFormData({});
           setIsSubmitting(false);
-          // Reload to update parent component
-          window.location.reload();
+          onSignUpSuccess?.(email);
           return;
         }
 
@@ -194,8 +199,7 @@ export const LoyaltyProgramBanner = ({
       toast.success("Successfully registered for loyalty program!");
       setShowSignUpModal(false);
       setFormData({});
-      // Reload to update parent component
-      window.location.reload();
+      onSignUpSuccess?.(email);
     } catch (error) {
       console.error("Registration error:", error);
       toast.error("Failed to register. Please try again.");
@@ -255,11 +259,14 @@ export const LoyaltyProgramBanner = ({
                 <div className="flex-shrink-0">
                   {loyaltyLogo ? (
                     <div className="bg-gray-50 rounded-lg p-1.5 border border-gray-200">
-                      <img
-                        src={loyaltyLogo}
-                        alt="Loyalty Program"
-                        className="w-10 h-8 sm:w-12 sm:h-9 rounded object-contain"
-                      />
+                      <div className="relative w-10 h-8 sm:w-12 sm:h-9">
+                        <Image
+                          src={loyaltyLogo}
+                          alt="Loyalty Program"
+                          fill
+                          className="rounded object-contain"
+                        />
+                      </div>
                     </div>
                   ) : (
                     <div

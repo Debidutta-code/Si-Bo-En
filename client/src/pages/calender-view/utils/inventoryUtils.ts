@@ -2,11 +2,13 @@
 
 import type { InventoryDay } from "../types/inventory";
 
-
 /**
  * Calculate occupancy percentage
  */
-export const calculateOccupancyPercent = (total: number, sold: number): number => {
+export const calculateOccupancyPercent = (
+  total: number,
+  sold: number,
+): number => {
   return total > 0 ? Math.round((sold / total) * 100) : 0;
 };
 
@@ -49,7 +51,7 @@ export const getRatePlans = (days: InventoryDay[]): string[] => {
  */
 export const getRatePlansForRoomType = (
   roomType: string,
-  days: InventoryDay[]
+  days: InventoryDay[],
 ): string[] => {
   const ratePlansSet = new Set<string>();
 
@@ -57,7 +59,7 @@ export const getRatePlansForRoomType = (
     if (day.ratePlans && Array.isArray(day.ratePlans)) {
       day.ratePlans.forEach((plan) => {
         const hasPricingForRoomType = plan.prices?.some(
-          (price) => price.invTypeCode === roomType
+          (price) => price.invTypeCode === roomType,
         );
 
         if (hasPricingForRoomType) {
@@ -79,7 +81,7 @@ export const getRoomTypeData = (roomTypeCode: string, days: InventoryDay[]) => {
       return null;
     }
     const roomType = day.roomTypes.find(
-      (room) => room.invTypeCode === roomTypeCode
+      (room) => room.invTypeCode === roomTypeCode,
     );
     return roomType || null;
   });
@@ -91,21 +93,21 @@ export const getRoomTypeData = (roomTypeCode: string, days: InventoryDay[]) => {
 export const getRatePlanDetails = (
   day: InventoryDay,
   roomTypeCode: string,
-  ratePlanCode: string
+  ratePlanCode: string,
 ) => {
   if (!day.ratePlans || !Array.isArray(day.ratePlans)) {
     return null;
   }
 
   const ratePlan = day.ratePlans.find(
-    (plan) => plan.ratePlanCode === ratePlanCode
+    (plan) => plan.ratePlanCode === ratePlanCode,
   );
   if (!ratePlan || !ratePlan.prices || !Array.isArray(ratePlan.prices)) {
     return null;
   }
 
   const priceDetail = ratePlan.prices.find(
-    (price) => price.invTypeCode === roomTypeCode
+    (price) => price.invTypeCode === roomTypeCode,
   );
   return priceDetail ? { ...priceDetail, ratePlan } : null;
 };
@@ -115,8 +117,18 @@ export const getRatePlanDetails = (
  */
 export const formatDateForAPI = (day: InventoryDay): string => {
   const monthNames = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December",
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
   ];
   const monthNumber = monthNames.indexOf(day.month) + 1;
 
@@ -129,7 +141,7 @@ export const formatDateForAPI = (day: InventoryDay): string => {
 export const getEffectiveRestrictionValue = (
   uniqueKey: string,
   originalValue: boolean,
-  optimisticRestrictions: Map<string, boolean>
+  optimisticRestrictions: Map<string, boolean>,
 ): boolean => {
   return optimisticRestrictions.has(uniqueKey)
     ? optimisticRestrictions.get(uniqueKey)!
@@ -142,38 +154,52 @@ export const getEffectiveRestrictionValue = (
 export const generateKey = {
   ratePlan: (ratePlanCode: string, dayIndex: number, roomTypeCode: string) =>
     `${ratePlanCode}-${dayIndex}-${roomTypeCode}`,
-  
+
   restriction: (
     restrictionType: string,
     dayIndex: number,
     roomTypeCode: string,
-    ratePlanCode?: string
+    ratePlanCode?: string,
   ) =>
     ratePlanCode
       ? `${restrictionType}-${dayIndex}-${roomTypeCode}-${ratePlanCode}`
       : `${restrictionType}-${dayIndex}-${roomTypeCode}`,
-  
-  los: (roomType: string, ratePlan: string | null, dayIndex: number, type: "min" | "max") =>
-    `${roomType}-${ratePlan || "roomtype"}-${dayIndex}-${type}`,
-  
+
+  los: (
+    roomType: string,
+    ratePlan: string | null,
+    dayIndex: number,
+    type: "min" | "max",
+  ) => `${roomType}-${ratePlan || "roomtype"}-${dayIndex}-${type}`,
+
   availability: (roomType: string, dayIndex: number) =>
     `${roomType}-availability-${dayIndex}`,
-  
-  price: (roomType: string, ratePlan: string, dayIndex: number, numberOfGuests?: number) =>
+
+  price: (
+    roomType: string,
+    ratePlan: string,
+    dayIndex: number,
+    numberOfGuests?: number,
+  ) =>
     numberOfGuests
       ? `${roomType}-${ratePlan}-${dayIndex}-price-${numberOfGuests}`
       : `${roomType}-${ratePlan}-${dayIndex}-price`,
-  
+
   additionalCharge: (
     roomType: string,
     ratePlan: string,
     dayIndex: number,
-    ageQualifyingCode: string
-  ) =>
-    `${roomType}-${ratePlan}-${dayIndex}-additional-${ageQualifyingCode}`,
-  
-  customTier: (roomType: string, ratePlan: string) =>
-    `${roomType}-${ratePlan}`,
+    ageQualifyingCode: string,
+  ) => `${roomType}-${ratePlan}-${dayIndex}-additional-${ageQualifyingCode}`,
+
+  customTier: (roomType: string, ratePlan: string) => `${roomType}-${ratePlan}`,
+
+  bookingOffset: (
+    roomType: string,
+    ratePlan: string,
+    dayIndex: number,
+    field: string,
+  ) => `${roomType}-${ratePlan}-${dayIndex}-bookingOffset-${field}`,
 };
 
 /**

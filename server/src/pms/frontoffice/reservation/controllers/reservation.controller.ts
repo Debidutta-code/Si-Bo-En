@@ -1,5 +1,5 @@
 import { errorResponse } from "../../../../utils/return";
-import { Response } from "express";
+import { Response,Request } from "express";
 import { CustomRequest, PropertyRequest } from "../../../../utils/customRequest";
 import { ReservationService } from "../services";
 
@@ -36,15 +36,18 @@ export class ReservationController {
         }
     }
 
-    public async getReservationByCode(req: CustomRequest, res: Response): Promise<Response> {
+    public async getReservationByCode(req: Request, res: Response): Promise<Response> {
         try {
             const reservationCode = req.params.reservationCode;
-            
+            const propertyCode=req.query.propertyCode as string;
+            if(!propertyCode){
+                return res.status(400).json(errorResponse("Property details is required to find the reservation"));
+            }
             if (!reservationCode) {
                 return res.status(400).json(errorResponse("Reservation code is required"));
             }
 
-            const serRes = await this.reservationService.getReservaltionByCode(reservationCode);
+            const serRes = await this.reservationService.getReservaltionByCode(reservationCode, propertyCode);
             return res.status(serRes.success ? 200 : 400).json(serRes);
         } catch (error) {
             if (error instanceof Error) {

@@ -21,7 +21,6 @@ export interface GeoRatePlan {
   property: IProperty;
   room: IRoom|null;
   ratePlan: IRatePlan;
-  isAutoApplied: boolean;
 }
 export interface IProperty {
   id: string;
@@ -55,7 +54,6 @@ export interface CreateGeoRatePlan {
   currencyCode?: CurrencyCode | null;
   countryCode: string[];
   isActive: boolean;
-  isAutoApplied: boolean;
 
 }
 
@@ -66,7 +64,6 @@ export interface UpdateGeoRatePlan {
   currencyCode?: CurrencyCode | null;
   countryCode?: string[];
   isActive?: boolean;
-  isAutoApplied?: boolean;
 
 }
 
@@ -84,6 +81,5 @@ export interface IGeoRatePlanUORC{
   currencyCode:CurrencyCode | null;
   countryCode:string[];
   isActive:boolean;
-  isAutoApplied:boolean;
 
 }
