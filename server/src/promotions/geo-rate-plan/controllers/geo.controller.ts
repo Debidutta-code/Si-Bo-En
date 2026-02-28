@@ -14,7 +14,7 @@ export class GeoRatePlanController {
 
   public  async createGeoRatePlan(req: PropertyCustomRequest, res: Response) {
     try {
-      const { rooms, ratePlans, restrictionType, restrictionValue, currencyCode, isAutoApplied, countryCode, isActive, restrictionTypeAction } = req.body;
+      const { rooms, ratePlans, restrictionType, restrictionValue, currencyCode, countryCode, isActive, restrictionTypeAction } = req.body;
       const propertyId = req.query.propertyId as string;
 
       if (!propertyId) {
@@ -54,7 +54,6 @@ export class GeoRatePlanController {
         currencyCode,
         countryCode,
         isActive,
-        isAutoApplied,
         restrictionTypeAction
       });
 

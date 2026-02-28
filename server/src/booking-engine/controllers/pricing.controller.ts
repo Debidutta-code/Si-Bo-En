@@ -93,8 +93,8 @@ export class PricingController {
             const response = await this.pricingService.getRoomRentService(
                 propertyId,
                 invTypeCode,
-                startDate,
-                endDate,
+                toUTC(startDate),
+                toUTC(endDate),
                 ratePlanCode,
                 rooms,
                 adults,

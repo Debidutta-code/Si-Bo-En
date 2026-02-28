@@ -613,10 +613,10 @@ export class ReservationRepository {
             throw new Error("Failed to delete ReservationDate");
         }
     }
-    public async getReservaltionByCode(reservationCode: string): Promise<IReservationWithAllDetails | null> {
+    public async getReservaltionByCode(reservationCode: string,propertyCode:string): Promise<IReservationWithAllDetails | null> {
         try {
             return await prisma.reservation.findUnique({
-                where: { bookingCode: reservationCode },
+                where: { bookingCode: reservationCode, propertyCode: propertyCode },
                 include: {
                     primaryGuest: true,
                     priceBreakdowns: true,

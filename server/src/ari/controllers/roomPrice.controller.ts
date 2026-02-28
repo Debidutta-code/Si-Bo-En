@@ -61,16 +61,11 @@ export class RoomRentCalculationController {
       const geoDetails = await getGeoLocationDetails(req);
       const userCountryCode = geoDetails.country !== 'Unknown' ? geoDetails.country : undefined;
 
-      // console.log('User geo-location:', {
-      //   ip: geoDetails.ip,
-      //   country: geoDetails.country,
-      //   city: geoDetails.city,
-      // });
+
 
       const deviceInfo = getDeviceInfo(req);
       const detectedDeviceType = deviceInfo.deviceType;
 
-      // console.log('Device type:', detectedDeviceType);
 
       // Parse addons if provided
       let parsedAddons;

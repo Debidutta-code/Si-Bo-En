@@ -236,6 +236,6 @@ export interface PromotionBrakeDown{
     discountValue:number;
     currencyCode:CurrencyCode|null;
     discountAmount:number;
-    restrictionType:restrictionTypeAction|"payLater"
+    restrictionType:"increase" | "decrease"|"payLater"
     
 }

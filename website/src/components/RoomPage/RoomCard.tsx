@@ -33,6 +33,7 @@ interface RoomCardProps {
     ratePlan: any,
     selectedAddons: any[],
     selectedPromotion: any,
+    priceData: any,
   ) => void;
   loadingBookNow: string | null;
   onPriceUpdate?: (data: {
@@ -331,22 +332,26 @@ const RoomCard: React.FC<RoomCardProps> = ({
       if (selectedPromotionsList.length > 0) {
         payload.promotions = selectedPromotionsList.map((promotions) => ({
           id: promotions.id,
-          promotionType: promotions.type,
+          promotionType: promotions.type === "mlos" ? "mlos" : "normal",
         }));
       }
 
-      // Add addons if present
+      // Transform addons into parsedAddons format (grouped by addonId)
       if (selectedAddonsList && selectedAddonsList.length > 0) {
-        payload.addons = selectedAddonsList.map((addon: any) => ({
-          id: addon.id,
-          addonCode: addon.addonCode,
-          quantity: addon.quantity,
-          date: addon.date,
-          availabilityId: addon.availabilityId,
-        }));
+        const addonMap: Record<string, any> = {};
+        selectedAddonsList.forEach((addon: any) => {
+          if (!addonMap[addon.addonId]) {
+            addonMap[addon.addonId] = { addOnId: addon.addonId, availability: [] };
+          }
+          addonMap[addon.addonId].availability.push({
+            date: addon.date,
+            quantity: addon.quantity,
+          });
+        });
+        payload.parsedAddons = Object.values(addonMap);
       }
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/ari/price/get-price`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/pricing/get-price`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -360,8 +365,8 @@ const RoomCard: React.FC<RoomCardProps> = ({
       }
       setLatestPrice(data.data);
 
-      // Proceed to booking with selected addons
-      onBookNow(room, ratePlan, selectedAddonsList, selectedPromotionsList);
+      // Proceed to booking with selected addons, passing price data up
+      onBookNow(room, ratePlan, selectedAddonsList, selectedPromotionsList, data.data);
     } catch (error) {
       console.error("Error fetching price:", error);
       toast.error("Failed to fetch price. Please try again.");
@@ -429,6 +434,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
       currentRatePlan,
       selectedAddonsList,
       selectedPromotionsList,
+      latestPrice,
     );
     setExpandedRatePlan(null);
     setSelectedAddons({});
@@ -442,7 +448,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
     const selectedPromotionsList =
       selectedPromotions[expandedRatePlan || ""] || [];
 
-    onBookNow(room, currentRatePlan, [], selectedPromotionsList);
+    onBookNow(room, currentRatePlan, [], selectedPromotionsList, latestPrice);
     setExpandedRatePlan(null);
     setSelectedAddons({});
     setCollapsedRatePlans(new Set());

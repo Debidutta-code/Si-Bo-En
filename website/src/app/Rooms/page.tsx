@@ -64,15 +64,31 @@ interface Breakdown {
 }
 
 interface FinalPrice {
+  // Core PriceBrakeDown fields (from new booking-engine API)
   totalAmount: number;
+  amountBeforeTax: number;
+  taxedAmount: number;
+  totalAddonAmount: number;
+  totalPromotionAmount: number;
+  currentChargeableAmount: number;
+  latterpayableAmount: number;
+  promoCodeDiscount: number;
+  loyalityDiscount: number;
+  currencyCode: string;
+  dailyPriceBrakeDown: any[];
+  taxBrakeDown: any[];
+  addonBrakeDown: any[];
+  promotionBrakeDown: any[];
+  // Computed backward-compat fields (added by normalizePriceBrakeDown)
   numberOfNights: number;
   baseRatePerNight: number;
-  additionalGuestCharges: number;
-  breakdown: Breakdown;
-  dailyBreakdown: DailyBreakdown[];
-  availableRooms: number;
   requestedRooms: number;
-  addons?: Addon[];
+  additionalGuestCharges: number;
+  totalTaxAmount: number;
+  dailyBreakdown: any[];
+  // Legacy optional
+  availableRooms?: number;
+  addons?: any[];
 }
 
 interface PriceSummaryData {
@@ -84,38 +100,65 @@ interface PriceSummaryData {
   finalprice?: any;
 }
 
-// Loyalty Program Banner Component
+function normalizePriceBrakeDown(
+  raw: any,
+  opts: { noOfRooms: number; ratePlanCode: string },
+): any {
+  if (!raw) return raw;
+  const numberOfNights: number = raw.dailyPriceBrakeDown?.length ?? 0;
+  const baseRatePerNight: number =
+    numberOfNights > 0 ? raw.amountBeforeTax / numberOfNights : 0;
+  const additionalGuestCharges: number = (raw.dailyPriceBrakeDown ?? []).reduce(
+    (s: number, d: any) => s + (d.additionalChargesAmount ?? 0),
+    0,
+  );
+  const dailyBreakdown = (raw.dailyPriceBrakeDown ?? []).map((d: any) => ({
+    ...d,
+    ratePlanCode: opts.ratePlanCode,
+    dayOfWeek: new Date(d.date).toLocaleDateString("en-US", {
+      weekday: "long",
+    }),
+    baseRate: d.baseChargesAmount,
+    totalPerRoom: d.totalAmount,
+    totalForAllRooms: d.totalAmount * opts.noOfRooms,
+    currencyCode: d.currencyCode,
+  }));
+  return {
+    ...raw,
+    numberOfNights,
+    baseRatePerNight,
+    requestedRooms: opts.noOfRooms,
+    additionalGuestCharges,
+    totalTaxAmount: raw.taxedAmount,
+    dailyBreakdown,
+  };
+}
 
 const Rooms = () => {
-  const { currency } = useSelector((state: RootState) => state.booking);
   const [urgencyModalOpen, setUrgencyModalOpen] = useState(false);
   const [selectedBoardType, setSelectedBoardType] = useState("all");
-  const [selectedCurrency, setSelectedCurrency] = useState(currency || "USD");
   const [showUrgencyBanner, setShowUrgencyBanner] = useState(true);
   const [initialLoading, setInitialLoading] = useState(true); // NEW: For initial page load
   const [isExternalRequest, setIsExternalRequest] = useState(false); // Track if loading from external source
   const dispatch = useDispatch();
   const router = useRouter();
-  const rooms = useSelector((state: RootState) => state.rooms.rooms);
   const bookingContext = useSelector((state: RootState) => state.booking);
   const [bookingSelectedPromotions, setBookingSelectedPromotions] = useState<
     any[]
   >([]);
-  const [isLoyaltyGuest, setIsLoyaltyGuest] = useState<boolean>(false);
   const [bookingRoom, setBookingRoom] = useState<Room | null>(null);
   const [currentRatePlan, setCurrentRatePlan] = useState<any>(null);
   const [selectedAddons, setSelectedAddons] = useState<any[]>([]);
   const [guestForms, setGuestForms] = useState<Guest[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [loyaltyMemberEmail, setLoyaltyMemberEmail] = useState<string>("");
+  // Controls LoyaltyContainer's modal only; LoyaltyProgramBanner manages its own modal state
   const [showLoyaltySignup, setShowLoyaltySignup] = useState(false);
   const [contactInfo, setContactInfo] = useState({
     email: "",
     phoneNumber: "",
   });
   const [price, setPrice] = useState<number | null>(null);
-  const [loadingPrice, setLoadingPrice] = useState(false);
-  const [errorPrice, setErrorPrice] = useState<string | null>(null);
   const [errorRooms, setErrorRooms] = useState<string | null>(null);
   // const [loadingRooms, setLoadingRooms] = useState<boolean>(false);
   const [loadingBookNow, setLoadingBookNow] = useState<string | null>(null);
@@ -134,40 +177,20 @@ const Rooms = () => {
   const [loyaltyProgram, setLoyaltyProgram] =
     useState<IPropertyLoyalityWithLoyality | null>(null);
 
-  const [finalPrice, setFinalPrice] = useState<FinalPrice | null>({
-    totalAmount: 0,
-    numberOfNights: 0,
-    baseRatePerNight: 0,
-    additionalGuestCharges: 0,
-    breakdown: {
-      totalBaseAmount: 0,
-      totalAdditionalCharges: 0,
-      totalAmount: 0,
-      numberOfNights: 0,
-      averagePerNight: 0,
-      totalAddonAmount: 0,
-    },
-    dailyBreakdown: [],
-    availableRooms: 0,
-    requestedRooms: 0,
-    addons: [],
-  });
+  const [finalPrice, setFinalPrice] = useState<FinalPrice | null>(null);
 
   const handlePriceUpdate = (data: PriceSummaryData) => {
     setPriceSummaryData(data);
     setShowPriceSummary(true);
   };
 
-  const handleBookNow = async (
+  const handleBookNow = (
     room: Room,
     ratePlan: any,
     selectedAddonsList: any[],
     selectedPromotionsList: any[],
+    priceData: any,
   ) => {
-    setLoadingBookNow(`${room.id}-${ratePlan.ratePlanCode}`);
-    setLoadingBookNow(`${room.id}-${ratePlan.ratePlanCode}`);
-    setLoadingPrice(true);
-    setErrorPrice(null);
     setBookingSelectedPromotions(selectedPromotionsList);
 
     const rawRooms =
@@ -177,11 +200,10 @@ const Rooms = () => {
     let noOfChildrens = 0;
     let noOfRooms = 1;
 
-    // ✅ FIXED CODE
     if (Array.isArray(rawRooms)) {
       noOfRooms = rawRooms.length;
-      rawRooms.forEach((room) => {
-        for (let i = 0; i < (room.adults || 0); i++) {
+      rawRooms.forEach((rm) => {
+        for (let i = 0; i < (rm.adults || 0); i++) {
           allGuests.push({
             type: "adult",
             firstName: "",
@@ -189,7 +211,7 @@ const Rooms = () => {
             dateOfBirth: "",
           });
         }
-        for (let i = 0; i < (room.children || 0); i++) {
+        for (let i = 0; i < (rm.children || 0); i++) {
           allGuests.push({
             type: "child",
             firstName: "",
@@ -203,7 +225,6 @@ const Rooms = () => {
     } else {
       noOfAdults = bookingContext.guests?.adults || 1;
       noOfChildrens = bookingContext.guests?.children || 0;
-      // ✅ FIX: Ensure rooms is always a number
       noOfRooms =
         typeof bookingContext.guests?.rooms === "number"
           ? bookingContext.guests.rooms
@@ -231,78 +252,18 @@ const Rooms = () => {
 
     setGuestForms(allGuests);
 
-    const payload: any = {
-      propertyCode: bookingContext.PropertyCode,
-      invTypeCode: room.room_type,
-      ratePlanCode: ratePlan.ratePlanCode,
-      startDate: bookingContext.startDate,
-      endDate: bookingContext.endDate,
-      promocode: bookingContext.promocode,
-      noOfAdults,
-      noOfChildrens,
+    // Normalize the PriceBrakeDown response into the shape the rest of the app needs
+    const normalized = normalizePriceBrakeDown(priceData, {
       noOfRooms,
-    };
-    if (loyaltyMemberEmail) {
-      payload.guestEmail = loyaltyMemberEmail;
-    }
+      ratePlanCode: ratePlan.ratePlanCode,
+    });
 
-    if (selectedPromotionsList && selectedPromotionsList.length > 0) {
-      payload.promotions = selectedPromotionsList.map((promotion: any) => ({
-        id: promotion.id,
-        promotionType: promotion.type,
-      }));
-    }
-    if (selectedAddonsList && selectedAddonsList.length > 0) {
-      payload.addons = selectedAddonsList.map((addon) => ({
-        addonId: addon.addonId,
-        availabilityId: addon.availabilityId,
-        date: addon.date,
-        price: addon.price,
-        quantity: addon.quantity,
-        type: addon.type,
-        name: addon.addonName,
-        code: addon.addonCode,
-      }));
-    }
-
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/ari/price/get-price`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        },
-      );
-
-      const data = await response.json();
-
-      if (!response.ok || data.success === false) {
-        const errMsg = data.message || "Failed to fetch price";
-        toast.error(errMsg);
-        setErrorPrice(errMsg);
-        return;
-      }
-
-      setFinalPrice(data.data);
-      setPrice(data?.data?.totalAmount ?? null);
-      setBookingRoom(room);
-      setCurrentRatePlan(ratePlan);
-      setSelectedAddons(selectedAddonsList);
-      setShowPriceSummary(false);
-    } catch (error: any) {
-      const errMsg =
-        error instanceof Error
-          ? error.message
-          : "Something went wrong. Please try again later.";
-
-      setErrorPrice(errMsg);
-      toast.error("Something went wrong. Please try again later.");
-      console.error("Error fetching price:", errMsg);
-    } finally {
-      setLoadingPrice(false);
-      setLoadingBookNow(null);
-    }
+    setFinalPrice(normalized);
+    setPrice(normalized?.totalAmount ?? null);
+    setBookingRoom(room);
+    setCurrentRatePlan(ratePlan);
+    setSelectedAddons(selectedAddonsList);
+    setShowPriceSummary(false);
   };
 
   const handleGuestDetailChange = (
@@ -915,8 +876,8 @@ const Rooms = () => {
                   <LoyaltyProgramBanner
                     loyaltyProgram={loyaltyProgram}
                     primaryColor={primaryColor}
-                    showSignUpModal={showLoyaltySignup}
-                    onShowSignUpModalChange={setShowLoyaltySignup}
+                    onSignUpSuccess={(email) => setLoyaltyMemberEmail(email)}
+                    onLogoutSuccess={() => setLoyaltyMemberEmail("")}
                   />
                 </div>
               )}

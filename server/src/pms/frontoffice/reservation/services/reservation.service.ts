@@ -54,14 +54,14 @@ export class ReservationService {
         this.loyalityGuestRepo = new LoyaltyGuestRepository();
     }
 
-    private async generateBookingCode(): Promise<string> {
+    private async generateBookingCode(propertyCode: string): Promise<string> {
         const code =
             'BOOK-' + Math.random().toString(36).substr(2, 9).toUpperCase();
         const existingReservation =
-            await this.reservationRepository.getReservaltionByCode(code);
+            await this.reservationRepository.getReservaltionByCode(code, propertyCode);
 
         if (existingReservation !== null) {
-            return this.generateBookingCode();
+            return this.generateBookingCode(propertyCode);
         }
         return code;
     }
@@ -243,7 +243,7 @@ export class ReservationService {
                 primaryGuestId = newGuest.id;
             }
 
-            const bookingCode = await this.generateBookingCode();
+            const bookingCode = await this.generateBookingCode(propertyCode);
             const paymentMethods = this.mapPaymentMethod(paymentMethod);
 
             // ── Integration check ─────────────────────────────────────────────────────
@@ -583,12 +583,14 @@ export class ReservationService {
     }
 
     public async getReservaltionByCode(
-        reservationCode: string
+        reservationCode: string,
+        propertyCode: string
     ): Promise<IApiResponse> {
         try {
             const reservation =
                 await this.reservationRepository.getReservaltionByCode(
-                    reservationCode
+                    reservationCode,
+                    propertyCode
                 );
 
             if (!reservation) {
@@ -616,7 +618,8 @@ export class ReservationService {
             // 1. Get existing reservation
             const existingReservation =
                 await this.reservationRepository.getReservaltionByCode(
-                    reservationCode
+                    reservationCode,
+                    updatePayload.propertyCode
                 );
 
             if (!existingReservation) {

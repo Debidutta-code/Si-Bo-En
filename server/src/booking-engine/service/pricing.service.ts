@@ -5,6 +5,7 @@ import {
     IApiResponse,
     nowUTC,
     successResponse,
+    toUTC,
 } from '../../utils';
 import { PricingRepository } from '../repository';
 import {
@@ -36,8 +37,8 @@ export class PricingService {
     public async getRoomRentService(
         propertyId: string,
         invTypeCode: string,
-        startDate: Date,
-        endDate: Date,
+        startDate: Date | string,
+        endDate: Date | string,
         ratePlanCode: string,
         rooms: number,
         adults: number,
@@ -45,18 +46,36 @@ export class PricingService {
         guestEmail?: string,
         userCountryCode?: string,
         detectedDeviceType?: string,
-        promotions?: any,
+        promotions?: ISelectedPromotion[],
         parsedAddons?: ISelectedAddonsS[],
         promoCode?: string
     ): Promise<IApiResponse<PriceBrakeDown>> {
         try {
+            console.log('getRoomRentService called with', {
+                propertyId, 
+                invTypeCode,
+                startDate,
+                endDate,
+                ratePlanCode,
+                rooms,
+                adults,
+                children,
+                guestEmail,
+                userCountryCode,
+                detectedDeviceType,
+                promotions: promotions?.map(p => p.id),
+            });
+            const parsedStartDate: Date = startDate instanceof Date ? startDate : new Date(startDate);
+            const parsedEndDate: Date = endDate instanceof Date ? endDate : new Date(endDate);
+            startDate = parsedStartDate;
+            endDate = parsedEndDate;
             const [ratePlan, selectedAddons, appliedPromotions] =
                 await Promise.all([
                     this.pricingRepository.validateRatePlan(
                         ratePlanCode,
                         invTypeCode,
-                        startDate,
-                        endDate
+                        toUTC(startDate),
+                        toUTC(endDate)
                     ),
                     this.fetchAddons(parsedAddons),
                     this.fetchAllPromotions(promotions),
@@ -86,7 +105,8 @@ export class PricingService {
                 ),
                 adults + (children ? children : 0),
                 startDate,
-                endDate
+                endDate,
+                parsedAddons
             );
             priceBrakedowns = addOnPrice.addonBrakeDowns();
             // console.log("priceBrakedowns addons price", priceBrakedowns);
@@ -542,6 +562,7 @@ class AddOnPriceClass {
     noOfPersons: number;
     startDate: Date;
     endDate: Date;
+    parsedAddons: ISelectedAddonsS[] | null;
     constructor(
         addons: IAddOn[] | null,
         ratePlanAddons: IRatePlanWithAddon[] | null,
@@ -550,7 +571,8 @@ class AddOnPriceClass {
         noOfDays: number,
         noOfPersons: number,
         startDate: Date,
-        endDate: Date
+        endDate: Date,
+        parsedAddons?: ISelectedAddonsS[] | null
     ) {
         this.addons = addons;
         this.addonsWithRatePlans = ratePlanAddons;
@@ -560,6 +582,7 @@ class AddOnPriceClass {
         this.noOfPersons = noOfPersons;
         this.startDate = startDate;
         this.endDate = endDate;
+        this.parsedAddons = parsedAddons || null;
     }
     public addonBrakeDowns(): PriceBrakeDown {
         const userAppliedAddons = this.calculateAddOnPrice();
@@ -604,32 +627,15 @@ class AddOnPriceClass {
                 0
             );
 
-            let quantity = 1;
-            switch (addon.postingRhythm) {
-                case 'per_night':
-                    quantity = availableEntries.length;
-                    break;
-                case 'per_stay':
-                    quantity = 1;
-                    break;
-                case 'per_person_per_night':
-                    quantity = this.noOfPersons * availableEntries.length;
-                    break;
-                case 'per_person_per_stay':
-                    quantity = this.noOfPersons;
-                    break;
-                case 'per_room':
-                    quantity = this.numberOfRooms;
-                    break;
-                case 'per_room_per_night':
-                    quantity = this.numberOfRooms * availableEntries.length;
-                    break;
-                case 'per_person_per_room':
-                    quantity = this.noOfPersons * this.numberOfRooms;
-                    break;
-                default:
-                    quantity = 1;
-            }
+            const userSelectedAddon = this.parsedAddons?.find(
+                pa => pa.addOnId === addon.id
+            );
+            const quantity = userSelectedAddon
+                ? userSelectedAddon.availability.reduce(
+                      (sum, a) => sum + (a.quantity || 1),
+                      0
+                  )
+                : 1;
 
             const avgPrice = perDateTotal / availableEntries.length;
             const totalAmount = avgPrice * quantity;
@@ -672,7 +678,6 @@ class AddOnPriceClass {
                 (sum, avail) => sum + Number(avail.price),
                 0
             );
-            const currencyCode = availableEntries[0].currencyCode;
 
             let quantity = 1;
             switch (addon.addon.postingRhythm) {
@@ -717,7 +722,6 @@ class AddOnPriceClass {
         return addonBrakeDown;
     }
 }
-
 class PromotionClass {
     pricingRepository: PricingRepository;
     startDate: Date;
@@ -1042,7 +1046,7 @@ class PromotionClass {
                 return null;
             }
             if (geo.countryCode.includes(country)) {
-                if (geo.restrictionType === 'restricted') {
+                if (geo.restrictionType === "restricted") {
                     throw new Error(
                         `This room is restricted for this country  `
                     );
@@ -1053,23 +1057,23 @@ class PromotionClass {
                         discountType: 'flat',
                         discountValue: Number(geo.restrictionValue),
                         name: 'Geo Restriction',
-                        restrictionType: geo.restrictionTypeAction,
+                        restrictionType: "decrease",
                     });
                 } else if (geo.restrictionType === 'percentage') {
                     promotionBrakehown.push({
                         currencyCode: geo.currencyCode,
                         discountAmount:
-                            (this.baseAmount * Number(geo.restrictionValue)) %
+                            (this.baseAmount * Number(geo.restrictionValue)) /
                             100,
                         discountType: 'flat',
                         discountValue: Number(geo.restrictionValue),
                         name: 'Geo Restriction',
-                        restrictionType: geo.restrictionTypeAction,
+                        restrictionType: "decrease",
                     });
                 }
             }
         });
-        return [];
+        return promotionBrakehown;
     }
 }
 
@@ -1127,7 +1131,6 @@ class TouristTaxClass {
         }
     }
 }
-
 class LoyalityDiscountClass {
     guestEmail: string;
     propertyId: string;

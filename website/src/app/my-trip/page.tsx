@@ -33,7 +33,13 @@ export default function MyTripPage() {
   // Add the hook usage at the component level
   const { colors } = useBookingStorage({}); // You may need to pass actual bookingContext if available
 
+  const searchParams = useSearchParams();
   const handleSearch = async () => {
+    const propertyCode = searchParams.get("propertyCode");
+    if(!propertyCode) {
+      toast.error("Property code is missing in the URL");
+      return;
+    }
     if (!bookingCode.trim()) {
       toast.error("Please enter a booking code");
       return;
@@ -42,7 +48,7 @@ export default function MyTripPage() {
     setBookingData(null);
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/pms/front-office/reservations/${bookingCode}`
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/pms/front-office/reservations/${bookingCode}?propertyCode=${propertyCode}`
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Booking not found");
@@ -66,7 +72,6 @@ export default function MyTripPage() {
     return () => document.body.classList.remove("overflow-hidden");
   }, [showModal]);
 
-  const searchParams = useSearchParams();
   useEffect(() => {
     const codeFromUrl = searchParams.get("code");
     if (!codeFromUrl) return;

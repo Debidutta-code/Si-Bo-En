@@ -45,8 +45,14 @@ export const LoyaltyContainer = ({
     currencyCode: string;
   } | null>(null);
 
+  // Use external state when provided (e.g. triggered by onUnlockLoyalty from RoomCard),
+  // otherwise fall back to internal state. LoyaltyProgramBanner uses its own independent
+  // internal state so the two modals no longer share the same onOpenChange callback.
   const showSignUpModal = externalShowSignUpModal !== undefined ? externalShowSignUpModal : internalShowSignUpModal;
-  const setShowSignUpModal = onShowSignUpModalChange || setInternalShowSignUpModal;
+  const setShowSignUpModal = (value: boolean) => {
+    setInternalShowSignUpModal(value);
+    onShowSignUpModalChange?.(value);
+  };
 
   const handleToggle = () => {
     if (isRegistered) {
@@ -124,7 +130,6 @@ export const LoyaltyContainer = ({
     setIsToggleOn(false);
     onToggleChange?.(false);
     toast.success("Successfully logged out from loyalty program");
-    window.location.reload();
   };
 
   const handleSignUpSubmit = async (e: React.FormEvent) => {
@@ -156,7 +161,6 @@ export const LoyaltyContainer = ({
           toast.success("Welcome back! You're already a loyalty member.");
           setShowSignUpModal(false);
           setFormData({});
-          window.location.reload();
           return;
         }
         toast.error(errorMsg);
@@ -178,7 +182,6 @@ export const LoyaltyContainer = ({
       toast.success("Successfully registered for loyalty program!");
       setShowSignUpModal(false);
       setFormData({});
-      window.location.reload();
     } catch {
       toast.error("Failed to register. Please try again.");
     } finally {

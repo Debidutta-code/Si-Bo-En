@@ -20,7 +20,6 @@ export class AvailabilityServices {
     ratePlanCodes: string[] = [] // ✅ ADD THIS
   ) {
     try {
-      //console.log('🎯 Service - Filters:', { roomTypeCodes, ratePlanCodes });
 
       // Fetch all required data
       const [property, inventories, charges, reservations] = await Promise.all([
@@ -34,13 +33,6 @@ export class AvailabilityServices {
         return errorResponse('Property not found');
       }
 
-      //console.log('✅ Fetched data:', {
-      //   totalRooms: property.propertyRooms.length,
-      //   totalRatePlans: property.ratePlans.length,
-      //   requestedRoomTypes: roomTypeCodes,
-      //   requestedRatePlans: ratePlanCodes,
-      //   chargesCount: charges.length
-      // });
 
       // Filter property rooms if room type codes provided
       const filteredRooms = roomTypeCodes.length > 0
@@ -52,10 +44,6 @@ export class AvailabilityServices {
         ? property.ratePlans.filter(rp => ratePlanCodes.includes(rp.ratePlanCode))
         : property.ratePlans;
 
-      //console.log('🏨 Filtered results:', {
-      //   rooms: filteredRooms.map(r => r.roomType),
-      //   ratePlans: filteredRatePlans.map(rp => rp.ratePlanCode)
-      // });
 
       // Get all dates in range
       const dates = eachDayOfInterval({ 

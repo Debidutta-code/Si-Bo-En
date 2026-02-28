@@ -36,7 +36,6 @@ const GeoRatePlanForm: React.FC<GeoRatePlanFormProps> = ({
     currencyCode: "USD",
     countryCode: [],
     isActive: true,
-    isAutoApplied: false,
   });
   const [countrySearch, setCountrySearch] = useState('');
 
@@ -57,7 +56,6 @@ const GeoRatePlanForm: React.FC<GeoRatePlanFormProps> = ({
         currencyCode: editData.currencyCode ?? "USD",
         countryCode: editData.countryCode,
         isActive: editData.isActive,
-        isAutoApplied: editData.isAutoApplied,
       }));
     }
   }, [editData]);
@@ -125,13 +123,12 @@ const GeoRatePlanForm: React.FC<GeoRatePlanFormProps> = ({
       currencyCode: restrictionType === "fixed" ? currencyCode : null,
       countryCode,
       isActive,
-      isAutoApplied
     };
 
     await onSubmit(payload);
   };
 
-  const { selectedRooms, selectedRatePlans, restrictionType, restrictionTypeAction, restrictionValue, currencyCode, countryCode, isActive,isAutoApplied } = geoRatePlan;
+  const { selectedRooms, selectedRatePlans, restrictionType, restrictionTypeAction, restrictionValue, currencyCode, countryCode, isActive } = geoRatePlan;
 
   const showRestrictionValue = restrictionType !== "restricted";
   const showCurrencyCode = restrictionType === "fixed";
@@ -344,21 +341,7 @@ if(isLoading.isLoading){
           )}
         </div>
       </div>
-      <div className="flex items-center gap-3 p-3 bg-accent/30 rounded-lg border border-border">
-        <input
-          type="checkbox"
-          id="isAutoApplied"
-          checked={isAutoApplied}
-          onChange={(e) => updateField('isAutoApplied', e.target.checked)}
-          className="w-5 h-5 text-primary border-border rounded focus:ring-2 focus:ring-primary"
-        />
-        <div>
-          <label htmlFor="isAutoApplied" className="text-sm font-medium text-foreground cursor-pointer">Active Status</label>
-          <p className="text-xs text-muted-foreground">
-            {isAutoApplied ? 'This rate plan is currently auto applied' : 'This rate plan is currently not auto applied'}
-          </p>
-        </div>
-      </div>
+      
       {/* Status Toggle */}
       <div className="flex items-center gap-3 p-3 bg-accent/30 rounded-lg border border-border">
         <input

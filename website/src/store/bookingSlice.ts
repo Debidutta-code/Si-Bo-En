@@ -82,21 +82,32 @@ export interface BookingEngineColor {
   url?: string;
 }
 
+// Matches the PriceBrakeDown shape from /booking-engine/pricing/get-price,
+// plus the backward-compat fields added by normalizePriceBrakeDown() in Rooms/page.tsx
 interface FinalPrice {
+  // Core fields from backend PriceBrakeDown
   totalAmount: number;
+  amountBeforeTax: number;
+  taxedAmount: number;
+  totalAddonAmount: number;
+  totalPromotionAmount: number;
+  currentChargeableAmount: number;
+  latterpayableAmount: number;
+  promoCodeDiscount: number;
+  loyalityDiscount: number;
+  currencyCode: string;
+  dailyPriceBrakeDown: any[];
+  taxBrakeDown: any[];
+  addonBrakeDown: any[];
+  promotionBrakeDown: any[];
+  // Computed by normalizePriceBrakeDown on the frontend
   numberOfNights: number;
   baseRatePerNight: number;
-  additionalGuestCharges: number;
-  breakdown: {
-    totalBaseAmount: number;
-    totalAdditionalCharges: number;
-    totalAmount: number;
-    numberOfNights: number;
-    averagePerNight: number;
-  };
-  dailyBreakdown: any | null;
-  availableRooms: number;
   requestedRooms: number;
+  additionalGuestCharges: number;
+  totalTaxAmount: number;
+  dailyBreakdown: any[];
+  availableRooms?: number;
 }
 
 interface BookingState {

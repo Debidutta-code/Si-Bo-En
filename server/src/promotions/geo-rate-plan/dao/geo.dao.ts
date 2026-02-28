@@ -6,6 +6,7 @@ export class GeoRatePlanDao {
 
   public async createGeoRatePlan(dataArray: IGeoRatePlanCreate[]): Promise<IGeoRatePlan[]> {
     try {
+      console.log("DAO received data for bulk creation:", dataArray[0].propertyId);
       const createdRecords = await prisma.$transaction(
         dataArray.map((data) =>
           prisma.geoRatePlan.create({
@@ -20,17 +21,9 @@ export class GeoRatePlanDao {
               currencyCode: data.currencyCode || null,
               countryCode: data.countryCode,
               isActive: data.isActive ?? true,
-              isAutoApplied: data.isAutoApplied,
               restrictionTypeAction: data.restrictionTypeAction 
             },
             include: {
-              property: {
-                select: {
-                  id: true,
-                  propertyName: true,
-                  propertyCode: true
-                }
-              },
               room: {
                 select: {
                   id: true,
@@ -52,7 +45,7 @@ export class GeoRatePlanDao {
 
       return createdRecords;
     } catch (error) {
-
+console.log(error)
       throw new Error('Unknown error occurred while creating geo rate plans in bulk');
     }
   }
@@ -71,13 +64,7 @@ export class GeoRatePlanDao {
       return await prisma.geoRatePlan.findMany({
         where: whereClause,
         include: {
-          property: {
-            select: {
-              id: true,
-              propertyName: true,
-              propertyCode: true
-            }
-          },
+          
           room: {
             select: {
               id: true,
@@ -108,13 +95,7 @@ export class GeoRatePlanDao {
       return await prisma.geoRatePlan.findUnique({
         where: { id },
         include: {
-          property: {
-            select: {
-              id: true,
-              propertyName: true,
-              propertyCode: true
-            }
-          },
+          
           room: {
             select: {
               id: true,
@@ -145,13 +126,6 @@ export class GeoRatePlanDao {
         where: { id },
         data: updateData,
         include: {
-          property: {
-            select: {
-              id: true,
-              propertyName: true,
-              propertyCode: true
-            }
-          },
           room: {
             select: {
               id: true,

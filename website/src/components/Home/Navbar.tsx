@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import ZLogo from "../assets/revchilli.png";
 import { useDispatch, useSelector } from "react-redux";
@@ -10,6 +10,8 @@ import { setSenderUrl } from "@/src/store/bookingSlice";
 import { RootState } from "../../store/store";
 
 const Navbar = () => {
+  const searchParams = useSearchParams();
+  const propertyCode = searchParams.get("code");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [dynamicLogo, setDynamicLogo] = useState<string | null>(null);
   const pathname = usePathname();
@@ -106,7 +108,12 @@ const Navbar = () => {
   const navBg = isHomePage
     ? "bg-white/80 backdrop-blur-md text-black shadow-sm" // milky on home
     : "bg-white text-black shadow";
-
+if(!propertyCode){
+  return(
+    <>
+    </>
+  )
+}
   return (
     <nav className={`fixed top-0 left-0 right-0 z-50 ${navBg}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -133,37 +140,39 @@ const Navbar = () => {
             )}
 
             {isRoomsPage && (
-              <button
-                onClick={() => window.open(agenturl, '_blank')} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                style={{
-                  backgroundColor: dynamicLogo ? `${bookingContext?.bookingEngineColor?.primaryColor}20` : "#F4EFE6",
-                  color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
-                }}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
-                Partner Login
-              </button>
+              <>
+                <button
+                  onClick={() => window.open(agenturl, '_blank')} className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                  style={{
+                    backgroundColor: dynamicLogo ? `${bookingContext?.bookingEngineColor?.primaryColor}20` : "#F4EFE6",
+                    color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  Partner Login
+                </button>
+                <button
+                  onClick={() => router.push(`/my-trip?propertyCode=${propertyCode}`)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                  style={{
+                    backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
+                      ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
+                      : "#F4EFE6",
+                    color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+                    <rect x="9" y="3" width="6" height="4" rx="1" />
+                  </svg>
+                  My Booking
+                </button>
+              </>
             )}
 
-            <button
-              onClick={() => router.push("/my-trip")}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-              style={{
-                backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
-                  ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
-                  : "#F4EFE6",
-                color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
-                <rect x="9" y="3" width="6" height="4" rx="1" />
-              </svg>
-              My Booking
-            </button>
           </div>
 
           {/* Mobile Toggle */}
@@ -192,40 +201,44 @@ const Navbar = () => {
             )}
 
             {isRoomsPage && (
-              <button
-                onClick={() => { setIsMenuOpen(false); window.open(agenturl, '_blank'); }}
-                className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors"
-                style={{
-                  backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
-                    ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
-                    : "#F4EFE6",
-                  color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
-                }}
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
-                Partner Login
-              </button>
+
+              <>
+                <button
+                  onClick={() => { setIsMenuOpen(false); window.open(agenturl, '_blank'); }}
+                  className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors"
+                  style={{
+                    backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
+                      ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
+                      : "#F4EFE6",
+                    color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+                  Partner Login
+                </button>
+                <button
+                  onClick={() => router.push(`/my-trip?propertyCode=${propertyCode}`)}
+                  className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors"
+                  style={{
+                    backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
+                      ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
+                      : "#F4EFE6",
+                    color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+                    <rect x="9" y="3" width="6" height="4" rx="1" />
+                  </svg>
+                  My Booking
+                </button>
+              </>
             )}
 
-            <button
-              onClick={() => { setIsMenuOpen(false); router.push("/my-trip"); }}
-              className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors"
-              style={{
-                backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
-                  ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
-                  : "#F4EFE6",
-                color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
-                <rect x="9" y="3" width="6" height="4" rx="1" />
-              </svg>
-              My Booking
-            </button>
+
 
           </div>
         )}

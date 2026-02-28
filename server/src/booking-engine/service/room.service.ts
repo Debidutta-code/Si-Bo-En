@@ -1,4 +1,3 @@
-import { Decimal } from '@prisma/client/runtime/library';
 import { calculateNights, toUTCDate } from '../../utils';
 import { RoomBookingRepository } from '../repository';
 import {
@@ -25,7 +24,6 @@ export class RoomBookingService {
                 payload.promocode
             );
         }
-        // Build date array (check-in inclusive, check-out exclusive)
         const dates: Date[] = [];
         let current = toUTCDate(startDate);
         const last = toUTCDate(endDate);
@@ -198,13 +196,10 @@ export class RoomBookingService {
             RoomBookingRepository.getTouristTax(ratePlan.id),
         ]);
 
-        // Must have charges for all dates
         if (!charges.length) return null;
 
-        // ── Geo: restricted = skip this rate plan entirely ──────────────────────
         if (geoRatePlan?.restrictionType === 'restricted') return null;
 
-        // ── Addons: fetch availability in parallel, skip rate plan if any missing ─
         const addonPrices: Record<string, number> = {};
 
         if (ratePlanAddons.length > 0) {
@@ -216,7 +211,7 @@ export class RoomBookingService {
 
             for (let i = 0; i < ratePlanAddons.length; i++) {
                 const availability = addonAvailabilityResults[i];
-                if (availability.length !== dates.length) return null; // addon not available = skip rate plan
+                if (availability.length !== dates.length) return null; 
 
                 const addon = ratePlanAddons[i].addon;
                 addonPrices[addon.id] = this.calculateAddonPrice(
@@ -229,7 +224,6 @@ export class RoomBookingService {
             }
         }
 
-        // ── Base amount from first charge, matching guest tier ───────────────────
         const charge = charges[0];
         const sortedBase = [...charge.baseGuestAmounts].sort(
             (a, b) => a.numberOfGuests - b.numberOfGuests
@@ -240,13 +234,11 @@ export class RoomBookingService {
 
         const baseAmount = Number(selectedTier.amountBeforeTax);
 
-        // ── Calculate all discounts independently from baseAmount ────────────────
         let totalAutoDiscount = 0;
         const availablePromotions: IPromotion[] = [];
         const appliedDiscounts: IAppliedDiscount[] = [];
 
 
-        // 1. Device promotion
         if (devicePromotion) {
             const discount = this.calculateDiscount(
                 baseAmount,
@@ -390,7 +382,7 @@ export class RoomBookingService {
                 availablePromotions.push({
                     id: ratePlanRule.id,
                     promotionName: `Minimum ${ratePlanRule.minLos} nights stay`,
-                    promotionType: '',
+                    promotionType: 'mlos',
                     discountType: ratePlanRule.discountType,
                     discountValue: ratePlanRule.discountValue,
                     minLos: ratePlanRule.minLos,
@@ -512,7 +504,7 @@ export class RoomBookingService {
     private static calculateGeoDiscount(
         baseAmount: number,
         restrictionType: string,
-        restrictionTypeAction: string,
+        restrictionTypeAction: string|null,
         restrictionValue: number
     ): number {
         // 'restricted' is handled before this is called

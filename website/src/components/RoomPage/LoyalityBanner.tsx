@@ -13,11 +13,15 @@ export const LoyaltyProgramBanner = ({
   primaryColor,
   showSignUpModal: externalShowSignUpModal,
   onShowSignUpModalChange,
+  onSignUpSuccess,
+  onLogoutSuccess,
 }: {
   loyaltyProgram: IPropertyLoyalityWithLoyality | null;
   primaryColor: string;
   showSignUpModal?: boolean;
   onShowSignUpModalChange?: (show: boolean) => void;
+  onSignUpSuccess?: (email: string) => void;
+  onLogoutSuccess?: () => void;
 }) => {
   const [internalShowSignUpModal, setInternalShowSignUpModal] = useState(false);
   const [formData, setFormData] = useState<Record<string, any>>({});
@@ -90,9 +94,10 @@ export const LoyaltyProgramBanner = ({
     return null;
   }
 
-  // Use external control if provided, otherwise use internal state
-  const showSignUpModal = externalShowSignUpModal !== undefined ? externalShowSignUpModal : internalShowSignUpModal;
-  const setShowSignUpModal = onShowSignUpModalChange || setInternalShowSignUpModal;
+  // Always use internal state for the modal to avoid conflicts when multiple
+  // loyalty components share the same parent state and both register onOpenChange.
+  const showSignUpModal = internalShowSignUpModal;
+  const setShowSignUpModal = setInternalShowSignUpModal;
 
   const program = loyaltyProgram.CreationLoyaltyConfig;
   const isBasicProgram = program.BasicLoyaltyProgram !== null;
@@ -114,8 +119,7 @@ export const LoyaltyProgramBanner = ({
     setRegisteredEmail("");
     setDiscountInfo(null);
     toast.success("Successfully logged out from loyalty program");
-    // Reload the page to reset loyalty member email in parent component
-    window.location.reload();
+    onLogoutSuccess?.();
   };
 
   const handleSignUpSubmit = async (e: React.FormEvent) => {
@@ -167,8 +171,7 @@ export const LoyaltyProgramBanner = ({
           setShowSignUpModal(false);
           setFormData({});
           setIsSubmitting(false);
-          // Reload to update parent component
-          window.location.reload();
+          onSignUpSuccess?.(email);
           return;
         }
 
@@ -196,8 +199,7 @@ export const LoyaltyProgramBanner = ({
       toast.success("Successfully registered for loyalty program!");
       setShowSignUpModal(false);
       setFormData({});
-      // Reload to update parent component
-      window.location.reload();
+      onSignUpSuccess?.(email);
     } catch (error) {
       console.error("Registration error:", error);
       toast.error("Failed to register. Please try again.");

@@ -1472,13 +1472,12 @@ model GeoRatePlan {
   ratePlanCode String   @map("rate_plan_code")
   ratePlan     RatePlan @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
 
-  restrictionType       geoRestrictionType       @default(percentage) @map("restriction_type")
-  restrictionTypeAction geoRestrictionTypeAction @default(increase) @map("restriction_type_action")
+  restrictionType       geoRestrictionType        @default(percentage) @map("restriction_type")
+  restrictionTypeAction geoRestrictionTypeAction? @default(increase) @map("restriction_type_action")
   restrictionValue      Decimal?                 @map("restriction_value")
   currencyCode          CurrencyCode?            @default(USD) @map("currency_code")
   countryCode           String[]                 @map("country_code")
   isActive              Boolean                  @default(true) @map("is_active")
-  isAutoApplied         Boolean                  @default(true) @map("is_auto_applied")
   createdAt             DateTime                 @default(now()) @map("created_at")
 
   @@index([propertyId, roomId, ratePlanId])

@@ -109,7 +109,6 @@ export class AgenticRoomService {
             const res = await this.agenticRoomRepository.addRoomsForAgenticProperty(agenticPropertyId, roomIds);
             return successResponse("Added rooms to agencies", res);
         } catch (error) {
-            // console.log(error)
             if (error instanceof Error) {
                 return errorResponse("Failed to add rooms to agencies", error.message);
             }
