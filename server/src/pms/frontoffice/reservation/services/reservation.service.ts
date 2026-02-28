@@ -109,60 +109,44 @@ export class ReservationService {
         const { bookingDetails, guestDetails } = payload;
         const { finalPrice } = bookingDetails;
 
-        if (finalPrice.tax && !finalPrice.taxes) {
-            finalPrice.taxes = finalPrice.tax;
-            delete finalPrice.tax;
-        }
+        // ── New PriceBrakeDown shape ──
+        // Promotions come from promotionBrakeDown[] array directly
         let selectedPromotions = bookingDetails.selectedPromotions || [];
 
         if (
-            finalPrice.promotions?.applied &&
-            Array.isArray(finalPrice.promotions.applied)
+            finalPrice.promotionBrakeDown &&
+            Array.isArray(finalPrice.promotionBrakeDown) &&
+            finalPrice.promotionBrakeDown.length > 0
         ) {
-            selectedPromotions = finalPrice.promotions.applied.map(
-                (promo: any) => {
-                    // Check if it's MLOS type
-                    if (promo.promotionType === 'mlos') {
-                        return {
-                            id: promo.id || promo.promotionId,
-                            promotionType: 'mlos',
-                            ratePlanName: promo.ratePlanName,
-                            discountValue: promo.discountValue,
-                            discountType: promo.discountType,
-                            amount: promo.discountAmount, // ✅ Use calculated amount
-                        };
-                    } else {
-                        return {
-                            id: promo.id || promo.promotionId,
-                            promotionType: promo.promotionType,
-                            promotionName: promo.promotionName,
-                            discountValue: promo.discountValue,
-                            discountType: promo.discountType,
-                            amount: promo.discountAmount, // ✅ Use calculated amount
-                        };
-                    }
-                }
-            );
+            selectedPromotions = finalPrice.promotionBrakeDown
+                .filter((promo: any) => promo.restrictionType !== 'payLater') // Exclude tourist tax entries
+                .map((promo: any) => ({
+                    id: promo.id || null,
+                    promotionType: promo.promotionType || 'normal',
+                    promotionName: promo.name,
+                    discountValue: promo.discountValue,
+                    discountType: promo.discountType,
+                    amount: promo.discountAmount,
+                }));
         }
 
-        // ✅ NEW: Extract addons from finalPrice.userAddons.selected
+        // Addons come from addonBrakeDown[] array directly
         let selectedAddons = bookingDetails.selectedAddons || [];
 
         if (
-            finalPrice.userAddons?.selected &&
-            Array.isArray(finalPrice.userAddons.selected)
+            finalPrice.addonBrakeDown &&
+            Array.isArray(finalPrice.addonBrakeDown) &&
+            finalPrice.addonBrakeDown.length > 0
         ) {
-            selectedAddons = finalPrice.userAddons.selected.map(
+            selectedAddons = finalPrice.addonBrakeDown.map(
                 (addon: any) => ({
-                    addonId: addon.addonId,
+                    addonId: addon.addonId || null,
                     addonName: addon.name,
-                    addonCode: addon.code,
-                    availabilityId: addon.availabilityId,
-                    date: addon.date,
-                    price: addon.price,
+                    price: addon.amount, // per-unit price
                     quantity: addon.quantity,
-                    totalPrice: addon.totalPrice,
-                    type: addon.type,
+                    totalPrice: addon.totalAmount,
+                    type: addon.type || 'addon',
+                    date: addon.date || bookingDetails.startDate,
                 })
             );
         }
@@ -293,6 +277,11 @@ export class ReservationService {
             // Check if payment gateway is Fikafi - if so, payment is pending until webhook confirms
             const isFikafiPayment = payload.bankDetails?.selectedPaymentIntegrations?.paymentIntegration?.name === 'fikafi';
 
+            // ── Compute numberOfNights from dates ──
+            const checkIn = new Date(startDate);
+            const checkOut = new Date(endDate);
+            const numberOfNights = Math.max(1, Math.ceil((checkOut.getTime() - checkIn.getTime()) / (24 * 60 * 60 * 1000)));
+
             let paidAmount = 0;
             let initialBookingStatus: 'pending' | 'confirmed' = 'confirmed';
 
@@ -302,8 +291,8 @@ export class ReservationService {
                     paidAmount = 0;
                     initialBookingStatus = 'pending';
                 } else {
-                    // For other payment gateways (like N-Genius), payment is confirmed immediately
-                    paidAmount = finalPrice.totalAmount;
+                    // For other payment gateways, paidAmount = currentChargeableAmount (pay now)
+                    paidAmount = finalPrice.currentChargeableAmount;
                 }
             }
 
@@ -329,7 +318,7 @@ export class ReservationService {
                 finalPrice: finalPrice,
 
                 paidAmount: paidAmount,
-                extraAmountToPay: 0,
+                extraAmountToPay: finalPrice.latterpayableAmount || 0,
                 refundAmount: 0,
                 timezone: payload.timezone || 'Asia/Kolkata',
                 countryCode: payload.countryCode || 'IN',
@@ -405,19 +394,25 @@ export class ReservationService {
 
             const priceBreakdownPayload: IReservationPriceBrakeDownR = {
                 reservationId: reservation.id,
-                additionalGuestCharges: finalPrice.additionalGuestCharges,
-                baseRatePerNight: finalPrice.baseRatePerNight,
-                numberOfNights: finalPrice.numberOfNights,
+                additionalGuestCharges: 0,
+                baseRatePerNight: numberOfNights > 0 ? Math.round(finalPrice.amountBeforeTax / numberOfNights) : 0,
+                numberOfNights: numberOfNights,
                 priceAfterTax: new Decimal(finalPrice.totalAmount),
                 totalAmount: new Decimal(finalPrice.totalAmount),
-                totalTax: new Decimal(
-                    finalPrice.totalAmount - finalPrice.totalTax
-                ),
-                breakdown: finalPrice.breakdown,
-                dailyBreakdown: finalPrice.dailyBreakdown,
-                availableRooms: finalPrice.availableRooms,
-                requestedRooms: finalPrice.requestedRooms,
-                tax: finalPrice.taxes,
+                totalTax: new Decimal(finalPrice.taxedAmount || 0),
+                breakdown: {
+                    totalBaseAmount: finalPrice.amountBeforeTax,
+                    totalAddonAmount: finalPrice.totalAddonAmount || 0,
+                    totalPromotionAmount: finalPrice.totalPromotionAmount || 0,
+                    currentChargeableAmount: finalPrice.currentChargeableAmount,
+                    latterpayableAmount: finalPrice.latterpayableAmount || 0,
+                    promoCodeDiscount: finalPrice.promoCodeDiscount || 0,
+                    loyalityDiscount: finalPrice.loyalityDiscount || 0,
+                },
+                dailyBreakdown: finalPrice.dailyPriceBrakeDown || [],
+                availableRooms: finalPrice.requestedRooms || 0,
+                requestedRooms: finalPrice.requestedRooms || 0,
+                tax: finalPrice.taxBrakeDown || [],
             };
             const loyalityBrakedown = finalPrice.loyaltyDiscount;
 
@@ -429,23 +424,27 @@ export class ReservationService {
                 normalizedPayload.bookingDetails.selectedAddons.length > 0
             ) {
                 const addonPayloads: IBookingAddonCreate[] =
-                    normalizedPayload.bookingDetails.selectedAddons.map(
-                        (addon: any) => ({
-                            reservationId: reservation.id,
-                            addonId: addon.addonId,
-                            name: addon.addonName || addon.name,
-                            unitPrice: addon.price, // ✅ Use provided price
-                            quantity: addon.quantity,
-                            totalPrice: addon.totalPrice, // ✅ Use pre-calculated total
-                            currencyCode: currency,
-                            specialInstructions: null,
-                            date: new Date(addon.date),
-                        })
-                    );
+                    normalizedPayload.bookingDetails.selectedAddons
+                        .filter((addon: any) => addon.addonId) // Skip addons without a valid addonId (required FK)
+                        .map(
+                            (addon: any) => ({
+                                reservationId: reservation.id,
+                                addonId: addon.addonId,
+                                name: addon.addonName || addon.name,
+                                unitPrice: addon.price,
+                                quantity: addon.quantity,
+                                totalPrice: addon.totalPrice,
+                                currencyCode: currency,
+                                specialInstructions: null,
+                                date: new Date(addon.date),
+                            })
+                        );
 
-                await this.bookingAddonRepository.createBookingAddons(
-                    addonPayloads
-                );
+                if (addonPayloads.length > 0) {
+                    await this.bookingAddonRepository.createBookingAddons(
+                        addonPayloads
+                    );
+                }
             }
 
             if (
@@ -522,8 +521,9 @@ export class ReservationService {
                         ),
                     ]
                     : []),
-                    this.emailService.reservationConfirmation({
-                        ...bookingDetails,
+                this.emailService.reservationConfirmation({
+                    ...bookingDetails,
+                    numberOfNights: numberOfNights,
                     guestDetails: guestDetails.map((guest: any) => ({
                         type: guest.type,
                         firstName: guest.firstName,
@@ -874,31 +874,43 @@ export class ReservationService {
                 refundAmount: existingReservation.refundAmount + refundAmount,
             };
 
+            // Compute numberOfNights for update
+            const updateNumberOfNights = Math.max(1, Math.ceil(
+                (newCheckOutDate.getTime() - newCheckInDate.getTime()) / (24 * 60 * 60 * 1000)
+            ));
+
             const updatedReservation =
                 await this.reservationRepository.updateReservationWithTransaction(
                     existingReservation.id,
                     updateData,
                     {
-                        reservationId: existingReservation.id,
-                        additionalGuestCharges:
-                            updatePayload.finalPrice.additionalGuestCharges,
-                        baseRatePerNight:
-                            updatePayload.finalPrice.baseRatePerNight,
-                        numberOfNights: updatePayload.finalPrice.numberOfNights,
+                        additionalGuestCharges: 0,
+                        baseRatePerNight: updateNumberOfNights > 0
+                            ? Math.round((updatePayload.finalPrice.amountBeforeTax || updatePayload.finalPrice.totalAmount || 0) / updateNumberOfNights)
+                            : 0,
+                        numberOfNights: updateNumberOfNights,
                         priceAfterTax: new Decimal(
-                            updatePayload.finalPrice.priceAfterTax
+                            updatePayload.finalPrice.totalAmount || 0
                         ),
                         totalAmount: new Decimal(
-                            updatePayload.finalPrice.totalAmount
+                            updatePayload.finalPrice.totalAmount || 0
                         ),
                         totalTax: new Decimal(
-                            updatePayload.finalPrice.totalTax
+                            updatePayload.finalPrice.taxedAmount || 0
                         ),
-                        breakdown: updatePayload.finalPrice.breakdown,
-                        dailyBreakdown: updatePayload.finalPrice.dailyBreakdown,
-                        availableRooms: updatePayload.finalPrice.availableRooms,
+                        breakdown: {
+                            totalBaseAmount: updatePayload.finalPrice.amountBeforeTax || 0,
+                            totalAddonAmount: updatePayload.finalPrice.totalAddonAmount || 0,
+                            totalPromotionAmount: updatePayload.finalPrice.totalPromotionAmount || 0,
+                            currentChargeableAmount: updatePayload.finalPrice.currentChargeableAmount || updatePayload.finalPrice.totalAmount || 0,
+                            latterpayableAmount: updatePayload.finalPrice.latterpayableAmount || 0,
+                            promoCodeDiscount: updatePayload.finalPrice.promoCodeDiscount || 0,
+                            loyalityDiscount: updatePayload.finalPrice.loyalityDiscount || 0,
+                        },
+                        dailyBreakdown: updatePayload.finalPrice.dailyPriceBrakeDown || [],
+                        availableRooms: updatePayload.finalPrice.requestedRooms || 0,
                         requestedRooms: updatePayload.requestedRooms,
-                        tax: updatePayload.finalPrice.tax,
+                        tax: updatePayload.finalPrice.taxBrakeDown || [],
                     }
                 );
 
@@ -930,7 +942,7 @@ export class ReservationService {
                     newCheckIn: newCheckInDate,
                     newCheckOut: newCheckOutDate,
                     nightsChanged:
-                        updatePayload.finalPrice.numberOfNights -
+                        updateNumberOfNights -
                         (existingReservation.finalPrice?.numberOfNights || 1),
                 },
             };
@@ -944,44 +956,9 @@ export class ReservationService {
                 roomTypeCode: updatePayload.roomTypeCode,
                 ratePlanCode: updatePayload.ratePlanCode,
                 numberOfRooms: updatePayload.requestedRooms,
+                numberOfNights: updateNumberOfNights,
                 refundAmount: updatedReservation.refundAmount,
-                finalPrice: {
-                    totalAmount: updatePayload.finalPrice.totalAmount,
-                    numberOfNights: updatePayload.finalPrice.numberOfNights,
-                    baseRatePerNight: updatePayload.finalPrice.baseRatePerNight,
-                    additionalGuestCharges:
-                        updatePayload.finalPrice.additionalGuestCharges,
-                    breakdown: {
-                        ...updatePayload.finalPrice.breakdown,
-                        totalTax: updatePayload.finalPrice.totalTax,
-                    },
-                    dailyBreakdown: updatePayload.finalPrice.dailyBreakdown.map(
-                        day => ({
-                            ...day,
-                            childrenChargesBreakdown: [],
-                        })
-                    ),
-                    availableRooms: updatePayload.finalPrice.availableRooms,
-                    requestedRooms: updatePayload.requestedRooms,
-                    totalTax: updatePayload.finalPrice.totalTax,
-                    taxes: [], // Simplified tax structure for email
-                    
-                    taxBreakdown: {
-                        totalBaseAmount:
-                            updatePayload.finalPrice.breakdown.totalBaseAmount,
-                        totalAdditionalCharges:
-                            updatePayload.finalPrice.breakdown
-                                .totalAdditionalCharges,
-                        totalAmount:
-                            updatePayload.finalPrice.breakdown.totalAmount,
-                        numberOfNights:
-                            updatePayload.finalPrice.breakdown.numberOfNights,
-                        averagePerNight:
-                            updatePayload.finalPrice.breakdown.averagePerNight,
-                        totalTax: updatePayload.finalPrice.totalTax,
-                    },
-                    loyaltyDiscount: updatePayload.finalPrice.loyaltyDiscount,
-                },
+                finalPrice: updatePayload.finalPrice,
                 promoCode: null,
                 currency: updatePayload.currencyCode,
                 bookingSource: existingReservation.bookingSource,
@@ -1573,6 +1550,10 @@ export class ReservationService {
                 );
 
             // Prepare email booking details for cancellation email
+            const cancelNumberOfNights = Math.max(1, Math.ceil(
+                (reservation.checkOutDate.getTime() - reservation.checkInDate.getTime()) / (24 * 60 * 60 * 1000)
+            ));
+
             const emailBookingDetails: IBookingDetails = {
                 startDate: reservation.checkInDate.toISOString(),
                 endDate: reservation.checkOutDate.toISOString(),
@@ -1582,41 +1563,22 @@ export class ReservationService {
                 roomTypeCode: reservation.roomTypeCode || '',
                 ratePlanCode: reservation.ratePlanCode || '',
                 numberOfRooms: reservation.finalPrice?.requestedRooms || 1,
-                finalPrice: {
-                    totalAmount:
-                        reservation.finalPrice?.totalAmount ||
-                        reservation.amount,
-                    numberOfNights: reservation.finalPrice?.numberOfNights || 1,
-                    baseRatePerNight:
-                        reservation.finalPrice?.baseRatePerNight || 0,
-                    additionalGuestCharges:
-                        reservation.finalPrice?.additionalGuestCharges || 0,
-                    breakdown: reservation.finalPrice?.breakdown || {},
-                    dailyBreakdown:
-                        reservation.finalPrice?.dailyBreakdown || [],
-                    availableRooms: reservation.finalPrice?.availableRooms || 0,
-                    requestedRooms: reservation.finalPrice?.requestedRooms || 1,
-                    totalTax: reservation.finalPrice?.totalTax || 0,
-                    taxes: [],
-                    
-                    taxBreakdown: {
-                        totalBaseAmount:
-                            reservation.finalPrice?.breakdown
-                                ?.totalBaseAmount || 0,
-                        totalAdditionalCharges:
-                            reservation.finalPrice?.breakdown
-                                ?.totalAdditionalCharges || 0,
-                        totalAmount:
-                            reservation.finalPrice?.breakdown?.totalAmount || 0,
-                        numberOfNights:
-                            reservation.finalPrice?.breakdown?.numberOfNights ||
-                            1,
-                        averagePerNight:
-                            reservation.finalPrice?.breakdown
-                                ?.averagePerNight || 0,
-                        totalTax: reservation.finalPrice?.totalTax || 0,
-                    },
-                    loyaltyDiscount: reservation.finalPrice.loyaltyDiscount,
+                numberOfNights: cancelNumberOfNights,
+                finalPrice: reservation.finalPrice || {
+                    totalAmount: reservation.amount,
+                    amountBeforeTax: reservation.amount,
+                    taxedAmount: 0,
+                    totalAddonAmount: 0,
+                    totalPromotionAmount: 0,
+                    currentChargeableAmount: reservation.amount,
+                    latterpayableAmount: 0,
+                    promoCodeDiscount: 0,
+                    loyalityDiscount: 0,
+                    currencyCode: reservation.currencyCode,
+                    dailyPriceBrakeDown: [],
+                    taxBrakeDown: [],
+                    addonBrakeDown: [],
+                    promotionBrakeDown: [],
                 },
                 promoCode: null,
                 currency: reservation.currencyCode,

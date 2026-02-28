@@ -1,4 +1,4 @@
-import { IBookingDetails, IGuestDetail, ITax } from "../../pms/frontoffice/reservation/types";
+import { IBookingDetails, IGuestDetail } from "../../pms/frontoffice/reservation/types";
 import { capitalizeFirstLetter } from "../utils/capitalizefirstLetter.util";
 
 interface PropertyDetails {
@@ -76,6 +76,7 @@ export const BookingConfirmationEmail = ({
 }: EmailTemplateProps): string => {
   const { finalPrice, guests, guestDetails, startDate, endDate } = reservation;
   const primaryGuest = guestDetails[0];
+  const numberOfNights = reservation.numberOfNights || 1;
 
   return `
 <!DOCTYPE html>
@@ -634,7 +635,7 @@ export const BookingConfirmationEmail = ({
           <div class="info-grid">
             <div class="info-item">
               <span class="info-label">Duration</span>
-              <span class="info-value">${finalPrice.numberOfNights} Night${finalPrice.numberOfNights > 1 ? 's' : ''}</span>
+              <span class="info-value">${numberOfNights} Night${numberOfNights > 1 ? 's' : ''}</span>
             </div>
             
             <div class="info-item">
@@ -739,35 +740,42 @@ export const BookingConfirmationEmail = ({
           <div class="price-card">
             <div class="price-table">
               <div class="price-row">
-                <span class="price-label">Room rate (${finalPrice.numberOfNights} night${finalPrice.numberOfNights > 1 ? 's' : ''})</span>
-                <span class="price-value">${formatCurrency(finalPrice.breakdown.totalBaseAmount, reservation.currency)}</span>
+                <span class="price-label">Room rate (${numberOfNights} night${numberOfNights > 1 ? 's' : ''})</span>
+                <span class="price-value">${formatCurrency(finalPrice.amountBeforeTax, reservation.currency)}</span>
               </div>
               
-              ${finalPrice.breakdown.totalAdditionalCharges > 0 ? `
-              <div class="price-row">
-                <span class="price-label">Additional guest charges</span>
-                <span class="price-value">${formatCurrency(finalPrice.breakdown.totalAdditionalCharges, reservation.currency)}</span>
-              </div>
-              ` : ''}
-              
-              ${finalPrice.addons && finalPrice.addons.length > 0 ? finalPrice.addons.map((addon: any) => `
+              ${finalPrice.addonBrakeDown && finalPrice.addonBrakeDown.length > 0 ? finalPrice.addonBrakeDown.map((addon: any) => `
               <div class="price-row">
                 <span class="price-label">${addon.name}</span>
-                <span class="price-value">${formatCurrency(addon.totalPrice, reservation.currency)}</span>
+                <span class="price-value">${formatCurrency(addon.totalAmount, reservation.currency)}</span>
               </div>
               `).join('') : ''}
               
-              ${finalPrice.taxes.map((tax: ITax) => `
+              ${finalPrice.taxBrakeDown && finalPrice.taxBrakeDown.length > 0 ? finalPrice.taxBrakeDown.map((tax: any) => `
               <div class="price-row">
                 <span class="price-label">${tax.name}</span>
-                <span class="price-value">${formatCurrency(tax.amount, reservation.currency)}</span>
+                <span class="price-value">${formatCurrency(tax.taxAmount, reservation.currency)}</span>
               </div>
-              `).join('')}
+              `).join('') : ''}
               
-              ${finalPrice.promotions && finalPrice.promotions.totalDiscount > 0 ? `
+              ${finalPrice.totalPromotionAmount > 0 ? `
               <div class="price-row discount-row">
                 <span class="price-label">Discount</span>
-                <span class="price-value">-${formatCurrency(finalPrice.promotions.totalDiscount, reservation.currency)}</span>
+                <span class="price-value">-${formatCurrency(finalPrice.totalPromotionAmount, reservation.currency)}</span>
+              </div>
+              ` : ''}
+              
+              ${finalPrice.promoCodeDiscount > 0 ? `
+              <div class="price-row discount-row">
+                <span class="price-label">Promo Code Discount</span>
+                <span class="price-value">-${formatCurrency(finalPrice.promoCodeDiscount, reservation.currency)}</span>
+              </div>
+              ` : ''}
+              
+              ${finalPrice.loyalityDiscount > 0 ? `
+              <div class="price-row discount-row">
+                <span class="price-label">Loyalty Discount</span>
+                <span class="price-value">-${formatCurrency(finalPrice.loyalityDiscount, reservation.currency)}</span>
               </div>
               ` : ''}
             </div>
@@ -822,6 +830,7 @@ export const BookingAmendmentEmail = ({
 }: EmailTemplateProps): string => {
   const { finalPrice, guests, guestDetails, startDate, endDate } = reservation;
   const primaryGuest = guestDetails[0];
+  const numberOfNights = reservation.numberOfNights || 1;
 
   return `
 <!DOCTYPE html>
@@ -960,7 +969,7 @@ export const BookingAmendmentEmail = ({
           <div class="info-grid">
             <div class="info-item">
               <span class="info-label">Duration</span>
-              <span class="info-value">${finalPrice.numberOfNights} Night${finalPrice.numberOfNights > 1 ? 's' : ''}</span>
+              <span class="info-value">${numberOfNights} Night${numberOfNights > 1 ? 's' : ''}</span>
             </div>
             <div class="info-item">
               <span class="info-label">Guests</span>
@@ -1041,31 +1050,42 @@ export const BookingAmendmentEmail = ({
           <div class="price-card">
             <div class="price-table">
               <div class="price-row">
-                <span class="price-label">Room rate (${finalPrice.numberOfNights} night${finalPrice.numberOfNights > 1 ? 's' : ''})</span>
-                <span class="price-value">${formatCurrency(finalPrice.breakdown.totalBaseAmount, reservation.currency)}</span>
+                <span class="price-label">Room rate (${numberOfNights} night${numberOfNights > 1 ? 's' : ''})</span>
+                <span class="price-value">${formatCurrency(finalPrice.amountBeforeTax, reservation.currency)}</span>
               </div>
-              ${finalPrice.breakdown.totalAdditionalCharges > 0 ? `
-              <div class="price-row">
-                <span class="price-label">Additional guest charges</span>
-                <span class="price-value">${formatCurrency(finalPrice.breakdown.totalAdditionalCharges, reservation.currency)}</span>
-              </div>
-              ` : ''}
-              ${finalPrice.addons && finalPrice.addons.length > 0 ? finalPrice.addons.map((addon: any) => `
+              
+              ${finalPrice.addonBrakeDown && finalPrice.addonBrakeDown.length > 0 ? finalPrice.addonBrakeDown.map((addon: any) => `
               <div class="price-row">
                 <span class="price-label">${addon.name}</span>
-                <span class="price-value">${formatCurrency(addon.totalPrice, reservation.currency)}</span>
+                <span class="price-value">${formatCurrency(addon.totalAmount, reservation.currency)}</span>
               </div>
               `).join('') : ''}
-              ${finalPrice.taxes.map((tax: ITax) => `
+              
+              ${finalPrice.taxBrakeDown && finalPrice.taxBrakeDown.length > 0 ? finalPrice.taxBrakeDown.map((tax: any) => `
               <div class="price-row">
                 <span class="price-label">${tax.name}</span>
-                <span class="price-value">${formatCurrency(tax.amount, reservation.currency)}</span>
+                <span class="price-value">${formatCurrency(tax.taxAmount, reservation.currency)}</span>
               </div>
-              `).join('')}
-              ${finalPrice.promotions && finalPrice.promotions.totalDiscount > 0 ? `
+              `).join('') : ''}
+              
+              ${finalPrice.totalPromotionAmount > 0 ? `
               <div class="price-row discount-row">
                 <span class="price-label">Discount</span>
-                <span class="price-value">-${formatCurrency(finalPrice.promotions.totalDiscount, reservation.currency)}</span>
+                <span class="price-value">-${formatCurrency(finalPrice.totalPromotionAmount, reservation.currency)}</span>
+              </div>
+              ` : ''}
+              
+              ${finalPrice.promoCodeDiscount > 0 ? `
+              <div class="price-row discount-row">
+                <span class="price-label">Promo Code Discount</span>
+                <span class="price-value">-${formatCurrency(finalPrice.promoCodeDiscount, reservation.currency)}</span>
+              </div>
+              ` : ''}
+              
+              ${finalPrice.loyalityDiscount > 0 ? `
+              <div class="price-row discount-row">
+                <span class="price-label">Loyalty Discount</span>
+                <span class="price-value">-${formatCurrency(finalPrice.loyalityDiscount, reservation.currency)}</span>
               </div>
               ` : ''}
             </div>
@@ -1108,6 +1128,7 @@ export const BookingCancellationEmail = ({
 }: EmailTemplateProps): string => {
   const { finalPrice, guests, guestDetails, startDate, endDate } = reservation;
   const primaryGuest = guestDetails[0];
+  const numberOfNights = reservation.numberOfNights || 1;
 
   return `
 <!DOCTYPE html>
@@ -1244,7 +1265,7 @@ export const BookingCancellationEmail = ({
           <div class="info-grid">
             <div class="info-item">
               <span class="info-label">Duration</span>
-              <span class="info-value">${finalPrice.numberOfNights} Night${finalPrice.numberOfNights > 1 ? 's' : ''}</span>
+              <span class="info-value">${numberOfNights} Night${numberOfNights > 1 ? 's' : ''}</span>
             </div>
             <div class="info-item">
               <span class="info-label">Guests</span>

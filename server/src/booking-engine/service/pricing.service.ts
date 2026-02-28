@@ -52,7 +52,7 @@ export class PricingService {
     ): Promise<IApiResponse<PriceBrakeDown>> {
         try {
             console.log('getRoomRentService called with', {
-                propertyId, 
+                propertyId,
                 invTypeCode,
                 startDate,
                 endDate,
@@ -101,7 +101,7 @@ export class PricingService {
                 rooms,
                 Math.ceil(
                     (endDate.getTime() - startDate.getTime()) /
-                        (1000 * 60 * 60 * 24)
+                    (1000 * 60 * 60 * 24)
                 ),
                 adults + (children ? children : 0),
                 startDate,
@@ -143,7 +143,7 @@ export class PricingService {
                     await loyalityDiscountClass.findLoyalityDiscount();
                 // console.log("priceBrakedowns loyality discount price", priceBrakedowns);
             }
-            if(detectedDeviceType&&promoCode){
+            if (detectedDeviceType && promoCode) {
                 const deviceDiscountClass = new PromoCodeDiscountClass(
                     priceBrakedowns,
                     promoCode,
@@ -393,7 +393,7 @@ class BasePriceClass {
                     );
                     const maxAdultCharges =
                         charge.baseGuestAmounts[
-                            charge.baseGuestAmounts.length - 1
+                        charge.baseGuestAmounts.length - 1
                         ];
                     const remainningAdults =
                         this.adults - maxAdultCharges.numberOfGuests;
@@ -632,21 +632,23 @@ class AddOnPriceClass {
             );
             const quantity = userSelectedAddon
                 ? userSelectedAddon.availability.reduce(
-                      (sum, a) => sum + (a.quantity || 1),
-                      0
-                  )
+                    (sum, a) => sum + (a.quantity || 1),
+                    0
+                )
                 : 1;
 
             const avgPrice = perDateTotal / availableEntries.length;
             const totalAmount = avgPrice * quantity;
 
             addonBrakeDown.push({
+                addonId: addon.id,
                 name: addon.name,
                 amount: avgPrice,
                 quantity,
                 totalAmount,
                 currencyCode: addon.availability[0]
                     .currencyCode as CurrencyCode,
+                date: new Date(availableEntries[0].date).toDateString(),
             });
         });
 
@@ -710,12 +712,14 @@ class AddOnPriceClass {
             const totalAmount = avgPrice * quantity;
 
             addonBrakeDown.push({
+                addonId: addon.addon.id,
                 name: addon.addon.name,
                 amount: avgPrice,
                 quantity,
                 totalAmount,
                 currencyCode: addon.addon.availability[0]
                     .currencyCode as CurrencyCode,
+                date: new Date(availableEntries[0].date).toDateString(),
             });
         });
 
@@ -945,7 +949,7 @@ class PromotionClass {
         const todayDate = nowUTC();
         const advanceBookingDays = Math.ceil(
             (this.startDate.getTime() - todayDate.getTime()) /
-                (1000 * 60 * 60 * 24)
+            (1000 * 60 * 60 * 24)
         );
         if (advanceBookingDays >= promotion.advanceBookingDays) {
             if (promotion.discountType == 'percentage') {
@@ -986,7 +990,7 @@ class PromotionClass {
         const todayDate = nowUTC();
         const isOfferForTonightApplicable =
             this.startDate.getTime() - todayDate.getTime() <=
-                1000 * 60 * 60 * 24 &&
+            1000 * 60 * 60 * 24 &&
             this.startDate.getTime() - todayDate.getTime() > 0;
         if (isOfferForTonightApplicable) {
             if (promotion.discountType == 'percentage') {
@@ -1227,7 +1231,7 @@ class PromoCodeDiscountClass {
         if (
             checkIfPromoCodeIsValid.minBookingAmount && //chck for minimum booking amount
             checkIfPromoCodeIsValid.minBookingAmount >
-                this.priceBrakedown.amountBeforeTax
+            this.priceBrakedown.amountBeforeTax
         ) {
             return this.priceBrakedown;
         }
@@ -1239,7 +1243,7 @@ class PromoCodeDiscountClass {
             if (
                 checkIfPromoCodeIsValid.maxDiscountAmount &&
                 promoCodeDiscountAmount >
-                    checkIfPromoCodeIsValid.maxDiscountAmount
+                checkIfPromoCodeIsValid.maxDiscountAmount
             ) {
                 promoCodeDiscountAmount =
                     checkIfPromoCodeIsValid.maxDiscountAmount;
@@ -1255,7 +1259,7 @@ class PromoCodeDiscountClass {
             if (
                 checkIfPromoCodeIsValid.maxDiscountAmount &&
                 promoCodeDiscountAmount >
-                    checkIfPromoCodeIsValid.maxDiscountAmount
+                checkIfPromoCodeIsValid.maxDiscountAmount
             ) {
                 promoCodeDiscountAmount =
                     checkIfPromoCodeIsValid.maxDiscountAmount;

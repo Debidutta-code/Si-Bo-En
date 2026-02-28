@@ -134,7 +134,7 @@ export interface ICustomizableDeal {
     propertyCode: string;
     discountType: DiscountType;
     discountValue: Decimal | null;
-    currencyCode: CurrencyCode|null;
+    currencyCode: CurrencyCode | null;
     isAutoApplied: boolean;
 }
 export interface ICharge {
@@ -171,71 +171,72 @@ export interface IChargeAdditionalGuest {
     ageQualifyingCode: string;
     amount: Decimal;
 }
-export interface ISelectedAddonsS{
-  addOnId:string;
-  availability:{
-    date:Date;
-    quantity:number;
-  }[]
-  
-}
-export interface ISelectedAddonsR{
-  addOnId:string;
-  dates:Date[];
-  
-}
-export interface ISelectedPromotion{
-  id:string;
-  promotionType:"mlos"|"normal"
-  
-}
-export interface PriceBrakeDown{
-    totalAmount:number;
-    amountBeforeTax:number;
-    taxedAmount:number;
-    totalAddonAmount:number;
-    totalPromotionAmount:number;
-    currentChargeableAmount:number;
-    latterpayableAmount:number;
-    promoCodeDiscount:number;
-    currencyCode:CurrencyCode;
-    dailyPriceBrakeDown:DailyPriceBrakeDown[];
-    taxBrakeDown:TaxBrakeDown[];
-    addonBrakeDown:AddOnBrakeDown[];
-    promotionBrakeDown:PromotionBrakeDown[];
-    loyalityDiscount:number;
-    
-}
-export interface DailyPriceBrakeDown {
-    date:string;
-    baseChargesAmount:number;
-    additionalChargesAmount:number;
-    taxBrakeDown:TaxBrakeDown[];
-    addOnBrakeDown:AddOnBrakeDown[];
-    totalAmount:number;
-    currencyCode:CurrencyCode;
-    totalDailyTaxedAmount:number;
-    
-}
-export interface TaxBrakeDown{
-    name:string;
-    taxedAmount:number; 
-    currencyCode:CurrencyCode;   
-}
-export interface AddOnBrakeDown{
-    name:string;
-    amount:number;
-    quantity:number;
-    totalAmount:number;
-    currencyCode:CurrencyCode;
+export interface ISelectedAddonsS {
+    addOnId: string;
+    availability: {
+        date: Date;
+        quantity: number;
+    }[]
 
 }
-export interface PromotionBrakeDown{
-    name:string;
-    discountType:DiscountType;
-    discountValue:number;
-    currencyCode:CurrencyCode|null;
-    discountAmount:number;
-    restrictionType:"increase" | "decrease"|"payLater"
-    
+export interface ISelectedAddonsR {
+    addOnId: string;
+    dates: Date[];
+
+}
+export interface ISelectedPromotion {
+    id: string;
+    promotionType: "mlos" | "normal"
+
+}
+export interface PriceBrakeDown {
+    totalAmount: number;
+    amountBeforeTax: number;
+    taxedAmount: number;
+    totalAddonAmount: number;
+    totalPromotionAmount: number;
+    currentChargeableAmount: number;
+    latterpayableAmount: number;
+    promoCodeDiscount: number;
+    currencyCode: CurrencyCode;
+    dailyPriceBrakeDown: DailyPriceBrakeDown[];
+    taxBrakeDown: TaxBrakeDown[];
+    addonBrakeDown: AddOnBrakeDown[];
+    promotionBrakeDown: PromotionBrakeDown[];
+    loyalityDiscount: number;
+
+}
+export interface DailyPriceBrakeDown {
+    date: string;
+    baseChargesAmount: number;
+    additionalChargesAmount: number;
+    taxBrakeDown: TaxBrakeDown[];
+    addOnBrakeDown: AddOnBrakeDown[];
+    totalAmount: number;
+    currencyCode: CurrencyCode;
+    totalDailyTaxedAmount: number;
+
+}
+export interface TaxBrakeDown {
+    name: string;
+    taxedAmount: number;
+    currencyCode: CurrencyCode;
+}
+export interface AddOnBrakeDown {
+    addonId: string;
+    name: string;
+    amount: number;
+    quantity: number;
+    totalAmount: number;
+    currencyCode: CurrencyCode;
+    date: string;
+}
+export interface PromotionBrakeDown {
+    name: string;
+    discountType: DiscountType;
+    discountValue: number;
+    currencyCode: CurrencyCode | null;
+    discountAmount: number;
+    restrictionType: "increase" | "decrease" | "payLater"
+
 }
