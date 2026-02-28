@@ -21,7 +21,7 @@ export async function sendEmail(to: string,cc: string[], subject: string, htmlCo
 
     try {
         await transporter.sendMail(mailOptions);
-        //console.log("Email sent successfully");
+        console.log("Email sent successfully");
         return true;
     } catch (error) {
         console.error("Error sending email:", error);

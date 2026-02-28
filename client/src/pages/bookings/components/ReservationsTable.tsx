@@ -1,7 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { MoreVertical, Eye, Edit, XCircle, X, AlertTriangle, EyeOff, FileText } from "lucide-react";
+import {
+  MoreVertical,
+  Eye,
+  Edit,
+  XCircle,
+  X,
+  AlertTriangle,
+  EyeOff,
+  FileText,
+} from "lucide-react";
 import {
   Table,
   TableBody,
@@ -20,8 +29,8 @@ import type { IReservation } from "../types";
 import ReservationCard from "./ReservationCard";
 import NoShowConfirmationModal from "./NoShowModal";
 import {
-  // downloadBookingInvoice, 
-  downloadBookingVoucher
+  // downloadBookingInvoice,
+  downloadBookingVoucher,
 } from "../api/reservation.api";
 import toast from "react-hot-toast";
 import AmendReservationModal from "./Amendreservationmodal";
@@ -64,7 +73,7 @@ function CancelConfirmationModal({
   reservation,
   onConfirm,
   onCancel,
-  isLoading
+  isLoading,
 }: CancelConfirmationModalProps) {
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
@@ -95,7 +104,8 @@ function CancelConfirmationModal({
                 </div>
               </div>
               <p className="text-xs text-muted-foreground">
-                This action cannot be undone. The guest will be notified of the cancellation.
+                This action cannot be undone. The guest will be notified of the
+                cancellation.
               </p>
             </div>
           </div>
@@ -133,11 +143,15 @@ export default function ReservationsTable({
   onCancel,
   onNoShow,
 }: ReservationsTableProps) {
-  const [selectedReservation, setSelectedReservation] = useState<IReservation | null>(null);
-  const [reservationToCancel, setReservationToCancel] = useState<IReservation | null>(null);
-  const [reservationToAmend, setReservationToAmend] = useState<IReservation | null>(null);
+  const [selectedReservation, setSelectedReservation] =
+    useState<IReservation | null>(null);
+  const [reservationToCancel, setReservationToCancel] =
+    useState<IReservation | null>(null);
+  const [reservationToAmend, setReservationToAmend] =
+    useState<IReservation | null>(null);
   const [isCancelling, setIsCancelling] = useState(false);
-  const [reservationToNoShow, setReservationToNoShow] = useState<IReservation | null>(null);
+  const [reservationToNoShow, setReservationToNoShow] =
+    useState<IReservation | null>(null);
   const [isMarkingNoShow, setIsMarkingNoShow] = useState(false);
   const formatDate = (dateString: string) => {
     try {
@@ -171,8 +185,9 @@ export default function ReservationsTable({
 
     return (
       <span
-        className={`inline-flex px-1 py-0 text-[10px] font-medium rounded uppercase ${variants[statusLower] || "bg-muted text-muted-foreground"
-          }`}
+        className={`inline-flex px-1 py-0 text-[10px] font-medium rounded uppercase ${
+          variants[statusLower] || "bg-muted text-muted-foreground"
+        }`}
       >
         {formatStatusLabel(status)}
       </span>
@@ -180,10 +195,11 @@ export default function ReservationsTable({
   };
 
   const calculateRooms = (reservation: IReservation) => {
-    if (reservation.priceBreakdowns && reservation.priceBreakdowns.length > 0) {
-      return reservation.priceBreakdowns[0].requestedRooms || 0;
-    }
-    return 0;
+    return (
+      reservation.finalPrice?.requestedRooms ??
+      reservation.priceBreakdowns?.[0]?.requestedRooms ??
+      1
+    );
   };
 
   const handleViewDetails = (reservation: IReservation) => {
@@ -308,12 +324,21 @@ export default function ReservationsTable({
                 </TableCell>
                 <TableCell>{formatDate(reservation.checkInDate)}</TableCell>
                 <TableCell>{formatDate(reservation.checkOutDate)}</TableCell>
-                <TableCell>{getStatusBadge(reservation.bookingStatus)}</TableCell>
+                <TableCell>
+                  {getStatusBadge(reservation.bookingStatus)}
+                </TableCell>
                 <TableCell className="uppercase text-[12px]">
                   {reservation.bookingSource}
                 </TableCell>
-                <TableCell>{reservation.finalPrice?.totalAmount}</TableCell>
-                <TableCell>{reservation.finalPrice?.totalAmount - reservation.finalPrice?.totalTax}</TableCell>
+                <TableCell>
+                  {" "}
+                  {reservation.finalPrice?.totalAmount?.toFixed(2) ?? "—"}
+                </TableCell>
+                <TableCell>
+                  {( (reservation.finalPrice?.totalAmount ?? 0) -
+                      (reservation.finalPrice?.totalTaxAmount ?? 0)
+                  ).toFixed(2)}
+                </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -330,7 +355,9 @@ export default function ReservationsTable({
                         View Details
                       </DropdownMenuItem>
                       <DropdownMenuItem
-                        onClick={() => handleDownloadVoucher(reservation.bookingCode)}
+                        onClick={() =>
+                          handleDownloadVoucher(reservation.bookingCode)
+                        }
                         className="cursor-pointer"
                       >
                         <FileText className="w-4 h-4 mr-3" />
@@ -350,7 +377,9 @@ export default function ReservationsTable({
                         <Edit className="w-4 h-4 mr-3" />
                         Amend
                       </DropdownMenuItem>
-                      {!["cancelled", "no_show"].includes(reservation.bookingStatus) && (
+                      {!["cancelled", "no_show"].includes(
+                        reservation.bookingStatus,
+                      ) && (
                         <DropdownMenuItem
                           onClick={() => handleNoShowClick(reservation)}
                           className="cursor-pointer text-destructive focus:text-destructive"
@@ -359,7 +388,9 @@ export default function ReservationsTable({
                           No Show
                         </DropdownMenuItem>
                       )}
-                      {!["cancelled", "no_show"].includes(reservation.bookingStatus) && (
+                      {!["cancelled", "no_show"].includes(
+                        reservation.bookingStatus,
+                      ) && (
                         <DropdownMenuItem
                           onClick={() => handleCancelClick(reservation)}
                           className="cursor-pointer text-destructive focus:text-destructive"
@@ -368,8 +399,6 @@ export default function ReservationsTable({
                           Cancel
                         </DropdownMenuItem>
                       )}
-
-
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

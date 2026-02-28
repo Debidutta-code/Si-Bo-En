@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { 
-  Calendar, 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
+import {
+  Calendar,
+  User,
+  Mail,
+  Phone,
+  MapPin,
   Clock,
   CheckCircle,
   XCircle,
@@ -14,7 +14,7 @@ import {
   Edit,
   Trash2,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
 } from "lucide-react";
 import type { IReservation } from "../types";
 import { format } from "date-fns";
@@ -26,37 +26,37 @@ interface ReservationCardProps {
   onAmend?: (reservationId: string) => void;
 }
 
-export default function ReservationCard({ 
-  reservation, 
-  onCancel, 
-  onAmend 
+export default function ReservationCard({
+  reservation,
+  onCancel,
+  onAmend,
 }: ReservationCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'confirmed':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'cancelled':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'modified':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
+      case "confirmed":
+        return "bg-green-100 text-green-800 border-green-200";
+      case "pending":
+        return "bg-yellow-100 text-yellow-800 border-yellow-200";
+      case "cancelled":
+        return "bg-red-100 text-red-800 border-red-200";
+      case "modified":
+        return "bg-blue-100 text-blue-800 border-blue-200";
       default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        return "bg-gray-100 text-gray-800 border-gray-200";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'confirmed':
+      case "confirmed":
         return <CheckCircle className="w-4 h-4" />;
-      case 'pending':
+      case "pending":
         return <Clock className="w-4 h-4" />;
-      case 'cancelled':
+      case "cancelled":
         return <XCircle className="w-4 h-4" />;
-      case 'modified':
+      case "modified":
         return <AlertCircle className="w-4 h-4" />;
       default:
         return null;
@@ -65,7 +65,7 @@ export default function ReservationCard({
 
   const formatDate = (dateString: string) => {
     try {
-      return format(new Date(dateString), 'MMM dd, yyyy');
+      return format(new Date(dateString), "MMM dd, yyyy");
     } catch {
       return dateString;
     }
@@ -74,7 +74,9 @@ export default function ReservationCard({
   const calculateNights = () => {
     const checkIn = new Date(reservation.checkInDate);
     const checkOut = new Date(reservation.checkOutDate);
-    const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+    const nights = Math.ceil(
+      (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24),
+    );
     return nights;
   };
 
@@ -88,7 +90,9 @@ export default function ReservationCard({
               <h3 className="text-lg font-semibold text-gray-900">
                 {reservation.bookingCode}
               </h3>
-              <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(reservation.bookingStatus)}`}>
+              <span
+                className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(reservation.bookingStatus)}`}
+              >
                 {getStatusIcon(reservation.bookingStatus)}
                 {reservation.bookingStatus.toUpperCase()}
               </span>
@@ -97,9 +101,9 @@ export default function ReservationCard({
               {reservation.property?.propertyName || reservation.hotelName}
             </p>
           </div>
-          
+
           <div className="flex items-center gap-2">
-            {reservation.bookingStatus === 'confirmed' && (
+            {reservation.bookingStatus === "confirmed" && (
               <>
                 <Button
                   onClick={() => onAmend?.(reservation.id)}
@@ -129,12 +133,15 @@ export default function ReservationCard({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Guest Information */}
           <div>
-            <h4 className="text-sm font-semibold text-gray-900 mb-3">Guest Information</h4>
+            <h4 className="text-sm font-semibold text-gray-900 mb-3">
+              Guest Information
+            </h4>
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <User className="w-4 h-4 flex-shrink-0" />
                 <span>
-                  {reservation.primaryGuest?.firstName} {reservation.primaryGuest?.lastName}
+                  {reservation.primaryGuest?.firstName}{" "}
+                  {reservation.primaryGuest?.lastName}
                 </span>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -156,18 +163,22 @@ export default function ReservationCard({
 
           {/* Booking Details */}
           <div>
-            <h4 className="text-sm font-semibold text-gray-900 mb-3">Booking Details</h4>
+            <h4 className="text-sm font-semibold text-gray-900 mb-3">
+              Booking Details
+            </h4>
             <div className="space-y-2">
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Calendar className="w-4 h-4 flex-shrink-0" />
                 <span>
-                  Check-in: <strong>{formatDate(reservation.checkInDate)}</strong>
+                  Check-in:{" "}
+                  <strong>{formatDate(reservation.checkInDate)}</strong>
                 </span>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Calendar className="w-4 h-4 flex-shrink-0" />
                 <span>
-                  Check-out: <strong>{formatDate(reservation.checkOutDate)}</strong>
+                  Check-out:{" "}
+                  <strong>{formatDate(reservation.checkOutDate)}</strong>
                 </span>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -194,11 +205,12 @@ export default function ReservationCard({
               </p>
               {reservation.paidAmount > 0 && (
                 <p className="text-sm text-green-600 mt-1">
-                  Paid: {reservation.currencyCode} {reservation.paidAmount.toFixed(2)}
+                  Paid: {reservation.currencyCode}{" "}
+                  {reservation.paidAmount.toFixed(2)}
                 </p>
               )}
             </div>
-            
+
             <Button
               onClick={() => setIsExpanded(!isExpanded)}
               variant="ghost"
@@ -223,37 +235,191 @@ export default function ReservationCard({
         {isExpanded && (
           <div className="mt-6 pt-6 border-t border-gray-100 space-y-4 animate-in slide-in-from-top duration-200">
             {/* Price Breakdown */}
-            {reservation.priceBreakdowns && reservation.priceBreakdowns.length > 0 && (
+            {reservation.finalPrice && (
               <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-2">Price Breakdown</h4>
+                <h4 className="text-sm font-semibold text-gray-900 mb-2">
+                  Price Breakdown
+                </h4>
                 <div className="bg-gray-50 rounded-md p-4 space-y-2 text-sm">
+                  {/* Base Rate */}
                   <div className="flex justify-between">
                     <span className="text-gray-600">Base Rate per Night:</span>
                     <span className="font-medium">
-                      {reservation.currencyCode} {reservation.priceBreakdowns[0].baseRatePerNight}
+                      {reservation.currencyCode}{" "}
+                      {reservation.finalPrice?.baseRatePerNight?.toFixed(2)}
                     </span>
                   </div>
+
+                  {/* Nights */}
                   <div className="flex justify-between">
                     <span className="text-gray-600">Number of Nights:</span>
-                    <span className="font-medium">{reservation.priceBreakdowns[0].numberOfNights}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Additional Charges:</span>
                     <span className="font-medium">
-                      {reservation.currencyCode} {reservation.priceBreakdowns[0].additionalGuestCharges}
+                      {reservation.finalPrice?.numberOfNights}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Tax:</span>
-                    <span className="font-medium">
-                      {reservation.currencyCode} {Number(reservation.priceBreakdowns[0].totalTax).toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between pt-2 border-t border-gray-200">
-                    <span className="text-gray-900 font-semibold">Total:</span>
-                    <span className="font-bold text-gray-900">
-                      {reservation.currencyCode} {Number(reservation.priceBreakdowns[0].totalAmount).toFixed(2)}
-                    </span>
+
+                  {/* Daily Breakdown */}
+                  {reservation.finalPrice?.dailyBreakdown?.length > 0 && (
+                    <div className="pt-2 border-t border-gray-200">
+                      <p className="text-gray-700 font-medium mb-2">
+                        Daily Breakdown:
+                      </p>
+                      {reservation.finalPrice.dailyBreakdown.map(
+                        (day: any, index: number) => (
+                          <div key={index} className="pl-3 mb-2">
+                            <div className="flex justify-between text-gray-600">
+                              <span>
+                                {day.date} ({day.dayOfWeek})
+                              </span>
+                              <span>
+                                {reservation.currencyCode}{" "}
+                                {day.baseRate?.toFixed(2)}
+                              </span>
+                            </div>
+                            {/* Daily taxes */}
+                            {day.taxBrakeDown?.map((tax: any, i: number) => (
+                              <div
+                                key={i}
+                                className="flex justify-between text-gray-500 pl-3 text-xs"
+                              >
+                                <span>{tax.name}:</span>
+                                <span>
+                                  {reservation.currencyCode}{" "}
+                                  {tax.taxedAmount?.toFixed(2)}
+                                </span>
+                              </div>
+                            ))}
+                            <div className="flex justify-between text-gray-700 font-medium pl-3">
+                              <span>Day Total:</span>
+                              <span>
+                                {reservation.currencyCode}{" "}
+                                {day.totalAmount?.toFixed(2)}
+                              </span>
+                            </div>
+                          </div>
+                        ),
+                      )}
+                    </div>
+                  )}
+
+                  {/* Add-ons */}
+                  {reservation.finalPrice?.addonBrakeDown?.length > 0 && (
+                    <div className="pt-2 border-t border-gray-200">
+                      <p className="text-gray-700 font-medium mb-2">Add-ons:</p>
+                      {reservation.finalPrice.addonBrakeDown.map(
+                        (addon: any, index: number) => (
+                          <div
+                            key={index}
+                            className="flex justify-between text-gray-600 pl-3"
+                          >
+                            <span>
+                              {addon.name} × {addon.quantity}
+                            </span>
+                            <span>
+                              {reservation.currencyCode}{" "}
+                              {addon.totalAmount?.toFixed(2)}
+                            </span>
+                          </div>
+                        ),
+                      )}
+                    </div>
+                  )}
+
+                  {/* Tax Summary */}
+                  {reservation.finalPrice?.taxBrakeDown?.length > 0 && (
+                    <div className="pt-2 border-t border-gray-200">
+                      <p className="text-gray-700 font-medium mb-2">
+                        Tax Summary:
+                      </p>
+                      {reservation.finalPrice.taxBrakeDown.map(
+                        (tax: any, index: number) => (
+                          <div
+                            key={index}
+                            className="flex justify-between text-gray-600 pl-3"
+                          >
+                            <span>{tax.name}:</span>
+                            <span>
+                              {reservation.currencyCode}{" "}
+                              {tax.taxedAmount?.toFixed(2)}
+                            </span>
+                          </div>
+                        ),
+                      )}
+                      <div className="flex justify-between text-gray-700 font-medium pl-3 mt-1">
+                        <span>Total Tax:</span>
+                        <span>
+                          {reservation.currencyCode}{" "}
+                          {reservation.finalPrice?.totalTaxAmount?.toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Loyalty Discount */}
+                  {reservation.finalPrice?.loyalityDiscount > 0 && (
+                    <div className="flex justify-between text-green-600 pt-2 border-t border-gray-200">
+                      <span>Loyalty Discount:</span>
+                      <span>
+                        - {reservation.currencyCode}{" "}
+                        {reservation.finalPrice.loyalityDiscount?.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Promo Discount */}
+                  {reservation.finalPrice?.promoCodeDiscount > 0 && (
+                    <div className="flex justify-between text-green-600">
+                      <span>Promo Discount:</span>
+                      <span>
+                        - {reservation.currencyCode}{" "}
+                        {reservation.finalPrice.promoCodeDiscount?.toFixed(2)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Totals */}
+                  {/* Totals */}
+                  <div className="pt-2 border-t border-gray-200 space-y-1">
+                    {/* Add this - Addon total line */}
+                    {(reservation.finalPrice?.totalAddonAmount ?? 0) > 0 && (
+                      <div className="flex justify-between text-gray-600">
+                        <span>Add-ons Total:</span>
+                        <span>
+                          {reservation.currencyCode}{" "}
+                          {reservation.finalPrice?.totalAddonAmount?.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Add this - Tax total line */}
+                    {(reservation.finalPrice?.totalTaxAmount ?? 0) > 0 && (
+                      <div className="flex justify-between text-gray-600">
+                        <span>Total Tax:</span>
+                        <span>
+                          {reservation.currencyCode}{" "}
+                          {reservation.finalPrice?.totalTaxAmount?.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+
+                    <div className="flex justify-between text-gray-600">
+                      <span>Amount (Excl. Tax):</span>
+                      <span>
+                        {reservation.currencyCode}{" "}
+                        {(
+                          (reservation.finalPrice?.totalAmount ?? 0) -
+                          (reservation.finalPrice?.totalTaxAmount ?? 0)
+                        ).toFixed(2)}
+                      </span>
+                    </div>
+
+                    <div className="flex justify-between font-bold text-gray-900 text-base pt-1 border-t border-gray-200">
+                      <span>Total (Incl. Tax):</span>
+                      <span>
+                        {reservation.currencyCode}{" "}
+                        {reservation.finalPrice?.totalAmount?.toFixed(2)}
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -264,16 +430,20 @@ export default function ReservationCard({
               <div>
                 <span className="text-gray-600">Payment Method:</span>
                 <p className="font-medium text-gray-900 mt-1 capitalize">
-                  {reservation.paymentMethod.replace(/_/g, ' ')}
+                  {reservation.paymentMethod.replace(/_/g, " ")}
                 </p>
               </div>
               <div>
                 <span className="text-gray-600">Booking Source:</span>
-                <p className="font-medium text-gray-900 mt-1 uppercase">{reservation.bookingSource}</p>
+                <p className="font-medium text-gray-900 mt-1 uppercase">
+                  {reservation.bookingSource}
+                </p>
               </div>
               <div>
                 <span className="text-gray-600">Booked At:</span>
-                <p className="font-medium text-gray-900 mt-1">{formatDate(reservation.bookedAt)}</p>
+                <p className="font-medium text-gray-900 mt-1">
+                  {formatDate(reservation.bookedAt)}
+                </p>
               </div>
               {reservation.isPromoUsed && (
                 <div>
@@ -286,14 +456,21 @@ export default function ReservationCard({
             {/* Guest List */}
             {reservation.guests && reservation.guests.length > 0 && (
               <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-2">All Guests</h4>
+                <h4 className="text-sm font-semibold text-gray-900 mb-2">
+                  All Guests
+                </h4>
                 <div className="space-y-2">
                   {reservation.guests.map((guest: any, index: number) => (
-                    <div key={index} className="flex items-center justify-between text-sm bg-gray-50 p-3 rounded-md">
+                    <div
+                      key={index}
+                      className="flex items-center justify-between text-sm bg-gray-50 p-3 rounded-md"
+                    >
                       <span className="font-medium">
                         {guest.firstName} {guest.lastName}
                       </span>
-                      <span className="text-gray-600 capitalize">{guest.type || guest.userType}</span>
+                      <span className="text-gray-600 capitalize">
+                        {guest.type || guest.userType}
+                      </span>
                     </div>
                   ))}
                 </div>

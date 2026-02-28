@@ -7,137 +7,165 @@ import { RoomJoinedResponse } from '../types';
 import redis from '../../config/redis.client';
 
 export class SocketEventHandlers {
-  constructor(private connectionManager: ConnectionManager) { }
+    constructor(private connectionManager: ConnectionManager) {}
 
-  /**
-   * Normalize orderReference: strip any accidental 'payment:' prefix.
-   * Whether the frontend sends 'payment:REF-123' or just 'REF-123',
-   * we always store and track the raw orderReference.
-   */
-  private normalizeOrderReference(input: string): string {
-    const prefix = `${ROOM_PREFIX.PAYMENT}:`;
-    return input.startsWith(prefix) ? input.slice(prefix.length) : input;
-  }
-
-  /**
-   * Generate room name from order reference (always from raw ref)
-   */
-  private getRoomName(orderReference: string): string {
-    return `${ROOM_PREFIX.PAYMENT}:${orderReference}`;
-  }
-
-  /**
-   * Handle join-payment-room event
-   * Accepts both:
-   *   - 'REF-123'           (your N-Genius flow)
-   *   - 'payment:REF-123'   (her Fikafi frontend sends prefixed)
-   */
-  async handleJoinPaymentRoom(socket: Socket, rawInput: string): Promise<void> {
-    if (!rawInput) {
-      console.error('❌ join-payment-room: orderReference missing');
-      socket.emit('error', { message: 'Order reference is required' });
-      return;
+    /**
+     * Normalize orderReference: strip any accidental 'payment:' prefix.
+     * Whether the frontend sends 'payment:REF-123' or just 'REF-123',
+     * we always store and track the raw orderReference.
+     */
+    private normalizeOrderReference(input: string): string {
+        const prefix = `${ROOM_PREFIX.PAYMENT}:`;
+        return input.startsWith(prefix) ? input.slice(prefix.length) : input;
     }
 
-    const orderReference = this.normalizeOrderReference(rawInput);
-    const room = this.getRoomName(orderReference);
-
-    await socket.join(room);
-
-    this.connectionManager.addConnection(orderReference, socket.id);
-
-    console.log(`📌 Socket ${socket.id} joined room: ${room} (orderRef: ${orderReference})`);
-
-    const response: RoomJoinedResponse = {
-      orderReference,
-      message: 'Successfully joined payment room',
-    };
-
-    socket.emit(SOCKET_EVENTS.ROOM_JOINED, response);
-
-    // Check if payment was already confirmed while client was away
-    // Use GETDEL for atomic get + delete - prevents double delivery
-    const cached = await redis.getdel(`payment:confirmed:${orderReference}`);
-    if (cached) {
-      console.log(`🔑 Redis cache hit for ${orderReference} - emitting immediately`);
-      const paymentData = JSON.parse(cached);
-
-      // Universal mapping logic to handle native statuses and Fikafi developer's statuses
-      const rawStatus = paymentData.status || 'success';
-      const successStates = ['success', 'PAID', 'SUCCESS', 'COMPLETED', 'APPROVED', 'CONFIRMED'];
-      const failedStates = ['failed', 'FAILED', 'DECLINED', 'CANCELLED'];
-
-      const status = successStates.includes(rawStatus) ? 'success' : (failedStates.includes(rawStatus) ? 'failed' : 'pending');
-
-      socket.emit('payment-status-update', {
-        orderReference,
-        eventName: paymentData.eventName || 'payment-status-update',
-        status,
-        message: paymentData.message || (status === 'failed' ? 'Payment failed' : 'Payment successful'),
-        paymentDetails: paymentData.paymentDetails || paymentData,
-      });
-    }
-  }
-
-  /**
-   * Handle leave-payment-room event
-   */
-  handleLeavePaymentRoom(socket: Socket, rawInput: string): void {
-    if (!rawInput) {
-      console.error('❌ leave-payment-room: orderReference missing');
-      return;
+    /**
+     * Generate room name from order reference (always from raw ref)
+     */
+    private getRoomName(orderReference: string): string {
+        return `${ROOM_PREFIX.PAYMENT}:${orderReference}`;
     }
 
-    const orderReference = this.normalizeOrderReference(rawInput);
-    const room = this.getRoomName(orderReference);
+    /**
+     * Handle join-payment-room event
+     * Accepts both:
+     *   - 'REF-123'           (your N-Genius flow)
+     *   - 'payment:REF-123'   (her Fikafi frontend sends prefixed)
+     */
+    async handleJoinPaymentRoom(
+        socket: Socket,
+        rawInput: string
+    ): Promise<void> {
+        if (!rawInput) {
+            console.error('❌ join-payment-room: orderReference missing');
+            socket.emit('error', { message: 'Order reference is required' });
+            return;
+        }
 
-    socket.leave(room);
+        const orderReference = this.normalizeOrderReference(rawInput);
+        const room = this.getRoomName(orderReference);
 
-    this.connectionManager.removeConnection(orderReference, socket.id);
+        await socket.join(room);
 
-    console.log(`📌 Socket ${socket.id} left room: ${room}`);
-  }
+        this.connectionManager.addConnection(orderReference, socket.id);
 
-  /**
-   * Handle socket disconnect
-   */
-  handleDisconnect(socket: Socket, reason: string): void {
-    console.log(`🔌 Client disconnected: ${socket.id} (${reason})`);
-    this.connectionManager.removeSocketFromAll(socket.id);
-  }
+        console.log(
+            `📌 Socket ${socket.id} joined room: ${room} (orderRef: ${orderReference})`
+        );
 
-  /**
-   * Handle socket errors
-   */
-  handleError(socket: Socket, error: Error): void {
-    console.error(`❌ Socket error [${socket.id}]:`, error);
-  }
+        const response: RoomJoinedResponse = {
+            orderReference,
+            message: 'Successfully joined payment room',
+        };
 
-  /**
-   * Handle new connection
-   */
-  handleConnection(socket: Socket): void {
-    console.log(`🔌 Client connected: ${socket.id}`);
+        socket.emit(SOCKET_EVENTS.ROOM_JOINED, response);
 
-    // Register event listeners
-    socket.on(
-      SOCKET_EVENTS.JOIN_PAYMENT_ROOM,
-      (rawInput: string) => this.handleJoinPaymentRoom(socket, rawInput)
-    );
+        // Check if payment was already confirmed while client was away
+        // Use GETDEL for atomic get + delete - prevents double delivery
+        let cached: string | null = null;
 
-    socket.on(
-      SOCKET_EVENTS.LEAVE_PAYMENT_ROOM,
-      (rawInput: string) => this.handleLeavePaymentRoom(socket, rawInput)
-    );
+        try {
+            cached = await redis.get(`payment:confirmed:${orderReference}`);
+            if (cached) {
+                await redis.del(`payment:confirmed:${orderReference}`);
+            }
+        } catch (err) {
+            console.error('Redis error in join-payment-room:', err);
+        }
 
-    socket.on(
-      SOCKET_EVENTS.DISCONNECT,
-      (reason: string) => this.handleDisconnect(socket, reason)
-    );
+        if (cached) {
+            console.log(
+                `🔑 Redis cache hit for ${orderReference} - emitting immediately`
+            );
+            const paymentData = JSON.parse(cached);
 
-    socket.on(
-      SOCKET_EVENTS.ERROR,
-      (error: Error) => this.handleError(socket, error)
-    );
-  }
+            // Universal mapping logic to handle native statuses and Fikafi developer's statuses
+            const rawStatus = paymentData.status || 'success';
+            const successStates = [
+                'success',
+                'PAID',
+                'SUCCESS',
+                'COMPLETED',
+                'APPROVED',
+                'CONFIRMED',
+            ];
+            const failedStates = ['failed', 'FAILED', 'DECLINED', 'CANCELLED'];
+
+            const status = successStates.includes(rawStatus)
+                ? 'success'
+                : failedStates.includes(rawStatus)
+                  ? 'failed'
+                  : 'pending';
+
+            socket.emit('payment-status-update', {
+                orderReference,
+                eventName: paymentData.eventName || 'payment-status-update',
+                status,
+                message:
+                    paymentData.message ||
+                    (status === 'failed'
+                        ? 'Payment failed'
+                        : 'Payment successful'),
+                paymentDetails: paymentData.paymentDetails || paymentData,
+            });
+        }
+    }
+
+    /**
+     * Handle leave-payment-room event
+     */
+    handleLeavePaymentRoom(socket: Socket, rawInput: string): void {
+        if (!rawInput) {
+            console.error('❌ leave-payment-room: orderReference missing');
+            return;
+        }
+
+        const orderReference = this.normalizeOrderReference(rawInput);
+        const room = this.getRoomName(orderReference);
+
+        socket.leave(room);
+
+        this.connectionManager.removeConnection(orderReference, socket.id);
+
+        console.log(`📌 Socket ${socket.id} left room: ${room}`);
+    }
+
+    /**
+     * Handle socket disconnect
+     */
+    handleDisconnect(socket: Socket, reason: string): void {
+        console.log(`🔌 Client disconnected: ${socket.id} (${reason})`);
+        this.connectionManager.removeSocketFromAll(socket.id);
+    }
+
+    /**
+     * Handle socket errors
+     */
+    handleError(socket: Socket, error: Error): void {
+        console.error(`❌ Socket error [${socket.id}]:`, error);
+    }
+
+    /**
+     * Handle new connection
+     */
+    handleConnection(socket: Socket): void {
+        console.log(`🔌 Client connected: ${socket.id}`);
+
+        // Register event listeners
+        socket.on(SOCKET_EVENTS.JOIN_PAYMENT_ROOM, (rawInput: string) =>
+            this.handleJoinPaymentRoom(socket, rawInput)
+        );
+
+        socket.on(SOCKET_EVENTS.LEAVE_PAYMENT_ROOM, (rawInput: string) =>
+            this.handleLeavePaymentRoom(socket, rawInput)
+        );
+
+        socket.on(SOCKET_EVENTS.DISCONNECT, (reason: string) =>
+            this.handleDisconnect(socket, reason)
+        );
+
+        socket.on(SOCKET_EVENTS.ERROR, (error: Error) =>
+            this.handleError(socket, error)
+        );
+    }
 }
