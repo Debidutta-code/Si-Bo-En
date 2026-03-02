@@ -407,7 +407,7 @@ export const ACTIVITY_LOGGER_ROUTES: RoutePattern[] = [
     },
     {
         pattern: /\/api\/v1\/ari\/inventory\/map\/rateplan\/[^/]+$/,
-        method: 'POST',
+        method: 'PUT',
         config: createSimpleConfig(
             ActivityAction.UPDATE,
             ActivityEntity.INVENTORY,
@@ -1241,6 +1241,158 @@ export const ACTIVITY_LOGGER_ROUTES: RoutePattern[] = [
         pattern: /\/api\/v1\/create\/toggleDraft\/[^/]+$/,
         method: 'PUT',
         config: createToggleStatusConfig(ActivityEntity.CREATION, 'creation draft')
+    },
+
+    // ==================== BOOKING OFFSET ====================
+    {
+        pattern: /\/api\/v1\/ari\/booking-offset\/[^/]+$/,
+        method: 'POST',
+        config: createSimpleConfig(
+            ActivityAction.CREATE,
+            ActivityEntity.INVENTORY,
+            (success) => success ? 'Booking offset created successfully' : 'Failed to create booking offset',
+            ['booking-offset', 'ari', 'create']
+        )
+    },
+    {
+        pattern: /\/api\/v1\/ari\/booking-offset\/[^/]+$/,
+        method: 'PUT',
+        config: createSimpleConfig(
+            ActivityAction.UPDATE,
+            ActivityEntity.INVENTORY,
+            (success) => success ? 'Booking offset updated successfully' : 'Failed to update booking offset',
+            ['booking-offset', 'ari', 'update']
+        )
+    },
+    {
+        pattern: /\/api\/v1\/ari\/booking-offset\/[^/]+$/,
+        method: 'DELETE',
+        config: createSimpleConfig(
+            ActivityAction.DELETE,
+            ActivityEntity.INVENTORY,
+            (success) => success ? 'Booking offset deleted successfully' : 'Failed to delete booking offset',
+            ['booking-offset', 'ari', 'delete']
+        )
+    },
+    {
+        pattern: /\/api\/v1\/ari\/booking-offset\/[^/]+$/,
+        method: 'PATCH',
+        config: {
+            ...createSimpleConfig(
+                ActivityAction.UPDATE,
+                ActivityEntity.INVENTORY,
+                (success) => success ? 'Booking offset upserted successfully' : 'Failed to upsert booking offset',
+                ['booking-offset', 'ari', 'upsert']
+            ),
+            shouldLog: logOnlySuccess
+        }
+    },
+    {
+        pattern: /\/api\/v1\/ari\/booking-offset\/single\/[^/]+$/,
+        method: 'PUT',
+        config: createSimpleConfig(
+            ActivityAction.UPDATE,
+            ActivityEntity.INVENTORY,
+            (success) => success ? 'Booking offset record updated' : 'Failed to update booking offset record',
+            ['booking-offset', 'ari', 'update-single']
+        )
+    },
+    {
+        pattern: /\/api\/v1\/ari\/booking-offset\/single\/[^/]+$/,
+        method: 'DELETE',
+        config: createSimpleConfig(
+            ActivityAction.DELETE,
+            ActivityEntity.INVENTORY,
+            (success) => success ? 'Booking offset record deleted' : 'Failed to delete booking offset record',
+            ['booking-offset', 'ari', 'delete-single']
+        )
+    },
+
+    // ==================== PROPERTY INTEGRATION ====================
+    {
+        pattern: /\/api\/v1\/property-management\/property\/integration$/,
+        method: 'POST',
+        config: createSimpleConfig(
+            ActivityAction.CREATE,
+            ActivityEntity.PROPERTY,
+            (success) => success ? 'Property integration created successfully' : 'Failed to create property integration',
+            ['property', 'integration', 'create']
+        )
+    },
+    {
+        pattern: /\/api\/v1\/property-management\/property\/integration\/[^/]+$/,
+        method: 'PATCH',
+        config: createSimpleConfig(
+            ActivityAction.UPDATE,
+            ActivityEntity.PROPERTY,
+            (success) => success ? 'Property integration status updated' : 'Failed to update property integration status',
+            ['property', 'integration', 'status', 'update']
+        )
+    },
+    {
+        pattern: /\/api\/v1\/property-management\/property\/integration\/[^/]+$/,
+        method: 'DELETE',
+        config: createSimpleConfig(
+            ActivityAction.DELETE,
+            ActivityEntity.PROPERTY,
+            (success) => success ? 'Property integration deleted' : 'Failed to delete property integration',
+            ['property', 'integration', 'delete']
+        )
+    },
+    {
+        pattern: /\/api\/v1\/property-management\/property\/integration\/field\/[^/]+$/,
+        method: 'POST',
+        config: createSimpleConfig(
+            ActivityAction.CREATE,
+            ActivityEntity.PROPERTY,
+            (success) => success ? 'Integration field added successfully' : 'Failed to add integration field',
+            ['property', 'integration', 'field', 'create']
+        )
+    },
+    {
+        pattern: /\/api\/v1\/property-management\/property\/integration\/field\/[^/]+$/,
+        method: 'PATCH',
+        config: createSimpleConfig(
+            ActivityAction.UPDATE,
+            ActivityEntity.PROPERTY,
+            (success) => success ? 'Integration field updated successfully' : 'Failed to update integration field',
+            ['property', 'integration', 'field', 'update']
+        )
+    },
+    {
+        pattern: /\/api\/v1\/property-management\/property\/integration\/field\/[^/]+$/,
+        method: 'DELETE',
+        config: createSimpleConfig(
+            ActivityAction.DELETE,
+            ActivityEntity.PROPERTY,
+            (success) => success ? 'Integration field deleted successfully' : 'Failed to delete integration field',
+            ['property', 'integration', 'field', 'delete']
+        )
+    },
+
+    // ==================== INTEGRATIONS - RATE TIGER ====================
+    {
+        pattern: /\/api\/v1\/integrations\/rate-tiger\/authenticate$/,
+        method: 'POST',
+        config: createSimpleConfig(
+            ActivityAction.LOGIN,
+            ActivityEntity.PROPERTY,
+            (success) => success ? 'RateTiger authentication successful' : 'RateTiger authentication failed',
+            ['integration', 'rate-tiger', 'authentication']
+        )
+    },
+    {
+        pattern: /\/api\/v1\/integrations\/rate-tiger\/ari$/,
+        method: 'POST',
+        config: {
+            ...createSimpleConfig(
+                ActivityAction.UPDATE,
+                ActivityEntity.INVENTORY,
+                (success) => success ? 'RateTiger ARI update processed successfully' : 'Failed to process RateTiger ARI update',
+                ['integration', 'rate-tiger', 'ari', 'update']
+            ),
+            shouldLog: logOnlySuccess
+        }
     },
 
 ];
