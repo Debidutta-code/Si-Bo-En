@@ -426,7 +426,9 @@ const BookingReviewPage = () => {
       }
 
       const isAED = currencyCode === "AED";
-      const amountInSmallestUnit = Math.round(updatedPrice * 100);
+      // Use currentChargeableAmount for the upfront payment, fallback to updatedPrice if not available
+      const chargeAmount = finalPrice?.currentChargeableAmount !== undefined ? finalPrice.currentChargeableAmount : updatedPrice;
+      const amountInSmallestUnit = Math.round(chargeAmount * 100);
       const gatewayCurrency = currencyCode === "USD" ? "AED" : currencyCode;
 
       toast.loading("Creating secure payment order...", { id: "ngenius-order" });
@@ -730,7 +732,7 @@ const BookingReviewPage = () => {
   return (
     <div className="w-full">
       <div className="sticky top-0 z-40 bg-white/90 backdrop-blur shadow-sm">
-        
+
       </div>
       <div className="max-w-6xl mx-auto p-6 grid md:grid-cols-3 gap-6">
         {/* Left Side */}
@@ -907,14 +909,14 @@ const BookingReviewPage = () => {
         {/* Right Side */}
         <div className="space-y-6">
           <PriceDetails
-          bookingDetails={bookingDetails}
-          onPriceUpdate={(total, discountAmount, promo) => {
-            setUpdatedPrice(total);
-            setDiscount(discountAmount);
-            setPromoDetails(promo);
-          }}
-        />
-        <HelpBox hotelEmail={PropertyDetails?.property_email} />
+            bookingDetails={bookingDetails}
+            onPriceUpdate={(total, discountAmount, promo) => {
+              setUpdatedPrice(total);
+              setDiscount(discountAmount);
+              setPromoDetails(promo);
+            }}
+          />
+          <HelpBox hotelEmail={PropertyDetails?.property_email} />
         </div>
       </div>
 
