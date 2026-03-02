@@ -914,7 +914,7 @@ const BookingReviewPage = () => {
               setPromoDetails(promo);
             }}
           />
-          <HelpBox hotelEmail={PropertyDetails?.property_email} />
+          {/* <HelpBox hotelEmail={PropertyDetails?.property_email} /> */}
         </div>
       </div>
 

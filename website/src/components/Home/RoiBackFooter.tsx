@@ -37,8 +37,8 @@ const Footer = () => {
     return (
         <footer
             id="contact"
-            className={`text-white ${isHomePage ? "hidden" : ""}`}
-            style={{ backgroundColor: `${primaryColor}80` }}
+            className={`text-white ${isHomePage ? "hidden" : ""} bg-white`}
+            // style={{ backgroundColor: `${primaryColor}` }}
         >
             {/* Main Footer Content */}
             <div className="max-w-7xl mx-auto ">
@@ -58,7 +58,7 @@ const Footer = () => {
 
                     {/* Address Section */}
                     <div className="text-center flex-1 max-w-2xl">
-                        <p className="text-sm md:text-base leading-relaxed font-light text-[#2F2A1F]">
+                        <p className="text-sm md:text-base leading-relaxed font-normal text-black">
                             {propertyAddress ? (
                                 <>
                                     {propertyAddress.addressLine1 && `${propertyAddress.addressLine1}`}

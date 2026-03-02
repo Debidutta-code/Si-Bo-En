@@ -1,6 +1,5 @@
 "use client";
 import React, { useState } from "react";
-import { CheckCircle, DollarSign, CreditCard } from "lucide-react";
 import toast from "react-hot-toast";
 import axios from "axios";
 
@@ -8,6 +7,55 @@ interface PriceDetailsProps {
   bookingDetails: any;
   onPriceUpdate: (totalAmount: number, discount: number, promo?: any) => void;
 }
+
+// ── Image Links (Reliable CDN hosted SVGs) ────────────────────────────────────
+
+const VisaIcon = () => (
+  <img 
+    src="https://cdn.simpleicons.org/visa/1434CB" 
+    alt="Visa" 
+    className="h-full w-full object-contain"
+  />
+);
+const MastercardIcon = () => (
+  <img 
+    src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" 
+    alt="Mastercard" 
+    className="h-full w-full object-contain"
+  />
+);
+
+const PayPalIcon = () => (
+  <img 
+    src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" 
+    alt="PayPal" 
+    className="h-full w-full object-contain"
+  />
+);
+
+const GooglePayIcon = () => (
+  <img 
+    src="https://upload.wikimedia.org/wikipedia/commons/f/f2/Google_Pay_Logo.svg" 
+    alt="Google Pay" 
+    className="h-full w-full object-contain"
+  />
+);
+
+const ApplePayIcon = () => (
+  <img 
+    src="https://upload.wikimedia.org/wikipedia/commons/b/b0/Apple_Pay_logo.svg" 
+    alt="Apple Pay" 
+    className="h-full w-full object-contain"
+  />
+);
+
+const PAYMENT_METHODS = [
+  { id: "apple-pay",   Icon: ApplePayIcon },
+  { id: "google-pay",  Icon: GooglePayIcon },
+  { id: "paypal",      Icon: PayPalIcon },
+  { id: "visa",        Icon: VisaIcon },
+  { id: "mastercard",  Icon: MastercardIcon },
+];
 
 const PriceDetails: React.FC<PriceDetailsProps> = ({ bookingDetails, onPriceUpdate }) => {
   const [promo, setPromo] = useState("");
@@ -33,10 +81,7 @@ const PriceDetails: React.FC<PriceDetailsProps> = ({ bookingDetails, onPriceUpda
   };
 
   const handleApply = async () => {
-    if (!promo) {
-      toast.error("Please enter a promo code");
-      return;
-    };
+    if (!promo) { toast.error("Please enter a promo code"); return; }
     setLoading(true);
     try {
       const response = await axios.post(
@@ -50,40 +95,26 @@ const PriceDetails: React.FC<PriceDetailsProps> = ({ bookingDetails, onPriceUpda
           },
         }
       );
-
       const data = response.data;
-
       if (data.success) {
         const newDiscount = data.data.discount || 0;
         const newTotal = data.data.finalprice || bookingDetails.finalPrice?.totalAmount || 0;
-
         setDiscount(newDiscount);
         setTotalPrice(newTotal);
-
-        // ✅ Send updates back to parent with promo details
         onPriceUpdate(newTotal, newDiscount, data.data.promo);
-
         toast.success(data.message || "Promo code applied!");
       } else {
-        setDiscount(0);
         const fallbackTotal = bookingDetails.finalPrice?.totalAmount || 0;
+        setDiscount(0);
         setTotalPrice(fallbackTotal);
-
-        // Reset parent state
         onPriceUpdate(fallbackTotal, 0);
-
         toast.error(data.message || "Invalid promo code");
       }
     } catch (err: any) {
-      console.error("Promo code validation error:", err);
       const fallbackTotal = bookingDetails.finalPrice?.totalAmount || 0;
-
       setDiscount(0);
       setTotalPrice(fallbackTotal);
-
-      // Reset parent state
       onPriceUpdate(fallbackTotal, 0);
-
       toast.error(err?.response?.data?.message || "Something went wrong. Try again!");
     } finally {
       setLoading(false);
@@ -91,35 +122,8 @@ const PriceDetails: React.FC<PriceDetailsProps> = ({ bookingDetails, onPriceUpda
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-5">
+    <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-5 max-w-sm">
       <h2 className="text-lg font-semibold text-orange-600 mb-4">Price Details</h2>
-
-      {/* Promo Code Section */}
-      {/* <div className="bg-orange-50 p-3 rounded-xl mb-4">
-        <div className="flex gap-2 flex-wrap">
-          <input
-            type="text"
-            value={promo}
-            onChange={(e) => setPromo(e.target.value)}
-            placeholder="Enter promo code"
-            className="flex-1 border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-          />
-          <button
-            onClick={handleApply}
-            disabled={loading}
-            className={`px-4 py-2 rounded-lg font-medium text-white transition ${
-              loading ? "bg-gray-400 cursor-not-allowed" : "bg-orange-600 hover:bg-orange-700"
-            }`}
-          >
-            {loading ? "Applying..." : "Apply"}
-          </button>
-        </div>
-        {discount > 0 && (
-          <p className="mt-2 text-green-700 text-sm">
-            Promo applied! You saved {formatCurrency(discount)}
-          </p>
-        )}
-      </div> */}
 
       {/* Total Amount */}
       <div className="flex justify-between items-center text-base border-t pt-3">
@@ -133,18 +137,17 @@ const PriceDetails: React.FC<PriceDetailsProps> = ({ bookingDetails, onPriceUpda
       </div>
 
       {/* Payment Methods */}
-      <div className="mt-4 flex flex-wrap gap-2 gap-x-4 items-center">
-        <div className="flex gap-2 items-center text-gray-700 text-xs">
-          <DollarSign className="h-6 w-6" />
-          <span>Stripe</span>
-        </div>
-        <div className="flex gap-2 items-center text-orange-600 text-xs">
-          <CreditCard className="h-6 w-6" />
-          <span>Visa</span>
-        </div>
-        <div className="flex gap-2 items-center text-orange-600 text-xs">
-          <CreditCard className="h-6 w-6" />
-          <span>Mastercard</span>
+      <div className="mt-4">
+        <p className="text-xs text-gray-500 mb-2">Accepted payment methods</p>
+        <div className="flex flex-wrap items-center gap-2">
+          {PAYMENT_METHODS.map(({ id, Icon }) => (
+            <div
+              key={id}
+              className="flex h-[36px] w-[56px] shrink-0 items-center justify-center rounded-md border border-gray-200 bg-white p-1.5 shadow-sm transition-shadow hover:shadow-md"
+            >
+              <Icon />
+            </div>
+          ))}
         </div>
       </div>
     </div>
