@@ -1,6 +1,6 @@
 import { prisma } from '../../config';
 import { IGeoRatePlanWithoutRatePlan } from '../../promotions/geo-rate-plan/interfaces';
-import { IAddOn, IPromotion, IRatePlan, ISelectedAddonsR } from '../types';
+import { IAddOn, IIncludedAddons, IPromotion, IRatePlan, ISelectedAddonsR } from '../types';
 import { IMLOS } from '../../promotions/mlos/interfaces';
 import { ICEbDsOftc } from '../../promotions/eb-ds-oftc/interfaces';
 import { IPromoCode } from '../../ari/types/promoCode.type';
@@ -11,7 +11,8 @@ export class PricingRepository {
         ratePlanCode: string,
         roomTypeCode: string,
         startDate: Date,
-        endDate: Date
+        endDate: Date,
+        includedAddons:string[]
         // geoRatePlanId?:string,
         // promotionIds?:string[],
         // availabilityIds:ISelectedAddons
@@ -35,6 +36,11 @@ export class PricingRepository {
                         },
                     },
                     Addons: {
+                        where:{
+                            id:{
+                                in:includedAddons
+                            }
+                        },
                         include: {
                             addon: {
                                 include: {

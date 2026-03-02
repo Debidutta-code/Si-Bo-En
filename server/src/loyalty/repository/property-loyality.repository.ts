@@ -14,6 +14,7 @@ export class propertyLoyalityRepository {
                 data
             });
         } catch (error) {
+            console.log(error)
             throw new Error("Failed to create property loyalty config");
         }
     }
@@ -45,7 +46,6 @@ export class propertyLoyalityRepository {
             return await prisma.propertyLoyaltyConfig.findFirst({
                 where: {
                     propertyId,
-                    isActive: true
                 },
                 include: {
                     CreationLoyaltyConfig: {
