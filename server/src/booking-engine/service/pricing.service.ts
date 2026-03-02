@@ -13,6 +13,7 @@ import {
     DailyPriceBrakeDown,
     IAddOn,
     ICharge,
+    IIncludedAddons,
     IRatePlanWithAddon,
     ISelectedAddonsR,
     ISelectedAddonsS,
@@ -48,23 +49,11 @@ export class PricingService {
         detectedDeviceType?: string,
         promotions?: ISelectedPromotion[],
         parsedAddons?: ISelectedAddonsS[],
-        promoCode?: string
+        promoCode?: string,
+        includedAddons?: string[]
     ): Promise<IApiResponse<PriceBrakeDown>> {
         try {
-            console.log('getRoomRentService called with', {
-                propertyId,
-                invTypeCode,
-                startDate,
-                endDate,
-                ratePlanCode,
-                rooms,
-                adults,
-                children,
-                guestEmail,
-                userCountryCode,
-                detectedDeviceType,
-                promotions: promotions?.map(p => p.id),
-            });
+
             const parsedStartDate: Date = startDate instanceof Date ? startDate : new Date(startDate);
             const parsedEndDate: Date = endDate instanceof Date ? endDate : new Date(endDate);
             startDate = parsedStartDate;
@@ -75,7 +64,8 @@ export class PricingService {
                         ratePlanCode,
                         invTypeCode,
                         toUTC(startDate),
-                        toUTC(endDate)
+                        toUTC(endDate),
+                        includedAddons||[]
                     ),
                     this.fetchAddons(parsedAddons),
                     this.fetchAllPromotions(promotions),
@@ -93,7 +83,6 @@ export class PricingService {
                 ratePlan.taxGroup
             );
             let priceBrakedowns = basePrice.calculateTotalPrice();
-            // console.log("priceBrakedowns base price", priceBrakedowns);
             const addOnPrice = new AddOnPriceClass(
                 selectedAddons,
                 ratePlan.Addons,
@@ -799,6 +788,8 @@ class PromotionClass {
             totalPromotionAmount: totalPromotionaalDiscountedAmount,
             totalAmount:
                 this.priceBrakeDown.totalAmount -
+                totalPromotionaalDiscountedAmount,
+            currentChargeableAmount:this.priceBrakeDown.currentChargeableAmount -
                 totalPromotionaalDiscountedAmount,
             promotionBrakeDown: totalPromotionalBrakeDown,
         };

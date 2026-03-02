@@ -182,7 +182,10 @@ export interface ISelectedAddonsS {
 export interface ISelectedAddonsR {
     addOnId: string;
     dates: Date[];
-
+}
+export interface IIncludedAddons {
+    addOnId: string;
+    addOnCode:string;
 }
 export interface ISelectedPromotion {
     id: string;

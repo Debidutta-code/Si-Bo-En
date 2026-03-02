@@ -16,6 +16,7 @@ export class PropertyLoyalityService {
     public async createPropertyLoyalityConfig(data: ICPropertyLoyaltyConfig): Promise<IApiResponse> {
         try {
             const activeExisting = await this.propertyLoyalityRepository.getLoyalityForPropertyWhereTrue(data.propertyId);
+            console.log("Active existing config:", activeExisting);
             if (activeExisting) {
                 await this.propertyLoyalityRepository.updatePropertyLoyalityConfig(activeExisting.id, false);
             }
