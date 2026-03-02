@@ -78,7 +78,6 @@ export class RoomBookingRepository {
                 ratePlanCode,
                 date: { in: dates },
                 isAvailable: true,
-                isSaleStopped: false,
             },
             include: {
                 baseGuestAmounts: true,
@@ -291,6 +290,15 @@ export class RoomBookingRepository {
     public static async getTouristTax(ratePlanId: string) {
         return prisma.touristTaxes.findFirst({
             where: { ratePlanId },
+        });
+    }
+    public static async getBookingOffset(ratePlanId: string, checkInDate: Date) {
+        return prisma.bookingOffset.findFirst({
+            where: {
+                ratePlanId,
+                date: checkInDate,
+                isActive: true,
+            },
         });
     }
 }

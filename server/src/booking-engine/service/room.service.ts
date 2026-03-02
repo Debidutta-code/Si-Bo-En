@@ -1,6 +1,8 @@
+import { DateTime } from 'luxon';
 import { calculateNights, toUTCDate } from '../../utils';
 import { RoomBookingRepository } from '../repository';
 import {
+    IAddonDetail,
     IAppliedDiscount,
     IBookingSearchPayload,
     IPromotion,
@@ -17,6 +19,7 @@ export class RoomBookingService {
         if (!property || !property.isAvailable) {
             return { success: false, message: 'Property not available' };
         }
+
         let promoCodeData = null;
         if (payload.promocode) {
             promoCodeData = await RoomBookingRepository.getPromoCodeByPropertyAndCode(
@@ -24,6 +27,8 @@ export class RoomBookingService {
                 payload.promocode
             );
         }
+
+        // Build date array [checkIn, checkIn+1, ..., checkOut-1]
         const dates: Date[] = [];
         let current = toUTCDate(startDate);
         const last = toUTCDate(endDate);
@@ -35,7 +40,6 @@ export class RoomBookingService {
         const totalGuests = guests.adults + guests.children;
         const numberOfNights = calculateNights(startDate, endDate);
 
-        // Process all rooms in parallel
         const roomResults = await Promise.all(
             property.propertyRooms.map(room =>
                 this.processRoom(
@@ -76,6 +80,7 @@ export class RoomBookingService {
             },
         };
     }
+
     private static async processRoom(
         room: any,
         property: any,
@@ -88,15 +93,14 @@ export class RoomBookingService {
         deviceType?: string,
         promoCodeData?: any
     ): Promise<IRoom | null> {
-        // Check inventory first
         const inventory = await RoomBookingRepository.getInventoryByProperty(
             property.propertyCode,
             room.roomType,
             dates
         );
+        // Every night must have inventory
         if (inventory.length !== dates.length) return null;
 
-        // Process all rate plans in parallel
         const ratePlanResults = await Promise.all(
             property.ratePlans.map((ratePlan: any) =>
                 this.processRatePlan(
@@ -115,9 +119,10 @@ export class RoomBookingService {
             )
         );
 
-        const room_price: IRoomPrice[] = ratePlanResults.filter(
-            (r): r is IRoomPrice => r !== null
-        );
+        // Each rate plan may produce multiple combo entries (base + addon combos)
+        const room_price: IRoomPrice[] = ratePlanResults
+            .filter((r): r is IRoomPrice[] => r !== null)
+            .flat();
 
         return {
             id: room.id,
@@ -136,6 +141,9 @@ export class RoomBookingService {
         };
     }
 
+    // ─────────────────────────────────────────────────────────────────────────────
+    // RATE PLAN  — returns an array of combos or null if rate plan must be hidden
+    // ─────────────────────────────────────────────────────────────────────────────
     private static async processRatePlan(
         ratePlan: any,
         room: any,
@@ -148,11 +156,12 @@ export class RoomBookingService {
         countryCode?: string,
         deviceType?: string,
         promoCodeData?: any
-    ): Promise<IRoomPrice | null> {
+    ): Promise<IRoomPrice[] | null> {
         const today = new Date();
         const checkInDate = dates[0];
+        const checkOutDate = dates[dates.length - 1]; // last night date (checkOut - 1)
 
-        // Fetch everything in parallel
+        // ── 1. Fetch everything in parallel ────────────────────────────────────
         const [
             charges,
             ratePlanAddons,
@@ -161,6 +170,7 @@ export class RoomBookingService {
             ratePlanRule,
             devicePromotion,
             touristTaxData,
+            bookingOffset,
         ] = await Promise.all([
             RoomBookingRepository.getCharges(
                 property.propertyCode,
@@ -194,36 +204,92 @@ export class RoomBookingService {
                 )
                 : Promise.resolve(null),
             RoomBookingRepository.getTouristTax(ratePlan.id),
+            RoomBookingRepository.getBookingOffset(ratePlan.id, toUTCDate(checkInDate)),
         ]);
 
-        if (!charges.length) return null;
+        // ── 2. Must have a charge for every night ──────────────────────────────
+        if (charges.length !== dates.length) return null;
 
+        // ── 3. CTA / CTD / Stop-sell / Day-of-week checks ─────────────────────
+        for (const charge of charges) {
+            // Stop sell on any night → hide rate plan
+            if (charge.isSaleStopped) return null;
+
+            // Day-of-week applicability for each charge date
+            const dow = new Date(charge.date).getDay();
+            const dowFields: Record<number, keyof typeof charge> = {
+                0: 'sunApplicable',
+                1: 'monApplicable',
+                2: 'tueApplicable',
+                3: 'wedApplicable',
+                4: 'thuApplicable',
+                5: 'friApplicable',
+                6: 'satApplicable',
+            };
+            if (!charge[dowFields[dow]]) return null;
+        }
+
+        // CTA on check-in date
+        const checkInCharge = charges[0];
+        if (checkInCharge?.isClosedToArrival) return null;
+
+        // CTD on check-out date (last night charge)
+        const checkOutCharge = charges[charges.length - 1];
+        if (checkOutCharge?.isClosedToDeparture) return null;
+
+        // ── 4. Geo restriction ─────────────────────────────────────────────────
         if (geoRatePlan?.restrictionType === 'restricted') return null;
 
-        const addonPrices: Record<string, number> = {};
+        // ── 5. Booking offset (hours-based) ────────────────────────────────────
+        if (bookingOffset) {
+            const hoursUntilCheckIn = DateTime.fromJSDate(toUTCDate(checkInDate))
+                .diff(DateTime.fromJSDate(toUTCDate(today)), 'hours')
+                .hours;
 
-        if (ratePlanAddons.length > 0) {
-            const addonAvailabilityResults = await Promise.all(
-                ratePlanAddons.map(rpa =>
-                    RoomBookingRepository.getAddonAvailability(rpa.addonId, dates)
-                )
-            );
+            if (
+                bookingOffset.minimumAdvanceBookingOffset !== null &&
+                bookingOffset.minimumAdvanceBookingOffset !== undefined &&
+                hoursUntilCheckIn < bookingOffset.minimumAdvanceBookingOffset
+            ) {
+                return null;
+            }
 
-            for (let i = 0; i < ratePlanAddons.length; i++) {
-                const availability = addonAvailabilityResults[i];
-                if (availability.length !== dates.length) return null; 
-
-                const addon = ratePlanAddons[i].addon;
-                addonPrices[addon.id] = this.calculateAddonPrice(
-                    addon,
-                    availability,
-                    numberOfNights,
-                    totalGuests,
-                    guests.rooms
-                );
+            if (
+                bookingOffset.maximumAdvanceBookingOffset !== null &&
+                bookingOffset.maximumAdvanceBookingOffset !== undefined &&
+                hoursUntilCheckIn > bookingOffset.maximumAdvanceBookingOffset
+            ) {
+                return null;
             }
         }
 
+        // ── 6. MLOS rule ───────────────────────────────────────────────────────
+        if (ratePlanRule && ratePlanRule.isActive) {
+            const withinPeriod = this.isDateRangeWithinPeriod(
+                payload.startDate,
+                payload.endDate,
+                ratePlanRule.startDate,
+                ratePlanRule.endDate
+            );
+
+            if (withinPeriod) {
+                // Min LOS not met → hide rate plan
+                if (ratePlanRule.minLos && numberOfNights < ratePlanRule.minLos) {
+                    return null;
+                }
+                // Max LOS exceeded → hide rate plan
+                if (ratePlanRule.maxLos && numberOfNights > ratePlanRule.maxLos) {
+                    return null;
+                }
+            }
+        }
+
+        // ── 7. Promotions validation ───────────────────────────────────────────
+        // All promotions in the DB query already passed date/day/early-bird filters.
+        // Device promotion: if it exists but device doesn't match → hide rate plan
+        // (already filtered by device in repo, so if returned it matched)
+
+        // ── 8. Base amount from first charge ──────────────────────────────────
         const charge = charges[0];
         const sortedBase = [...charge.baseGuestAmounts].sort(
             (a, b) => a.numberOfGuests - b.numberOfGuests
@@ -234,11 +300,12 @@ export class RoomBookingService {
 
         const baseAmount = Number(selectedTier.amountBeforeTax);
 
+        // ── 9. Promotions → auto-applied vs available ──────────────────────────
         let totalAutoDiscount = 0;
         const availablePromotions: IPromotion[] = [];
         const appliedDiscounts: IAppliedDiscount[] = [];
 
-
+        // Device-specific promotion
         if (devicePromotion) {
             const discount = this.calculateDiscount(
                 baseAmount,
@@ -256,62 +323,31 @@ export class RoomBookingService {
                     calculatedDiscountAmount: discount,
                 });
             } else {
-                availablePromotions.push({
-                    id: devicePromotion.id,
-                    promotionName: devicePromotion.promotionName,
-                    promotionType: devicePromotion.promotionType,
-                    discountType: devicePromotion.discountType,
-                    discountValue: devicePromotion.discountValue,
-                    validFrom: devicePromotion.validFrom,
-                    validTo: devicePromotion.validTo,
-                    advanceBookingDays: devicePromotion.advanceBookingDays ?? 0,
-                    monApplicable: devicePromotion.monApplicable,
-                    tueApplicable: devicePromotion.tueApplicable,
-                    wedApplicable: devicePromotion.wedApplicable,
-                    thuApplicable: devicePromotion.thuApplicable,
-                    friApplicable: devicePromotion.friApplicable,
-                    satApplicable: devicePromotion.satApplicable,
-                    sunApplicable: devicePromotion.sunApplicable,
-
-                });
+                availablePromotions.push(this.mapPromotion(devicePromotion));
             }
         }
 
+        // Geo adjustment (always auto-applied)
         if (geoRatePlan) {
-            const restrictionValue = geoRatePlan.restrictionValue
-                ? Number(geoRatePlan.restrictionValue)
-                : 0;
+            const restrictionValue = Number(geoRatePlan.restrictionValue ?? 0);
             const geoDiscount = this.calculateGeoDiscount(
                 baseAmount,
                 geoRatePlan.restrictionType,
                 geoRatePlan.restrictionTypeAction,
                 restrictionValue
             );
-            if (geoRatePlan) {
-                totalAutoDiscount += geoDiscount;
-                appliedDiscounts.push({
-                    id: geoRatePlan.id,
-                    promotionName: 'Geo rate adjustment',
-                    promotionType: 'geo',
-                    discountType: geoRatePlan.restrictionType === 'percentage' ? 'percentage' : 'flat',
-                    discountValue: Number(geoRatePlan.restrictionValue ?? 0),
-                    calculatedDiscountAmount: geoDiscount,
-                });
-            } 
-            // else {
-            //     availablePromotions.push({
-            //         id: geoRatePlan.id,
-            //         promotionName: `Geo rate adjustment`,
-            //         promotionType: 'geo',
-            //         discountType: geoRatePlan.restrictionType === 'percentage' ? 'percentage' : 'flat',
-            //         discountValue: new Decimal(geoDiscount),
-            //         validFrom: null,
-            //         validTo: null,
-            //         advanceBookingDays: null
-            //     });
-            // }
+            totalAutoDiscount += geoDiscount;
+            appliedDiscounts.push({
+                id: geoRatePlan.id,
+                promotionName: 'Geo rate adjustment',
+                promotionType: 'geo',
+                discountType: geoRatePlan.restrictionType === 'percentage' ? 'percentage' : 'flat',
+                discountValue: restrictionValue,
+                calculatedDiscountAmount: geoDiscount,
+            });
         }
 
+        // Other promotions (early_bird, offer_for_tonight, etc.)
         for (const promo of promotions) {
             const discount = this.calculateDiscount(
                 baseAmount,
@@ -329,26 +365,11 @@ export class RoomBookingService {
                     calculatedDiscountAmount: discount,
                 });
             } else {
-                availablePromotions.push({
-                    id: promo.id,
-                    promotionName: promo.promotionName,
-                    promotionType: promo.promotionType,
-                    discountType: promo.discountType,
-                    discountValue: promo.discountValue,
-                    validFrom: promo.validFrom,
-                    validTo: promo.validTo,
-                    advanceBookingDays: promo.advanceBookingDays ?? 0,
-                    monApplicable: promo.monApplicable,
-                    tueApplicable: promo.tueApplicable,
-                    wedApplicable: promo.wedApplicable,
-                    thuApplicable: promo.thuApplicable,
-                    friApplicable: promo.friApplicable,
-                    satApplicable: promo.satApplicable,
-                    sunApplicable: promo.sunApplicable,
-                });
+                availablePromotions.push(this.mapPromotion(promo));
             }
         }
 
+        // MLOS discount (if rule has a discount attached)
         if (
             ratePlanRule &&
             ratePlanRule.isActive &&
@@ -389,15 +410,12 @@ export class RoomBookingService {
                     maxLos: ratePlanRule.maxLos || undefined,
                     validFrom: ratePlanRule.startDate,
                     validTo: ratePlanRule.endDate,
-                    advanceBookingDays: null
+                    advanceBookingDays: null,
                 });
             }
         }
-        const totalAddonPrice = Object.values(addonPrices).reduce(
-            (sum, price) => sum + price,
-            0
-        );
-        // ── Promo code ───────────────────────────────────────────────────────────────
+
+        // Promo code
         if (promoCodeData) {
             const roomApplicable =
                 promoCodeData.applicableRoomTypes.includes('all') ||
@@ -414,7 +432,6 @@ export class RoomBookingService {
                 (deviceType === 'desktop' && promoCodeData.isApplicableForDesktop);
 
             const now = new Date();
-            // ✅ fix
             const dateValid =
                 (!promoCodeData.validFrom || new Date(promoCodeData.validFrom) <= now) &&
                 (!promoCodeData.validTo || new Date(promoCodeData.validTo) >= now);
@@ -430,7 +447,10 @@ export class RoomBookingService {
                     Number(promoCodeData.discountValue)
                 );
 
-                if (promoCodeData.maxDiscountAmount && promoDiscount > Number(promoCodeData.maxDiscountAmount)) {
+                if (
+                    promoCodeData.maxDiscountAmount &&
+                    promoDiscount > Number(promoCodeData.maxDiscountAmount)
+                ) {
                     promoDiscount = Number(promoCodeData.maxDiscountAmount);
                 }
 
@@ -445,14 +465,14 @@ export class RoomBookingService {
                 });
             }
         }
-        const totalAmount = baseAmount - totalAutoDiscount + totalAddonPrice;
 
+        // ── 10. Tourist tax ────────────────────────────────────────────────────
         let touristTax: ITouristTax | null = null;
         if (touristTaxData) {
             const calculatedTaxAmount =
                 touristTaxData.discountType === 'percentage'
                     ? baseAmount * (Number(touristTaxData.discountValue) / 100)
-                    : Number(touristTaxData.discountValue); // flat
+                    : Number(touristTaxData.discountValue);
 
             touristTax = {
                 id: touristTaxData.id,
@@ -464,10 +484,10 @@ export class RoomBookingService {
             };
         }
 
-        return {
+        // ── 11. Shared rate plan fields ────────────────────────────────────────
+        const sharedFields = {
             ratePlanName: ratePlan.ratePlanName,
             ratePlanCode: ratePlan.ratePlanCode,
-            totalAmount,
             currencyCode: charge.currencyCode,
             baseByGuestAmts: sortedBase.map(b => ({
                 numberOfGuests: b.numberOfGuests,
@@ -478,15 +498,116 @@ export class RoomBookingService {
                 cancellationPolicy: ratePlan.cancellationPolicy,
                 guaranteePolicy: ratePlan.guaranteePolicy,
             },
-            addons: ratePlanAddons.map(rpa => ({
-                id: rpa.addon.id,
-                name: rpa.addon.name,
-                price: addonPrices[rpa.addon.id] ?? 0,
-                postingRhythm: rpa.addon.postingRhythm,
-            })),
             availablePromotions,
             appliedDiscounts,
             touristTax,
+        };
+
+        // ── 12. Addon availability per addon ───────────────────────────────────
+        // For each addon, check if ALL dates are available.
+        // If not → that addon is simply excluded from combos.
+        const availableAddonDetails: IAddonDetail[] = [];
+
+        if (ratePlanAddons.length > 0) {
+            const addonAvailabilityResults = await Promise.all(
+                ratePlanAddons.map(rpa =>
+                    RoomBookingRepository.getAddonAvailability(rpa.addonId, dates)
+                )
+            );
+
+            for (let i = 0; i < ratePlanAddons.length; i++) {
+                const availability = addonAvailabilityResults[i];
+                // If not available for ALL nights → skip this addon (don't skip rate plan)
+                if (availability.length !== dates.length) continue;
+
+                const addon = ratePlanAddons[i].addon;
+                const addonPrice = this.calculateAddonPrice(
+                    addon,
+                    availability,
+                    numberOfNights,
+                    totalGuests,
+                    guests.rooms
+                );
+
+                availableAddonDetails.push({
+                    id: addon.id,
+                    name: addon.name,
+                    code: addon.code,
+                    price: addonPrice,
+                    postingRhythm: addon.postingRhythm,
+                    description: addon.description,
+                    images: addon.images || [],
+                    category: addon.category
+                        ? { id: addon.category.id, name: addon.category.name, code: addon.category.code }
+                        : null,
+                    subCategory: addon.subCategory
+                        ? { id: addon.subCategory.id, name: addon.subCategory.name, code: addon.subCategory.code }
+                        : null,
+                    addonVariant: addon.addonVariant
+                        ? { id: addon.addonVariant.id, name: addon.addonVariant.name, code: addon.addonVariant.code }
+                        : null,
+                });
+            }
+        }
+
+        // ── 13. Build combo entries ────────────────────────────────────────────
+        const combos: IRoomPrice[] = [];
+
+        // Combo 0: base rate plan alone
+        combos.push({
+            ...sharedFields,
+            comboLabel: `${ratePlan.ratePlanName} (Room Only)`,
+            addons: [],
+            totalAmount: baseAmount - totalAutoDiscount,
+        });
+
+        // Combo per individual addon
+        for (const addon of availableAddonDetails) {
+            combos.push({
+                ...sharedFields,
+                comboLabel: `${ratePlan.ratePlanName} (+ ${addon.name})`,
+                addons: [addon],
+                totalAmount: baseAmount - totalAutoDiscount + addon.price,
+            });
+        }
+
+        // Combo with ALL available addons (only if there are 2+)
+        if (availableAddonDetails.length >= 2) {
+            const totalAddonPrice = availableAddonDetails.reduce(
+                (sum, a) => sum + a.price,
+                0
+            );
+            combos.push({
+                ...sharedFields,
+                comboLabel: `${ratePlan.ratePlanName} (+ ${availableAddonDetails.map(a => a.name).join(' + ')})`,
+                addons: availableAddonDetails,
+                totalAmount: baseAmount - totalAutoDiscount + totalAddonPrice,
+            });
+        }
+
+        return combos;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // HELPERS
+    // ─────────────────────────────────────────────────────────────────────────────
+    private static mapPromotion(promo: any): IPromotion {
+        return {
+            id: promo.id,
+            promotionName: promo.promotionName,
+            promotionType: promo.promotionType,
+            discountType: promo.discountType,
+            discountValue: promo.discountValue,
+            validFrom: promo.validFrom ?? null,
+            validTo: promo.validTo ?? null,
+            advanceBookingDays: promo.advanceBookingDays ?? 0,
+            monApplicable: promo.monApplicable,
+            tueApplicable: promo.tueApplicable,
+            wedApplicable: promo.wedApplicable,
+            thuApplicable: promo.thuApplicable,
+            friApplicable: promo.friApplicable,
+            satApplicable: promo.satApplicable,
+            sunApplicable: promo.sunApplicable,
         };
     }
 
@@ -504,13 +625,12 @@ export class RoomBookingService {
     private static calculateGeoDiscount(
         baseAmount: number,
         restrictionType: string,
-        restrictionTypeAction: string|null,
+        restrictionTypeAction: string | null,
         restrictionValue: number
     ): number {
-        // 'restricted' is handled before this is called
         if (restrictionType === 'percentage') {
             const delta = baseAmount * (restrictionValue / 100);
-            return restrictionTypeAction === 'increase' ? -delta : delta; // increase = add cost, decrease = discount
+            return restrictionTypeAction === 'increase' ? -delta : delta;
         }
         if (restrictionType === 'fixed') {
             return restrictionTypeAction === 'increase'
