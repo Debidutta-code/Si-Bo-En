@@ -124,17 +124,17 @@ class InventoryServices {
   endDate: string
 ) {
   try {
-    console.log('📋 mapRatePlanService called with:', {
-      propertyId,
-      propertyCode,
-      roomTypeCode,
-      ratePlanCode,
-      startDate,
-      endDate
-    });
+    // console.log('📋 mapRatePlanService called with:', {
+    //   propertyId,
+    //   propertyCode,
+    //   roomTypeCode,
+    //   ratePlanCode,
+    //   startDate,
+    //   endDate
+    // });
 
     const room = await InventoryDao.getRoom(propertyId, roomTypeCode);
-    console.log('🏨 Room lookup result:', room ? `Found room: ${room.roomType}` : 'No room found');
+      // console.log('🏨 Room lookup result:', room ? `Found room: ${room.roomType}` : 'No room found');
     
     if (!room) {
       return errorResponse(`No room found with roomTypeCode: ${roomTypeCode} for property: ${propertyId}`);
@@ -151,14 +151,14 @@ class InventoryServices {
     }
 
     // ✅ Check inventory availability for the date range
-    console.log('🔍 Checking inventory availability for:', { propertyCode, roomTypeCode, startDate, endDate });
+    // console.log('🔍 Checking inventory availability for:', { propertyCode, roomTypeCode, startDate, endDate });
     const inventoryCheck = await InventoryDao.checkInventoryAvailability(
       propertyCode,
       roomTypeCode,
       startDate,
       endDate
     );
-    console.log('📦 Inventory check result:', inventoryCheck);
+    // console.log('📦 Inventory check result:', inventoryCheck);
 
     // If no inventory at all for the entire range
     if (inventoryCheck.availableDates.length === 0) {
@@ -256,7 +256,7 @@ class InventoryServices {
       return errorResponse('Failed to map rate plans');
     }
   } catch (error) {
-    console.log(error)
+    // console.log(error)
     if(error instanceof Error){
       return errorResponse("Failed to map room with rate plan",error.message);
     }

@@ -18,7 +18,12 @@ export class RoomBookingRepository {
                             include: {
                                 AdvanceLoyaltyProgram: true,
                                 BasicLoyaltyProgram: true,
-                                loyaltyConditions: true,
+                                loyaltyConditions: {
+                                    where: {
+                                        isActive: true,
+                                        isDeleted: false
+                                    },
+                                },
                                 LoyaltyProgramFieldConfig: true,
                                 loyaltySpecialConditions: true,
                             },
@@ -166,11 +171,7 @@ export class RoomBookingRepository {
 
         const dayField = dayApplicability[dayOfWeek];
 
-        const daysBetweenBookingAndCheckIn = Math.floor(
-            DateTime.fromJSDate(checkInUTC)
-                .diff(DateTime.fromJSDate(todayUTC), 'days')
-                .days
-        );
+
 
         return prisma.promotion.findMany({
             where: {
@@ -202,21 +203,6 @@ export class RoomBookingRepository {
                         ],
                     },
                     { [dayField]: true },
-                    {
-                        OR: [
-                            { promotionType: { not: 'early_bird' } },
-                            {
-                                AND: [
-                                    { promotionType: 'early_bird' },
-                                    {
-                                        advanceBookingDays: {
-                                            lte: daysBetweenBookingAndCheckIn,
-                                        },
-                                    },
-                                ],
-                            },
-                        ],
-                    },
                 ],
             },
         });

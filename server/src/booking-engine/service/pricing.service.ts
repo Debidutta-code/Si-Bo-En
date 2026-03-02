@@ -65,7 +65,7 @@ export class PricingService {
                         invTypeCode,
                         toUTC(startDate),
                         toUTC(endDate),
-                        includedAddons??[]
+                        includedAddons ?? []
                     ),
                     this.fetchAddons(parsedAddons),
                     this.fetchAllPromotions(promotions),
@@ -779,17 +779,17 @@ class PromotionClass {
                     return sum - promo.discountAmount;
                 }
             }, 0);
-        console.log(
-            'totalPromotionaalDiscountedAmount',
-            totalPromotionaalDiscountedAmount
-        );
+        // console.log(
+        //     'totalPromotionaalDiscountedAmount',
+        //     totalPromotionaalDiscountedAmount
+        // );
         return {
             ...this.priceBrakeDown,
             totalPromotionAmount: totalPromotionaalDiscountedAmount,
             totalAmount:
                 this.priceBrakeDown.totalAmount -
                 totalPromotionaalDiscountedAmount,
-            currentChargeableAmount:this.priceBrakeDown.currentChargeableAmount -
+            currentChargeableAmount: this.priceBrakeDown.currentChargeableAmount -
                 totalPromotionaalDiscountedAmount,
             promotionBrakeDown: totalPromotionalBrakeDown,
         };
@@ -831,6 +831,8 @@ class PromotionClass {
             ) {
                 if (mlos.discountType == 'percentage') {
                     mlosBrakeDown.push({
+                        id: mlos.id,
+                        promotionType: 'mlos',
                         name: 'MLOS',
                         currencyCode: mlos.currencyCode,
                         discountAmount:
@@ -842,6 +844,8 @@ class PromotionClass {
                     });
                 } else if (mlos.discountType == 'flat') {
                     mlosBrakeDown.push({
+                        id: mlos.id,
+                        promotionType: 'mlos',
                         name: 'MLOS',
                         currencyCode: mlos.currencyCode,
                         discountAmount: Number(mlos.discountValue),
@@ -901,6 +905,8 @@ class PromotionClass {
         if (promotion.deviceType.includes(this.detectedDeviceType)) {
             if (promotion.discountType == 'percentage') {
                 return {
+                    id: (promotion as any).id,
+                    promotionType: 'device_specific',
                     name: 'Device Specific',
                     currencyCode: promotion.currencyCode,
                     discountAmount:
@@ -912,6 +918,8 @@ class PromotionClass {
                 };
             } else if (promotion.discountType == 'flat') {
                 return {
+                    id: (promotion as any).id,
+                    promotionType: 'device_specific',
                     name: 'Device Specific',
                     currencyCode: promotion.currencyCode,
                     discountAmount: Number(promotion.discountValue),
@@ -945,6 +953,8 @@ class PromotionClass {
         if (advanceBookingDays >= promotion.advanceBookingDays) {
             if (promotion.discountType == 'percentage') {
                 return {
+                    id: (promotion as any).id,
+                    promotionType: 'early_bird',
                     name: 'Early Bird',
                     currencyCode: promotion.currencyCode,
                     discountAmount:
@@ -956,6 +966,8 @@ class PromotionClass {
                 };
             } else if (promotion.discountType == 'flat') {
                 return {
+                    id: (promotion as any).id,
+                    promotionType: 'early_bird',
                     name: 'Early Bird',
                     currencyCode: promotion.currencyCode,
                     discountAmount: Number(promotion.discountValue),
@@ -986,6 +998,8 @@ class PromotionClass {
         if (isOfferForTonightApplicable) {
             if (promotion.discountType == 'percentage') {
                 return {
+                    id: (promotion as any).id,
+                    promotionType: 'offer_for_tonight',
                     name: 'Offer For Tonight',
                     currencyCode: promotion.currencyCode,
                     discountAmount:
@@ -997,6 +1011,8 @@ class PromotionClass {
                 };
             } else if (promotion.discountType == 'flat') {
                 return {
+                    id: (promotion as any).id,
+                    promotionType: 'offer_for_tonight',
                     name: 'Offer For Tonight',
                     currencyCode: promotion.currencyCode,
                     discountAmount: Number(promotion.discountValue),
@@ -1047,6 +1063,8 @@ class PromotionClass {
                     );
                 } else if (geo.restrictionType == 'fixed') {
                     promotionBrakehown.push({
+                        id: geo.id,
+                        promotionType: 'normal',
                         currencyCode: geo.currencyCode,
                         discountAmount: Number(geo.restrictionValue),
                         discountType: 'flat',
@@ -1056,6 +1074,8 @@ class PromotionClass {
                     });
                 } else if (geo.restrictionType === 'percentage') {
                     promotionBrakehown.push({
+                        id: geo.id,
+                        promotionType: 'normal',
                         currencyCode: geo.currencyCode,
                         discountAmount:
                             (this.baseAmount * Number(geo.restrictionValue)) /
@@ -1104,6 +1124,8 @@ class TouristTaxClass {
     ): PromotionBrakeDown {
         if (touristTax.discountType === 'percentage') {
             return {
+                id: touristTax.id,
+                promotionType: 'normal',
                 name: touristTax.name ? touristTax.name : 'Tourist Tax',
                 discountType: touristTax.discountType,
                 discountValue: Number(touristTax.discountValue),
@@ -1116,6 +1138,8 @@ class TouristTaxClass {
             };
         } else {
             return {
+                id: touristTax.id,
+                promotionType: 'normal',
                 name: touristTax.name ? touristTax.name : 'Tourist Tax',
                 discountType: touristTax.discountType,
                 discountValue: Number(touristTax.discountValue),

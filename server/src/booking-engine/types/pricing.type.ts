@@ -185,7 +185,7 @@ export interface ISelectedAddonsR {
 }
 export interface IIncludedAddons {
     addOnId: string;
-    addOnCode:string;
+    addOnCode: string;
 }
 export interface ISelectedPromotion {
     id: string;
@@ -235,6 +235,8 @@ export interface AddOnBrakeDown {
     date: string;
 }
 export interface PromotionBrakeDown {
+    id: string;
+    promotionType?: string;
     name: string;
     discountType: DiscountType;
     discountValue: number;

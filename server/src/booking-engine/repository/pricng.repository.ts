@@ -24,7 +24,7 @@ export class PricingRepository {
         // availabilityIds:ISelectedAddons
     ): Promise<IRatePlan | null> {
         try {
-            console.log(includedAddons);
+            // console.log(includedAddons);
             return await prisma.ratePlan.findUnique({
                 where: {
                     ratePlanCode,

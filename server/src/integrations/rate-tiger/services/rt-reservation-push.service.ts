@@ -39,7 +39,7 @@ export class RTReservationPushService {
         if (cached && cached.expiresAt > new Date(Date.now() + 5 * 60 * 1000)) {
             return cached.token;
         }
-console.log("rtConfig",rtConfig)
+// console.log("rtConfig",rtConfig)
         const credentials = Buffer.from(
             `${config.rateTigerUsername}:${config.rateTigerPassword}`
         ).toString('base64');
@@ -58,7 +58,7 @@ console.log("rtConfig",rtConfig)
                 timeout: 10000,
             }
         );
-console.log('RT Auth response:', response.data);
+// console.log('RT Auth response:', response.data);
         const { access_token, expires_in } = response.data;
 
         tokenCacheMap.set(rtConfig.authUrl, {

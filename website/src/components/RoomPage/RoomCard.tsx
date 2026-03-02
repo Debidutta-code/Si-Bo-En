@@ -247,8 +247,8 @@ const RoomCard: React.FC<RoomCardProps> = ({
 const rooms = Array.isArray(bookingContext.guests?.rooms)
   ? bookingContext.guests.rooms
   : [{ 
-      adults: bookingContext.guests?.adults || 1, 
-      children: bookingContext.guests?.children || 0 
+      adults: bookingContext.guests?.adults || 1,
+      children: bookingContext.guests?.children || 0
     }];
 
   const noOfRooms = rooms.length || 1;

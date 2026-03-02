@@ -38,7 +38,7 @@ export class AuthService {
         return errorResponse('Invalid Password');
       }
     } catch (error: any) {
-      console.log(error)
+      // console.log(error)
       return errorResponse('Login failed', error?.message);
     }
   }
