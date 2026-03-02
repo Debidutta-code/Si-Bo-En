@@ -200,25 +200,25 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
     return (
       <div
         key={index}
-        className={`h-14 w-32 flex-shrink-0 flex flex-col items-center justify-center border-r border-b border-gray-300 px-1 gap-0.5 ${hasChanges ? "bg-orange-50" : "bg-purple-50"}`}
+        className={`w-32 flex-shrink-0 flex flex-col items-center justify-center border-r border-gray-300 px-1 gap-1 ${hasChanges ? "bg-orange-50" : "bg-purple-50"}`}
       >
         {/* Unit selector */}
         <div className="flex rounded overflow-hidden border border-purple-300 text-[9px] font-semibold">
           <button
             onClick={() => setCellUnit(field, index, "hours")}
-            className={`px-1.5 py-0.5 transition-colors ${unit === "hours" ? "bg-purple-600 text-white" : "bg-white text-purple-600 hover:bg-purple-50"}`}
+            className={`px-1.5 py-1 transition-colors ${unit === "hours" ? "bg-purple-600 text-white" : "bg-white text-purple-600 hover:bg-purple-50"}`}
           >
             Hr
           </button>
           <button
             onClick={() => setCellUnit(field, index, "days")}
-            className={`px-1.5 py-0.5 transition-colors ${unit === "days" ? "bg-purple-600 text-white" : "bg-white text-purple-600 hover:bg-purple-50"}`}
+            className={`px-1.5 py-1 transition-colors ${unit === "days" ? "bg-purple-600 text-white" : "bg-white text-purple-600 hover:bg-purple-50"}`}
           >
             Day
           </button>
         </div>
         {/* Value input + apply-to-right button */}
-        <div className="flex items-center gap-0.5">
+        <div className="flex items-center">
           <input
             type="number"
             min="0"
@@ -973,7 +973,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
               </div>
             </div>
             {/* Max Booking  Cut-off */}
-            <div className="h-12 flex border-b border-gray-300">
+            <div className="h-20 flex border-b border-gray-300">
               <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-50">
                 <span className="font-semibold text-purple-700 text-xs">
                   Max Booking Cut-off
@@ -1016,7 +1016,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
               </div>
             </div>
             {/* Min Booking Cut-off */}
-            <div className="h-12 flex border-b border-gray-300">
+            <div className="h-20 flex border-b border-gray-300">
               <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-50">
                 <span className="font-semibold text-purple-700 text-xs">
                   {" "}
@@ -1060,7 +1060,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
               </div>
             </div>
             {/* Max Booking Amend Cut-off */}
-            <div className="h-12 flex border-b border-gray-300">
+            <div className="h-20 flex border-b border-gray-300">
               <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-50">
                 <span className="font-semibold text-purple-700 text-xs">
                   Max Booking Amend Cut-off
@@ -1103,7 +1103,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
               </div>
             </div>
             {/* Min Booking Amend Cut-off */}
-            <div className="h-12 flex border-b border-gray-300">
+            <div className="h-20 flex border-b border-gray-300">
               <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-50">
                 <span className="font-semibold text-purple-700 text-xs">
                   {" "}
@@ -1147,7 +1147,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
               </div>
             </div>
             {/* Max Booking Cancel Cut-off */}
-            <div className="h-12 flex border-b border-gray-300">
+            <div className="h-20 flex border-b border-gray-300">
               <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-50">
                 <span className="font-semibold text-purple-700 text-xs">
                   Max Booking Cancel Cut-off
@@ -1190,7 +1190,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
               </div>
             </div>
             {/* Min Booking Cancel Cut-off */}
-            <div className="h-12 flex border-b border-gray-300">
+            <div className="h-20 flex border-b border-gray-300">
               <div className="w-40 flex items-center px-2 border-r border-gray-300 bg-purple-50">
                 <span className="font-semibold text-purple-700 text-xs">
                   {" "}
@@ -1867,7 +1867,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
 
           {/* Cut-off Unit Toggle Spacer (data side) */}
           {/* Cut-off section header — each cell has its own Hr/Day selector */}
-          <div className="flex h-8 border-b border-gray-300 bg-purple-100">
+          <div className="flex h-10 border-b border-gray-300 bg-purple-100">
             {days.map((_, index) => (
               <div
                 key={index}
@@ -1881,32 +1881,32 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
           </div>
 
           {/* Max Booking Cut-off Data */}
-          <div className="flex border-b border-gray-300">
+          <div className="flex h-20 border-b border-gray-300">
             {days.map((day, index) => renderOffsetCell(day, index, "maximumAdvanceBookingOffset"))}
           </div>
 
           {/* Min Booking Cut-off Data */}
-          <div className="flex border-b border-gray-300">
+          <div className="flex h-20 border-b border-gray-300">
             {days.map((day, index) => renderOffsetCell(day, index, "minimumAdvanceBookingOffset"))}
           </div>
 
           {/* Max Booking Amend Cut-off Data */}
-          <div className="flex border-b border-gray-300">
+          <div className="flex h-20 border-b border-gray-300">
             {days.map((day, index) => renderOffsetCell(day, index, "maximumAmendBookingOffset"))}
           </div>
 
           {/* Min Booking Amend Cut-off Data */}
-          <div className="flex border-b border-gray-300">
+          <div className="flex h-20 border-b border-gray-300">
             {days.map((day, index) => renderOffsetCell(day, index, "minimumAmendBookingOffset"))}
           </div>
 
           {/* Max Booking Cancel Cut-off Data */}
-          <div className="flex border-b border-gray-300">
+          <div className="flex h-20 border-b border-gray-300">
             {days.map((day, index) => renderOffsetCell(day, index, "maximumCancelBookingOffset"))}
           </div>
 
           {/* Min Booking Cancel Cut-off Data */}
-          <div className="flex border-b border-gray-300">
+          <div className="flex h-20 border-b border-gray-300">
             {days.map((day, index) => renderOffsetCell(day, index, "minimumCancelBookingOffset"))}
           </div>
 
