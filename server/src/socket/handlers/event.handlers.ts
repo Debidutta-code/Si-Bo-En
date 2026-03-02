@@ -65,6 +65,11 @@ export class SocketEventHandlers {
         let cached: string | null = null;
 
         try {
+            // ✅ ADDED: Log the exact key being looked up so we can compare with
+            // what webhook.service.ts logs when it sets the key - if they differ,
+            // that is the root cause of the miss
+            console.log(`🔍 Redis key being GET: payment:confirmed:${orderReference}`);
+
             cached = await redis.get(`payment:confirmed:${orderReference}`);
             if (cached) {
                 await redis.del(`payment:confirmed:${orderReference}`);
