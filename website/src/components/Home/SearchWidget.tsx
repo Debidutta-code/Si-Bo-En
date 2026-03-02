@@ -403,18 +403,15 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
 
   const openCalendar = () => {
     setIsCalendarOpen(true);
-    // If we have both dates already selected, start fresh
     if (checkIn && checkOut) {
       setSelectionMode("checkin");
       setIsSelectingRange(false);
       setTemporaryCheckOut(null);
     }
-    // If we only have check-in, we're ready to select check-out
     else if (checkIn && !checkOut) {
       setSelectionMode("checkout");
       setIsSelectingRange(true);
     }
-    // If we have nothing, start with check-in
     else {
       setSelectionMode("checkin");
       setIsSelectingRange(false);

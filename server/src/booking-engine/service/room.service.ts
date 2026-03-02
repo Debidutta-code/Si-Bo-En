@@ -275,15 +275,16 @@ export class RoomBookingService {
                 .days
         );
 
-        for (const promo of promotions) {
+        const filteredPromotions = promotions.filter(promo => {
             if (
                 promo.promotionType === 'early_bird' &&
                 promo.advanceBookingDays &&
                 daysBetweenBookingAndCheckIn < promo.advanceBookingDays
             ) {
-                return null;
+                return false;
             }
-        }
+            return true;
+        });
 
         const charge = charges[0];
         const sortedBase = [...charge.baseGuestAmounts].sort(
@@ -338,7 +339,7 @@ export class RoomBookingService {
             });
         }
 
-        for (const promo of promotions) {
+        for (const promo of filteredPromotions) {
             const discount = this.calculateDiscount(
                 baseAmount,
                 promo.discountType,
@@ -550,20 +551,7 @@ export class RoomBookingService {
             });
         }
 
-        if (availableAddonDetails.length >= 2) {
-            const totalAddonPrice = availableAddonDetails.reduce(
-                (sum, a) => sum + a.price,
-                0
-            );
-            combos.push({
-                ...sharedFields,
-                comboLabel: `${ratePlan.ratePlanName} (+ ${availableAddonDetails.map(a => a.name).join(' + ')})`,
-                addons: availableAddonDetails,
-                totalAmount: baseAmount - totalAutoDiscount + totalAddonPrice,
-            });
-        }
-
-        return combos;
+        return combos.sort((a, b) => a.totalAmount - b.totalAmount);
     }
 
     private static mapPromotion(promo: any): IPromotion {
