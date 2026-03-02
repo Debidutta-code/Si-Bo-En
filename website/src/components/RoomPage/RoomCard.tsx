@@ -316,7 +316,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
         noOfAdults,
         noOfChildren: noOfChildrens,
         noOfRooms,
-        promoCode:bookingContext.promocode
+        promoCode: bookingContext.promocode
       };
 
       // ✅ ADD LOYALTY GUEST EMAIL TO PAYLOAD
@@ -350,9 +350,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
       }
 
       if (ratePlan.addons && ratePlan.addons.length > 0) {
-        payload.includedAddons = ratePlan.addons.map((addon: any) => ({
-          addOnId: addon.id,
-        }));
+        payload.includedAddons = ratePlan.addons.map((addon: any) => addon.id) as string[];
       }
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/pricing/get-price`,
