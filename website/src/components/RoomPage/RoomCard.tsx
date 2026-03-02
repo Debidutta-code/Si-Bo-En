@@ -316,6 +316,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
         noOfAdults,
         noOfChildren: noOfChildrens,
         noOfRooms,
+        promoCode:bookingContext.promocode
       };
 
       // ✅ ADD LOYALTY GUEST EMAIL TO PAYLOAD
@@ -334,8 +335,6 @@ const RoomCard: React.FC<RoomCardProps> = ({
         }));
       }
 
-      // Transform addons into parsedAddons format (grouped by addonId)
-      // User selected addons from modal — send as-is
       if (selectedAddonsList && selectedAddonsList.length > 0) {
         const addonMap: Record<string, any> = {};
         selectedAddonsList.forEach((addon: any) => {
@@ -350,11 +349,9 @@ const RoomCard: React.FC<RoomCardProps> = ({
         payload.parsedAddons = Object.values(addonMap);
       }
 
-      // Combo included addons — send separately
       if (ratePlan.addons && ratePlan.addons.length > 0) {
         payload.includedAddons = ratePlan.addons.map((addon: any) => ({
           addOnId: addon.id,
-          addOnCode: addon.code,
         }));
       }
       const response = await fetch(
