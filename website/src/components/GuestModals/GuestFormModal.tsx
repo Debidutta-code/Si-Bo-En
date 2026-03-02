@@ -690,7 +690,7 @@ if (!contactInfo.phoneNumber.trim()) {
                   : colors.primaryColor, 
                 color: colors.buttonTextColor 
               }}
-              className="flex-1 hover:opacity-90 transition-opacity"
+              className="flex-1 py-4 hover:opacity-90 transition-opacity"
               size="lg"
             >
               {paymentProcessing ? (
