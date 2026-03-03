@@ -4,6 +4,8 @@ export interface IPropertyLoyalityWithLoyality{
     propertyId: string;
     propertyCode: string;
     propertyName: string;
+    discountPercentage: number | null;
+    loyalityConfigLogo: string | null;
 }
 export interface ICCreationLoyality {
       creationId: string

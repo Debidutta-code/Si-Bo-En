@@ -16,12 +16,18 @@ export class PropertyLoyalityService {
     public async createPropertyLoyalityConfig(data: ICPropertyLoyaltyConfig): Promise<IApiResponse> {
         try {
             const activeExisting = await this.propertyLoyalityRepository.getLoyalityForPropertyWhereTrue(data.propertyId);
+            console.log(data)
             console.log("Active existing config:", activeExisting);
-            if (activeExisting) {
-                await this.propertyLoyalityRepository.updatePropertyLoyalityConfig(activeExisting.id, false);
+            if (activeExisting && activeExisting.creationLoyaltyConfigId != data.creationLoyaltyConfigId) {
+                const updateRes = await this.propertyLoyalityRepository.updatePropertyLoyality(activeExisting.id, data,true);
+                return successResponse("Successfully updated property loyalty config", updateRes);
+            } else if (activeExisting  && !activeExisting.isActive) {
+                const existingActivateRes = await this.propertyLoyalityRepository.updatePropertyLoyalityConfig(activeExisting.id, true);
+                return successResponse("Successfully updated property loyalty config", existingActivateRes);
+            } else {
+                const result = await this.propertyLoyalityRepository.createPropertyLoyalityConfig(data);
+                return successResponse("Successfully created property loyalty config", result);
             }
-            const result = await this.propertyLoyalityRepository.createPropertyLoyalityConfig(data);
-            return successResponse("Successfully created property loyalty config", result);
         } catch (error) {
             if (error instanceof Error) {
                 return errorResponse("Failed to create property loyalty config", error.message);
@@ -45,21 +51,18 @@ export class PropertyLoyalityService {
         }
     }
 
-    public async updatePropertyLoyalityConfig(propertyId: string, isActive: boolean): Promise<IApiResponse> {
+    public async updatePropertyLoyalityConfig(propertyId: string, isActive: boolean,dicountPercentage:number|null,loyaltyImage:string|null): Promise<IApiResponse> {
         try {
             const existingConfig = await this.propertyLoyalityRepository.getLoyalityForProperty(propertyId);
-            
             if (!existingConfig) {
                 return errorResponse("Property loyalty config not found");
             }
-            if (isActive) {
-                const activeExisting = await this.propertyLoyalityRepository.getLoyalityForPropertyWhereTrue(propertyId);
-                if (activeExisting && activeExisting.id !== existingConfig.id) {
-                    await this.propertyLoyalityRepository.updatePropertyLoyalityConfig(activeExisting.id, false);
-                }
+            const updateData:ICPropertyLoyaltyConfig={
+                ...existingConfig,
+                discountPercentage:dicountPercentage,
+                loyalityConfigLogo:loyaltyImage
             }
-
-            const result = await this.propertyLoyalityRepository.updatePropertyLoyalityConfig(existingConfig.id, isActive);
+            const result = await this.propertyLoyalityRepository.updatePropertyLoyality(existingConfig.id, updateData,isActive);
             if (!result) {
                 return errorResponse("Failed to update property loyalty config");
             }

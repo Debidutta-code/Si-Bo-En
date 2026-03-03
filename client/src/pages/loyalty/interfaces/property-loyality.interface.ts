@@ -5,8 +5,8 @@ export interface ICPropertyLoyaltyConfig {
     propertyId: string;
     propertyCode: string;
     propertyName: string;
-    // loyalityConfigLogo: string | null;
-    // discountPercentage: number | null;
+    loyalityConfigLogo: string | null;
+    discountPercentage: number | null;
 }
 export interface IPropertyLoyaltyConfig extends ICPropertyLoyaltyConfig {
     id: string;

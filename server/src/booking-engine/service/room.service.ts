@@ -500,7 +500,6 @@ export class RoomBookingService {
 
             for (let i = 0; i < ratePlanAddons.length; i++) {
                 const availability = addonAvailabilityResults[i];
-                // If not available for ALL nights → skip this addon (don't skip rate plan)
                 if (availability.length !== dates.length) continue;
 
                 const addon = ratePlanAddons[i].addon;

@@ -1,8 +1,23 @@
 import { IPropertyLoyalityWithLoyality } from "@/src/app/Rooms/interface";
-import { Award, Gift, Star, User, Sparkles, CheckCircle2, Mail, LogOut } from "lucide-react";
+import {
+  Award,
+  Gift,
+  Star,
+  User,
+  Sparkles,
+  CheckCircle2,
+  Mail,
+  LogOut,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "../ui/dialog";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
@@ -41,7 +56,9 @@ export const LoyaltyProgramBanner = ({
     const verifyLoyaltyMembership = async () => {
       if (!loyaltyProgram?.propertyId) return;
       setIsVerifying(true);
-      const loyaltyMemberEmail = localStorage.getItem(`loyalty_member_${loyaltyProgram.propertyId}`);
+      const loyaltyMemberEmail = localStorage.getItem(
+        `loyalty_member_${loyaltyProgram.propertyId}`,
+      );
 
       if (loyaltyMemberEmail) {
         try {
@@ -55,7 +72,7 @@ export const LoyaltyProgramBanner = ({
                 email: loyaltyMemberEmail,
                 propertyId: loyaltyProgram.propertyId,
               }),
-            }
+            },
           );
 
           const data = await response.json();
@@ -67,7 +84,9 @@ export const LoyaltyProgramBanner = ({
             setDiscountInfo(data.data.discount);
           } else {
             // Not a valid loyalty member, clear localStorage
-            localStorage.removeItem(`loyalty_member_${loyaltyProgram.propertyId}`);
+            localStorage.removeItem(
+              `loyalty_member_${loyaltyProgram.propertyId}`,
+            );
             setIsRegistered(false);
             setRegisteredEmail("");
             setDiscountInfo(null);
@@ -75,7 +94,9 @@ export const LoyaltyProgramBanner = ({
         } catch (error) {
           console.error("Error verifying loyalty membership:", error);
           // On error, clear localStorage to be safe
-          localStorage.removeItem(`loyalty_member_${loyaltyProgram.propertyId}`);
+          localStorage.removeItem(
+            `loyalty_member_${loyaltyProgram.propertyId}`,
+          );
           setIsRegistered(false);
           setRegisteredEmail("");
           setDiscountInfo(null);
@@ -102,14 +123,16 @@ export const LoyaltyProgramBanner = ({
   const program = loyaltyProgram.CreationLoyaltyConfig;
   const isBasicProgram = program.BasicLoyaltyProgram !== null;
   const isAdvancedProgram = program.AdvanceLoyaltyProgram !== null;
-  const loyaltyLogo = isBasicProgram && program.BasicLoyaltyProgram?.logo?.[0]
-    ? program.BasicLoyaltyProgram.logo[0]
-    : null;
+  const loyaltyLogo =
+    loyaltyProgram.loyalityConfigLogo ??
+    (isBasicProgram && program.BasicLoyaltyProgram?.logo?.[0]
+      ? program.BasicLoyaltyProgram.logo[0]
+      : null);
 
   const handleFieldChange = (fieldName: string, value: any) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [fieldName]: value
+      [fieldName]: value,
     }));
   };
 
@@ -147,18 +170,22 @@ export const LoyaltyProgramBanner = ({
             propertyId: loyaltyProgram.propertyId,
             metadata: otherFields, // All other fields go into metadata
           }),
-        }
+        },
       );
 
       const data = await response.json();
 
       if (!response.ok || !data.success) {
-        const errorMsg = data.message || "Failed to register for loyalty program";
+        const errorMsg =
+          data.message || "Failed to register for loyalty program";
 
         // Check if already registered
         if (errorMsg.includes("already registered")) {
           // Save to localStorage
-          localStorage.setItem(`loyalty_member_${loyaltyProgram.propertyId}`, email);
+          localStorage.setItem(
+            `loyalty_member_${loyaltyProgram.propertyId}`,
+            email,
+          );
 
           // Update state with discount info from backend
           setIsRegistered(true);
@@ -181,7 +208,10 @@ export const LoyaltyProgramBanner = ({
       }
 
       // Save to localStorage
-      localStorage.setItem(`loyalty_member_${loyaltyProgram.propertyId}`, email);
+      localStorage.setItem(
+        `loyalty_member_${loyaltyProgram.propertyId}`,
+        email,
+      );
 
       // Update state with discount info from registration response
       setIsRegistered(true);
@@ -218,7 +248,15 @@ export const LoyaltyProgramBanner = ({
       }
     }
 
-    // Otherwise, use the default from program config
+    // Otherwise, check if we have a property-specific discount
+    if (
+      loyaltyProgram.discountPercentage !== null &&
+      loyaltyProgram.discountPercentage !== undefined
+    ) {
+      return `${loyaltyProgram.discountPercentage}% OFF`;
+    }
+
+    // Fall back to the default from program config
     if (program.loyaltyDiscountType === "percentage") {
       return `${program.discountValue}% OFF`;
     } else {
@@ -235,7 +273,7 @@ export const LoyaltyProgramBanner = ({
             data-loyalty-banner
             style={{
               borderColor: `${primaryColor}20`,
-              background: 'white'
+              background: "white",
             }}
           >
             {/* Loading overlay while verifying */}
@@ -246,13 +284,14 @@ export const LoyaltyProgramBanner = ({
                     className="animate-spin rounded-full h-4 w-4 border-2 border-gray-200"
                     style={{ borderTopColor: primaryColor }}
                   ></div>
-                  <span className="text-xs font-medium text-gray-600">Verifying...</span>
+                  <span className="text-xs font-medium text-gray-600">
+                    Verifying...
+                  </span>
                 </div>
               </div>
             )}
 
             <div className="p-3 sm:p-4 h-full flex flex-col gap-2.5">
-
               {/* Header Row: Logo + Property Name + Badge */}
               <div className="flex items-center gap-2 sm:gap-3">
                 {/* Logo */}
@@ -273,7 +312,10 @@ export const LoyaltyProgramBanner = ({
                       className="bg-gray-50 rounded-lg p-2 border flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 flex-shrink-0"
                       style={{ borderColor: `${primaryColor}20` }}
                     >
-                      <Award className="w-5 h-5 sm:w-6 sm:h-6 opacity-20" style={{ color: primaryColor }} />
+                      <Award
+                        className="w-5 h-5 sm:w-6 sm:h-6 opacity-20"
+                        style={{ color: primaryColor }}
+                      />
                     </div>
                   )}
                 </div>
@@ -281,11 +323,16 @@ export const LoyaltyProgramBanner = ({
                 {/* Property Name + Label */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" style={{ color: primaryColor }} />
+                    <Award
+                      className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0"
+                      style={{ color: primaryColor }}
+                    />
                     <h2 className="text-sm sm:text-base font-bold text-gray-900 truncate">
                       {loyaltyProgram.propertyName}
                     </h2>
-                    <span className="text-[10px] sm:text-xs text-gray-500 whitespace-nowrap">Loyalty Program</span>
+                    <span className="text-[10px] sm:text-xs text-gray-500 whitespace-nowrap">
+                      Loyalty Program
+                    </span>
                   </div>
                 </div>
 
@@ -305,52 +352,72 @@ export const LoyaltyProgramBanner = ({
               </div>
 
               {/* Program Terms */}
-              {program.loyaltyConditions && program.loyaltyConditions.filter(c => c.isActive).length > 0 && (
-                <div>
-                  <h3 className="text-[10px] sm:text-xs font-semibold text-gray-700 mb-1.5 flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" style={{ color: primaryColor }} />
-                    Program Terms
-                  </h3>
-                  <div className="space-y-1 max-h-20 overflow-y-auto custom-scrollbar">
-                    {program.loyaltyConditions
-                      .filter(condition => condition.isActive)
-                      .slice(0, 2)
-                      .map((condition, index) => (
-                        <div
-                          key={index}
-                          className="flex items-start gap-1.5 bg-gray-50 rounded p-1.5"
-                        >
-                          <CheckCircle2 className="w-3 h-3 flex-shrink-0 mt-0.5" style={{ color: primaryColor }} />
-                          <span className="text-[10px] sm:text-xs text-gray-700 leading-snug">{condition.text}</span>
-                        </div>
-                      ))}
+              {program.loyaltyConditions &&
+                program.loyaltyConditions.filter((c) => c.isActive).length >
+                  0 && (
+                  <div>
+                    <h3 className="text-[10px] sm:text-xs font-semibold text-gray-700 mb-1.5 flex items-center gap-1">
+                      <CheckCircle2
+                        className="w-3 h-3"
+                        style={{ color: primaryColor }}
+                      />
+                      Program Terms
+                    </h3>
+                    <div className="space-y-1 max-h-20 overflow-y-auto custom-scrollbar">
+                      {program.loyaltyConditions
+                        .filter((condition) => condition.isActive)
+                        .slice(0, 2)
+                        .map((condition, index) => (
+                          <div
+                            key={index}
+                            className="flex items-start gap-1.5 bg-gray-50 rounded p-1.5"
+                          >
+                            <CheckCircle2
+                              className="w-3 h-3 flex-shrink-0 mt-0.5"
+                              style={{ color: primaryColor }}
+                            />
+                            <span className="text-[10px] sm:text-xs text-gray-700 leading-snug">
+                              {condition.text}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* Special Benefits */}
-              {program.loyaltySpecialConditions && program.loyaltySpecialConditions.filter(c => c.isActive).length > 0 && (
-                <div>
-                  <h3 className="text-[10px] sm:text-xs font-semibold text-gray-700 mb-1.5 flex items-center gap-1">
-                    <Star className="w-3 h-3" style={{ color: primaryColor }} />
-                    Special Benefits
-                  </h3>
-                  <div className="space-y-1">
-                    {program.loyaltySpecialConditions
-                      .filter(condition => condition.isActive)
-                      .slice(0, showAllBenefits ? undefined : 1)
-                      .map((condition, index) => (
-                        <div
-                          key={index}
-                          className="flex items-start gap-1.5 bg-gradient-to-br from-purple-50 to-blue-50 rounded p-1.5 border border-purple-200 overflow-hidden min-w-0"
-                        >
-                          <Star className="w-3 h-3 flex-shrink-0 mt-0.5" style={{ color: primaryColor }} />
-                          <span className="text-[10px] sm:text-xs text-gray-900 font-semibold leading-snug">{condition.subTitle}</span>
-                        </div>
-                      ))}
+              {program.loyaltySpecialConditions &&
+                program.loyaltySpecialConditions.filter((c) => c.isActive)
+                  .length > 0 && (
+                  <div>
+                    <h3 className="text-[10px] sm:text-xs font-semibold text-gray-700 mb-1.5 flex items-center gap-1">
+                      <Star
+                        className="w-3 h-3"
+                        style={{ color: primaryColor }}
+                      />
+                      Special Benefits
+                    </h3>
+                    <div className="space-y-1">
+                      {program.loyaltySpecialConditions
+                        .filter((condition) => condition.isActive)
+                        .slice(0, showAllBenefits ? undefined : 1)
+                        .map((condition, index) => (
+                          <div
+                            key={index}
+                            className="flex items-start gap-1.5 bg-gradient-to-br from-purple-50 to-blue-50 rounded p-1.5 border border-purple-200 overflow-hidden min-w-0"
+                          >
+                            <Star
+                              className="w-3 h-3 flex-shrink-0 mt-0.5"
+                              style={{ color: primaryColor }}
+                            />
+                            <span className="text-[10px] sm:text-xs text-gray-900 font-semibold leading-snug">
+                              {condition.subTitle}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* Bottom Row: Discount Badge + Spacer + (Join/Logout) */}
               <div className="flex items-center gap-2 mt-auto flex-wrap sm:flex-nowrap">
@@ -403,7 +470,6 @@ export const LoyaltyProgramBanner = ({
                   </div>
                 )} */}
               </div>
-
             </div>
           </div>
         </div>
@@ -415,7 +481,10 @@ export const LoyaltyProgramBanner = ({
           <DialogContent className="w-[calc(100vw-2rem)] sm:max-w-xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-lg sm:text-xl font-bold flex items-center gap-2">
-                <Award className="w-5 h-5 flex-shrink-0" style={{ color: primaryColor }} />
+                <Award
+                  className="w-5 h-5 flex-shrink-0"
+                  style={{ color: primaryColor }}
+                />
                 Join {loyaltyProgram.propertyName}
               </DialogTitle>
               <DialogDescription className="text-xs sm:text-sm">
@@ -430,7 +499,7 @@ export const LoyaltyProgramBanner = ({
                   className="p-3 rounded-lg border flex items-center gap-3"
                   style={{
                     backgroundColor: `${primaryColor}10`,
-                    borderColor: `${primaryColor}40`
+                    borderColor: `${primaryColor}40`,
                   }}
                 >
                   <div
@@ -451,7 +520,10 @@ export const LoyaltyProgramBanner = ({
 
                 {/* Email Field */}
                 <div className="space-y-1.5">
-                  <Label htmlFor="email" className="text-xs sm:text-sm font-medium">
+                  <Label
+                    htmlFor="email"
+                    className="text-xs sm:text-sm font-medium"
+                  >
                     Email Address <span className="text-red-500">*</span>
                   </Label>
                   <Input
@@ -468,28 +540,40 @@ export const LoyaltyProgramBanner = ({
                 {/* Dynamic Fields */}
                 {program.LoyaltyProgramFieldConfig &&
                   program.LoyaltyProgramFieldConfig.filter(
-                    field => field.visibleInRegistration && field.fieldName.toLowerCase() !== 'email'
+                    (field) =>
+                      field.visibleInRegistration &&
+                      field.fieldName.toLowerCase() !== "email",
                   ).length > 0 && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {program.LoyaltyProgramFieldConfig
-                        .filter(field => field.visibleInRegistration && field.fieldName.toLowerCase() !== 'email')
-                        .map((field) => (
-                          <div key={field.id} className="space-y-1.5">
-                            <Label htmlFor={field.fieldName} className="text-xs sm:text-sm font-medium">
-                              {field.fieldName.charAt(0).toUpperCase() + field.fieldName.slice(1).replaceAll("_", " ")}
-                              {field.required && <span className="text-red-500">*</span>}
-                            </Label>
-                            <Input
-                              id={field.fieldName}
-                              type="text"
-                              placeholder={`Enter ${field.fieldName.toLowerCase().replaceAll("_", " ")}`}
-                              required={field.required}
-                              value={formData[field.fieldName] || ""}
-                              onChange={(e) => handleFieldChange(field.fieldName, e.target.value)}
-                              className="w-full text-sm"
-                            />
-                          </div>
-                        ))}
+                      {program.LoyaltyProgramFieldConfig.filter(
+                        (field) =>
+                          field.visibleInRegistration &&
+                          field.fieldName.toLowerCase() !== "email",
+                      ).map((field) => (
+                        <div key={field.id} className="space-y-1.5">
+                          <Label
+                            htmlFor={field.fieldName}
+                            className="text-xs sm:text-sm font-medium"
+                          >
+                            {field.fieldName.charAt(0).toUpperCase() +
+                              field.fieldName.slice(1).replaceAll("_", " ")}
+                            {field.required && (
+                              <span className="text-red-500">*</span>
+                            )}
+                          </Label>
+                          <Input
+                            id={field.fieldName}
+                            type="text"
+                            placeholder={`Enter ${field.fieldName.toLowerCase().replaceAll("_", " ")}`}
+                            required={field.required}
+                            value={formData[field.fieldName] || ""}
+                            onChange={(e) =>
+                              handleFieldChange(field.fieldName, e.target.value)
+                            }
+                            className="w-full text-sm"
+                          />
+                        </div>
+                      ))}
                     </div>
                   )}
               </div>

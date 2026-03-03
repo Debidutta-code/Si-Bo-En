@@ -58,7 +58,7 @@ export class PropertyLoyalityController {
     public async updatePropertyLoyalityConfig(req: CustomRequest, res: Response): Promise<Response> {
         try {
             const { propertyId } = req.params;
-            const { isActive } = req.body;
+            const { isActive,discountPercentage,loyalityConfigLogo } = req.body;
 
             if (!propertyId) {
                 return res.status(400).json(errorResponse("Property is not selected", "Property ID is required"));
@@ -67,7 +67,7 @@ export class PropertyLoyalityController {
                 return res.status(400).json(errorResponse("Invalid Field Provided", "isActive field is required and must be a boolean"));
             }
 
-            const result = await this.propertyLoyalityService.updatePropertyLoyalityConfig(propertyId, isActive);
+            const result = await this.propertyLoyalityService.updatePropertyLoyalityConfig(propertyId, isActive,discountPercentage,loyalityConfigLogo);
             return res.status(result.success ? 200 : 400).json(result);
         } catch (error) {
             if (error instanceof Error) {
