@@ -123,7 +123,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
   const [loadingPriceFor, setLoadingPriceFor] = useState<string | null>(null);
 
   // Get loyalty program info from loyalty prop (passed from parent) or bookingContext
-  const loyaltyProgram = loyalty;  // ← use the loyalty prop directly
+  const loyaltyProgram = loyalty; // ← use the loyalty prop directly
   const loyaltyDiscount = loyalty?.CreationLoyaltyConfig;
   const isLoyaltyMember = !!loyaltyMemberEmail;
   const [expandedCombo, setExpandedCombo] = useState<string | null>(null);
@@ -153,7 +153,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
       }
     } else {
       // Go to previous image
-      setCurrentImageIndex(prev => prev - 1);
+      setCurrentImageIndex((prev) => prev - 1);
     }
   };
 
@@ -173,7 +173,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
       }
     } else {
       // Go to next image
-      setCurrentImageIndex(prev => prev + 1);
+      setCurrentImageIndex((prev) => prev + 1);
     }
   };
 
@@ -316,7 +316,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
         noOfAdults,
         noOfChildren: noOfChildrens,
         noOfRooms,
-        promoCode: bookingContext.promocode
+        promoCode: bookingContext.promocode,
       };
 
       // ✅ ADD LOYALTY GUEST EMAIL TO PAYLOAD
@@ -339,7 +339,10 @@ const RoomCard: React.FC<RoomCardProps> = ({
         const addonMap: Record<string, any> = {};
         selectedAddonsList.forEach((addon: any) => {
           if (!addonMap[addon.addonId]) {
-            addonMap[addon.addonId] = { addOnId: addon.addonId, availability: [] };
+            addonMap[addon.addonId] = {
+              addOnId: addon.addonId,
+              availability: [],
+            };
           }
           addonMap[addon.addonId].availability.push({
             date: addon.date,
@@ -350,7 +353,9 @@ const RoomCard: React.FC<RoomCardProps> = ({
       }
 
       if (ratePlan.addons && ratePlan.addons.length > 0) {
-        payload.includedAddons = ratePlan.addons.map((addon: any) => addon.id) as string[];
+        payload.includedAddons = ratePlan.addons.map(
+          (addon: any) => addon.id,
+        ) as string[];
       }
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/pricing/get-price`,
@@ -368,7 +373,13 @@ const RoomCard: React.FC<RoomCardProps> = ({
       setLatestPrice(data.data);
 
       // Proceed to booking with selected addons, passing price data up
-      onBookNow(room, ratePlan, selectedAddonsList, selectedPromotionsList, data.data);
+      onBookNow(
+        room,
+        ratePlan,
+        selectedAddonsList,
+        selectedPromotionsList,
+        data.data,
+      );
     } catch (error) {
       console.error("Error fetching price:", error);
       toast.error("Failed to fetch price. Please try again.");
@@ -497,11 +508,14 @@ const RoomCard: React.FC<RoomCardProps> = ({
     0,
   );
   // Group combos by ratePlanCode → one card per rate plan
-  const groupedRatePlans = room.room_price.reduce((acc: Record<string, any[]>, rp: any) => {
-    if (!acc[rp.ratePlanCode]) acc[rp.ratePlanCode] = [];
-    acc[rp.ratePlanCode].push(rp);
-    return acc;
-  }, {});
+  const groupedRatePlans = room.room_price.reduce(
+    (acc: Record<string, any[]>, rp: any) => {
+      if (!acc[rp.ratePlanCode]) acc[rp.ratePlanCode] = [];
+      acc[rp.ratePlanCode].push(rp);
+      return acc;
+    },
+    {},
+  );
   return (
     <div className="space-y-4">
       {/* Room Header Card */}
@@ -556,14 +570,18 @@ const RoomCard: React.FC<RoomCardProps> = ({
                   {images.map((_, idx) => (
                     <span
                       key={idx}
-                      className={`h-2 w-2 rounded-full ${!showVideo && idx === currentImageIndex ? "bg-white" : "bg-white/50"
-                        }`}
+                      className={`h-2 w-2 rounded-full ${
+                        !showVideo && idx === currentImageIndex
+                          ? "bg-white"
+                          : "bg-white/50"
+                      }`}
                     />
                   ))}
                   {hasVideo && (
                     <span
-                      className={`h-2 w-2 rounded-full ${showVideo ? "bg-white" : "bg-white/50"
-                        }`}
+                      className={`h-2 w-2 rounded-full ${
+                        showVideo ? "bg-white" : "bg-white/50"
+                      }`}
                     />
                   )}
                 </div>
@@ -644,12 +662,22 @@ const RoomCard: React.FC<RoomCardProps> = ({
             let loyaltyDiscountPercentage = 0;
 
             if (loyaltyDiscount) {
-              if (loyaltyDiscount.loyaltyDiscountType === "percentage") {
-                loyaltyDiscountAmount = (basePrice * loyaltyDiscount.discountValue) / 100;
+              if (
+                loyalty?.discountPercentage !== null &&
+                loyalty?.discountPercentage !== undefined
+              ) {
+                loyaltyDiscountAmount =
+                  (basePrice * loyalty.discountPercentage) / 100;
+                loyaltyDiscountPercentage = loyalty.discountPercentage;
+              } else if (loyaltyDiscount.loyaltyDiscountType === "percentage") {
+                loyaltyDiscountAmount =
+                  (basePrice * loyaltyDiscount.discountValue) / 100;
                 loyaltyDiscountPercentage = loyaltyDiscount.discountValue;
               } else if (loyaltyDiscount.loyaltyDiscountType === "flat") {
                 loyaltyDiscountAmount = loyaltyDiscount.discountValue;
-                loyaltyDiscountPercentage = Math.round((loyaltyDiscountAmount / basePrice) * 100);
+                loyaltyDiscountPercentage = Math.round(
+                  (loyaltyDiscountAmount / basePrice) * 100,
+                );
               }
             }
 
@@ -667,11 +695,13 @@ const RoomCard: React.FC<RoomCardProps> = ({
                         <h3 className="text-lg md:text-xl font-bold text-gray-900 leading-tight uppercase">
                           {firstCombo.ratePlanName}
                         </h3>
-                        {firstCombo.availableRooms && firstCombo.availableRooms <= 5 && (
-                          <span className="px-3 py-1 bg-red-50 text-red-600 border border-red-200 text-xs font-bold rounded-md uppercase animate-pulse">
-                            ⚠ Only {firstCombo.availableRooms} Room{firstCombo.availableRooms !== 1 ? "s" : ""} Left!
-                          </span>
-                        )}
+                        {firstCombo.availableRooms &&
+                          firstCombo.availableRooms <= 5 && (
+                            <span className="px-3 py-1 bg-red-50 text-red-600 border border-red-200 text-xs font-bold rounded-md uppercase animate-pulse">
+                              ⚠ Only {firstCombo.availableRooms} Room
+                              {firstCombo.availableRooms !== 1 ? "s" : ""} Left!
+                            </span>
+                          )}
                         {selectedPromotions[ratePlanCode]?.length > 0 && (
                           <span className="px-2.5 py-1 bg-blue-50 border border-blue-200 text-blue-800 text-xs font-bold rounded-md">
                             Promotional rate
@@ -691,13 +721,27 @@ const RoomCard: React.FC<RoomCardProps> = ({
                           {/* Available Promotions Toggle */}
                           {firstCombo.availablePromotions?.length > 0 && (
                             <button
-                              onClick={() => setExpandedPromotions(
-                                expandedPromotions === ratePlanCode ? null : ratePlanCode
-                              )}
+                              onClick={() =>
+                                setExpandedPromotions(
+                                  expandedPromotions === ratePlanCode
+                                    ? null
+                                    : ratePlanCode,
+                                )
+                              }
                               className="mt-2 flex items-center gap-1.5 text-xs md:text-sm text-orange-600 hover:text-orange-700 font-medium hover:underline"
                             >
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
+                                />
                               </svg>
                               {selectedPromotions[ratePlanCode]?.length > 0
                                 ? `${selectedPromotions[ratePlanCode].length} Offer(s) Applied • ${firstCombo.availablePromotions.length} Available`
@@ -706,78 +750,121 @@ const RoomCard: React.FC<RoomCardProps> = ({
                           )}
 
                           {/* Promotions Panel — same as before, just use ratePlanCode as key */}
-                          {expandedPromotions === ratePlanCode && firstCombo.availablePromotions?.length > 0 && (
-                            <div className="mt-4 p-4 bg-gradient-to-br from-orange-50 to-amber-50 border-l-4 border-orange-400 rounded-lg">
-                              <p className="text-xs font-bold text-orange-800 uppercase tracking-wide mb-3">
-                                🏷 Special Offers Available
-                              </p>
-                              <div className="space-y-2">
-                                {firstCombo.availablePromotions.map((promo: any) => {
-                                  const isSelected = selectedPromotions[ratePlanCode]?.some((p: any) => p.id === promo.id);
-                                  return (
-                                    <div
-                                      key={promo.id}
-                                      onClick={() => {
-                                        setSelectedPromotions((prev) => {
-                                          const current = prev[ratePlanCode] || [];
-                                          const alreadySelected = current.some((p: any) => p.id === promo.id);
-                                          return {
-                                            ...prev,
-                                            [ratePlanCode]: alreadySelected
-                                              ? current.filter((p: any) => p.id !== promo.id)
-                                              : [...current, promo],
-                                          };
-                                        });
-                                      }}
-                                      className={`flex items-center justify-between p-3 rounded-lg border-2 cursor-pointer transition-all ${isSelected
-                                        ? "border-orange-500 bg-orange-100"
-                                        : "border-orange-200 bg-white hover:border-orange-400"
-                                        }`}
-                                    >
-                                      <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2 mb-0.5">
-                                          <span className="text-xs font-bold text-orange-900">
-                                            {promo.promotionType === "device_specific" ? "📱"
-                                              : promo.promotionType === "mlos" ? "🌙"
-                                                : promo.promotionType === "early_bird" ? "🐦"
-                                                  : promo.promotionType === "offer_for_tonight" ? "🌙"
-                                                    : "🏷"} {promo.promotionName}
-                                          </span>
-                                          <span className="px-1.5 py-0.5 bg-orange-500 text-white text-[9px] font-bold rounded">
-                                            -{promo.discountValue}%
-                                          </span>
-                                        </div>
-                                        <p className="text-[10px] text-orange-700">
-                                          {promo.promotionType === "mlos"
-                                            ? `Minimum ${promo.minLos} night stay`
-                                            : promo.promotionType === "device_specific"
-                                              ? "Device exclusive offer"
-                                              : promo.promotionType === "early_bird"
-                                                ? `Book ${promo.advanceBookingDays} days in advance`
-                                                : "Special offer"}
-                                          {promo.validTo && ` • Valid until ${new Date(promo.validTo).toLocaleDateString()}`}
-                                        </p>
-                                      </div>
-                                      <div className={`ml-3 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${isSelected ? "border-orange-500 bg-orange-500" : "border-gray-300"
-                                        }`}>
-                                        {isSelected && (
-                                          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                          </svg>
-                                        )}
-                                      </div>
-                                    </div>
-                                  );
-                                })}
-                              </div>
-
-                              {selectedPromotions[ratePlanCode]?.length > 0 && (
-                                <p className="mt-2 text-[10px] text-orange-700 font-medium text-center">
-                                  ✓ {selectedPromotions[ratePlanCode].length} offer(s) selected — will be applied at checkout
+                          {expandedPromotions === ratePlanCode &&
+                            firstCombo.availablePromotions?.length > 0 && (
+                              <div className="mt-4 p-4 bg-gradient-to-br from-orange-50 to-amber-50 border-l-4 border-orange-400 rounded-lg">
+                                <p className="text-xs font-bold text-orange-800 uppercase tracking-wide mb-3">
+                                  🏷 Special Offers Available
                                 </p>
-                              )}
-                            </div>
-                          )}
+                                <div className="space-y-2">
+                                  {firstCombo.availablePromotions.map(
+                                    (promo: any) => {
+                                      const isSelected = selectedPromotions[
+                                        ratePlanCode
+                                      ]?.some((p: any) => p.id === promo.id);
+                                      return (
+                                        <div
+                                          key={promo.id}
+                                          onClick={() => {
+                                            setSelectedPromotions((prev) => {
+                                              const current =
+                                                prev[ratePlanCode] || [];
+                                              const alreadySelected =
+                                                current.some(
+                                                  (p: any) => p.id === promo.id,
+                                                );
+                                              return {
+                                                ...prev,
+                                                [ratePlanCode]: alreadySelected
+                                                  ? current.filter(
+                                                      (p: any) =>
+                                                        p.id !== promo.id,
+                                                    )
+                                                  : [...current, promo],
+                                              };
+                                            });
+                                          }}
+                                          className={`flex items-center justify-between p-3 rounded-lg border-2 cursor-pointer transition-all ${
+                                            isSelected
+                                              ? "border-orange-500 bg-orange-100"
+                                              : "border-orange-200 bg-white hover:border-orange-400"
+                                          }`}
+                                        >
+                                          <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-2 mb-0.5">
+                                              <span className="text-xs font-bold text-orange-900">
+                                                {promo.promotionType ===
+                                                "device_specific"
+                                                  ? "📱"
+                                                  : promo.promotionType ===
+                                                      "mlos"
+                                                    ? "🌙"
+                                                    : promo.promotionType ===
+                                                        "early_bird"
+                                                      ? "🐦"
+                                                      : promo.promotionType ===
+                                                          "offer_for_tonight"
+                                                        ? "🌙"
+                                                        : "🏷"}{" "}
+                                                {promo.promotionName}
+                                              </span>
+                                              <span className="px-1.5 py-0.5 bg-orange-500 text-white text-[9px] font-bold rounded">
+                                                -{promo.discountValue}%
+                                              </span>
+                                            </div>
+                                            <p className="text-[10px] text-orange-700">
+                                              {promo.promotionType === "mlos"
+                                                ? `Minimum ${promo.minLos} night stay`
+                                                : promo.promotionType ===
+                                                    "device_specific"
+                                                  ? "Device exclusive offer"
+                                                  : promo.promotionType ===
+                                                      "early_bird"
+                                                    ? `Book ${promo.advanceBookingDays} days in advance`
+                                                    : "Special offer"}
+                                              {promo.validTo &&
+                                                ` • Valid until ${new Date(promo.validTo).toLocaleDateString()}`}
+                                            </p>
+                                          </div>
+                                          <div
+                                            className={`ml-3 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
+                                              isSelected
+                                                ? "border-orange-500 bg-orange-500"
+                                                : "border-gray-300"
+                                            }`}
+                                          >
+                                            {isSelected && (
+                                              <svg
+                                                className="w-3 h-3 text-white"
+                                                fill="none"
+                                                stroke="currentColor"
+                                                viewBox="0 0 24 24"
+                                              >
+                                                <path
+                                                  strokeLinecap="round"
+                                                  strokeLinejoin="round"
+                                                  strokeWidth={3}
+                                                  d="M5 13l4 4L19 7"
+                                                />
+                                              </svg>
+                                            )}
+                                          </div>
+                                        </div>
+                                      );
+                                    },
+                                  )}
+                                </div>
+
+                                {selectedPromotions[ratePlanCode]?.length >
+                                  0 && (
+                                  <p className="mt-2 text-[10px] text-orange-700 font-medium text-center">
+                                    ✓ {selectedPromotions[ratePlanCode].length}{" "}
+                                    offer(s) selected — will be applied at
+                                    checkout
+                                  </p>
+                                )}
+                              </div>
+                            )}
                         </>
                       )}
                     </div>
@@ -785,7 +872,10 @@ const RoomCard: React.FC<RoomCardProps> = ({
                     {/* Tax info top-right (like in screenshot) */}
                     {firstCombo.touristTax?.calculatedTaxAmount > 0 && (
                       <div className="text-xs text-right text-gray-500 max-w-[200px] hidden sm:block">
-                        TAX NOT INCLUDED: {firstCombo.touristTax.name?.toUpperCase()} {currency} {firstCombo.touristTax.calculatedTaxAmount.toFixed(2)} - PAY AT THE HOTEL
+                        TAX NOT INCLUDED:{" "}
+                        {firstCombo.touristTax.name?.toUpperCase()} {currency}{" "}
+                        {firstCombo.touristTax.calculatedTaxAmount.toFixed(2)} -
+                        PAY AT THE HOTEL
                       </div>
                     )}
                   </div>
@@ -798,36 +888,51 @@ const RoomCard: React.FC<RoomCardProps> = ({
                       const match = combo.comboLabel.match(/\((.+)\)$/);
                       const rawLabel = match ? match[1] : combo.comboLabel;
 
-                      const subLabel = rawLabel === "Room Only"
-                        ? "Room Only"
-                        : rawLabel.startsWith("+")
-                          ? rawLabel
-                            .split("+")
-                            .filter(Boolean)
-                            .map((s: string) => s.trim())
-                            .join(" & ")
-                          : rawLabel;
+                      const subLabel =
+                        rawLabel === "Room Only"
+                          ? "Room Only"
+                          : rawLabel.startsWith("+")
+                            ? rawLabel
+                                .split("+")
+                                .filter(Boolean)
+                                .map((s: string) => s.trim())
+                                .join(" & ")
+                            : rawLabel;
                       const comboBase = combo.totalAmount || 0;
-                      const comboAfterLoyalty = isLoyaltyMember
-                        ? comboBase - (loyaltyDiscount?.loyaltyDiscountType === "percentage"
-                          ? (comboBase * loyaltyDiscount.discountValue) / 100
-                          : loyaltyDiscount?.discountValue || 0)
-                        : comboBase;
-                      const isComboExpanded = expandedCombo === combo.comboLabel;
+                      const comboAfterLoyalty =
+                        comboBase -
+                        (loyalty?.discountPercentage !== null &&
+                        loyalty?.discountPercentage !== undefined
+                          ? (comboBase * loyalty.discountPercentage) / 100
+                          : loyaltyDiscount?.loyaltyDiscountType ===
+                              "percentage"
+                            ? (comboBase * loyaltyDiscount.discountValue) / 100
+                            : loyaltyDiscount?.discountValue || 0);
+                      const isComboExpanded =
+                        expandedCombo === combo.comboLabel;
 
                       return (
-                        <div key={combo.comboLabel} className="border-b border-gray-100 last:border-b-0">
-
+                        <div
+                          key={combo.comboLabel}
+                          className="border-b border-gray-100 last:border-b-0"
+                        >
                           {/* ── Main Row ── */}
                           <div className="flex items-center justify-between px-4 md:px-5 py-3 hover:bg-gray-50 transition-colors">
-
                             {/* Left: combo name + expand toggle */}
                             <div className="flex items-center gap-2">
                               <button
-                                onClick={() => setExpandedCombo(isComboExpanded ? null : combo.comboLabel)}
+                                onClick={() =>
+                                  setExpandedCombo(
+                                    isComboExpanded ? null : combo.comboLabel,
+                                  )
+                                }
                                 className="flex items-center gap-1.5 text-sm font-semibold text-gray-800 hover:text-orange-600 transition-colors"
                               >
-                                {isComboExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                                {isComboExpanded ? (
+                                  <ChevronUp size={15} />
+                                ) : (
+                                  <ChevronDown size={15} />
+                                )}
                                 {subLabel}
                               </button>
                             </div>
@@ -835,45 +940,87 @@ const RoomCard: React.FC<RoomCardProps> = ({
                             {/* Right: pricing + ADD */}
                             <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
                               {/* Unlock box (non-members with loyalty) */}
-                              {!isLoyaltyMember && loyaltyProgram && loyaltyDiscountAmount > 0 && (
-                                <button
-                                  onClick={(e) => { e.stopPropagation(); if (onUnlockLoyalty) onUnlockLoyalty(); }}
-                                  className="flex flex-col items-center border-2 border-dashed border-gray-400 rounded-lg px-2.5 py-1.5 hover:border-blue-500 transition-all group"
-                                >
-                                  <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest mb-0.5">— UNLOCK —</span>
-                                  <div className="flex items-center gap-1">
-                                    <svg className="w-3 h-3 text-gray-600 group-hover:text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-                                    </svg>
-                                    <span className="text-xs font-bold text-gray-800">
-                                      {currency} {comboAfterLoyalty.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              {!isLoyaltyMember &&
+                                loyaltyProgram &&
+                                loyaltyDiscountAmount > 0 && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      if (onUnlockLoyalty) onUnlockLoyalty();
+                                    }}
+                                    className="flex flex-col items-center border-2 border-dashed border-gray-400 rounded-lg px-2.5 py-1.5 hover:border-blue-500 transition-all group"
+                                  >
+                                    <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest mb-0.5">
+                                      — UNLOCK —
                                     </span>
-                                  </div>
-                                </button>
-                              )}
+                                    <div className="flex items-center gap-1">
+                                      <svg
+                                        className="w-3 h-3 text-gray-600 group-hover:text-blue-600"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"
+                                        />
+                                      </svg>
+                                      <span className="text-xs font-bold text-gray-800">
+                                        {currency}{" "}
+                                        {comboAfterLoyalty.toLocaleString(
+                                          undefined,
+                                          {
+                                            minimumFractionDigits: 2,
+                                            maximumFractionDigits: 2,
+                                          },
+                                        )}
+                                      </span>
+                                    </div>
+                                  </button>
+                                )}
 
                               {/* Price */}
                               <div className="text-right">
-                                {(isLoyaltyMember || (!isLoyaltyMember && loyaltyProgram)) && loyaltyDiscountAmount > 0 && (
-                                  <div className="flex items-center gap-1 justify-end mb-0.5">
-                                    <span className="text-xs text-gray-400 line-through">
-                                      {currency} {comboBase.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                                    </span>
-                                    <span className="px-1.5 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded">
-                                      -{loyaltyDiscountPercentage}%
-                                    </span>
-                                  </div>
-                                )}
+                                {(isLoyaltyMember ||
+                                  (!isLoyaltyMember && loyaltyProgram)) &&
+                                  loyaltyDiscountAmount > 0 && (
+                                    <div className="flex items-center gap-1 justify-end mb-0.5">
+                                      <span className="text-xs text-gray-400 line-through">
+                                        {currency}{" "}
+                                        {comboBase.toLocaleString(undefined, {
+                                          minimumFractionDigits: 2,
+                                          maximumFractionDigits: 2,
+                                        })}
+                                      </span>
+                                      <span className="px-1.5 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded">
+                                        -{loyaltyDiscountPercentage}%
+                                      </span>
+                                    </div>
+                                  )}
                                 <span className="text-lg sm:text-xl font-bold text-gray-900">
-                                  {currency} {(isLoyaltyMember ? comboAfterLoyalty : comboBase).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  {currency}{" "}
+                                  {(isLoyaltyMember
+                                    ? comboAfterLoyalty
+                                    : comboBase
+                                  ).toLocaleString(undefined, {
+                                    minimumFractionDigits: 2,
+                                    maximumFractionDigits: 2,
+                                  })}
                                 </span>
                               </div>
 
                               {/* ADD button */}
                               <button
                                 onClick={() => handleBookNowClick(combo)}
-                                disabled={isLoadingForRatePlan(combo.comboLabel)}
-                                style={{ backgroundColor: primaryColor || "#777", color: buttonTextColor || "#fff" }}
+                                disabled={isLoadingForRatePlan(
+                                  combo.comboLabel,
+                                )}
+                                style={{
+                                  backgroundColor: primaryColor || "#777",
+                                  color: buttonTextColor || "#fff",
+                                }}
                                 className="px-4 sm:px-5 py-2 sm:py-3 rounded-lg font-bold text-xs sm:text-sm uppercase transition-all disabled:opacity-50 shadow-lg hover:shadow-xl whitespace-nowrap hover:opacity-90 hover:scale-105 active:scale-95"
                               >
                                 {isLoadingForRatePlan(combo.comboLabel) ? (
@@ -881,7 +1028,9 @@ const RoomCard: React.FC<RoomCardProps> = ({
                                     <div className="h-3.5 w-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                                     <span>Loading...</span>
                                   </div>
-                                ) : "ADD"}
+                                ) : (
+                                  "ADD"
+                                )}
                               </button>
                             </div>
                           </div>
@@ -889,55 +1038,95 @@ const RoomCard: React.FC<RoomCardProps> = ({
                           {/* ── Expanded Details ── */}
                           {isComboExpanded && (
                             <div className="px-4 md:px-5 pb-4 bg-gray-50 border-t border-gray-100">
-
                               {/* Base price breakdown */}
                               <div className="mt-3 grid grid-cols-1 lg:grid-cols-3 gap-2">
                                 <div className="bg-white border border-gray-200 rounded-lg px-3 py-2">
-                                  <p className="text-[10px] text-gray-500 uppercase font-semibold tracking-wide mb-1">Base Price</p>
+                                  <p className="text-[10px] text-gray-500 uppercase font-semibold tracking-wide mb-1">
+                                    Base Price
+                                  </p>
                                   <p className="text-sm font-bold text-gray-800">
-                                    {currency} {(
+                                    {currency}{" "}
+                                    {(
                                       combo.totalAmount +
-                                      (combo.appliedDiscounts?.reduce((sum: number, d: any) => sum + d.calculatedDiscountAmount, 0) ?? 0) -
-                                      (combo.addons?.reduce((sum: number, a: any) => sum + a.price, 0) ?? 0)
+                                      (combo.appliedDiscounts?.reduce(
+                                        (sum: number, d: any) =>
+                                          sum + d.calculatedDiscountAmount,
+                                        0,
+                                      ) ?? 0) -
+                                      (combo.addons?.reduce(
+                                        (sum: number, a: any) => sum + a.price,
+                                        0,
+                                      ) ?? 0)
                                     ).toFixed(2)}
                                   </p>
-                                  <p className="text-[10px] text-gray-400">per night</p>
+                                  <p className="text-[10px] text-gray-400">
+                                    per night
+                                  </p>
                                 </div>
 
                                 {combo.appliedDiscounts?.length > 0 && (
                                   <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-                                    <p className="text-[10px] text-green-700 uppercase font-semibold tracking-wide mb-1">Auto-Applied Discounts</p>
+                                    <p className="text-[10px] text-green-700 uppercase font-semibold tracking-wide mb-1">
+                                      Auto-Applied Discounts
+                                    </p>
                                     <div className="space-y-1">
-                                      {combo.appliedDiscounts.map((discount: any) => (
-                                        <div key={discount.id} className="flex items-center justify-between gap-2">
-                                          <span className="text-[11px] text-green-800 truncate">
-                                            {discount.promotionType === "promocode" ? `🎟 ${discount.promotionName}`
-                                              : discount.promotionType === "early_bird" ? `🐦 ${discount.promotionName}`
-                                                : discount.promotionType === "geo" ? `🌍 ${discount.promotionName}`
-                                                  : discount.promotionType === "mlos" ? `🌙 ${discount.promotionName}`
-                                                    : `✓ ${discount.promotionName}`}
-                                          </span>
-                                          <span className="text-[11px] font-bold text-green-700 whitespace-nowrap">
-                                            -{currency} {discount.calculatedDiscountAmount.toFixed(2)}
-                                          </span>
-                                        </div>
-                                      ))}
+                                      {combo.appliedDiscounts.map(
+                                        (discount: any) => (
+                                          <div
+                                            key={discount.id}
+                                            className="flex items-center justify-between gap-2"
+                                          >
+                                            <span className="text-[11px] text-green-800 truncate">
+                                              {discount.promotionType ===
+                                              "promocode"
+                                                ? `🎟 ${discount.promotionName}`
+                                                : discount.promotionType ===
+                                                    "early_bird"
+                                                  ? `🐦 ${discount.promotionName}`
+                                                  : discount.promotionType ===
+                                                      "geo"
+                                                    ? `🌍 ${discount.promotionName}`
+                                                    : discount.promotionType ===
+                                                        "mlos"
+                                                      ? `🌙 ${discount.promotionName}`
+                                                      : `✓ ${discount.promotionName}`}
+                                            </span>
+                                            <span className="text-[11px] font-bold text-green-700 whitespace-nowrap">
+                                              -{currency}{" "}
+                                              {discount.calculatedDiscountAmount.toFixed(
+                                                2,
+                                              )}
+                                            </span>
+                                          </div>
+                                        ),
+                                      )}
                                     </div>
                                   </div>
                                 )}
 
-                                {combo.addons?.filter((a: any) => a.price > 0).length > 0 && (
+                                {combo.addons?.filter((a: any) => a.price > 0)
+                                  .length > 0 && (
                                   <div className="bg-orange-50 border border-orange-200 rounded-lg px-3 py-2">
-                                    <p className="text-[10px] text-orange-700 uppercase font-semibold tracking-wide mb-1">Included Addons</p>
+                                    <p className="text-[10px] text-orange-700 uppercase font-semibold tracking-wide mb-1">
+                                      Included Addons
+                                    </p>
                                     <div className="space-y-1">
-                                      {combo.addons.filter((a: any) => a.price > 0).map((addon: any) => (
-                                        <div key={addon.id} className="flex items-center justify-between gap-2">
-                                          <span className="text-[11px] text-orange-800 truncate">🍽 {addon.name}</span>
-                                          <span className="text-[11px] font-bold text-orange-700 whitespace-nowrap">
-                                            +{currency} {addon.price.toFixed(2)}
-                                          </span>
-                                        </div>
-                                      ))}
+                                      {combo.addons
+                                        .filter((a: any) => a.price > 0)
+                                        .map((addon: any) => (
+                                          <div
+                                            key={addon.id}
+                                            className="flex items-center justify-between gap-2"
+                                          >
+                                            <span className="text-[11px] text-orange-800 truncate">
+                                              🍽 {addon.name}
+                                            </span>
+                                            <span className="text-[11px] font-bold text-orange-700 whitespace-nowrap">
+                                              +{currency}{" "}
+                                              {addon.price.toFixed(2)}
+                                            </span>
+                                          </div>
+                                        ))}
                                     </div>
                                   </div>
                                 )}
@@ -961,11 +1150,14 @@ const RoomCard: React.FC<RoomCardProps> = ({
                 )}
 
                 {/* ── Tourist Tax Footer ── */}
-                {!isCollapsed && firstCombo.touristTax?.calculatedTaxAmount > 0 && (
-                  <div className="px-4 py-2 text-xs text-gray-500 border-t border-gray-100 text-center bg-gray-50">
-                    Direct payment at hotel: {firstCombo.touristTax.name?.toUpperCase()} — {currency} {firstCombo.touristTax.calculatedTaxAmount.toFixed(2)}
-                  </div>
-                )}
+                {!isCollapsed &&
+                  firstCombo.touristTax?.calculatedTaxAmount > 0 && (
+                    <div className="px-4 py-2 text-xs text-gray-500 border-t border-gray-100 text-center bg-gray-50">
+                      Direct payment at hotel:{" "}
+                      {firstCombo.touristTax.name?.toUpperCase()} — {currency}{" "}
+                      {firstCombo.touristTax.calculatedTaxAmount.toFixed(2)}
+                    </div>
+                  )}
               </div>
             );
           })}

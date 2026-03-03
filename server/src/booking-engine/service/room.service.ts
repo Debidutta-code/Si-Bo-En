@@ -207,15 +207,11 @@ export class RoomBookingService {
             RoomBookingRepository.getBookingOffset(ratePlan.id, toUTCDate(checkInDate)),
         ]);
 
-        // ── 2. Must have a charge for every night ──────────────────────────────
         if (charges.length !== dates.length) return null;
 
-        // ── 3. CTA / CTD / Stop-sell / Day-of-week checks ─────────────────────
         for (const charge of charges) {
-            // Stop sell on any night → hide rate plan
             if (charge.isSaleStopped) return null;
 
-            // Day-of-week applicability for each charge date
             const dow = new Date(charge.date).getDay();
             const dowFields: Record<number, keyof typeof charge> = {
                 0: 'sunApplicable',
@@ -229,18 +225,14 @@ export class RoomBookingService {
             if (!charge[dowFields[dow]]) return null;
         }
 
-        // CTA on check-in date
         const checkInCharge = charges[0];
         if (checkInCharge?.isClosedToArrival) return null;
 
-        // CTD on check-out date (last night charge)
         const checkOutCharge = charges[charges.length - 1];
         if (checkOutCharge?.isClosedToDeparture) return null;
 
-        // ── 4. Geo restriction ─────────────────────────────────────────────────
         if (geoRatePlan?.restrictionType === 'restricted') return null;
 
-        // ── 5. Booking offset (hours-based) ────────────────────────────────────
         if (bookingOffset) {
             const hoursUntilCheckIn = DateTime.fromJSDate(toUTCDate(checkInDate))
                 .diff(DateTime.fromJSDate(toUTCDate(today)), 'hours')
@@ -263,7 +255,6 @@ export class RoomBookingService {
             }
         }
 
-        // ── 6. MLOS rule ───────────────────────────────────────────────────────
         if (ratePlanRule && ratePlanRule.isActive) {
             const withinPeriod = this.isDateRangeWithinPeriod(
                 payload.startDate,
@@ -273,23 +264,15 @@ export class RoomBookingService {
             );
 
             if (withinPeriod) {
-                // Min LOS not met → hide rate plan
                 if (ratePlanRule.minLos && numberOfNights < ratePlanRule.minLos) {
                     return null;
                 }
-                // Max LOS exceeded → hide rate plan
                 if (ratePlanRule.maxLos && numberOfNights > ratePlanRule.maxLos) {
                     return null;
                 }
             }
         }
 
-        // ── 7. Promotions validation ───────────────────────────────────────────
-        // All promotions in the DB query already passed date/day/early-bird filters.
-        // Device promotion: if it exists but device doesn't match → hide rate plan
-        // (already filtered by device in repo, so if returned it matched)
-
-        // ── 8. Base amount from first charge ──────────────────────────────────
         const charge = charges[0];
         const sortedBase = [...charge.baseGuestAmounts].sort(
             (a, b) => a.numberOfGuests - b.numberOfGuests
@@ -300,12 +283,9 @@ export class RoomBookingService {
 
         const baseAmount = Number(selectedTier.amountBeforeTax);
 
-        // ── 9. Promotions → auto-applied vs available ──────────────────────────
         let totalAutoDiscount = 0;
         const availablePromotions: IPromotion[] = [];
         const appliedDiscounts: IAppliedDiscount[] = [];
-
-        // Device-specific promotion
         if (devicePromotion) {
             const discount = this.calculateDiscount(
                 baseAmount,
@@ -327,7 +307,6 @@ export class RoomBookingService {
             }
         }
 
-        // Geo adjustment (always auto-applied)
         if (geoRatePlan) {
             const restrictionValue = Number(geoRatePlan.restrictionValue ?? 0);
             const geoDiscount = this.calculateGeoDiscount(
@@ -347,7 +326,6 @@ export class RoomBookingService {
             });
         }
 
-        // Other promotions (early_bird, offer_for_tonight, etc.)
         for (const promo of promotions) {
             const discount = this.calculateDiscount(
                 baseAmount,
@@ -369,7 +347,6 @@ export class RoomBookingService {
             }
         }
 
-        // MLOS discount (if rule has a discount attached)
         if (
             ratePlanRule &&
             ratePlanRule.isActive &&
@@ -466,7 +443,6 @@ export class RoomBookingService {
             }
         }
 
-        // ── 10. Tourist tax ────────────────────────────────────────────────────
         let touristTax: ITouristTax | null = null;
         if (touristTaxData) {
             const calculatedTaxAmount =
@@ -484,7 +460,6 @@ export class RoomBookingService {
             };
         }
 
-        // ── 11. Shared rate plan fields ────────────────────────────────────────
         const sharedFields = {
             ratePlanName: ratePlan.ratePlanName,
             ratePlanCode: ratePlan.ratePlanCode,
@@ -503,9 +478,6 @@ export class RoomBookingService {
             touristTax,
         };
 
-        // ── 12. Addon availability per addon ───────────────────────────────────
-        // For each addon, check if ALL dates are available.
-        // If not → that addon is simply excluded from combos.
         const availableAddonDetails: IAddonDetail[] = [];
 
         if (ratePlanAddons.length > 0) {
@@ -517,7 +489,6 @@ export class RoomBookingService {
 
             for (let i = 0; i < ratePlanAddons.length; i++) {
                 const availability = addonAvailabilityResults[i];
-                // If not available for ALL nights → skip this addon (don't skip rate plan)
                 if (availability.length !== dates.length) continue;
 
                 const addon = ratePlanAddons[i].addon;
@@ -550,10 +521,8 @@ export class RoomBookingService {
             }
         }
 
-        // ── 13. Build combo entries ────────────────────────────────────────────
         const combos: IRoomPrice[] = [];
 
-        // Combo 0: base rate plan alone
         combos.push({
             ...sharedFields,
             comboLabel: `${ratePlan.ratePlanName} (Room Only)`,
@@ -588,9 +557,6 @@ export class RoomBookingService {
         return combos;
     }
 
-    // ─────────────────────────────────────────────────────────────────────────────
-    // HELPERS
-    // ─────────────────────────────────────────────────────────────────────────────
     private static mapPromotion(promo: any): IPromotion {
         return {
             id: promo.id,
