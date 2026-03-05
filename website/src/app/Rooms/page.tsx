@@ -465,40 +465,67 @@ const Rooms = () => {
         console.error("Error parsing localStorage:", e);
       }
 
-      // If no rooms array, create default structure
-      if (roomsArray.length === 0) {
-        const totalAdults = parseInt(adults || "1");
-        const totalChildren = parseInt(children || "0");
+        const buildRoomsArrayFallback = (
+            numRooms: number,
+            totalAdults: number,
+            totalChildren: number
+        ) => {
+            const MAX_PER_ROOM = 4;
+            const roomsArray = [];
+            let remainingAdults = totalAdults - numRooms;
+            let remainingChildren = totalChildren;
+            if (remainingAdults < 0) {
+                remainingAdults = 0;
+            }
+            for (let i = 0; i < numRooms; i++) {
+                let roomAdults = 1;
+                let roomChildren = 0;
+                const adultSpace = MAX_PER_ROOM - roomAdults;
+                const adultsToAdd = Math.min(remainingAdults, adultSpace);
+                roomAdults += adultsToAdd;
+                remainingAdults -= adultsToAdd;
+                const childSpace = MAX_PER_ROOM - roomAdults;
+                const childrenToAdd = Math.min(remainingChildren, childSpace);
+                roomChildren = childrenToAdd;
+                remainingChildren -= childrenToAdd;
+                roomsArray.push({
+                    adults: roomAdults,
+                    children: roomChildren,
+                    childAges: Array(roomChildren).fill(0),
+                });
+            }
+            return roomsArray;
+        };
 
-        // Distribute guests across rooms
-        for (let i = 0; i < numRooms; i++) {
-          roomsArray.push({
-            adults: i === 0 ? totalAdults : 0,
-            children: i === 0 ? totalChildren : 0,
-          });
+        // If no rooms array from localStorage, build it with fallback
+        if (roomsArray.length === 0) {
+            const totalAdults = parseInt(adults || "1");
+            const totalChildren = parseInt(children || "0");
+
+            // ✅ Replace the old dumb distribution with smart fallback
+            roomsArray = buildRoomsArrayFallback(numRooms, totalAdults, totalChildren);
         }
-      }
 
-      return {
-        PropertyCode: code,
-        startDate: checkin || defaultStartDate,
-        endDate: checkout || defaultEndDate,
-        guests: {
-          rooms: numRooms, // ✅ Always send as number for API
-          adults: parseInt(adults || "1"),
-          children: parseInt(children || "0"),
-        },
-        roomsDetail: roomsArray, // ✅ Keep detailed array separately
-        location: "",
-        numberOfRooms: numRooms,
-        promocode: promocode || "",
-        isExternal: true,
-        bookingSource: bookingSource,
-      };
+        return {
+            PropertyCode: code,
+            startDate: checkin || defaultStartDate,
+            endDate: checkout || defaultEndDate,
+            guests: {
+                rooms: numRooms,
+                adults: parseInt(adults || "1"),
+                children: parseInt(children || "0"),
+                roomsArray, // ✅ now properly distributed
+            },
+            location: "",
+            numberOfRooms: numRooms,
+            promocode: promocode || "",
+            isExternal: true,
+            bookingSource: bookingSource,
+        };
     }
 
     return null;
-  };
+};
 
   // NEW: Initialize booking context from URL params or localStorage
   useEffect(() => {
@@ -549,26 +576,20 @@ const Rooms = () => {
           JSON.stringify(contextWithDates),
         );
         await handleSearchStart(contextWithDates);
-        isLoadingFromExternal.current = false; // Allow SearchWidget after initial load
+        isLoadingFromExternal.current = false;
       } else {
-        // No URL params — check Redux first (persists during client-side navigation),
-        // then fall back to localStorage (survives hard page refreshes)
         const hasValidReduxState =
           bookingContext?.PropertyCode &&
           bookingContext?.startDate &&
           bookingContext?.endDate;
 
         if (hasValidReduxState) {
-          // Redux already has valid data (from SearchWidget dispatch on home page)
           await handleSearchStart(bookingContext);
         } else {
-          // Redux is empty (hard refresh) — try localStorage
           const storedContext = localStorage.getItem("bookingContext");
 
           if (storedContext) {
             const parsedContext = JSON.parse(storedContext);
-
-            // Validate stored context has required fields
             const validatedContext = {
               ...parsedContext,
               PropertyCode:
@@ -592,7 +613,6 @@ const Rooms = () => {
             dispatch(setBookingSource(parsedContext.bookingSource || "direct"));
             await handleSearchStart(validatedContext);
           } else {
-            // No data at all, create default
             const urlCode = searchParams.get("code") || "WOQDD3";
 
             const defaultContext = {

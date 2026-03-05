@@ -28,8 +28,8 @@ interface GuestSelectorProps {
 }
 
 const MAX_GUESTS_PER_ROOM = 4;
-const MAX_ADULTS_PER_ROOM = 8;
-const MAX_CHILDREN_PER_ROOM = 6;
+const MAX_ADULTS_PER_ROOM = 4;
+const MAX_CHILDREN_PER_ROOM = 4;
 
 const GuestSelector: React.FC<GuestSelectorProps> = ({
   isOpen,
@@ -58,16 +58,34 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
         const mappedRooms = bookingContext.guests.rooms.map(mapRoom);
         setRooms(mappedRooms);
         setTotalRooms(mappedRooms.length);
+        // ✅ WITH THIS
       } else if (typeof bookingContext.guests.rooms === "number") {
         const numRooms = bookingContext.guests.rooms;
         const totalAdults = bookingContext.guests.adults || 1;
         const totalChildren = bookingContext.guests.children || 0;
 
-        const newRooms: Room[] = Array.from({ length: numRooms }, (_, i) => ({
-          adults: i === 0 ? totalAdults : 0,
-          children: i === 0 ? totalChildren : 0,
-          childAges: i === 0 ? Array(totalChildren).fill(0) : [],
-        }));
+        let remainingAdults = totalAdults - numRooms; // reserve 1 adult per room
+        let remainingChildren = totalChildren;
+        if (remainingAdults < 0) remainingAdults = 0;
+
+        const newRooms: Room[] = Array.from({ length: numRooms }, () => {
+          let roomAdults = 1;
+          let roomChildren = 0;
+
+          const adultsToAdd = Math.min(remainingAdults, MAX_GUESTS_PER_ROOM - roomAdults);
+          roomAdults += adultsToAdd;
+          remainingAdults -= adultsToAdd;
+
+          const childrenToAdd = Math.min(remainingChildren, MAX_GUESTS_PER_ROOM - roomAdults);
+          roomChildren = childrenToAdd;
+          remainingChildren -= childrenToAdd;
+
+          return {
+            adults: roomAdults,
+            children: roomChildren,
+            childAges: Array(roomChildren).fill(0),
+          };
+        });
 
         setRooms(newRooms);
         setTotalRooms(numRooms);
@@ -79,7 +97,7 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
     if (totalRooms > rooms.length) {
       const newRooms = [...rooms];
       while (newRooms.length < totalRooms) {
-        newRooms.push({ adults: 0, children: 0, childAges: [] });
+        newRooms.push({ adults: 1, children: 0, childAges: [] });
       }
       setRooms(newRooms);
     } else if (totalRooms < rooms.length) {
@@ -110,7 +128,7 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
       }
     } else {
       if (field === "adults") {
-        room.adults = roomIndex === 0 ? Math.max(1, room.adults - 1) : Math.max(0, room.adults - 1);
+        room.adults = Math.max(1, room.adults - 1);
       } else if (field === "children") {
         if (room.children > 0) {
           room.children -= 1;
@@ -209,9 +227,9 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
                           variant="outline"
                           size="icon"
                           onClick={() => updateRoom(index, "adults", false)}
-                          disabled={index === 0 && room.adults <= 1}
+                          disabled={room.adults <= 1}
                           className={`w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center transition-colors duration-200
-                            ${index === 0 && room.adults <= 1 ? "bg-gray-300 cursor-not-allowed opacity-50" : "bg-white hover:bg-gray-100"}`}
+                            ${room.adults <= 1 ? "bg-gray-300 cursor-not-allowed opacity-50" : "bg-white hover:bg-gray-100"}`}
                         >
                           <Minus className="w-4 h-4" />
                         </Button>
