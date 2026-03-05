@@ -964,6 +964,20 @@ model Addon {
   availability                      AddonAvailability[]
   ratePlans                         RatePlanWithAddon[]
   customizableDealsApplicableAddons CustomizableDealsApplicableAddons[]
+  ChildAddons                       ChildAddon[]
+
+}
+model ChildAddon{
+  id          String   @id @default(uuid())
+  addonId     String
+  Addon      Addon    @relation(fields: [addonId], references: [id], onDelete: Cascade)
+  minAge      Int @map("min_age")
+  maxAge      Int @map("max_age")
+  discountApplicable Boolean @default(false) @map("discount_applicable")
+  discountType       DiscountType?  @map("discount_type")  @default(percentage)
+  discountAmount     Int?     @default(0) @map("discount_amount")
+  currencyCode CurrencyCode? @map("currency_code") @default(INR) 
+
 }
 
 model RatePlanWithAddon {

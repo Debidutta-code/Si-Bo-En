@@ -706,7 +706,7 @@ if (!contactInfo.phoneNumber.trim()) {
               onClick={onClose} 
               variant="outline" 
               size="lg" 
-              className="flex-1 sm:flex-none hover:bg-gray-100"
+              className="flex-1 py-4 sm:flex-none hover:bg-gray-100"
             >
               Cancel
             </Button>

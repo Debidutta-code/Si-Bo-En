@@ -28,26 +28,32 @@ export class BookingOffsetService {
                 throw new Error('Rate plan not found');
             }
             const start = toUTCDate(startDate);
-            const bookingOffsetsR: ICBookingOffsetR[] = [];
-            while (start <= endDate) {
-                bookingOffsetsR.push({
+            const end = toUTCDate(endDate);
+            const entries: IUpsertBookingOffsetEntry[] = [];
+
+            // Iterate day by day
+            let currentDate = new Date(start.getTime());
+            while (currentDate <= end) {
+                entries.push({
                     ...bookingOffsets,
-                    propertyId,
-                    ratePlanId,
-                    ratePlanName: ratePlan.ratePlanName,
-                    ratePlanCode: ratePlan.ratePlanCode,
-                    date: toUTCDate(start),
+                    date: new Date(currentDate.getTime()),
                 });
-                start.setDate(start.getDate() + 1);
+                // Add 1 day safely
+                currentDate.setUTCDate(currentDate.getUTCDate() + 1);
             }
-            const result =
-                await this.bookingOffsetRepository.createBookingOffsets(
-                    bookingOffsetsR
-                );
-            return successResponse(
-                'Booking offsets created successfully',
-                result
+
+            const upsertResult = await this.upsertBookingOffsets(
+                propertyId,
+                ratePlanId,
+                entries
             );
+            if (!upsertResult.success) {
+                throw new Error(upsertResult.message);
+            }
+
+            return successResponse('Booking offsets created successfully', {
+                count: (upsertResult.data as any[]).length,
+            });
         } catch (error) {
             if (error instanceof Error) {
                 return errorResponse(
@@ -95,14 +101,44 @@ export class BookingOffsetService {
         bookingOffsets: IUBookingOffsetR[]
     ): Promise<IApiResponse> {
         try {
+            // If we have a date range, build per-date entries and use upsert
+            if (condition.startDate && condition.endDate) {
+                const start = toUTCDate(condition.startDate);
+                const end = toUTCDate(condition.endDate);
+                const entries: IUpsertBookingOffsetEntry[] = [];
+
+                let currentDate = new Date(start.getTime());
+                while (currentDate <= end) {
+                    entries.push({
+                        ...(bookingOffsets as any),
+                        date: new Date(currentDate.getTime()),
+                    });
+                    currentDate.setUTCDate(currentDate.getUTCDate() + 1);
+                }
+
+                const upsertResult = await this.upsertBookingOffsets(
+                    condition.propertyId,
+                    condition.ratePlanId,
+                    entries
+                );
+                return upsertResult;
+            }
+
+            // Fallback: use updateMany with filtered data
             const result =
                 await this.bookingOffsetRepository.updateBookingOffsets(
                     condition,
                     bookingOffsets
                 );
+            const data = await this.getBookingOffsets(
+                condition.propertyId,
+                condition.ratePlanId,
+                condition.startDate,
+                condition.endDate
+            );
             return successResponse(
                 'Booking offsets updated successfully',
-                result
+                data.data
             );
         } catch (error) {
             if (error instanceof Error) {
