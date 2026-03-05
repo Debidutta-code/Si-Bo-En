@@ -29,7 +29,8 @@ export class PricingController {
                 promotions,
                 guestEmail,
                 promoCode,
-                includedAddons
+                includedAddons,
+                roomDetails,
             } = req.body;
 
             const propertyId = req.property?.id;
@@ -100,6 +101,7 @@ export class PricingController {
                 rooms,
                 adults,
                 children ? children : 0,
+                roomDetails,
                 guestEmail ? guestEmail : '',
                 userCountryCode ? userCountryCode : '',
                 detectedDeviceType ? detectedDeviceType : '',

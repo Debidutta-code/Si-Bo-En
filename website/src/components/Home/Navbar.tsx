@@ -127,11 +127,9 @@ const Navbar = () => {
             {/* Home Page Links */}
             {isHomePage && (
               <>
-                <button onClick={handleHomeClick} className="hover:text-amber-500">Home</button>
-                <p onClick={() => document.querySelector("#service")?.scrollIntoView({ behavior: "smooth" })} className="cursor-pointer hover:text-amber-500">Services</p>
-                <p onClick={() => document.querySelector("#facilities")?.scrollIntoView({ behavior: "smooth" })} className="cursor-pointer hover:text-amber-500">Facilities</p>
-                <p onClick={() => document.querySelector("#testimonials")?.scrollIntoView({ behavior: "smooth" })} className="cursor-pointer hover:text-amber-500">Testimonials</p>
-                <p onClick={() => document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" })} className="cursor-pointer hover:text-amber-500">Attractions</p>
+                <button onClick={handleHomeClick} className="hover:text-[#1A98A6]">Home</button>
+                <p onClick={() => document.querySelector("#service")?.scrollIntoView({ behavior: "smooth" })} className="cursor-pointer hover:text-[#1A98A6]">Services</p>
+                <p onClick={() => document.querySelector("#contact-us")?.scrollIntoView({ behavior: "smooth" })} className="cursor-pointer hover:text-[#1A98A6]">Contact Us</p>
               </>
             )}
 
@@ -185,10 +183,8 @@ const Navbar = () => {
                 <button onClick={() => { setIsMenuOpen(false); handleHomeClick(); }} className="block w-full text-left hover:text-amber-500">
                   Home
                 </button>
-                <p onClick={() => { setIsMenuOpen(false); document.querySelector("#service")?.scrollIntoView({ behavior: "smooth" }); }} className="cursor-pointer hover:text-amber-500">Services</p>
-                <p onClick={() => { setIsMenuOpen(false); document.querySelector("#facilities")?.scrollIntoView({ behavior: "smooth" }); }} className="cursor-pointer hover:text-amber-500">Facilities</p>
-                <p onClick={() => { setIsMenuOpen(false); document.querySelector("#testimonials")?.scrollIntoView({ behavior: "smooth" }); }} className="cursor-pointer hover:text-amber-500">Testimonials</p>
-                <p onClick={() => { setIsMenuOpen(false); document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth" }); }} className="cursor-pointer hover:text-amber-500">Contact Us</p>
+                <p onClick={() => { setIsMenuOpen(false); document.querySelector("#service")?.scrollIntoView({ behavior: "smooth" }); }} className="cursor-pointer hover:text-[#1A98A6]">Services</p>
+                <p onClick={() => { setIsMenuOpen(false); document.querySelector("#contact-us")?.scrollIntoView({ behavior: "smooth" }); }} className="cursor-pointer hover:text-[#1A98A6]">Contact Us</p>
               </>
             )}
 

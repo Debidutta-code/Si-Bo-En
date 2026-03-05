@@ -286,7 +286,7 @@ const Rooms = () => {
   };
 
   const handleSearchStart = async (payload: any) => {
-    console.log("boking call", payload)
+    console.log("booking call", payload);
     const bookingCtx = payload || bookingContext;
 
     if (!bookingCtx?.PropertyCode) {
@@ -301,7 +301,17 @@ const Rooms = () => {
       return;
     }
 
-    if (!bookingCtx?.guests || typeof bookingCtx.guests.rooms !== "number") {
+    // Derive rooms count from whichever shape guests data is in
+    const guestsRoomsCount =
+      typeof bookingCtx.guests?.rooms === "number"
+        ? bookingCtx.guests.rooms
+        : Array.isArray(bookingCtx.guests?.roomsArray)
+          ? bookingCtx.guests.roomsArray.length
+          : Array.isArray(bookingCtx.guests?.rooms)
+            ? bookingCtx.guests.rooms.length
+            : 1;
+
+    if (!bookingCtx?.guests || (!bookingCtx.guests.rooms && !bookingCtx.guests.roomsArray)) {
       console.error("❌ Invalid guests data");
       setInitialLoading(false);
       return;
@@ -322,7 +332,20 @@ const Rooms = () => {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(bookingCtx),
+          body: JSON.stringify({
+            PropertyCode: bookingCtx.PropertyCode,
+            startDate: bookingCtx.startDate,
+            endDate: bookingCtx.endDate,
+            guests: {
+              rooms: guestsRoomsCount,
+              adults: bookingCtx.guests.adults || 1,
+              children: bookingCtx.guests.children || 0,
+              roomsArray: bookingCtx.guests.roomsArray || undefined,
+            },
+            location: bookingCtx.location || "",
+            numberOfRooms: guestsRoomsCount,
+            promocode: bookingCtx.promocode || "",
+          }),
         },
       );
       const data = await response.json();
@@ -528,65 +551,67 @@ const Rooms = () => {
         await handleSearchStart(contextWithDates);
         isLoadingFromExternal.current = false; // Allow SearchWidget after initial load
       } else {
-        // No URL params, check localStorage
-        const storedContext = localStorage.getItem("bookingContext");
+        // No URL params — check Redux first (persists during client-side navigation),
+        // then fall back to localStorage (survives hard page refreshes)
+        const hasValidReduxState =
+          bookingContext?.PropertyCode &&
+          bookingContext?.startDate &&
+          bookingContext?.endDate;
 
-        if (storedContext) {
-          const parsedContext = JSON.parse(storedContext);
-
-          // Validate stored context has required fields
-          const validatedContext = {
-            ...parsedContext,
-            PropertyCode:
-              parsedContext.PropertyCode ||
-              searchParams.get("code") ||
-              "WOQDD3",
-            startDate: parsedContext.startDate || defaultStartDate,
-            endDate: parsedContext.endDate || defaultEndDate,
-            guests: parsedContext.guests || {
-              rooms: 1,
-              adults: 1,
-              children: 0,
-            },
-            location: parsedContext.location || "",
-            promocode: parsedContext.promocode || "",
-            numberOfRooms:
-              parsedContext.numberOfRooms || parsedContext.guests?.rooms || 1,
-          };
-
-          //console.log("💾 Loading from localStorage:", validatedContext);
-          dispatch(setBookingContext(validatedContext));
-          dispatch(setBookingSource(parsedContext.bookingSource || "direct"));
-          localStorage.setItem(
-            "bookingContext",
-            JSON.stringify(validatedContext),
-          );
-          await handleSearchStart(validatedContext);
+        if (hasValidReduxState) {
+          // Redux already has valid data (from SearchWidget dispatch on home page)
+          await handleSearchStart(bookingContext);
         } else {
-          // No data at all, create default
-          const urlCode = searchParams.get("code") || "WOQDD3";
+          // Redux is empty (hard refresh) — try localStorage
+          const storedContext = localStorage.getItem("bookingContext");
 
-          const defaultContext = {
-            PropertyCode: urlCode,
-            startDate: defaultStartDate,
-            endDate: defaultEndDate,
-            guests: {
-              rooms: 1,
-              adults: 1,
-              children: 0,
-            },
-            location: "",
-            numberOfRooms: 1,
-            promocode: ""
-          };
+          if (storedContext) {
+            const parsedContext = JSON.parse(storedContext);
 
-          //console.log("🆕 Creating default context:", defaultContext);
-          dispatch(setBookingContext(defaultContext));
-          localStorage.setItem(
-            "bookingContext",
-            JSON.stringify(defaultContext),
-          );
-          await handleSearchStart(defaultContext);
+            // Validate stored context has required fields
+            const validatedContext = {
+              ...parsedContext,
+              PropertyCode:
+                parsedContext.PropertyCode ||
+                searchParams.get("code") ||
+                "WOQDD3",
+              startDate: parsedContext.startDate || defaultStartDate,
+              endDate: parsedContext.endDate || defaultEndDate,
+              guests: parsedContext.guests || {
+                rooms: 1,
+                adults: 1,
+                children: 0,
+              },
+              location: parsedContext.location || "",
+              promocode: parsedContext.promocode || "",
+              numberOfRooms:
+                parsedContext.numberOfRooms || parsedContext.guests?.rooms || 1,
+            };
+
+            dispatch(setBookingContext(validatedContext));
+            dispatch(setBookingSource(parsedContext.bookingSource || "direct"));
+            await handleSearchStart(validatedContext);
+          } else {
+            // No data at all, create default
+            const urlCode = searchParams.get("code") || "WOQDD3";
+
+            const defaultContext = {
+              PropertyCode: urlCode,
+              startDate: defaultStartDate,
+              endDate: defaultEndDate,
+              guests: {
+                rooms: 1,
+                adults: 1,
+                children: 0,
+              },
+              location: "",
+              numberOfRooms: 1,
+              promocode: ""
+            };
+
+            dispatch(setBookingContext(defaultContext));
+            await handleSearchStart(defaultContext);
+          }
         }
       }
     };

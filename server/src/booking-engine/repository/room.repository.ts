@@ -101,6 +101,7 @@ export class RoomBookingRepository {
                         category: true,
                         subCategory: true,
                         addonVariant: true,
+                        ChildAddons: true,
                     },
                 },
             },

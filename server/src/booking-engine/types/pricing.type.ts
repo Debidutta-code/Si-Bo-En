@@ -245,3 +245,8 @@ export interface PromotionBrakeDown {
     restrictionType: "increase" | "decrease" | "payLater"
 
 }
+export interface IRoomDetails{
+    adults:number;
+    children:number;
+    childAges:number[];
+}

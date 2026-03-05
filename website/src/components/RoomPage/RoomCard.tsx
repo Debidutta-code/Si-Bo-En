@@ -319,6 +319,7 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
         noOfAdults,
         noOfChildren: noOfChildrens,
         noOfRooms,
+        roomDetails: bookingContext.guests.roomsArray,
         promoCode: bookingContext.promocode,
       };
 

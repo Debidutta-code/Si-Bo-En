@@ -649,8 +649,15 @@ if (!contactInfo.phoneNumber.trim()) {
 
                   {(finalPrice.latterpayableAmount ?? 0) > 0 && (
                     <div className="flex justify-between text-amber-600 border-t pt-2 mt-2">
-                      <span>Pay at Hotel (Tourist Tax):</span>
+                      <span>Amount to be Paid Later:</span>
                       <span>${(finalPrice.latterpayableAmount).toFixed(2)}</span>
+                    </div>
+                  )}
+
+                  {finalPrice.currentChargeableAmount > 0 && (finalPrice.latterpayableAmount ?? 0) > 0 && (
+                    <div className="flex justify-between text-green-600 border-t pt-2 mt-2">
+                      <span>Amount to be Paid Now:</span>
+                      <span>${finalPrice.currentChargeableAmount.toFixed(2)}</span>
                     </div>
                   )}
 

@@ -15,6 +15,7 @@ import {
     ICharge,
     IIncludedAddons,
     IRatePlanWithAddon,
+    IRoomDetails,
     ISelectedAddonsR,
     ISelectedAddonsS,
     ISelectedPromotion,
@@ -44,6 +45,7 @@ export class PricingService {
         rooms: number,
         adults: number,
         children?: number,
+        roomDetails?:IRoomDetails[],
         guestEmail?: string,
         userCountryCode?: string,
         detectedDeviceType?: string,
@@ -95,7 +97,10 @@ export class PricingService {
                 adults + (children ? children : 0),
                 startDate,
                 endDate,
-                parsedAddons
+                roomDetails,
+                parsedAddons,
+
+
             );
             priceBrakedowns = addOnPrice.addonBrakeDowns();
             // console.log("priceBrakedowns addons price", priceBrakedowns);
@@ -552,6 +557,7 @@ class AddOnPriceClass {
     startDate: Date;
     endDate: Date;
     parsedAddons: ISelectedAddonsS[] | null;
+    roomDetails:IRoomDetails[]|null;
     constructor(
         addons: IAddOn[] | null,
         ratePlanAddons: IRatePlanWithAddon[] | null,
@@ -561,7 +567,8 @@ class AddOnPriceClass {
         noOfPersons: number,
         startDate: Date,
         endDate: Date,
-        parsedAddons?: ISelectedAddonsS[] | null
+        roomDetails?:IRoomDetails[]|null,
+        parsedAddons?: ISelectedAddonsS[] | null,
     ) {
         this.addons = addons;
         this.addonsWithRatePlans = ratePlanAddons;
@@ -571,6 +578,7 @@ class AddOnPriceClass {
         this.noOfPersons = noOfPersons;
         this.startDate = startDate;
         this.endDate = endDate;
+        this.roomDetails = roomDetails || null;
         this.parsedAddons = parsedAddons || null;
     }
     public addonBrakeDowns(): PriceBrakeDown {

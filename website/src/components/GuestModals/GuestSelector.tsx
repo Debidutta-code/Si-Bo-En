@@ -18,6 +18,7 @@ import { Label } from "../ui/label";
 interface Room {
   adults: number;
   children: number;
+  childAges: number[]; // ✅ age for each child, 0–15
 }
 
 interface GuestSelectorProps {
@@ -36,67 +37,53 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
   onApply,
 }) => {
   const bookingContext = useSelector((state: RootState) => state.booking);
-  const [rooms, setRooms] = useState<Room[]>([{ adults: 1, children: 0 }]);
+  const [rooms, setRooms] = useState<Room[]>([{ adults: 1, children: 0, childAges: [] }]);
   const [totalRooms, setTotalRooms] = useState(1);
 
+  useEffect(() => {
+    if (bookingContext.guests) {
+      const mapRoom = (room: any): Room => ({
+        adults: room.adults || 0,
+        children: room.children || 0,
+        childAges: room.childAges?.length
+          ? room.childAges
+          : Array(room.children || 0).fill(0),
+      });
 
-useEffect(() => {
-  if (bookingContext.guests) {
-    // ✅ PRIORITY 1: Check for roomsArray first (detailed per-room data)
-    if (bookingContext.guests.roomsArray && Array.isArray(bookingContext.guests.roomsArray)) {
-      const mappedRooms = bookingContext.guests.roomsArray.map((room: any, idx: number) => {
-        const roomData = {
-          adults: room.adults || 0,
-          children: room.children || 0,
-        };
-        return roomData;
-      });
-      
-      setRooms(mappedRooms);
-      setTotalRooms(bookingContext.guests.roomsArray.length);
-    }
-    // ✅ PRIORITY 2: Check if rooms is an array
-    else if (Array.isArray(bookingContext.guests.rooms)) {
-      const mappedRooms = bookingContext.guests.rooms.map((room: any, idx: number) => {
-        const roomData = {
-          adults: room.adults || 0,
-          children: room.children || 0,
-        };
-        return roomData;
-      });
-      
-      setRooms(mappedRooms);
-      setTotalRooms(bookingContext.guests.rooms.length);
-    }
-    // ✅ PRIORITY 3: rooms is a number (only use this for initial load)
-    else if (typeof bookingContext.guests.rooms === 'number') {
-      const numRooms = bookingContext.guests.rooms;
-      const totalAdults = bookingContext.guests.adults || 1;
-      const totalChildren = bookingContext.guests.children || 0;
-      
-      const newRooms: Room[] = [];
-      for (let i = 0; i < numRooms; i++) {
-        newRooms.push({
+      if (bookingContext.guests.roomsArray && Array.isArray(bookingContext.guests.roomsArray)) {
+        const mappedRooms = bookingContext.guests.roomsArray.map(mapRoom);
+        setRooms(mappedRooms);
+        setTotalRooms(mappedRooms.length);
+      } else if (Array.isArray(bookingContext.guests.rooms)) {
+        const mappedRooms = bookingContext.guests.rooms.map(mapRoom);
+        setRooms(mappedRooms);
+        setTotalRooms(mappedRooms.length);
+      } else if (typeof bookingContext.guests.rooms === "number") {
+        const numRooms = bookingContext.guests.rooms;
+        const totalAdults = bookingContext.guests.adults || 1;
+        const totalChildren = bookingContext.guests.children || 0;
+
+        const newRooms: Room[] = Array.from({ length: numRooms }, (_, i) => ({
           adults: i === 0 ? totalAdults : 0,
           children: i === 0 ? totalChildren : 0,
-        });
+          childAges: i === 0 ? Array(totalChildren).fill(0) : [],
+        }));
+
+        setRooms(newRooms);
+        setTotalRooms(numRooms);
       }
-      
-      setRooms(newRooms);
-      setTotalRooms(numRooms);
     }
-  }
-}, [bookingContext.guests]);
+  }, [bookingContext.guests]);
+
   useEffect(() => {
     if (totalRooms > rooms.length) {
       const newRooms = [...rooms];
       while (newRooms.length < totalRooms) {
-        newRooms.push({ adults: 0, children: 0 });
+        newRooms.push({ adults: 0, children: 0, childAges: [] });
       }
       setRooms(newRooms);
     } else if (totalRooms < rooms.length) {
-      const slicedRooms = rooms.slice(0, totalRooms);
-      setRooms(slicedRooms);
+      setRooms(rooms.slice(0, totalRooms));
     }
   }, [totalRooms]);
 
@@ -106,7 +93,7 @@ useEffect(() => {
     increment: boolean
   ) => {
     const updatedRooms = [...rooms];
-    const room = { ...updatedRooms[roomIndex] };
+    const room = { ...updatedRooms[roomIndex], childAges: [...updatedRooms[roomIndex].childAges] };
 
     if (increment) {
       if (field === "adults") {
@@ -118,20 +105,29 @@ useEffect(() => {
         const currentTotal = room.adults + room.children;
         if (currentTotal < MAX_GUESTS_PER_ROOM && room.children < MAX_CHILDREN_PER_ROOM) {
           room.children += 1;
+          room.childAges.push(0); // ✅ default age 0 for new child
         }
       }
     } else {
       if (field === "adults") {
-        if (roomIndex === 0) {
-          room.adults = Math.max(1, room.adults - 1);
-        } else {
-          room.adults = Math.max(0, room.adults - 1);
-        }
+        room.adults = roomIndex === 0 ? Math.max(1, room.adults - 1) : Math.max(0, room.adults - 1);
       } else if (field === "children") {
-        room.children = Math.max(0, room.children - 1);
+        if (room.children > 0) {
+          room.children -= 1;
+          room.childAges.pop(); // ✅ remove last child's age
+        }
       }
     }
 
+    updatedRooms[roomIndex] = room;
+    setRooms(updatedRooms);
+  };
+
+  // ✅ Update a specific child's age in a room
+  const updateChildAge = (roomIndex: number, childIndex: number, age: number) => {
+    const updatedRooms = [...rooms];
+    const room = { ...updatedRooms[roomIndex], childAges: [...updatedRooms[roomIndex].childAges] };
+    room.childAges[childIndex] = age;
     updatedRooms[roomIndex] = room;
     setRooms(updatedRooms);
   };
@@ -145,14 +141,12 @@ useEffect(() => {
       summary += ` - ${totalChildren} child${totalChildren !== 1 ? "ren" : ""}`;
     }
     summary += ` - ${totalRooms} room${totalRooms !== 1 ? "s" : ""}`;
-    
+
     onApply(summary, { rooms });
     onClose();
   };
 
-  const isRoomFull = (room: Room) => {
-    return room.adults + room.children >= MAX_GUESTS_PER_ROOM;
-  };
+  const isRoomFull = (room: Room) => room.adults + room.children >= MAX_GUESTS_PER_ROOM;
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -164,6 +158,7 @@ useEffect(() => {
         </DialogHeader>
 
         <div className="p-4 sm:p-6 space-y-4">
+          {/* Number of Rooms */}
           <div className="bg-gray-50 rounded-xl px-4 py-3">
             <div className="flex items-center justify-between">
               <Label className="text-base sm:text-lg font-semibold text-gray-900">
@@ -177,16 +172,11 @@ useEffect(() => {
                   onClick={() => setTotalRooms(Math.max(1, totalRooms - 1))}
                   disabled={totalRooms <= 1}
                   className={`w-10 h-10 rounded-full border border-gray-300 flex items-center justify-center transition-colors duration-200
-                    ${totalRooms <= 1
-                      ? "bg-gray-300 cursor-not-allowed opacity-50"
-                      : "bg-white hover:bg-gray-100"
-                    }`}
+                    ${totalRooms <= 1 ? "bg-gray-300 cursor-not-allowed opacity-50" : "bg-white hover:bg-gray-100"}`}
                 >
                   <Minus className="w-5 h-5" />
                 </Button>
-                <span className="text-xl font-bold text-gray-900 w-8 text-center">
-                  {totalRooms}
-                </span>
+                <span className="text-xl font-bold text-gray-900 w-8 text-center">{totalRooms}</span>
                 <Button
                   type="button"
                   variant="outline"
@@ -200,22 +190,19 @@ useEffect(() => {
             </div>
           </div>
 
+          {/* Per Room */}
           <div className="space-y-2">
             {rooms.map((room, index) => (
-              <div
-                key={index}
-                className="border border-gray-200 rounded-xl px-4 py-2"
-              >
+              <div key={index} className="border border-gray-200 rounded-xl px-4 py-2">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
                   Room #{index + 1}
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Adults */}
                   <div className="bg-gray-50 rounded-lg px-3 py-3">
                     <div className="flex items-center justify-between">
-                      <Label className="text-sm font-medium text-gray-700">
-                        Adults
-                      </Label>
+                      <Label className="text-sm font-medium text-gray-700">Adults</Label>
                       <div className="flex items-center space-x-2">
                         <Button
                           type="button"
@@ -224,16 +211,11 @@ useEffect(() => {
                           onClick={() => updateRoom(index, "adults", false)}
                           disabled={index === 0 && room.adults <= 1}
                           className={`w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center transition-colors duration-200
-                            ${index === 0 && room.adults <= 1
-                              ? "bg-gray-300 cursor-not-allowed opacity-50"
-                              : "bg-white hover:bg-gray-100"
-                            }`}
+                            ${index === 0 && room.adults <= 1 ? "bg-gray-300 cursor-not-allowed opacity-50" : "bg-white hover:bg-gray-100"}`}
                         >
                           <Minus className="w-4 h-4" />
                         </Button>
-                        <span className="text-lg font-bold text-gray-900 w-6 text-center">
-                          {room.adults}
-                        </span>
+                        <span className="text-lg font-bold text-gray-900 w-6 text-center">{room.adults}</span>
                         <Button
                           type="button"
                           variant="outline"
@@ -241,10 +223,7 @@ useEffect(() => {
                           onClick={() => updateRoom(index, "adults", true)}
                           disabled={room.adults >= MAX_ADULTS_PER_ROOM || isRoomFull(room)}
                           className={`w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center transition-colors duration-200
-                            ${room.adults >= MAX_ADULTS_PER_ROOM || isRoomFull(room)
-                              ? "bg-gray-300 cursor-not-allowed opacity-50"
-                              : "bg-white hover:bg-gray-100"
-                            }`}
+                            ${room.adults >= MAX_ADULTS_PER_ROOM || isRoomFull(room) ? "bg-gray-300 cursor-not-allowed opacity-50" : "bg-white hover:bg-gray-100"}`}
                         >
                           <Plus className="w-4 h-4" />
                         </Button>
@@ -252,15 +231,12 @@ useEffect(() => {
                     </div>
                   </div>
 
+                  {/* Children */}
                   <div className="bg-gray-50 rounded-lg px-3 py-3">
                     <div className="flex items-center justify-between">
                       <div>
-                        <Label className="text-sm font-medium text-gray-700">
-                          Children
-                        </Label>
-                        <p className="text-[0.65rem] text-gray-500">
-                          Ages 0 - 17
-                        </p>
+                        <Label className="text-sm font-medium text-gray-700">Children</Label>
+                        <p className="text-[0.65rem] text-gray-500">Ages 0 – 15</p>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Button
@@ -268,13 +244,13 @@ useEffect(() => {
                           variant="outline"
                           size="icon"
                           onClick={() => updateRoom(index, "children", false)}
-                          className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center transition-colors duration-200 bg-white hover:bg-gray-100"
+                          disabled={room.children <= 0}
+                          className={`w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center transition-colors duration-200
+                            ${room.children <= 0 ? "bg-gray-300 cursor-not-allowed opacity-50" : "bg-white hover:bg-gray-100"}`}
                         >
                           <Minus className="w-4 h-4" />
                         </Button>
-                        <span className="text-lg font-bold text-gray-900 w-6 text-center">
-                          {room.children}
-                        </span>
+                        <span className="text-lg font-bold text-gray-900 w-6 text-center">{room.children}</span>
                         <Button
                           type="button"
                           variant="outline"
@@ -282,10 +258,7 @@ useEffect(() => {
                           onClick={() => updateRoom(index, "children", true)}
                           disabled={room.children >= MAX_CHILDREN_PER_ROOM || isRoomFull(room)}
                           className={`w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center transition-colors duration-200
-                            ${room.children >= MAX_CHILDREN_PER_ROOM || isRoomFull(room)
-                              ? "bg-gray-300 cursor-not-allowed opacity-50"
-                              : "bg-white hover:bg-gray-100"
-                            }`}
+                            ${room.children >= MAX_CHILDREN_PER_ROOM || isRoomFull(room) ? "bg-gray-300 cursor-not-allowed opacity-50" : "bg-white hover:bg-gray-100"}`}
                         >
                           <Plus className="w-4 h-4" />
                         </Button>
@@ -293,7 +266,38 @@ useEffect(() => {
                     </div>
                   </div>
                 </div>
-                
+
+                {/* ✅ Child Age Dropdowns */}
+                {room.children > 0 && (
+                  <div className="mt-3 space-y-2">
+                    <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
+                      Child Ages (required)
+                    </p>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {Array.from({ length: room.children }, (_, childIdx) => (
+                        <div key={childIdx} className="flex flex-col gap-1">
+                          <Label className="text-xs text-gray-500">
+                            Child {childIdx + 1}
+                          </Label>
+                          <select
+                            value={room.childAges[childIdx] ?? 0}
+                            onChange={(e) =>
+                              updateChildAge(index, childIdx, Number(e.target.value))
+                            }
+                            className="w-full border border-gray-300 rounded-lg px-2 py-1.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-orange-400"
+                          >
+                            {Array.from({ length: 16 }, (_, age) => (
+                              <option key={age} value={age}>
+                                {age === 0 ? "< 1 year" : `${age} ${age === 1 ? "year" : "years"}`}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="mt-3 text-xs text-gray-500 text-center">
                   {room.adults + room.children} of {MAX_GUESTS_PER_ROOM} guests
                 </div>

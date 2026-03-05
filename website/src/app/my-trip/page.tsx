@@ -36,7 +36,7 @@ export default function MyTripPage() {
   const searchParams = useSearchParams();
   const handleSearch = async () => {
     const propertyCode = searchParams.get("propertyCode");
-    if(!propertyCode) {
+    if (!propertyCode) {
       toast.error("Property code is missing in the URL");
       return;
     }
@@ -74,6 +74,11 @@ export default function MyTripPage() {
 
   useEffect(() => {
     const codeFromUrl = searchParams.get("code");
+    const propertyCode = searchParams.get("propertyCode");
+    if (!propertyCode) {
+      toast.error("Property code is missing in the URL");
+      return;
+    }
     if (!codeFromUrl) return;
     setBookingCode(codeFromUrl); // for input field
     const fetchFromUrl = async () => {
@@ -81,7 +86,7 @@ export default function MyTripPage() {
       setBookingData(null);
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/pms/front-office/reservations/${codeFromUrl}`
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/pms/front-office/reservations/${codeFromUrl}?propertyCode=${propertyCode}`
         );
         const data = await res.json();
         // //console.log(data)
