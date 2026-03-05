@@ -7,6 +7,7 @@ import { capitalizeFirstLetter } from '@/lib/utils';
 import Loader from '@/components/Loader/Loader';
 import type { Icreations, ICreation } from "./types/types"
 import { useNavigate, useParams } from "react-router-dom";
+import { Settings } from "lucide-react";
 
 export default function HotelsPage() {
   const { creationId } = useParams<{ creationId: string }>();
@@ -74,8 +75,20 @@ export default function HotelsPage() {
     )
   }
 
+  const isCreationButtonVisible = (currentTab:string) => {
+    switch (currentTab) {
+      case "group":
+        return creations.groups.length>0;
+      case "brand":
+        return creations.brands.length > 0;
+      case "property":
+        return creations.properties.length > 0;
+      default:
+        return [];
+    }
+  };
+
   const currentData = getCurrentData();
-console.log(creations.properties)
   return (
     <div className="space-y-6 p-4">
       <div className="flex justify-between">
@@ -85,18 +98,19 @@ console.log(creations.properties)
             Manage all your hotel properties and their performance
           </p>
         </div>
-        <CreateEntityDialog creationType={"super"} currentTab={currentTab} creationId={creationId?creationId:""} level={4} fetchProperties={fetchProperties} />
+        <CreateEntityDialog creationType={"super"} currentTab={currentTab} creationId={creationId ? creationId : ""} level={4} fetchProperties={fetchProperties} />
       </div>
 
       <div className="flex space-x-2 border-b">
         {(["group", "brand", "property"] as const).map((tab) => (
+          
           <Button
             key={tab}
             variant={currentTab === tab ? "secondary" : "ghost"}
             onClick={() => setCurrentTab(tab)}
-            className={`px-4 py-2 rounded-t-lg border-b-2 ${currentTab === tab
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-transparent hover:border-gray-300"
+            className={`px-4 py-2 rounded-t-lg border-b-2 ${!isCreationButtonVisible(tab)&&"hidden"} ${currentTab === tab
+              ? "border-primary bg-primary/10 text-primary"
+              : "border-transparent hover:border-gray-300"
               }`}
           >
             {capitalizeFirstLetter(getTabDisplayName(tab))} ({
@@ -138,9 +152,9 @@ console.log(creations.properties)
                 {/* Fixed image container with consistent aspect ratio */}
                 <div className="relative w-full h-48 mb-3 overflow-hidden rounded-lg bg-gray-100">
                   {item.images?.[0] ? (
-                    <img 
-                      src={item.images[0]} 
-                      alt={item.name} 
+                    <img
+                      src={item.images[0]}
+                      alt={item.name}
                       className="w-full h-full object-cover rounded-lg hover:scale-105 transition-transform duration-300"
                       onError={(e) => {
                         // Fallback for broken images
@@ -159,7 +173,7 @@ console.log(creations.properties)
                     </div>
                   )}
                 </div>
-                
+
                 <div className="flex-1">
                   <div className="flex justify-between items-start mb-3">
                     <h3 className="font-semibold text-lg text-gray-900 line-clamp-2">
@@ -170,14 +184,29 @@ console.log(creations.properties)
 
                 {/* Actions */}
                 <div className="mt-4 flex space-x-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
+                  <Button
+                    variant="outline"
+                    size="sm"
                     className="flex-1"
-                    onClick={() => { navigate(`/app/property/${currentTab}/${item.id}`) }}
+                    onClick={() => {
+                      item.type != "property" ?
+                        navigate(`/app/property/${currentTab}/${item.id}`) :
+                        navigate(`/property/${item.propertyId}`)
+                    }}
                   >
                     View Details
                   </Button>
+                  {
+                    item.type == "property" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate(`/app/property/${currentTab}/${item.id}`)}
+                      >
+                         <Settings className="h-4 w-4" />
+                      </Button>
+                    )
+                  }
                 </div>
               </div>
             ))}

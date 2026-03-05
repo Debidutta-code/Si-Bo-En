@@ -72,10 +72,7 @@ export class ChildAddonsService {
                 return errorResponse("Child addon not found");
             }
             const getAllChildAddons = await this.childAddonRepository.getChildAddons(isExist.addonId);
-            const isAgeValid = this.validateAge(data.minAge, data.maxAge, getAllChildAddons);
-            if (!isAgeValid) {
-                return errorResponse("Some children catalog are overlapping in age range");
-            }
+            
             const daoRes = await this.childAddonRepository.updateChildAddon(id, {
                 minAge: data.minAge,
                 maxAge: data.maxAge,

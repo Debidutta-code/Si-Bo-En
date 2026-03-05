@@ -9,7 +9,7 @@ import Loader from '@/components/Loader/Loader';
 import { capitalizeFirstLetter } from '@/lib/utils';
 import CreateEntityDialog from '@/components/creationDialog';
 import BackButton from '@/components/shared/BackButton';
-import { User2Icon, MoreVertical, CloudCog, Upload, Trash2 } from 'lucide-react';
+import { User2Icon, MoreVertical, CloudCog, Upload, Trash2, Settings } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
@@ -220,8 +220,8 @@ export default function page() {
                                     Parent: <span className="font-semibold text-gray-800">{creations.groupData.superGroupName}</span>
                                 </p>
                                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${creations.groupData.isActive
-                                        ? 'bg-green-100 text-green-700 ring-1 ring-green-200'
-                                        : 'bg-red-100 text-red-700 ring-1 ring-red-200'
+                                    ? 'bg-green-100 text-green-700 ring-1 ring-green-200'
+                                    : 'bg-red-100 text-red-700 ring-1 ring-red-200'
                                     }`}>
                                     {creations.groupData.isActive ? '● Active' : '● Inactive'}
                                 </span>
@@ -536,10 +536,25 @@ export default function page() {
                                         variant="outline"
                                         size="sm"
                                         className="flex-1"
-                                        onClick={() => { navigate(`/app/property/${currentTab}/${item.id}`) }}
+                                        onClick={() => {
+                                            item.type != "property" ?
+                                                navigate(`/app/property/${currentTab}/${item.id}`) :
+                                                navigate(`/property/${item.propertyId}`)
+                                        }}
                                     >
                                         View Details
                                     </Button>
+                                    {
+                                        item.type == "property" && (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => navigate(`/app/property/${currentTab}/${item.id}`)}
+                                            >
+                                                <Settings className="h-4 w-4" />
+                                            </Button>
+                                        )
+                                    }
                                 </div>
                             </div>
                         ))}
