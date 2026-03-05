@@ -143,6 +143,9 @@ export default function PropertyPage() {
 
     const fetchPartners = async (propertyId: string) => {
         try {
+            if(!user||user.role!="super_admin"){
+                return;
+            }
             const response = await getAllPartnerIntegrationsService(propertyId);
             if (response.success) {
                 setMasterPartners(response.data);

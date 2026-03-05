@@ -23,7 +23,7 @@ import {createAddonAvailability,
     fetchAddonAvailabilities,
     updateAddonAvailability
 } from "./addon-availability.api";
-
+export * from "./child-addon.api";
 export {
     createAddonCategory,
     deleteCategory,

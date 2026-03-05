@@ -13,7 +13,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { handleDialogOpenChange } from '../utills/handleDialogOpenChange';
-import { User2Icon, MoreVertical, CloudCog, Upload, Trash2 } from 'lucide-react';
+import { User2Icon, MoreVertical, CloudCog, Upload, Trash2, Settings } from 'lucide-react';
 import { assignUserToProperty } from '../api/api';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import ImageSlider from '@/components/shared/ImageSlider';
@@ -199,8 +199,8 @@ export default function page() {
                                     Parent: <span className="font-semibold text-gray-800">{brandDetails.under}</span>
                                 </p>
                                 <span className={`px-3 py-1 rounded-full text-xs font-semibold ${brandDetails.isActive
-                                        ? 'bg-green-100 text-green-700 ring-1 ring-green-200'
-                                        : 'bg-red-100 text-red-700 ring-1 ring-red-200'
+                                    ? 'bg-green-100 text-green-700 ring-1 ring-green-200'
+                                    : 'bg-red-100 text-red-700 ring-1 ring-red-200'
                                     }`}>
                                     {brandDetails.isActive ? '● Active' : '● Inactive'}
                                 </span>
@@ -456,7 +456,7 @@ export default function page() {
                                 key={item.id}
                                 className="border rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
                             >
-                                                                <img src={item.images[0]} alt={item.name} width={400} height={200} className="rounded-lg mb-3" />
+                                <img src={item.images[0]} alt={item.name} width={400} height={200} className="rounded-lg mb-3" />
 
                                 <div className="flex justify-between items-start mb-3">
                                     <h3 className="font-semibold text-lg text-gray-900 truncate">
@@ -464,15 +464,30 @@ export default function page() {
                                     </h3>
                                 </div>
 
-                                {/* Actions */}
                                 <div className="mt-4 flex space-x-2">
-                                    <Button variant="outline" size="sm" className="flex-1"
-                                        onClick={() => { navigate(`/app/property/${currentTab}/${item.id}`) }}>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="flex-1"
+                                        onClick={() => {
+                                            item.type != "property" ?
+                                                navigate(`/app/property/${currentTab}/${item.id}`) :
+                                                navigate(`/property/${item.propertyId}`)
+                                        }}
+                                    >
                                         View Details
                                     </Button>
-                                    {/* <Button variant="outline" size="sm">
-                                        Edit
-                                    </Button> */}
+                                    {
+                                        item.type == "property" && (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => navigate(`/app/property/${currentTab}/${item.id}`)}
+                                            >
+                                                <Settings className="h-4 w-4" />
+                                            </Button>
+                                        )
+                                    }
                                 </div>
                             </div>
                         ))}

@@ -23,7 +23,7 @@ import {createAvailabilityService,
     fetchAvailabilitiesService,
     updateAvailabilityService
 } from "./addon-availability.services";
-
+export * from "./child-addon.services";
 export {
     createCategoryService,
     updateCategoryService,
