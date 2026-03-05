@@ -644,13 +644,14 @@ class AddOnPriceClass {
                 currencyCode: addon.availability[0]
                     .currencyCode as CurrencyCode,
                 date: new Date(availableEntries[0].date).toDateString(),
+                type: 'selected',
             });
 
             // calculate child addon prices if childAges exist
             if (this.childAges && this.childAges.length > 0) {
                 const childAddonBreakdowns = this.calculateChildAddonPrice(
                     addon,
-                    this.childAges
+                    this.childAges,
                 );
                 addonBrakeDown.push(...childAddonBreakdowns);
             }
@@ -721,6 +722,7 @@ class AddOnPriceClass {
                 amount: avgPrice,
                 quantity,
                 totalAmount,
+                type:"included",
                 currencyCode: addon.addon.availability[0]
                     .currencyCode as CurrencyCode,
                 date: new Date(availableEntries[0].date).toDateString(),
@@ -835,6 +837,7 @@ class AddOnPriceClass {
                 currencyCode: addon.availability[0]
                     .currencyCode as CurrencyCode,
                 date: new Date(availableEntries[0].date).toDateString(),
+                type: 'selected',
             });
         });
 

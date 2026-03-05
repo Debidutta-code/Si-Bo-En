@@ -28,7 +28,10 @@ enum geoRestrictionTypeAction {
   increase
   decrease
 }
-
+enum ReservationAddonType {
+  included
+  selected
+}
 enum CreationType {
   group
   property
@@ -1003,6 +1006,7 @@ model BookingAddon {
   currencyCode        String   @default("INR")
   specialInstructions String?
   date                DateTime @default(now())
+  type                ReservationAddonType   @default(included)
 
   Reservation Reservation @relation(fields: [reservationId], references: [id])
 

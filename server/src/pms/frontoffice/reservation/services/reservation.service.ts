@@ -441,6 +441,7 @@ export class ReservationService {
                                 totalPrice: addon.totalPrice,
                                 currencyCode: currency,
                                 specialInstructions: null,
+                                type: addon.type,
                                 date: new Date(addon.date),
                             })
                         );

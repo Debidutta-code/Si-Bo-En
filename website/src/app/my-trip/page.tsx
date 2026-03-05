@@ -764,14 +764,14 @@ export default function MyTripPage() {
 
                     {bookingData.paymentMethod === 'pay_at_hotel' ? (
                       <>
-                        <div className="flex justify-between items-center bg-orange-50 px-3 py-2 rounded-lg">
+                        <div className="flex justify-between items-center rounded-lg">
                           <p className="text-orange-700 font-semibold">Amount to Pay at Hotel</p>
                           <p className="text-orange-700 font-bold text-lg">
                             {bookingData.currencyCode} {bookingData.finalPrice?.currentChargeableAmount?.toFixed(2) || "0.00"}
                           </p>
                         </div>
                         {bookingData.finalPrice?.latterpayableAmount > 0 && (
-                          <div className="flex justify-between items-center bg-orange-50 px-3 py-2 rounded-lg">
+                          <div className="flex justify-between items-center rounded-lg">
                             <p className="text-orange-700 font-semibold">Amount to be Paid Later at Hotel</p>
                             <p className="text-orange-700 font-bold text-lg">
                               {bookingData.currencyCode} {bookingData.finalPrice?.latterpayableAmount?.toFixed(2)}
@@ -818,7 +818,7 @@ export default function MyTripPage() {
                   </div>
                 </div>
                 {/* Daily Breakdown if available */}
-                {bookingData.finalPrice?.dailyBreakdown && (
+                {/* {bookingData.finalPrice?.dailyBreakdown && (
                   <div className="mt-4">
                     <p className="text-sm font-semibold text-gray-700 mb-2">Daily Rate Breakdown:</p>
                     {bookingData.finalPrice.dailyBreakdown.map((day: any, index: number) => (
@@ -831,7 +831,7 @@ export default function MyTripPage() {
                       </div>
                     ))}
                   </div>
-                )}
+                )} */}
               </div>
               {/* Additional Information */}
               <div className="bg-gray-50 p-4 rounded-lg">

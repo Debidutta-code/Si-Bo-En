@@ -312,7 +312,8 @@ export interface IBookingAddonCreate {
   quantity: number;
   totalPrice: number;
   currencyCode: string;
-  specialInstructions?: string | null; // ✅ CHANGE: Add | null
+  specialInstructions?: string | null; 
+  type: "included"|"selected";
   date: Date;
 }
 

@@ -235,6 +235,7 @@ export interface AddOnBrakeDown {
     totalAmount: number;
     currencyCode: CurrencyCode;
     date: string;
+    type: 'included' | 'selected';
 }
 export interface PromotionBrakeDown {
     id: string;
