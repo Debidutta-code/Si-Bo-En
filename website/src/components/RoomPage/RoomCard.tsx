@@ -310,6 +310,10 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
   ) => {
     setLoadingPriceFor(ratePlan.comboLabel);
     try {
+      const childAges = bookingContext.guests.roomsArray
+    ? bookingContext.guests.roomsArray.flatMap((room: any) => room.childAges || [])
+    : Array(bookingContext.guests.children || 0).fill(0);
+    
       const payload: any = {
         propertyCode: bookingContext.PropertyCode,
         invTypeCode: room.room_type,
@@ -319,7 +323,7 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
         noOfAdults,
         noOfChildren: noOfChildrens,
         noOfRooms,
-        roomDetails: bookingContext.guests.roomsArray,
+        childAges,
         promoCode: bookingContext.promocode,
       };
 
