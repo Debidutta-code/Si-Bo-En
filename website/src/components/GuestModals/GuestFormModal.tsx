@@ -720,7 +720,7 @@ if (!contactInfo.phoneNumber.trim()) {
           </div>
           {Object.keys(errors).length > 0 && (
             <p className="text-sm text-amber-600 text-center">
-              Please fix all errors before proceeding
+            Please provide all the necessary information before proceeding
             </p>
           )}
         </div>

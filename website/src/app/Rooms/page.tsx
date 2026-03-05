@@ -286,7 +286,7 @@ const Rooms = () => {
   };
 
   const handleSearchStart = async (payload: any) => {
-    console.log("booking call", payload);
+    // console.log("booking call", payload);
     const bookingCtx = payload || bookingContext;
 
     if (!bookingCtx?.PropertyCode) {

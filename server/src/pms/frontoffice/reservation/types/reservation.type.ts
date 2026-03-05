@@ -2,6 +2,7 @@ import { BookingSource, BookingStatus, CurrencyCode, PaymentMethod, DeviceType, 
 import { Decimal } from "@prisma/client/runtime/library";
 import { DiscountType } from "../../../../promocode/types";
 import { PriceBrakeDown, DailyPriceBrakeDown, TaxBrakeDown, AddOnBrakeDown, PromotionBrakeDown } from "../../../../booking-engine/types/pricing.type";
+import { DateTime } from "luxon";
 
 // ==================== PAYLOAD TYPES ====================
 export interface ICreateReservationPayload {
@@ -53,6 +54,7 @@ export interface IGuestDetail {
   firstName: string;
   lastName: string;
   dateOfBirth: string;
+  age?: number|null;
   email?: string;
   phone?: string;
 }
@@ -152,8 +154,18 @@ export interface IReservationWithAllDetails extends IReservation {
   addOns: any[];
   property?: any;
   promo?: any;
+  reservationGuests?: IReservationGuest[];
 }
 
+export interface IReservationGuest {
+  id: string;
+  reservationId: string;
+  firstName: string;
+  lastName: string;
+  type: "adult" | "child" | "infant";
+  dateOfBirth: Date | null;
+  age: number | null;
+}
 // ==================== GUEST TYPES ====================
 export interface ICGuest {
   firstName: string;
@@ -236,8 +248,8 @@ export interface AriManupulationRooms {
 
 export interface IReservationUpdatePayload {
   propertyCode: string;
-  checkInDate: string;  // ISO string
-  checkOutDate: string; // ISO string
+  checkInDate: string;  
+  checkOutDate: string; 
   requestedRooms: number;
   rooms: Array<{
     adults: number;
@@ -245,12 +257,7 @@ export interface IReservationUpdatePayload {
     childAges: number[];
   }>;
   previousRooms: number;
-  guests: Array<{
-    type: "adult" | "child" | "infant";
-    firstName: string;
-    lastName: string;
-    dob: string;
-  }>;
+  guests: IGuestDetail[];
   roomTypeCode: string;
   ratePlanCode: string;
   amount: number;

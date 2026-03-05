@@ -288,22 +288,23 @@ const BookingReviewPage = () => {
     );
   }
 
-  // Safely extract rooms and guest count
-  let rooms = 0;
-  let adults = 0;
-  let children = 0;
 
-  if (
-    guests &&
-    typeof guests === "object" &&
-    "rooms" in guests &&
-    Array.isArray(guests.rooms)
-  ) {
-    rooms = guests.rooms.length;
-    adults = guests.rooms.reduce((sum, r) => sum + (r.adults || 0), 0);
-    children = guests.rooms.reduce((sum, r) => sum + (r.children || 0), 0);
-  }
 
+  const rooms = typeof guests?.rooms === "number" ? guests.rooms : 0;
+  const adults = typeof guests?.adults === "number" ? guests.adults : 0;
+  const childrenCount = typeof guests?.children === "number" ? guests.children : 0;
+
+  const allChildAges = (guests?.roomsArray || []).flatMap((room: any) => room.childAges || []);
+
+  let childCounter = 0;
+  const enrichedGuests = (guest || []).map((g: any) => {
+    if (g.type === 'child') {
+      const age = allChildAges[childCounter] ?? null;
+      childCounter++;
+      return { ...g, age };
+    }
+    return g;
+  });
   const handleConfirmBooking = async () => {
     setLoading(true);
     setError(null);
@@ -337,7 +338,7 @@ const BookingReviewPage = () => {
             email,
             phone: bookingDetails.phone,
             guests: guests,
-            guestDetails: guest,
+            guestDetails: enrichedGuests,
             ratePlanCode: bookingDetails.ratePlanCode,
             paymentMethod: mapPaymentMethodToEnum(selectedPayment || ""),
             bookingSource: bookingDetails.bookingSource,
@@ -345,7 +346,7 @@ const BookingReviewPage = () => {
             selectedAddons: bookingDetails.selectedAddons || [],
           },
           bankDetails,
-          guestDetails: guest,
+          guestDetails: enrichedGuests,
         },
       };
 
@@ -730,7 +731,7 @@ const BookingReviewPage = () => {
   return (
     <div className="w-full">
       <div className="sticky top-0 z-40 bg-white/90 backdrop-blur shadow-sm">
-        
+
       </div>
       <div className="max-w-6xl mx-auto p-6 grid md:grid-cols-3 gap-6">
         {/* Left Side */}
@@ -748,8 +749,8 @@ const BookingReviewPage = () => {
               <p>
                 <strong>Guests:</strong> {rooms || 1} Room · {adults || 1} Adult
                 {adults !== 1 ? "s" : ""}
-                {children > 0
-                  ? ` · ${children} Child${children !== 1 ? "ren" : ""}`
+                {childrenCount > 0
+                  ? ` · ${childrenCount} Child${childrenCount !== 1 ? "ren" : ""}`
                   : ""}
               </p>
               <p>

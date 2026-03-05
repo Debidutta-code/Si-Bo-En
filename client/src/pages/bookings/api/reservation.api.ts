@@ -300,7 +300,7 @@ export const checkAmendPrice = async (
 ): Promise<{ success: boolean; data?: IPriceCheckResponse; message?: string }> => {
   try {
     const response = await axiosInstance.post(
-      "/ari/price/get-price",
+      "/booking-engine/pricing/get-price",
       payload
     );
 

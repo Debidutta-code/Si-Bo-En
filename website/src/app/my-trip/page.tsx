@@ -272,9 +272,41 @@ export default function MyTripPage() {
       doc.setTextColor(100);
       doc.text("--- Price Breakdown ---", colRightX, yRight);
       yRight += 6;
-      addPaymentRow("Subtotal:", bookingData.finalPrice.subtotal);
-      addPaymentRow("Taxes:", bookingData.finalPrice.totalTax);
-      addPaymentRow("Total:", bookingData.finalPrice.totalAmount, true);
+      addPaymentRow("Method:", paymentMethod);
+      addPaymentRow("Booking Date:", bookingDate);
+      addPaymentRow("Base Amount:", `${bookingData.currencyCode} ${bookingData.finalPrice?.amountBeforeTax?.toFixed(2) || 0}`);
+      // ✅ WITH THIS
+      if (bookingData.finalPrice?.promotionBrakeDown?.length > 0) {
+        bookingData.finalPrice.promotionBrakeDown.forEach((promo: any) => {
+          const isPayLater = promo.restrictionType === 'payLater';
+          const sign = isPayLater ? '+' : '-';
+          addPaymentRow(
+            `${isPayLater ? '(Pay Later)' : '(Discount)'} ${promo.name}:`,
+            `${sign}${bookingData.currencyCode} ${promo.discountAmount?.toFixed(2) || 0}`
+          );
+        });
+      }
+      addPaymentRow("Net Discount:", `-${bookingData.currencyCode} ${bookingData.finalPrice?.totalPromotionAmount?.toFixed(2) || 0}`); addPaymentRow("Taxes:", `${bookingData.currencyCode} ${bookingData.finalPrice?.taxedAmount?.toFixed(2) || 0}`);
+      addPaymentRow("Total Amount:", `${bookingData.currencyCode} ${bookingData.finalPrice?.totalAmount?.toFixed(2) || amount}`, true);
+
+      if (bookingData.paymentMethod === 'pay_at_hotel') {
+        addPaymentRow("Amount to Pay at Hotel:", `${bookingData.currencyCode} ${bookingData.finalPrice?.currentChargeableAmount?.toFixed(2) || 0}`, true);
+        if ((bookingData.finalPrice?.latterpayableAmount || 0) > 0) {
+          addPaymentRow("Amount to be Paid Later:", `${bookingData.currencyCode} ${bookingData.finalPrice?.latterpayableAmount?.toFixed(2)}`);
+        }
+      } else {
+        addPaymentRow("Paid Online:", `${bookingData.currencyCode} ${bookingData.finalPrice?.currentChargeableAmount?.toFixed(2) || 0}`, true);
+        if ((bookingData.finalPrice?.latterpayableAmount || 0) > 0) {
+          addPaymentRow("Amount to be Paid Later at Hotel:", `${bookingData.currencyCode} ${bookingData.finalPrice?.latterpayableAmount?.toFixed(2)}`);
+        }
+        if (paidAmount > 0) {
+          addPaymentRow("Paid Amount:", `${bookingData.currencyCode} ${paidAmount.toFixed(2)}`);
+        }
+      }
+
+      if (refundAmount > 0) {
+        addPaymentRow("Refundable Amount:", `${bookingData.currencyCode} ${refundAmount.toFixed(2)}`, true);
+      }
     }
 
     // === FOOTER ===
@@ -656,49 +688,134 @@ export default function MyTripPage() {
                   </div>
                 </div>
                 {/* Price Breakdown */}
-                <div className="mt-4 space-y-2">
+                {/* Price Breakdown */}
+                <div className="mt-4 space-y-2 text-sm">
+
+                  {/* Base Amount */}
                   <div className="flex justify-between items-center">
-                    <p className="text-gray-600">Subtotal</p>
+                    <p className="text-gray-600">Base Amount</p>
                     <p className="font-medium">
-                      ${bookingData.finalPrice?.subtotal?.toLocaleString() || bookingData.amount.toLocaleString()}
+                      {bookingData.currencyCode} {bookingData.finalPrice?.amountBeforeTax?.toFixed(2) || "0.00"}
                     </p>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <p className="text-gray-600">Taxes</p>
-                    <p className="font-medium">
-                      ${bookingData.finalPrice?.totalTax?.toLocaleString() || "0"}
-                    </p>
+
+                  {/* Promotions */}
+                  {bookingData.finalPrice?.promotionBrakeDown?.length > 0 && (
+                    <div className="space-y-1">
+                      {bookingData.finalPrice.promotionBrakeDown.map((promo: any, i: number) => {
+                        const isPayLater = promo.restrictionType === 'payLater';
+                        return (
+                          <div key={i} className="flex justify-between items-center">
+                            <p className={`flex items-center gap-1 ${isPayLater ? 'text-orange-600' : 'text-green-600'}`}>
+                              {isPayLater ? '⏳' : '🏷'} {promo.name}
+                              <span className="text-xs text-gray-400">
+                                ({promo.discountType === 'percentage'
+                                  ? `${isPayLater ? '+' : '-'}${promo.discountValue}%`
+                                  : `${isPayLater ? '+' : '-'}${promo.currencyCode || bookingData.currencyCode} ${promo.discountValue}`})
+                              </span>
+                            </p>
+                            <p className={`font-medium ${isPayLater ? 'text-orange-600' : 'text-green-600'}`}>
+                              {isPayLater ? '+' : '-'}{bookingData.currencyCode} {promo.discountAmount?.toFixed(2)}
+                            </p>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Tax Breakdown */}
+                  {bookingData.finalPrice?.taxBrakeDown?.length > 0 && (
+                    <div className="space-y-1">
+                      {bookingData.finalPrice.taxBrakeDown.map((tax: any, i: number) => (
+                        <div key={i} className="flex justify-between items-center">
+                          <p className="text-gray-600">🧾 {tax.name}</p>
+                          <p className="font-medium">
+                            +{tax.currencyCode} {tax.taxedAmount?.toFixed(2)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Addon Breakdown */}
+                  {bookingData.finalPrice?.addonBrakeDown?.length > 0 && (
+                    <div className="space-y-1">
+                      {bookingData.finalPrice.addonBrakeDown.map((addon: any, i: number) => (
+                        <div key={i} className="flex justify-between items-center">
+                          <p className="text-gray-600">🍽 {addon.name}</p>
+                          <p className="font-medium">
+                            +{bookingData.currencyCode} {addon.amount?.toFixed(2)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Divider */}
+                  <div className="border-t pt-2 space-y-2">
+
+                    {/* Total Amount */}
+                    <div className="flex justify-between items-center">
+                      <p className="text-gray-800 font-semibold">Total Amount</p>
+                      <p className="text-blue-700 font-bold text-lg">
+                        {bookingData.currencyCode} {bookingData.finalPrice?.totalAmount?.toFixed(2) || bookingData.amount.toFixed(2)}
+                      </p>
+                    </div>
+
+                    {bookingData.paymentMethod === 'pay_at_hotel' ? (
+                      <>
+                        <div className="flex justify-between items-center bg-orange-50 px-3 py-2 rounded-lg">
+                          <p className="text-orange-700 font-semibold">Amount to Pay at Hotel</p>
+                          <p className="text-orange-700 font-bold text-lg">
+                            {bookingData.currencyCode} {bookingData.finalPrice?.currentChargeableAmount?.toFixed(2) || "0.00"}
+                          </p>
+                        </div>
+                        {bookingData.finalPrice?.latterpayableAmount > 0 && (
+                          <div className="flex justify-between items-center bg-orange-50 px-3 py-2 rounded-lg">
+                            <p className="text-orange-700 font-semibold">Amount to be Paid Later at Hotel</p>
+                            <p className="text-orange-700 font-bold text-lg">
+                              {bookingData.currencyCode} {bookingData.finalPrice?.latterpayableAmount?.toFixed(2)}
+                            </p>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex justify-between items-center bg-green-50 px-3 py-2 rounded-lg">
+                          <p className="text-green-700 font-semibold">Paid Online</p>
+                          <p className="text-green-700 font-bold text-lg">
+                            {bookingData.currencyCode} {bookingData.finalPrice?.currentChargeableAmount?.toFixed(2) || "0.00"}
+                          </p>
+                        </div>
+                        {bookingData.finalPrice?.latterpayableAmount > 0 && (
+                          <div className="flex justify-between items-center bg-orange-50 px-3 py-2 rounded-lg">
+                            <p className="text-orange-700 font-semibold">Amount to be Paid Later at Hotel</p>
+                            <p className="text-orange-700 font-bold text-lg">
+                              {bookingData.currencyCode} {bookingData.finalPrice?.latterpayableAmount?.toFixed(2)}
+                            </p>
+                          </div>
+                        )}
+                        {bookingData.paidAmount > 0 && (
+                          <div className="flex justify-between items-center">
+                            <p className="text-gray-600">Paid Amount</p>
+                            <p className="font-medium text-green-600">
+                              {bookingData.currencyCode} {bookingData.paidAmount?.toFixed(2)}
+                            </p>
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    {/* Refund — always show if applicable */}
+                    {bookingData.refundAmount > 0 && (
+                      <div className="flex justify-between items-center">
+                        <p className="text-gray-600">Refundable Amount</p>
+                        <p className="font-medium text-green-600">
+                          {bookingData.currencyCode} {bookingData.refundAmount?.toFixed(2)}
+                        </p>
+                      </div>
+                    )}
                   </div>
-                  <div className="flex justify-between items-center border-t pt-2">
-                    <p className="text-gray-800 font-semibold">Total Amount</p>
-                    <p className="text-blue-700 font-bold text-lg">
-                      ${bookingData.amount.toLocaleString()}
-                    </p>
-                  </div>
-                  {bookingData.paidAmount !== undefined && (
-                    <div className="flex justify-between items-center">
-                      <p className="text-gray-600">Paid Amount</p>
-                      <p className="font-medium text-green-600">
-                        ${bookingData.paidAmount.toLocaleString()}
-                      </p>
-                    </div>
-                  )}
-                  {bookingData.extraAmountToPay !== undefined && (
-                    <div className="flex justify-between items-center">
-                      <p className="text-gray-600">Extra to Pay</p>
-                      <p className="font-medium text-orange-600">
-                        ${bookingData.extraAmountToPay.toLocaleString()}
-                      </p>
-                    </div>
-                  )}
-                  {bookingData.refundAmount !== undefined && (
-                    <div className="flex justify-between items-center">
-                      <p className="text-gray-600">Refundable Amount</p>
-                      <p className="font-medium text-green-600">
-                        ${bookingData.refundAmount.toLocaleString()}
-                      </p>
-                    </div>
-                  )}
                 </div>
                 {/* Daily Breakdown if available */}
                 {bookingData.finalPrice?.dailyBreakdown && (
