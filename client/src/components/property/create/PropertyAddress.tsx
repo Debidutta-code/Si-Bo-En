@@ -8,6 +8,8 @@ import {
   updatePropertyAddress,
 } from "../api/create/propertyAddress";
 import { cn } from "@/lib/utils";
+import { useGeolocated } from "react-geolocated";
+
 import {
   Country,
   State,
@@ -53,7 +55,8 @@ const propertyAddressSchema = z.object({
   location: z.string().min(1, "Location/Area is required."),
   landmark: z.string().optional(),
   zipCode: z
-    .string(),
+    .string()
+    .regex(/^\d{6}$/, "A valid 6-digit Indian PIN code is required."),
   latitude: z.string().optional(),
   longitude: z.string().optional(),
 });
@@ -63,6 +66,15 @@ type FormErrors = z.inferFormattedError<typeof propertyAddressSchema>;
 export default function PropertyAddress() {
   // Get required state and functions from the context
   const { propertyId, next, previous, markStepAsCompleted } = usePropertyForm();
+
+  // Geolocation hook
+  const { coords, isGeolocationAvailable, isGeolocationEnabled, getPosition } =
+    useGeolocated({
+      positionOptions: {
+        enableHighAccuracy: true,
+      },
+      userDecisionTimeout: 10000,
+    });
 
   // --- INTERNAL STATE MANAGEMENT ---
   const [propertyAddress, setPropertyAddress] = useState<IPropertyAddress>({
@@ -84,6 +96,7 @@ export default function PropertyAddress() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [_isSaving, setIsSaving] = useState<boolean>(false);
   const [isExistingData, setIsExistingData] = useState<boolean>(false);
+  const [isFetchingLocation, setIsFetchingLocation] = useState<boolean>(false);
 
   // Location dropdowns state
   const [countries, setCountries] = useState<ICountry[]>([]);
@@ -91,8 +104,8 @@ export default function PropertyAddress() {
   const [cities, setCities] = useState<ICity[]>([]);
 
   // Coordinate entry state
-  const [coordinateMethod, setCoordinateMethod] = useState<"link" | "manual">(
-    "link"
+  const [coordinateMethod, setCoordinateMethod] = useState<"link" | "manual" | "auto">(
+    "manual"
   );
   const [mapLink, setMapLink] = useState("");
   const [extractionStatus, setExtractionStatus] = useState<
@@ -103,10 +116,10 @@ export default function PropertyAddress() {
   useEffect(() => {
     setCountries(Country.getAllCountries());
   }, []);
-const extractCoordinatesFromLink = (link: string): { lat: number; lng: number } | null => {
+  const extractCoordinatesFromLink = (link: string): { lat: number; lng: number } | null => {
     try {
       const cleanLink = link.trim();
-      
+
       // Google Maps patterns
       const googlePattern1 = /@(-?\d+\.?\d*),(-?\d+\.?\d*),/;
       const match1 = cleanLink.match(googlePattern1);
@@ -168,14 +181,14 @@ const extractCoordinatesFromLink = (link: string): { lat: number; lng: number } 
   useEffect(() => {
     if (coordinateMethod === 'link' && mapLink.trim()) {
       const coordinates = extractCoordinatesFromLink(mapLink);
-      
+
       if (coordinates) {
         setPropertyAddress(prev => ({
           ...prev,
           latitude: coordinates.lat.toString(),
           longitude: coordinates.lng.toString()
         }));
-        
+
         setExtractionStatus('success');
         setExtractionMessage(`Coordinates extracted: (${coordinates.lat.toFixed(6)}, ${coordinates.lng.toFixed(6)})`);
       } else {
@@ -185,22 +198,22 @@ const extractCoordinatesFromLink = (link: string): { lat: number; lng: number } 
         setPropertyAddress(prev => ({
           ...prev,
           latitude: "",
-          longitude:""
+          longitude: ""
         }));
       }
     } else if (coordinateMethod === 'link' && !mapLink.trim()) {
       setExtractionStatus('idle');
       setExtractionMessage('');
       setPropertyAddress(prev => ({
-          ...prev,
-          latitude: "",
-          longitude:""
-        }));
+        ...prev,
+        latitude: "",
+        longitude: ""
+      }));
     }
   }, [mapLink, coordinateMethod]);
 
-  
-  const handleMethodChange = (method: "link" | "manual") => {
+
+  const handleMethodChange = (method: "link" | "manual" | "auto") => {
     setCoordinateMethod(method);
     setMapLink("");
     setExtractionStatus("idle");
@@ -209,6 +222,44 @@ const extractCoordinatesFromLink = (link: string): { lat: number; lng: number } 
       setPropertyAddress((prev) => ({ ...prev, latitude: "", longitude: "" }));
     }
   };
+
+  const handleAutoFetchLocation = () => {
+    if (!isGeolocationAvailable) {
+      toast.error("Geolocation is not supported by your browser");
+      setExtractionStatus("error");
+      setExtractionMessage("Geolocation not supported");
+      return;
+    }
+
+    if (!isGeolocationEnabled) {
+      toast.error("Please enable location permissions in your browser");
+      setExtractionStatus("error");
+      setExtractionMessage("Location permission denied");
+      return;
+    }
+
+    setIsFetchingLocation(true);
+    setExtractionStatus("idle");
+    setExtractionMessage("Fetching your location...");
+
+    // Trigger geolocation
+    getPosition();
+  };
+
+  // Effect to handle when coords are available
+  useEffect(() => {
+    if (coordinateMethod === "auto" && coords && isFetchingLocation) {
+      setPropertyAddress(prev => ({
+        ...prev,
+        latitude: coords.latitude.toString(),
+        longitude: coords.longitude.toString()
+      }));
+
+      setExtractionStatus("success");
+      setExtractionMessage(`Location fetched: (${coords.latitude.toFixed(6)}, ${coords.longitude.toFixed(6)})`);
+      setIsFetchingLocation(false);
+    }
+  }, [coords, coordinateMethod, isFetchingLocation]);
   useEffect(() => {
     const fetchAddressData = async () => {
       if (!propertyId) {
@@ -221,25 +272,25 @@ const extractCoordinatesFromLink = (link: string): { lat: number; lng: number } 
       try {
         const response = await getPropertyAddress(propertyId);
         if (response.success && response.data) {
-  const countryObj = Country.getAllCountries().find(
-    (c) => c.name === response.data.country
-  );
-  const stateObj = State.getStatesOfCountry(countryObj?.isoCode || "").find(
-    (s) => s.name === response.data.state
-  );
+          const countryObj = Country.getAllCountries().find(
+            (c) => c.name === response.data.country
+          );
+          const stateObj = State.getStatesOfCountry(countryObj?.isoCode || "").find(
+            (s) => s.name === response.data.state
+          );
           setPropertyAddress(response.data);
           setPropertyAddress({
             ...propertyAddress,
             zipCode: response.data.zipCode.toString(),
             addressLine1: response.data.addressLine1,
             addressLine2: response.data.addressLine2,
-            city:response.data.city,
+            city: response.data.city,
             country: countryObj?.isoCode || "",
             state: stateObj?.isoCode || "",
-            landmark:response.data.landmark,
-            location:response.data.location,
-            latitude:response.data.latitude.toString(),
-            longitude:response.data.longitude.toString()
+            landmark: response.data.landmark,
+            location: response.data.location,
+            latitude: response.data.latitude.toString(),
+            longitude: response.data.longitude.toString()
           });
           setIsExistingData(true);
           toast.success("Loaded existing address.");
@@ -322,8 +373,8 @@ const extractCoordinatesFromLink = (link: string): { lat: number; lng: number } 
       country: validationData.country,
       state: validationData.state,
       zipCode: propertyAddress.zipCode,
-      latitude: propertyAddress.latitude ,
-      longitude: propertyAddress.longitude 
+      latitude: propertyAddress.latitude,
+      longitude: propertyAddress.longitude
     };
 
     try {
@@ -636,16 +687,23 @@ const extractCoordinatesFromLink = (link: string): { lat: number; lng: number } 
             </div>
             <div className="flex flex-col sm:flex-row gap-4 mb-8">
               <Button
-                onClick={() => handleMethodChange("link")}
+                onClick={() => {
+                  handleMethodChange("auto");
+                  handleAutoFetchLocation();
+                }}
+                disabled={isFetchingLocation}
                 className={cn(
                   "flex-1 flex items-center justify-center gap-3 px-6 py-4 border-2 transition-all",
-                  coordinateMethod === "link"
+                  coordinateMethod === "auto"
                     ? "bg-black text-white border-black"
-                    : "bg-white text-black hover:bg-white"
+                    : "bg-white text-black hover:bg-white",
+                  isFetchingLocation && "opacity-50 cursor-not-allowed"
                 )}
               >
-                <Link className="w-5 h-5" />
-                <span className="font-medium">Use Map Link</span>
+                <Navigation className="w-5 h-5" />
+                <span className="font-medium">
+                  {isFetchingLocation ? "Fetching..." : "Auto Fetch Location"}
+                </span>
               </Button>
               <Button
                 onClick={() => handleMethodChange("manual")}
@@ -659,6 +717,19 @@ const extractCoordinatesFromLink = (link: string): { lat: number; lng: number } 
                 <Crosshair className="w-5 h-5" />
                 <span className="font-medium">Manual Entry</span>
               </Button>
+              <Button
+                onClick={() => handleMethodChange("link")}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-3 px-6 py-4 border-2 transition-all",
+                  coordinateMethod === "link"
+                    ? "bg-black text-white border-black"
+                    : "bg-white text-black hover:bg-white"
+                )}
+              >
+                <Link className="w-5 h-5" />
+                <span className="font-medium">Use Map Link</span>
+              </Button>
+              
             </div>
 
             {coordinateMethod === "link" && (
@@ -691,6 +762,41 @@ const extractCoordinatesFromLink = (link: string): { lat: number; lng: number } 
                       <AlertCircle className="w-5 h-5" />
                     )}
                     {extractionMessage}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {coordinateMethod === "auto" && (
+              <div className="bg-green-50 border-2 border-green-200 p-6 rounded-lg space-y-4">
+                <div className="flex items-center gap-2 text-sm font-semibold text-black mb-2">
+                  <Navigation className="w-4 h-4" /> Auto Location
+                </div>
+                {extractionStatus !== "idle" && (
+                  <div
+                    className={cn(
+                      "flex items-center gap-2 p-3 rounded-lg text-sm font-medium",
+                      extractionStatus === "success"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
+                    )}
+                  >
+                    {extractionStatus === "success" ? (
+                      <CheckCircle className="w-5 h-5" />
+                    ) : (
+                      <AlertCircle className="w-5 h-5" />
+                    )}
+                    {extractionMessage}
+                  </div>
+                )}
+                {propertyAddress.latitude && propertyAddress.longitude && (
+                  <div className="bg-white border border-green-300 p-4 rounded-lg">
+                    <p className="text-sm text-gray-700">
+                      <strong>Latitude:</strong> {propertyAddress.latitude}
+                    </p>
+                    <p className="text-sm text-gray-700 mt-2">
+                      <strong>Longitude:</strong> {propertyAddress.longitude}
+                    </p>
                   </div>
                 )}
               </div>
