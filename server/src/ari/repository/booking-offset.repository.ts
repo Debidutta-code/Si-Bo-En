@@ -32,12 +32,16 @@ export class BookingOffsetRepository {
             if (ratePlanId) {
                 where.ratePlanId = ratePlanId;
             }
-            if (startDate) {
+            if (startDate && endDate) {
+                where.date = {
+                    gte: startDate,
+                    lte: endDate,
+                };
+            } else if (startDate) {
                 where.date = {
                     gte: startDate,
                 };
-            }
-            if (endDate) {
+            } else if (endDate) {
                 where.date = {
                     lte: endDate,
                 };
@@ -45,6 +49,9 @@ export class BookingOffsetRepository {
             return await prisma.bookingOffset.findMany({
                 where: {
                     ...where,
+                },
+                orderBy: {
+                    date: 'asc',
                 },
             });
         } catch (error) {
@@ -65,21 +72,34 @@ export class BookingOffsetRepository {
                 propertyId: condition.propertyId,
                 ratePlanId: condition.ratePlanId,
             };
-            if (condition.startDate) {
+            if (condition.startDate && condition.endDate) {
+                whereClause.date = {
+                    gte: condition.startDate,
+                    lte: condition.endDate,
+                };
+            } else if (condition.startDate) {
                 whereClause.date = {
                     gte: condition.startDate,
                 };
-            }
-            if (condition.endDate) {
+            } else if (condition.endDate) {
                 whereClause.date = {
                     lte: condition.endDate,
                 };
             }
+
+            // Only include fields that are explicitly provided (not null/undefined)
+            const filteredData: any = {};
+            for (const [key, value] of Object.entries(bookingOffsets as any)) {
+                if (value !== null && value !== undefined) {
+                    filteredData[key] = value;
+                }
+            }
+
             return await prisma.bookingOffset.updateMany({
                 where: {
                     ...whereClause,
                 },
-                data: bookingOffsets,
+                data: filteredData,
             });
         } catch (error) {
             throw new Error('Failed to update booking offsets');
@@ -96,12 +116,16 @@ export class BookingOffsetRepository {
                 propertyId: condition.propertyId,
                 ratePlanId: condition.ratePlanId,
             };
-            if (condition.startDate) {
+            if (condition.startDate && condition.endDate) {
+                whereClause.date = {
+                    gte: condition.startDate,
+                    lte: condition.endDate,
+                };
+            } else if (condition.startDate) {
                 whereClause.date = {
                     gte: condition.startDate,
                 };
-            }
-            if (condition.endDate) {
+            } else if (condition.endDate) {
                 whereClause.date = {
                     lte: condition.endDate,
                 };
@@ -182,22 +206,22 @@ export class BookingOffsetRepository {
         try {
             // Build update data: only include fields that are explicitly provided
             const updateData: any = {};
-            if (data.minimumAdvanceBookingOffset !== undefined)
+            if (data.minimumAdvanceBookingOffset)
                 updateData.minimumAdvanceBookingOffset =
                     data.minimumAdvanceBookingOffset;
-            if (data.maximumAdvanceBookingOffset !== undefined)
+            if (data.maximumAdvanceBookingOffset)
                 updateData.maximumAdvanceBookingOffset =
                     data.maximumAdvanceBookingOffset;
-            if (data.minimumAmendBookingOffset !== undefined)
+            if (data.minimumAmendBookingOffset)
                 updateData.minimumAmendBookingOffset =
                     data.minimumAmendBookingOffset;
-            if (data.maximumAmendBookingOffset !== undefined)
+            if (data.maximumAmendBookingOffset)
                 updateData.maximumAmendBookingOffset =
                     data.maximumAmendBookingOffset;
-            if (data.minimumCancelBookingOffset !== undefined)
+            if (data.minimumCancelBookingOffset)
                 updateData.minimumCancelBookingOffset =
                     data.minimumCancelBookingOffset;
-            if (data.maximumCancelBookingOffset !== undefined)
+            if (data.maximumCancelBookingOffset)
                 updateData.maximumCancelBookingOffset =
                     data.maximumCancelBookingOffset;
 

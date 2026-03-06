@@ -1,6 +1,12 @@
 import { prisma } from '../../config';
 import { IGeoRatePlanWithoutRatePlan } from '../../promotions/geo-rate-plan/interfaces';
-import { IAddOn, IPromotion, IRatePlan, ISelectedAddonsR } from '../types';
+import {
+    IAddOn,
+    IIncludedAddons,
+    IPromotion,
+    IRatePlan,
+    ISelectedAddonsR,
+} from '../types';
 import { IMLOS } from '../../promotions/mlos/interfaces';
 import { ICEbDsOftc } from '../../promotions/eb-ds-oftc/interfaces';
 import { IPromoCode } from '../../ari/types/promoCode.type';
@@ -11,12 +17,14 @@ export class PricingRepository {
         ratePlanCode: string,
         roomTypeCode: string,
         startDate: Date,
-        endDate: Date
+        endDate: Date,
+        includedAddons: string[]
         // geoRatePlanId?:string,
         // promotionIds?:string[],
         // availabilityIds:ISelectedAddons
     ): Promise<IRatePlan | null> {
         try {
+            // console.log(includedAddons);
             return await prisma.ratePlan.findUnique({
                 where: {
                     ratePlanCode,
@@ -35,6 +43,11 @@ export class PricingRepository {
                         },
                     },
                     Addons: {
+                        where: {
+                            addonId: {
+                                in: includedAddons,
+                            },
+                        },
                         include: {
                             addon: {
                                 include: {
@@ -81,8 +94,8 @@ export class PricingRepository {
                             name: true,
                             discountType: true,
                             discountValue: true,
-                            currencyCode: true
-                        }
+                            currencyCode: true,
+                        },
                     },
                     // customizableDeals:{
                     //     include:{
@@ -209,50 +222,60 @@ export class PricingRepository {
             return await prisma.promoCode.findUnique({
                 where: {
                     code,
-                    isActive: true
-                }
-            })
+                    isActive: true,
+                },
+            });
         } catch (error) {
-            throw new Error("Failed to fetch promocode details")
+            throw new Error('Failed to fetch promocode details');
         }
     }
-    public async findLoyalityGuest(guestEmail: string, propertyId: string): Promise<boolean> {
+    public async findLoyalityGuest(
+        guestEmail: string,
+        propertyId: string
+    ): Promise<boolean> {
         try {
-            const isLoyalityGuest=  await prisma.loyalityGuest.findUnique({
-                where:{
-                    propertyId_guestEmail:{
+            const isLoyalityGuest = await prisma.loyalityGuest.findUnique({
+                where: {
+                    propertyId_guestEmail: {
                         propertyId,
-                        guestEmail
-                    }
-                }
-            })
-            return isLoyalityGuest ? true : false
+                        guestEmail,
+                    },
+                },
+            });
+            return isLoyalityGuest ? true : false;
         } catch (error) {
-            throw new Error("Failed to fetch loyality discount")
+            throw new Error('Failed to fetch loyality discount');
         }
     }
-    public async findPropertyLoyalityConfig(propertyId: string): Promise<string|null> {
+    public async findPropertyLoyalityConfig(
+        propertyId: string
+    ): Promise<string | null> {
         try {
-            const propertyLoyalty=  await prisma.propertyLoyaltyConfig.findUnique({
-                where:{
-                    propertyId:propertyId,
-                    isActive:true
-                }
-            })
-            return propertyLoyalty ? propertyLoyalty.creationLoyaltyConfigId:null
+            const propertyLoyalty =
+                await prisma.propertyLoyaltyConfig.findUnique({
+                    where: {
+                        propertyId: propertyId,
+                        isActive: true,
+                    },
+                });
+            return propertyLoyalty
+                ? propertyLoyalty.creationLoyaltyConfigId
+                : null;
         } catch (error) {
-            throw new Error("Failed to fetch loyality discount")
+            throw new Error('Failed to fetch loyality discount');
         }
     }
-    public async findLoyalityConfig(loyalityConfigId: string): Promise<ITCreationLoyality|null> {
+    public async findLoyalityConfig(
+        loyalityConfigId: string
+    ): Promise<ITCreationLoyality | null> {
         try {
-            return  await prisma.creationLoyaltyConfig.findUnique({
-                where:{
-                    id:loyalityConfigId
-                }
-            })
+            return await prisma.creationLoyaltyConfig.findUnique({
+                where: {
+                    id: loyalityConfigId,
+                },
+            });
         } catch (error) {
-            throw new Error("Failed to fetch loyality discount")
+            throw new Error('Failed to fetch loyality discount');
         }
     }
 }

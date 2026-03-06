@@ -30,10 +30,10 @@ export default function RootLayout({
           <Navbar />
           <main className="min-h-screen space-y-6 pt-[calc(5rem)] lg:pt-[calc(6rem)]">
             {children}
-            <Toaster position="top-right" reverseOrder={false} /> {/* ✅ Mount globally */}
+            <Toaster position="top-right" reverseOrder={false} />
 
           </main>
-          <Footer />
+          <Footer/>
         </ReduxProviderWrapper>
       </body>
     </html>

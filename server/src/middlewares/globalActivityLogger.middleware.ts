@@ -19,7 +19,6 @@ export const globalActivityLogger = (req: Request, res: Response, next: NextFunc
     return next();
   }
   
-  // Find matching route configuration
   const matchedRoute = ACTIVITY_LOGGER_ROUTES.find(route => {
     const pathMatches = route.pattern.test(req.path);
     const methodMatches = !route.method || 

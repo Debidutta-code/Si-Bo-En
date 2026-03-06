@@ -56,8 +56,8 @@ export default function Loyalty() {
 
   // Basic Configuration State
   const [logos, setLogos] = useState<string[]>([]);
-  const [isBasicActive, setIsBasicActive] = useState(true);
-  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [isBasicActive, setIsBasicActive] = useState<boolean>(true);
+  const [isImageModalOpen, setIsImageModalOpen] = useState<boolean>(false);
 
   // Advanced Configuration State
   const [advanceConfig, setAdvanceConfig] = useState({

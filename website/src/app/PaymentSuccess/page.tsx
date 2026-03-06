@@ -98,7 +98,7 @@ const PaymentSuccessPage = () => {
     setLoading(true);
     // Use URL booking code if available, otherwise use Redux booking code
     const code = urlBookingCode || bookingData.bookingCode;
-    router.push(`/my-trip?code=${code}`);
+    router.push(`/my-trip?propertyCode=${bookingData.PropertyCode}&code=${code}`);
   };
 
   return isConfirmed ? (

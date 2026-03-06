@@ -2,7 +2,6 @@ import { DeviceType } from "@prisma/client";
 import { IRoomVideo } from "../../property-management/types";
 import { Decimal } from "@prisma/client/runtime/library";
 import { CurrencyCode } from "../../pms/frontoffice/payment/types";
-import { PromotionType } from "../../promotions/eb-ds-oftc/interfaces";
 import { DiscountType } from "../../promocode/types";
 
 export interface IBookingSearchPayload {
@@ -14,7 +13,7 @@ export interface IBookingSearchPayload {
     rooms: number;
   };
   PropertyCode: string;
-  countryCode?: string; 
+  countryCode?: string;
   deviceType?: DeviceType;
   promocode?: string;
 }
@@ -24,24 +23,30 @@ export interface IBaseByGuestAmount {
   amountBeforeTax: number;
 }
 
-export interface IAddonInfo {
+export interface IAddonDetail {
   id: string;
   name: string;
+  code: string;
   price: number;
   postingRhythm: string;
+  description?: string | null;
+  images: string[];
+  category?: { id: string; name: string; code: string } | null;
+  subCategory?: { id: string; name: string; code: string } | null;
+  addonVariant?: { id: string; name: string; code: string } | null;
 }
 
 export interface IPromotion {
   id: string;
   promotionName: string;
-  promotionType: string; // "early_bird" | "offer_for_tonight" | "mlos"
-  discountType: string; // "percentage" | "flat"
-  discountValue: Decimal|null;
-  minLos?: number; // For MLOS promotions
-  maxLos?: number; // For MLOS promotions
+  promotionType: string;
+  discountType: string;
+  discountValue: Decimal | null;
+  minLos?: number;
+  maxLos?: number;
   validFrom?: Date | null;
   validTo?: Date | null;
-  advanceBookingDays: number|null;
+  advanceBookingDays: number | null;
   monApplicable?: boolean;
   tueApplicable?: boolean;
   wedApplicable?: boolean;
@@ -49,45 +54,44 @@ export interface IPromotion {
   friApplicable?: boolean;
   satApplicable?: boolean;
   sunApplicable?: boolean;
+}
 
-  
-  // roomType:string|null;
-  // deviceType:DeviceType[]
-  // currencyCode:CurrencyCode|null;
+export interface IAppliedDiscount {
+  id: string;
+  promotionName: string;
+  promotionType: string;
+  discountType: string;
+  discountValue: number;
+  calculatedDiscountAmount: number;
+}
+
+export interface ITouristTax {
+  id: string;
+  name: string | null;
+  discountType: DiscountType;
+  discountValue: Decimal | null;
+  currencyCode: CurrencyCode | null;
+  calculatedTaxAmount?: number;
 }
 
 export interface IRoomPrice {
   ratePlanName: string;
   ratePlanCode: string;
+  comboLabel: string;
   totalAmount: number;
   currencyCode: string;
-  baseByGuestAmts: IBaseByGuestAmount[]; // ✅ ARRAY, not singular object
+  baseByGuestAmts: IBaseByGuestAmount[];
   policy: {
     depositPolicy?: any;
     cancellationPolicy?: any;
     guaranteePolicy?: any;
   };
-  addons: IAddonInfo[];
+  addons: IAddonDetail[];
   availablePromotions: IPromotion[];
-   appliedDiscounts: IAppliedDiscount[];
-   touristTax?: ITouristTax | null;
+  appliedDiscounts: IAppliedDiscount[];
+  touristTax?: ITouristTax | null;
 }
-export interface ITouristTax {
-  id: string;
-  name:string|null;
-  discountType: DiscountType;
-  discountValue: Decimal|null;
-  currencyCode: CurrencyCode|null;
-  calculatedTaxAmount?:number;
-}
-export interface IAppliedDiscount {
-    id: string;
-    promotionName: string;
-    promotionType: string;
-    discountType: string;
-    discountValue: number;
-    calculatedDiscountAmount: number; 
-}
+
 export interface IRoom {
   id: string;
   room_name: string;
@@ -101,5 +105,5 @@ export interface IRoom {
   amenities: any[];
   has_valid_rate: boolean;
   room_price: IRoomPrice[];
-  roomVideos:IRoomVideo | null;
+  roomVideos: IRoomVideo | null;
 }

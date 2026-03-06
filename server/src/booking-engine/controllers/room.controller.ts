@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { Response } from "express";
 import { RoomBookingService } from "../service";
 import { PropertyRequest } from "../../utils";
 import { getGeoLocationDetails } from "../../utils/get-location.utils";
@@ -9,7 +9,6 @@ export class RoomBookingController {
     try {
       const { PropertyCode, startDate, endDate, guests, promocode } = req.body || {};
 
-      // 🔐 Required payload validation
       if (
         !PropertyCode ||
         !startDate ||
@@ -25,13 +24,10 @@ export class RoomBookingController {
         });
       }
 
-      // Extract country code from geo-location
       const geoDetails = await getGeoLocationDetails(req);
       const countryCode = geoDetails.country;
       const deviceInfo = getDeviceInfo(req);
       const deviceType = deviceInfo.deviceType as "mobile" | "tablet" | "desktop";
-
-      // Detect device type from user agent
 
       const response = await RoomBookingService.fetchRooms({
         PropertyCode,
@@ -40,7 +36,7 @@ export class RoomBookingController {
         guests,
         countryCode,
         deviceType,
-        promocode
+        promocode,
       });
 
       const status = response.success ? 200 : 400;
@@ -50,7 +46,7 @@ export class RoomBookingController {
       return res.status(500).json({
         status: "error",
         message: "Internal server error",
-        error: error?.message
+        error: error?.message,
       });
     }
   }

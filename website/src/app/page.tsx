@@ -16,10 +16,7 @@ export default function Home() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    // ✅ Reset Redux state on homepage load
     dispatch(clearBookingContext());
-
-    // ✅ Optionally remove persisted booking state from localStorage (if used)
     localStorage.removeItem("bookingContext");
     localStorage.removeItem("bookingstorage");
 

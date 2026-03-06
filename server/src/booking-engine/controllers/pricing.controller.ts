@@ -29,6 +29,7 @@ export class PricingController {
                 promotions,
                 guestEmail,
                 promoCode,
+                includedAddons
             } = req.body;
 
             const propertyId = req.property?.id;
@@ -104,7 +105,8 @@ export class PricingController {
                 detectedDeviceType ? detectedDeviceType : '',
                 promotions ? promotions : [],
                 parsedAddons ? parsedAddons : [],
-                promoCode
+                promoCode,
+                includedAddons?includedAddons:[]
             );
 
             return res.status(response.success ? 200 : 400).json(response);

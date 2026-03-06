@@ -76,7 +76,7 @@ export default function Services() {
       </section>
 
       {/* Services Section */}
-      <section className="py-20 px-6 max-w-7xl mx-auto">
+      <section id="service" className="py-20 px-6 max-w-7xl mx-auto">
         <h2 className="text-4xl md:text-6xl font-bold text-center text-[#1A98A6] mb-4">
           OUR SERVICES
         </h2>
@@ -126,7 +126,7 @@ export default function Services() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-[#1A98A6] pt-14 pb-10 px-6">
+      <footer id="contact-us" className="bg-[#1A98A6] pt-14 pb-10 px-6">
         <div className="max-w-5xl mx-auto bg-[#f2f2f2] rounded-3xl px-8 py-10 md:px-14">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
             <div>

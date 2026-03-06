@@ -18,7 +18,12 @@ export class RoomBookingRepository {
                             include: {
                                 AdvanceLoyaltyProgram: true,
                                 BasicLoyaltyProgram: true,
-                                loyaltyConditions: true,
+                                loyaltyConditions: {
+                                    where: {
+                                        isActive: true,
+                                        isDeleted: false
+                                    },
+                                },
                                 LoyaltyProgramFieldConfig: true,
                                 loyaltySpecialConditions: true,
                             },
@@ -78,7 +83,6 @@ export class RoomBookingRepository {
                 ratePlanCode,
                 date: { in: dates },
                 isAvailable: true,
-                isSaleStopped: false,
             },
             include: {
                 baseGuestAmounts: true,
@@ -167,11 +171,7 @@ export class RoomBookingRepository {
 
         const dayField = dayApplicability[dayOfWeek];
 
-        const daysBetweenBookingAndCheckIn = Math.floor(
-            DateTime.fromJSDate(checkInUTC)
-                .diff(DateTime.fromJSDate(todayUTC), 'days')
-                .days
-        );
+
 
         return prisma.promotion.findMany({
             where: {
@@ -203,21 +203,6 @@ export class RoomBookingRepository {
                         ],
                     },
                     { [dayField]: true },
-                    {
-                        OR: [
-                            { promotionType: { not: 'early_bird' } },
-                            {
-                                AND: [
-                                    { promotionType: 'early_bird' },
-                                    {
-                                        advanceBookingDays: {
-                                            lte: daysBetweenBookingAndCheckIn,
-                                        },
-                                    },
-                                ],
-                            },
-                        ],
-                    },
                 ],
             },
         });
@@ -291,6 +276,15 @@ export class RoomBookingRepository {
     public static async getTouristTax(ratePlanId: string) {
         return prisma.touristTaxes.findFirst({
             where: { ratePlanId },
+        });
+    }
+    public static async getBookingOffset(ratePlanId: string, checkInDate: Date) {
+        return prisma.bookingOffset.findFirst({
+            where: {
+                ratePlanId,
+                date: checkInDate,
+                isActive: true,
+            },
         });
     }
 }

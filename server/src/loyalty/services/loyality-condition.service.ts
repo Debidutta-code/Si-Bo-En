@@ -80,9 +80,7 @@ export class LoyalityConditionService {
     public async getConditionsByProgramId(loyaltyProgramId: string): Promise<IApiResponse> {
         try {
             const conditions = await this.loyalityConditionRepository.getConditionsByProgramId(loyaltyProgramId);
-            if (!conditions || conditions.length === 0) {
-                return errorResponse("No loyalty conditions found");
-            }
+            
             return successResponse("Loyalty conditions fetched successfully", conditions);
         } catch (error) {
             if (error instanceof Error) {

@@ -3,7 +3,7 @@ import type {
     IRoom,
     IRoomPrice,
     IPromotion,
-    IAddonInfo,
+    IAddonDetail,
     IBaseByGuestAmount,
     ITouristTax,
     IAppliedDiscount
@@ -13,7 +13,7 @@ export {
     IRoom,
     IRoomPrice,
     IPromotion,
-    IAddonInfo,
+    IAddonDetail,
     IBaseByGuestAmount,
     ITouristTax,
     IAppliedDiscount
