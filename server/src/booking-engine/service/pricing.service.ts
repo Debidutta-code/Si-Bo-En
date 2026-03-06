@@ -26,9 +26,7 @@ import {
     TaxBrakeDown,
 } from '../types';
 import { DeviceType } from '../../agent-paltform/property/types';
-import {
-    IGeoRatePlanWithoutRatePlan,
-} from '../../promotions/geo-rate-plan/interfaces';
+import { IGeoRatePlanWithoutRatePlan } from '../../promotions/geo-rate-plan/interfaces';
 import { ICEbDsOftc } from '../../promotions/eb-ds-oftc/interfaces';
 import { IPromoCode } from '../../ari/types/promoCode.type';
 export class PricingService {
@@ -45,7 +43,7 @@ export class PricingService {
         rooms: number,
         adults: number,
         children?: number,
-        roomDetails?:IRoomDetails[],
+        childAges?: number[],
         guestEmail?: string,
         userCountryCode?: string,
         detectedDeviceType?: string,
@@ -55,9 +53,10 @@ export class PricingService {
         includedAddons?: string[]
     ): Promise<IApiResponse<PriceBrakeDown>> {
         try {
-
-            const parsedStartDate: Date = startDate instanceof Date ? startDate : new Date(startDate);
-            const parsedEndDate: Date = endDate instanceof Date ? endDate : new Date(endDate);
+            const parsedStartDate: Date =
+                startDate instanceof Date ? startDate : new Date(startDate);
+            const parsedEndDate: Date =
+                endDate instanceof Date ? endDate : new Date(endDate);
             startDate = parsedStartDate;
             endDate = parsedEndDate;
             const [ratePlan, selectedAddons, appliedPromotions] =
@@ -92,15 +91,13 @@ export class PricingService {
                 rooms,
                 Math.ceil(
                     (endDate.getTime() - startDate.getTime()) /
-                    (1000 * 60 * 60 * 24)
+                        (1000 * 60 * 60 * 24)
                 ),
-                adults + (children ? children : 0),
+                adults,
                 startDate,
                 endDate,
-                roomDetails,
-                parsedAddons,
-
-
+                childAges,
+                parsedAddons
             );
             priceBrakedowns = addOnPrice.addonBrakeDowns();
             // console.log("priceBrakedowns addons price", priceBrakedowns);
@@ -145,7 +142,8 @@ export class PricingService {
                     ratePlanCode,
                     detectedDeviceType as DeviceType
                 );
-                priceBrakedowns = await deviceDiscountClass.findPromoCodeDiscount()
+                priceBrakedowns =
+                    await deviceDiscountClass.findPromoCodeDiscount();
                 // console.log("priceBrakedowns device discount price", priceBrakedowns);
             }
             return successResponse('Rate plan found', priceBrakedowns);
@@ -387,7 +385,7 @@ class BasePriceClass {
                     );
                     const maxAdultCharges =
                         charge.baseGuestAmounts[
-                        charge.baseGuestAmounts.length - 1
+                            charge.baseGuestAmounts.length - 1
                         ];
                     const remainningAdults =
                         this.adults - maxAdultCharges.numberOfGuests;
@@ -553,32 +551,32 @@ class AddOnPriceClass {
     priceBrakedowns: PriceBrakeDown;
     numberOfRooms: number;
     noOfDays: number;
-    noOfPersons: number;
+    noOfAdults: number;
     startDate: Date;
     endDate: Date;
     parsedAddons: ISelectedAddonsS[] | null;
-    roomDetails:IRoomDetails[]|null;
+    childAges: number[] | null;
     constructor(
         addons: IAddOn[] | null,
         ratePlanAddons: IRatePlanWithAddon[] | null,
         priceBrakedowns: PriceBrakeDown,
         numberOfRooms: number,
         noOfDays: number,
-        noOfPersons: number,
+        noOfAdults: number,
         startDate: Date,
         endDate: Date,
-        roomDetails?:IRoomDetails[]|null,
-        parsedAddons?: ISelectedAddonsS[] | null,
+        childAges?: number[] | null,
+        parsedAddons?: ISelectedAddonsS[] | null
     ) {
         this.addons = addons;
         this.addonsWithRatePlans = ratePlanAddons;
         this.priceBrakedowns = priceBrakedowns;
         this.numberOfRooms = numberOfRooms;
         this.noOfDays = noOfDays;
-        this.noOfPersons = noOfPersons;
+        this.noOfAdults = noOfAdults;
         this.startDate = startDate;
         this.endDate = endDate;
-        this.roomDetails = roomDetails || null;
+        this.childAges = childAges || null;
         this.parsedAddons = parsedAddons || null;
     }
     public addonBrakeDowns(): PriceBrakeDown {
@@ -629,9 +627,9 @@ class AddOnPriceClass {
             );
             const quantity = userSelectedAddon
                 ? userSelectedAddon.availability.reduce(
-                    (sum, a) => sum + (a.quantity || 1),
-                    0
-                )
+                      (sum, a) => sum + (a.quantity || 1),
+                      0
+                  )
                 : 1;
 
             const avgPrice = perDateTotal / availableEntries.length;
@@ -647,6 +645,15 @@ class AddOnPriceClass {
                     .currencyCode as CurrencyCode,
                 date: new Date(availableEntries[0].date).toDateString(),
             });
+
+            // calculate child addon prices if childAges exist
+            if (this.childAges && this.childAges.length > 0) {
+                const childAddonBreakdowns = this.calculateChildAddonPrice(
+                    addon,
+                    this.childAges
+                );
+                addonBrakeDown.push(...childAddonBreakdowns);
+            }
         });
 
         return addonBrakeDown;
@@ -687,10 +694,10 @@ class AddOnPriceClass {
                     quantity = 1;
                     break;
                 case 'per_person_per_night':
-                    quantity = this.noOfPersons * availableEntries.length;
+                    quantity = this.noOfAdults * availableEntries.length;
                     break;
                 case 'per_person_per_stay':
-                    quantity = this.noOfPersons;
+                    quantity = this.noOfAdults;
                     break;
                 case 'per_room':
                     quantity = this.numberOfRooms;
@@ -699,7 +706,7 @@ class AddOnPriceClass {
                     quantity = this.numberOfRooms * availableEntries.length;
                     break;
                 case 'per_person_per_room':
-                    quantity = this.noOfPersons * this.numberOfRooms;
+                    quantity = this.noOfAdults * this.numberOfRooms;
                     break;
                 default:
                     quantity = 1;
@@ -715,6 +722,117 @@ class AddOnPriceClass {
                 quantity,
                 totalAmount,
                 currencyCode: addon.addon.availability[0]
+                    .currencyCode as CurrencyCode,
+                date: new Date(availableEntries[0].date).toDateString(),
+            });
+
+            // calculate child addon prices if childAges exist
+            if (this.childAges && this.childAges.length > 0) {
+                const childAddonBreakdowns = this.calculateChildAddonPrice(
+                    addon.addon,
+                    this.childAges
+                );
+                addonBrakeDown.push(...childAddonBreakdowns);
+            }
+        });
+
+        return addonBrakeDown;
+    }
+    private calculateChildAddonPrice(
+        addon: IAddOn,
+        childAges: number[]
+    ): AddOnBrakeDown[] {
+        if (
+            !addon.ChildAddons ||
+            addon.ChildAddons.length === 0 ||
+            childAges.length === 0
+        ) {
+            return [];
+        }
+
+        const availableEntries = addon.availability.filter(avail => {
+            const availDate = new Date(avail.date);
+            return (
+                availDate >= this.startDate &&
+                availDate < this.endDate &&
+                avail.isAvailable
+            );
+        });
+
+        if (availableEntries.length === 0) return [];
+
+        // sum up per-date prices
+        const perDateTotal = availableEntries.reduce(
+            (sum, avail) => sum + Number(avail.price),
+            0
+        );
+        const avgPrice = perDateTotal / availableEntries.length;
+
+        // determine quantity based on posting rhythm
+        let quantity = 1;
+        switch (addon.postingRhythm) {
+            case 'per_night':
+                quantity = availableEntries.length;
+                break;
+            case 'per_stay':
+                quantity = 1;
+                break;
+            case 'per_person_per_night':
+                quantity = availableEntries.length;
+                break;
+            case 'per_person_per_stay':
+                quantity = 1;
+                break;
+            case 'per_room':
+                quantity = this.numberOfRooms;
+                break;
+            case 'per_room_per_night':
+                quantity = this.numberOfRooms * availableEntries.length;
+                break;
+            case 'per_person_per_room':
+                quantity = this.numberOfRooms;
+                break;
+            default:
+                quantity = 1;
+        }
+
+        const addonBrakeDown: AddOnBrakeDown[] = [];
+
+        childAges.forEach(age => {
+            const childAddon = addon.ChildAddons.find(
+                ca => age >= ca.minAge && age <= ca.maxAge
+            );
+
+            if (!childAddon) return;
+
+            let childPrice = avgPrice;
+
+            if (
+                childAddon.discountApplicable &&
+                childAddon.discountType &&
+                childAddon.discountAmount !== null
+            ) {
+                if (childAddon.discountType === 'percentage') {
+                    const discount =
+                        (avgPrice * childAddon.discountAmount) / 100;
+                    childPrice = avgPrice - discount;
+                } else if (childAddon.discountType === 'flat') {
+                    childPrice = Math.max(
+                        avgPrice - childAddon.discountAmount,
+                        0
+                    );
+                }
+            }
+
+            const totalAmount = childPrice * quantity;
+
+            addonBrakeDown.push({
+                addonId: addon.id,
+                name: `${addon.name} (Child age ${age})`,
+                amount: childPrice,
+                quantity,
+                totalAmount,
+                currencyCode: addon.availability[0]
                     .currencyCode as CurrencyCode,
                 date: new Date(availableEntries[0].date).toDateString(),
             });
@@ -797,7 +915,8 @@ class PromotionClass {
             totalAmount:
                 this.priceBrakeDown.totalAmount -
                 totalPromotionaalDiscountedAmount,
-            currentChargeableAmount: this.priceBrakeDown.currentChargeableAmount -
+            currentChargeableAmount:
+                this.priceBrakeDown.currentChargeableAmount -
                 totalPromotionaalDiscountedAmount,
             promotionBrakeDown: totalPromotionalBrakeDown,
         };
@@ -956,7 +1075,7 @@ class PromotionClass {
         const todayDate = nowUTC();
         const advanceBookingDays = Math.ceil(
             (this.startDate.getTime() - todayDate.getTime()) /
-            (1000 * 60 * 60 * 24)
+                (1000 * 60 * 60 * 24)
         );
         if (advanceBookingDays >= promotion.advanceBookingDays) {
             if (promotion.discountType == 'percentage') {
@@ -1001,7 +1120,7 @@ class PromotionClass {
         const todayDate = nowUTC();
         const isOfferForTonightApplicable =
             this.startDate.getTime() - todayDate.getTime() <=
-            1000 * 60 * 60 * 24 &&
+                1000 * 60 * 60 * 24 &&
             this.startDate.getTime() - todayDate.getTime() > 0;
         if (isOfferForTonightApplicable) {
             if (promotion.discountType == 'percentage') {
@@ -1065,7 +1184,7 @@ class PromotionClass {
                 return null;
             }
             if (geo.countryCode.includes(country)) {
-                if (geo.restrictionType === "restricted") {
+                if (geo.restrictionType === 'restricted') {
                     throw new Error(
                         `This room is restricted for this country  `
                     );
@@ -1078,7 +1197,7 @@ class PromotionClass {
                         discountType: 'flat',
                         discountValue: Number(geo.restrictionValue),
                         name: 'Geo Restriction',
-                        restrictionType: "decrease",
+                        restrictionType: 'decrease',
                     });
                 } else if (geo.restrictionType === 'percentage') {
                     promotionBrakehown.push({
@@ -1091,7 +1210,7 @@ class PromotionClass {
                         discountType: 'flat',
                         discountValue: Number(geo.restrictionValue),
                         name: 'Geo Restriction',
-                        restrictionType: "decrease",
+                        restrictionType: 'decrease',
                     });
                 }
             }
@@ -1254,7 +1373,7 @@ class PromoCodeDiscountClass {
         if (
             checkIfPromoCodeIsValid.minBookingAmount && //chck for minimum booking amount
             checkIfPromoCodeIsValid.minBookingAmount >
-            this.priceBrakedown.amountBeforeTax
+                this.priceBrakedown.amountBeforeTax
         ) {
             return this.priceBrakedown;
         }
@@ -1266,7 +1385,7 @@ class PromoCodeDiscountClass {
             if (
                 checkIfPromoCodeIsValid.maxDiscountAmount &&
                 promoCodeDiscountAmount >
-                checkIfPromoCodeIsValid.maxDiscountAmount
+                    checkIfPromoCodeIsValid.maxDiscountAmount
             ) {
                 promoCodeDiscountAmount =
                     checkIfPromoCodeIsValid.maxDiscountAmount;
@@ -1282,7 +1401,7 @@ class PromoCodeDiscountClass {
             if (
                 checkIfPromoCodeIsValid.maxDiscountAmount &&
                 promoCodeDiscountAmount >
-                checkIfPromoCodeIsValid.maxDiscountAmount
+                    checkIfPromoCodeIsValid.maxDiscountAmount
             ) {
                 promoCodeDiscountAmount =
                     checkIfPromoCodeIsValid.maxDiscountAmount;

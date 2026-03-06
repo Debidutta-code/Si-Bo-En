@@ -2,6 +2,7 @@ import { Decimal } from '@prisma/client/runtime/library';
 import {
     IAddonAvailability,
     IBookingAddon,
+    IChildAddon,
     PostingRhythm,
 } from '../../add-on/interfaces';
 import { DeviceType, IPolicy } from '../../agent-paltform/property/types';
@@ -118,6 +119,7 @@ export interface IAddOn {
     isActive: boolean;
     images: string[];
     availability: IAddonAvailability[];
+    ChildAddons:IChildAddon[];
 }
 
 // export interface ICustomizableDealsApplicableRatePlanTypes {

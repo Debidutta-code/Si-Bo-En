@@ -30,7 +30,7 @@ export class PricingController {
                 guestEmail,
                 promoCode,
                 includedAddons,
-                roomDetails,
+                childAges,
             } = req.body;
 
             const propertyId = req.property?.id;
@@ -60,10 +60,14 @@ export class PricingController {
                     .status(400)
                     .json(errorResponse('End date is not chosen'));
             }
-
             const adults = Number(noOfAdults);
             const children = Number(noOfChildren);
             const rooms = Number(noOfRooms);
+            // if (childAges.length != children) {
+            //     return res
+            //         .status(400)
+            //         .json(errorResponse('Child ages are not chosen'));
+            // }
 
             if (adults < 1) {
                 return res
@@ -101,14 +105,14 @@ export class PricingController {
                 rooms,
                 adults,
                 children ? children : 0,
-                roomDetails,
+                childAges,
                 guestEmail ? guestEmail : '',
                 userCountryCode ? userCountryCode : '',
                 detectedDeviceType ? detectedDeviceType : '',
                 promotions ? promotions : [],
                 parsedAddons ? parsedAddons : [],
                 promoCode,
-                includedAddons?includedAddons:[]
+                includedAddons ? includedAddons : []
             );
 
             return res.status(response.success ? 200 : 400).json(response);
