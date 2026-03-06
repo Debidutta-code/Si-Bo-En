@@ -10,7 +10,7 @@ import {
 import { IMLOS } from '../../promotions/mlos/interfaces';
 import { ICEbDsOftc } from '../../promotions/eb-ds-oftc/interfaces';
 import { IPromoCode } from '../../ari/types/promoCode.type';
-import { ITCreationLoyality } from '../../loyalty/types';
+import { IPropertyLoyaltyConfig, ITCreationLoyality } from '../../loyalty/types';
 
 export class PricingRepository {
     public async validateRatePlan(
@@ -253,18 +253,14 @@ export class PricingRepository {
     }
     public async findPropertyLoyalityConfig(
         propertyId: string
-    ): Promise<string | null> {
+    ): Promise<IPropertyLoyaltyConfig | null> {
         try {
-            const propertyLoyalty =
-                await prisma.propertyLoyaltyConfig.findUnique({
+            return await prisma.propertyLoyaltyConfig.findUnique({
                     where: {
                         propertyId: propertyId,
                         isActive: true,
                     },
                 });
-            return propertyLoyalty
-                ? propertyLoyalty.creationLoyaltyConfigId
-                : null;
         } catch (error) {
             throw new Error('Failed to fetch loyality discount');
         }

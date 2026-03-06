@@ -1306,12 +1306,26 @@ class LoyalityDiscountClass {
             await this.pricingRepository.findPropertyLoyalityConfig(
                 this.propertyId
             );
+            console.log("checkIfPropertyLoyalityIsActive",checkIfPropertyLoyalityIsActive)
         if (!checkIfPropertyLoyalityIsActive) {
             return this.priceBrakedown;
         }
+        if(checkIfPropertyLoyalityIsActive.discountPercentage){
+            const loyaltyDiscount =
+                (this.priceBrakedown.amountBeforeTax * checkIfPropertyLoyalityIsActive.discountPercentage) /
+                100;
+            return {
+                ...this.priceBrakedown,
+                loyalityDiscount: loyaltyDiscount,
+                totalAmount:
+                    this.priceBrakedown.totalAmount - loyaltyDiscount,
+            };
+        
+        }
         const loyality = await this.pricingRepository.findLoyalityConfig(
-            checkIfPropertyLoyalityIsActive
+            checkIfPropertyLoyalityIsActive.creationLoyaltyConfigId
         );
+        console.log("loyalty",loyality)
         if (!loyality) {
             return this.priceBrakedown;
         }

@@ -28,10 +28,14 @@ import {
 } from "lucide-react";
 import type { IPropertyAddress } from "./types/types";
 import Loader from "@/components/Loader/Loader";
+import { useGeolocated } from "react-geolocated";
+import toast from "react-hot-toast";
 
 // Zod Validation Schema
 const propertyAddressSchema = z.object({
-  addressLine1: z.string().min(3, "Address Line 1 must be at least 3 characters."),
+  addressLine1: z
+    .string()
+    .min(3, "Address Line 1 must be at least 3 characters."),
   addressLine2: z.string().optional(),
   country: z.string().min(1, "Country is required."),
   state: z.string().min(1, "State is required."),
@@ -52,18 +56,31 @@ export default function UpdatePropertyAddress({
 }: {
   address: IPropertyAddress;
   setAddress: React.Dispatch<React.SetStateAction<IPropertyAddress>>;
-  isLoading:boolean
+  isLoading: boolean;
 }) {
   const [errors, setErrors] = useState<FormErrors | null>(null);
   const [countries, setCountries] = useState<ICountry[]>([]);
   const [states, setStates] = useState<IState[]>([]);
   const [cities, setCities] = useState<ICity[]>([]);
+  const [isFetchingLocation, setIsFetchingLocation] = useState<boolean>(false);
 
   // Coordinate input method
-  const [coordinateMethod, setCoordinateMethod] = useState<"link" | "manual">("manual");
+  const [coordinateMethod, setCoordinateMethod] = useState<
+    "link" | "manual" | "auto"
+  >("manual");
   const [mapLink, setMapLink] = useState("");
-  const [extractionStatus, setExtractionStatus] = useState<"idle" | "success" | "error">("idle");
+  const [extractionStatus, setExtractionStatus] = useState<
+    "idle" | "success" | "error"
+  >("idle");
   const [extractionMessage, setExtractionMessage] = useState("");
+  // Geolocation hook
+  const { coords, isGeolocationAvailable, isGeolocationEnabled, getPosition } =
+    useGeolocated({
+      positionOptions: {
+        enableHighAccuracy: true,
+      },
+      userDecisionTimeout: 10000,
+    });
 
   // Fetch all countries on mount
   useEffect(() => {
@@ -73,25 +90,31 @@ export default function UpdatePropertyAddress({
     if (address.country) {
       const countryStates = State.getStatesOfCountry(address.country);
       setStates(countryStates);
-      if (address.state && !countryStates.some(s => s.isoCode === address.state)) {
-        setAddress(prev => ({ ...prev, state: "", city: "" }));
+      if (
+        address.state &&
+        !countryStates.some((s) => s.isoCode === address.state)
+      ) {
+        setAddress((prev) => ({ ...prev, state: "", city: "" }));
       }
     } else {
       setStates([]);
     }
-    setAddress(prev => ({ ...prev, city: "" })); // Reset city
+    setAddress((prev) => ({ ...prev, city: "" })); // Reset city
     setCities([]);
   }, [address.country, setAddress]);
 
   // Sync cities when state changes
   useEffect(() => {
     if (address.country && address.state) {
-      const countryCities = City.getCitiesOfState(address.country, address.state);
+      const countryCities = City.getCitiesOfState(
+        address.country,
+        address.state,
+      );
       setCities(countryCities);
 
       // If current city is not in this state, reset
-      if (address.city && !countryCities.some(c => c.name === address.city)) {
-        setAddress(prev => ({ ...prev, city: "" }));
+      if (address.city && !countryCities.some((c) => c.name === address.city)) {
+        setAddress((prev) => ({ ...prev, city: "" }));
       }
     } else {
       setCities([]);
@@ -106,18 +129,20 @@ export default function UpdatePropertyAddress({
   }, [address.latitude, address.longitude, mapLink]);
 
   // Extract coordinates from map link
-  const extractCoordinatesFromLink = (link: string): { lat: number; lng: number } | null => {
+  const extractCoordinatesFromLink = (
+    link: string,
+  ): { lat: number; lng: number } | null => {
     try {
       const cleanLink = link.trim();
 
       const patterns = [
-        /@(-?\d+\.?\d*),(-?\d+\.?\d*),/,           // Google @lat,lng
-        /ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/,          // ll=lat,lng
-        /q=(-?\d+\.?\d*),(-?\d+\.?\d*)/,           // q=lat,lng
-        /!3d(-?\d+\.?\d*)!4d(-?\d+\.?\d*)/,        // !3dlat!4dlng
-        /ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/,          // Apple Maps
-        /#map=\d+\/(-?\d+\.?\d*)\/(-?\d+\.?\d*)/,  // OSM
-        /(-?\d+\.?\d*),(-?\d+\.?\d*)/              // Generic
+        /@(-?\d+\.?\d*),(-?\d+\.?\d*),/, // Google @lat,lng
+        /ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/, // ll=lat,lng
+        /q=(-?\d+\.?\d*),(-?\d+\.?\d*)/, // q=lat,lng
+        /!3d(-?\d+\.?\d*)!4d(-?\d+\.?\d*)/, // !3dlat!4dlng
+        /ll=(-?\d+\.?\d*),(-?\d+\.?\d*)/, // Apple Maps
+        /#map=\d+\/(-?\d+\.?\d*)\/(-?\d+\.?\d*)/, // OSM
+        /(-?\d+\.?\d*),(-?\d+\.?\d*)/, // Generic
       ];
 
       for (const pattern of patterns) {
@@ -142,52 +167,92 @@ export default function UpdatePropertyAddress({
     if (coordinateMethod === "link" && mapLink.trim()) {
       const coords = extractCoordinatesFromLink(mapLink);
       if (coords) {
-        setAddress(prev => ({
+        setAddress((prev) => ({
           ...prev,
           latitude: coords.lat.toString(),
           longitude: coords.lng.toString(),
         }));
         setExtractionStatus("success");
-        setExtractionMessage(`Coordinates extracted: (${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)})`);
+        setExtractionMessage(
+          `Coordinates extracted: (${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)})`,
+        );
       } else {
         setExtractionStatus("error");
         setExtractionMessage("Could not extract coordinates from this link");
-        setAddress(prev => ({ ...prev, latitude: "", longitude: "" }));
+        setAddress((prev) => ({ ...prev, latitude: "", longitude: "" }));
       }
     } else if (coordinateMethod === "link" && !mapLink.trim()) {
       setExtractionStatus("idle");
       setExtractionMessage("");
-      setAddress(prev => ({ ...prev, latitude: "", longitude: "" }));
+      setAddress((prev) => ({ ...prev, latitude: "", longitude: "" }));
     }
   }, [mapLink, coordinateMethod, setAddress]);
 
-  const handleMethodChange = (method: "link" | "manual") => {
+  const handleMethodChange = (method: "link" | "manual" | "auto") => {
     setCoordinateMethod(method);
     setMapLink("");
     setExtractionStatus("idle");
     setExtractionMessage("");
     if (method === "link") {
-      setAddress(prev => ({ ...prev, latitude: "", longitude: "" }));
+      setAddress((prev) => ({ ...prev, latitude: "", longitude: "" }));
     }
   };
+  const handleAutoFetchLocation = () => {
+    if (!isGeolocationAvailable) {
+      toast.error("Geolocation is not supported by your browser");
+      setExtractionStatus("error");
+      setExtractionMessage("Geolocation not supported");
+      return;
+    }
 
+    if (!isGeolocationEnabled) {
+      toast.error("Please enable location permissions in your browser");
+      setExtractionStatus("error");
+      setExtractionMessage("Location permission denied");
+      return;
+    }
+
+    setIsFetchingLocation(true);
+    setExtractionStatus("idle");
+    setExtractionMessage("Fetching your location...");
+
+    // Trigger geolocation
+    getPosition();
+  };
+
+  // Effect to handle when coords are available
+  useEffect(() => {
+    if (coordinateMethod === "auto" && coords && isFetchingLocation) {
+      setAddress((prev) => ({
+        ...prev,
+        latitude: coords.latitude.toString(),
+        longitude: coords.longitude.toString(),
+      }));
+
+      setExtractionStatus("success");
+      setExtractionMessage(
+        `Location fetched: (${coords.latitude.toFixed(6)}, ${coords.longitude.toFixed(6)})`,
+      );
+      setIsFetchingLocation(false);
+    }
+  }, [coords, coordinateMethod, isFetchingLocation]);
   const handleFieldChange = (field: keyof IPropertyAddress, value: string) => {
     if (field === "country") {
-      setAddress(prev => ({
+      setAddress((prev) => ({
         ...prev,
         country: value,
         state: "",
         city: "",
       }));
     } else if (field === "state") {
-      setAddress(prev => ({ ...prev, state: value, city: "" }));
+      setAddress((prev) => ({ ...prev, state: value, city: "" }));
     } else {
-      setAddress(prev => ({ ...prev, [field]: value }));
+      setAddress((prev) => ({ ...prev, [field]: value }));
     }
 
     // Clear error for this field
     if (errors && (errors as any)[field]) {
-      setErrors(prev => {
+      setErrors((prev) => {
         if (!prev) return null;
         const newErrors = { ...prev };
         delete (newErrors as any)[field];
@@ -195,10 +260,8 @@ export default function UpdatePropertyAddress({
       });
     }
   };
-  if(isLoading){
-    return(
-      <Loader text="Updating the property details"/>
-    )
+  if (isLoading) {
+    return <Loader text="Updating the property details" />;
   }
   return (
     <div className="max-h-[80vh] overflow-y-auto px-2 py-1">
@@ -215,11 +278,13 @@ export default function UpdatePropertyAddress({
             <Input
               id="addressLine1"
               value={address.addressLine1}
-              onChange={(e) => handleFieldChange("addressLine1", e.target.value)}
+              onChange={(e) =>
+                handleFieldChange("addressLine1", e.target.value)
+              }
               placeholder="Street number and name"
               className={cn(
                 "h-10 border-gray-300 focus:border-black",
-                errors?.addressLine1 && "border-red-500 focus:border-red-600"
+                errors?.addressLine1 && "border-red-500 focus:border-red-600",
               )}
             />
             {errors?.addressLine1?._errors[0] && (
@@ -240,7 +305,9 @@ export default function UpdatePropertyAddress({
             <Input
               id="addressLine2"
               value={address.addressLine2}
-              onChange={(e) => handleFieldChange("addressLine2", e.target.value)}
+              onChange={(e) =>
+                handleFieldChange("addressLine2", e.target.value)
+              }
               placeholder="Apartment, building, etc."
               className="h-10 border-gray-300 focus:border-black"
             />
@@ -265,7 +332,7 @@ export default function UpdatePropertyAddress({
               onChange={(e) => handleFieldChange("country", e.target.value)}
               className={cn(
                 "w-full h-10 border border-gray-300 rounded-md px-3 bg-white focus:border-black",
-                errors?.country && "border-red-500 focus:border-red-600"
+                errors?.country && "border-red-500 focus:border-red-600",
               )}
             >
               <option value="">Select Country</option>
@@ -298,7 +365,7 @@ export default function UpdatePropertyAddress({
               disabled={!address.country || states.length === 0}
               className={cn(
                 "w-full h-10 border border-gray-300 rounded-md px-3 bg-white focus:border-black",
-                errors?.state && "border-red-500 focus:border-red-600"
+                errors?.state && "border-red-500 focus:border-red-600",
               )}
             >
               <option value="">Select State</option>
@@ -331,7 +398,7 @@ export default function UpdatePropertyAddress({
               disabled={!address.state || cities.length === 0}
               className={cn(
                 "w-full h-10 border border-gray-300 rounded-md px-3 bg-white focus:border-black",
-                errors?.city && "border-red-500 focus:border-red-600"
+                errors?.city && "border-red-500 focus:border-red-600",
               )}
             >
               <option value="">Select City</option>
@@ -364,7 +431,7 @@ export default function UpdatePropertyAddress({
               placeholder="e.g., Badi Chopar"
               className={cn(
                 "h-10 border-gray-300 focus:border-black",
-                errors?.location && "border-red-500 focus:border-red-600"
+                errors?.location && "border-red-500 focus:border-red-600",
               )}
             />
             {errors?.location?._errors[0] && (
@@ -405,12 +472,14 @@ export default function UpdatePropertyAddress({
               type="text"
               inputMode="numeric"
               value={address.zipCode}
-              onChange={(e) => handleFieldChange("zipCode", e.target.value.replace(/\D/g, ""))}
+              onChange={(e) =>
+                handleFieldChange("zipCode", e.target.value.replace(/\D/g, ""))
+              }
               maxLength={6}
               placeholder="302002"
               className={cn(
                 "h-10 border-gray-300 focus:border-black",
-                errors?.zipCode && "border-red-500 focus:border-red-600"
+                errors?.zipCode && "border-red-500 focus:border-red-600",
               )}
             />
             {errors?.zipCode?._errors[0] && (
@@ -427,16 +496,39 @@ export default function UpdatePropertyAddress({
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-4">
           <Map className="w-5 h-5 text-black" />
-          <h3 className="text-lg font-semibold text-black">Location Coordinates</h3>
+          <h3 className="text-lg font-semibold text-black">
+            Location Coordinates
+          </h3>
         </div>
 
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
+          <Button
+            onClick={() => {
+              handleMethodChange("auto");
+              handleAutoFetchLocation();
+            }}
+            disabled={isFetchingLocation}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-3 px-6 py-4 border-2 transition-all",
+              coordinateMethod === "auto"
+                ? "bg-black text-white border-black"
+                : "bg-white text-black hover:bg-white",
+              isFetchingLocation && "opacity-50 cursor-not-allowed",
+            )}
+          >
+            <Navigation className="w-5 h-5" />
+            <span className="font-medium">
+              {isFetchingLocation ? "Fetching..." : "Auto Fetch Location"}
+            </span>
+          </Button>
           <Button
             type="button"
             variant={coordinateMethod === "link" ? "default" : "outline"}
             className={cn(
               "flex-1 gap-2",
-              coordinateMethod === "link" ? "bg-black text-white" : "text-black"
+              coordinateMethod === "link"
+                ? "bg-black text-white"
+                : "text-black",
             )}
             onClick={() => handleMethodChange("link")}
           >
@@ -448,7 +540,9 @@ export default function UpdatePropertyAddress({
             variant={coordinateMethod === "manual" ? "default" : "outline"}
             className={cn(
               "flex-1 gap-2",
-              coordinateMethod === "manual" ? "bg-black text-white" : "text-black"
+              coordinateMethod === "manual"
+                ? "bg-black text-white"
+                : "text-black",
             )}
             onClick={() => handleMethodChange("manual")}
           >
@@ -456,7 +550,40 @@ export default function UpdatePropertyAddress({
             Manual Entry
           </Button>
         </div>
-
+            {coordinateMethod === "auto" && (
+              <div className="bg-green-50 border-2 border-green-200 p-6 rounded-lg space-y-4">
+                <div className="flex items-center gap-2 text-sm font-semibold text-black mb-2">
+                  <Navigation className="w-4 h-4" /> Auto Location
+                </div>
+                {extractionStatus !== "idle" && (
+                  <div
+                    className={cn(
+                      "flex items-center gap-2 p-3 rounded-lg text-sm font-medium",
+                      extractionStatus === "success"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
+                    )}
+                  >
+                    {extractionStatus === "success" ? (
+                      <CheckCircle className="w-5 h-5" />
+                    ) : (
+                      <AlertCircle className="w-5 h-5" />
+                    )}
+                    {extractionMessage}
+                  </div>
+                )}
+                {address.latitude && address.longitude && (
+                  <div className="bg-white border border-green-300 p-4 rounded-lg">
+                    <p className="text-sm text-gray-700">
+                      <strong>Latitude:</strong> {address.latitude}
+                    </p>
+                    <p className="text-sm text-gray-700 mt-2">
+                      <strong>Longitude:</strong> {address.longitude}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
         {coordinateMethod === "link" && (
           <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg space-y-3">
             <Label
@@ -478,7 +605,7 @@ export default function UpdatePropertyAddress({
                   "flex items-center gap-2 p-2 text-sm rounded",
                   extractionStatus === "success"
                     ? "bg-green-100 text-green-800"
-                    : "bg-red-100 text-red-800"
+                    : "bg-red-100 text-red-800",
                 )}
               >
                 {extractionStatus === "success" ? (
@@ -507,11 +634,13 @@ export default function UpdatePropertyAddress({
                   type="number"
                   step="any"
                   value={address.latitude || ""}
-                  onChange={(e) => handleFieldChange("latitude", e.target.value)}
+                  onChange={(e) =>
+                    handleFieldChange("latitude", e.target.value)
+                  }
                   placeholder="26.9124"
                   className={cn(
                     "h-10 border-gray-300 focus:border-black",
-                    errors?.latitude && "border-red-500 focus:border-red-600"
+                    errors?.latitude && "border-red-500 focus:border-red-600",
                   )}
                 />
                 {errors?.latitude?._errors[0] && (
@@ -533,11 +662,13 @@ export default function UpdatePropertyAddress({
                   type="number"
                   step="any"
                   value={address.longitude || ""}
-                  onChange={(e) => handleFieldChange("longitude", e.target.value)}
+                  onChange={(e) =>
+                    handleFieldChange("longitude", e.target.value)
+                  }
                   placeholder="75.7873"
                   className={cn(
                     "h-10 border-gray-300 focus:border-black",
-                    errors?.longitude && "border-red-500 focus:border-red-600"
+                    errors?.longitude && "border-red-500 focus:border-red-600",
                   )}
                 />
                 {errors?.longitude?._errors[0] && (
