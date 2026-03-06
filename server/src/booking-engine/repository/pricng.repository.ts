@@ -47,6 +47,7 @@ export class PricingRepository {
                             addonId: {
                                 in: includedAddons,
                             },
+
                         },
                         include: {
                             addon: {
@@ -59,6 +60,7 @@ export class PricingRepository {
                                             },
                                         },
                                     },
+                                    ChildAddons:true
                                 },
                             },
                         },
@@ -150,7 +152,9 @@ export class PricingRepository {
                                     date: { in: singleAdd.dates },
                                 },
                             },
+                            ChildAddons:true
                         },
+                        
                     });
                 })
             );
