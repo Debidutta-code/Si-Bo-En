@@ -4,8 +4,7 @@ import { Socket } from 'socket.io';
 import { ConnectionManager } from '../managers/connection.manager';
 import { SOCKET_EVENTS, ROOM_PREFIX } from '../constants';
 import { RoomJoinedResponse } from '../types';
-import redis from '../../config/redis.client';
-
+import { RedisClient } from '../../config';
 export class SocketEventHandlers {
     constructor(private connectionManager: ConnectionManager) {}
 
@@ -65,9 +64,10 @@ export class SocketEventHandlers {
         let cached: string | null = null;
 
         try {
-            cached = await redis.get(`payment:confirmed:${orderReference}`);
+            const client = RedisClient.getInstance();
+            cached = await client.get(`payment:confirmed:${orderReference}`);
             if (cached) {
-                await redis.del(`payment:confirmed:${orderReference}`);
+                await client.del(`payment:confirmed:${orderReference}`);
             }
         } catch (err) {
             console.error('Redis error in join-payment-room:', err);

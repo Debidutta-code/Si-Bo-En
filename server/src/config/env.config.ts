@@ -1,8 +1,8 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-const config={
-    port: process.env.PORT ,
+const config = {
+    port: process.env.PORT,
 
 
     mongoUrl: process.env.EXTRANET_MONGO_URI,
@@ -25,15 +25,15 @@ const config={
 
     GridApiKey: process.env.SENDGRID_API_KEY,
 
-    cloudinaryName:process.env.CLOUDINARY_NAME,
-    cloudinaryKey:process.env.CLOUDINARY_KEY,
-    cloudinarySecrete:process.env.CLOUDINARY_SECRETE,
+    cloudinaryName: process.env.CLOUDINARY_NAME,
+    cloudinaryKey: process.env.CLOUDINARY_KEY,
+    cloudinarySecrete: process.env.CLOUDINARY_SECRETE,
 
     smtpHost: process.env.SMTP_HOST,
     smtpPort: process.env.SMTP_PORT,
-    senderEmail:process.env.EMAIL_USER,
-    senderName:process.env.SENDER_NAME,
-    senderEmailPassword:process.env.EMAIL_SERVICE_PASSWORD,
+    senderEmail: process.env.EMAIL_USER,
+    senderName: process.env.SENDER_NAME,
+    senderEmailPassword: process.env.EMAIL_SERVICE_PASSWORD,
 
     // Fikafi Payment Configuration
     fikafiBaseUrl: process.env.FIKAFI_BASE_URL,
@@ -51,10 +51,20 @@ const config={
     rateTigerPassword: process.env.RATETIGER_PASSWORD,
     rateTigerApiKey: process.env.RATETIGER_API_KEY,
     rateTigerPartnerId: process.env.RATETIGER_PARTNER_ID,
-    rateTtigerPartnerName:process.env.RATETIGER_PARTNER_NAME,
+    rateTtigerPartnerName: process.env.RATETIGER_PARTNER_NAME,
     rateTigerJwtSecret: process.env.RATETIGER_JWT_SECRET || 'your-secret-key',
     rateTigerJwtExpiresIn: 24 * 60 * 60,
     rateTigerReservationUrl: process.env.RATETIGER_RESERVATION_URL || '',
-    rateTigerAuthUrl:process.env.RATETIGER_AUTHENTICATION_URL||''
-}       
+    rateTigerAuthUrl: process.env.RATETIGER_AUTHENTICATION_URL || '',
+
+
+
+    //currency exchange api url;
+    exchangeApiUrl: process.env.EXCHANGE_API_URL || '',
+    //redis config
+    redisHost: process.env.REDIS_HOST || 'localhost',
+    redisPort: process.env.REDIS_PORT || '6379',
+    redisPassword: process.env.REDIS_PASSWORD || '',
+
+}
 export default config;
