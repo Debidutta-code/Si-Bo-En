@@ -619,7 +619,7 @@ const BookingReviewPage = () => {
                     guestEmail={getGuestEmail()}
                     guestPhone={getGuestPhone()}
                     propertyName={propertyName}
-                    propertyID="KSA_MUK_01"
+                    propertyID={bankDetails?.selectedPaymentIntegrations?.outletId || ""}
                     checkInDate={checkIn}
                     numberOfNights={nights}
                     autoTrigger={true}
