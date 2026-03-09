@@ -101,35 +101,32 @@ export default class CreationDao {
     }
   }
 
-  public static async getCreationsByRole(
-    filters: PropertyFilters
-  ): Promise<any[]> {
-    try {
-      // Convert filters to Prisma where clause
-      const where: any = {
-        ...filters,
-        isDeleted: false,
-      };
+    public static async getCreationsByRole(
+        filters: PropertyFilters
+    ): Promise<any[]> {
+        try {
+            // // Convert filters to Prisma where clause
+            // const where: any = {
+            //   ...filters,
+            //   isDeleted: false,
+            // };
 
-      return await prisma.creation.findMany({
-        where,
-        include: {
-          users: true,
-          createdBy: true,
-          super: true,
-          group: true,
-          brand: true,
-          property:{
-            where:{
-              isDeleted:false
-            }
-          }
-        },
-      });
-    } catch (error: any) {
-      throw new Error(`Failed to get creations: ${error.message}`);
+            return await prisma.creation.findMany({
+                where: {},
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    users: true,
+                    createdBy: true,
+                    super: true,
+                    group: true,
+                    brand: true,
+                    property: true,
+                },
+            });
+        } catch (error: any) {
+            throw new Error(`Failed to get creations: ${error.message}`);
+        }
     }
-  }
 
   public static async getSpecificCreation(creationId: string): Promise<ICreation | null> {
     try {
@@ -143,7 +140,11 @@ export default class CreationDao {
           brand: true,
           property: true,
           brandChildren: true,
-          groupChildren: true,
+          groupChildren: {
+            include:{
+              brandChildren:true
+            }
+          },
 
         },
       });
