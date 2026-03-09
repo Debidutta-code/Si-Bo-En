@@ -7,17 +7,15 @@ export interface IAmendGuest {
   firstName: string;
   lastName: string;
   dob: string;
+  age?: number | null;
 }
 
-// ─── Room ────────────────────────────────────────────────────────────────────
 
 export interface IAmendRoom {
   adults: number;
   children: number;
   childAges: number[];
 }
-
-// ─── Price Check ─────────────────────────────────────────────────────────────
 
 export interface IPriceCheckRequest {
   propertyCode: string;
@@ -30,8 +28,19 @@ export interface IPriceCheckRequest {
   ratePlanCode: string;
   bookingCode: string;
   previousRooms: number;
+  includedAddons?: string[];
+  parsedAddons?: ISelectedAddons[];
+  childAges?:number[];
+  promoCode?: string;
 }
-
+export interface ISelectedAddons {
+  addOnId: string;
+  availability: IAddonAvailability[];
+}
+export interface IAddonAvailability {
+  date: string;
+  quantity: number;
+}
 export interface ITaxItem {
   name: string;
   type: "percentage" | "fixed";
@@ -71,7 +80,6 @@ export interface IPriceCheckResponse {
   availableRooms?: number;
 }
 
-// ─── Booking Calculation ─────────────────────────────────────────────────────
 
 export interface IBookingCalculation {
   finalPayable: number;   // extra amount guest owes
@@ -118,11 +126,23 @@ export interface IAmendValidationErrors {
   checkOut?: string;
   guests?: Record<string, IGuestFieldErrors>;
 }
-
+export interface IBookingAddon {
+  id:string;
+  reservationId: string;
+  addonId: string;
+  name: string;
+  unitPrice: number;
+  quantity: number;
+  totalPrice: number;
+  currencyCode: string;
+  specialInstructions?: string | null; 
+  type: "included"|"selected";
+  date: Date;
+}
 // ─── Modal Props ─────────────────────────────────────────────────────────────
 
 export interface IAmendReservationModalProps {
-  reservation:IReservation;
+  reservation: IReservation;
   onClose: () => void;
   onSuccess: () => void;
 }

@@ -1206,13 +1206,13 @@ export class ReservationService {
         specificPropertyId?: string,
         specificPropertyCode?: string,
         bookingStatus?: string,
-        bookingSource?: string, // ← Add these
-        deviceType?: string, // ← Add these
-        bookingCode?: string, // ← Add these
-        guestName?: string, // ← Add these
-        promoCode?: string, // ← Add these
-        countryCode?: string, // ← Add these
-        dateFilterType?: 'checkin' | 'booking' | 'modification' // ← Add these
+        bookingSource?: string, 
+        deviceType?: string, 
+        bookingCode?: string, 
+        guestName?: string, 
+        promoCode?: string, 
+        countryCode?: string, 
+        dateFilterType?: 'checkin' | 'booking' | 'modification' 
     ): Promise<IApiResponse> {
         try {
             const accessResult = await this.getAccessiblePropertyIds(

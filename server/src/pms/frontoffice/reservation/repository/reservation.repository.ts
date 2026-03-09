@@ -164,13 +164,13 @@ export class ReservationRepository {
         page: number,
         limit: number,
         bookingStatus?: string,
-        bookingSource?: string,        // ← Add these
-        deviceType?: string,           // ← Add these
-        bookingCode?: string,          // ← Add these
-        guestName?: string,            // ← Add these
-        promoCode?: string,            // ← Add these
-        countryCode?: string,          // ← Add these
-        dateFilterType?: 'checkin' | 'booking' | 'modification'  // ← Add these
+        bookingSource?: string,        
+        deviceType?: string,           
+        bookingCode?: string,          
+        guestName?: string,            
+        promoCode?: string,            
+        countryCode?: string,          
+        dateFilterType?: 'checkin' | 'booking' | 'modification'  
     ): Promise<IPaginatedResponse<IReservationWithAllDetails>> {
         try {
             const start = new Date(startDate);
@@ -286,7 +286,9 @@ export class ReservationRepository {
                             propertyName: true,
                             propertyCode: true
                         }
-                    }
+                    },
+                    reservationPromotions: true,
+                    reservationGuests: true,
                 }
             });
 

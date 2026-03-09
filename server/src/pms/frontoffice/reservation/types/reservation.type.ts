@@ -151,10 +151,11 @@ export interface IReservation extends ICReservation {
 export interface IReservationWithAllDetails extends IReservation {
   primaryGuest: IGuests;
   priceBreakdowns: IReservationPriceBrakeDown[];
-  addOns: any[];
+  addOns: IBookingAddon[];
   property?: any;
   promo?: any;
   reservationGuests?: IReservationGuest[];
+  reservationPromotions?: IReservationPromotion[];
 }
 
 export interface IReservationGuest {
@@ -221,11 +222,11 @@ export interface IReservationPriceBrakeDownR {
   priceAfterTax: Decimal | number;
   totalAmount: Decimal | number;
   totalTax: Decimal | number;
-  breakdown: any; // JSON
-  dailyBreakdown: any[]; // JSON array
+  breakdown: any; 
+  dailyBreakdown: any[]; 
   availableRooms: number;
   requestedRooms: number;
-  tax: any[]; // JSON array
+  tax: any[]; 
 }
 
 export interface IReservationPriceBrakeDown extends IReservationPriceBrakeDownR {
