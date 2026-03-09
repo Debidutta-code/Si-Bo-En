@@ -70,13 +70,12 @@ export class RestrictionController {
   public static async getRestrictions(req: PropertyCustomRequest, res: Response) {
     try {
       const { propertyCode } = req.params;
-      const { startDate, endDate, restrictionType } = req.query;
+      const { startDate, endDate, restrictionType, roomTypeCode, ratePlanCode } = req.query;
 
       if (!propertyCode) {
         return res.status(400).json(errorResponse('Property code is required'));
       }
 
-      // Validate restrictionType if provided
       if (
         restrictionType &&
         !['CTA', 'CTD'].includes(restrictionType as string)
@@ -90,7 +89,9 @@ export class RestrictionController {
         propertyCode,
         startDate as string,
         endDate as string,
-        restrictionType as 'CTA' | 'CTD'
+        restrictionType as 'CTA' | 'CTD',
+        roomTypeCode as string,
+        ratePlanCode as string
       );
 
       const status = response.success ? 200 : 400;

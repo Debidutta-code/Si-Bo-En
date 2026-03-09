@@ -348,8 +348,7 @@ export default function MyTripPage() {
   // //console.log("bookingdata", bookingData)
 
   return (
-    <div className="min-h-screen bg-gray-100 px-4 pt-32 py-12 flex flex-col items-center">
-      <Toaster position="top-center" />
+    <div className="min-h-screen bg-gray-100 px-4  py-12 flex flex-col items-center">
       {/* Search Bar Section - Always at the top */}
       <div className="w-full max-w-3xl mb-10">
         <h1 className="text-4xl font-bold text-center mb-8" style={{ color: colors.primaryColor }}>

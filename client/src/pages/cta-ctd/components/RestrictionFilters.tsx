@@ -60,7 +60,7 @@ export default function RestrictionFiltersComponent({
                         onValueChange={(value) =>
                             onFilterChange({ 
                                 ...filters, 
-                                restrictionType: value as 'CTA' | 'CTD' | undefined 
+                                restrictionType: value === "all" ? null : value as 'CTA' | 'CTD' 
                             })
                         }
                     >
@@ -144,7 +144,7 @@ export default function RestrictionFiltersComponent({
                     <Select
                         value={filters.roomTypeCode || ""}
                         onValueChange={(value) =>
-                            onFilterChange({ ...filters, roomTypeCode: value || undefined })
+                            onFilterChange({ ...filters, roomTypeCode: value==="all" ? null : value })
                         }
                     >
                         <SelectTrigger>
@@ -167,7 +167,7 @@ export default function RestrictionFiltersComponent({
                     <Select
                         value={filters.ratePlanCode || ""}
                         onValueChange={(value) =>
-                            onFilterChange({ ...filters, ratePlanCode: value || undefined })
+                            onFilterChange({ ...filters, ratePlanCode: value === "all" ? null : value })
                         }
                     >
                         <SelectTrigger>

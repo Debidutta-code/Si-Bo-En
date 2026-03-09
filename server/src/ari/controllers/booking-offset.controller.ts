@@ -94,11 +94,6 @@ export class BookingOffsetController {
                     .status(400)
                     .json(errorResponse('Property identifier not found'));
             }
-            if (!ratePlanId) {
-                return res
-                    .status(400)
-                    .json(errorResponse('Rate plan identifier not found'));
-            }
 
             if (
                 startDate &&
@@ -111,7 +106,7 @@ export class BookingOffsetController {
             }
             const result = await this.bookingOffsetService.getBookingOffsets(
                 propertyId,
-                ratePlanId as string,
+                ratePlanId as string || null,
                 startDate ? toUTCDate(startDate as string) : null,
                 endDate ? toUTCDate(endDate as string) : null
             );

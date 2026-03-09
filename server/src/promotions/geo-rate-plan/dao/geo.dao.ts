@@ -61,6 +61,11 @@ console.log(error)
       if(filters?.roomTypeCode){
         whereClause.roomType = filters.roomTypeCode;
       }
+      if (filters?.ratePlanCode) {
+        whereClause.ratePlan = {
+          ratePlanCode: filters.ratePlanCode
+        };
+      }
       return await prisma.geoRatePlan.findMany({
         where: whereClause,
         include: {

@@ -27,14 +27,15 @@ export async function getRestrictions(
     const axiosInstance = createAxiosInstance();
     try {
         const params = new URLSearchParams();
-        
+
         if (filters?.startDate) params.append('startDate', filters.startDate);
         if (filters?.endDate) params.append('endDate', filters.endDate);
         if (filters?.restrictionType) params.append('restrictionType', filters.restrictionType);
-        
+        if (filters?.roomTypeCode) params.append('roomTypeCode', filters.roomTypeCode);
+        if (filters?.ratePlanCode) params.append('ratePlanCode', filters.ratePlanCode);
         const queryString = params.toString();
         const url = `/ari/cta-ctd/${propertyCode}${queryString ? `?${queryString}` : ''}`;
-        
+
         const response = await axiosInstance.get(url);
         return response.data;
     } catch (error: any) {
