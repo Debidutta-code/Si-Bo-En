@@ -97,9 +97,9 @@ enum BookingStatus {
   pending
   confirmed
   cancelled
+  expired
   modified
   no_show
-  expired
 }
 
 enum AmenityType {

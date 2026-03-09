@@ -11,6 +11,8 @@ export default function SuccessPage() {
   const socketRef = useRef<any>(null);
   const socketConnectedRef = useRef(false);
   const paymentTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const paymentHandledRef = useRef(false);  // Prevent double processing in StrictMode
+  const bookingCodeRef = useRef<string | null>(null);  // Use ref to avoid stale closure
 
   const handlePaymentConfirmed = useCallback((bookingCode: string, paymentId?: string) => {
     console.log("✅ Payment confirmed via WebSocket!");
@@ -78,11 +80,22 @@ export default function SuccessPage() {
         console.log(`📌 Joining payment room: ${roomName}`);
       });
 
-      socket.on('payment-status-update', (data: { orderReference: string; status: string }) => {
+      socket.on('payment-status-update', (data: { orderReference: string; status: string; message?: string }) => {
         console.log("🎉 Payment status update received:", data);
+        console.log("📋 Comparing:", data.orderReference, "===", bookingCodeRef.current);
 
-        if (data.orderReference === bookingCode && data.status === 'success') {
-          handlePaymentConfirmed(bookingCode);
+        // Prevent double processing in StrictMode
+        if (data.orderReference === bookingCodeRef.current && !paymentHandledRef.current) {
+          paymentHandledRef.current = true;  // Mark as handled immediately
+          console.log("✅ Match found! Status:", data.status);
+          
+          if (data.status === 'success') {
+            console.log("➡️ Calling handlePaymentConfirmed");
+            handlePaymentConfirmed(bookingCodeRef.current!);
+          }
+          // Note: failed payments are handled by /failed page, not here
+        } else {
+          console.log("❌ No match or already handled - ignoring event");
         }
       });
 
@@ -140,6 +153,9 @@ export default function SuccessPage() {
 
     const confirmedBookingCode = bookingCode;
 
+    // Store in ref to avoid stale closure in socket handler
+    bookingCodeRef.current = confirmedBookingCode;
+
     // Setup WebSocket connection - this is the PRIMARY way to receive payment confirmation
     // The reservation is created in DB ONLY after Fikafi sends webhook to backend
     // So we wait for WebSocket event which is triggered after webhook processes
@@ -154,6 +170,7 @@ export default function SuccessPage() {
 
     // Cleanup on unmount
     return () => {
+      paymentHandledRef.current = false;
       if (paymentTimeoutRef.current) {
         clearTimeout(paymentTimeoutRef.current);
       }
@@ -189,4 +206,3 @@ export default function SuccessPage() {
 
   return null;
 }
-

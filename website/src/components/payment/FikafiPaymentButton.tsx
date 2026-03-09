@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { CreditCard, Loader2, ExternalLink } from "lucide-react";
+import { CreditCard, Loader2, ExternalLink, RefreshCw, XCircle } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface FikafiPaymentButtonProps {
@@ -13,8 +13,9 @@ interface FikafiPaymentButtonProps {
   propertyName: string;
   propertyID: string;
   checkInDate: string;
-    paymentMethod?: string; 
+  paymentMethod?: string;
   numberOfNights: number;
+  autoTrigger?: boolean;
   onPaymentLinkGenerated?: (paymentLink: string) => void;
   onPaymentError?: (error: string) => void;
   buttonText?: string;
@@ -37,17 +38,21 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
   paymentMethod = "payment_gateway",
   buttonText = "Pay with Fikafi",
   className = "",
+  autoTrigger = false,
 }) => {
   const [loading, setLoading] = useState(false);
   const [paymentLink, setPaymentLink] = useState<string | null>(null);
+  const [autoTriggerError, setAutoTriggerError] = useState(false);
+  const fikafiRefNumRef = useRef<string>("");
   const socketRef = useRef<any>(null);
+  const hasAutoTriggeredRef = useRef(false);
 
   // Initialize socket connection for payment updates
   const initializeSocket = useCallback((ref: string) => {
     const init = async () => {
       try {
         const { default: io } = await import("socket.io-client");
-        
+
         const socket = io(process.env.NEXT_PUBLIC_SOCKET_URL!, {
           transports: ["websocket", "polling"],
           reconnection: false,
@@ -68,12 +73,15 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
 
         socket.on("payment-status-update", (data: any) => {
           console.log("📡 Payment update received:", data);
-          
-          if (data.orderReference === ref && data.status === "success") {
-            toast.success("Payment successful!");
-            setTimeout(() => {
-              window.location.href = `/success?ref=${ref}`;
-            }, 1500);
+
+          if (data.orderReference === ref) {
+            if (data.status === "success") {
+              toast.success("Payment successful!");
+              setTimeout(() => {
+                window.location.href = `/success?ref=${ref}`;
+              }, 1500);
+            }
+            // Note: failed payments are handled by /failed page via returnURL
           }
         });
 
@@ -90,7 +98,7 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
     };
 
     init();
-  }, []);
+  }, [onPaymentError]);
 
   const handleFikafiPayment = async () => {
     setLoading(true);
@@ -105,11 +113,6 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
         return;
       }
 
-      //console.log("🚀 Starting Fikafi payment flow...");
-      //console.log("📋 Booking Code:", bookingCode);
-      //console.log("💰 Amount:", amount, currency);
-      //console.log("👤 Guest:", guestName);
-
       // Require booking code - reservation must exist first
       if (!bookingCode) {
         toast.error("Please confirm your booking first before payment");
@@ -120,7 +123,7 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
 
       // Use the provided booking code (reservation already exists)
       const bookingRefNum = bookingCode;
-      
+
       console.log("📋 Booking Ref:", bookingRefNum);
 
       // Clean the backend URL
@@ -152,7 +155,7 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
           currency: currency || "USD",
           totalAmounts: amount,
           numOfPayments: 1,
-          validity: "5 mins",
+          validity: "10 mins",
           payments: [
             {
               paymentNumber: 1,
@@ -163,7 +166,7 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
         },
         returnURL: {
           success_url: `${websiteUrl}/success?ref=${bookingRefNum}`,
-          failed_url: `${websiteUrl}/PaymentSuccess?ref=${bookingRefNum}&status=failed`
+          failed_url: `${websiteUrl}/failed?ref=${bookingRefNum}`
         },
         webhook: {
           payment_event_url: `${backendUrl}/api/v1/payment/fikafi/webhook/payment-event`
@@ -194,27 +197,31 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
       }
 
       if (data.success && data.data?.paymentLink) {
+        // Store fikafiRefNum for resend/cancel actions
+        fikafiRefNumRef.current = data.data.referenceNumber;
+
         // Store payment reference for success page
         const bookingData = {
           bookingCode: bookingRefNum,
-          fikafiRefNum: data.data.referenceNumber || bookingRefNum,
+          fikafiRefNum: data.data.referenceNumber,
           timestamp: Date.now(),
           paymentId: data.data.paymentId,
           paymentMethod: paymentMethod || "payment_gateway",
         };
         localStorage.setItem('fikafi_booking', JSON.stringify(bookingData));
-        
+
         // Initialize socket connection and join room
         initializeSocket(bookingRefNum);
 
         setPaymentLink(data.data.paymentLink);
         onPaymentLinkGenerated?.(data.data.paymentLink);
         console.log("🔗 Redirecting to:", data.data.paymentLink);
-        
+
         // Redirect after a short delay
         setTimeout(() => {
           window.location.href = data.data.paymentLink;
         }, 1500);
+
       } else {
         throw new Error(data.message || "Failed to generate payment link");
       }
@@ -222,6 +229,7 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
       console.error("❌ Fikafi payment error:", error);
       toast.error(error.message || "Payment failed. Please try again.");
       onPaymentError?.(error.message || "Payment failed");
+      if (autoTrigger) setAutoTriggerError(true);
     } finally {
       setLoading(false);
     }
@@ -236,8 +244,70 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
     };
   }, []);
 
-  // If we already have a payment link, show redirect button
-  if (paymentLink) {
+  // Auto-trigger payment when bookingCode is available and autoTrigger is enabled
+  useEffect(() => {
+    if (autoTrigger && bookingCode && !hasAutoTriggeredRef.current) {
+      hasAutoTriggeredRef.current = true;
+      handleFikafiPayment();
+    }
+  }, [autoTrigger, bookingCode]);
+
+  // If auto-trigger mode, show loading indicator while redirecting
+  if (autoTrigger) {
+    if (autoTriggerError) {
+      return (
+        <div className={`${className}`}>
+          <div className="rounded-xl border border-red-100 bg-gradient-to-br from-red-50 to-rose-50 p-5 shadow-sm">
+            {/* Icon + Message */}
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <XCircle className="w-5 h-5 text-red-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-900">
+                  Payment link could not be created
+                </p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  There was an issue connecting to the payment gateway. Please try again.
+                </p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={() => {
+                  setAutoTriggerError(false);
+                  hasAutoTriggeredRef.current = false;
+                  handleFikafiPayment();
+                }}
+                className="flex-1 flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium py-2.5 px-4 rounded-lg transition-colors"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Try Again
+              </button>
+              <button
+                onClick={() => onPaymentError?.("Payment cancelled")}
+                className="flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-600 text-sm font-medium py-2.5 px-4 rounded-lg border border-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className={`flex items-center justify-center gap-3 bg-gray-900 text-white text-sm font-medium py-3 px-6 rounded-lg ${className}`}>
+        <Loader2 className="w-4 h-4 animate-spin opacity-70" />
+        <span>Preparing secure payment...</span>
+      </div>
+    );
+  }
+
+  // If we already have a payment link (manual mode), show redirect button
+  if (paymentLink && !autoTrigger) {
     return (
       <a
         href={paymentLink}
@@ -260,7 +330,7 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
       {loading ? (
         <>
           <Loader2 className="w-5 h-5 animate-spin" />
-          Processing Payment...
+          Redirecting to Fikafi...
         </>
       ) : !bookingCode ? (
         <>

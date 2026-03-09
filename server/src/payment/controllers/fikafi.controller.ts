@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { fikafiPaymentService } from '../services/fikafi.service';
 import { errorResponse, PropertyRequest, successResponse } from '../../utils';
 import prisma from '../../config/prisma.client';
+import { BookingStatus } from '@prisma/client';
 import { socketManager } from '../../socket';
 import { FikafiPaymentRequestBody } from "../types/fikafi.types";
 import { RedisClient } from '../../config';
@@ -259,7 +260,7 @@ export class FikafiPaymentController {
             const status =
                 payload.payment?.status || payload.status || payload.paymentStatus || payload.state;
             const amount =
-                payload.payment?.amount || payload.amount || payload.totalAmount || payload.paymentAmount;
+                payload.payment?.amount ?? payload.amount ?? payload.totalAmount ?? payload.paymentAmount;
 
 
             if (!bookingRefNum) {
@@ -306,6 +307,69 @@ export class FikafiPaymentController {
                     paymentDetails: { amount, status },
                 });
 
+                console.log(
+                    `✅ Socket event emitted to room: payment:${bookingRefNum}`
+                );
+            } else if (FikafiPaymentController.isPaymentFailed(status)) {
+                // Handle payment failure - expired, declined, failed, etc.
+                console.log(`❌ Payment failed for ${bookingRefNum} (status: ${status})`);
+
+                // Map payment status to booking status
+                const statusMap: Record<string, string> = {
+                    'Expired': 'expired',
+                    'EXPIRED': 'expired',
+                    'Declined': 'cancelled',
+                    'DECLINED': 'cancelled',
+                    'Failed': 'cancelled',
+                    'FAILED': 'cancelled',
+                    'failed': 'cancelled',
+                    'Timeout': 'cancelled',
+                    'TIMEOUT': 'cancelled',
+                };
+                const bookingStatus = (statusMap[status] || 'cancelled') as BookingStatus;
+
+                // Update reservation status to indicate payment failure
+                try {
+                    await prisma.reservation.update({
+                        where: { bookingCode: bookingRefNum },
+                        data: {
+                            bookingStatus: bookingStatus,
+                            paymentMethod: 'payment_gateway',
+                        },
+                    });
+                    console.log(`✅ Reservation ${bookingRefNum} marked as ${bookingStatus}`);
+                } catch (dbError) {
+                    console.error(`❌ Failed to update reservation in DB:`, dbError);
+                }
+
+                // Store failure in Redis (TTL: 10 minutes)
+                try {
+                    await client.set(
+                        `payment:failed:${bookingRefNum}`,
+                        JSON.stringify({
+                            status,
+                            message: FikafiPaymentController.getFailureMessage(status),
+                            failedAt: Date.now(),
+                        }),
+                        { EX: 600 }
+                    );
+                    console.log(`✅ Payment failure stored in Redis for ${bookingRefNum}`);
+                } catch (redisError) {
+                    console.warn('⚠️ Redis unavailable:', redisError);
+                }
+
+                // Emit failure event to socket
+                socketManager.emitPaymentUpdate(bookingRefNum, {
+                    orderReference: bookingRefNum,
+                    eventName: 'payment-failed',
+                    status: 'failed',
+                    message: FikafiPaymentController.getFailureMessage(status),
+                    paymentDetails: { amount, status },
+                });
+
+                console.log(
+                    `❌ Payment failure event emitted to room: payment:${bookingRefNum}`
+                );
             } else {
                 console.log(`⏳ Payment not completed yet (status: ${status})`);
             }
@@ -321,6 +385,91 @@ export class FikafiPaymentController {
         }
     }
 
+    /**
+     * Take action on a failed/expired payment
+     * POST /api/v1/fikafi/payment-action
+     * 
+     * Body: { bookingRefNum, fikafiRefNum, action: 'resend' | 'cancel' }
+     */
+    public static async takePaymentAction(req: Request, res: Response) {
+        try {
+            const { bookingRefNum, fikafiRefNum, action } = req.body;
+
+            // Validate required fields
+            if (!bookingRefNum || !fikafiRefNum || !action) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'bookingRefNum, fikafiRefNum, and action are required',
+                });
+            }
+
+            // Validate action
+            if (!['resend', 'cancel'].includes(action)) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'action must be either "resend" or "cancel"',
+                });
+            }
+
+            console.log(`📤 Taking payment action: ${action} for booking ${bookingRefNum}, fikafi ref: ${fikafiRefNum}`);
+
+            const result = await fikafiPaymentService.takePaymentAction(
+                bookingRefNum,
+                fikafiRefNum,
+                action,
+                req.headers['x-fikafi-token'] as string
+            );
+
+            if (result.success) {
+                // If action is cancel, update reservation status in DB
+                if (action === 'cancel') {
+                    try {
+                        await prisma.reservation.update({
+                            where: { bookingCode: bookingRefNum },
+                            data: {
+                                bookingStatus: 'cancelled',
+                                paymentMethod: 'payment_gateway',
+                            },
+                        });
+                        console.log(`✅ Reservation ${bookingRefNum} marked as cancelled`);
+                    } catch (dbError) {
+                        console.error(`❌ Failed to update reservation in DB:`, dbError);
+                    }
+                }
+
+                // Emit socket event for the action result
+                socketManager.emitPaymentUpdate(bookingRefNum, {
+                    orderReference: bookingRefNum,
+                    eventName: action === 'resend' ? 'payment-resent' : 'payment-cancelled',
+                    status: action === 'resend' ? 'pending' : 'failed',
+                    message: result.message || `Payment ${action} action completed`,
+                });
+
+                return res.status(200).json({
+                    success: true,
+                    message: result.message,
+                    data: result.data,
+                });
+            } else {
+                return res.status(400).json({
+                    success: false,
+                    message: result.error || 'Failed to take payment action',
+                });
+            }
+        } catch (error: any) {
+            console.error('Error taking payment action:', error);
+            return res.status(500).json({
+                success: false,
+                message: 'Internal server error',
+                error: error?.message,
+            });
+        }
+    }
+
+    /**
+     * Get reservation by booking code
+     * GET /api/v1/fikafi/reservation/:bookingCode
+     */
     public static async getReservationByCode(req: Request, res: Response) {
         try {
             const { bookingCode } = req.params;
@@ -392,5 +541,52 @@ export class FikafiPaymentController {
             }
             return res.status(500).json(errorResponse("Failed to generate Fikafi token"));
         }
+    }
+
+    /**
+     * Check if payment status indicates failure
+     */
+    private static isPaymentFailed(status: string): boolean {
+        const failedStatuses = [
+            'Expired',
+            'EXPIRED',
+            'Declined',
+            'DECLINED',
+            'Failed',
+            'FAILED',
+            'failed',
+            'failed',
+            'CANCELLED',
+            'Cancelled',
+            'cancelled',
+            'Timeout',
+            'TIMEOUT',
+            'error',
+            'ERROR',
+        ];
+        return failedStatuses.includes(status);
+    }
+
+    /**
+     * Get user-friendly failure message based on status
+     */
+    private static getFailureMessage(status: string): string {
+        const messages: Record<string, string> = {
+            'Expired': 'Payment request has expired',
+            'EXPIRED': 'Payment request has expired',
+            'Declined': 'Payment was declined by the bank',
+            'DECLINED': 'Payment was declined by the bank',
+            'Failed': 'Payment failed',
+            'FAILED': 'Payment failed',
+            'failed': 'Payment failed',
+            'CANCELLED': 'Payment was cancelled',
+            'Cancelled': 'Payment was cancelled',
+            'cancelled': 'Payment was cancelled',
+            'Timeout': 'Payment request timed out',
+            'TIMEOUT': 'Payment request timed out',
+            'error': 'An error occurred during payment',
+            'ERROR': 'An error occurred during payment',
+        };
+        return messages[status] || `Payment failed: ${status}`;
     }
 }
