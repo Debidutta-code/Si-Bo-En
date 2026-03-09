@@ -65,11 +65,14 @@ export class SocketEventHandlers {
         let cachedFailure: string | null = null;
 
         try {
-            cachedSuccess = await redis.get(`payment:confirmed:${orderReference}`);
+            const redis = RedisClient.getInstance();
+            const cachedSuccessRaw = await redis.get(`payment:confirmed:${orderReference}`);
+            const cachedSuccess = cachedSuccessRaw ? String(cachedSuccessRaw) : null;
             if (cachedSuccess) {
                 await redis.del(`payment:confirmed:${orderReference}`);
             } else {
-                cachedFailure = await redis.get(`payment:failed:${orderReference}`);
+                const cachedFailureRaw = await redis.get(`payment:failed:${orderReference}`);
+                cachedFailure = cachedFailureRaw ? String(cachedFailureRaw) : null;
                 if (cachedFailure) {
                     await redis.del(`payment:failed:${orderReference}`);
                 }
