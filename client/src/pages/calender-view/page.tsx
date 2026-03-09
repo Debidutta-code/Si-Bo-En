@@ -381,12 +381,6 @@ export default function InventoryPage() {
     }
   };
 
-  // ============================================
-  // HANDLER: Date Range Apply
-  // ============================================
-  // ============================================
-  // HANDLER: Date Range Apply
-  // ============================================
   const handleDateRangeApply = async (
     newStartDate: string | null,
     newEndDate: string | null,

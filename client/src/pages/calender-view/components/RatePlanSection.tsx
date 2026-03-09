@@ -62,8 +62,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
 }) => {
   const day = days[0];
   const ratePlanDetails = getRatePlanDetails(day, roomType, ratePlanType);
-  const hasOccupancy =
-    (ratePlanDetails?.ratePlan?.prices?.[0]?.baseByGuestAmts?.length ?? 0) > 0;
+  const hasOccupancy = (ratePlanDetails?.baseByGuestAmts?.length ?? 0) > 0;
   const isExpanded = state.expandedOccupancy.has(`${roomType}-${ratePlanType}`);
 
   const customKey = generateKey.customTier(roomType, ratePlanType);
@@ -73,7 +72,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
   };
 
   const existingTiers =
-    ratePlanDetails?.ratePlan?.prices?.[0]?.baseByGuestAmts || [];
+    ratePlanDetails?.baseByGuestAmts || [];
   const allBaseGuests = [...existingTiers];
   customData.baseGuests.forEach((numGuests: number) => {
     if (!allBaseGuests.find((g: any) => g.numberOfGuests === numGuests)) {
@@ -83,7 +82,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
   allBaseGuests.sort((a: any, b: any) => a.numberOfGuests - b.numberOfGuests);
 
   const existingCharges =
-    ratePlanDetails?.ratePlan?.prices?.[0]?.additionalGuestAmounts || [];
+    ratePlanDetails?.additionalGuestAmounts || [];
   const existingAsInstances = existingCharges.map(
     (charge: any, idx: number) => ({
       ageCode: charge.ageQualifyingCode,
@@ -344,8 +343,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                         ratePlanType,
                       );
                       return (
-                        ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus ===
-                        "open"
+                        ratePlanDetails?.sellStatus === "open"
                       );
                     });
                   })()}
@@ -419,10 +417,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                           roomType,
                           ratePlanType,
                         );
-                        const hasOccupancy =
-                          (dayRatePlan?.ratePlan?.prices?.[0]?.baseByGuestAmts
-                            ?.length ?? 0) > 0;
-
+                        const hasOccupancy = (dayRatePlan?.baseByGuestAmts?.length ?? 0) > 0;
                         let key;
                         if (hasOccupancy) {
                           key = generateKey.price(
@@ -466,8 +461,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                       ratePlanType,
                     );
                     return (
-                      ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus ===
-                      "open"
+                      ratePlanDetails?.sellStatus === "open"
                     );
                   });
                 })()}
@@ -512,8 +506,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                       ratePlanType,
                     );
                     return (
-                      ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus ===
-                      "open"
+                      ratePlanDetails?.sellStatus === "open"
                     );
                   });
                   return allOpen
@@ -1239,12 +1232,12 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                 k.includes(`${roomType}-${ratePlanType}-`) &&
                 (k.includes("-min") || k.includes("-max")),
             ) && (
-              <div className="h-12 flex items-center px-2 border-b border-gray-300 bg-green-50">
-                <span className="font-semibold text-green-700 text-xs">
-                  Save Rate Plan Changes
-                </span>
-              </div>
-            )}
+                <div className="h-12 flex items-center px-2 border-b border-gray-300 bg-green-50">
+                  <span className="font-semibold text-green-700 text-xs">
+                    Save Rate Plan Changes
+                  </span>
+                </div>
+              )}
           </>
         )}
       </>
@@ -1334,22 +1327,20 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                 </div>
 
                 {(() => {
-                  const baseByGuest =
-                    ratePlanDetails?.ratePlan?.prices?.[0]?.baseByGuestAmts;
+                  const baseByGuest = ratePlanDetails?.baseByGuestAmts;
                   const hasBaseByGuest = baseByGuest && baseByGuest.length > 0;
 
                   if (isExpanded) {
                     return (
                       <span
-                        className={`text-xs font-medium ${
-                          ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus ===
-                          "open"
+                        className={`text-xs font-medium ${ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus ===
+                            "open"
                             ? "text-green-600"
                             : "text-red-600"
-                        }`}
+                          }`}
                       >
                         {ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus ===
-                        "open"
+                          "open"
                           ? "Open"
                           : "Closed"}
                       </span>
@@ -1437,10 +1428,9 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                   roomType,
                   ratePlanType,
                 );
-                const tierData =
-                  ratePlanDetails?.ratePlan?.prices?.[0]?.baseByGuestAmts?.find(
-                    (t: any) => t.numberOfGuests === guestTier.numberOfGuests,
-                  );
+                const tierData = ratePlanDetails?.baseByGuestAmts?.find(
+                  (t: any) => t.numberOfGuests === guestTier.numberOfGuests,
+                );
 
                 return (
                   <div
@@ -1520,13 +1510,11 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                     roomType,
                     ratePlanType,
                   );
-                  const hasData =
-                    (ratePlanDetails?.ratePlan?.prices?.[0]
-                      ?.additionalGuestAmounts?.length ?? 0) > 0;
+                  const hasData = (ratePlanDetails?.additionalGuestAmounts?.length ?? 0) > 0;
                   const chargeData = hasData
-                    ? ratePlanDetails?.ratePlan?.prices?.[0]?.additionalGuestAmounts?.find(
-                        (c: any) => c.ageQualifyingCode === charge.ageCode,
-                      )
+                    ? ratePlanDetails?.additionalGuestAmounts?.find(
+                      (c: any) => c.ageQualifyingCode === charge.ageCode,
+                    )
                     : null;
 
                   return (
@@ -1635,11 +1623,10 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                         onDataUpdate,
                       )
                     }
-                    className={`${
-                      effectiveValue
+                    className={`${effectiveValue
                         ? "data-[state=checked]:bg-red-500"
                         : "data-[state=unchecked]:bg-gray-300"
-                    } scale-50`}
+                      } scale-50`}
                   />
                 </div>
               );
@@ -1684,11 +1671,10 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                         onDataUpdate,
                       )
                     }
-                    className={`${
-                      effectiveValue
+                    className={`${effectiveValue
                         ? "data-[state=checked]:bg-red-500"
                         : "data-[state=unchecked]:bg-gray-300"
-                    } scale-50`}
+                      } scale-50`}
                   />
                 </div>
               );
@@ -1736,11 +1722,10 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                         state.setLosEdits(newEdits);
                         state.setPendingChanges(newPending);
                       }}
-                      className={`w-14 h-7 text-center text-xs font-bold rounded border ${
-                        hasChanges
+                      className={`w-14 h-7 text-center text-xs font-bold rounded border ${hasChanges
                           ? "border-orange-400 bg-orange-50"
                           : "border-gray-300"
-                      } focus:outline-none focus:ring-2 focus:ring-purple-400`}
+                        } focus:outline-none focus:ring-2 focus:ring-purple-400`}
                     />
                     {edit && (
                       <button
@@ -1821,11 +1806,10 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                         state.setLosEdits(newEdits);
                         state.setPendingChanges(newPending);
                       }}
-                      className={`w-14 h-7 text-center text-xs font-bold rounded border ${
-                        hasChanges
+                      className={`w-14 h-7 text-center text-xs font-bold rounded border ${hasChanges
                           ? "border-orange-400 bg-orange-50"
                           : "border-gray-300"
-                      } focus:outline-none focus:ring-2 focus:ring-purple-400`}
+                        } focus:outline-none focus:ring-2 focus:ring-purple-400`}
                     />
                     {edit && (
                       <button
@@ -1918,77 +1902,77 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                 k.includes("-max") ||
                 k.includes("-bookingOffset-")),
           ) && (
-            <div className="flex h-12 border-b border-gray-300 bg-purple-50">
-              {days.map((_, index) => (
-                <div
-                  key={index}
-                  className="w-32 flex-shrink-0 border-gray-300"
-                />
-              ))}
-              <div className="absolute left-0 right-0 h-12 flex items-center justify-center pointer-events-none">
-                <button
-                  onClick={async () => {
-                    // Save LOS changes if any
-                    const hasLOS = (
-                      Array.from(state.pendingChanges) as string[]
-                    ).some(
-                      (k) =>
-                        k.includes(`${roomType}-${ratePlanType}-`) &&
-                        (k.includes("-min") || k.includes("-max")) &&
-                        !k.includes("-bookingOffset-"),
-                    );
-                    if (hasLOS) {
-                      await saveLOSChanges(
-                        roomType,
-                        ratePlanType,
-                        days,
-                        state.losEdits,
-                        state.pendingChanges,
-                        hotelCode,
-                        ratePlanType,
-                        state.setLosEdits,
-                        state.setPendingChanges,
-                        onDataUpdate,
+              <div className="flex h-12 border-b border-gray-300 bg-purple-50">
+                {days.map((_, index) => (
+                  <div
+                    key={index}
+                    className="w-32 flex-shrink-0 border-gray-300"
+                  />
+                ))}
+                <div className="absolute left-0 right-0 h-12 flex items-center justify-center pointer-events-none">
+                  <button
+                    onClick={async () => {
+                      // Save LOS changes if any
+                      const hasLOS = (
+                        Array.from(state.pendingChanges) as string[]
+                      ).some(
+                        (k) =>
+                          k.includes(`${roomType}-${ratePlanType}-`) &&
+                          (k.includes("-min") || k.includes("-max")) &&
+                          !k.includes("-bookingOffset-"),
                       );
-                    }
-                    // Save booking offset changes if any
-                    const hasOffsets = (
-                      Array.from(state.pendingChanges) as string[]
-                    ).some(
-                      (k) =>
-                        k.includes(`${roomType}-${ratePlanType}-`) &&
-                        k.includes("-bookingOffset-"),
-                    );
-                    if (hasOffsets) {
-                      const ratePlanId = ratePlanMap[ratePlanType];
-                      if (!ratePlanId) {
-                        toast.error(
-                          `No rate plan ID found for ${ratePlanType}`,
+                      if (hasLOS) {
+                        await saveLOSChanges(
+                          roomType,
+                          ratePlanType,
+                          days,
+                          state.losEdits,
+                          state.pendingChanges,
+                          hotelCode,
+                          ratePlanType,
+                          state.setLosEdits,
+                          state.setPendingChanges,
+                          onDataUpdate,
                         );
-                        return;
                       }
-                      await saveBookingOffsetChanges(
-                        roomType,
-                        ratePlanType,
-                        days,
-                        state.bookingOffsetEdits,
-                        state.pendingChanges,
-                        propertyId,
-                        ratePlanId,
-                        state.setBookingOffsetEdits,
-                        state.setPendingChanges,
-                        onDataUpdate,
+                      // Save booking offset changes if any
+                      const hasOffsets = (
+                        Array.from(state.pendingChanges) as string[]
+                      ).some(
+                        (k) =>
+                          k.includes(`${roomType}-${ratePlanType}-`) &&
+                          k.includes("-bookingOffset-"),
                       );
-                    }
-                  }}
-                  className="flex items-center gap-2 px-4 py-1.5 bg-green-500 text-white text-xs font-medium rounded hover:bg-green-600 transition-colors shadow-lg pointer-events-auto sticky left-1/2 -ml-24"
-                >
-                  <Save className="w-3 h-3" />
-                  Save {ratePlanType} Changes
-                </button>
+                      if (hasOffsets) {
+                        const ratePlanId = ratePlanMap[ratePlanType];
+                        if (!ratePlanId) {
+                          toast.error(
+                            `No rate plan ID found for ${ratePlanType}`,
+                          );
+                          return;
+                        }
+                        await saveBookingOffsetChanges(
+                          roomType,
+                          ratePlanType,
+                          days,
+                          state.bookingOffsetEdits,
+                          state.pendingChanges,
+                          propertyId,
+                          ratePlanId,
+                          state.setBookingOffsetEdits,
+                          state.setPendingChanges,
+                          onDataUpdate,
+                        );
+                      }
+                    }}
+                    className="flex items-center gap-2 px-4 py-1.5 bg-green-500 text-white text-xs font-medium rounded hover:bg-green-600 transition-colors shadow-lg pointer-events-auto sticky left-1/2 -ml-24"
+                  >
+                    <Save className="w-3 h-3" />
+                    Save {ratePlanType} Changes
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
         </>
       )}
     </>
