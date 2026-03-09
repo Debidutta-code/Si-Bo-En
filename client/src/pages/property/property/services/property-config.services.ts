@@ -63,7 +63,7 @@ export const getAllPartnerIntegrationsService = async (propertyId: string) => {
         if (!propertyId) {
             return {
                 success: false,
-                message: "Property ID is required"
+                message: "Property is not chosen"
             }
         }
         const response = await getAllPartnerIntegrations(propertyId)

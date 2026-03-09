@@ -75,10 +75,10 @@ export default function HotelsPage() {
     )
   }
 
-  const isCreationButtonVisible = (currentTab:string) => {
+  const isCreationButtonVisible = (currentTab: string) => {
     switch (currentTab) {
       case "group":
-        return creations.groups.length>0;
+        return creations.groups.length > 0;
       case "brand":
         return creations.brands.length > 0;
       case "property":
@@ -103,12 +103,12 @@ export default function HotelsPage() {
 
       <div className="flex space-x-2 border-b">
         {(["group", "brand", "property"] as const).map((tab) => (
-          
+
           <Button
             key={tab}
             variant={currentTab === tab ? "secondary" : "ghost"}
             onClick={() => setCurrentTab(tab)}
-            className={`px-4 py-2 rounded-t-lg border-b-2 ${!isCreationButtonVisible(tab)&&"hidden"} ${currentTab === tab
+            className={`px-4 py-2 rounded-t-lg border-b-2 ${!isCreationButtonVisible(tab) && "hidden"} ${currentTab === tab
               ? "border-primary bg-primary/10 text-primary"
               : "border-transparent hover:border-gray-300"
               }`}
@@ -187,7 +187,7 @@ export default function HotelsPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex-1"
+                    className={`${item.type === "property" && item.property?.isDraft && "flex-1"}`}
                     onClick={() => {
                       item.type != "property" ?
                         navigate(`/app/property/${currentTab}/${item.id}`) :
@@ -201,9 +201,11 @@ export default function HotelsPage() {
                       <Button
                         variant="outline"
                         size="sm"
+                        className={`${item.type === "property" && !item.property?.isDraft && "flex-1"}`}
+
                         onClick={() => navigate(`/app/property/${currentTab}/${item.id}`)}
                       >
-                         <Settings className="h-4 w-4" />
+                        <Settings className="h-4 w-4" />
                       </Button>
                     )
                   }
