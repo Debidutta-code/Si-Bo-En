@@ -209,8 +209,8 @@ export interface PriceBrakeDown {
     addonBrakeDown: AddOnBrakeDown[];
     promotionBrakeDown: PromotionBrakeDown[];
     loyalityDiscount: number;
-
 }
+
 export interface DailyPriceBrakeDown {
     date: string;
     baseChargesAmount: number;

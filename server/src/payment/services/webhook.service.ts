@@ -3,17 +3,10 @@ import * as crypto from 'crypto';
 import { NGeniusWebhookPayload } from '../types/webhook.types';
 import { socketManager } from '../../socket';
 import { prisma } from '../../config/db.config';
-import redis from '../../config/redis.client';
+import {RedisClient} from '../../config';
 
 class WebhookService {
-  /**
-   * Decrypt encrypted webhook payload
-   * Algorithm: AES-256-CBC with PKCS5 Padding
-   * 
-   * @param encryptedData - Base64 encoded encrypted data (IV prepended)
-   * @param secretKey - 32-character ASCII secret key
-   * @returns Decrypted JSON object
-   */
+
   decryptPayload(encryptedData: string, secretKey: string): NGeniusWebhookPayload {
     try {
       // Validate secret key length (must be exactly 32 characters for AES-256)
@@ -94,7 +87,9 @@ class WebhookService {
       });
 
       try {
-        await redis.set(redisKey, redisValue, 'EX', 600);
+        const client = RedisClient.getInstance();
+
+        await client.set(redisKey, redisValue, { EX: 600 });
         console.log(`✅ Payment result (${status}) stored in Redis for ${orderReference}`);
       } catch (err: any) {
         console.error(`❌ Failed to store payment result in Redis for ${orderReference}`, err);

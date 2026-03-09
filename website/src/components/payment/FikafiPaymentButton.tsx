@@ -166,7 +166,7 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
           failed_url: `${websiteUrl}/PaymentSuccess?ref=${bookingRefNum}&status=failed`
         },
         webhook: {
-          payment_event_url: `${backendUrl}/api/v1/fikafi/webhook/payment-event`
+          payment_event_url: `${backendUrl}/api/v1/payment/fikafi/webhook/payment-event`
         }
       };
 
@@ -174,7 +174,7 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
 
       // Create payment link
       const response = await fetch(
-        `${backendUrl}/api/v1/fikafi/create-payment-link`,
+        `${backendUrl}/api/v1/payment/fikafi/create-payment-link`,
         {
           method: "POST",
           headers: {

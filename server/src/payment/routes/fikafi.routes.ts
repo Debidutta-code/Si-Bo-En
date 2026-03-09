@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { FikafiPaymentController } from '../controller/fikafi.controller';
+import { FikafiPaymentController } from '../controllers/fikafi.controller';
 
 export const fikafiPaymentRoutes = Router();
 
