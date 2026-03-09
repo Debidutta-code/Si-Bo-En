@@ -28,6 +28,12 @@ fikafiPaymentRoutes.post(
     FikafiPaymentController.handlePaymentEventWebhook
 );
 
+// Take action on failed/expired payment (resend or cancel)
+fikafiPaymentRoutes.post(
+    '/payment-action',
+    FikafiPaymentController.takePaymentAction
+);
+
 // Get reservation by booking code
 fikafiPaymentRoutes.get(
     '/reservation/:bookingCode',

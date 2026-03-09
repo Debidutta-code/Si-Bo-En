@@ -60,29 +60,31 @@ export class SocketEventHandlers {
 
         socket.emit(SOCKET_EVENTS.ROOM_JOINED, response);
 
-        // Check if payment was already confirmed while client was away
-        // Use GETDEL for atomic get + delete - prevents double delivery
-        let cached: string | null = null;
+        // Check if payment was already confirmed/failed while client was away
+        // Check success first, then failure
+        let cachedSuccess: string | null = null;
+        let cachedFailure: string | null = null;
 
         try {
-            // ✅ ADDED: Log the exact key being looked up so we can compare with
-            // what webhook.service.ts logs when it sets the key - if they differ,
-            // that is the root cause of the miss
-            console.log(`🔍 Redis key being GET: payment:confirmed:${orderReference}`);
-
-            cached = await redis.get(`payment:confirmed:${orderReference}`);
-            if (cached) {
+            cachedSuccess = await redis.get(`payment:confirmed:${orderReference}`);
+            if (cachedSuccess) {
                 await redis.del(`payment:confirmed:${orderReference}`);
+            } else {
+                cachedFailure = await redis.get(`payment:failed:${orderReference}`);
+                if (cachedFailure) {
+                    await redis.del(`payment:failed:${orderReference}`);
+                }
             }
         } catch (err) {
             console.error('Redis error in join-payment-room:', err);
         }
 
-        if (cached) {
+        // Handle successful payment
+        if (cachedSuccess) {
             console.log(
-                `🔑 Redis cache hit for ${orderReference} - emitting immediately`
+                `🔑 Redis cache hit (success) for ${orderReference} - emitting immediately`
             );
-            const paymentData = JSON.parse(cached);
+            const paymentData = JSON.parse(cachedSuccess);
 
             // Universal mapping logic to handle native statuses and Fikafi developer's statuses
             const rawStatus = paymentData.status || 'success';
@@ -94,25 +96,32 @@ export class SocketEventHandlers {
                 'APPROVED',
                 'CONFIRMED',
             ];
-            const failedStates = ['failed', 'FAILED', 'DECLINED', 'CANCELLED'];
-
-            const status = successStates.includes(rawStatus)
-                ? 'success'
-                : failedStates.includes(rawStatus)
-                  ? 'failed'
-                  : 'pending';
 
             socket.emit('payment-status-update', {
                 orderReference,
-                eventName: paymentData.eventName || 'payment-status-update',
-                status,
-                message:
-                    paymentData.message ||
-                    (status === 'failed'
-                        ? 'Payment failed'
-                        : 'Payment successful'),
-                paymentDetails: paymentData.paymentDetails || paymentData,
+                eventName: 'payment-confirmed',
+                status: 'success',
+                message: 'Payment successful',
+                paymentDetails: paymentData,
             });
+            return;
+        }
+
+        // Handle failed payment
+        if (cachedFailure) {
+            console.log(
+                `🔑 Redis cache hit (failure) for ${orderReference} - emitting immediately`
+            );
+            const failureData = JSON.parse(cachedFailure);
+
+            socket.emit('payment-status-update', {
+                orderReference,
+                eventName: 'payment-failed',
+                status: 'failed',
+                message: failureData.message || 'Payment failed',
+                paymentDetails: failureData,
+            });
+            return;
         }
     }
 

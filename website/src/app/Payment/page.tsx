@@ -386,10 +386,6 @@ const BookingReviewPage = () => {
         localStorage.setItem('currentBookingCode', newBookingCode);
         setBookingConfirmedForFikafi(true);
 
-        toast.success("Booking confirmed! Click 'Pay Now' to proceed to payment.", {
-          id: "booking-success",
-          duration: 3000,
-        });
         return;
       }
 
@@ -608,33 +604,32 @@ const BookingReviewPage = () => {
                 using credit/debit card, net banking, or other online payment methods.
               </p>
 
-              {/* Fikafi Payment Button - only show after booking is confirmed */}
+              {/* Fikafi Payment Button - auto-redirects when booking is confirmed */}
               <div className="mt-4">
                 {!bookingConfirmedForFikafi ? (
                   <p className="text-sm text-gray-500 mt-2 p-3 bg-gray-50 rounded-lg">
-                    Click <strong>&quot;Confirm Booking&quot;</strong> below to create your reservation, then you&apos;ll be able to proceed to payment.
+                    Click <strong>&quot;Confirm Booking&quot;</strong> below to create your reservation.
                   </p>
                 ) : (
                   <FikafiPaymentButton
                     bookingCode={bookingCode}
-                    amount={updatedPrice}
+                    amount={finalPrice?.currentChargeableAmount || updatedPrice}
                     currency={currencyCode}
                     guestName={getGuestName()}
                     guestEmail={getGuestEmail()}
                     guestPhone={getGuestPhone()}
                     propertyName={propertyName}
-                    propertyID={bankDetails?.selectedPaymentIntegrations?.outletId || ""}
+                    propertyID="KSA_MUK_01"
                     checkInDate={checkIn}
                     numberOfNights={nights}
-                    onPaymentLinkGenerated={(paymentLink: string) => {
-                      console.log('Payment link generated:', paymentLink);
-                      toast.success("Redirecting to payment...", { id: "fikafi-success" });
+                    autoTrigger={true}
+                    onPaymentLinkGenerated={(link) => {
+                      console.log('Payment link generated:', link);
                     }}
                     onPaymentError={(error) => {
-                      console.error('Fikafi error:', error);
                       toast.error("Payment failed. Please try again.", { id: "fikafi-error" });
                     }}
-                    buttonText="Pay Now with Fikafi"
+                    buttonText="Pay Now"
                     className="w-full"
                   />
                 )}
