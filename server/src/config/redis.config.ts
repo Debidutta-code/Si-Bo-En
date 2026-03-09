@@ -17,7 +17,7 @@ class RedisClient {
             socket: {
                 host: config.redisHost,
                 port: parseInt(config.redisPort || '6379'),
-                connectTimeout: 30000, // 30 seconds
+                connectTimeout: 30000, 
                 reconnectStrategy: (retries) => {
                     if (retries > 10) {
                         console.error('❌ Too many Redis reconnection attempts. Stopping...');

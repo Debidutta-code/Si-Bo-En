@@ -18,7 +18,7 @@ class BullMQHelper {
         this.redisClient = RedisClient.getInstance();
         this.queue = new Queue(queueName, {
             connection,
-            skipVersionCheck: true, // managed Redis doesn't allow CONFIG SET maxmemory-policy
+            skipVersionCheck: true, // managed Redis doesn'
         });
         
         this.worker = new Worker(
