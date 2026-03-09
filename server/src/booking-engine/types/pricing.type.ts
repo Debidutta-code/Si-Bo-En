@@ -2,6 +2,7 @@ import { Decimal } from '@prisma/client/runtime/library';
 import {
     IAddonAvailability,
     IBookingAddon,
+    IChildAddon,
     PostingRhythm,
 } from '../../add-on/interfaces';
 import { DeviceType, IPolicy } from '../../agent-paltform/property/types';
@@ -118,6 +119,7 @@ export interface IAddOn {
     isActive: boolean;
     images: string[];
     availability: IAddonAvailability[];
+    ChildAddons:IChildAddon[];
 }
 
 // export interface ICustomizableDealsApplicableRatePlanTypes {
@@ -207,8 +209,8 @@ export interface PriceBrakeDown {
     addonBrakeDown: AddOnBrakeDown[];
     promotionBrakeDown: PromotionBrakeDown[];
     loyalityDiscount: number;
-
 }
+
 export interface DailyPriceBrakeDown {
     date: string;
     baseChargesAmount: number;
@@ -233,6 +235,7 @@ export interface AddOnBrakeDown {
     totalAmount: number;
     currencyCode: CurrencyCode;
     date: string;
+    type: 'included' | 'selected';
 }
 export interface PromotionBrakeDown {
     id: string;
@@ -244,4 +247,9 @@ export interface PromotionBrakeDown {
     discountAmount: number;
     restrictionType: "increase" | "decrease" | "payLater"
 
+}
+export interface IRoomDetails{
+    adults:number;
+    children:number;
+    childAges:number[];
 }

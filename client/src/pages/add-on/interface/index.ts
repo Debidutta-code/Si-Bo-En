@@ -44,6 +44,7 @@ import type {
     IAddonQuery,
     IBookingAddonQuery
 } from "./query-addon.type";
+export * from "./child-addon.type";
 export type {
     IAddon,
     IAddonCreate,

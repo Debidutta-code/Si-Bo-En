@@ -498,7 +498,7 @@ export class RoomBookingService {
                     RoomBookingRepository.getAddonAvailability(rpa.addonId, dates)
                 )
             );
-
+          
             for (let i = 0; i < ratePlanAddons.length; i++) {
                 const availability = addonAvailabilityResults[i];
                 if (availability.length !== dates.length) continue;
@@ -509,7 +509,8 @@ export class RoomBookingService {
                     availability,
                     numberOfNights,
                     totalGuests,
-                    guests.rooms
+                    guests.rooms,
+                    guests?.roomsArray||[]
                 );
 
                 availableAddonDetails.push({
@@ -608,25 +609,64 @@ export class RoomBookingService {
         availabilities: any[],
         numberOfNights: number,
         totalGuests: number,
-        numberOfRooms: number
+        numberOfRooms: number,
+        roomsArray: { adults: number; children: number; childAges: number[] }[]
     ): number {
         const singleDatePrice = Number(availabilities[0].price);
+        const childAddons = addon.ChildAddons || [];
+
+        // Helper: get price for a single child based on age
+        const getChildPrice = (age: number): number => {
+            const match = childAddons.find(
+                (c: any) => age >= c.minAge && age <= c.maxAge
+            );
+            if (!match) return singleDatePrice; // no rule = full price
+
+            if (!match.discountApplicable) return 0; // free
+
+            if (match.discountType === 'percentage') {
+                return singleDatePrice * (1 - match.discountAmount / 100);
+            }
+            return Math.max(0, singleDatePrice - match.discountAmount); // flat
+        };
+
+        // Helper: total price for all guests in a room
+        const getRoomGuestPrice = (room: { adults: number; childAges: number[] }): number => {
+            const adultPrice = singleDatePrice * room.adults;
+            const childPrice = room.childAges.reduce(
+                (sum, age) => sum + getChildPrice(age), 0
+            );
+            return adultPrice + childPrice;
+        };
 
         switch (addon.postingRhythm) {
             case 'per_stay':
                 return singleDatePrice;
+
             case 'per_night':
                 return singleDatePrice * numberOfNights;
-            case 'per_person_per_night':
-                return singleDatePrice * totalGuests * numberOfNights;
-            case 'per_person_per_stay':
-                return singleDatePrice * totalGuests;
+
             case 'per_room':
                 return singleDatePrice * numberOfRooms;
+
             case 'per_room_per_night':
                 return singleDatePrice * numberOfRooms * numberOfNights;
+
+            case 'per_person_per_stay':
+                return roomsArray.reduce(
+                    (sum, room) => sum + getRoomGuestPrice(room), 0
+                );
+
+            case 'per_person_per_night':
+                return roomsArray.reduce(
+                    (sum, room) => sum + getRoomGuestPrice(room), 0
+                ) * numberOfNights;
+
             case 'per_person_per_room':
-                return singleDatePrice * totalGuests * numberOfRooms;
+                return roomsArray.reduce(
+                    (sum, room) => sum + getRoomGuestPrice(room) * numberOfRooms, 0
+                );
+
             default:
                 return 0;
         }

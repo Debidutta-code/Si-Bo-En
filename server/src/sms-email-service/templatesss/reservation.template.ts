@@ -462,14 +462,16 @@ export const BookingConfirmationEmail = ({
       padding: 20px;
     }
     
-    .discount-row {
-      color: #28a745 !important;
-    }
-    
     .discount-row .price-label,
-    .discount-row .price-value {
-      color: #28a745;
-    }
+.discount-row .price-value {
+  color: #28a745;
+}
+
+    
+   .paylater-row .price-label,
+.paylater-row .price-value {
+  color: #e65100;
+}
     
     /* Important Notes */
     .notes-box {
@@ -739,51 +741,75 @@ export const BookingConfirmationEmail = ({
           
           <div class="price-card">
             <div class="price-table">
+
               <div class="price-row">
-                <span class="price-label">Room rate (${numberOfNights} night${numberOfNights > 1 ? 's' : ''})</span>
+                <span class="price-label">🛏 Room Rate (${numberOfNights} night${numberOfNights > 1 ? 's' : ''})</span>
                 <span class="price-value">${formatCurrency(finalPrice.amountBeforeTax, reservation.currency)}</span>
               </div>
-              
+
               ${finalPrice.addonBrakeDown && finalPrice.addonBrakeDown.length > 0 ? finalPrice.addonBrakeDown.map((addon: any) => `
               <div class="price-row">
-                <span class="price-label">${addon.name}</span>
-                <span class="price-value">${formatCurrency(addon.totalAmount, reservation.currency)}</span>
+                <span class="price-label">🍽 ${addon.name}</span>
+                <span class="price-value">+${formatCurrency(addon.totalAmount, reservation.currency)}</span>
               </div>
               `).join('') : ''}
-              
+
               ${finalPrice.taxBrakeDown && finalPrice.taxBrakeDown.length > 0 ? finalPrice.taxBrakeDown.map((tax: any) => `
               <div class="price-row">
-                <span class="price-label">${tax.name}</span>
-                <span class="price-value">${formatCurrency(tax.taxAmount, reservation.currency)}</span>
+                <span class="price-label">🧾 ${tax.name}</span>
+                <span class="price-value">+${formatCurrency(tax.taxedAmount, reservation.currency)}</span>
               </div>
               `).join('') : ''}
-              
-              ${finalPrice.totalPromotionAmount > 0 ? `
-              <div class="price-row discount-row">
-                <span class="price-label">Discount</span>
-                <span class="price-value">-${formatCurrency(finalPrice.totalPromotionAmount, reservation.currency)}</span>
-              </div>
-              ` : ''}
-              
+
+              ${finalPrice.promotionBrakeDown && finalPrice.promotionBrakeDown.length > 0 ? finalPrice.promotionBrakeDown.map((promo: any) => {
+    const isPayLater = promo.restrictionType === 'payLater';
+    const sign = isPayLater ? '+' : '−';
+    const label = promo.discountType === 'percentage'
+      ? `${promo.discountValue}%`
+      : formatCurrency(promo.discountValue, reservation.currency);
+    return `
+                <div class="price-row ${isPayLater ? 'paylater-row' : 'discount-row'}">
+                  <span class="price-label">${isPayLater ? '⏳' : '🏷'} ${promo.name} (${label})</span>
+                  <span class="price-value">${sign}${formatCurrency(promo.discountAmount, reservation.currency)}</span>
+                </div>`;
+  }).join('') : ''}
+
               ${finalPrice.promoCodeDiscount > 0 ? `
               <div class="price-row discount-row">
-                <span class="price-label">Promo Code Discount</span>
-                <span class="price-value">-${formatCurrency(finalPrice.promoCodeDiscount, reservation.currency)}</span>
-              </div>
-              ` : ''}
-              
+                <span class="price-label">🎟 Promo Code Discount</span>
+                <span class="price-value">−${formatCurrency(finalPrice.promoCodeDiscount, reservation.currency)}</span>
+              </div>` : ''}
+
               ${finalPrice.loyalityDiscount > 0 ? `
               <div class="price-row discount-row">
-                <span class="price-label">Loyalty Discount</span>
-                <span class="price-value">-${formatCurrency(finalPrice.loyalityDiscount, reservation.currency)}</span>
+                <span class="price-label">⭐ Loyalty Discount</span>
+                <span class="price-value">−${formatCurrency(finalPrice.loyalityDiscount, reservation.currency)}</span>
+              </div>` : ''}
+
+              <hr style="border:none; border-top:2px solid #dee2e6; margin: 6px 0;">
+
+              <div class="price-row">
+                <span class="price-label" style="font-size:16px; font-weight:800; color:#111;">Total Amount</span>
+                <span class="price-value" style="font-size:20px; color:#0066cc;">${formatCurrency(finalPrice.totalAmount, reservation.currency)}</span>
               </div>
-              ` : ''}
+
             </div>
-            
-            <div class="price-row-total">
-              <span class="price-label">Total Amount</span>
-              <span class="price-value">${formatCurrency(finalPrice.totalAmount, reservation.currency)}</span>
+
+            <div style="background:#e8f5e9; display:flex; justify-content:space-between; padding:12px 16px; border-radius:7px; margin-top:12px;">
+              <span style="color:#2e7d32; font-weight:700; font-size:14px;">
+                ${reservation.paymentMethod === 'pay_at_hotel' ? '🏨 Pay at Hotel' : '✅ Paid Online'}
+              </span>
+              <span style="color:#2e7d32; font-weight:700; font-size:14px;">
+                ${formatCurrency(finalPrice.currentChargeableAmount, reservation.currency)}
+              </span>
             </div>
+
+            ${finalPrice.latterpayableAmount > 0 ? `
+            <div style="background:#fff3e0; display:flex; justify-content:space-between; padding:12px 16px; border-radius:7px; margin-top:8px;">
+              <span style="color:#e65100; font-weight:700; font-size:14px;">⏳ Pay Later at Hotel</span>
+              <span style="color:#e65100; font-weight:700; font-size:14px;">${formatCurrency(finalPrice.latterpayableAmount, reservation.currency)}</span>
+            </div>` : ''}
+
           </div>
           
           <div class="notes-box">

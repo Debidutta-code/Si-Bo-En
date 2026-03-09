@@ -1,64 +1,56 @@
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { getGroupCreationId, getUsersForMapping } from "../service/creation-filter.service"
+import { getBrandCreationId, getUsersForMapping, updateCreationService } from "../service/creation-filter.service"
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import type { IGroupCreations, ICreation, IGroupManagersMapping } from '../types/types';
+import type { IBrandDetails, IBrandManagersMapping, ICreation, IUpdateCreation } from '../types/types';
 import Loader from '@/components/Loader/Loader';
-import { capitalizeFirstLetter } from '@/lib/utils';
 import CreateEntityDialog from '@/components/creationDialog';
 import BackButton from '@/components/shared/BackButton';
-import { User2Icon, MoreVertical, CloudCog, Upload, Trash2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { assignUserToProperty } from '../api/api';
 import { handleDialogOpenChange } from '../utills/handleDialogOpenChange';
+import { User2Icon, MoreVertical, CloudCog, Upload, Trash2, Settings } from 'lucide-react';
+import { assignUserToProperty } from '../api/api';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import ImageSlider from '@/components/shared/ImageSlider';
 import ImageUploadModal from '@/components/property/ImageUploadModal';
-import { updateCreationService } from '../service/creation-filter.service';
-import type { IUpdateCreation } from '../types/types';
 import DeleteCreationDialog from '@/components/Delete-Creation.dialog';
 
+
 export default function page() {
-
     const { creationId } = useParams<{ creationId: string }>();
-
-    const navigate = useNavigate();
-    const [isLoading, setIsLoading] = useState(true)
-    const [creations, setCreations] = useState<IGroupCreations>({
-        brands: [],
-        properties: [],
-        groupData: {
-            id: '',
-            createdAt: "",
-            isActive: true,
-            name: "",
-            superGroupName: "",
-            users: [],
-            images: []
-        }
+    const [brandManagers, setBrandManagers] = useState<IBrandManagersMapping>({
+        brandManagers: []
     })
     const [isAssigningUser, setIsAssigningUser] = useState<boolean>(false)
-    const [currentTab, setCurrentTab] = useState<"brand" | "property">("brand");
-    const [groupManagers, setGroupManagers] = useState<IGroupManagersMapping>({
-        groupManagers: []
+    const [selectedUser, setSelectedUser] = useState<string>("")
+    const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(true)
+    const [creations, setCreations] = useState<ICreation[]>([])
+    const [brandDetails, setBrandDetails] = useState<IBrandDetails>({
+        createdAt: "",
+        id: "",
+        isActive: false,
+        name: "",
+        under: "",
+        users: [],
+        images: []
     })
-    const [selectedUser, setSelectedUser] = useState<string>("");
     const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
     const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false);
-    const [updateGroupDetails, setUpdateGroupDetails] = useState<IUpdateCreation>({
+    const [updateBrandDetails, setUpdateBrandDetails] = useState<IUpdateCreation>({
         id: "",
         name: "",
         images: [],
         isActive: true
     });
+    const currentTab = "property"
     const getTabDisplayName = (tab: string): string => {
         const pluralMap: { [key: string]: string } = {
-            brand: "brands",
             property: "properties"
         };
         return pluralMap[tab] || tab;
@@ -67,15 +59,16 @@ export default function page() {
         try {
 
             if (!creationId) return;
-            const response = await getGroupCreationId(creationId);
+            const response = await getBrandCreationId(creationId);
             if (response.success) {
-                setCreations(response.data)
+                setCreations(response.data.properties)
+                setBrandDetails(response.data.brandData)
                 // toast.success("Brand/Property fetched successfully")
             } else {
                 toast.error(response.message || "Failed to fetch")
             }
         } catch (error) {
-            console.log(error)
+            // console.log(error)
         } finally {
             setIsLoading(false)
         }
@@ -83,24 +76,20 @@ export default function page() {
     useEffect(() => {
         fetchGroup();
     }, [creationId])
-    const getCurrentData = (): ICreation[] => {
-        switch (currentTab) {
-            case "brand":
-                return creations.brands;
-            case "property":
-                return creations.properties;
-            default:
-                return [];
-        }
-    };
-
+    if (isLoading) {
+        return (
+            <div className='min-h-screen w-full flex justify-center items-center'>
+                <Loader text={`Loading your Brands/Properties ...`} />
+            </div>
+        );
+    }
     const fetchUsers = async () => {
         try {
             const response = await getUsersForMapping();
             if (response.success) {
                 // console.log("Fetched users for mapping:", response.data);
                 const data = response.data;
-                setGroupManagers(data);
+                setBrandManagers(data);
             } else {
                 toast.error(response.message || "Failed to fetch users");
             }
@@ -142,17 +131,17 @@ export default function page() {
     }
 
     const openUpdateDialog = () => {
-        setUpdateGroupDetails({
-            id: creations.groupData.id || creationId || '',
-            name: creations.groupData.name || '',
-            images: creations.groupData.images || [],
-            isActive: Boolean(creations.groupData.isActive)
+        setUpdateBrandDetails({
+            id: brandDetails.id,
+            name: brandDetails.name || '',
+            images: brandDetails.images || [],
+            isActive: brandDetails.isActive
         });
         setIsUpdateDialogOpen(true);
     };
 
     const handleUploadSuccess = (uploadedUrls: string[]) => {
-        setUpdateGroupDetails(prev => ({
+        setUpdateBrandDetails(prev => ({
             ...prev,
             images: [...prev.images, ...uploadedUrls]
         }));
@@ -160,52 +149,42 @@ export default function page() {
     };
 
     const handleRemoveImage = (index: number) => {
-        setUpdateGroupDetails(prev => ({
+        setUpdateBrandDetails(prev => ({
             ...prev,
             images: prev.images.filter((_, i) => i !== index)
         }));
     };
 
-    const handleUpdateGroup = async () => {
+    const handleUpdateBrand = async () => {
         if (!creationId) {
-            toast.error('Invalid Group ID');
+            toast.error('Invalid Brand ID');
             return;
         }
         try {
-            const response = await updateCreationService(creationId, updateGroupDetails.name, updateGroupDetails.images, updateGroupDetails.isActive);
+            const response = await updateCreationService(creationId, updateBrandDetails.name, updateBrandDetails.images, updateBrandDetails.isActive);
             if (!response.success) {
-                toast.error(response.message || 'Failed to update group');
+                toast.error(response.message || 'Failed to update brand');
                 return;
             }
-            toast.success('Group updated successfully');
+            toast.success('Brand updated successfully');
             await fetchGroup();
             setIsUpdateDialogOpen(false);
         } catch (err: any) {
-            toast.error('Failed to update group');
+            toast.error('Failed to update brand');
         }
     };
-
-    if (isLoading) {
-        return (
-            <div className='min-h-screen w-full flex justify-center items-center'>
-                <Loader text={`Loading your Group Details...`} />
-            </div>
-        )
-    }
-    const currentData = getCurrentData();
-
     return (
         <div className="space-y-6 p-4">
             <BackButton />
 
-            {/* Group Details Section */}
+            {/* Brand Details Section */}
             <div className="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-lg overflow-hidden">
                 {/* Hero Image Slider Section */}
-                {creations.groupData.images?.length > 0 && (
+                {brandDetails.images?.length > 0 && (
                     <div className="w-full">
                         <ImageSlider
-                            images={creations.groupData.images}
-                            alt={creations.groupData.name}
+                            images={brandDetails.images}
+                            alt={brandDetails.name}
                             height="h-80"
                         />
                     </div>
@@ -214,44 +193,31 @@ export default function page() {
                 <div className="p-6">
                     <div className="flex justify-between items-start mb-6">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900 mb-2">{creations.groupData.name}</h1>
+                            <h1 className="text-3xl font-bold text-gray-900 mb-2">{brandDetails.name}</h1>
                             <div className="flex items-center space-x-3">
                                 <p className="text-sm text-gray-600">
-                                    Parent: <span className="font-semibold text-gray-800">{creations.groupData.superGroupName}</span>
+                                    Parent: <span className="font-semibold text-gray-800">{brandDetails.under}</span>
                                 </p>
-                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${creations.groupData.isActive
-                                        ? 'bg-green-100 text-green-700 ring-1 ring-green-200'
-                                        : 'bg-red-100 text-red-700 ring-1 ring-red-200'
+                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${brandDetails.isActive
+                                    ? 'bg-green-100 text-green-700 ring-1 ring-green-200'
+                                    : 'bg-red-100 text-red-700 ring-1 ring-red-200'
                                     }`}>
-                                    {creations.groupData.isActive ? '● Active' : '● Inactive'}
+                                    {brandDetails.isActive ? '● Active' : '● Inactive'}
                                 </span>
                             </div>
                         </div>
                     </div>
 
                     {/* Statistics Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                        <div className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h3 className="text-sm font-medium text-gray-500">Total Brands</h3>
-                                    <p className="text-3xl font-bold text-gray-900 mt-2">{creations.brands.length}</p>
-                                </div>
-                                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
-                                    </svg>
-                                </div>
-                            </div>
-                        </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                         <div className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <h3 className="text-sm font-medium text-gray-500">Total Properties</h3>
-                                    <p className="text-3xl font-bold text-gray-900 mt-2">{creations.properties.length}</p>
+                                    <p className="text-3xl font-bold text-gray-900 mt-2">{creations?.length}</p>
                                 </div>
-                                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                     </svg>
                                 </div>
@@ -260,8 +226,8 @@ export default function page() {
                         <div className="bg-white border border-gray-200 rounded-xl p-5 hover:shadow-md transition-shadow">
                             <div className="flex items-center justify-between">
                                 <div>
-                                    <h3 className="text-sm font-medium text-gray-500">Group Managers</h3>
-                                    <p className="text-3xl font-bold text-gray-900 mt-2">{creations.groupData.users.length}</p>
+                                    <h3 className="text-sm font-medium text-gray-500">Brand Managers</h3>
+                                    <p className="text-3xl font-bold text-gray-900 mt-2">{brandDetails.users?.length}</p>
                                 </div>
                                 <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                                     <User2Icon className="w-6 h-6 text-purple-600" />
@@ -270,15 +236,15 @@ export default function page() {
                         </div>
                     </div>
 
-                    {/* Group Managers List */}
-                    {creations.groupData.users.length > 0 && (
+                    {/* Brand Managers List */}
+                    {brandDetails.users?.length > 0 && (
                         <div className="border-t border-gray-200 pt-5">
                             <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
                                 <User2Icon className="h-4 w-4 mr-2 text-gray-500" />
                                 Assigned Managers
                             </h3>
                             <div className="flex flex-wrap gap-2">
-                                {creations.groupData.users.map((user) => (
+                                {brandDetails.users.map((user) => (
                                     <div key={user.id} className="flex items-center space-x-2 bg-gradient-to-r from-gray-100 to-gray-50 rounded-full px-4 py-2 border border-gray-200 hover:shadow-sm transition-shadow">
                                         <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
                                             <span className="text-xs font-semibold text-gray-600">
@@ -299,9 +265,9 @@ export default function page() {
             {/* Actions Bar with Dropdown */}
             <div className="flex justify-between items-center">
                 <div>
-                    <h2 className="text-xl font-bold text-gray-900">Manage Brands & Properties</h2>
+                    <h2 className="text-xl font-bold text-gray-900">Manage Properties</h2>
                     <p className="text-sm text-gray-600 mt-1">
-                        View and manage all brands and properties under this group
+                        View and manage all properties under this brand
                     </p>
                 </div>
 
@@ -314,7 +280,8 @@ export default function page() {
                     <DropdownMenuContent align="end" className="w-56 space-y-2">
                         <DropdownMenuItem onSelect={(e) => { e.preventDefault(); openUpdateDialog(); }} className="cursor-pointer">
                             <Button variant={"secondary"}>
-                                <CloudCog className="h-4 w-4 mr-2 text-gray-600" /> Update Group
+
+                                <CloudCog className="h-4 w-4 mr-2 text-gray-600" /> Update Brand
                             </Button>
                         </DropdownMenuItem>
 
@@ -322,15 +289,16 @@ export default function page() {
                             <DialogTrigger asChild>
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-pointer">
                                     <Button variant={"secondary"}>
-                                        <User2Icon className='h-4 w-4 mr-2' /> Assign Manager
+
+                                        <User2Icon className='h-4 w-4 mr-2' /> Assign Brand Manager
                                     </Button>
                                 </DropdownMenuItem>
                             </DialogTrigger>
                             <DialogContent className='sm:max-w-[425px]'>
                                 <DialogHeader>
-                                    <DialogTitle>Assign Group Manager</DialogTitle>
+                                    <DialogTitle>Assign Brand Manager</DialogTitle>
                                     <DialogDescription>
-                                        Assign a manager to your Group.
+                                        Assign a manager to your Brand.
                                     </DialogDescription>
                                 </DialogHeader>
                                 <div className='space-y-4 py-4'>
@@ -341,8 +309,8 @@ export default function page() {
                                                 <SelectValue placeholder='Select a user' />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {groupManagers?.groupManagers?.length > 0 ? (
-                                                    groupManagers.groupManagers.map((user) => (
+                                                {brandManagers?.brandManagers?.length > 0 ? (
+                                                    brandManagers.brandManagers.map((user) => (
                                                         <SelectItem key={user.id} value={user.id}>
                                                             {user.firstName} {user.lastName} {user.email && `(${user.email})`}
                                                         </SelectItem>
@@ -368,29 +336,30 @@ export default function page() {
                         </Dialog>
 
                         <div className="px-2">
-                            <CreateEntityDialog creationType={"group"} currentTab={currentTab} creationId={creationId ? creationId : ""} level={3} fetchProperties={fetchGroup} />
+                            <CreateEntityDialog creationType={"brand"} currentTab={currentTab} creationId={creationId ? creationId : ""} level={2} fetchProperties={fetchGroup} />
                         </div>
                         <div className="px-2">
-                            <DeleteCreationDialog type={"group"} name={creations.groupData.name} id={creations.groupData.id} />
+                            <DeleteCreationDialog type={"brand"} name={updateBrandDetails.name} id={creationId ? creationId : ""} />
                         </div>
                     </DropdownMenuContent>
+
                 </DropdownMenu>
             </div>
 
-            {/* Update Group Dialog */}
+            {/* Update Brand Dialog */}
             <Dialog open={isUpdateDialogOpen} onOpenChange={setIsUpdateDialogOpen}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
-                        <DialogTitle>Update Group</DialogTitle>
-                        <DialogDescription>Update basic group details.</DialogDescription>
+                        <DialogTitle>Update Brand</DialogTitle>
+                        <DialogDescription>Update basic brand details.</DialogDescription>
                     </DialogHeader>
 
                     <div className="space-y-4 py-2">
                         <div>
                             <Label className="text-sm font-medium">Name</Label>
                             <Input
-                                value={updateGroupDetails.name}
-                                onChange={(e) => setUpdateGroupDetails({ ...updateGroupDetails, name: e.target.value })}
+                                value={updateBrandDetails.name}
+                                onChange={(e) => setUpdateBrandDetails({ ...updateBrandDetails, name: e.target.value })}
                                 className="mt-1"
                             />
                         </div>
@@ -409,24 +378,19 @@ export default function page() {
                             </Button>
 
                             {/* Image Preview Grid */}
-                            {/* In the Update Group Dialog - Image Preview Grid */}
-                            {updateGroupDetails.images.length > 0 && (
+                            {updateBrandDetails.images.length > 0 && (
                                 <div className="grid grid-cols-3 gap-2 mt-2">
-                                    {updateGroupDetails.images.map((url, index) => (
-                                        <div key={index} className="relative group aspect-square"> {/* Fixed aspect ratio */}
+                                    {updateBrandDetails.images.map((url, index) => (
+                                        <div key={index} className="relative group">
                                             <img
                                                 src={url}
                                                 alt={`Preview ${index + 1}`}
-                                                className="w-full h-full object-cover rounded border"
-                                                onError={(e) => {
-                                                    e.currentTarget.src = 'https://via.placeholder.com/150?text=Error';
-                                                    e.currentTarget.className = 'w-full h-full object-contain rounded border bg-gray-100 p-2';
-                                                }}
+                                                className="w-full h-24 object-cover rounded border"
                                             />
                                             <button
                                                 type="button"
                                                 onClick={() => handleRemoveImage(index)}
-                                                className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                                                className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
                                             >
                                                 <Trash2 className="h-3 w-3" />
                                             </button>
@@ -440,8 +404,8 @@ export default function page() {
                             <input
                                 id="active"
                                 type="checkbox"
-                                checked={updateGroupDetails.isActive}
-                                onChange={(e) => setUpdateGroupDetails({ ...updateGroupDetails, isActive: e.target.checked })}
+                                checked={updateBrandDetails.isActive}
+                                onChange={(e) => setUpdateBrandDetails({ ...updateBrandDetails, isActive: e.target.checked })}
                             />
                             <Label htmlFor="active" className="text-sm cursor-pointer">Active</Label>
                         </div>
@@ -457,32 +421,16 @@ export default function page() {
 
                     <div className="flex justify-end gap-2 mt-4">
                         <Button variant="outline" onClick={() => setIsUpdateDialogOpen(false)}>Cancel</Button>
-                        <Button onClick={handleUpdateGroup}>Save</Button>
+                        <Button onClick={handleUpdateBrand}>Save</Button>
                     </div>
                 </DialogContent>
             </Dialog>
-
-            <div className="flex space-x-2 border-b">
-                {(["brand", "property"] as const).map((tab) => (
-                    <Button
-                        key={tab}
-                        variant={"ghost"}
-                        onClick={() => setCurrentTab(tab)}
-                        className={`px-4 py-2 rounded-t-lg border-b-2 ${currentTab === tab
-                            ? "border-blue-500 bg-blue-50 text-blue-600"
-                            : "border-transparent hover:border-gray-50"
-                            }`}
-                    >
-                        {capitalizeFirstLetter(getTabDisplayName(tab))}
-                    </Button>
-                ))}
-            </div>
 
             {/* Content Display */}
             <div className="bg-white p-6 rounded-lg shadow">
 
                 {/* Data Grid */}
-                {currentData?.length === 0 ? (
+                {creations?.length === 0 ? (
                     <div className="text-center py-12">
                         <div className="mx-auto h-24 w-24 text-gray-300">
                             <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -503,43 +451,43 @@ export default function page() {
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {currentData?.map((item: ICreation) => (
+                        {creations?.map((item: ICreation) => (
                             <div
                                 key={item.id}
-                                className="border rounded-lg p-4 hover:shadow-md transition-shadow duration-200 flex flex-col"
+                                className="border rounded-lg p-4 hover:shadow-md transition-shadow duration-200"
                             >
-                                {/* Image with fixed aspect ratio container */}
-                                <div className="relative w-full h-48 mb-3 overflow-hidden rounded-lg">
-                                    <img
-                                        src={item.images[0]}
-                                        alt={item.name}
-                                        className="w-full h-full object-cover rounded-lg hover:scale-105 transition-transform duration-300"
-                                        onError={(e) => {
-                                            // Fallback for broken images
-                                            e.currentTarget.src = 'https://via.placeholder.com/400x200?text=No+Image';
-                                            e.currentTarget.className = 'w-full h-full object-contain rounded-lg bg-gray-100 p-4';
-                                        }}
-                                    />
+                                <img src={item.images[0]} alt={item.name} width={400} height={200} className="rounded-lg mb-3" />
+
+                                <div className="flex justify-between items-start mb-3">
+                                    <h3 className="font-semibold text-lg text-gray-900 truncate">
+                                        {item.name}
+                                    </h3>
                                 </div>
 
-                                <div className="flex-1"> {/* This pushes button to bottom */}
-                                    <div className="flex justify-between items-start mb-3">
-                                        <h3 className="font-semibold text-lg text-gray-900 line-clamp-2">
-                                            {item.name}
-                                        </h3>
-                                    </div>
-                                </div>
-
-                                {/* Actions */}
                                 <div className="mt-4 flex space-x-2">
                                     <Button
                                         variant="outline"
                                         size="sm"
                                         className="flex-1"
-                                        onClick={() => { navigate(`/app/property/${currentTab}/${item.id}`) }}
+                                        onClick={() => {
+                                            item.type != "property" ?
+                                                navigate(`/app/property/${currentTab}/${item.id}`) :
+                                                navigate(`/property/${item.propertyId}`)
+                                        }}
                                     >
                                         View Details
                                     </Button>
+                                    {
+                                        item.type == "property" && (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => navigate(`/app/property/${currentTab}/${item.id}`)}
+                                            >
+                                                <Settings className="h-4 w-4" />
+                                            </Button>
+                                        )
+                                    }
                                 </div>
                             </div>
                         ))}

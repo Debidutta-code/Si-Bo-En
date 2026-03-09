@@ -310,6 +310,10 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
   ) => {
     setLoadingPriceFor(ratePlan.comboLabel);
     try {
+      const childAges = bookingContext.guests.roomsArray
+    ? bookingContext.guests.roomsArray.flatMap((room: any) => room.childAges || [])
+    : Array(bookingContext.guests.children || 0).fill(0);
+    
       const payload: any = {
         propertyCode: bookingContext.PropertyCode,
         invTypeCode: room.room_type,
@@ -319,6 +323,7 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
         noOfAdults,
         noOfChildren: noOfChildrens,
         noOfRooms,
+        childAges,
         promoCode: bookingContext.promocode,
       };
 
@@ -872,13 +877,13 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
                       )}
                     </div>
 
-                    {/* Tax info top-right (like in screenshot) */}
+                    {/* Tourist Tax Badge */}
                     {firstCombo.touristTax?.calculatedTaxAmount > 0 && (
-                      <div className="text-xs text-right text-gray-500 max-w-[200px] hidden sm:block">
-                        TAX NOT INCLUDED:{" "}
-                        {firstCombo.touristTax.name?.toUpperCase()} {currency}{" "}
-                        {firstCombo.touristTax.calculatedTaxAmount.toFixed(2)} -
-                        PAY AT THE HOTEL
+                      <div className="flex-shrink-0 self-start">
+                        <span className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-300 text-amber-800 text-[11px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
+                          Tax not included
+                        </span>
                       </div>
                     )}
                   </div>
@@ -1155,10 +1160,23 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
                 {/* ── Tourist Tax Footer ── */}
                 {!isCollapsed &&
                   firstCombo.touristTax?.calculatedTaxAmount > 0 && (
-                    <div className="px-4 py-2 text-xs text-gray-500 border-t border-gray-100 text-center bg-gray-50">
-                      Direct payment at hotel:{" "}
-                      {firstCombo.touristTax.name?.toUpperCase()} — {currency}{" "}
-                      {firstCombo.touristTax.calculatedTaxAmount.toFixed(2)}
+                    <div className="px-4 py-2.5 border-t border-amber-200 bg-amber-50 flex items-center justify-center gap-2">
+                      <span className="text-amber-500 text-sm">ℹ️</span>
+                      <p className="text-xs text-amber-800 text-center">
+                        <span className="font-bold">
+                          {firstCombo.touristTax.name || "Tourist Tax"}
+                        </span>{" "}
+                        of{" "}
+                        <span className="font-bold">
+                          {firstCombo.touristTax.currencyCode || currency}{" "}
+                          {firstCombo.touristTax.calculatedTaxAmount.toFixed(2)}
+                        </span>{" "}
+                        is{" "}
+                        <span className="font-bold text-amber-900">
+                          not included
+                        </span>{" "}
+                        in the room rate — to be paid directly at the hotel.
+                      </p>
                     </div>
                   )}
               </div>

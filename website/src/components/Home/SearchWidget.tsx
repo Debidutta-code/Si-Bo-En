@@ -97,7 +97,7 @@ const DatePickerWithHover = ({
       onChange={(date) => {
         if (date) onDateSelect(date);
       }}
-      minDate={new Date(new Date().setDate(new Date().getDate() + 1))}
+      minDate={new Date()} 
       startDate={checkIn}
       endDate={temporaryCheckOut || checkOut}
       selectsStart
@@ -282,9 +282,6 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
     logoIcon,
   ]);
   const handleGuestSelection = (summary: string, data: any) => {
-    // //console.log("Selected guest data:", data);
-    // //console.log("Selected guest summary:", summary);
-
     setGuestSummary(summary);
 
     // Transform the data from GuestSelector to match the expected format
@@ -304,8 +301,12 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
         adults: totalAdults,
         children: totalChildren,
         rooms: roomsCount,
-        // Keep the original rooms array for display purposes if needed
-        roomsArray: data.rooms,
+        // Keep the original rooms array with childAges preserved
+        roomsArray: data.rooms.map((r: any) => ({
+          adults: r.adults || 0,
+          children: r.children || 0,
+          childAges: r.childAges || [],
+        })),
       };
 
       setGuestInfo(transformedData);
@@ -334,16 +335,30 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
       return;
     }
 
+    // Derive the rooms count from guestInfo
+    const roomsCount =
+      Array.isArray(guestInfo.rooms)
+        ? guestInfo.rooms.length
+        : typeof guestInfo.rooms === "number"
+          ? guestInfo.rooms
+          : 1;
+
+    // Build a CLEAN payload — only the fields the API needs
+    // Do NOT spread bookingContext to avoid leaking PropertyDetails, bookingEngineColor, etc.
     const payload = {
-      ...bookingContext,
+      PropertyCode: hotelcode,
       startDate: checkIn.toISOString().split("T")[0],
       endDate: checkOut.toISOString().split("T")[0],
       guests: guestInfo,
-      PropertyCode: hotelcode,
+      location: bookingContext.location || "",
+      numberOfRooms: roomsCount,
       promocode: promocodeRef.current, // ✅ always fresh, no stale closure
+      bookingSource: bookingContext.bookingSource || "direct",
+      paymentMethod: bookingContext.paymentMethod || "pay_at_hotel",
+      hotelName: bookingContext.hotelName || "",
     };
 
-    // ✅ Single source of truth — Redux only, no localStorage
+    // Update Redux (Rooms page reads this directly on client-side navigation)
     dispatch(setBookingContext(payload));
 
     if (onSearchStart) {
@@ -575,8 +590,8 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 type="text"
                 value={promocode}
                 onChange={(e) => {
-                  setPromocode(e.target.value);
-                  promocodeRef.current = e.target.value; // ✅ sync immediately, no useEffect lag
+                  setPromocode(e.target.value.toUpperCase());
+                  promocodeRef.current = e.target.value.toUpperCase(); // ✅ sync immediately, no useEffect lag
                 }}
                 placeholder="PROMO CODE"
                 className="bg-transparent border-b-2 pb-2 text-[10px] tracking-[0.15em] placeholder-[#9B8B6F] focus:outline-none transition-colors w-full"

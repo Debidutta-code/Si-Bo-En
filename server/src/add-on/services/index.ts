@@ -4,3 +4,4 @@ export { VariantService } from "./variant.service";
 export { AddonService } from "./addon.service";
 export { AddonDateWiseService } from "./addonDateWise.service";
 export { BookingAddonService } from "./bookingAddon.service";
+export { ChildAddonsService } from "./childAddons.service";

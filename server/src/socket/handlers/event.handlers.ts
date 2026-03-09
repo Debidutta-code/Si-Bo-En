@@ -4,8 +4,7 @@ import { Socket } from 'socket.io';
 import { ConnectionManager } from '../managers/connection.manager';
 import { SOCKET_EVENTS, ROOM_PREFIX } from '../constants';
 import { RoomJoinedResponse } from '../types';
-import redis from '../../config/redis.client';
-
+import { RedisClient } from '../../config';
 export class SocketEventHandlers {
     constructor(private connectionManager: ConnectionManager) {}
 

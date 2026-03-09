@@ -4,7 +4,7 @@ import {ICSubCategory,IAddonSubCategory} from "./subCategory.type";
 import {ICVariant,IAddonVariant} from "./variant.types";
 import {IBookingAddon,ICreateBookingAddonInput,IUpdateBookingAddonInput} from "./booking.type";
 import {IAddonAvailability,ICreateAddonAvailability,IUpdateAddonAvailability} from "./availability.type";
-
+export * from "./childAddon.repository";
 
 
 export{

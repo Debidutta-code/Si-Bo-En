@@ -11,6 +11,7 @@ export interface IBookingSearchPayload {
     adults: number;
     children: number;
     rooms: number;
+    roomsArray?: { adults: number; children: number; childAges: number[] }[];
   };
   PropertyCode: string;
   countryCode?: string;

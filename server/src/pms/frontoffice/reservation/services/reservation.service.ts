@@ -371,7 +371,12 @@ export class ReservationService {
                     reservationPayload
                 );
 
-            // Link reservation with payment record if N-Genius order reference is provided
+            if (guestDetails && guestDetails.length > 0) {
+                await this.reservationRepository.createReservationGuests(
+                    reservation.id,
+                    guestDetails
+                );
+            }
             const ngeniusOrderRef = bookingDetails.ngeniusOrderRef;
             if (ngeniusOrderRef) {
                 try {
@@ -436,6 +441,7 @@ export class ReservationService {
                                 totalPrice: addon.totalPrice,
                                 currencyCode: currency,
                                 specialInstructions: null,
+                                type: addon.type,
                                 date: new Date(addon.date),
                             })
                         );
@@ -979,7 +985,7 @@ export class ReservationService {
                     type: guest.type,
                     firstName: guest.firstName,
                     lastName: guest.lastName,
-                    dateOfBirth: guest.dob,
+                    dateOfBirth: guest.dateOfBirth,
                     email:
                         guest.type === 'adult'
                             ? updatePayload.bookingUserEmail

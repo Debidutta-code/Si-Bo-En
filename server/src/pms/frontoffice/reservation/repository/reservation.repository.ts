@@ -7,7 +7,7 @@ import {
     IReservationPriceBrakeDownR,
     IAriManulupulation
 } from "../types";
-import { BookingStatus, IBookingAddon, IBookingAddonCreate, IPropertyEmails, IReservationPromotion, IReservationPromotionCreate } from "../types/reservation.type";
+import { BookingStatus, IBookingAddon, IBookingAddonCreate, IGuestDetail, IPropertyEmails, IReservationPromotion, IReservationPromotionCreate } from "../types/reservation.type";
 
 export class ReservationRepository {
     public async createReservation(data: ICReservation) {
@@ -16,7 +16,8 @@ export class ReservationRepository {
                 data,
                 include: {
                     primaryGuest: true,
-                    priceBreakdowns: true
+                    priceBreakdowns: true,
+                    reservationGuests: true,
                 }
             });
         } catch (error) {
@@ -26,7 +27,25 @@ export class ReservationRepository {
             throw new Error("Failed to create reservation");
         }
     }
-
+    public async createReservationGuests(reservationId: string, guestDetails: IGuestDetail[]) {
+        try {
+            return await prisma.reservationGuest.createMany({
+                data: guestDetails.map((guest) => ({
+                    reservationId,
+                    firstName: guest.firstName,
+                    lastName: guest.lastName,
+                    type: guest.type,
+                    age: guest.age ?? null,
+                    dateOfBirth: guest.dateOfBirth ? new Date(guest.dateOfBirth) : null,
+                })),
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`Failed to create reservation guests: ${error.message}`);
+            }
+            throw new Error("Failed to create reservation guests");
+        }
+    }
     public async updateReservation(
         reservationId: string,
         updateData: Partial<ICReservation>
@@ -613,7 +632,7 @@ export class ReservationRepository {
             throw new Error("Failed to delete ReservationDate");
         }
     }
-    public async getReservaltionByCode(reservationCode: string,propertyCode:string): Promise<IReservationWithAllDetails | null> {
+    public async getReservaltionByCode(reservationCode: string, propertyCode: string): Promise<IReservationWithAllDetails | null> {
         try {
             return await prisma.reservation.findUnique({
                 where: { bookingCode: reservationCode, propertyCode: propertyCode },
@@ -621,6 +640,7 @@ export class ReservationRepository {
                     primaryGuest: true,
                     priceBreakdowns: true,
                     addOns: true,
+                    reservationGuests: true,
                 },
             });
         } catch (error) {
@@ -656,7 +676,8 @@ export class ReservationRepository {
                 include: {
                     primaryGuest: true,
                     priceBreakdowns: true,
-                    addOns: true
+                    addOns: true,
+                    reservationGuests: true,
                 }
             });
         } catch (error) {
@@ -670,14 +691,14 @@ export class ReservationRepository {
         try {
             const property = await prisma.propertyEmails.findMany({
                 where: { id: propertyId },
-                select: { email:true }
+                select: { email: true }
             });
             return property;
         } catch (error) {
-                throw new Error(`Failed to fetch property emails`);
+            throw new Error(`Failed to fetch property emails`);
         }
     }
-            
+
 }
 
 export class PriceBrakeDownRepo {
@@ -830,19 +851,19 @@ export class ReservationPromotionRepository {
     }
 
     public async getPromotionsByReservationId(reservationId: string): Promise<IReservationPromotion[]> {
-    try {
-        return await prisma.reservationPromotion.findMany({
-            where: { bookingId: reservationId },
-            include: {
-                Promotion: true,
-                RatePlanRule: true
+        try {
+            return await prisma.reservationPromotion.findMany({
+                where: { bookingId: reservationId },
+                include: {
+                    Promotion: true,
+                    RatePlanRule: true
+                }
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`Failed to fetch reservation promotions: ${error.message}`);
             }
-        });
-    } catch (error) {
-        if (error instanceof Error) {
-            throw new Error(`Failed to fetch reservation promotions: ${error.message}`);
+            throw new Error("Failed to fetch reservation promotions");
         }
-        throw new Error("Failed to fetch reservation promotions");
     }
-}
 }

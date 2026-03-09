@@ -28,7 +28,10 @@ enum geoRestrictionTypeAction {
   increase
   decrease
 }
-
+enum ReservationAddonType {
+  included
+  selected
+}
 enum CreationType {
   group
   property
@@ -964,6 +967,20 @@ model Addon {
   availability                      AddonAvailability[]
   ratePlans                         RatePlanWithAddon[]
   customizableDealsApplicableAddons CustomizableDealsApplicableAddons[]
+  ChildAddons                       ChildAddon[]
+
+}
+model ChildAddon{
+  id          String   @id @default(uuid())
+  addonId     String
+  Addon      Addon    @relation(fields: [addonId], references: [id], onDelete: Cascade)
+  minAge      Int @map("min_age")
+  maxAge      Int @map("max_age")
+  discountApplicable Boolean @default(false) @map("discount_applicable")
+  discountType       DiscountType?  @map("discount_type")  @default(percentage)
+  discountAmount     Int?     @default(0) @map("discount_amount")
+  currencyCode CurrencyCode? @map("currency_code") @default(INR) 
+
 }
 
 model RatePlanWithAddon {
@@ -989,6 +1006,7 @@ model BookingAddon {
   currencyCode        String   @default("INR")
   specialInstructions String?
   date                DateTime @default(now())
+  type                ReservationAddonType   @default(included)
 
   Reservation Reservation @relation(fields: [reservationId], references: [id])
 
@@ -1084,6 +1102,7 @@ model Reservation {
   agency                Agency?                     @relation(fields: [agencyId], references: [id])
   reservationPromotions ReservationPromotion[]
   payments              Payment[]
+  reservationGuests ReservationGuest[]
 
   @@index([propertyCode])
   @@index([propertyId])
@@ -1093,6 +1112,22 @@ model Reservation {
   @@index([bookingSource])
   @@index([primaryGuestId])
   @@map("reservations")
+}
+
+model ReservationGuest {
+    id            String      @id @default(uuid())
+    reservationId String      @map("reservation_id")
+    reservation   Reservation @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+
+    firstName   String       @map("first_name")
+    lastName    String       @map("last_name")
+    type        GuestType    @default(adult) @map("type")
+    dateOfBirth DateTime?    @map("date_of_birth")
+    age         Int?         @map("age")
+    createdAt DateTime @default(now()) @map("created_at")
+
+    @@index([reservationId])
+    @@map("reservation_guests")
 }
 
 enum ReservationPromotionType {

@@ -58,7 +58,7 @@ export interface INewGBP {
 }
 export interface ICreation {
     id: string;
-    type: string;
+    type: "group" | "brand" | "property";
     name: string;
     images:string[];
     level0Users?: string;

@@ -286,7 +286,7 @@ const Rooms = () => {
   };
 
   const handleSearchStart = async (payload: any) => {
-    console.log("boking call", payload)
+    // console.log("booking call", payload);
     const bookingCtx = payload || bookingContext;
 
     if (!bookingCtx?.PropertyCode) {
@@ -301,7 +301,17 @@ const Rooms = () => {
       return;
     }
 
-    if (!bookingCtx?.guests || typeof bookingCtx.guests.rooms !== "number") {
+    // Derive rooms count from whichever shape guests data is in
+    const guestsRoomsCount =
+      typeof bookingCtx.guests?.rooms === "number"
+        ? bookingCtx.guests.rooms
+        : Array.isArray(bookingCtx.guests?.roomsArray)
+          ? bookingCtx.guests.roomsArray.length
+          : Array.isArray(bookingCtx.guests?.rooms)
+            ? bookingCtx.guests.rooms.length
+            : 1;
+
+    if (!bookingCtx?.guests || (!bookingCtx.guests.rooms && !bookingCtx.guests.roomsArray)) {
       console.error("❌ Invalid guests data");
       setInitialLoading(false);
       return;
@@ -322,7 +332,20 @@ const Rooms = () => {
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(bookingCtx),
+          body: JSON.stringify({
+            PropertyCode: bookingCtx.PropertyCode,
+            startDate: bookingCtx.startDate,
+            endDate: bookingCtx.endDate,
+            guests: {
+              rooms: guestsRoomsCount,
+              adults: bookingCtx.guests.adults || 1,
+              children: bookingCtx.guests.children || 0,
+              roomsArray: bookingCtx.guests.roomsArray || undefined,
+            },
+            location: bookingCtx.location || "",
+            numberOfRooms: guestsRoomsCount,
+            promocode: bookingCtx.promocode || "",
+          }),
         },
       );
       const data = await response.json();
@@ -442,40 +465,67 @@ const Rooms = () => {
         console.error("Error parsing localStorage:", e);
       }
 
-      // If no rooms array, create default structure
-      if (roomsArray.length === 0) {
-        const totalAdults = parseInt(adults || "1");
-        const totalChildren = parseInt(children || "0");
+        const buildRoomsArrayFallback = (
+            numRooms: number,
+            totalAdults: number,
+            totalChildren: number
+        ) => {
+            const MAX_PER_ROOM = 4;
+            const roomsArray = [];
+            let remainingAdults = totalAdults - numRooms;
+            let remainingChildren = totalChildren;
+            if (remainingAdults < 0) {
+                remainingAdults = 0;
+            }
+            for (let i = 0; i < numRooms; i++) {
+                let roomAdults = 1;
+                let roomChildren = 0;
+                const adultSpace = MAX_PER_ROOM - roomAdults;
+                const adultsToAdd = Math.min(remainingAdults, adultSpace);
+                roomAdults += adultsToAdd;
+                remainingAdults -= adultsToAdd;
+                const childSpace = MAX_PER_ROOM - roomAdults;
+                const childrenToAdd = Math.min(remainingChildren, childSpace);
+                roomChildren = childrenToAdd;
+                remainingChildren -= childrenToAdd;
+                roomsArray.push({
+                    adults: roomAdults,
+                    children: roomChildren,
+                    childAges: Array(roomChildren).fill(0),
+                });
+            }
+            return roomsArray;
+        };
 
-        // Distribute guests across rooms
-        for (let i = 0; i < numRooms; i++) {
-          roomsArray.push({
-            adults: i === 0 ? totalAdults : 0,
-            children: i === 0 ? totalChildren : 0,
-          });
+        // If no rooms array from localStorage, build it with fallback
+        if (roomsArray.length === 0) {
+            const totalAdults = parseInt(adults || "1");
+            const totalChildren = parseInt(children || "0");
+
+            // ✅ Replace the old dumb distribution with smart fallback
+            roomsArray = buildRoomsArrayFallback(numRooms, totalAdults, totalChildren);
         }
-      }
 
-      return {
-        PropertyCode: code,
-        startDate: checkin || defaultStartDate,
-        endDate: checkout || defaultEndDate,
-        guests: {
-          rooms: numRooms, // ✅ Always send as number for API
-          adults: parseInt(adults || "1"),
-          children: parseInt(children || "0"),
-        },
-        roomsDetail: roomsArray, // ✅ Keep detailed array separately
-        location: "",
-        numberOfRooms: numRooms,
-        promocode: promocode || "",
-        isExternal: true,
-        bookingSource: bookingSource,
-      };
+        return {
+            PropertyCode: code,
+            startDate: checkin || defaultStartDate,
+            endDate: checkout || defaultEndDate,
+            guests: {
+                rooms: numRooms,
+                adults: parseInt(adults || "1"),
+                children: parseInt(children || "0"),
+                roomsArray, // ✅ now properly distributed
+            },
+            location: "",
+            numberOfRooms: numRooms,
+            promocode: promocode || "",
+            isExternal: true,
+            bookingSource: bookingSource,
+        };
     }
 
     return null;
-  };
+};
 
   // NEW: Initialize booking context from URL params or localStorage
   useEffect(() => {
@@ -526,67 +576,62 @@ const Rooms = () => {
           JSON.stringify(contextWithDates),
         );
         await handleSearchStart(contextWithDates);
-        isLoadingFromExternal.current = false; // Allow SearchWidget after initial load
+        isLoadingFromExternal.current = false;
       } else {
-        // No URL params, check localStorage
-        const storedContext = localStorage.getItem("bookingContext");
+        const hasValidReduxState =
+          bookingContext?.PropertyCode &&
+          bookingContext?.startDate &&
+          bookingContext?.endDate;
 
-        if (storedContext) {
-          const parsedContext = JSON.parse(storedContext);
-
-          // Validate stored context has required fields
-          const validatedContext = {
-            ...parsedContext,
-            PropertyCode:
-              parsedContext.PropertyCode ||
-              searchParams.get("code") ||
-              "WOQDD3",
-            startDate: parsedContext.startDate || defaultStartDate,
-            endDate: parsedContext.endDate || defaultEndDate,
-            guests: parsedContext.guests || {
-              rooms: 1,
-              adults: 1,
-              children: 0,
-            },
-            location: parsedContext.location || "",
-            promocode: parsedContext.promocode || "",
-            numberOfRooms:
-              parsedContext.numberOfRooms || parsedContext.guests?.rooms || 1,
-          };
-
-          //console.log("💾 Loading from localStorage:", validatedContext);
-          dispatch(setBookingContext(validatedContext));
-          dispatch(setBookingSource(parsedContext.bookingSource || "direct"));
-          localStorage.setItem(
-            "bookingContext",
-            JSON.stringify(validatedContext),
-          );
-          await handleSearchStart(validatedContext);
+        if (hasValidReduxState) {
+          await handleSearchStart(bookingContext);
         } else {
-          // No data at all, create default
-          const urlCode = searchParams.get("code") || "WOQDD3";
+          const storedContext = localStorage.getItem("bookingContext");
 
-          const defaultContext = {
-            PropertyCode: urlCode,
-            startDate: defaultStartDate,
-            endDate: defaultEndDate,
-            guests: {
-              rooms: 1,
-              adults: 1,
-              children: 0,
-            },
-            location: "",
-            numberOfRooms: 1,
-            promocode: ""
-          };
+          if (storedContext) {
+            const parsedContext = JSON.parse(storedContext);
+            const validatedContext = {
+              ...parsedContext,
+              PropertyCode:
+                parsedContext.PropertyCode ||
+                searchParams.get("code") ||
+                "WOQDD3",
+              startDate: parsedContext.startDate || defaultStartDate,
+              endDate: parsedContext.endDate || defaultEndDate,
+              guests: parsedContext.guests || {
+                rooms: 1,
+                adults: 1,
+                children: 0,
+              },
+              location: parsedContext.location || "",
+              promocode: parsedContext.promocode || "",
+              numberOfRooms:
+                parsedContext.numberOfRooms || parsedContext.guests?.rooms || 1,
+            };
 
-          //console.log("🆕 Creating default context:", defaultContext);
-          dispatch(setBookingContext(defaultContext));
-          localStorage.setItem(
-            "bookingContext",
-            JSON.stringify(defaultContext),
-          );
-          await handleSearchStart(defaultContext);
+            dispatch(setBookingContext(validatedContext));
+            dispatch(setBookingSource(parsedContext.bookingSource || "direct"));
+            await handleSearchStart(validatedContext);
+          } else {
+            const urlCode = searchParams.get("code") || "WOQDD3";
+
+            const defaultContext = {
+              PropertyCode: urlCode,
+              startDate: defaultStartDate,
+              endDate: defaultEndDate,
+              guests: {
+                rooms: 1,
+                adults: 1,
+                children: 0,
+              },
+              location: "",
+              numberOfRooms: 1,
+              promocode: ""
+            };
+
+            dispatch(setBookingContext(defaultContext));
+            await handleSearchStart(defaultContext);
+          }
         }
       }
     };

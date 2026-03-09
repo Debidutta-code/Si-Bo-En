@@ -34,8 +34,8 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
         typeof guest.dob === "string"
           ? guest.dob.split("T")[0]
           : typeof guest.dob === "object" && guest.dob?.$date
-          ? guest.dob.$date.split("T")[0]
-          : "",
+            ? guest.dob.$date.split("T")[0]
+            : "",
     }));
   };
 
@@ -50,7 +50,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
   };
 
   const [activeTab, setActiveTab] = useState<"dates" | "guests">("dates");
-  
+
   const parseDate = (date: any): string => {
     if (typeof date === "string") return date.split("T")[0];
     if (date && typeof date === "object" && "$date" in date)
@@ -93,7 +93,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
   const [loading, setLoading] = useState(false);
   const [priceLoading, setPriceLoading] = useState(false);
   const [showBreakdown, setShowBreakdown] = useState(false);
-  
+
   const [finalPrice, setFinalPrice] = useState<any>({
     booking: {
       finalPayable: 0,
@@ -110,22 +110,30 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
     },
     tax: []
   });
-  
+
   const [dateErrors, setDateErrors] = useState<{
     checkIn?: string;
     checkOut?: string;
   }>({});
-  
+
   const [guestForms, setGuestForms] = useState<Guest[]>(
     normalizeGuests(bookingData.guests)
   );
-  
+
   const [errors, setErrors] = useState<any>({});
+  // ✅ WITH THIS
   const [guestCounts, setGuestCounts] = useState<{
     adults: number;
     children: number;
   }>(countGuests(normalizeGuests(bookingData.guests)));
-  
+
+  // Extract child ages from reservationGuests
+  const [childAges, setChildAges] = useState<number[]>(
+    (bookingData.reservationGuests || [])
+      .filter((g: any) => g.type === 'child')
+      .map((g: any) => g.age || 0)
+  );
+
   const [priceFetched, setPriceFetched] = useState(false);
   const [priceFetchError, setPriceFetchError] = useState(false);
 
@@ -146,8 +154,30 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
         else if (guest.type === "child") noOfChildrens++;
       });
 
+      // ✅ WITH THIS
+      // Build includedAddons — unique addonIds where type === 'included'
+      const includedAddonIds = Array.from(
+        new Set(
+          (bookingData.addOns || [])
+            .filter((a: any) => a.type === 'included')
+            .map((a: any) => a.addonId)
+        )
+      ) as string[];
+
+      // Build parsedAddons — selected type only, exclude child rows (name contains 'Child age')
+      const selectedAddons = (bookingData.addOns || [])
+        .filter((a: any) => a.type === 'selected' && !a.name.includes('Child age'));
+
+      const parsedAddons = selectedAddons.map((a: any) => ({
+        addOnId: a.addonId,
+        availability: [{
+          date: new Date(checkInDate).toISOString(),
+          quantity: a.quantity,  // ← take directly from addon
+        }]
+      }));
+
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/ari/price/get-price`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/pricing/get-price`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -157,11 +187,13 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
             startDate: checkInDate,
             endDate: checkOutDate,
             noOfAdults,
-            previousRooms,
-            noOfChildrens,
+            noOfChildren: noOfChildrens,
             noOfRooms: requestedRooms,
             ratePlanCode: bookingData.ratePlanCode,
-            bookingCode: bookingData.bookingCode,
+            childAges,
+            parsedAddons,
+            includedAddons: includedAddonIds,
+            promoCode: "",
           }),
         }
       );
@@ -177,7 +209,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
       const updatedAmount = Number(data?.data?.totalAmount);
       const paidAmount = bookingData?.paidamount || 0;
       const priceDifference = updatedAmount - paidAmount;
-      
+
       setFinalPrice({
         ...data.data,
         booking: {
@@ -186,11 +218,11 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
           discount: data.data.discount || 0
         }
       });
-      
+
       setAmount(updatedAmount);
       setPriceFetched(true);
       toast.success("Price updated successfully!");
-      
+
     } catch (error: unknown) {
       setPriceFetchError(true);
       toast.error("Failed to fetch updated price. Please try again.");
@@ -222,7 +254,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
         gErrors.lastName = "Invalid Name Format";
         valid = false;
       }
-      
+
       if (Object.keys(gErrors).length > 0) {
         newErrors[`guest-${index}`] = gErrors;
       }
@@ -248,12 +280,12 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
       toast.error("Cannot update booking due to pricing error. Please fetch the latest price first.");
       return;
     }
-    
+
     if (!priceFetched) {
       toast.error("Please fetch the updated price before confirming.");
       return;
     }
-    
+
     const errors: { checkIn?: string; checkOut?: string } = {};
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -323,7 +355,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
   tomorrow.setDate(today.getDate() + 1);
 
   const formatDateForInput = (date: Date) => date.toISOString().split("T")[0];
-  
+
   const handleDeleteClick = (index: number) => {
     const guestToDelete = guestForms[index];
 
@@ -343,16 +375,15 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
     if (deleteIndex !== null) {
       const updatedGuests = guestForms.filter((_, i) => i !== deleteIndex);
       setGuestForms(updatedGuests);
-      
+
       const adultsCount = updatedGuests.filter((g) => g.type === "adult").length;
       const childrenCount = updatedGuests.filter((g) => g.type === "child").length;
       setGuestCounts({ adults: adultsCount, children: childrenCount });
-      
+
       setGuestSummary(
-        `${adultsCount} adult${adultsCount !== 1 ? "s" : ""}${
-          childrenCount > 0
-            ? ` - ${childrenCount} child${childrenCount !== 1 ? "ren" : ""}`
-            : ""
+        `${adultsCount} adult${adultsCount !== 1 ? "s" : ""}${childrenCount > 0
+          ? ` - ${childrenCount} child${childrenCount !== 1 ? "ren" : ""}`
+          : ""
         }`
       );
 
@@ -389,7 +420,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
             <span>{bookingData?.currencyCode || 'USD'} {finalPrice.totalTax}</span>
           </div>
         )}
-    </div>
+      </div>
     );
   };
 
@@ -417,13 +448,13 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
           <div className="bg-blue-700 text-white p-4">
             <h2 className="text-xl font-bold text-center">Modify Your Booking</h2>
           </div>
-          
+
           <div>
             <h1 className="px-4 py-2 text-xl font-bold">
               🏨 {bookingData?.hotelName || "Azure Haven Resort"}
             </h1>
           </div>
-          
+
           <div className="p-4 border-b text-sm text-gray-700 grid md:grid-cols-3 gap-4">
             <div>
               <p className="font-semibold">Stay Dates</p>
@@ -444,17 +475,15 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
 
           <div className="flex justify-center gap-4 py-4">
             <button
-              className={`px-4 py-2 rounded-md font-medium flex items-center gap-2 ${
-                activeTab === "dates" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700"
-              }`}
+              className={`px-4 py-2 rounded-md font-medium flex items-center gap-2 ${activeTab === "dates" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700"
+                }`}
               onClick={() => setActiveTab("dates")}
             >
               <FaCalendarAlt /> Dates
             </button>
             <button
-              className={`px-4 py-2 rounded-md font-medium flex items-center gap-2 ${
-                activeTab === "guests" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700"
-              }`}
+              className={`px-4 py-2 rounded-md font-medium flex items-center gap-2 ${activeTab === "guests" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700"
+                }`}
               onClick={() => setActiveTab("guests")}
             >
               <FaUser /> Guests
@@ -497,7 +526,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                     {dateErrors.checkOut && <p className="text-sm text-red-600 mt-1">{dateErrors.checkOut}</p>}
                   </div>
                 </div>
-                
+
                 <div className="pt-4 border-t">
                   <button
                     onClick={fetchUpdatedPrice}
@@ -528,12 +557,12 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                     <Plus /> {guestSummary}
                   </span>
                 </button>
-                
+
                 <div className="mt-4 space-y-2 border p-4 rounded bg-gray-50">
                   {guestForms.map((guest, index) => {
                     const gErr = errors[`guest-${index}`] || {};
                     const typeCount = guestForms.slice(0, index + 1).filter((g) => g.type === guest.type).length;
-                    
+
                     return (
                       <div key={index} className="bg-white relative border border-gray-300 p-4 rounded shadow-sm">
                         <button
@@ -542,11 +571,11 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                         >
                           <Trash2 className="w-5 h-5" />
                         </button>
-                        
+
                         <p className="font-medium text-gray-800 mb-2">
                           {guest.type === "adult" ? `Adult ${typeCount}` : `Child ${typeCount}`}
                         </p>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
                             <label className="block text-sm font-medium mb-1 text-gray-700">First Name</label>
@@ -555,13 +584,12 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                               placeholder="First Name"
                               value={guest.firstName}
                               onChange={(e) => handleGuestDetailChange(index, "firstName", e.target.value)}
-                              className={`w-full rounded-lg border px-4 py-2 focus:ring-2 focus:ring-indigo-500 ${
-                                gErr.firstName ? "border-red-500" : "border-gray-300"
-                              }`}
+                              className={`w-full rounded-lg border px-4 py-2 focus:ring-2 focus:ring-indigo-500 ${gErr.firstName ? "border-red-500" : "border-gray-300"
+                                }`}
                             />
                             {gErr.firstName && <p className="text-sm text-red-600 mt-1">{gErr.firstName}</p>}
                           </div>
-                          
+
                           <div>
                             <label className="block text-sm font-medium mb-1 text-gray-700">Last Name</label>
                             <input
@@ -569,13 +597,12 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                               placeholder="Last Name"
                               value={guest.lastName}
                               onChange={(e) => handleGuestDetailChange(index, "lastName", e.target.value)}
-                              className={`w-full rounded-lg border px-4 py-2 focus:ring-2 focus:ring-indigo-500 ${
-                                gErr.lastName ? "border-red-500" : "border-gray-300"
-                              }`}
+                              className={`w-full rounded-lg border px-4 py-2 focus:ring-2 focus:ring-indigo-500 ${gErr.lastName ? "border-red-500" : "border-gray-300"
+                                }`}
                             />
                             {gErr.lastName && <p className="text-sm text-red-600 mt-1">{gErr.lastName}</p>}
                           </div>
-                          
+
                           <div>
                             <label className="block text-sm font-medium mb-1 text-gray-700">Date of Birth</label>
                             <input
@@ -590,7 +617,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                     );
                   })}
                 </div>
-                
+
                 <div className="pt-4 border-t mt-4">
                   <button
                     onClick={fetchUpdatedPrice}
@@ -633,7 +660,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                     </button>
                   )}
                 </div>
-                
+
                 {showBreakdown && priceFetched && (
                   <div className="mt-3 pt-3 border-t border-yellow-200">
                     <h4 className="font-medium text-yellow-800 mb-2">Price Breakdown</h4>
@@ -688,7 +715,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                       </button>
                     )}
                   </div>
-                  
+
                   {showBreakdown && priceFetched && (
                     <div className="mb-3 p-3 bg-white rounded border">
                       <h4 className="font-medium text-gray-800 mb-2">Price Breakdown</h4>
@@ -717,7 +744,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                       </div>
                     </div>
                   )}
-                  
+
                   <div className="border-t pt-3">
                     <div className="space-y-2">
                       <div className="flex justify-between">
@@ -726,7 +753,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                           {bookingData?.currencyCode || 'USD'} {bookingData?.paidamount?.toLocaleString() || '0'}
                         </span>
                       </div>
-                      
+
                       {finalPrice.booking?.discount > 0 && (
                         <div className="flex justify-between">
                           <span>Discount Applied:</span>
@@ -735,7 +762,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                           </span>
                         </div>
                       )}
-                      
+
                       {priceFetched && finalPrice.booking?.finalPayable > 0 && (
                         <div className="flex justify-between bg-red-50 p-2 rounded">
                           <span className="text-red-700 font-semibold">To Pay at Hotel:</span>
@@ -744,7 +771,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                           </span>
                         </div>
                       )}
-                      
+
                       {priceFetched && finalPrice.booking?.refundAmount > 0 && (
                         <div className="flex justify-between bg-green-50 p-2 rounded">
                           <span className="text-green-700 font-semibold">To Be Refunded:</span>
@@ -753,7 +780,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                           </span>
                         </div>
                       )}
-                      
+
                       {!priceFetched && !priceFetchError && (
                         <div className="text-center py-2">
                           <p className="text-gray-600 italic">Click "Check Updated Price" to see price changes</p>
@@ -762,7 +789,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                     </div>
                   </div>
                 </div>
-                
+
                 {priceFetchError && (
                   <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded">
                     <p className="text-red-700 font-semibold">Price Error</p>
@@ -822,11 +849,13 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
         initialRooms={requestedRooms}
         initialAdults={guestCounts.adults}
         initialChildren={guestCounts.children}
+        initialChildAges={childAges}
         onClose={() => setShowGuestSelector(false)}
         onApply={(summary, data) => {
           setGuestSummary(summary);
-          setRooms([{ adults: data.adults, children: data.children, childAges: [] }]);
-          
+          setRooms([{ adults: data.adults, children: data.children, childAges: data.childAges }]);
+          setChildAges(data.childAges);
+
           const updatedGuests: Guest[] = [];
           for (let i = 0; i < data.adults + data.children; i++) {
             if (i < data.adults) {
@@ -845,7 +874,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
               });
             }
           }
-          
+
           setGuestForms(updatedGuests);
           setGuestCounts({ adults: data.adults, children: data.children });
           setRequestedRooms(data.rooms);

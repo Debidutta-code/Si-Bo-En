@@ -37,12 +37,12 @@ const PaymentSuccessPage = () => {
       }
     }
   }, []);
- const formatPaymentMethod = (paymentMethod: string): string => {
+  const formatPaymentMethod = (paymentMethod: string): string => {
     return paymentMethod
-        .split('_')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-        .join(' ');
-};
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  };
   // ✅ Clear cookie + block back navigation
   useEffect(() => {
     // Clear the access cookie
@@ -79,21 +79,9 @@ const PaymentSuccessPage = () => {
   const totalAmount = finalPrice?.totalAmount || 0;
   const nights = finalPrice?.numberOfNights || 0;
 
-  let rooms = 0;
-  let adults = 0;
-  let children = 0;
-
-  if (
-    guestCounts &&
-    typeof guestCounts === "object" &&
-    "rooms" in guestCounts &&
-    Array.isArray(guestCounts.rooms)
-  ) {
-    rooms = guestCounts.rooms.length;
-    adults = guestCounts.rooms.reduce((sum: number, r: any) => sum + (r.adults || 0), 0);
-    children = guestCounts.rooms.reduce((sum: number, r: any) => sum + (r.children || 0), 0);
-  }
-
+const rooms = bookingData.numberOfRooms || 1;
+const adults = (guests || []).filter((g: any) => g.type === 'adult').length;
+const children = (guests || []).filter((g: any) => g.type === 'child').length;
   const handleViewBookings = () => {
     setLoading(true);
     // Use URL booking code if available, otherwise use Redux booking code
@@ -135,11 +123,9 @@ const PaymentSuccessPage = () => {
                 <strong>Duration:</strong> {nights} night{nights > 1 ? "s" : ""}
               </p>
               <p>
-                <strong>Guests:</strong> {rooms || 1} Room · {adults || 1} Adult
-                {adults !== 1 ? "s" : ""}{" "}
-                {children > 0
-                  ? `· ${children} Child${children !== 1 ? "ren" : ""}`
-                  : ""}
+                <strong>Guests:</strong>{" "}
+                {rooms} Room{rooms !== 1 ? "s" : ""} · {adults} Adult{adults !== 1 ? "s" : ""}
+                {children > 0 ? ` · ${children} Child${children !== 1 ? "ren" : ""}` : ""}
               </p>
             </div>
           </div>
@@ -168,7 +154,7 @@ const PaymentSuccessPage = () => {
               <p>
                 <strong>Payment Method:</strong>{" "}
                 <span className="font-semibold" style={{ color: colors.primaryColor }}>
-                  {formatPaymentMethod(bookingData?.paymentMethod ||"pay_at_hotel")}
+                  {formatPaymentMethod(bookingData?.paymentMethod || "pay_at_hotel")}
                 </span>
               </p>
             </div>
