@@ -19,7 +19,7 @@ export interface ICEbDsOftc { //create payload type for early bird ,device speci
     ratePlanId: string;
     ratePlanCode: string;
     discountType: DiscountType;
-    discountValue: Decimal|null;
+    discountValue: number|null;
     currencyCode: CurrencyCode|null;
     monApplicable: boolean;
     tueApplicable: boolean;

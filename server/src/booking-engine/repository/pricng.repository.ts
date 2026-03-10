@@ -19,12 +19,8 @@ export class PricingRepository {
         startDate: Date,
         endDate: Date,
         includedAddons: string[]
-        // geoRatePlanId?:string,
-        // promotionIds?:string[],
-        // availabilityIds:ISelectedAddons
     ): Promise<IRatePlan | null> {
         try {
-            // console.log(includedAddons);
             return await prisma.ratePlan.findUnique({
                 where: {
                     ratePlanCode,
@@ -60,7 +56,7 @@ export class PricingRepository {
                                             },
                                         },
                                     },
-                                    ChildAddons:true
+                                    ChildAddons: true
                                 },
                             },
                         },
@@ -152,9 +148,9 @@ export class PricingRepository {
                                     date: { in: singleAdd.dates },
                                 },
                             },
-                            ChildAddons:true
+                            ChildAddons: true
                         },
-                        
+
                     });
                 })
             );
@@ -256,11 +252,11 @@ export class PricingRepository {
     ): Promise<IPropertyLoyaltyConfig | null> {
         try {
             return await prisma.propertyLoyaltyConfig.findUnique({
-                    where: {
-                        propertyId: propertyId,
-                        isActive: true,
-                    },
-                });
+                where: {
+                    propertyId: propertyId,
+                    isActive: true,
+                },
+            });
         } catch (error) {
             throw new Error('Failed to fetch loyality discount');
         }

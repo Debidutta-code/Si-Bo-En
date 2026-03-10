@@ -25,8 +25,9 @@ export class TouristTaxRepository {
                     discountValue:
                         touristTaxData.discountValue !== undefined &&
                             touristTaxData.discountValue !== null
-                            ? new Decimal(touristTaxData.discountValue)
-                            : null, currencyCode: touristTaxData.currencyCode ?? "USD",
+                            ? touristTaxData.discountValue
+                            : null,
+                    currencyCode: touristTaxData.currencyCode ?? "USD",
                 },
                 include: {
                     ratePlan: {

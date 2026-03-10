@@ -1,5 +1,3 @@
-import { Decimal } from "@prisma/client/runtime/library";
-import { IProperty } from "../../../agency/types";
 import { IRatePlan, IRoom } from "../../customizable-deal/interfaces";
 import { CurrencyCode } from "../../../tax-system/interfaces/tourist-tax.type";
 
@@ -18,7 +16,7 @@ export interface IGeoRatePlanInput {
   rooms: IRoomInput[];
   ratePlans: IRatePlanInput[];
   restrictionType: geoRestrictionType;
-  restrictionValue: Decimal | null;
+  restrictionValue: number | null;
   currencyCode: CurrencyCode;
   countryCode: string[];
   isActive: boolean;
@@ -33,7 +31,7 @@ export interface IGeoRatePlanCreate {
   ratePlanId: string;
   ratePlanCode: string;
   restrictionType: geoRestrictionType;
-  restrictionValue: Decimal | null;
+  restrictionValue: number | null;
   currencyCode: CurrencyCode | null;
   countryCode: string[];
   isActive: boolean;
@@ -49,7 +47,7 @@ export interface IGeoRatePlanWithoutRatePlan{
   ratePlanId: string;
   ratePlanCode: string;
   restrictionType: geoRestrictionType;
-  restrictionValue: Decimal | null;
+  restrictionValue: number | null;
   currencyCode: CurrencyCode | null;
   countryCode: string[];
   isActive: boolean;
@@ -66,7 +64,7 @@ export interface IGeoRatePlan {
   ratePlanId: string;
   ratePlanCode: string;
   restrictionType: geoRestrictionType;
-  restrictionValue: Decimal | null;
+  restrictionValue: number | null;
   currencyCode: CurrencyCode | null;
   countryCode: string[];
   isActive: boolean;

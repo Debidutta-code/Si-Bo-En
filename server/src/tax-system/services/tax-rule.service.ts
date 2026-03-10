@@ -3,6 +3,7 @@ import { TaxRuleRepository } from "../repository";
 import { PropertyDao } from "../../property-management/repository/property.repository";
 import { successResponse, errorResponse } from "../../utils/return";
 import { IApiResponse } from "../../utils/return.types";
+import { getCurrencyConverter } from "../../currency-maping/utils";
 export class TaxRuleService {
     taxRuleRepository: TaxRuleRepository;
 
@@ -16,7 +17,10 @@ export class TaxRuleService {
     ): Promise<IApiResponse> {
         try {
 
-            const property = await PropertyDao.getPropertyById(propertyId, true);
+            const [property,{convert, baseCurrency} ] = await Promise.all([
+              PropertyDao.getPropertyById(propertyId, true),
+              getCurrencyConverter(propertyId, "AED")
+            ]);
             if (!property) {
                 return errorResponse('Property not found');
             }

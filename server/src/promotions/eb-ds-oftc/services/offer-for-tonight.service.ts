@@ -1,6 +1,7 @@
 import { ICEbDsOftc, IOfferForTonightPromotion } from '../interfaces';
 import { errorResponse, IApiResponse, successResponse } from '../../../utils';
 import { OfferForTonightPromotionDao } from '../dao';
+import { getCurrencyConverter } from '../../../currency-maping/utils';
 
 export class OfferForTonightPromotionService {
   offerForTonightPromotionDao: OfferForTonightPromotionDao;
@@ -13,9 +14,14 @@ export class OfferForTonightPromotionService {
     data: IOfferForTonightPromotion
   ): Promise<IApiResponse> {
     try {
+      const {convert, baseCurrency} = await getCurrencyConverter(data.propertyId, data.currencyCode ? data.currencyCode : "AED");
 
       const promotions = await this.offerForTonightPromotionDao.createOfferForTonightPromotions(
-        data,
+        {
+          ...data,
+          currencyCode: data.discountType === "flat" ? baseCurrency : data.currencyCode,
+          discountValue: data.discountType === "flat" ? convert(Number(data.discountValue)) : data.discountValue
+        },
         data.roomRatePlans
       );
 
@@ -91,6 +97,7 @@ export class OfferForTonightPromotionService {
       if (!existingPromotion) {
         return errorResponse('Offer-for-tonight promotion not found');
       }
+      const {convert, baseCurrency} = await getCurrencyConverter(existingPromotion.propertyId, updateData.currencyCode ? updateData.currencyCode : "AED");
 
       if (updateData.validFrom && updateData.validTo) {
         if (updateData.validFrom > updateData.validTo) {
@@ -98,7 +105,11 @@ export class OfferForTonightPromotionService {
         }
       }
 
-      const updatedPromotion = await this.offerForTonightPromotionDao.updateOfferForTonightPromotion(id, updateData);
+      const updatedPromotion = await this.offerForTonightPromotionDao.updateOfferForTonightPromotion(id, {
+        ...updateData,
+        currencyCode: updateData.discountType === "flat" ? baseCurrency : updateData.currencyCode,
+        discountValue: updateData.discountType === "flat" ? convert(Number(updateData.discountValue)) : updateData.discountValue
+      });
 
       if (updatedPromotion) {
         return successResponse('Offer-for-tonight promotion updated successfully', updatedPromotion);

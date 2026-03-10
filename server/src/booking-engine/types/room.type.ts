@@ -1,6 +1,5 @@
 import { DeviceType } from "@prisma/client";
 import { IRoomVideo } from "../../property-management/types";
-import { Decimal } from "@prisma/client/runtime/library";
 import { DiscountType } from "../../promocode/types";
 import { CurrencyCode } from "../../tax-system/interfaces/tourist-tax.type";
 
@@ -70,7 +69,7 @@ export interface ITouristTax {
   id: string;
   name: string | null;
   discountType: DiscountType;
-  discountValue: Decimal | null;
+  discountValue: number | null;
   currencyCode: CurrencyCode | null;
   calculatedTaxAmount?: number;
 }

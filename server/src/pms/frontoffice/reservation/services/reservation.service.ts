@@ -403,9 +403,9 @@ export class ReservationService {
                 additionalGuestCharges: 0,
                 baseRatePerNight: numberOfNights > 0 ? Math.round(finalPrice.amountBeforeTax / numberOfNights) : 0,
                 numberOfNights: numberOfNights,
-                priceAfterTax: new Decimal(finalPrice.totalAmount),
-                totalAmount: new Decimal(finalPrice.totalAmount),
-                totalTax: new Decimal(finalPrice.taxedAmount || 0),
+                priceAfterTax: finalPrice.totalAmount,
+                totalAmount: finalPrice.totalAmount,
+                totalTax: finalPrice.taxedAmount|| 0,
                 breakdown: {
                     totalBaseAmount: finalPrice.amountBeforeTax,
                     totalAddonAmount: finalPrice.totalAddonAmount || 0,
@@ -925,15 +925,15 @@ export class ReservationService {
                             ? Math.round((updatePayload.finalPrice.amountBeforeTax || updatePayload.finalPrice.totalAmount || 0) / updateNumberOfNights)
                             : 0,
                         numberOfNights: updateNumberOfNights,
-                        priceAfterTax: new Decimal(
+                        priceAfterTax: 
                             updatePayload.finalPrice.totalAmount || 0
-                        ),
-                        totalAmount: new Decimal(
+                        ,
+                        totalAmount: 
                             updatePayload.finalPrice.totalAmount || 0
-                        ),
-                        totalTax: new Decimal(
+                        ,
+                        totalTax: 
                             updatePayload.finalPrice.taxedAmount || 0
-                        ),
+                        ,
                         breakdown: {
                             totalBaseAmount: updatePayload.finalPrice.amountBeforeTax || 0,
                             totalAddonAmount: updatePayload.finalPrice.totalAddonAmount || 0,

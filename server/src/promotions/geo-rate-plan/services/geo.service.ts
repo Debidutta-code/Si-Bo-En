@@ -1,5 +1,6 @@
 // services/geoRatePlan.service.ts
 
+import { getCurrencyConverter } from '../../../currency-maping/utils';
 import { errorResponse, IApiResponse, successResponse } from '../../../utils';
 import { GeoRatePlanDao } from '../dao';
 import { IGeoRatePlanCreate, IGeoRatePlanFilter, IGeoRatePlanInput, } from '../interfaces';
@@ -14,11 +15,12 @@ export class GeoRatePlanService {
     public async createGeoRatePlanBulk(data: IGeoRatePlanInput): Promise<IApiResponse> {
         try {
 
+            const { convert, baseCurrency } = await getCurrencyConverter(data.propertyId, data.currencyCode);
 
-            let finalRestrictionValue = data.restrictionValue;
-            if (data.restrictionType === 'restricted') {
-                finalRestrictionValue = null;
-            }
+            // let finalRestrictionValue = data.restrictionValue;
+            // if (data.restrictionType === 'restricted') {
+            //     finalRestrictionValue = null;
+            // }
 
             // Generate all combinations of rooms x ratePlans
             const geoRatePlanData: IGeoRatePlanCreate[] = [];
@@ -32,8 +34,8 @@ export class GeoRatePlanService {
                         ratePlanId: ratePlan.id,
                         ratePlanCode: ratePlan.code,
                         restrictionType: data.restrictionType,
-                        restrictionValue: finalRestrictionValue,
-                        currencyCode: data.currencyCode,
+                        restrictionValue: data.restrictionType === "fixed" ? convert(Number(data.restrictionValue)) : data.restrictionValue,
+                        currencyCode: data.restrictionType === "fixed" ? baseCurrency : data.currencyCode,
                         countryCode: data.countryCode,
                         isActive: data.isActive ?? true,
                         restrictionTypeAction: data.restrictionTypeAction
@@ -49,8 +51,8 @@ export class GeoRatePlanService {
                             ratePlanId: ratePlan.id,
                             ratePlanCode: ratePlan.code,
                             restrictionType: data.restrictionType,
-                            restrictionValue: finalRestrictionValue,
-                            currencyCode: data.currencyCode,
+                            restrictionValue: data.restrictionType === "fixed" ? convert(Number(data.restrictionValue)) : data.restrictionValue,
+                            currencyCode: data.restrictionType === "fixed" ? baseCurrency : data.currencyCode,
                             countryCode: data.countryCode,
                             isActive: data.isActive ?? true,
                             restrictionTypeAction: data.restrictionTypeAction
@@ -80,7 +82,7 @@ export class GeoRatePlanService {
                 propertyId,
                 filters
             );
-            
+
             return successResponse('Geo rate plans fetched successfully', geoRatePlans);
         } catch (error) {
             if (error instanceof Error) {
@@ -110,11 +112,22 @@ export class GeoRatePlanService {
     public async updateGeoRatePlan(id: string, updateData: IGeoRatePlanCreate) {
         try {
             const exists = await this.geoRatePlanRepository.getGeoRatePlanById(id);
+            const propertyIdToUse = updateData.propertyId || exists?.propertyId;
+
+            if (!propertyIdToUse) {
+                return errorResponse('Property ID is required to update geo rate plan');
+            }
+
+            const { convert, baseCurrency } = await getCurrencyConverter(propertyIdToUse, updateData.currencyCode ? updateData.currencyCode : "AED");
             if (!exists) {
                 return errorResponse('Geo rate plan not found');
             }
 
-            const response = await this.geoRatePlanRepository.updateGeoRatePlan(id, updateData);
+            const response = await this.geoRatePlanRepository.updateGeoRatePlan(id, {
+                ...updateData,
+                restrictionValue: updateData.restrictionType === "fixed" ? convert(Number(updateData.restrictionValue)) : updateData.restrictionValue,
+                currencyCode: updateData.restrictionType === "fixed" ? baseCurrency : updateData.currencyCode
+            });
 
             if (response) {
                 return successResponse('Geo rate plan updated successfully', response);

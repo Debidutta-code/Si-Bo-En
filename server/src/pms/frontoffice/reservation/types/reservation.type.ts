@@ -1,5 +1,4 @@
 import { BookingSource, BookingStatus, CurrencyCode, PaymentMethod, DeviceType, ReservationPromotionType } from "@prisma/client";
-import { Decimal } from "@prisma/client/runtime/library";
 import { DiscountType } from "../../../../promocode/types";
 import { DailyPriceBrakeDown, TaxBrakeDown, AddOnBrakeDown, PromotionBrakeDown } from "../../../../booking-engine/types/pricing.type";
 
@@ -217,9 +216,9 @@ export interface IReservationPriceBrakeDownR {
   additionalGuestCharges: number;
   baseRatePerNight: number;
   numberOfNights: number;
-  priceAfterTax: Decimal | number;
-  totalAmount: Decimal | number;
-  totalTax: Decimal | number;
+  priceAfterTax: number | number;
+  totalAmount: number | number;
+  totalTax: number | number;
   breakdown: any; // JSON
   dailyBreakdown: any[]; // JSON array
   availableRooms: number;

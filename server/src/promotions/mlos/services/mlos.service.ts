@@ -16,9 +16,9 @@ export class MLOSService {
             if (!ratePlanExists) {
                 return errorResponse('MLOS already exists for this rateplan');
             }
-            const propertyId=ratePlanExists.propertyId;
+            const propertyId = ratePlanExists.propertyId;
 
-            const [existingRule,{ convert, baseCurrency }] = await  Promise.all([
+            const [existingRule, { convert, baseCurrency }] = await Promise.all([
                 this.mlosDao.getRatePlanRuleByRatePlanId(data.ratePlanId),
                 getCurrencyConverter(propertyId, data.currencyCode)
             ]);
@@ -38,7 +38,7 @@ export class MLOSService {
                 return errorResponse('Failed to create rate plan rule');
             }
         } catch (error) {
-            
+
             if (error instanceof Error) {
                 return errorResponse('Failed to create rate plan rule', error?.message);
             }
@@ -72,10 +72,19 @@ export class MLOSService {
             if (!existingRule) {
                 return errorResponse('Rate plan rule does not exist');
             }
+            const ratePlanExists = await this.mlosDao.ratePlanExists(existingRule.ratePlanId);
+            if (!ratePlanExists) {
+                return errorResponse('Rate plan does not exist');
+            }
+            const { convert, baseCurrency } = await getCurrencyConverter(ratePlanExists.propertyId, updateData.currencyCode);
 
             const response = await this.mlosDao.updateRatePlanRule(
                 ratePlanId,
-                updateData
+                {
+                    ...updateData,
+                    currencyCode: updateData.discountType === "flat" ? baseCurrency : updateData.currencyCode,
+                    discountValue: updateData.discountType === "flat" ? convert(Number(updateData.discountValue)) : updateData.discountValue
+                }
             );
 
             if (response) {

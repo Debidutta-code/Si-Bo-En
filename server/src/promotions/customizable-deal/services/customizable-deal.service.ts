@@ -1,3 +1,4 @@
+import { getCurrencyConverter } from "../../../currency-maping/utils";
 import { PropertyDao } from "../../../property-management/repository";
 import { errorResponse, IApiResponse, successResponse } from "../../../utils";
 import { CustomizableDealDao } from "../dao";
@@ -19,12 +20,13 @@ export class CustomizableDealService {
             const property = await PropertyDao.getPropertyById(propertyId, true);
             if (!property) return errorResponse('Property not found or drafted');
 
-            const [room, ratePlan, addons] = await Promise.all([
+            const [room, ratePlan, addons,{ convert, baseCurrency }] = await Promise.all([
                 this.repo.findRoom(dealData.roomId, propertyId),
                 this.repo.findRatePlan(dealData.ratePlanId, propertyId),
                 dealData.applicableAddons.length > 0
                     ? this.repo.findAddons(dealData.applicableAddons, propertyId)
-                    : Promise.resolve([])
+                    : Promise.resolve([]),
+                getCurrencyConverter(propertyId, dealData.currencyCode ? dealData.currencyCode : "AED")
             ]);
 
             if (!room) return errorResponse('Room not found or does not belong to this property');
@@ -38,6 +40,8 @@ export class CustomizableDealService {
                 roomType: room.roomType,
                 ratePlanCode: ratePlan.ratePlanCode,
                 applicableAddons: addons,
+                currencyCode: dealData.discountType === "flat" ? baseCurrency : dealData.currencyCode,
+                discountValue: dealData.discountType === "flat" ? convert(Number(dealData.discountValue)) : dealData.discountValue
             });
 
             return successResponse('Customizable Deal created successfully', newDeal);
@@ -75,7 +79,7 @@ export class CustomizableDealService {
             if (!exists) return errorResponse('Customizable Deal does not exist');
             if (exists.propertyId !== propertyId) return errorResponse('Customizable Deal does not belong to this property');
 
-            const [room, ratePlan, addons] = await Promise.all([
+            const [room, ratePlan, addons,{ convert, baseCurrency }] = await Promise.all([
                 dealData.roomId
                     ? this.repo.findRoom(dealData.roomId, propertyId)
                     : Promise.resolve(null),
@@ -84,7 +88,8 @@ export class CustomizableDealService {
                     : Promise.resolve(null),
                 dealData.applicableAddons
                     ? this.repo.findAddons(dealData.applicableAddons, propertyId)
-                    : Promise.resolve(null)
+                    : Promise.resolve(null),
+                getCurrencyConverter(propertyId, dealData.currencyCode ? dealData.currencyCode : "AED")
             ]);
 
             if (dealData.roomId && !room) {
@@ -99,8 +104,8 @@ export class CustomizableDealService {
 
             const updatedDeal = await this.repo.updateCustomizableDeal(dealId, {
                 discountType: dealData.discountType ?? exists.discountType,
-                discountValue: dealData.discountValue ?? exists.discountValue,
-                currencyCode: dealData.currencyCode ?? exists.currencyCode,
+                discountValue: dealData.discountValue ?? (exists.discountType && exists.discountType === "flat" ? convert(Number(exists.discountValue)) : exists.discountValue),
+                currencyCode: dealData.currencyCode ?? (exists.discountType && exists.discountType === "flat" ? baseCurrency : exists.currencyCode),
                 startDate: dealData.startDate ?? exists.startDate,
                 endDate: dealData.endDate ?? exists.endDate,
                 isAutoApplied: dealData.isAutoApplied ?? exists.isAutoApplied,

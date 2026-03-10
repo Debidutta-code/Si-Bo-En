@@ -8,7 +8,6 @@ import { IApiResponse, nowUTC, toUTC, toUTCDate } from '../../utils';
 import {
     RoomRentCalculationRepository
 } from "../repository/room-rent.repository";
-import { Decimal } from '@prisma/client/runtime/library';
 import { CurrencyCode } from '../../tax-system/interfaces/tourist-tax.type';
 interface PriceCalculationData {
     totalAmount: number;
@@ -126,7 +125,7 @@ export interface Promotion {
     ratePlanId: string;
     ratePlanCode: string;
     discountType: "percentage" | "flat";
-    discountValue: Decimal | null
+    discountValue: number | null
     currencyCode: CurrencyCode | null;
     monApplicable: boolean;
     tueApplicable: boolean;
@@ -248,7 +247,7 @@ export class RoomRentCalculationService {
                         ratePlanCode,
                         startDate,
                         endDate,
-                        new Decimal(originalBasePrice),
+                        originalBasePrice,
                         deviceType || "desktop",
                         regularPromotions  // ✅ Only non-MLOS promotions
                     );
@@ -276,7 +275,7 @@ export class RoomRentCalculationService {
                         ratePlanCode,
                         startDate,
                         endDate,
-                        new Decimal(originalBasePrice)
+                        originalBasePrice
                     );
 
                     if (mlosResult.success) {
@@ -302,7 +301,7 @@ export class RoomRentCalculationService {
                     ratePlanCode,
                     startDate,
                     endDate,
-                    new Decimal(originalBasePrice)
+                    originalBasePrice
                 );
 
                 if (mlosResult.success) {
@@ -336,10 +335,10 @@ export class RoomRentCalculationService {
                         promotionType: "device_specific",
                         deviceType: [deviceType],
                         discountType: "percentage",
-                        discountValue: new Decimal(0),
+                        discountValue: 0,
                         // This will fetch from database
                     } as any,
-                    new Decimal(currentPrice),
+                    currentPrice,
                     deviceType
                 );
 
@@ -364,7 +363,7 @@ export class RoomRentCalculationService {
                         ratePlanCode,
                         invTypeCode,
                         property.id,
-                        new Decimal(currentPrice)
+                        currentPrice
                     );
 
                     if (geoResult.success) {
@@ -381,26 +380,22 @@ export class RoomRentCalculationService {
                     }
                 }
             }
-
-            // 3.3: Loyalty discount
             if (guestEmail) {
                 const loyaltyResult = await this.getLoyalityDiscount(
                     guestEmail,
                     propertyCode,
-                    new Decimal(originalBasePrice)
+                    originalBasePrice
                 );
 
                 if (loyaltyResult.success) {
                     loyaltyDiscount = loyaltyResult.data.discountAmount;
                     currentPrice -= loyaltyDiscount;
                     loyaltyDiscountInfo = loyaltyResult.data;
-                    //console.log(`Loyalty Discount: -${loyaltyDiscount} → ${currentPrice}`);
                 }
             }
 
             const adjustedBasePrice = currentPrice;
 
-            // === STEP 4: ADD INCLUDED ADDONS ===
             let includedAddons: any[] = [];
             let includedAddonsTotal = 0;
 
@@ -1065,7 +1060,7 @@ export class RoomRentCalculationService {
         ratePlanCode: string,
         startDate: Date,
         endDate: Date,
-        baseAmount: Decimal,
+        baseAmount: number,
         deviceType: "mobile" | "tablet" | "desktop",
         promotions: { id: string, promotionType: "early_bird" | "offer_for_tonight" | "device_specific" }[]
     ): Promise<IApiResponse> {
@@ -1091,7 +1086,7 @@ export class RoomRentCalculationService {
             return errorResponse("Failed to calculate promotions");
         }
     }
-    private static async checkForEarlyBirdService(promotion: Promotion, startDate: Date, baseAmount: Decimal): Promise<IApiResponse> {
+    private static async checkForEarlyBirdService(promotion: Promotion, startDate: Date, baseAmount: number): Promise<IApiResponse> {
         try {
             if (!promotion.advanceBookingDays) {
                 return errorResponse("Advance booking days not configured for this promotion");
@@ -1140,7 +1135,7 @@ export class RoomRentCalculationService {
             return errorResponse("Failed to calculate early bird");
         }
     }
-    private static async offerForTonightService(promotion: Promotion, startDate: Date, baseAmount: Decimal): Promise<IApiResponse> {
+    private static async offerForTonightService(promotion: Promotion, startDate: Date, baseAmount: number): Promise<IApiResponse> {
         try {
             if (promotion.discountValue === null || promotion.discountValue === undefined) {
                 return errorResponse("Discount value not configured for this promotion");
@@ -1223,7 +1218,7 @@ export class RoomRentCalculationService {
     }
     private static async deviceSpecificService(
         promotion: Promotion,
-        baseAmount: Decimal,
+        baseAmount: number,
         userDeviceType: "mobile" | "tablet" | "desktop"
     ): Promise<IApiResponse> {
         try {
@@ -1264,7 +1259,7 @@ export class RoomRentCalculationService {
         }
     }
 
-    private static async calculatemlosService(ratePlanCode: string, checkInDate: Date, checkoutDate: Date, baseAmount: Decimal): Promise<IApiResponse> {
+    private static async calculatemlosService(ratePlanCode: string, checkInDate: Date, checkoutDate: Date, baseAmount: number): Promise<IApiResponse> {
         try {
             const RatePlan = await RoomRentCalculationRepository.getRatePlanDetails(ratePlanCode);
             if (!RatePlan) {
@@ -1349,7 +1344,7 @@ export class RoomRentCalculationService {
             return errorResponse("Failed to calculate MLOS");
         }
     }
-    private static async geoRatePlanService(usersCountry: string, ratePlanCode: string, roomTypeCode: string, propertyId: string, baseAmount: Decimal): Promise<IApiResponse> {
+    private static async geoRatePlanService(usersCountry: string, ratePlanCode: string, roomTypeCode: string, propertyId: string, baseAmount: number): Promise<IApiResponse> {
         try {
 
             const geoRatePlan = await RoomRentCalculationRepository.getGroRatePlan(propertyId, roomTypeCode, ratePlanCode, usersCountry);
@@ -1524,7 +1519,7 @@ export class RoomRentCalculationService {
     private static async getLoyalityDiscount(
         guestEmail: string,
         propertyCode: string,
-        baseAmount: Decimal
+        baseAmount: number
     ): Promise<IApiResponse> {
         try {
             // Validate required fields
