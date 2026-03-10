@@ -222,6 +222,7 @@ export interface FinalPrice {
     additionalGuestCharges: number;
     numberOfNights: number;
     dailyBreakdown: DailyBreakdown[];
+    taxedAmount?: number;
     userAddons?: {
         selected: SelectedAddon[];
         totalAmount: number;
