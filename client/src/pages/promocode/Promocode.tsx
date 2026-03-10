@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
-import { Plus, Pencil, Trash2, Percent, DollarSign, Smartphone, Monitor, Tablet } from "lucide-react";
+import { Plus, Pencil, Trash2, Smartphone, Monitor, Tablet } from "lucide-react";
 import Loader from "@/components/Loader/Loader";
 import BackButton from "@/components/shared/BackButton";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { toast } from "react-hot-toast";
 import { createPromoCodeService, deletePromoCodeService, fetchPromoCodesService, updatePromoCodeService, fetchRatePlansService, fetchRoomTypesService } from "./services";
 import type { DiscountType, ICreatePromoCode, IRPromoCode, RatePlan, RoomTypes } from "./interfaces";
+import { currencies } from "@/components/currency-code/cuurency";
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
 
 export default function PromoCodePage() {
     const { propertyId } = useParams<{ propertyId: string }>();
@@ -57,6 +59,7 @@ export default function PromoCodePage() {
         // isApplicableForWalkIn: true,
         // isApplicableForOTA: true,
         // isApplicableForCorporate: true,
+        currencyCode: "USD",
         usageLimit: null,
         // usageLimitPerUser: null,
         applicableRoomTypes: [],
@@ -185,10 +188,8 @@ export default function PromoCodePage() {
             isApplicableForMobileApp: promoCode.isApplicableForMobileApp,
             isApplicableForDesktop: promoCode.isApplicableForDesktop,
             isApplicableForTablet: promoCode.isApplicableForTablet,
-            // isApplicableForWalkIn: promoCode.isApplicableForWalkIn,
-            // isApplicableForOTA: promoCode.isApplicableForOTA,
-            // isApplicableForCorporate: promoCode.isApplicableForCorporate,
             usageLimit: promoCode.usageLimit,
+            currencyCode: promoCode.currencyCode,
             // usageLimitPerUser: promoCode.usageLimitPerUser,
             applicableRoomTypes: promoCode.applicableRoomTypes,
             applicableRatePlans: promoCode.applicableRatePlans,
@@ -218,9 +219,7 @@ export default function PromoCodePage() {
             isApplicableForMobileApp: true,
             isApplicableForDesktop: true,
             isApplicableForTablet: true,
-            // isApplicableForWalkIn: true,
-            // isApplicableForOTA: true,
-            // isApplicableForCorporate: true,
+            currencyCode: "USD",
             usageLimit: null,
             // usageLimitPerUser: null,
             applicableRoomTypes: [],
@@ -343,9 +342,33 @@ export default function PromoCodePage() {
                                         />
                                     </div>
                                 </div>
+                                {
+                                    formData.discountType === "flat" && (
+
+                                        <div className="space-y-2">
+                                            <Label htmlFor="currencyCode">Currency Code</Label>
+                                            <Select
+                                                value={formData.currencyCode}
+                                                onValueChange={(value) => setFormData({ ...formData, currencyCode: value as CurrencyCode })}
+                                            >
+                                                <SelectTrigger>
+                                                    <SelectValue />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {currencies.map((currency) => (
+                                                        <SelectItem key={currency.code} value={currency.code}>
+                                                            {currency.name} ({currency.symbol})
+                                                        </SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+                                    )
+
+                                }
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-2">
-                                        <Label htmlFor="minBookingAmount">Min Booking Amount ($)</Label>
+                                        <Label htmlFor="minBookingAmount">Min Booking Amount </Label>
                                         <Input
                                             id="minBookingAmount"
                                             type="number"
@@ -357,11 +380,11 @@ export default function PromoCodePage() {
                                         />
                                     </div>
                                     <div className="space-y-2">
-                                        <Label htmlFor="maxDiscountAmount">Max Discount Amount ($)</Label>
+                                        <Label htmlFor="maxDiscountAmount">Max Discount Amount</Label>
                                         <Input
                                             id="maxDiscountAmount"
                                             type="number"
-                                                                                        min={0}
+                                            min={0}
 
                                             value={formData.maxDiscountAmount || ""}
                                             onChange={(e) => setFormData({ ...formData, maxDiscountAmount: e.target.value ? parseFloat(e.target.value) : null })}
@@ -470,41 +493,9 @@ export default function PromoCodePage() {
                                     </div>
                                 </div>
                             </div>
-{/* 
+                            
+
                             <Separator />
-
-                           
-                            <div className="space-y-4">
-                                <h3 className="text-lg font-semibold">Booking Source Applicability</h3>
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between">
-                                        <Label htmlFor="walkIn">Walk-In</Label>
-                                        <Switch
-                                            id="walkIn"
-                                            checked={formData.isApplicableForWalkIn}
-                                            onCheckedChange={(checked) => setFormData({ ...formData, isApplicableForWalkIn: checked })}
-                                        />
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <Label htmlFor="ota">OTA (Online Travel Agencies)</Label>
-                                        <Switch
-                                            id="ota"
-                                            checked={formData.isApplicableForOTA}
-                                            onCheckedChange={(checked) => setFormData({ ...formData, isApplicableForOTA: checked })}
-                                        />
-                                    </div>
-                                    <div className="flex items-center justify-between">
-                                        <Label htmlFor="corporate">Corporate</Label>
-                                        <Switch
-                                            id="corporate"
-                                            checked={formData.isApplicableForCorporate}
-                                            onCheckedChange={(checked) => setFormData({ ...formData, isApplicableForCorporate: checked })}
-                                        />
-                                    </div>
-                                </div>
-                            </div>*/}
-
-                            <Separator /> 
 
                             {/* Room Type Applicability */}
                             <div className="space-y-4">
@@ -656,13 +647,11 @@ export default function PromoCodePage() {
                                             <div className="flex items-center">
                                                 {promoCode.discountType === "percentage" ? (
                                                     <>
-                                                        <Percent className="h-4 w-4 mr-1" />
                                                         {promoCode.discountValue}%
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <DollarSign className="h-4 w-4 mr-1" />
-                                                        ${promoCode.discountValue}
+                                                        {promoCode.discountValue} {promoCode.currencyCode}
                                                     </>
                                                 )}
                                             </div>

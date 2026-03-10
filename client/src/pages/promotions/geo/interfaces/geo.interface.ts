@@ -1,8 +1,9 @@
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
+
 export type GeoRestrictionType = "percentage" | "fixed" | "restricted";
 
 export type GeoRestrictionTypeAction = "increase" | "decrease";
 
-export type CurrencyCode = "USD" | "EUR" | "INR";
 
 export interface GeoRatePlan {
   id: string;

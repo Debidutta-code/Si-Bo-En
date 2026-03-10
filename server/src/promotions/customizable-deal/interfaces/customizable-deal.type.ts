@@ -1,7 +1,7 @@
 import { Decimal } from "@prisma/client/runtime/library";
+import { CurrencyCode } from "../../../tax-system/interfaces/tourist-tax.type";
 
 export type DiscountType = 'percentage' | 'flat';
-export type CurrencyCode = 'USD' | 'EUR' | 'INR';
 
 export interface ICCreateCustomizableDealS {
     discountType: DiscountType;

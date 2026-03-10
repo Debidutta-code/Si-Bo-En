@@ -1,11 +1,11 @@
 // services/price-update.service.ts
 
+import { CurrencyCode } from '../../../tax-system/interfaces/tourist-tax.type';
 import { PriceUpdateDao } from '../dao/price-update.dao';
 import {
     RateTigerPriceUpdateRQ,
     RateTigerPriceUpdateRS,
 } from '../types/price-update.types';
-import { CurrencyCode } from '@prisma/client';
 
 export class PriceUpdateService {
     public static async processPriceUpdate(
@@ -58,7 +58,7 @@ export class PriceUpdateService {
                 // Get currency from first base amount
                 const currencyCode =
                     (baseByGuestAmts[0]?.currencyCode as CurrencyCode) ??
-                    CurrencyCode.USD;
+                    "AED";
 
                 // Parse base guest amounts (adult prices, numberOfGuests 1–6)
                 const parsedBaseAmounts = baseByGuestAmts

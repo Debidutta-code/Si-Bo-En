@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Trash2 } from "lucide-react";
-import { deleteCreationService } from "../pages/property/service/creation-filter.service";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -13,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
+import { deleteCreationService } from "@/pages/property/service/creation-filter.service";
 interface DeleteCreationDialogProps {
   name: string;
   id: string;

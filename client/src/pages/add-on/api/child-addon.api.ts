@@ -8,9 +8,9 @@ import type {
 const axiosInstance = createAxiosInstance();
 
 
-export const createChildAddon=async(childAddonData: ICChildAddoon)=>{
+export const createChildAddon=async(childAddonData: ICChildAddoon,propertyId:string)=>{
     try {
-        const response = await axiosInstance.post("/addon/child-addons", childAddonData);
+        const response = await axiosInstance.post(`/addon/child-addons?propertyId=${propertyId}`, childAddonData);
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {
@@ -38,9 +38,9 @@ export const getAllChildAddons=async(addonId:string)=>{
         }   
     }
 }
-export const updateChildAddon=async(childAddonId:string,childAddonData:IUpdateChildAddon)=>{
+export const updateChildAddon=async(childAddonId:string,childAddonData:IUpdateChildAddon,propertyId:string)=>{
     try {
-        const response = await axiosInstance.put(`/addon/child-addons/${childAddonId}`, childAddonData);
+        const response = await axiosInstance.put(`/addon/child-addons/${childAddonId}?propertyId=${propertyId}`, childAddonData);
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {

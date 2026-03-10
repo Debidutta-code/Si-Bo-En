@@ -11,7 +11,7 @@ import type {
 
 
 
-export const createChildAddonService = async (childAddonData: ICChildAddoon) => {
+export const createChildAddonService = async (childAddonData: ICChildAddoon,propertyId:string) => {
     try {
         if (childAddonData.discountApplicable) {
             if(childAddonData.minAge < 0) {
@@ -33,7 +33,7 @@ export const createChildAddonService = async (childAddonData: ICChildAddoon) => 
                 }
             }
         }
-        return await createChildAddon(childAddonData);
+        return await createChildAddon(childAddonData,propertyId);
     } catch (error) {
         return {
             success: false,
@@ -53,7 +53,7 @@ export const getAllChildAddonsService = async (addonId: string) => {
         }
     }
 }
-export const updateChildAddonService = async (childAddonId: string, childAddonData: IUpdateChildAddon) => {
+export const updateChildAddonService = async (childAddonId: string, childAddonData: IUpdateChildAddon,propertyId:string) => {
     try {
         if (childAddonData.discountApplicable) {
             if(childAddonData.minAge < 0) {
@@ -99,7 +99,7 @@ export const updateChildAddonService = async (childAddonId: string, childAddonDa
                 }
             }
         }
-        return await updateChildAddon(childAddonId, childAddonData);
+        return await updateChildAddon(childAddonId, childAddonData, propertyId);
     } catch (error) {
         return {
             success: false,

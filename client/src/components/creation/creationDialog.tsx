@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { capitalizeFirstLetter } from "@/lib/utils";
 import type { INewGBP } from "@/pages/property/types/types";
-import { createEntity } from "./api/newEntity";
+import { createEntity } from "../api/newEntity";
 import toast from "react-hot-toast";
 import ImageUploadModal from "@/components/property/ImageUploadModal";
 import { Label } from "@/components/ui/label";

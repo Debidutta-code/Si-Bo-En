@@ -1,4 +1,5 @@
-import { CurrencyCode, DiscountType } from "../../customizable-deal/interfaces";
+import { CurrencyCode } from "../../../tax-system/interfaces/tourist-tax.type";
+import {  DiscountType } from "../../customizable-deal/interfaces";
 import { PromotionType } from "./eb-ds-oftc.interface";
 
 // Room-RatePlan pair for early-bird promotions

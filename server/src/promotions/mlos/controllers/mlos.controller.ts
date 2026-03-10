@@ -61,7 +61,7 @@ export class MLOSController {
                 minLos,
                 maxLos: maxLos || null,
                 discountType: discountType === "none" ? null : discountType,
-                discountValue: discountValue ? new Decimal(discountValue) : null,
+                discountValue: discountValue ? Number(discountValue) : null,
                 isActive,
                 isAutoApplied,
                 currencyCode

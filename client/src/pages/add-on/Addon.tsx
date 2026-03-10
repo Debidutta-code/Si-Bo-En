@@ -660,9 +660,10 @@ export default function AddOns() {
   };
 
   const handleCreateChildAddon = async (data: ICChildAddoon) => {
+    if(!propertyId)return;
     setChildAddonLoading(true);
     try {
-      const response = await createChildAddonService(data);
+      const response = await createChildAddonService(data, propertyId);
       if (response.success) {
         toast.success(
           response.message || "Children catalog created successfully",
@@ -685,8 +686,9 @@ export default function AddOns() {
     data: IUpdateChildAddon,
   ) => {
     setChildAddonLoading(true);
+    if(!propertyId)return;
     try {
-      const response = await updateChildAddonService(id, data);
+      const response = await updateChildAddonService(id, data, propertyId);
       if (response.success) {
         toast.success(
           response.message || "Children catalog updated successfully",

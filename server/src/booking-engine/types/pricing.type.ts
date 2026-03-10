@@ -8,7 +8,6 @@ import {
 import { DeviceType, IPolicy } from '../../agent-paltform/property/types';
 import { DiscountType } from '../../promocode/types';
 import {
-    CurrencyCode,
     IGeoRatePlan,
     IGeoRatePlanWithoutRatePlan,
     restrictionTypeAction,
@@ -20,6 +19,7 @@ import {
 } from '../../tax-system/interfaces/tax-rule.type';
 import { IPromotion, ITouristTax } from './room.type';
 import { IBookingOffset } from '../../ari/types';
+import { CurrencyCode } from '../../tax-system/interfaces/tourist-tax.type';
 
 
 export interface ICustomizableDeal {

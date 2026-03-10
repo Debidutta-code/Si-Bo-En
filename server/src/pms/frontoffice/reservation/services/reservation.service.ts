@@ -21,7 +21,6 @@ import { prisma } from '../../../../config';
 import { IPropertyCodeAndIds } from '../../../../dashboard/types';
 import { DashUtilsRepo } from '../../../../dashboard/repository';
 import { Decimal } from '@prisma/client/runtime/library';
-import { BookingStatus, CurrencyCode } from '@prisma/client';
 import { nowUTC, toUTC, toUTCDate } from '../../../../utils';
 import {
     BookingAddonRepository,
@@ -31,6 +30,8 @@ import { ReservationEmailService } from '../../../../sms-email-service/service';
 import { LoyaltyGuestRepository } from '../../../../loyalty/repository';
 import { RTIntegrationDao } from '../../../../integrations/rate-tiger/dao/rt-integration.dao';
 import { RTReservationPushService } from '../../../../integrations/rate-tiger/services/rt-reservation-push.service';
+import { CurrencyCode } from '../../../../tax-system/interfaces/tourist-tax.type';
+import { BookingStatus } from '../types/reservation.type';
 export class ReservationService {
     reservationRepository: ReservationRepository;
     priceBrakeDownRepo: PriceBrakeDownRepo;

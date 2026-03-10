@@ -7,27 +7,33 @@ import {
     IChildAddon,
     IUpdateChildAddon
 } from "../interfaces"
+import { getCurrencyConverter } from "../../currency-maping/utils";
 export class ChildAddonsService {
     private childAddonRepository: ChildAddonRepository;
 
     constructor() {
         this.childAddonRepository = new ChildAddonRepository();
     }
-    public async createChildAddon(data: ICChildAddoon): Promise<IApiResponse> {
+    public async createChildAddon(data: ICChildAddoon, propertyId: string): Promise<IApiResponse> {
         try {
-            const getAllChildAddons = await this.childAddonRepository.getChildAddons(data.addonId);
+            const [getAllChildAddons,{ convert, baseCurrency }] = await Promise.all([
+                this.childAddonRepository.getChildAddons(data.addonId),
+                getCurrencyConverter(propertyId, data.currencyCode?data.currencyCode:"AED")
+            ]);
+
             const isAgeValid = this.validateAge(data.minAge, data.maxAge, getAllChildAddons);
             if (!isAgeValid) {
                 return errorResponse("Some children catalog are overlapping in age range");
             }
+            
             const daoRes = await this.childAddonRepository.createChildAddons({
                 minAge: data.minAge,
                 maxAge: data.maxAge,
                 addonId: data.addonId,
                 discountApplicable: data.discountApplicable,
                 discountType: data.discountType,
-                discountAmount: data.discountAmount,
-                currencyCode: data.currencyCode
+                discountAmount: data.discountType === "flat" ? convert(data.discountAmount?data.discountAmount:0) : data.discountAmount,
+                currencyCode: data.discountType === "flat" ? baseCurrency : data.currencyCode
             });
             if (daoRes) {
                 return successResponse("Children catalog created successfully", daoRes);
@@ -65,21 +71,32 @@ export class ChildAddonsService {
             return errorResponse("Failed to retrieve child addons");
         }
     }
-    public async updateChildAddon(id: string, data: IUpdateChildAddon): Promise<IApiResponse> {
+    public async updateChildAddon(id: string, data: IUpdateChildAddon,propertyId:string): Promise<IApiResponse> {
         try {
             const isExist=await this.childAddonRepository.getById(id);
             if (!isExist) {
                 return errorResponse("Child addon not found");
             }
-            const getAllChildAddons = await this.childAddonRepository.getChildAddons(isExist.addonId);
+            const [getAllChildAddons,{ convert, baseCurrency }] = await Promise.all([
+                this.childAddonRepository.getChildAddons(isExist.addonId),
+                getCurrencyConverter(propertyId, data.currencyCode?data.currencyCode:"AED")
+            ]);
+            console.log({
+                minAge: data.minAge,
+                maxAge: data.maxAge,
+                discountApplicable: data.discountApplicable,
+                discountType: data.discountType,
+                discountAmount: data.discountType === "flat" ? convert(data.discountAmount?data.discountAmount:0) : data.discountAmount,
+                currencyCode: data.discountType === "flat" ? baseCurrency : data.currencyCode
+            })
             
             const daoRes = await this.childAddonRepository.updateChildAddon(id, {
                 minAge: data.minAge,
                 maxAge: data.maxAge,
                 discountApplicable: data.discountApplicable,
                 discountType: data.discountType,
-                discountAmount: data.discountAmount,
-                currencyCode: data.currencyCode
+                discountAmount: data.discountType === "flat" ? convert(data.discountAmount?data.discountAmount:0) : data.discountAmount,
+                currencyCode: data.discountType === "flat" ? baseCurrency : data.currencyCode
             });
             if (daoRes) {
                 return successResponse("Children catalog updated successfully", daoRes);

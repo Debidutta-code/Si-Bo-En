@@ -1,11 +1,9 @@
-import { CurrencyCode } from "../../pms/frontoffice/payment/types"
 import { DiscountType } from "../../promocode/types"
-
-import { IProperty } from "../../agency/types";
 import { IAdvanceLoyaltyprogram, IloyaltyProgram } from "./loyality-program.types";
 import { ILoyalityCondition, ILoyalitySpecialCondition } from "./loyality-condition.types";
 import { IPropertyLoyaltyConfig } from "./property-loyality.types";
 import { ILoyaltyField } from "./loyality-field.types";
+import { CurrencyCode } from "../../tax-system/interfaces/tourist-tax.type";
 export interface ICCreationLoyality {
       creationId: string
       loyaltyDiscountType: DiscountType;

@@ -33,7 +33,7 @@ import type {
     IUPropertyConfig,
     IMasterPartnersWProperty,
 } from "./types";
-import DeleteCreationDialog from '@/components/Delete-Creation.dialog';
+import DeleteCreationDialog from '@/components/creation/Delete-Creation.dialog';
 import IntegrationDialog from './components/IntegrationDialog';
 import PropertyConfigDialog from './components/PropertyConfigDialog';
 import ViewIntegrationDetailsDialog from './components/ViewIntegrationDetailsDialog';

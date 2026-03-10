@@ -1,6 +1,7 @@
 import { Decimal } from "@prisma/client/runtime/library";
 import { IProperty } from "../../../agency/types";
 import { IRatePlan, IRoom } from "../../customizable-deal/interfaces";
+import { CurrencyCode } from "../../../tax-system/interfaces/tourist-tax.type";
 
 export interface IRoomInput {
   id: string;
@@ -78,7 +79,6 @@ export interface IGeoRatePlan {
 }
 
 export type geoRestrictionType = "percentage" | "fixed" | "restricted";
-export type CurrencyCode = "USD" | "EUR" | "INR";
 
 export interface IGeoRatePlanFilter {
   propertyId?: string;

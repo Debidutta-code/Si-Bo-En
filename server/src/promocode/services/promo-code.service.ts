@@ -1,8 +1,9 @@
 import { PromoCodeRepository } from "../repository";
 import { ICreatePromoCode, } from "../types";
-import { property, isPropertyExists } from "../utils";
-import {  successResponse, errorResponse } from "../../utils/return";
-import {IApiResponse} from "../../utils/return.types"
+import { isPropertyExists } from "../utils";
+import { successResponse, errorResponse } from "../../utils/return";
+import { IApiResponse } from "../../utils/return.types"
+import { getCurrencyConverter } from "../../currency-maping/utils";
 export class PromoCodeService {
     private promoCodeRepository: PromoCodeRepository;
 
@@ -16,11 +17,18 @@ export class PromoCodeService {
             if (!propertyExists) {
                 return errorResponse('Property does not exist');
             }
+
+            const { convert, baseCurrency } = await getCurrencyConverter(data.propertyId, data.currencyCode);
             const existingPromoCode = await this.promoCodeRepository.checkIfCodeIsAlreadyExistsForThisProperty(data.propertyId, data.code);
             if (existingPromoCode) {
                 return errorResponse('An PromoCode with this code has already exists for this property');
             }
-            const promoCode = await this.promoCodeRepository.createPromoCode(data);
+            const promoCode = await this.promoCodeRepository.createPromoCode({
+                ...data,
+                currencyCode: data.discountType === "flat" ? baseCurrency : data.currencyCode,
+                discountValue: data.discountType === "flat" ? convert(data.discountValue) : data.discountValue
+
+            });
             return successResponse('PromoCode created successfully', 201, promoCode);
         } catch (error) {
             if (error instanceof Error) {
@@ -29,16 +37,16 @@ export class PromoCodeService {
             return errorResponse('An unexpected error occurred');
         }
     }
-    public async validatePromoCode(propertyId:string,code:string):Promise<IApiResponse>{
+    public async validatePromoCode(propertyId: string, code: string): Promise<IApiResponse> {
         try {
-            const daoRes=await this.promoCodeRepository.checkIfCodeIsAlreadyExistsForThisProperty(propertyId,code)
-            if(!daoRes){
-                return errorResponse("Invalid promocode","promocod validation failed")
+            const daoRes = await this.promoCodeRepository.checkIfCodeIsAlreadyExistsForThisProperty(propertyId, code)
+            if (!daoRes) {
+                return errorResponse("Invalid promocode", "promocod validation failed")
             }
             return successResponse("Promocode Verified successfully")
         } catch (error) {
-            if(error instanceof Error ){
-                return errorResponse("Invalid promocode","promocod validation failed")
+            if (error instanceof Error) {
+                return errorResponse("Invalid promocode", "promocod validation failed")
             }
             return errorResponse("Invalid promocode")
         }
@@ -48,11 +56,11 @@ export class PromoCodeService {
         try {
             const propertyExists = await isPropertyExists(propertyId);
             if (!propertyExists) {
-                return errorResponse('Property does not exist', );
+                return errorResponse('Property does not exist',);
             }
             const promoCodes = await this.promoCodeRepository.getPromoCodesByPropertyId(propertyId);
-            
-            return successResponse('PromoCodes fetched successfully',  promoCodes);
+
+            return successResponse('PromoCodes fetched successfully', promoCodes);
         } catch (error) {
             if (error instanceof Error) {
                 return errorResponse(error.message);
@@ -65,7 +73,7 @@ export class PromoCodeService {
         try {
             const propertyExists = await isPropertyExists(propertyId);
             if (!propertyExists) {
-                return errorResponse('Property does not exist', );
+                return errorResponse('Property does not exist',);
             }
             const promoCode = await this.promoCodeRepository.getPromoCodeByIdOrCode(propertyId, query);
             if (!promoCode) {
@@ -80,16 +88,25 @@ export class PromoCodeService {
         }
     }
 
-    public async updatePromoCode(params: string, data: Partial<ICreatePromoCode>): Promise<IApiResponse> {
+    public async updatePromoCode(params: string, data: ICreatePromoCode): Promise<IApiResponse> {
         try {
-            const promoCode = await this.promoCodeRepository.getPromoCodeByIdOrCode(data.propertyId!, params);
+            const [promoCode, { convert, baseCurrency }] = await Promise.all([
+                this.promoCodeRepository.getPromoCodeByIdOrCode(data.propertyId!, params),
+                getCurrencyConverter(data.propertyId, data.currencyCode)
+            ]);
+
             if (promoCode?.code != data.code) {
-                return errorResponse('PromoCode code cannot be changed,If want to use the code then create it again', );
+                return errorResponse('PromoCode code cannot be changed,If want to use the code then create it again',);
             }
             if (!promoCode) {
-                return errorResponse('PromoCode not found', );
+                return errorResponse('PromoCode not found',);
             }
-            const updatedPromoCode = await this.promoCodeRepository.updatePromoCodeByCode(promoCode.code, data);
+            const updatedPromoCode = await this.promoCodeRepository.updatePromoCodeByCode(promoCode.code, {
+                ...data,
+                currencyCode: data.discountType === "flat" ? baseCurrency : data.currencyCode,
+                discountValue: data.discountType === "flat" ? convert(data.discountValue) : data.discountValue
+
+            });
             return successResponse('PromoCode updated successfully', updatedPromoCode);
         } catch (error) {
             if (error instanceof Error) {
@@ -102,10 +119,10 @@ export class PromoCodeService {
         try {
             const promoCode = await this.promoCodeRepository.getPromoCodeByIdOrCode(propertyId, promoCodeId);
             if (!promoCode) {
-                return errorResponse('PromoCode not found', );
+                return errorResponse('PromoCode not found',);
             }
             await this.promoCodeRepository.softDeletePromoCodeById(promoCode.id);
-            return successResponse('PromoCode deleted successfully', );
+            return successResponse('PromoCode deleted successfully',);
         } catch (error) {
             if (error instanceof Error) {
                 return errorResponse(error.message);
@@ -117,10 +134,10 @@ export class PromoCodeService {
         try {
             const promoCode = await this.promoCodeRepository.getPromoCodeByIdOrCode(propertyId, promoCodeId);
             if (!promoCode) {
-                return errorResponse('PromoCode not found', );
+                return errorResponse('PromoCode not found',);
             }
             await this.promoCodeRepository.hardDeletePromoCodeById(promoCode.id);
-            return successResponse('PromoCode permanently deleted successfully', );
+            return successResponse('PromoCode permanently deleted successfully',);
         } catch (error) {
             if (error instanceof Error) {
                 return errorResponse(error.message);
@@ -132,10 +149,10 @@ export class PromoCodeService {
         try {
             const promoCode = await this.promoCodeRepository.getPromoCodeByIdOrCode(propertyId, promoCodeId);
             if (!promoCode) {
-                return errorResponse('PromoCode not found', );
+                return errorResponse('PromoCode not found',);
             }
             await this.promoCodeRepository.recoverPromoCodeById(promoCode.id);
-            return successResponse('PromoCode recovered successfully', );
+            return successResponse('PromoCode recovered successfully',);
         } catch (error) {
             if (error instanceof Error) {
                 return errorResponse(error.message);

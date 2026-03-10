@@ -1,7 +1,7 @@
 // dao/price-update.dao.ts
 
 import { prisma } from '../../../config';
-import { CurrencyCode } from '@prisma/client';
+import { CurrencyCode } from '../../../tax-system/interfaces/tourist-tax.type';
 
 export class PriceUpdateDao {
 

@@ -1,6 +1,7 @@
 import { PromotionType } from "@prisma/client";
 import { DeviceType } from "../../../agent-paltform/property/types";
-import { CurrencyCode, DiscountType } from "../../customizable-deal/interfaces";
+import {  DiscountType } from "../../customizable-deal/interfaces";
+import { CurrencyCode } from "../../../tax-system/interfaces/tourist-tax.type";
 
 // Base promotion interface
 export interface IDeviceSpecificPromotionBase {

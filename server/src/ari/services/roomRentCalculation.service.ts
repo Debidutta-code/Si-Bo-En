@@ -9,7 +9,7 @@ import {
     RoomRentCalculationRepository
 } from "../repository/room-rent.repository";
 import { Decimal } from '@prisma/client/runtime/library';
-import { CurrencyCode } from '../../pms/frontoffice/payment/types';
+import { CurrencyCode } from '../../tax-system/interfaces/tourist-tax.type';
 interface PriceCalculationData {
     totalAmount: number;
     numberOfNights: number;

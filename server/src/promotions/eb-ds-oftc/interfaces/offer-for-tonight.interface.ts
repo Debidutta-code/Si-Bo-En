@@ -1,5 +1,6 @@
-import { PromotionType, DiscountType, CurrencyCode } from '@prisma/client';
+import { PromotionType, DiscountType } from '@prisma/client';
 import { IRoomRatePlanPair } from './early-bird.interface';
+import { CurrencyCode } from '../../../tax-system/interfaces/tourist-tax.type';
 
 export interface IOfferForTonightPromotionBase {
   promotionName: string;

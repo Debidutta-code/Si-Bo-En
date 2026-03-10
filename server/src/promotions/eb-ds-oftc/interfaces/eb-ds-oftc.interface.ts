@@ -1,7 +1,8 @@
 import { Decimal } from "@prisma/client/runtime/library";
 import { DeviceType } from "../../../agent-paltform/property/types";
-import { CurrencyCode, DiscountType, IRatePlan, IRoom } from "../../customizable-deal/interfaces";
+import {  DiscountType, IRatePlan, IRoom } from "../../customizable-deal/interfaces";
 import { IProperty } from "../../../agency/types";
+import { CurrencyCode } from "../../../tax-system/interfaces/tourist-tax.type";
 
 export type PromotionType = "early_bird" | "offer_for_tonight" | "device_specific";
 export interface ICEbDsOftc { //create payload type for early bird ,device specific and offer for tonight

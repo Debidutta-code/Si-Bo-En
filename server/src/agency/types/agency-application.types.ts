@@ -1,4 +1,4 @@
-import { CurrencyCode } from "../../pms/frontoffice/payment/types";
+import { CurrencyCode } from "../../tax-system/interfaces/tourist-tax.type";
 
 export type AgencyApplicationStatus = "pending" | "approved" | "rejected";
 export type fAgencyApplicationStatus = "all" | AgencyApplicationStatus;

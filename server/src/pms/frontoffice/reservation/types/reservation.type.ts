@@ -1,8 +1,7 @@
 import { BookingSource, BookingStatus, CurrencyCode, PaymentMethod, DeviceType, ReservationPromotionType } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/library";
 import { DiscountType } from "../../../../promocode/types";
-import { PriceBrakeDown, DailyPriceBrakeDown, TaxBrakeDown, AddOnBrakeDown, PromotionBrakeDown } from "../../../../booking-engine/types/pricing.type";
-import { DateTime } from "luxon";
+import { DailyPriceBrakeDown, TaxBrakeDown, AddOnBrakeDown, PromotionBrakeDown } from "../../../../booking-engine/types/pricing.type";
 
 // ==================== PAYLOAD TYPES ====================
 export interface ICreateReservationPayload {

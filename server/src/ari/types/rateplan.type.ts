@@ -16,7 +16,16 @@ export interface IRatePlanMetadata {
   b2bAvailable: boolean;
   b2cAvailable: boolean;
 }
-
+export interface IRatePlanFPromotions {
+  id:string;
+  propertyId: string;
+  // propertyCode: string;
+  ratePlanName: string;
+  ratePlanDescription?: string;
+  ratePlanCode: string;
+  b2bAvailable: boolean;
+  b2cAvailable: boolean;
+}
 export interface IRatePlanUpdate {
   ratePlanName?: string;
   depositPolicyId?: string;

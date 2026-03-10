@@ -14,7 +14,7 @@ import type {
 } from "../types/types";
 import Loader from "@/components/Loader/Loader";
 import { capitalizeFirstLetter } from "@/lib/utils";
-import CreateEntityDialog from "@/components/creationDialog";
+import CreateEntityDialog from "@/components/creation/creationDialog";
 import BackButton from "@/components/shared/BackButton";
 import {
   User2Icon,
@@ -54,7 +54,7 @@ import ImageSlider from "@/components/shared/ImageSlider";
 import ImageUploadModal from "@/components/property/ImageUploadModal";
 import { updateCreationService } from "../service/creation-filter.service";
 import type { IUpdateCreation } from "../types/types";
-import DeleteCreationDialog from "@/components/Delete-Creation.dialog";
+import DeleteCreationDialog from "@/components/creation/Delete-Creation.dialog";
 
 export default function page() {
   const { creationId } = useParams<{ creationId: string }>();

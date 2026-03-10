@@ -1,3 +1,5 @@
+import { CurrencyCode } from "../../tax-system/interfaces/tourist-tax.type";
+
 export type DiscountType = "percentage" | "flat";
 
 export interface ICreatePromoCode {
@@ -7,6 +9,7 @@ export interface ICreatePromoCode {
     propertyId: string;
     discountType: DiscountType;
     discountValue: number;
+    currencyCode:CurrencyCode;
     validFrom: Date;
     validTo: Date;
     minBookingAmount: number |null;
@@ -15,10 +18,6 @@ export interface ICreatePromoCode {
     isApplicableForMobileApp?: boolean;
     isApplicableForDesktop?: boolean;
     isApplicableForTablet?: boolean;
-
-    // isApplicableForWalkIn?: boolean;
-    // isApplicableForOTA?: boolean;
-    // isApplicableForCorporate?: boolean;
 
     usageLimit?: number | null;
     // usageLimitPerUser?: number | null;

@@ -1,3 +1,4 @@
+import { getCurrencyConverter } from "../../../currency-maping/utils";
 import { errorResponse, IApiResponse, successResponse } from "../../../utils";
 import { MLOSDao } from "../dao";
 import { IMLOSCreate, } from "../interfaces";
@@ -15,13 +16,21 @@ export class MLOSService {
             if (!ratePlanExists) {
                 return errorResponse('MLOS already exists for this rateplan');
             }
+            const propertyId=ratePlanExists.propertyId;
 
-            const existingRule = await this.mlosDao.getRatePlanRuleByRatePlanId(data.ratePlanId);
+            const [existingRule,{ convert, baseCurrency }] = await  Promise.all([
+                this.mlosDao.getRatePlanRuleByRatePlanId(data.ratePlanId),
+                getCurrencyConverter(propertyId, data.currencyCode)
+            ]);
             if (existingRule) {
                 return errorResponse('Rate plan rule already exists for this rate plan. Please update the existing rule instead.');
             }
 
-            const response = await this.mlosDao.createRatePlanRule(data);
+            const response = await this.mlosDao.createRatePlanRule({
+                ...data,
+                currencyCode: data.discountType === "flat" ? baseCurrency : data.currencyCode,
+                discountValue: data.discountType === "flat" ? convert(Number(data.discountValue)) : data.discountValue
+            });
 
             if (response) {
                 return successResponse('Rate plan rule created successfully', response);

@@ -1,8 +1,8 @@
 import { DeviceType } from "@prisma/client";
 import { IRoomVideo } from "../../property-management/types";
 import { Decimal } from "@prisma/client/runtime/library";
-import { CurrencyCode } from "../../pms/frontoffice/payment/types";
 import { DiscountType } from "../../promocode/types";
+import { CurrencyCode } from "../../tax-system/interfaces/tourist-tax.type";
 
 export interface IBookingSearchPayload {
   startDate: string;
@@ -42,7 +42,7 @@ export interface IPromotion {
   promotionName: string;
   promotionType: string;
   discountType: string;
-  discountValue: Decimal | null;
+  discountValue: number | null;
   minLos?: number;
   maxLos?: number;
   validFrom?: Date | null;
