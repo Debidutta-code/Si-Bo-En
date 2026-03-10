@@ -37,9 +37,6 @@ class CurrencyController {
         }
     };
 
-    /**
-     * Get a specific currency rate
-     */
     getCurrencyRate = async (req: Request, res: Response) => {
         try {
             let { currency } = req.params;

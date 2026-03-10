@@ -1135,6 +1135,7 @@ enum ReservationPromotionType {
   mlos
   device_specific
   offer_for_tonight
+  normal
 }
 
 model ReservationPromotion {
@@ -1143,6 +1144,7 @@ model ReservationPromotion {
   bookingId     String                   @map("booking_id")
   Reservation   Reservation              @relation(fields: [bookingId], references: [id])
   promotionType ReservationPromotionType @default(mlos) @map("promotion_type")
+
   // isAutoApplied  Boolean                   @default(false) @map("is_auto_applied")
   promotionId   String?                  @map("promotion_id")
   mlosId        String?                  @map("mlos_id")

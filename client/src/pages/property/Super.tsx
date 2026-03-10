@@ -187,7 +187,7 @@ export default function HotelsPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className={`${item.type === "property" && item.property?.isDraft && "flex-1"}`}
+                    className={`${item.type === "property" ? item.property?.isDraft && "flex-1" : "flex-1"}`}
                     onClick={() => {
                       item.type != "property" ?
                         navigate(`/app/property/${currentTab}/${item.id}`) :

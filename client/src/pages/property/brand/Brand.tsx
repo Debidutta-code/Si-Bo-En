@@ -468,7 +468,7 @@ export default function page() {
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        className="flex-1"
+                                        className={`${item.type === "property" ? item.property?.isDraft && "flex-1" : "flex-1"}`}
                                         onClick={() => {
                                             item.type != "property" ?
                                                 navigate(`/app/property/${currentTab}/${item.id}`) :
@@ -482,6 +482,8 @@ export default function page() {
                                             <Button
                                                 variant="outline"
                                                 size="sm"
+                                                className={`${item.type === "property" && !item.property?.isDraft && "flex-1"}`}
+
                                                 onClick={() => navigate(`/app/property/${currentTab}/${item.id}`)}
                                             >
                                                 <Settings className="h-4 w-4" />
