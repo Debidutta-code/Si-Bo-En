@@ -21,7 +21,7 @@ export class BookingOffsetRepository {
     }
     public async getBookingOffsets(
         propertyId: string,
-        ratePlanId: string,
+        ratePlanId: string | null,
         startDate: Date | null,
         endDate: Date | null
     ): Promise<IBookingOffset[]> {

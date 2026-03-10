@@ -25,6 +25,8 @@ import type {
   IAmendValidationErrors,
   IGuestFieldErrors,
   IAmendReservationModalProps,
+  IBookingAddon,
+  ISelectedAddons,
 } from "../types/amend.types";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -54,10 +56,11 @@ const normalizeGuests = (guests: any[]): IAmendGuest[] =>
       typeof g.dob === "string"
         ? g.dob.split("T")[0]
         : typeof g.dob === "object" && g.dob?.$date
-        ? g.dob.$date.split("T")[0]
-        : typeof g.dateOfBirth === "string"
-        ? g.dateOfBirth.split("T")[0]
-        : "",
+          ? g.dob.$date.split("T")[0]
+          : typeof g.dateOfBirth === "string"
+            ? g.dateOfBirth.split("T")[0]
+            : "",
+    age: g.age ?? undefined,  // ← add this
   }));
 
 const emptyFinalPrice = (): IAmendFinalPrice => ({
@@ -201,7 +204,7 @@ const PriceSummary: FC<PriceSummaryProps> = ({
                   <span>
                     {fmt(
                       finalPrice.breakdown.totalBaseAmount +
-                        finalPrice.breakdown.totalAdditionalCharges
+                      finalPrice.breakdown.totalAdditionalCharges
                     )}
                   </span>
                 </div>
@@ -239,9 +242,8 @@ const PriceSummary: FC<PriceSummaryProps> = ({
               Updated Price
             </p>
             <p
-              className={`text-xl font-bold ${
-                priceFetched ? "text-primary" : "text-muted-foreground"
-              }`}
+              className={`text-xl font-bold ${priceFetched ? "text-primary" : "text-muted-foreground"
+                }`}
             >
               {fmt(updatedAmount)}
             </p>
@@ -295,7 +297,7 @@ const PriceSummary: FC<PriceSummaryProps> = ({
                 <span>
                   {fmt(
                     finalPrice.breakdown.totalBaseAmount +
-                      finalPrice.breakdown.totalAdditionalCharges
+                    finalPrice.breakdown.totalAdditionalCharges
                   )}
                 </span>
               </div>
@@ -352,8 +354,6 @@ const PriceSummary: FC<PriceSummaryProps> = ({
   );
 };
 
-// ─── Main Modal ──────────────────────────────────────────────────────────────
-
 const AmendReservationModal: FC<IAmendReservationModalProps> = ({
   reservation,
   onClose,
@@ -405,8 +405,37 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
       toast.error("Please select both check-in and check-out dates");
       return;
     }
+
     const adults = guestForms.filter((g) => g.type === "adult").length;
     const children = guestForms.filter((g) => g.type === "child").length;
+    const childAges = guestForms
+      .filter((g) => g.type === "child")
+      .map((g) => g.age || 0);
+
+    const parsedAddons = Object.values(
+      (reservation.addOns || [])
+        .filter((a: IBookingAddon) => a.type === "selected")
+        .reduce((acc: Record<string, ISelectedAddons>, addon: IBookingAddon) => {
+          if (!acc[addon.addonId]) {
+            acc[addon.addonId] = {
+              addOnId: addon.addonId,
+              availability: [],
+            };
+          }
+          acc[addon.addonId].availability.push({
+            date: new Date(addon.date).toISOString(),
+            quantity: addon.quantity,
+          });
+          return acc;
+        }, {})
+    ) as ISelectedAddons[];
+    const includedAddons = [
+      ...new Set(
+        (reservation.addOns || [])
+          .filter((a: any) => a.type === "included")
+          .map((a: any) => a.addonId)
+      ),
+    ] as string[];
 
     setPriceLoading(true);
     setPriceFetchError(false);
@@ -422,6 +451,10 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
       ratePlanCode: reservation.ratePlanCode || "",
       bookingCode: reservation.bookingCode,
       previousRooms: originalRooms,
+      childAges,
+      parsedAddons,
+      includedAddons,
+      promoCode: reservation.promoCode || "",
     });
 
     setPriceLoading(false);
@@ -457,7 +490,10 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
   ) => {
     setGuestForms((prev) => {
       const updated = [...prev];
-      updated[index] = { ...updated[index], [field]: value };
+      updated[index] = {
+        ...updated[index],
+        [field]: field === "age" ? (value === "" ? undefined : Number(value)) : value,
+      };
       return updated;
     });
     resetPrice();
@@ -544,7 +580,9 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
       {
         adults: guestForms.filter((g) => g.type === "adult").length,
         children: guestForms.filter((g) => g.type === "child").length,
-        childAges: [],
+        childAges: guestForms
+          .filter((g) => g.type === "child")
+          .map((g) => g.age || 0),  // ← add this
       },
     ];
 
@@ -584,66 +622,66 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
   const childCount = guestForms.filter((g) => g.type === "child").length;
 
   // ── Shared Check Availability Button ──
-const CheckAvailabilityButton = () => (
-  <div className="pt-6 border-t border-border">
-    <button
-      onClick={handleCheckPrice}
-      disabled={priceLoading || !checkInDate || !checkOutDate}
-      className="w-full flex items-center justify-center gap-2.5 py-3 px-4 rounded-lg font-semibold text-sm transition-all
+  const CheckAvailabilityButton = () => (
+    <div className="pt-6 border-t border-border">
+      <button
+        onClick={handleCheckPrice}
+        disabled={priceLoading || !checkInDate || !checkOutDate}
+        className="w-full flex items-center justify-center gap-2.5 py-3 px-4 rounded-lg font-semibold text-sm transition-all
         bg-primary text-primary-foreground hover:bg-primary/90
         disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      {priceLoading ? (
-        <>
-          <svg
-            className="animate-spin h-4 w-4 text-primary-foreground"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-          >
-            <circle
-              className="opacity-25"
-              cx="12"
-              cy="12"
-              r="10"
-              stroke="currentColor"
-              strokeWidth="4"
-            />
-            <path
-              className="opacity-75"
-              fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-            />
-          </svg>
-          Checking availability...
-        </>
-      ) : (
-        <>
-          <RefreshCw className={`h-4 w-4 ${priceFetched ? "text-primary-foreground/80" : ""}`} />
-          {priceFetched ? "Re-check Availability & Price" : "Check Availability & Price"}
-        </>
+      >
+        {priceLoading ? (
+          <>
+            <svg
+              className="animate-spin h-4 w-4 text-primary-foreground"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                fill="currentColor"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+              />
+            </svg>
+            Checking availability...
+          </>
+        ) : (
+          <>
+            <RefreshCw className={`h-4 w-4 ${priceFetched ? "text-primary-foreground/80" : ""}`} />
+            {priceFetched ? "Re-check Availability & Price" : "Check Availability & Price"}
+          </>
+        )}
+      </button>
+
+      {priceFetched && !priceLoading && (
+        <div className="flex items-center justify-center gap-1.5 mt-3">
+          <CheckCircle2 className="h-4 w-4 text-green-600" />
+          <span className="text-sm text-green-700 dark:text-green-400 font-medium">
+            Availability confirmed
+          </span>
+        </div>
       )}
-    </button>
 
-    {priceFetched && !priceLoading && (
-      <div className="flex items-center justify-center gap-1.5 mt-3">
-        <CheckCircle2 className="h-4 w-4 text-green-600" />
-        <span className="text-sm text-green-700 dark:text-green-400 font-medium">
-          Availability confirmed
-        </span>
-      </div>
-    )}
-
-    {priceFetchError && !priceLoading && (
-      <div className="flex items-center gap-2 mt-3 bg-destructive/10 border border-destructive/20 rounded-md px-3 py-2.5">
-        <AlertTriangle className="h-4 w-4 text-destructive flex-shrink-0" />
-        <p className="text-sm text-destructive">
-          Could not fetch price. Please try again.
-        </p>
-      </div>
-    )}
-  </div>
-);
+      {priceFetchError && !priceLoading && (
+        <div className="flex items-center gap-2 mt-3 bg-destructive/10 border border-destructive/20 rounded-md px-3 py-2.5">
+          <AlertTriangle className="h-4 w-4 text-destructive flex-shrink-0" />
+          <p className="text-sm text-destructive">
+            Could not fetch price. Please try again.
+          </p>
+        </div>
+      )}
+    </div>
+  );
   // ─────────────────────────────────────────────────────────────────────────
 
   return (
@@ -715,11 +753,10 @@ const CheckAvailabilityButton = () => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
-              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${
-                activeTab === tab
-                  ? "border-primary text-primary"
-                  : "border-transparent text-muted-foreground hover:text-card-foreground hover:border-border"
-              }`}
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-px ${activeTab === tab
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-card-foreground hover:border-border"
+                }`}
             >
               {tab === "dates" ? (
                 <CalendarRange className="w-4 h-4" />
@@ -897,11 +934,10 @@ const CheckAvailabilityButton = () => (
                         <div className="flex items-center gap-2">
                           <span
                             className={`text-xs font-semibold uppercase tracking-wider px-2 py-1 rounded-full
-                            ${
-                              guest.type === "adult"
+                            ${guest.type === "adult"
                                 ? "bg-primary/10 text-primary"
                                 : "bg-muted text-muted-foreground"
-                            }`}
+                              }`}
                           >
                             {guest.type === "adult"
                               ? `Adult ${typeCount}`
@@ -978,6 +1014,25 @@ const CheckAvailabilityButton = () => (
                               focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
                           />
                         </div>
+                        {guest.type === "child" && (
+                          <div className="space-y-1.5">
+                            <label className="text-xs font-medium text-muted-foreground">
+                              Age
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              max="15"
+                              placeholder="Age"
+                              value={guest.age ?? ""}
+                              onChange={(e) =>
+                                handleGuestChange(index, "age", e.target.value)
+                              }
+                              className="w-full rounded-md border border-border px-3 py-2 text-sm bg-background text-card-foreground
+        focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
@@ -1034,41 +1089,41 @@ const CheckAvailabilityButton = () => (
               Cancel
             </button>
             <button
-  onClick={handleConfirm}
-  disabled={priceFetchError || !priceFetched || loading}
-  className="flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold
+              onClick={handleConfirm}
+              disabled={priceFetchError || !priceFetched || loading}
+              className="flex-1 py-2.5 px-4 rounded-lg text-sm font-semibold
     bg-primary text-primary-foreground hover:bg-primary/90 transition-colors
     disabled:opacity-50 disabled:cursor-not-allowed
     flex items-center justify-center gap-2"
->
-  {loading ? (
-    <>
-      <svg
-        className="animate-spin h-4 w-4 text-primary-foreground"
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-      >
-        <circle
-          className="opacity-25"
-          cx="12"
-          cy="12"
-          r="10"
-          stroke="currentColor"
-          strokeWidth="4"
-        />
-        <path
-          className="opacity-75"
-          fill="currentColor"
-          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
-        />
-      </svg>
-      Updating...
-    </>
-  ) : (
-    "Confirm Amend"
-  )}
-</button>
+            >
+              {loading ? (
+                <>
+                  <svg
+                    className="animate-spin h-4 w-4 text-primary-foreground"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+                    />
+                  </svg>
+                  Updating...
+                </>
+              ) : (
+                "Confirm Amend"
+              )}
+            </button>
           </div>
         </div>
       </div>

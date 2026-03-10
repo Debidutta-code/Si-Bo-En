@@ -4,11 +4,14 @@ const axiosInstance = createAxiosInstance();
 
 export const getBookingOffsets = async (
   propertyId: string,
-  ratePlanId: string,
+  ratePlanId: string | null,
   startDate: string|null,
   endDate: string|null,
 ) => {
     const query = new URLSearchParams();
+    if(ratePlanId){
+        query.append("ratePlanId", ratePlanId);
+    }
     if(startDate){
         query.append("startDate", startDate);
     }
@@ -17,7 +20,7 @@ export const getBookingOffsets = async (
     }
   try {
     const response = await axiosInstance.get(
-      `/ari/booking-offset/${propertyId}?ratePlanId=${ratePlanId}&${query.toString()}`,
+      `/ari/booking-offset/${propertyId}?${query.toString()}`,
     );
     return response.data;
   } catch (error: any) {

@@ -3,17 +3,10 @@ import * as crypto from 'crypto';
 import { NGeniusWebhookPayload } from '../types/webhook.types';
 import { socketManager } from '../../socket';
 import { prisma } from '../../config/db.config';
-import redis from '../../config/redis.client';
+import {RedisClient} from '../../config';
 
 class WebhookService {
-  /**
-   * Decrypt encrypted webhook payload
-   * Algorithm: AES-256-CBC with PKCS5 Padding
-   * 
-   * @param encryptedData - Base64 encoded encrypted data (IV prepended)
-   * @param secretKey - 32-character ASCII secret key
-   * @returns Decrypted JSON object
-   */
+
   decryptPayload(encryptedData: string, secretKey: string): NGeniusWebhookPayload {
     try {
       // Validate secret key length (must be exactly 32 characters for AES-256)
@@ -77,6 +70,10 @@ class WebhookService {
     // Emit to Socket.IO
     const orderReference = payload.order.reference;
 
+    // ✅ ADDED: Log the exact Redis key being set so we can verify it matches
+    // what the frontend sends to join-payment-room
+    console.log(`🔑 Redis key being SET: payment:confirmed:${orderReference}`);
+
     // Store payment result in Redis if terminal (success/failed) (TTL: 10 minutes)
     if (status === 'success' || status === 'failed') {
       const redisKey = `payment:confirmed:${orderReference}`;
@@ -94,8 +91,15 @@ class WebhookService {
       });
 
       try {
-        await redis.set(redisKey, redisValue, 'EX', 600);
+        const client = RedisClient.getInstance();
+
+        await client.set(redisKey, redisValue, { EX: 600 });
         console.log(`✅ Payment result (${status}) stored in Redis for ${orderReference}`);
+
+        // ✅ ADDED: Verify the key was actually written - if this logs MISSING
+        // then your Redis client has a key prefix or write is silently failing
+        const verify = await client.get(redisKey);
+        console.log(`🔍 Redis verify read-back: ${verify ? 'KEY EXISTS ✅' : 'KEY MISSING ❌ - write failed silently'}`);
       } catch (err: any) {
         console.error(`❌ Failed to store payment result in Redis for ${orderReference}`, err);
       }
@@ -114,8 +118,8 @@ class WebhookService {
       },
     });
 
-    // Update database status
-    this.updatePaymentDatabase(orderReference, status);
+    // ✅ CHANGED: Added await - was fire-and-forget before which silently swallowed DB errors
+    await this.updatePaymentDatabase(orderReference, status);
   }
 
   /**

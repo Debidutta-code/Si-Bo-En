@@ -884,6 +884,35 @@ export class ReservationService {
             const updateNumberOfNights = Math.max(1, Math.ceil(
                 (newCheckOutDate.getTime() - newCheckInDate.getTime()) / (24 * 60 * 60 * 1000)
             ));
+            const addonBrakeDown = updatePayload.finalPrice.addonBrakeDown || [];
+            const addonPayloads: IBookingAddonCreate[] = addonBrakeDown
+                .filter((addon: any) => addon.addonId)
+                .map((addon: any) => ({
+                    reservationId: existingReservation.id,
+                    addonId: addon.addonId,
+                    name: addon.name,
+                    unitPrice: addon.amount,
+                    quantity: addon.quantity,
+                    totalPrice: addon.totalAmount,
+                    currencyCode: addon.currencyCode || updatePayload.currencyCode,
+                    specialInstructions: null,
+                    type: addon.type,
+                    date: new Date(addon.date),
+                }));
+
+            // Prepare promotion payloads
+            const promotionBrakeDown = updatePayload.finalPrice.promotionBrakeDown || [];
+            const promotionPayloads: IReservationPromotionCreate[] = promotionBrakeDown
+                .filter((promo: any) => promo.id && promo.restrictionType !== 'payLater')
+                .map((promo: any) => ({
+                    bookingCode: existingReservation.bookingCode,
+                    bookingId: existingReservation.id,
+                    promotionId: promo.promotionType === 'mlos' ? null : promo.id,
+                    mlosId: promo.promotionType === 'mlos' ? promo.id : null,
+                    amount: promo.discountAmount,
+                    currency: updatePayload.currencyCode as CurrencyCode,
+                    promotionType: promo.promotionType,
+                }));
 
             const updatedReservation =
                 await this.reservationRepository.updateReservationWithTransaction(
@@ -917,7 +946,10 @@ export class ReservationService {
                         availableRooms: updatePayload.finalPrice.requestedRooms || 0,
                         requestedRooms: updatePayload.requestedRooms,
                         tax: updatePayload.finalPrice.taxBrakeDown || [],
-                    }
+                    },
+                    updateData.guests,
+                    addonPayloads,
+                    promotionPayloads
                 );
 
             // 10. Prepare response with change summary
@@ -1174,13 +1206,13 @@ export class ReservationService {
         specificPropertyId?: string,
         specificPropertyCode?: string,
         bookingStatus?: string,
-        bookingSource?: string, // ← Add these
-        deviceType?: string, // ← Add these
-        bookingCode?: string, // ← Add these
-        guestName?: string, // ← Add these
-        promoCode?: string, // ← Add these
-        countryCode?: string, // ← Add these
-        dateFilterType?: 'checkin' | 'booking' | 'modification' // ← Add these
+        bookingSource?: string, 
+        deviceType?: string, 
+        bookingCode?: string, 
+        guestName?: string, 
+        promoCode?: string, 
+        countryCode?: string, 
+        dateFilterType?: 'checkin' | 'booking' | 'modification' 
     ): Promise<IApiResponse> {
         try {
             const accessResult = await this.getAccessiblePropertyIds(

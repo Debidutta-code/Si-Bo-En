@@ -103,13 +103,13 @@ public async getAllReservations(req: CustomRequest, res: Response): Promise<Resp
             propertyId, 
             propertyCode, 
             bookingStatus,
-            bookingSource,      // ← Add these
-            deviceType,         // ← Add these
-            bookingCode,        // ← Add these
-            guestName,          // ← Add these
-            promoCode,          // ← Add these
-            countryCode,        // ← Add these
-            dateFilterType      // ← Add these
+            bookingSource,     
+            deviceType,         
+            bookingCode,        
+            guestName,          
+            promoCode,          
+            countryCode,        
+            dateFilterType      
         } = req.query;
 
         if (!startDate || !endDate) {

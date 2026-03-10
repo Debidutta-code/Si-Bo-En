@@ -47,11 +47,11 @@ export interface RatePlan {
 }
 
 export interface RestrictionFilters {
-  restrictionType?: RestrictionType;
+  restrictionType?: RestrictionType|null;
   startDate?: string;
   endDate?: string;
-  roomTypeCode?: string;
-  ratePlanCode?: string;
+  roomTypeCode?: string|null;
+  ratePlanCode?: string|null;
 }
 
 export interface LoaderProps {

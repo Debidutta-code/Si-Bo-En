@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { FikafiPaymentController } from '../controller/fikafi.controller';
+import { FikafiPaymentController } from '../controllers/fikafi.controller';
 
 export const fikafiPaymentRoutes = Router();
 
@@ -26,6 +26,12 @@ fikafiPaymentRoutes.post(
 fikafiPaymentRoutes.post(
     '/webhook/payment-event',
     FikafiPaymentController.handlePaymentEventWebhook
+);
+
+// Take action on failed/expired payment (resend or cancel)
+fikafiPaymentRoutes.post(
+    '/payment-action',
+    FikafiPaymentController.takePaymentAction
 );
 
 // Get reservation by booking code

@@ -100,7 +100,9 @@ export class RestrictionRepository {
     propertyCode: string,
     startDate?: Date,
     endDate?: Date,
-    restrictionType?: 'CTA' | 'CTD'
+    restrictionType?: 'CTA' | 'CTD',
+    roomTypeCode?: string,
+    ratePlanCode?: string
   ): Promise<any[]> {
     try {
       const whereClause: any = {
@@ -126,6 +128,14 @@ export class RestrictionRepository {
           { isClosedToArrival: true },
           { isClosedToDeparture: true },
         ];
+      }
+
+      if (roomTypeCode) {
+        whereClause.roomTypeCode = roomTypeCode;
+      }
+
+      if (ratePlanCode) {
+        whereClause.ratePlanCode = ratePlanCode;
       }
 
       return await prisma.charge.findMany({

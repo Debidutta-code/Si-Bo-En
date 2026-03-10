@@ -94,6 +94,8 @@ interface FikafiPayment {
 class FikafiPaymentService {
     private client: AxiosInstance;
     private baseUrl: string;
+    private cachedToken: string | null = null;  // ← ADD
+    private tokenExpiry: number = 0;             // ← ADD
 
     constructor() {
         this.baseUrl = process.env.FIKAFI_BASE_URL!;
@@ -124,6 +126,12 @@ class FikafiPaymentService {
      * Generate Fikafi Bearer token using client credentials
      */
     private async generateFikafiToken(): Promise<string> {
+        // ← ADD: return cached token if still valid
+        if (this.cachedToken && Date.now() < this.tokenExpiry) {
+            console.log('✅ Using cached Fikafi token');
+            return this.cachedToken;
+        }
+
         const clientId = process.env.FIKAFI_CLIENT_ID;
         const key = process.env.FIKAFI_SECRET_KEY;
         const tokenBaseUrl = process.env.FIKAFI_TOKEN_BASE_URL;
@@ -133,17 +141,21 @@ class FikafiPaymentService {
         try {
             console.log('🔄 Generating new Fikafi token...');
 
+            console.log("TOKEN URL:", tokenUrl);
+            console.log("CLIENT ID:", clientId);
+            console.log("SECRET KEY:", key);
+
             const response = await axios.post(
                 tokenUrl,
                 {
                     clientId,
-                    key,
+                    key
                 },
                 {
                     headers: {
-                        'Content-Type': 'application/json',
+                        "Content-Type": "application/json"
                     },
-                    timeout: 15000,
+                    timeout: 30000   // increase to 30s
                 }
             );
 
@@ -158,6 +170,10 @@ class FikafiPaymentService {
             if (!token) {
                 throw new Error('Token missing in response');
             }
+
+            // ← ADD: cache token for 55 minutes
+            this.cachedToken = token;
+            this.tokenExpiry = Date.now() + (55 * 60 * 1000);
 
             return token;
         } catch (error: any) {
@@ -233,7 +249,6 @@ class FikafiPaymentService {
             // Check if token is provided, otherwise generate a new one
             let tokenValue = fikafiToken;
             if (!tokenValue) {
-                console.log('🔄 Generating new Fikafi token...');
                 const tokenResponse = await this.getFikafiToken();
                 if (tokenResponse.success && tokenResponse.token) {
                     tokenValue = tokenResponse.token;
@@ -251,7 +266,7 @@ class FikafiPaymentService {
             }
 
             console.log(
-                '📤 Using Fikafi token from frontend header:',
+                '📤 Using Fikafi token' + (fikafiToken ? ' from frontend header' : ' (newly generated') + ':)',
                 tokenValue.substring(0, 20) + '...'
             );
 
@@ -325,6 +340,75 @@ class FikafiPaymentService {
     public async getPaymentStatus(paymentId: string) {
         const response = await this.client.get(`/payment/status/${paymentId}`);
         return response.data;
+    }
+
+    /**
+     * Take action on a payment (resend or cancel)
+     * Used for handling failed/expired payments
+     * POST /takePaymentAction?bookingRefNum=...&fikafiRefNum=...&action=...
+     */
+    public async takePaymentAction(
+        bookingRefNum: string,
+        fikafiRefNum: string,
+        action: 'resend' | 'cancel',
+        fikafiToken?: string
+    ): Promise<FikafiServiceResponse> {
+        try {
+            console.log(`📤 Taking payment action: ${action} for ${bookingRefNum}`);
+
+            // Get token
+            let tokenValue = fikafiToken;
+            if (!tokenValue) {
+                const tokenResponse = await this.getFikafiToken();
+                if (tokenResponse.success && tokenResponse.token) {
+                    tokenValue = tokenResponse.token;
+                } else {
+                    return {
+                        success: false,
+                        error: tokenResponse.error || 'Failed to generate token',
+                    };
+                }
+            }
+
+            const actionBaseUrl = process.env.FIKAFI_ACTION_BASE_URL;
+            if (!actionBaseUrl) {
+                throw new Error('FIKAFI_ACTION_BASE_URL is not configured.');
+            }
+
+            // Fikafi uses query parameters
+            const params = {
+                bookingRefNum,
+                fikafiRefNum,
+                action,
+            };
+
+            console.log('📤 Fikafi action request:', params);
+
+            const response = await axios.post(
+                `${actionBaseUrl}?bookingRefNum=${bookingRefNum}&fikafiRefNum=${fikafiRefNum}&action=${action}`,
+                {},
+                {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${tokenValue}`,
+                    },
+                }
+            );
+
+            console.log('📥 Fikafi action response:', JSON.stringify(response.data, null, 2));
+
+            return {
+                success: true,
+                message: `Payment ${action} action completed successfully`,
+                data: response.data,
+            };
+        } catch (error: any) {
+            console.error(`❌ Payment action error:`, error.response?.data || error.message);
+            return {
+                success: false,
+                error: error.response?.data?.message || error.message || 'Failed to take payment action',
+            };
+        }
     }
 }
 

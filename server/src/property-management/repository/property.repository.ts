@@ -57,8 +57,8 @@ export class PropertyDao {
       await prisma.propertyConfigs.create({
         data: {
           propertyId: property.id,
-          channelManagerIntegrationActive:true,
-          pmsIntegrationActive:true,
+          channelManagerIntegrationActive:false,
+          pmsIntegrationActive:false,
           baseCurrency:"USD",
           commission:false,
           isB2cAvailable:true,

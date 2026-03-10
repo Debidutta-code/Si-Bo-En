@@ -66,7 +66,7 @@ export class BookingOffsetService {
     }
     public async getBookingOffsets(
         propertyId: string,
-        ratePlanId: string,
+        ratePlanId: string | null,
         startDate: Date | null,
         endDate: Date | null
     ): Promise<IApiResponse> {

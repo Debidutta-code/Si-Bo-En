@@ -350,11 +350,11 @@ export default function Rooms({
                             Smoking Allowed
                           </SelectItem>
                           <SelectItem
-                            value="designated"
+                            value="designated_area"
                             className="hover:bg-gray-100"
                           >
                             Designated Area
-                          </SelectItem>
+                          </SelectItem>                          
                         </SelectContent>
                       </Select>
                     </div>

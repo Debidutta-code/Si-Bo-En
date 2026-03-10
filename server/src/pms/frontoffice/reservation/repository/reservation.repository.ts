@@ -70,26 +70,53 @@ export class ReservationRepository {
     public async updateReservationWithTransaction(
         reservationId: string,
         updateData: Partial<ICReservation>,
-        priceBreakdownData?: Partial<IReservationPriceBrakeDownR>
+        priceBreakdownData?: Partial<IReservationPriceBrakeDownR>,
+        guestDetails?: IGuestDetail[],
+        addonDetails?: IBookingAddonCreate[],
+        promotionDetails?: IReservationPromotionCreate[]
     ): Promise<IReservation> {
         try {
             return await prisma.$transaction(async (tx) => {
-                // Update reservation
+                // 1. Update reservation
                 const updatedReservation = await tx.reservation.update({
                     where: { id: reservationId },
                     data: updateData,
-                    include: {
-                        primaryGuest: true,
-                        priceBreakdowns: true
-                    }
+                    include: { primaryGuest: true, priceBreakdowns: true }
                 });
 
-                // Update price breakdown if provided
+                // 2. Update price breakdown
                 if (priceBreakdownData) {
                     await tx.reservationPriceBrakeDown.updateMany({
                         where: { reservationId },
                         data: priceBreakdownData
                     });
+                }
+
+                // 3. Sync reservation guests
+                if (guestDetails && guestDetails.length > 0) {
+                    await tx.reservationGuest.deleteMany({ where: { reservationId } });
+                    await tx.reservationGuest.createMany({
+                        data: guestDetails.map((guest) => ({
+                            reservationId,
+                            firstName: guest.firstName,
+                            lastName: guest.lastName,
+                            type: guest.type,
+                            age: (guest as any).age ?? null,
+                            dateOfBirth: guest.dateOfBirth ? new Date(guest.dateOfBirth) : null,
+                        }))
+                    });
+                }
+
+                // 4. Sync booking addons
+                await tx.bookingAddon.deleteMany({ where: { reservationId } });
+                if (addonDetails && addonDetails.length > 0) {
+                    await tx.bookingAddon.createMany({ data: addonDetails });
+                }
+
+                // 5. Sync reservation promotions
+                await tx.reservationPromotion.deleteMany({ where: { bookingId: reservationId } });
+                if (promotionDetails && promotionDetails.length > 0) {
+                    await tx.reservationPromotion.createMany({ data: promotionDetails });
                 }
 
                 return updatedReservation;
@@ -137,13 +164,13 @@ export class ReservationRepository {
         page: number,
         limit: number,
         bookingStatus?: string,
-        bookingSource?: string,        // ← Add these
-        deviceType?: string,           // ← Add these
-        bookingCode?: string,          // ← Add these
-        guestName?: string,            // ← Add these
-        promoCode?: string,            // ← Add these
-        countryCode?: string,          // ← Add these
-        dateFilterType?: 'checkin' | 'booking' | 'modification'  // ← Add these
+        bookingSource?: string,        
+        deviceType?: string,           
+        bookingCode?: string,          
+        guestName?: string,            
+        promoCode?: string,            
+        countryCode?: string,          
+        dateFilterType?: 'checkin' | 'booking' | 'modification'  
     ): Promise<IPaginatedResponse<IReservationWithAllDetails>> {
         try {
             const start = new Date(startDate);
@@ -259,7 +286,9 @@ export class ReservationRepository {
                             propertyName: true,
                             propertyCode: true
                         }
-                    }
+                    },
+                    reservationPromotions: true,
+                    reservationGuests: true,
                 }
             });
 

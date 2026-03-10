@@ -100,10 +100,10 @@ export default function BookingOffset() {
   }, [propertyId]);
 
   useEffect(() => {
-    if (selectedRatePlan && propertyId) {
+    if (propertyId) {
       fetchOffsets();
     }
-  }, [selectedRatePlan, startDate, endDate]);
+  }, [propertyId, selectedRatePlan, startDate, endDate]);
 
   const loadRatePlans = async () => {
     if (!propertyId) {
@@ -126,12 +126,12 @@ export default function BookingOffset() {
   };
 
   const fetchOffsets = async () => {
-    if (!propertyId || !selectedRatePlan) return;
+    if (!propertyId) return;
     setLoader({ isLoading: true, message: "Loading Booking Offsets..." });
     try {
       const response = await getBookingOffsetsService(
         propertyId,
-        selectedRatePlan.id,
+        selectedRatePlan?.id || null,
         startDate ? startDate : null,
         endDate ? endDate : null,
       );
@@ -370,7 +370,7 @@ export default function BookingOffset() {
       </div>
 
       {/* Content Area */}
-      {!selectedRatePlan ? (
+      {bookingOffsets.length === 0 && !selectedRatePlan ? (
         <div className="bg-card rounded-lg border border-border p-12 flex flex-col items-center justify-center text-center">
           <Calendar className="w-12 h-12 text-muted-foreground mb-4" />
           <h3 className="text-lg font-semibold text-foreground mb-2">

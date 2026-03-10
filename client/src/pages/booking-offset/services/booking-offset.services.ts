@@ -10,18 +10,18 @@ import type { ICBookingOffsetS, IUBookingOffsetR } from "../interfaces";
 
 export const getBookingOffsetsService = async (
   propertyId: string,
-  ratePlanId: string,
+  ratePlanId: string | null,
   startDate: string|null  ,
   endDate: string|null,
 ) => {
   try {
-    if (!propertyId || !ratePlanId ) {
+    if (!propertyId ) {
       return {
         success: false,
         message: "Missing required parameters",
       };
     }
-    return await getBookingOffsets(propertyId, ratePlanId, startDate?startDate:null, endDate?endDate:null);
+    return await getBookingOffsets(propertyId, ratePlanId?ratePlanId:null, startDate?startDate:null, endDate?endDate:null);
   } catch (error) {
     return {
       success: false,

@@ -99,7 +99,9 @@ export class RestrictionServices {
     propertyCode: string,
     startDate?: string,
     endDate?: string,
-    restrictionType?: 'CTA' | 'CTD'
+    restrictionType?: 'CTA' | 'CTD',
+    roomTypeCode?: string,
+    ratePlanCode?: string
   ) {
     try {
       const startDateObj = startDate ? new Date(startDate) : undefined;
@@ -109,7 +111,9 @@ export class RestrictionServices {
         propertyCode,
         startDateObj,
         endDateObj,
-        restrictionType
+        restrictionType,
+        roomTypeCode,
+        ratePlanCode
       );
 
       return successResponse('Restrictions fetched successfully', restrictions);

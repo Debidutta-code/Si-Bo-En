@@ -115,6 +115,7 @@ export interface IReservation {
   property?: IProperty;
   priceBreakdowns?: IPriceBreakdown[];
   addOns?: any[];
+  promoCode?: string;
 }
 
 export interface IPaginationMeta {
