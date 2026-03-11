@@ -3,12 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import {
   Users,
-  Menu,
   X,
-  Calendar,
-  User,
-  Key,
-  ChevronRight,
 } from "lucide-react";
 import GuestSelector from "../GuestModals/GuestSelector";
 import DatePicker from "react-datepicker";
@@ -20,10 +15,19 @@ import { setBookingContext, setSenderUrl } from "../../store/bookingSlice";
 import toast from "react-hot-toast";
 import { RootState } from "@/src/store/store";
 import React from "react";
-import Image from "next/image";
 import { createPortal } from "react-dom";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage";
-import defaultLogo from "../assets/revchilli.png";
+interface Room {
+  adults: number;
+  children: number;
+  childAges: number[];
+}
+interface GuestInfo {
+  adults: number;
+  children: number;
+  rooms: number | Room[]; // ✅ Change from 'number' to allow both types
+  roomsArray?: Room[]; // ✅ Add this
+}
 interface SearchWidgetProps {
   onSearchStart?: (payload: {
     startDate: string;
@@ -97,7 +101,7 @@ const DatePickerWithHover = ({
       onChange={(date) => {
         if (date) onDateSelect(date);
       }}
-      minDate={new Date()} 
+      minDate={new Date()}
       startDate={checkIn}
       endDate={temporaryCheckOut || checkOut}
       selectsStart
@@ -121,26 +125,11 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   );
   const userTriggeredSearch = useRef(false);
   const [isRoomsPage, setIsRoomsPage] = useState(false);
-
-
-
-  interface GuestInfo {
-    adults: number;
-    children: number;
-    rooms: number | Room[]; // ✅ Change from 'number' to allow both types
-    roomsArray?: Room[]; // ✅ Add this
-  }
-
-  // ✅ Add the Room interface if not already present
-  interface Room {
-    adults: number;
-    children: number;
-  }
-
   const [guestInfo, setGuestInfo] = useState<GuestInfo>({
     adults: 1,
     children: 0,
     rooms: 1,
+    roomsArray: [{ adults: 1, children: 0, childAges: [] }],
   });
 
   const today = new Date();
@@ -206,8 +195,23 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
           totalAdults = g.adults || 0;
           totalChildren = g.children || 0;
         }
-
-        setGuestInfo(g);
+        const normalizedGuests: GuestInfo = {
+          adults: totalAdults,
+          children: totalChildren,
+          rooms: roomsCount,
+          roomsArray: Array.isArray(g.rooms)
+            ? g.rooms.map((r: any) => ({
+              adults: r.adults || 0,
+              children: r.children || 0,
+              childAges: r.childAges || [],        // ✅ ensures childAges always exists
+            }))
+            : g.roomsArray?.map((r: any) => ({
+              adults: r.adults || 0,
+              children: r.children || 0,
+              childAges: r.childAges || [],
+            })) ?? [{ adults: totalAdults, children: totalChildren, childAges: [] }],
+        };
+        setGuestInfo(normalizedGuests);
         setGuestSummary(
           `${totalAdults || 1} adult${totalAdults !== 1 ? "s" : ""} - ${totalChildren || 0
           } child${totalChildren !== 1 ? "ren" : ""} - ${roomsCount} room${roomsCount !== 1 ? "s" : ""
