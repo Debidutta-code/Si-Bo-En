@@ -1,9 +1,10 @@
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
+
 // Enums matching backend
 export type DeviceType = "mobile" | "tablet" | "desktop";
 
 export type DiscountType = "percentage" | "flat";
 
-export type CurrencyCode = "USD" | "EUR" | "INR";
 export type PromotionType = "early_bird" | "offer_for_tonight" | "customizable_deal" | "device_specific";
 
 export interface DeviceSpecificPromotion {

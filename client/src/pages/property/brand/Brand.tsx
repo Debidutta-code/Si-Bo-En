@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import type { IBrandDetails, IBrandManagersMapping, ICreation, IUpdateCreation } from '../types/types';
 import Loader from '@/components/Loader/Loader';
-import CreateEntityDialog from '@/components/creationDialog';
+import CreateEntityDialog from '@/components/creation/creationDialog';
 import BackButton from '@/components/shared/BackButton';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -18,7 +18,7 @@ import { assignUserToProperty } from '../api/api';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import ImageSlider from '@/components/shared/ImageSlider';
 import ImageUploadModal from '@/components/property/ImageUploadModal';
-import DeleteCreationDialog from '@/components/Delete-Creation.dialog';
+import DeleteCreationDialog from "@/components/creation/Delete-Creation.dialog";
 
 
 export default function page() {
@@ -468,7 +468,7 @@ export default function page() {
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        className="flex-1"
+                                        className={`${item.type === "property" ? item.property?.isDraft && "flex-1" : "flex-1"}`}
                                         onClick={() => {
                                             item.type != "property" ?
                                                 navigate(`/app/property/${currentTab}/${item.id}`) :
@@ -482,6 +482,8 @@ export default function page() {
                                             <Button
                                                 variant="outline"
                                                 size="sm"
+                                                className={`${item.type === "property" && !item.property?.isDraft && "flex-1"}`}
+
                                                 onClick={() => navigate(`/app/property/${currentTab}/${item.id}`)}
                                             >
                                                 <Settings className="h-4 w-4" />

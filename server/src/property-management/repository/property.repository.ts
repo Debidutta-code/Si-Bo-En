@@ -59,7 +59,7 @@ export class PropertyDao {
           propertyId: property.id,
           channelManagerIntegrationActive:false,
           pmsIntegrationActive:false,
-          baseCurrency:"USD",
+          baseCurrency:"AED",
           commission:false,
           isB2cAvailable:true,
           isB2bAvailable:false,
@@ -68,13 +68,6 @@ export class PropertyDao {
           showVideo:true
         }
       });
-      // await prisma.nightAudit.create({
-      //   data:{
-      //     auditDate:new Date(),
-      //     propertyId:property.id,
-      //     processedById: data.createdById
-      //   }
-      // })
       return property;
     } catch (error: any) {
       throw new Error(`Failed to create property: ${error.message}`);

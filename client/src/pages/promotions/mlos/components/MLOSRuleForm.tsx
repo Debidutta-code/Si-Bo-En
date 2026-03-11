@@ -14,17 +14,19 @@ import type {
 } from "@/pages/rate-plan/interfaces/ratePlan.type";
 import type { ILoader } from "@/pages/dashboard/interface";
 import type { IMLOScu } from "../interfaces";
-import type { CurrencyCode } from "@/pages/tax-system/interface";
+import { Label } from "@/components/ui/label";
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
+import { currencies } from "@/components/currency-code/cuurency";
 
 interface MLOSRuleFormProps {
   ratePlans: RatePlan[];
   onSubmit: (payload: ICRatePlanRule) => Promise<void>;
   onCancel: () => void;
   editData?:
-    | (RatePlanRule & {
-        ratePlan?: { ratePlanName: string; ratePlanCode: string };
-      })
-    | null;
+  | (RatePlanRule & {
+    ratePlan?: { ratePlanName: string; ratePlanCode: string };
+  })
+  | null;
   isLoading: ILoader;
 }
 
@@ -42,7 +44,7 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
     minLos: "1",
     maxLos: "",
     discountType: "percentage",
-    discountValue: "",
+    discountValue: 0,
     isActive: true,
     isAutoApplied: false,
     currencyCode: "USD",
@@ -50,17 +52,17 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
   useEffect(() => {
     if (editData) {
       setMlos({
-    selectedRatePlan:editData.ratePlanId,
-    startDate:editData.startDate?new Date(editData.startDate).toISOString().split("T")[0]:"",
-    endDate:editData.endDate?new Date(editData.endDate).toISOString().split("T")[0]:"",
-    minLos:editData.minLos.toString(),
-    maxLos:editData.maxLos?.toString()||"",
-    discountType:editData.discountType||"percentage",
-    discountValue:editData.discountValue?.toString()||"",
-    isActive:editData.isActive,
-    isAutoApplied:editData.isAutoApplied,
-    currencyCode:editData.currencyCode
-})
+        selectedRatePlan: editData.ratePlanId,
+        startDate: editData.startDate ? new Date(editData.startDate).toISOString().split("T")[0] : "",
+        endDate: editData.endDate ? new Date(editData.endDate).toISOString().split("T")[0] : "",
+        minLos: editData.minLos.toString(),
+        maxLos: editData.maxLos?.toString() || "",
+        discountType: editData.discountType || "percentage",
+        discountValue: editData.discountValue || 0,
+        isActive: editData.isActive,
+        isAutoApplied: editData.isAutoApplied,
+        currencyCode: editData.currencyCode
+      })
     }
   }, [editData]);
 
@@ -78,11 +80,11 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
       endDate: mlos.endDate,
       minLos: parseInt(mlos.minLos),
       maxLos: mlos.maxLos ? parseInt(mlos.maxLos) : null,
-      discountType: mlos.discountType ,
-      discountValue: mlos.discountValue ? parseFloat(mlos.discountValue) : null,
-      isActive:mlos.isActive,
-      isAutoApplied:mlos.isAutoApplied,
-      currencyCode:mlos.currencyCode
+      discountType: mlos.discountType,
+      discountValue: mlos.discountValue || null,
+      isActive: mlos.isActive,
+      isAutoApplied: mlos.isAutoApplied,
+      currencyCode: mlos.currencyCode
     };
 
     await onSubmit(payload);
@@ -114,7 +116,7 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
             ) : (
               <Select
                 value={mlos.selectedRatePlan}
-                onValueChange={(value)=>setMlos({...mlos,selectedRatePlan:value})}
+                onValueChange={(value) => setMlos({ ...mlos, selectedRatePlan: value })}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Select a rate plan" />
@@ -153,7 +155,7 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
                 <input
                   type="date"
                   value={mlos.startDate}
-                  onChange={(e) => setMlos({...mlos,startDate:e.target.value})}
+                  onChange={(e) => setMlos({ ...mlos, startDate: e.target.value })}
                   className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
                 />
               </div>
@@ -165,7 +167,7 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
                 <input
                   type="date"
                   value={mlos.endDate}
-                  onChange={(e) => setMlos({...mlos,endDate:e.target.value})}
+                  onChange={(e) => setMlos({ ...mlos, endDate: e.target.value })}
                   min={mlos.startDate}
                   className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
                 />
@@ -187,7 +189,7 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
                 <input
                   type="number"
                   value={mlos.minLos}
-                  onChange={(e) => setMlos({...mlos,minLos:e.target.value})}
+                  onChange={(e) => setMlos({ ...mlos, minLos: e.target.value })}
                   min="1"
                   className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
                   required
@@ -201,7 +203,7 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
                 <input
                   type="number"
                   value={mlos.maxLos}
-                  onChange={(e) => setMlos({...mlos,maxLos:e.target.value})}
+                  onChange={(e) => setMlos({ ...mlos, maxLos: e.target.value })}
                   min={mlos.minLos}
                   placeholder="No limit"
                   className="w-full px-4 py-2 bg-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-foreground"
@@ -225,11 +227,11 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
                   Discount Type
                 </label>
                 <Select
-                  value={mlos.discountType||"none"}
+                  value={mlos.discountType || "none"}
                   onValueChange={(value) => {
-                    setMlos({...mlos,discountType:value as "percentage" | "flat"|"none"});
+                    setMlos({ ...mlos, discountType: value as "percentage" | "flat" | "none" });
                     if (!value) {
-                      setMlos({...mlos,discountValue:""});
+                      setMlos({ ...mlos, discountValue: 0 });
                     }
                   }}
                 >
@@ -256,8 +258,8 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
                   <div className="relative">
                     <input
                       type="number"
-                      value={mlos.discountValue||""}
-                      onChange={(e) => setMlos({...mlos,discountValue:e.target.value})}
+                      value={mlos.discountValue || ""}
+                      onChange={(e) => setMlos({ ...mlos, discountValue: parseInt(e.target.value) })}
                       min="0"
                       max={mlos.discountType === "percentage" ? "100" : undefined}
                       step="0.1"
@@ -277,35 +279,21 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
               )}
               {mlos.discountType === "flat" && (
                 <>
-                  <div>
-                    <label className="block text-sm font-medium text-foreground mb-2">
-                      Currency
-                    </label>
+                  <div className="space-y-2">
+                    <Label htmlFor="currencyCode">Currency Code</Label>
                     <Select
-                      value={mlos.currencyCode || "USD"}
-                      onValueChange={(value) =>
-                        setMlos({ ...mlos, currencyCode: value as CurrencyCode })
-                      }
+                      value={mlos.currencyCode}
+                      onValueChange={(value) => setMlos({ ...mlos, currencyCode: value as CurrencyCode })}
                     >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Select currency" />
+                      <SelectTrigger>
+                        <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="USD">USD - US Dollar</SelectItem>
-                        <SelectItem value="EUR">EUR - Euro</SelectItem>
-                        <SelectItem value="INR">INR - Indian Rupee</SelectItem>
-                        {/* <SelectItem value="AED">AED - UAE Dirham</SelectItem>
-                        <SelectItem value="SAR">SAR - Saudi Riyal</SelectItem> */}
-                        <SelectItem value="SGD">
-                          SGD - Singapore Dollar
-                        </SelectItem>
-                        <SelectItem value="AUD">
-                          AUD - Australian Dollar
-                        </SelectItem>
-                        <SelectItem value="CAD">
-                          CAD - Canadian Dollar
-                        </SelectItem>
-                        <SelectItem value="JPY">JPY - Japanese Yen</SelectItem>
+                        {currencies.map((currency) => (
+                          <SelectItem key={currency.code} value={currency.code}>
+                            {currency.name} ({currency.symbol})
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -318,7 +306,7 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
               type="checkbox"
               id="isAutoApplied"
               checked={mlos.isAutoApplied}
-              onChange={(e) => setMlos({...mlos,isAutoApplied:e.target.checked})}
+              onChange={(e) => setMlos({ ...mlos, isAutoApplied: e.target.checked })}
               className="w-5 h-5 text-primary border-border rounded focus:ring-2 focus:ring-primary"
             />
             <label
@@ -339,7 +327,7 @@ const MLOSRuleForm: React.FC<MLOSRuleFormProps> = ({
               type="checkbox"
               id="isActive"
               checked={mlos.isActive}
-              onChange={(e) => setMlos({...mlos,isActive:e.target.checked})}
+              onChange={(e) => setMlos({ ...mlos, isActive: e.target.checked })}
               className="w-5 h-5 text-primary border-border rounded focus:ring-2 focus:ring-primary"
             />
             <label

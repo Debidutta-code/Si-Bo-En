@@ -1,4 +1,4 @@
-import { CurrencyCode } from "../../pms/frontoffice/payment/types";
+import { CurrencyCode } from "../../tax-system/interfaces/tourist-tax.type";
 
 export interface IUPropertyConfig {
   channelManagerIntegrationActive: boolean,

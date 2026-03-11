@@ -1,6 +1,6 @@
 
-import { CurrencyCode } from "../../pms/frontoffice/payment/types";
 import { AgencyType, AgentCommissionType, IAgenticProperty, IAgents } from ".";
+import { CurrencyCode } from "../../tax-system/interfaces/tourist-tax.type";
 export interface ICAgency {
     agencyName: string;
     agencyType: AgencyType

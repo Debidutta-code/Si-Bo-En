@@ -7,7 +7,8 @@ import {
     ICharges,
 } from '../types';
 import { toUTC } from '../../utils';
-
+import { getCurrencyConverter } from '../../currency-maping/utils';
+import { CurrencyCode } from '../../tax-system/interfaces/tourist-tax.type';
 class InventoryServices {
     public static async getInventoryServices(
         hotelCode: string,
@@ -131,12 +132,15 @@ class InventoryServices {
         ratePlanCode: string,
         baseGuestAmounts: BaseGuestAmount[],
         additionalGuestAmounts: AdditionalGuestAmount[],
-        currencyCode: string,
+        currencyCode: CurrencyCode,
         startDate: string,
         endDate: string
     ) {
         try {
-            const room = await InventoryDao.getRoom(propertyId, roomTypeCode);
+            const [room,{ convert, baseCurrency }] = await Promise.all([
+                InventoryDao.getRoom(propertyId, roomTypeCode),
+                getCurrencyConverter(propertyId, currencyCode)
+            ]);
 
             if (!room) {
                 return errorResponse(
@@ -156,8 +160,6 @@ class InventoryServices {
                 );
             }
 
-            // ✅ Check inventory availability for the date range
-            // console.log('🔍 Checking inventory availability for:', { propertyCode, roomTypeCode, startDate, endDate });
             const inventoryCheck =
                 await InventoryDao.checkInventoryAvailability(
                     propertyCode,
@@ -165,9 +167,6 @@ class InventoryServices {
                     startDate,
                     endDate
                 );
-            // console.log('📦 Inventory check result:', inventoryCheck);
-
-            // If no inventory at all for the entire range
             if (inventoryCheck.availableDates.length === 0) {
                 return errorResponse(
                     `Please add your inventory before mapping rate plans for this room `
@@ -182,14 +181,14 @@ class InventoryServices {
                     const convertedBaseGuestAmounts = baseGuestAmounts.map(
                         bg => ({
                             noOfGuests: bg.numberOfGuests,
-                            amount: bg.amountBeforeTax,
+                            amount: convert(bg.amountBeforeTax),
                         })
                     );
 
                     const convertedAdditionalGuestAmounts =
                         additionalGuestAmounts.map(ag => ({
                             ageCode: ag.ageQualifyingCode as '10' | '8' | '5',
-                            amount: ag.amount,
+                            amount: convert(ag.amount),
                         }));
 
                     mappedRI.push({
@@ -200,7 +199,7 @@ class InventoryServices {
                         ratePlanCode,
                         baseGuestAmounts: convertedBaseGuestAmounts,
                         additionalGuestAmounts: convertedAdditionalGuestAmounts,
-                        currencyCode,
+                        currencyCode: baseCurrency,
                         date: dateStr,
                     });
                 }
@@ -212,7 +211,7 @@ class InventoryServices {
                     const firstMissing = inventoryCheck.missingDates[0];
                     const lastMissing =
                         inventoryCheck.missingDates[
-                            inventoryCheck.missingDates.length - 1
+                        inventoryCheck.missingDates.length - 1
                         ];
 
                     return successResponse(
@@ -243,13 +242,13 @@ class InventoryServices {
 
                 const convertedBaseGuestAmounts = baseGuestAmounts.map(bg => ({
                     noOfGuests: bg.numberOfGuests,
-                    amount: bg.amountBeforeTax,
+                    amount: convert(bg.amountBeforeTax),
                 }));
 
                 const convertedAdditionalGuestAmounts =
                     additionalGuestAmounts.map(ag => ({
                         ageCode: ag.ageQualifyingCode as '10' | '8' | '5',
-                        amount: ag.amount,
+                        amount: convert(ag.amount),
                     }));
 
                 mappedRI.push({
@@ -260,7 +259,7 @@ class InventoryServices {
                     ratePlanCode,
                     baseGuestAmounts: convertedBaseGuestAmounts,
                     additionalGuestAmounts: convertedAdditionalGuestAmounts,
-                    currencyCode,
+                    currencyCode: baseCurrency,
                     date: toUTC(yyyyMmDd),
                 });
             }

@@ -14,7 +14,7 @@ import type {
 } from "../types/types";
 import Loader from "@/components/Loader/Loader";
 import { capitalizeFirstLetter } from "@/lib/utils";
-import CreateEntityDialog from "@/components/creationDialog";
+import CreateEntityDialog from "@/components/creation/creationDialog";
 import BackButton from "@/components/shared/BackButton";
 import {
   User2Icon,
@@ -54,7 +54,7 @@ import ImageSlider from "@/components/shared/ImageSlider";
 import ImageUploadModal from "@/components/property/ImageUploadModal";
 import { updateCreationService } from "../service/creation-filter.service";
 import type { IUpdateCreation } from "../types/types";
-import DeleteCreationDialog from "@/components/Delete-Creation.dialog";
+import DeleteCreationDialog from "@/components/creation/Delete-Creation.dialog";
 
 export default function page() {
   const { creationId } = useParams<{ creationId: string }>();
@@ -689,26 +689,28 @@ export default function page() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex-1"
+                    className={`${item.type === "property" ? item.property?.isDraft && "flex-1" : "flex-1"}`}
                     onClick={() => {
-                      item.type != "property"
-                        ? navigate(`/app/property/${currentTab}/${item.id}`)
-                        : navigate(`/property/${item.propertyId}`);
+                      item.type != "property" ?
+                        navigate(`/app/property/${currentTab}/${item.id}`) :
+                        navigate(`/property/${item.propertyId}`)
                     }}
                   >
                     View Details
                   </Button>
-                  {item.type == "property" && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() =>
-                        navigate(`/app/property/${currentTab}/${item.id}`)
-                      }
-                    >
-                      <Settings className="h-4 w-4" />
-                    </Button>
-                  )}
+                  {
+                    item.type == "property" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className={`${item.type === "property" && !item.property?.isDraft && "flex-1"}`}
+
+                        onClick={() => navigate(`/app/property/${currentTab}/${item.id}`)}
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    )
+                  }
                 </div>
               </div>
             ))}

@@ -73,7 +73,9 @@ export interface ICreation {
     groupIds?: string[];
     brandIds?: string[];
     propertyIds?: string[];
-
+    property?:{
+        isDraft:boolean;
+    }
 }
 
 export interface Icreations {

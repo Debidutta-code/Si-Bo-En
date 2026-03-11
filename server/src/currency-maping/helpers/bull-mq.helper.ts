@@ -2,7 +2,7 @@ import { Queue, Worker, Job } from 'bullmq';
 import { config } from '../../config';
 import axios from 'axios';
 import { ExchangeRateResponse } from '../types/exchange.types';
-import {RedisClient} from '../../config';
+import { RedisClient } from '../../config';
 
 interface CurrencyJobData {
     timestamp: number;
@@ -12,7 +12,6 @@ class BullMQHelper {
     private queue: Queue;
     private worker: Worker;
     private redisClient: ReturnType<typeof RedisClient.getInstance>;
-    private isRedisConnected: boolean = false;
 
     constructor(queueName: string, connection: any) {
         this.redisClient = RedisClient.getInstance();
@@ -20,12 +19,12 @@ class BullMQHelper {
             connection,
             skipVersionCheck: true, // managed Redis doesn'
         });
-        
+
         this.worker = new Worker(
-            queueName, 
+            queueName,
             async (job: Job) => {
                 await this.processCurrencyJob(job);
-            }, 
+            },
             {
                 connection,
                 skipVersionCheck: true, // suppress noeviction warning on managed Redis
@@ -47,18 +46,21 @@ class BullMQHelper {
             await this.queue.upsertJobScheduler(
                 'daily-currency-fetch',
                 {
-                    pattern: '0 0 6 * * *', 
+                    pattern: '0 0 6 * * *',
                 },
+                //{
+                //     every: 60 * 1000, // Every 1 minute in ms
+                // },
                 {
                     name: 'fetch-currency-rates',
                     data: {
                         timestamp: Date.now()
                     } as CurrencyJobData,
                     opts: {
-                        attempts: 3, 
+                        attempts: 3,
                         backoff: {
                             type: 'exponential',
-                            delay: 5000, 
+                            delay: 5000,
                         },
                     },
                 }
@@ -71,10 +73,10 @@ class BullMQHelper {
 
     private async processCurrencyJob(job: Job) {
         console.log(`🔄 Processing currency fetch job ${job.id} at ${new Date()}`);
-        
+
         try {
             const exchangeRates = await this.fetchExchangeRates();
-            
+
             console.log(`📊 Fetched exchange rates:`, {
                 base: exchangeRates.base_code,
                 ratesCount: Object.keys(exchangeRates.conversion_rates).length,
@@ -86,7 +88,7 @@ class BullMQHelper {
             return exchangeRates;
         } catch (error) {
             console.error('Error fetching exchange rates:', error);
-            throw error; 
+            throw error;
         }
     }
 
@@ -118,101 +120,101 @@ class BullMQHelper {
         }
     }
 
-private async storeExchangeRates(rates: ExchangeRateResponse): Promise<void> {
-    console.log('💾 Storing exchange rates in Redis...');
-    
-    try {
-        const timestamp = Date.now();
-        const redisKey = 'exchange:rates:latest';
-        const historyKey = `exchange:rates:history:${new Date().toISOString().split('T')[0]}`; // YYYY-MM-DD
-        
-        const dataToStore = {
-            ...rates,
-            fetchedAt: timestamp,
-            fetchedDate: new Date().toISOString()
-        };
+    private async storeExchangeRates(rates: ExchangeRateResponse): Promise<void> {
+        console.log('💾 Storing exchange rates in Redis...');
 
-        await this.redisClient.setEx(
-            redisKey,
-            25 * 60 * 60, // 25 hours 
-            JSON.stringify(dataToStore)
-        );
+        try {
+            const timestamp = Date.now();
+            const redisKey = 'exchange:rates:latest';
+            const historyKey = `exchange:rates:history:${new Date().toISOString().split('T')[0]}`; // YYYY-MM-DD
 
-        if (rates.conversion_rates) {
-            const hashKey = 'exchange:rates:hash';
-            
-            if (rates.base_code) {
-                await this.redisClient.hSet(hashKey, 'base', rates.base_code);
+            const dataToStore = {
+                ...rates,
+                fetchedAt: timestamp,
+                fetchedDate: new Date().toISOString()
+            };
+
+            await this.redisClient.setEx(
+                redisKey,
+                25 * 60 * 60, // 25 hours 
+                JSON.stringify(dataToStore)
+            );
+
+            if (rates.conversion_rates) {
+                const hashKey = 'exchange:rates:hash';
+
+                if (rates.base_code) {
+                    await this.redisClient.hSet(hashKey, 'base', rates.base_code);
+                }
+
+                await this.redisClient.hSet(hashKey, 'timestamp', timestamp.toString());
+
+                for (const [currency, rate] of Object.entries(rates.conversion_rates)) {
+                    await this.redisClient.hSet(hashKey, currency, rate.toString());
+                }
             }
-            
-            await this.redisClient.hSet(hashKey, 'timestamp', timestamp.toString());
-            
-            for (const [currency, rate] of Object.entries(rates.conversion_rates)) {
-                await this.redisClient.hSet(hashKey, currency, rate.toString());
-            }
+            await this.redisClient.setEx(
+                historyKey,
+                7 * 24 * 60 * 60,
+                JSON.stringify(dataToStore)
+            );
+
+            await this.redisClient.hSet('exchange:metadata', 'lastUpdate', timestamp.toString());
+            await this.redisClient.hSet('exchange:metadata', 'lastUpdateDate', new Date().toISOString());
+            await this.redisClient.hSet('exchange:metadata', 'currencyCount', Object.keys(rates.conversion_rates || {}).length.toString());
+            await this.redisClient.hSet('exchange:metadata', 'baseCurrency', rates.base_code || 'N/A');
+
+            console.log(`✅ Exchange rates stored successfully in Redis (${Object.keys(rates.conversion_rates || {}).length} currencies)`);
+        } catch (error) {
+            console.error('❌ Error storing exchange rates in Redis:', error);
+            throw error;
         }
-        await this.redisClient.setEx(
-            historyKey,
-            7 * 24 * 60 * 60, 
-            JSON.stringify(dataToStore)
-        );
-
-        await this.redisClient.hSet('exchange:metadata', 'lastUpdate', timestamp.toString());
-        await this.redisClient.hSet('exchange:metadata', 'lastUpdateDate', new Date().toISOString());
-        await this.redisClient.hSet('exchange:metadata', 'currencyCount', Object.keys(rates.conversion_rates || {}).length.toString());
-        await this.redisClient.hSet('exchange:metadata', 'baseCurrency', rates.base_code || 'N/A');
-
-        console.log(`✅ Exchange rates stored successfully in Redis (${Object.keys(rates.conversion_rates || {}).length} currencies)`);
-    } catch (error) {
-        console.error('❌ Error storing exchange rates in Redis:', error);
-        throw error;
     }
-}
 
-async getExchangeRates(): Promise<ExchangeRateResponse | null> {
-    try {
-        const data = await this.redisClient.get('exchange:rates:latest');
-        if (!data) {
-            console.log('No exchange rates found in Redis');
+    async getExchangeRates(): Promise<ExchangeRateResponse | null> {
+        try {
+            const data = await this.redisClient.get('exchange:rates:latest');
+            if (!data) {
+                console.log('No exchange rates found in Redis');
+                return null;
+            }
+            return JSON.parse(data);
+        } catch (error) {
+            console.error('Error retrieving exchange rates from Redis:', error);
             return null;
         }
-        return JSON.parse(data);
-    } catch (error) {
-        console.error('Error retrieving exchange rates from Redis:', error);
-        return null;
     }
-}
 
-async getCurrencyRate(currency: string): Promise<number | null> {
-    try {
-        const rate = await this.redisClient.hGet('exchange:rates:hash', currency.toUpperCase());
-        return rate ? parseFloat(rate) : null;
-    } catch (error) {
-        console.error(`Error retrieving rate for ${currency}:`, error);
-        return null;
-    }
-}
-
-async getAllRatesFromHash(): Promise<Record<string, number> | null> {
-    try {
-        const allRates = await this.redisClient.hGetAll('exchange:rates:hash');
-        if (!allRates || Object.keys(allRates).length === 0) {
+    async getCurrencyRate(currency: string): Promise<number | null> {
+        try {
+            const rate = await this.redisClient.hGet('exchange:rates:hash', currency.toUpperCase());
+            return rate ? parseFloat(rate) : null;
+        } catch (error) {
+            console.error(`Error retrieving rate for ${currency}:`, error);
             return null;
         }
-        
-        const rates: Record<string, number> = {};
-        for (const [key, value] of Object.entries(allRates)) {
-            if (key !== 'base' && key !== 'timestamp') {
-                rates[key] = parseFloat(value);
-            }
-        }
-        
-        return rates;
-    } catch (error) {
-        console.error('Error retrieving all rates from Redis:', error);
-        return null;
     }
-}
+
+    async getAllRatesFromHash(): Promise<Record<string, number> | null> {
+        try {
+            const allRates = await this.redisClient.hGetAll('exchange:rates:hash');
+            if (!allRates || Object.keys(allRates).length === 0) {
+                return null;
+            }
+
+            const rates: Record<string, number> = {};
+            for (const [key, value] of Object.entries(allRates)) {
+                if (key !== 'base' && key !== 'timestamp') {
+                    rates[key] = parseFloat(value);
+                }
+            }
+
+            return rates;
+        } catch (error) {
+            console.error('Error retrieving all rates from Redis:', error);
+            return null;
+        }
+    }
 
     async triggerManualFetch() {
         try {
@@ -239,16 +241,12 @@ async getAllRatesFromHash(): Promise<Record<string, number> | null> {
     async getQueueStatus() {
         const jobCounts = await this.queue.getJobCounts();
         const schedulers = await this.queue.getJobSchedulers();
-        
+
         return {
             jobCounts,
             schedulers: Array.from(schedulers.values())
         };
     }
-
-    /**
-     * Clean up old jobs
-     */
     async cleanup(gracePeriodMs: number = 24 * 60 * 60 * 1000) {
         await this.queue.clean(gracePeriodMs, 1000, 'completed');
         await this.queue.clean(gracePeriodMs, 1000, 'failed');

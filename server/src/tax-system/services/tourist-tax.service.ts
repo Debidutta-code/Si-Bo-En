@@ -4,6 +4,7 @@ import { PropertyDao } from "../../property-management/repository/property.repos
 import { successResponse, errorResponse } from "../../utils/return";
 import { IApiResponse } from "../../utils/return.types";
 import { RatePlanRepository } from "../../ari/repository";
+import { getCurrencyConverter } from "../../currency-maping/utils";
 
 export class TouristTaxService {
     touristTaxRepository: TouristTaxRepository;
@@ -18,12 +19,12 @@ export class TouristTaxService {
     ): Promise<IApiResponse> {
         try {
             // Verify property exists
-            const property = await PropertyDao.getPropertyById(propertyId, true);
-            if (!property) {
+            const [property, { convert, baseCurrency }] = await Promise.all([
+                PropertyDao.getPropertyById(propertyId, true),
+                getCurrencyConverter(propertyId, touristTaxData.currencyCode)
+            ]); if (!property) {
                 return errorResponse('Property not found');
             }
-
-            // Get rate plan by code and verify it belongs to the property
             const ratePlan = await RatePlanRepository.getRatePlanByCode(
                 touristTaxData.ratePlanCode,
             );
@@ -32,7 +33,7 @@ export class TouristTaxService {
                 return errorResponse('Rate plan not found or does not belong to this property');
             }
 
-            // Check if tourist tax already exists for this rate plan
+
             const existingTouristTax = await this.touristTaxRepository.getTouristTaxByRatePlanCode(
                 touristTaxData.ratePlanCode,
                 propertyId
@@ -44,7 +45,11 @@ export class TouristTaxService {
 
             const newTouristTax = await this.touristTaxRepository.createTouristTax(
                 ratePlan.id,
-                touristTaxData
+                {
+                    ...touristTaxData,
+                    currencyCode: touristTaxData.discountType === "flat" ? baseCurrency : touristTaxData.currencyCode,
+                    discountValue: touristTaxData.discountType === "flat" ? convert(touristTaxData.discountValue) : touristTaxData.discountValue
+                }
             );
 
             if (newTouristTax) {

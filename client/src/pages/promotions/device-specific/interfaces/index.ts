@@ -1,6 +1,6 @@
 import type {DeviceSpecificPromotion,DeviceSpecificPromotionWithRatePlan,CreateDeviceSpecificPromotion,UpdateDeviceSpecificPromotion,
     DeviceType,
-    DiscountType,CurrencyCode,
+    DiscountType,
     
 } from "./mobilePromotion.type";
 export type {
@@ -10,6 +10,5 @@ export type {
     DeviceSpecificPromotionWithRatePlan,
     DeviceType,
     DiscountType,
-    CurrencyCode,
     
 }

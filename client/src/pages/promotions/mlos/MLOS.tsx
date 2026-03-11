@@ -184,7 +184,7 @@ export const MLOSRuleList: React.FC = () => {
 
   const formatDiscount = (type: string | null, value: number | null) => {
     if (!type || !value) return 'No discount';
-    return type === 'percentage' ? `${value}%` : `$ ${value}`;
+    return type === 'percentage' ? `${value}%` : ` ${value}`;
   };
 
   if (showForm) {
@@ -291,7 +291,7 @@ export const MLOSRuleList: React.FC = () => {
                         ? 'bg-success/10 text-success'
                         : 'bg-muted text-muted-foreground'
                         }`}>
-                        {formatDiscount(rule.discountType || null, rule.discountValue || null)}
+                        {formatDiscount(rule.discountType || null, rule.discountValue || null)} {rule.discountType === 'flat' && rule.currencyCode ? rule.currencyCode : ''}
                       </span>
                     </TableCell>
                     <TableCell >

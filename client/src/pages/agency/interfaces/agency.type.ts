@@ -1,5 +1,6 @@
 
-import type {  AgencyType, AgentCommissionType, CurrencyCode, IAgenticProperty } from ".";
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
+import type {  AgencyType, AgentCommissionType, IAgenticProperty } from ".";
 import type { IAgents } from "./agents.types";
 export interface ICAgency {
     agencyName: string;

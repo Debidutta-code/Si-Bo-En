@@ -1,8 +1,8 @@
 import { Decimal } from "@prisma/client/runtime/library";
 import {IFolioLine} from "./folio-line.type";
 import {IPayment} from "./payment.type";
+import { CurrencyCode } from "../../../../tax-system/interfaces/tourist-tax.type";
 export type FolioStatus="open"|"closed";
-export type CurrencyCode="USD"|"EUR"|"INR";
 
 export interface ICFolio{
     bookingCode:string;

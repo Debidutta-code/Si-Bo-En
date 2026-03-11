@@ -33,7 +33,7 @@ import type {
     IUPropertyConfig,
     IMasterPartnersWProperty,
 } from "./types";
-import DeleteCreationDialog from '@/components/Delete-Creation.dialog';
+import DeleteCreationDialog from '@/components/creation/Delete-Creation.dialog';
 import IntegrationDialog from './components/IntegrationDialog';
 import PropertyConfigDialog from './components/PropertyConfigDialog';
 import ViewIntegrationDetailsDialog from './components/ViewIntegrationDetailsDialog';
@@ -116,7 +116,6 @@ export default function PropertyPage() {
     const fetchProperty = async () => {
         try {
             if (!creationId) {
-                toast.error("Property ID is required");
                 navigate('/app/property');
                 return;
             }
@@ -146,6 +145,7 @@ export default function PropertyPage() {
             if(!user||user.role!="super_admin"){
                 return;
             }
+            if(!propertyId)return
             const response = await getAllPartnerIntegrationsService(propertyId);
             if (response.success) {
                 setMasterPartners(response.data);

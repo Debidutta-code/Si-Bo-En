@@ -21,7 +21,6 @@ import { prisma } from '../../../../config';
 import { IPropertyCodeAndIds } from '../../../../dashboard/types';
 import { DashUtilsRepo } from '../../../../dashboard/repository';
 import { Decimal } from '@prisma/client/runtime/library';
-import { BookingStatus, CurrencyCode } from '@prisma/client';
 import { nowUTC, toUTC, toUTCDate } from '../../../../utils';
 import {
     BookingAddonRepository,
@@ -31,6 +30,8 @@ import { ReservationEmailService } from '../../../../sms-email-service/service';
 import { LoyaltyGuestRepository } from '../../../../loyalty/repository';
 import { RTIntegrationDao } from '../../../../integrations/rate-tiger/dao/rt-integration.dao';
 import { RTReservationPushService } from '../../../../integrations/rate-tiger/services/rt-reservation-push.service';
+import { CurrencyCode } from '../../../../tax-system/interfaces/tourist-tax.type';
+import { BookingStatus } from '../types/reservation.type';
 export class ReservationService {
     reservationRepository: ReservationRepository;
     priceBrakeDownRepo: PriceBrakeDownRepo;
@@ -402,9 +403,9 @@ export class ReservationService {
                 additionalGuestCharges: 0,
                 baseRatePerNight: numberOfNights > 0 ? Math.round(finalPrice.amountBeforeTax / numberOfNights) : 0,
                 numberOfNights: numberOfNights,
-                priceAfterTax: new Decimal(finalPrice.totalAmount),
-                totalAmount: new Decimal(finalPrice.totalAmount),
-                totalTax: new Decimal(finalPrice.taxedAmount || 0),
+                priceAfterTax: finalPrice.totalAmount,
+                totalAmount: finalPrice.totalAmount,
+                totalTax: finalPrice.taxedAmount|| 0,
                 breakdown: {
                     totalBaseAmount: finalPrice.amountBeforeTax,
                     totalAddonAmount: finalPrice.totalAddonAmount || 0,
@@ -924,15 +925,15 @@ export class ReservationService {
                             ? Math.round((updatePayload.finalPrice.amountBeforeTax || updatePayload.finalPrice.totalAmount || 0) / updateNumberOfNights)
                             : 0,
                         numberOfNights: updateNumberOfNights,
-                        priceAfterTax: new Decimal(
+                        priceAfterTax: 
                             updatePayload.finalPrice.totalAmount || 0
-                        ),
-                        totalAmount: new Decimal(
+                        ,
+                        totalAmount: 
                             updatePayload.finalPrice.totalAmount || 0
-                        ),
-                        totalTax: new Decimal(
+                        ,
+                        totalTax: 
                             updatePayload.finalPrice.taxedAmount || 0
-                        ),
+                        ,
                         breakdown: {
                             totalBaseAmount: updatePayload.finalPrice.amountBeforeTax || 0,
                             totalAddonAmount: updatePayload.finalPrice.totalAddonAmount || 0,

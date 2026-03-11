@@ -1,4 +1,3 @@
-export type DiscountType = 'flat' | 'percentage';
 export type CurrencyCode =
   | 'INR' | 'AED' | 'AFN' | 'ALL' | 'AMD' | 'ANG' | 'AOA' | 'ARS' | 'AUD' | 'AWG'
   | 'AZN' | 'BAM' | 'BBD' | 'BDT' | 'BGN' | 'BHD' | 'BIF' | 'BMD' | 'BND' | 'BOB'
@@ -17,21 +16,9 @@ export type CurrencyCode =
   | 'TOP' | 'TRY' | 'TTD' | 'TVD' | 'TWD' | 'TZS' | 'UAH' | 'UGX' | 'USD' | 'UYU'
   | 'UZS' | 'VES' | 'VND' | 'VUV' | 'WST' | 'XAF' | 'XCD' | 'XCG' | 'XDR' | 'XOF'
   | 'XPF' | 'YER' | 'ZAR' | 'ZMW' | 'ZWG' | 'ZWL';
-export interface ICTouristTax {
-    name:string
-    ratePlanCode: string;
-    discountType: DiscountType;
-    discountValue: number;
-    currencyCode: CurrencyCode;
-}
 
-export interface IGetTouristTax extends ICTouristTax {
-    id: string;
-    ratePlanId: string;
-    createdAt: Date;
-    ratePlan?: {
-        id: string;
-        ratePlanCode: string;
-        ratePlanName: string;
-    };
+export interface Currency {
+  code: CurrencyCode;
+  name: string;
+  symbol: string;
 }

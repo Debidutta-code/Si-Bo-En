@@ -2,8 +2,6 @@ import { successResponse, errorResponse, toUTC, toUTCDate } from '../../utils';
 import { IApiResponse } from '../../utils';
 import { BookingOffsetRepository, RatePlanRepository } from '../repository';
 import {
-    IBookingOffset,
-    ICBookingOffsetR,
     ICBookingOffsetS,
     IUBookingOffsetR,
     IUpsertBookingOffsetEntry,

@@ -1,3 +1,4 @@
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
 
 // TaxRule Interfaces
 export type TaxType = "percentage" | "fixed"
@@ -13,11 +14,12 @@ export interface ITaxRule {
     description: string | null;
     validFrom: Date;
     validTo: Date;
-    isInclusive: boolean;
     priority: number;
     propertyId: string;
     createdAt: Date;
     updatedAt: Date;
+        currencyCode: CurrencyCode;
+
     taxGroupRules?: {
         id: string;
         taxGroupId: string;
@@ -37,8 +39,8 @@ export interface ICTaxRule {
     description?: string;
     validFrom: Date;
     validTo: Date;
-    isInclusive?: boolean;
     priority: number;
+    currencyCode: CurrencyCode;
 }
 
 export interface IUTaxRule {
@@ -49,8 +51,8 @@ export interface IUTaxRule {
     description: string;
     validFrom: Date;
     validTo: Date;
-    isInclusive: boolean;
     priority: number;
+    currencyCode: CurrencyCode;
 }
 
 export interface IDTaxRule {
@@ -61,5 +63,4 @@ export interface IFTaxRule {
     id?: string;
     propertyId?: string;
     type?: TaxType;
-    isInclusive?: boolean;
 }

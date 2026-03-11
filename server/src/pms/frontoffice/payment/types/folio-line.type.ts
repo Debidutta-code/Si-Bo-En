@@ -1,6 +1,7 @@
 
 import { Decimal } from "@prisma/client/runtime/library";
-import type {  IFolio ,CurrencyCode} from "./folio.type";
+import type {   IFolio } from "./folio.type";
+import { CurrencyCode } from "../../../../tax-system/interfaces/tourist-tax.type";
 
 export interface ICFolioLine {
     folioId: string;

@@ -159,28 +159,34 @@ export default class CreationService {
     }
     public static async getPropertyByRole(
         requestUserLevel: number,
-        creationId: string,
+        creationId: string
     ) {
         try {
             let creations: any[];
             switch (requestUserLevel) {
                 case 4:
-                    creations = await CreationRepository.getCreationsByRole({ superId: creationId });
+                    creations = await CreationRepository.getCreationsByRole({
+                        superId: creationId,
+                    });
                     break;
                 case 3:
-                    creations = await CreationRepository.getCreationsByRole({ groupId: creationId });
+                    creations = await CreationRepository.getCreationsByRole({
+                        groupId: creationId,
+                    });
                     break;
                 case 2:
-                    creations = await CreationRepository.getCreationsByRole({ brandId: creationId });
+                    creations = await CreationRepository.getCreationsByRole({
+                        brandId: creationId,
+                    });
                     break;
                 default:
                     creations = [];
                     break;
             }
             if (creations) {
-                return successResponse("Creations got for User", creations);
+                return successResponse('Creations got for User', creations);
             } else {
-                return errorResponse("Failed to get properties");
+                return errorResponse('Failed to get properties');
             }
         } catch (error: any) {
             return errorResponse('Failed to get properties', error.message);
@@ -200,9 +206,26 @@ export default class CreationService {
                     if (!propertyDetails) {
                         propertyDetails = await PropertyDao.getPropertyById(creation.propertyId, true)
                     }
-                    // console.log(propertyDetails)
                     return successResponse('Creation found with property details', { creation, propertyDetails: propertyDetails });
                 }
+
+                const creationAny = creation as any;
+                if (creationAny.groupChildren?.length) {
+                    const flatGroupChildren: any[] = [];
+                    for (const child of creationAny.groupChildren) {
+                        if (child.type === 'brand' && child.brandChildren?.length) {
+                            const { brandChildren, ...brandWithoutChildren } = child;
+                            flatGroupChildren.push(brandWithoutChildren);
+                            for (const brandChild of brandChildren) {
+                                flatGroupChildren.push(brandChild);
+                            }
+                        } else {
+                            flatGroupChildren.push(child);
+                        }
+                    }
+                    creationAny.groupChildren = flatGroupChildren;
+                }
+
                 return successResponse('Creation found', creation);
             }
         } catch (error: any) {

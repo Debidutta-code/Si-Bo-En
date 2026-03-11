@@ -58,11 +58,174 @@ enum SmokingPolicy {
   designated_area
 }
 
-enum CurrencyCode {
-  USD
-  EUR
-  INR
-}
+  enum CurrencyCode {
+    INR
+    AFN
+    ALL
+    AMD
+    ANG
+    AOA
+    AED
+    ARS
+    AUD
+    AWG
+    AZN
+    BAM
+    BBD
+    BDT
+    BGN
+    BHD
+    BIF
+    BMD
+    BND
+    BOB
+    BRL
+    BSD
+    BTN
+    BWP
+    BYN
+    BZD
+    CAD
+    CDF
+    CHF
+    CLF
+    CLP
+    CNH
+    CNY
+    COP
+    CRC
+    CUP
+    CVE
+    CZK
+    DJF
+    DKK
+    DOP
+    DZD
+    EGP
+    ERN
+    ETB
+    EUR
+    FJD
+    FKP
+    FOK
+    GBP
+    GEL
+    GGP
+    GHS
+    GIP
+    GMD
+    GNF
+    GTQ
+    GYD
+    HKD
+    HNL
+    HRK
+    HTG
+    HUF
+    IDR
+    ILS
+    IMP
+    IQD
+    IRR
+    ISK
+    JEP
+    JMD
+    JOD
+    JPY
+    KES
+    KGS
+    KHR
+    KID
+    KMF
+    KRW
+    KWD
+    KYD
+    KZT
+    LAK
+    LBP
+    LKR
+    LRD
+    LSL
+    LYD
+    MAD
+    MDL
+    MGA
+    MKD
+    MMK
+    MNT
+    MOP
+    MRU
+    MUR
+    MVR
+    MWK
+    MXN
+    MYR
+    MZN
+    NAD
+    NGN
+    NIO
+    NOK
+    NPR
+    NZD
+    OMR
+    PAB
+    PEN
+    PGK
+    PHP
+    PKR
+    PLN
+    PYG
+    QAR
+    RON
+    RSD
+    RUB
+    RWF
+    SAR
+    SBD
+    SCR
+    SDG
+    SEK
+    SGD
+    SHP
+    SLE
+    SLL
+    SOS
+    SRD
+    SSP
+    STN
+    SYP
+    SZL
+    THB
+    TJS
+    TMT
+    TND
+    TOP
+    TRY
+    TTD
+    TVD
+    TWD
+    TZS
+    UAH
+    UGX
+    USD
+    UYU
+    UZS
+    VES
+    VND
+    VUV
+    WST
+    XAF
+    XCD
+    XCG
+    XDR
+    XOF
+    XPF
+    YER
+    ZAR
+    ZMW
+    ZWG
+    ZWL
+  }
 
 enum PaymentStatus {
   confirmed
@@ -528,7 +691,7 @@ model Room {
   totalRoom           Int           @map("total_room")
   floor               Int
   roomView            RoomView      @default(others) @map("room_view")
-  roomSize            Decimal       @map("room_size")
+  roomSize            Float       @map("room_size")
   roomUnit            RoomUnit      @default(sqft) @map("room_unit")
   smokingPolicy       SmokingPolicy @default(non_smoking) @map("smoking_policy")
   maxOccupancy        Int           @map("max_occupancy")
@@ -666,7 +829,7 @@ model ChargeBaseByGuest {
   id              String  @id @default(uuid())
   charge          Charge  @relation(fields: [chargeId], references: [id], onDelete: Cascade)
   chargeId        String
-  amountBeforeTax Decimal @map("amount_before_tax")
+  amountBeforeTax Float @map("amount_before_tax")
   numberOfGuests  Int     @map("number_of_guests")
 
   @@index([chargeId])
@@ -678,7 +841,7 @@ model ChargeAdditionalGuest {
   charge            Charge  @relation(fields: [chargeId], references: [id], onDelete: Cascade)
   chargeId          String
   ageQualifyingCode String  @map("age_qualifying_code")
-  amount            Decimal
+  amount            Float
 
   @@index([chargeId])
   @@map("charge_additional_guests")
@@ -829,7 +992,7 @@ model PromoCode {
   property          Property     @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   discountType      DiscountType @map("discount_type")
   discountValue     Float        @map("discount_value")
-  currencyCode      CurrencyCode @default(USD) @map("currency_code")
+  currencyCode      CurrencyCode @default(AED) @map("currency_code")
   validFrom         DateTime     @map("valid_from")
   validTo           DateTime     @map("valid_to")
   minBookingAmount  Float?       @map("min_booking_amount")
@@ -864,8 +1027,9 @@ model TaxRule {
   description  String?         @map("description") @db.Text
   validFrom    DateTime        @map("valid_from")
   validTo      DateTime        @map("valid_to")
-  isInclusive  Boolean         @default(false) @map("is_inclusive")
+  isInclusive  Boolean         @default(false) @map("is_inclusive") // to be removed when the database reset happens
   priority     Int             @default(0) @map("priority")
+currencyCode  CurrencyCode    @default(AED) @map("currency_code")
 
   // Relations
   propertyId String   @map("property_id")
@@ -978,7 +1142,7 @@ model ChildAddon{
   maxAge      Int @map("max_age")
   discountApplicable Boolean @default(false) @map("discount_applicable")
   discountType       DiscountType?  @map("discount_type")  @default(percentage)
-  discountAmount     Int?     @default(0) @map("discount_amount")
+  discountAmount     Float?     @default(0) @map("discount_amount")
   currencyCode CurrencyCode? @map("currency_code") @default(INR) 
 
 }
@@ -1135,6 +1299,7 @@ enum ReservationPromotionType {
   mlos
   device_specific
   offer_for_tonight
+  normal
 }
 
 model ReservationPromotion {
@@ -1143,13 +1308,12 @@ model ReservationPromotion {
   bookingId     String                   @map("booking_id")
   Reservation   Reservation              @relation(fields: [bookingId], references: [id])
   promotionType ReservationPromotionType @default(mlos) @map("promotion_type")
-  // isAutoApplied  Boolean                   @default(false) @map("is_auto_applied")
   promotionId   String?                  @map("promotion_id")
   mlosId        String?                  @map("mlos_id")
   Promotion     Promotion?               @relation(fields: [promotionId], references: [id])
   RatePlanRule  RatePlanRule?            @relation(fields: [mlosId], references: [id])
   amount        Float                    @map("amount")
-  currency      CurrencyCode             @default(USD) @map("currency")
+  currency      CurrencyCode             @default(AED) @map("currency")
 
   @@map("reservation_promotions")
 }
@@ -1188,9 +1352,9 @@ model ReservationPriceBrakeDown {
   additionalGuestCharges Int         @default(0) @map("additional_guest_charges")
   baseRatePerNight       Int         @default(0) @map("base_rate_per_night")
   numberOfNights         Int         @default(0) @map("number_of_nights")
-  priceAfterTax          Decimal     @default(0) @map("price_after_tax")
-  totalAmount            Decimal     @default(0) @map("total_amount")
-  totalTax               Decimal     @default(0) @map("total_tax")
+  priceAfterTax          Float     @default(0) @map("price_after_tax")
+  totalAmount            Float     @default(0) @map("total_amount")
+  totalTax               Float     @default(0) @map("total_tax")
   breakdown              Json        @map("brake_down")
   dailyBreakdown         Json[]      @map("daily_breakdown")
   createdAt              DateTime    @default(now())
@@ -1225,7 +1389,7 @@ model PropertyVideo {
   @@map("property_videos")
 }
 
-model RatePlanRule {
+model RatePlanRule { //mlos
   id String @id @default(uuid())
 
   ratePlanId String   @unique @map("rate_plan_id")
@@ -1238,8 +1402,8 @@ model RatePlanRule {
   maxLos               Int?                   @map("max_los")
   isAutoApplied        Boolean                @default(false) @map("is_auto_applied")
   discountType         DiscountType?          @map("discount_type")
-  currencyCode         CurrencyCode           @default(USD) @map("currency_code")
-  discountValue        Decimal?               @map("discount_value") @db.Decimal(10, 2)
+  currencyCode         CurrencyCode           @default(AED) @map("currency_code")
+  discountValue        Float?               @map("discount_value")
   ReservationPromotion ReservationPromotion[]
 
   isActive Boolean @default(true)
@@ -1256,7 +1420,7 @@ model PropertyCommission {
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
   commissionType  commissionType @default(percentage) @map("commission_type")
-  commissionValue Decimal        @map("commission_value")
+  commissionValue Float        @map("commission_value")
   currencyCode    CurrencyCode?  @default(INR) @map("currency_code")
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -1512,8 +1676,8 @@ model GeoRatePlan {
 
   restrictionType       geoRestrictionType        @default(percentage) @map("restriction_type")
   restrictionTypeAction geoRestrictionTypeAction? @default(increase) @map("restriction_type_action")
-  restrictionValue      Decimal?                 @map("restriction_value")
-  currencyCode          CurrencyCode?            @default(USD) @map("currency_code")
+  restrictionValue      Float?                 @map("restriction_value")
+  currencyCode          CurrencyCode?            @default(AED) @map("currency_code")
   countryCode           String[]                 @map("country_code")
   isActive              Boolean                  @default(true) @map("is_active")
   createdAt             DateTime                 @default(now()) @map("created_at")
@@ -1542,8 +1706,8 @@ model Promotion {
   ratePlanId         String        @map("rate_plan_id")
   ratePlanCode       String        @map("rate_plan_code")
   discountType       DiscountType  @default(percentage) @map("discount_type")
-  discountValue      Decimal?      @map("discount_value")
-  currencyCode       CurrencyCode? @default(USD) @map("currency_code")
+  discountValue      Float?      @map("discount_value")
+  currencyCode       CurrencyCode? @default(AED) @map("currency_code")
   monApplicable      Boolean       @default(true) @map("mon_applicable")
   tueApplicable      Boolean       @default(true) @map("tue_applicable")
   wedApplicable      Boolean       @default(true) @map("wed_applicable")
@@ -1589,8 +1753,8 @@ model CustomizableDeal {
   propertyCode String @map("property_code")
 
   discountType  DiscountType  @default(percentage) @map("discount_type")
-  discountValue Decimal       @map("discount_value")
-  currencyCode  CurrencyCode? @default(USD) @map("currency_code")
+  discountValue Float       @map("discount_value")
+  currencyCode  CurrencyCode? @default(AED) @map("currency_code")
   startDate     DateTime      @map("start_date") @db.Date
   endDate       DateTime      @map("end_date") @db.Date
   isActive      Boolean       @default(true) @map("is_active")
@@ -1632,13 +1796,13 @@ model TouristTaxes {
   name          String? //remove this ? when there is a need for db push
   ratePlanId    String   @unique @map("rate_plan_id")
   ratePlanCode  String   @unique @map("rate_plan_code")
-  discountValue Decimal? @map("discount_value")
+  discountValue Float? @map("discount_value")
 
   createdAt DateTime @default(now()) @map("created_at")
 
   discountType DiscountType  @default(flat) @map("discount_type")
   ratePlan     RatePlan      @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
-  currencyCode CurrencyCode? @default(USD) @map("currency_code")
+  currencyCode CurrencyCode? @default(AED) @map("currency_code")
 
   @@map("tourist_taxes")
 }
@@ -1670,8 +1834,8 @@ model PropertyPaymentIntegration {
 
 model Payment {
   id                           String        @id @default(uuid())
-  amount                       Decimal       @map("amount")
-  currency                     CurrencyCode  @default(USD) @map("currency")
+  amount                       Float       @map("amount")
+  currency                     CurrencyCode  @default(AED) @map("currency")
   status                       PaymentStatus @default(pending) @map("status")
   paymentMethod                PaymentMethod @default(pay_at_hotel) @map("payment_method")
   propertyPaymentIntegrationId String?

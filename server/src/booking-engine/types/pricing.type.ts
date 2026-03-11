@@ -1,4 +1,3 @@
-import { Decimal } from '@prisma/client/runtime/library';
 import {
     IAddonAvailability,
     IBookingAddon,
@@ -8,7 +7,6 @@ import {
 import { DeviceType, IPolicy } from '../../agent-paltform/property/types';
 import { DiscountType } from '../../promocode/types';
 import {
-    CurrencyCode,
     IGeoRatePlan,
     IGeoRatePlanWithoutRatePlan,
     restrictionTypeAction,
@@ -20,6 +18,7 @@ import {
 } from '../../tax-system/interfaces/tax-rule.type';
 import { IPromotion, ITouristTax } from './room.type';
 import { IBookingOffset } from '../../ari/types';
+import { CurrencyCode } from '../../tax-system/interfaces/tourist-tax.type';
 
 
 export interface ICustomizableDeal {
@@ -27,7 +26,7 @@ export interface ICustomizableDeal {
     propertyId: string;
     propertyCode: string;
     discountType: DiscountType;
-    discountValue: Decimal | null;
+    discountValue: number | null;
     currencyCode: CurrencyCode | null;
     startDate: Date;
     endDate: Date;
@@ -121,21 +120,12 @@ export interface IAddOn {
     availability: IAddonAvailability[];
     ChildAddons:IChildAddon[];
 }
-
-// export interface ICustomizableDealsApplicableRatePlanTypes {
-//     id: string;
-//     ratePlanId: string;
-//     customizableDealId: string;
-//     ratePlanCode: string;
-//     CustomizableDeal: ICustomizableDeal;
-// }
-
 export interface ICustomizableDeal {
     id: string;
     propertyId: string;
     propertyCode: string;
     discountType: DiscountType;
-    discountValue: Decimal | null;
+    discountValue: number | null;
     currencyCode: CurrencyCode | null;
     isAutoApplied: boolean;
 }
@@ -166,12 +156,12 @@ export interface ICharge {
     additionalGuestAmounts: IChargeAdditionalGuest[];
 }
 export interface IChargeBaseByGuest {
-    amountBeforeTax: Decimal;
+    amountBeforeTax: number;
     numberOfGuests: number;
 }
 export interface IChargeAdditionalGuest {
     ageQualifyingCode: string;
-    amount: Decimal;
+    amount: number;
 }
 export interface ISelectedAddonsS {
     addOnId: string;
