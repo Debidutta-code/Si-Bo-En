@@ -20,7 +20,6 @@ import {
 import { prisma } from '../../../../config';
 import { IPropertyCodeAndIds } from '../../../../dashboard/types';
 import { DashUtilsRepo } from '../../../../dashboard/repository';
-import { Decimal } from '@prisma/client/runtime/library';
 import { nowUTC, toUTC, toUTCDate } from '../../../../utils';
 import {
     BookingAddonRepository,
