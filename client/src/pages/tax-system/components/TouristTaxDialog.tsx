@@ -19,7 +19,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import type { ICTouristTax, ITouristTax, DiscountType, CurrencyCode, RatePlan } from "../interface";
+import type { ICTouristTax, ITouristTax, DiscountType, RatePlan } from "../interface";
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
+import { currencies } from "@/components/currency-code/cuurency";
 
 interface TouristTaxDialogProps {
     open: boolean;
@@ -191,25 +193,31 @@ export default function TouristTaxDialog({
                         </div>
                     </div>
 
-                    {/* Currency Code */}
-                    <div className="space-y-2">
-                        <Label htmlFor="currencyCode">Currency *</Label>
-                        <Select
-                            value={formData.currencyCode}
-                            onValueChange={(value: CurrencyCode) =>
-                                setFormData({ ...formData, currencyCode: value })
-                            }
-                        >
-                            <SelectTrigger>
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="USD">USD</SelectItem>
-                                <SelectItem value="EUR">EUR</SelectItem>
-                                <SelectItem value="INR">INR</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
+                    
+                    {
+                        formData.discountType === "flat" && (
+
+                            <div className="space-y-2">
+                                <Label htmlFor="currencyCode">Currency Code</Label>
+                                <Select
+                                    value={formData.currencyCode || "AED"}
+                                    onValueChange={(value) => setFormData({ ...formData, currencyCode: value as CurrencyCode })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {currencies.map((currency) => (
+                                            <SelectItem key={currency.code} value={currency.code}>
+                                                {currency.name} ({currency.symbol})
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        )
+
+                    }
                 </div>
 
                 <DialogFooter>

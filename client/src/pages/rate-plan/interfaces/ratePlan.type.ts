@@ -1,4 +1,4 @@
-import type { CurrencyCode } from "@/pages/tax-system/interface";
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
 
 export interface CreateRatePlan {
     ratePlanName: string;

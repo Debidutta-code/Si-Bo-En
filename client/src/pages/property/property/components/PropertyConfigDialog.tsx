@@ -8,6 +8,7 @@ import type { IUPropertyConfig, IMasterPartnersWProperty } from '../types';
 import { formatTimezoneLabel, getAllTimezones } from '../utils/timezone.utils';
 import { minutesToTime, timeToMinutes } from '../utils/time.utils';
 import PartnerIntegrationSection from './PartnerIntegrationSection';
+import { currencies } from '@/components/currency-code/cuurency';
 
 interface PropertyConfigDialogProps {
     isOpen: boolean;
@@ -262,6 +263,25 @@ export default function PropertyConfigDialog({
                                 <SelectItem value='GBP'>GBP - British Pound</SelectItem>
                                 <SelectItem value='AUD'>AUD - Australian Dollar</SelectItem>
                                 <SelectItem value='CAD'>CAD - Canadian Dollar</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="currencyCode">Currency Code</Label>
+                        <Select
+                            value={propertyConfig.baseCurrency}
+                            onValueChange={(value) =>
+                                setPropertyConfig({ ...propertyConfig, baseCurrency: value })
+                            }                                      >
+                            <SelectTrigger>
+                                <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {currencies.map((currency) => (
+                                    <SelectItem key={currency.code} value={currency.code}>
+                                        {currency.name} ({currency.symbol})
+                                    </SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>

@@ -452,7 +452,7 @@ export default function ChildAddonDialog({
                           <div className="space-y-2">
                             <Label htmlFor="currencyCode">Currency Code</Label>
                             <Select
-                              value={formData.currencyCode}
+                              value={formData.currencyCode || "AED"}
                               onValueChange={(value) => setFormData({ ...formData, currencyCode: value as CurrencyCode })}
                             >
                               <SelectTrigger>

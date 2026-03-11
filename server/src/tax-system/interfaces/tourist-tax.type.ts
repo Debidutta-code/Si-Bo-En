@@ -18,11 +18,11 @@ export type CurrencyCode =
   | 'UZS' | 'VES' | 'VND' | 'VUV' | 'WST' | 'XAF' | 'XCD' | 'XCG' | 'XDR' | 'XOF'
   | 'XPF' | 'YER' | 'ZAR' | 'ZMW' | 'ZWG' | 'ZWL';
 export interface ICTouristTax {
-    name:string
+    name: string | null;
     ratePlanCode: string;
     discountType: DiscountType;
-    discountValue: number;
-    currencyCode: CurrencyCode;
+    discountValue: number | null;
+    currencyCode: CurrencyCode | null;
 }
 
 export interface IGetTouristTax extends ICTouristTax {
@@ -33,5 +33,6 @@ export interface IGetTouristTax extends ICTouristTax {
         id: string;
         ratePlanCode: string;
         ratePlanName: string;
+        propertyId: string;
     };
 }

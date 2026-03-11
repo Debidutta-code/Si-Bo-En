@@ -19,8 +19,10 @@ import {
 } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { createAgency } from '../api/agency.api';
-import type { ICAgency, AgencyType, AgentCommissionType, CurrencyCode } from '../interfaces';
+import type { ICAgency, AgencyType, AgentCommissionType } from '../interfaces';
 import { Loader2 } from 'lucide-react';
+import type { CurrencyCode } from '@/components/currency-code/currency-code.type';
+import { currencies } from '@/components/currency-code/cuurency';
 
 interface CreateAgencyDialogProps {
   open: boolean;
@@ -202,8 +204,8 @@ const CreateAgencyDialog: React.FC<CreateAgencyDialogProps> = ({
                 />
               </div>
               {formData.commissionType === 'fixed' && (
-                <div className="grid gap-2">
-                  <Label htmlFor="commissionCurrency">Currency</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="currencyCode">Currency Code</Label>
                   <Select
                     value={formData.commissionCurrency || 'USD'}
                     onValueChange={(value: CurrencyCode) =>
@@ -214,9 +216,11 @@ const CreateAgencyDialog: React.FC<CreateAgencyDialogProps> = ({
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="USD">USD</SelectItem>
-                      <SelectItem value="EUR">EUR</SelectItem>
-                      <SelectItem value="INR">INR</SelectItem>
+                      {currencies.map((currency) => (
+                        <SelectItem key={currency.code} value={currency.code}>
+                          {currency.name} ({currency.symbol})
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>

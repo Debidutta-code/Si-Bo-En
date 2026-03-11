@@ -14,7 +14,7 @@ export class TouristTaxRepository {
     public async createTouristTax(
         ratePlanId: string,
         touristTaxData: ICTouristTax,
-    ): Promise<IGetTouristTax | Error> {
+    ): Promise<IGetTouristTax > {
         try {
             const createdTouristTax = await prisma.touristTaxes.create({
                 data: {
@@ -45,7 +45,7 @@ export class TouristTaxRepository {
         }
     }
 
-    public async getTouristTaxesByPropertyId(propertyId: string): Promise<IGetTouristTax[] | Error> {
+    public async getTouristTaxesByPropertyId(propertyId: string): Promise<IGetTouristTax[] > {
         try {
             const touristTaxes = await prisma.touristTaxes.findMany({
                 where: {
@@ -72,7 +72,7 @@ export class TouristTaxRepository {
         }
     }
 
-    public async getTouristTaxById(touristTaxId: string): Promise<IGetTouristTax | null | Error> {
+    public async getTouristTaxById(touristTaxId: string): Promise<IGetTouristTax | null > {
         try {
             const touristTax = await prisma.touristTaxes.findUnique({
                 where: { id: touristTaxId },
@@ -82,11 +82,12 @@ export class TouristTaxRepository {
                             id: true,
                             ratePlanCode: true,
                             ratePlanName: true,
+                            propertyId: true,
                         }
                     }
                 }
             });
-            return mapTouristTax(touristTax);
+            return touristTax ? touristTax : null;
         } catch (error) {
             throw new Error('Failed to fetch tourist tax');
         }

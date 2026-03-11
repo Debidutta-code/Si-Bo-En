@@ -1,4 +1,5 @@
-import type { CurrencyCode, DiscountType } from "@/pages/tax-system/interface";
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
+import type { DiscountType } from "@/pages/tax-system/interface";
 
 export interface ICChildAddoon {
     minAge: number;

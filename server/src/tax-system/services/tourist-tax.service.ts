@@ -21,8 +21,9 @@ export class TouristTaxService {
             // Verify property exists
             const [property, { convert, baseCurrency }] = await Promise.all([
                 PropertyDao.getPropertyById(propertyId, true),
-                getCurrencyConverter(propertyId, touristTaxData.currencyCode)
-            ]); if (!property) {
+                getCurrencyConverter(propertyId, touristTaxData.currencyCode ? touristTaxData.currencyCode : "AED")
+            ]);
+            if (!property) {
                 return errorResponse('Property not found');
             }
             const ratePlan = await RatePlanRepository.getRatePlanByCode(
@@ -48,7 +49,7 @@ export class TouristTaxService {
                 {
                     ...touristTaxData,
                     currencyCode: touristTaxData.discountType === "flat" ? baseCurrency : touristTaxData.currencyCode,
-                    discountValue: touristTaxData.discountType === "flat" ? convert(touristTaxData.discountValue) : touristTaxData.discountValue
+                    discountValue: touristTaxData.discountType === "flat" ? convert(touristTaxData.discountValue ? touristTaxData.discountValue : 0) : touristTaxData.discountValue
                 }
             );
 
@@ -81,17 +82,27 @@ export class TouristTaxService {
 
     public async updateTouristTax(
         touristTaxId: string,
-        touristTaxData: Partial<ICTouristTax>,
+        touristTaxData: ICTouristTax,
     ): Promise<IApiResponse> {
         try {
             const exists = await this.touristTaxRepository.getTouristTaxById(touristTaxId);
             if (!exists) {
                 return errorResponse('Tourist tax does not exist');
             }
+            const propertyId = exists.ratePlan?.propertyId;
+            if(!propertyId){
+                return errorResponse('Associated property not found for this tourist tax');
+            }
+            const { convert, baseCurrency } 
+            = await getCurrencyConverter(propertyId, touristTaxData.currencyCode ? touristTaxData.currencyCode : "AED");
 
             const updatedTouristTax = await this.touristTaxRepository.updateTouristTax(
                 touristTaxId,
-                touristTaxData
+                {
+                    ...touristTaxData,
+                    currencyCode: touristTaxData.discountType === "flat" ? baseCurrency : touristTaxData.currencyCode,
+                    discountValue: touristTaxData.discountType === "flat" ? convert(touristTaxData.discountValue ? touristTaxData.discountValue : 0) : touristTaxData.discountValue
+                }
             );
 
             if (updatedTouristTax) {

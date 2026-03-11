@@ -61,7 +61,7 @@ export class TouristTaxController {
     public async updateTouristTaxController(req: CustomRequest, res: Response) {
         try {
             const touristTaxId = req.params.touristTaxId;
-            const touristTaxData: Partial<ICTouristTax> = req.body;
+            const touristTaxData: ICTouristTax = req.body;
 
             if (!touristTaxId) {
                 return res.status(400).json(errorResponse('Tourist Tax ID is required'));
