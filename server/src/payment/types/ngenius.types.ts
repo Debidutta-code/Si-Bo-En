@@ -20,6 +20,9 @@ export interface NGeniusOrderRequest {
   outletId?: string;
   merchantAttributes?: {
     redirectUrl?: string;
+    skipConfirmationPage?: string | boolean;
+    cancelUrl?: string;
+    cancelText?: string;
   };
   propertyCode?: string;
   reservationId?: string;
@@ -73,6 +76,21 @@ export interface NGeniusOrderResponse {
   };
 }
 
+// Capture item embedded in a SALE payment (cnp:capture)
+export interface NGeniusCaptureItem {
+  _links: {
+    self: {
+      href: string;
+    };
+  };
+  amount: {
+    currencyCode: string;
+    value: number;
+  };
+  state: string;
+  createdTime?: string;
+}
+
 // Payment Object
 export interface NGeniusPayment {
   _id: string;
@@ -82,11 +100,31 @@ export interface NGeniusPayment {
     currencyCode: string;
     value: number;
   };
-  updateDateTime: string;
-  outletId: string;
-  orderReference: string;
+  updateDateTime?: string;
+  outletId?: string;
+  orderReference?: string;
   reference?: string;
   paymentMethod?: Record<string, unknown>;
+  _embedded?: {
+    'cnp:capture'?: NGeniusCaptureItem[];
+    'cnp:purchase'?: NGeniusCaptureItem[];
+  };
+}
+
+// Refund Request
+export interface NGeniusRefundRequest {
+  amount: {
+    value: number;
+    currencyCode: string;
+  };
+}
+
+// Refund Response
+export interface NGeniusRefundResponse {
+  success: boolean;
+  message: string;
+  refundReference?: string;
+  data?: Record<string, unknown>;
 }
 
 // Order Status Response

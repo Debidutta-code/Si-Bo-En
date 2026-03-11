@@ -54,7 +54,16 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Cancellation failed");
 
-      // toast.success("Booking cancelled successfully! Please check Your Email ");
+      if (data.refund) {
+        if (data.refund.success) {
+          toast.success("Booking cancelled and refund initiated", { duration: 4000 });
+        } else {
+          toast.error("Booking cancelled. Refund could not be processed automatically — the hotel will contact you.", { duration: 6000 });
+        }
+      } else {
+        toast.success("Booking cancelled successfully!");
+      }
+
       onCancel();
     } catch (err: any) {
       toast.error(err.message || "Something went wrong");

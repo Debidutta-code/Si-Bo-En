@@ -31,6 +31,8 @@ import { RTIntegrationDao } from '../../../../integrations/rate-tiger/dao/rt-int
 import { RTReservationPushService } from '../../../../integrations/rate-tiger/services/rt-reservation-push.service';
 import { CurrencyCode } from '../../../../tax-system/interfaces/tourist-tax.type';
 import { BookingStatus } from '../types/reservation.type';
+import { ngeniusService } from '../../../../payment/services/ngenius.service';
+
 export class ReservationService {
     reservationRepository: ReservationRepository;
     priceBrakeDownRepo: PriceBrakeDownRepo;
@@ -1706,9 +1708,38 @@ export class ReservationService {
                     });
             }
 
+            // After successful cancellation in DB and before returning response, attempt N-Genius refund if applicable
+            let refundResult: { success: boolean; message: string; data?: any } | null = null;
+            try {
+                const paymentRecord = await prisma.payment.findFirst({
+                    where: { reservationId },
+                    select: {
+                        paymentIntentId: true,
+                        paymentMethod: true,
+                    },
+                });
+
+                if (paymentRecord?.paymentIntentId && paymentRecord.paymentMethod === 'payment_gateway') {
+                    console.log(`💸 Triggering N-Genius refund for order: ${paymentRecord.paymentIntentId}`);
+                    refundResult = await ngeniusService.processRefund(paymentRecord.paymentIntentId);
+
+                    if (!refundResult.success) {
+                        console.error(`⚠️ Refund failed for reservation ${reservationId}: ${refundResult.message}`);
+                    }
+                }
+            } catch (refundError) {
+                console.error(`❌ Error during refund for reservation ${reservationId}:`, refundError);
+                refundResult = { success: false, message: 'Refund processing encountered an error' };
+            }
+
+            const returnData = {
+                ...cancelledReservation,
+                refund: refundResult
+            };
+
             return successResponse(
                 'Reservation cancelled successfully',
-                cancelledReservation
+                returnData
             );
         } catch (error) {
             if (error instanceof Error) {
