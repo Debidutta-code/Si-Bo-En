@@ -19,7 +19,6 @@ import { Calendar } from "@/components/ui/calendar";
 import type {
   CreateCustomizableDeal,
   CustomizableDeal,
-  CurrencyCode,
   ICCustomizableDeals,
 } from "../interfaces";
 import { Tag, CalendarIcon } from "lucide-react";
@@ -27,6 +26,9 @@ import type { IAddon } from "@/pages/add-on/interface";
 import type { ILoader } from "@/pages/dashboard/interface";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
+import { currencies } from "@/components/currency-code/cuurency";
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
 
 interface CustomizableDealFormProps {
   ratePlans: RatePlan[];
@@ -213,26 +215,26 @@ const CustomizableDealForm: React.FC<CustomizableDealFormProps> = ({
             </div>
 
             {customizableDeal.discountType === "flat" && (
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Currency *
-                </label>
-                <Select
-                  value={customizableDeal.currencyCode}
-                  onValueChange={(value) =>
-                    setCustomizableDeal({ ...customizableDeal, currencyCode: value as CurrencyCode })
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="USD">USD - US Dollar</SelectItem>
-                    <SelectItem value="EUR">EUR - Euro</SelectItem>
-                    <SelectItem value="INR">INR - Indian Rupee</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="currencyCode">Currency Code</Label>
+                  <Select
+                    value={customizableDeal.currencyCode}
+                    onValueChange={(value) => setCustomizableDeal({ ...customizableDeal, currencyCode: value as CurrencyCode })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {currencies.map((currency) => (
+                        <SelectItem key={currency.code} value={currency.code}>
+                          {currency.name} ({currency.symbol})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
             )}
           </div>
 

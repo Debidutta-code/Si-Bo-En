@@ -222,7 +222,7 @@ export default function PropertyInfo({
               onChange={(e) =>
                 handleInputChange("propertyContact", e.target.value)
               }
-              placeholder="+91 9876543210"
+              placeholder=" 9876543210"
               className={cn(
                 "h-10 border-gray-300 focus:border-black focus:ring-0",
                 errors?.propertyContact && "border-red-500 focus:border-red-600"

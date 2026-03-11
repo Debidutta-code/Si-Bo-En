@@ -13,10 +13,12 @@ import type {
   CreateOfferForTonight,
   OfferForTonightWithRatePlan,
   RoomRatePlanPair,
-  CurrencyCode,
 } from "../interfaces";
 import { Clock } from "lucide-react";
 import type { ILoader } from "@/pages/dashboard/interface";
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
+import { Label } from "@/components/ui/label";
+import { currencies } from "@/components/currency-code/cuurency";
 
 interface OfferForTonightFormProps {
   ratePlans: RatePlan[];
@@ -766,29 +768,26 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
             </div>
 
             {offerForTonight.discountType === "flat" && (
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Currency *
-                </label>
-                <Select
-                  value={offerForTonight.currencyCode || "USD"}
-                  onValueChange={(value) =>
-                    setOfferForTonight({
-                      ...offerForTonight,
-                      currencyCode: value as CurrencyCode,
-                    })
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="USD">USD - US Dollar</SelectItem>
-                    <SelectItem value="EUR">EUR - Euro</SelectItem>
-                    <SelectItem value="INR">INR - Indian Rupee</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              <>
+                <div className="space-y-2">
+                  <Label htmlFor="currencyCode">Currency Code</Label>
+                  <Select
+                    value={offerForTonight.currencyCode}
+                    onValueChange={(value) => setOfferForTonight({ ...offerForTonight, currencyCode: value as CurrencyCode })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {currencies.map((currency) => (
+                        <SelectItem key={currency.code} value={currency.code}>
+                          {currency.name} ({currency.symbol})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </>
             )}
           </div>
 

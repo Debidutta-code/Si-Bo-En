@@ -93,13 +93,11 @@ export class EarlyBirdPromotionService {
 
   public async updateEarlyBirdPromotion(id: string, updateData: ICEbDsOftc): Promise<IApiResponse> {
     try {
-      const [existingPromotion,{convert, baseCurrency}] = await Promise.all([
-        this.earlyBirdPromotionDao.getEarlyBirdPromotionById(id), 
-        getCurrencyConverter(updateData.propertyId, updateData.currencyCode ? updateData.currencyCode : "AED")
-      ]);
+      const existingPromotion = await this.earlyBirdPromotionDao.getEarlyBirdPromotionById(id);
       if (!existingPromotion) {
         return errorResponse('Early-bird promotion not found');
       }
+      const {convert, baseCurrency} = await getCurrencyConverter(existingPromotion.propertyId, updateData.currencyCode ? updateData.currencyCode : "AED");
 
       if (updateData.validFrom && updateData.validTo) {
         if (updateData.validFrom > updateData.validTo) {

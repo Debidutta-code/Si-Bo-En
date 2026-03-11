@@ -205,7 +205,7 @@ const children = (guests || []).filter((g: any) => g.type === 'child').length;
         </div>
 
         {/* Additional Info */}
-        <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+        <div className="mt-10 grid grid-cols-1 gap-6 text-sm">
           <div
             className="p-4 rounded-xl shadow"
             style={{
@@ -219,26 +219,7 @@ const children = (guests || []).filter((g: any) => g.type === 'child').length;
               <li>Need changes? Contact us 24/7.</li>
             </ul>
           </div>
-          <div
-            className="p-4 rounded-xl shadow"
-            style={{
-              backgroundColor: `${colors.secondaryColor}10`,
-            }}
-          >
-            <h3 className="font-semibold mb-2" style={{ color: colors.primaryColor }}>Need Help?</h3>
-            <p className="text-gray-800">
-              Our support team is available 24/7 for anything you need.
-            </p>
-            <a
-              href="https://mail.google.com/mail/?view=cm&fs=1&to=info@swiftrooms.ai&su=Support%20Request&body=Hi%20Swiftrooms%20Team,"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-3 font-medium hover:underline"
-              style={{ color: colors.primaryColor }}
-            >
-              Contact Support
-            </a>
-          </div>
+          
         </div>
       </div>
     </div>
