@@ -7,6 +7,7 @@ import { Label } from "../ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage";
+import { currencies } from "../currencyCode/cuurency";
 
 interface Guest {
   type: "adult" | "child";
@@ -150,13 +151,13 @@ const GuestFormModal: React.FC<Props> = ({
       } else if (!nameRegex.test(guest.firstName)) {
         gErrors.firstName = "Invalid name format.";
       }
-      
+
       if (!guest.lastName.trim()) {
         gErrors.lastName = "Last name is required.";
       } else if (!nameRegex.test(guest.lastName)) {
         gErrors.lastName = "Invalid name format.";
       }
-      
+
       if (Object.keys(gErrors).length > 0) {
         newErrors[`guest-${index}`] = gErrors;
       }
@@ -170,12 +171,12 @@ const GuestFormModal: React.FC<Props> = ({
     }
 
     // Validate phone
-  // Validate phone
-if (!contactInfo.phoneNumber.trim()) {
-  newErrors.phoneNumber = "Phone number is required.";
-} else if (!phoneRegex.test(contactInfo.phoneNumber)) {
-  newErrors.phoneNumber = "Phone number must be between 5 and 15 digits.";
-}
+    // Validate phone
+    if (!contactInfo.phoneNumber.trim()) {
+      newErrors.phoneNumber = "Phone number is required.";
+    } else if (!phoneRegex.test(contactInfo.phoneNumber)) {
+      newErrors.phoneNumber = "Phone number must be between 5 and 15 digits.";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -202,24 +203,24 @@ if (!contactInfo.phoneNumber.trim()) {
       setSubmitError("Something went wrong, please try again.");
       return;
     }
-    
+
     setSubmitError(null);
     const isValid = validate();
-    
+
     if (!isValid) {
       // Scroll to first error if validation fails
       const firstErrorKey = Object.keys(errors)[0];
       if (firstErrorKey) {
         const element = document.getElementById(
-          firstErrorKey.startsWith('guest-') 
-            ? `first-${firstErrorKey.split('-')[1]}` 
+          firstErrorKey.startsWith('guest-')
+            ? `first-${firstErrorKey.split('-')[1]}`
             : firstErrorKey
         );
         element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
       return;
     }
-    
+
     setPaymentProcessing(true);
     onSubmit();
   };
@@ -237,7 +238,7 @@ if (!contactInfo.phoneNumber.trim()) {
     if (type === 'guest') {
       const index = indexOrField as number;
       handleGuestDetailChange(index, field as keyof Guest, value);
-      
+
       // Clear guest field error
       if (errors[`guest-${index}`]?.[field]) {
         setErrors((prev: any) => {
@@ -254,7 +255,7 @@ if (!contactInfo.phoneNumber.trim()) {
     } else {
       const fieldName = indexOrField as string;
       handleContactChange(fieldName as "email" | "phoneNumber", value);
-      
+
       // Clear contact field error
       if (errors[fieldName]) {
         setErrors((prev: any) => {
@@ -266,6 +267,13 @@ if (!contactInfo.phoneNumber.trim()) {
     }
   };
 
+  const currencySymbol = currencies.find(
+    (c) => c.code === finalPrice?.currencyCode
+  )?.symbol ?? finalPrice?.currencyCode ?? "$";
+
+
+  const getCurrencySymbol = (code: string) =>
+    currencies.find((c) => c.code === code)?.symbol ?? code;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -414,7 +422,7 @@ if (!contactInfo.phoneNumber.trim()) {
                   <p className="text-sm text-red-600">{errors.email}</p>
                 )}
                 {isLoyaltyMember && loyaltyDiscount && (
-                  <div 
+                  <div
                     className="flex items-center gap-2 p-2 rounded-lg text-sm font-medium"
                     style={{ backgroundColor: `${colors.primaryColor}10`, color: colors.primaryColor }}
                   >
@@ -422,7 +430,7 @@ if (!contactInfo.phoneNumber.trim()) {
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
                     <span>
-                      {loyaltyDiscount.type === "percentage" 
+                      {loyaltyDiscount.type === "percentage"
                         ? `${loyaltyDiscount.value}% loyalty discount will be applied`
                         : `${loyaltyDiscount.currencyCode} ${loyaltyDiscount.value} loyalty discount will be applied`
                       }
@@ -476,7 +484,7 @@ if (!contactInfo.phoneNumber.trim()) {
                     <Info className="h-4 w-4" />
                   </Button>
 
-                  {finalPrice?.dailyBreakdown && showTooltip && (
+                  {finalPrice?.dailyPriceBrakeDown && showTooltip && (
                     <Card className="absolute top-8 left-0 z-50 w-80 shadow-xl">
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
@@ -492,66 +500,98 @@ if (!contactInfo.phoneNumber.trim()) {
                         </div>
                       </CardHeader>
                       <CardContent className="max-h-60 overflow-y-auto space-y-3 text-xs">
-                        {Array.isArray(finalPrice.dailyBreakdown) && (
-                          <>
-                            {finalPrice.dailyBreakdown.map((day: any, idx: number) => {
-                              // Use the values already on each day — no re-calculation needed.
-                              // day.totalPerRoom = dailyPriceBrakeDown[].totalAmount (base + tax)
-                              // day.totalDailyTaxedAmount = the tax portion for that day
-                              const dayTax: number = day.totalDailyTaxedAmount ?? 0;
-                              const dayBase: number = day.baseRate ?? day.baseChargesAmount ?? 0;
-                              const dayAdditional: number = day.additionalChargesAmount ?? day.additionalCharges ?? 0;
-                              const dayTotal: number = day.totalPerRoom ?? day.totalAmount ?? 0;
-                              const dayTaxBreakdown: any[] = day.taxBrakeDown ?? [];
+                        {Array.isArray(finalPrice.dailyPriceBrakeDown) && (() => {
+                          // Group by roomNumber
+                          const grouped = finalPrice.dailyPriceBrakeDown.reduce(
+                            (acc: Record<string, any[]>, entry: any) => {
+                              if (!acc[entry.roomNumber]) acc[entry.roomNumber] = [];
+                              acc[entry.roomNumber].push(entry);
+                              return acc;
+                            }, {}
+                          );
 
-                              return (
-                                <div key={idx} className="border-b pb-2 last:border-0">
-                                  <div className="font-semibold mb-1">{day.date}</div>
-                                  <div className="space-y-1">
-                                    <div className="flex justify-between">
-                                      <span>Base Rate:</span>
-                                      <span>${dayBase.toFixed(2)}</span>
+                          return (
+                            <>
+                              {(Object.entries(grouped) as [string, any[]][]).map(([roomNumber, days]) => (<div key={roomNumber} className="mb-3">
+                                {/* Room Header */}
+                                <div className="flex items-center justify-between bg-gray-100 rounded px-2 py-1 mb-2">
+                                  <span className="font-bold text-xs text-gray-700">🏨 Room {roomNumber}</span>
+                                  <span className="font-bold text-xs text-gray-700">
+                                    {getCurrencySymbol(days[0]?.currencyCode || "USD")}{" "}
+                                    {days.reduce((s: number, d: any) => s + (d.totalAmount || 0), 0).toFixed(2)}
+                                  </span>
+                                </div>
+
+                                {/* Date Rows */}
+                                {days.map((day: any, idx: number) => (
+                                  <div key={idx} className="border-b pb-2 mb-2 last:border-0 last:mb-0">
+                                    <div className="font-semibold mb-1 text-gray-700">
+                                      {new Date(day.date).toLocaleDateString("en-US", {
+                                        weekday: "short", month: "short", day: "numeric"
+                                      })}
                                     </div>
-                                    {dayAdditional > 0 && (
+                                    <div className="space-y-1 pl-2">
                                       <div className="flex justify-between">
-                                        <span>Additional Charges:</span>
-                                        <span>${dayAdditional.toFixed(2)}</span>
+                                        <span>Base Rate:</span>
+                                        <span>{getCurrencySymbol(day.currencyCode)} {(day.baseChargesAmount ?? 0).toFixed(2)}</span>
                                       </div>
-                                    )}
-                                    {dayTaxBreakdown.length > 0 ? (
-                                      dayTaxBreakdown.map((t: any, ti: number) => (
-                                        <div key={ti} className="flex justify-between text-gray-500">
-                                          <span>{t.name}:</span>
-                                          <span>${(t.taxedAmount ?? 0).toFixed(2)}</span>
+                                      {(day.additionalChargesAmount ?? 0) > 0 && (
+                                        <div className="flex justify-between">
+                                          <span>Additional:</span>
+                                          <span>{getCurrencySymbol(day.currencyCode)} {day.additionalChargesAmount.toFixed(2)}</span>
                                         </div>
-                                      ))
-                                    ) : dayTax > 0 ? (
-                                      <div className="flex justify-between text-gray-500">
-                                        <span>Tax & Fees:</span>
-                                        <span>${dayTax.toFixed(2)}</span>
+                                      )}
+                                      {day.taxBrakeDown?.length > 0
+                                        ? day.taxBrakeDown.map((t: any, ti: number) => (
+                                          <div key={ti} className="flex justify-between text-gray-500">
+                                            <span>{t.name}:</span>
+                                            <span>{getCurrencySymbol(t.currencyCode)} {(t.taxedAmount ?? 0).toFixed(2)}</span>
+                                          </div>
+                                        ))
+                                        : (day.totalDailyTaxedAmount ?? 0) > 0 && (
+                                          <div className="flex justify-between text-gray-500">
+                                            <span>Tax & Fees:</span>
+                                            <span>{getCurrencySymbol(day.currencyCode)} {day.totalDailyTaxedAmount.toFixed(2)}</span>
+                                          </div>
+                                        )
+                                      }
+                                      {day.addOnBrakeDown?.length > 0 && (
+                                        <div className="flex justify-between text-orange-600">
+                                          <span>Addons:</span>
+                                          <span>
+                                            {getCurrencySymbol(day.currencyCode)}{" "}
+                                            {day.addOnBrakeDown.reduce((s: number, a: any) => s + (a.price || 0), 0).toFixed(2)}
+                                          </span>
+                                        </div>
+                                      )}
+                                      <div className="flex justify-between font-semibold pt-1 border-t">
+                                        <span>Day Total:</span>
+                                        <span>{getCurrencySymbol(day.currencyCode)} {(day.totalAmount ?? 0).toFixed(2)}</span>
                                       </div>
-                                    ) : null}
-                                    <div className="flex justify-between font-semibold pt-1 border-t">
-                                      <span>Total for Day:</span>
-                                      <span>${dayTotal.toFixed(2)}</span>
                                     </div>
                                   </div>
+                                ))}
+                              </div>
+                              ))}
+
+                              {/* Grand Summary */}
+                              <div className="pt-2 border-t mt-2 space-y-1">
+                                <div className="flex justify-between font-semibold">
+                                  <span>Subtotal (before tax):</span>
+                                  <span>{getCurrencySymbol(finalPrice.currencyCode)}{(finalPrice.amountBeforeTax ?? 0).toFixed(2)}</span>
                                 </div>
-                              );
-                            })}
-                            <div className="pt-2 border-t mt-2">
-                              <div className="flex justify-between font-semibold">
-                                <span>Subtotal:</span>
-                                <span>${(finalPrice.amountBeforeTax ?? 0).toFixed(2)}</span>
+                                <div className="flex justify-between font-semibold">
+                                  <span>Total Tax:</span>
+                                  <span>{getCurrencySymbol(finalPrice.currencyCode)}{(finalPrice.taxedAmount ?? 0).toFixed(2)}</span>
+                                </div>
+                                <div className="flex justify-between font-bold text-sm border-t pt-1">
+                                  <span>Grand Total:</span>
+                                  <span>{getCurrencySymbol(finalPrice.currencyCode)}{(finalPrice.totalAmount ?? 0).toFixed(2)}</span>
+                                </div>
                               </div>
-                              <div className="flex justify-between font-semibold">
-                                <span>Total Tax:</span>
-                                <span>${(finalPrice.taxedAmount || 0).toFixed(2)}</span>
-                              </div>
-                              
-                            </div>
-                          </>
-                        )}
+                            </>
+                          );
+                        })()}
                       </CardContent>
                     </Card>
                   )}
@@ -563,12 +603,12 @@ if (!contactInfo.phoneNumber.trim()) {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span>Base Amount (before tax):</span>
-                    <span>${(finalPrice.amountBeforeTax ?? 0).toFixed(2)}</span>
+                    <span>{getCurrencySymbol(finalPrice.currencyCode)}{(finalPrice.amountBeforeTax ?? 0).toFixed(2)}</span>
                   </div>
                   {(finalPrice.additionalGuestCharges ?? 0) > 0 && (
                     <div className="flex justify-between">
                       <span>Additional Guest Charges:</span>
-                      <span>${(finalPrice.additionalGuestCharges).toFixed(2)}</span>
+                      <span>{getCurrencySymbol(finalPrice.currencyCode)}{(finalPrice.additionalGuestCharges).toFixed(2)}</span>
                     </div>
                   )}
                   {(finalPrice.totalAddonAmount ?? 0) > 0 && (
@@ -580,12 +620,11 @@ if (!contactInfo.phoneNumber.trim()) {
                             {addon.name}
                             <span className="text-gray-400 ml-1">×{addon.quantity}</span>
                           </span>
-                          <span>${(addon.totalAmount ?? 0).toFixed(2)}</span>
-                        </div>
+                          <span>{getCurrencySymbol(addon.currencyCode || finalPrice.currencyCode)}{(addon.totalAmount ?? 0).toFixed(2)}</span>                        </div>
                       ))}
                       <div className="flex justify-between font-medium pt-1 border-t mt-1">
                         <span>Total Add-ons:</span>
-                        <span>${(finalPrice.totalAddonAmount).toFixed(2)}</span>
+                        <span>{getCurrencySymbol(finalPrice.currencyCode)}{(finalPrice.totalAddonAmount).toFixed(2)}</span>
                       </div>
                     </div>
                   )}
@@ -599,16 +638,15 @@ if (!contactInfo.phoneNumber.trim()) {
                         return (
                           <div
                             key={index}
-                            className={`flex justify-between pl-4 ${
-                              isDiscount ? "text-green-600" :
+                            className={`flex justify-between pl-4 ${isDiscount ? "text-green-600" :
                               isSurcharge ? "text-red-500" :
-                              isPayLater ? "text-amber-600" : "text-gray-600"
-                            }`}
+                                isPayLater ? "text-amber-600" : "text-gray-600"
+                              }`}
                           >
                             <span>{promo.name}:</span>
                             <span>
                               {isDiscount ? "-" : isSurcharge ? "+" : ""}
-                              ${(promo.discountAmount ?? 0).toFixed(2)}
+                              {getCurrencySymbol(promo.currencyCode || finalPrice.currencyCode)}{(promo.discountAmount ?? 0).toFixed(2)}
                               {isPayLater && " (pay at hotel)"}
                             </span>
                           </div>
@@ -636,12 +674,12 @@ if (!contactInfo.phoneNumber.trim()) {
                         {finalPrice.taxBrakeDown.map((taxItem: any, index: number) => (
                           <div key={index} className="flex justify-between text-gray-600 pl-4">
                             <span>{taxItem.name}:</span>
-                            <span>${(taxItem.taxedAmount ?? 0).toFixed(2)}</span>
+                            <span>{getCurrencySymbol(taxItem.currencyCode || finalPrice.currencyCode)}{(taxItem.taxedAmount ?? 0).toFixed(2)}</span>
                           </div>
                         ))}
                         <div className="flex justify-between font-medium pt-1 border-t mt-1">
                           <span>Total Tax:</span>
-                          <span>${(finalPrice.taxedAmount || 0).toFixed(2)}</span>
+                          <span>{getCurrencySymbol(finalPrice.currencyCode)}{(finalPrice.taxedAmount || 0).toFixed(2)}</span>
                         </div>
                       </div>
                     </>
@@ -650,23 +688,23 @@ if (!contactInfo.phoneNumber.trim()) {
                   {(finalPrice.latterpayableAmount ?? 0) > 0 && (
                     <div className="flex justify-between text-amber-600 border-t pt-2 mt-2">
                       <span>Amount to be Paid Later:</span>
-                      <span>${(finalPrice.latterpayableAmount).toFixed(2)}</span>
+                      <span>{getCurrencySymbol(finalPrice.currencyCode)}{(finalPrice.latterpayableAmount).toFixed(2)}</span>
                     </div>
                   )}
 
                   {finalPrice.currentChargeableAmount > 0 && (finalPrice.latterpayableAmount ?? 0) > 0 && (
                     <div className="flex justify-between text-green-600 border-t pt-2 mt-2">
                       <span>Amount to be Paid Now:</span>
-                      <span>${finalPrice.currentChargeableAmount.toFixed(2)}</span>
+                      <span>{getCurrencySymbol(finalPrice.currencyCode)}{finalPrice.currentChargeableAmount.toFixed(2)}</span>
                     </div>
                   )}
 
-                  
+
                   <div className="border-t-2 pt-3 mt-2">
                     <div className="flex justify-between items-center font-bold text-lg">
                       <span>Grand Total:</span>
                       <span style={{ color: colors.primaryColor }}>
-                        ${(finalPrice.totalAmount).toFixed(2)}
+                        {getCurrencySymbol(finalPrice.currencyCode)}{(finalPrice.totalAmount).toFixed(2)}
                       </span>
                     </div>
                     <div className="text-xs text-gray-500 mt-1">
@@ -691,11 +729,11 @@ if (!contactInfo.phoneNumber.trim()) {
             <Button
               onClick={handleSubmit}
               disabled={paymentProcessing || Object.keys(errors).length > 0}
-              style={{ 
-                backgroundColor: paymentProcessing || Object.keys(errors).length > 0 
-                  ? '#9ca3af' 
-                  : colors.primaryColor, 
-                color: colors.buttonTextColor 
+              style={{
+                backgroundColor: paymentProcessing || Object.keys(errors).length > 0
+                  ? '#9ca3af'
+                  : colors.primaryColor,
+                color: colors.buttonTextColor
               }}
               className="flex-1 py-4 hover:opacity-90 transition-opacity"
               size="lg"
@@ -709,10 +747,10 @@ if (!contactInfo.phoneNumber.trim()) {
                 "Proceed to Payment"
               )}
             </Button>
-            <Button 
-              onClick={onClose} 
-              variant="outline" 
-              size="lg" 
+            <Button
+              onClick={onClose}
+              variant="outline"
+              size="lg"
               className="flex-1 py-4 sm:flex-none hover:bg-gray-100"
             >
               Cancel
@@ -720,7 +758,7 @@ if (!contactInfo.phoneNumber.trim()) {
           </div>
           {Object.keys(errors).length > 0 && (
             <p className="text-sm text-amber-600 text-center">
-            Please provide all the necessary information before proceeding
+              Please provide all the necessary information before proceeding
             </p>
           )}
         </div>
