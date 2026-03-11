@@ -246,27 +246,6 @@ export default function PropertyConfigDialog({
 
                     {/* Base Currency */}
                     <div className='space-y-2'>
-                        <Label htmlFor='baseCurrency'>Base Currency</Label>
-                        <Select
-                            value={propertyConfig.baseCurrency}
-                            onValueChange={(value) =>
-                                setPropertyConfig({ ...propertyConfig, baseCurrency: value })
-                            }
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder='Select currency' />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value='USD'>USD - US Dollar</SelectItem>
-                                <SelectItem value='EUR'>EUR - Euro</SelectItem>
-                                <SelectItem value='INR'>INR - Indian Rupee</SelectItem>
-                                <SelectItem value='GBP'>GBP - British Pound</SelectItem>
-                                <SelectItem value='AUD'>AUD - Australian Dollar</SelectItem>
-                                <SelectItem value='CAD'>CAD - Canadian Dollar</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div className="space-y-2">
                         <Label htmlFor="currencyCode">Currency Code</Label>
                         <Select
                             value={propertyConfig.baseCurrency}
