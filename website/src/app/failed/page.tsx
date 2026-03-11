@@ -55,49 +55,69 @@ export default function PaymentFailedPage() {
 
     bookingCodeRef.current = bookingCode;
 
-    // Setup socket to listen for any updates
-    const setupSocket = async () => {
-      try {
-        const { default: io } = await import('socket.io-client');
-        const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL!;
-        
-        const socket = io(socketUrl, {
-          transports: ['websocket'],
-          reconnection: false,
-        });
+    // Add a small delay to ensure page is fully loaded
+    const timer = setTimeout(() => {
+      // Setup socket to listen for any updates
+      const setupSocket = async () => {
+        try {
+          const { default: io } = await import('socket.io-client');
+          const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL!;
+          
+          const socket = io(socketUrl, {
+            transports: ['websocket', 'polling'],
+            reconnection: true,
+            reconnectionAttempts: 3,
+            reconnectionDelay: 1000,
+          });
 
-        socketRef.current = socket;
+          socketRef.current = socket;
 
-        socket.on('connect', () => {
-          console.log("🔌 Socket connected:", socket.id);
-          const roomName = `payment:${bookingCode}`;
-          socket.emit('join-payment-room', roomName);
-        });
+          socket.on('connect', () => {
+            console.log("🔌 Socket connected:", socket.id);
+            const roomName = `payment:${bookingCode}`;
+            console.log("📤 Joining room:", roomName);
+            socket.emit('join-payment-room', roomName);
+          });
 
-        socket.on('payment-status-update', (data: { orderReference: string; status: string; message?: string }) => {
-          if (data.orderReference === bookingCode && !paymentHandledRef.current) {
-            paymentHandledRef.current = true;
-            
-            if (data.status === 'success') {
-              // Payment succeeded - redirect to success page
-              toast.success("Payment confirmed!");
-              router.replace(`/success?ref=${bookingCode}`);
+          socket.on('connect_error', (err: any) => {
+            console.error("❌ Socket connection error:", err.message);
+          });
+
+          socket.on('room-joined', (data: any) => {
+            console.log("✅ Room joined:", data);
+          });
+
+          socket.on('error', (err: any) => {
+            console.error("❌ Socket error:", err);
+          });
+
+          socket.on('payment-status-update', (data: { orderReference: string; status: string; message?: string }) => {
+            console.log("📥 Payment status update received:", data);
+            if (data.orderReference === bookingCode && !paymentHandledRef.current) {
+              paymentHandledRef.current = true;
+              
+              if (data.status === 'success') {
+                // Payment succeeded - redirect to success page
+                toast.success("Payment confirmed!");
+                router.replace(`/success?ref=${bookingCode}`);
+              }
             }
-          }
-        });
+          });
 
-        socket.on('disconnect', () => {
-          console.log("🔌 Socket disconnected");
-        });
-      } catch (err) {
-        console.error("Socket setup error:", err);
-      }
-    };
+          socket.on('disconnect', (reason: any) => {
+            console.log("🔌 Socket disconnected:", reason);
+          });
+        } catch (err) {
+          console.error("Socket setup error:", err);
+        }
+      };
 
-    setupSocket();
+      setupSocket();
+    }, 100);
 
     // Cleanup
     return () => {
+      clearTimeout(timer);
       paymentHandledRef.current = false;
       if (socketRef.current) {
         socketRef.current.disconnect();
