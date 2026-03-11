@@ -49,7 +49,11 @@ export interface ICustomizableDealApplicableAddon {
         code: string;
     };
 }
-
+export interface IGuestDistribution{
+    adults: number;
+    childAges: number[];
+    children: number;
+}
 export interface IRatePlan {
     id: string;
     ratePlanName: string;
@@ -202,6 +206,7 @@ export interface PriceBrakeDown {
 }
 
 export interface DailyPriceBrakeDown {
+    roomNumber: string;
     date: string;
     baseChargesAmount: number;
     additionalChargesAmount: number;
