@@ -446,7 +446,7 @@ export default function MyTripPage() {
             <div>
               <p className="text-gray-500 font-medium">Rate</p>
               <p className="text-blue-700 font-semibold">
-                USD {bookingData.amount.toLocaleString()}
+                {bookingData.currencyCode} {bookingData.amount.toLocaleString()}
               </p>
             </div>
           </div>

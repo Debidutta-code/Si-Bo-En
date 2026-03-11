@@ -437,6 +437,7 @@ class BasePriceClass {
                         basePrice += totalCharges;
                         dailyPriceBrakeDown.push({
                             roomNumber: `${index + 1}`,
+                            guestDistribution: guestDistribution,
                             date: charge.date.toDateString(),
                             baseChargesAmount: totalChargesForBaseGuest,
                             additionalChargesAmount:
@@ -462,7 +463,7 @@ class BasePriceClass {
                         basePrice += Number(baseGuestAmount.amountBeforeTax);
                         dailyPriceBrakeDown.push({
                             roomNumber: `${index + 1}`,
-
+                            guestDistribution: guestDistribution,
                             date: charge.date.toDateString(),
                             baseChargesAmount: Number(
                                 baseGuestAmount.amountBeforeTax
@@ -488,7 +489,7 @@ class BasePriceClass {
                     basePrice += Number(baseGuestAmount.amountBeforeTax);
                     dailyPriceBrakeDown.push({
                         roomNumber: `${index + 1}`,
-
+                        guestDistribution: guestDistribution,
                         date: charge.date.toDateString(),
                         baseChargesAmount: Number(baseGuestAmount.amountBeforeTax),
                         additionalChargesAmount: 0,
@@ -544,6 +545,7 @@ class BasePriceClass {
 
             dailyPriceBrakeDownWithTax.push({
                 roomNumber: day.roomNumber,
+                guestDistribution: day.guestDistribution,
                 date: day.date,
                 baseChargesAmount: day.baseChargesAmount,
                 additionalChargesAmount: day.additionalChargesAmount,

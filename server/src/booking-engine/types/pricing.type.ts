@@ -207,6 +207,7 @@ export interface PriceBrakeDown {
 
 export interface DailyPriceBrakeDown {
     roomNumber: string;
+    guestDistribution: IGuestDistribution;
     date: string;
     baseChargesAmount: number;
     additionalChargesAmount: number;
