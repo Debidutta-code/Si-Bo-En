@@ -94,11 +94,13 @@ interface FikafiPayment {
 class FikafiPaymentService {
     private client: AxiosInstance;
     private baseUrl: string;
+    private apiBaseUrl: string;
     private cachedToken: string | null = null;  // ← ADD
     private tokenExpiry: number = 0;             // ← ADD
 
     constructor() {
         this.baseUrl = process.env.FIKAFI_BASE_URL!;
+        this.apiBaseUrl = process.env.FIKAFI_API_BASE_URL!;
 
         console.log('🔑 Fikafi Config loaded:');
         // console.log('  Base URL:', this.baseUrl);
@@ -337,9 +339,38 @@ class FikafiPaymentService {
         }
     }
 
-    public async getPaymentStatus(paymentId: string) {
-        const response = await this.client.get(`/payment/status/${paymentId}`);
-        return response.data;
+    public async getPaymentStatus(bookingRefNum: string, fikafiRefNum: string) {
+        try {
+            // Get token
+            const tokenResponse = await this.getFikafiToken();
+            if (!tokenResponse.success || !tokenResponse.token) {
+                throw new Error('Failed to get Fikafi token');
+            }
+            const tokenValue = tokenResponse.token;
+
+            // Use apiBaseUrl for this endpoint
+            const apiClient = axios.create({
+                baseURL: this.apiBaseUrl,
+                headers: { 'Content-Type': 'application/json' },
+                timeout: 30000,
+            });
+
+            const response = await apiClient.get('/getPaymentStatus', {
+                params: {
+                    bookingRefNum,
+                    fikafiRefNum
+                },
+                headers: {
+                    'Authorization': `Bearer ${tokenValue}`,
+                }
+            });
+            return response.data;
+        } catch (error: any) {
+            return {
+                success: false,
+                error: error.message || 'Unexpected error occurred.',
+            };
+        }
     }
 
     /**

@@ -13,7 +13,7 @@ fikafiPaymentRoutes.post(
 );
 
 fikafiPaymentRoutes.get(
-    '/payment-status/:paymentId',
+    '/payment-status',
     FikafiPaymentController.getPaymentStatus
 );
 

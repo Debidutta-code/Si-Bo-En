@@ -111,17 +111,17 @@ export class FikafiPaymentController {
 
     public static async getPaymentStatus(req: Request, res: Response) {
         try {
-            const { paymentId } = req.params;
+            const { bookingRefNum, fikafiRefNum } = req.query as { bookingRefNum?: string; fikafiRefNum?: string };
 
-            if (!paymentId) {
+            if (!bookingRefNum || !fikafiRefNum) {
                 return res.status(400).json({
                     success: false,
-                    message: 'Payment ID is required',
+                    message: 'bookingRefNum and fikafiRefNum are required',
                 });
             }
 
             const result =
-                await fikafiPaymentService.getPaymentStatus(paymentId);
+                await fikafiPaymentService.getPaymentStatus(bookingRefNum, fikafiRefNum);
 
             return res.status(200).json(successResponse("Payment status fetched successfully", result));
         }
