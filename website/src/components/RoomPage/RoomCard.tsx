@@ -244,8 +244,9 @@ const RoomCard: React.FC<RoomCardProps> = ({
         return "Special Offer";
     }
   };
-const rooms = Array.isArray(bookingContext.guests?.rooms)
-  ? bookingContext.guests.rooms
+  console.log(bookingContext.guests);
+const rooms = Array.isArray(bookingContext.guests?.roomsArray)
+  ? bookingContext.guests.roomsArray
   : [{ 
       adults: bookingContext.guests?.adults || 1,
       children: bookingContext.guests?.children || 0
@@ -321,6 +322,7 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
         startDate: bookingContext.startDate,
         endDate: bookingContext.endDate,
         noOfAdults,
+        guestDistribution: bookingContext.guests.roomsArray,
         noOfChildren: noOfChildrens,
         noOfRooms,
         childAges,
