@@ -77,7 +77,7 @@ useEffect(() => {
       icon: MapPin,
       text: "Arena-3, 3rd Floor, STPI ELITE Building, Gothapatna, Khordha, Odisha - 751003",
     },
-    { icon: Phone, text: "+91 9777403555" },
+    { icon: Phone, text: " 9777403555" },
     {
       icon: Mail,
       text: (

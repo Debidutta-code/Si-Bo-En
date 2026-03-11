@@ -362,7 +362,6 @@ export default function Rooms({ propertyId }: PropertyId) {
                                 className="w-full justify-start px-2 py-1.5 h-auto font-normal"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setRoomDetails({});
                                 }}
                               >
                                 <Plus className="h-4 w-4 mr-2" />

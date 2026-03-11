@@ -11,6 +11,5 @@ router.use('/ngenius', NGeniusRoutes);
 
 // Mount Webhook routes
 router.use('/webhook', WebhookRoutes);
-    router.use('/fikafi', fikafiPaymentRoutes);
 
 export const PaymentRoutes = router;

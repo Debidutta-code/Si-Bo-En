@@ -34,6 +34,7 @@ export class ReservationEmailService {
                     image: propertyDetails.image,
                     propertyContact: propertyDetails.propertyContact,
                     propertyEmail: propertyDetails.propertyEmail,
+                    propertyCode: propertyDetails.propertyCode
                 },
                 room: {
                     roomName: room.roomName,
@@ -86,6 +87,7 @@ export class ReservationEmailService {
                     image: propertyDetails.image,
                     propertyContact: propertyDetails.propertyContact,
                     propertyEmail: propertyDetails.propertyEmail,
+                    propertyCode: propertyDetails.propertyCode
                 },
                 room: {
                     roomName: room.roomName,
@@ -138,6 +140,7 @@ export class ReservationEmailService {
                     image: propertyDetails.image,
                     propertyContact: propertyDetails.propertyContact,
                     propertyEmail: propertyDetails.propertyEmail,
+                    propertyCode: propertyDetails.propertyCode
                 },
                 room: {
                     roomName: room.roomName,

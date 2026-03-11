@@ -15,7 +15,7 @@ export interface ICreateAddonAvailability {
     addonId: string;
     date: Date;
     price: number;
-    currencyCode?: string;
+    currencyCode?: CurrencyCode;
     isAvailable?: boolean;
 }
 

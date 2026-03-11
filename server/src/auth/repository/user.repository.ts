@@ -1,3 +1,4 @@
+import { tryCatch } from 'bullmq';
 import prisma from '../../config/prisma.client'; // Adjust path as needed
 import type { IRUsers } from "../types/index"
 // Helper to safely convert any ID to string
@@ -33,7 +34,18 @@ export class UserAuthRepository {
       throw new Error('Error occurred while verifying email');
     }
   }
-
+public static async recoveryUser(email:string){
+  try{
+    return await prisma.user.update({
+      where: { email: email },
+      data: { isDrafted: false,creationId:null, },
+      
+    });
+  }catch(error){
+      throw new Error('Error occurred while recovering user');
+    
+  }
+}
   public static async createUser(
     firstName: string,
     lastName: string,

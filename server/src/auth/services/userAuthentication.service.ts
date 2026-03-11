@@ -111,6 +111,10 @@ export class AuthService {
       }
       const existingUser = await UserAuthRepository.findUserByEmail(email);
       if (existingUser) {
+        if(existingUser.isDrafted){
+          await UserAuthRepository.recoveryUser(email);
+          return successResponse('User recovered successfully');
+        }
         return errorResponse('User with this email already exists');
       }
       // console.log(firstName,

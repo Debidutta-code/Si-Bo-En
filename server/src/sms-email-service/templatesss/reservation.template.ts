@@ -7,6 +7,7 @@ interface PropertyDetails {
   propertyContact: string;
   description: string;
   image: string[];
+  propertyCode: string;
 }
 
 interface PropertyAddress {
@@ -606,7 +607,7 @@ export const BookingConfirmationEmail = ({
         <div class="property-logo">${property.propertyName}</div>
         <h1 class="confirmation-title">Booking Confirmed</h1>
         <p class="confirmation-subtitle">Thank you for your reservation</p>
-        ${reservation.bookingCode ? `<div class="booking-number">Booking #${reservation.bookingCode}</div>` : ''}
+        ${reservation.bookingCode ? `<div class="booking-number">Booking #${reservation.bookingCode.split("-")[1]}</div>` : ''}
       </div>
 
       <!-- Content -->
@@ -822,11 +823,12 @@ export const BookingConfirmationEmail = ({
         </div>
 
         <!-- Call to Action -->
-        <div class="cta-section">
-          <p class="cta-text">Need to make changes to your reservation?</p>
-          <a href="https://bookings.revchilltech.com/my-trip/" class="cta-button">Manage Booking</a>
-        </div>
-      </div>
+       <div class="cta-section">
+  <p class="cta-text">Need to make changes to your reservation?</p>
+  <a href="https://bookings.revchilltech.com/my-trip?propertyCode=${property.propertyCode}" class="cta-button">
+    Manage Booking
+  </a>
+</div>
 
       <!-- Footer -->
       <div class="footer">
@@ -1122,11 +1124,12 @@ export const BookingAmendmentEmail = ({
           </div>
         </div>
 
-        <div class="cta-section">
-          <p class="cta-text">Need further changes?</p>
-          <a href="https://bookings.revchilltech.com/my-trip/" class="cta-button">Manage Booking</a>
-        </div>
-      </div>
+ <div class="cta-section">
+  <p class="cta-text">Need to make changes to your reservation?</p>
+  <a href="https://bookings.revchilltech.com/my-trip?propertyCode=${property.propertyCode}" class="cta-button">
+    Manage Booking
+  </a>
+</div>
 
       <div class="footer">
         <div class="footer-links">
@@ -1346,12 +1349,12 @@ export const BookingCancellationEmail = ({
           </div>
         </div>
 
-        <div class="cta-section">
+ <div class="cta-section">
           <p class="cta-text">Changed your mind?</p>
-          <a href="https://bookings.revchilltech.com/my-trip/" class="cta-button">Book Again</a>
-        </div>
-      </div>
-
+  <a href="https://bookings.revchilltech.com/my-trip?propertyCode=${property.propertyCode}" class="cta-button">
+    Manage Booking
+  </a>
+</div>
       <div class="footer">
         <div class="footer-links">
           <p>Questions about your cancellation?</p>

@@ -3,6 +3,7 @@ import AddonRepository from "../repository/addon.repository";
 import { IAddonAvailability, ICreateAddonAvailability } from "../interfaces";
 import { IApiResponse } from "../../utils/return.types";
 import { successResponse, errorResponse } from "../../utils/return";
+import { getCurrencyConverter } from "../../currency-maping/utils";
 
 export class AddonDateWiseService {
     private addonDateWiseDao: AddonDateWiseDao;
@@ -21,20 +22,24 @@ export class AddonDateWiseService {
             }
 
             // Validate addon exists (check once per unique addonId)
-            const uniqueAddonIds = [...new Set(data.map(item => item.addonId))];
-            
-            for (const addonId of uniqueAddonIds) {
-                const addon = await AddonRepository.getAddonById(addonId.toString());
-                if (!addon) {
-                    return errorResponse(`Addon not found for ID: ${addonId}`, "Addon not found");
-                }
-            }
+            const uniqueAddonId = data[0].addonId
 
-            // ✅ Use upsert with metadata
-            const result = await this.addonDateWiseDao.upsertAddonDateWiseWithMetadata(data);
-            
+            const addon = await AddonRepository.getAddonById(uniqueAddonId.toString());
+            if (!addon) {
+                return errorResponse(`Addon not found `, "Addon not found");
+            }
+            const { convert, baseCurrency } = await getCurrencyConverter(addon.propertyId, data[0].currencyCode ? data[0].currencyCode : "AED");
+
+            const normalizedData = data.map(item => ({
+                ...item,
+                price: convert(item.price),
+                currencyCode: baseCurrency,
+            }));
+
+            const result = await this.addonDateWiseDao.upsertAddonDateWiseWithMetadata(normalizedData);
+
             return successResponse(
-                "Addon date-wise availability saved successfully", 
+                "Addon date-wise availability saved successfully",
                 {
                     total: result.records.length,
                     created: result.created,
@@ -235,5 +240,5 @@ export class AddonDateWiseService {
             return errorResponse("Failed to get available addons", "Unknown error");
         }
     }
-    
+
 }
