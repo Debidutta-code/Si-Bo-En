@@ -11,6 +11,8 @@ export interface CreateOrderPayload {
   merchantAttributes?: {
     redirectUrl?: string;
     skipConfirmationPage?: boolean;
+    cancelUrl?: string;
+    cancelText?: string;
   };
   emailAddress?: string;
   outletId?: string;

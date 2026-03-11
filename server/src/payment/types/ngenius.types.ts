@@ -20,6 +20,9 @@ export interface NGeniusOrderRequest {
   outletId?: string;
   merchantAttributes?: {
     redirectUrl?: string;
+    skipConfirmationPage?: string | boolean;
+    cancelUrl?: string;
+    cancelText?: string;
   };
   propertyCode?: string;
   reservationId?: string;
