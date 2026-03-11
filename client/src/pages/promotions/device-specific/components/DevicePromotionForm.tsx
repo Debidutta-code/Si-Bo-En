@@ -13,10 +13,10 @@ import type {
   DeviceSpecificPromotionWithRatePlan,
   DeviceType,
   DiscountType,
-  CurrencyCode,
 } from "../interfaces";
 import { Smartphone, Tablet, Monitor } from "lucide-react";
 import type { ILoader } from "@/pages/dashboard/interface";
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
 
 interface DeviceSpecificPromotionFormProps {
   ratePlans: RatePlan[];
@@ -38,7 +38,7 @@ const defaultPromotion = (
   deviceType: ["mobile" as DeviceType],
   discountType: "percentage" as DiscountType,
   discountValue: 10,
-  currencyCode: "USD" as CurrencyCode,
+  currencyCode: "AED" as CurrencyCode,
   validFrom: "",
   validTo: null,
   monApplicable: true,

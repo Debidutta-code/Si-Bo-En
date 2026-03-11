@@ -889,18 +889,13 @@ export default function TaxSystem() {
                                                     <Badge variant="default">
                                                         {rule.type === "percentage"
                                                             ? `${rule.value}%`
-                                                            : `$${rule.value}`}
+                                                            : `${rule.value} ${rule.currencyCode}`}
                                                     </Badge>
                                                     <Badge variant="outline">
                                                         {rule.applicableOn === "room_rate"
                                                             ? "Room Rate"
                                                             : "Total Amount"}
                                                     </Badge>
-                                                    {rule.isInclusive && (
-                                                        <Badge variant="secondary">
-                                                            Inclusive
-                                                        </Badge>
-                                                    )}
                                                 </div>
                                                 {rule.description && (
                                                     <p className="text-sm text-gray-600 line-clamp-2">

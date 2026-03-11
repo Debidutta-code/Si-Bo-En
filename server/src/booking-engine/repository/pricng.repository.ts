@@ -32,6 +32,12 @@ export class PricingRepository {
                     taxGroup: {
                         include: {
                             taxGroupRules: {
+                                where: {
+                                    taxRule: {
+                                        validFrom: { lte: startDate },
+                                        validTo: { gte: endDate },
+                                    },
+                                },
                                 include: {
                                     taxRule: true,
                                 },

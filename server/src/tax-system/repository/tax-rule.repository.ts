@@ -1,12 +1,11 @@
 import { prisma } from "../../config";
-import { ICTaxRule, IGetTaxRule } from "../interfaces";
+import { ICTaxRule, IGetTaxRule, ITaxRule } from "../interfaces";
 
 export class TaxRuleRepository {
     public async createTaxRule(
         propertyId: string,
         taxRuleData: ICTaxRule,
-    ): Promise<ICTaxRule | Error> {
-        //console.log("Creating tax rule for propertyId:", propertyId, "with data:", taxRuleData);
+    ): Promise<ICTaxRule > {
         try {
             const { ...data } = taxRuleData;
             const createdTaxRule = await prisma.taxRule.create({
@@ -22,7 +21,7 @@ export class TaxRuleRepository {
             throw new Error('Failed to create tax rule');
         }
     }
-    public async getTaxRuleByPropertyId(propertyId: string): Promise<IGetTaxRule[]|Error> {
+    public async getTaxRuleByPropertyId(propertyId: string): Promise<IGetTaxRule[]> {
         try {
             
             const taxRules = await prisma.taxRule.findMany({
@@ -44,8 +43,8 @@ export class TaxRuleRepository {
     }
     public async updateTaxRule(
         taxRuleId: string,
-        updateData: Partial<ICTaxRule>
-    ): Promise<ICTaxRule | Error> {
+        updateData: ICTaxRule
+    ): Promise<ITaxRule > {
         try {
             const updatedTaxRule = await prisma.taxRule.update({
                 where: { id: taxRuleId },
@@ -57,7 +56,7 @@ export class TaxRuleRepository {
         }
     }
 
-    public async deleteTaxRule(taxRuleId: string): Promise<ICTaxRule | Error> {
+    public async deleteTaxRule(taxRuleId: string): Promise<ICTaxRule > {
         try {
             await prisma.taxGroupRule.deleteMany({
                 where: { taxRuleId: taxRuleId }
@@ -72,7 +71,7 @@ export class TaxRuleRepository {
         }
     }
 
-    public async getTaxRuleById(taxRuleId: string): Promise<ICTaxRule | Error> {
+    public async getTaxRuleById(taxRuleId: string): Promise<ITaxRule > {
         try {
             const taxRule = await prisma.taxRule.findUnique({
                 where: { id: taxRuleId }

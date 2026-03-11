@@ -29,6 +29,8 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ICTaxRule, ITaxRule, TaxType, TaxApplicableOn } from "../interface";
+import { currencies } from "@/components/currency-code/cuurency";
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
 
 interface TaxRuleDialogProps {
     open: boolean;
@@ -53,8 +55,8 @@ export default function TaxRuleDialog({
         description: "",
         validFrom: new Date(),
         validTo: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-        isInclusive: false,
         priority: 0,
+        currencyCode: "AED",
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [fromDateOpen, setFromDateOpen] = useState(false);
@@ -71,8 +73,8 @@ export default function TaxRuleDialog({
                     description: taxRule.description || "",
                     validFrom: new Date(taxRule.validFrom),
                     validTo: new Date(taxRule.validTo),
-                    isInclusive: taxRule.isInclusive,
                     priority: taxRule.priority,
+                    currencyCode: taxRule.currencyCode,
                 });
             } else {
                 setFormData({
@@ -83,8 +85,8 @@ export default function TaxRuleDialog({
                     description: "",
                     validFrom: new Date(),
                     validTo: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-                    isInclusive: false,
                     priority: 0,
+                    currencyCode: "AED",
                 });
             }
         }
@@ -115,8 +117,8 @@ export default function TaxRuleDialog({
                 description: "",
                 validFrom: new Date(),
                 validTo: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-                isInclusive: false,
                 priority: 0,
+                currencyCode: "AED",
             });
         }
     };
@@ -129,8 +131,8 @@ export default function TaxRuleDialog({
                         {mode === "create" ? "Create Tax Rule" : "Edit Tax Rule"}
                     </DialogTitle>
                     <DialogDescription>
-                        {mode === "create" 
-                            ? "Create a new tax rule for your property" 
+                        {mode === "create"
+                            ? "Create a new tax rule for your property"
                             : "Update the tax rule details"}
                     </DialogDescription>
                 </DialogHeader>
@@ -190,7 +192,28 @@ export default function TaxRuleDialog({
                             />
                         </div>
                     </div>
-
+                    {formData.type === "fixed" && (
+                        <>
+                            <div className="space-y-2">
+                                <Label htmlFor="currencyCode">Currency Code</Label>
+                                <Select
+                                    value={formData.currencyCode}
+                                    onValueChange={(value) => setFormData({ ...formData, currencyCode: value as CurrencyCode })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {currencies.map((currency) => (
+                                            <SelectItem key={currency.code} value={currency.code}>
+                                                {currency.name} ({currency.symbol})
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </>
+                    )}
                     {/* Applicable On */}
                     <div className="space-y-2">
                         <Label htmlFor="applicableOn">Applicable On *</Label>
@@ -319,24 +342,6 @@ export default function TaxRuleDialog({
                         />
                     </div>
 
-                    {/* Is Inclusive */}
-                    {/* <div className="flex items-center justify-between space-x-2 py-2">
-                        <div className="space-y-0.5">
-                            <Label htmlFor="isInclusive" className="cursor-pointer">
-                                Tax Inclusive
-                            </Label>
-                            <p className="text-xs text-gray-500">
-                                Include tax in displayed price
-                            </p>
-                        </div>
-                        <Switch
-                            id="isInclusive"
-                            checked={formData.isInclusive}
-                            onCheckedChange={(checked) =>
-                                setFormData({ ...formData, isInclusive: checked })
-                            }
-                        />
-                    </div> */}
                 </div>
 
                 <DialogFooter>

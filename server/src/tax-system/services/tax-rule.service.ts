@@ -19,14 +19,18 @@ export class TaxRuleService {
 
             const [property,{convert, baseCurrency} ] = await Promise.all([
               PropertyDao.getPropertyById(propertyId, true),
-              getCurrencyConverter(propertyId, "AED")
+              getCurrencyConverter(propertyId, taxRuleData.currencyCode)
             ]);
             if (!property) {
                 return errorResponse('Property not found');
             }
             const newTaxRule = await this.taxRuleRepository.createTaxRule(
                 propertyId,
-                taxRuleData
+                {
+                    ...taxRuleData,
+                    currencyCode:taxRuleData.type==="fixed" ? baseCurrency : taxRuleData.currencyCode,
+                    value: taxRuleData.type==="fixed" ? convert(taxRuleData.value) : taxRuleData.value
+                }
             );
             if (newTaxRule) {
                 return successResponse('Tax Rule created successfully', newTaxRule);
@@ -58,16 +62,21 @@ export class TaxRuleService {
     }
     public async updateTaxRule(
         taxRuleId: string,
-        taxRuleData: Partial<ICTaxRule>,
+        taxRuleData: ICTaxRule,
     ): Promise<IApiResponse> {
         try {
             const exists= await this.taxRuleRepository.getTaxRuleById(taxRuleId);
             if(!exists){
                 return errorResponse('Tax Rule does not exist');
             }
+            const {convert, baseCurrency} = await getCurrencyConverter(exists.propertyId, taxRuleData.currencyCode);
             const updatedTaxRule = await this.taxRuleRepository.updateTaxRule(
                 taxRuleId,
-                taxRuleData
+                {
+                    ...taxRuleData,
+                    currencyCode: taxRuleData.type === "fixed" ? baseCurrency : taxRuleData.currencyCode,
+                    value: taxRuleData.type === "fixed" ? convert(taxRuleData.value) : taxRuleData.value
+                }
             );
             
             if (updatedTaxRule) {

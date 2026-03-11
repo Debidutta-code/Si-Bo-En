@@ -1027,7 +1027,7 @@ model TaxRule {
   description  String?         @map("description") @db.Text
   validFrom    DateTime        @map("valid_from")
   validTo      DateTime        @map("valid_to")
-  isInclusive  Boolean         @default(false) @map("is_inclusive")
+  isInclusive  Boolean         @default(false) @map("is_inclusive") // to be removed when the database reset happens
   priority     Int             @default(0) @map("priority")
 currencyCode  CurrencyCode    @default(AED) @map("currency_code")
 

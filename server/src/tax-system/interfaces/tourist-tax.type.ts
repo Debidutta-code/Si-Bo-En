@@ -21,8 +21,8 @@ export interface ICTouristTax {
     name:string
     ratePlanCode: string;
     discountType: DiscountType;
-    discountValue?: number | null;
-    currencyCode?: CurrencyCode | null;
+    discountValue: number;
+    currencyCode: CurrencyCode;
 }
 
 export interface IGetTouristTax extends ICTouristTax {
