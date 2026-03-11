@@ -75,6 +75,20 @@ export interface OrderStatusResponse {
           resultCode: string;
           resultMessage: string;
         };
+        _embedded?: {
+          'cnp:capture'?: Array<{
+            _links: {
+              self: {
+                href: string;
+              };
+            };
+            amount: {
+              currencyCode: string;
+              value: number;
+            };
+            state: string;
+          }>;
+        };
       }>;
     };
   };

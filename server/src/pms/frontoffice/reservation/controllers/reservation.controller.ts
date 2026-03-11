@@ -384,7 +384,7 @@ public async getCheckOutsForADate(req: CustomRequest, res: Response): Promise<Re
             if (error instanceof Error) {
                 return res.status(500).json(errorResponse("Failed to cancel Reservation", error.message));
             }
-            return res.status(500).json(errorResponse("Internal server Error"));
+            return res.status(500).json(errorResponse("Failed to cancel Reservation"));
         }
     }
     public async noShowReservation(req: CustomRequest, res: Response): Promise<Response> {
