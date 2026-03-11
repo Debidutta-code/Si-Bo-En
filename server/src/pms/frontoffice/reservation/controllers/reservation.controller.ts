@@ -103,13 +103,13 @@ public async getAllReservations(req: CustomRequest, res: Response): Promise<Resp
             propertyId, 
             propertyCode, 
             bookingStatus,
-            bookingSource,      // ← Add these
-            deviceType,         // ← Add these
-            bookingCode,        // ← Add these
-            guestName,          // ← Add these
-            promoCode,          // ← Add these
-            countryCode,        // ← Add these
-            dateFilterType      // ← Add these
+            bookingSource,     
+            deviceType,         
+            bookingCode,        
+            guestName,          
+            promoCode,          
+            countryCode,        
+            dateFilterType      
         } = req.query;
 
         if (!startDate || !endDate) {
@@ -384,7 +384,7 @@ public async getCheckOutsForADate(req: CustomRequest, res: Response): Promise<Re
             if (error instanceof Error) {
                 return res.status(500).json(errorResponse("Failed to cancel Reservation", error.message));
             }
-            return res.status(500).json(errorResponse("Internal server Error"));
+            return res.status(500).json(errorResponse("Failed to cancel Reservation"));
         }
     }
     public async noShowReservation(req: CustomRequest, res: Response): Promise<Response> {

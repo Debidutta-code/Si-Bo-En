@@ -29,6 +29,7 @@ import { agentPlatformRouter } from '../agent-paltform/routes';
 import integrationRouter from '../integrations/routes/index.routes';
 import platformRouter from '../platforms/routes/platform.routes';
 import {currencyRoutes} from "../currency-maping/routes"
+import { fikafiPaymentRoutes } from '../payment/routes/fikafi.routes';
 export async function initializeExpressRoutes({ app }: { app: Express }) {
     // Health check
     app.head('/status', (_, res: Response) => res.status(200).end());
@@ -68,6 +69,9 @@ export async function initializeExpressRoutes({ app }: { app: Express }) {
     apiV1Router.use('/agency', agencyMainRouter);
     apiV1Router.use('/promotions', promotionRouter);
     apiV1Router.use('/loyalty', loyaltyRouter);
+        apiV1Router.use('/fikafi', fikafiPaymentRoutes);
+
+
     apiV1Router.use('/payment',PaymentRoutes);
     apiV1Router.use('/integrations',integrationRouter);
     apiV1Router.use('/platform',platformRouter);

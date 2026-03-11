@@ -2,7 +2,7 @@ import { getCreation } from "./service/creation-filter.service"
 import { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Button } from '@/components/ui/button';
-import CreateEntityDialog from "@/components/creationDialog"
+import CreateEntityDialog from "@/components/creation/creationDialog"
 import { capitalizeFirstLetter } from '@/lib/utils';
 import Loader from '@/components/Loader/Loader';
 import type { Icreations, ICreation } from "./types/types"

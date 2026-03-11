@@ -1,6 +1,7 @@
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
+
 export type PromotionType = 'early_bird';
 export type DiscountType = 'percentage' | 'flat';
-export type CurrencyCode = 'USD' | 'EUR' | 'INR';
 
 // Room-RatePlan pair for early-bird promotions
 export interface RoomRatePlanPair {

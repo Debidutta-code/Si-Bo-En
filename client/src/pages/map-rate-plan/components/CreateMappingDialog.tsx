@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ICreateCharges, RatePlan, RoomTypes, IBaseGuestAmounts, IAdditionalGuestAmount, qualifyingAgeCode } from "../types";
+import { currencies } from "@/components/currency-code/cuurency";
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
 
 interface CreateMappingDialogProps {
     open: boolean;
@@ -80,28 +82,28 @@ export default function CreateMappingDialog({
         updated[index] = { ...updated[index], [field]: value };
         setFormData({ ...formData, baseByGuestAmounts: updated });
     };
-const availableAgeCodes: qualifyingAgeCode[] = ["10", "8", "5"]; // Add the proper type
+    const availableAgeCodes: qualifyingAgeCode[] = ["10", "8", "5"]; // Add the proper type
 
-   const handleAddAdditionalGuestAmount = () => {
-    // Get all currently selected age codes
-    const selectedAgeCodes = formData.additionalGuestAmounts.map(item => item.ageQualifyingCode);
-    
-    // Find the first available age code not already selected
-    const nextAgeCode = availableAgeCodes.find(code => !selectedAgeCodes.includes(code));
-    
-    if (!nextAgeCode) {
-        toast.error("All age categories have been added (Adult, Child, Infant)");
-        return;
-    }
-    
-    setFormData({
-        ...formData,
-        additionalGuestAmounts: [
-            ...formData.additionalGuestAmounts,
-            { ageQualifyingCode: nextAgeCode, amount: 0 },
-        ],
-    });
-};
+    const handleAddAdditionalGuestAmount = () => {
+        // Get all currently selected age codes
+        const selectedAgeCodes = formData.additionalGuestAmounts.map(item => item.ageQualifyingCode);
+
+        // Find the first available age code not already selected
+        const nextAgeCode = availableAgeCodes.find(code => !selectedAgeCodes.includes(code));
+
+        if (!nextAgeCode) {
+            toast.error("All age categories have been added (Adult, Child, Infant)");
+            return;
+        }
+
+        setFormData({
+            ...formData,
+            additionalGuestAmounts: [
+                ...formData.additionalGuestAmounts,
+                { ageQualifyingCode: nextAgeCode, amount: 0 },
+            ],
+        });
+    };
 
     // Your handleRemoveAdditionalGuestAmount stays the same
     const handleRemoveAdditionalGuestAmount = (index: number) => {
@@ -271,16 +273,24 @@ const availableAgeCodes: qualifyingAgeCode[] = ["10", "8", "5"]; // Add the prop
                         </div>
 
                         <div className="space-y-2">
-                            <Label>Currency Code</Label>
-                            <Input
+                            <Label htmlFor="currencyCode">Currency Code</Label>
+                            <Select
                                 value={formData.currencyCode}
-                                onChange={(e) =>
-                                    setFormData({ ...formData, currencyCode: e.target.value })
-                                }
-                                placeholder="USD"
-                                disabled={isSubmitting}
-                            />
+                                onValueChange={(value) => setFormData({ ...formData, currencyCode: value as CurrencyCode })}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {currencies.map((currency) => (
+                                        <SelectItem key={currency.code} value={currency.code}>
+                                            {currency.name} ({currency.symbol})
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
+
                     </div>
 
                     {/* Base Guest Amounts */}

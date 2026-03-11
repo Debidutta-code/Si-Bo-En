@@ -1,8 +1,9 @@
 // Add to your existing interface file
 
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
+
 // Tourist Tax Interfaces
 export type DiscountType = "flat" | "percentage";
-export type CurrencyCode = "USD" | "EUR" | "INR"; // Add more as needed
 
 export interface ITouristTax {
     id: string;

@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import toast from "react-hot-toast";
 import axios from "axios";
+import { currencies } from "../currencyCode/cuurency";
 
 interface PriceDetailsProps {
   bookingDetails: any;
@@ -61,16 +62,17 @@ const PriceDetails: React.FC<PriceDetailsProps> = ({ bookingDetails, onPriceUpda
   const [promo, setPromo] = useState("");
   const [loading, setLoading] = useState(false);
   const [discount, setDiscount] = useState(0);
-  const [totalPrice, setTotalPrice] = useState(
+const [totalPrice, setTotalPrice] = useState<number>(
     bookingDetails?.finalPrice?.totalAmount || 0
   );
 
-  const formatCurrency = (amount: number) =>
-    new Intl.NumberFormat("en-IN", {
-      style: "currency",
-      currency: "USD",
-      maximumFractionDigits: 0,
-    }).format(amount);
+const currencyCode = bookingDetails?.finalPrice?.currencyCode || "USD";
+const currencySymbol = currencies.find((c) => c.code === currencyCode)?.symbol ?? currencyCode;
+
+const formatCurrency = (amount: number) =>
+  `${currencySymbol}${new Intl.NumberFormat("en-IN", {
+    maximumFractionDigits: 2,
+  }).format(amount)}`;
 
   const getDeviceType = () => {
     if (typeof window === "undefined") return "Desktop";

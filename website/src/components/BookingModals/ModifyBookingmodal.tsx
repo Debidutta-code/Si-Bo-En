@@ -140,10 +140,10 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
   );
   useEffect(() => {
     const ages = guestForms
-        .filter(g => g.type === 'child')
-        .map(g => g.age || 0);
+      .filter(g => g.type === 'child')
+      .map(g => g.age || 0);
     setChildAges(ages);
-}, [guestForms]);
+  }, [guestForms]);
 
   const [priceFetched, setPriceFetched] = useState(false);
   const [priceFetchError, setPriceFetchError] = useState(false);
@@ -174,7 +174,16 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
             .map((a: any) => a.addonId)
         )
       ) as string[];
-
+      // Extract guestDistribution from dailyPriceBrakeDown - one entry per unique roomNumber
+      const dailyBreakdown = bookingData.finalPrice?.dailyPriceBrakeDown || bookingData.finalPrice?.dailyBreakdown || [];
+      const seenRooms = new Set<string>();
+      const guestDistribution = dailyBreakdown
+        .filter((entry: any) => {
+          if (seenRooms.has(entry.roomNumber)) return false;
+          seenRooms.add(entry.roomNumber);
+          return true;
+        })
+        .map((entry: any) => entry.guestDistribution);
       // Build parsedAddons — selected type only, exclude child rows (name contains 'Child age')
       const selectedAddons = (bookingData.addOns || [])
         .filter((a: any) => a.type === 'selected' && !a.name.includes('Child age'));
@@ -186,7 +195,6 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
           quantity: a.quantity,  // ← take directly from addon
         }]
       }));
-
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/pricing/get-price`,
         {
@@ -200,6 +208,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
             noOfAdults,
             noOfChildren: noOfChildrens,
             noOfRooms: requestedRooms,
+            guestDistribution: guestDistribution,
             ratePlanCode: bookingData.ratePlanCode,
             childAges,
             parsedAddons,
@@ -1020,7 +1029,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
               firstName: existingChildren[i]?.firstName || "",
               lastName: existingChildren[i]?.lastName || "",
               dob: existingChildren[i]?.dob || "",
-              age: data.childAges[i] || 0 
+              age: data.childAges[i] || 0
             });
           }
 

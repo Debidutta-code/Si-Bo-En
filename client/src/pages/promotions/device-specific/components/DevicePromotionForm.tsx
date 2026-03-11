@@ -13,10 +13,12 @@ import type {
   DeviceSpecificPromotionWithRatePlan,
   DeviceType,
   DiscountType,
-  CurrencyCode,
 } from "../interfaces";
 import { Smartphone, Tablet, Monitor } from "lucide-react";
 import type { ILoader } from "@/pages/dashboard/interface";
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
+import { Label } from "@/components/ui/label";
+import { currencies } from "@/components/currency-code/cuurency";
 
 interface DeviceSpecificPromotionFormProps {
   ratePlans: RatePlan[];
@@ -38,7 +40,7 @@ const defaultPromotion = (
   deviceType: ["mobile" as DeviceType],
   discountType: "percentage" as DiscountType,
   discountValue: 10,
-  currencyCode: "USD" as CurrencyCode,
+  currencyCode: "AED" as CurrencyCode,
   validFrom: "",
   validTo: null,
   monApplicable: true,
@@ -456,30 +458,27 @@ const DeviceSpecificPromotionForm: React.FC<
 
             {/* Currency Selection (only for flat discount) */}
             {devicePromotion.discountType === "flat" && (
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Currency *
-                </label>
-                <Select
-                  value={devicePromotion.currencyCode || "USD"}
-                  onValueChange={(value) =>
-                    setDevicePromotion({
-                      ...devicePromotion,
-                      currencyCode: value as CurrencyCode,
-                    })
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="USD">USD - US Dollar</SelectItem>
-                    <SelectItem value="EUR">EUR - Euro</SelectItem>
-                    <SelectItem value="INR">INR - Indian Rupee</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="currencyCode">Currency Code</Label>
+                    <Select
+                      value={devicePromotion.currencyCode}
+                      onValueChange={(value) => setDevicePromotion({ ...devicePromotion, currencyCode: value as CurrencyCode })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {currencies.map((currency) => (
+                          <SelectItem key={currency.code} value={currency.code}>
+                            {currency.name} ({currency.symbol})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
           </div>
 
           <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">

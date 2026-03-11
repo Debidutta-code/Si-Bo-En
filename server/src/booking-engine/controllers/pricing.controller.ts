@@ -31,6 +31,7 @@ export class PricingController {
                 promoCode,
                 includedAddons,
                 childAges,
+                guestDistribution
             } = req.body;
 
             const propertyId = req.property?.id;
@@ -63,11 +64,7 @@ export class PricingController {
             const adults = Number(noOfAdults);
             const children = Number(noOfChildren);
             const rooms = Number(noOfRooms);
-            // if (childAges.length != children) {
-            //     return res
-            //         .status(400)
-            //         .json(errorResponse('Child ages are not chosen'));
-            // }
+
 
             if (adults < 1) {
                 return res
@@ -104,6 +101,7 @@ export class PricingController {
                 ratePlanCode,
                 rooms,
                 adults,
+                guestDistribution,
                 children ? children : 0,
                 childAges,
                 guestEmail ? guestEmail : '',
@@ -112,7 +110,7 @@ export class PricingController {
                 promotions ? promotions : [],
                 parsedAddons ? parsedAddons : [],
                 promoCode,
-                includedAddons ? includedAddons : []
+                includedAddons ? includedAddons : [],
             );
 
             return res.status(response.success ? 200 : 400).json(response);

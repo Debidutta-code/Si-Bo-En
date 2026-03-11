@@ -435,7 +435,7 @@ const BookingReviewPage = () => {
         : undefined;
 
       const orderResponse = await ngeniusService.createOrder({
-        action: "PURCHASE",
+        action: "SALE",
         amount: {
           currencyCode: gatewayCurrency,
           value: amountInSmallestUnit,
@@ -443,6 +443,8 @@ const BookingReviewPage = () => {
         merchantAttributes: {
           redirectUrl: `${window.location.origin}/paymentCallback`,
           skipConfirmationPage: true,
+          cancelUrl: `${window.location.origin}/paymentCallback`,
+          cancelText: "Return to Booking",
         },
         emailAddress: email.trim(),
         outletId: outletId,

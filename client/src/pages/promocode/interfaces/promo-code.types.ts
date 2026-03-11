@@ -1,3 +1,5 @@
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
+
 export type DiscountType = "percentage" | "flat";
 
 export interface ICreatePromoCode {
@@ -11,7 +13,7 @@ export interface ICreatePromoCode {
     validTo: Date;
     minBookingAmount: number | null;
     maxDiscountAmount: number | null;
-
+    currencyCode:CurrencyCode;
     isApplicableForMobileApp?: boolean;
     isApplicableForDesktop?: boolean;
     isApplicableForTablet?: boolean;
@@ -42,10 +44,9 @@ export interface IRPromoCode {
     isApplicableForMobileApp: boolean;
     isApplicableForDesktop: boolean;
     isApplicableForTablet: boolean;
+    currencyCode:CurrencyCode;
 
-    isApplicableForWalkIn: boolean;
-    isApplicableForOTA: boolean;
-    isApplicableForCorporate: boolean;
+    
 
     usageLimit: number | null;
     usageLimitPerUser: number | null;

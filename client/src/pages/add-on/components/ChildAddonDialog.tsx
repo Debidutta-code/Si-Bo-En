@@ -44,7 +44,9 @@ import type {
   ICChildAddoon,
   IUpdateChildAddon,
 } from "../interface";
-import type { CurrencyCode, DiscountType } from "@/pages/tax-system/interface";
+import type { DiscountType } from "@/pages/tax-system/interface";
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
+import { currencies } from "@/components/currency-code/cuurency";
 
 interface ChildAddonDialogProps {
   open: boolean;
@@ -221,11 +223,10 @@ export default function ChildAddonDialog({
                     {childAddons.map((child) => (
                       <div
                         key={child.id}
-                        className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${
-                          editingChildAddon?.id === child.id
+                        className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${editingChildAddon?.id === child.id
                             ? "border-primary bg-primary/5"
                             : "border-gray-200 hover:bg-gray-50"
-                        }`}
+                          }`}
                       >
                         <div className="flex items-center gap-3">
                           <Baby className="w-4 h-4 text-gray-400" />
@@ -445,30 +446,31 @@ export default function ChildAddonDialog({
                           }
                         />
                       </div>
+                      {
+                        formData.discountType === "flat" && (
 
-                      {formData.discountType === "flat" && (
-                        <div className="space-y-2">
-                          <Label htmlFor="currency-code">Currency *</Label>
-                          <Select
-                            value={formData.currencyCode || ""}
-                            onValueChange={(value) =>
-                              setFormData({
-                                ...formData,
-                                currencyCode: value as CurrencyCode,
-                              })
-                            }
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Currency" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="USD">USD</SelectItem>
-                              <SelectItem value="EUR">EUR</SelectItem>
-                              <SelectItem value="INR">INR</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      )}
+                          <div className="space-y-2">
+                            <Label htmlFor="currencyCode">Currency Code</Label>
+                            <Select
+                              value={formData.currencyCode || "AED"}
+                              onValueChange={(value) => setFormData({ ...formData, currencyCode: value as CurrencyCode })}
+                            >
+                              <SelectTrigger>
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {currencies.map((currency) => (
+                                  <SelectItem key={currency.code} value={currency.code}>
+                                    {currency.name} ({currency.symbol})
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        )
+
+                      }
+                      
                     </div>
                   </div>
                 )}

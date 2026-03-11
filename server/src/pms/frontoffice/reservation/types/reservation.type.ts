@@ -1,8 +1,6 @@
 import { BookingSource, BookingStatus, CurrencyCode, PaymentMethod, DeviceType, ReservationPromotionType } from "@prisma/client";
-import { Decimal } from "@prisma/client/runtime/library";
 import { DiscountType } from "../../../../promocode/types";
-import { PriceBrakeDown, DailyPriceBrakeDown, TaxBrakeDown, AddOnBrakeDown, PromotionBrakeDown } from "../../../../booking-engine/types/pricing.type";
-import { DateTime } from "luxon";
+import { DailyPriceBrakeDown, TaxBrakeDown, AddOnBrakeDown, PromotionBrakeDown } from "../../../../booking-engine/types/pricing.type";
 
 // ==================== PAYLOAD TYPES ====================
 export interface ICreateReservationPayload {
@@ -151,10 +149,11 @@ export interface IReservation extends ICReservation {
 export interface IReservationWithAllDetails extends IReservation {
   primaryGuest: IGuests;
   priceBreakdowns: IReservationPriceBrakeDown[];
-  addOns: any[];
+  addOns: IBookingAddon[];
   property?: any;
   promo?: any;
   reservationGuests?: IReservationGuest[];
+  reservationPromotions?: IReservationPromotion[];
 }
 
 export interface IReservationGuest {
@@ -218,14 +217,14 @@ export interface IReservationPriceBrakeDownR {
   additionalGuestCharges: number;
   baseRatePerNight: number;
   numberOfNights: number;
-  priceAfterTax: Decimal | number;
-  totalAmount: Decimal | number;
-  totalTax: Decimal | number;
+  priceAfterTax: number | number;
+  totalAmount: number | number;
+  totalTax: number | number;
   breakdown: any; // JSON
   dailyBreakdown: any[]; // JSON array
   availableRooms: number;
   requestedRooms: number;
-  tax: any[]; // JSON array
+  tax: any[]; 
 }
 
 export interface IReservationPriceBrakeDown extends IReservationPriceBrakeDownR {

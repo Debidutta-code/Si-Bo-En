@@ -1,3 +1,5 @@
+import { IRatePlan, IRatePlanMetadata } from "../../../ari/types";
+import { IRatePlanFPromotions } from "../../../ari/types/rateplan.type";
 import { prisma } from "../../../config";
 import { 
   IMLOS,
@@ -82,13 +84,13 @@ export class MLOSDao {
     }
   }
 
-  public  async ratePlanExists(ratePlanId: string): Promise<boolean> {
+  public  async ratePlanExists(ratePlanId: string): Promise<IRatePlanFPromotions|null> {
     try {
       const ratePlan = await prisma.ratePlan.findUnique({
         where: { id: ratePlanId },
-        select: { id: true },
+       
       });
-      return !!ratePlan;
+      return ratePlan;
     } catch (error) {
       
       throw new Error('Unknown error occurred while checking rate plan existence');

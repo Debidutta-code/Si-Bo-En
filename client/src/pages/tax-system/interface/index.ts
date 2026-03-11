@@ -23,7 +23,6 @@ import type {ITouristTax,
     ICTouristTax,
     IUTouristTax,
     DiscountType,
-    CurrencyCode,
 } from "./tourism-tax.type";
 export type {
  ICTaxGroup,
@@ -51,5 +50,4 @@ ITouristTax,
 ICTouristTax,
 IUTouristTax,
 DiscountType,
-CurrencyCode,
 }

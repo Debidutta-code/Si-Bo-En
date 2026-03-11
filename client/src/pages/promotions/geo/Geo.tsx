@@ -24,7 +24,7 @@ import type { CreateGeoRatePlan, GeoRatePlan } from './interfaces';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Edit, MoreVertical, Trash2,  } from 'lucide-react';
+import { Edit, MoreVertical, Trash2, } from 'lucide-react';
 import type { ILoader } from '@/pages/dashboard/interface';
 import BackButton from '@/components/shared/BackButton';
 
@@ -221,7 +221,7 @@ export const GeoRatePlanList: React.FC = () => {
 
   return (
     <div className="space-y-4">
-    <BackButton/>
+      <BackButton />
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-foreground">Geo Rate Plans</h2>
         <button
@@ -299,6 +299,7 @@ export const GeoRatePlanList: React.FC = () => {
                             plan.restrictionValue
                       ) : '-'}
                     </TableCell>
+                   
                     <TableCell>
                       <div className="flex items-center space-x-1">
                         {plan.countryCode.slice(0, 3).map(code => (
@@ -311,7 +312,7 @@ export const GeoRatePlanList: React.FC = () => {
                         )}
                       </div>
                     </TableCell>
-                     
+
                     <TableCell>
                       <span
                         className={`px-3 py-1 rounded text-xs font-medium transition-colors ${plan.isActive

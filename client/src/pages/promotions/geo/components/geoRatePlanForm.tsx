@@ -1,11 +1,14 @@
 import type { RoomTypes } from '@/pages/inventory/types';
 import type { RatePlan } from '@/pages/rate-plan/interfaces';
 import React, { useState, useEffect } from 'react';
-import type { CreateGeoRatePlan, CurrencyCode, GeoRatePlan, GeoRestrictionType, GeoRestrictionTypeAction, IGeoRatePlanUORC } from '../interfaces';
+import type { CreateGeoRatePlan, GeoRatePlan, GeoRestrictionType, GeoRestrictionTypeAction, IGeoRatePlanUORC } from '../interfaces';
 import { countries, searchCountries } from '@/pages/bookings/utils/country.utils';
 import Loader from '@/components/Loader/Loader';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { ILoader } from '@/pages/dashboard/interface';
+import type { CurrencyCode } from '@/components/currency-code/currency-code.type';
+import { Label } from '@/components/ui/label';
+import { currencies } from '@/components/currency-code/cuurency';
 
 interface GeoRatePlanFormProps {
   propertyId: string;
@@ -26,7 +29,7 @@ const GeoRatePlanForm: React.FC<GeoRatePlanFormProps> = ({
   editData,
   isLoading
 }) => {
-  console.log("Qsie",editData)
+  console.log("Qsie", editData)
   const [geoRatePlan, setGeoRatePlan] = useState<IGeoRatePlanUORC>({
     selectedRooms: [],
     selectedRatePlans: [],
@@ -133,12 +136,12 @@ const GeoRatePlanForm: React.FC<GeoRatePlanFormProps> = ({
   const showRestrictionValue = restrictionType !== "restricted";
   const showCurrencyCode = restrictionType === "fixed";
   const showRestrictionAction = restrictionType !== "restricted";
-if(isLoading.isLoading){
+  if (isLoading.isLoading) {
 
-        <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-50 rounded-lg">
-          <Loader text={isLoading.message} />
-        </div>
-}
+    <div className="absolute inset-0 bg-background/50 flex items-center justify-center z-50 rounded-lg">
+      <Loader text={isLoading.message} />
+    </div>
+  }
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
 
@@ -280,22 +283,27 @@ if(isLoading.isLoading){
         )}
 
         {showCurrencyCode && (
-          <div className="space-y-1.5">
-            <label className="text-sm font-medium text-foreground">Currency *</label>
-            <Select
-              value={currencyCode ?? "USD"}
-              onValueChange={(value) => updateField('currencyCode', value as CurrencyCode)}
-            >
-              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="USD">USD - US Dollar</SelectItem>
-                <SelectItem value="EUR">EUR - Euro</SelectItem>
-                <SelectItem value="INR">INR - Indian Rupee</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="currencyCode">Currency Code</Label>
+              <Select
+              value={currencyCode ?? "AED"}
+                onValueChange={(value) => updateField('currencyCode', value as CurrencyCode)}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {currencies.map((currency) => (
+                    <SelectItem key={currency.code} value={currency.code}>
+                      {currency.name} ({currency.symbol})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </>
         )}
-
         {restrictionType === "restricted" && (
           <div className="flex items-center gap-2 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
             <span className="text-destructive text-sm">⚠ Selected countries will be completely blocked from booking</span>
@@ -341,7 +349,7 @@ if(isLoading.isLoading){
           )}
         </div>
       </div>
-      
+
       {/* Status Toggle */}
       <div className="flex items-center gap-3 p-3 bg-accent/30 rounded-lg border border-border">
         <input

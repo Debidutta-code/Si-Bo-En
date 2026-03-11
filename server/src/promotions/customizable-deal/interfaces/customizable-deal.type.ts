@@ -1,11 +1,10 @@
-import { Decimal } from "@prisma/client/runtime/library";
+import { CurrencyCode } from "../../../tax-system/interfaces/tourist-tax.type";
 
 export type DiscountType = 'percentage' | 'flat';
-export type CurrencyCode = 'USD' | 'EUR' | 'INR';
 
 export interface ICCreateCustomizableDealS {
     discountType: DiscountType;
-    discountValue: Decimal;
+    discountValue: number;
     currencyCode?: CurrencyCode | null;
     startDate: Date;
     endDate: Date;
@@ -18,7 +17,7 @@ export interface ICCreateCustomizableDealS {
 
 export interface IUCustomizableDealS {
     discountType?: DiscountType;
-    discountValue?: Decimal;
+    discountValue?: number;
     currencyCode?: CurrencyCode | null;
     startDate?: Date;
     endDate?: Date;
@@ -31,7 +30,7 @@ export interface IUCustomizableDealS {
 
 export interface ICCreateCustomizableDealR {
     discountType: DiscountType;
-    discountValue: Decimal;
+    discountValue: number;
     currencyCode?: CurrencyCode | null;
     startDate: Date;
     endDate: Date;
@@ -49,7 +48,7 @@ export interface ICustomizableDeals {
     propertyId: string;
     propertyCode: string;
     discountType: DiscountType;
-    discountValue: Decimal;
+    discountValue: number;
     currencyCode: CurrencyCode | null;
     startDate: Date;
     endDate: Date;

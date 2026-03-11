@@ -6,6 +6,7 @@ import { RootState } from "../../store/store";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage";
+import { currencies } from "@/src/components/currencyCode/cuurency";
 
 const PaymentSuccessPage = () => {
   const bookingData = useSelector((state: RootState) => state.booking);
@@ -79,16 +80,17 @@ const PaymentSuccessPage = () => {
   const totalAmount = finalPrice?.totalAmount || 0;
   const nights = finalPrice?.numberOfNights || 0;
 
-const rooms = bookingData.numberOfRooms || 1;
-const adults = (guests || []).filter((g: any) => g.type === 'adult').length;
-const children = (guests || []).filter((g: any) => g.type === 'child').length;
+  const rooms = bookingData.numberOfRooms || 1;
+  const adults = (guests || []).filter((g: any) => g.type === 'adult').length;
+  const children = (guests || []).filter((g: any) => g.type === 'child').length;
   const handleViewBookings = () => {
     setLoading(true);
     // Use URL booking code if available, otherwise use Redux booking code
     const code = urlBookingCode || bookingData.bookingCode;
     router.push(`/my-trip?propertyCode=${bookingData.PropertyCode}&code=${code}`);
   };
-
+  const currencyCode = finalPrice?.currencyCode  || "USD";
+  const currencySymbol = currencies.find((c) => c.code === currencyCode)?.symbol ?? currencyCode;
   return isConfirmed ? (
     <div className="min-h-screen bg-gray-100  py-8 px-4">
       <div className="max-w-5xl mx-auto bg-white shadow-xl rounded-2xl p-8 sm:p-10">
@@ -168,7 +170,7 @@ const children = (guests || []).filter((g: any) => g.type === 'child').length;
               Payment Details
             </h2>
             <div className="font-bold text-2xl" style={{ color: colors.primaryColor }}>
-              USD {totalAmount}
+                {currencySymbol}{totalAmount}
             </div>
             <p className="text-sm text-gray-500">
               Payment will be collected at the hotel.
@@ -205,7 +207,7 @@ const children = (guests || []).filter((g: any) => g.type === 'child').length;
         </div>
 
         {/* Additional Info */}
-        <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+        <div className="mt-10 grid grid-cols-1 gap-6 text-sm">
           <div
             className="p-4 rounded-xl shadow"
             style={{
@@ -219,26 +221,7 @@ const children = (guests || []).filter((g: any) => g.type === 'child').length;
               <li>Need changes? Contact us 24/7.</li>
             </ul>
           </div>
-          <div
-            className="p-4 rounded-xl shadow"
-            style={{
-              backgroundColor: `${colors.secondaryColor}10`,
-            }}
-          >
-            <h3 className="font-semibold mb-2" style={{ color: colors.primaryColor }}>Need Help?</h3>
-            <p className="text-gray-800">
-              Our support team is available 24/7 for anything you need.
-            </p>
-            <a
-              href="https://mail.google.com/mail/?view=cm&fs=1&to=info@swiftrooms.ai&su=Support%20Request&body=Hi%20Swiftrooms%20Team,"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="mt-3 font-medium hover:underline"
-              style={{ color: colors.primaryColor }}
-            >
-              Contact Support
-            </a>
-          </div>
+
         </div>
       </div>
     </div>

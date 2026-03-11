@@ -1,6 +1,6 @@
 import { Decimal } from "@prisma/client/runtime/library";
 import { DiscountType } from "../../customizable-deal/interfaces";
-import { CurrencyCode } from "../../../pms/frontoffice/payment/types";
+import { CurrencyCode } from "../../../tax-system/interfaces/tourist-tax.type";
 
 export interface IMLOSCreate {
   ratePlanId: string;
@@ -9,7 +9,7 @@ export interface IMLOSCreate {
   minLos: number;
   maxLos: number | null;
   discountType: DiscountType|null;
-  discountValue: Decimal | null;
+  discountValue: number | null;
   isActive: boolean;
   isAutoApplied: boolean;
   currencyCode: CurrencyCode;
@@ -25,7 +25,7 @@ export interface IMLOS {
   minLos: number;
   maxLos: number | null;
   discountType: DiscountType|null;
-  discountValue: Decimal | null;
+  discountValue: number | null;
   isActive: boolean;
   isAutoApplied: boolean;
   currencyCode: CurrencyCode;

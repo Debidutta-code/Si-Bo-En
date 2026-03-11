@@ -153,4 +153,38 @@ export class NGeniusController {
       next(error);
     }
   }
+
+  /**
+   * Process Refund
+   * POST /api/v1/payment/ngenius/refund
+   */
+  static async processRefund(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const { orderReference, outletId } = req.body;
+
+      if (!orderReference) {
+        res.status(400).json({
+          success: false,
+          message: 'orderReference is required',
+        });
+        return;
+      }
+
+      const refundResult = await ngeniusService.processRefund(orderReference);
+
+      res.status(refundResult.success ? 200 : 422).json({
+        success: refundResult.success,
+        message: refundResult.message,
+        data: refundResult.success
+          ? { refundReference: refundResult.refundReference, ...refundResult.data }
+          : undefined,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

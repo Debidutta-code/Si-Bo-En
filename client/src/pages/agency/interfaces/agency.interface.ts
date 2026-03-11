@@ -1,10 +1,10 @@
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
 
 export type AgencyApplicationStatus = "pending" | "approved" | "rejected";
 export type fAgencyApplicationStatus = "all" | AgencyApplicationStatus;
 
 export type AgencyType = "travel_agency" | "corporate";
 export type AgentCommissionType = "percentage" | "fixed";
-export type CurrencyCode = "USD" | "EUR" | "INR";
 export interface ICAgencyApplication {
     applicationNoForThisUser: number;
     status: AgencyApplicationStatus;

@@ -28,6 +28,8 @@ import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { IAddonAvailabilityCreate, IAddon } from "../interface";
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
+import { currencies } from "@/components/currency-code/cuurency";
 
 interface AddOnAvailabilityDialogProps {
     open: boolean;
@@ -222,49 +224,50 @@ export default function AddOnAvailabilityDialog({
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="currencyCode">Currency *</Label>
+                            <Label htmlFor="currencyCode">Currency Code</Label>
                             <Select
                                 value={formData.currencyCode}
-                                onValueChange={(value) =>
-                                    setFormData({ ...formData, currencyCode: value })
-                                }
+                                onValueChange={(value) => setFormData({ ...formData, currencyCode: value as CurrencyCode })}
                             >
                                 <SelectTrigger>
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="INR">INR (₹)</SelectItem>
-                                    <SelectItem value="USD">USD ($)</SelectItem>
-                                    <SelectItem value="EUR">EUR (€)</SelectItem>
+                                    {currencies.map((currency) => (
+                                        <SelectItem key={currency.code} value={currency.code}>
+                                            {currency.name} ({currency.symbol})
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
+                            
                         </div>
-                    </div>
-
-                    {/* Availability Toggle */}
-                    <div className="flex items-center justify-between space-x-2 py-2">
-                        <Label htmlFor="isAvailable" className="cursor-pointer">
-                            Available for Booking
-                        </Label>
-                        <Switch
-                            id="isAvailable"
-                            checked={formData.isAvailable}
-                            onCheckedChange={(checked) =>
-                                setFormData({ ...formData, isAvailable: checked })
-                            }
-                        />
                     </div>
                 </div>
 
-                <DialogFooter>
-                    <Button variant="outline" onClick={handleClose} disabled={isSubmitting}>
-                        Cancel
-                    </Button>
-                    <Button onClick={handleSave} disabled={isSubmitting}>
-                        {isSubmitting ? "Creating..." : "Create Availability"}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+                {/* Availability Toggle */}
+                <div className="flex items-center justify-between space-x-2 py-2">
+                    <Label htmlFor="isAvailable" className="cursor-pointer">
+                        Available for Booking
+                    </Label>
+                    <Switch
+                        id="isAvailable"
+                        checked={formData.isAvailable}
+                        onCheckedChange={(checked) =>
+                            setFormData({ ...formData, isAvailable: checked })
+                        }
+                    />
+                </div>
+
+            <DialogFooter>
+                <Button variant="outline" onClick={handleClose} disabled={isSubmitting}>
+                    Cancel
+                </Button>
+                <Button onClick={handleSave} disabled={isSubmitting}>
+                    {isSubmitting ? "Creating..." : "Create Availability"}
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+        </Dialog >
     );
 }

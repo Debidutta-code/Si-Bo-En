@@ -4,8 +4,8 @@ import type { ILoader } from "../dashboard/interface";
 import {
   createLoyaltyProgramService,
   updateLoyaltyProgramService,
-  createAdvanceLoyaltyProgramService,
-  updateAdvanceLoyaltyProgramService,
+  // createAdvanceLoyaltyProgramService,
+  // updateAdvanceLoyaltyProgramService,
   createCreationLoyalityService,
   getLoyalityByCreationService,
   updateCreationLoyalityService
@@ -13,7 +13,7 @@ import {
 import { fetchProperties } from "../dashboard/api/dash.api";
 import type { 
   ICloyaltyProgram,
-  IAdvanceLoyaltyprogram,
+  // IAdvanceLoyaltyprogram,
   ICreationLoyality
 } from "./interfaces";
 import Loader from "@/components/Loader/Loader";
@@ -23,7 +23,7 @@ import ImageUploadModal from "@/components/property/ImageUploadModal";
 import CreateLoyaltyForm from "./components/CreateLoyaltyForm";
 import DiscountsTab from "./components/DiscountsTab";
 import BasicConfigTab from "./components/BasicConfigTab";
-import AdvancedConfigTab from "./components/AdvancedConfigTab";
+// import AdvancedConfigTab from "./components/AdvancedConfigTab";
 import AddPropertyToLoyalty from "./components/AddPropertyToLoyalty";
 
 interface Property {
@@ -43,7 +43,7 @@ export default function Loyalty() {
   const [hasCreationLoyalty, setHasCreationLoyalty] = useState(false);
 
   const [basicProgram, setBasicProgram] = useState<ICloyaltyProgram | null>(null);
-  const [advanceProgram, setAdvanceProgram] = useState<IAdvanceLoyaltyprogram | null>(null);
+  // const [advanceProgram, setAdvanceProgram] = useState<IAdvanceLoyaltyprogram | null>(null);
   
   const [activeTab, setActiveTab] = useState<"discounts" | "basic" | "advanced">("basic");
   
@@ -60,16 +60,16 @@ export default function Loyalty() {
   const [isImageModalOpen, setIsImageModalOpen] = useState<boolean>(false);
 
   // Advanced Configuration State
-  const [advanceConfig, setAdvanceConfig] = useState({
-    activeInCorporateWeb: false,
-    defaultLoginMode: false,
-    allowEmailRecovery: true,
-    allowNewRequest: true,
-    allowNewRequestInCorporate: false,
-    roomLimitByBooking: 1,
-    externalRegistrationUrl: "",
-    blockUserFieldFromForm: false
-  });
+  // const [advanceConfig, setAdvanceConfig] = useState({
+  //   activeInCorporateWeb: false,
+  //   defaultLoginMode: false,
+  //   allowEmailRecovery: true,
+  //   allowNewRequest: true,
+  //   allowNewRequestInCorporate: false,
+  //   roomLimitByBooking: 1,
+  //   externalRegistrationUrl: "",
+  //   blockUserFieldFromForm: false
+  // });
 
   useEffect(() => {
     if (creationId) {
@@ -128,21 +128,21 @@ export default function Loyalty() {
         }
 
         // Set advance program if exists
-        if (data.AdvanceLoyaltyProgram) {
-          setAdvanceProgram(data.AdvanceLoyaltyProgram as any);
-          setAdvanceConfig({
-            activeInCorporateWeb: data.AdvanceLoyaltyProgram.activeInCorporateWeb,
-            defaultLoginMode: data.AdvanceLoyaltyProgram.defaultLoginMode,
-            allowEmailRecovery: data.AdvanceLoyaltyProgram.allowEmailRecovery,
-            allowNewRequest: data.AdvanceLoyaltyProgram.allowNewRequest,
-            allowNewRequestInCorporate: data.AdvanceLoyaltyProgram.allowNewRequestInCorporate,
-            roomLimitByBooking: data.AdvanceLoyaltyProgram.roomLimitByBooking || 1,
-            externalRegistrationUrl: data.AdvanceLoyaltyProgram.externalRegistrationUrl || "",
-            blockUserFieldFromForm: data.AdvanceLoyaltyProgram.blockUserFieldFromForm || false
-          });
-        } else {
-          setAdvanceProgram(null);
-        }
+        // if (data.AdvanceLoyaltyProgram) {
+        //   setAdvanceProgram(data.AdvanceLoyaltyProgram as any);
+        //   setAdvanceConfig({
+        //     activeInCorporateWeb: data.AdvanceLoyaltyProgram.activeInCorporateWeb,
+        //     defaultLoginMode: data.AdvanceLoyaltyProgram.defaultLoginMode,
+        //     allowEmailRecovery: data.AdvanceLoyaltyProgram.allowEmailRecovery,
+        //     allowNewRequest: data.AdvanceLoyaltyProgram.allowNewRequest,
+        //     allowNewRequestInCorporate: data.AdvanceLoyaltyProgram.allowNewRequestInCorporate,
+        //     roomLimitByBooking: data.AdvanceLoyaltyProgram.roomLimitByBooking || 1,
+        //     externalRegistrationUrl: data.AdvanceLoyaltyProgram.externalRegistrationUrl || "",
+        //     blockUserFieldFromForm: data.AdvanceLoyaltyProgram.blockUserFieldFromForm || false
+        //   });
+        // } else {
+        //   setAdvanceProgram(null);
+        // }
       } else {
         setHasCreationLoyalty(false);
       }
@@ -280,36 +280,36 @@ export default function Loyalty() {
     }
   };
 
-  const handleUpdateAdvanceConfig = async () => {
-    if (!creationId || !creationLoyalty) return;
+  // const handleUpdateAdvanceConfig = async () => {
+  //   if (!creationId || !creationLoyalty) return;
 
-    setLoader({ isLoading: true, message: "Updating Advanced Configuration..." });
-    try {
-      let response;
+  //   setLoader({ isLoading: true, message: "Updating Advanced Configuration..." });
+  //   try {
+  //     let response;
       
-      if (advanceProgram?.id) {
-        // Update existing
-        response = await updateAdvanceLoyaltyProgramService(advanceProgram.id, advanceConfig);
-      } else {
-        // Create new
-        response = await createAdvanceLoyaltyProgramService({
-          loyaltyProgramId: creationLoyalty.id!,
-          ...advanceConfig
-        });
-      }
+  //     if (advanceProgram?.id) {
+  //       // Update existing
+  //       response = await updateAdvanceLoyaltyProgramService(advanceProgram.id, advanceConfig);
+  //     } else {
+  //       // Create new
+  //       response = await createAdvanceLoyaltyProgramService({
+  //         loyaltyProgramId: creationLoyalty.id!,
+  //         ...advanceConfig
+  //       });
+  //     }
 
-      if (response.success) {
-        toast.success("Advanced configuration updated successfully");
-        await fetchLoyaltyData();
-      } else {
-        toast.error(response.message || "Failed to update advanced configuration");
-      }
-    } catch (error) {
-      toast.error("An error occurred while updating advanced configuration");
-    } finally {
-      setLoader({ isLoading: false, message: "" });
-    }
-  };
+  //     if (response.success) {
+  //       toast.success("Advanced configuration updated successfully");
+  //       await fetchLoyaltyData();
+  //     } else {
+  //       toast.error(response.message || "Failed to update advanced configuration");
+  //     }
+  //   } catch (error) {
+  //     toast.error("An error occurred while updating advanced configuration");
+  //   } finally {
+  //     setLoader({ isLoading: false, message: "" });
+  //   }
+  // };
 
   const handleImageUploadSuccess = (uploadedUrls: string[]) => {
     setLogos([...logos, ...uploadedUrls]);
@@ -346,9 +346,9 @@ export default function Loyalty() {
      
 
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "discounts" | "basic" | "advanced")} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-6">
+        <TabsList className="grid w-full grid-cols-2 mb-6">
           <TabsTrigger value="basic">Basic Config</TabsTrigger>
-          <TabsTrigger value="advanced">Advanced Config</TabsTrigger>
+          {/* <TabsTrigger value="advanced">Advanced Config</TabsTrigger> */}
           <TabsTrigger value="discounts">Discounts</TabsTrigger>
         </TabsList>
 
@@ -381,14 +381,14 @@ export default function Loyalty() {
         </TabsContent>
 
         {/* Advanced Configuration Tab */}
-        <TabsContent value="advanced" className="space-y-6">
+        {/* <TabsContent value="advanced" className="space-y-6">
           <AdvancedConfigTab
             advanceProgram={advanceProgram}
             advanceConfig={advanceConfig}
             setAdvanceConfig={setAdvanceConfig}
             onSave={handleUpdateAdvanceConfig}
           />
-        </TabsContent>
+        </TabsContent> */}
       </Tabs>
 
       {/* Image Upload Modal */}

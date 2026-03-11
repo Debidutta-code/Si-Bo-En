@@ -1,6 +1,7 @@
 import { ICEarlyBirdPromotion, ICEbDsOftc, IEarlyBirdPromotionUpdate } from '../interfaces';
 import { EarlyBirdPromotionDao } from '../dao';
 import { errorResponse, IApiResponse, successResponse } from '../../../utils';
+import { getCurrencyConverter } from '../../../currency-maping/utils';
 
 export class EarlyBirdPromotionService {
   earlyBirdPromotionDao: EarlyBirdPromotionDao;
@@ -13,8 +14,13 @@ export class EarlyBirdPromotionService {
     data: ICEarlyBirdPromotion
   ): Promise<IApiResponse> {
     try {
+      const {convert, baseCurrency} = await getCurrencyConverter(data.propertyId, data.currencyCode ? data.currencyCode : "AED");
       const promotions = await this.earlyBirdPromotionDao.createEarlyBirdPromotions(
-        data,
+        {
+          ...data,
+          currencyCode:data.discountType === "flat" ? baseCurrency : data.currencyCode,
+          discountValue:data.discountType === "flat" ? convert(Number(data.discountValue)) : data.discountValue
+        },
         data.roomRatePlans
       );
 
@@ -91,6 +97,7 @@ export class EarlyBirdPromotionService {
       if (!existingPromotion) {
         return errorResponse('Early-bird promotion not found');
       }
+      const {convert, baseCurrency} = await getCurrencyConverter(existingPromotion.propertyId, updateData.currencyCode ? updateData.currencyCode : "AED");
 
       if (updateData.validFrom && updateData.validTo) {
         if (updateData.validFrom > updateData.validTo) {
@@ -98,7 +105,11 @@ export class EarlyBirdPromotionService {
         }
       }
 
-      const updatedPromotion = await this.earlyBirdPromotionDao.updateEarlyBirdPromotion(id, updateData);
+      const updatedPromotion = await this.earlyBirdPromotionDao.updateEarlyBirdPromotion(id, {
+        ...updateData,
+        currencyCode: updateData.discountType === "flat" ? baseCurrency : updateData.currencyCode,
+        discountValue: updateData.discountType === "flat" ? convert(Number(updateData.discountValue)) : updateData.discountValue
+      });
 
       if (updatedPromotion) {
         return successResponse('Early-bird promotion updated successfully', updatedPromotion);

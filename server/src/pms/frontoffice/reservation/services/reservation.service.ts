@@ -20,8 +20,6 @@ import {
 import { prisma } from '../../../../config';
 import { IPropertyCodeAndIds } from '../../../../dashboard/types';
 import { DashUtilsRepo } from '../../../../dashboard/repository';
-import { Decimal } from '@prisma/client/runtime/library';
-import { BookingStatus, CurrencyCode } from '@prisma/client';
 import { nowUTC, toUTC, toUTCDate } from '../../../../utils';
 import {
     BookingAddonRepository,
@@ -31,6 +29,10 @@ import { ReservationEmailService } from '../../../../sms-email-service/service';
 import { LoyaltyGuestRepository } from '../../../../loyalty/repository';
 import { RTIntegrationDao } from '../../../../integrations/rate-tiger/dao/rt-integration.dao';
 import { RTReservationPushService } from '../../../../integrations/rate-tiger/services/rt-reservation-push.service';
+import { CurrencyCode } from '../../../../tax-system/interfaces/tourist-tax.type';
+import { BookingStatus } from '../types/reservation.type';
+import { ngeniusService } from '../../../../payment/services/ngenius.service';
+
 export class ReservationService {
     reservationRepository: ReservationRepository;
     priceBrakeDownRepo: PriceBrakeDownRepo;
@@ -402,9 +404,9 @@ export class ReservationService {
                 additionalGuestCharges: 0,
                 baseRatePerNight: numberOfNights > 0 ? Math.round(finalPrice.amountBeforeTax / numberOfNights) : 0,
                 numberOfNights: numberOfNights,
-                priceAfterTax: new Decimal(finalPrice.totalAmount),
-                totalAmount: new Decimal(finalPrice.totalAmount),
-                totalTax: new Decimal(finalPrice.taxedAmount || 0),
+                priceAfterTax: finalPrice.totalAmount,
+                totalAmount: finalPrice.totalAmount,
+                totalTax: finalPrice.taxedAmount|| 0,
                 breakdown: {
                     totalBaseAmount: finalPrice.amountBeforeTax,
                     totalAddonAmount: finalPrice.totalAddonAmount || 0,
@@ -924,15 +926,15 @@ export class ReservationService {
                             ? Math.round((updatePayload.finalPrice.amountBeforeTax || updatePayload.finalPrice.totalAmount || 0) / updateNumberOfNights)
                             : 0,
                         numberOfNights: updateNumberOfNights,
-                        priceAfterTax: new Decimal(
+                        priceAfterTax: 
                             updatePayload.finalPrice.totalAmount || 0
-                        ),
-                        totalAmount: new Decimal(
+                        ,
+                        totalAmount: 
                             updatePayload.finalPrice.totalAmount || 0
-                        ),
-                        totalTax: new Decimal(
+                        ,
+                        totalTax: 
                             updatePayload.finalPrice.taxedAmount || 0
-                        ),
+                        ,
                         breakdown: {
                             totalBaseAmount: updatePayload.finalPrice.amountBeforeTax || 0,
                             totalAddonAmount: updatePayload.finalPrice.totalAddonAmount || 0,
@@ -1206,13 +1208,13 @@ export class ReservationService {
         specificPropertyId?: string,
         specificPropertyCode?: string,
         bookingStatus?: string,
-        bookingSource?: string, // ← Add these
-        deviceType?: string, // ← Add these
-        bookingCode?: string, // ← Add these
-        guestName?: string, // ← Add these
-        promoCode?: string, // ← Add these
-        countryCode?: string, // ← Add these
-        dateFilterType?: 'checkin' | 'booking' | 'modification' // ← Add these
+        bookingSource?: string, 
+        deviceType?: string, 
+        bookingCode?: string, 
+        guestName?: string, 
+        promoCode?: string, 
+        countryCode?: string, 
+        dateFilterType?: 'checkin' | 'booking' | 'modification' 
     ): Promise<IApiResponse> {
         try {
             const accessResult = await this.getAccessiblePropertyIds(
@@ -1706,9 +1708,38 @@ export class ReservationService {
                     });
             }
 
+            // After successful cancellation in DB and before returning response, attempt N-Genius refund if applicable
+            let refundResult: { success: boolean; message: string; data?: any } | null = null;
+            try {
+                const paymentRecord = await prisma.payment.findFirst({
+                    where: { reservationId },
+                    select: {
+                        paymentIntentId: true,
+                        paymentMethod: true,
+                    },
+                });
+
+                if (paymentRecord?.paymentIntentId && paymentRecord.paymentMethod === 'payment_gateway') {
+                    console.log(`💸 Triggering N-Genius refund for order: ${paymentRecord.paymentIntentId}`);
+                    refundResult = await ngeniusService.processRefund(paymentRecord.paymentIntentId);
+
+                    if (!refundResult.success) {
+                        console.error(`⚠️ Refund failed for reservation ${reservationId}: ${refundResult.message}`);
+                    }
+                }
+            } catch (refundError) {
+                console.error(`❌ Error during refund for reservation ${reservationId}:`, refundError);
+                refundResult = { success: false, message: 'Refund processing encountered an error' };
+            }
+
+            const returnData = {
+                ...cancelledReservation,
+                refund: refundResult
+            };
+
             return successResponse(
                 'Reservation cancelled successfully',
-                cancelledReservation
+                returnData
             );
         } catch (error) {
             if (error instanceof Error) {

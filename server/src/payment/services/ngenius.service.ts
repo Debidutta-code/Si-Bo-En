@@ -7,6 +7,7 @@ import {
   NGeniusOrderResponse,
   NGeniusOrderStatusResponse,
   NGeniusErrorResponse,
+  NGeniusRefundResponse,
 } from '../types/ngenius.types';
 import { prisma } from '../../config/db.config';
 
@@ -184,6 +185,116 @@ class NGeniusService {
    */
   getPaymentUrl(orderResponse: NGeniusOrderResponse): string {
     return orderResponse._links.payment.href;
+  }
+
+  /**
+   * Process a refund for a captured SALE order
+   * Fetches order status to extract payment + capture refs, then calls the refund endpoint
+   */
+  async processRefund(
+    orderReference: string
+  ): Promise<NGeniusRefundResponse> {
+    try {
+      console.log(`\n========================================`);
+      console.log(`💸 PROCESSING N-GENIUS REFUND`);
+      console.log(`📋 Order Reference: ${orderReference}`);
+      console.log(`========================================`);
+
+      // Step 1: Get order status to extract payment and capture refs
+      const orderStatus = await this.getOrderStatus(orderReference);
+      const payments = orderStatus._embedded?.payment;
+
+      if (!payments || payments.length === 0) {
+        return { success: false, message: 'No payment found for this order' };
+      }
+
+      const payment = payments[0];
+
+      // Step 2: Extract all IDs from the capture href URL
+      // URL format: .../outlets/{outletId}/orders/{orderRef}/payments/{paymentRef}/captures/{captureId}
+      const captures = payment._embedded?.['cnp:capture'];
+      if (!captures || captures.length === 0) {
+        return { success: false, message: 'No capture found for this payment (payment may not be in CAPTURED state)' };
+      }
+
+      const captureHref = captures[0]._links?.self?.href;
+      if (!captureHref) {
+        return { success: false, message: 'Capture href not found in order status' };
+      }
+
+      // Parse outletId, orderRef, paymentRef, and captureRef from the href URL
+      const hrefParts = captureHref.split('/');
+      // Expected segments: ...outlets/{outletId}/orders/{orderRef}/payments/{paymentRef}/captures/{captureId}
+      const capturesIndex = hrefParts.indexOf('captures');
+      const paymentsIndex = hrefParts.indexOf('payments');
+      const ordersIndex = hrefParts.indexOf('orders');
+      const outletsIndex = hrefParts.indexOf('outlets');
+
+      if (capturesIndex === -1 || paymentsIndex === -1 || ordersIndex === -1 || outletsIndex === -1) {
+        return { success: false, message: 'Failed to parse IDs from capture href URL' };
+      }
+
+      const parsedOutletId = hrefParts[outletsIndex + 1];
+      const parsedOrderRef = hrefParts[ordersIndex + 1];
+      const parsedPaymentRef = hrefParts[paymentsIndex + 1];
+      const captureRef = hrefParts[capturesIndex + 1];
+
+      if (!parsedOutletId || !parsedOrderRef || !parsedPaymentRef || !captureRef) {
+        return { success: false, message: 'One or more IDs could not be parsed from capture href URL' };
+      }
+
+      // Step 3: Get refund amount and currency from the capture
+      const refundAmount = captures[0].amount.value;
+      const refundCurrency = captures[0].amount.currencyCode;
+
+      console.log(`💳 Payment Reference: ${parsedPaymentRef}`);
+      console.log(`📦 Capture Reference: ${captureRef}`);
+      console.log(`💰 Refund Amount: ${refundAmount} ${refundCurrency}`);
+
+      // Step 4: Call the refund API
+      const token = await this.getValidToken();
+      const refundUrl = `${NGeniusConfig.baseUrl}${NGeniusConfig.endpoints.orders}/${parsedOutletId}/orders/${parsedOrderRef}/payments/${parsedPaymentRef}/captures/${captureRef}/refund`;
+
+      console.log(`🔗 Refund URL: ${refundUrl}`);
+
+      const refundResponse = await axios.post(
+        refundUrl,
+        {
+          amount: {
+            value: refundAmount,
+            currencyCode: refundCurrency,
+          },
+        },
+        {
+          headers: {
+            'Content-Type': 'application/vnd.ni-payment.v2+json',
+            Accept: 'application/vnd.ni-payment.v2+json',
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log(`✅ REFUND SUCCESSFUL`);
+      console.log(`📊 Refund Response Status: ${refundResponse.status}`);
+      console.log(`========================================\n`);
+
+      return {
+        success: true,
+        message: 'Refund processed successfully',
+        refundReference: captureRef,
+        data: refundResponse.data,
+      };
+    } catch (error) {
+      this.handleError(error, 'Failed to process refund');
+      if (axios.isAxiosError(error)) {
+        const errData = error.response?.data;
+        const errMessage = errData?.message || errData?.errors?.[0]?.message || 'Refund API request failed';
+        console.error(`❌ REFUND FAILED: ${errMessage}`);
+        return { success: false, message: errMessage };
+      }
+      const msg = error instanceof Error ? error.message : 'Unknown refund error';
+      return { success: false, message: msg };
+    }
   }
 
   /**

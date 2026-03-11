@@ -15,8 +15,10 @@ import type {
   RoomRatePlanPair,
 } from "../interfaces";
 import { Calendar } from "lucide-react";
-import type { CurrencyCode } from "../../device-specific/interfaces";
 import type { ILoader } from "@/pages/dashboard/interface";
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
+import { Label } from "@/components/ui/label";
+import { currencies } from "@/components/currency-code/cuurency";
 
 interface EarlyBirdPromotionFormProps {
   ratePlans: RatePlan[];
@@ -701,30 +703,27 @@ const EarlyBirdPromotionForm: React.FC<EarlyBirdPromotionFormProps> = ({
             </div>
 
             {earlyBirdPromotion.discountType === "flat" && (
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-2">
-                  Currency *
-                </label>
-                <Select
-                  value={earlyBirdPromotion.currencyCode || "USD"}
-                  onValueChange={(value) =>
-                    setEarlyBirdPromotion({
-                      ...earlyBirdPromotion,
-                      currencyCode: value as CurrencyCode,
-                    })
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="USD">USD - US Dollar</SelectItem>
-                    <SelectItem value="EUR">EUR - Euro</SelectItem>
-                    <SelectItem value="INR">INR - Indian Rupee</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="currencyCode">Currency Code</Label>
+                    <Select
+                      value={earlyBirdPromotion.currencyCode}
+                      onValueChange={(value) => setEarlyBirdPromotion({ ...earlyBirdPromotion, currencyCode: value as CurrencyCode })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {currencies.map((currency) => (
+                          <SelectItem key={currency.code} value={currency.code}>
+                            {currency.name} ({currency.symbol})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
           </div>
 
           <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">

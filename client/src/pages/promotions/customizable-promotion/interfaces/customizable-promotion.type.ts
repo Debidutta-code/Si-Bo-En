@@ -1,5 +1,6 @@
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
+
 export type DiscountType = 'percentage' | 'flat';
-export type CurrencyCode = 'USD' | 'EUR' | 'INR';
 
 export interface CreateCustomizableDeal {
   discountType: DiscountType;

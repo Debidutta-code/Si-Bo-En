@@ -29,7 +29,7 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import type { RatePlanRule } from "../interfaces/ratePlan.type";
 import { createRatePlanRuleService, updateRatePlanRuleService } from "../services";
-import type { CurrencyCode } from "@/pages/tax-system/interface";
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
 
 interface RatePlanRulesDialogProps {
   open: boolean;

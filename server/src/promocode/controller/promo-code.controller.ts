@@ -36,7 +36,7 @@ export class PromoCodeController {
                     // isApplicableForWalkIn: promoCodeData.isApplicableForWalkIn,
                     // isApplicableForOTA: promoCodeData.isApplicableForOTA,
                     // isApplicableForCorporate: promoCodeData.isApplicableForCorporate,
-
+                    currencyCode: promoCodeData.currencyCode,
                     usageLimit: promoCodeData.usageLimit,
                     // usageLimitPerUser: promoCodeData.usageLimitPerUser,
                     applicableRoomTypes: (promoCodeData.applicableRoomTypes && promoCodeData.applicableRoomTypes.length > 0) ? promoCodeData.applicableRoomTypes : ["all"],
@@ -147,7 +147,7 @@ export class PromoCodeController {
     public async updatePromoCode(req: Request, res: Response): Promise<Response> {
         try {
             const id = req.params.id;
-            const { promoCodeData }: { promoCodeData: Partial<ICreatePromoCode> } = req.body;
+            const { promoCodeData }: { promoCodeData: ICreatePromoCode } = req.body;
             if (!id) {
                 return res.status(400).json(errorResponse('Promo code identifier is required'));
             }

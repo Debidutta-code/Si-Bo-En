@@ -8,6 +8,7 @@ import type { IUPropertyConfig, IMasterPartnersWProperty } from '../types';
 import { formatTimezoneLabel, getAllTimezones } from '../utils/timezone.utils';
 import { minutesToTime, timeToMinutes } from '../utils/time.utils';
 import PartnerIntegrationSection from './PartnerIntegrationSection';
+import { currencies } from '@/components/currency-code/cuurency';
 
 interface PropertyConfigDialogProps {
     isOpen: boolean;
@@ -245,23 +246,21 @@ export default function PropertyConfigDialog({
 
                     {/* Base Currency */}
                     <div className='space-y-2'>
-                        <Label htmlFor='baseCurrency'>Base Currency</Label>
+                        <Label htmlFor="currencyCode">Currency Code</Label>
                         <Select
                             value={propertyConfig.baseCurrency}
                             onValueChange={(value) =>
                                 setPropertyConfig({ ...propertyConfig, baseCurrency: value })
-                            }
-                        >
+                            }                                      >
                             <SelectTrigger>
-                                <SelectValue placeholder='Select currency' />
+                                <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value='USD'>USD - US Dollar</SelectItem>
-                                <SelectItem value='EUR'>EUR - Euro</SelectItem>
-                                <SelectItem value='INR'>INR - Indian Rupee</SelectItem>
-                                <SelectItem value='GBP'>GBP - British Pound</SelectItem>
-                                <SelectItem value='AUD'>AUD - Australian Dollar</SelectItem>
-                                <SelectItem value='CAD'>CAD - Canadian Dollar</SelectItem>
+                                {currencies.map((currency) => (
+                                    <SelectItem key={currency.code} value={currency.code}>
+                                        {currency.name} ({currency.symbol})
+                                    </SelectItem>
+                                ))}
                             </SelectContent>
                         </Select>
                     </div>

@@ -1,5 +1,6 @@
 import React from 'react';
 import { X, Calendar, Users, Bed, TagIcon, Ruler, Home } from 'lucide-react';
+import { currencies } from '../currencyCode/cuurency';
 
 interface PriceSummarySidebarProps {
   bookingRoom: any;
@@ -22,9 +23,9 @@ const PriceSummarySidebar: React.FC<PriceSummarySidebarProps> = ({
   bookingContext,
   onClose
 }) => {
-  const currency = currentRatePlan?.currencycode || 'USD';
-  const currencySymbol = currency === 'USD' ? '$' : currency;
-
+  console.log(finalPrice)
+const currency = currentRatePlan?.currencycode || finalPrice?.currencyCode || 'USD';
+const currencySymbol = currencies.find((c) => c.code === currency)?.symbol ?? currency;
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',

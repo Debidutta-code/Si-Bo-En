@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import type { IBrandDetails, IBrandManagersMapping, ICreation, IUpdateCreation } from '../types/types';
 import Loader from '@/components/Loader/Loader';
-import CreateEntityDialog from '@/components/creationDialog';
+import CreateEntityDialog from '@/components/creation/creationDialog';
 import BackButton from '@/components/shared/BackButton';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -18,7 +18,7 @@ import { assignUserToProperty } from '../api/api';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import ImageSlider from '@/components/shared/ImageSlider';
 import ImageUploadModal from '@/components/property/ImageUploadModal';
-import DeleteCreationDialog from '@/components/Delete-Creation.dialog';
+import DeleteCreationDialog from "@/components/creation/Delete-Creation.dialog";
 
 
 export default function page() {

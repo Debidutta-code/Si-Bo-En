@@ -1,5 +1,5 @@
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
 import type { RatePlanRule } from "@/pages/rate-plan/interfaces/ratePlan.type";
-import type { CurrencyCode } from "@/pages/tax-system/interface";
 
 export interface RatePlanRuleWithRatePlan extends RatePlanRule {
   ratePlan: {
@@ -15,7 +15,7 @@ export interface IMLOScu {
   minLos: string;
   maxLos: string;
   discountType: "percentage" | "flat" | "none";
-  discountValue: string | null;
+  discountValue: number | null;
   isActive: boolean;
   isAutoApplied: boolean;
   currencyCode:CurrencyCode

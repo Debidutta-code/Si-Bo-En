@@ -11,6 +11,8 @@ export interface CreateOrderPayload {
   merchantAttributes?: {
     redirectUrl?: string;
     skipConfirmationPage?: boolean;
+    cancelUrl?: string;
+    cancelText?: string;
   };
   emailAddress?: string;
   outletId?: string;
@@ -72,6 +74,20 @@ export interface OrderStatusResponse {
           success: boolean;
           resultCode: string;
           resultMessage: string;
+        };
+        _embedded?: {
+          'cnp:capture'?: Array<{
+            _links: {
+              self: {
+                href: string;
+              };
+            };
+            amount: {
+              currencyCode: string;
+              value: number;
+            };
+            state: string;
+          }>;
         };
       }>;
     };

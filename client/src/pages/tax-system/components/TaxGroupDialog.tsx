@@ -210,14 +210,7 @@ export default function TaxGroupDialog({
                                                     </span>
                                                     <span>•</span>
                                                     <span>Priority: {rule.priority}</span>
-                                                    {rule.isInclusive && (
-                                                        <>
-                                                            <span>•</span>
-                                                            <Badge variant="secondary" className="text-xs">
-                                                                Inclusive
-                                                            </Badge>
-                                                        </>
-                                                    )}
+                                                  
                                                 </div>
                                                 {rule.description && (
                                                     <p className="text-xs text-gray-400 line-clamp-1">

@@ -4,11 +4,11 @@ import {AgencyRepository,AgenticPropertyRepository} from "../repository";
 import { ICAgency } from "../types";
 export class AgencyService {
     private agencyRepository: AgencyRepository;
-    private agenticPropertyRepository: AgenticPropertyRepository;
+    // private agenticPropertyRepository: AgenticPropertyRepository;
 
     constructor() {
         this.agencyRepository = new AgencyRepository();
-        this.agenticPropertyRepository = new AgenticPropertyRepository();
+        // this.agenticPropertyRepository = new AgenticPropertyRepository();
     }
     public async getAgencies(page: number, limit: number): Promise<IApiResponse> {
         try {
