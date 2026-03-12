@@ -40,7 +40,7 @@ export class RoomController {
         !roomSize ||
         !maxOccupancy ||
         !image ||
-        image.length==0
+        image.length == 0
       ) {
         return res
           .status(400)
@@ -71,15 +71,15 @@ export class RoomController {
         numberOfLivingRoom,
         extraBed,
         description,
-        image:image,
+        image: image,
         available,
         propertyId: id,
         availableRooms: totalRoom,
       });
       const statusCode = response.success ? 201 : 400;
       return res.status(statusCode).json(response);
-    } catch (error:any) {
-      return res.status(500).json(errorResponse('Internal server error',error?.message));
+    } catch (error: any) {
+      return res.status(500).json(errorResponse('Internal server error', error?.message));
     }
   }
 
@@ -142,7 +142,7 @@ export class RoomController {
   ): Promise<Response> {
     try {
       const { roomId } = req.params;
-      
+
       if (!roomId) {
         return res.status(400).json(errorResponse('Room id not found'));
       }
@@ -227,7 +227,7 @@ export class RoomAminityController {
             errorResponse('Aminity is required to create aminity for property')
           );
       }
-      
+
       const serviceRes = await RoomAminityService.createAminityService(
         roomId,
         amenities

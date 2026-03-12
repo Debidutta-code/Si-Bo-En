@@ -1,23 +1,22 @@
-import { Types } from 'mongoose';
 
 export interface CreatePropertyData {
-  id?: Types.ObjectId
+  id?: string
   propertyName: string;
   propertyEmail: string;
   propertyContact: string;
-  propertyType: Types.ObjectId;
-  propertyCategory: Types.ObjectId;
-  destinationType: Types.ObjectId;
+  propertyType: string;
+  propertyCategory: string;
+  destinationType: string;
   description?: string;
   image?: string[];
   starRating?: number;
   isDraft?: boolean;
   propertyCode?: string;
-  level3Id?: Types.ObjectId;
-  level2Id?: Types.ObjectId;
-  level1Id?: Types.ObjectId;
-  createdBy: Types.ObjectId;
-  gbpRef:Types.ObjectId
+  level3Id?: string;
+  level2Id?: string;
+  level1Id?: string;
+  createdBy: string;
+  gbpRef:string
 }
 
 

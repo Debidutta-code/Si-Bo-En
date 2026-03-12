@@ -10,8 +10,7 @@ export class RatePlanServices {
     propertyId: string,
     isB2B: boolean,
     isB2C: boolean,
-    minimumLengthOfStay: number,
-    maximumLengthOfStay?: number
+    isRoomOnlyVisible: boolean
   ) {
     try {
       const ratePlanCode = await generateRatePlanCode();
@@ -21,8 +20,7 @@ export class RatePlanServices {
         propertyId,
         isB2B,
         isB2C,
-        minimumLengthOfStay,
-        maximumLengthOfStay
+        isRoomOnlyVisible
       );
       if (response) {
         return successResponse('RatePlan created successfully', response);

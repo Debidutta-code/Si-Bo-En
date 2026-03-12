@@ -73,7 +73,9 @@ export default function CreateMappingDialog({
             toast.error("At least one base guest amount is required");
             return;
         }
-        const updated = formData.baseByGuestAmounts.filter((_, i) => i !== index);
+        const updated = formData.baseByGuestAmounts
+            .filter((_, i) => i !== index)
+            .map((item, i) => ({ ...item, numberOfGuests: i + 1 }));
         setFormData({ ...formData, baseByGuestAmounts: updated });
     };
 
@@ -82,7 +84,7 @@ export default function CreateMappingDialog({
         updated[index] = { ...updated[index], [field]: value };
         setFormData({ ...formData, baseByGuestAmounts: updated });
     };
-    const availableAgeCodes: qualifyingAgeCode[] = ["10", "8", "5"]; // Add the proper type
+    const availableAgeCodes: qualifyingAgeCode[] = ["10", "8", "5"]; 
 
     const handleAddAdditionalGuestAmount = () => {
         // Get all currently selected age codes
@@ -321,11 +323,11 @@ export default function CreateMappingDialog({
                                         />
                                     </div>
                                     <div className="flex-1 space-y-2">
-                                        <Label>Amount ($)</Label>
+                                        <Label>Amount </Label>
                                         <Input
                                             type="number"
                                             min="0"
-                                            step="0.01"
+                                            step="0.1"
                                             value={item.amountBeforeTax}
                                             onChange={(e) =>
                                                 handleBaseGuestAmountChange(
@@ -395,7 +397,7 @@ export default function CreateMappingDialog({
                                                     })
                                                     .map((code) => (
                                                         <SelectItem key={code} value={code}>
-                                                            {code === "10" ? "Adult (10)" : code === "8" ? "Child (8)" : "Infant (5)"}
+                                                            {code === "10" ? "Adult" : code === "8" ? "Child" : "Infant"}
                                                         </SelectItem>
                                                     ))
                                                 }
@@ -403,7 +405,7 @@ export default function CreateMappingDialog({
                                         </Select>
                                     </div>
                                     <div className="flex-1 space-y-2">
-                                        <Label>Amount ($)</Label>
+                                        <Label>Amount </Label>
                                         <Input
                                             type="number"
                                             min="0"

@@ -4,7 +4,6 @@ import { useState, useCallback, type FC } from "react";
 import { isBefore, startOfDay } from "date-fns";
 import {
   RefreshCw,
-  X,
   AlertTriangle,
   CheckCircle2,
   Info,
@@ -28,6 +27,13 @@ import type {
   IBookingAddon,
   ISelectedAddons,
 } from "../types/amend.types";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -355,6 +361,7 @@ const PriceSummary: FC<PriceSummaryProps> = ({
 };
 
 const AmendReservationModal: FC<IAmendReservationModalProps> = ({
+  open,
   reservation,
   onClose,
   onSuccess,
@@ -621,7 +628,6 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
   const adultCount = guestForms.filter((g) => g.type === "adult").length;
   const childCount = guestForms.filter((g) => g.type === "child").length;
 
-  // ── Shared Check Availability Button ──
   const CheckAvailabilityButton = () => (
     <div className="pt-6 border-t border-border">
       <button
@@ -682,28 +688,23 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
       )}
     </div>
   );
-  // ─────────────────────────────────────────────────────────────────────────
 
   return (
-    <div className="fixed inset-0 bg-black/60 flex items-start justify-center z-50 p-4 overflow-y-auto">
-      <div className="bg-card rounded-xl w-full max-w-2xl shadow-2xl border border-border my-8">
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0">
         {/* ── Header ── */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-border">
-          <div>
-            <h2 className="text-xl font-bold text-card-foreground">
-              Amend Reservation
-            </h2>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              {reservation.bookingCode}
-            </p>
+        <DialogHeader className="px-6 py-5 border-b border-border">
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle className="text-xl font-bold text-card-foreground">
+                Amend Reservation
+              </DialogTitle>
+              <DialogDescription className="text-sm text-muted-foreground mt-0.5">
+                {reservation.bookingCode}
+              </DialogDescription>
+            </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-md hover:bg-accent text-muted-foreground hover:text-card-foreground transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+        </DialogHeader>
 
         {/* ── Booking Summary Strip ── */}
         <div className="px-6 py-4 bg-muted/50 border-b border-border">
@@ -1126,8 +1127,8 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
             </button>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };
 

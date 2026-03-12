@@ -142,6 +142,7 @@ export interface IBookingAddon {
 // ─── Modal Props ─────────────────────────────────────────────────────────────
 
 export interface IAmendReservationModalProps {
+  open: boolean;
   reservation: IReservation;
   onClose: () => void;
   onSuccess: () => void;

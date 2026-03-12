@@ -7,7 +7,7 @@ export const BookingEngineRoutes = Router();
 BookingEngineRoutes.post("/fetch-rooms",
     attachPropertyDetails({
         identifierType: "code",
-        key: "PropertyCode",
+        key: "propertyCode",
         source: "body"
     }), RoomBookingController.fetchRooms);
 BookingEngineRoutes.use("/pricing", pricingRouter);
