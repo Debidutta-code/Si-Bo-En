@@ -20,6 +20,25 @@ export interface IProperty {
   propertyCode: string;
 }
 
+export interface IGuestDistribution {
+  adults: number;
+  children: number;
+  childAges: number[];
+}
+
+export interface IDailyPriceBreakdown {
+  date: string;
+  roomNumber: string;
+  totalAmount: number;
+  currencyCode: string;
+  taxBrakeDown: ITaxBreakdown[];
+  addOnBrakeDown: IAddonBreakdown[];
+  baseChargesAmount: number;
+  guestDistribution: IGuestDistribution;
+  totalDailyTaxedAmount: number;
+  additionalChargesAmount: number;
+}
+
 export interface IPriceBreakdown {
   reservationId: string;
   additionalGuestCharges: number;
@@ -30,6 +49,17 @@ export interface IPriceBreakdown {
   totalTax: number;
   availableRooms: number;
   requestedRooms: number;
+  dailyBreakdown: IDailyPriceBreakdown[];  // ✅ added
+  tax?: ITaxBreakdown[];                   // ✅ added (also present in response)
+  breakdown?: {                            // ✅ added (also present in response)
+    totalBaseAmount: number;
+    loyalityDiscount: number;
+    totalAddonAmount: number;
+    promoCodeDiscount: number;
+    latterpayableAmount: number;
+    totalPromotionAmount: number;
+    currentChargeableAmount: number;
+  };
 }
 export interface ITaxBreakdown {
   name: string;

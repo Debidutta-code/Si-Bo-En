@@ -207,6 +207,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
             noOfAdults,
             noOfChildren: noOfChildrens,
             noOfRooms: requestedRooms,
+            bookingCode: bookingData.bookingCode,
             // ✅ FIX: send per-room distribution, NOT per-night entries
             guestDistribution,
             ratePlanCode: bookingData.ratePlanCode,

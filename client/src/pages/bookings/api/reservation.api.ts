@@ -1,5 +1,5 @@
 import createAxiosInstance from "@/components/axiosInstance";
-import type { IPriceCheckRequest, IPriceCheckResponse } from "../types";
+import type { IAmendFinalPrice, IPriceCheckRequest,  } from "../types";
 
 const axiosInstance = createAxiosInstance();
 
@@ -297,7 +297,7 @@ export const fetchReportTypes = async () => {
 
 export const checkAmendPrice = async (
   payload: IPriceCheckRequest
-): Promise<{ success: boolean; data?: IPriceCheckResponse; message?: string }> => {
+): Promise<{ success: boolean; data?: IAmendFinalPrice; message?: string }> => {
   try {
     const response = await axiosInstance.post(
       "/booking-engine/pricing/get-price",

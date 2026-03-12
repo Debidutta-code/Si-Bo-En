@@ -80,7 +80,7 @@ roomName: string;
     extraBed?: number;
     description: string | null;
     available: boolean;
-    priority: number;
+    priority?: number;
 }
 export interface IAmenityTypes{
   amenityName:string;

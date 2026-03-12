@@ -1,6 +1,6 @@
 // ─── Guest ───────────────────────────────────────────────────────────────────
 
-import type { IReservation } from "./reservation";
+import type { IGuestDistribution, IReservation } from "./reservation";
 
 export interface IAmendGuest {
   type: "adult" | "child";
@@ -23,7 +23,7 @@ export interface IPriceCheckRequest {
   startDate: string;
   endDate: string;
   noOfAdults: number;
-  noOfChildrens: number;
+  noOfChildren: number;
   noOfRooms: number;
   ratePlanCode: string;
   bookingCode: string;
@@ -32,63 +32,72 @@ export interface IPriceCheckRequest {
   parsedAddons?: ISelectedAddons[];
   childAges?:number[];
   promoCode?: string;
+  guestDistribution?:IGuestDistribution[];
 }
 export interface ISelectedAddons {
   addOnId: string;
   availability: IAddonAvailability[];
 }
 export interface IAddonAvailability {
-  date: string;
+  date: Date;
   quantity: number;
 }
-export interface ITaxItem {
+export interface ITaxBrakeDown {
   name: string;
-  type: "percentage" | "fixed";
-  amount?: number;
-  percentage?: number;
-}
-
-export interface IPriceBreakdownDetail {
-  totalBaseAmount: number;
-  totalAdditionalCharges: number;
-  totalAmount: number;
-  totalTax: number;
-  priceAfterTax: number;
-}
-
-export interface IDailyBreakdown {
-  date: string;
-  baseRate: number;
-  totalPerRoom: number;
-  totalForAllRooms: number;
-  additionalCharges: number;
+  taxedAmount: number;
   currencyCode: string;
-  ratePlanCode: string;
 }
 
-export interface IPriceCheckResponse {
+export interface IAddonBrakeDown {
+  addonId: string;
+  name: string;
+  amount: number;
+  quantity: number;
   totalAmount: number;
-  priceAfterTax: number;
-  totalTax: number;
-  numberOfNights: number;
-  numberOfRooms?: number;
-  baseRatePerNight: number;
-  breakdown: IPriceBreakdownDetail;
-  dailyBreakdown: IDailyBreakdown[];
-  tax: ITaxItem[];
-  discount?: number;
-  availableRooms?: number;
+  type: string;
+  currencyCode: string;
+  date: string;
 }
 
+export interface IDailyPriceBrakeDown {
+  roomNumber: string;
+  date: string;
+  baseChargesAmount: number;
+  additionalChargesAmount: number;
+  totalAmount: number;
+  currencyCode: string;
+  totalDailyTaxedAmount: number;
+  taxBrakeDown: ITaxBrakeDown[];
+  addOnBrakeDown: any[];
+  guestDistribution: {
+    adults: number;
+    children: number;
+    childAges: number[];
+  };
+}
+
+export interface IAmendFinalPrice {
+  totalAmount: number;
+  amountBeforeTax: number;
+  taxedAmount: number;
+  totalAddonAmount: number;
+  totalPromotionAmount: number;
+  currentChargeableAmount: number;
+  latterpayableAmount: number;
+  loyalityDiscount: number;
+  promoCodeDiscount: number;
+  currencyCode: string;
+  dailyPriceBrakeDown: IDailyPriceBrakeDown[];
+  taxBrakeDown: ITaxBrakeDown[];
+  addonBrakeDown: IAddonBrakeDown[];
+  promotionBrakeDown: any[];
+  booking?: IBookingCalculation;
+}
 
 export interface IBookingCalculation {
-  finalPayable: number;   // extra amount guest owes
-  refundAmount: number;   // amount to be refunded
+  finalPayable: number;
+  refundAmount: number;
   discount: number;
-}
-
-export interface IAmendFinalPrice extends IPriceCheckResponse {
-  booking: IBookingCalculation;
 }
 
 // ─── Amend Payload ───────────────────────────────────────────────────────────
