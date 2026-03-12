@@ -726,6 +726,8 @@ model Room {
   @@index([roomType])
   @@index([available])
   @@index([isDeleted])
+  @@unique([propertyId, roomType]) 
+  @@unique([propertyId,roomName])
   @@map("rooms")
 }
 
@@ -883,7 +885,8 @@ model RatePlan {
 
   taxGroup   TaxGroup? @relation(fields: [taxGroupId], references: [id])
   taxGroupId String?   @map("tax_group_id")
-
+  
+  roomOnlyVisible Boolean @default(true) @map("room_only_visible")
   b2bAvailable Boolean @default(false) @map("b2b_available")
   b2cAvailable Boolean @default(true) @map("b2c_available")
 

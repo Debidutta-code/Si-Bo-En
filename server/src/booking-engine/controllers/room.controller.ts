@@ -7,10 +7,10 @@ import { getDeviceInfo } from "../../utils/device-type.util";
 export class RoomBookingController {
   public static async fetchRooms(req: PropertyRequest, res: Response) {
     try {
-      const { PropertyCode, startDate, endDate, guests, promocode } = req.body || {};
+      const { propertyCode, startDate, endDate, guests, promocode } = req.body || {};
 
       if (
-        !PropertyCode ||
+        !propertyCode ||
         !startDate ||
         !endDate ||
         !guests ||
@@ -35,7 +35,7 @@ export class RoomBookingController {
       const deviceType = deviceInfo.deviceType as "mobile" | "tablet" | "desktop";
 
       const response = await RoomBookingService.fetchRooms({
-        PropertyCode,
+        propertyCode,
         startDate,
         endDate,
         guests,

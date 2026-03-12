@@ -12,7 +12,7 @@ export interface IBookingSearchPayload {
     rooms: number;
     roomsArray?: { adults: number; children: number; childAges: number[] }[];
   };
-  PropertyCode: string;
+  propertyCode: string;
   countryCode?: string;
   deviceType?: DeviceType;
   promocode?: string;

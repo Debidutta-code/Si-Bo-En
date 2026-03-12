@@ -333,7 +333,7 @@ const Rooms = () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            PropertyCode: bookingCtx.PropertyCode,
+            propertyCode: bookingCtx.PropertyCode,
             startDate: bookingCtx.startDate,
             endDate: bookingCtx.endDate,
             guests: {

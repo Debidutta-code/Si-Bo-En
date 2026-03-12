@@ -99,7 +99,22 @@ export class RoomDao {
       throw new Error(error?.message);
     }
   }
-
+  public static async findByRoomType(
+    propertyId: string,
+    roomType: string
+  ) {
+    try {
+      const room = await prisma.room.findFirst({
+        where: {
+          roomType: roomType,
+          propertyId
+        },
+      });
+      return room;
+    } catch (error: any) {
+      throw new Error(error?.message);
+    }
+  }
   public static async findAll(
     isDeleted: boolean,
     available: boolean

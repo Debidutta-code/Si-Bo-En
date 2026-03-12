@@ -12,8 +12,7 @@ export class RatePlanRepository {
     propertyId: string,
     isB2B: boolean,
     isB2C: boolean,
-    minimumLengthOfStay: number,
-    maximumLengthOfStay?: number
+    isRoomOnlyVisible: boolean
   ): Promise<any> {
     try {
       return await prisma.ratePlan.create({
@@ -22,6 +21,7 @@ export class RatePlanRepository {
           ratePlanCode,
           b2bAvailable: isB2B,
           b2cAvailable: isB2C,
+          roomOnlyVisible: isRoomOnlyVisible,
           property: {
             connect: {
               id: propertyId
@@ -42,6 +42,9 @@ export class RatePlanRepository {
     try {
       return await prisma.ratePlan.findMany({
         where: { propertyId: propertyId },
+        orderBy: {
+          createdAt: 'desc',
+        },
         include: {
           depositPolicy: true,
           cancellationPolicy: true,
@@ -49,6 +52,7 @@ export class RatePlanRepository {
           ratePlanRules: true,
           Addons: true,
         },
+        
       });
     } catch (error) {
       if (error instanceof Error) {
@@ -113,10 +117,8 @@ export class RatePlanRepository {
     updateData: IRatePlanUpdate
   ) {
     try {
-      // Map frontend field names to database field names
       const mappedData: any = { ...updateData };
 
-      // Handle the typo in the database schema: minimumLenghthOfStay
 
       return await prisma.ratePlan.update({
         where: { ratePlanCode },
@@ -164,13 +166,11 @@ export class RatePlanRepository {
         },
       };
 
-      // Step 1: Get total count of charges (not inventories)
       const totalResults = await prisma.charge.count({
         where: chargeWhereClause,
       });
 
 
-      // Step 2: Get paginated charges directly
       const charges = await prisma.charge.findMany({
         where: chargeWhereClause,
         include: {
@@ -313,7 +313,7 @@ export class RatePlanRepository {
       });
     } catch (error) {
       if (error instanceof Error) {
-        throw new Error(`Failed to add tax group to rate plan: ${error.message}`);
+        throw new Error(`Failed to add tax group to rate plan`);
       }
       throw new Error('Unknown error occurred while adding tax group to rate plan');
     }

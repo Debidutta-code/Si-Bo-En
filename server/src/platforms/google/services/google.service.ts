@@ -124,7 +124,7 @@ export class GoogleFeedsService {
       const batchPromises = batch.map(async ({ checkIn, checkOut }) => {
         try {
           const response = await RoomBookingService.fetchRooms({
-            PropertyCode: propertyCode,
+            propertyCode: propertyCode,
             startDate: checkIn,
             endDate: checkOut,
             guests: {

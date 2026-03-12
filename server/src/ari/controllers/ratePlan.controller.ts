@@ -6,27 +6,20 @@ import getPropertyIdFromPropertyId from "../utils/getPropertyCodeFromPropertyId"
 export class RatePlanController {
   public static async createRatePlan(req: PropertyCustomRequest, res: Response) {
     try {
-      const { ratePlanName,b2bAvailable,b2cAvailable,minimumLengthOfStay,maximumLengthOfStay } = req.body;
+      const { ratePlanName, b2bAvailable, b2cAvailable, roomOnlyVisible } = req.body;
       const propertyId = req.query.propertyId as string;
       if (!ratePlanName || !propertyId) {
         return res.status(400).json(errorResponse('All fields are required'));
       }
-      if(typeof b2bAvailable !== 'boolean' || typeof b2cAvailable !== 'boolean' ){
+      if (typeof b2bAvailable !== 'boolean' || typeof b2cAvailable !== 'boolean') {
         return res.status(400).json(errorResponse('B2B and B2C availability must be boolean values'));
-      }
-      if(minimumLengthOfStay<1){
-        return res.status(400).json(errorResponse('Minimum length of stay must be at least 1'));
-      }
-      if(maximumLengthOfStay && maximumLengthOfStay < minimumLengthOfStay){
-        return res.status(400).json(errorResponse('Maximum length of stay must be greater than or equal to minimum length of stay'));
       }
       const serRes = await RatePlanServices.createRatePlan(
         ratePlanName,
         propertyId,
         b2bAvailable,
         b2cAvailable,
-        minimumLengthOfStay,
-        maximumLengthOfStay
+        roomOnlyVisible
       );
       const status = serRes.success ? 200 : 400;
       return res.status(status).json(serRes);
@@ -108,14 +101,14 @@ export class RatePlanController {
     res: Response
   ) {
     try {
-      if(!req.body.propertyId){
+      if (!req.body.propertyId) {
         return res.status(400).json(errorResponse('Property ID is not provided'));
       }
       const hotelCode = await getPropertyIdFromPropertyId(req.body.propertyId);
-      if(!hotelCode){
+      if (!hotelCode) {
         return res.status(400).json(errorResponse('Hotel code is not provided'));
       }
-      const {  roomTypeCode, ratePlanCode, startDate, endDate } =
+      const { roomTypeCode, ratePlanCode, startDate, endDate } =
         req.body;
       const page = Number(req.query?.page) || 1;
       const resultPerPage = 20;
@@ -207,47 +200,47 @@ export class RatePlanController {
     }
   }
   // ✅ Add to RatePlanController
-public static async updateOrCreateRatePlanCharges(req: CustomRequest, res: Response) {
-  try {
-    const { 
-      propertyCode, 
-      roomTypeCode, 
-      ratePlanCode, 
-      startDate, 
-      endDate,
-      baseGuestAmounts,
-      additionalGuestAmounts 
-    } = req.body;
+  public static async updateOrCreateRatePlanCharges(req: CustomRequest, res: Response) {
+    try {
+      const {
+        propertyCode,
+        roomTypeCode,
+        ratePlanCode,
+        startDate,
+        endDate,
+        baseGuestAmounts,
+        additionalGuestAmounts
+      } = req.body;
 
-    // Validation
-    if (!propertyCode || !roomTypeCode || !ratePlanCode || !startDate || !endDate) {
-      return res.status(400).json(
-        errorResponse('Property code, room type, rate plan, start date and end date are required')
+      // Validation
+      if (!propertyCode || !roomTypeCode || !ratePlanCode || !startDate || !endDate) {
+        return res.status(400).json(
+          errorResponse('Property code, room type, rate plan, start date and end date are required')
+        );
+      }
+
+      if (!baseGuestAmounts || baseGuestAmounts.length === 0) {
+        return res.status(400).json(
+          errorResponse('Base guest amounts are required')
+        );
+      }
+
+      const response = await RatePlanServices.updateOrCreateRatePlanCharges(
+        propertyCode,
+        roomTypeCode,
+        ratePlanCode,
+        new Date(startDate),
+        new Date(endDate),
+        baseGuestAmounts,
+        additionalGuestAmounts || []
       );
+
+      const statusCode = response.success ? 200 : 400;
+      return res.status(statusCode).json(response);
+    } catch (error: any) {
+      return res
+        .status(500)
+        .json(errorResponse('Internal server Error', error?.message));
     }
-
-    if (!baseGuestAmounts || baseGuestAmounts.length === 0) {
-      return res.status(400).json(
-        errorResponse('Base guest amounts are required')
-      );
-    }
-
-    const response = await RatePlanServices.updateOrCreateRatePlanCharges(
-      propertyCode,
-      roomTypeCode,
-      ratePlanCode,
-      new Date(startDate),
-      new Date(endDate),
-      baseGuestAmounts,
-      additionalGuestAmounts || []
-    );
-
-    const statusCode = response.success ? 200 : 400;
-    return res.status(statusCode).json(response);
-  } catch (error: any) {
-    return res
-      .status(500)
-      .json(errorResponse('Internal server Error', error?.message));
   }
-}
 }

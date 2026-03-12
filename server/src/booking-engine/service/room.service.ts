@@ -13,9 +13,9 @@ import {
 
 export class RoomBookingService {
     public static async fetchRooms(payload: IBookingSearchPayload) {
-        const { PropertyCode, startDate, endDate, guests, deviceType, countryCode } = payload;
+        const { propertyCode, startDate, endDate, guests, deviceType, countryCode } = payload;
 
-        const property = await RoomBookingRepository.getPropertyByCode(PropertyCode);
+        const property = await RoomBookingRepository.getPropertyByCode(propertyCode);
         if (!property || !property.isAvailable) {
             return { success: false, message: 'Property not available' };
         }
@@ -535,18 +535,19 @@ export class RoomBookingService {
         }
 
         const combos: IRoomPrice[] = [];
-
-        combos.push({
-            ...sharedFields,
-            comboLabel: `${ratePlan.ratePlanName} (Room Only)`,
-            addons: [],
-            totalAmount: baseAmount - totalAutoDiscount,
-        });
+        if(ratePlan.roomOnlyVisible) {
+            combos.push({
+                ...sharedFields,
+                comboLabel: `Room Only`,
+                addons: [],
+                totalAmount: baseAmount - totalAutoDiscount,
+            });
+        }
 
         for (const addon of availableAddonDetails) {
             combos.push({
                 ...sharedFields,
-                comboLabel: `${ratePlan.ratePlanName} (+ ${addon.name})`,
+                comboLabel: `${addon.name}`,
                 addons: [addon],
                 totalAmount: baseAmount - totalAutoDiscount + addon.price,
             });

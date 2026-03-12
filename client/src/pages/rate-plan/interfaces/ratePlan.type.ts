@@ -4,6 +4,7 @@ export interface CreateRatePlan {
     ratePlanName: string;
     b2bAvailable: boolean;
     b2cAvailable: boolean;
+    roomOnlyVisible: boolean;
 }
 
 export interface RatePlan {
@@ -13,6 +14,7 @@ export interface RatePlan {
     ratePlanCode: string;
     b2bAvailable: boolean;
     b2cAvailable: boolean;
+    roomOnlyVisible: boolean;
     cancellationPolicy?: string | null;
     cancellationPolicyId?: string | null;
     createdAt?: string;

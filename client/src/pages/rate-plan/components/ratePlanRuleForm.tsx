@@ -30,6 +30,7 @@ import { format } from "date-fns";
 import type { RatePlanRule } from "../interfaces/ratePlan.type";
 import { createRatePlanRuleService, updateRatePlanRuleService } from "../services";
 import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
+import { currencies } from "@/components/currency-code/cuurency";
 
 interface RatePlanRulesDialogProps {
   open: boolean;
@@ -110,7 +111,7 @@ export default function RatePlanRulesDialog({
         maxLos: null,
         discountType: "none",
         discountValue: null,
-        isActive: true, 
+        isActive: true,
         isAutoApplied: false,
         currencyCode: "USD",
       });
@@ -178,7 +179,7 @@ export default function RatePlanRulesDialog({
 
       if (response.success) {
         toast.success(
-          response.message || 
+          response.message ||
           (existingRule
             ? "Rate plan rule updated successfully"
             : "Rate plan rule created successfully")
@@ -217,7 +218,7 @@ export default function RatePlanRulesDialog({
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-gray-700">Date Range (Optional)</h3>
             <p className="text-xs text-gray-500">Leave empty for rules that apply year-round</p>
-            
+
             <div className="grid grid-cols-2 gap-4">
               {/* Start Date */}
               <div className="grid gap-2">
@@ -226,9 +227,8 @@ export default function RatePlanRulesDialog({
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className={`justify-start text-left font-normal ${
-                        !formData.startDate && "text-muted-foreground"
-                      }`}
+                      className={`justify-start text-left font-normal ${!formData.startDate && "text-muted-foreground"
+                        }`}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {formData.startDate ? (
@@ -259,9 +259,8 @@ export default function RatePlanRulesDialog({
                   <PopoverTrigger asChild>
                     <Button
                       variant="outline"
-                      className={`justify-start text-left font-normal ${
-                        !formData.endDate && "text-muted-foreground"
-                      }`}
+                      className={`justify-start text-left font-normal ${!formData.endDate && "text-muted-foreground"
+                        }`}
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       {formData.endDate ? (
@@ -293,7 +292,7 @@ export default function RatePlanRulesDialog({
           {/* Length of Stay Section */}
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-gray-700">Length of Stay</h3>
-            
+
             <div className="grid grid-cols-2 gap-4">
               {/* Min LOS */}
               <div className="grid gap-2">
@@ -337,7 +336,7 @@ export default function RatePlanRulesDialog({
           {/* Discount Section */}
           <div className="space-y-4">
             <h3 className="text-sm font-semibold text-gray-700">Discount (Optional)</h3>
-            
+
             <div className="grid grid-cols-2 gap-4">
               {/* Discount Type */}
               <div className="grid gap-2">
@@ -384,6 +383,28 @@ export default function RatePlanRulesDialog({
                   disabled={!formData.discountType}
                 />
               </div>
+              {formData.discountType === "flat" && (
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="currencyCode">Currency Code</Label>
+                    <Select
+                      value={formData.currencyCode}
+                      onValueChange={(value) => setFormData({ ...formData, currencyCode: value as CurrencyCode })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {currencies.map((currency) => (
+                          <SelectItem key={currency.code} value={currency.code}>
+                            {currency.name} ({currency.symbol})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -424,8 +445,8 @@ export default function RatePlanRulesDialog({
                 ? "Updating..."
                 : "Creating..."
               : existingRule
-              ? "Update Rule"
-              : "Create Rule"}
+                ? "Update Rule"
+                : "Create Rule"}
           </Button>
         </DialogFooter>
       </DialogContent>

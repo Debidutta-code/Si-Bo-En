@@ -15,6 +15,7 @@ export interface IRatePlanMetadata {
   guaranteePolicy: string;
   b2bAvailable: boolean;
   b2cAvailable: boolean;
+  roomOnlyVisible: boolean;
 }
 export interface IRatePlanFPromotions {
   id:string;
@@ -34,6 +35,7 @@ export interface IRatePlanUpdate {
   taxId?: string;
   b2bAvailable?: boolean;
   b2cAvailable?: boolean;
+  roomOnlyVisible?: boolean;
 }
 
 export interface IRatePlan extends IRatePlanMetadata {

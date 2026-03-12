@@ -45,35 +45,37 @@ export default function RatePlan() {
     {
       ratePlanName: "",
       b2bAvailable: false,
-      b2cAvailable: true
+      b2cAvailable: true,
+      roomOnlyVisible: true
     });
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialog, setEditDialog] = useState<{ open: boolean; ratePlan: RatePlan | null }>({
     open: false,
     ratePlan: null,
   });
-  const [editRatePlanData, setEditRatePlanData] = useState<CreateRatePlan>({
-    ratePlanName: "",
-    b2bAvailable: false,
-    b2cAvailable: true
-  });
-  const [rulesDialog, setRulesDialog] = useState<{ 
-    open: boolean; 
-    ratePlan: RatePlan | null 
+  // const [editRatePlanData, setEditRatePlanData] = useState<CreateRatePlan>({
+  //   ratePlanName: "",
+  //   b2bAvailable: false,
+  //   b2cAvailable: true,
+  //   roomOnlyVisible: true
+  // });
+  const [rulesDialog, setRulesDialog] = useState<{
+    open: boolean;
+    ratePlan: RatePlan | null
   }>({
     open: false,
     ratePlan: null,
   });
-  
+
   // ✅ ADDED: State for managing addons dialog
-  const [addonsDialog, setAddonsDialog] = useState<{ 
-    open: boolean; 
-    ratePlan: RatePlan | null 
+  const [addonsDialog, setAddonsDialog] = useState<{
+    open: boolean;
+    ratePlan: RatePlan | null
   }>({
     open: false,
     ratePlan: null,
   });
-  
+
   const [loader, setLoader] = useState<LoaderProps>({ isLoading: false, text: "" });
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; ratePlan: RatePlan | null }>({
     open: false,
@@ -119,7 +121,7 @@ export default function RatePlan() {
       const response = await createRatePlanService(propertyId, newRatePlan);
       if (response.success) {
         toast.success(response.message || "Rate Plan created successfully");
-        setNewRatePlan({ ratePlanName: "", b2bAvailable: false, b2cAvailable: true });
+        setNewRatePlan({ ratePlanName: "", b2bAvailable: false, b2cAvailable: true, roomOnlyVisible: true });
         setCreateDialogOpen(false);
         fetchRatePlans();
       } else {
@@ -170,17 +172,18 @@ export default function RatePlan() {
 
   const handleEdit = (ratePlan: RatePlan) => {
     setEditDialog({ open: true, ratePlan });
-    setEditRatePlanData({
+    setNewRatePlan({
       ratePlanName: ratePlan.ratePlanName,
       b2bAvailable: ratePlan.b2bAvailable,
-      b2cAvailable: ratePlan.b2cAvailable
+      b2cAvailable: ratePlan.b2cAvailable,
+      roomOnlyVisible: ratePlan.roomOnlyVisible
     });
   };
 
   const handleUpdateRatePlan = async () => {
     if (!editDialog.ratePlan) return;
 
-    if (!editRatePlanData.ratePlanName.trim()) {
+    if (!newRatePlan.ratePlanName.trim()) {
       toast.error("Rate plan name is required");
       return;
     }
@@ -189,16 +192,17 @@ export default function RatePlan() {
       setLoader({ isLoading: true, text: "Updating Rate Plan..." });
       const response = await updateRatePlanService(
         editDialog.ratePlan.ratePlanCode,
-        editRatePlanData
+        newRatePlan
       );
 
       if (response.success) {
         toast.success(response.message || "Rate Plan updated successfully");
         setEditDialog({ open: false, ratePlan: null });
-        setEditRatePlanData({
+        setNewRatePlan({
           ratePlanName: "",
           b2bAvailable: false,
-          b2cAvailable: true
+          b2cAvailable: true,
+          roomOnlyVisible: true
         });
         fetchRatePlans();
       } else {
@@ -213,10 +217,11 @@ export default function RatePlan() {
 
   const handleCancelEdit = () => {
     setEditDialog({ open: false, ratePlan: null });
-    setEditRatePlanData({
+    setNewRatePlan({
       ratePlanName: "",
       b2bAvailable: false,
-      b2cAvailable: true
+      b2cAvailable: true,
+      roomOnlyVisible: true
     });
   };
 
@@ -291,7 +296,7 @@ export default function RatePlan() {
                     <Switch
                       id="b2b-available"
                       checked={newRatePlan.b2bAvailable}
-                      onCheckedChange={(checked) => 
+                      onCheckedChange={(checked) =>
                         setNewRatePlan({ ...newRatePlan, b2bAvailable: checked })
                       }
                     />
@@ -307,11 +312,26 @@ export default function RatePlan() {
                     <Switch
                       id="b2c-available"
                       checked={newRatePlan.b2cAvailable}
-                      onCheckedChange={(checked) => 
+                      onCheckedChange={(checked) =>
                         setNewRatePlan({ ...newRatePlan, b2cAvailable: checked })
                       }
                     />
                   </div>
+                   <div className="flex items-center justify-between space-x-2">
+                <div className="space-y-0.5">
+                  <Label htmlFor="edit-room-only-visible">Room Only Price Visible</Label>
+                  <p className="text-xs text-gray-500">
+                    Enable this rate plan room only price will be visible to customers.
+                  </p>
+                </div>
+                <Switch
+                  id="edit-room-only-visible"
+                  checked={newRatePlan.roomOnlyVisible}
+                  onCheckedChange={(checked) =>
+                    setNewRatePlan({ ...newRatePlan, roomOnlyVisible: checked })
+                  }
+                />
+              </div>
                 </div>
 
                 <p className="text-xs text-gray-500">
@@ -324,7 +344,7 @@ export default function RatePlan() {
                   variant="outline"
                   onClick={() => {
                     setCreateDialogOpen(false);
-                    setNewRatePlan({ ratePlanName: "", b2bAvailable: false, b2cAvailable: true });
+                    setNewRatePlan({ ratePlanName: "", b2bAvailable: false, b2cAvailable: true, roomOnlyVisible: true });
                   }}
                 >
                   Cancel
@@ -375,7 +395,7 @@ export default function RatePlan() {
                           {ratePlan.ratePlanRules ? <Pencil className="mr-2 h-4 w-4" /> : <Plus className="mr-2 h-4 w-4" />}
                           <span>{ratePlan.ratePlanRules ? "Update Rules" : "Add Rules"}</span>
                         </DropdownMenuItem>
-                        
+
                         {/* ✅ ADDED: Manage Addons menu item */}
                         <DropdownMenuItem
                           onClick={() => handleManageAddonsClick(ratePlan)}
@@ -384,7 +404,7 @@ export default function RatePlan() {
                           <Package className="mr-2 h-4 w-4" />
                           <span>Manage Addons</span>
                         </DropdownMenuItem>
-                        
+
                         <DropdownMenuItem
                           onClick={() => handleEdit(ratePlan)}
                           className="cursor-pointer"
@@ -434,6 +454,10 @@ export default function RatePlan() {
                         <div className={`h-2 w-2 rounded-full ${ratePlan.b2cAvailable ? 'bg-primary' : 'bg-gray-300'}`} />
                         <span className="text-xs text-gray-600">B2C</span>
                       </div>
+                      <div className="flex items-center gap-1.5">
+                        <div className={`h-2 w-2 rounded-full ${ratePlan.roomOnlyVisible ? 'bg-primary' : 'bg-gray-300'}`} />
+                        <span className="text-xs text-gray-600">Room Only</span>
+                      </div>
                     </div>
 
                     {/* Policy and Tax Status Grid */}
@@ -466,13 +490,13 @@ export default function RatePlan() {
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className={`h-2 w-2 rounded-full ${!ratePlan.ratePlanRules ? 'bg-gray-300' :ratePlan.ratePlanRules.isActive?'bg-green-500' : 'bg-orange-300'}`} />
+                        <div className={`h-2 w-2 rounded-full ${!ratePlan.ratePlanRules ? 'bg-gray-300' : ratePlan.ratePlanRules.isActive ? 'bg-green-500' : 'bg-orange-300'}`} />
                         <span className="text-xs text-gray-600">
                           MLOS Rules
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <div className={`h-2 w-2 rounded-full ${ratePlan.Addons?.length===0 ? 'bg-gray-300' : 'bg-green-500'}`} />
+                        <div className={`h-2 w-2 rounded-full ${ratePlan.Addons?.length === 0 ? 'bg-gray-300' : 'bg-green-500'}`} />
                         <span className="text-xs text-gray-600">
                           Addon Included
                         </span>
@@ -502,8 +526,8 @@ export default function RatePlan() {
               </Label>
               <Input
                 id="edit-ratePlanName"
-                value={editRatePlanData.ratePlanName}
-                onChange={(e) => setEditRatePlanData({ ...editRatePlanData, ratePlanName: e.target.value })}
+                value={newRatePlan.ratePlanName}
+                onChange={(e) => setNewRatePlan({ ...newRatePlan, ratePlanName: e.target.value })}
                 placeholder="Enter rate plan name"
               />
             </div>
@@ -518,9 +542,9 @@ export default function RatePlan() {
                 </div>
                 <Switch
                   id="edit-b2b-available"
-                  checked={editRatePlanData.b2bAvailable}
-                  onCheckedChange={(checked) => 
-                    setEditRatePlanData({ ...editRatePlanData, b2bAvailable: checked })
+                  checked={newRatePlan.b2bAvailable}
+                  onCheckedChange={(checked) =>
+                    setNewRatePlan({ ...newRatePlan, b2bAvailable: checked })
                   }
                 />
               </div>
@@ -534,13 +558,28 @@ export default function RatePlan() {
                 </div>
                 <Switch
                   id="edit-b2c-available"
-                  checked={editRatePlanData.b2cAvailable}
-                  onCheckedChange={(checked) => 
-                    setEditRatePlanData({ ...editRatePlanData, b2cAvailable: checked })
+                  checked={newRatePlan.b2cAvailable}
+                  onCheckedChange={(checked) =>
+                    setNewRatePlan({ ...newRatePlan, b2cAvailable: checked })
                   }
                 />
               </div>
             </div>
+            <div className="flex items-center justify-between space-x-2">
+                <div className="space-y-0.5">
+                  <Label htmlFor="edit-room-only-visible">Room Only Price Visible</Label>
+                  <p className="text-xs text-gray-500">
+                    Enable this rate plan room only price will be visible to customers.
+                  </p>
+                </div>
+                <Switch
+                  id="edit-room-only-visible"
+                  checked={newRatePlan.roomOnlyVisible}
+                  onCheckedChange={(checked) =>
+                    setNewRatePlan({ ...newRatePlan, roomOnlyVisible: checked })
+                  }
+                />
+              </div>
           </div>
           <DialogFooter>
             <Button
@@ -553,7 +592,7 @@ export default function RatePlan() {
             <Button
               type="submit"
               onClick={handleUpdateRatePlan}
-              disabled={!editRatePlanData.ratePlanName.trim()}
+              disabled={!newRatePlan.ratePlanName.trim()}
             >
               Update Rate Plan
             </Button>
@@ -600,20 +639,20 @@ export default function RatePlan() {
       )}
 
       {/* ✅ ADDED: Manage Addons Dialog */}
-     {addonsDialog.ratePlan && propertyId && (
-  <ManageRateWithAddonsForm
-    open={addonsDialog.open}
-    onOpenChange={(open) => {
-      if (!open) {
-        setAddonsDialog({ open: false, ratePlan: null });
-      }
-    }}
-    ratePlanCode={addonsDialog.ratePlan.ratePlanCode}
-    ratePlanName={addonsDialog.ratePlan.ratePlanName}
-    propertyId={propertyId}
-    onSuccess={fetchRatePlans} // ✅ This refetches rate plans after save
-  />
-)}
+      {addonsDialog.ratePlan && propertyId && (
+        <ManageRateWithAddonsForm
+          open={addonsDialog.open}
+          onOpenChange={(open) => {
+            if (!open) {
+              setAddonsDialog({ open: false, ratePlan: null });
+            }
+          }}
+          ratePlanCode={addonsDialog.ratePlan.ratePlanCode}
+          ratePlanName={addonsDialog.ratePlan.ratePlanName}
+          propertyId={propertyId}
+          onSuccess={fetchRatePlans} // ✅ This refetches rate plans after save
+        />
+      )}
     </>
   );
 }
