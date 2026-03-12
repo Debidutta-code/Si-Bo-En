@@ -303,11 +303,11 @@ export class FikafiPaymentController {
                 } catch (error) {
                     console.error(`❌ Failed to set Redis key:`, error);
                 }
-                await client.set(
-                    `payment:confirmed:${bookingRefNum}`,
-                    JSON.stringify({ amount, status, confirmedAt: Date.now() }),
-                    { EX: 600 }
-                );
+                // await client.set(
+                //     `payment:confirmed:${bookingRefNum}`,
+                //     JSON.stringify({ amount, status, confirmedAt: Date.now() }),
+                //     { EX: 6000 }
+                // );
                 const isExists = await client.get(`payment:confirmed:${bookingRefNum}`);
                 console.log(`🔍 Redis verify read-back: ${isExists ? 'KEY EXISTS ✅' : 'KEY MISSING ❌ - write failed silently'}`);
                 socketManager.emitPaymentUpdate(bookingRefNum, {
@@ -362,7 +362,7 @@ export class FikafiPaymentController {
                             message: FikafiPaymentController.getFailureMessage(status),
                             failedAt: Date.now(),
                         }),
-                        { EX: 600 }
+                        { EX: 6000 }
                     );
                     console.log(`✅ Payment failure stored in Redis for ${bookingRefNum}`);
                 } catch (redisError) {
