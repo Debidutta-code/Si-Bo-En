@@ -60,17 +60,25 @@ export class SocketEventHandlers {
         socket.emit(SOCKET_EVENTS.ROOM_JOINED, response);
 
         // Check if payment was already confirmed/failed while client was away
-        // Check success first, then failure
         let cachedSuccess: string | null = null;
         let cachedFailure: string | null = null;
 
         try {
             const redis = RedisClient.getInstance();
             const cachedSuccessRaw = await redis.get(`payment:confirmed:${orderReference}`);
-            const cachedSuccess = cachedSuccessRaw ? String(cachedSuccessRaw) : null;
+            cachedSuccess = cachedSuccessRaw ? String(cachedSuccessRaw) : null;
             console.log(`🔍 Redis check - success key: payment:confirmed:${orderReference}, found:`, !!cachedSuccess);
             if (cachedSuccess) {
-                await redis.del(`payment:confirmed:${orderReference}`);
+                            const paymentData = JSON.parse(cachedSuccess);
+
+                socket.emit('payment-status-update', {
+                orderReference,
+                eventName: 'payment-confirmed',
+                status: 'success',
+                message: 'Payment successful',
+                paymentDetails: paymentData,
+            });
+                // await redis.del(`payment:confirmed:${orderReference}`);
             } else {
                 const cachedFailureRaw = await redis.get(`payment:failed:${orderReference}`);
                 cachedFailure = cachedFailureRaw ? String(cachedFailureRaw) : null;
@@ -85,22 +93,8 @@ export class SocketEventHandlers {
 
         // Handle successful payment
         if (cachedSuccess) {
-            console.log(
-                `🔑 Redis cache hit (success) for ${orderReference} - emitting immediately`
-            );
+            console.log(`🔑 Redis cache hit (success) for ${orderReference} - emitting immediately`);
             const paymentData = JSON.parse(cachedSuccess);
-
-            // Universal mapping logic to handle native statuses and Fikafi developer's statuses
-            const rawStatus = paymentData.status || 'success';
-            const successStates = [
-                'success',
-                'PAID',
-                'SUCCESS',
-                'COMPLETED',
-                'APPROVED',
-                'CONFIRMED',
-            ];
-
             socket.emit('payment-status-update', {
                 orderReference,
                 eventName: 'payment-confirmed',
