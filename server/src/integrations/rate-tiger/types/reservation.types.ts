@@ -183,6 +183,7 @@ export interface DailyBreakdown {
     ratePlanCode: string;
     baseRate: number;
     additionalCharges: number;
+    totalDailyTaxedAmount:number;
     totalPerRoom: number;
     totalForAllRooms: number;
     currencyCode: string;
