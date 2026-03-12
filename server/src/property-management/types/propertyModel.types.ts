@@ -61,7 +61,7 @@ export interface IPropertyInfoType {
   createdById: string;
 }
 export interface ICreatePropertyData {
-  id?: string
+  id: string
   propertyName: string;
   propertyEmail: string;
   propertyContact: string;

@@ -58,25 +58,29 @@ export interface PropertyAddressProps {
   onNext?: () => void;
   onPrevious?: () => void;
 }
+export type roomView = "sea" | "garden" | "city" | "mountain" | "others";
+export type roomUnit = "sqm" | "sqft";
+export type smokingPolicy = "smoking" | "non_smoking" | "designated_area";
 
 export interface IRoomDetails {
-  roomName?: string;
-  roomType?: string;
-  totalRoom?: number;
-  roomView?: string;
-  floor?: number;
-  roomSize?: number;
-  roomUnit?: string;
-  smokingPolicy?: string;
-  maxOccupancy?: number;
-  maxNumberOfAdults?: number;
-  maxNumberOfChildren?: number;
-  numberOfBedrooms?: number;
-  numberOfLivingRoom?: number;
-  extraBed?: number;
-  description?: string;
-  image?: string[];
-  available?: boolean;
+roomName: string;
+    roomType: string;
+    totalRoom: number;
+    floor: number;
+    roomView: roomView;
+    roomSize: number;
+    roomUnit: roomUnit;
+    smokingPolicy: smokingPolicy;
+    maxOccupancy: number;
+    maxNumberOfAdults: number;
+    maxNumberOfChildren: number;
+    image: string[];
+    numberOfBedrooms?: number;
+    numberOfLivingRoom?: number;
+    extraBed?: number;
+    description: string | null;
+    available: boolean;
+    priority: number;
 }
 export interface IAmenityTypes{
   amenityName:string;

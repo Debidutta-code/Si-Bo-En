@@ -21,17 +21,18 @@ const roomSchema = z.object({
   description: z.string().min(1, "Description must be at least 20 characters.").max(5000, "Description cannot exceed 500 characters."),
   maxOccupancy: z.coerce.number().min(1, "Max occupancy must be at least 1."),
   image: z.array(z.string()).min(1, "Please upload at least one room image."),
-  roomView: z.string().optional(),
-  floor: z.coerce.number().optional(),
-  roomSize: z.coerce.number().optional(),
-  roomUnit: z.string().optional(),
-  smokingPolicy: z.string().optional(),
-  maxNumberOfAdults: z.coerce.number().optional(),
-  maxNumberOfChildren: z.coerce.number().optional(),
+  roomView: z.enum(["sea", "garden", "city", "mountain", "others"]),
+  floor: z.coerce.number(),
+  roomSize: z.coerce.number().default(0),
+  roomUnit: z.enum(["sqm", "sqft"]).default("sqft"),
+  smokingPolicy: z.enum(["smoking", "non_smoking", "designated_area"]).default("designated_area"),
+  maxNumberOfAdults: z.coerce.number().default(0),
+  maxNumberOfChildren: z.coerce.number().default(0),
   numberOfBedrooms: z.coerce.number().optional(),
   numberOfLivingRoom: z.coerce.number().optional(),
   extraBed: z.coerce.number().optional(),
-  available: z.boolean().optional(),
+  available: z.boolean().default(true),
+  priority: z.coerce.number().min(0).default(0)
 });
 
 type FormErrors = z.inferFormattedError<typeof roomSchema>;
@@ -41,10 +42,11 @@ export default function Rooms() {
   const { propertyId, roomId, setRoomIdAndUrl, next, previous, markStepAsCompleted } = usePropertyForm();
 
   const [roomDetails, setRoomDetails] = useState<IRoomDetails>({
-    roomName: '', roomType: '', totalRoom: 0, roomView: '', floor: 0,
-    roomSize: 0, roomUnit: 'sqft', smokingPolicy: 'Non-Smoking', maxOccupancy: 0,
+    roomName: '', roomType: '', totalRoom: 0, roomView: "city", floor: 0,
+    roomSize: 0, roomUnit: 'sqft', smokingPolicy: 'designated_area', maxOccupancy: 0,
     maxNumberOfAdults: 0, maxNumberOfChildren: 0, numberOfBedrooms: 1,
-    numberOfLivingRoom: 0, extraBed: 0, description: '', image: [], available: true
+    numberOfLivingRoom: 0, extraBed: 0, description: '', image: [], available: true,
+    priority:0
   });
 
   const [errors, setErrors] = useState<FormErrors | null>(null);
@@ -255,7 +257,7 @@ export default function Rooms() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                       <Label htmlFor="roomView" className="text-gray-800 font-medium">Room View</Label>
-                      <Select value={roomDetails.roomView || ''} onValueChange={(value) => updateroomDetails({ roomView: value })}>
+                      <Select value={roomDetails.roomView || ''} onValueChange={(value) => updateroomDetails({ roomView: value as IRoomDetails["roomView"] })}>
                         <SelectTrigger className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100">
                           <SelectValue placeholder="Select view" />
                         </SelectTrigger>
@@ -283,7 +285,7 @@ export default function Rooms() {
 
                     <div>
                       <Label htmlFor="smokingPolicy" className="text-gray-800 font-medium">Smoking Policy</Label>
-                      <Select value={roomDetails.smokingPolicy || ''} onValueChange={(value) => updateroomDetails({ smokingPolicy: value })}>
+                      <Select value={roomDetails.smokingPolicy || ''} onValueChange={(value) => updateroomDetails({ smokingPolicy: value as IRoomDetails["smokingPolicy"] })}>
                         <SelectTrigger className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100">
                           <SelectValue placeholder="Select policy" />
                         </SelectTrigger>
@@ -311,7 +313,7 @@ export default function Rooms() {
                     </div>
                     <div>
                       <Label htmlFor="roomUnit" className="text-gray-800 font-medium">Size Unit</Label>
-                      <Select value={roomDetails.roomUnit} onValueChange={(value) => updateroomDetails({ roomUnit: value })}>
+                      <Select value={roomDetails.roomUnit} onValueChange={(value) => updateroomDetails({ roomUnit: value as IRoomDetails["roomUnit"] })}>
                         <SelectTrigger className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100">
                           <SelectValue />
                         </SelectTrigger>

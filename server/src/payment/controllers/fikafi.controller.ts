@@ -299,6 +299,8 @@ export class FikafiPaymentController {
                     JSON.stringify({ amount, status, confirmedAt: Date.now() }),
                     { EX: 600 } 
                 );
+                const isExists=await client.get(`payment:confirmed:${bookingRefNum}`);
+                console.log(`🔍 Redis verify read-back: ${isExists ? 'KEY EXISTS ✅' : 'KEY MISSING ❌ - write failed silently'}`);
                 socketManager.emitPaymentUpdate(bookingRefNum, {
                     orderReference: bookingRefNum,
                     eventName: 'payment-confirmed',

@@ -42,4 +42,6 @@ export type {
 
 export * from "./vedio.types";
 
-export * from "./integration.type"
+export * from "./integration.type";
+export * from "./room.type";
+export * from "./propertyModel.types";

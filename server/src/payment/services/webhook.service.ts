@@ -96,8 +96,6 @@ class WebhookService {
         await client.set(redisKey, redisValue, { EX: 600 });
         console.log(`✅ Payment result (${status}) stored in Redis for ${orderReference}`);
 
-        // ✅ ADDED: Verify the key was actually written - if this logs MISSING
-        // then your Redis client has a key prefix or write is silently failing
         const verify = await client.get(redisKey);
         console.log(`🔍 Redis verify read-back: ${verify ? 'KEY EXISTS ✅' : 'KEY MISSING ❌ - write failed silently'}`);
       } catch (err: any) {

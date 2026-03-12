@@ -7,23 +7,23 @@ import {
   RoomAminityController,
 } from "../controller";
 
-
+const roomAminityController = new RoomAminityController();
 export const roomAminityRoute = Router({ mergeParams: true });
 roomAminityRoute
   .route('/')
-  .get(RoomAminityController.findAminityByRoomIdController)
+  .get(roomAminityController.findAminityByRoomIdController.bind(roomAminityController))
   .post(
     protect,
     checkRoleBased('canCreateHotel'),
-    RoomAminityController.createRoomAminityController
+    roomAminityController.createRoomAminityController.bind(roomAminityController)
   )
   .patch(
     protect,
     checkRoleBased('canUpdateHotel'),
-    RoomAminityController.updateAminityByPropertyIdController
+    roomAminityController.updateAminityByPropertyIdController.bind(roomAminityController)
   )
   .delete(
     protect,
     checkRoleBased('canDeleteHotel'),
-    RoomAminityController.deleteAminityByPropertyIdController
+    roomAminityController.deleteAminityByPropertyIdController.bind(roomAminityController)
   );

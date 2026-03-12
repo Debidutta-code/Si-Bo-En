@@ -4,7 +4,11 @@ import { RoomService, RoomAminityService } from '../services';
 import { errorResponse } from '../../utils/return';
 
 export class RoomController {
-  public static async createRoom(
+  private roomService: RoomService;
+  constructor(){
+    this.roomService = new RoomService();
+  }
+  public  async createRoom(
     req: CustomRequest,
     res: Response
   ): Promise<Response> {
@@ -55,7 +59,7 @@ export class RoomController {
             )
           );
       }
-      const response = await RoomService.create({
+      const response = await this.roomService.create({
         roomName,
         roomType,
         totalRoom,
@@ -83,7 +87,7 @@ export class RoomController {
     }
   }
 
-  public static async getRoomById(
+  public  async getRoomById(
     req: CustomRequest,
     res: Response
   ): Promise<Response> {
@@ -92,7 +96,7 @@ export class RoomController {
       if (!roomId) {
         return res.status(400).json(errorResponse('Room id not found'));
       }
-      const response = await RoomService.findById(roomId);
+      const response = await this.roomService.findById(roomId);
       const statusCode = response.success ? 200 : 400;
       return res.status(statusCode).json(response);
     } catch (error) {
@@ -100,25 +104,25 @@ export class RoomController {
     }
   }
 
-  public static async getAllRooms(
-    req: CustomRequest,
-    res: Response
-  ): Promise<Response> {
-    try {
-      let isDeleted = false;
-      if (req.user?.level == 4) {
-        isDeleted = req.query.isDeleted === 'true';
-      }
-      const available = req.query.available === 'true';
-      const response = await RoomService.findAll(isDeleted, available);
-      const statusCode = response.success ? 200 : 400;
-      return res.status(statusCode).json(response);
-    } catch (error) {
-      return res.status(500).json(errorResponse('Internal server error'));
-    }
-  }
+  // public  async getAllRooms(
+  //   req: CustomRequest,
+  //   res: Response
+  // ): Promise<Response> {
+  //   try {
+  //     let isDeleted = false;
+  //     if (req.user?.level == 4) {
+  //       isDeleted = req.query.isDeleted === 'true';
+  //     }
+  //     const available = req.query.available === 'true';
+  //     const response = await this.roomService.findByPropertyId(isDeleted, available);
+  //     const statusCode = response.success ? 200 : 400;
+  //     return res.status(statusCode).json(response);
+  //   } catch (error) {
+  //     return res.status(500).json(errorResponse('Internal server error'));
+  //   }
+  // }
 
-  public static async updateRoom(
+  public  async updateRoom(
     req: CustomRequest,
     res: Response
   ): Promise<Response> {
@@ -128,7 +132,7 @@ export class RoomController {
         return res.status(400).json(errorResponse('Room id not found'));
       }
       const roomData = req.body;
-      const response = await RoomService.update(roomId, roomData);
+      const response = await this.roomService.update(roomId, roomData);
       const statusCode = response.success ? 200 : 400;
       return res.status(statusCode).json(response);
     } catch (error) {
@@ -136,7 +140,7 @@ export class RoomController {
     }
   }
 
-  public static async deleteRoom(
+  public  async deleteRoom(
     req: CustomRequest,
     res: Response
   ): Promise<Response> {
@@ -146,14 +150,14 @@ export class RoomController {
       if (!roomId) {
         return res.status(400).json(errorResponse('Room id not found'));
       }
-      const response = await RoomService.delete(roomId);
+      const response = await this.roomService.delete(roomId);
       const statusCode = response.success ? 200 : 400;
       return res.status(statusCode).json(response);
     } catch (error) {
       return res.status(500).json(errorResponse('Internal server error'));
     }
   }
-  public static async getAllRoomsByPropertyId(
+  public  async getAllRoomsByPropertyId(
     req: CustomRequest,
     res: Response
   ): Promise<Response> {
@@ -163,14 +167,14 @@ export class RoomController {
         return res.status(400).json(errorResponse('Property id not found'));
       }
       const isDeleted = req.query.isDeleted ? true : false;
-      const response = await RoomService.findByPropertyId(propertyId, isDeleted);
+      const response = await this.roomService.findByPropertyId(propertyId, isDeleted);
       const statusCode = response.success ? 200 : 400;
       return res.status(statusCode).json(response);
     } catch (error) {
       return res.status(500).json(errorResponse('Internal server error'));
     }
   }
-  public static async getRoomsForInvSetup(
+  public  async getRoomsForInvSetup(
     req: CustomRequest,
     res: Response
   ): Promise<Response> {
@@ -180,14 +184,14 @@ export class RoomController {
       if (!propertyId) {
         return res.status(400).json(errorResponse('Property id not found'));
       }
-      const response = await RoomService.findAvailableRoomsForInv(propertyId);
+      const response = await this.roomService.findAvailableRoomsForInv(propertyId);
       const statusCode = response.success ? 200 : 400;
       return res.status(statusCode).json(response);
     } catch (error) {
       return res.status(500).json(errorResponse('Internal server error'));
     }
   }
-  public static async add360ImageToRoom(
+  public  async add360ImageToRoom(
     req: CustomRequest,
     res: Response
   ): Promise<Response> {
@@ -200,7 +204,7 @@ export class RoomController {
       if (!view360Link) {
         return res.status(400).json(errorResponse('360 view link is required'));
       }
-      const response = await RoomService.view360ImageToRoom(roomId, view360Link);
+      const response = await this.roomService.view360ImageToRoom(roomId, view360Link);
       const statusCode = response.success ? 200 : 400;
       return res.status(statusCode).json(response);
     } catch (error) {
@@ -210,7 +214,11 @@ export class RoomController {
 }
 
 export class RoomAminityController {
-  public static async createRoomAminityController(
+  private roomAminityService: RoomAminityService;
+  constructor(){
+     this.roomAminityService = new RoomAminityService();
+  }
+  public  async createRoomAminityController(
     req: CustomRequest,
     res: Response
   ) {
@@ -228,7 +236,7 @@ export class RoomAminityController {
           );
       }
 
-      const serviceRes = await RoomAminityService.createAminityService(
+      const serviceRes = await this.roomAminityService.createAminityService(
         roomId,
         amenities
       );
@@ -243,7 +251,7 @@ export class RoomAminityController {
         .json(errorResponse('Internal Server Error', error?.message));
     }
   }
-  public static async findAminityByRoomIdController(
+  public  async findAminityByRoomIdController(
     req: CustomRequest,
     res: Response
   ) {
@@ -252,7 +260,7 @@ export class RoomAminityController {
       if (!roomId) {
         return res.status(400).json(errorResponse('Room id not found'));
       }
-      const serviceRes = await RoomAminityService.findAminityByRoomId(roomId);
+      const serviceRes = await this.roomAminityService.findAminityByRoomId(roomId);
       if (serviceRes?.success) {
         return res.status(200).json(serviceRes);
       } else {
@@ -264,7 +272,7 @@ export class RoomAminityController {
         .json(errorResponse('Internal Server Error', error?.message));
     }
   }
-  public static async updateAminityByPropertyIdController(
+  public  async updateAminityByPropertyIdController(
     req: CustomRequest,
     res: Response
   ) {
@@ -274,7 +282,7 @@ export class RoomAminityController {
         return res.status(400).json(errorResponse('Property id not found'));
       }
       const { amenities } = req.body;
-      const serviceRes = await RoomAminityService.updateAminityByRoomId(
+      const serviceRes = await this.roomAminityService.updateAminityByRoomId(
         roomId,
         amenities
       );
@@ -289,7 +297,7 @@ export class RoomAminityController {
         .json(errorResponse('Internal Server Error', error?.message));
     }
   }
-  public static async deleteAminityByPropertyIdController(
+  public  async deleteAminityByPropertyIdController(
     req: CustomRequest,
     res: Response
   ) {
@@ -298,7 +306,7 @@ export class RoomAminityController {
       if (!roomId) {
         return res.status(400).json(errorResponse('Property roomId not found'));
       }
-      const serviceRes = await RoomAminityService.deleteAminityByRoomId(roomId);
+      const serviceRes = await this.roomAminityService.deleteAminityByRoomId(roomId);
       if (serviceRes?.success) {
         return res.status(200).json(serviceRes);
       } else {

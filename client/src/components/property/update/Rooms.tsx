@@ -42,6 +42,7 @@ const roomSchema = z.object({
   numberOfLivingRoom: z.coerce.number().optional(),
   extraBed: z.coerce.number().optional(),
   available: z.boolean().optional(),
+  
 });
 
 type FormErrors = z.inferFormattedError<typeof roomSchema>;
