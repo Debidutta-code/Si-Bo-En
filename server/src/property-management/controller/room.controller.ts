@@ -5,10 +5,10 @@ import { errorResponse } from '../../utils/return';
 
 export class RoomController {
   private roomService: RoomService;
-  constructor(){
+  constructor() {
     this.roomService = new RoomService();
   }
-  public  async createRoom(
+  public async createRoom(
     req: CustomRequest,
     res: Response
   ): Promise<Response> {
@@ -35,8 +35,8 @@ export class RoomController {
         description,
         image,
         available,
+        priority
       } = req.body;
-
       if (
         !roomName ||
         !roomType ||
@@ -75,10 +75,10 @@ export class RoomController {
         numberOfLivingRoom,
         extraBed,
         description,
-        image: image,
+        image,
         available,
         propertyId: id,
-        availableRooms: totalRoom,
+        priority
       });
       const statusCode = response.success ? 201 : 400;
       return res.status(statusCode).json(response);
@@ -87,7 +87,7 @@ export class RoomController {
     }
   }
 
-  public  async getRoomById(
+  public async getRoomById(
     req: CustomRequest,
     res: Response
   ): Promise<Response> {
@@ -122,7 +122,7 @@ export class RoomController {
   //   }
   // }
 
-  public  async updateRoom(
+  public async updateRoom(
     req: CustomRequest,
     res: Response
   ): Promise<Response> {
@@ -140,7 +140,7 @@ export class RoomController {
     }
   }
 
-  public  async deleteRoom(
+  public async deleteRoom(
     req: CustomRequest,
     res: Response
   ): Promise<Response> {
@@ -157,7 +157,7 @@ export class RoomController {
       return res.status(500).json(errorResponse('Internal server error'));
     }
   }
-  public  async getAllRoomsByPropertyId(
+  public async getAllRoomsByPropertyId(
     req: CustomRequest,
     res: Response
   ): Promise<Response> {
@@ -174,7 +174,7 @@ export class RoomController {
       return res.status(500).json(errorResponse('Internal server error'));
     }
   }
-  public  async getRoomsForInvSetup(
+  public async getRoomsForInvSetup(
     req: CustomRequest,
     res: Response
   ): Promise<Response> {
@@ -191,7 +191,7 @@ export class RoomController {
       return res.status(500).json(errorResponse('Internal server error'));
     }
   }
-  public  async add360ImageToRoom(
+  public async add360ImageToRoom(
     req: CustomRequest,
     res: Response
   ): Promise<Response> {
@@ -215,10 +215,10 @@ export class RoomController {
 
 export class RoomAminityController {
   private roomAminityService: RoomAminityService;
-  constructor(){
-     this.roomAminityService = new RoomAminityService();
+  constructor() {
+    this.roomAminityService = new RoomAminityService();
   }
-  public  async createRoomAminityController(
+  public async createRoomAminityController(
     req: CustomRequest,
     res: Response
   ) {
@@ -251,7 +251,7 @@ export class RoomAminityController {
         .json(errorResponse('Internal Server Error', error?.message));
     }
   }
-  public  async findAminityByRoomIdController(
+  public async findAminityByRoomIdController(
     req: CustomRequest,
     res: Response
   ) {
@@ -272,7 +272,7 @@ export class RoomAminityController {
         .json(errorResponse('Internal Server Error', error?.message));
     }
   }
-  public  async updateAminityByPropertyIdController(
+  public async updateAminityByPropertyIdController(
     req: CustomRequest,
     res: Response
   ) {
@@ -297,7 +297,7 @@ export class RoomAminityController {
         .json(errorResponse('Internal Server Error', error?.message));
     }
   }
-  public  async deleteAminityByPropertyIdController(
+  public async deleteAminityByPropertyIdController(
     req: CustomRequest,
     res: Response
   ) {

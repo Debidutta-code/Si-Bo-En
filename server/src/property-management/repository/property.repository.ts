@@ -86,7 +86,11 @@ export class PropertyDao {
         },
         include: {
           propertyRooms: {
+            orderBy: {
+              createdAt: 'desc'
+            },
             where: {
+              
               isDeleted: false,
               
             },

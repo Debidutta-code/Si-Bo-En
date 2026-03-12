@@ -1,3 +1,4 @@
+import type { roomView,roomUnit,smokingPolicy } from "../create/types/types";
 
 export interface IPropertyEmail {
   id: string;
@@ -75,10 +76,10 @@ export interface IRoom {
   totalRoom: number;
   availableRooms: number;
   floor: number;
-  roomView: string;
+  roomView: roomView;
   roomSize: number;
-  roomUnit: string;
-  smokingPolicy: string;
+  roomUnit: roomUnit;
+  smokingPolicy: smokingPolicy;
   maxOccupancy: number;
   maxNumberOfAdults: number;
   maxNumberOfChildren: number;
@@ -86,6 +87,7 @@ export interface IRoom {
   numberOfLivingRoom: number;
   extraBed: number;
   description: string;
+  priority: number;
   image: string[];
   available: boolean;
   isDeleted: boolean;

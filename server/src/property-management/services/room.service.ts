@@ -10,7 +10,7 @@ export class RoomService {
     this.roomDao = new RoomDao();
   }
 
-  public  async create(roomData: any):Promise<IApiResponse> {
+  public  async create(roomData: ICRoom):Promise<IApiResponse> {
     try {
       const [roomByName,roomByCode] = await Promise.all([
         this.roomDao.findByRoomName(

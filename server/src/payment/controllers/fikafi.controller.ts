@@ -6,6 +6,7 @@ import { BookingStatus } from '@prisma/client';
 import { socketManager } from '../../socket';
 import { FikafiPaymentRequestBody } from "../types/fikafi.types";
 import { RedisClient } from '../../config';
+import { tryCatch } from 'bullmq';
 export class FikafiPaymentController {
     public static async createPaymentLink(req: Request, res: Response) {
         try {
@@ -230,8 +231,8 @@ export class FikafiPaymentController {
                         status: result.data.status,
                     }
                 ));
-                    
-                
+
+
             } else {
                 return res.status(400).json(errorResponse("Failed to generate payment link", result.error || '', result.code));
             }
@@ -293,13 +294,21 @@ export class FikafiPaymentController {
                 } catch (dbError) {
                     return res.status(500).json(errorResponse("Failed to connect to db", dbError instanceof Error ? dbError.message : 'Unknown error'));
                 }
-
+                try {
+                    const res = await client.set(
+                        `payment:confirmed:${bookingRefNum}`,
+                        JSON.stringify({ amount, status, confirmedAt: Date.now() }),
+                    );
+                    console.log("Redis store res", res);
+                } catch (error) {
+                    console.error(`❌ Failed to set Redis key:`, error);
+                }
                 await client.set(
                     `payment:confirmed:${bookingRefNum}`,
                     JSON.stringify({ amount, status, confirmedAt: Date.now() }),
-                    { EX: 600 } 
+                    { EX: 600 }
                 );
-                const isExists=await client.get(`payment:confirmed:${bookingRefNum}`);
+                const isExists = await client.get(`payment:confirmed:${bookingRefNum}`);
                 console.log(`🔍 Redis verify read-back: ${isExists ? 'KEY EXISTS ✅' : 'KEY MISSING ❌ - write failed silently'}`);
                 socketManager.emitPaymentUpdate(bookingRefNum, {
                     orderReference: bookingRefNum,

@@ -1,3 +1,5 @@
+import type { roomUnit, roomView, smokingPolicy } from "../../create/types/types";
+
 export interface IPropertyType {
   id: string;
   propertyTypeName: string;
@@ -18,16 +20,16 @@ export interface IPropertyDetails {
   propertyEmail: string;
   propertyContact: string;
   propertyCategory: {
-    masterCategory:{
+    masterCategory: {
 
       id: string;
       categoryName: string;
       categoryDescription: string
     }
   };
-  
+
   propertyType: {
-    masterPropertyType:{
+    masterPropertyType: {
 
       id: string;
       propertyTypeName: string
@@ -54,33 +56,36 @@ export interface IPropertyAddress {
 export interface PropertyAddressProps {
   isUpdating: boolean;
   propertyId: string;
-  setPropertyId:(propertyId:string)=>void;
-  setIsUpdating:(val:boolean)=>void;
+  setPropertyId: (propertyId: string) => void;
+  setIsUpdating: (val: boolean) => void;
   onNext?: () => void;
   onPrevious?: () => void;
 }
 
 export interface IRoomDetails {
-  roomName?: string;
-  roomType?: string;
-  totalRoom?: number;
-  roomView?: string;
-  floor?: number;
-  roomSize?: number;
-  roomUnit?: string;
-  smokingPolicy?: string;
-  maxOccupancy?: number;
-  maxNumberOfAdults?: number;
-  maxNumberOfChildren?: number;
+
+  roomName: string;
+  roomType: string;
+  totalRoom: number;
+  floor: number;
+  roomView: roomView;
+  roomSize: number;
+  roomUnit: roomUnit;
+  smokingPolicy: smokingPolicy;
+  maxOccupancy: number;
+  maxNumberOfAdults: number;
+  maxNumberOfChildren: number;
+  image: string[];
   numberOfBedrooms?: number;
   numberOfLivingRoom?: number;
   extraBed?: number;
-  description?: string;
-  image?: string[];
-  available?: boolean;
+  description: string | null;
+  available: boolean;
+  priority: number;
   view360Link?: string;
   roomVideos?: {
     thumbnail: string;
     url: string;
   };
+
 }

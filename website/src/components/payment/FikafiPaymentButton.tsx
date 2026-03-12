@@ -155,7 +155,7 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
           currency: currency || "USD",
           totalAmounts: amount,
           numOfPayments: 1,
-          validity: "10 mins",
+          validity: "1 mins",
           payments: [
             {
               paymentNumber: 1,
