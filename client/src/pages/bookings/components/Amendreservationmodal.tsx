@@ -26,6 +26,7 @@ import type { IAddOn } from "../types/reservation";
 import GuestSelector from "./GuestSelector";
 import GuestDetails from "./GuestDetails";
 import PriceSection from "./PricingModal";
+import { X } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -172,7 +173,6 @@ const StepIndicator: FC<{ current: AmendStep }> = ({ current }) => (
 // ─── Main Modal ───────────────────────────────────────────────────────────────
 
 const AmendReservationModal: FC<IAmendReservationModalProps> = ({
-  open,
   reservation,
   onClose,
   onSuccess,
@@ -452,7 +452,7 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
   // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
+    <Dialog open={true} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0">
 
         <DialogHeader className="px-6 py-5 border-b border-border">
@@ -465,6 +465,12 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
           <div className="mt-5">
             <StepIndicator current={step} />
           </div>
+          <button
+            onClick={onClose}
+            className="p-2 rounded-md hover:bg-accent text-muted-foreground hover:text-card-foreground transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </DialogHeader>
 
         <div className="px-6 py-4 bg-muted/40 border-b border-border">

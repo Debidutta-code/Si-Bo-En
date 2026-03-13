@@ -62,7 +62,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import VideoUploadModal from "../VedioUpload.modal";
-import { capitalizeFirstLetter } from "@/lib/utils";
 
 interface PropertyId {
   propertyId: string;
@@ -78,11 +77,11 @@ export default function Rooms({ propertyId }: PropertyId) {
     roomName: "",
     roomType: "",
     totalRoom: 0,
-    roomView: "others",
+    roomView: "",
     floor: 0,
     roomSize: 0,
     roomUnit: "sqft",
-    smokingPolicy: "designated_area",
+    smokingPolicy: "Non-Smoking",
     maxOccupancy: 0,
     maxNumberOfAdults: 0,
     maxNumberOfChildren: 0,
@@ -97,7 +96,6 @@ export default function Rooms({ propertyId }: PropertyId) {
       url: "",
       thumbnail: "",
     },
-    priority: 0
   });
   const [isDeletingVideo, setIsDeletingVideo] = useState<boolean>(false);
 
@@ -364,6 +362,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                                 className="w-full justify-start px-2 py-1.5 h-auto font-normal"
                                 onClick={(e) => {
                                   e.stopPropagation();
+                                  setRoomDetails({});
                                 }}
                               >
                                 <Plus className="h-4 w-4 mr-2" />
@@ -632,7 +631,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                           Smoking Policy
                         </label>
                         <p className="text-sm text-gray-900">
-                          {capitalizeFirstLetter(room.smokingPolicy.replace(/_/g, " ")) || "—"}
+                          {room.smokingPolicy}
                         </p>
                       </div>
 
@@ -650,14 +649,6 @@ export default function Rooms({ propertyId }: PropertyId) {
                         </label>
                         <p className="text-sm text-gray-900">
                           {room.totalRoom}
-                        </p>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block">
-                          Room Priority
-                        </label>
-                        <p className="text-sm text-gray-900">
-                          {room.priority}
                         </p>
                       </div>
                     </div>
@@ -824,30 +815,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                     className="gap-2 bg-primary hover:bg-primary/90"
                     onClick={(e) => {
                       e.stopPropagation();
-                      setRoomDetails({
-                        roomName: "",
-                        roomType: "",
-                        totalRoom: 0,
-                        floor: 0,
-                        roomView: "others",
-                        roomSize: 0,
-                        roomUnit: "sqm",
-                        smokingPolicy: "designated_area",
-                        maxOccupancy: 0,
-                        maxNumberOfAdults: 0,
-                        maxNumberOfChildren: 0,
-                        numberOfBedrooms: 0,
-                        numberOfLivingRoom: 0,
-                        extraBed: 0,
-                        description: "",
-                        priority: 0,
-                        image: [],
-                        available: true,
-                        roomVideos: {
-                          thumbnail:"",
-                          url:""
-                        }
-                      });
+                      setRoomDetails({});
                     }}
                   >
                     <Plus className="h-4 w-4 mr-2" />

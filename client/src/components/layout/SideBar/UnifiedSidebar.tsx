@@ -66,12 +66,9 @@ interface SidebarProps {
 }
 
 export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) {
-  const { propertyId: propertyIdFromParams } = useParams();
+  const { propertyId } = useParams();
+  // const { creationId } = useParams();
   const { user } = useAppSelector((state) => state.user);
-
-  const propertyId = propertyIdFromParams ?? (
-    (user?.userLevel === 0 || user?.userLevel === 1) ? user?.propertyId : undefined
-  );
   const location = useLocation();
   const navRef = useRef<HTMLDivElement | null>(null);
 const scrollPosition = useRef(0);

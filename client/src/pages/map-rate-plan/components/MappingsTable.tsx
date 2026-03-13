@@ -90,8 +90,8 @@ export default function MappingsTable({
                                     <TableHeader>
                                         <TableRow className="bg-gray-50">
                                             <TableHead className="font-semibold">Date</TableHead>
-                                            <TableHead className="font-semibold">Rate Plan</TableHead>
                                             <TableHead className="font-semibold">Room Type</TableHead>
+                                            <TableHead className="font-semibold">Rate Plan</TableHead>
                                             <TableHead className="font-semibold">Price</TableHead>
                                             <TableHead className="font-semibold">Available Rooms</TableHead>
                                             <TableHead className="font-semibold">Sell Stopped</TableHead>
@@ -105,8 +105,8 @@ export default function MappingsTable({
                                                 <TableCell className="font-medium">
                                                     {mapping.date ? format(new Date(mapping.date), "MMM dd, yyyy") : "N/A"}
                                                 </TableCell>
-                                                <TableCell>{mapping.ratePlanName}</TableCell>
                                                 <TableCell>{mapping.roomTypeName}</TableCell>
+                                                <TableCell>{mapping.ratePlanName}</TableCell>
                                                 <TableCell>
                                                     <div className="flex items-center gap-2">
                                                         <span className="font-semibold text-green-600">

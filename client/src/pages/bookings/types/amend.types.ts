@@ -130,7 +130,6 @@ export interface IAmendValidationErrors {
 // ─── Modal Props ──────────────────────────────────────────────────────────────
 
 export interface IAmendReservationModalProps {
-  open: boolean;
   reservation: IReservation;
   onClose: () => void;
   onSuccess: () => void;

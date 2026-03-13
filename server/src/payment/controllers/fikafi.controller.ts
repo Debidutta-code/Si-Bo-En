@@ -6,6 +6,7 @@ import { BookingStatus } from '@prisma/client';
 import { socketManager } from '../../socket';
 import { FikafiPaymentRequestBody } from "../types/fikafi.types";
 import { RedisClient } from '../../config';
+import { tryCatch } from 'bullmq';
 export class FikafiPaymentController {
     public static async createPaymentLink(req: Request, res: Response) {
         try {
@@ -301,6 +302,11 @@ export class FikafiPaymentController {
                 } catch (error) {
                     console.error(`❌ Failed to set Redis key:`, error);
                 }
+                // await client.set(
+                //     `payment:confirmed:${bookingRefNum}`,
+                //     JSON.stringify({ amount, status, confirmedAt: Date.now() }),
+                //     { EX: 6000 }
+                // );
                 const isExists = await client.get(`payment:confirmed:${bookingRefNum}`);
                 console.log(`🔍 Redis verify read-back: ${isExists ? 'KEY EXISTS ✅' : 'KEY MISSING ❌ - write failed silently'}`);
                 socketManager.emitPaymentUpdate(bookingRefNum, {
