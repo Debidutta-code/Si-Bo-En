@@ -30,10 +30,14 @@ import { DeviceType } from '../../agent-paltform/property/types';
 import { IGeoRatePlanWithoutRatePlan } from '../../promotions/geo-rate-plan/interfaces';
 import { ICEbDsOftc } from '../../promotions/eb-ds-oftc/interfaces';
 import { IPromoCode } from '../../ari/types/promoCode.type';
+import { RoomDao } from '../../property-management/repository';
+import { IRoom } from '../../property-management/types';
 export class PricingService {
     private pricingRepository: PricingRepository;
+    private roomRepo: RoomDao;
     constructor() {
         this.pricingRepository = new PricingRepository();
+        this.roomRepo = new RoomDao();
     }
     public async getRoomRentService(
         propertyId: string,
@@ -61,7 +65,7 @@ export class PricingService {
                 endDate instanceof Date ? endDate : new Date(endDate);
             startDate = parsedStartDate;
             endDate = parsedEndDate;
-            const [ratePlan, selectedAddons, appliedPromotions] =
+            const [ratePlan, selectedAddons, appliedPromotions, selectedRoom] =
                 await Promise.all([
                     this.pricingRepository.validateRatePlan(
                         ratePlanCode,
@@ -72,9 +76,13 @@ export class PricingService {
                     ),
                     this.fetchAddons(parsedAddons),
                     this.fetchAllPromotions(promotions),
+                    this.roomRepo.findByRoomType(propertyId, invTypeCode)
                 ]);
             if (!ratePlan) {
                 return errorResponse('Rate plan not found');
+            }
+            if(!selectedRoom){
+                return errorResponse('Room not found for the selected room type');
             }
             const basePrice = new BasePriceClass(
                 startDate,
@@ -84,7 +92,8 @@ export class PricingService {
                 rooms,
                 ratePlan.charges,
                 ratePlan.taxGroup,
-                guestDistribution
+                guestDistribution,
+                selectedRoom
             );
             let priceBrakedowns = basePrice.calculateTotalPrice();
             const addOnPrice = new AddOnPriceClass(
@@ -236,6 +245,7 @@ class BasePriceClass {
     charges: ICharge[];
     taxGroup: ITaxGroup | null;
     guestDistributions: IGuestDistribution[];
+    roomDetails:IRoom
     constructor(
         startDate: Date,
         endDate: Date,
@@ -244,7 +254,8 @@ class BasePriceClass {
         rooms: number,
         charges: ICharge[],
         taxGroup: ITaxGroup | null,
-        guestDistributions: IGuestDistribution[]
+        guestDistributions: IGuestDistribution[],
+        roomDetails: IRoom
     ) {
         if (!charges || charges.length == 0) {
             throw new Error('Charges not found');
@@ -266,6 +277,7 @@ class BasePriceClass {
         this.charges = charges;
         this.taxGroup = taxGroup || null;
         this.guestDistributions = guestDistributions;
+        this.roomDetails = roomDetails;
     }
     private differenceReservationDays(startDate: Date, endDate: Date): number {
         const msPerDay = 1000 * 60 * 60 * 24;
@@ -373,137 +385,118 @@ class BasePriceClass {
             );
         }
     }
-    private calculateBasePrice(): {
-        totalAmount: number;
-        dailyPriceBrakeDown: DailyPriceBrakeDown[];
-    } {
-        let basePrice = 0;
-        const dailyPriceBrakeDown: DailyPriceBrakeDown[] = [];
-        this.charges.sort((a, b) => a.date.getTime() - b.date.getTime());
-        this.charges.pop();
-        this.guestDistributions.map((guestDistribution, index) => {
-            const totalPersons = guestDistribution.adults + guestDistribution.children;
-            this.charges.forEach(charge => {
-                if (totalPersons > charge.baseGuestAmounts.length) {
-                    if (guestDistribution.adults > charge.baseGuestAmounts.length) {
-                        charge.baseGuestAmounts.sort(
-                            (a, b) => a.numberOfGuests - b.numberOfGuests
-                        );
-                        const maxAdultCharges =
-                            charge.baseGuestAmounts[
-                            charge.baseGuestAmounts.length - 1
-                            ];
-                        const remainningAdults =
-                            guestDistribution.adults - maxAdultCharges.numberOfGuests;
-                        let totalChargesForRemainningAdults = 0;
-                        if (remainningAdults > 0) {
-                            const chargesForRemainingAdults =
-                                charge.additionalGuestAmounts.find(
-                                    additionalGuestAmount =>
-                                        additionalGuestAmount.ageQualifyingCode ===
-                                        '10'
-                                );
-                            if (!chargesForRemainingAdults) {
-                                totalChargesForRemainningAdults = 0;
-                            } else {
-                                totalChargesForRemainningAdults =
-                                    remainningAdults *
-                                    Number(chargesForRemainingAdults.amount);
-                            }
-                        }
-                        let totalChargesForChildren = 0;
-                        if (guestDistribution.children > 0) {
-                            const chargesForChildren =
-                                charge.additionalGuestAmounts.find(
-                                    additionalGuestAmount =>
-                                        additionalGuestAmount.ageQualifyingCode ===
-                                        '8'
-                                );
-                            if (!chargesForChildren) {
-                                totalChargesForChildren = 0;
-                            } else {
-                                totalChargesForChildren =
-                                    this.children *
-                                    Number(chargesForChildren.amount);
-                            }
-                        }
-                        const totalChargesForBaseGuest = Number(
-                            maxAdultCharges.amountBeforeTax
-                        );
-                        const totalCharges =
-                            totalChargesForBaseGuest +
-                            totalChargesForRemainningAdults +
-                            totalChargesForChildren;
-                        basePrice += totalCharges;
-                        dailyPriceBrakeDown.push({
-                            roomNumber: `${index + 1}`,
-                            guestDistribution: guestDistribution,
-                            date: charge.date.toDateString(),
-                            baseChargesAmount: totalChargesForBaseGuest,
-                            additionalChargesAmount:
-                                totalChargesForRemainningAdults +
-                                totalChargesForChildren,
-                            taxBrakeDown: [],
-                            addOnBrakeDown: [],
-                            totalAmount: totalCharges,
-                            currencyCode: charge.currencyCode,
-                            totalDailyTaxedAmount: 0,
-                        });
-                    } else {
-                        const baseGuestAmount = charge.baseGuestAmounts.find(
-                            baseGuestAmount =>
-                                baseGuestAmount.numberOfGuests === guestDistribution.adults
-                        );
-                        console.log("Base guest amount", baseGuestAmount);
-                        if (!baseGuestAmount) {
-                            throw new Error(
-                                `Base amount not found for the given date ${charge.date.toDateString()} for ${this.adults} persons`
-                            );
-                        }
-                        basePrice += Number(baseGuestAmount.amountBeforeTax);
-                        dailyPriceBrakeDown.push({
-                            roomNumber: `${index + 1}`,
-                            guestDistribution: guestDistribution,
-                            date: charge.date.toDateString(),
-                            baseChargesAmount: Number(
-                                baseGuestAmount.amountBeforeTax
-                            ),
-                            additionalChargesAmount: 0,
-                            taxBrakeDown: [],
-                            addOnBrakeDown: [],
-                            totalAmount: Number(baseGuestAmount.amountBeforeTax),
-                            currencyCode: charge.currencyCode,
-                            totalDailyTaxedAmount: 0,
-                        });
+private calculateBasePrice(): {
+    totalAmount: number;
+    dailyPriceBrakeDown: DailyPriceBrakeDown[];
+} {
+    let basePrice = 0;
+    const dailyPriceBrakeDown: DailyPriceBrakeDown[] = [];
+
+    this.charges.sort((a, b) => a.date.getTime() - b.date.getTime());
+    this.charges.pop(); // remove checkout date
+
+    this.guestDistributions.forEach((guestDistribution, index) => {
+        const { adults, children } = guestDistribution;
+        const totalPersons = adults + children;
+
+        if (totalPersons > this.roomDetails.maxOccupancy) {
+            throw new Error(
+                `This room has a maximum occupancy of ${this.roomDetails.maxOccupancy}.`
+            );
+        }
+        if (adults > this.roomDetails.maxNumberOfAdults) {
+            throw new Error(
+                `This room can only accommodate ${this.roomDetails.maxNumberOfAdults} adults.`
+            );
+        }
+        if (children > this.roomDetails.maxNumberOfChildren) {
+            throw new Error(
+                `This room can only accommodate ${this.roomDetails.maxNumberOfChildren} children.`
+            );
+        }
+
+        this.charges.forEach(charge => {
+            const adultBaseAmounts = charge.baseGuestAmounts
+                .filter(b => b.ageQualifyingCode === '10')
+                .sort((a, b) => a.numberOfGuests - b.numberOfGuests);
+
+            const childBaseAmounts = charge.baseGuestAmounts
+                .filter(b => b.ageQualifyingCode === '8')
+                .sort((a, b) => a.numberOfGuests - b.numberOfGuests);
+
+            const additionalChargeForAdults = charge.additionalGuestAmounts
+                .find(a => a.ageQualifyingCode === '10');
+            const additionalChargeForChildren = charge.additionalGuestAmounts
+                .find(a => a.ageQualifyingCode === '8');
+
+            let adultBasePrice = 0;
+            let additionalAdultCharges = 0;
+
+            const exactAdultBase = adultBaseAmounts.find(b => b.numberOfGuests === adults);
+            if (exactAdultBase) {
+                adultBasePrice = Number(exactAdultBase.amountBeforeTax);  // Exact match found → use it directly
+
+            } else if (adultBaseAmounts.length > 0) {
+                const maxAdultBase = adultBaseAmounts[adultBaseAmounts.length - 1];      // No exact match → use highest available base + charge for extras
+                adultBasePrice = Number(maxAdultBase.amountBeforeTax);
+                const extraAdults = adults - maxAdultBase.numberOfGuests;
+                if (extraAdults > 0 && additionalChargeForAdults) {
+                    additionalAdultCharges = extraAdults * Number(additionalChargeForAdults.amount);
+                }
+            } else {
+                if (additionalChargeForAdults) {
+                    additionalAdultCharges = adults * Number(additionalChargeForAdults.amount);   // No base entries at all → every adult is additional
+
+                }
+            }
+
+            let childBasePrice = 0;
+            let additionalChildCharges = 0;
+
+            if (children > 0) {
+                const exactChildBase = childBaseAmounts.find(b => b.numberOfGuests === children);
+                if (exactChildBase) {
+                    childBasePrice = Number(exactChildBase.amountBeforeTax);  // Exact match found → use it directly
+                } else if (childBaseAmounts.length > 0) {
+                    const maxChildBase = childBaseAmounts[childBaseAmounts.length - 1];  // No exact match → use highest available base + charge for extras
+                    childBasePrice = Number(maxChildBase.amountBeforeTax);
+                    const extraChildren = children - maxChildBase.numberOfGuests;
+                    if (extraChildren > 0 && additionalChargeForChildren) {
+                        additionalChildCharges =
+                            extraChildren * Number(additionalChargeForChildren.amount);
                     }
                 } else {
-                    const baseGuestAmount = charge.baseGuestAmounts.find(
-                        baseGuestAmount =>
-                            baseGuestAmount.numberOfGuests === totalPersons
-                    );
-                    if (!baseGuestAmount) {
-                        throw new Error(
-                            `Base amount not found for the given date ${charge.date.toDateString()} for ${totalPersons} persons`
-                        );
+                    if (additionalChargeForChildren) {
+                        additionalChildCharges =
+                            children * Number(additionalChargeForChildren.amount);                    // No base entries at all → every child is additional
+
                     }
-                    basePrice += Number(baseGuestAmount.amountBeforeTax);
-                    dailyPriceBrakeDown.push({
-                        roomNumber: `${index + 1}`,
-                        guestDistribution: guestDistribution,
-                        date: charge.date.toDateString(),
-                        baseChargesAmount: Number(baseGuestAmount.amountBeforeTax),
-                        additionalChargesAmount: 0,
-                        taxBrakeDown: [],
-                        addOnBrakeDown: [],
-                        totalAmount: Number(baseGuestAmount.amountBeforeTax),
-                        currencyCode: charge.currencyCode,
-                        totalDailyTaxedAmount: 0,
-                    });
                 }
+            }
+
+            const totalBaseCharges = adultBasePrice + childBasePrice;
+            const totalAdditionalCharges = additionalAdultCharges + additionalChildCharges;
+            const totalDailyAmount = totalBaseCharges + totalAdditionalCharges;
+
+            basePrice += totalDailyAmount;
+
+            dailyPriceBrakeDown.push({
+                roomNumber: `${index + 1}`,
+                guestDistribution,
+                date: charge.date.toDateString(),
+                baseChargesAmount: totalBaseCharges,
+                additionalChargesAmount: totalAdditionalCharges,
+                taxBrakeDown: [],
+                addOnBrakeDown: [],
+                totalAmount: totalDailyAmount,
+                currencyCode: charge.currencyCode,
+                totalDailyTaxedAmount: 0,
             });
-        })
-        return { totalAmount: basePrice, dailyPriceBrakeDown };
-    }
+        });
+    });
+
+    return { totalAmount: basePrice, dailyPriceBrakeDown };
+}
     private addTax(
         dailyPriceBrakeDown: DailyPriceBrakeDown[]
     ): DailyPriceBrakeDown[] {
