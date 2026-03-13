@@ -192,7 +192,7 @@ class InventoryRepository {
                     baseGuestAmounts: {
                         create: baseGuestAmounts.map(bg => ({
                             numberOfGuests: bg.noOfGuests,
-                            amountBeforeTax: bg.amount,
+                            amountBeforeTax: Number(bg.amount),
                             ageQualifyingCode: bg.ageQualifyingCode,
 
                         })),
@@ -228,7 +228,7 @@ class InventoryRepository {
                                     deleteMany: {},
                                     create: baseGuestAmounts.map(bg => ({
                                         numberOfGuests: bg.noOfGuests,
-                                        amountBeforeTax: bg.amount,
+                                        amountBeforeTax: Number(bg.amount),
                                         ageQualifyingCode: bg.ageQualifyingCode,
                                     })),
                                 },

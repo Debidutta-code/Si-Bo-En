@@ -137,7 +137,7 @@ class InventoryServices {
         endDate: string
     ) {
         try {
-            const [room,{ convert, baseCurrency }] = await Promise.all([
+            const [room, { convert, baseCurrency }] = await Promise.all([
                 InventoryDao.getRoom(propertyId, roomTypeCode),
                 getCurrencyConverter(propertyId, currencyCode)
             ]);
@@ -184,7 +184,7 @@ class InventoryServices {
                             ageQualifyingCode: bg.ageQualifyingCode,
                         })
                     );
-console.log(convertedBaseGuestAmounts)
+                    console.log(convertedBaseGuestAmounts)
                     const convertedAdditionalGuestAmounts =
                         additionalGuestAmounts.map(ag => ({
                             ageCode: ag.ageQualifyingCode as '10' | '8' | '5',
@@ -203,7 +203,7 @@ console.log(convertedBaseGuestAmounts)
                         date: dateStr,
                     });
                 }
-// console.log(mappedRI);
+                // console.log(mappedRI);
                 const daoRes = await InventoryDao.mapRatePlans(mappedRI);
 
                 if (daoRes) {
