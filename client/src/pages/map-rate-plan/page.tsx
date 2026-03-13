@@ -80,14 +80,7 @@ export default function MapRatePlan() {
                                 <p className="text-gray-600">Connect rate plans with room types and set pricing</p>
                             </div>
                         </div>
-                        {/* <Button
-                            onClick={() => setIsStartStopSellDialogOpen(true)}
-                            variant="outline"
-                            className="flex items-center gap-2"
-                        >
-                            <Ban className="w-4 h-4" />
-                            Start/Stop Sell
-                        </Button> */}
+                     
                     </div>
                 </div>
 
