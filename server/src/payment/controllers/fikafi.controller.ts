@@ -230,8 +230,8 @@ export class FikafiPaymentController {
                         status: result.data.status,
                     }
                 ));
-                    
-                
+
+
             } else {
                 return res.status(400).json(errorResponse("Failed to generate payment link", result.error || '', result.code));
             }
@@ -293,13 +293,17 @@ export class FikafiPaymentController {
                 } catch (dbError) {
                     return res.status(500).json(errorResponse("Failed to connect to db", dbError instanceof Error ? dbError.message : 'Unknown error'));
                 }
-
-                await client.set(
-                    `payment:confirmed:${bookingRefNum}`,
-                    JSON.stringify({ amount, status, confirmedAt: Date.now() }),
-                    { EX: 600 } 
-                );
-                const isExists=await client.get(`payment:confirmed:${bookingRefNum}`);
+                try {
+                    const res = await client.set(
+                        `payment:confirmed:${bookingRefNum}`,
+                        JSON.stringify({ amount, status, confirmedAt: Date.now() }),
+                        { EX: 300 } // 5 minutes TTL — enough for a reconnecting client
+                    );
+                    console.log("Redis store res", res);
+                } catch (error) {
+                    console.error(`❌ Failed to set Redis key:`, error);
+                }
+                const isExists = await client.get(`payment:confirmed:${bookingRefNum}`);
                 console.log(`🔍 Redis verify read-back: ${isExists ? 'KEY EXISTS ✅' : 'KEY MISSING ❌ - write failed silently'}`);
                 socketManager.emitPaymentUpdate(bookingRefNum, {
                     orderReference: bookingRefNum,
@@ -353,7 +357,7 @@ export class FikafiPaymentController {
                             message: FikafiPaymentController.getFailureMessage(status),
                             failedAt: Date.now(),
                         }),
-                        { EX: 600 }
+                        { EX: 6000 }
                     );
                     console.log(`✅ Payment failure stored in Redis for ${bookingRefNum}`);
                 } catch (redisError) {

@@ -24,6 +24,7 @@ export class RoomDao {
           image: roomData.image || [],
           available: roomData.available ?? true,
           propertyId: roomData.propertyId,
+          priority: roomData.priority
         },
       });
     } catch (error) {
@@ -86,7 +87,25 @@ export class RoomDao {
       const updatedRoom = await prisma.room.update({
         where: { id },
         data:{
-          ...roomData
+          roomName: roomData.roomName,
+          roomType: roomData.roomType,
+          totalRoom: roomData.totalRoom,
+          floor: roomData.floor,
+          roomView: roomData.roomView ,
+          roomSize: roomData.roomSize,
+          roomUnit: roomData.roomUnit,
+          smokingPolicy: roomData.smokingPolicy,
+          maxOccupancy: roomData.maxOccupancy,
+          maxNumberOfAdults: roomData.maxNumberOfAdults,
+          maxNumberOfChildren: roomData.maxNumberOfChildren,
+          numberOfBedrooms: roomData.numberOfBedrooms,
+          numberOfLivingRoom: roomData.numberOfLivingRoom,
+          extraBed: roomData.extraBed,
+          description: roomData.description,
+          image: roomData.image || [],
+          available: roomData.available ?? true,
+          propertyId: roomData.propertyId,
+          priority: roomData.priority
         }
       });
       return updatedRoom;
@@ -111,6 +130,9 @@ export class RoomDao {
     try {
       const rooms = await prisma.room.findMany({
         where: { propertyId,isDeleted },
+        orderBy:{
+          createdAt: 'desc'
+        },
         include:{
           roomAmenities:{
             include:{

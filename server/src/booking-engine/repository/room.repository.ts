@@ -32,6 +32,7 @@ export class RoomBookingRepository {
                 },
                 propertyVideos: true,
                 propertyRooms: {
+                    orderBy:[{ priority: 'asc' }],
                     where: { isDeleted: false, available: true },
                     include: {
                         roomAmenities: { include: { amenity: true } },
