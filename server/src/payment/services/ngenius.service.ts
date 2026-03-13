@@ -121,23 +121,50 @@ class NGeniusService {
             const ngeniusState = response.data._embedded?.payment?.[0]?.state || "STARTED";
             const mappedStatus = this.mapNGeniusState(ngeniusState);
 
+            // The order response contains the outletId actually used by N-Genius.
+            // Use it to find the matching PropertyPaymentIntegration so we can store
+            // propertyPaymentIntegrationId on the Payment — required for refunds later.
+            const orderOutletId = response.data.outletId;
+            let propertyPaymentIntegrationId: string | null = null;
+
+            if (orderOutletId) {
+              const integration = await prisma.propertyPaymentIntegration.findFirst({
+                where: {
+                  propertyId: property.id,
+                  outletId: orderOutletId,
+                  isActive: true,
+                },
+                select: { id: true },
+              });
+              if (integration) {
+                propertyPaymentIntegrationId = integration.id;
+                console.log(`✅ Linked PropertyPaymentIntegration: ${integration.id} (outletId: ${orderOutletId})`);
+              } else {
+                console.warn(`⚠️ No active PropertyPaymentIntegration found for propertyId: ${property.id}, outletId: ${orderOutletId}`);
+              }
+            } else {
+              console.warn(`⚠️ Order response did not include outletId — propertyPaymentIntegrationId will not be set`);
+            }
+
             try {
               const payment = await prisma.payment.create({
                 data: {
                   amount: orderData.amount.value / 100,
-                  currency: "USD",
+                  currency: "AED",
                   status: mappedStatus as any,
                   paymentMethod: "payment_gateway",
                   propertyId: property.id,
                   reservationId: (orderData.reservationId || null) as any,
                   paymentIntentId: response.data.reference,
+                  ...(propertyPaymentIntegrationId && { propertyPaymentIntegrationId }),
                 },
               });
               console.log(`✅ N-Genius Payment record created in database:
   - ID: ${payment.id}
   - Status: ${mappedStatus}
   - Amount: ${payment.amount} ${payment.currency}
-  - Order Reference: ${response.data.reference}`);
+  - Order Reference: ${response.data.reference}
+  - PropertyPaymentIntegrationId: ${propertyPaymentIntegrationId ?? '(not linked)'}`);
             } catch (dbError) {
               console.error(`❌ Failed to create N-Genius payment record in database for order ${response.data.reference}:`, dbError);
             }
@@ -209,7 +236,7 @@ class NGeniusService {
       // Step 1: Get order status to extract payment and capture refs
       console.log(`[DEBUG - N-GENIUS REFUND] 🔍 Step 1: Calling getOrderStatus to check order reference & extract refs for order: ${orderReference}`);
       const orderStatus = await this.getOrderStatus(orderReference, outletId);
-      
+
       console.log(`[DEBUG - N-GENIUS REFUND] 📄 Order Status data:`, JSON.stringify(orderStatus));
 
       const payments = orderStatus._embedded?.payment;
