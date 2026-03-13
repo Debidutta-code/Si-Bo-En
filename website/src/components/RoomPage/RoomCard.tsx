@@ -325,6 +325,7 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
         noOfRooms,
         childAges,
         promoCode: bookingContext.promocode,
+        guestDistribution: bookingContext.guests.roomsArray,
       };
 
       // ✅ ADD LOYALTY GUEST EMAIL TO PAYLOAD
