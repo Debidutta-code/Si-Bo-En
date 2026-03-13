@@ -4,11 +4,11 @@ import { initializeExpressRoutes } from './config/route.config';
 import { connectPostgres, connectMongo } from './config/index';
 import { createServer } from 'http';
 import { socketManager } from './socket';
-import { initBullMQHelper, getBullMQHelper } from './currency-maping/helpers';
+import BullMQHelper from './currency-maping/helpers/bull-mq.helper'; // 👈 adjust path
 
 const httpServer = createServer(app);
 
-const redisConnection = {
+const connection = {
     host: config.redisHost,
     port: parseInt(config.redisPort || "6379"),
     password: config.redisPassword,
@@ -17,14 +17,15 @@ const redisConnection = {
     retryStrategy: (times: number) => Math.min(times * 1000, 5000),
 };
 
+export const bullMQHelper = new BullMQHelper('currency-exchange-queue', connection); // 👈 exported
+
 initializeExpressRoutes({ app }).then(async () => {
   try {
     await connectMongo();
     await connectPostgres();
     await RedisClient.connect();
 
-    // Init BullMQ only after Redis is confirmed connected
-    const bullMQHelper = initBullMQHelper(redisConnection);
+    // Init BullMQ after Redis is ready
     await bullMQHelper.setupDailyCurrencyFetch();
 
     socketManager.initialize(httpServer, config.allowedOrigins);
@@ -40,9 +41,7 @@ initializeExpressRoutes({ app }).then(async () => {
 // Graceful shutdown
 const shutdown = async () => {
     console.log('⚠️  Shutting down...');
-    try {
-        await getBullMQHelper().close();
-    } catch (_) { /* not yet initialized */ }
+    await bullMQHelper.close();
     await RedisClient.close();
     process.exit(0);
 };

@@ -4,6 +4,7 @@ import {
   Eye,
   Edit,
   XCircle,
+  X,
   AlertTriangle,
   EyeOff,
   FileText,
@@ -22,15 +23,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import type { IReservation } from "../types";
 import ReservationCard from "./ReservationCard";
 import NoShowConfirmationModal from "./NoShowModal";
@@ -43,30 +35,32 @@ import AmendReservationModal from "./Amendreservationmodal";
 
 // Modal to show ReservationCard
 interface ViewDetailsModalProps {
-  open: boolean;
   reservation: IReservation | null;
   onClose: () => void;
 }
 
-function ViewDetailsModal({ open, reservation, onClose }: ViewDetailsModalProps) {
+function ViewDetailsModal({ reservation, onClose }: ViewDetailsModalProps) {
   if (!reservation) return null;
 
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Reservation Details</DialogTitle>
-          <DialogDescription>{reservation.bookingCode}</DialogDescription>
-        </DialogHeader>
-        <ReservationCard reservation={reservation} />
-      </DialogContent>
-    </Dialog>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
+      <div className="bg-card rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto relative my-8">
+        <button
+          onClick={onClose}
+          className="sticky top-4 float-right mr-4 mt-4 p-2 hover:bg-accent rounded-md transition-colors z-10 bg-card border border-border"
+        >
+          <X className="w-5 h-5" />
+        </button>
+        <div className="p-6 pt-0">
+          <ReservationCard reservation={reservation} />
+        </div>
+      </div>
+    </div>
   );
 }
 
 // Cancel Confirmation Modal
 interface CancelConfirmationModalProps {
-  open: boolean;
   reservation: IReservation;
   onConfirm: () => void;
   onCancel: () => void;
@@ -74,55 +68,64 @@ interface CancelConfirmationModalProps {
 }
 
 function CancelConfirmationModal({
-  open,
   reservation,
   onConfirm,
   onCancel,
   isLoading,
 }: CancelConfirmationModalProps) {
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onCancel(); }}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <div className="flex items-center gap-3 mb-1">
-            <div className="w-10 h-10 rounded-full bg-destructive/10 flex items-center justify-center flex-shrink-0">
-              <AlertTriangle className="w-5 h-5 text-destructive" />
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-card rounded-lg shadow-xl max-w-md w-full border border-border">
+        <div className="p-6">
+          <div className="flex flex-col items-start gap-4">
+            <div className="flex-shrink-0">
+              <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
+                <AlertTriangle className="w-6 h-6 text-destructive" />
+              </div>
             </div>
-            <DialogTitle className="text-lg font-semibold">
-              Cancel Reservation
-            </DialogTitle>
-          </div>
-          <DialogDescription className="text-sm text-muted-foreground">
-            Are you sure you want to cancel this reservation?
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="bg-muted rounded-md p-3">
-          <div className="text-sm space-y-1">
-            <p className="font-medium text-card-foreground">
-              Booking Code: {reservation.bookingCode}
-            </p>
-            <p className="text-muted-foreground">
-              Guest: {reservation.primaryGuest?.firstName}{" "}
-              {reservation.primaryGuest?.lastName}
-            </p>
+            <div className="flex-1">
+              <h3 className="text-lg font-semibold text-card-foreground mb-2">
+                Cancel Reservation
+              </h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Are you sure you want to cancel this reservation?
+              </p>
+              <div className="bg-muted rounded-md p-3 mb-4">
+                <div className="text-sm space-y-1">
+                  <p className="font-medium text-card-foreground">
+                    Booking Code: {reservation.bookingCode}
+                  </p>
+                  <p className="text-muted-foreground">
+                    Guest: {reservation.primaryGuest?.firstName}{" "}
+                    {reservation.primaryGuest?.lastName}
+                  </p>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                This action cannot be undone. The guest will be notified of the
+                cancellation.
+              </p>
+            </div>
           </div>
         </div>
-
-        <p className="text-xs text-muted-foreground">
-          This action cannot be undone. The guest will be notified of the cancellation.
-        </p>
-
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={onCancel} disabled={isLoading}>
+        <div className="border-t border-border p-4 flex justify-end gap-3">
+          <button
+            onClick={onCancel}
+            disabled={isLoading}
+            className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-card-foreground border border-border rounded-md hover:bg-accent transition-colors disabled:opacity-50"
+          >
             Cancel
-          </Button>
-          <Button variant="destructive" onClick={onConfirm} disabled={isLoading}>
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={isLoading}
+            className="px-4 py-2 text-sm font-medium bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors disabled:opacity-50"
+          >
             {isLoading ? "Cancelling..." : "Yes, Cancel Reservation"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -140,25 +143,17 @@ export default function ReservationsTable({
 }: ReservationsTableProps) {
   const [selectedReservation, setSelectedReservation] = useState<IReservation | null>(null);
   const [dialogOpen, setDialogOpen] = useState<{
-    viewDialog: boolean;
     cancelDialog: boolean;
     noShowDialog: boolean;
     amendDialog: boolean;
   }>({
-    viewDialog: false,
     cancelDialog: false,
     noShowDialog: false,
-    amendDialog: false,
+    amendDialog: false
   });
-
-  const openDialog = (type: keyof typeof dialogOpen, reservation: IReservation) => {
-    setSelectedReservation(reservation);
-    setDialogOpen((prev) => ({ ...prev, [type]: true }));
-  };
-
-  const closeDialog = (type: keyof typeof dialogOpen) => {
-    setDialogOpen((prev) => ({ ...prev, [type]: false }));
-  };;
+  // const [reservationToCancel, setReservationToCancel] = useState<IReservation | null>(null);
+  // const [reservationToAmend, setReservationToAmend] = useState<IReservation | null>(null);
+  // const [reservationToNoShow, setReservationToNoShow] = useState<IReservation | null>(null);
   const [isCancelling, setIsCancelling] = useState<boolean>(false);
   const [isMarkingNoShow, setIsMarkingNoShow] = useState<boolean>(false);
   const formatDate = (dateString: string) => {
@@ -223,10 +218,11 @@ export default function ReservationsTable({
 
   const handleConfirmCancel = async () => {
     if (!selectedReservation) return;
+
     setIsCancelling(true);
     try {
       await onCancel(selectedReservation.id);
-      closeDialog("cancelDialog");
+      setSelectedReservation(null);
     } catch (error) {
       console.error("Failed to cancel reservation:", error);
     } finally {
@@ -240,10 +236,11 @@ export default function ReservationsTable({
 
   const handleConfirmNoShow = async () => {
     if (!selectedReservation) return;
+
     setIsMarkingNoShow(true);
     try {
       await onNoShow(selectedReservation.id);
-      closeDialog("noShowDialog");
+      setSelectedReservation(null);
     } catch (error) {
       console.error("Failed to mark reservation as no-show:", error);
     } finally {
@@ -353,7 +350,7 @@ export default function ReservationsTable({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuItem
-                        onClick={() => openDialog("viewDialog", reservation)}
+                        onClick={() => setSelectedReservation(reservation)}
                         className="cursor-pointer"
                       >
                         <Eye className="w-4 h-4 mr-3" />
@@ -368,8 +365,15 @@ export default function ReservationsTable({
                         <FileText className="w-4 h-4 mr-3" />
                         Download Voucher
                       </DropdownMenuItem>
+                      {/* <DropdownMenuItem
+    onClick={() => handleDownloadInvoice(reservation.bookingCode)}
+    className="cursor-pointer"
+  >
+    <FileDown className="w-4 h-4 mr-3" />
+    Download Invoice
+  </DropdownMenuItem> */}
                       <DropdownMenuItem
-                        onClick={() => openDialog("amendDialog", reservation)}
+                        onClick={() => setSelectedReservation(reservation)}
                         className="cursor-pointer"
                       >
                         <Edit className="w-4 h-4 mr-3" />
@@ -379,7 +383,7 @@ export default function ReservationsTable({
                         reservation.bookingStatus,
                       ) && (
                           <DropdownMenuItem
-                            onClick={() => openDialog("noShowDialog", reservation)}
+                            onClick={() => setSelectedReservation(reservation)}
                             className="cursor-pointer text-destructive focus:text-destructive"
                           >
                             <EyeOff className="w-4 h-4 mr-3" />
@@ -390,7 +394,7 @@ export default function ReservationsTable({
                         reservation.bookingStatus,
                       ) && (
                           <DropdownMenuItem
-                            onClick={() => openDialog("cancelDialog", reservation)}
+                            onClick={() => setSelectedReservation(reservation)}
                             className="cursor-pointer text-destructive focus:text-destructive"
                           >
                             <XCircle className="w-4 h-4 mr-3" />
@@ -407,19 +411,19 @@ export default function ReservationsTable({
       </div>
 
       {/* View Details Modal */}
-      <ViewDetailsModal
-        open={dialogOpen.viewDialog}
-        reservation={selectedReservation}
-        onClose={() => closeDialog("viewDialog")}
-      />
+      {selectedReservation && (
+        <ViewDetailsModal
+          reservation={selectedReservation}
+          onClose={() => setSelectedReservation(null)}
+        />
+      )}
 
       {/* Cancel Confirmation Modal */}
       {selectedReservation && (
         <CancelConfirmationModal
-          open={dialogOpen.cancelDialog}
           reservation={selectedReservation}
           onConfirm={handleConfirmCancel}
-          onCancel={() => closeDialog("cancelDialog")}
+          onCancel={() => setSelectedReservation(null)}
           isLoading={isCancelling}
         />
       )}
@@ -428,7 +432,7 @@ export default function ReservationsTable({
           open={dialogOpen.noShowDialog}
           reservation={selectedReservation}
           onConfirm={handleConfirmNoShow}
-          onCancel={() => closeDialog("noShowDialog")}
+          onCancel={() => setSelectedReservation(null)}
           isLoading={isMarkingNoShow}
         />
       )}
@@ -436,8 +440,10 @@ export default function ReservationsTable({
         <AmendReservationModal
           open={dialogOpen.amendDialog}
           reservation={selectedReservation}
-          onClose={() => closeDialog("amendDialog")}
-          onSuccess={() => closeDialog("amendDialog")}
+          onClose={() => setSelectedReservation(null)}
+          onSuccess={() => {
+            setSelectedReservation(null);
+          }}
         />
       )}
     </>
