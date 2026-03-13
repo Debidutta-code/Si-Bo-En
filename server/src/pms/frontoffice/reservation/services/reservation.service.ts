@@ -1537,6 +1537,39 @@ export class ReservationService {
                 reservation.checkOutDate
             );
 
+            // Attempt N-Genius refund FIRST, before cancelling in DB or RT
+            let refundResult: { success: boolean; message: string; data?: any } | null = null;
+            try {
+                console.log(`\n[DEBUG - REFUND FLOW] 🔍 Looking up payment record for reservation: ${reservationId}`);
+                const paymentRecord = await prisma.payment.findFirst({
+                    where: { reservationId },
+                    select: {
+                        paymentIntentId: true,
+                        paymentMethod: true,
+                        PropertyPaymentIntegration: true,
+                    }
+                });
+                
+                console.log(`[DEBUG - REFUND FLOW] 📄 Payment record found:`, JSON.stringify(paymentRecord));
+
+                if (paymentRecord?.paymentIntentId && paymentRecord.paymentMethod === 'payment_gateway') {
+                    console.log(`[DEBUG - REFUND FLOW] 💸 Triggering N-Genius refund for order: ${paymentRecord.paymentIntentId}`);
+                    refundResult = await ngeniusService.processRefund(paymentRecord.paymentIntentId, paymentRecord.PropertyPaymentIntegration?.outletId);
+
+                    console.log(`[DEBUG - REFUND FLOW] 📥 Refund result received:`, JSON.stringify(refundResult));
+
+                    if (!refundResult.success) {
+                        console.error(`[DEBUG - REFUND FLOW] ⚠️ Refund failed for reservation ${reservationId}: ${refundResult.message}`);
+                        return errorResponse(`Refund failed: ${refundResult.message}. Reservation was not cancelled.`);
+                    }
+                } else {
+                    console.log(`[DEBUG - REFUND FLOW] ⏭️ Skipping refund. reason: No paymentIntentId or method is not payment_gateway.`);
+                }
+            } catch (refundError) {
+                console.error(`[DEBUG - REFUND FLOW] ❌ Error during refund for reservation ${reservationId}:`, refundError);
+                return errorResponse('Refund processing encountered an error. Reservation was not cancelled.');
+            }
+
             // Cancel reservation
             // CORRECT ORDER:
 
@@ -1708,38 +1741,6 @@ export class ReservationService {
                             error
                         );
                     });
-            }
-
-            // After successful cancellation in DB and before returning response, attempt N-Genius refund if applicable
-            let refundResult: { success: boolean; message: string; data?: any } | null = null;
-            try {
-                console.log(`[DEBUG - REFUND FLOW] 🔍 Looking up payment record for reservation: ${reservationId}`);
-                const paymentRecord = await prisma.payment.findFirst({
-                    where: { reservationId },
-                    select: {
-                        paymentIntentId: true,
-                        paymentMethod: true,
-                        PropertyPaymentIntegration: true,
-                    }
-                });
-                
-                console.log(`[DEBUG - REFUND FLOW] 📄 Payment record found:`, JSON.stringify(paymentRecord));
-
-                if (paymentRecord?.paymentIntentId && paymentRecord.paymentMethod === 'payment_gateway') {
-                    console.log(`[DEBUG - REFUND FLOW] 💸 Triggering N-Genius refund for order: ${paymentRecord.paymentIntentId}`);
-                    refundResult = await ngeniusService.processRefund(paymentRecord.paymentIntentId, paymentRecord.PropertyPaymentIntegration?.outletId);
-
-                    console.log(`[DEBUG - REFUND FLOW] 📥 Refund result received:`, JSON.stringify(refundResult));
-
-                    if (!refundResult.success) {
-                        console.error(`[DEBUG - REFUND FLOW] ⚠️ Refund failed for reservation ${reservationId}: ${refundResult.message}`);
-                    }
-                } else {
-                    console.log(`[DEBUG - REFUND FLOW] ⏭️ Skipping refund. reason: No paymentIntentId or method is not payment_gateway.`);
-                }
-            } catch (refundError) {
-                console.error(`[DEBUG - REFUND FLOW] ❌ Error during refund for reservation ${reservationId}:`, refundError);
-                refundResult = { success: false, message: 'Refund processing encountered an error' };
             }
 
             const returnData = {
