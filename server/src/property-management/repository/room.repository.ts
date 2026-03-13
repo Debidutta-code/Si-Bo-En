@@ -162,6 +162,9 @@ export class RoomDao {
           roomName: true,
           roomType: true,
           totalRoom: true,
+          maxNumberOfAdults: true,
+          maxNumberOfChildren: true,
+          maxOccupancy: true
       }});
       return rooms;
     } catch (error) {

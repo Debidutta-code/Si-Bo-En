@@ -530,15 +530,15 @@ class BasePriceClass {
                 if (rule.taxRule.applicableOn == 'room_rate') {
                     runningTotal += taxForThisRule;
                 } else {
-                    runningTotal = runningTotal + taxForThisRule ;
+                    runningTotal = runningTotal + taxForThisRule;
                 }
 
                 dailyTaxBrakeDown.push({
                     name: rule.taxRule.name,
-                    taxedAmount:taxForThisRule,
-                        // rule.taxRule.applicableOn == 'total_amount'
-                        //     ? taxForThisRule
-                        //     : taxForThisRule * this.rooms,
+                    taxedAmount: taxForThisRule,
+                    // rule.taxRule.applicableOn == 'total_amount'
+                    //     ? taxForThisRule
+                    //     : taxForThisRule * this.rooms,
                     currencyCode: day.currencyCode,
                 });
             });
@@ -900,12 +900,12 @@ class PromotionClass {
         const { autoAppliedMLOS, autoAppliedPromotions } =
             await this.fetchAllAutoAppliedPromotions();
         const autoAppliedMlosBrakeDown =
-            this.calculateAutoAppliedMLOSPrices(autoAppliedMLOS);
+            this.calculateAutoAppliedMLOSPrices(autoAppliedMLOS, "auto-applied");
         const autoAppliedPromotionBrakeDown =
-            this.calculateAutoAppliedPromotionPrices(autoAppliedPromotions);
-        const mlsoBrakeDown = this.calculateAutoAppliedMLOSPrices(this.mlos);
+            this.calculateAutoAppliedPromotionPrices(autoAppliedPromotions, "auto-applied");
+        const mlsoBrakeDown = this.calculateAutoAppliedMLOSPrices(this.mlos, "user-applied");
         const promotionBrakeDown = this.calculateAutoAppliedPromotionPrices(
-            this.promotions
+            this.promotions, "user-applied"
         );
         const geoPriceBrakedown = this.calculateGeoLocation(country);
 
@@ -960,7 +960,7 @@ class PromotionClass {
         ]);
         return { autoAppliedMLOS, autoAppliedPromotions };
     }
-    private calculateAutoAppliedMLOSPrices(mlos: IMLOS[]) {
+    private calculateAutoAppliedMLOSPrices(mlos: IMLOS[], type: "user-applied" | "auto-applied") {
         const differenceReservationDays = this.differenceReservationDays(
             this.startDate,
             this.endDate
@@ -987,6 +987,7 @@ class PromotionClass {
                         discountType: 'percentage',
                         discountValue: Number(mlos.discountValue),
                         restrictionType: 'decrease',
+                        type
                     });
                 } else if (mlos.discountType == 'flat') {
                     mlosBrakeDown.push({
@@ -998,6 +999,7 @@ class PromotionClass {
                         discountValue: Number(mlos.discountValue),
                         discountType: 'flat',
                         restrictionType: 'decrease',
+                        type
                     });
                 }
             }
@@ -1005,27 +1007,28 @@ class PromotionClass {
         return mlosBrakeDown;
     }
     private calculateAutoAppliedPromotionPrices(
-        autoAppliedPromotions: ICEbDsOftc[]
+        autoAppliedPromotions: ICEbDsOftc[],
+        type: "user-applied" | "auto-applied"
     ): PromotionBrakeDown[] {
         const promotionBrakeDown: PromotionBrakeDown[] = [];
         autoAppliedPromotions.forEach(promotion => {
             if (promotion.promotionType === 'early_bird') {
                 const earlyBirdPromotionBrakeDown =
-                    this.calculateEarlyBirdPromotionPrices(promotion);
+                    this.calculateEarlyBirdPromotionPrices(promotion,type);
                 if (!earlyBirdPromotionBrakeDown) {
                     return;
                 }
                 promotionBrakeDown.push(earlyBirdPromotionBrakeDown);
             } else if (promotion.promotionType === 'offer_for_tonight') {
                 const offerForTonightPromotionBrakeDown =
-                    this.calculateOfferForTonightPromotionPrices(promotion);
+                    this.calculateOfferForTonightPromotionPrices(promotion,type);
                 if (!offerForTonightPromotionBrakeDown) {
                     return;
                 }
                 promotionBrakeDown.push(offerForTonightPromotionBrakeDown);
             } else if (promotion.promotionType === 'device_specific') {
                 const deviceBasedPromotionBrakeDown =
-                    this.calculateDeviceBasedPromotionPrices(promotion);
+                    this.calculateDeviceBasedPromotionPrices(promotion,type);
                 if (!deviceBasedPromotionBrakeDown) {
                     return;
                 }
@@ -1035,7 +1038,8 @@ class PromotionClass {
         return promotionBrakeDown;
     }
     private calculateDeviceBasedPromotionPrices(
-        promotion: ICEbDsOftc
+        promotion: ICEbDsOftc,
+        type: "user-applied" | "auto-applied"
     ): PromotionBrakeDown | null {
         if (!this.detectedDeviceType) {
             return null;
@@ -1061,6 +1065,7 @@ class PromotionClass {
                     discountType: 'percentage',
                     discountValue: Number(promotion.discountValue),
                     restrictionType: 'decrease',
+                    type
                 };
             } else if (promotion.discountType == 'flat') {
                 return {
@@ -1072,13 +1077,15 @@ class PromotionClass {
                     discountType: 'flat',
                     discountValue: Number(promotion.discountValue),
                     restrictionType: 'decrease',
+                    type
                 };
             }
         }
         return null;
     }
     private calculateEarlyBirdPromotionPrices(
-        promotion: ICEbDsOftc
+        promotion: ICEbDsOftc,
+        type: "user-applied" | "auto-applied"
     ): PromotionBrakeDown | null {
         if (!promotion.advanceBookingDays) {
             return null;
@@ -1109,6 +1116,7 @@ class PromotionClass {
                     discountType: 'percentage',
                     discountValue: Number(promotion.discountValue),
                     restrictionType: 'decrease',
+                    type
                 };
             } else if (promotion.discountType == 'flat') {
                 return {
@@ -1120,13 +1128,15 @@ class PromotionClass {
                     discountType: 'flat',
                     discountValue: Number(promotion.discountValue),
                     restrictionType: 'decrease',
+                    type
                 };
             }
         }
         return null;
     }
     private calculateOfferForTonightPromotionPrices(
-        promotion: ICEbDsOftc
+        promotion: ICEbDsOftc,
+        type: "user-applied" | "auto-applied"
     ): PromotionBrakeDown | null {
         const checkPromotionDayApplicability =
             this.checkIfPromotionActiveForDay(promotion, this.startDate);
@@ -1154,6 +1164,7 @@ class PromotionClass {
                     discountType: 'percentage',
                     discountValue: Number(promotion.discountValue),
                     restrictionType: 'decrease',
+                    type
                 };
             } else if (promotion.discountType == 'flat') {
                 return {
@@ -1165,6 +1176,7 @@ class PromotionClass {
                     discountType: 'flat',
                     discountValue: Number(promotion.discountValue),
                     restrictionType: 'decrease',
+                    type
                 };
             }
         }
@@ -1217,6 +1229,7 @@ class PromotionClass {
                         discountValue: Number(geo.restrictionValue),
                         name: 'Geo Restriction',
                         restrictionType: 'decrease',
+                        type: "auto-applied"
                     });
                 } else if (geo.restrictionType === 'percentage') {
                     promotionBrakehown.push({
@@ -1230,6 +1243,8 @@ class PromotionClass {
                         discountValue: Number(geo.restrictionValue),
                         name: 'Geo Restriction',
                         restrictionType: 'decrease',
+                        type: "auto-applied"
+
                     });
                 }
             }
@@ -1281,6 +1296,8 @@ class TouristTaxClass {
                         Number(touristTax.discountValue)) /
                     100,
                 restrictionType: 'payLater',
+                type: "auto-applied"
+
             };
         } else {
             return {
@@ -1292,6 +1309,8 @@ class TouristTaxClass {
                 currencyCode: touristTax.currencyCode,
                 discountAmount: Number(touristTax.discountValue),
                 restrictionType: 'payLater',
+                type: "auto-applied"
+
             };
         }
     }
