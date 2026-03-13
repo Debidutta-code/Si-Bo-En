@@ -14,7 +14,7 @@ import type {
   IReservation,
   IReservationFilters,
   IPaginationMeta,
-  IProperty,
+  IPropertyListItem,
 } from "./types/index";
 import { Calendar, FileText, AlertCircle } from "lucide-react";
 import { ReservationFilters } from "./components";
@@ -24,7 +24,7 @@ import ReservationsTable from "./components/ReservationsTable";
 
 export default function ReservationsPage() {
   const [reservations, setReservations] = useState<IReservation[]>([]);
-  const [properties, setProperties] = useState<IProperty[]>([]);
+  const [properties, setProperties] = useState<IPropertyListItem[]>([]);
   const [pagination, setPagination] = useState<IPaginationMeta>({
     currentPage: 1,
     totalPages: 0,

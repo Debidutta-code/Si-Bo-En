@@ -10,7 +10,7 @@ import {
   Smartphone,
   Download,
 } from "lucide-react";
-import type { IReservationFilters, IProperty } from "../types";
+import type { IReservationFilters, IPropertyListItem } from "../types";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,7 +26,7 @@ import { countries } from "../utils/country.utils";
 interface ReservationFiltersProps {
   filters: IReservationFilters;
   onFilterChange: (filters: Partial<IReservationFilters>) => void;
-  properties: IProperty[];
+  properties: IPropertyListItem[];
   onClearFilters: () => void;
   onDownloadReservationsExcel?: () => void; // Only Excel
   isDownloading?: boolean;

@@ -1,11 +1,2 @@
-export type {
-    IGuest,
-    IPaginationMeta,
-    IPriceBreakdown,
-    IPrimaryGuest,
-    IProperty,
-    IReservation,
-    IReservationFilters,
-    IReservationResponse
-} from "./reservation";
+export * from "./reservation";
 export * from "./amend.types";
