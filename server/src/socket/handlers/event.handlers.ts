@@ -69,22 +69,30 @@ export class SocketEventHandlers {
             cachedSuccess = cachedSuccessRaw ? String(cachedSuccessRaw) : null;
             console.log(`🔍 Redis check - success key: payment:confirmed:${orderReference}, found:`, !!cachedSuccess);
             if (cachedSuccess) {
-                            const paymentData = JSON.parse(cachedSuccess);
-
+                const paymentData = JSON.parse(cachedSuccess);
                 socket.emit('payment-status-update', {
-                orderReference,
-                eventName: 'payment-confirmed',
-                status: 'success',
-                message: 'Payment successful',
-                paymentDetails: paymentData,
-            });
+                    orderReference,
+                    eventName: 'payment-confirmed',
+                    status: 'success',
+                    message: 'Payment successful',
+                    paymentDetails: paymentData,
+                });
                 // await redis.del(`payment:confirmed:${orderReference}`);
             } else {
                 const cachedFailureRaw = await redis.get(`payment:failed:${orderReference}`);
                 cachedFailure = cachedFailureRaw ? String(cachedFailureRaw) : null;
                 console.log(`🔍 Redis check - failure key: payment:failed:${orderReference}, found:`, !!cachedFailure);
                 if (cachedFailure) {
-                    await redis.del(`payment:failed:${orderReference}`);
+                    const failureData = JSON.parse(cachedFailure);
+
+                    socket.emit('payment-status-update', {
+                        orderReference,
+                        eventName: 'payment-failed',
+                        status: 'failed',
+                        message: failureData.message || 'Payment failed',
+                        paymentDetails: failureData,
+                    });
+                    // await redis.del(`payment:failed:${orderReference}`);
                 }
             }
         } catch (err) {
@@ -92,35 +100,35 @@ export class SocketEventHandlers {
         }
 
         // Handle successful payment
-        if (cachedSuccess) {
-            console.log(`🔑 Redis cache hit (success) for ${orderReference} - emitting immediately`);
-            const paymentData = JSON.parse(cachedSuccess);
-            socket.emit('payment-status-update', {
-                orderReference,
-                eventName: 'payment-confirmed',
-                status: 'success',
-                message: 'Payment successful',
-                paymentDetails: paymentData,
-            });
-            return;
-        }
+        // if (cachedSuccess) {
+        //     console.log(`🔑 Redis cache hit (success) for ${orderReference} - emitting immediately`);
+        //     const paymentData = JSON.parse(cachedSuccess);
+        //     socket.emit('payment-status-update', {
+        //         orderReference,
+        //         eventName: 'payment-confirmed',
+        //         status: 'success',
+        //         message: 'Payment successful',
+        //         paymentDetails: paymentData,
+        //     });
+        //     return;
+        // }
 
         // Handle failed payment
-        if (cachedFailure) {
-            console.log(
-                `🔑 Redis cache hit (failure) for ${orderReference} - emitting immediately`
-            );
-            const failureData = JSON.parse(cachedFailure);
+        // if (cachedFailure) {
+        //     console.log(
+        //         `🔑 Redis cache hit (failure) for ${orderReference} - emitting immediately`
+        //     );
+        //     const failureData = JSON.parse(cachedFailure);
 
-            socket.emit('payment-status-update', {
-                orderReference,
-                eventName: 'payment-failed',
-                status: 'failed',
-                message: failureData.message || 'Payment failed',
-                paymentDetails: failureData,
-            });
-            return;
-        }
+        //     socket.emit('payment-status-update', {
+        //         orderReference,
+        //         eventName: 'payment-failed',
+        //         status: 'failed',
+        //         message: failureData.message || 'Payment failed',
+        //         paymentDetails: failureData,
+        //     });
+        //     return;
+        // }
     }
 
     /**
