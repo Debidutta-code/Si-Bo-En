@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import {
   MoreVertical,
@@ -26,14 +28,12 @@ import {
 import type { IReservation } from "../types";
 import ReservationCard from "./ReservationCard";
 import NoShowConfirmationModal from "./NoShowModal";
-import {
-  // downloadBookingInvoice,
-  downloadBookingVoucher,
-} from "../api/reservation.api";
+import { downloadBookingVoucher } from "../api/reservation.api";
 import toast from "react-hot-toast";
 import AmendReservationModal from "./Amendreservationmodal";
 
-// Modal to show ReservationCard
+// ─── View Details Modal ───────────────────────────────────────────────────────
+
 interface ViewDetailsModalProps {
   reservation: IReservation | null;
   onClose: () => void;
@@ -41,7 +41,6 @@ interface ViewDetailsModalProps {
 
 function ViewDetailsModal({ reservation, onClose }: ViewDetailsModalProps) {
   if (!reservation) return null;
-
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
       <div className="bg-card rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto relative my-8">
@@ -59,7 +58,8 @@ function ViewDetailsModal({ reservation, onClose }: ViewDetailsModalProps) {
   );
 }
 
-// Cancel Confirmation Modal
+// ─── Cancel Confirmation Modal ────────────────────────────────────────────────
+
 interface CancelConfirmationModalProps {
   reservation: IReservation;
   onConfirm: () => void;
@@ -129,12 +129,15 @@ function CancelConfirmationModal({
   );
 }
 
-// Main Reservations Table Component
+// ─── Main Table ───────────────────────────────────────────────────────────────
+
 interface ReservationsTableProps {
   reservations: IReservation[];
   onCancel: (reservationId: string) => Promise<void>;
   onNoShow: (reservationId: string) => Promise<void>;
 }
+
+type DialogType = "view" | "amend" | "cancel" | "noShow" | null;
 
 export default function ReservationsTable({
   reservations,
@@ -142,24 +145,64 @@ export default function ReservationsTable({
   onNoShow,
 }: ReservationsTableProps) {
   const [selectedReservation, setSelectedReservation] = useState<IReservation | null>(null);
-  const [dialogOpen, setDialogOpen] = useState<{
-    cancelDialog: boolean;
-    noShowDialog: boolean;
-    amendDialog: boolean;
-  }>({
-    cancelDialog: false,
-    noShowDialog: false,
-    amendDialog: false
-  });
-  // const [reservationToCancel, setReservationToCancel] = useState<IReservation | null>(null);
-  // const [reservationToAmend, setReservationToAmend] = useState<IReservation | null>(null);
-  // const [reservationToNoShow, setReservationToNoShow] = useState<IReservation | null>(null);
-  const [isCancelling, setIsCancelling] = useState<boolean>(false);
-  const [isMarkingNoShow, setIsMarkingNoShow] = useState<boolean>(false);
+  const [activeDialog, setActiveDialog] = useState<DialogType>(null);
+  const [isCancelling, setIsCancelling] = useState(false);
+  const [isMarkingNoShow, setIsMarkingNoShow] = useState(false);
+
+  const openDialog = (type: DialogType, reservation: IReservation) => {
+    setSelectedReservation(reservation);
+    setActiveDialog(type);
+  };
+
+  const closeDialog = () => {
+    setSelectedReservation(null);
+    setActiveDialog(null);
+  };
+
+  // ─── Handlers ──────────────────────────────────────────────────────────────
+
+  const handleConfirmCancel = async () => {
+    if (!selectedReservation) return;
+    setIsCancelling(true);
+    try {
+      await onCancel(selectedReservation.id);
+      closeDialog();
+    } catch (error) {
+      console.error("Failed to cancel reservation:", error);
+    } finally {
+      setIsCancelling(false);
+    }
+  };
+
+  const handleConfirmNoShow = async () => {
+    if (!selectedReservation) return;
+    setIsMarkingNoShow(true);
+    try {
+      await onNoShow(selectedReservation.id);
+      closeDialog();
+    } catch (error) {
+      console.error("Failed to mark reservation as no-show:", error);
+    } finally {
+      setIsMarkingNoShow(false);
+    }
+  };
+
+  const handleDownloadVoucher = async (bookingCode: string) => {
+    try {
+      const response = await downloadBookingVoucher(bookingCode);
+      if (!response.success) {
+        toast.error(response.message || "Failed to download voucher");
+      }
+    } catch {
+      toast.error("Failed to download voucher");
+    }
+  };
+
+  // ─── Formatting ────────────────────────────────────────────────────────────
+
   const formatDate = (dateString: string) => {
     try {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", {
+      return new Date(dateString).toLocaleDateString("en-US", {
         month: "short",
         day: "numeric",
         year: "numeric",
@@ -168,12 +211,9 @@ export default function ReservationsTable({
       return dateString;
     }
   };
-  const formatStatusLabel = (status: string) => {
-    return status
-      ?.toLowerCase()
-      .replace(/_/g, " ")
-      .replace(/\b\w/g, (char) => char.toUpperCase());
-  };
+
+  const formatStatusLabel = (status: string) =>
+    status?.toLowerCase().replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
   const getStatusBadge = (status: string) => {
     const statusLower = status?.toLowerCase() || "";
@@ -185,90 +225,20 @@ export default function ReservationsTable({
       modified: "bg-purple-100 text-purple-800",
       no_show: "bg-red-100 text-red-800",
     };
-
     return (
-      <span
-        className={`inline-flex px-1 py-0 text-[10px] font-medium rounded uppercase ${variants[statusLower] || "bg-muted text-muted-foreground"
-          }`}
-      >
+      <span className={`inline-flex px-1 py-0 text-[10px] font-medium rounded uppercase ${variants[statusLower] || "bg-muted text-muted-foreground"}`}>
         {formatStatusLabel(status)}
       </span>
     );
   };
 
-  const calculateRooms = (reservation: IReservation) => {
-    return (
-      reservation.finalPrice?.requestedRooms ??
-      reservation.priceBreakdowns?.[0]?.requestedRooms ??
-      1
-    );
-  };
+  const calculateRooms = (reservation: IReservation) =>
+    reservation.finalPrice?.requestedRooms ??
+    reservation.priceBreakdowns?.[0]?.requestedRooms ??
+    1;
 
-  // const handleViewDetails = (reservation: IReservation) => {
-  //   setSelectedReservation(reservation);
-  // };
+  // ─── Render ────────────────────────────────────────────────────────────────
 
-  // const handleAmendClick = (reservation: IReservation) => {
-  //   setReservationToAmend(reservation);
-  // };
-
-  // const handleCancelClick = (reservation: IReservation) => {
-  //   setReservationToCancel(reservation);
-  // };
-
-  const handleConfirmCancel = async () => {
-    if (!selectedReservation) return;
-
-    setIsCancelling(true);
-    try {
-      await onCancel(selectedReservation.id);
-      setSelectedReservation(null);
-    } catch (error) {
-      console.error("Failed to cancel reservation:", error);
-    } finally {
-      setIsCancelling(false);
-    }
-  };
-
-  // const handleNoShowClick = (reservation: IReservation) => {
-  //   setReservationToNoShow(reservation);
-  // };
-
-  const handleConfirmNoShow = async () => {
-    if (!selectedReservation) return;
-
-    setIsMarkingNoShow(true);
-    try {
-      await onNoShow(selectedReservation.id);
-      setSelectedReservation(null);
-    } catch (error) {
-      console.error("Failed to mark reservation as no-show:", error);
-    } finally {
-      setIsMarkingNoShow(false);
-    }
-  };
-  // Add these functions inside your ReservationsTable component
-  const handleDownloadVoucher = async (bookingCode: string) => {
-    try {
-      const response = await downloadBookingVoucher(bookingCode);
-      if (!response.success) {
-        toast.error(response.message || "Failed to download voucher");
-      }
-    } catch (error) {
-      toast.error("Failed to download voucher");
-    }
-  };
-
-  // const handleDownloadInvoice = async (bookingCode: string) => {
-  //   try {
-  //     const response = await downloadBookingInvoice(bookingCode);
-  //     if (!response.success) {
-  //       toast.error(response.message || "Failed to download invoice");
-  //     }
-  //   } catch (error) {
-  //     toast.error("Failed to download invoice");
-  //   }
-  // };
   return (
     <>
       <div className="bg-card rounded-lg border border-border overflow-hidden">
@@ -306,18 +276,7 @@ export default function ReservationsTable({
                 </TableCell>
                 <TableCell>
                   <div className="flex items-center gap-1">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="text-muted-foreground"
-                    >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
                       <rect x="3" y="3" width="18" height="18" rx="2" />
                       <path d="M9 3v18" />
                     </svg>
@@ -326,20 +285,11 @@ export default function ReservationsTable({
                 </TableCell>
                 <TableCell>{formatDate(reservation.checkInDate)}</TableCell>
                 <TableCell>{formatDate(reservation.checkOutDate)}</TableCell>
+                <TableCell>{getStatusBadge(reservation.bookingStatus)}</TableCell>
+                <TableCell className="uppercase text-[12px]">{reservation.bookingSource}</TableCell>
+                <TableCell>{reservation.finalPrice?.totalAmount?.toFixed(2) ?? "—"}</TableCell>
                 <TableCell>
-                  {getStatusBadge(reservation.bookingStatus)}
-                </TableCell>
-                <TableCell className="uppercase text-[12px]">
-                  {reservation.bookingSource}
-                </TableCell>
-                <TableCell>
-                  {" "}
-                  {reservation.finalPrice?.totalAmount?.toFixed(2) ?? "—"}
-                </TableCell>
-                <TableCell>
-                  {((reservation.finalPrice?.totalAmount ?? 0) -
-                    (reservation.finalPrice?.totalTaxAmount ?? 0)
-                  ).toFixed(2)}
+                  {((reservation.finalPrice?.totalAmount ?? 0) - (reservation.finalPrice?.taxedAmount ?? 0)).toFixed(2)}
                 </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
@@ -349,58 +299,30 @@ export default function ReservationsTable({
                       </button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem
-                        onClick={() => setSelectedReservation(reservation)}
-                        className="cursor-pointer"
-                      >
+                      <DropdownMenuItem onClick={() => openDialog("view", reservation)} className="cursor-pointer">
                         <Eye className="w-4 h-4 mr-3" />
                         View Details
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() =>
-                          handleDownloadVoucher(reservation.bookingCode)
-                        }
-                        className="cursor-pointer"
-                      >
+                      <DropdownMenuItem onClick={() => handleDownloadVoucher(reservation.bookingCode)} className="cursor-pointer">
                         <FileText className="w-4 h-4 mr-3" />
                         Download Voucher
                       </DropdownMenuItem>
-                      {/* <DropdownMenuItem
-    onClick={() => handleDownloadInvoice(reservation.bookingCode)}
-    className="cursor-pointer"
-  >
-    <FileDown className="w-4 h-4 mr-3" />
-    Download Invoice
-  </DropdownMenuItem> */}
-                      <DropdownMenuItem
-                        onClick={() => setSelectedReservation(reservation)}
-                        className="cursor-pointer"
-                      >
+                      <DropdownMenuItem onClick={() => openDialog("amend", reservation)} className="cursor-pointer">
                         <Edit className="w-4 h-4 mr-3" />
                         Amend
                       </DropdownMenuItem>
-                      {!["cancelled", "no_show"].includes(
-                        reservation.bookingStatus,
-                      ) && (
-                          <DropdownMenuItem
-                            onClick={() => setSelectedReservation(reservation)}
-                            className="cursor-pointer text-destructive focus:text-destructive"
-                          >
-                            <EyeOff className="w-4 h-4 mr-3" />
-                            No Show
-                          </DropdownMenuItem>
-                        )}
-                      {!["cancelled", "no_show"].includes(
-                        reservation.bookingStatus,
-                      ) && (
-                          <DropdownMenuItem
-                            onClick={() => setSelectedReservation(reservation)}
-                            className="cursor-pointer text-destructive focus:text-destructive"
-                          >
-                            <XCircle className="w-4 h-4 mr-3" />
-                            Cancel
-                          </DropdownMenuItem>
-                        )}
+                      {!["cancelled", "no_show"].includes(reservation.bookingStatus) && (
+                        <DropdownMenuItem onClick={() => openDialog("noShow", reservation)} className="cursor-pointer text-destructive focus:text-destructive">
+                          <EyeOff className="w-4 h-4 mr-3" />
+                          No Show
+                        </DropdownMenuItem>
+                      )}
+                      {!["cancelled", "no_show"].includes(reservation.bookingStatus) && (
+                        <DropdownMenuItem onClick={() => openDialog("cancel", reservation)} className="cursor-pointer text-destructive focus:text-destructive">
+                          <XCircle className="w-4 h-4 mr-3" />
+                          Cancel
+                        </DropdownMenuItem>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>
@@ -410,40 +332,38 @@ export default function ReservationsTable({
         </Table>
       </div>
 
-      {/* View Details Modal */}
-      {selectedReservation && (
-        <ViewDetailsModal
-          reservation={selectedReservation}
-          onClose={() => setSelectedReservation(null)}
-        />
+      {/* View Details */}
+      {activeDialog === "view" && (
+        <ViewDetailsModal reservation={selectedReservation} onClose={closeDialog} />
       )}
 
-      {/* Cancel Confirmation Modal */}
-      {selectedReservation && (
+      {/* Cancel */}
+      {activeDialog === "cancel" && selectedReservation && (
         <CancelConfirmationModal
           reservation={selectedReservation}
           onConfirm={handleConfirmCancel}
-          onCancel={() => setSelectedReservation(null)}
+          onCancel={closeDialog}
           isLoading={isCancelling}
         />
       )}
-      {selectedReservation && (
+
+      {/* No Show */}
+      {activeDialog === "noShow" && selectedReservation && (
         <NoShowConfirmationModal
-          open={dialogOpen.noShowDialog}
           reservation={selectedReservation}
           onConfirm={handleConfirmNoShow}
-          onCancel={() => setSelectedReservation(null)}
+          onCancel={closeDialog}
           isLoading={isMarkingNoShow}
         />
       )}
-      {selectedReservation && (
+
+      {/* Amend */}
+      {activeDialog === "amend" && selectedReservation && (
         <AmendReservationModal
-          open={dialogOpen.amendDialog}
+          open={true}
           reservation={selectedReservation}
-          onClose={() => setSelectedReservation(null)}
-          onSuccess={() => {
-            setSelectedReservation(null);
-          }}
+          onClose={closeDialog}
+          onSuccess={closeDialog}
         />
       )}
     </>

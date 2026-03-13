@@ -14,7 +14,6 @@ const PaymentSuccessPage = () => {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
 
-  // Get booking code from URL params (for Fikafi redirect)
   const urlBookingCode = searchParams?.get("bookingCode");
 
   // Add the hook usage at the component level
@@ -92,7 +91,8 @@ const PaymentSuccessPage = () => {
   const handleViewBookings = () => {
     setLoading(true);
     // Use URL booking code if available, otherwise use Redux booking code
-    const code = urlBookingCode || bookingData.bookingCode;
+    const rawCode = urlBookingCode || bookingData.bookingCode;
+    const code = rawCode?.split("-")[1] ?? rawCode;
     router.push(
       `/my-trip?propertyCode=${bookingData.PropertyCode}&code=${code}`,
     );

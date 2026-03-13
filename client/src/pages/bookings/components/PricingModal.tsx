@@ -13,7 +13,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import type { IAmendFinalPrice } from "../types/amend.types";
-import type { PriceStatus } from "./Amendreservationmodal";
+import type { PriceStatus } from "../types/amend.types";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -104,7 +104,7 @@ const PriceSection: FC<IPriceSectionProps> = ({
         <div className="flex items-center justify-between bg-destructive/10 border border-destructive/20 rounded-xl px-4 py-3">
           <div className="flex items-center gap-2">
             <AlertTriangle className="h-4 w-4 text-destructive flex-shrink-0" />
-            <p className="text-sm text-destructive">Something went wrong. Please try again.</p>
+            <p className="text-sm text-destructive">Could not fetch price. Please try again.</p>
           </div>
           <button
             onClick={onRetry}
@@ -216,6 +216,29 @@ const PriceSection: FC<IPriceSectionProps> = ({
                 <span className="text-card-foreground">Total</span>
                 <span className="text-primary">{fmt(currency, finalPrice.totalAmount)}</span>
               </div>
+            </div>
+          )}
+
+          {/* Pay Now / Pay Later */}
+          {(finalPrice.currentChargeableAmount > 0 || finalPrice.latterpayableAmount > 0) && (
+            <div className="px-5 py-4 space-y-2.5 border-b border-border">
+              {finalPrice.currentChargeableAmount > 0 && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground">Pay Now</span>
+                  <span className="text-sm font-semibold text-card-foreground">{fmt(currency, finalPrice.currentChargeableAmount)}</span>
+                </div>
+              )}
+              {finalPrice.latterpayableAmount > 0 && (
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-muted-foreground flex items-center gap-1.5">
+                    Pay Later
+                    <span className="text-[10px] bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 px-1.5 py-0.5 rounded font-medium">
+                      at property
+                    </span>
+                  </span>
+                  <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">{fmt(currency, finalPrice.latterpayableAmount)}</span>
+                </div>
+              )}
             </div>
           )}
 
