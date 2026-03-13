@@ -37,6 +37,7 @@ export class NGeniusController {
   ): Promise<void> {
     try {
       const orderData: NGeniusOrderRequest = req.body;
+      console.log("📥 [BACKEND DEBUG] Received N-Genius order payload from frontend:", JSON.stringify(orderData, null, 2));
 
       // Validate request body
       if (!orderData.action || !orderData.amount) {

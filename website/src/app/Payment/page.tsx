@@ -430,11 +430,24 @@ const BookingReviewPage = () => {
 
       toast.loading("Creating secure payment order...", { id: "ngenius-order" });
 
-      const outletId = bankDetails?.selectedPaymentIntegrations?.paymentIntegration?.name === "ngenius"
-        ? bankDetails?.selectedPaymentIntegrations?.outletId
-        : undefined;
+      // Resolve outletId from payment-details API response
+      const outletId = bankDetails?.selectedPaymentIntegrations?.outletId ?? null;
+      console.log("🏪 [FRONTEND DEBUG] Resolved outletId from payment-details API:", outletId);
+      console.log("🔍 [FRONTEND DEBUG] bankDetails.selectedPaymentIntegrations:", JSON.stringify(bankDetails?.selectedPaymentIntegrations, null, 2));
 
-      const orderResponse = await ngeniusService.createOrder({
+      const ngeniusPayload: {
+        action: "SALE";
+        amount: { currencyCode: string; value: number };
+        merchantAttributes: {
+          redirectUrl: string;
+          skipConfirmationPage: boolean;
+          cancelUrl: string;
+          cancelText: string;
+        };
+        emailAddress: string;
+        propertyCode?: string;
+        outletId?: string;
+      } = {
         action: "SALE",
         amount: {
           currencyCode: gatewayCurrency,
@@ -447,9 +460,17 @@ const BookingReviewPage = () => {
           cancelText: "Return to Booking",
         },
         emailAddress: email.trim(),
-        outletId: outletId,
         propertyCode: searchParams.get("code") || undefined,
-      });
+      };
+
+      // Only include outletId if it's actually present — backend will look it up from DB otherwise
+      if (outletId) {
+        ngeniusPayload.outletId = outletId;
+      }
+
+      console.log("🌐 [FRONTEND DEBUG] Sending N-Genius order payload:", JSON.stringify(ngeniusPayload, null, 2));
+
+      const orderResponse = await ngeniusService.createOrder(ngeniusPayload);
 
       if (!orderResponse?.data?.orderReference || !orderResponse?.data?.paymentUrl) {
         throw new Error("Invalid response from payment gateway");
