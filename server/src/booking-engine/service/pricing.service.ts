@@ -632,35 +632,31 @@ class AddOnPriceClass {
 
             if (availableEntries.length === 0) return;
 
-            // sum up per-date prices
-            const perDateTotal = availableEntries.reduce(
-                (sum, avail) => sum + Number(avail.price),
-                0
-            );
-
+            // produce one breakdown entry per available date using per-date quantity
             const userSelectedAddon = this.parsedAddons?.find(
                 pa => pa.addOnId === addon.id
             );
-            const quantity = userSelectedAddon
-                ? userSelectedAddon.availability.reduce(
-                    (sum, a) => sum + (a.quantity || 1),
-                    0
-                )
-                : 1;
 
-            const avgPrice = perDateTotal / availableEntries.length;
-            const totalAmount = avgPrice * quantity;
+            availableEntries.forEach(avail => {
+                const dateStr = new Date(avail.date).toDateString();
+                const amount = Number(avail.price);
+                // if user provided parsedAddons, use its per-date quantity, otherwise default to 1
+                const quantityForDate = userSelectedAddon
+                    ? (userSelectedAddon.availability.find(a => new Date(a.date).toISOString() === new Date(avail.date).toISOString())?.quantity || 1)
+                    : 1;
+                const totalAmount = amount * quantityForDate;
 
-            addonBrakeDown.push({
-                addonId: addon.id,
-                name: addon.name,
-                amount: avgPrice,
-                quantity,
-                totalAmount,
-                currencyCode: addon.availability[0]
-                    .currencyCode as CurrencyCode,
-                date: new Date(availableEntries[0].date).toDateString(),
-                type: 'selected',
+                addonBrakeDown.push({
+                    addonId: addon.id,
+                    name: addon.name,
+                    amount,
+                    quantity: quantityForDate,
+                    totalAmount,
+                    currencyCode: addon.availability[0]
+                        .currencyCode as CurrencyCode,
+                    date: dateStr,
+                    type: 'selected',
+                });
             });
 
             // calculate child addon prices if childAges exist
@@ -697,51 +693,51 @@ class AddOnPriceClass {
             if (availableEntries.length === 0) return;
 
             // sum up per-date prices
-            const perDateTotal = availableEntries.reduce(
-                (sum, avail) => sum + Number(avail.price),
-                0
-            );
-
-            let quantity = 1;
-            switch (addon.addon.postingRhythm) {
-                case 'per_night':
-                    quantity = availableEntries.length;
-                    break;
-                case 'per_stay':
-                    quantity = 1;
-                    break;
-                case 'per_person_per_night':
-                    quantity = this.noOfAdults * availableEntries.length;
-                    break;
-                case 'per_person_per_stay':
-                    quantity = this.noOfAdults;
-                    break;
-                case 'per_room':
-                    quantity = this.numberOfRooms;
-                    break;
-                case 'per_room_per_night':
-                    quantity = this.numberOfRooms * availableEntries.length;
-                    break;
-                case 'per_person_per_room':
-                    quantity = this.noOfAdults * this.numberOfRooms;
-                    break;
-                default:
-                    quantity = 1;
-            }
-
-            const avgPrice = perDateTotal / availableEntries.length;
-            const totalAmount = avgPrice * quantity;
-
-            addonBrakeDown.push({
-                addonId: addon.addon.id,
-                name: addon.addon.name,
-                amount: avgPrice,
-                quantity,
-                totalAmount,
-                type: "included",
-                currencyCode: addon.addon.availability[0]
-                    .currencyCode as CurrencyCode,
-                date: new Date(availableEntries[0].date).toDateString(),
+            // const perDateTotal = availableEntries.reduce(
+            //     (sum, avail) => sum + Number(avail.price),
+            //     0
+            // );
+            // produce per-date entries for included addons based on postingRhythm
+            availableEntries.forEach(avail => {
+                const amount = Number(avail.price);
+                let quantityForDate = 1;
+                switch (addon.addon.postingRhythm) {
+                    case 'per_night':
+                        quantityForDate = 1;
+                        break;
+                    case 'per_stay':
+                        quantityForDate = 1;
+                        break;
+                    case 'per_person_per_night':
+                        quantityForDate = this.noOfAdults;
+                        break;
+                    case 'per_person_per_stay':
+                        quantityForDate = this.noOfAdults;
+                        break;
+                    case 'per_room':
+                        quantityForDate = this.numberOfRooms;
+                        break;
+                    case 'per_room_per_night':
+                        quantityForDate = this.numberOfRooms;
+                        break;
+                    case 'per_person_per_room':
+                        quantityForDate = this.noOfAdults * this.numberOfRooms;
+                        break;
+                    default:
+                        quantityForDate = 1;
+                }
+                const totalAmount = amount * quantityForDate;
+                addonBrakeDown.push({
+                    addonId: addon.addon.id,
+                    name: addon.addon.name,
+                    amount,
+                    quantity: quantityForDate,
+                    totalAmount,
+                    type: "included",
+                    currencyCode: addon.addon.availability[0]
+                        .currencyCode as CurrencyCode,
+                    date: new Date(avail.date).toDateString(),
+                });
             });
 
             // calculate child addon prices if childAges exist
@@ -779,81 +775,78 @@ class AddOnPriceClass {
 
         if (availableEntries.length === 0) return [];
 
-        // sum up per-date prices
-        const perDateTotal = availableEntries.reduce(
-            (sum, avail) => sum + Number(avail.price),
-            0
-        );
-        const avgPrice = perDateTotal / availableEntries.length;
-
-        // determine quantity based on posting rhythm
-        let quantity = 1;
-        switch (addon.postingRhythm) {
-            case 'per_night':
-                quantity = availableEntries.length;
-                break;
-            case 'per_stay':
-                quantity = 1;
-                break;
-            case 'per_person_per_night':
-                quantity = availableEntries.length;
-                break;
-            case 'per_person_per_stay':
-                quantity = 1;
-                break;
-            case 'per_room':
-                quantity = this.numberOfRooms;
-                break;
-            case 'per_room_per_night':
-                quantity = this.numberOfRooms * availableEntries.length;
-                break;
-            case 'per_person_per_room':
-                quantity = this.numberOfRooms;
-                break;
-            default:
-                quantity = 1;
-        }
-
+        // produce per-date child addon entries
         const addonBrakeDown: AddOnBrakeDown[] = [];
 
-        childAges.forEach(age => {
-            const childAddon = addon.ChildAddons.find(
-                ca => age >= ca.minAge && age <= ca.maxAge
-            );
-
-            if (!childAddon) return;
-
-            let childPrice = avgPrice;
-
-            if (
-                childAddon.discountApplicable &&
-                childAddon.discountType &&
-                childAddon.discountAmount !== null
-            ) {
-                if (childAddon.discountType === 'percentage') {
-                    const discount =
-                        (avgPrice * childAddon.discountAmount) / 100;
-                    childPrice = avgPrice - discount;
-                } else if (childAddon.discountType === 'flat') {
-                    childPrice = Math.max(
-                        avgPrice - childAddon.discountAmount,
-                        0
-                    );
-                }
+        availableEntries.forEach(avail => {
+            const amount = Number(avail.price);
+            // determine quantity per date based on posting rhythm
+            let quantityForDate = 1;
+            switch (addon.postingRhythm) {
+                case 'per_night':
+                    quantityForDate = 1;
+                    break;
+                case 'per_stay':
+                    quantityForDate = 1;
+                    break;
+                case 'per_person_per_night':
+                    quantityForDate = 1; // will be multiplied per child below
+                    break;
+                case 'per_person_per_stay':
+                    quantityForDate = 1; // will be multiplied per child below
+                    break;
+                case 'per_room':
+                    quantityForDate = this.numberOfRooms;
+                    break;
+                case 'per_room_per_night':
+                    quantityForDate = this.numberOfRooms;
+                    break;
+                case 'per_person_per_room':
+                    quantityForDate = this.numberOfRooms;
+                    break;
+                default:
+                    quantityForDate = 1;
             }
 
-            const totalAmount = childPrice * quantity;
+            childAges.forEach(age => {
+                const childAddon = addon.ChildAddons.find(
+                    ca => age >= ca.minAge && age <= ca.maxAge
+                );
 
-            addonBrakeDown.push({
-                addonId: addon.id,
-                name: `${addon.name} (Child age ${age})`,
-                amount: childPrice,
-                quantity,
-                totalAmount,
-                currencyCode: addon.availability[0]
-                    .currencyCode as CurrencyCode,
-                date: new Date(availableEntries[0].date).toDateString(),
-                type: 'selected',
+                if (!childAddon) return;
+
+                let childPrice = amount;
+
+                if (
+                    childAddon.discountApplicable &&
+                    childAddon.discountType &&
+                    childAddon.discountAmount !== null
+                ) {
+                    if (childAddon.discountType === 'percentage') {
+                        const discount = (amount * childAddon.discountAmount) / 100;
+                        childPrice = amount - discount;
+                    } else if (childAddon.discountType === 'flat') {
+                        childPrice = Math.max(amount - childAddon.discountAmount, 0);
+                    }
+                }
+                let finalQuantity = quantityForDate;
+                if (addon.postingRhythm === 'per_person_per_night' || addon.postingRhythm === 'per_person_per_stay') {
+                    finalQuantity = quantityForDate; 
+                }
+
+                const totalAmount = childPrice * finalQuantity;
+
+                addonBrakeDown.push({
+                    addonId: addon.id,
+                    name: `${addon.name} (Child age ${age})`,
+                    amount: childPrice,
+                    quantity: finalQuantity,
+                    totalAmount,
+                    currencyCode: addon.availability[0]
+                        .currencyCode as CurrencyCode,
+                    date: new Date(avail.date).toDateString(),
+                    type: 'selected',
+                });
             });
         });
 
@@ -924,10 +917,6 @@ class PromotionClass {
                     return sum - promo.discountAmount;
                 }
             }, 0);
-        // console.log(
-        //     'totalPromotionaalDiscountedAmount',
-        //     totalPromotionaalDiscountedAmount
-        // );
         return {
             ...this.priceBrakeDown,
             totalPromotionAmount: totalPromotionaalDiscountedAmount,

@@ -1794,7 +1794,7 @@ model CustomizableDealsApplicableAddons {
   @@unique([customizableDealId, addOnId])
   @@map("customizable_deals_applicable_addons")
 }
-
+  
 model TouristTaxes {
   id String @id @default(uuid())
 
