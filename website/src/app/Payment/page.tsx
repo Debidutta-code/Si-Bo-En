@@ -430,14 +430,25 @@ const BookingReviewPage = () => {
 
       toast.loading("Creating secure payment order...", { id: "ngenius-order" });
 
-      // Use activeGateway (already resolved — maps "network_global" → "ngenius") so the
-      // raw integration name mismatch ("network_global" vs "ngenius") doesn't cause a fallback to env.
-      const outletId = activeGateway === "ngenius"
-        ? bankDetails?.selectedPaymentIntegrations?.outletId
-        : undefined;
+      // Resolve outletId from payment-details API response
+      const outletId = bankDetails?.selectedPaymentIntegrations?.outletId ?? null;
+      console.log("🏪 [FRONTEND DEBUG] Resolved outletId from payment-details API:", outletId);
+      console.log("🔍 [FRONTEND DEBUG] bankDetails.selectedPaymentIntegrations:", JSON.stringify(bankDetails?.selectedPaymentIntegrations, null, 2));
 
-      const ngeniusPayload = {
-        action: "SALE" as const,
+      const ngeniusPayload: {
+        action: "SALE";
+        amount: { currencyCode: string; value: number };
+        merchantAttributes: {
+          redirectUrl: string;
+          skipConfirmationPage: boolean;
+          cancelUrl: string;
+          cancelText: string;
+        };
+        emailAddress: string;
+        propertyCode?: string;
+        outletId?: string;
+      } = {
+        action: "SALE",
         amount: {
           currencyCode: gatewayCurrency,
           value: amountInSmallestUnit,
@@ -449,9 +460,13 @@ const BookingReviewPage = () => {
           cancelText: "Return to Booking",
         },
         emailAddress: email.trim(),
-        outletId: outletId,
         propertyCode: searchParams.get("code") || undefined,
       };
+
+      // Only include outletId if it's actually present — backend will look it up from DB otherwise
+      if (outletId) {
+        ngeniusPayload.outletId = outletId;
+      }
 
       console.log("🌐 [FRONTEND DEBUG] Sending N-Genius order payload:", JSON.stringify(ngeniusPayload, null, 2));
 
