@@ -20,6 +20,7 @@ class NGeniusService {
    */
   async getAccessToken(): Promise<NGeniusTokenResponse> {
     try {
+      console.log("inside getaccess token../..");
       const url = `${NGeniusConfig.baseUrl}${NGeniusConfig.endpoints.token}`;
 
       const response = await axios.post<NGeniusTokenResponse>(
@@ -34,14 +35,18 @@ class NGeniusService {
         }
       );
 
+      console.log("response inside the getaccesstoken function", response);
+
       // Store token and expiry time
       this.accessToken = response.data.access_token;
+      console.log("after getting the token response");
       this.tokenExpiry = new Date(
         Date.now() + response.data.expires_in * 1000
       );
 
       return response.data;
     } catch (error) {
+      console.log("error inside the getaccesstoken function", error);
       this.handleError(error, 'Failed to get access token');
       throw error;
     }
@@ -51,14 +56,16 @@ class NGeniusService {
    * Get valid access token (refresh if expired)
    */
   private async getValidToken(): Promise<string> {
-    if (this.accessToken && this.tokenExpiry) {
-      const now = new Date();
-      if (this.tokenExpiry > now) {
-        return this.accessToken;
-      }
-    }
+    console.log("inside get valid token");
+    // if (this.accessToken && this.tokenExpiry) {
+    //   const now = new Date();
+    //   if (this.tokenExpiry > now) {
+    //     return this.accessToken;
+    //   }
+    // }
 
     const tokenResponse = await this.getAccessToken();
+    console.log("after getting the token response");
     return tokenResponse.access_token;
   }
 
