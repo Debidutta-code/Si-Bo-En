@@ -121,23 +121,50 @@ class NGeniusService {
             const ngeniusState = response.data._embedded?.payment?.[0]?.state || "STARTED";
             const mappedStatus = this.mapNGeniusState(ngeniusState);
 
+            // The order response contains the outletId actually used by N-Genius.
+            // Use it to find the matching PropertyPaymentIntegration so we can store
+            // propertyPaymentIntegrationId on the Payment — required for refunds later.
+            const orderOutletId = response.data.outletId;
+            let propertyPaymentIntegrationId: string | null = null;
+
+            if (orderOutletId) {
+              const integration = await prisma.propertyPaymentIntegration.findFirst({
+                where: {
+                  propertyId: property.id,
+                  outletId: orderOutletId,
+                  isActive: true,
+                },
+                select: { id: true },
+              });
+              if (integration) {
+                propertyPaymentIntegrationId = integration.id;
+                console.log(`✅ Linked PropertyPaymentIntegration: ${integration.id} (outletId: ${orderOutletId})`);
+              } else {
+                console.warn(`⚠️ No active PropertyPaymentIntegration found for propertyId: ${property.id}, outletId: ${orderOutletId}`);
+              }
+            } else {
+              console.warn(`⚠️ Order response did not include outletId — propertyPaymentIntegrationId will not be set`);
+            }
+
             try {
               const payment = await prisma.payment.create({
                 data: {
                   amount: orderData.amount.value / 100,
-                  currency: "USD",
+                  currency: "AED",
                   status: mappedStatus as any,
                   paymentMethod: "payment_gateway",
                   propertyId: property.id,
                   reservationId: (orderData.reservationId || null) as any,
                   paymentIntentId: response.data.reference,
+                  ...(propertyPaymentIntegrationId && { propertyPaymentIntegrationId }),
                 },
               });
               console.log(`✅ N-Genius Payment record created in database:
   - ID: ${payment.id}
   - Status: ${mappedStatus}
   - Amount: ${payment.amount} ${payment.currency}
-  - Order Reference: ${response.data.reference}`);
+  - Order Reference: ${response.data.reference}
+  - PropertyPaymentIntegrationId: ${propertyPaymentIntegrationId ?? '(not linked)'}`);
             } catch (dbError) {
               console.error(`❌ Failed to create N-Genius payment record in database for order ${response.data.reference}:`, dbError);
             }
@@ -160,19 +187,24 @@ class NGeniusService {
    * Get Order Status
    */
   async getOrderStatus(
-    orderReference: string
+    orderReference: string,
+    outletId?: string
   ): Promise<NGeniusOrderStatusResponse> {
     try {
+      console.log(`[DEBUG - N-GENIUS GET STATUS] 🔍 Fetching status for order: ${orderReference}, outletId: ${outletId}`);
       const token = await this.getValidToken();
-      const url = `${NGeniusConfig.baseUrl}${NGeniusConfig.endpoints.orders}/${NGeniusConfig.outletId}/orders/${orderReference}`;
+      const url = `${NGeniusConfig.baseUrl}${NGeniusConfig.endpoints.orders}/${outletId}/orders/${orderReference}`;
 
+      console.log(`[DEBUG - N-GENIUS GET STATUS] 🌐 GET request to: ${url}`);
       const response = await axios.get<NGeniusOrderStatusResponse>(url, {
         headers: {
           Accept: 'application/vnd.ni-payment.v2+json',
+          'Content-Type': 'application/vnd.ni-payment.v2+json',
           Authorization: `Bearer ${token}`,
         },
       });
 
+      console.log(`[DEBUG - N-GENIUS GET STATUS] 📥 Status response received for order: ${orderReference}, State: ${response.data._embedded?.payment?.[0]?.state}`);
       return response.data;
     } catch (error) {
       this.handleError(error, 'Failed to get order status');
@@ -192,7 +224,8 @@ class NGeniusService {
    * Fetches order status to extract payment + capture refs, then calls the refund endpoint
    */
   async processRefund(
-    orderReference: string
+    orderReference: string,
+    outletId?: string
   ): Promise<NGeniusRefundResponse> {
     try {
       console.log(`\n========================================`);
@@ -201,10 +234,15 @@ class NGeniusService {
       console.log(`========================================`);
 
       // Step 1: Get order status to extract payment and capture refs
-      const orderStatus = await this.getOrderStatus(orderReference);
+      console.log(`[DEBUG - N-GENIUS REFUND] 🔍 Step 1: Calling getOrderStatus to check order reference & extract refs for order: ${orderReference}`);
+      const orderStatus = await this.getOrderStatus(orderReference, outletId);
+
+      console.log(`[DEBUG - N-GENIUS REFUND] 📄 Order Status data:`, JSON.stringify(orderStatus));
+
       const payments = orderStatus._embedded?.payment;
 
       if (!payments || payments.length === 0) {
+        console.error(`[DEBUG - N-GENIUS REFUND] ❌ No payment found for this order: ${orderReference}`);
         return { success: false, message: 'No payment found for this order' };
       }
 
@@ -287,12 +325,21 @@ class NGeniusService {
     } catch (error) {
       this.handleError(error, 'Failed to process refund');
       if (axios.isAxiosError(error)) {
-        const errData = error.response?.data;
+        const errData = error.response?.data as any;
+        console.error(`\n❌ REFUND FAILED - Full Axios Error Details:`);
+        console.error(`- Response Status: ${error.response?.status} ${error.response?.statusText}`);
+        console.error(`- Response Data:`, JSON.stringify(errData, null, 2));
+        console.error(`- Request URL: ${error.config?.url}`);
+        console.error(`- Request Method: ${error.config?.method}`);
+        console.error(`- Request Data Context:`, error.config?.data);
+        console.error(`- Axios Error Message: ${error.message}\n`);
+
         const errMessage = errData?.message || errData?.errors?.[0]?.message || 'Refund API request failed';
         console.error(`❌ REFUND FAILED: ${errMessage}`);
         return { success: false, message: errMessage };
       }
       const msg = error instanceof Error ? error.message : 'Unknown refund error';
+      console.error(`❌ REFUND ERRORED (Non-Axios):`, msg, error);
       return { success: false, message: msg };
     }
   }
