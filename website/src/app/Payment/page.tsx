@@ -436,8 +436,8 @@ const BookingReviewPage = () => {
         ? bankDetails?.selectedPaymentIntegrations?.outletId
         : undefined;
 
-      const orderResponse = await ngeniusService.createOrder({
-        action: "SALE",
+      const ngeniusPayload = {
+        action: "SALE" as const,
         amount: {
           currencyCode: gatewayCurrency,
           value: amountInSmallestUnit,
@@ -451,7 +451,11 @@ const BookingReviewPage = () => {
         emailAddress: email.trim(),
         outletId: outletId,
         propertyCode: searchParams.get("code") || undefined,
-      });
+      };
+
+      console.log("🌐 [FRONTEND DEBUG] Sending N-Genius order payload:", JSON.stringify(ngeniusPayload, null, 2));
+
+      const orderResponse = await ngeniusService.createOrder(ngeniusPayload);
 
       if (!orderResponse?.data?.orderReference || !orderResponse?.data?.paymentUrl) {
         throw new Error("Invalid response from payment gateway");
