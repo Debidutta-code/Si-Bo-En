@@ -430,7 +430,9 @@ const BookingReviewPage = () => {
 
       toast.loading("Creating secure payment order...", { id: "ngenius-order" });
 
-      const outletId = bankDetails?.selectedPaymentIntegrations?.paymentIntegration?.name === "ngenius"
+      // Use activeGateway (already resolved — maps "network_global" → "ngenius") so the
+      // raw integration name mismatch ("network_global" vs "ngenius") doesn't cause a fallback to env.
+      const outletId = activeGateway === "ngenius"
         ? bankDetails?.selectedPaymentIntegrations?.outletId
         : undefined;
 
