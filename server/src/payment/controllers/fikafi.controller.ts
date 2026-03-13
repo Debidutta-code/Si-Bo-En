@@ -249,8 +249,6 @@ export class FikafiPaymentController {
 
             const payload = req.body;
 
-
-
             // Handle multiple possible field names that Fikafi might use
             const bookingRefNum =
                 payload.bookingRefNum ||
@@ -297,7 +295,7 @@ export class FikafiPaymentController {
                     const res = await client.set(
                         `payment:confirmed:${bookingRefNum}`,
                         JSON.stringify({ amount, status, confirmedAt: Date.now() }),
-                        { EX: 300 } // 5 minutes TTL — enough for a reconnecting client
+                        { EX: 600 } // 10 minutes TTL — enough for a reconnecting client
                     );
                     console.log("Redis store res", res);
                 } catch (error) {
@@ -357,7 +355,7 @@ export class FikafiPaymentController {
                             message: FikafiPaymentController.getFailureMessage(status),
                             failedAt: Date.now(),
                         }),
-                        { EX: 6000 }
+                        { EX: 600 }
                     );
                     console.log(`✅ Payment failure stored in Redis for ${bookingRefNum}`);
                 } catch (redisError) {
