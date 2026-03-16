@@ -111,14 +111,10 @@ export class GeoRatePlanService {
 
     public async updateGeoRatePlan(id: string, updateData: IGeoRatePlanCreate) {
         try {
-            const exists = await this.geoRatePlanRepository.getGeoRatePlanById(id);
-            const propertyIdToUse = updateData.propertyId || exists?.propertyId;
-
-            if (!propertyIdToUse) {
-                return errorResponse('Property ID is required to update geo rate plan');
-            }
-
-            const { convert, baseCurrency } = await getCurrencyConverter(propertyIdToUse, updateData.currencyCode ? updateData.currencyCode : "AED");
+            const [exists, { convert, baseCurrency }] = await Promise.all([
+                this.geoRatePlanRepository.getGeoRatePlanById(id),
+                getCurrencyConverter(updateData.propertyId, updateData.currencyCode ? updateData.currencyCode : "AED")
+            ]);
             if (!exists) {
                 return errorResponse('Geo rate plan not found');
             }

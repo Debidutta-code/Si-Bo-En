@@ -127,7 +127,7 @@ class InventoryRepository {
                     ops.push(
                         prisma.inventory.update({
                             where: {
-                                id:isExists.id
+                                id: isExists.id
                             },
                             data: { availability: item.availability },
                         })
@@ -193,6 +193,8 @@ class InventoryRepository {
                         create: baseGuestAmounts.map(bg => ({
                             numberOfGuests: bg.noOfGuests,
                             amountBeforeTax: bg.amount,
+                            ageQualifyingCode: bg.ageQualifyingCode,
+
                         })),
                     },
                     additionalGuestAmounts: {
@@ -227,6 +229,7 @@ class InventoryRepository {
                                     create: baseGuestAmounts.map(bg => ({
                                         numberOfGuests: bg.noOfGuests,
                                         amountBeforeTax: bg.amount,
+                                        ageQualifyingCode: bg.ageQualifyingCode,
                                     })),
                                 },
                                 additionalGuestAmounts: {
@@ -244,7 +247,7 @@ class InventoryRepository {
                         prisma.charge.create({
                             data: chargeDoc
                         }
-                    )
+                        )
                     );
                 }
             }

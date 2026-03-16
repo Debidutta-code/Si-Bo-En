@@ -43,6 +43,7 @@ export type qualifyingAgeCode = "10" | "8" | "5"
 export interface IBaseGuestAmounts {
     amountBeforeTax: string;
     numberOfGuests: number;
+    ageQualifyingCode: qualifyingAgeCode;
 }
 export interface IAdditionalGuestAmount {
     ageQualifyingCode: qualifyingAgeCode;

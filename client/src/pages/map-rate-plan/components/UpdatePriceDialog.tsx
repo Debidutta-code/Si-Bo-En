@@ -52,7 +52,7 @@ export default function UpdatePriceDialog({
     }, [mapping]);
 
     const handleAddBaseGuest = () => {
-        setBaseGuestAmounts([...baseGuestAmounts, { numberOfGuests: 1, amountBeforeTax: "0" }]);
+        setBaseGuestAmounts([...baseGuestAmounts, { numberOfGuests: 1, amountBeforeTax: "0",ageQualifyingCode:"10" }]);
     };
 
     const handleRemoveBaseGuest = (index: number) => {

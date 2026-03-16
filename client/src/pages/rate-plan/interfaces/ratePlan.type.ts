@@ -67,13 +67,3 @@ export interface LoaderProps {
     isLoading: boolean;
     text: string;
 }
-export interface IRatePlanForAllotment {
-    id: string;
-    ratePlanId: string;
-    roomTypeId: string;
-    startDate: string;
-    endDate: string;
-    minLos: number;
-    maxLos: number;
-    isActive: boolean;
-}

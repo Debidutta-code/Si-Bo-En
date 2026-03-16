@@ -100,6 +100,18 @@ const parseDate = (date: any): string => {
   return "";
 };
 
+/**
+ * Build promotions payload from finalPrice.promotionBrakeDown.
+ * Only send user-applied promotions — auto-applied ones (e.g. MLOS) are
+ * recalculated server-side and should not be included.
+ */
+const buildPromotions = (bookingData: any): { id: string; promotionType: string }[] => {
+  const promotionBreakdown: any[] = bookingData.finalPrice?.promotionBrakeDown ?? [];
+  return promotionBreakdown
+    .filter((p: any) => p.type === "user-applied" && p.id)
+    .map((p: any) => ({ id: p.id as string, promotionType: "normal" }));
+};
+
 // ─── Component ──────────────────────────────────────────────────────────────
 
 const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
@@ -194,6 +206,9 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
         availability: [{ date: new Date(checkInDate).toISOString(), quantity: a.quantity }],
       }));
 
+      // Build promotions — only user-applied ones from finalPrice
+      const promotions = buildPromotions(bookingData);
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/pricing/get-price`,
         {
@@ -207,12 +222,13 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
             noOfAdults,
             noOfChildren: noOfChildrens,
             noOfRooms: requestedRooms,
-            // ✅ FIX: send per-room distribution, NOT per-night entries
+            bookingCode: bookingData.bookingCode,
             guestDistribution,
             ratePlanCode: bookingData.ratePlanCode,
             childAges,
             parsedAddons,
             includedAddons: includedAddonIds,
+            promotions,
             promoCode: "",
           }),
         }
@@ -423,7 +439,6 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
             <div>
               <p className="font-semibold">Room Details</p>
               <p>{bookingData.roomTypeCode}</p>
-              {/* ✅ FIX: show actual room count from priceBreakdowns */}
               <p className="text-xs text-gray-500">{requestedRooms} room{requestedRooms !== 1 ? "s" : ""}</p>
             </div>
             <div>
@@ -432,7 +447,6 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
             </div>
           </div>
 
-          {/* ✅ FIX: Show per-room guest distribution from priceBreakdowns */}
           <div className="px-4 py-2 bg-blue-50 border-b text-xs text-gray-600">
             <p className="font-medium text-gray-700 mb-1">Current Guest Distribution:</p>
             <div className="flex flex-wrap gap-2">
@@ -802,14 +816,11 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
         initialAdults={guestCounts.adults}
         initialChildren={guestCounts.children}
         initialChildAges={childAges}
-        // ✅ FIX: pass per-room distribution so selector shows correct starting state
         initialRoomDistribution={initialRoomDistribution}
         onClose={() => setShowGuestSelector(false)}
         onApply={(summary, data) => {
           setGuestSummary(summary);
           setRequestedRooms(data.rooms);
-
-          // ✅ FIX: update rooms state AND guestDistribution from selector output
           setRooms(data.roomDistribution);
           setGuestDistribution(data.roomDistribution);
           setChildAges(data.childAges);

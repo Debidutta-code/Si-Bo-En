@@ -52,9 +52,7 @@ const totalChildren = roomsArray.reduce((sum: number, room: any) => sum + (room.
 
 
   const nights = calculateNights();
-// //console.log(bookingContext)
-// //console.log(finalPrice)
-// Use backend-calculated finalPrice if available
+
 const backendBaseRatePerNight = finalPrice?.baseRatePerNight || basePrice;
 const backendAdditionalGuestCharges = finalPrice?.additionalGuestCharges || 0;
 const backendNumberOfNights = finalPrice?.numberOfNights || nights;

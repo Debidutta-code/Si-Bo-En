@@ -835,6 +835,8 @@ model ChargeBaseByGuest {
   id              String @id @default(uuid())
   charge          Charge @relation(fields: [chargeId], references: [id], onDelete: Cascade)
   chargeId        String
+    ageQualifyingCode String @default("10") @map("age_qualifying_code")
+
   amountBeforeTax Float  @map("amount_before_tax")
   numberOfGuests  Int    @map("number_of_guests")
 
@@ -1792,11 +1794,11 @@ model CustomizableDealsApplicableAddons {
   @@unique([customizableDealId, addOnId])
   @@map("customizable_deals_applicable_addons")
 }
-
+  
 model TouristTaxes {
   id String @id @default(uuid())
 
-  name          String? //remove this ? when there is a need for db push
+  name          String? @default("Tourist Tax")//remove this ? when there is a need for db push
   ratePlanId    String  @unique @map("rate_plan_id")
   ratePlanCode  String  @unique @map("rate_plan_code")
   discountValue Float?  @map("discount_value")

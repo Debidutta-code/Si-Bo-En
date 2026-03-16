@@ -6,7 +6,11 @@ import { RootState } from "../../store/store";
 import SearchWidget from "../../components/Home/SearchWidget";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
-import { setBookingContext, setBookingSource, setSenderUrl } from "../../store/bookingSlice";
+import {
+  setBookingContext,
+  setBookingSource,
+  setSenderUrl,
+} from "../../store/bookingSlice";
 import { useBookingColors } from "../../hooks/useBookingColors";
 import RoomCard from "@/src/components/RoomPage/RoomCard";
 import PriceSummarySidebar from "../../components/RoomPage/Pricesummerysidebar";
@@ -105,7 +109,9 @@ function normalizePriceBrakeDown(
   opts: { noOfRooms: number; ratePlanCode: string },
 ): any {
   if (!raw) return raw;
-  const numberOfNights: number = raw.dailyPriceBrakeDown?.length ?? 0;
+  const numberOfNights = new Set(
+    raw.dailyPriceBrakeDown.map((d: any) => d.date),
+  ).size;
   const baseRatePerNight: number =
     numberOfNights > 0 ? raw.amountBeforeTax / numberOfNights : 0;
   const additionalGuestCharges: number = (raw.dailyPriceBrakeDown ?? []).reduce(
@@ -311,7 +317,10 @@ const Rooms = () => {
             ? bookingCtx.guests.rooms.length
             : 1;
 
-    if (!bookingCtx?.guests || (!bookingCtx.guests.rooms && !bookingCtx.guests.roomsArray)) {
+    if (
+      !bookingCtx?.guests ||
+      (!bookingCtx.guests.rooms && !bookingCtx.guests.roomsArray)
+    ) {
       console.error("❌ Invalid guests data");
       setInitialLoading(false);
       return;
@@ -361,14 +370,14 @@ const Rooms = () => {
       setLoyaltyProgram(propertyDetails?.loyaltyProgramConfig || null);
       const bookingEngineColor = propertyDetails?.bookingEngineConfig
         ? {
-          primaryColor: propertyDetails.bookingEngineConfig.primaryColor,
-          secondaryColor: propertyDetails.bookingEngineConfig.secondaryColor,
-          tertiaryColor: propertyDetails.bookingEngineConfig.tertiaryColor,
-          buttonTextColor:
-            propertyDetails.bookingEngineConfig.buttonTextColor,
-          bgImage: propertyDetails.bookingEngineConfig.bannerImage,
-          logo: propertyDetails.bookingEngineConfig.logo,
-        }
+            primaryColor: propertyDetails.bookingEngineConfig.primaryColor,
+            secondaryColor: propertyDetails.bookingEngineConfig.secondaryColor,
+            tertiaryColor: propertyDetails.bookingEngineConfig.tertiaryColor,
+            buttonTextColor:
+              propertyDetails.bookingEngineConfig.buttonTextColor,
+            bgImage: propertyDetails.bookingEngineConfig.bannerImage,
+            logo: propertyDetails.bookingEngineConfig.logo,
+          }
         : undefined;
 
       const updatedContext = {
@@ -465,67 +474,71 @@ const Rooms = () => {
         console.error("Error parsing localStorage:", e);
       }
 
-        const buildRoomsArrayFallback = (
-            numRooms: number,
-            totalAdults: number,
-            totalChildren: number
-        ) => {
-            const MAX_PER_ROOM = 4;
-            const roomsArray = [];
-            let remainingAdults = totalAdults - numRooms;
-            let remainingChildren = totalChildren;
-            if (remainingAdults < 0) {
-                remainingAdults = 0;
-            }
-            for (let i = 0; i < numRooms; i++) {
-                let roomAdults = 1;
-                let roomChildren = 0;
-                const adultSpace = MAX_PER_ROOM - roomAdults;
-                const adultsToAdd = Math.min(remainingAdults, adultSpace);
-                roomAdults += adultsToAdd;
-                remainingAdults -= adultsToAdd;
-                const childSpace = MAX_PER_ROOM - roomAdults;
-                const childrenToAdd = Math.min(remainingChildren, childSpace);
-                roomChildren = childrenToAdd;
-                remainingChildren -= childrenToAdd;
-                roomsArray.push({
-                    adults: roomAdults,
-                    children: roomChildren,
-                    childAges: Array(roomChildren).fill(0),
-                });
-            }
-            return roomsArray;
-        };
-
-        // If no rooms array from localStorage, build it with fallback
-        if (roomsArray.length === 0) {
-            const totalAdults = parseInt(adults || "1");
-            const totalChildren = parseInt(children || "0");
-
-            // ✅ Replace the old dumb distribution with smart fallback
-            roomsArray = buildRoomsArrayFallback(numRooms, totalAdults, totalChildren);
+      const buildRoomsArrayFallback = (
+        numRooms: number,
+        totalAdults: number,
+        totalChildren: number,
+      ) => {
+        const MAX_PER_ROOM = 4;
+        const roomsArray = [];
+        let remainingAdults = totalAdults - numRooms;
+        let remainingChildren = totalChildren;
+        if (remainingAdults < 0) {
+          remainingAdults = 0;
         }
+        for (let i = 0; i < numRooms; i++) {
+          let roomAdults = 1;
+          let roomChildren = 0;
+          const adultSpace = MAX_PER_ROOM - roomAdults;
+          const adultsToAdd = Math.min(remainingAdults, adultSpace);
+          roomAdults += adultsToAdd;
+          remainingAdults -= adultsToAdd;
+          const childSpace = MAX_PER_ROOM - roomAdults;
+          const childrenToAdd = Math.min(remainingChildren, childSpace);
+          roomChildren = childrenToAdd;
+          remainingChildren -= childrenToAdd;
+          roomsArray.push({
+            adults: roomAdults,
+            children: roomChildren,
+            childAges: Array(roomChildren).fill(0),
+          });
+        }
+        return roomsArray;
+      };
 
-        return {
-            PropertyCode: code,
-            startDate: checkin || defaultStartDate,
-            endDate: checkout || defaultEndDate,
-            guests: {
-                rooms: numRooms,
-                adults: parseInt(adults || "1"),
-                children: parseInt(children || "0"),
-                roomsArray, // ✅ now properly distributed
-            },
-            location: "",
-            numberOfRooms: numRooms,
-            promocode: promocode || "",
-            isExternal: true,
-            bookingSource: bookingSource,
-        };
+      // If no rooms array from localStorage, build it with fallback
+      if (roomsArray.length === 0) {
+        const totalAdults = parseInt(adults || "1");
+        const totalChildren = parseInt(children || "0");
+
+        // ✅ Replace the old dumb distribution with smart fallback
+        roomsArray = buildRoomsArrayFallback(
+          numRooms,
+          totalAdults,
+          totalChildren,
+        );
+      }
+
+      return {
+        PropertyCode: code,
+        startDate: checkin || defaultStartDate,
+        endDate: checkout || defaultEndDate,
+        guests: {
+          rooms: numRooms,
+          adults: parseInt(adults || "1"),
+          children: parseInt(children || "0"),
+          roomsArray, // ✅ now properly distributed
+        },
+        location: "",
+        numberOfRooms: numRooms,
+        promocode: promocode || "",
+        isExternal: true,
+        bookingSource: bookingSource,
+      };
     }
 
     return null;
-};
+  };
 
   // NEW: Initialize booking context from URL params or localStorage
   useEffect(() => {
@@ -561,7 +574,7 @@ const Rooms = () => {
           endDate: paramsData.endDate || defaultEndDate,
           numberOfRooms: paramsData.numberOfRooms || 1,
           location: paramsData.location || "",
-          promocode: paramsData.promocode || ""
+          promocode: paramsData.promocode || "",
         };
         dispatch(setBookingSource(paramsData.bookingSource));
         dispatch(setBookingContext(contextWithDates));
@@ -626,7 +639,7 @@ const Rooms = () => {
               },
               location: "",
               numberOfRooms: 1,
-              promocode: ""
+              promocode: "",
             };
 
             dispatch(setBookingContext(defaultContext));
@@ -748,7 +761,10 @@ const Rooms = () => {
 
           {/* Room cards skeleton */}
           {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white border border-gray-200 rounded-xl overflow-hidden animate-pulse">
+            <div
+              key={i}
+              className="bg-white border border-gray-200 rounded-xl overflow-hidden animate-pulse"
+            >
               <div className="flex flex-col md:flex-row">
                 <div className="w-full md:w-72 h-52 bg-gray-200 flex-shrink-0" />
                 <div className="flex-1 p-5 space-y-4">
@@ -765,7 +781,10 @@ const Rooms = () => {
                   </div>
                   <div className="flex gap-3">
                     {[1, 2, 3, 4].map((j) => (
-                      <div key={j} className="h-8 w-20 bg-gray-200 rounded-lg" />
+                      <div
+                        key={j}
+                        className="h-8 w-20 bg-gray-200 rounded-lg"
+                      />
                     ))}
                   </div>
                   <div className="flex items-center justify-between pt-2">
@@ -818,8 +837,9 @@ const Rooms = () => {
         </div>
       )}
       <div
-        className={`min-h-screen bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${loaded ? "opacity-100" : "opacity-0"
-          }`}
+        className={`min-h-screen bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${
+          loaded ? "opacity-100" : "opacity-0"
+        }`}
         onLoad={() => setLoaded(true)}
       >
         <div className=" z-40 bg-white/90 backdrop-blur shadow-sm">
@@ -834,7 +854,6 @@ const Rooms = () => {
         </div>
         <div className="px-4 py-3">
           <div className="max-w-7xl mx-auto">
-
             {showUrgencyBanner && (
               <div className="mb-4 relative">
                 <div
@@ -956,13 +975,11 @@ const Rooms = () => {
 
         <div className="px-4 pb-2">
           <div className="max-w-7xl mx-auto mt-10">
-
             <div className="flex gap-6">
               <div
                 className={`flex-1 ${showPriceSummary ? "lg:w-2/3" : "w-full"} transition-all duration-300`}
               >
                 <div className="px-4 sm:px-4 py-4 bg-white border border-gray-200 rounded-xl">
-
                   {initialLoading ? (
                     <div className="text-center py-20">
                       <div
@@ -980,8 +997,8 @@ const Rooms = () => {
                       No rooms available for this hotel.
                     </div>
                   ) : roomsData.filter(
-                    (room: Room) => room.has_valid_rate === true,
-                  ).length === 0 ? (
+                      (room: Room) => room.has_valid_rate === true,
+                    ).length === 0 ? (
                     <div className="text-center py-10 text-gray-600 text-lg font-medium">
                       No rooms available
                     </div>

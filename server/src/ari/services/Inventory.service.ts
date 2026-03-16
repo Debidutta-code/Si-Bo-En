@@ -173,7 +173,6 @@ class InventoryServices {
                 );
             }
 
-            // If some dates are missing inventory
             if (inventoryCheck.missingDates.length > 0) {
                 // Create charges only for dates with inventory
                 const mappedRI: ICharges[] = [];
@@ -182,9 +181,10 @@ class InventoryServices {
                         bg => ({
                             noOfGuests: bg.numberOfGuests,
                             amount: convert(bg.amountBeforeTax),
+                            ageQualifyingCode: bg.ageQualifyingCode,
                         })
                     );
-
+console.log(convertedBaseGuestAmounts)
                     const convertedAdditionalGuestAmounts =
                         additionalGuestAmounts.map(ag => ({
                             ageCode: ag.ageQualifyingCode as '10' | '8' | '5',
@@ -203,7 +203,7 @@ class InventoryServices {
                         date: dateStr,
                     });
                 }
-
+// console.log(mappedRI);
                 const daoRes = await InventoryDao.mapRatePlans(mappedRI);
 
                 if (daoRes) {
@@ -243,6 +243,7 @@ class InventoryServices {
                 const convertedBaseGuestAmounts = baseGuestAmounts.map(bg => ({
                     noOfGuests: bg.numberOfGuests,
                     amount: convert(bg.amountBeforeTax),
+                    ageQualifyingCode: bg.ageQualifyingCode,
                 }));
 
                 const convertedAdditionalGuestAmounts =
@@ -263,7 +264,7 @@ class InventoryServices {
                     date: toUTC(yyyyMmDd),
                 });
             }
-
+            console.log(mappedRI);
             const daoRes = await InventoryDao.mapRatePlans(mappedRI);
             if (daoRes) {
                 return successResponse('Rate plan mapped successfully', daoRes);

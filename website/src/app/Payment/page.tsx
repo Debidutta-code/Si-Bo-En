@@ -377,7 +377,7 @@ const BookingReviewPage = () => {
       const newBookingCode = data.data.bookingCode;
       setBookingCodeValue(newBookingCode);
       dispatch(setBookingCode(newBookingCode));
-      dispatch(setBookingStatus(data.data.bookingStatus || "pendin"));
+      dispatch(setBookingStatus(data.data.bookingStatus || "pending"));
       dispatch(setFullBookingDetails(data.data));
       document.cookie = "can_access_payment=true; path=/";
 
