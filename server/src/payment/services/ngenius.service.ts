@@ -76,8 +76,38 @@ class NGeniusService {
       // Get valid access token
       const token = await this.getValidToken();
 
-      // Use dynamic outlet ID if provided, otherwise fallback to config
-      const targetOutletId = orderData.outletId || NGeniusConfig.outletId;
+      // Resolve outletId: use the one from the payload first, then look it up from
+      // the DB via propertyCode. outletId is per-property and only stored in DB —
+      // there is no valid global/env fallback, so we throw if it cannot be found.
+      let targetOutletId = orderData.outletId;
+
+      if (!targetOutletId && orderData.propertyCode) {
+        console.log(`[N-Genius] outletId not in payload — looking up from DB for propertyCode: ${orderData.propertyCode}`);
+        const property = await prisma.property.findFirst({
+          where: { propertyCode: orderData.propertyCode },
+        });
+
+        if (!property) {
+          throw new Error(`[N-Genius] Property not found for code: ${orderData.propertyCode}`);
+        }
+
+        const activeIntegration = await prisma.propertyPaymentIntegration.findFirst({
+          where: { propertyId: property.id, isActive: true },
+        });
+
+        if (activeIntegration?.outletId) {
+          targetOutletId = activeIntegration.outletId;
+          console.log(`[N-Genius] ✅ outletId resolved from DB: ${targetOutletId}`);
+        } else {
+          throw new Error(`[N-Genius] No active payment integration with an outletId found for property: ${property.id} (code: ${orderData.propertyCode}). Please configure the outlet ID in the payment integration settings.`);
+        }
+      }
+
+      if (!targetOutletId) {
+        throw new Error(`[N-Genius] outletId is required but was not provided and could not be resolved. Ensure propertyCode is sent in the request so the outletId can be looked up from the database.`);
+      }
+
+      console.log(`[N-Genius] 🏪 Using outletId: ${targetOutletId}`);
       const url = `${NGeniusConfig.baseUrl}${NGeniusConfig.endpoints.orders}/${targetOutletId}/orders`;
 
       const startTime = Date.now();
