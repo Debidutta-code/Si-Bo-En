@@ -21,6 +21,7 @@ export interface IBookingSearchPayload {
 export interface IBaseByGuestAmount {
   numberOfGuests: number;
   amountBeforeTax: number;
+  ageQualifyingCode: string;
 }
 
 export interface IAddonDetail {

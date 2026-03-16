@@ -250,7 +250,8 @@ export class RatePlanRepository {
           baseGuestAmounts: {
             create: baseGuestAmounts.map((guest) => ({
               numberOfGuests: guest.numberOfGuests,
-              amountBeforeTax: guest.amountBeforeTax,
+              amountBeforeTax: Number(guest.amountBeforeTax),
+              ageQualifyingCode: guest.ageQualifyingCode,
             })),
           },
           additionalGuestAmounts: {

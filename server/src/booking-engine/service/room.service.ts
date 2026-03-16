@@ -286,38 +286,100 @@ export class RoomBookingService {
             return true;
         });
 
-        const charge = charges[0];
-        const sortedBase = [...charge.baseGuestAmounts].sort(
-            (a, b) => a.numberOfGuests - b.numberOfGuests
-        );
-        const selectedTier =
-            sortedBase.find(b => b.numberOfGuests >= totalGuests) ||
-            sortedBase[sortedBase.length - 1];
+        // ── Room physical-limit checks ──────────────────────────────
+        if (guests.adults > room.maxNumberOfAdults) return null;
+        if (guests.children > room.maxNumberOfChildren) return null;
+        if (totalGuests > room.maxOccupancy) return null;
 
-        const baseAmount = Number(selectedTier.amountBeforeTax);
+        // ── Guest-aware base-price validation & calculation ──────────
+        const charge = charges[0];
+
+        const adultBaseAmounts = charge.baseGuestAmounts
+            .filter((b: any) => b.ageQualifyingCode === '10')
+            .sort((a: any, b: any) => a.numberOfGuests - b.numberOfGuests);
+
+        const childBaseAmounts = charge.baseGuestAmounts
+            .filter((b: any) => b.ageQualifyingCode === '8')
+            .sort((a: any, b: any) => a.numberOfGuests - b.numberOfGuests);
+
+        const additionalAdultCharge = charge.additionalGuestAmounts
+            .find((a: any) => a.ageQualifyingCode === '10');
+
+        const additionalChildCharge = charge.additionalGuestAmounts
+            .find((a: any) => a.ageQualifyingCode === '8');
+
+        // Calculate adult price
+        let adultBasePrice = 0;
+        let additionalAdultCharges = 0;
+        const exactAdultBase = adultBaseAmounts.find((b: any) => b.numberOfGuests === guests.adults);
+        if (exactAdultBase) {
+            adultBasePrice = Number(exactAdultBase.amountBeforeTax);
+        } else if (adultBaseAmounts.length > 0) {
+            const maxAdultBase = adultBaseAmounts[adultBaseAmounts.length - 1];
+            adultBasePrice = Number(maxAdultBase.amountBeforeTax);
+            const extraAdults = guests.adults - maxAdultBase.numberOfGuests;
+            if (extraAdults > 0) {
+                if (!additionalAdultCharge) return null; // can't cover extra adults
+                additionalAdultCharges = extraAdults * Number(additionalAdultCharge.amount);
+            }
+        } else {
+            // No adult base rows at all
+            if (additionalAdultCharge) {
+                additionalAdultCharges = guests.adults * Number(additionalAdultCharge.amount);
+            } else {
+                return null; // no way to price adults
+            }
+        }
+
+        // Calculate child price
+        let childBasePrice = 0;
+        let additionalChildCharges = 0;
+        if (guests.children > 0) {
+            const exactChildBase = childBaseAmounts.find((b: any) => b.numberOfGuests === guests.children);
+            if (exactChildBase) {
+                childBasePrice = Number(exactChildBase.amountBeforeTax);
+            } else if (childBaseAmounts.length > 0) {
+                const maxChildBase = childBaseAmounts[childBaseAmounts.length - 1];
+                childBasePrice = Number(maxChildBase.amountBeforeTax);
+                const extraChildren = guests.children - maxChildBase.numberOfGuests;
+                if (extraChildren > 0) {
+                    if (!additionalChildCharge) return null; // can't cover extra children
+                    additionalChildCharges = extraChildren * Number(additionalChildCharge.amount);
+                }
+            } else {
+                // No child base rows
+                if (additionalChildCharge) {
+                    additionalChildCharges = guests.children * Number(additionalChildCharge.amount);
+                } else {
+                    return null; // no way to price children
+                }
+            }
+        }
+
+        const baseAmount = adultBasePrice + childBasePrice + additionalAdultCharges + additionalChildCharges;
+
+        const sortedBase = [...charge.baseGuestAmounts].sort(
+            (a: any, b: any) => a.numberOfGuests - b.numberOfGuests
+        );
 
         let totalAutoDiscount = 0;
         const availablePromotions: IPromotion[] = [];
         const appliedDiscounts: IAppliedDiscount[] = [];
-        if (devicePromotion) {
+        if (devicePromotion && devicePromotion.isAutoApplied) {
             const discount = this.calculateDiscount(
                 baseAmount,
                 devicePromotion.discountType,
                 Number(devicePromotion.discountValue)
             );
-            if (devicePromotion.isAutoApplied) {
-                totalAutoDiscount += discount;
-                appliedDiscounts.push({
-                    id: devicePromotion.id,
-                    promotionName: devicePromotion.promotionName,
-                    promotionType: devicePromotion.promotionType,
-                    discountType: devicePromotion.discountType,
-                    discountValue: Number(devicePromotion.discountValue),
-                    calculatedDiscountAmount: discount,
-                });
-            } else {
-                availablePromotions.push(this.mapPromotion(devicePromotion));
-            }
+            totalAutoDiscount += discount;
+            appliedDiscounts.push({
+                id: devicePromotion.id,
+                promotionName: devicePromotion.promotionName,
+                promotionType: devicePromotion.promotionType,
+                discountType: devicePromotion.discountType,
+                discountValue: Number(devicePromotion.discountValue),
+                calculatedDiscountAmount: discount,
+            });
         }
 
         if (geoRatePlan) {
@@ -476,9 +538,10 @@ export class RoomBookingService {
             ratePlanName: ratePlan.ratePlanName,
             ratePlanCode: ratePlan.ratePlanCode,
             currencyCode: charge.currencyCode,
-            baseByGuestAmts: sortedBase.map(b => ({
+            baseByGuestAmts: sortedBase.map((b: any) => ({
                 numberOfGuests: b.numberOfGuests,
                 amountBeforeTax: Number(b.amountBeforeTax),
+                ageQualifyingCode: b.ageQualifyingCode || '10',
             })),
             policy: {
                 depositPolicy: ratePlan.depositPolicy,

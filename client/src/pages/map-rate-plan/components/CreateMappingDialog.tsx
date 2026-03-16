@@ -211,7 +211,15 @@ export default function CreateMappingDialog({
         const updated = localForm.additionalGuestAmounts.filter((_, i) => i !== index);
         setLocalForm({ ...localForm, additionalGuestAmounts: updated });
     };
+    const selectedRoom = roomTypes.find(room => room.id === localForm.roomTypeCode);
 
+    const isAdultLimitReached = selectedRoom
+        ? localForm.adultsBase.length >= selectedRoom.maxNumberOfAdults
+        : false;
+
+    const isChildLimitReached = selectedRoom
+        ? localForm.childrenBase.length >= selectedRoom.maxNumberOfChildren
+        : false;
     const handleAdditionalGuestAmountChange = (
         index: number,
         field: keyof IAdditionalGuestAmount,
@@ -250,7 +258,7 @@ export default function CreateMappingDialog({
         try {
             const payload: ICreateCharges = {
                 ratePlanCode: localForm.ratePlanCode,
-                roomTypeCode: localForm.roomTypeCode,
+                roomTypeCode: selectedRoom?.roomType || "",
                 startDate: localForm.startDate,
                 endDate: localForm.endDate,
                 currencyCode: localForm.currencyCode as CurrencyCode,
@@ -332,7 +340,7 @@ export default function CreateMappingDialog({
                                 </SelectTrigger>
                                 <SelectContent>
                                     {roomTypes.map((room) => (
-                                        <SelectItem key={room.id} value={room.roomType}>
+                                        <SelectItem key={room.id} value={room.id}>
                                             {room.roomName} ({room.roomType})
                                         </SelectItem>
                                     ))}
@@ -466,7 +474,7 @@ export default function CreateMappingDialog({
                                 variant="outline"
                                 onClick={handleAddAdultBase}
                                 className="w-full"
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || isAdultLimitReached}
                             >
                                 <Plus className="w-4 h-4 mr-2" />
                                 Add Adult Guest Amount
@@ -532,7 +540,7 @@ export default function CreateMappingDialog({
                                 variant="outline"
                                 onClick={handleAddChildBase}
                                 className="w-full"
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || isChildLimitReached}
                             >
                                 <Plus className="w-4 h-4 mr-2" />
                                 Add Children Guest Amount
