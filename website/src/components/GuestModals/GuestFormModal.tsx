@@ -267,11 +267,6 @@ const GuestFormModal: React.FC<Props> = ({
     }
   };
 
-  const currencySymbol = currencies.find(
-    (c) => c.code === finalPrice?.currencyCode
-  )?.symbol ?? finalPrice?.currencyCode ?? "$";
-
-
   const getCurrencySymbol = (code: string) =>
     currencies.find((c) => c.code === code)?.symbol ?? code;
 
