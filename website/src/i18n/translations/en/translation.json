@@ -1,0 +1,396 @@
+{
+  "Navbar": {
+    "home": "Home",
+    "services": "Services",
+    "contactUs": "Contact Us",
+    "partnerLogin": "Partner Login",
+    "myBooking": "My Booking"
+  },
+  "Hero": {
+    "title": "Find Next Place To Visit",
+    "subtitle": "Discover amazing places at exclusive deals"
+  },
+  "SearchWidget": {
+    "checkIn": "CHECK-IN",
+    "checkOut": "CHECK-OUT",
+    "checkOutSelect": "Select",
+    "occupancy": "OCCUPANCY",
+    "promoCode": "PROMO CODE",
+    "bookNow": "BOOK NOW",
+    "loading": "LOADING...",
+    "errorDates": "Please select valid check-in and check-out dates.",
+    "errorCheckOut": "Check-out date must be after check-in date."
+  },
+  "Services": {
+    "hero": {
+      "title": "UNLOCK YOUR FULL\nREVENUE POTENTIAL",
+      "description": "If you are ready to cut down on hefty commissions, increase direct bookings, and secure the long-term success of your hotel, partner with us and take the next step toward a future-proof hospitality business.",
+      "contactUs": "CONTACT US"
+    },
+    "section": {
+      "title": "OUR SERVICES",
+      "subtitle": "Dive into the new age of hospitality solutions with us",
+      "consultBtn": "Consult with us"
+    },
+    "items": {
+      "digitalMarketing": {
+        "title": "DIGITAL MARKETING",
+        "description": "We craft tailored marketing strategies that highlight your unique offerings and drive guests to book directly through your website — boosting reservations and reducing reliance on third-party platforms."
+      },
+      "webDesign": {
+        "title": "WEB DESIGN",
+        "description": "Your website is your online identity. An optimized, mobile-friendly website is the first step toward winning control of your online business and converting visitors into bookings."
+      },
+      "loyaltyProgram": {
+        "title": "LOYALTY PROGRAM",
+        "description": "Turn loyalty into your competitive advantage. Offer value-added benefits to registered customers and differentiate your brand from competitors."
+      },
+      "bookingEngine": {
+        "title": "BOOKING ENGINE",
+        "description": "Boost direct reservations with our plug-in booking engine integrated with your property management system. Secure, mobile-friendly and optimized for conversion."
+      },
+      "aiChatbot": {
+        "title": "AI CHATBOT",
+        "description": "Engage guests smarter with AI. Route requests, convert leads, enrich CRM data and drive more direct bookings."
+      },
+      "distributionManagement": {
+        "title": "DISTRIBUTION MANAGEMENT",
+        "description": "Maximize ROI and efficiency. Manage daily revenue tasks, maintain healthy distribution channels and strengthen your hotel's online presence."
+      }
+    },
+    "cta": {
+      "title": "YOUR TRUSTED PARTNER IN DIRECT BOOKING SUCCESS",
+      "description": "Slash commission costs and increase your earnings by joining RevChill today.",
+      "btn": "GET A FREE CONSULTATION"
+    },
+    "footer": {
+      "phone": "Phone",
+      "phoneNumber": "+971 (04) 5878 776",
+      "email": "Email",
+      "emailAddress": "info@revchill.com",
+      "follow": "Follow",
+      "copyright": "©2020 by RevChill"
+    }
+  },
+  "Rooms": {
+    "urgencyBanner": {
+      "title": "You will get the best available price if you book now!",
+      "subtitle": "The prices can rise at any moment. Don't wait any longer!"
+    },
+    "videoOverlay": "Property Tour",
+    "searchingRooms": "Searching rooms...",
+    "noRoomsHotel": "No rooms available for this hotel.",
+    "noRooms": "No rooms available",
+    "failedToLoad": "Failed to load rooms.",
+    "somethingWentWrong": "Something went wrong while fetching rooms.",
+    "modal": {
+      "title": "Conditions",
+      "description": "Exclusive advantage for bookings made on the official website",
+      "guarantee": {
+        "title": "Best Price Guarantee",
+        "description": "We guarantee that you won't find a lower price for the same room, dates, and conditions anywhere else online."
+      },
+      "keyConditions": "Key Conditions:",
+      "conditions": {
+        "one": "Prices are subject to change and may increase at any time",
+        "two": "Early booking discounts are only available through our official website",
+        "three": "Limited availability - rooms may sell out quickly",
+        "four": "Special promotions are exclusive to direct bookings",
+        "five": "Flexible cancellation policies only apply to official website bookings"
+      },
+      "note": "Note:",
+      "noteText": "Booking through third-party websites or agents may result in higher prices and fewer benefits."
+    }
+  },
+  "LoyaltyBanner": {
+    "verifying": "Verifying...",
+    "loyaltyProgram": "Loyalty Program",
+    "basic": "Basic",
+    "premium": "Premium",
+    "programTerms": "Program Terms",
+    "specialBenefits": "Special Benefits",
+    "logoutSuccess": "Successfully logged out from loyalty program",
+    "modal": {
+      "join": "Join",
+      "registerTo": "Register to get",
+      "onAllBookings": "on all bookings",
+      "discount": "Discount",
+      "autoApplied": "Auto-applied on every booking",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "your.email@example.com",
+      "cancel": "Cancel",
+      "registering": "Registering...",
+      "signUp": "Sign Up",
+      "emailRequired": "Email is required",
+      "failedToRegister": "Failed to register for loyalty program",
+      "alreadyRegistered": "Welcome back! You're already a loyalty member.",
+      "registerSuccess": "Successfully registered for loyalty program!",
+      "failedRetry": "Failed to register. Please try again."
+    }
+  },
+  "LoyaltyContainer": {
+    "verifying": "Verifying...",
+    "membersDiscount": "members only discount",
+    "joinProgram": "Join Program",
+    "loyaltyDiscount": "Loyalty Discount",
+    "activeMember": "Active Member",
+    "logout": "Logout",
+    "areYouRegistered": "Are you registered?",
+    "identifyYourself": "Identify yourself",
+    "logoutSuccess": "Successfully logged out from loyalty program",
+    "modal": {
+      "join": "Join",
+      "registerTo": "Register to get",
+      "offOnAllBookings": "off on all bookings",
+      "discount": "Discount",
+      "autoApplied": "Auto-applied on every booking",
+      "emailLabel": "Email Address",
+      "emailPlaceholder": "your.email@example.com",
+      "cancel": "Cancel",
+      "registering": "Registering...",
+      "signUp": "Sign Up",
+      "emailRequired": "Email is required",
+      "failedToRegister": "Failed to register for loyalty program",
+      "alreadyRegistered": "Welcome back! You're already a loyalty member.",
+      "registerSuccess": "Successfully registered for loyalty program!",
+      "failedRetry": "Failed to register. Please try again."
+    }
+  },
+  "RoomCard": {
+    "guests": "Guests",
+    "bookingConditions": "Booking conditions →",
+    "offersApplied": "Offer(s) Applied",
+    "available": "Available",
+    "promotionalRate": "Promotional rate",
+    "specialOffersAvailable": "Special Offers Available",
+    "specialOfferAvailable": "Special Offer Available",
+    "offersSelected": "offer(s) selected — will be applied at checkout",
+    "taxNotIncluded": "Tax not included",
+    "unlock": "UNLOCK",
+    "basePrice": "Base Price",
+    "perNight": "per night",
+    "autoAppliedDiscounts": "Auto-Applied Discounts",
+    "includedAddons": "Included Addons",
+    "add": "ADD",
+    "loading": "Loading...",
+    "roomOnly": "Room Only",
+    "onlyRoomsLeft": "Only {{count}} Room Left!",
+    "onlyRoomsLeftPlural": "Only {{count}} Rooms Left!",
+    "touristTax": {
+      "notIncluded": "not included",
+      "paidAtHotel": "is not included in the room rate — to be paid directly at the hotel."
+    },
+    "promotions": {
+      "minNightStay": "Minimum {{count}} night stay",
+      "deviceExclusive": "Device exclusive offer",
+      "bookDaysInAdvance": "Book {{count}} days in advance",
+      "specialOffer": "Special offer",
+      "validUntil": "Valid until"
+    },
+    "errors": {
+      "somethingWentWrong": "Something went wrong. Please try again.",
+      "failedToFetchPrice": "Failed to fetch price. Please try again."
+    }
+  },
+  "Footer": {
+    "defaultAddress": "Dubai, United Arab Emirates",
+    "recaptcha": {
+      "text": "This site is protected by reCAPTCHA and the Google",
+      "privacyPolicy": "Privacy Policy",
+      "and": "and",
+      "termsOfService": "Terms of Service",
+      "apply": "apply."
+    },
+    "poweredBy": "Powered by"
+  },
+  "AddonModal": {
+    "title": "Enhance Your Stay",
+    "subtitle": "Select optional add-ons to make your stay even more memorable",
+    "noAddons": "No add-ons available for your selected dates",
+    "each": "each",
+    "showLess": "Show Less",
+    "seeMoreAddons": "See {{count}} More Add-ons",
+    "noAddonsSelected": "No add-ons selected",
+    "addonsSelected": "add-on selected",
+    "addonsSelectedPlural": "add-ons selected",
+    "skip": "Skip",
+    "continue": "Continue",
+    "continueWith": "Continue with {{count}} Add-on",
+    "continueWithPlural": "Continue with {{count}} Add-ons"
+  },
+  "GuestForm": {
+    "title": "Complete Your Booking",
+    "adult": "Adult",
+    "child": "Child",
+    "firstName": "First Name",
+    "firstNamePlaceholder": "First Name",
+    "lastName": "Last Name",
+    "lastNamePlaceholder": "Last Name",
+    "dateOfBirth": "Date of Birth",
+    "contactInfo": "Contact Information",
+    "loyaltyMember": "Loyalty Member",
+    "emailLabel": "Email Address",
+    "emailPlaceholder": "your@email.com",
+    "emailConfirmation": "Your booking confirmation will be sent here",
+    "loyaltyDiscountPercent": "{{value}}% loyalty discount will be applied",
+    "loyaltyDiscountFlat": "{{currency}} {{value}} loyalty discount will be applied",
+    "phoneLabel": "Phone Number",
+    "phonePlaceholder": "Enter Phone Number",
+    "phoneNote": "Used for booking-related notifications",
+    "priceDetails": "Price Details",
+    "dailyBreakdown": "Daily Breakdown",
+    "room": "Room",
+    "baseRate": "Base Rate:",
+    "additional": "Additional:",
+    "taxFees": "Tax & Fees:",
+    "addons": "Addons:",
+    "dayTotal": "Day Total:",
+    "subtotalBeforeTax": "Subtotal (before tax):",
+    "totalTax": "Total Tax:",
+    "grandTotal": "Grand Total:",
+    "baseAmount": "Base Amount (before tax):",
+    "additionalGuestCharges": "Additional Guest Charges:",
+    "addonsLabel": "Add-ons:",
+    "totalAddons": "Total Add-ons:",
+    "promotions": "Promotions & Adjustments:",
+    "payAtHotel": "(pay at hotel)",
+    "loyaltyDiscount": "Loyalty Discount:",
+    "promoCodeDiscount": "Promo Code Discount:",
+    "taxesAndFees": "Taxes & Fees:",
+    "amountPaidLater": "Amount to be Paid Later:",
+    "amountPaidNow": "Amount to be Paid Now:",
+    "includesAllTaxes": "Includes all taxes and fees",
+    "proceedToPayment": "Proceed to Payment",
+    "processing": "Processing...",
+    "cancel": "Cancel",
+    "validationError": "Please provide all the necessary information before proceeding",
+    "somethingWentWrong": "Something went wrong, please try again.",
+    "errors": {
+      "firstNameRequired": "First name is required.",
+      "invalidName": "Invalid name format.",
+      "lastNameRequired": "Last name is required.",
+      "emailRequired": "Email is required.",
+      "invalidEmail": "Invalid email address.",
+      "phoneRequired": "Phone number is required.",
+      "invalidPhone": "Phone number must be between 5 and 15 digits."
+    }
+  },
+  "Payment": {
+    "loadingPayment": "Loading payment details...",
+    "bookingSummary": "Booking Summary",
+    "stayDates": "Stay Dates:",
+    "guests": "Guests:",
+    "room": "Room",
+    "adult": "Adult",
+    "adults": "Adults",
+    "child": "Child",
+    "children": "Children",
+    "guestName": "Guest Name:",
+    "email": "Email:",
+    "night": "night",
+    "nights": "nights",
+    "choosePayment": "Choose Payment Method",
+    "noPaymentAvailable": "No payment methods available",
+    "noPaymentContact": "Please contact the hotel directly for payment arrangements.",
+    "recommended": "Recommended",
+    "notAvailable": "Not Available",
+    "payAtHotel": {
+      "label": "Pay at Hotel",
+      "description": "Pay directly at the property during check-in",
+      "title": "Pay at Hotel",
+      "info": "Your booking will be confirmed and you can pay directly at the hotel during check-in. We accept cash, cards, and digital payments at the property.",
+      "noAdvance": "✓ No advance payment required",
+      "flexible": "✓ Flexible payment options"
+    },
+    "gateway": {
+      "label": "Pay Online",
+      "descriptionFikafi": "Secure payment via Fikafi payment gateway",
+      "descriptionNgenius": "Secure payment via Network International gateway",
+      "descriptionDefault": "Secure online payment",
+      "fikafiTitle": "Secure Online Payment",
+      "fikafiInfo": "You'll be redirected to our secure payment partner to complete your payment using credit/debit card, net banking, or other online payment methods.",
+      "fikafiConfirmHint": "Click \"Confirm Booking\" below to create your reservation.",
+      "ngeniusTitle": "Pay with Card",
+      "secure": "Secure",
+      "ngeniusInfo": "Complete your payment securely via Network International payment gateway. You will be redirected to their encrypted payment page.",
+      "ngeniusRedirect": "You will be securely redirected to the payment page to complete your transaction.",
+      "ngeniusFooter": "Supported cards processed in seconds • No hidden fees"
+    },
+    "confirmBooking": "Confirm Booking",
+    "bookingConfirmed": "Booking Confirmed ✓",
+    "selectPaymentMethod": "Select Payment Method",
+    "processing": "Processing...",
+    "payNow": "Pay Now"
+  },
+  "PriceDetails": {
+    "title": "Price Details",
+    "totalAmount": "Total Amount",
+    "securePayment": "Secure Payment:",
+    "securePaymentInfo": "Your payment information is encrypted and secure.",
+    "acceptedMethods": "Accepted payment methods",
+    "promoPlaceholder": "Please enter a promo code",
+    "promoInvalid": "Invalid promo code",
+    "promoError": "Something went wrong. Try again!"
+  },
+  "Fikafi": {
+    "preparingPayment": "Preparing secure payment...",
+    "redirectToPayment": "Redirect to Payment",
+    "redirecting": "Redirecting to Fikafi...",
+    "confirmFirst": "Confirm Booking First",
+    "errorTitle": "Payment link could not be created",
+    "errorSubtitle": "There was an issue connecting to the payment gateway. Please try again.",
+    "tryAgain": "Try Again",
+    "cancel": "Cancel",
+    "errors": {
+      "missingContact": "Please provide either email or phone number",
+      "missingBookingCode": "Please confirm your booking first before payment",
+      "failedToGenerate": "Failed to generate payment link",
+      "paymentFailed": "Payment failed. Please try again.",
+      "paymentCancelled": "Payment cancelled"
+    }
+  },
+  "PaymentSuccess": {
+    "confirmed": {
+      "title": "Booking Confirmed!",
+      "subtitle": "Your reservation has been successfully completed.",
+      "bookingSummary": "Booking Summary",
+      "checkIn": "Check-in:",
+      "checkOut": "Check-out:",
+      "duration": "Duration:",
+      "night": "night",
+      "nights": "nights",
+      "guests": "Guests:",
+      "room": "Room",
+      "rooms": "Rooms",
+      "adult": "Adult",
+      "adults": "Adults",
+      "child": "Child",
+      "children": "Children",
+      "guestInfo": "Guest Information",
+      "noGuestDetails": "No guest details provided.",
+      "email": "Email:",
+      "paymentMethod": "Payment Method:",
+      "paymentDetails": "Payment Details",
+      "payAtHotelNote": "Payment will be collected at the hotel.",
+      "whatsNext": "What's Next?",
+      "confirmationEmail": "A confirmation email has been sent.",
+      "viewOrCancel": "You can view or cancel bookings anytime.",
+      "needChanges": "Need changes? Contact us 24/7.",
+      "viewMyBookings": "View My Bookings",
+      "returnHome": "Return Home",
+      "redirecting": "Redirecting..."
+    },
+    "pending": {
+      "title": "Booking Pending",
+      "subtitle": "We've received your booking request and it's currently being processed.",
+      "emailNote": "You will receive a confirmation email shortly. If you don't hear from us within 10 minutes, please contact our support team.",
+      "nextSteps": "Next Steps",
+      "step1": "Make sure you have completed the payment if required.",
+      "step2": "If you paid via bank transfer or UPI, allow a few minutes for processing.",
+      "step3": "Your booking will be confirmed once the payment is verified.",
+      "viewMyBookings": "View My Bookings",
+      "returnHome": "Return Home",
+      "redirecting": "Redirecting..."
+    }
+  }
+}

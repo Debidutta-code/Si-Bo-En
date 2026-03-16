@@ -13,6 +13,7 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import Image from "next/image";
+import { useTranslation } from "react-i18next";
 
 export const LoyaltyContainer = ({
   loyaltyProgram,
@@ -29,6 +30,7 @@ export const LoyaltyContainer = ({
   onToggleChange?: (isOn: boolean) => void;
   toggleOn?: boolean;
 }) => {
+  const { t } = useTranslation();
   const [internalShowSignUpModal, setInternalShowSignUpModal] = useState(false);
   const [isToggleOn, setIsToggleOn] = useState(false);
 
@@ -146,7 +148,7 @@ export const LoyaltyContainer = ({
     setDiscountInfo(null);
     setIsToggleOn(false);
     onToggleChange?.(false);
-    toast.success("Successfully logged out from loyalty program");
+    toast.success(t("LoyaltyContainer.logoutSuccess"));
   };
 
   const handleSignUpSubmit = async (e: React.FormEvent) => {
@@ -155,7 +157,7 @@ export const LoyaltyContainer = ({
     try {
       const { email, ...otherFields } = formData;
       if (!email) {
-        toast.error("Email is required");
+        toast.error(t("LoyaltyContainer.modal.emailRequired"));
         setIsSubmitting(false);
         return;
       }
@@ -187,7 +189,7 @@ export const LoyaltyContainer = ({
           if (data.data?.discount) setDiscountInfo(data.data.discount);
           setIsToggleOn(true);
           onToggleChange?.(true);
-          toast.success("Welcome back! You're already a loyalty member.");
+          toast.success(t("LoyaltyContainer.modal.alreadyRegistered"));
           setShowSignUpModal(false);
           setFormData({});
           return;
@@ -211,11 +213,11 @@ export const LoyaltyContainer = ({
           currencyCode: data.data.currencyCode || program.currencyCode,
         });
       }
-      toast.success("Successfully registered for loyalty program!");
+      toast.success(t("LoyaltyContainer.modal.registerSuccess"));
       setShowSignUpModal(false);
       setFormData({});
     } catch {
-      toast.error("Failed to register. Please try again.");
+      toast.error(t("LoyaltyContainer.modal.failedRetry"));
     } finally {
       setIsSubmitting(false);
     }
@@ -247,7 +249,7 @@ export const LoyaltyContainer = ({
   ).filter((c) => c.isActive && !c.isDeleted);
 
   const benefitItems: { bold: string; normal: string }[] = [
-    { bold: `${getDiscountDisplay()}`, normal: " members only discount" },
+    { bold: `${getDiscountDisplay()}`, normal: ` ${t("LoyaltyContainer.membersDiscount")}` },
     ...activeConditions.map((c) => ({ bold: "", normal: c.text })),
     // Each special condition shows title (bold) + subTitle (normal) as separate items
     ...activeSpecialConditions.flatMap((c) => {
@@ -273,7 +275,7 @@ export const LoyaltyContainer = ({
                   style={{ borderTopColor: primaryColor }}
                 />
                 <span className="text-xs font-medium text-gray-600">
-                  Verifying...
+                  {t("LoyaltyContainer.verifying")}
                 </span>
               </div>
             </div>
@@ -323,7 +325,7 @@ export const LoyaltyContainer = ({
                   <>
                     <div className="flex items-center gap-2">
                       <span className="text-xs sm:text-sm text-gray-700 font-medium whitespace-nowrap">
-                        Join Program
+                        {t("LoyaltyContainer.joinProgram")}
                       </span>
                       <button
                         onClick={handleToggle}
@@ -341,12 +343,12 @@ export const LoyaltyContainer = ({
                     </div>
 
                     <p className="text-[10px] sm:text-xs text-gray-500 whitespace-nowrap text-right">
-                      Are you registered?{" "}
+                      {t("LoyaltyContainer.areYouRegistered")}{" "}
                       <button
                         onClick={() => setShowSignUpModal(true)}
                         className="underline text-gray-700 font-medium hover:text-gray-900 transition-colors"
                       >
-                        Identify yourself
+                        {t("LoyaltyContainer.identifyYourself")}
                       </button>
                     </p>
                   </>
@@ -354,7 +356,7 @@ export const LoyaltyContainer = ({
                   <div className="flex flex-col items-end gap-2">
                     <div className="flex items-center gap-2">
                       <span className="text-xs sm:text-sm text-gray-700 font-medium whitespace-nowrap">
-                        Loyalty Discount
+                        {t("LoyaltyContainer.loyaltyDiscount")}
                       </span>
                       <button
                         onClick={handleToggle}
@@ -385,7 +387,7 @@ export const LoyaltyContainer = ({
                         />
                         <div>
                           <p className="text-[10px] sm:text-xs font-bold text-gray-900 leading-tight whitespace-nowrap">
-                            Active Member
+                            {t("LoyaltyContainer.activeMember")}
                           </p>
                           <p
                             className="text-[9px] sm:text-[10px] text-gray-500 truncate max-w-[80px] sm:max-w-[100px]"
@@ -400,7 +402,7 @@ export const LoyaltyContainer = ({
                         className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 text-[10px] sm:text-xs font-semibold border border-red-200 transition-colors whitespace-nowrap"
                       >
                         <LogOut className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-                        Logout
+                        {t("LoyaltyContainer.logout")}
                       </button>
                     </div>
                   </div>
@@ -421,10 +423,10 @@ export const LoyaltyContainer = ({
                   className="w-5 h-5 flex-shrink-0"
                   style={{ color: primaryColor }}
                 />
-                Join {loyaltyProgram.propertyName}
+                {t("LoyaltyContainer.modal.join")} {loyaltyProgram.propertyName}
               </DialogTitle>
               <DialogDescription className="text-xs sm:text-sm">
-                Register to get {getDiscountDisplay()} off on all bookings
+                {t("LoyaltyContainer.modal.registerTo")} {getDiscountDisplay()} {t("LoyaltyContainer.modal.offOnAllBookings")}
               </DialogDescription>
             </DialogHeader>
 
@@ -445,10 +447,10 @@ export const LoyaltyContainer = ({
                   </div>
                   <div>
                     <p className="font-bold text-gray-900 text-xs sm:text-sm">
-                      {getDiscountDisplay()} Discount
+                      {getDiscountDisplay()} {t("LoyaltyContainer.modal.discount")}
                     </p>
                     <p className="text-[10px] sm:text-xs text-gray-600">
-                      Auto-applied on every booking
+                      {t("LoyaltyContainer.modal.autoApplied")}
                     </p>
                   </div>
                 </div>
@@ -458,12 +460,12 @@ export const LoyaltyContainer = ({
                     htmlFor="email"
                     className="text-xs sm:text-sm font-medium"
                   >
-                    Email Address <span className="text-red-500">*</span>
+                    {t("LoyaltyContainer.modal.emailLabel")} <span className="text-red-500">*</span>
                   </Label>
                   <Input
                     id="email"
                     type="email"
-                    placeholder="your.email@example.com"
+                    placeholder={t("LoyaltyContainer.modal.emailPlaceholder")}
                     required
                     value={formData.email || ""}
                     onChange={(e) => handleFieldChange("email", e.target.value)}
@@ -522,7 +524,7 @@ export const LoyaltyContainer = ({
                   className="flex-1 text-sm"
                   disabled={isSubmitting}
                 >
-                  Cancel
+                  {t("LoyaltyContainer.modal.cancel")}
                 </Button>
                 <Button
                   type="submit"
@@ -533,12 +535,12 @@ export const LoyaltyContainer = ({
                   {isSubmitting ? (
                     <span className="flex items-center justify-center gap-1.5">
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      Registering...
+                      {t("LoyaltyContainer.modal.registering")}
                     </span>
                   ) : (
                     <span className="flex items-center justify-center gap-1.5">
                       <User className="w-4 h-4" />
-                      Sign Up
+                      {t("LoyaltyContainer.modal.signUp")}
                     </span>
                   )}
                 </Button>

@@ -1,0 +1,396 @@
+{
+  "Navbar": {
+    "home": "الرئيسية",
+    "services": "الخدمات",
+    "contactUs": "اتصل بنا",
+    "partnerLogin": "تسجيل دخول الشريك",
+    "myBooking": "حجزي"
+  },
+  "Hero": {
+    "title": "اعثر على مكانك القادم للزيارة",
+    "subtitle": "اكتشف أماكن رائعة بأسعار حصرية"
+  },
+  "SearchWidget": {
+    "checkIn": "تسجيل الوصول",
+    "checkOut": "تسجيل المغادرة",
+    "checkOutSelect": "اختر",
+    "occupancy": "الإشغال",
+    "promoCode": "رمز الخصم",
+    "bookNow": "احجز الآن",
+    "loading": "جارٍ التحميل...",
+    "errorDates": "يرجى اختيار تواريخ وصول ومغادرة صحيحة.",
+    "errorCheckOut": "يجب أن يكون تاريخ المغادرة بعد تاريخ الوصول."
+  },
+  "Services": {
+    "hero": {
+      "title": "أطلق العنان لكامل\nإمكاناتك الإيرادية",
+      "description": "إذا كنت مستعداً لتقليل العمولات الباهظة وزيادة الحجوزات المباشرة وضمان النجاح طويل الأمد لفندقك، فتشارك معنا واتخذ الخطوة التالية نحو مستقبل مستدام في قطاع الضيافة.",
+      "contactUs": "تواصل معنا"
+    },
+    "section": {
+      "title": "خدماتنا",
+      "subtitle": "انغمس في عصر جديد من حلول الضيافة معنا",
+      "consultBtn": "استشر معنا"
+    },
+    "items": {
+      "digitalMarketing": {
+        "title": "التسويق الرقمي",
+        "description": "نصمم استراتيجيات تسويقية مخصصة تبرز عروضك الفريدة وتدفع الضيوف للحجز مباشرةً عبر موقعك — مما يعزز الحجوزات ويقلل الاعتماد على المنصات الخارجية."
+      },
+      "webDesign": {
+        "title": "تصميم المواقع",
+        "description": "موقعك الإلكتروني هو هويتك على الإنترنت. الموقع المُحسَّن والمتوافق مع الجوال هو الخطوة الأولى نحو السيطرة على أعمالك الرقمية وتحويل الزوار إلى حجوزات."
+      },
+      "loyaltyProgram": {
+        "title": "برنامج الولاء",
+        "description": "اجعل الولاء ميزتك التنافسية. قدم مزايا مضافة للعملاء المسجلين وميّز علامتك التجارية عن المنافسين."
+      },
+      "bookingEngine": {
+        "title": "محرك الحجز",
+        "description": "عزز الحجوزات المباشرة بمحرك حجز متكامل مع نظام إدارة الممتلكات. آمن ومتوافق مع الجوال ومُحسَّن للتحويل."
+      },
+      "aiChatbot": {
+        "title": "روبوت المحادثة الذكي",
+        "description": "تفاعل مع الضيوف بذكاء. وجّه الطلبات وحوّل العملاء المحتملين وأثرِ بيانات CRM وزد الحجوزات المباشرة."
+      },
+      "distributionManagement": {
+        "title": "إدارة التوزيع",
+        "description": "عظّم العائد على الاستثمار والكفاءة. أدر مهام الإيرادات اليومية وحافظ على قنوات توزيع صحية وعزز الحضور الإلكتروني لفندقك."
+      }
+    },
+    "cta": {
+      "title": "شريكك الموثوق في نجاح الحجز المباشر",
+      "description": "قلّل تكاليف العمولات وزد أرباحك بالانضمام إلى RevChill اليوم.",
+      "btn": "احصل على استشارة مجانية"
+    },
+    "footer": {
+      "phone": "الهاتف",
+      "phoneNumber": "+971 (04) 5878 776",
+      "email": "البريد الإلكتروني",
+      "emailAddress": "info@revchill.com",
+      "follow": "تابعنا",
+      "copyright": "©2020 بواسطة RevChill"
+    }
+  },
+  "Rooms": {
+    "urgencyBanner": {
+      "title": "ستحصل على أفضل سعر متاح إذا حجزت الآن!",
+      "subtitle": "قد ترتفع الأسعار في أي لحظة. لا تنتظر أكثر!"
+    },
+    "videoOverlay": "جولة في العقار",
+    "searchingRooms": "جارٍ البحث عن الغرف...",
+    "noRoomsHotel": "لا توجد غرف متاحة لهذا الفندق.",
+    "noRooms": "لا توجد غرف متاحة",
+    "failedToLoad": "فشل تحميل الغرف.",
+    "somethingWentWrong": "حدث خطأ أثناء جلب الغرف.",
+    "modal": {
+      "title": "الشروط",
+      "description": "ميزة حصرية للحجوزات المُجراة عبر الموقع الرسمي",
+      "guarantee": {
+        "title": "ضمان أفضل سعر",
+        "description": "نضمن أنك لن تجد سعراً أقل لنفس الغرفة والتواريخ والشروط في أي مكان آخر على الإنترنت."
+      },
+      "keyConditions": "الشروط الرئيسية:",
+      "conditions": {
+        "one": "الأسعار قابلة للتغيير وقد ترتفع في أي وقت",
+        "two": "خصومات الحجز المبكر متاحة فقط عبر موقعنا الرسمي",
+        "three": "التوفر محدود - قد تنفد الغرف بسرعة",
+        "four": "العروض الخاصة حصرية للحجوزات المباشرة",
+        "five": "سياسات الإلغاء المرنة تنطبق فقط على حجوزات الموقع الرسمي"
+      },
+      "note": "ملاحظة:",
+      "noteText": "الحجز عبر مواقع أو وكلاء خارجيين قد يؤدي إلى أسعار أعلى ومزايا أقل."
+    }
+  },
+  "LoyaltyBanner": {
+    "verifying": "جارٍ التحقق...",
+    "loyaltyProgram": "برنامج الولاء",
+    "basic": "أساسي",
+    "premium": "مميز",
+    "programTerms": "شروط البرنامج",
+    "specialBenefits": "المزايا الخاصة",
+    "logoutSuccess": "تم تسجيل الخروج من برنامج الولاء بنجاح",
+    "modal": {
+      "join": "انضم إلى",
+      "registerTo": "سجّل للحصول على",
+      "onAllBookings": "على جميع الحجوزات",
+      "discount": "خصم",
+      "autoApplied": "يُطبَّق تلقائياً على كل حجز",
+      "emailLabel": "البريد الإلكتروني",
+      "emailPlaceholder": "example@email.com",
+      "cancel": "إلغاء",
+      "registering": "جارٍ التسجيل...",
+      "signUp": "إنشاء حساب",
+      "emailRequired": "البريد الإلكتروني مطلوب",
+      "failedToRegister": "فشل التسجيل في برنامج الولاء",
+      "alreadyRegistered": "مرحباً بعودتك! أنت بالفعل عضو في برنامج الولاء.",
+      "registerSuccess": "تم التسجيل في برنامج الولاء بنجاح!",
+      "failedRetry": "فشل التسجيل. يرجى المحاولة مرة أخرى."
+    }
+  },
+  "LoyaltyContainer": {
+    "verifying": "جارٍ التحقق...",
+    "membersDiscount": "خصم حصري للأعضاء",
+    "joinProgram": "انضم للبرنامج",
+    "loyaltyDiscount": "خصم الولاء",
+    "activeMember": "عضو نشط",
+    "logout": "تسجيل الخروج",
+    "areYouRegistered": "هل أنت مسجل؟",
+    "identifyYourself": "عرّف عن نفسك",
+    "logoutSuccess": "تم تسجيل الخروج من برنامج الولاء بنجاح",
+    "modal": {
+      "join": "انضم إلى",
+      "registerTo": "سجّل للحصول على",
+      "offOnAllBookings": "خصم على جميع الحجوزات",
+      "discount": "خصم",
+      "autoApplied": "يُطبَّق تلقائياً على كل حجز",
+      "emailLabel": "البريد الإلكتروني",
+      "emailPlaceholder": "example@email.com",
+      "cancel": "إلغاء",
+      "registering": "جارٍ التسجيل...",
+      "signUp": "إنشاء حساب",
+      "emailRequired": "البريد الإلكتروني مطلوب",
+      "failedToRegister": "فشل التسجيل في برنامج الولاء",
+      "alreadyRegistered": "مرحباً بعودتك! أنت بالفعل عضو في برنامج الولاء.",
+      "registerSuccess": "تم التسجيل في برنامج الولاء بنجاح!",
+      "failedRetry": "فشل التسجيل. يرجى المحاولة مرة أخرى."
+    }
+  },
+  "RoomCard": {
+    "guests": "ضيوف",
+    "bookingConditions": "شروط الحجز ←",
+    "offersApplied": "عرض(عروض) مطبّق",
+    "available": "متاح",
+    "promotionalRate": "سعر ترويجي",
+    "specialOffersAvailable": "عروض خاصة متاحة",
+    "specialOfferAvailable": "عرض خاص متاح",
+    "offersSelected": "عرض(عروض) محدد — سيُطبَّق عند الدفع",
+    "taxNotIncluded": "الضريبة غير مشمولة",
+    "unlock": "افتح",
+    "basePrice": "السعر الأساسي",
+    "perNight": "لكل ليلة",
+    "autoAppliedDiscounts": "خصومات مطبّقة تلقائياً",
+    "includedAddons": "الإضافات المشمولة",
+    "add": "أضف",
+    "loading": "جارٍ التحميل...",
+    "roomOnly": "غرفة فقط",
+    "onlyRoomsLeft": "{{count}} غرفة متبقية فقط!",
+    "onlyRoomsLeftPlural": "{{count}} غرف متبقية فقط!",
+    "touristTax": {
+      "notIncluded": "غير مشمولة",
+      "paidAtHotel": "غير مشمولة في سعر الغرفة — تُدفع مباشرةً في الفندق."
+    },
+    "promotions": {
+      "minNightStay": "إقامة لا تقل عن {{count}} ليلة",
+      "deviceExclusive": "عرض حصري للجهاز",
+      "bookDaysInAdvance": "احجز قبل {{count}} يوماً",
+      "specialOffer": "عرض خاص",
+      "validUntil": "صالح حتى"
+    },
+    "errors": {
+      "somethingWentWrong": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
+      "failedToFetchPrice": "فشل جلب السعر. يرجى المحاولة مرة أخرى."
+    }
+  },
+  "Footer": {
+    "defaultAddress": "دبي، الإمارات العربية المتحدة",
+    "recaptcha": {
+      "text": "هذا الموقع محمي بواسطة reCAPTCHA و",
+      "privacyPolicy": "سياسة الخصوصية",
+      "and": "و",
+      "termsOfService": "شروط الخدمة",
+      "apply": "من Google."
+    },
+    "poweredBy": "مشغَّل بواسطة"
+  },
+  "AddonModal": {
+    "title": "حسّن إقامتك",
+    "subtitle": "اختر إضافات اختيارية لتجعل إقامتك أكثر تميزاً",
+    "noAddons": "لا توجد إضافات متاحة للتواريخ المحددة",
+    "each": "للواحدة",
+    "showLess": "عرض أقل",
+    "seeMoreAddons": "عرض {{count}} إضافات أخرى",
+    "noAddonsSelected": "لم يتم اختيار إضافات",
+    "addonsSelected": "إضافة محددة",
+    "addonsSelectedPlural": "إضافات محددة",
+    "skip": "تخطي",
+    "continue": "متابعة",
+    "continueWith": "المتابعة مع {{count}} إضافة",
+    "continueWithPlural": "المتابعة مع {{count}} إضافات"
+  },
+  "GuestForm": {
+    "title": "أكمل حجزك",
+    "adult": "بالغ",
+    "child": "طفل",
+    "firstName": "الاسم الأول",
+    "firstNamePlaceholder": "الاسم الأول",
+    "lastName": "اسم العائلة",
+    "lastNamePlaceholder": "اسم العائلة",
+    "dateOfBirth": "تاريخ الميلاد",
+    "contactInfo": "معلومات التواصل",
+    "loyaltyMember": "عضو الولاء",
+    "emailLabel": "البريد الإلكتروني",
+    "emailPlaceholder": "your@email.com",
+    "emailConfirmation": "سيتم إرسال تأكيد حجزك هنا",
+    "loyaltyDiscountPercent": "سيتم تطبيق خصم الولاء {{value}}%",
+    "loyaltyDiscountFlat": "سيتم تطبيق خصم الولاء {{currency}} {{value}}",
+    "phoneLabel": "رقم الهاتف",
+    "phonePlaceholder": "أدخل رقم الهاتف",
+    "phoneNote": "يُستخدم للإشعارات المتعلقة بالحجز",
+    "priceDetails": "تفاصيل السعر",
+    "dailyBreakdown": "التفصيل اليومي",
+    "room": "غرفة",
+    "baseRate": "السعر الأساسي:",
+    "additional": "إضافي:",
+    "taxFees": "الضرائب والرسوم:",
+    "addons": "الإضافات:",
+    "dayTotal": "إجمالي اليوم:",
+    "subtotalBeforeTax": "المجموع قبل الضريبة:",
+    "totalTax": "إجمالي الضريبة:",
+    "grandTotal": "الإجمالي الكلي:",
+    "baseAmount": "المبلغ الأساسي (قبل الضريبة):",
+    "additionalGuestCharges": "رسوم إضافية للضيوف:",
+    "addonsLabel": "الإضافات:",
+    "totalAddons": "إجمالي الإضافات:",
+    "promotions": "العروض والتعديلات:",
+    "payAtHotel": "(تُدفع في الفندق)",
+    "loyaltyDiscount": "خصم الولاء:",
+    "promoCodeDiscount": "خصم رمز الترويج:",
+    "taxesAndFees": "الضرائب والرسوم:",
+    "amountPaidLater": "المبلغ المدفوع لاحقاً:",
+    "amountPaidNow": "المبلغ المدفوع الآن:",
+    "includesAllTaxes": "يشمل جميع الضرائب والرسوم",
+    "proceedToPayment": "المتابعة للدفع",
+    "processing": "جارٍ المعالجة...",
+    "cancel": "إلغاء",
+    "validationError": "يرجى تقديم جميع المعلومات الضرورية قبل المتابعة",
+    "somethingWentWrong": "حدث خطأ ما، يرجى المحاولة مرة أخرى.",
+    "errors": {
+      "firstNameRequired": "الاسم الأول مطلوب.",
+      "invalidName": "صيغة الاسم غير صحيحة.",
+      "lastNameRequired": "اسم العائلة مطلوب.",
+      "emailRequired": "البريد الإلكتروني مطلوب.",
+      "invalidEmail": "عنوان البريد الإلكتروني غير صحيح.",
+      "phoneRequired": "رقم الهاتف مطلوب.",
+      "invalidPhone": "يجب أن يتكون رقم الهاتف من 5 إلى 15 رقماً."
+    }
+  },
+  "Payment": {
+    "loadingPayment": "جارٍ تحميل تفاصيل الدفع...",
+    "bookingSummary": "ملخص الحجز",
+    "stayDates": "تواريخ الإقامة:",
+    "guests": "الضيوف:",
+    "room": "غرفة",
+    "adult": "بالغ",
+    "adults": "بالغين",
+    "child": "طفل",
+    "children": "أطفال",
+    "guestName": "اسم الضيف:",
+    "email": "البريد الإلكتروني:",
+    "night": "ليلة",
+    "nights": "ليالٍ",
+    "choosePayment": "اختر طريقة الدفع",
+    "noPaymentAvailable": "لا توجد طرق دفع متاحة",
+    "noPaymentContact": "يرجى التواصل مع الفندق مباشرةً لترتيبات الدفع.",
+    "recommended": "موصى به",
+    "notAvailable": "غير متاح",
+    "payAtHotel": {
+      "label": "الدفع في الفندق",
+      "description": "ادفع مباشرةً في العقار عند تسجيل الوصول",
+      "title": "الدفع في الفندق",
+      "info": "سيتم تأكيد حجزك ويمكنك الدفع مباشرةً في الفندق عند تسجيل الوصول. نقبل النقد والبطاقات والمدفوعات الرقمية في العقار.",
+      "noAdvance": "✓ لا يلزم دفع مسبق",
+      "flexible": "✓ خيارات دفع مرنة"
+    },
+    "gateway": {
+      "label": "الدفع الإلكتروني",
+      "descriptionFikafi": "دفع آمن عبر بوابة Fikafi",
+      "descriptionNgenius": "دفع آمن عبر بوابة Network International",
+      "descriptionDefault": "دفع إلكتروني آمن",
+      "fikafiTitle": "دفع إلكتروني آمن",
+      "fikafiInfo": "سيتم توجيهك إلى شريك الدفع الآمن لإتمام دفعتك عبر بطاقة الائتمان/الخصم أو الخدمات المصرفية عبر الإنترنت أو طرق الدفع الأخرى.",
+      "fikafiConfirmHint": "انقر على \"تأكيد الحجز\" أدناه لإنشاء حجزك.",
+      "ngeniusTitle": "الدفع بالبطاقة",
+      "secure": "آمن",
+      "ngeniusInfo": "أكمل دفعتك بأمان عبر بوابة الدفع الخاصة بـ Network International. سيتم توجيهك إلى صفحة الدفع المشفرة.",
+      "ngeniusRedirect": "سيتم توجيهك بأمان إلى صفحة الدفع لإتمام معاملتك.",
+      "ngeniusFooter": "البطاقات المدعومة تُعالَج في ثوانٍ • لا رسوم خفية"
+    },
+    "confirmBooking": "تأكيد الحجز",
+    "bookingConfirmed": "تم تأكيد الحجز ✓",
+    "selectPaymentMethod": "اختر طريقة الدفع",
+    "processing": "جارٍ المعالجة...",
+    "payNow": "ادفع الآن"
+  },
+  "PriceDetails": {
+    "title": "تفاصيل السعر",
+    "totalAmount": "المبلغ الإجمالي",
+    "securePayment": "دفع آمن:",
+    "securePaymentInfo": "معلومات دفعك مشفرة وآمنة.",
+    "acceptedMethods": "طرق الدفع المقبولة",
+    "promoPlaceholder": "يرجى إدخال رمز الخصم",
+    "promoInvalid": "رمز الخصم غير صحيح",
+    "promoError": "حدث خطأ ما. حاول مرة أخرى!"
+  },
+  "Fikafi": {
+    "preparingPayment": "جارٍ تجهيز الدفع الآمن...",
+    "redirectToPayment": "الانتقال إلى الدفع",
+    "redirecting": "جارٍ التحويل إلى Fikafi...",
+    "confirmFirst": "أكّد الحجز أولاً",
+    "errorTitle": "تعذّر إنشاء رابط الدفع",
+    "errorSubtitle": "حدثت مشكلة في الاتصال ببوابة الدفع. يرجى المحاولة مرة أخرى.",
+    "tryAgain": "حاول مرة أخرى",
+    "cancel": "إلغاء",
+    "errors": {
+      "missingContact": "يرجى تقديم البريد الإلكتروني أو رقم الهاتف",
+      "missingBookingCode": "يرجى تأكيد حجزك أولاً قبل الدفع",
+      "failedToGenerate": "فشل إنشاء رابط الدفع",
+      "paymentFailed": "فشل الدفع. يرجى المحاولة مرة أخرى.",
+      "paymentCancelled": "تم إلغاء الدفع"
+    }
+  },
+  "PaymentSuccess": {
+    "confirmed": {
+      "title": "تم تأكيد الحجز!",
+      "subtitle": "تم إتمام حجزك بنجاح.",
+      "bookingSummary": "ملخص الحجز",
+      "checkIn": "تسجيل الوصول:",
+      "checkOut": "تسجيل المغادرة:",
+      "duration": "المدة:",
+      "night": "ليلة",
+      "nights": "ليالٍ",
+      "guests": "الضيوف:",
+      "room": "غرفة",
+      "rooms": "غرف",
+      "adult": "بالغ",
+      "adults": "بالغون",
+      "child": "طفل",
+      "children": "أطفال",
+      "guestInfo": "معلومات الضيف",
+      "noGuestDetails": "لم يتم تقديم تفاصيل الضيف.",
+      "email": "البريد الإلكتروني:",
+      "paymentMethod": "طريقة الدفع:",
+      "paymentDetails": "تفاصيل الدفع",
+      "payAtHotelNote": "سيتم تحصيل الدفع في الفندق.",
+      "whatsNext": "ما التالي؟",
+      "confirmationEmail": "تم إرسال بريد إلكتروني للتأكيد.",
+      "viewOrCancel": "يمكنك عرض حجوزاتك أو إلغاؤها في أي وقت.",
+      "needChanges": "هل تحتاج إلى تعديلات؟ تواصل معنا على مدار الساعة.",
+      "viewMyBookings": "عرض حجوزاتي",
+      "returnHome": "العودة للرئيسية",
+      "redirecting": "جارٍ التحويل..."
+    },
+    "pending": {
+      "title": "الحجز قيد الانتظار",
+      "subtitle": "تلقّينا طلب حجزك وهو قيد المعالجة حالياً.",
+      "emailNote": "ستتلقى بريداً إلكترونياً للتأكيد قريباً. إذا لم تتلقَّ أي رد خلال 10 دقائق، يرجى التواصل مع فريق الدعم.",
+      "nextSteps": "الخطوات التالية",
+      "step1": "تأكد من إتمام الدفع إذا كان مطلوباً.",
+      "step2": "إذا دفعت عبر تحويل بنكي أو UPI، انتظر بضع دقائق للمعالجة.",
+      "step3": "سيتم تأكيد حجزك بمجرد التحقق من الدفع.",
+      "viewMyBookings": "عرض حجوزاتي",
+      "returnHome": "العودة للرئيسية",
+      "redirecting": "جارٍ التحويل..."
+    }
+  }
+}

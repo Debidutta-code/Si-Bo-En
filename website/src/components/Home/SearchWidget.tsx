@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Users,
   X,
@@ -117,7 +118,16 @@ const DatePickerWithHover = ({
 };
 
 const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
+  const { t, i18n } = useTranslation();
   const senderUrl = useSelector((state: RootState) => state.booking.senderUrl);
+
+  const formatNumber = (num: number) => {
+    if (i18n.language === "ar") {
+      return num.toLocaleString("ar-EG");
+    }
+    return num.toString();
+  };
+
   const dispatch = useDispatch();
   const [isGuestSelectorOpen, setIsGuestSelectorOpen] = useState(false);
   const [guestSummary, setGuestSummary] = useState(
@@ -331,11 +341,11 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
 
   const handleSearch = async () => {
     if (!checkIn || !checkOut) {
-      toast.error("Please select valid check-in and check-out dates.");
+      toast.error(t("SearchWidget.errorDates"));
       return;
     }
     if (checkOut <= checkIn) {
-      toast.error("Check-out date must be after check-in date.");
+      toast.error(t("SearchWidget.errorCheckOut"));
       return;
     }
 
@@ -507,13 +517,13 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
               {/* Check-in */}
               <div className="text-center flex-1 min-w-[70px] lg:min-w-[100px]">
                 <p className="text-[9px] tracking-[0.15em] font-medium mb-1" style={{ color: tertiaryColor }}>
-                  CHECK-IN
+                  {t("SearchWidget.checkIn")}
                 </p>
                 <p className="text-2xl lg:text-[40px] font-semibold leading-none mb-1" style={{ color: primaryColor }}>
-                  {checkIn?.getDate()}
+                  {formatNumber(checkIn?.getDate() ?? 0)}
                 </p>
                 <p className="text-[9px] lg:text-[10px] uppercase tracking-wider font-medium" style={{ color: tertiaryColor }}>
-                  {checkIn?.toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+                  {checkIn?.toLocaleDateString(i18n.language === "ar" ? "ar-EG" : "en-US", { month: "short", year: "numeric" })}
                 </p>
               </div>
 
@@ -525,15 +535,15 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
               {/* Check-out */}
               <div className="text-center flex-1 min-w-[70px] lg:min-w-[100px]">
                 <p className="text-[9px] tracking-[0.15em] font-medium mb-1" style={{ color: tertiaryColor }}>
-                  CHECK-OUT
+                  {t("SearchWidget.checkOut")}
                 </p>
                 <p className="text-2xl lg:text-[40px] font-semibold leading-none mb-1" style={{ color: primaryColor }}>
-                  {checkOut?.getDate() ?? "--"}
+                  {checkOut ? formatNumber(checkOut.getDate()) : "--"}
                 </p>
                 <p className="text-[9px] lg:text-[10px] uppercase tracking-wider font-medium" style={{ color: tertiaryColor }}>
                   {checkOut
-                    ? checkOut.toLocaleDateString("en-US", { month: "short", year: "numeric" })
-                    : "Select"}
+                    ? checkOut.toLocaleDateString(i18n.language === "ar" ? "ar-EG" : "en-US", { month: "short", year: "numeric" })
+                    : t("SearchWidget.checkOutSelect")}
                 </p>
               </div>
             </div>
@@ -545,7 +555,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
               style={{ borderColor: "#C4BAA5" }}
             >
               <p className="text-[9px] tracking-[0.15em] font-medium mb-2" style={{ color: tertiaryColor }}>
-                OCCUPANCY
+                {t("SearchWidget.occupancy")}
               </p>
               <div className="flex items-center justify-center gap-3">
                 {/* Rooms */}
@@ -557,7 +567,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                     </svg>
                   </div>
                   <span className="text-xs font-bold" style={{ color: primaryColor }}>
-                    {Array.isArray(guestInfo.rooms) ? guestInfo.rooms.length : guestInfo.rooms || 1}
+                    {formatNumber(Array.isArray(guestInfo.rooms) ? guestInfo.rooms.length : guestInfo.rooms || 1)}
                   </span>
                 </div>
                 {/* Adults */}
@@ -566,9 +576,9 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                     <Users className="w-2.5 h-2.5" style={{ color: "#5B543F" }} />
                   </div>
                   <span className="text-xs font-bold" style={{ color: primaryColor }}>
-                    {Array.isArray(guestInfo.rooms)
+                    {formatNumber(Array.isArray(guestInfo.rooms)
                       ? guestInfo.rooms.reduce((sum, room) => sum + (room.adults || 0), 0)
-                      : guestInfo.adults || 1}
+                      : guestInfo.adults || 1)}
                   </span>
                 </div>
                 {/* Children */}
@@ -580,9 +590,9 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                     </svg>
                   </div>
                   <span className="text-xs font-bold" style={{ color: primaryColor }}>
-                    {Array.isArray(guestInfo.rooms)
+                    {formatNumber(Array.isArray(guestInfo.rooms)
                       ? guestInfo.rooms.reduce((sum, room) => sum + (room.children || 0), 0)
-                      : guestInfo.children || 0}
+                      : guestInfo.children || 0)}
                   </span>
                 </div>
               </div>
@@ -597,7 +607,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   setPromocode(e.target.value.toUpperCase());
                   promocodeRef.current = e.target.value.toUpperCase(); // ✅ sync immediately, no useEffect lag
                 }}
-                placeholder="PROMO CODE"
+                placeholder={t("SearchWidget.promoCode")}
                 className="bg-transparent border-b-2 pb-2 text-[10px] tracking-[0.15em] placeholder-[#9B8B6F] focus:outline-none transition-colors w-full"
                 style={{ borderColor: tertiaryColor, color: tertiaryColor }}
               />
@@ -610,7 +620,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
               className="w-full md:w-auto px-6 lg:px-10 py-3 lg:py-4 rounded-full text-xs lg:text-[11px] font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm hover:opacity-90 whitespace-nowrap"
               style={{ backgroundColor: secondaryColor, color: calculatedButtonTextColor }}
             >
-              {loading ? "LOADING..." : "BOOK NOW"}
+              {loading ? t("SearchWidget.loading") : t("SearchWidget.bookNow")}
             </button>
           </div>
         </div>

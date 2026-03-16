@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Menu, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
@@ -8,8 +9,10 @@ import ZLogo from "../assets/revchilli.png";
 import { useDispatch, useSelector } from "react-redux";
 import { setSenderUrl } from "@/src/store/bookingSlice";
 import { RootState } from "../../store/store";
+import LanguageSwitcher from "../languageSwitcher/LanguageSwitcher";
 
 const Navbar = () => {
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const propertyCode = searchParams.get("code");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -22,6 +25,7 @@ const Navbar = () => {
   const bookingContext = useSelector((state: RootState) => state.booking);
   const senderUrl = useSelector((state: RootState) => state.booking.senderUrl);
   const agenturl = "https://agent.revchilltech.com";
+
   useEffect(() => {
     const updateLogo = () => {
       const logoFromContext =
@@ -62,11 +66,10 @@ const Navbar = () => {
   ]);
 
   const handleHomeClick = () => {
-    // 1. Try booking engine config URL first
-    const bookingEngineUrl = bookingContext?.PropertyDetails?.bookingEngineConfig?.url
-      || bookingContext?.bookingEngineColor?.url;
+    const bookingEngineUrl =
+      bookingContext?.PropertyDetails?.bookingEngineConfig?.url ||
+      bookingContext?.bookingEngineColor?.url;
 
-    // 2. Then try senderUrl from redux/session
     let url = bookingEngineUrl || senderUrl;
     if (!url) {
       url = sessionStorage.getItem("senderUrl") || undefined;
@@ -82,14 +85,12 @@ const Navbar = () => {
   };
 
   const renderLogo = () => {
-    // On home page always show default logo
     if (isHomePage) {
       return (
         <Image src={ZLogo} alt="Logo" width={120} height={40} className="object-contain" />
       );
     }
 
-    // On other pages show dynamic logo if available
     if (dynamicLogo) {
       return (
         <div className="relative w-32 h-10 sm:w-40 sm:h-12">
@@ -98,15 +99,13 @@ const Navbar = () => {
       );
     }
 
-    // Fallback
     return (
       <Image src={ZLogo} alt="Logo" width={120} height={40} className="object-contain" />
     );
   };
 
-  // Nav bg logic
   const navBg = isHomePage
-    ? "bg-white/80 backdrop-blur-md text-black shadow-sm" // milky on home
+    ? "bg-white/80 backdrop-blur-md text-black shadow-sm"
     : "bg-white text-black shadow";
 
   return (
@@ -127,15 +126,30 @@ const Navbar = () => {
             {/* Home Page Links */}
             {isHomePage && (
               <>
-                <button onClick={handleHomeClick} className="hover:text-[#1A98A6]">Home</button>
-                <p onClick={() => document.querySelector("#service")?.scrollIntoView({ behavior: "smooth" })} className="cursor-pointer hover:text-[#1A98A6]">Services</p>
-                <p onClick={() => document.querySelector("#contact-us")?.scrollIntoView({ behavior: "smooth" })} className="cursor-pointer hover:text-[#1A98A6]">Contact Us</p>
+                <button onClick={handleHomeClick} className="hover:text-[#1A98A6]">{t("Navbar.home")}</button>
+                <p
+                  onClick={() => document.querySelector("#service")?.scrollIntoView({ behavior: "smooth" })}
+                  className="cursor-pointer hover:text-[#1A98A6]"
+                >
+                  {t("Navbar.services")}
+                </p>
+                <p
+                  onClick={() => document.querySelector("#contact-us")?.scrollIntoView({ behavior: "smooth" })}
+                  className="cursor-pointer hover:text-[#1A98A6]"
+                >
+                  {t("Navbar.contactUs")}
+                </p>
               </>
             )}
 
-            {/* Partner Login → Show on ALL pages */}
+            {/* Language Switcher — before Partner Login */}
+            <div className="flex-shrink-0">
+              <LanguageSwitcher />
+            </div>
+
+            {/* Partner Login */}
             <button
-              onClick={() => window.open(agenturl, '_blank')}
+              onClick={() => window.open(agenturl, "_blank")}
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
               style={{
                 backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
@@ -144,10 +158,10 @@ const Navbar = () => {
                 color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
               }}
             >
-              Partner Login
+              {t("Navbar.partnerLogin")}
             </button>
 
-            {/* My Booking → Show on ALL pages EXCEPT home */}
+            {/* My Booking */}
             {!isHomePage && propertyCode && (
               <button
                 onClick={() => router.push(`/my-trip?propertyCode=${propertyCode}`)}
@@ -159,10 +173,9 @@ const Navbar = () => {
                   color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
                 }}
               >
-                My Booking
+                {t("Navbar.myBooking")}
               </button>
             )}
-
           </div>
 
           {/* Mobile Toggle */}
@@ -177,22 +190,46 @@ const Navbar = () => {
         {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="lg:hidden bg-white text-black rounded-md mt-2 py-4 px-4 space-y-3 text-sm shadow-lg">
-            {/* Show nav links only on home page */}
+
+            {/* Language Switcher — top of mobile menu */}
+            <div className="py-1">
+              <LanguageSwitcher onLanguageChange={() => setIsMenuOpen(false)} />
+            </div>
+
+            {/* Home Page Links */}
             {isHomePage && (
               <>
-                <button onClick={() => { setIsMenuOpen(false); handleHomeClick(); }} className="block w-full text-left hover:text-amber-500">
-                  Home
+                <button
+                  onClick={() => { setIsMenuOpen(false); handleHomeClick(); }}
+                  className="block w-full text-left hover:text-amber-500"
+                >
+                  {t("Navbar.home")}
                 </button>
-                <p onClick={() => { setIsMenuOpen(false); document.querySelector("#service")?.scrollIntoView({ behavior: "smooth" }); }} className="cursor-pointer hover:text-[#1A98A6]">Services</p>
-                <p onClick={() => { setIsMenuOpen(false); document.querySelector("#contact-us")?.scrollIntoView({ behavior: "smooth" }); }} className="cursor-pointer hover:text-[#1A98A6]">Contact Us</p>
+                <p
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    document.querySelector("#service")?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="cursor-pointer hover:text-[#1A98A6]"
+                >
+                  {t("Navbar.services")}
+                </p>
+                <p
+                  onClick={() => {
+                    setIsMenuOpen(false);
+                    document.querySelector("#contact-us")?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="cursor-pointer hover:text-[#1A98A6]"
+                >
+                  {t("Navbar.contactUs")}
+                </p>
               </>
             )}
 
             {isRoomsPage && (
-
               <>
                 <button
-                  onClick={() => { setIsMenuOpen(false); window.open(agenturl, '_blank'); }}
+                  onClick={() => { setIsMenuOpen(false); window.open(agenturl, "_blank"); }}
                   className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors"
                   style={{
                     backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
@@ -205,7 +242,7 @@ const Navbar = () => {
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                     <circle cx="12" cy="7" r="4" />
                   </svg>
-                  Partner Login
+                  {t("Navbar.partnerLogin")}
                 </button>
                 <button
                   onClick={() => router.push(`/my-trip?propertyCode=${propertyCode}`)}
@@ -221,13 +258,10 @@ const Navbar = () => {
                     <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
                     <rect x="9" y="3" width="6" height="4" rx="1" />
                   </svg>
-                  My Booking
+                  {t("Navbar.myBooking")}
                 </button>
               </>
             )}
-
-
-
           </div>
         )}
       </div>

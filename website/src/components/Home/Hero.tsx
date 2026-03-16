@@ -1,8 +1,11 @@
 import React from 'react';
 import SearchWidget from './SearchWidget';
 import ROOMBG from '../assets/ROOMBG.jpg';
+import { useTranslation } from 'react-i18next';
 
 const Hero = () => {
+  const { t } = useTranslation();
+
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image */}
@@ -16,13 +19,13 @@ const Hero = () => {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 w-full  pb-14 ">
+      <div className="relative z-10 w-full pb-14">
         <div className="text-center mb-8 px-4">
           <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 leading-tight">
-            Find Next Place To Visit
+            {t("Hero.title")}
           </h1>
           <p className="text-xl sm:text-2xl text-gray-200 max-w-2xl mx-auto">
-            Discover amazing places at exclusive deals
+            {t("Hero.subtitle")}
           </p>
         </div>
 
