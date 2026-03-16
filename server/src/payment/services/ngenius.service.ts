@@ -292,25 +292,46 @@ class NGeniusService {
         return { success: false, message: 'No capture found for this payment (payment may not be in CAPTURED state)' };
       }
 
-      // N-Genius returns the refund URL directly on the capture object under _links['cnp:refund']
-      const refundUrl = captures[0]._links?.['cnp:refund']?.href;
-      if (!refundUrl) {
+      // N-Genius returns the refund URL directly on the capture object under _links['cnp:refund'].
+      // IMPORTANT: For fresh payments (< 24hrs), N-Genius does NOT yet append /refund to the href,
+      // meaning the refund endpoint is not yet available. We check for this explicitly.
+      const rawCaptureHref = captures[0]._links?.['cnp:refund']?.href;
+
+      console.log(`[DEBUG - N-GENIUS REFUND] 🔗 Raw capture href from cnp:refund: ${rawCaptureHref ?? '(not present)'}`);
+
+      if (!rawCaptureHref) {
         console.error(`[DEBUG - N-GENIUS REFUND] ❌ cnp:refund href not found. Capture links:`, JSON.stringify(captures[0]._links));
         return { success: false, message: 'Capture refund href not found in order status' };
       }
 
-      // Parse captureRef from the refund URL for logging/reference purposes
+      // If the href does NOT end with /refund, the payment is too recent and N-Genius
+      // has not yet made the refund endpoint available (< 24hrs from capture).
+      if (!rawCaptureHref.endsWith('/refund')) {
+        console.warn(`[DEBUG - N-GENIUS REFUND] ⏳ Refund endpoint not yet available. Payment is less than 24 hours old. Raw href: ${rawCaptureHref}`);
+        return {
+          success: false,
+          message: 'Reservation cannot be cancelled within 24 hours of booking. Please try again after 24 hours.',
+        };
+      }
+
+      const refundUrl = rawCaptureHref;
+      console.log(`[DEBUG - N-GENIUS REFUND] ✅ Refund endpoint available: ${refundUrl}`);
+
+      // Parse captureRef from the URL for logging/reference purposes
       const refundUrlParts = refundUrl.split('/');
       const capturesIndex = refundUrlParts.indexOf('captures');
       const captureRef = capturesIndex !== -1 ? refundUrlParts[capturesIndex + 1] : 'unknown';
 
-      // Step 3: Get refund amount and currency from the capture
-      const refundAmount = captures[0].amount.value;
-      const refundCurrency = captures[0].amount.currencyCode;
+      // Step 3: Get refund amount from the ORDER (original AED), NOT the capture.
+      // The capture amount is the MCP forex-converted value (e.g. INR) and must NOT be used.
+      // N-Genius stores amounts in minor units: 1 AED = value 100, so send value as-is.
+      const orderAmount = orderStatus.amount;
+      const refundCurrency = orderAmount.currencyCode;
+      const refundAmount = orderAmount.value; // already in minor units (e.g. 100 = 1 AED)
 
       console.log(`📦 Capture Reference: ${captureRef}`);
-      console.log(`💰 Refund Amount: ${refundAmount} ${refundCurrency}`);
-      console.log(`🔗 Refund URL (from cnp:refund): ${refundUrl}`);
+      console.log(`💰 Order Amount (minor units): ${refundAmount} ${refundCurrency} → actual: ${refundAmount / 100} ${refundCurrency}`);
+      console.log(`💸 Sending refund body: { amount: { value: ${refundAmount}, currencyCode: "${refundCurrency}" } }`);
 
       // Step 4: Call the refund API
       const token = await this.getValidToken();
