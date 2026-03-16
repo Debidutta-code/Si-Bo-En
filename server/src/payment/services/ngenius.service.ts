@@ -285,52 +285,35 @@ class NGeniusService {
 
       const payment = payments[0];
 
-      // Step 2: Extract all IDs from the capture href URL
-      // URL format: .../outlets/{outletId}/orders/{orderRef}/payments/{paymentRef}/captures/{captureId}
+      // Step 2: Extract the refund URL directly from the capture's cnp:refund link
+      // The capture object contains _links['cnp:refund'].href which is the complete refund endpoint
       const captures = payment._embedded?.['cnp:capture'];
       if (!captures || captures.length === 0) {
         return { success: false, message: 'No capture found for this payment (payment may not be in CAPTURED state)' };
       }
 
-      const captureHref = captures[0]._links?.self?.href;
-      if (!captureHref) {
-        return { success: false, message: 'Capture href not found in order status' };
+      // N-Genius returns the refund URL directly on the capture object under _links['cnp:refund']
+      const refundUrl = captures[0]._links?.['cnp:refund']?.href;
+      if (!refundUrl) {
+        console.error(`[DEBUG - N-GENIUS REFUND] ❌ cnp:refund href not found. Capture links:`, JSON.stringify(captures[0]._links));
+        return { success: false, message: 'Capture refund href not found in order status' };
       }
 
-      // Parse outletId, orderRef, paymentRef, and captureRef from the href URL
-      const hrefParts = captureHref.split('/');
-      // Expected segments: ...outlets/{outletId}/orders/{orderRef}/payments/{paymentRef}/captures/{captureId}
-      const capturesIndex = hrefParts.indexOf('captures');
-      const paymentsIndex = hrefParts.indexOf('payments');
-      const ordersIndex = hrefParts.indexOf('orders');
-      const outletsIndex = hrefParts.indexOf('outlets');
-
-      if (capturesIndex === -1 || paymentsIndex === -1 || ordersIndex === -1 || outletsIndex === -1) {
-        return { success: false, message: 'Failed to parse IDs from capture href URL' };
-      }
-
-      const parsedOutletId = hrefParts[outletsIndex + 1];
-      const parsedOrderRef = hrefParts[ordersIndex + 1];
-      const parsedPaymentRef = hrefParts[paymentsIndex + 1];
-      const captureRef = hrefParts[capturesIndex + 1];
-
-      if (!parsedOutletId || !parsedOrderRef || !parsedPaymentRef || !captureRef) {
-        return { success: false, message: 'One or more IDs could not be parsed from capture href URL' };
-      }
+      // Parse captureRef from the refund URL for logging/reference purposes
+      const refundUrlParts = refundUrl.split('/');
+      const capturesIndex = refundUrlParts.indexOf('captures');
+      const captureRef = capturesIndex !== -1 ? refundUrlParts[capturesIndex + 1] : 'unknown';
 
       // Step 3: Get refund amount and currency from the capture
       const refundAmount = captures[0].amount.value;
       const refundCurrency = captures[0].amount.currencyCode;
 
-      console.log(`💳 Payment Reference: ${parsedPaymentRef}`);
       console.log(`📦 Capture Reference: ${captureRef}`);
       console.log(`💰 Refund Amount: ${refundAmount} ${refundCurrency}`);
+      console.log(`🔗 Refund URL (from cnp:refund): ${refundUrl}`);
 
       // Step 4: Call the refund API
       const token = await this.getValidToken();
-      const refundUrl = `${NGeniusConfig.baseUrl}${NGeniusConfig.endpoints.orders}/${parsedOutletId}/orders/${parsedOrderRef}/payments/${parsedPaymentRef}/captures/${captureRef}/refund`;
-
-      console.log(`🔗 Refund URL: ${refundUrl}`);
 
       const refundResponse = await axios.post(
         refundUrl,
