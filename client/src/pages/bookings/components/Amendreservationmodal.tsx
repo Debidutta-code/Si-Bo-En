@@ -21,16 +21,12 @@ import type {
   ISelectedAddons,
   IPromotion,
   AmendStep,
+  PriceStatus,
 } from "../types/amend.types";
 import type { IAddOn } from "../types/reservation";
 import GuestSelector from "./GuestSelector";
 import GuestDetails from "./GuestDetails";
 import PriceSection from "./PricingModal";
-import { X } from "lucide-react";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-export type PriceStatus = "idle" | "loading" | "success" | "error";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -99,20 +95,16 @@ const emptyFinalPrice = (): IAmendFinalPrice => ({
 
 const buildPromotions = (reservation: any): IPromotion[] => {
   const promotionBreakdown: any[] = reservation.finalPrice?.promotionBrakeDown ?? [];
-  const reservationPromotions: any[] = reservation.reservationPromotions ?? [];
 
-  const confirmedIds = new Set(
-    reservationPromotions
-      .filter((rp) => rp.promotionId != null)
-      .map((rp) => rp.promotionId as string)
-  );
-
+  // Send all user-applied promotions from finalPrice.promotionBrakeDown.
+  // reservationPromotions is unreliable (sometimes missing) — finalPrice is the source of truth.
   return promotionBreakdown
-    .filter((p) => p.type === "user-applied" && p.id && confirmedIds.has(p.id))
+    .filter((p) => p.type === "user-applied" && p.id)
     .map((p) => ({ id: p.id as string, promotionType: "normal" }));
 };
 
-const buildParsedAddons = (addOns: IAddOn[], checkInDate: string): ISelectedAddons[] => {
+// NEW — groups by addonId+date, preserves per-day quantities
+const buildParsedAddons = (addOns: IAddOn[]): ISelectedAddons[] => {
   const result: ISelectedAddons[] = [];
 
   (addOns || [])
@@ -123,10 +115,21 @@ const buildParsedAddons = (addOns: IAddOn[], checkInDate: string): ISelectedAddo
         existing = { addOnId: addon.addonId, availability: [] };
         result.push(existing);
       }
-      existing.availability.push({
-        date: new Date(checkInDate).toISOString(),
-        quantity: addon.quantity,
-      });
+
+      // Use the addon's actual date but normalize to midnight UTC
+      // addon.date is "2026-03-18T18:30:00.000Z" (UTC-shifted) — add 1 day to get correct date
+      const rawDate = new Date(addon.date);
+      rawDate.setUTCDate(rawDate.getUTCDate() + 1);
+      rawDate.setUTCHours(0, 0, 0, 0);
+      const normalizedDate = rawDate.toISOString();
+
+      // Merge if same date already exists (in case of duplicates)
+      const existingEntry = existing.availability.find((a) => a.date === normalizedDate);
+      if (existingEntry) {
+        existingEntry.quantity += addon.quantity;
+      } else {
+        existing.availability.push({ date: normalizedDate, quantity: addon.quantity });
+      }
     });
 
   return result;
@@ -173,6 +176,7 @@ const StepIndicator: FC<{ current: AmendStep }> = ({ current }) => (
 // ─── Main Modal ───────────────────────────────────────────────────────────────
 
 const AmendReservationModal: FC<IAmendReservationModalProps> = ({
+  open,
   reservation,
   onClose,
   onSuccess,
@@ -268,7 +272,7 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
     const includedAddons = Array.from(
       new Set((reservation.addOns || []).filter((a: IAddOn) => a.type === "included").map((a: IAddOn) => a.addonId))
     );
-    const parsedAddons = buildParsedAddons(reservation.addOns || [], checkIn);
+    const parsedAddons = buildParsedAddons(reservation.addOns || []);
     const promotions = buildPromotions(reservation);
 
     setPriceStatus("loading");
@@ -452,7 +456,7 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
   // ─── Render ───────────────────────────────────────────────────────────────
 
   return (
-    <Dialog open={true} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0 gap-0">
 
         <DialogHeader className="px-6 py-5 border-b border-border">
@@ -465,12 +469,6 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
           <div className="mt-5">
             <StepIndicator current={step} />
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-md hover:bg-accent text-muted-foreground hover:text-card-foreground transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
         </DialogHeader>
 
         <div className="px-6 py-4 bg-muted/40 border-b border-border">

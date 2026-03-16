@@ -66,12 +66,27 @@ export interface IPriceCheckRequest {
   promoCode?: string;
 }
 
+// ─── Booking Calculation ──────────────────────────────────────────────────────
+
 export interface IBookingCalculation {
   finalPayable: number;
   refundAmount: number;
   discount: number;
 }
 
+// ─── Amend Final Price ────────────────────────────────────────────────────────
+
+export interface IAmendPromotionBreakdown {
+  id: string;
+  promotionType: string;
+  name: string;
+  currencyCode: string | null;
+  discountAmount: number;
+  discountType: "percentage" | "fixed" | string;
+  discountValue: number;
+  restrictionType: "decrease" | "payLater" | string;
+  type: "user-applied" | string;
+}
 
 export interface IAmendFinalPrice {
   totalAmount: number;
@@ -87,7 +102,7 @@ export interface IAmendFinalPrice {
   dailyPriceBrakeDown: IDailyPriceBreakdown[];
   taxBrakeDown: ITaxBreakdown[];
   addonBrakeDown: IAddonBreakdown[];
-  promotionBrakeDown: any[];
+  promotionBrakeDown: IAmendPromotionBreakdown[];
   booking?: IBookingCalculation;
 }
 
@@ -130,6 +145,7 @@ export interface IAmendValidationErrors {
 // ─── Modal Props ──────────────────────────────────────────────────────────────
 
 export interface IAmendReservationModalProps {
+  open: boolean;
   reservation: IReservation;
   onClose: () => void;
   onSuccess: () => void;
@@ -147,3 +163,5 @@ export interface IAmendStepState {
 // ─── Tab ──────────────────────────────────────────────────────────────────────
 
 export type AmendStep = 1 | 2 | 3;
+
+export type PriceStatus = "idle" | "loading" | "success" | "error";

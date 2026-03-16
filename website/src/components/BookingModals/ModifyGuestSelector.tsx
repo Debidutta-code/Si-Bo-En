@@ -67,7 +67,7 @@ const ModifyGuestSelector: React.FC<ModifyGuestSelectorProps> = ({
     let remainingChildren = totalChildren;
     let ageIndex = 0;
     for (let i = 0; i < roomCount; i++) {
-      const roomAdults = Math.ceil(remainingAdults / (roomCount - i));
+const roomAdults = Math.max(1, Math.ceil(remainingAdults / (roomCount - i)));
       const roomChildren = Math.ceil(remainingChildren / (roomCount - i));
       const roomAges = ages.slice(ageIndex, ageIndex + roomChildren);
       dist.push({ adults: roomAdults, children: roomChildren, childAges: roomAges });
@@ -122,7 +122,8 @@ const ModifyGuestSelector: React.FC<ModifyGuestSelectorProps> = ({
   const incrementRooms = () => {
     const n = rooms + 1;
     setRooms(n);
-    recalcDistribution(n, adults, children, childAges);
+    setRoomDistribution((prev) => [...prev, { adults: 1, children: 0, childAges: [] }]);
+    setAdults((a) => a + 1); // new room contributes 1 adult to total
   };
 
   const decrementRooms = () => {
@@ -186,7 +187,7 @@ const ModifyGuestSelector: React.FC<ModifyGuestSelectorProps> = ({
   const updateRoomAdults = (roomIndex: number, delta: number) => {
     const updated = roomDistribution.map((r, i) => {
       if (i !== roomIndex) return r;
-      const newAdults = Math.max(1, r.adults + delta);
+        const newAdults = Math.max(1, Math.min(r.adults + delta, MAX_GUESTS_PER_ROOM - r.children));
       return { ...r, adults: newAdults };
     });
     const newTotal = updated.reduce((s, r) => s + r.adults, 0);
@@ -197,7 +198,7 @@ const ModifyGuestSelector: React.FC<ModifyGuestSelectorProps> = ({
   const updateRoomChildren = (roomIndex: number, delta: number) => {
     const updated = roomDistribution.map((r, i) => {
       if (i !== roomIndex) return r;
-      const newChildren = Math.max(0, r.children + delta);
+      const newChildren = Math.max(0, Math.min(r.children + delta, MAX_GUESTS_PER_ROOM - r.adults));
       const newAges =
         delta > 0
           ? [...r.childAges, 0]
