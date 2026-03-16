@@ -61,7 +61,7 @@ import AgencyApplicationsPage from "./pages/agency/AgencyApplicationsPage.tsx";
 import PropertyAgenciesPage from "./pages/property-agencies/PropertyAgenciesPage.tsx";
 import AgencyReservationsPage from "./pages/property-agencies/AgencyReservationsPage.tsx";
 import BookingOffset from "./pages/booking-offset/BookingOffset.tsx";
-
+import CustomId from "./pages/property/custom/Custom.tsx";
 export const router = createBrowserRouter(
   createRoutesFromElements(
     <>
@@ -79,6 +79,8 @@ export const router = createBrowserRouter(
           <Route path="super/:creationId" element={<Property />} />
           <Route path="group/:creationId" element={<GroupId />} />
           <Route path="brand/:creationId" element={<BrandId />} />
+          <Route path="custom/:creationId" element={<CustomId />} />
+
           <Route path="property/:creationId" element={<PropertyId />} />
           <Route path="loyalty">
             <Route path=":creationId" index element={<Loyalty />} />

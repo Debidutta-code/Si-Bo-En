@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { Types } from 'mongoose';
 
-export type Role = 'super_admin' | 'group_manager' | 'hotel_manager' |'brand_manager'| 'staff' | 'revenue_manager' | 'front_desk' | 'housekeeping';
+export type Role = 'super_admin' | 'group_manager' | 'hotel_manager' |'brand_manager'| 'staff' | 'revenue_manager' | 'custom_admin';
 
 export type Payload = {
   id?: Types.ObjectId | string;

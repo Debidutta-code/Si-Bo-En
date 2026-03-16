@@ -15,10 +15,10 @@ export default class AccessDao {
     }
   }
 
-  public static async getAccessByRole(role: "super_admin" | "group_manager" | "hotel_manager" | "staff" | "brand_manager" | "revenue_manager" ) { // 👈 Role enum
+  public static async getAccessByRole(role: "super_admin" | "group_manager" | "hotel_manager" | "staff" | "brand_manager" | "revenue_manager" | "custom_admin") { // 👈 Role enum
     try {
       return await prisma.accessControl.findUnique({
-        where: { role }, // ✅ Prisma handles enum comparison
+        where: { role }, 
       });
     } catch (error: any) {
       throw new Error(`Failed to fetch access for role ${role}: ${error.message}`);
@@ -33,7 +33,7 @@ export default class AccessDao {
     }
   }
 
-  public static async modifyAccess(role: "super_admin" | "group_manager" | "hotel_manager" | "staff" | "brand_manager" | "revenue_manager", newAccess: IUserRolesAndAccess) {
+  public static async modifyAccess(role: "super_admin" | "group_manager" | "hotel_manager" | "staff" | "brand_manager" | "revenue_manager" | "custom_admin", newAccess: IUserRolesAndAccess) {
     try {
       const updatedRole = await prisma.accessControl.update({
         where: { role },

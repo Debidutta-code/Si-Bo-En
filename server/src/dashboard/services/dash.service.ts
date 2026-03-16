@@ -37,7 +37,7 @@ export class DashBoardServices {
                         daoRes = await this.dashboardUtils.getPropertyIdAndCodeForLevel0And1(creationId);
                         break;
                     default:
-                        return errorResponse("Invalid user Level", "user level can only be 4, 3, 2, 1, or 0");
+                        return errorResponse("Invalid user Level", "user level can only be  4, 3, 2, 1, or 0");
                 }
                 if (!daoRes.success) {
                     return errorResponse(daoRes.message || "Failed to fetch properties");

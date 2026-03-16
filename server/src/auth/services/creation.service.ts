@@ -7,17 +7,39 @@ import {
     CreationDetailsByUserId
 } from "../repository";
 import { PropertyDao } from "../../property-management/repository/property.repository";
+import { IApiResponse } from "../../utils";
 export default class CreationService {
     public static async create(
-        type: "group" | "property" | "brand" | "super",
+        type: "group" | "property" | "brand" | "super" | "custom",
         name: string,
         userId: string,
         userLevel: number,
         usersCreation: string,
-        images:string[] = []
-    ) {
+        images: string[] = [],
+        isCustom: boolean = false,
+        assignTo: string 
+    ): Promise<IApiResponse> {
         try {
-            // console.log(usersCreation)
+            console.log("Creating new entity:", { type, name, userId, userLevel, usersCreation, images, isCustom, assignTo });
+            let customCreation;
+            let superCreation;
+            if (isCustom) {
+
+                customCreation = await CreationRepository.getSpecificCreation(assignTo)
+                console.log("Custom Creation:", customCreation)
+            }
+            console.log("Custom Creation:", customCreation)
+            if (isCustom&&!customCreation) {
+                return errorResponse("Custom creation not found");
+            }
+            if (isCustom && customCreation) {
+
+                superCreation = await CreationRepository.getSpecificCreation(customCreation.superId!)
+            }
+            console.log("Super Creation:", superCreation)
+            if (isCustom&&!superCreation) {
+                return errorResponse("Super creation not found");
+            }
             let daoRes;
             switch (userLevel) {
                 case 2:
@@ -25,6 +47,7 @@ export default class CreationService {
                         CreationRepository.create(type,
                             name,
                             userId,
+                            undefined,
                             undefined,
                             undefined,
                             usersCreation,
@@ -35,8 +58,9 @@ export default class CreationService {
                         CreationRepository.create(type,
                             name,
                             userId,
+                            isCustom ? customCreation?.superId : undefined,
+                            isCustom ? assignTo : usersCreation,
                             undefined,
-                            usersCreation,
                             undefined,
                             images);
                     break;
@@ -46,6 +70,7 @@ export default class CreationService {
                             name,
                             userId,
                             usersCreation,
+                            isCustom ? assignTo : usersCreation,
                             undefined,
                             undefined,
                             images);
@@ -65,9 +90,9 @@ export default class CreationService {
             return errorResponse("Failed to create", error?.message)
         }
     }
-    public static async update(creationId: string, name: string, images:string[] = [],isActive:boolean) {
+    public static async update(creationId: string, name: string, images: string[] = [], isActive: boolean) {
         try {
-            const daoRes = await CreationRepository.update(creationId, name, images,isActive);
+            const daoRes = await CreationRepository.update(creationId, name, images, isActive);
             if (daoRes) {
                 return successResponse("Updated Successfully", daoRes)
             } else {
@@ -145,7 +170,7 @@ export default class CreationService {
             return errorResponse("Failed to Change Status", error?.message)
         }
     }
-    public static async getAll(type: "group" | "property" | "brand" | "super", isActive: boolean = true) {
+    public static async getAll(type: "group" | "property" | "brand" | "super" | "custom", isActive: boolean = true) {
         try {
             const daoRes = await CreationRepository.getAll(type, isActive)
             if (daoRes) {

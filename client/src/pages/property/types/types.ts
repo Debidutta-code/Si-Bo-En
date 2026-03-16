@@ -51,14 +51,16 @@ export interface IPropertyAddress {
 }
 export interface INewGBP {
     name: string;
-    type: "group" | "brand" | "property";
+    type: "group" | "brand" | "property" | "custom";
     creationId?: string;
     level: number;
-    images: string[]
+    images: string[];
+    isCustom?: boolean;
+    assignTo?: string;
 }
 export interface ICreation {
     id: string;
-    type: "group" | "brand" | "property";
+    type: "group" | "brand" | "property"|"custom";
     name: string;
     images:string[];
     level0Users?: string;
@@ -79,6 +81,12 @@ export interface ICreation {
 }
 
 export interface Icreations {
+    groups: ICreation[];
+    brands: ICreation[];
+    properties: ICreation[];
+    customs: ICreation[];
+}
+export interface ICcreations {
     groups: ICreation[];
     brands: ICreation[];
     properties: ICreation[];
@@ -154,6 +162,9 @@ export interface IGroupManagersMapping {
 }
 export interface IBrandManagersMapping {
     brandManagers: IUnmappedUsers[]
+}
+export interface ICustomManagersMapping {
+    customAdmins: IUnmappedUsers[]
 }
 export interface IntegrationDialogProps {
     isOpen: boolean;

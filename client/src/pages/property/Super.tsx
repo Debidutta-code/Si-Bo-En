@@ -6,19 +6,22 @@ import CreateEntityDialog from "@/components/creation/creationDialog"
 import { capitalizeFirstLetter } from '@/lib/utils';
 import Loader from '@/components/Loader/Loader';
 import type { Icreations, ICreation } from "./types/types"
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Settings } from "lucide-react";
 
 export default function HotelsPage() {
   const { creationId } = useParams<{ creationId: string }>();
+  const [searchParams] = useSearchParams();
+  const creationIdFromSearch = searchParams.get("isCustomVisible");
   const [isLoading, setIsLoading] = useState(false)
   const [creations, setCreations] = useState<Icreations>({
     brands: [],
     groups: [],
     properties: [],
+    customs: []
   })
   const navigate = useNavigate();
-  const [currentTab, setCurrentTab] = useState<"group" | "brand" | "property">("group")
+  const [currentTab, setCurrentTab] = useState<"group" | "brand" | "property" | "custom">("group")
 
   const fetchProperties = async () => {
     try {
@@ -29,6 +32,7 @@ export default function HotelsPage() {
           brands: [],
           groups: [],
           properties: [],
+          customs: []
         });
       } else {
         toast.error(response.message || 'Failed to fetch');
@@ -53,6 +57,8 @@ export default function HotelsPage() {
         return creations.brands;
       case "property":
         return creations.properties;
+      case "custom":
+        return creations.customs;
       default:
         return [];
     }
@@ -83,6 +89,8 @@ export default function HotelsPage() {
         return creations.brands.length > 0;
       case "property":
         return creations.properties.length > 0;
+      case "custom":
+        return creationIdFromSearch && creations.customs.length > 0;
       default:
         return [];
     }
@@ -102,7 +110,7 @@ export default function HotelsPage() {
       </div>
 
       <div className="flex space-x-2 border-b">
-        {(["group", "brand", "property"] as const).map((tab) => (
+        {(["group", "brand", "property", "custom"] as const).map((tab) => (
 
           <Button
             key={tab}

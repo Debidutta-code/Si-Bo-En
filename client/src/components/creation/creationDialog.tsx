@@ -1,15 +1,18 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { PlusCircle, X, Upload, Trash2 } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { capitalizeFirstLetter } from "@/lib/utils";
-import type { INewGBP } from "@/pages/property/types/types";
-import { createEntity } from "../api/newEntity";
+import type { ICreation, INewGBP } from "@/pages/property/types/types";
+import { createEntity, getAllCustoms } from "../api/newEntity";
 import toast from "react-hot-toast";
 import ImageUploadModal from "@/components/property/ImageUploadModal";
 import { Label } from "@/components/ui/label";
+import Loader from "../Loader/Loader";
+import type { ILoader } from "@/pages/dashboard/interface";
+import { is, tr } from "date-fns/locale";
 const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, creationType }:
     {
         currentTab: string,
@@ -19,15 +22,42 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
         creationType: "brand" | "group" | "super"
     }
 ) => {
+    const [customs, setCustoms] = useState<ICreation[]>([]);
+    const [selectedCustom, setSelectedCustom] = useState<ICreation | null>(null);
+    useEffect(() => {
+        const fetchCustoms = async () => {
+            setIsLoading({
+                isLoading: true,
+                message: "Loading Customs ..."
+            });
+            try {
+                const customs = await getAllCustoms();
+                setCustoms(customs.data);
+            } catch (error) {
+                toast.error("Failed to load customs");
+            } finally {
+                setIsLoading({
+                    isLoading: false,
+                    message: ""
+                });
+            }
+        };
+        fetchCustoms();
+    }, []);
     const [newGBP, setNewGBP] = useState<INewGBP>({
         name: "",
         type: "property",
         creationId: creationId,
         level: level,
-        images: []
+        images: [],
+        isCustom: false,
+        assignTo: ""
     });
 
-    const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState<ILoader>({
+        isLoading: true,
+        message: "Loading Customs ..."
+    });
     const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false);
 
     const handleUploadSuccess = (uploadedUrls: string[]) => {
@@ -46,15 +76,18 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
     };
 
     const handleCreate = async () => {
-        setIsLoading(true);
         if (!newGBP.name.trim()) {
             toast.error("Fill the name")
-            setIsLoading(false);
             return;
         }
+        setIsLoading({
+            isLoading: true,
+            message: `Creating ${capitalizeFirstLetter(newGBP.type)}...`
+        });
         try {
-            const res = await createEntity(newGBP)
-            // console.log(res)
+            const payload = { ...newGBP, isCustom: newGBP.type !== "custom" && newGBP.assignTo?true:false };
+
+            const res = await createEntity(payload)
             if (res.success) {
                 toast.success("Created successfully")
                 setNewGBP({
@@ -62,7 +95,9 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
                     type: "property",
                     creationId: creationId,
                     level: level,
-                    images: []
+                    images: [],
+                    isCustom: false,
+                    assignTo: ""
                 });
                 fetchProperties();
             } else {
@@ -73,7 +108,10 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
             toast.error("Failed to create ")
 
         } finally {
-            setIsLoading(false)
+            setIsLoading({
+                isLoading: false,
+                message: ""
+            })
         }
     };
 
@@ -86,6 +124,7 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
                 </Button>
             </AlertDialogTrigger>
             <AlertDialogContent>
+
                 <AlertDialogHeader>
                     <div className="flex w-full justify-between">
                         <AlertDialogTitle>Create New Entity</AlertDialogTitle>
@@ -115,8 +154,8 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
                         </label>
                         <Select
                             value={newGBP.type}
-                            onValueChange={(value: "group" | "brand" | "property") =>
-                                setNewGBP({ ...newGBP, type: value })
+                            onValueChange={(value: "group" | "brand" | "property" | "custom") =>
+                                setNewGBP({ ...newGBP, type: value, isCustom: value === "custom" })
                             }
                         >
                             <SelectTrigger id="entity-type" className="mt-1">
@@ -138,12 +177,39 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
                                         <SelectItem value="group">Group</SelectItem>
                                         <SelectItem value="brand">Brand</SelectItem>
                                         <SelectItem value="property">Property</SelectItem>
+                                        <SelectItem value="custom">Custom</SelectItem>
+
                                     </>
                                 )}
                             </SelectContent>
                         </Select>
                     </div>
-
+                    {creationType === "super" && newGBP.type!=="custom" && (
+                        <div>
+                            <label htmlFor="entity-type" className="text-sm font-medium">
+                                Custom
+                            </label>
+                            <Select
+                                value={selectedCustom?.id}
+                                onValueChange={(value: string) =>
+                                    setNewGBP({ ...newGBP, assignTo: value })
+                                }
+                            >
+                                <SelectTrigger id="entity-type" className="mt-1">
+                                    <SelectValue placeholder="Select type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {customs.length>0&&
+                                        customs.map((custom) => (
+                                            <SelectItem key={custom.id} value={custom.id}>
+                                                {custom.name}
+                                            </SelectItem>
+                                        ))
+                                    }
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
                     <div>
                         <Label className="text-sm font-medium">Images ({newGBP.images.length})</Label>
                         <div className="mt-2">
@@ -182,26 +248,24 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
                 </div>
 
                 <AlertDialogFooter>
-                    <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel disabled={isLoading.isLoading}>Cancel</AlertDialogCancel>
                     <AlertDialogAction
                         onClick={(e) => {
                             e.preventDefault();
                             handleCreate();
                         }}
-                        disabled={isLoading}
+                        disabled={isLoading.isLoading}
                     >
-                        {isLoading
+                        {isLoading.isLoading
                             ? `Creating...`
                             : `Create ${capitalizeFirstLetter(newGBP.type)}`}
                     </AlertDialogAction>
                 </AlertDialogFooter>
             </AlertDialogContent>
 
-            {/* Image Upload Modal */}
             <ImageUploadModal
                 isOpen={isImageUploadModalOpen}
                 onClose={() => setIsImageUploadModalOpen(false)}
-                // uploadImages={uploadImages}
                 onUploadSuccess={handleUploadSuccess}
             />
         </AlertDialog>

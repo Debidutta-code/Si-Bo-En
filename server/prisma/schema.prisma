@@ -11,6 +11,7 @@ datasource db {
 
 enum Role {
   super_admin
+  custom_admin
   group_manager
   brand_manager
   hotel_manager
@@ -39,6 +40,7 @@ enum CreationType {
   property
   brand
   super
+  custom
 }
 
 enum RoomView {
@@ -396,6 +398,9 @@ model Creation {
   brandId       String?    @map("brand_id")
   brandChildren Creation[] @relation("BrandRelation")
 
+  custom         Creation?  @relation("CustomRelation", fields: [customId], references: [id], onDelete: Cascade)
+  customId       String?    @map("custom_id")
+  customChildren Creation[] @relation("CustomRelation")
   // 1:1 relation to Property
   property   Property?
   propertyId String?   @unique @map("property_id")
