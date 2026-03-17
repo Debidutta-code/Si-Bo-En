@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -18,6 +19,7 @@ const PaymentSuccessPage = () => {
   const urlBookingCode = searchParams?.get("bookingCode");
 
   // Add the hook usage at the component level
+  const { t } = useTranslation();
   const { colors } = useBookingStorage({});
 
   // ✅ Read booking confirmation from localStorage
@@ -89,7 +91,7 @@ const PaymentSuccessPage = () => {
     const code = urlBookingCode || bookingData.bookingCode;
     router.push(`/my-trip?propertyCode=${bookingData.PropertyCode}&code=${code}`);
   };
-  const currencyCode = finalPrice?.currencyCode  || "USD";
+  const currencyCode = finalPrice?.currencyCode || "USD";
   const currencySymbol = currencies.find((c) => c.code === currencyCode)?.symbol ?? currencyCode;
   return isConfirmed ? (
     <div className="min-h-screen bg-gray-100  py-8 px-4">
@@ -103,8 +105,8 @@ const PaymentSuccessPage = () => {
             color: colors.primaryColor
           }}
         >
-          <h1 className="text-2xl font-bold mb-1">Booking Confirmed!</h1>
-          <p>Your reservation has been successfully completed.</p>
+          <h1 className="text-2xl font-bold mb-1">{t("PaymentSuccess.confirmed.title")}</h1>
+          <p>{t("PaymentSuccess.confirmed.subtitle")}</p>
         </div>
 
         {/* Two-Column Info */}
@@ -112,22 +114,26 @@ const PaymentSuccessPage = () => {
           {/* Booking Summary */}
           <div>
             <h2 className="text-lg font-semibold mb-3" style={{ color: colors.primaryColor }}>
-              Booking Summary
+              {t("PaymentSuccess.confirmed.bookingSummary")}
             </h2>
             <div className="space-y-2 text-sm text-gray-800">
               <p>
-                <strong>Check-in:</strong> {checkIn}
+                <strong>{t("PaymentSuccess.confirmed.checkIn")}</strong> {checkIn}
               </p>
               <p>
-                <strong>Check-out:</strong> {checkOut}
+                <strong>{t("PaymentSuccess.confirmed.checkOut")}</strong> {checkOut}
               </p>
               <p>
-                <strong>Duration:</strong> {nights} night{nights > 1 ? "s" : ""}
+                <strong>{t("PaymentSuccess.confirmed.duration")}</strong>{" "}
+                {nights} {nights > 1 ? t("PaymentSuccess.confirmed.nights") : t("PaymentSuccess.confirmed.night")}
               </p>
               <p>
-                <strong>Guests:</strong>{" "}
-                {rooms} Room{rooms !== 1 ? "s" : ""} · {adults} Adult{adults !== 1 ? "s" : ""}
-                {children > 0 ? ` · ${children} Child${children !== 1 ? "ren" : ""}` : ""}
+                <strong>{t("PaymentSuccess.confirmed.guests")}</strong>{" "}
+                {rooms} {rooms !== 1 ? t("PaymentSuccess.confirmed.rooms") : t("PaymentSuccess.confirmed.room")} ·{" "}
+                {adults} {adults !== 1 ? t("PaymentSuccess.confirmed.adults") : t("PaymentSuccess.confirmed.adult")}
+                {children > 0
+                  ? ` · ${children} ${children !== 1 ? t("PaymentSuccess.confirmed.children") : t("PaymentSuccess.confirmed.child")}`
+                  : ""}
               </p>
             </div>
           </div>
@@ -135,7 +141,7 @@ const PaymentSuccessPage = () => {
           {/* Guest Info */}
           <div>
             <h2 className="text-lg font-semibold mb-3" style={{ color: colors.primaryColor }}>
-              Guest Information
+              {t("PaymentSuccess.confirmed.guestInfo")}
             </h2>
             <div className="space-y-2 text-sm text-gray-800">
               {guests && guests.length > 0 ? (
@@ -147,14 +153,14 @@ const PaymentSuccessPage = () => {
                   </div>
                 ))
               ) : (
-                <p>No guest details provided.</p>
+                <p>{t("PaymentSuccess.confirmed.noGuestDetails")}</p>
               )}
               <p>
-                <strong>Email:</strong> {email}
+                <strong>{t("PaymentSuccess.confirmed.email")}</strong> {email}
               </p>
 
               <p>
-                <strong>Payment Method:</strong>{" "}
+                <strong>{t("PaymentSuccess.confirmed.paymentMethod")}</strong>{" "}
                 <span className="font-semibold" style={{ color: colors.primaryColor }}>
                   {formatPaymentMethod(bookingData?.paymentMethod || "pay_at_hotel")}
                 </span>
@@ -167,13 +173,13 @@ const PaymentSuccessPage = () => {
         <div className="flex border-t md:flex-row flex-col justify-start items-start pt-6">
           <div className="md:w-1/2">
             <h2 className="text-lg font-semibold mb-2" style={{ color: colors.primaryColor }}>
-              Payment Details
+              {t("PaymentSuccess.confirmed.paymentDetails")}
             </h2>
             <div className="font-bold text-2xl" style={{ color: colors.primaryColor }}>
-                {currencySymbol}{totalAmount}
+              {currencySymbol}{totalAmount}
             </div>
             <p className="text-sm text-gray-500">
-              Payment will be collected at the hotel.
+              {t("PaymentSuccess.confirmed.payAtHotelNote")}
             </p>
           </div>
 
@@ -194,14 +200,14 @@ const PaymentSuccessPage = () => {
                   Redirecting...
                 </>
               ) : (
-                "View My Bookings"
+                t("PaymentSuccess.confirmed.viewMyBookings")
               )}
             </button>
             <button
               onClick={() => router.push("/")}
               className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg shadow transition-all"
             >
-              Return Home
+              {t("PaymentSuccess.confirmed.returnHome")}
             </button>
           </div>
         </div>
@@ -214,11 +220,11 @@ const PaymentSuccessPage = () => {
               backgroundColor: `${colors.secondaryColor}10`,
             }}
           >
-            <h3 className="font-semibold mb-2" style={{ color: colors.primaryColor }}>What's Next?</h3>
+            <h3 className="font-semibold mb-2" style={{ color: colors.primaryColor }}>{t("PaymentSuccess.confirmed.whatsNext")}</h3>
             <ul className="list-disc list-inside text-gray-800 space-y-1">
-              <li>A confirmation email has been sent.</li>
-              <li>You can view or cancel bookings anytime.</li>
-              <li>Need changes? Contact us 24/7.</li>
+              <li>{t("PaymentSuccess.confirmed.confirmationEmail")}</li>
+              <li>{t("PaymentSuccess.confirmed.viewOrCancel")}</li>
+              <li>{t("PaymentSuccess.confirmed.needChanges")}</li>
             </ul>
           </div>
 
@@ -251,16 +257,14 @@ const PaymentSuccessPage = () => {
               d="M12 8v4m0 4h.01M12 2a10 10 0 110 20 10 10 0 010-20z"
             />
           </svg>
-          <h1 className="text-2xl font-bold mb-1">Booking Pending</h1>
+          <h1 className="text-2xl font-bold mb-1">{t("PaymentSuccess.pending.title")}</h1>
           <p className="text-sm sm:text-base">
-            We've received your booking request and it's currently being
-            processed.
+            {t("PaymentSuccess.pending.subtitle")}
           </p>
         </div>
 
         <p className="text-gray-700 mb-4">
-          You will receive a confirmation email shortly. If you don't hear from
-          us within 10 minutes, please contact our support team.
+          {t("PaymentSuccess.pending.emailNote")}
         </p>
 
         <div
@@ -270,16 +274,11 @@ const PaymentSuccessPage = () => {
             borderColor: colors.primaryColor
           }}
         >
-          <h2 className="font-semibold text-gray-800 mb-2">Next Steps</h2>
+          <h2 className="font-semibold text-gray-800 mb-2">{t("PaymentSuccess.pending.nextSteps")}</h2>
           <ul className="list-disc list-inside space-y-1">
-            <li>Make sure you have completed the payment if required.</li>
-            <li>
-              If you paid via bank transfer or UPI, allow a few minutes for
-              processing.
-            </li>
-            <li>
-              Your booking will be confirmed once the payment is verified.
-            </li>
+            <li>{t("PaymentSuccess.pending.step1")}</li>
+            <li>{t("PaymentSuccess.pending.step2")}</li>
+            <li>{t("PaymentSuccess.pending.step3")}</li>
           </ul>
         </div>
 
@@ -299,14 +298,14 @@ const PaymentSuccessPage = () => {
                 Redirecting...
               </>
             ) : (
-              "View My Bookings"
+              t("PaymentSuccess.pending.viewMyBookings")
             )}
           </button>
           <button
             onClick={() => router.push("/")}
             className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-6 py-2 rounded-lg shadow"
           >
-            Return Home
+            {t("PaymentSuccess.pending.returnHome")}
           </button>
         </div>
       </div>

@@ -1,4 +1,5 @@
 import { FC, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import ModifyGuestSelector from "./ModifyGuestSelector";
 import { FaCalendarAlt, FaUser, FaInfoCircle } from "react-icons/fa";
 import { isBefore } from "date-fns";
@@ -103,6 +104,7 @@ const parseDate = (date: any): string => {
 // ─── Component ──────────────────────────────────────────────────────────────
 
 const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<"dates" | "guests">("dates");
 
   const [checkInDate, setCheckInDate] = useState(parseDate(bookingData.checkInDate));
@@ -164,7 +166,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
   // ── Fetch updated price ────────────────────────────────────────────────────
   const fetchUpdatedPrice = async () => {
     if (!checkInDate || !checkOutDate) {
-      toast.error("Please select both check-in and check-out dates");
+      toast.error(t("ModifyBooking.errors.selectDates"));
       return;
     }
     try {
@@ -275,11 +277,11 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
 
   const handleUpdate = async () => {
     if (priceFetchError) {
-      toast.error("Cannot update booking due to pricing error. Please fetch the latest price first.");
+      toast.error(t("ModifyBooking.errors.priceError"));
       return;
     }
     if (!priceFetched) {
-      toast.error("Please fetch the updated price before confirming.");
+      toast.error(t("ModifyBooking.errors.fetchPriceFirst"));
       return;
     }
     const errs: { checkIn?: string; checkOut?: string } = {};
@@ -403,7 +405,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
         <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] shadow-lg overflow-x-hidden overflow-y-auto">
           <div className="bg-blue-700 text-white p-4">
-            <h2 className="text-xl font-bold text-center">Modify Your Booking</h2>
+            <h2 className="text-xl font-bold text-center">{t("ModifyBooking.title")}</h2>
           </div>
 
           <div>
@@ -414,27 +416,27 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
 
           <div className="p-4 border-b text-sm text-gray-700 grid md:grid-cols-3 gap-4">
             <div>
-              <p className="font-semibold">Stay Dates</p>
+              <p className="font-semibold">{t("ModifyBooking.stayDates")}</p>
               <p>{new Date(checkInDate).toDateString()} - {new Date(checkOutDate).toDateString()}</p>
               <p className="text-xs text-gray-500">
                 {Math.ceil((new Date(checkOutDate).getTime() - new Date(checkInDate).getTime()) / 86400000)} nights
               </p>
             </div>
             <div>
-              <p className="font-semibold">Room Details</p>
+              <p className="font-semibold">{t("ModifyBooking.roomDetails")}</p>
               <p>{bookingData.roomTypeCode}</p>
               {/* ✅ FIX: show actual room count from priceBreakdowns */}
               <p className="text-xs text-gray-500">{requestedRooms} room{requestedRooms !== 1 ? "s" : ""}</p>
             </div>
             <div>
-              <p className="font-semibold">Rate Plan</p>
+              <p className="font-semibold">{t("ModifyBooking.ratePlan")}</p>
               <p>{bookingData.ratePlanCode}</p>
             </div>
           </div>
 
           {/* ✅ FIX: Show per-room guest distribution from priceBreakdowns */}
           <div className="px-4 py-2 bg-blue-50 border-b text-xs text-gray-600">
-            <p className="font-medium text-gray-700 mb-1">Current Guest Distribution:</p>
+            <p className="font-medium text-gray-700 mb-1">{t("ModifyBooking.currentGuestDistribution")}</p>
             <div className="flex flex-wrap gap-2">
               {initialRoomDistribution.map((room, i) => (
                 <span key={i} className="bg-white border border-blue-200 rounded px-2 py-1">
@@ -450,13 +452,13 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
               className={`px-4 py-2 rounded-md font-medium flex items-center gap-2 ${activeTab === "dates" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700"}`}
               onClick={() => setActiveTab("dates")}
             >
-              <FaCalendarAlt /> Dates
+              <FaCalendarAlt /> {t("ModifyBooking.tabDates")}
             </button>
             <button
               className={`px-4 py-2 rounded-md font-medium flex items-center gap-2 ${activeTab === "guests" ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-700"}`}
               onClick={() => setActiveTab("guests")}
             >
-              <FaUser /> Guests
+              <FaUser /> {t("ModifyBooking.tabGuests")}
             </button>
           </div>
 
@@ -465,7 +467,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
               <div className="space-y-4">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium">Check-In</label>
+                    <label className="block text-sm font-medium">{t("ModifyBooking.checkIn")}</label>
                     <input
                       type="date"
                       value={checkInDate}
@@ -481,7 +483,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                     {dateErrors.checkIn && <p className="text-sm text-red-600 mt-1">{dateErrors.checkIn}</p>}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium">Check-Out</label>
+                    <label className="block text-sm font-medium">{t("ModifyBooking.checkOut")}</label>
                     <input
                       type="date"
                       value={checkOutDate}
@@ -502,7 +504,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                     disabled={priceLoading || !checkInDate || !checkOutDate}
                     className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded font-medium flex items-center justify-center gap-2 disabled:bg-gray-400"
                   >
-                    {priceLoading ? <><Loader2 className="h-4 w-4 animate-spin" /><span>Fetching Price...</span></> : <><RefreshCw className="h-4 w-4" /><span>Check Updated Price</span></>}
+                    {priceLoading ? <><Loader2 className="h-4 w-4 animate-spin" /><span>Fetching Price...</span></> : <><RefreshCw className="h-4 w-4" /><span>{t("ModifyBooking.checkPriceHint")}</span></>}
                   </button>
                 </div>
               </div>
@@ -513,7 +515,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                   onClick={() => setShowGuestSelector(true)}
                 >
                   <span className="flex gap-2 items-center justify-center">
-                    <Plus /> {guestSummary}
+                    <Plus /> {guestSummary === "Add Guests" ? t("ModifyBooking.addGuests") : guestSummary}
                   </span>
                 </button>
 
@@ -527,11 +529,11 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                           <Trash2 className="w-5 h-5" />
                         </button>
                         <p className="font-medium text-gray-800 mb-2">
-                          {guest.type === "adult" ? `Adult ${typeCount}` : `Child ${typeCount}`}
+                          {guest.type === "adult" ? `${t("ModifyBooking.adult")} ${typeCount}` : `${t("ModifyBooking.child")} ${typeCount}`}
                         </p>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
-                            <label className="block text-sm font-medium mb-1 text-gray-700">First Name</label>
+                            <label className="block text-sm font-medium mb-1 text-gray-700">{t("ModifyBooking.firstName")}</label>
                             <input
                               type="text"
                               placeholder="First Name"
@@ -542,7 +544,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                             {gErr.firstName && <p className="text-sm text-red-600 mt-1">{gErr.firstName}</p>}
                           </div>
                           <div>
-                            <label className="block text-sm font-medium mb-1 text-gray-700">Last Name</label>
+                            <label className="block text-sm font-medium mb-1 text-gray-700">{t("ModifyBooking.lastName")}</label>
                             <input
                               type="text"
                               placeholder="Last Name"
@@ -553,7 +555,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                             {gErr.lastName && <p className="text-sm text-red-600 mt-1">{gErr.lastName}</p>}
                           </div>
                           <div>
-                            <label className="block text-sm font-medium mb-1 text-gray-700">Date of Birth</label>
+                            <label className="block text-sm font-medium mb-1 text-gray-700">{t("ModifyBooking.dateOfBirth")}</label>
                             <input
                               type="date"
                               value={guest.dob}
@@ -573,7 +575,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                     disabled={priceLoading}
                     className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded font-medium flex items-center justify-center gap-2 disabled:bg-gray-400"
                   >
-                    {priceLoading ? <><Loader2 className="h-4 w-4 animate-spin" /><span>Fetching Price...</span></> : <><RefreshCw className="h-4 w-4" /><span>Check Updated Price</span></>}
+                    {priceLoading ? <><Loader2 className="h-4 w-4 animate-spin" /><span>Fetching Price...</span></> : <><RefreshCw className="h-4 w-4" /><span>{t("ModifyBooking.checkUpdatedPrice")}</span></>}
                   </button>
                 </div>
               </>
@@ -586,7 +588,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
               <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-yellow-800 font-semibold">You will be charged at the hotel:</p>
+                    <p className="text-yellow-800 font-semibold">{t("ModifyBooking.chargedAtHotel")}</p>
                     <p className="text-lg text-blue-700 font-bold">{bookingData?.currencyCode || "USD"} {amount.toLocaleString()}</p>
                   </div>
                   {priceFetched && (
@@ -597,7 +599,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                 </div>
                 {showBreakdown && priceFetched && (
                   <div className="mb-3 p-3 bg-white rounded border">
-                    <h4 className="font-medium text-gray-800 mb-2">Price Breakdown</h4>
+                    <h4 className="font-medium text-gray-800 mb-2">{t("ModifyBooking.priceBreakdown")}</h4>
                     <div className="space-y-1 text-sm">
                       <div className="flex justify-between">
                         <span className="text-gray-600">Base Rate ({getPriceBreakdown().numberOfNights} night{getPriceBreakdown().numberOfNights > 1 ? "s" : ""})</span>
@@ -605,7 +607,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                       </div>
                       {getPriceBreakdown().additionalCharges > 0 && (
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Additional Guest Charges</span>
+                          <span className="text-gray-600">{t("ModifyBooking.additionalGuestCharges")}</span>
                           <span>{bookingData?.currencyCode} {getPriceBreakdown().additionalCharges?.toFixed(2)}</span>
                         </div>
                       )}
@@ -648,11 +650,11 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                   <div className="flex items-start justify-between mb-3">
                     <div className="grid grid-cols-2 gap-4 flex-1">
                       <div>
-                        <p className="text-sm text-gray-600">Original Price</p>
+                        <p className="text-sm text-gray-600">{t("ModifyBooking.originalPrice")}</p>
                         <p className="text-lg font-semibold">{bookingData?.currencyCode || "USD"} {bookingData.amount?.toLocaleString() || "0"}</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600">Updated Price</p>
+                        <p className="text-sm text-gray-600">{t("ModifyBooking.updatedPrice")}</p>
                         <p className={`text-lg font-bold ${priceFetched ? "text-blue-700" : "text-gray-800"}`}>{bookingData?.currencyCode || "USD"} {amount.toLocaleString()}</p>
                       </div>
                     </div>
@@ -665,10 +667,10 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
 
                   {showBreakdown && priceFetched && (
                     <div className="mb-3 p-3 bg-white rounded border">
-                      <h4 className="font-medium text-gray-800 mb-2">Price Breakdown</h4>
+                      <h4 className="font-medium text-gray-800 mb-2">{t("ModifyBooking.priceBreakdown")}</h4>
                       <div className="space-y-1 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-gray-600">Base Rate ({(finalPrice.dailyPriceBrakeDown || finalPrice.dailyBreakdown || []).length} nights)</span>
+                          <span className="text-gray-600">{t("ModifyBooking.baseRate")} ({(finalPrice.dailyPriceBrakeDown || finalPrice.dailyBreakdown || []).length} nights)</span>
                           <span>{bookingData?.currencyCode} {finalPrice.amountBeforeTax?.toFixed(2)}</span>
                         </div>
                         {finalPrice.promotionBrakeDown?.length > 0 && finalPrice.promotionBrakeDown.map((promo: any, i: number) => {
@@ -690,21 +692,21 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                           </div>
                         ))}
                         <div className="flex justify-between text-gray-600">
-                          <span>Total Tax</span>
+                          <span>{t("ModifyBooking.totalTax")}</span>
                           <span>{bookingData?.currencyCode} {finalPrice.taxedAmount?.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between font-bold border-t pt-2 mt-2">
-                          <span>Total</span>
+                          <span>{t("ModifyBooking.total")}</span>
                           <span className="text-blue-700">{bookingData?.currencyCode} {finalPrice.totalAmount?.toFixed(2)}</span>
                         </div>
                         {finalPrice.latterpayableAmount > 0 && (
                           <div className="flex justify-between text-orange-600">
-                            <span>⏳ Pay Later at Hotel</span>
+                            <span>{t("ModifyBooking.payLaterAtHotel")}</span>
                             <span>{bookingData?.currencyCode} {finalPrice.latterpayableAmount?.toFixed(2)}</span>
                           </div>
                         )}
                         <div className="flex justify-between font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded mt-1">
-                          <span>Amount Due Now</span>
+                          <span>{t("ModifyBooking.amountDueNow")}</span>
                           <span>{bookingData?.currencyCode} {finalPrice.currentChargeableAmount?.toFixed(2)}</span>
                         </div>
                       </div>
@@ -714,30 +716,30 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                   <div className="border-t pt-3">
                     <div className="space-y-2">
                       <div className="flex justify-between">
-                        <span>Already Paid:</span>
+                        <span>{t("ModifyBooking.alreadyPaid")}:</span>
                         <span className="text-green-600 font-medium">{bookingData?.currencyCode || "USD"} {bookingData?.paidAmount?.toLocaleString() || "0"}</span>
                       </div>
                       {finalPrice.booking?.discount > 0 && (
                         <div className="flex justify-between">
-                          <span>Discount Applied:</span>
+                          <span>{t("ModifyBooking.discountApplied")}:</span>
                           <span className="text-red-600 font-medium">- {bookingData?.currencyCode || "USD"} {finalPrice.booking.discount.toLocaleString()}</span>
                         </div>
                       )}
                       {priceFetched && finalPrice.booking?.finalPayable > 0 && (
                         <div className="flex justify-between bg-red-50 p-2 rounded">
-                          <span className="text-red-700 font-semibold">To Pay at Hotel:</span>
+                          <span className="text-red-700 font-semibold">{t("ModifyBooking.toPayAtHotel")}:</span>
                           <span className="text-red-700 font-bold">{bookingData?.currencyCode || "USD"} {finalPrice.booking.finalPayable.toLocaleString()}</span>
                         </div>
                       )}
                       {priceFetched && finalPrice.booking?.refundAmount > 0 && (
                         <div className="flex justify-between bg-green-50 p-2 rounded">
-                          <span className="text-green-700 font-semibold">To Be Refunded:</span>
+                          <span className="text-green-700 font-semibold">{t("ModifyBooking.toBeRefunded")}:</span>
                           <span className="text-green-700 font-bold">{bookingData?.currencyCode || "USD"} {finalPrice.booking.refundAmount.toLocaleString()}</span>
                         </div>
                       )}
                       {!priceFetched && !priceFetchError && (
                         <div className="text-center py-2">
-                          <p className="text-gray-600 italic">Click "Check Updated Price" to see price changes</p>
+                          <p className="text-gray-600 italic">{t("ModifyBooking.checkPriceHint")}</p>
                         </div>
                       )}
                     </div>
@@ -745,24 +747,24 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                 </div>
                 {priceFetchError && (
                   <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded">
-                    <p className="text-red-700 font-semibold">Price Error</p>
-                    <p className="text-red-600 text-sm">Unable to fetch updated price. Please try again.</p>
+                    <p className="text-red-700 font-semibold">{t("ModifyBooking.priceError")}</p>
+                    <p className="text-red-600 text-sm">{t("ModifyBooking.priceErrorMsg")}</p>
                   </div>
                 )}
               </>
             )}
 
             <div className="bg-gray-100 p-3 rounded text-xs text-gray-600 space-y-1 mt-2">
-              <p>• Date changes are subject to availability</p>
-              <p>• Changes within 72 hours of check-in may incur additional fees</p>
-              <p>• Room upgrades are subject to availability and additional charges</p>
-              <p>• Reducing the length of stay may be subject to the original booking's cancellation policy</p>
+              <p>• {t("ModifyBooking.policyNotes.availability")}</p>
+              <p>• {t("ModifyBooking.policyNotes.fees")}</p>
+              <p>• {t("ModifyBooking.policyNotes.upgrades")}</p>
+              <p>• {t("ModifyBooking.policyNotes.cancellation")}</p>
             </div>
           </div>
 
           <div className="flex gap-4 px-6 pb-6">
             <button className="w-full bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded" onClick={onClose}>
-              Cancel
+              {t("ModifyBooking.cancel")}
             </button>
             <button
               className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-semibold disabled:bg-gray-400"
@@ -772,10 +774,10 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
               {loading ? (
                 <div className="flex items-center gap-2 justify-center">
                   <Loader2 className="h-5 w-5 animate-spin" />
-                  <span>Updating...</span>
+                  <span>{t("ModifyBooking.updating")}</span>
                 </div>
               ) : (
-                "Confirm Update"
+                t("ModifyBooking.confirmUpdate")
               )}
             </button>
           </div>
@@ -786,10 +788,10 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
       {showDeleteModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-80">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Do you really want to delete this guest?</h2>
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">{t("ModifyBooking.deleteTitle")}</h2>
             <div className="flex justify-end gap-3">
-              <button onClick={() => { setDeleteIndex(null); setShowDeleteModal(false); }} className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300">Cancel</button>
-              <button onClick={confirmDelete} className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">Delete</button>
+              <button onClick={() => { setDeleteIndex(null); setShowDeleteModal(false); }} className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300">{t("ModifyBooking.cancel")}</button>
+              <button onClick={confirmDelete} className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">{t("ModifyBooking.delete")}</button>
             </div>
           </div>
         </div>

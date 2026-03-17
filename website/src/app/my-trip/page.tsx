@@ -1,4 +1,5 @@
 "use client";
+import { useTranslation } from "react-i18next";
 import CancelModal from "../../components/BookingModals/CancelModal";
 import ModifyBookingModal from "@/src/components/BookingModals/ModifyBookingmodal";
 import { useEffect, useRef, useState } from "react";
@@ -29,6 +30,7 @@ export default function MyTripPage() {
   const [showCancelModal, setShowCancelModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const dispatch = useDispatch();
+  const { t } = useTranslation();
 
   // Add the hook usage at the component level
   const { colors } = useBookingStorage({}); // You may need to pass actual bookingContext if available
@@ -37,11 +39,11 @@ export default function MyTripPage() {
   const handleSearch = async () => {
     const propertyCode = searchParams.get("propertyCode");
     if (!propertyCode) {
-      toast.error("Property code is missing in the URL");
+      toast.error(t("MyTrip.missingPropertyCode"));
       return;
     }
     if (!bookingCode.trim()) {
-      toast.error("Please enter a booking code");
+      toast.error(t("MyTrip.missingBookingCode"));
       return;
     }
     setLoading(true);
@@ -56,11 +58,12 @@ export default function MyTripPage() {
       dispatch(setBookingViewData(data.data)); // ✅ global redux state
       // toast.success("Booking found!");
     } catch (err: any) {
-      toast.error(err.message || "Error fetching booking");
+      toast.error(err.message || t("MyTrip.errorFetching"));
     } finally {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     if (showModal) {
@@ -76,9 +79,10 @@ export default function MyTripPage() {
     const codeFromUrl = searchParams.get("code");
     const propertyCode = searchParams.get("propertyCode");
     if (!propertyCode) {
-      toast.error("Property code is missing in the URL");
+      toast.error(t("MyTrip.missingPropertyCode"));
       return;
     }
+
     if (!codeFromUrl) return;
     setBookingCode(codeFromUrl); // for input field
     const fetchFromUrl = async () => {
@@ -148,7 +152,8 @@ export default function MyTripPage() {
     doc.setTextColor(25, 85, 150);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
-    doc.text("HOTEL INFORMATION", colLeftX, yLeft);
+    doc.text(t("MyTrip.pdf.hotelInfo"), colLeftX, yLeft);
+
     doc.line(colLeftX, yLeft + 2, colLeftX + 70, yLeft + 2);
     yLeft += 10;
     doc.setTextColor(50);
@@ -166,7 +171,8 @@ export default function MyTripPage() {
     doc.setTextColor(25, 85, 150);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(12);
-    doc.text("STAY DETAILS", colRightX, yRight);
+    doc.text(t("MyTrip.pdf.stayDetails"), colRightX, yRight);
+
     doc.line(colRightX, yRight + 2, colRightX + 60, yRight + 2);
     yRight += 10;
     doc.setTextColor(50);
@@ -190,7 +196,8 @@ export default function MyTripPage() {
     // --- LEFT: GUEST INFO ---
     doc.setTextColor(25, 85, 150);
     doc.setFont("helvetica", "bold");
-    doc.text("GUEST INFORMATION", colLeftX, yLeft);
+    doc.text(t("MyTrip.pdf.guestInfo"), colLeftX, yLeft);
+
     doc.line(colLeftX, yLeft + 2, colLeftX + 75, yLeft + 2);
     yLeft += 10;
     doc.setTextColor(50);
@@ -208,7 +215,8 @@ export default function MyTripPage() {
         yLeft += 6;
       });
     } else {
-      doc.text("No guest information available", colLeftX, yLeft);
+      doc.text(t("MyTrip.pdf.noGuestInfo"), colLeftX, yLeft);
+
       yLeft += 6;
     }
     yLeft += 8;
@@ -219,7 +227,8 @@ export default function MyTripPage() {
     // --- RIGHT: PAYMENT INFO ---
     doc.setTextColor(25, 85, 150);
     doc.setFont("helvetica", "bold");
-    doc.text("PAYMENT INFORMATION", colRightX, yRight);
+    doc.text(t("MyTrip.pdf.paymentInfo"), colRightX, yRight);
+
     doc.line(colRightX, yRight + 2, colRightX + 80, yRight + 2);
     yRight += 10;
     doc.setTextColor(50);
@@ -270,7 +279,8 @@ export default function MyTripPage() {
       yRight += 3;
       doc.setFontSize(9);
       doc.setTextColor(100);
-      doc.text("--- Price Breakdown ---", colRightX, yRight);
+      doc.text(t("MyTrip.pdf.priceBreakdown"), colRightX, yRight);
+
       yRight += 6;
       addPaymentRow("Method:", paymentMethod);
       addPaymentRow("Booking Date:", bookingDate);
@@ -317,11 +327,12 @@ export default function MyTripPage() {
     doc.setTextColor(120);
     doc.setFont("helvetica", "normal");
     doc.text(
-      "Thank you for booking with SwiftRooms. We look forward to hosting you!",
+      t("MyTrip.pdf.footer"),
       centerX,
       footerY,
       { align: "center" }
     );
+
 
     const fileName = `booking-itinerary-${bookingData.bookingCode || bookingCode || "trip"}.pdf`;
     doc.save(fileName);
@@ -351,9 +362,11 @@ export default function MyTripPage() {
     <div className="min-h-screen bg-gray-100 px-4  py-12 flex flex-col items-center">
       {/* Search Bar Section - Always at the top */}
       <div className="w-full max-w-3xl mb-10">
+
         <h1 className="text-4xl font-bold text-center mb-8" style={{ color: colors.primaryColor }}>
-          Find Your Booking
+          {t("MyTrip.title")}
         </h1>
+
         <div className="flex flex-col sm:flex-row gap-4 items-center justify-center">
           <input
             ref={inputRef}
@@ -361,7 +374,8 @@ export default function MyTripPage() {
             value={bookingCode}
             onChange={(e) => setBookingCode(e.target.value.toUpperCase())}
             onKeyDown={handleKeyPress}
-            placeholder="Enter your booking code (e.g., SR123456)"
+            placeholder={t("MyTrip.placeholder")}
+
             className="w-full sm:w-96 px-5 py-4 text-lg border-2 border-gray-300 rounded-xl focus:outline-none focus:border-blue-600 transition-colors uppercase"
           />
           <button
@@ -374,12 +388,13 @@ export default function MyTripPage() {
             }}
           >
             <FaSearch className="text-xl" />
-            {loading ? "Searching..." : "Search"}
+            {loading ? t("MyTrip.searching") : t("MyTrip.search")}
           </button>
         </div>
         <p className="text-center text-gray-600 mt-4">
-          Not sure where to find your code? Check your confirmation email.
+          {t("MyTrip.codeHint")}
         </p>
+
       </div>
 
       {bookingData && (
@@ -413,38 +428,38 @@ export default function MyTripPage() {
           </div>
           <div className="grid grid-cols-2 px-6 gap-6 text-gray-700 text-sm pb-2">
             <div>
-              <p className="text-gray-500 font-medium">Check-in</p>
+              <p className="text-gray-500 font-medium">{t("MyTrip.checkIn")}</p>
               <p className="text-green-700">
                 {new Date(bookingData.checkInDate).toDateString()}
               </p>
             </div>
             <div>
-              <p className="text-gray-500 font-medium">Check-out</p>
+              <p className="text-gray-500 font-medium">{t("MyTrip.checkOut")}</p>
               <p className="text-green-700">
                 {new Date(bookingData.checkOutDate).toDateString()}
               </p>
             </div>
             <div>
-              <p className="text-gray-500 font-medium">Room Type</p>
+              <p className="text-gray-500 font-medium">{t("MyTrip.roomType")}</p>
               <p>
                 <FaBed className="inline mr-1" /> {bookingData.roomTypeCode}
               </p>
             </div>
             <div>
-              <p className="text-gray-500 font-medium">Payment Method</p>
+              <p className="text-gray-500 font-medium">{t("MyTrip.paymentMethod")}</p>
               <p className="text-purple-700 capitalize">
-                {bookingData.paymentMethod?.replace(/_/g, ' ') || "Pay at Hotel"}
+                {bookingData.paymentMethod?.replace(/_/g, ' ') || t("MyTrip.payAtHotel")}
               </p>
             </div>
             <div>
-              <p className="text-gray-500 font-medium">Primary Guest</p>
+              <p className="text-gray-500 font-medium">{t("MyTrip.primaryGuest")}</p>
               <p>
                 <FaUser className="inline mr-1" />{" "}
                 {`${bookingData.guests[0].firstName} ${bookingData.guests[0].lastName}`}
               </p>
             </div>
             <div>
-              <p className="text-gray-500 font-medium">Rate</p>
+              <p className="text-gray-500 font-medium">{t("MyTrip.rate")}</p>
               <p className="text-blue-700 font-semibold">
                 {bookingData.currencyCode} {bookingData.amount.toLocaleString()}
               </p>
@@ -460,8 +475,7 @@ export default function MyTripPage() {
                 color: colors.buttonTextColor
               }}
             >
-              <HiOutlineViewGridAdd className="inline mr-2" /> View Booking
-              Details
+              <HiOutlineViewGridAdd className="inline mr-2" /> {t("MyTrip.viewBooking")}
             </button>
             {/* Modify & Cancel Buttons */}
             {(bookingData.bookingStatus === "confirmed" ||
@@ -475,14 +489,14 @@ export default function MyTripPage() {
                       borderColor: colors.primaryColor
                     }}
                   >
-                    <FaEdit className="inline mr-2 mb-1" /> Modify
+                    <FaEdit className="inline mr-2 mb-1" /> {t("MyTrip.modify")}
                   </button>
                   <button
                     onClick={() => setShowCancelModal(true)}
                     className="border px-4 py-2 rounded-md font-medium text-red-600 border-red-500 hover:bg-red-50 w-full"
                   >
                     <GiCancel className="inline mr-2 mb-1" />
-                    Cancel
+                    {t("MyTrip.cancel")}
                   </button>
                 </div>
               )}
@@ -513,7 +527,7 @@ export default function MyTripPage() {
                   🏨 {bookingData?.hotelName || "Hotel"}
                 </h3>
                 <p className="text-sm text-blue-100 mt-1">
-                  Booking Code: {bookingData.bookingCode}
+                  {t("MyTrip.bookingCode")} {bookingData.bookingCode}
                 </p>
               </div>
             </div>
@@ -534,11 +548,11 @@ export default function MyTripPage() {
               {/* Stay Details */}
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h4 className="text-lg font-semibold flex items-center gap-2 mb-3" style={{ color: colors.primaryColor }}>
-                  <FaCalendarAlt style={{ color: colors.primaryColor }} /> Stay Details
+                  <FaCalendarAlt style={{ color: colors.primaryColor }} /> {t("MyTrip.stayDetails")}
                 </h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-gray-500 text-sm font-medium">Check-In</p>
+                    <p className="text-gray-500 text-sm font-medium">{t("MyTrip.checkInLabel")}</p>
                     <p className="text-green-600 font-semibold">
                       {new Date(bookingData.checkInDate).toLocaleDateString("en-US", {
                         weekday: "short",
@@ -549,7 +563,7 @@ export default function MyTripPage() {
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-500 text-sm font-medium">Check-Out</p>
+                    <p className="text-gray-500 text-sm font-medium">{t("MyTrip.checkOutLabel")}</p>
                     <p className="text-red-600 font-semibold">
                       {new Date(bookingData.checkOutDate).toLocaleDateString("en-US", {
                         weekday: "short",
@@ -562,7 +576,7 @@ export default function MyTripPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4 mt-3">
                   <div>
-                    <p className="text-gray-500 text-sm font-medium">Room Type</p>
+                    <p className="text-gray-500 text-sm font-medium">{t("MyTrip.roomType")}</p>
                     <span
                       className="inline-block px-3 py-1 rounded-sm text-xs font-semibold"
                       style={{
@@ -574,19 +588,19 @@ export default function MyTripPage() {
                     </span>
                   </div>
                   <div>
-                    <p className="text-gray-500 text-sm font-medium">Rooms</p>
+                    <p className="text-gray-500 text-sm font-medium">{t("MyTrip.rooms")}</p>
                     <p className="text-gray-800 font-medium">
                       {bookingData.finalPrice?.requestedRooms || 1}
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-500 text-sm font-medium">Rate Plan</p>
+                    <p className="text-gray-500 text-sm font-medium">{t("MyTrip.ratePlan")}</p>
                     <p className="text-gray-800 font-medium">
                       {bookingData.ratePlanCode}
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-500 text-sm font-medium">Nights</p>
+                    <p className="text-gray-500 text-sm font-medium">{t("MyTrip.nights")}</p>
                     <p className="text-gray-800 font-medium">
                       {bookingData.finalPrice?.numberOfNights || 1}
                     </p>
@@ -596,7 +610,7 @@ export default function MyTripPage() {
               {/* Guest Details */}
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h4 className="text-lg font-semibold flex items-center gap-2 mb-3" style={{ color: colors.primaryColor }}>
-                  <FaUser style={{ color: colors.primaryColor }} /> Guest Details
+                  <FaUser style={{ color: colors.primaryColor }} /> {t("MyTrip.guestDetails")}
                 </h4>
                 <div className="space-y-2">
                   {bookingData.guests.map((guest: any, index: number) => (
@@ -605,20 +619,20 @@ export default function MyTripPage() {
                       className="grid grid-cols-2 gap-4 border-b pb-2 last:border-none"
                     >
                       <div>
-                        <p className="text-gray-500 text-sm font-medium">Name</p>
+                        <p className="text-gray-500 text-sm font-medium">{t("MyTrip.name")}</p>
                         <p className="text-gray-800 font-medium">
                           {guest.firstName} {guest.lastName}
                         </p>
                       </div>
                       <div>
-                        <p className="text-gray-500 text-sm font-medium">Type</p>
+                        <p className="text-gray-500 text-sm font-medium">{t("MyTrip.type")}</p>
                         <p className="text-gray-800 font-medium">
                           {guest.type.charAt(0).toUpperCase() + guest.type.slice(1)}
                         </p>
                       </div>
                       {guest.dateOfBirth && (
                         <div className="col-span-2">
-                          <p className="text-gray-500 text-sm font-medium">Date of Birth</p>
+                          <p className="text-gray-500 text-sm font-medium">{t("MyTrip.dateOfBirth")}</p>
                           <p className="text-gray-800">
                             {new Date(guest.dateOfBirth).toLocaleDateString()}
                           </p>
@@ -629,13 +643,13 @@ export default function MyTripPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4 mt-4">
                   <div>
-                    <p className="text-gray-500 text-sm font-medium">Contact Number</p>
+                    <p className="text-gray-500 text-sm font-medium">{t("MyTrip.contactNumber")}</p>
                     <span className="font-medium text-gray-800">
                       {bookingData.bookingUserPhone}
                     </span>
                   </div>
                   <div>
-                    <p className="text-gray-500 text-sm font-medium">Email</p>
+                    <p className="text-gray-500 text-sm font-medium">{t("MyTrip.email")}</p>
                     <span className="font-medium text-gray-800">
                       {bookingData.bookingUserEmail}
                     </span>
@@ -644,12 +658,12 @@ export default function MyTripPage() {
                 {/* Primary Guest Details if available */}
                 {bookingData.primaryGuest && (
                   <div className="mt-4 p-3 bg-blue-50 rounded-md">
-                    <p className="text-sm font-semibold text-blue-800 mb-1">Primary Guest</p>
+                    <p className="text-sm font-semibold text-blue-800 mb-1">{t("MyTrip.primaryGuestLabel")}</p>
                     <p className="text-gray-700">
                       {bookingData.primaryGuest.firstName} {bookingData.primaryGuest.lastName}
                     </p>
                     <p className="text-sm text-gray-600">
-                      Phone: {bookingData.primaryGuest.phoneNumber}
+                      {t("MyTrip.phone")} {bookingData.primaryGuest.phoneNumber}
                     </p>
                   </div>
                 )}
@@ -657,17 +671,17 @@ export default function MyTripPage() {
               {/* Payment Details */}
               <div className="bg-gray-50 p-4 rounded-lg">
                 <h4 className="text-lg font-semibold flex items-center gap-2 mb-3" style={{ color: colors.primaryColor }}>
-                  <FaCreditCard style={{ color: colors.primaryColor }} /> Payment Details
+                  <FaCreditCard style={{ color: colors.primaryColor }} /> {t("MyTrip.paymentDetails")}
                 </h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-gray-500 text-sm font-medium">Payment Method</p>
+                    <p className="text-gray-500 text-sm font-medium">{t("MyTrip.paymentMethod")}</p>
                     <p className="capitalize text-gray-800">
-                      {bookingData.paymentMethod?.replace(/_/g, ' ') || "Pay at Hotel"}
+                      {bookingData.paymentMethod?.replace(/_/g, ' ') || t("MyTrip.payAtHotel")}
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-500 text-sm font-medium">Booking Date</p>
+                    <p className="text-gray-500 text-sm font-medium">{t("MyTrip.bookingDate")}</p>
                     <p className="text-gray-800">
                       {new Date(bookingData.bookedAt).toLocaleDateString("en-US", {
                         weekday: "short",
@@ -678,11 +692,11 @@ export default function MyTripPage() {
                     </p>
                   </div>
                   <div>
-                    <p className="text-gray-500 text-sm font-medium">Currency</p>
+                    <p className="text-gray-500 text-sm font-medium">{t("MyTrip.currency")}</p>
                     <p className="text-gray-800">{bookingData.currencyCode}</p>
                   </div>
                   <div>
-                    <p className="text-gray-500 text-sm font-medium">Booking Source</p>
+                    <p className="text-gray-500 text-sm font-medium">{t("MyTrip.bookingSource")}</p>
                     <p className="text-gray-800 uppercase">{bookingData.bookingSource}</p>
                   </div>
                 </div>
@@ -692,7 +706,7 @@ export default function MyTripPage() {
 
                   {/* Base Amount */}
                   <div className="flex justify-between items-center">
-                    <p className="text-gray-600">Base Amount</p>
+                    <p className="text-gray-600">{t("MyTrip.baseAmount")}</p>
                     <p className="font-medium">
                       {bookingData.currencyCode} {bookingData.finalPrice?.amountBeforeTax?.toFixed(2) || "0.00"}
                     </p>
@@ -755,7 +769,7 @@ export default function MyTripPage() {
 
                     {/* Total Amount */}
                     <div className="flex justify-between items-center">
-                      <p className="text-gray-800 font-semibold">Total Amount</p>
+                      <p className="text-gray-800 font-semibold">{t("MyTrip.totalAmount")}</p>
                       <p className="text-blue-700 font-bold text-lg">
                         {bookingData.currencyCode} {bookingData.finalPrice?.totalAmount?.toFixed(2) || bookingData.amount.toFixed(2)}
                       </p>
@@ -764,14 +778,14 @@ export default function MyTripPage() {
                     {bookingData.paymentMethod === 'pay_at_hotel' ? (
                       <>
                         <div className="flex justify-between items-center rounded-lg">
-                          <p className="text-orange-700 font-semibold">Amount to Pay at Hotel</p>
+                          <p className="text-orange-700 font-semibold">{t("MyTrip.amountPayAtHotel")}</p>
                           <p className="text-orange-700 font-bold text-lg">
                             {bookingData.currencyCode} {bookingData.finalPrice?.currentChargeableAmount?.toFixed(2) || "0.00"}
                           </p>
                         </div>
                         {bookingData.finalPrice?.latterpayableAmount > 0 && (
                           <div className="flex justify-between items-center rounded-lg">
-                            <p className="text-orange-700 font-semibold">Amount to be Paid Later at Hotel</p>
+                            <p className="text-orange-700 font-semibold">{t("MyTrip.amountPaidLater")}</p>
                             <p className="text-orange-700 font-bold text-lg">
                               {bookingData.currencyCode} {bookingData.finalPrice?.latterpayableAmount?.toFixed(2)}
                             </p>
@@ -781,14 +795,14 @@ export default function MyTripPage() {
                     ) : (
                       <>
                         <div className="flex justify-between items-center bg-green-50 px-3 py-2 rounded-lg">
-                          <p className="text-green-700 font-semibold">Paid Online</p>
+                          <p className="text-green-700 font-semibold">{t("MyTrip.paidOnline")}</p>
                           <p className="text-green-700 font-bold text-lg">
                             {bookingData.currencyCode} {bookingData.finalPrice?.currentChargeableAmount?.toFixed(2) || "0.00"}
                           </p>
                         </div>
                         {bookingData.finalPrice?.latterpayableAmount > 0 && (
                           <div className="flex justify-between items-center bg-orange-50 px-3 py-2 rounded-lg">
-                            <p className="text-orange-700 font-semibold">Amount to be Paid Later at Hotel</p>
+                            <p className="text-orange-700 font-semibold">{t("MyTrip.amountPaidLater")}</p>
                             <p className="text-orange-700 font-bold text-lg">
                               {bookingData.currencyCode} {bookingData.finalPrice?.latterpayableAmount?.toFixed(2)}
                             </p>
@@ -796,7 +810,7 @@ export default function MyTripPage() {
                         )}
                         {bookingData.paidAmount > 0 && (
                           <div className="flex justify-between items-center">
-                            <p className="text-gray-600">Paid Amount</p>
+                            <p className="text-gray-600">{t("MyTrip.paidAmount")}</p>
                             <p className="font-medium text-green-600">
                               {bookingData.currencyCode} {bookingData.paidAmount?.toFixed(2)}
                             </p>
@@ -808,7 +822,7 @@ export default function MyTripPage() {
                     {/* Refund — always show if applicable */}
                     {bookingData.refundAmount > 0 && (
                       <div className="flex justify-between items-center">
-                        <p className="text-gray-600">Refundable Amount</p>
+                        <p className="text-gray-600">{t("MyTrip.refundableAmount")}</p>
                         <p className="font-medium text-green-600">
                           {bookingData.currencyCode} {bookingData.refundAmount?.toFixed(2)}
                         </p>
@@ -834,15 +848,15 @@ export default function MyTripPage() {
               </div>
               {/* Additional Information */}
               <div className="bg-gray-50 p-4 rounded-lg">
-                <h4 className="text-lg font-semibold mb-3" style={{ color: colors.primaryColor }}>Additional Information</h4>
+                <h4 className="text-lg font-semibold mb-3" style={{ color: colors.primaryColor }}>{t("MyTrip.additionalInfo")}</h4>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-gray-500 text-sm font-medium">Property Code</p>
+                    <p className="text-gray-500 text-sm font-medium">{t("MyTrip.propertyCode")}</p>
                     <p className="text-gray-800 font-medium">{bookingData.propertyCode}</p>
                   </div>
                   <div>
-                    <p className="text-gray-500 text-sm font-medium">Promo Used</p>
-                    <p className="text-gray-800">{bookingData.isPromoUsed ? "Yes" : "No"}</p>
+                    <p className="text-gray-500 text-sm font-medium">{t("MyTrip.promoUsed")}</p>
+                    <p className="text-gray-800">{bookingData.isPromoUsed ? t("MyTrip.yes") : t("MyTrip.no")}</p>
                   </div>
                 </div>
               </div>
@@ -861,7 +875,7 @@ export default function MyTripPage() {
                           borderColor: colors.primaryColor
                         }}
                       >
-                        <FaEdit /> Modify
+                        <FaEdit /> {t("MyTrip.modify")}
                       </button>
                     </div>
                     <div className="w-full sm:w-auto flex-1">
@@ -870,7 +884,7 @@ export default function MyTripPage() {
                         className="border px-4 py-3 rounded-md font-medium text-red-600 border-red-500 hover:bg-red-50 w-full flex items-center justify-center gap-2"
                       >
                         <GiCancel />
-                        Cancel
+                        {t("MyTrip.cancel")}
                       </button>
                     </div>
                   </>
@@ -880,7 +894,7 @@ export default function MyTripPage() {
                     onClick={handleDownloadPDF}
                     className="bg-gray-800 text-white px-4 py-3 rounded-md hover:bg-gray-900 w-full flex items-center justify-center gap-2 transition-colors"
                   >
-                    <FaPrint /> Print Itinerary
+                    <FaPrint /> {t("MyTrip.printItinerary")}
                   </button>
                 </div>
               </div>

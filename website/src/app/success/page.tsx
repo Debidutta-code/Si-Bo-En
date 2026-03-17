@@ -1,13 +1,17 @@
 "use client";
 
 import { useEffect, useState, useRef, useCallback } from "react";
+import { useTranslation } from "react-i18next";
+
 import { useRouter, useSearchParams } from "next/navigation";
 
 export default function SuccessPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useTranslation();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
   const socketRef = useRef<any>(null);
   const socketConnectedRef = useRef(false);
   const paymentTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -145,11 +149,13 @@ export default function SuccessPage() {
     console.log("🎉 Success page loaded, ref:", ref, "code:", code, "final:", bookingCode);
 
     // Validate we have a real booking code, not a placeholder
+
     if (!bookingCode || bookingCode === "PENDING_BOOKING") {
-      setError("Invalid booking reference. Please contact support.");
+      setError(t("SuccessPage.invalidBooking"));
       setLoading(false);
       return;
     }
+
 
     const confirmedBookingCode = bookingCode;
 
@@ -183,10 +189,12 @@ export default function SuccessPage() {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
+
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-red-600">Error</h1>
+          <h1 className="text-2xl font-bold text-red-600">{t("SuccessPage.error")}</h1>
           <p className="text-gray-600 mt-2">{error}</p>
         </div>
+
       </div>
     );
   }
@@ -194,12 +202,14 @@ export default function SuccessPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
+
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-purple-600 mx-auto mb-4"></div>
-          <h1 className="text-2xl font-bold text-gray-800">Verifying Payment...</h1>
-          <p className="text-gray-600 mt-2">Please wait while we confirm your payment with the gateway.</p>
-          <p className="text-sm text-gray-500 mt-4">Do not close this window.</p>
+          <h1 className="text-2xl font-bold text-gray-800">{t("SuccessPage.verifying")}</h1>
+          <p className="text-gray-600 mt-2">{t("SuccessPage.verifyingSubtitle")}</p>
+          <p className="text-sm text-gray-500 mt-4">{t("SuccessPage.doNotClose")}</p>
         </div>
+
       </div>
     );
   }

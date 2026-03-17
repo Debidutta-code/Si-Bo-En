@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Minus, Plus, X } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface RoomDistribution {
   adults: number;
@@ -44,6 +45,7 @@ const ModifyGuestSelector: React.FC<ModifyGuestSelectorProps> = ({
   onClose,
   onApply,
 }) => {
+  const { t } = useTranslation();
   const [rooms, setRooms] = useState(initialRooms);
   const [adults, setAdults] = useState(initialAdults);
   const [children, setChildren] = useState(initialChildren);
@@ -252,7 +254,7 @@ const ModifyGuestSelector: React.FC<ModifyGuestSelectorProps> = ({
         <div className="p-4 sm:p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">Select Occupancy</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{t("ModifyGuestSelector.title")}</h2>
             <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
               <X className="w-6 h-6" />
             </button>
@@ -261,7 +263,7 @@ const ModifyGuestSelector: React.FC<ModifyGuestSelectorProps> = ({
           {/* Rooms */}
           <div className="mb-4 bg-gray-50 rounded-xl px-4 py-3">
             <div className="flex items-center justify-between">
-              <span className="text-base sm:text-lg font-semibold text-gray-900">Number of Rooms</span>
+              <span className="text-base sm:text-lg font-semibold text-gray-900">{t("ModifyGuestSelector.numberOfRooms")}</span>
               <Counter value={rooms} onDecrement={decrementRooms} onIncrement={incrementRooms} min={1} />
             </div>
           </div>
@@ -270,11 +272,11 @@ const ModifyGuestSelector: React.FC<ModifyGuestSelectorProps> = ({
           <div className="space-y-3 mb-4">
             {roomDistribution.map((room, roomIdx) => (
               <div key={roomIdx} className="border rounded-xl p-4 bg-white shadow-sm">
-                <p className="font-semibold text-gray-800 mb-3 text-sm">Room {roomIdx + 1}</p>
+                <p className="font-semibold text-gray-800 mb-3 text-sm">{t("ModifyGuestSelector.room")} {roomIdx + 1}</p>
 
                 {/* Adults per room */}
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm text-gray-700">Adults</span>
+                  <span className="text-sm text-gray-700">{t("ModifyGuestSelector.adults")}</span>
                   <Counter
                     value={room.adults}
                     onDecrement={() => updateRoomAdults(roomIdx, -1)}
@@ -288,8 +290,8 @@ const ModifyGuestSelector: React.FC<ModifyGuestSelectorProps> = ({
                 {/* Children per room */}
                 <div className="flex items-center justify-between mb-2">
                   <div>
-                    <span className="text-sm text-gray-700">Children</span>
-                    <p className="text-[0.65rem] text-gray-400">Ages 0–17</p>
+                    <span className="text-sm text-gray-700">{t("ModifyGuestSelector.children")}</span>
+                    <p className="text-[0.65rem] text-gray-400">{t("ModifyGuestSelector.childrenAges")}</p>
                   </div>
                   <Counter
                     value={room.children}
@@ -306,7 +308,7 @@ const ModifyGuestSelector: React.FC<ModifyGuestSelectorProps> = ({
                   <div className="mt-2 space-y-1 pl-2 border-l-2 border-indigo-100">
                     {Array.from({ length: room.children }).map((_, childIdx) => (
                       <div key={childIdx} className="flex items-center justify-between">
-                        <span className="text-xs text-gray-500">Child {childIdx + 1} age</span>
+                        <span className="text-xs text-gray-500">{t("ModifyGuestSelector.childAge", { number: childIdx + 1 })}</span>
                         <select
                           value={room.childAges[childIdx] ?? 0}
                           onChange={(e) => updateChildAge(roomIdx, childIdx, Number(e.target.value))}
@@ -314,7 +316,11 @@ const ModifyGuestSelector: React.FC<ModifyGuestSelectorProps> = ({
                         >
                           {Array.from({ length: 18 }, (_, age) => (
                             <option key={age} value={age}>
-                              {age === 0 ? "< 1 year" : age === 1 ? "1 year" : `${age} years`}
+                              {age === 0
+                                ? t("ModifyGuestSelector.lessThanOneYear")
+                                : age === 1
+                                  ? t("ModifyGuestSelector.oneYear")
+                                  : t("ModifyGuestSelector.years", { age })}
                             </option>
                           ))}
                         </select>
@@ -328,19 +334,16 @@ const ModifyGuestSelector: React.FC<ModifyGuestSelectorProps> = ({
 
           {/* Summary row */}
           <div className="bg-indigo-50 rounded-lg px-4 py-2 text-sm text-indigo-800 mb-4">
-            <span className="font-medium">Total: </span>
-            {roomDistribution.reduce((s, r) => s + r.adults, 0)} adults
+            <span className="font-medium">{t("ModifyGuestSelector.totalSummary")} </span>
+            {roomDistribution.reduce((s, r) => s + r.adults, 0)} {t("ModifyGuestSelector.adultsCount")}
             {roomDistribution.reduce((s, r) => s + r.children, 0) > 0
-              ? `, ${roomDistribution.reduce((s, r) => s + r.children, 0)} children`
+              ? `, ${roomDistribution.reduce((s, r) => s + r.children, 0)} ${t("ModifyGuestSelector.childrenCount")}`
               : ""}{" "}
-            across {rooms} room{rooms !== 1 ? "s" : ""}
+            {t("ModifyGuestSelector.across")} {rooms} {t("ModifyGuestSelector.rooms")}
           </div>
 
-          <button
-            onClick={handleApply}
-            className="w-full bg-indigo-600 text-white py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg hover:bg-indigo-700 transition-colors duration-200"
-          >
-            Apply
+          <button onClick={handleApply} className="w-full bg-indigo-600 text-white py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg hover:bg-indigo-700 transition-colors duration-200">
+            {t("ModifyGuestSelector.apply")}
           </button>
         </div>
       </div>

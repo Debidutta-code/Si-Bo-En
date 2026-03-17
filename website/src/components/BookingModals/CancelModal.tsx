@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 import toast from "react-hot-toast";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage"; // Add this import
 import { currencies } from "../currencyCode/cuurency";
+import { useTranslation } from "react-i18next";
 
 interface Props {
   bookingData: any;
@@ -14,6 +15,7 @@ interface Props {
 }
 
 const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
+  const { t } = useTranslation();
   const {
     bookingCode,
     property,
@@ -58,17 +60,17 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
 
       if (data.refund) {
         if (data.refund.success) {
-          toast.success("Booking cancelled and refund initiated", { duration: 4000 });
+          toast.success(t("CancelModal.successWithRefund"), { duration: 4000 });
         } else {
-          toast.error("Booking cancelled. Refund could not be processed automatically — the hotel will contact you.", { duration: 6000 });
+          toast.error(t("CancelModal.successNoRefund"), { duration: 6000 });
         }
       } else {
-        toast.success("Booking cancelled successfully!");
+        toast.success(t("CancelModal.successCancelled"));
       }
 
       onCancel();
     } catch (err: any) {
-      toast.error(err.message || "Something went wrong");
+      toast.error(err.message || t("CancelModal.somethingWentWrong"));
     } finally {
       setLoading(false);
     }
@@ -112,18 +114,16 @@ console.log("property",property)
 
         {/* Header */}
         <div className="text-center" style={{ color: colors.primaryColor }}>
-          <h2 className="text-xl font-bold">⚠ Confirm Cancellation</h2>
-          <p className="text-sm text-gray-600">
-            Please review the details below before proceeding with your cancellation.
-          </p>
+          <h2 className="text-xl font-bold">{t("CancelModal.title")}</h2>
+          <p className="text-sm text-gray-600">{t("CancelModal.subtitle")}</p>
         </div>
 
         {/* Booking Details */}
         <div className="border rounded-lg p-4 bg-gray-50">
-          <p className="font-semibold mb-2" style={{ color: colors.primaryColor }}>Booking Details</p>
+          <p className="font-semibold mb-2" style={{ color: colors.primaryColor }}>{t("CancelModal.bookingDetails")}</p>
           <div className="text-sm space-y-2 text-gray-700">
             <div className="flex items-center gap-2">
-              <FaHotel style={{ color: colors.primaryColor }} /> <span>{hotelName || "Hotel"}</span>
+              <FaHotel style={{ color: colors.primaryColor }} /> <span>{hotelName || t("CancelModal.hotel")}</span>
             </div>
             <div className="flex items-center gap-2">
               <FaCalendarAlt style={{ color: colors.primaryColor }} />
@@ -133,11 +133,11 @@ console.log("property",property)
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <FaBed style={{ color: colors.primaryColor }} /> <span>Room: {roomTypeCode}</span>
+              <FaBed style={{ color: colors.primaryColor }} /> <span>{t("CancelModal.room")} {roomTypeCode}</span>
             </div>
             <div className="flex items-center gap-2">
               <FaMoneyBill style={{ color: colors.primaryColor }} />
-              <span>Total: {getCurrencySymbol(currencyCode)} {amount.toLocaleString()}</span>
+              <span>{t("CancelModal.total")} {getCurrencySymbol(currencyCode)} {amount.toLocaleString()}</span>
             </div>
           </div>
         </div>
@@ -176,10 +176,10 @@ console.log("property",property)
 
         {/* Financial Breakdown */}
         <div className="bg-gray-50 p-4 rounded-lg">
-          <p className="font-medium mb-2" style={{ color: colors.primaryColor }}>Financial Breakdown</p>
+          <p className="font-medium mb-2" style={{ color: colors.primaryColor }}>{t("CancelModal.financialBreakdown")}</p>
           <div className="text-sm space-y-1">
             <p className="flex justify-between">
-              <span>Original Payment Amount:</span>
+              <span>{t("CancelModal.originalPayment")}:</span>
               <span className="font-semibold text-gray-800">
                 {getCurrencySymbol(currencyCode)} {amount.toLocaleString()}
               </span>
@@ -202,11 +202,11 @@ console.log("property",property)
         {/* Reason for Cancellation */}
         <div>
           <label className="text-sm font-medium mb-1 block" style={{ color: colors.primaryColor }}>
-            Reason for Cancellation (optional)
+            {t("CancelModal.reasonLabel")}
           </label>
           <textarea
             rows={3}
-            placeholder="Please tell us why you're cancelling..."
+            placeholder={t("CancelModal.reasonPlaceholder")}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             className="w-full border border-gray-300 resize-none rounded-md text-sm focus:outline-none focus:ring-2 p-2"
@@ -221,8 +221,7 @@ console.log("property",property)
 
         {/* Warning */}
         <div className="text-xs text-yellow-800 bg-yellow-100 border border-yellow-300 p-3 rounded-md">
-          <strong>Note:</strong> This action cannot be undone. Once cancelled, your
-          reservation cannot be reinstated.
+          <strong>{t("CancelModal.warning")}</strong> {t("CancelModal.warningText")}
         </div>
 
         {/* Buttons */}
@@ -236,14 +235,14 @@ console.log("property",property)
               color: colors.buttonTextColor
             }}
           >
-            ⬅ Keep My Reservation
+            ⬅ {t("CancelModal.keepReservation")}
           </button>
           <button
             onClick={handleCancellation}
             disabled={loading}
             className="w-full bg-red-600 text-white py-2 rounded-md font-semibold hover:bg-red-700 transition"
           >
-            {loading ? "Cancelling..." : "Confirm Cancellation"}
+            {loading ? t("CancelModal.cancelling") : t("CancelModal.confirmCancellation")}
           </button>
         </div>
       </div>

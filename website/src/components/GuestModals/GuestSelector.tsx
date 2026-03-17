@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Minus, Plus } from "lucide-react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store/store";
+import { useTranslation } from "react-i18next";
 
 // Shadcn UI Components
 import {
@@ -36,6 +37,7 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
   onClose,
   onApply,
 }) => {
+  const { t } = useTranslation();
   const bookingContext = useSelector((state: RootState) => state.booking);
   const [rooms, setRooms] = useState<Room[]>([{ adults: 1, children: 0, childAges: [] }]);
   const [totalRooms, setTotalRooms] = useState(1);
@@ -171,7 +173,7 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
       <DialogContent className="bg-white max-w-lg sm:max-w-xl md:max-w-2xl max-h-[80vh] overflow-y-auto p-0 rounded-2xl shadow-2xl">
         <DialogHeader className="p-4 sm:p-6 border-b border-gray-200">
           <DialogTitle className="text-xl sm:text-2xl font-bold text-gray-900 text-left">
-            Select Occupancy
+            {t("GuestSelector.title")}
           </DialogTitle>
         </DialogHeader>
 
@@ -180,7 +182,7 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
           <div className="bg-gray-50 rounded-xl px-4 py-3">
             <div className="flex items-center justify-between">
               <Label className="text-base sm:text-lg font-semibold text-gray-900">
-                Number of Rooms:
+                {t("GuestSelector.numberOfRooms")}
               </Label>
               <div className="flex items-center space-x-3">
                 <Button
@@ -213,14 +215,14 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
             {rooms.map((room, index) => (
               <div key={index} className="border border-gray-200 rounded-xl px-4 py-2">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 text-center">
-                  Room #{index + 1}
+                  {t("GuestSelector.room")} #{index + 1}
                 </h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {/* Adults */}
                   <div className="bg-gray-50 rounded-lg px-3 py-3">
                     <div className="flex items-center justify-between">
-                      <Label className="text-sm font-medium text-gray-700">Adults</Label>
+                      <Label className="text-sm font-medium text-gray-700">{t("GuestSelector.adults")}</Label>
                       <div className="flex items-center space-x-2">
                         <Button
                           type="button"
@@ -253,8 +255,8 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
                   <div className="bg-gray-50 rounded-lg px-3 py-3">
                     <div className="flex items-center justify-between">
                       <div>
-                        <Label className="text-sm font-medium text-gray-700">Children</Label>
-                        <p className="text-[0.65rem] text-gray-500">Ages 0 – 15</p>
+                        <Label className="text-sm font-medium text-gray-700">{t("GuestSelector.children")}</Label>
+                        <p className="text-[0.65rem] text-gray-500">{t("GuestSelector.childrenAges")}</p>
                       </div>
                       <div className="flex items-center space-x-2">
                         <Button
@@ -289,13 +291,13 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
                 {room.children > 0 && (
                   <div className="mt-3 space-y-2">
                     <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">
-                      Child Ages (required)
+                      {t("GuestSelector.childAgesRequired")}
                     </p>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                       {Array.from({ length: room.children }, (_, childIdx) => (
                         <div key={childIdx} className="flex flex-col gap-1">
                           <Label className="text-xs text-gray-500">
-                            Child {childIdx + 1}
+                            {t("GuestSelector.child")} {childIdx + 1}
                           </Label>
                           <select
                             value={room.childAges[childIdx] ?? 0}
@@ -306,7 +308,9 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
                           >
                             {Array.from({ length: 16 }, (_, age) => (
                               <option key={age} value={age}>
-                                {age === 0 ? "< 1 year" : `${age} ${age === 1 ? "year" : "years"}`}
+                                {age === 0
+                                  ? t("GuestSelector.lessThanOneYear")
+                                  : `${age} ${age === 1 ? t("GuestSelector.year") : t("GuestSelector.years")}`}
                               </option>
                             ))}
                           </select>
@@ -317,7 +321,7 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
                 )}
 
                 <div className="mt-3 text-xs text-gray-500 text-center">
-                  {room.adults + room.children} of {MAX_GUESTS_PER_ROOM} guests
+                  {room.adults + room.children} {t("GuestSelector.guestsOf")} {MAX_GUESTS_PER_ROOM} {t("GuestSelector.guests")}
                 </div>
               </div>
             ))}
@@ -330,7 +334,7 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
             onClick={handleApply}
             className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg transition-colors duration-200"
           >
-            Apply
+            {t("GuestSelector.apply")}
           </Button>
         </DialogFooter>
       </DialogContent>
