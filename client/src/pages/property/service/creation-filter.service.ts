@@ -11,7 +11,7 @@ export async function getCreation() {
         const groups = data.filter((creation: ICreation) => creation.type === "group")
         const brands = data.filter((creation: ICreation) => creation.type === "brand")
         const properties = data.filter((creation: ICreation) => creation.type === "property")
-        const customs = data.filter((creation: ICreation) => creation.type === "custom")
+        const regionals = data.filter((creation: ICreation) => creation.type === "regional")
         return {
             success: true,
             message: "Filtered Creation Successfully",
@@ -19,7 +19,7 @@ export async function getCreation() {
                 groups,
                 brands,
                 properties,
-                customs
+                regionals
             }
         }
     } catch (error: any) {
@@ -70,9 +70,9 @@ export async function getCustomCreationId(id: string) {
             return response
         }
         const data = response.data;
-        const brands = data?.customChildren?.filter((creation: ICreation) => creation.type === "brand")
-        const properties = data?.customChildren?.filter((creation: ICreation) => creation.type === "property")
-        const groups = data?.customChildren?.filter((creation: ICreation) => creation.type === "group")
+        const brands = data?.regionalChildren?.filter((creation: ICreation) => creation.type === "brand")
+        const properties = data?.regionalChildren?.filter((creation: ICreation) => creation.type === "property")
+        const groups = data?.regionalChildren?.filter((creation: ICreation) => creation.type === "group")
         const groupDetails = {
             id: data.id,
             name: data.name,
@@ -191,7 +191,7 @@ export async function getUsersForMapping() {
         const revenueManagers = response.data.filter((user: any) => user.role === "revenue_manager")
         const frontDesks = response.data.filter((user: any) => user.role === "front_desk")
         const housekeeping = response.data.filter((user: any) => user.role === "housekeeping")
-        const customAdmins = response.data.filter((user: any) => user.role === "custom_admin")
+        const customAdmins = response.data.filter((user: any) => user.role === "regional_admin")
         return {
             success: true,
             message: "Fetched Users Successfully",

@@ -10,37 +10,36 @@ import { PropertyDao } from "../../property-management/repository/property.repos
 import { IApiResponse } from "../../utils";
 export default class CreationService {
     public static async create(
-        type: "group" | "property" | "brand" | "super" | "custom",
+        type: "group" | "property" | "brand" | "super" | "regional",
         name: string,
         userId: string,
         userLevel: number,
         usersCreation: string,
         images: string[] = [],
         isCustom: boolean = false,
-        assignTo: string 
+        assignTo: string
     ): Promise<IApiResponse> {
         try {
-            console.log("Creating new entity:", { type, name, userId, userLevel, usersCreation, images, isCustom, assignTo });
             let customCreation;
             let superCreation;
             if (isCustom) {
 
                 customCreation = await CreationRepository.getSpecificCreation(assignTo)
-                console.log("Custom Creation:", customCreation)
             }
             console.log("Custom Creation:", customCreation)
-            if (isCustom&&!customCreation) {
+            if (isCustom && !customCreation) {
                 return errorResponse("Custom creation not found");
             }
             if (isCustom && customCreation) {
 
                 superCreation = await CreationRepository.getSpecificCreation(customCreation.superId!)
             }
-            console.log("Super Creation:", superCreation)
-            if (isCustom&&!superCreation) {
+            // console.log("Super Creation:", superCreation)
+            if (isCustom && !superCreation) {
                 return errorResponse("Super creation not found");
             }
             let daoRes;
+            
             switch (userLevel) {
                 case 2:
                     daoRes = await
@@ -59,8 +58,8 @@ export default class CreationService {
                             name,
                             userId,
                             isCustom ? customCreation?.superId : undefined,
-                            isCustom ? assignTo : usersCreation,
-                            undefined,
+                            isCustom ? usersCreation : undefined,
+                            isCustom ? undefined : usersCreation,
                             undefined,
                             images);
                     break;
@@ -79,9 +78,6 @@ export default class CreationService {
                     return errorResponse("Invalid User Level")
             }
             if (daoRes) {
-                let updateRes;
-                updateRes = await this.addCreationToCreation(usersCreation, daoRes.id)
-                // console.log("updateRes", updateRes)
                 return successResponse("Created Successfully", daoRes)
             } else {
                 return errorResponse("Failed to create")
@@ -170,7 +166,7 @@ export default class CreationService {
             return errorResponse("Failed to Change Status", error?.message)
         }
     }
-    public static async getAll(type: "group" | "property" | "brand" | "super" | "custom", isActive: boolean = true) {
+    public static async getAll(type: "group" | "property" | "brand" | "super" | "regional", isActive: boolean = true) {
         try {
             const daoRes = await CreationRepository.getAll(type, isActive)
             if (daoRes) {
@@ -274,6 +270,8 @@ export default class CreationService {
 
                     case "brand":
                         return await AddCreationToCreation.addToBrand(parentCreationId, creationIdToBeAdded)
+                    case "regional":
+                        return await AddCreationToCreation.addToSuper(parentCreationId, creationIdToBeAdded)
                     default:
                         throw new Error("Property can be only created by Brand/Group/Super")
                 }

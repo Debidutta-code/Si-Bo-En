@@ -79,7 +79,7 @@ export const router = createBrowserRouter(
           <Route path="super/:creationId" element={<Property />} />
           <Route path="group/:creationId" element={<GroupId />} />
           <Route path="brand/:creationId" element={<BrandId />} />
-          <Route path="custom/:creationId" element={<CustomId />} />
+          <Route path="regional/:creationId" element={<CustomId />} />
 
           <Route path="property/:creationId" element={<PropertyId />} />
           <Route path="loyalty">

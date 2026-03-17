@@ -10,9 +10,8 @@ import { createEntity, getAllCustoms } from "../api/newEntity";
 import toast from "react-hot-toast";
 import ImageUploadModal from "@/components/property/ImageUploadModal";
 import { Label } from "@/components/ui/label";
-import Loader from "../Loader/Loader";
 import type { ILoader } from "@/pages/dashboard/interface";
-import { is, tr } from "date-fns/locale";
+import { useAppSelector } from "@/redux/hooks";
 const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, creationType }:
     {
         currentTab: string,
@@ -22,8 +21,9 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
         creationType: "brand" | "group" | "super"
     }
 ) => {
+  const user = useAppSelector((state) => state.user.user);
     const [customs, setCustoms] = useState<ICreation[]>([]);
-    const [selectedCustom, setSelectedCustom] = useState<ICreation | null>(null);
+    const [selectedCustom, _setSelectedCustom] = useState<ICreation | null>(null);
     useEffect(() => {
         const fetchCustoms = async () => {
             setIsLoading({
@@ -85,8 +85,12 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
             message: `Creating ${capitalizeFirstLetter(newGBP.type)}...`
         });
         try {
-            const payload = { ...newGBP, isCustom: newGBP.type !== "custom" && newGBP.assignTo?true:false };
-
+            console.log("user", user)
+            const payload = { ...newGBP, isCustom: newGBP.assignTo ? true : false };
+            if(user?.role==="regional_admin"){
+                payload.assignTo = user.creation;
+                payload.isCustom = true;
+            }
             const res = await createEntity(payload)
             if (res.success) {
                 toast.success("Created successfully")
@@ -154,8 +158,8 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
                         </label>
                         <Select
                             value={newGBP.type}
-                            onValueChange={(value: "group" | "brand" | "property" | "custom") =>
-                                setNewGBP({ ...newGBP, type: value, isCustom: value === "custom" })
+                            onValueChange={(value: "group" | "brand" | "property" | "regional") =>
+                                setNewGBP({ ...newGBP, type: value, isCustom: value === "regional" })
                             }
                         >
                             <SelectTrigger id="entity-type" className="mt-1">
@@ -177,14 +181,14 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
                                         <SelectItem value="group">Group</SelectItem>
                                         <SelectItem value="brand">Brand</SelectItem>
                                         <SelectItem value="property">Property</SelectItem>
-                                        <SelectItem value="custom">Custom</SelectItem>
+                                        <SelectItem value="regional">Regional</SelectItem>
 
                                     </>
                                 )}
                             </SelectContent>
                         </Select>
                     </div>
-                    {creationType === "super" && newGBP.type!=="custom" && (
+                    {creationType === "super" && newGBP.type!=="regional" && (
                         <div>
                             <label htmlFor="entity-type" className="text-sm font-medium">
                                 Custom
@@ -200,9 +204,9 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
                                 </SelectTrigger>
                                 <SelectContent>
                                     {customs.length>0&&
-                                        customs.map((custom) => (
-                                            <SelectItem key={custom.id} value={custom.id}>
-                                                {custom.name}
+                                        customs.map((regional) => (
+                                            <SelectItem key={regional.id} value={regional.id}>
+                                                {regional.name}
                                             </SelectItem>
                                         ))
                                     }

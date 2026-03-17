@@ -18,10 +18,10 @@ export default function HotelsPage() {
     brands: [],
     groups: [],
     properties: [],
-    customs: []
+    regionals: []
   })
   const navigate = useNavigate();
-  const [currentTab, setCurrentTab] = useState<"group" | "brand" | "property" | "custom">("group")
+  const [currentTab, setCurrentTab] = useState<"group" | "brand" | "property" | "regional">("group")
 
   const fetchProperties = async () => {
     try {
@@ -32,7 +32,7 @@ export default function HotelsPage() {
           brands: [],
           groups: [],
           properties: [],
-          customs: []
+          regionals: []
         });
       } else {
         toast.error(response.message || 'Failed to fetch');
@@ -57,8 +57,8 @@ export default function HotelsPage() {
         return creations.brands;
       case "property":
         return creations.properties;
-      case "custom":
-        return creations.customs;
+      case "regional":
+        return creations.regionals;
       default:
         return [];
     }
@@ -89,8 +89,8 @@ export default function HotelsPage() {
         return creations.brands.length > 0;
       case "property":
         return creations.properties.length > 0;
-      case "custom":
-        return creationIdFromSearch && creations.customs.length > 0;
+      case "regional":
+        return creationIdFromSearch && creations.regionals.length > 0;
       default:
         return [];
     }
@@ -110,7 +110,7 @@ export default function HotelsPage() {
       </div>
 
       <div className="flex space-x-2 border-b">
-        {(["group", "brand", "property", "custom"] as const).map((tab) => (
+        {(["group", "brand", "property", "regional"] as const).map((tab) => (
 
           <Button
             key={tab}
@@ -122,6 +122,7 @@ export default function HotelsPage() {
               }`}
           >
             {capitalizeFirstLetter(getTabDisplayName(tab))} ({
+              tab === "regional" ? creations.regionals?.length :
               tab === "group" ? creations.groups?.length :
                 tab === "brand" ? creations.brands?.length :
                   creations.properties?.length

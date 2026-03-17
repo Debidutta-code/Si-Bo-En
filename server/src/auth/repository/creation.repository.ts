@@ -10,11 +10,11 @@ const toStringId = (id: string | any): string => {
 export default class CreationDao {
 
   public static async create(
-    type: "group" | "property" | "brand" | "super" | "custom",
+    type: "group" | "property" | "brand" | "super" | "regional",
     name: string,
     userId: string,
     superId?: string,
-    customId?: string,
+    regionalId?: string,
     groupId?: string,
     brandId?: string,
     images: string[] = []
@@ -30,7 +30,7 @@ export default class CreationDao {
           superId: superId ? superId : undefined,
           groupId: groupId ? groupId : undefined,
           brandId: brandId ? brandId : undefined,
-          customId: customId ? customId : undefined,
+          regionalId: regionalId ? regionalId : undefined,
           images: images,
         },
       });
@@ -75,7 +75,7 @@ export default class CreationDao {
     }
   }
 
-  public static async getAll(type: "group" | "property" | "brand" | "super" | "custom", isActive: boolean) {
+  public static async getAll(type: "group" | "property" | "brand" | "super" | "regional", isActive: boolean) {
     try {
       return await prisma.creation.findMany({
         where: {
@@ -117,8 +117,8 @@ export default class CreationDao {
           group: true,
           brand: true,
           property: true,
-          custom: true,
-          customChildren: true,
+          regional: true,
+          regionalChildren: true,
 
         },
       });
@@ -128,31 +128,31 @@ export default class CreationDao {
   }
   public static async assignToCustom(targetCreationId: string, customCreationId: string) {
     try {
-      // Check not already assigned to another custom
+      // Check not already assigned to another regional
       const target = await prisma.creation.findUnique({
         where: { id: targetCreationId },
-        select: { customId: true, type: true }
+        select: { regionalId: true, type: true }
       });
       if (!target) throw new Error("Creation not found");
-      if (target.customId && target.customId !== customCreationId) {
-        throw new Error("Already assigned to another custom admin");
+      if (target.regionalId && target.regionalId !== customCreationId) {
+        throw new Error("Already assigned to another regional admin");
       }
       return await prisma.creation.update({
         where: { id: targetCreationId },
-        data: { customId: customCreationId },
+        data: { regionalId: customCreationId },
       });
     } catch (error: any) {
-      throw new Error(`Failed to assign to custom: ${error.message}`);
+      throw new Error(`Failed to assign to regional: ${error.message}`);
     }
   }
   public static async removeFromCustom(targetCreationId: string) {
     try {
       return await prisma.creation.update({
         where: { id: targetCreationId },
-        data: { customId: null },
+        data: { regionalId: null },
       });
     } catch (error: any) {
-      throw new Error(`Failed to remove from custom: ${error.message}`);
+      throw new Error(`Failed to remove from regional: ${error.message}`);
     }
   }
 
@@ -173,8 +173,8 @@ export default class CreationDao {
               brandChildren: true
             }
           },
-          custom: true,
-          customChildren: true
+          regional: true,
+          regionalChildren:true
 
         },
       });

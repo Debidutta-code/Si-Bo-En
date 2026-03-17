@@ -11,7 +11,7 @@ datasource db {
 
 enum Role {
   super_admin
-  custom_admin
+  regional_admin
   group_manager
   brand_manager
   hotel_manager
@@ -40,7 +40,7 @@ enum CreationType {
   property
   brand
   super
-  custom
+  regional
 }
 
 enum RoomView {
@@ -398,9 +398,9 @@ model Creation {
   brandId       String?    @map("brand_id")
   brandChildren Creation[] @relation("BrandRelation")
 
-  custom         Creation?  @relation("CustomRelation", fields: [customId], references: [id], onDelete: Cascade)
-  customId       String?    @map("custom_id")
-  customChildren Creation[] @relation("CustomRelation")
+  regional         Creation?  @relation("RegionalRelation", fields: [regionalId], references: [id], onDelete: Cascade)
+  regionalId       String?    @map("regional_id")
+  regionalChildren Creation[] @relation("RegionalRelation")
   // 1:1 relation to Property
   property   Property?
   propertyId String?   @unique @map("property_id")

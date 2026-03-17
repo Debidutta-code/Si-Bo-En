@@ -317,21 +317,21 @@ export default function RatePlan() {
                       }
                     />
                   </div>
-                   <div className="flex items-center justify-between space-x-2">
-                <div className="space-y-0.5">
-                  <Label htmlFor="edit-room-only-visible">Room Only Price Visible</Label>
-                  <p className="text-xs text-gray-500">
-                    Enable this rate plan room only price will be visible to customers.
-                  </p>
-                </div>
-                <Switch
-                  id="edit-room-only-visible"
-                  checked={newRatePlan.roomOnlyVisible}
-                  onCheckedChange={(checked) =>
-                    setNewRatePlan({ ...newRatePlan, roomOnlyVisible: checked })
-                  }
-                />
-              </div>
+                  <div className="flex items-center justify-between space-x-2">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="edit-room-only-visible">Room Only Price Visible</Label>
+                      <p className="text-xs text-gray-500">
+                        Enable this rate plan room only price will be visible to customers.
+                      </p>
+                    </div>
+                    <Switch
+                      id="edit-room-only-visible"
+                      checked={newRatePlan.roomOnlyVisible}
+                      onCheckedChange={(checked) =>
+                        setNewRatePlan({ ...newRatePlan, roomOnlyVisible: checked })
+                      }
+                    />
+                  </div>
                 </div>
 
                 <p className="text-xs text-gray-500">
@@ -566,20 +566,20 @@ export default function RatePlan() {
               </div>
             </div>
             <div className="flex items-center justify-between space-x-2">
-                <div className="space-y-0.5">
-                  <Label htmlFor="edit-room-only-visible">Room Only Price Visible</Label>
-                  <p className="text-xs text-gray-500">
-                    Enable this rate plan room only price will be visible to customers.
-                  </p>
-                </div>
-                <Switch
-                  id="edit-room-only-visible"
-                  checked={newRatePlan.roomOnlyVisible}
-                  onCheckedChange={(checked) =>
-                    setNewRatePlan({ ...newRatePlan, roomOnlyVisible: checked })
-                  }
-                />
+              <div className="space-y-0.5">
+                <Label htmlFor="edit-room-only-visible">Room Only Price Visible</Label>
+                <p className="text-xs text-gray-500">
+                  Enable this rate plan room only price will be visible to customers.
+                </p>
               </div>
+              <Switch
+                id="edit-room-only-visible"
+                checked={newRatePlan.roomOnlyVisible}
+                onCheckedChange={(checked) =>
+                  setNewRatePlan({ ...newRatePlan, roomOnlyVisible: checked })
+                }
+              />
+            </div>
           </div>
           <DialogFooter>
             <Button

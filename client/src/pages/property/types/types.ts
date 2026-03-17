@@ -51,7 +51,7 @@ export interface IPropertyAddress {
 }
 export interface INewGBP {
     name: string;
-    type: "group" | "brand" | "property" | "custom";
+    type: "group" | "brand" | "property" | "regional";
     creationId?: string;
     level: number;
     images: string[];
@@ -60,7 +60,7 @@ export interface INewGBP {
 }
 export interface ICreation {
     id: string;
-    type: "group" | "brand" | "property"|"custom";
+    type: "group" | "brand" | "property"|"regional";
     name: string;
     images:string[];
     level0Users?: string;
@@ -84,7 +84,7 @@ export interface Icreations {
     groups: ICreation[];
     brands: ICreation[];
     properties: ICreation[];
-    customs: ICreation[];
+    regionals: ICreation[];
 }
 export interface ICcreations {
     groups: ICreation[];

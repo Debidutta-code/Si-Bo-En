@@ -12,7 +12,7 @@ try {
 export const getAllCustoms=async()=>{
     try {
         const axiosInstance=createAxiosInstance()
-        const response=await axiosInstance.get(`/create/getAll?type=custom&&isActive=true`);
+        const response=await axiosInstance.get(`/create/getAll?type=regional&&isActive=true`);
         return response.data
     } catch (error:any) {
         return error?.response?.data

@@ -15,7 +15,7 @@ export default class AccessDao {
     }
   }
 
-  public static async getAccessByRole(role: "super_admin" | "group_manager" | "hotel_manager" | "staff" | "brand_manager" | "revenue_manager" | "custom_admin") { // 👈 Role enum
+  public static async getAccessByRole(role: "super_admin" | "group_manager" | "hotel_manager" | "staff" | "brand_manager" | "revenue_manager" | "regional_admin") { // 👈 Role enum
     try {
       return await prisma.accessControl.findUnique({
         where: { role }, 
@@ -33,7 +33,7 @@ export default class AccessDao {
     }
   }
 
-  public static async modifyAccess(role: "super_admin" | "group_manager" | "hotel_manager" | "staff" | "brand_manager" | "revenue_manager" | "custom_admin", newAccess: IUserRolesAndAccess) {
+  public static async modifyAccess(role: "super_admin" | "group_manager" | "hotel_manager" | "staff" | "brand_manager" | "revenue_manager" | "regional_admin", newAccess: IUserRolesAndAccess) {
     try {
       const updatedRole = await prisma.accessControl.update({
         where: { role },
