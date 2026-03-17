@@ -718,9 +718,9 @@ const Rooms = () => {
   const availableBoardTypes = Array.from(
     new Set(
       roomsData
-        .filter((room: Room) => room.has_valid_rate)
+        .filter((room: Room) => room.hasValidRate)
         .flatMap((room: Room) =>
-          room.room_price.map((rp: any) => rp.ratePlanName),
+          room.roomPrice.map((rp: any) => rp.ratePlanName),
         ),
     ),
   );
@@ -997,7 +997,7 @@ const Rooms = () => {
                       No rooms available for this hotel.
                     </div>
                   ) : roomsData.filter(
-                      (room: Room) => room.has_valid_rate === true,
+                      (room: Room) => room.hasValidRate === true,
                     ).length === 0 ? (
                     <div className="text-center py-10 text-gray-600 text-lg font-medium">
                       No rooms available
@@ -1006,7 +1006,7 @@ const Rooms = () => {
                     <div>
                       <div className="space-y-8 rounded-xl md:p-4">
                         {roomsData
-                          .filter((room: Room) => room.has_valid_rate)
+                          .filter((room: Room) => room.hasValidRate)
                           .map((room: Room) => (
                             <RoomCard
                               key={room.id}
@@ -1153,9 +1153,9 @@ const Rooms = () => {
               email: contactInfo.email,
               phone: contactInfo.phoneNumber,
               hotelName: bookingContext.hotelName,
-              roomName: bookingRoom.room_name,
+              roomName: bookingRoom.roomName,
               ratePlanCode: currentRatePlan.ratePlanCode,
-              roomTypeCode: bookingRoom.room_type,
+              roomTypeCode: bookingRoom.roomType,
               guestDetails: guestForms,
               finalPrice: finalPrice,
               numberOfRooms: finalPrice?.requestedRooms || 1,

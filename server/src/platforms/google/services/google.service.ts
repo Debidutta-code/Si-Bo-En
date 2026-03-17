@@ -141,15 +141,15 @@ export class GoogleFeedsService {
 
           if (response.success && response.data?.rooms) {
             for (const room of response.data.rooms) {
-              if (!room.has_valid_rate || !room.room_price.length) continue;
+              if (!room.hasValidRate || !room.roomPrice.length) continue;
 
-              for (const rateplan of room.room_price) {
+              for (const rateplan of room.roomPrice) {
                 const currentPrice: IGooglePriceItem = {
                   hotelId: propertyCode,
                   roomId: room.id,
-                  roomName: room.room_name,
+                  roomName: room.roomName,
                   roomDescription: room.description,
-                  maxOccupancy: room.max_occupancy,
+                  maxOccupancy: room.maxOccupancy,
                   ratePlanId: rateplan.ratePlanCode,
                   ratePlanName: rateplan.ratePlanName,
                   checkInDate: checkIn,

@@ -92,7 +92,7 @@ const RoomDetails: React.FC<Props> = ({ room, onClose, selectedRatePlan }) => {
             &times;
           </button>
           <h2 className="text-2xl font-bold text-gray-800 mb-4">
-            {room.room_name}
+            {room.roomName}
           </h2>
         </div>
 
@@ -132,10 +132,10 @@ const RoomDetails: React.FC<Props> = ({ room, onClose, selectedRatePlan }) => {
             <strong>Description:</strong> {room.description}
           </p>
           <p>
-            <strong>Size:</strong> {room.room_size} {room.room_unit}
+            <strong>Size:</strong> {room.roomSize} {room.roomUnit}
           </p>
           <p>
-            <strong>Max Occupancy:</strong> {room.max_occupancy} guests
+            <strong>Max Occupancy:</strong> {room.maxOccupancy} guests
           </p>
           {selectedRatePlan?.ratePlanName && (
             <p>
