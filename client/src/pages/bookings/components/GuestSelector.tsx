@@ -89,7 +89,7 @@ const GuestSelector: FC<IGuestSelectorProps> = ({
     !!checkOutDate &&
     !dateErrors.checkIn &&
     !dateErrors.checkOut &&
-    roomConfigs.every((r) => r.childAges.every((age) => age > 0));
+    roomConfigs.every((r) => r.childAges.every((age) => age !== null && age !== undefined));
 
   return (
     <div className="space-y-6">
@@ -245,28 +245,32 @@ const GuestSelector: FC<IGuestSelectorProps> = ({
               {/* Child age inputs */}
               {room.children > 0 && (
                 <div className="grid grid-cols-3 gap-2.5 pt-1">
+
                   {room.childAges.map((age, childIdx) => (
-                    <div key={childIdx} className="space-y-1">
-                      <label className="text-xs text-muted-foreground font-medium">
-                        Child {childIdx + 1}
-                      </label>
-                      <input
-                        type="number"
-                        min="0"
-                        max="17"
-                        placeholder="Age"
-                        value={age === 0 ? "" : age}
-                        onChange={(e) =>
-                          onChildAgeChange(
-                            roomIdx,
-                            childIdx,
-                            e.target.value === "" ? 0 : Number(e.target.value)
-                          )
-                        }
-                        className={`w-full rounded-lg border px-3 py-2 text-sm bg-background text-card-foreground
-                          focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all
-                          ${age === 0 ? "border-amber-400/60 bg-amber-50/20" : "border-border"}`}
-                      />
+                    <div key={childIdx} className="mt-3">
+                      {childIdx === 0 && (
+                        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">
+                          Child Ages (required)
+                        </p>
+                      )}
+                      <div className="flex items-center gap-3">
+                        <label className="text-xs text-muted-foreground w-16 flex-shrink-0">
+                          Child {childIdx + 1}
+                        </label>
+                        <select
+                          value={age}
+                          onChange={(e) => onChildAgeChange(roomIdx, childIdx, Number(e.target.value))}
+                          className="flex-1 border border-border rounded-lg px-2 py-1.5 text-sm bg-background
+                    text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary/20
+                    focus:border-primary transition-all"
+                        >
+                          {Array.from({ length: 16 }, (_, a) => (
+                            <option key={a} value={a}>
+                              {a === 0 ? "< 1 year" : `${a} ${a === 1 ? "year" : "years"}`}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -303,10 +307,10 @@ const GuestSelector: FC<IGuestSelectorProps> = ({
           Continue to Guest Details
           <ArrowRight className="w-4 h-4" />
         </button>
-        {!canApply && roomConfigs.some((r) => r.childAges.some((a) => a === 0)) && (
+        {!canApply && (
           <p className="text-xs text-amber-600 dark:text-amber-400 text-center mt-2 flex items-center justify-center gap-1">
             <AlertTriangle className="w-3 h-3" />
-            Please enter ages for all children
+            Please fill in all required fields
           </p>
         )}
       </div>
