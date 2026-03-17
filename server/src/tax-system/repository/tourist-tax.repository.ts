@@ -1,4 +1,4 @@
-import { Decimal } from "@prisma/client/runtime/library";
+import { Decimal } from "../../../prisma/generated/prisma/internal/prismaNamespace";
 import { prisma } from "../../config";
 import { ICTouristTax, IGetTouristTax } from "../interfaces";
 const mapTouristTax = (tax: any): IGetTouristTax => ({

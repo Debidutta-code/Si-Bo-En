@@ -1,6 +1,5 @@
-import prisma from '../../config/prisma.client';
 import { IRatePlanWithAddon } from '../types';
-
+import {prisma} from "../../config"
 export class RatePlanWithAddonRepository {
   /**
    * Add an addon to a rate plan

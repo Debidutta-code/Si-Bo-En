@@ -1,5 +1,4 @@
 import { prisma } from "../../../config";
-import { BookingStatus, Prisma } from "@prisma/client";
 import { IReservationFilters, IReservationResponse,  } from "../types";
 
 export class ReservationRepository {
@@ -28,7 +27,7 @@ export class ReservationRepository {
                 sortOrder = 'desc'
             } = filters;
 
-            const whereClause: Prisma.ReservationWhereInput = {
+            const whereClause = {
                 agencyId,
                 ...(bookingStatus && { bookingStatus }),
                 ...(bookingSource && { bookingSource }),
@@ -190,11 +189,11 @@ export class ReservationRepository {
                     id: reservationId,
                     agencyId,
                     bookingStatus: {
-                        not: BookingStatus.cancelled
+                        not: "cancelled"
                     }
                 },
                 data: {
-                    bookingStatus: BookingStatus.cancelled,
+                    bookingStatus: "cancelled",
                     cancellationReason,
                     cancelledAt: new Date()
                 }
@@ -234,14 +233,14 @@ export class ReservationRepository {
                 revenueData
             ] = await Promise.all([
                 prisma.reservation.count({ where: { agencyId } }),
-                prisma.reservation.count({ where: { agencyId, bookingStatus: BookingStatus.confirmed } }),
-                prisma.reservation.count({ where: { agencyId, bookingStatus: BookingStatus.cancelled } }),
-                prisma.reservation.count({ where: { agencyId, bookingStatus: BookingStatus.pending } }),
+                prisma.reservation.count({ where: { agencyId, bookingStatus: "confirmed" } }),
+                prisma.reservation.count({ where: { agencyId, bookingStatus: "cancelled" } }),
+                prisma.reservation.count({ where: { agencyId, bookingStatus: "pending" } }),
                 prisma.reservation.aggregate({
                     where: {
                         agencyId,
                         bookingStatus: {
-                            in: [BookingStatus.confirmed, BookingStatus.pending]
+                            in: ["confirmed", "pending"]
                         }
                     },
                     _sum: {
@@ -280,7 +279,7 @@ export class ReservationRepository {
                         gte: today,
                         lte: futureDate
                     },
-                    bookingStatus: BookingStatus.confirmed
+                    bookingStatus: "confirmed"
                 },
                 include: {
                     primaryGuest: {
@@ -331,7 +330,7 @@ export class ReservationRepository {
                         gte: today,
                         lte: futureDate
                     },
-                    bookingStatus: BookingStatus.confirmed
+                    bookingStatus: "confirmed"
                 },
                 include: {
                     primaryGuest: {

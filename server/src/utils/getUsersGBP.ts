@@ -1,7 +1,5 @@
-import { PrismaClient } from "@prisma/client";
 import { errorResponse, successResponse } from "./return";
-
-const prisma = new PrismaClient();
+import {prisma} from "../config"
 
 export default async function getUsersGBP(
   userId: string,

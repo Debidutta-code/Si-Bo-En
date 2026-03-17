@@ -1,7 +1,7 @@
-import { DeviceType } from "@prisma/client";
 import { IRoomVideo } from "../../property-management/types";
 import { DiscountType } from "../../promocode/types";
 import { CurrencyCode } from "../../tax-system/interfaces/tourist-tax.type";
+import { DeviceType } from "../../agent-paltform/property/types";
 
 export interface IBookingSearchPayload {
   startDate: string;

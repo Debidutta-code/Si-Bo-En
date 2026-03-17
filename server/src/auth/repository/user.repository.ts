@@ -1,6 +1,6 @@
 import { tryCatch } from 'bullmq';
-import prisma from '../../config/prisma.client'; // Adjust path as needed
 import type { IRUsers } from "../types/index"
+import { prisma } from '../../config';
 // Helper to safely convert any ID to string
 const toStringId = (id: any): string => {
   return typeof id === 'string' ? id : String(id);

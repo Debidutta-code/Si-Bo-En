@@ -1,12 +1,11 @@
 import { Request, Response } from 'express';
 import { fikafiPaymentService } from '../services/fikafi.service';
 import { errorResponse, PropertyRequest, successResponse } from '../../utils';
-import prisma from '../../config/prisma.client';
-import { BookingStatus } from '@prisma/client';
 import { socketManager } from '../../socket';
 import { FikafiPaymentRequestBody } from "../types/fikafi.types";
-import { RedisClient } from '../../config';
+import { prisma, RedisClient } from '../../config';
 import { tryCatch } from 'bullmq';
+import { BookingStatus } from '../../pms/frontoffice/reservation/types/reservation.type';
 export class FikafiPaymentController {
     public static async createPaymentLink(req: Request, res: Response) {
         try {
