@@ -66,12 +66,9 @@ interface SidebarProps {
 }
 
 export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) {
-  const { propertyId: propertyIdFromParams } = useParams();
+  const { propertyId } = useParams();
+  // const { creationId } = useParams();
   const { user } = useAppSelector((state) => state.user);
-
-  const propertyId = propertyIdFromParams ?? (
-    (user?.userLevel === 0 || user?.userLevel === 1) ? user?.propertyId : undefined
-  );
   const location = useLocation();
   const navRef = useRef<HTMLDivElement | null>(null);
 const scrollPosition = useRef(0);
@@ -366,7 +363,7 @@ const SidebarContent = memo<SidebarContentProps>(({
         {filteredNavigation.map((item) => {
           const targetHref = item.href === `/app/property` ? (
             user?.userLevel === 4 ? `/app/property/super/${user.creation}` :
-              user?.userLevel === 3 ? `/app/property/group/${user.creation}` :
+              user?.userLevel === 3 ? user.role==="group_manager" ? `/app/property/group/${user.creation}` : `/app/property/regional/${user.creation}` :
                 user?.userLevel === 2 ? `/app/property/brand/${user.creation}` :
                   user?.userLevel === 1 ? `/property/${user.propertyId}` :
                     user?.userLevel === 0 ? `/property/${user.propertyId}` :

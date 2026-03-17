@@ -90,7 +90,7 @@ export default function MyTripPage() {
       setBookingData(null);
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/pms/front-office/reservations/${codeFromUrl}?propertyCode=${propertyCode}`
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/pms/front-office/reservations/BOOK-${codeFromUrl}?propertyCode=${propertyCode}`
         );
         const data = await res.json();
         // //console.log(data)
@@ -137,12 +137,11 @@ export default function MyTripPage() {
     doc.text(`STATUS: ${statusText}`, 20, y);
     doc.setTextColor(100);
     doc.setFont("helvetica", "normal");
-    doc.text(`Booking Code: ${bookingData.bookingCode || bookingCode || "N/A"}`, pageWidth - 20, y, {
+    doc.text(`Booking Code: ${bookingData.bookingCode.split("-")[1] || bookingCode.split("-")[1] || "N/A"}`, pageWidth - 20, y, {
       align: "right",
     });
     y += 15;
 
-    // === SPLIT INTO TWO COLUMNS (HOTEL INFO + STAY DETAILS) ===
     const colLeftX = 20;
     const colRightX = pageWidth / 2 + 10;
     let yLeft = y;
@@ -527,7 +526,7 @@ export default function MyTripPage() {
                   🏨 {bookingData?.hotelName || "Hotel"}
                 </h3>
                 <p className="text-sm text-blue-100 mt-1">
-                  {t("MyTrip.bookingCode")} {bookingData.bookingCode}
+                  {t("MyTrip.bookingCode")} {bookingData.bookingCode.split("-")[1]}
                 </p>
               </div>
             </div>

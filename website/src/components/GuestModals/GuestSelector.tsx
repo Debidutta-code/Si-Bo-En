@@ -28,9 +28,9 @@ interface GuestSelectorProps {
   onApply: (summary: string, data: any) => void;
 }
 
-const MAX_GUESTS_PER_ROOM = 4;
-const MAX_ADULTS_PER_ROOM = 4;
-const MAX_CHILDREN_PER_ROOM = 4;
+const MAX_GUESTS_PER_ROOM = 8;
+const MAX_ADULTS_PER_ROOM = 8;
+const MAX_CHILDREN_PER_ROOM = 8;
 
 const GuestSelector: React.FC<GuestSelectorProps> = ({
   isOpen,

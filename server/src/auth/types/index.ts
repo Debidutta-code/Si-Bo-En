@@ -47,7 +47,7 @@ export interface ICreateUser {
 }
 
 export interface ICreation {
-  type: 'group' | 'brand' | 'property'|'super';
+  type: 'group' | 'brand' | 'property'|'super'|'regional';
   name: string;
   level0Users?: string[];
   level1Users?: string[];

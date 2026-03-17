@@ -23,12 +23,6 @@ export class RoomBookingController {
           message: "Invalid or missing request payload",
         });
       }
-      // if (guests.children > 0 && guests.roomsArray?.length !== 0) {
-      //   return res.status(400).json({
-      //     success: false,
-      //     message: "Children ages are required",
-      //   })
-      // }
       const geoDetails = await getGeoLocationDetails(req);
       const countryCode = geoDetails.country;
       const deviceInfo = getDeviceInfo(req);
@@ -43,7 +37,6 @@ export class RoomBookingController {
         deviceType,
         promocode,
       });
-
       const status = response.success ? 200 : 400;
       return res.status(status).json(response);
 

@@ -38,9 +38,7 @@ export interface RateTigerRequest extends ExpressRequest {
     rateTiger?: {
         partnerId: string;
         apiKey: string;
-        /** Internal property code resolved from the incoming RT hotelCode */
         propertyCode?: string;
-        /** Original RT hotelCode received in the request body */
         rtHotelCode?: string;
     };
 }

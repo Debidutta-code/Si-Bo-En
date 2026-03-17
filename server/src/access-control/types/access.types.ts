@@ -1,7 +1,7 @@
 
 
 export interface IUserRolesAndAccess {
-  role: "super_admin" | "group_manager" | "brand_manager" | "hotel_manager" | "staff" | "revenue_manager" ;
+  role: "super_admin" | "group_manager" | "brand_manager" | "hotel_manager" | "staff" | "revenue_manager"|"regional_admin" ;
   level: number;
   isActive: boolean;
 

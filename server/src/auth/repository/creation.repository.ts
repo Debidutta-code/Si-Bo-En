@@ -3,7 +3,6 @@
 import type { ICreation, PropertyFilters } from "../types";
 import prisma from "../../config/prisma.client";
 
-// Helper to convert ObjectId-like string to string (Prisma uses string IDs)
 const toStringId = (id: string | any): string => {
   return typeof id === 'string' ? id : String(id);
 };
@@ -11,26 +10,28 @@ const toStringId = (id: string | any): string => {
 export default class CreationDao {
 
   public static async create(
-    type: "group" | "property" | "brand" | "super",
+    type: "group" | "property" | "brand" | "super" | "regional",
     name: string,
-    userId: string, // Prisma uses string IDs
+    userId: string,
     superId?: string,
+    regionalId?: string,
     groupId?: string,
     brandId?: string,
-    images:string[] = []
+    images: string[] = []
   ) {
     try {
       return await prisma.creation.create({
         data: {
           type,
           name,
-          createdById: toStringId(userId),
+          createdById: userId,
           isActive: true,
           isDeleted: false,
-          superId: superId ? toStringId(superId) : undefined,
-          groupId: groupId ? toStringId(groupId) : undefined,
-          brandId: brandId ? toStringId(brandId) : undefined,
-          images:images,
+          superId: superId ? superId : undefined,
+          groupId: groupId ? groupId : undefined,
+          brandId: brandId ? brandId : undefined,
+          regionalId: regionalId ? regionalId : undefined,
+          images: images,
         },
       });
     } catch (error: any) {
@@ -40,13 +41,13 @@ export default class CreationDao {
   public static async update(
     creationId: string,
     name: string,
-    images:string[] = [],
-    isActive:boolean
+    images: string[] = [],
+    isActive: boolean
   ) {
     try {
       return await prisma.creation.update({
         where: { id: toStringId(creationId) },
-        data: { name, images ,isActive},
+        data: { name, images, isActive },
       });
     } catch (error: any) {
       throw new Error(`Failed to update creation: ${error.message}`);
@@ -74,7 +75,7 @@ export default class CreationDao {
     }
   }
 
-  public static async getAll(type: "group" | "property" | "brand" | "super", isActive: boolean) {
+  public static async getAll(type: "group" | "property" | "brand" | "super" | "regional", isActive: boolean) {
     try {
       return await prisma.creation.findMany({
         where: {
@@ -101,32 +102,59 @@ export default class CreationDao {
     }
   }
 
-    public static async getCreationsByRole(
-        filters: PropertyFilters
-    ): Promise<any[]> {
-        try {
-            // // Convert filters to Prisma where clause
-            // const where: any = {
-            //   ...filters,
-            //   isDeleted: false,
-            // };
+  public static async getCreationsByRole(
+    filters: PropertyFilters
+  ): Promise<any[]> {
+    try {
 
-            return await prisma.creation.findMany({
-                where: {},
-                orderBy: { createdAt: 'desc' },
-                include: {
-                    users: true,
-                    createdBy: true,
-                    super: true,
-                    group: true,
-                    brand: true,
-                    property: true,
-                },
-            });
-        } catch (error: any) {
-            throw new Error(`Failed to get creations: ${error.message}`);
-        }
+      return await prisma.creation.findMany({
+        where: {},
+        orderBy: { createdAt: 'desc' },
+        include: {
+          users: true,
+          createdBy: true,
+          super: true,
+          group: true,
+          brand: true,
+          property: true,
+          regional: true,
+          regionalChildren: true,
+
+        },
+      });
+    } catch (error: any) {
+      throw new Error(`Failed to get creations: ${error.message}`);
     }
+  }
+  public static async assignToCustom(targetCreationId: string, customCreationId: string) {
+    try {
+      // Check not already assigned to another regional
+      const target = await prisma.creation.findUnique({
+        where: { id: targetCreationId },
+        select: { regionalId: true, type: true }
+      });
+      if (!target) throw new Error("Creation not found");
+      if (target.regionalId && target.regionalId !== customCreationId) {
+        throw new Error("Already assigned to another regional admin");
+      }
+      return await prisma.creation.update({
+        where: { id: targetCreationId },
+        data: { regionalId: customCreationId },
+      });
+    } catch (error: any) {
+      throw new Error(`Failed to assign to regional: ${error.message}`);
+    }
+  }
+  public static async removeFromCustom(targetCreationId: string) {
+    try {
+      return await prisma.creation.update({
+        where: { id: targetCreationId },
+        data: { regionalId: null },
+      });
+    } catch (error: any) {
+      throw new Error(`Failed to remove from regional: ${error.message}`);
+    }
+  }
 
   public static async getSpecificCreation(creationId: string): Promise<ICreation | null> {
     try {
@@ -141,10 +169,12 @@ export default class CreationDao {
           property: true,
           brandChildren: true,
           groupChildren: {
-            include:{
-              brandChildren:true
+            include: {
+              brandChildren: true
             }
           },
+          regional: true,
+          regionalChildren:true
 
         },
       });
@@ -175,7 +205,6 @@ export default class CreationDao {
 
 export class ManageCreationUser {
 
-  // Generic helper for adding user to level
   private static async addUserToLevel(
     creationId: string,
     userId: string,

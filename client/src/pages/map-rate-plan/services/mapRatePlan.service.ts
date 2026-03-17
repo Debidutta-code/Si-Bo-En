@@ -19,6 +19,7 @@ export const createMappingService = async (
             roomTypeCode: data.roomTypeCode,
             roomTypeName: roomTypeName,
             baseByGuestAmounts: data.baseByGuestAmounts.map((item) => ({
+                ageQualifyingCode: item.ageQualifyingCode,
                 numberOfGuests: item.numberOfGuests,
                 amountBeforeTax: item.amountBeforeTax,
             })),

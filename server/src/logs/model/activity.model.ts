@@ -269,7 +269,7 @@ const ActivitySchema = new Schema<IActivity>({
   
   userRole: {
     type: String,
-    enum: ['super_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff', 'revenue_manager', 'guest', 'agent', 'system'],
+    enum: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff', 'revenue_manager', 'guest', 'agent', 'system'],
     index: true
   },
   
@@ -310,7 +310,7 @@ const ActivitySchema = new Schema<IActivity>({
   
   creationType: {
     type: String,
-    enum: ['group', 'property', 'brand', 'super']
+    enum: ['group', 'property', 'brand', 'super',"regional"]
   },
   
   description: {

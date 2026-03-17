@@ -12,18 +12,18 @@ export interface room_price{
 export interface Room {
   amenities: any;
   id: string;
-  room_name: string;
-  room_type: string;
-  room_size: number;
-  max_occupancy: number;
-  room_price: room_price[];
-  currency_code: string;
-  rate_plan_code: string;
-  has_valid_rate: boolean;
+  roomName: string;
+  roomType: string;
+  roomSize: number;
+  maxOccupancy: number;
+  roomPrice: room_price[];
+  currencyCode: string;
+  ratePlanCode: string;
+  hasValidRate: boolean;
   images:string[];
   description:string;
-  room_unit: string
-  room_view: string;
+  roomUnit: string
+  roomView: string;
   roomVideos:IRoomVideo|null;
 }
 interface IRoomVideo{

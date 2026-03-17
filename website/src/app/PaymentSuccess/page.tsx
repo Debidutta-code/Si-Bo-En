@@ -15,7 +15,6 @@ const PaymentSuccessPage = () => {
   const searchParams = useSearchParams();
   const [loading, setLoading] = useState(false);
 
-  // Get booking code from URL params (for Fikafi redirect)
   const urlBookingCode = searchParams?.get("bookingCode");
 
   // Add the hook usage at the component level
@@ -27,24 +26,27 @@ const PaymentSuccessPage = () => {
 
   useEffect(() => {
     // Check localStorage for booking confirmation
-    const stored = localStorage.getItem('bookingConfirmation');
+    const stored = localStorage.getItem("bookingConfirmation");
     if (stored) {
       try {
         const parsed = JSON.parse(stored);
         // Check if it's recent (within 24 hours)
-        if (parsed.timestamp && Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000) {
+        if (
+          parsed.timestamp &&
+          Date.now() - parsed.timestamp < 24 * 60 * 60 * 1000
+        ) {
           setLocalConfirmation(parsed);
         }
       } catch (e) {
-        console.error('Error parsing booking confirmation:', e);
+        console.error("Error parsing booking confirmation:", e);
       }
     }
   }, []);
   const formatPaymentMethod = (paymentMethod: string): string => {
     return paymentMethod
-      .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-      .join(' ');
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
   };
   // ✅ Clear cookie + block back navigation
   useEffect(() => {
@@ -77,22 +79,32 @@ const PaymentSuccessPage = () => {
   } = bookingData;
 
   // ✅ Show success if either Redux has confirmed status OR localStorage has confirmation OR URL has booking code
-  const isConfirmed = bookingStatus === "confirmed" || (localConfirmation?.status === "confirmed") || !!urlBookingCode;
+  const isConfirmed =
+    bookingStatus === "confirmed" ||
+    localConfirmation?.status === "confirmed" ||
+    !!urlBookingCode;
 
   const totalAmount = finalPrice?.totalAmount || 0;
   const nights = finalPrice?.numberOfNights || 0;
 
   const rooms = bookingData.numberOfRooms || 1;
-  const adults = (guests || []).filter((g: any) => g.type === 'adult').length;
-  const children = (guests || []).filter((g: any) => g.type === 'child').length;
+  const adults = (guests || []).filter((g: any) => g.type === "adult").length;
+  const children = (guests || []).filter((g: any) => g.type === "child").length;
   const handleViewBookings = () => {
     setLoading(true);
     // Use URL booking code if available, otherwise use Redux booking code
-    const code = urlBookingCode || bookingData.bookingCode;
-    router.push(`/my-trip?propertyCode=${bookingData.PropertyCode}&code=${code}`);
+    const rawCode = urlBookingCode || bookingData.bookingCode;
+    const code = rawCode?.split("-")[1] ?? rawCode;
+    router.push(
+      `/my-trip?propertyCode=${bookingData.PropertyCode}&code=${code}`,
+    );
   };
-  const currencyCode = finalPrice?.currencyCode || "USD";
-  const currencySymbol = currencies.find((c) => c.code === currencyCode)?.symbol ?? currencyCode;
+  const currencyCode =
+    finalPrice?.currencyCode ||
+    finalPrice?.dailyBreakdown?.[0]?.currencyCode ||
+    "USD";
+  const currencySymbol =
+    currencies.find((c) => c.code === currencyCode)?.symbol ?? currencyCode;
   return isConfirmed ? (
     <div className="min-h-screen bg-gray-100  py-8 px-4">
       <div className="max-w-5xl mx-auto bg-white shadow-xl rounded-2xl p-8 sm:p-10">
@@ -102,7 +114,7 @@ const PaymentSuccessPage = () => {
           style={{
             backgroundColor: `${colors.secondaryColor}10`,
             borderColor: colors.primaryColor,
-            color: colors.primaryColor
+            color: colors.primaryColor,
           }}
         >
           <h1 className="text-2xl font-bold mb-1">{t("PaymentSuccess.confirmed.title")}</h1>
@@ -227,7 +239,6 @@ const PaymentSuccessPage = () => {
               <li>{t("PaymentSuccess.confirmed.needChanges")}</li>
             </ul>
           </div>
-
         </div>
       </div>
     </div>
@@ -240,7 +251,7 @@ const PaymentSuccessPage = () => {
           style={{
             backgroundColor: `${colors.secondaryColor}10`,
             borderColor: colors.primaryColor,
-            color: colors.primaryColor
+            color: colors.primaryColor,
           }}
         >
           <svg
@@ -271,7 +282,7 @@ const PaymentSuccessPage = () => {
           className="border rounded-lg p-4 text-left text-sm text-gray-700 mb-6"
           style={{
             backgroundColor: `${colors.secondaryColor}10`,
-            borderColor: colors.primaryColor
+            borderColor: colors.primaryColor,
           }}
         >
           <h2 className="font-semibold text-gray-800 mb-2">{t("PaymentSuccess.pending.nextSteps")}</h2>
@@ -314,4 +325,3 @@ const PaymentSuccessPage = () => {
 };
 
 export default PaymentSuccessPage;
-

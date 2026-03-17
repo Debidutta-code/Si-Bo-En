@@ -17,7 +17,7 @@ class RedisClient {
             socket: {
                 host: config.redisHost,
                 port: parseInt(config.redisPort || '6379'),
-                connectTimeout: 30000, 
+                connectTimeout: 30000, // 30 seconds
                 reconnectStrategy: (retries) => {
                     if (retries > 10) {
                         console.error('❌ Too many Redis reconnection attempts. Stopping...');
@@ -58,7 +58,7 @@ class RedisClient {
         const client = RedisClient.getInstance();
         if (!client.isOpen) {
             await client.connect();
-            console.log('✅ Redis connected successfully');
+            console.log('✅ Connected to Redis');
         }
     }
 

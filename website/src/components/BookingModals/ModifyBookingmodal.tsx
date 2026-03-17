@@ -5,7 +5,6 @@ import { FaCalendarAlt, FaUser, FaInfoCircle } from "react-icons/fa";
 import { isBefore } from "date-fns";
 import { Loader2, Plus, Trash2, RefreshCw } from "lucide-react";
 import toast from "react-hot-toast";
-
 export interface Guest {
   type: "adult" | "child";
   firstName: string;
@@ -32,18 +31,22 @@ interface Props {
  * Build per-room guestDistribution from priceBreakdowns dailyBreakdown.
  * We take the FIRST night's entries (one per roomNumber) to get the room layout.
  */
-const extractGuestDistribution = (bookingData: any): { adults: number; children: number; childAges: number[] }[] => {
+const extractGuestDistribution = (
+  bookingData: any,
+): { adults: number; children: number; childAges: number[] }[] => {
   const dailyBreakdown =
     bookingData.priceBreakdowns?.[0]?.dailyBreakdown ||
     bookingData.finalPrice?.dailyPriceBrakeDown ||
     bookingData.finalPrice?.dailyBreakdown ||
     [];
 
-  if (!dailyBreakdown.length) return [{ adults: 1, children: 0, childAges: [] }];
+  if (!dailyBreakdown.length)
+    return [{ adults: 1, children: 0, childAges: [] }];
 
   // Group by roomNumber, keep only the FIRST date's entry per room
   const seenRooms = new Set<string>();
-  const perRoom: { adults: number; children: number; childAges: number[] }[] = [];
+  const perRoom: { adults: number; children: number; childAges: number[] }[] =
+    [];
 
   for (const entry of dailyBreakdown) {
     if (seenRooms.has(String(entry.roomNumber))) continue;
@@ -59,7 +62,9 @@ const extractGuestDistribution = (bookingData: any): { adults: number; children:
 };
 
 /** Sum adults / children / childAges across all rooms */
-const sumGuests = (rooms: { adults: number; children: number; childAges: number[] }[]) => {
+const sumGuests = (
+  rooms: { adults: number; children: number; childAges: number[] }[],
+) => {
   let adults = 0;
   let children = 0;
   const childAges: number[] = [];
@@ -74,7 +79,8 @@ const sumGuests = (rooms: { adults: number; children: number; childAges: number[
 const normalizeGuests = (guests: any[], reservationGuests: any[]): Guest[] =>
   guests.map((guest) => {
     const rg = (reservationGuests || []).find(
-      (r: any) => r.firstName === guest.firstName && r.lastName === guest.lastName
+      (r: any) =>
+        r.firstName === guest.firstName && r.lastName === guest.lastName,
     );
     return {
       type: guest.type || "adult",
@@ -92,13 +98,29 @@ const countGuests = (guests: Guest[]) =>
       else acc.children++;
       return acc;
     },
-    { adults: 0, children: 0 }
+    { adults: 0, children: 0 },
   );
 
 const parseDate = (date: any): string => {
   if (typeof date === "string") return date.split("T")[0];
-  if (date && typeof date === "object" && "$date" in date) return date.$date.split("T")[0];
+  if (date && typeof date === "object" && "$date" in date)
+    return date.$date.split("T")[0];
   return "";
+};
+
+/**
+ * Build promotions payload from finalPrice.promotionBrakeDown.
+ * Only send user-applied promotions — auto-applied ones (e.g. MLOS) are
+ * recalculated server-side and should not be included.
+ */
+const buildPromotions = (
+  bookingData: any,
+): { id: string; promotionType: string }[] => {
+  const promotionBreakdown: any[] =
+    bookingData.finalPrice?.promotionBrakeDown ?? [];
+  return promotionBreakdown
+    .filter((p: any) => p.type === "user-applied" && p.id)
+    .map((p: any) => ({ id: p.id as string, promotionType: "normal" }));
 };
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -107,8 +129,12 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<"dates" | "guests">("dates");
 
-  const [checkInDate, setCheckInDate] = useState(parseDate(bookingData.checkInDate));
-  const [checkOutDate, setCheckOutDate] = useState(parseDate(bookingData.checkOutDate));
+  const [checkInDate, setCheckInDate] = useState(
+    parseDate(bookingData.checkInDate),
+  );
+  const [checkOutDate, setCheckOutDate] = useState(
+    parseDate(bookingData.checkOutDate),
+  );
 
   // ── Derive initial room layout from priceBreakdowns (source of truth) ──────
   const initialRoomDistribution = extractGuestDistribution(bookingData);
@@ -126,14 +152,18 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
     { adults: number; children: number; childAges: number[] }[]
   >(initialRoomDistribution);
 
-  const [childAges, setChildAges] = useState<number[]>(initialGuestTotals.childAges);
+  const [childAges, setChildAges] = useState<number[]>(
+    initialGuestTotals.childAges,
+  );
 
   const [guestForms, setGuestForms] = useState<Guest[]>(
-    normalizeGuests(bookingData.guests, bookingData.reservationGuests)
+    normalizeGuests(bookingData.guests, bookingData.reservationGuests),
   );
-  const [guestCounts, setGuestCounts] = useState(countGuests(
-    normalizeGuests(bookingData.guests, bookingData.reservationGuests)
-  ));
+  const [guestCounts, setGuestCounts] = useState(
+    countGuests(
+      normalizeGuests(bookingData.guests, bookingData.reservationGuests),
+    ),
+  );
   const [guestSummary, setGuestSummary] = useState("Add Guests");
 
   const [amount, setAmount] = useState(bookingData.amount);
@@ -146,11 +176,20 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
   const [finalPrice, setFinalPrice] = useState<any>({
     booking: { finalPayable: 0, refundAmount: 0, discount: 0 },
     totalAmount: bookingData.amount,
-    breakdown: { totalBaseAmount: 0, totalAdditionalCharges: 0, totalAmount: 0, totalTax: 0, priceAfterTax: 0 },
+    breakdown: {
+      totalBaseAmount: 0,
+      totalAdditionalCharges: 0,
+      totalAmount: 0,
+      totalTax: 0,
+      priceAfterTax: 0,
+    },
     tax: [],
   });
 
-  const [dateErrors, setDateErrors] = useState<{ checkIn?: string; checkOut?: string }>({});
+  const [dateErrors, setDateErrors] = useState<{
+    checkIn?: string;
+    checkOut?: string;
+  }>({});
   const [errors, setErrors] = useState<any>({});
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -159,7 +198,9 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
 
   // Keep childAges in sync with guestForms
   useEffect(() => {
-    const ages = guestForms.filter((g) => g.type === "child").map((g) => g.age || 0);
+    const ages = guestForms
+      .filter((g) => g.type === "child")
+      .map((g) => g.age || 0);
     setChildAges(ages);
   }, [guestForms]);
 
@@ -184,17 +225,42 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
         new Set(
           (bookingData.addOns || [])
             .filter((a: any) => a.type === "included")
-            .map((a: any) => a.addonId)
-        )
+            .map((a: any) => a.addonId),
+        ),
       ) as string[];
 
-      const selectedAddons = (bookingData.addOns || []).filter(
-        (a: any) => a.type === "selected" && !a.name.includes("Child age")
+      const addonMap = new Map<string, { date: string; quantity: number }[]>();
+      (bookingData.addOns || [])
+        .filter(
+          (a: any) => a.type === "selected" && !a.name.includes("Child age"),
+        )
+        .forEach((a: any) => {
+          // addon.date is UTC-shifted (18:30Z) — add 1 day to get correct local date
+          const d = new Date(a.date);
+          d.setUTCDate(d.getUTCDate() + 1);
+          d.setUTCHours(0, 0, 0, 0);
+          const normalizedDate = d.toISOString();
+
+          if (!addonMap.has(a.addonId)) addonMap.set(a.addonId, []);
+          const existing = addonMap
+            .get(a.addonId)!
+            .find((e) => e.date === normalizedDate);
+          if (existing) existing.quantity += a.quantity;
+          else
+            addonMap
+              .get(a.addonId)!
+              .push({ date: normalizedDate, quantity: a.quantity });
+        });
+
+      const parsedAddons = Array.from(addonMap.entries()).map(
+        ([addOnId, availability]) => ({
+          addOnId,
+          availability,
+        }),
       );
-      const parsedAddons = selectedAddons.map((a: any) => ({
-        addOnId: a.addonId,
-        availability: [{ date: new Date(checkInDate).toISOString(), quantity: a.quantity }],
-      }));
+
+      // Build promotions — only user-applied ones from finalPrice
+      const promotions = buildPromotions(bookingData);
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/pricing/get-price`,
@@ -209,15 +275,16 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
             noOfAdults,
             noOfChildren: noOfChildrens,
             noOfRooms: requestedRooms,
-            // ✅ FIX: send per-room distribution, NOT per-night entries
+            bookingCode: bookingData.bookingCode,
             guestDistribution,
             ratePlanCode: bookingData.ratePlanCode,
             childAges,
             parsedAddons,
             includedAddons: includedAddonIds,
+            promotions,
             promoCode: "",
           }),
-        }
+        },
       );
 
       const data = await response.json();
@@ -257,10 +324,20 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
     let valid = true;
     guestForms.forEach((guest, index) => {
       const gErrors: any = {};
-      if (!guest.firstName.trim()) { gErrors.firstName = "First name is required."; valid = false; }
-      else if (!nameRegex.test(guest.firstName)) { gErrors.firstName = "Invalid Name Format"; valid = false; }
-      if (!guest.lastName.trim()) { gErrors.lastName = "Last name is required."; valid = false; }
-      else if (!nameRegex.test(guest.lastName)) { gErrors.lastName = "Invalid Name Format"; valid = false; }
+      if (!guest.firstName.trim()) {
+        gErrors.firstName = "First name is required.";
+        valid = false;
+      } else if (!nameRegex.test(guest.firstName)) {
+        gErrors.firstName = "Invalid Name Format";
+        valid = false;
+      }
+      if (!guest.lastName.trim()) {
+        gErrors.lastName = "Last name is required.";
+        valid = false;
+      } else if (!nameRegex.test(guest.lastName)) {
+        gErrors.lastName = "Invalid Name Format";
+        valid = false;
+      }
       if (Object.keys(gErrors).length) newErrors[`guest-${index}`] = gErrors;
     });
     setErrors(newErrors);
@@ -268,7 +345,11 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
   };
 
   // ── Handlers ───────────────────────────────────────────────────────────────
-  const handleGuestDetailChange = (index: number, field: keyof Guest, value: string) => {
+  const handleGuestDetailChange = (
+    index: number,
+    field: keyof Guest,
+    value: string,
+  ) => {
     const updated = [...guestForms];
     updated[index] = { ...updated[index], [field]: value };
     setGuestForms(updated);
@@ -292,9 +373,16 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
     if (!checkInDate) errs.checkIn = "Check-in date is required.";
     else if (checkIn <= today) errs.checkIn = "Check-in must be after today.";
     if (!checkOutDate) errs.checkOut = "Check-out date is required.";
-    else if (checkOut <= checkIn) errs.checkOut = "Check-out must be after check-in.";
-    if (Object.keys(errs).length) { setDateErrors(errs); return; }
-    if (!validateGuests()) { toast.error("Please fill all the guest details"); return; }
+    else if (checkOut <= checkIn)
+      errs.checkOut = "Check-out must be after check-in.";
+    if (Object.keys(errs).length) {
+      setDateErrors(errs);
+      return;
+    }
+    if (!validateGuests()) {
+      toast.error("Please fill all the guest details");
+      return;
+    }
 
     try {
       setLoading(true);
@@ -323,11 +411,13 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
             refundAmount: finalPrice.booking?.refundAmount || 0,
             paymentType: bookingData.paymentType,
           }),
-        }
+        },
       );
       const data = await res.json();
       if (!res.ok) return toast.error(data.message || "Update failed");
-      toast.success("Booking updated successfully! Please check your email for details.");
+      toast.success(
+        "Booking updated successfully! Please check your email for details.",
+      );
       onUpdate();
       onClose();
     } catch {
@@ -338,29 +428,90 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
   };
 
   const handleDeleteClick = (index: number) => {
-    if (guestForms[index].type === "adult") {
+    const guest = guestForms[index];
+
+    if (guest.type === "adult") {
+      // Find which room this adult belongs to
+      let adultPointer = 0;
+      let guestRoom: { roomIdx: number; room: Room } | null = null;
+      for (let ri = 0; ri < rooms.length; ri++) {
+        for (let ai = 0; ai < rooms[ri].adults; ai++) {
+          if (adultPointer === index) {
+            guestRoom = { roomIdx: ri, room: rooms[ri] };
+            break;
+          }
+          adultPointer++;
+        }
+        if (guestRoom) break;
+      }
+
+      // If room has children, block deletion — adult required
+      if (guestRoom && guestRoom.room.children > 0) {
+        toast.error("Cannot remove the adult while children are assigned to this room.");
+        return;
+      }
+
+      // Last adult overall — block
       if (guestForms.filter((g) => g.type === "adult").length <= 1) {
         toast.error("At least one adult guest is required.");
         return;
       }
+
+      // Room has only this adult (no children) → deleting removes the room
+      if (guestRoom && guestRoom.room.adults === 1 && guestRoom.room.children === 0) {
+        setDeleteIndex(index);
+        setShowDeleteModal(true); // confirmDelete will handle room removal too
+        return;
+      }
     }
+
     setDeleteIndex(index);
     setShowDeleteModal(true);
   };
 
   const confirmDelete = () => {
-    if (deleteIndex !== null) {
-      const updated = guestForms.filter((_, i) => i !== deleteIndex);
-      setGuestForms(updated);
-      const counts = countGuests(updated);
-      setGuestCounts(counts);
-      setGuestSummary(
-        `${counts.adults} adult${counts.adults !== 1 ? "s" : ""}${counts.children > 0 ? ` - ${counts.children} child${counts.children !== 1 ? "ren" : ""}` : ""}`
-      );
-      setDeleteIndex(null);
-      setShowDeleteModal(false);
-      setPriceFetched(false);
+    if (deleteIndex === null) return;
+
+    const guest = guestForms[deleteIndex];
+    let updatedRooms = [...rooms];
+
+    if (guest.type === "adult") {
+      // Find which room this adult belongs to
+      let adultPointer = 0;
+      let targetRoomIdx = -1;
+      outer: for (let ri = 0; ri < rooms.length; ri++) {
+        for (let ai = 0; ai < rooms[ri].adults; ai++) {
+          if (adultPointer === deleteIndex) { targetRoomIdx = ri; break outer; }
+          adultPointer++;
+        }
+      }
+
+      if (targetRoomIdx !== -1 && rooms[targetRoomIdx].adults === 1 && rooms[targetRoomIdx].children === 0) {
+        // Remove the entire room
+        updatedRooms = rooms.filter((_, i) => i !== targetRoomIdx);
+        setRooms(updatedRooms);
+        setGuestDistribution(updatedRooms);
+        setRequestedRooms(updatedRooms.length);
+      } else if (targetRoomIdx !== -1) {
+        // Just decrement adults in that room
+        updatedRooms = rooms.map((r, i) =>
+          i === targetRoomIdx ? { ...r, adults: r.adults - 1 } : r
+        );
+        setRooms(updatedRooms);
+        setGuestDistribution(updatedRooms);
+      }
     }
+
+    const updated = guestForms.filter((_, i) => i !== deleteIndex);
+    setGuestForms(updated);
+    const counts = countGuests(updated);
+    setGuestCounts(counts);
+    setGuestSummary(
+      `${counts.adults} adult${counts.adults !== 1 ? "s" : ""}${counts.children > 0 ? ` - ${counts.children} child${counts.children !== 1 ? "ren" : ""}` : ""}`,
+    );
+    setDeleteIndex(null);
+    setShowDeleteModal(false);
+    setPriceFetched(false);
   };
 
   const today = new Date();
@@ -371,35 +522,75 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
   // ── Price breakdown helpers ────────────────────────────────────────────────
   const renderTaxBreakdown = () => {
     const taxes = finalPrice.taxBrakeDown || finalPrice.tax || [];
-    if (!taxes.length) return <p className="text-sm text-gray-500">No taxes applicable</p>;
+    if (!taxes.length)
+      return <p className="text-sm text-gray-500">No taxes applicable</p>;
     return (
       <div className="mt-1 space-y-1">
         {taxes.map((tax: any, i: number) => (
           <div key={i} className="flex justify-between text-sm">
             <span className="text-gray-600">🧾 {tax.name}</span>
-            <span>+{tax.currencyCode || bookingData?.currencyCode} {tax.taxedAmount?.toFixed(2)}</span>
+            <span>
+              +{tax.currencyCode || bookingData?.currencyCode}{" "}
+              {tax.taxedAmount?.toFixed(2)}
+            </span>
           </div>
         ))}
         <div className="flex justify-between font-medium border-t pt-1 mt-1">
           <span>Total Tax</span>
-          <span>{bookingData?.currencyCode} {(finalPrice.taxedAmount || finalPrice.totalTaxAmount)?.toFixed(2)}</span>
+          <span>
+            {bookingData?.currencyCode}{" "}
+            {(finalPrice.taxedAmount || finalPrice.totalTaxAmount)?.toFixed(2)}
+          </span>
         </div>
       </div>
     );
   };
 
   const getPriceBreakdown = () => {
-    const dailyBreakdowns = finalPrice.dailyPriceBrakeDown || finalPrice.dailyBreakdown || [];
+    const dailyBreakdowns =
+      finalPrice.dailyPriceBrakeDown || finalPrice.dailyBreakdown || [];
     return {
       baseAmount: finalPrice.amountBeforeTax || 0,
       additionalCharges: finalPrice.additionalGuestCharges || 0,
-      numberOfNights: dailyBreakdowns.length || 1,
+      numberOfNights:
+        new Set(dailyBreakdowns.map((d: any) => d.date)).size || 1,
       totalTax: finalPrice.taxedAmount || 0,
       priceAfterTax: finalPrice.totalAmount || amount,
     };
   };
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // No useMemo needed — just compute directly in render
+  const adults = guestForms.filter((g) => g.type === "adult");
+  const children = guestForms.filter((g) => g.type === "child");
+  const adultIndices = guestForms.reduce<number[]>((acc, g, i) => {
+    if (g.type === "adult") acc.push(i);
+    return acc;
+  }, []);
+  const childIndices = guestForms.reduce<number[]>((acc, g, i) => {
+    if (g.type === "child") acc.push(i);
+    return acc;
+  }, []);
+
+  let aIdx = 0;
+  let cIdx = 0;
+  const roomGuestMap = rooms.map((room, roomIdx) => {
+    const roomGuests: { guest: Guest; globalIndex: number }[] = [];
+    for (let i = 0; i < room.adults; i++) {
+      if (aIdx < adultIndices.length)
+        roomGuests.push({
+          guest: adults[aIdx],
+          globalIndex: adultIndices[aIdx++],
+        });
+    }
+    for (let i = 0; i < room.children; i++) {
+      if (cIdx < childIndices.length)
+        roomGuests.push({
+          guest: children[cIdx],
+          globalIndex: childIndices[cIdx++],
+        });
+    }
+    return { roomIdx, room, guests: roomGuests };
+  });
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
@@ -419,14 +610,20 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
               <p className="font-semibold">{t("ModifyBooking.stayDates")}</p>
               <p>{new Date(checkInDate).toDateString()} - {new Date(checkOutDate).toDateString()}</p>
               <p className="text-xs text-gray-500">
-                {Math.ceil((new Date(checkOutDate).getTime() - new Date(checkInDate).getTime()) / 86400000)} nights
+                {Math.ceil(
+                  (new Date(checkOutDate).getTime() -
+                    new Date(checkInDate).getTime()) /
+                  86400000,
+                )}{" "}
+                nights
               </p>
             </div>
             <div>
               <p className="font-semibold">{t("ModifyBooking.roomDetails")}</p>
               <p>{bookingData.roomTypeCode}</p>
-              {/* ✅ FIX: show actual room count from priceBreakdowns */}
-              <p className="text-xs text-gray-500">{requestedRooms} room{requestedRooms !== 1 ? "s" : ""}</p>
+              <p className="text-xs text-gray-500">
+                {requestedRooms} room{requestedRooms !== 1 ? "s" : ""}
+              </p>
             </div>
             <div>
               <p className="font-semibold">{t("ModifyBooking.ratePlan")}</p>
@@ -434,14 +631,19 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
             </div>
           </div>
 
-          {/* ✅ FIX: Show per-room guest distribution from priceBreakdowns */}
           <div className="px-4 py-2 bg-blue-50 border-b text-xs text-gray-600">
             <p className="font-medium text-gray-700 mb-1">{t("ModifyBooking.currentGuestDistribution")}</p>
             <div className="flex flex-wrap gap-2">
               {initialRoomDistribution.map((room, i) => (
-                <span key={i} className="bg-white border border-blue-200 rounded px-2 py-1">
-                  Room {i + 1}: {room.adults} adult{room.adults !== 1 ? "s" : ""}
-                  {room.children > 0 ? `, ${room.children} child${room.children !== 1 ? "ren" : ""}` : ""}
+                <span
+                  key={i}
+                  className="bg-white border border-blue-200 rounded px-2 py-1"
+                >
+                  Room {i + 1}: {room.adults} adult
+                  {room.adults !== 1 ? "s" : ""}
+                  {room.children > 0
+                    ? `, ${room.children} child${room.children !== 1 ? "ren" : ""}`
+                    : ""}
                 </span>
               ))}
             </div>
@@ -480,7 +682,11 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                       disabled={isBefore(new Date(checkInDate), new Date())}
                       className={`w-full border px-3 py-2 rounded ${dateErrors.checkIn ? "border-red-500" : ""}`}
                     />
-                    {dateErrors.checkIn && <p className="text-sm text-red-600 mt-1">{dateErrors.checkIn}</p>}
+                    {dateErrors.checkIn && (
+                      <p className="text-sm text-red-600 mt-1">
+                        {dateErrors.checkIn}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-sm font-medium">{t("ModifyBooking.checkOut")}</label>
@@ -495,7 +701,11 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                       }}
                       className={`w-full border px-3 py-2 rounded ${dateErrors.checkOut ? "border-red-500" : ""}`}
                     />
-                    {dateErrors.checkOut && <p className="text-sm text-red-600 mt-1">{dateErrors.checkOut}</p>}
+                    {dateErrors.checkOut && (
+                      <p className="text-sm text-red-600 mt-1">
+                        {dateErrors.checkOut}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="pt-4 border-t">
@@ -504,7 +714,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                     disabled={priceLoading || !checkInDate || !checkOutDate}
                     className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded font-medium flex items-center justify-center gap-2 disabled:bg-gray-400"
                   >
-                    {priceLoading ? <><Loader2 className="h-4 w-4 animate-spin" /><span>Fetching Price...</span></> : <><RefreshCw className="h-4 w-4" /><span>{t("ModifyBooking.checkPriceHint")}</span></>}
+                    {priceLoading ? <><Loader2 className="h-4 w-4 animate-spin" /><span>{t("ModifyBooking.fetchingPrice")}</span></> : <><RefreshCw className="h-4 w-4" /><span>{t("ModifyBooking.checkUpdatedPrice")}</span></>}
                   </button>
                 </div>
               </div>
@@ -674,14 +884,28 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                           <span>{bookingData?.currencyCode} {finalPrice.amountBeforeTax?.toFixed(2)}</span>
                         </div>
                         {finalPrice.promotionBrakeDown?.length > 0 && finalPrice.promotionBrakeDown.map((promo: any, i: number) => {
+                          const isDiscount = promo.restrictionType === "decrease"; // ✅ add this
                           const isPayLater = promo.restrictionType === "payLater";
                           return (
-                            <div key={i} className="flex justify-between">
-                              <span className={isPayLater ? "text-orange-600" : "text-green-600"}>
-                                {isPayLater ? "⏳" : "🏷"} {promo.name}
-                                <span className="text-xs text-gray-400 ml-1">({promo.discountType === "percentage" ? `${promo.discountValue}%` : `${promo.currencyCode || bookingData?.currencyCode} ${promo.discountValue}`})</span>
+                            <div
+                              key={i}
+                              className={`flex justify-between pl-4 ${isDiscount ? "text-green-600" : isPayLater ? "text-amber-600" : "text-red-500"}`}
+                            >
+                              <span>
+                                {isDiscount ? "🏷" : isPayLater ? "⏳" : "+"}{" "}
+                                {promo.name}
+                                <span className="text-xs text-gray-400 ml-1">
+                                  ({promo.discountType === "percentage"
+                                    ? `${promo.discountValue}%`
+                                    : `${promo.currencyCode || bookingData?.currencyCode} ${promo.discountValue}`}
+                                  )
+                                </span>
                               </span>
-                              <span className={isPayLater ? "text-orange-600" : "text-green-600"}>{isPayLater ? "+" : "-"}{bookingData?.currencyCode} {promo.discountAmount?.toFixed(2)}</span>
+                              <span>
+                                {isDiscount ? "-" : "+"}
+                                {promo.currencyCode || bookingData?.currencyCode}{" "}
+                                {(promo.discountAmount ?? 0).toFixed(2)}
+                              </span>
                             </div>
                           );
                         })}
@@ -764,7 +988,7 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
 
           <div className="flex gap-4 px-6 pb-6">
             <button className="w-full bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded" onClick={onClose}>
-              {t("ModifyBooking.cancel")}
+              Cancel
             </button>
             <button
               className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-semibold disabled:bg-gray-400"
@@ -804,22 +1028,23 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
         initialAdults={guestCounts.adults}
         initialChildren={guestCounts.children}
         initialChildAges={childAges}
-        // ✅ FIX: pass per-room distribution so selector shows correct starting state
         initialRoomDistribution={initialRoomDistribution}
         onClose={() => setShowGuestSelector(false)}
         onApply={(summary, data) => {
           setGuestSummary(summary);
           setRequestedRooms(data.rooms);
-
-          // ✅ FIX: update rooms state AND guestDistribution from selector output
           setRooms(data.roomDistribution);
           setGuestDistribution(data.roomDistribution);
           setChildAges(data.childAges);
 
           const currentGuests = [...guestForms];
           const updatedGuests: Guest[] = [];
-          const existingAdults = currentGuests.filter((g) => g.type === "adult");
-          const existingChildren = currentGuests.filter((g) => g.type === "child");
+          const existingAdults = currentGuests.filter(
+            (g) => g.type === "adult",
+          );
+          const existingChildren = currentGuests.filter(
+            (g) => g.type === "child",
+          );
 
           for (let i = 0; i < data.adults; i++) {
             updatedGuests.push({

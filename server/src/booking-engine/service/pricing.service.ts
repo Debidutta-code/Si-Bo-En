@@ -30,10 +30,14 @@ import { DeviceType } from '../../agent-paltform/property/types';
 import { IGeoRatePlanWithoutRatePlan } from '../../promotions/geo-rate-plan/interfaces';
 import { ICEbDsOftc } from '../../promotions/eb-ds-oftc/interfaces';
 import { IPromoCode } from '../../ari/types/promoCode.type';
+import { RoomDao } from '../../property-management/repository';
+import { IRoom } from '../../property-management/types';
 export class PricingService {
     private pricingRepository: PricingRepository;
+    private roomRepo: RoomDao;
     constructor() {
         this.pricingRepository = new PricingRepository();
+        this.roomRepo = new RoomDao();
     }
     public async getRoomRentService(
         propertyId: string,
@@ -61,7 +65,7 @@ export class PricingService {
                 endDate instanceof Date ? endDate : new Date(endDate);
             startDate = parsedStartDate;
             endDate = parsedEndDate;
-            const [ratePlan, selectedAddons, appliedPromotions] =
+            const [ratePlan, selectedAddons, appliedPromotions, selectedRoom] =
                 await Promise.all([
                     this.pricingRepository.validateRatePlan(
                         ratePlanCode,
@@ -72,9 +76,13 @@ export class PricingService {
                     ),
                     this.fetchAddons(parsedAddons),
                     this.fetchAllPromotions(promotions),
+                    this.roomRepo.findByRoomType(propertyId, invTypeCode)
                 ]);
             if (!ratePlan) {
                 return errorResponse('Rate plan not found');
+            }
+            if (!selectedRoom) {
+                return errorResponse('Room not found for the selected room type');
             }
             const basePrice = new BasePriceClass(
                 startDate,
@@ -84,7 +92,8 @@ export class PricingService {
                 rooms,
                 ratePlan.charges,
                 ratePlan.taxGroup,
-                guestDistribution
+                guestDistribution,
+                selectedRoom
             );
             let priceBrakedowns = basePrice.calculateTotalPrice();
             const addOnPrice = new AddOnPriceClass(
@@ -236,6 +245,7 @@ class BasePriceClass {
     charges: ICharge[];
     taxGroup: ITaxGroup | null;
     guestDistributions: IGuestDistribution[];
+    roomDetails: IRoom
     constructor(
         startDate: Date,
         endDate: Date,
@@ -244,7 +254,8 @@ class BasePriceClass {
         rooms: number,
         charges: ICharge[],
         taxGroup: ITaxGroup | null,
-        guestDistributions: IGuestDistribution[]
+        guestDistributions: IGuestDistribution[],
+        roomDetails: IRoom
     ) {
         if (!charges || charges.length == 0) {
             throw new Error('Charges not found');
@@ -266,6 +277,7 @@ class BasePriceClass {
         this.charges = charges;
         this.taxGroup = taxGroup || null;
         this.guestDistributions = guestDistributions;
+        this.roomDetails = roomDetails;
     }
     private differenceReservationDays(startDate: Date, endDate: Date): number {
         const msPerDay = 1000 * 60 * 60 * 24;
@@ -379,129 +391,110 @@ class BasePriceClass {
     } {
         let basePrice = 0;
         const dailyPriceBrakeDown: DailyPriceBrakeDown[] = [];
+
         this.charges.sort((a, b) => a.date.getTime() - b.date.getTime());
-        this.charges.pop();
-        this.guestDistributions.map((guestDistribution, index) => {
-            const totalPersons = guestDistribution.adults + guestDistribution.children;
+        this.charges.pop(); // remove checkout date
+
+        this.guestDistributions.forEach((guestDistribution, index) => {
+            const { adults, children } = guestDistribution;
+            const totalPersons = adults + children;
+
+            if (totalPersons > this.roomDetails.maxOccupancy) {
+                throw new Error(
+                    `This room has a maximum occupancy of ${this.roomDetails.maxOccupancy}.`
+                );
+            }
+            if (adults > this.roomDetails.maxNumberOfAdults) {
+                throw new Error(
+                    `This room can only accommodate ${this.roomDetails.maxNumberOfAdults} adults.`
+                );
+            }
+            if (children > this.roomDetails.maxNumberOfChildren) {
+                throw new Error(
+                    `This room can only accommodate ${this.roomDetails.maxNumberOfChildren} children.`
+                );
+            }
+
             this.charges.forEach(charge => {
-                if (totalPersons > charge.baseGuestAmounts.length) {
-                    if (guestDistribution.adults > charge.baseGuestAmounts.length) {
-                        charge.baseGuestAmounts.sort(
-                            (a, b) => a.numberOfGuests - b.numberOfGuests
-                        );
-                        const maxAdultCharges =
-                            charge.baseGuestAmounts[
-                            charge.baseGuestAmounts.length - 1
-                            ];
-                        const remainningAdults =
-                            guestDistribution.adults - maxAdultCharges.numberOfGuests;
-                        let totalChargesForRemainningAdults = 0;
-                        if (remainningAdults > 0) {
-                            const chargesForRemainingAdults =
-                                charge.additionalGuestAmounts.find(
-                                    additionalGuestAmount =>
-                                        additionalGuestAmount.ageQualifyingCode ===
-                                        '10'
-                                );
-                            if (!chargesForRemainingAdults) {
-                                totalChargesForRemainningAdults = 0;
-                            } else {
-                                totalChargesForRemainningAdults =
-                                    remainningAdults *
-                                    Number(chargesForRemainingAdults.amount);
-                            }
-                        }
-                        let totalChargesForChildren = 0;
-                        if (guestDistribution.children > 0) {
-                            const chargesForChildren =
-                                charge.additionalGuestAmounts.find(
-                                    additionalGuestAmount =>
-                                        additionalGuestAmount.ageQualifyingCode ===
-                                        '8'
-                                );
-                            if (!chargesForChildren) {
-                                totalChargesForChildren = 0;
-                            } else {
-                                totalChargesForChildren =
-                                    this.children *
-                                    Number(chargesForChildren.amount);
-                            }
-                        }
-                        const totalChargesForBaseGuest = Number(
-                            maxAdultCharges.amountBeforeTax
-                        );
-                        const totalCharges =
-                            totalChargesForBaseGuest +
-                            totalChargesForRemainningAdults +
-                            totalChargesForChildren;
-                        basePrice += totalCharges;
-                        dailyPriceBrakeDown.push({
-                            roomNumber: `${index + 1}`,
-                            guestDistribution: guestDistribution,
-                            date: charge.date.toDateString(),
-                            baseChargesAmount: totalChargesForBaseGuest,
-                            additionalChargesAmount:
-                                totalChargesForRemainningAdults +
-                                totalChargesForChildren,
-                            taxBrakeDown: [],
-                            addOnBrakeDown: [],
-                            totalAmount: totalCharges,
-                            currencyCode: charge.currencyCode,
-                            totalDailyTaxedAmount: 0,
-                        });
-                    } else {
-                        const baseGuestAmount = charge.baseGuestAmounts.find(
-                            baseGuestAmount =>
-                                baseGuestAmount.numberOfGuests === guestDistribution.adults
-                        );
-                        console.log("Base guest amount", baseGuestAmount);
-                        if (!baseGuestAmount) {
-                            throw new Error(
-                                `Base amount not found for the given date ${charge.date.toDateString()} for ${this.adults} persons`
-                            );
-                        }
-                        basePrice += Number(baseGuestAmount.amountBeforeTax);
-                        dailyPriceBrakeDown.push({
-                            roomNumber: `${index + 1}`,
-                            guestDistribution: guestDistribution,
-                            date: charge.date.toDateString(),
-                            baseChargesAmount: Number(
-                                baseGuestAmount.amountBeforeTax
-                            ),
-                            additionalChargesAmount: 0,
-                            taxBrakeDown: [],
-                            addOnBrakeDown: [],
-                            totalAmount: Number(baseGuestAmount.amountBeforeTax),
-                            currencyCode: charge.currencyCode,
-                            totalDailyTaxedAmount: 0,
-                        });
+                const adultBaseAmounts = charge.baseGuestAmounts
+                    .filter(b => b.ageQualifyingCode === '10')
+                    .sort((a, b) => a.numberOfGuests - b.numberOfGuests);
+
+                const childBaseAmounts = charge.baseGuestAmounts
+                    .filter(b => b.ageQualifyingCode === '8')
+                    .sort((a, b) => a.numberOfGuests - b.numberOfGuests);
+
+                const additionalChargeForAdults = charge.additionalGuestAmounts
+                    .find(a => a.ageQualifyingCode === '10');
+                const additionalChargeForChildren = charge.additionalGuestAmounts
+                    .find(a => a.ageQualifyingCode === '8');
+
+                let adultBasePrice = 0;
+                let additionalAdultCharges = 0;
+
+                const exactAdultBase = adultBaseAmounts.find(b => b.numberOfGuests === adults);
+                if (exactAdultBase) {
+                    adultBasePrice = Number(exactAdultBase.amountBeforeTax);  // Exact match found → use it directly
+
+                } else if (adultBaseAmounts.length > 0) {
+                    const maxAdultBase = adultBaseAmounts[adultBaseAmounts.length - 1];      // No exact match → use highest available base + charge for extras
+                    adultBasePrice = Number(maxAdultBase.amountBeforeTax);
+                    const extraAdults = adults - maxAdultBase.numberOfGuests;
+                    if (extraAdults > 0 && additionalChargeForAdults) {
+                        additionalAdultCharges = extraAdults * Number(additionalChargeForAdults.amount);
                     }
                 } else {
-                    const baseGuestAmount = charge.baseGuestAmounts.find(
-                        baseGuestAmount =>
-                            baseGuestAmount.numberOfGuests === totalPersons
-                    );
-                    if (!baseGuestAmount) {
-                        throw new Error(
-                            `Base amount not found for the given date ${charge.date.toDateString()} for ${totalPersons} persons`
-                        );
+                    if (additionalChargeForAdults) {
+                        additionalAdultCharges = adults * Number(additionalChargeForAdults.amount);   // No base entries at all → every adult is additional
+
                     }
-                    basePrice += Number(baseGuestAmount.amountBeforeTax);
-                    dailyPriceBrakeDown.push({
-                        roomNumber: `${index + 1}`,
-                        guestDistribution: guestDistribution,
-                        date: charge.date.toDateString(),
-                        baseChargesAmount: Number(baseGuestAmount.amountBeforeTax),
-                        additionalChargesAmount: 0,
-                        taxBrakeDown: [],
-                        addOnBrakeDown: [],
-                        totalAmount: Number(baseGuestAmount.amountBeforeTax),
-                        currencyCode: charge.currencyCode,
-                        totalDailyTaxedAmount: 0,
-                    });
                 }
+
+                let childBasePrice = 0;
+                let additionalChildCharges = 0;
+
+                if (children > 0) {
+                    const exactChildBase = childBaseAmounts.find(b => b.numberOfGuests === children);
+                    if (exactChildBase) {
+                        childBasePrice = Number(exactChildBase.amountBeforeTax);  // Exact match found → use it directly
+                    } else if (childBaseAmounts.length > 0) {
+                        const maxChildBase = childBaseAmounts[childBaseAmounts.length - 1];  // No exact match → use highest available base + charge for extras
+                        childBasePrice = Number(maxChildBase.amountBeforeTax);
+                        const extraChildren = children - maxChildBase.numberOfGuests;
+                        if (extraChildren > 0 && additionalChargeForChildren) {
+                            additionalChildCharges =
+                                extraChildren * Number(additionalChargeForChildren.amount);
+                        }
+                    } else {
+                        if (additionalChargeForChildren) {
+                            additionalChildCharges =
+                                children * Number(additionalChargeForChildren.amount);                    // No base entries at all → every child is additional
+
+                        }
+                    }
+                }
+
+                const totalBaseCharges = adultBasePrice + childBasePrice;
+                const totalAdditionalCharges = additionalAdultCharges + additionalChildCharges;
+                const totalDailyAmount = totalBaseCharges + totalAdditionalCharges;
+
+                basePrice += totalDailyAmount;
+
+                dailyPriceBrakeDown.push({
+                    roomNumber: `${index + 1}`,
+                    guestDistribution,
+                    date: charge.date.toDateString(),
+                    baseChargesAmount: totalBaseCharges,
+                    additionalChargesAmount: totalAdditionalCharges,
+                    taxBrakeDown: [],
+                    addOnBrakeDown: [],
+                    totalAmount: totalDailyAmount,
+                    currencyCode: charge.currencyCode,
+                    totalDailyTaxedAmount: 0,
+                });
             });
-        })
+        });
+
         return { totalAmount: basePrice, dailyPriceBrakeDown };
     }
     private addTax(
@@ -632,35 +625,31 @@ class AddOnPriceClass {
 
             if (availableEntries.length === 0) return;
 
-            // sum up per-date prices
-            const perDateTotal = availableEntries.reduce(
-                (sum, avail) => sum + Number(avail.price),
-                0
-            );
-
+            // produce one breakdown entry per available date using per-date quantity
             const userSelectedAddon = this.parsedAddons?.find(
                 pa => pa.addOnId === addon.id
             );
-            const quantity = userSelectedAddon
-                ? userSelectedAddon.availability.reduce(
-                    (sum, a) => sum + (a.quantity || 1),
-                    0
-                )
-                : 1;
 
-            const avgPrice = perDateTotal / availableEntries.length;
-            const totalAmount = avgPrice * quantity;
+            availableEntries.forEach(avail => {
+                const dateStr = new Date(avail.date).toDateString();
+                const amount = Number(avail.price);
+                // if user provided parsedAddons, use its per-date quantity, otherwise default to 1
+                const quantityForDate = userSelectedAddon
+                    ? (userSelectedAddon.availability.find(a => new Date(a.date).toISOString() === new Date(avail.date).toISOString())?.quantity || 1)
+                    : 1;
+                const totalAmount = amount * quantityForDate;
 
-            addonBrakeDown.push({
-                addonId: addon.id,
-                name: addon.name,
-                amount: avgPrice,
-                quantity,
-                totalAmount,
-                currencyCode: addon.availability[0]
-                    .currencyCode as CurrencyCode,
-                date: new Date(availableEntries[0].date).toDateString(),
-                type: 'selected',
+                addonBrakeDown.push({
+                    addonId: addon.id,
+                    name: addon.name,
+                    amount,
+                    quantity: quantityForDate,
+                    totalAmount,
+                    currencyCode: addon.availability[0]
+                        .currencyCode as CurrencyCode,
+                    date: dateStr,
+                    type: 'selected',
+                });
             });
 
             // calculate child addon prices if childAges exist
@@ -697,51 +686,51 @@ class AddOnPriceClass {
             if (availableEntries.length === 0) return;
 
             // sum up per-date prices
-            const perDateTotal = availableEntries.reduce(
-                (sum, avail) => sum + Number(avail.price),
-                0
-            );
-
-            let quantity = 1;
-            switch (addon.addon.postingRhythm) {
-                case 'per_night':
-                    quantity = availableEntries.length;
-                    break;
-                case 'per_stay':
-                    quantity = 1;
-                    break;
-                case 'per_person_per_night':
-                    quantity = this.noOfAdults * availableEntries.length;
-                    break;
-                case 'per_person_per_stay':
-                    quantity = this.noOfAdults;
-                    break;
-                case 'per_room':
-                    quantity = this.numberOfRooms;
-                    break;
-                case 'per_room_per_night':
-                    quantity = this.numberOfRooms * availableEntries.length;
-                    break;
-                case 'per_person_per_room':
-                    quantity = this.noOfAdults * this.numberOfRooms;
-                    break;
-                default:
-                    quantity = 1;
-            }
-
-            const avgPrice = perDateTotal / availableEntries.length;
-            const totalAmount = avgPrice * quantity;
-
-            addonBrakeDown.push({
-                addonId: addon.addon.id,
-                name: addon.addon.name,
-                amount: avgPrice,
-                quantity,
-                totalAmount,
-                type: "included",
-                currencyCode: addon.addon.availability[0]
-                    .currencyCode as CurrencyCode,
-                date: new Date(availableEntries[0].date).toDateString(),
+            // const perDateTotal = availableEntries.reduce(
+            //     (sum, avail) => sum + Number(avail.price),
+            //     0
+            // );
+            // produce per-date entries for included addons based on postingRhythm
+            availableEntries.forEach(avail => {
+                const amount = Number(avail.price);
+                let quantityForDate = 1;
+                switch (addon.addon.postingRhythm) {
+                    case 'per_night':
+                        quantityForDate = 1;
+                        break;
+                    case 'per_stay':
+                        quantityForDate = 1;
+                        break;
+                    case 'per_person_per_night':
+                        quantityForDate = this.noOfAdults;
+                        break;
+                    case 'per_person_per_stay':
+                        quantityForDate = this.noOfAdults;
+                        break;
+                    case 'per_room':
+                        quantityForDate = this.numberOfRooms;
+                        break;
+                    case 'per_room_per_night':
+                        quantityForDate = this.numberOfRooms;
+                        break;
+                    case 'per_person_per_room':
+                        quantityForDate = this.noOfAdults * this.numberOfRooms;
+                        break;
+                    default:
+                        quantityForDate = 1;
+                }
+                const totalAmount = amount * quantityForDate;
+                addonBrakeDown.push({
+                    addonId: addon.addon.id,
+                    name: addon.addon.name,
+                    amount,
+                    quantity: quantityForDate,
+                    totalAmount,
+                    type: "included",
+                    currencyCode: addon.addon.availability[0]
+                        .currencyCode as CurrencyCode,
+                    date: new Date(avail.date).toDateString(),
+                });
             });
 
             // calculate child addon prices if childAges exist
@@ -760,13 +749,7 @@ class AddOnPriceClass {
         addon: IAddOn,
         childAges: number[]
     ): AddOnBrakeDown[] {
-        if (
-            !addon.ChildAddons ||
-            addon.ChildAddons.length === 0 ||
-            childAges.length === 0
-        ) {
-            return [];
-        }
+        if (childAges.length === 0) return [];
 
         const availableEntries = addon.availability.filter(avail => {
             const availDate = new Date(avail.date);
@@ -779,81 +762,74 @@ class AddOnPriceClass {
 
         if (availableEntries.length === 0) return [];
 
-        // sum up per-date prices
-        const perDateTotal = availableEntries.reduce(
-            (sum, avail) => sum + Number(avail.price),
-            0
-        );
-        const avgPrice = perDateTotal / availableEntries.length;
-
-        // determine quantity based on posting rhythm
-        let quantity = 1;
-        switch (addon.postingRhythm) {
-            case 'per_night':
-                quantity = availableEntries.length;
-                break;
-            case 'per_stay':
-                quantity = 1;
-                break;
-            case 'per_person_per_night':
-                quantity = availableEntries.length;
-                break;
-            case 'per_person_per_stay':
-                quantity = 1;
-                break;
-            case 'per_room':
-                quantity = this.numberOfRooms;
-                break;
-            case 'per_room_per_night':
-                quantity = this.numberOfRooms * availableEntries.length;
-                break;
-            case 'per_person_per_room':
-                quantity = this.numberOfRooms;
-                break;
-            default:
-                quantity = 1;
-        }
-
+        // produce per-date child addon entries
         const addonBrakeDown: AddOnBrakeDown[] = [];
 
-        childAges.forEach(age => {
-            const childAddon = addon.ChildAddons.find(
-                ca => age >= ca.minAge && age <= ca.maxAge
-            );
-
-            if (!childAddon) return;
-
-            let childPrice = avgPrice;
-
-            if (
-                childAddon.discountApplicable &&
-                childAddon.discountType &&
-                childAddon.discountAmount !== null
-            ) {
-                if (childAddon.discountType === 'percentage') {
-                    const discount =
-                        (avgPrice * childAddon.discountAmount) / 100;
-                    childPrice = avgPrice - discount;
-                } else if (childAddon.discountType === 'flat') {
-                    childPrice = Math.max(
-                        avgPrice - childAddon.discountAmount,
-                        0
-                    );
-                }
+        availableEntries.forEach(avail => {
+            const amount = Number(avail.price);
+            // determine quantity per date based on posting rhythm
+            let quantityForDate = 1;
+            switch (addon.postingRhythm) {
+                case 'per_night':
+                    quantityForDate = 1;
+                    break;
+                case 'per_stay':
+                    quantityForDate = 1;
+                    break;
+                case 'per_person_per_night':
+                    quantityForDate = 1; // will be multiplied per child below
+                    break;
+                case 'per_person_per_stay':
+                    quantityForDate = 1; // will be multiplied per child below
+                    break;
+                case 'per_room':
+                    quantityForDate = this.numberOfRooms;
+                    break;
+                case 'per_room_per_night':
+                    quantityForDate = this.numberOfRooms;
+                    break;
+                case 'per_person_per_room':
+                    quantityForDate = this.numberOfRooms;
+                    break;
+                default:
+                    quantityForDate = 1;
             }
 
-            const totalAmount = childPrice * quantity;
+            childAges.forEach(age => {
+                const childAddon = addon.ChildAddons?.find(
+                    ca => age >= ca.minAge && age <= ca.maxAge
+                );
 
-            addonBrakeDown.push({
-                addonId: addon.id,
-                name: `${addon.name} (Child age ${age})`,
-                amount: childPrice,
-                quantity,
-                totalAmount,
-                currencyCode: addon.availability[0]
-                    .currencyCode as CurrencyCode,
-                date: new Date(availableEntries[0].date).toDateString(),
-                type: 'selected',
+                let childPrice = amount;
+
+                if (childAddon) {
+                    if (!childAddon.discountApplicable) {
+                        childPrice = 0;
+                    } else if (
+                        childAddon.discountApplicable &&
+                        childAddon.discountType &&
+                        childAddon.discountAmount !== null
+                    ) {
+                        if (childAddon.discountType === 'percentage') {
+                            const discount = (amount * childAddon.discountAmount) / 100;
+                            childPrice = amount - discount;
+                        } else if (childAddon.discountType === 'flat') {
+                            childPrice = Math.max(amount - childAddon.discountAmount, 0);
+                        }
+                    }
+                }
+                const totalAmount = childPrice * quantityForDate;
+
+                addonBrakeDown.push({
+                    addonId: addon.id,
+                    name: `${addon.name} (Child age ${age})`,
+                    amount: childPrice,
+                    quantity: quantityForDate,
+                    totalAmount,
+                    currencyCode: addon.availability[0].currencyCode as CurrencyCode,
+                    date: new Date(avail.date).toDateString(),
+                    type: 'selected',
+                });
             });
         });
 
@@ -899,45 +875,42 @@ class PromotionClass {
     public async promotionPrices(country?: string): Promise<PriceBrakeDown> {
         const { autoAppliedMLOS, autoAppliedPromotions } =
             await this.fetchAllAutoAppliedPromotions();
-        const autoAppliedMlosBrakeDown =
-            this.calculateAutoAppliedMLOSPrices(autoAppliedMLOS, "auto-applied");
-        const autoAppliedPromotionBrakeDown =
-            this.calculateAutoAppliedPromotionPrices(autoAppliedPromotions, "auto-applied");
+
+        const autoAppliedMlosBrakeDown = this.calculateAutoAppliedMLOSPrices(autoAppliedMLOS, "auto-applied");
+        const autoAppliedPromotionBrakeDown = this.calculateAutoAppliedPromotionPrices(autoAppliedPromotions, "auto-applied");
         const mlsoBrakeDown = this.calculateAutoAppliedMLOSPrices(this.mlos, "user-applied");
-        const promotionBrakeDown = this.calculateAutoAppliedPromotionPrices(
-            this.promotions, "user-applied"
-        );
+        const promotionBrakeDown = this.calculateAutoAppliedPromotionPrices(this.promotions, "user-applied");
+
         const geoPriceBrakedown = this.calculateGeoLocation(country);
 
-        const totalPromotionalBrakeDown = [
+        const visiblePromotionalBrakeDown = [
             ...autoAppliedMlosBrakeDown,
             ...autoAppliedPromotionBrakeDown,
             ...mlsoBrakeDown,
             ...promotionBrakeDown,
-            ...geoPriceBrakedown,
         ];
-        const totalPromotionaalDiscountedAmount =
-            totalPromotionalBrakeDown.reduce((sum, promo) => {
-                if (promo.restrictionType === 'decrease') {
-                    return sum + promo.discountAmount; // debug here for promotion decrease
-                } else {
-                    return sum - promo.discountAmount;
-                }
-            }, 0);
-        // console.log(
-        //     'totalPromotionaalDiscountedAmount',
-        //     totalPromotionaalDiscountedAmount
-        // );
+
+        const visibleDiscountAmount = visiblePromotionalBrakeDown.reduce((sum, promo) => {
+            return promo.restrictionType === 'decrease'
+                ? sum + promo.discountAmount
+                : sum - promo.discountAmount;
+        }, 0);
+
+        const geoDiscountAmount = geoPriceBrakedown.reduce((sum, promo) => {
+            return promo.restrictionType === 'decrease'
+                ? sum + promo.discountAmount
+                : sum - promo.discountAmount;
+        }, 0);
+
+        const totalDiscountedAmount = visibleDiscountAmount + geoDiscountAmount;
+
         return {
             ...this.priceBrakeDown,
-            totalPromotionAmount: totalPromotionaalDiscountedAmount,
-            totalAmount:
-                this.priceBrakeDown.totalAmount -
-                totalPromotionaalDiscountedAmount,
-            currentChargeableAmount:
-                this.priceBrakeDown.currentChargeableAmount -
-                totalPromotionaalDiscountedAmount,
-            promotionBrakeDown: totalPromotionalBrakeDown,
+            totalPromotionAmount: visibleDiscountAmount,
+            amountBeforeTax: this.priceBrakeDown.amountBeforeTax - geoDiscountAmount,
+            totalAmount: this.priceBrakeDown.totalAmount - totalDiscountedAmount,
+            currentChargeableAmount: this.priceBrakeDown.currentChargeableAmount - totalDiscountedAmount,
+            promotionBrakeDown: visiblePromotionalBrakeDown,
         };
     }
     private differenceReservationDays(startDate: Date, endDate: Date): number {
@@ -1014,21 +987,21 @@ class PromotionClass {
         autoAppliedPromotions.forEach(promotion => {
             if (promotion.promotionType === 'early_bird') {
                 const earlyBirdPromotionBrakeDown =
-                    this.calculateEarlyBirdPromotionPrices(promotion,type);
+                    this.calculateEarlyBirdPromotionPrices(promotion, type);
                 if (!earlyBirdPromotionBrakeDown) {
                     return;
                 }
                 promotionBrakeDown.push(earlyBirdPromotionBrakeDown);
             } else if (promotion.promotionType === 'offer_for_tonight') {
                 const offerForTonightPromotionBrakeDown =
-                    this.calculateOfferForTonightPromotionPrices(promotion,type);
+                    this.calculateOfferForTonightPromotionPrices(promotion, type);
                 if (!offerForTonightPromotionBrakeDown) {
                     return;
                 }
                 promotionBrakeDown.push(offerForTonightPromotionBrakeDown);
             } else if (promotion.promotionType === 'device_specific') {
                 const deviceBasedPromotionBrakeDown =
-                    this.calculateDeviceBasedPromotionPrices(promotion,type);
+                    this.calculateDeviceBasedPromotionPrices(promotion, type);
                 if (!deviceBasedPromotionBrakeDown) {
                     return;
                 }
@@ -1206,50 +1179,47 @@ class PromotionClass {
         return false;
     }
     private calculateGeoLocation(country?: string): PromotionBrakeDown[] {
-        let promotionBrakehown: PromotionBrakeDown[] = [];
-        if (!country) {
-            return [];
-        }
-        this.geoRatePlans.map(geo => {
-            if (geo.roomType && geo.roomType !== this.roomType) {
-                return null;
-            }
-            if (geo.countryCode.includes(country)) {
-                if (geo.restrictionType === 'restricted') {
-                    throw new Error(
-                        `This room is restricted for this country  `
-                    );
-                } else if (geo.restrictionType == 'fixed') {
-                    promotionBrakehown.push({
-                        id: geo.id,
-                        promotionType: 'normal',
-                        currencyCode: geo.currencyCode,
-                        discountAmount: Number(geo.restrictionValue),
-                        discountType: 'flat',
-                        discountValue: Number(geo.restrictionValue),
-                        name: 'Geo Restriction',
-                        restrictionType: 'decrease',
-                        type: "auto-applied"
-                    });
-                } else if (geo.restrictionType === 'percentage') {
-                    promotionBrakehown.push({
-                        id: geo.id,
-                        promotionType: 'normal',
-                        currencyCode: geo.currencyCode,
-                        discountAmount:
-                            (this.baseAmount * Number(geo.restrictionValue)) /
-                            100,
-                        discountType: 'flat',
-                        discountValue: Number(geo.restrictionValue),
-                        name: 'Geo Restriction',
-                        restrictionType: 'decrease',
-                        type: "auto-applied"
+        const promotionBrakeDown: PromotionBrakeDown[] = [];
+        if (!country) return [];
 
-                    });
-                }
+        this.geoRatePlans.forEach(geo => {
+            if (geo.roomType && geo.roomType !== this.roomType) return;
+            if (!geo.countryCode.includes(country)) return;
+
+            if (geo.restrictionType === 'restricted') {
+                throw new Error(`This room is restricted for this country`);
+            }
+
+            const restrictionType = geo.restrictionTypeAction === 'increase' ? 'increase' : 'decrease';
+
+            if (geo.restrictionType === 'fixed') {
+                promotionBrakeDown.push({
+                    id: geo.id,
+                    promotionType: 'normal',
+                    currencyCode: geo.currencyCode,
+                    discountAmount: Number(geo.restrictionValue),
+                    discountType: 'flat',
+                    discountValue: Number(geo.restrictionValue),
+                    name: 'Geo Restriction',
+                    restrictionType,
+                    type: "auto-applied"
+                });
+            } else if (geo.restrictionType === 'percentage') {
+                promotionBrakeDown.push({
+                    id: geo.id,
+                    promotionType: 'normal',
+                    currencyCode: geo.currencyCode,
+                    discountAmount: (this.baseAmount * Number(geo.restrictionValue)) / 100,
+                    discountType: 'percentage',
+                    discountValue: Number(geo.restrictionValue),
+                    name: 'Geo Restriction',
+                    restrictionType,
+                    type: "auto-applied"
+                });
             }
         });
-        return promotionBrakehown;
+
+        return promotionBrakeDown;
     }
 }
 

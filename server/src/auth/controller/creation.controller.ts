@@ -5,18 +5,33 @@ import CreationService, { FetchByCreationId, FetchByUserId } from "../services/c
 export default class CreationController {
     public static async createController(req: CustomRequest, res: Response) {
         try {
-            const { type, name, creationId, level,images } = req.body;
+            const { type, name, creationId, level, images, assignTo, isCustom } = req.body;
             if (!type || !name) {
                 return res.status(400).json(errorResponse("Fill all the fields"))
             }
             const userId = req.user?.id
-            const userLevel = level ? level : req.user?.level;
+            let userLevel = level ? level : req.user?.level;
+            if(req.user?.role === "regional_admin"){
+                userLevel = 3;
+            }
+
             const usersCreation = creationId ? creationId : req.user?.creationId
-            // console.log(userId, userLevel, usersCreation)
             if (!userId || !userLevel || !usersCreation) {
                 return res.status(400).json(errorResponse("UnAuthorized user"))
             }
-            const serRes = await CreationService.create(type, name, userId, userLevel, usersCreation, images)
+            if (isCustom && !assignTo) {
+                return res.status(400).json(errorResponse("Choose a regional creation"))
+            }
+            const serRes = await CreationService.create(
+                type,
+                name,
+                userId,
+                userLevel,
+                usersCreation,
+                images,
+                isCustom,
+                assignTo
+            )
             return res.status(serRes.success ? 200 : 400).json(serRes)
         } catch (error: any) {
             return res.status(500).json(errorResponse("Internal server error", error?.message))
@@ -25,11 +40,11 @@ export default class CreationController {
     public static async updateController(req: CustomRequest, res: Response) {
         try {
             const id = req.params.id;
-            const { name, images,isActive } = req.body;
+            const { name, images, isActive } = req.body;
             if (!name) {
                 return res.status(400).json(errorResponse("Name is required"));
             }
-            const serRes = await CreationService.update(id, name, images,isActive);
+            const serRes = await CreationService.update(id, name, images, isActive);
             return res.status(serRes.success ? 200 : 400).json(serRes);
         } catch (error: any) {
             return res.status(500).json(errorResponse("Internal server error", error?.message));
@@ -56,7 +71,7 @@ export default class CreationController {
     }
     public static async getAllController(req: CustomRequest, res: Response) {
         try {
-            const type = req.query.type as "group" | "property" | "brand" | "super"
+            const type = req.query.type as "group" | "property" | "brand" | "super" | "regional"
             const isActive = req.query.isActive
             const serRes = await CreationService.getAll(type ? type : "property", isActive?.toString() === "true" ? true : false)
             return res.status(serRes.success ? 200 : 400).json(serRes)
@@ -77,7 +92,7 @@ export default class CreationController {
         try {
             const requestUserLevel = req.user?.level;
             const creationId = req.user?.creationId;
-           // console.log(creationId)
+            // console.log(creationId)
             if (!requestUserLevel || !creationId) {
                 return res.status(400).json(errorResponse('Insufficient user data'));
             }
