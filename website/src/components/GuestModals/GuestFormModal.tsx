@@ -611,58 +611,90 @@ const GuestFormModal: React.FC<Props> = ({
                     </div>
                   )}
                   {(finalPrice.totalAddonAmount ?? 0) > 0 && (() => {
-  // Group by addonId+type, collapse child-age variants
-  const grouped = new Map<string, { name: string; quantity: number; total: number; currency: string; type: string }>();
+                    const grouped = new Map<
+                      string,
+                      { name: string; quantity: number; total: number; currency: string; type: string }
+                    >();
 
-  for (const addon of finalPrice.addonBrakeDown ?? []) {
-    const isChild = addon.name?.includes("Child age");
-    const key = isChild ? `${addon.addonId}::child` : `${addon.addonId}::${addon.type}`;
-    const displayName = isChild
-      ? addon.name.replace(/\s*\(Child age \d+\)/, "") + " (children)"
-      : addon.name;
+                    for (const addon of finalPrice.addonBrakeDown ?? []) {
+                      const isChild = addon.name?.includes("Child age");
 
-    if (grouped.has(key)) {
-      const e = grouped.get(key)!;
-      e.quantity += addon.quantity ?? 0;
-      e.total += addon.totalAmount ?? 0;
-    } else {
-      grouped.set(key, {
-        name: displayName,
-        quantity: addon.quantity ?? 0,
-        total: addon.totalAmount ?? 0,
-        currency: addon.currencyCode || finalPrice.currencyCode,
-        type: addon.type,
-      });
-    }
-  }
+                      const key = isChild
+                        ? `${addon.addonId}::child`
+                        : `${addon.addonId}::${addon.type}`;
 
-  return (
-    <div className="border-t pt-2 mt-2">
-      <div className="font-medium text-gray-700 mb-1">Add-ons:</div>
-      {Array.from(grouped.values()).map((addon, i) => (
-        <div key={i} className="flex justify-between text-gray-600 pl-4">
-          <span className="flex items-center gap-1.5">
-            {addon.type === "included" && (
-              <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-medium">included</span>
-            )}
-            {addon.name}
-            <span className="text-gray-400">×{addon.quantity}</span>
-          </span>
-          <span>
-            {addon.total === 0
-              ? <span className="text-green-600 text-xs font-medium">Free</span>
-              : `${getCurrencySymbol(addon.currency)}${addon.total.toFixed(2)}`
-            }
-          </span>
-        </div>
-      ))}
-      <div className="flex justify-between font-medium pt-1 border-t mt-1">
-        <span>Total Add-ons:</span>
-        <span>{getCurrencySymbol(finalPrice.currencyCode)}{finalPrice.totalAddonAmount.toFixed(2)}</span>
-      </div>
-    </div>
-  );
-})()}
+                      const baseName = isChild
+                        ? addon.name.replace(/\s*\(Child age \d+\)/, "")
+                        : addon.name;
+
+                      const displayName = isChild
+                        ? t("GuestForm.childrenAddon", { name: baseName })
+                        : baseName;
+
+                      if (grouped.has(key)) {
+                        const e = grouped.get(key)!;
+                        e.quantity += addon.quantity ?? 0;
+                        e.total += addon.totalAmount ?? 0;
+                      } else {
+                        grouped.set(key, {
+                          name: displayName,
+                          quantity: addon.quantity ?? 0,
+                          total: addon.totalAmount ?? 0,
+                          currency: addon.currencyCode || finalPrice.currencyCode,
+                          type: addon.type,
+                        });
+                      }
+                    }
+
+                    return (
+                      <div className="border-t pt-2 mt-2">
+
+                        {/* Label */}
+                        <div className="font-medium text-gray-700 mb-1">
+                          {t("GuestForm.addonsLabel")}
+                        </div>
+
+                        {/* Addon List */}
+                        {Array.from(grouped.values()).map((addon, i) => (
+                          <div key={`${addon.name}-${i}`} className="flex justify-between text-gray-600 pl-4">
+
+                            <span className="flex items-center gap-1.5">
+
+                              {/* Included badge */}
+                              {addon.type === "included" && (
+                                <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-medium">
+                                  {t("GuestForm.included")}
+                                </span>
+                              )}
+
+                              {addon.name}
+                              <span className="text-gray-400">×{addon.quantity}</span>
+                            </span>
+
+                            {/* Price */}
+                            <span>
+                              {addon.total === 0 ? (
+                                <span className="text-green-600 text-xs font-medium">
+                                  {t("GuestForm.free")}
+                                </span>
+                              ) : (
+                                `${getCurrencySymbol(addon.currency)}${addon.total.toFixed(2)}`
+                              )}
+                            </span>
+                          </div>
+                        ))}
+
+                        {/* Total */}
+                        <div className="flex justify-between font-medium pt-1 border-t mt-1">
+                          <span>{t("GuestForm.totalAddons")}</span>
+                          <span>
+                            {getCurrencySymbol(finalPrice.currencyCode)}
+                            {finalPrice.totalAddonAmount.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
                   {finalPrice.promotionBrakeDown && Array.isArray(finalPrice.promotionBrakeDown) && finalPrice.promotionBrakeDown.length > 0 && (
                     <div className="border-t pt-2 mt-2">
                       <div className="font-medium text-gray-700 mb-1">{t("GuestForm.promotions")}</div>
