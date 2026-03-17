@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { CreditCard, Loader2, ExternalLink, RefreshCw, XCircle } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -46,6 +47,7 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
   const fikafiRefNumRef = useRef<string>("");
   const socketRef = useRef<any>(null);
   const hasAutoTriggeredRef = useRef(false);
+  const { t } = useTranslation();
 
   // Initialize socket connection for payment updates
   const initializeSocket = useCallback((ref: string) => {
@@ -107,7 +109,7 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
     try {
       // Validate required fields
       if (!guestEmail && !guestPhone) {
-        toast.error("Please provide either email or phone number");
+        toast.error(t("Fikafi.errors.missingContact"));
         onPaymentError?.("Missing guest contact information");
         setLoading(false);
         return;
@@ -115,7 +117,7 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
 
       // Require booking code - reservation must exist first
       if (!bookingCode) {
-        toast.error("Please confirm your booking first before payment");
+        toast.error(t("Fikafi.errors.missingBookingCode"));
         onPaymentError?.("Booking code is required - reservation must exist");
         setLoading(false);
         return;
@@ -227,7 +229,7 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
       }
     } catch (error: any) {
       console.error("❌ Fikafi payment error:", error);
-      toast.error(error.message || "Payment failed. Please try again.");
+      toast.error(error.message || t("Fikafi.errors.paymentFailed"));
       onPaymentError?.(error.message || "Payment failed");
       if (autoTrigger) setAutoTriggerError(true);
     } finally {
@@ -265,10 +267,10 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold text-gray-900">
-                  Payment link could not be created
+                  {t("Fikafi.errorTitle")}
                 </p>
                 <p className="text-xs text-gray-500 mt-0.5">
-                  There was an issue connecting to the payment gateway. Please try again.
+                  {t("Fikafi.errorSubtitle")}
                 </p>
               </div>
             </div>
@@ -284,13 +286,13 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
                 className="flex-1 flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-800 text-white text-sm font-medium py-2.5 px-4 rounded-lg transition-colors"
               >
                 <RefreshCw className="w-4 h-4" />
-                Try Again
+                {t("Fikafi.tryAgain")}
               </button>
               <button
                 onClick={() => onPaymentError?.("Payment cancelled")}
                 className="flex items-center justify-center gap-2 bg-white hover:bg-gray-50 text-gray-600 text-sm font-medium py-2.5 px-4 rounded-lg border border-gray-200 transition-colors"
               >
-                Cancel
+                {t("Fikafi.cancel")}
               </button>
             </div>
           </div>
@@ -301,7 +303,7 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
     return (
       <div className={`flex items-center justify-center gap-3 bg-gray-900 text-white text-sm font-medium py-3 px-6 rounded-lg ${className}`}>
         <Loader2 className="w-4 h-4 animate-spin opacity-70" />
-        <span>Preparing secure payment...</span>
+        <span>{t("Fikafi.preparingPayment")}</span>
       </div>
     );
   }
@@ -316,7 +318,7 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
         className={`flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-colors ${className}`}
       >
         <ExternalLink className="w-5 h-5" />
-        Redirect to Payment
+        {t("Fikafi.redirectToPayment")}
       </a>
     );
   }
@@ -330,12 +332,12 @@ const FikafiPaymentButton: React.FC<FikafiPaymentButtonProps> = ({
       {loading ? (
         <>
           <Loader2 className="w-5 h-5 animate-spin" />
-          Redirecting to Fikafi...
+          {t("Fikafi.redirecting")}
         </>
       ) : !bookingCode ? (
         <>
           <CreditCard className="w-5 h-5" />
-          Confirm Booking First
+          {t("Fikafi.confirmFirst")}
         </>
       ) : (
         <>

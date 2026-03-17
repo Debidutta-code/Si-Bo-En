@@ -22,6 +22,7 @@ import { Room } from "../../store/roomsSlice";
 import { useBookingStorage } from "../../hooks/useBookingStorage";
 import toast from "react-hot-toast";
 import { IPropertyLoyalityWithLoyality } from "@/src/app/Rooms/interface";
+import { useTranslation } from "react-i18next";
 
 interface RoomCardProps {
   room: Room;
@@ -119,6 +120,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
   loyalty,
   onUnlockLoyalty,
 }) => {
+  const { t } = useTranslation();
   // const { currency: selectedCurrency } = useSelector((state: RootState) => state.booking);
   const [loadingPriceFor, setLoadingPriceFor] = useState<string | null>(null);
 
@@ -209,7 +211,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
   // Update price sidebar whenever addons change
   useEffect(() => {
     if (expandedRatePlan && onPriceUpdate && latestPrice) {
-      const currentRatePlan = room.room_price.find(
+      const currentRatePlan = room.roomPrice.find(
         (rp: any) => rp.ratePlanCode === expandedRatePlan,
       );
       if (currentRatePlan) {
@@ -297,7 +299,7 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
       await proceedWithBooking(ratePlan, []);
     } catch (error) {
       console.error("Error in booking flow:", error);
-      toast.error("Something went wrong. Please try again.");
+      toast.error(t("RoomCard.errors.somethingWentWrong"));
     } finally {
       setLoadingPriceFor(null);
     }
@@ -311,12 +313,12 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
     setLoadingPriceFor(ratePlan.comboLabel);
     try {
       const childAges = bookingContext.guests.roomsArray
-    ? bookingContext.guests.roomsArray.flatMap((room: any) => room.childAges || [])
-    : Array(bookingContext.guests.children || 0).fill(0);
-    
+        ? bookingContext.guests.roomsArray.flatMap((room: any) => room.childAges || [])
+        : Array(bookingContext.guests.children || 0).fill(0);
+
       const payload: any = {
         propertyCode: bookingContext.PropertyCode,
-        invTypeCode: room.room_type,
+        invTypeCode: room.roomType,
         ratePlanCode: ratePlan.ratePlanCode,
         startDate: bookingContext.startDate,
         endDate: bookingContext.endDate,
@@ -391,7 +393,7 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
       );
     } catch (error) {
       console.error("Error fetching price:", error);
-      toast.error("Failed to fetch price. Please try again.");
+      toast.error(t("RoomCard.errors.failedToFetchPrice"));
     } finally {
       setLoadingPriceFor(null);
     }
@@ -445,7 +447,7 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
   // Around line 355:
   const handleContinue = () => {
     const selectedAddonsList = Object.values(selectedAddons);
-    const currentRatePlan = room.room_price.find(
+    const currentRatePlan = room.roomPrice.find(
       (rp: any) => rp.ratePlanCode === expandedRatePlan,
     );
     const selectedPromotionsList =
@@ -464,7 +466,7 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
   };
 
   const handleSkip = () => {
-    const currentRatePlan = room.room_price.find(
+    const currentRatePlan = room.roomPrice.find(
       (rp: any) => rp.ratePlanCode === expandedRatePlan,
     );
     const selectedPromotionsList =
@@ -517,7 +519,7 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
     0,
   );
   // Group combos by ratePlanCode → one card per rate plan
-  const groupedRatePlans = room.room_price.reduce(
+  const groupedRatePlans = room.roomPrice.reduce(
     (acc: Record<string, any[]>, rp: any) => {
       if (!acc[rp.ratePlanCode]) acc[rp.ratePlanCode] = [];
       acc[rp.ratePlanCode].push(rp);
@@ -552,7 +554,7 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
               // Image Display
               <img
                 src={images[currentImageIndex]}
-                alt={room.room_name}
+                alt={room.roomName}
                 className="w-full h-48 object-cover"
               />
             )}
@@ -579,18 +581,16 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
                   {images.map((_, idx) => (
                     <span
                       key={idx}
-                      className={`h-2 w-2 rounded-full ${
-                        !showVideo && idx === currentImageIndex
-                          ? "bg-white"
-                          : "bg-white/50"
-                      }`}
+                      className={`h-2 w-2 rounded-full ${!showVideo && idx === currentImageIndex
+                        ? "bg-white"
+                        : "bg-white/50"
+                        }`}
                     />
                   ))}
                   {hasVideo && (
                     <span
-                      className={`h-2 w-2 rounded-full ${
-                        showVideo ? "bg-white" : "bg-white/50"
-                      }`}
+                      className={`h-2 w-2 rounded-full ${showVideo ? "bg-white" : "bg-white/50"
+                        }`}
                     />
                   )}
                 </div>
@@ -602,10 +602,10 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
             <div className="flex items-start justify-between mb-2">
               <div className="flex-1">
                 <h2 className="text-xl md:text-2xl font-bold text-gray-900 leading-tight">
-                  {room.room_name}
+                  {room.roomName}
                 </h2>
                 <p className="text-xs md:text-sm text-gray-500 font-medium mt-1">
-                  {room.room_type}
+                  {room.roomType}
                 </p>
               </div>
             </div>
@@ -617,18 +617,18 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
             <div className="flex flex-wrap gap-3 md:gap-4 text-xs md:text-sm text-gray-600 mb-3">
               <div className="flex items-center gap-1.5">
                 <Users size={16} className="text-orange-500 flex-shrink-0" />
-                <span className="font-medium">{room.max_occupancy} Guests</span>
+                <span className="font-medium">{room.maxOccupancy} Guests</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <Ruler size={16} className="text-orange-500 flex-shrink-0" />
                 <span className="font-medium">
-                  {room.room_size} {room.room_unit}
+                  {room.roomSize} {room.roomUnit}
                 </span>
               </div>
-              {room.room_view && (
+              {room.roomView && (
                 <div className="flex items-center gap-1.5">
                   <Eye size={16} className="text-orange-500 flex-shrink-0" />
-                  <span className="font-medium">{room.room_view}</span>
+                  <span className="font-medium">{room.roomView}</span>
                 </div>
               )}
             </div>
@@ -707,13 +707,14 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
                         {firstCombo.availableRooms &&
                           firstCombo.availableRooms <= 5 && (
                             <span className="px-3 py-1 bg-red-50 text-red-600 border border-red-200 text-xs font-bold rounded-md uppercase animate-pulse">
-                              ⚠ Only {firstCombo.availableRooms} Room
-                              {firstCombo.availableRooms !== 1 ? "s" : ""} Left!
+                              ⚠ {firstCombo.availableRooms === 1
+                                ? t("RoomCard.onlyRoomsLeft", { count: firstCombo.availableRooms })
+                                : t("RoomCard.onlyRoomsLeftPlural", { count: firstCombo.availableRooms })}
                             </span>
                           )}
                         {selectedPromotions[ratePlanCode]?.length > 0 && (
                           <span className="px-2.5 py-1 bg-blue-50 border border-blue-200 text-blue-800 text-xs font-bold rounded-md">
-                            Promotional rate
+                            {t("RoomCard.promotionalRate")}
                           </span>
                         )}
                       </div>
@@ -724,7 +725,7 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
                             onClick={() => handleViewDetails(firstCombo)}
                             className="text-xs md:text-sm text-blue-600 hover:text-blue-700 font-medium hover:underline"
                           >
-                            Booking conditions →
+                            {t("RoomCard.bookingConditions")}
                           </button>
 
                           {/* Available Promotions Toggle */}
@@ -753,8 +754,8 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
                                 />
                               </svg>
                               {selectedPromotions[ratePlanCode]?.length > 0
-                                ? `${selectedPromotions[ratePlanCode].length} Offer(s) Applied • ${firstCombo.availablePromotions.length} Available`
-                                : `${firstCombo.availablePromotions.length} Special Offer${firstCombo.availablePromotions.length > 1 ? "s" : ""} Available`}
+                                ? `${selectedPromotions[ratePlanCode].length} ${t("RoomCard.offersApplied")} • ${firstCombo.availablePromotions.length} ${t("RoomCard.available")}`
+                                : `${firstCombo.availablePromotions.length} ${firstCombo.availablePromotions.length > 1 ? t("RoomCard.specialOffersAvailable") : t("RoomCard.specialOfferAvailable")}`}
                             </button>
                           )}
 
@@ -763,7 +764,7 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
                             firstCombo.availablePromotions?.length > 0 && (
                               <div className="mt-4 p-4 bg-gradient-to-br from-orange-50 to-amber-50 border-l-4 border-orange-400 rounded-lg">
                                 <p className="text-xs font-bold text-orange-800 uppercase tracking-wide mb-3">
-                                  🏷 Special Offers Available
+                                  🏷 {t("RoomCard.specialOffersAvailable")}
                                 </p>
                                 <div className="space-y-2">
                                   {firstCombo.availablePromotions.map(
@@ -786,33 +787,32 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
                                                 ...prev,
                                                 [ratePlanCode]: alreadySelected
                                                   ? current.filter(
-                                                      (p: any) =>
-                                                        p.id !== promo.id,
-                                                    )
+                                                    (p: any) =>
+                                                      p.id !== promo.id,
+                                                  )
                                                   : [...current, promo],
                                               };
                                             });
                                           }}
-                                          className={`flex items-center justify-between p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                                            isSelected
-                                              ? "border-orange-500 bg-orange-100"
-                                              : "border-orange-200 bg-white hover:border-orange-400"
-                                          }`}
+                                          className={`flex items-center justify-between p-3 rounded-lg border-2 cursor-pointer transition-all ${isSelected
+                                            ? "border-orange-500 bg-orange-100"
+                                            : "border-orange-200 bg-white hover:border-orange-400"
+                                            }`}
                                         >
                                           <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-0.5">
                                               <span className="text-xs font-bold text-orange-900">
                                                 {promo.promotionType ===
-                                                "device_specific"
+                                                  "device_specific"
                                                   ? "📱"
                                                   : promo.promotionType ===
-                                                      "mlos"
+                                                    "mlos"
                                                     ? "🌙"
                                                     : promo.promotionType ===
-                                                        "early_bird"
+                                                      "early_bird"
                                                       ? "🐦"
                                                       : promo.promotionType ===
-                                                          "offer_for_tonight"
+                                                        "offer_for_tonight"
                                                         ? "🌙"
                                                         : "🏷"}{" "}
                                                 {promo.promotionName}
@@ -825,22 +825,20 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
                                               {promo.promotionType === "mlos"
                                                 ? `Minimum ${promo.minLos} night stay`
                                                 : promo.promotionType ===
-                                                    "device_specific"
+                                                  "device_specific"
                                                   ? "Device exclusive offer"
                                                   : promo.promotionType ===
-                                                      "early_bird"
-                                                    ? `Book ${promo.advanceBookingDays} days in advance`
-                                                    : "Special offer"}
-                                              {promo.validTo &&
-                                                ` • Valid until ${new Date(promo.validTo).toLocaleDateString()}`}
+                                                    "early_bird"
+                                                    ? t("RoomCard.promotions.bookDaysInAdvance", { count: promo.advanceBookingDays })
+                                                    : t("RoomCard.promotions.specialOffer")}
+                                              {promo.validTo && ` • ${t("RoomCard.promotions.validUntil")} ${new Date(promo.validTo).toLocaleDateString()}`}
                                             </p>
                                           </div>
                                           <div
-                                            className={`ml-3 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${
-                                              isSelected
-                                                ? "border-orange-500 bg-orange-500"
-                                                : "border-gray-300"
-                                            }`}
+                                            className={`ml-3 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${isSelected
+                                              ? "border-orange-500 bg-orange-500"
+                                              : "border-gray-300"
+                                              }`}
                                           >
                                             {isSelected && (
                                               <svg
@@ -866,12 +864,12 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
 
                                 {selectedPromotions[ratePlanCode]?.length >
                                   0 && (
-                                  <p className="mt-2 text-[10px] text-orange-700 font-medium text-center">
-                                    ✓ {selectedPromotions[ratePlanCode].length}{" "}
-                                    offer(s) selected — will be applied at
-                                    checkout
-                                  </p>
-                                )}
+                                    <p className="mt-2 text-[10px] text-orange-700 font-medium text-center">
+                                      ✓ {selectedPromotions[ratePlanCode].length}{" "}
+                                      offer(s) selected — will be applied at
+                                      checkout
+                                    </p>
+                                  )}
                               </div>
                             )}
                         </>
@@ -880,11 +878,11 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
 
                     {/* Tax info top-right (like in screenshot) */}
                     {firstCombo.touristTax?.calculatedTaxAmount > 0 && (
-                      <div className="text-xs text-right text-gray-500 max-w-[400px] hidden sm:block">
-                        TAX NOT INCLUDED:{" "}
-                        {firstCombo.touristTax.name?.toUpperCase()} {currency}{" "}
-                        {firstCombo.touristTax.calculatedTaxAmount.toFixed(2)} -
-                        PAY AT THE HOTEL
+                      <div className="flex-shrink-0 self-start">
+                        <span className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-300 text-amber-800 text-[11px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
+                          {t("RoomCard.taxNotIncluded")}
+                        </span>
                       </div>
                     )}
                   </div>
@@ -902,19 +900,19 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
                           ? "Room Only"
                           : rawLabel.startsWith("+")
                             ? rawLabel
-                                .split("+")
-                                .filter(Boolean)
-                                .map((s: string) => s.trim())
-                                .join(" & ")
+                              .split("+")
+                              .filter(Boolean)
+                              .map((s: string) => s.trim())
+                              .join(" & ")
                             : rawLabel;
                       const comboBase = combo.totalAmount || 0;
                       const comboAfterLoyalty =
                         comboBase -
                         (loyalty?.discountPercentage !== null &&
-                        loyalty?.discountPercentage !== undefined
+                          loyalty?.discountPercentage !== undefined
                           ? (comboBase * loyalty.discountPercentage) / 100
                           : loyaltyDiscount?.loyaltyDiscountType ===
-                              "percentage"
+                            "percentage"
                             ? (comboBase * loyaltyDiscount.discountValue) / 100
                             : loyaltyDiscount?.discountValue || 0);
                       const isComboExpanded =
@@ -960,7 +958,7 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
                                     className="flex flex-col items-center border-2 border-dashed border-gray-400 rounded-lg px-2.5 py-1.5 hover:border-blue-500 transition-all group"
                                   >
                                     <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest mb-0.5">
-                                      — UNLOCK —
+                                      — {t("RoomCard.unlock")} —
                                     </span>
                                     <div className="flex items-center gap-1">
                                       <svg
@@ -1035,10 +1033,10 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
                                 {isLoadingForRatePlan(combo.comboLabel) ? (
                                   <div className="flex items-center gap-1.5">
                                     <div className="h-3.5 w-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                                    <span>Loading...</span>
+                                    <span>{t("RoomCard.loading")}</span>
                                   </div>
                                 ) : (
-                                  "ADD"
+                                  t("RoomCard.add")
                                 )}
                               </button>
                             </div>
@@ -1051,7 +1049,7 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
                               <div className="mt-3 grid grid-cols-1 lg:grid-cols-3 gap-2">
                                 <div className="bg-white border border-gray-200 rounded-lg px-3 py-2">
                                   <p className="text-[10px] text-gray-500 uppercase font-semibold tracking-wide mb-1">
-                                    Base Price
+                                    {t("RoomCard.basePrice")}
                                   </p>
                                   <p className="text-sm font-bold text-gray-800">
                                     {currency}{" "}
@@ -1069,14 +1067,14 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
                                     ).toFixed(2)}
                                   </p>
                                   <p className="text-[10px] text-gray-400">
-                                    per night
+                                    {t("RoomCard.perNight")}
                                   </p>
                                 </div>
 
                                 {combo.appliedDiscounts?.length > 0 && (
                                   <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2">
                                     <p className="text-[10px] text-green-700 uppercase font-semibold tracking-wide mb-1">
-                                      Auto-Applied Discounts
+                                      {t("RoomCard.autoAppliedDiscounts")}
                                     </p>
                                     <div className="space-y-1">
                                       {combo.appliedDiscounts.map(
@@ -1087,16 +1085,16 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
                                           >
                                             <span className="text-[11px] text-green-800 truncate">
                                               {discount.promotionType ===
-                                              "promocode"
+                                                "promocode"
                                                 ? `🎟 ${discount.promotionName}`
                                                 : discount.promotionType ===
-                                                    "early_bird"
+                                                  "early_bird"
                                                   ? `🐦 ${discount.promotionName}`
                                                   : discount.promotionType ===
-                                                      "geo"
+                                                    "geo"
                                                     ? `🌍 ${discount.promotionName}`
                                                     : discount.promotionType ===
-                                                        "mlos"
+                                                      "mlos"
                                                       ? `🌙 ${discount.promotionName}`
                                                       : `✓ ${discount.promotionName}`}
                                             </span>
@@ -1115,30 +1113,30 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
 
                                 {combo.addons?.filter((a: any) => a.price > 0)
                                   .length > 0 && (
-                                  <div className="bg-orange-50 border border-orange-200 rounded-lg px-3 py-2">
-                                    <p className="text-[10px] text-orange-700 uppercase font-semibold tracking-wide mb-1">
-                                      Included Addons
-                                    </p>
-                                    <div className="space-y-1">
-                                      {combo.addons
-                                        .filter((a: any) => a.price > 0)
-                                        .map((addon: any) => (
-                                          <div
-                                            key={addon.id}
-                                            className="flex items-center justify-between gap-2"
-                                          >
-                                            <span className="text-[11px] text-orange-800 truncate">
-                                              🍽 {addon.name}
-                                            </span>
-                                            <span className="text-[11px] font-bold text-orange-700 whitespace-nowrap">
-                                              +{currency}{" "}
-                                              {addon.price.toFixed(2)}
-                                            </span>
-                                          </div>
-                                        ))}
+                                    <div className="bg-orange-50 border border-orange-200 rounded-lg px-3 py-2">
+                                      <p className="text-[10px] text-orange-700 uppercase font-semibold tracking-wide mb-1">
+                                        {t("RoomCard.includedAddons")}
+                                      </p>
+                                      <div className="space-y-1">
+                                        {combo.addons
+                                          .filter((a: any) => a.price > 0)
+                                          .map((addon: any) => (
+                                            <div
+                                              key={addon.id}
+                                              className="flex items-center justify-between gap-2"
+                                            >
+                                              <span className="text-[11px] text-orange-800 truncate">
+                                                🍽 {addon.name}
+                                              </span>
+                                              <span className="text-[11px] font-bold text-orange-700 whitespace-nowrap">
+                                                +{currency}{" "}
+                                                {addon.price.toFixed(2)}
+                                              </span>
+                                            </div>
+                                          ))}
+                                      </div>
                                     </div>
-                                  </div>
-                                )}
+                                  )}
                               </div>
 
                               {/* Policies */}
@@ -1147,7 +1145,7 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
                                   onClick={() => handleViewDetails(combo)}
                                   className="text-xs text-blue-600 hover:text-blue-700 font-medium hover:underline"
                                 >
-                                  Booking conditions →
+                                  {t("RoomCard.bookingConditions")}
                                 </button>
                               </div>
                             </div>
@@ -1161,10 +1159,21 @@ const rooms = Array.isArray(bookingContext.guests?.rooms)
                 {/* ── Tourist Tax Footer ── */}
                 {!isCollapsed &&
                   firstCombo.touristTax?.calculatedTaxAmount > 0 && (
-                    <div className="px-4 py-2 text-xs text-gray-500 border-t border-gray-100 text-center bg-gray-50">
-                      Direct payment at hotel:{" "}
-                      {firstCombo.touristTax.name?.toUpperCase()} — {currency}{" "}
-                      {firstCombo.touristTax.calculatedTaxAmount.toFixed(2)}
+                    <div className="px-4 py-2.5 border-t border-amber-200 bg-amber-50 flex items-center justify-center gap-2">
+                      <span className="text-amber-500 text-sm">ℹ️</span>
+                      <p className="text-xs text-amber-800 text-center">
+                        <span className="font-bold">{firstCombo.touristTax.name || t("RoomCard.taxNotIncluded")}</span>{" "}
+                        of{" "}
+                        <span className="font-bold">
+                          {firstCombo.touristTax.currencyCode || currency}{" "}
+                          {firstCombo.touristTax.calculatedTaxAmount.toFixed(2)}
+                        </span>{" "}
+                        is{" "}
+                        <span className="font-bold text-amber-900">
+                          {t("RoomCard.touristTax.notIncluded")}
+                        </span>{" "}
+                        {t("RoomCard.touristTax.paidAtHotel")}
+                      </p>
                     </div>
                   )}
               </div>

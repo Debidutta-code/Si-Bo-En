@@ -1613,17 +1613,47 @@ export class ReservationService {
                 const paymentRecord = await prisma.payment.findFirst({
                     where: { reservationId },
                     select: {
+                        id: true,
                         paymentIntentId: true,
                         paymentMethod: true,
-                        PropertyPaymentIntegration: true,
+                        status: true,
+                        amount: true,
+                        currency: true,
+                        propertyPaymentIntegrationId: true,
+                        PropertyPaymentIntegration: {
+                            select: {
+                                id: true,
+                                outletId: true,
+                                isActive: true,
+                            }
+                        },
                     }
                 });
-                
-                console.log(`[DEBUG - REFUND FLOW] 📄 Payment record found:`, JSON.stringify(paymentRecord));
+
+                console.log(`[DEBUG - REFUND FLOW] 📄 Raw payment record:`, JSON.stringify(paymentRecord, null, 2));
+
+                if (!paymentRecord) {
+                    console.warn(`[DEBUG - REFUND FLOW] ⚠️ No payment record found for reservationId: ${reservationId}. Skipping refund.`);
+                } else {
+                    console.log(`[DEBUG - REFUND FLOW] ℹ️ Payment Details:`);
+                    console.log(`    - Payment ID        : ${paymentRecord.id}`);
+                    console.log(`    - paymentIntentId   : ${paymentRecord.paymentIntentId ?? '(null/undefined)'}`);
+                    console.log(`    - paymentMethod     : ${paymentRecord.paymentMethod}`);
+                    console.log(`    - status            : ${paymentRecord.status}`);
+                    console.log(`    - amount            : ${paymentRecord.amount} ${paymentRecord.currency}`);
+                    console.log(`    - propPayIntegId    : ${paymentRecord.propertyPaymentIntegrationId ?? '(null — outletId will be missing!)'}`);
+                    console.log(`    - PropertyPaymentIntegration:`, JSON.stringify(paymentRecord.PropertyPaymentIntegration));
+                    console.log(`    - outletId (resolved): ${paymentRecord.PropertyPaymentIntegration?.outletId ?? '⚠️ (NOT FOUND — refund will have no outletId!)'}`);
+                }
 
                 if (paymentRecord?.paymentIntentId && paymentRecord.paymentMethod === 'payment_gateway') {
-                    console.log(`[DEBUG - REFUND FLOW] 💸 Triggering N-Genius refund for order: ${paymentRecord.paymentIntentId}`);
-                    refundResult = await ngeniusService.processRefund(paymentRecord.paymentIntentId, paymentRecord.PropertyPaymentIntegration?.outletId);
+                    const resolvedOutletId = paymentRecord.PropertyPaymentIntegration?.outletId;
+
+                    console.log(`[DEBUG - REFUND FLOW] 💸 Calling ngeniusService.processRefund`);
+                    console.log(`    - orderReference (paymentIntentId): ${paymentRecord.paymentIntentId}`);
+                    console.log(`    - outletId passed to processRefund : ${resolvedOutletId ?? '(undefined — this will cause getOrderStatus URL to be malformed!)'}`);
+
+                    refundResult = await ngeniusService.processRefund(paymentRecord.paymentIntentId, resolvedOutletId);
 
                     console.log(`[DEBUG - REFUND FLOW] 📥 Refund result received:`, JSON.stringify(refundResult));
 
@@ -1631,8 +1661,13 @@ export class ReservationService {
                         console.error(`[DEBUG - REFUND FLOW] ⚠️ Refund failed for reservation ${reservationId}: ${refundResult.message}`);
                         return errorResponse(`Refund failed: ${refundResult.message}. Reservation was not cancelled.`);
                     }
+
+                    console.log(`[DEBUG - REFUND FLOW] ✅ Refund succeeded. Proceeding to cancel reservation in DB.`);
                 } else {
-                    console.log(`[DEBUG - REFUND FLOW] ⏭️ Skipping refund. reason: No paymentIntentId or method is not payment_gateway.`);
+                    console.log(`[DEBUG - REFUND FLOW] ⏭️ Skipping refund.`);
+                    console.log(`    - paymentIntentId present: ${!!paymentRecord?.paymentIntentId}`);
+                    console.log(`    - paymentMethod          : ${paymentRecord?.paymentMethod}`);
+                    console.log(`    - reason                 : ${!paymentRecord?.paymentIntentId ? 'No paymentIntentId' : 'paymentMethod is not payment_gateway'}`);
                 }
             } catch (refundError) {
                 console.error(`[DEBUG - REFUND FLOW] ❌ Error during refund for reservation ${reservationId}:`, refundError);

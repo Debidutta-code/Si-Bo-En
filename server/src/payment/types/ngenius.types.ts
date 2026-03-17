@@ -79,7 +79,11 @@ export interface NGeniusOrderResponse {
 // Capture item embedded in a SALE payment (cnp:capture)
 export interface NGeniusCaptureItem {
   _links: {
-    self: {
+    self?: {
+      href: string;
+    };
+    // N-Genius returns the complete refund endpoint URL here for CAPTURED payments
+    'cnp:refund'?: {
       href: string;
     };
   };

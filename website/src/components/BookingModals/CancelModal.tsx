@@ -1,10 +1,11 @@
 "use client";
 
 import { FC, useState, useMemo, useEffect } from "react";
-import { FaHotel, FaBed, FaCalendarAlt, FaRupeeSign } from "react-icons/fa";
+import { FaHotel, FaBed, FaCalendarAlt, FaRupeeSign, FaMoneyBill } from "react-icons/fa";
 import { X } from "lucide-react";
 import toast from "react-hot-toast";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage"; // Add this import
+import { currencies } from "../currencyCode/cuurency";
 
 interface Props {
   bookingData: any;
@@ -21,8 +22,9 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
     checkOutDate,
     amount,
     currencyCode,
+    hotelName
   } = bookingData;
-  // //console.log("bookingdatsdfsjdfhcdsa", bookingData)
+  console.log("bookingdatsdfsjdfhcdsa", bookingData)
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -83,7 +85,7 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
     if (diffDays > 1) return { label: "🔁 50% refund", refund: 50 };
     return { label: "❌ No refund", refund: 0 };
   }, [checkInDate]);
-
+console.log("property",property)
 
   useEffect(() => {
     // Disable background scroll
@@ -94,7 +96,8 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
       document.body.classList.remove("overflow-hidden");
     };
   }, []);
-
+    const getCurrencySymbol = (code: string) =>
+    currencies.find((c) => c.code === code)?.symbol ?? code;
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 overflow-y-auto py-8">
       <div className="bg-white rounded-xl shadow-lg w-full max-w-xl p-6 space-y-6 relative max-h-[90vh] overflow-y-auto">
@@ -120,7 +123,7 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
           <p className="font-semibold mb-2" style={{ color: colors.primaryColor }}>Booking Details</p>
           <div className="text-sm space-y-2 text-gray-700">
             <div className="flex items-center gap-2">
-              <FaHotel style={{ color: colors.primaryColor }} /> <span>{property?.name || "Hotel"}</span>
+              <FaHotel style={{ color: colors.primaryColor }} /> <span>{hotelName || "Hotel"}</span>
             </div>
             <div className="flex items-center gap-2">
               <FaCalendarAlt style={{ color: colors.primaryColor }} />
@@ -133,14 +136,14 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
               <FaBed style={{ color: colors.primaryColor }} /> <span>Room: {roomTypeCode}</span>
             </div>
             <div className="flex items-center gap-2">
-              <FaRupeeSign style={{ color: colors.primaryColor }} />
-              <span>Total: ${amount.toLocaleString()}</span>
+              <FaMoneyBill style={{ color: colors.primaryColor }} />
+              <span>Total: {getCurrencySymbol(currencyCode)} {amount.toLocaleString()}</span>
             </div>
           </div>
         </div>
 
         {/* Cancellation Policy */}
-        <div
+        {/* <div
           className="border-l-4 p-4 rounded-lg"
           style={{
             backgroundColor: `${colors.secondaryColor}20`, // Adding 20% opacity
@@ -169,7 +172,7 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
           <p className="text-sm text-red-600 mt-3 font-medium">
             Your Refund Status: {refundInfo.label}
           </p>
-        </div>
+        </div> */}
 
         {/* Financial Breakdown */}
         <div className="bg-gray-50 p-4 rounded-lg">
@@ -178,10 +181,10 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
             <p className="flex justify-between">
               <span>Original Payment Amount:</span>
               <span className="font-semibold text-gray-800">
-                ${amount.toLocaleString()}
+                {getCurrencySymbol(currencyCode)} {amount.toLocaleString()}
               </span>
             </p>
-            <p className="flex justify-between">
+            {/* <p className="flex justify-between">
               <span>Refund Amount:</span>
               <span className="font-semibold text-green-600">
                 ${Math.round((amount * refundInfo.refund) / 100).toLocaleString()}
@@ -192,7 +195,7 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
               <span className="font-semibold text-red-500">
                 ${Math.round(amount - (amount * refundInfo.refund) / 100).toLocaleString()}
               </span>
-            </p>
+            </p> */}
           </div>
         </div>
 

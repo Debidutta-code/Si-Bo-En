@@ -26,6 +26,7 @@ import {
 import { IPropertyLoyalityWithLoyality } from "./interface";
 import { LoyaltyProgramBanner } from "@/src/components/RoomPage/LoyalityBanner";
 import { LoyaltyContainer } from "../../components/RoomPage/LoyalityContainer";
+import { useTranslation } from "react-i18next";
 
 interface Guest {
   type: "adult" | "child";
@@ -141,6 +142,7 @@ function normalizePriceBrakeDown(
 }
 
 const Rooms = () => {
+  const { t } = useTranslation();
   const [urgencyModalOpen, setUrgencyModalOpen] = useState(false);
   const [selectedBoardType, setSelectedBoardType] = useState("all");
   const [showUrgencyBanner, setShowUrgencyBanner] = useState(true);
@@ -360,7 +362,7 @@ const Rooms = () => {
       const data = await response.json();
       //console.log(data)
       if (!response.ok || data.status === "fail") {
-        const msg = data.message || "Failed to load rooms.";
+        const msg = data.message || t("Rooms.failedToLoad");
         toast.error(msg);
         dispatch({ type: "rooms/setRooms", payload: [] });
         return;
@@ -420,7 +422,7 @@ const Rooms = () => {
       }
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || "Something went wrong while fetching rooms.");
+      toast.error(err.message || t("Rooms.somethingWentWrong"));
       dispatch({ type: "rooms/setRooms", payload: [] });
     } finally {
       setInitialLoading(false);
@@ -718,9 +720,9 @@ const Rooms = () => {
   const availableBoardTypes = Array.from(
     new Set(
       roomsData
-        .filter((room: Room) => room.has_valid_rate)
+        .filter((room: Room) => room.hasValidRate)
         .flatMap((room: Room) =>
-          room.room_price.map((rp: any) => rp.ratePlanName),
+          room.roomPrice.map((rp: any) => rp.ratePlanName),
         ),
     ),
   );
@@ -886,10 +888,10 @@ const Rooms = () => {
                   </button>
                   <div className="text-center">
                     <h3 className="text-lg font-bold text-gray-900 mb-1 uppercase">
-                      You will get the best available price if you book now!
+                      {t("Rooms.urgencyBanner.title")}
                     </h3>
                     <p className="text-sm font-semibold text-gray-700 uppercase">
-                      The prices can rise at any moment. Don't wait any longer!
+                      {t("Rooms.urgencyBanner.subtitle")}
                     </p>
                   </div>
                 </div>
@@ -925,7 +927,7 @@ const Rooms = () => {
                       {/* Optional: Video Title Overlay */}
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
                         <h3 className="text-white font-semibold text-lg">
-                          {propertyDetails.propertyName} - Property Tour
+                          {propertyDetails.propertyName} - {t("Rooms.videoOverlay")}
                         </h3>
                       </div>
                     </div>
@@ -986,7 +988,7 @@ const Rooms = () => {
                         className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 mx-auto"
                         style={{ borderColor: primaryColor }}
                       ></div>
-                      <p className="mt-4 text-gray-600">Searching rooms...</p>
+                      <p className="mt-4 text-gray-600">{t("Rooms.searchingRooms")}</p>
                     </div>
                   ) : errorRooms ? (
                     <div className="text-center text-red-600 text-xl py-10 font-medium">
@@ -994,19 +996,19 @@ const Rooms = () => {
                     </div>
                   ) : roomsData.length === 0 ? (
                     <div className="text-center text-gray-600 text-xl py-10 font-medium">
-                      No rooms available for this hotel.
+                      {t("Rooms.noRoomsHotel")}
                     </div>
                   ) : roomsData.filter(
-                      (room: Room) => room.has_valid_rate === true,
+                      (room: Room) => room.hasValidRate === true,
                     ).length === 0 ? (
                     <div className="text-center py-10 text-gray-600 text-lg font-medium">
-                      No rooms available
+                      {t("Rooms.noRooms")}
                     </div>
                   ) : (
                     <div>
                       <div className="space-y-8 rounded-xl md:p-4">
                         {roomsData
-                          .filter((room: Room) => room.has_valid_rate)
+                          .filter((room: Room) => room.hasValidRate)
                           .map((room: Room) => (
                             <RoomCard
                               key={room.id}
@@ -1058,64 +1060,52 @@ const Rooms = () => {
         <DialogContent className="sm:max-w-md md:max-w-lg">
           <DialogHeader>
             <DialogTitle className="text-xl font-bold text-gray-900">
-              Conditions
+              {t("Rooms.modal.title")}
             </DialogTitle>
             <DialogDescription className="text-gray-600">
-              Exclusive advantage for bookings made on the official website
+              {t("Rooms.modal.description")}
             </DialogDescription>
           </DialogHeader>
 
           <div className="mt-4 space-y-4">
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <h4 className="font-semibold text-blue-800 mb-2">
-                Best Price Guarantee
+                {t("Rooms.modal.guarantee.title")}
               </h4>
               <p className="text-blue-700 text-sm">
-                We guarantee that you won&apos;t find a lower price for the same
-                room, dates, and conditions anywhere else online.
+                {t("Rooms.modal.guarantee.description")}
               </p>
             </div>
 
             <div className="space-y-3">
-              <h4 className="font-semibold text-gray-800">Key Conditions:</h4>
+              <h4 className="font-semibold text-gray-800">{t("Rooms.modal.keyConditions")}</h4>
               <ul className="space-y-2 text-gray-700">
                 <li className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 flex-shrink-0"></div>
-                  <span>
-                    Prices are subject to change and may increase at any time
-                  </span>
+                  <span>{t("Rooms.modal.conditions.one")}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 flex-shrink-0"></div>
-                  <span>
-                    Early booking discounts are only available through our
-                    official website
-                  </span>
+                  <span>{t("Rooms.modal.conditions.two")}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 flex-shrink-0"></div>
-                  <span>Limited availability - rooms may sell out quickly</span>
+                  <span>{t("Rooms.modal.conditions.three")}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 flex-shrink-0"></div>
-                  <span>
-                    Special promotions are exclusive to direct bookings
-                  </span>
+                  <span>{t("Rooms.modal.conditions.four")}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 flex-shrink-0"></div>
-                  <span>
-                    Flexible cancellation policies only apply to official
-                    website bookings
-                  </span>
+                  <span>{t("Rooms.modal.conditions.five")}</span>
                 </li>
               </ul>
             </div>
 
             <div className="pt-4 border-t border-gray-200">
               <p className="text-sm text-gray-600">
-                <strong>Note:</strong> Booking through third-party websites or
-                agents may result in higher prices and fewer benefits.
+                <strong>{t("Rooms.modal.note")}</strong> {t("Rooms.modal.noteText")}
               </p>
             </div>
           </div>
@@ -1153,9 +1143,9 @@ const Rooms = () => {
               email: contactInfo.email,
               phone: contactInfo.phoneNumber,
               hotelName: bookingContext.hotelName,
-              roomName: bookingRoom.room_name,
+              roomName: bookingRoom.roomName,
               ratePlanCode: currentRatePlan.ratePlanCode,
-              roomTypeCode: bookingRoom.room_type,
+              roomTypeCode: bookingRoom.roomType,
               guestDetails: guestForms,
               finalPrice: finalPrice,
               numberOfRooms: finalPrice?.requestedRooms || 1,

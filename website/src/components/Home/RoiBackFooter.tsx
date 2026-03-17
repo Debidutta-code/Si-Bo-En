@@ -1,16 +1,17 @@
 "use client";
 import { usePathname } from "next/navigation";
-import { CloudCog, Facebook, Instagram, Youtube } from "lucide-react";
+import { Facebook, Instagram, Youtube } from "lucide-react";
 import Image from "next/image";
 import { useSelector } from "react-redux";
 import { RootState } from "@/src/store/store";
+import { useTranslation } from "react-i18next";
 
 // Fallback logos
-import SLogo from "../assets/revchilli.png";
 import ZLogo from "../assets/revchilli.png";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage";
 
 const Footer = () => {
+    const { t } = useTranslation();
     const pathname = usePathname();
     const isHomePage = pathname === "/";
 
@@ -37,8 +38,8 @@ const Footer = () => {
     return (
         <footer
             id="contact"
-            className={`text-white  ${isHomePage ? "hidden" : ""} bg-white border-t-2 border-gray-300 `} 
-            
+            className={`text-white  ${isHomePage ? "hidden" : ""} bg-white border-t-2 border-gray-300 `}
+
         >
             {/* Main Footer Content */}
             <div className="max-w-7xl mx-auto ">
@@ -71,7 +72,7 @@ const Footer = () => {
                                     {propertyAddress.country && `, ${propertyAddress.country}`}
                                 </>
                             ) : (
-                                "Dubai, United Arab Emirates"
+                                t("Footer.defaultAddress")
                             )}
                         </p>
                     </div>
@@ -128,7 +129,7 @@ const Footer = () => {
                         className="text-center md:text-left text-xs md:text-sm font-light"
                         style={{ color: "#2F2A1F" }}
                     >
-                        This site is protected by reCAPTCHA and the Google{" "}
+                        {t("Footer.recaptcha.text")}{" "}
                         <a
                             href="https://policies.google.com/privacy"
                             target="_blank"
@@ -136,9 +137,9 @@ const Footer = () => {
                             className="hover:underline"
                             style={{ color: "#1A0DAB" }}
                         >
-                            Privacy Policy
+                            {t("Footer.recaptcha.privacyPolicy")}
                         </a>{" "}
-                        and{" "}
+                        {t("Footer.recaptcha.and")}{" "}
                         <a
                             href="https://policies.google.com/terms"
                             target="_blank"
@@ -146,9 +147,9 @@ const Footer = () => {
                             className="hover:underline"
                             style={{ color: "#1A0DAB" }}
                         >
-                            Terms of Service
+                            {t("Footer.recaptcha.termsOfService")}
                         </a>{" "}
-                        apply.
+                        {t("Footer.recaptcha.apply")}
                     </p>
 
                     {/* Powered By */}
@@ -156,7 +157,7 @@ const Footer = () => {
                         className="text-xs md:text-sm font-light"
                         style={{ color: "#2F2A1F" }}
                     >
-                        Powered by{" "}
+                        {t("Footer.poweredBy")}{" "}
                         <a
                             href="https://www.revchill.com/"
                             target="_blank"

@@ -80,7 +80,7 @@ export default function MapRatePlan() {
                                 <p className="text-gray-600">Connect rate plans with room types and set pricing</p>
                             </div>
                         </div>
-                     
+
                     </div>
                 </div>
 
@@ -110,6 +110,7 @@ export default function MapRatePlan() {
 
                 {/* Update Price Dialog */}
                 <UpdatePriceDialog
+                    roomTypes={roomTypes}
                     mapping={editingMapping}
                     open={!!editingMapping}
                     onOpenChange={(open) => !open && setEditingMapping(null)}

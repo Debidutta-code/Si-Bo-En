@@ -1,13 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Plus, Minus, Package, ChevronRight } from 'lucide-react';
+import { Plus, Minus, Package, ChevronRight } from 'lucide-react';
 import {
     Dialog,
     DialogContent,
     DialogHeader,
     DialogTitle,
 } from '@/src/components/ui/dialog';
+import { useTranslation } from "react-i18next";
 
 interface AddonAvailability {
     id: string;
@@ -83,6 +84,7 @@ const AddonSelectionModal: React.FC<AddonSelectionModalProps> = ({
 }) => {
     const [selectedAddons, setSelectedAddons] = useState<Record<string, SelectedAddon>>({});
     const [showAllAddons, setShowAllAddons] = useState(false);
+    const { t } = useTranslation();
 
     const groupedAddons = groupAddonsByAddonId(addons);
 
@@ -145,10 +147,10 @@ const AddonSelectionModal: React.FC<AddonSelectionModalProps> = ({
                 <DialogHeader className="pb-4 border-b">
                     <DialogTitle className="text-xl font-bold text-gray-900 flex items-center gap-2">
                         <Package className="w-6 h-6 text-orange-500" />
-                        Enhance Your Stay
+                        {t("AddonModal.title")}
                     </DialogTitle>
                     <p className="text-sm text-gray-600 mt-1">
-                        Select optional add-ons to make your stay even more memorable
+                        {t("AddonModal.subtitle")}
                     </p>
                 </DialogHeader>
 
@@ -156,7 +158,7 @@ const AddonSelectionModal: React.FC<AddonSelectionModalProps> = ({
                     {groupedAddons.length === 0 ? (
                         <div className="text-center py-10 text-gray-500">
                             <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                            <p>No add-ons available for your selected dates</p>
+                            <p>{t("AddonModal.noAddons")}</p>
                         </div>
                     ) : (
                         <>
@@ -217,7 +219,7 @@ const AddonSelectionModal: React.FC<AddonSelectionModalProps> = ({
                                                                             })}
                                                                         </p>
                                                                         <p className="text-xs text-gray-600">
-                                                                            {currencyCode} {availability.price} each
+                                                                            {currencyCode} {availability.price} {t("AddonModal.each")}
                                                                         </p>
                                                                     </div>
 
@@ -271,7 +273,7 @@ const AddonSelectionModal: React.FC<AddonSelectionModalProps> = ({
                                     onClick={() => setShowAllAddons(!showAllAddons)}
                                     className="mt-4 text-orange-600 hover:text-orange-700 font-semibold text-sm flex items-center gap-1 hover:underline"
                                 >
-                                    {showAllAddons ? 'Show Less' : `See ${groupedAddons.length - 4} More Add-ons`}
+                                    {showAllAddons ? t("AddonModal.showLess") : t("AddonModal.seeMoreAddons", { count: groupedAddons.length - 4 })}
                                     <ChevronRight
                                         size={14}
                                         className={`transform transition-transform ${showAllAddons ? 'rotate-90' : ''}`}
@@ -287,13 +289,16 @@ const AddonSelectionModal: React.FC<AddonSelectionModalProps> = ({
                     <div className="text-sm text-gray-700">
                         {totalAddonsCount > 0 ? (
                             <span>
-                                <span className="font-semibold">{totalAddonsCount}</span> add-on{totalAddonsCount > 1 ? 's' : ''} selected •
+                                <span className="font-semibold">{totalAddonsCount}</span>{" "}
+                                {totalAddonsCount > 1
+                                    ? t("AddonModal.addonsSelectedPlural")
+                                    : t("AddonModal.addonsSelected")}{" "}•
                                 <span className="font-bold text-orange-600 ml-1">
                                     {currencyCode} {totalAddonsPrice.toLocaleString()}
                                 </span>
                             </span>
                         ) : (
-                            <span className="text-gray-500">No add-ons selected</span>
+                            <span className="text-gray-500">{t("AddonModal.noAddonsSelected")}</span>
                         )}
                     </div>
 
@@ -302,16 +307,14 @@ const AddonSelectionModal: React.FC<AddonSelectionModalProps> = ({
                             onClick={handleSkip}
                             className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg font-medium text-sm transition-all border border-gray-300"
                         >
-                            Skip
+                            {t("AddonModal.skip")}
                         </button>
-                        <button
-                            onClick={handleContinue}
-                            style={{ backgroundColor: primaryColor, color: buttonTextColor }}
-                            className="px-5 py-2.5 rounded-lg font-medium text-sm transition-all shadow hover:shadow-md hover:opacity-90"
-                        >
+                        <button onClick={handleContinue} style={{ backgroundColor: primaryColor, color: buttonTextColor }} className="px-5 py-2.5 rounded-lg font-medium text-sm transition-all shadow hover:shadow-md hover:opacity-90">
                             {totalAddonsCount > 0
-                                ? `Continue with ${totalAddonsCount} Add-on${totalAddonsCount > 1 ? 's' : ''}`
-                                : 'Continue'}
+                                ? totalAddonsCount > 1
+                                    ? t("AddonModal.continueWithPlural", { count: totalAddonsCount })
+                                    : t("AddonModal.continueWith", { count: totalAddonsCount })
+                                : t("AddonModal.continue")}
                         </button>
                     </div>
                 </div>

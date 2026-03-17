@@ -18,6 +18,7 @@ import PriceDetails from "@/src/components/payment/PriceDetails";
 import HelpBox from "@/src/components/payment/HelpBox";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage";
 import FikafiPaymentButton from "@/src/components/payment/FikafiPaymentButton";
+import { useTranslation } from "react-i18next";
 
 // Updated interface to match actual API response
 interface PaymentIntegrationDetail {
@@ -44,6 +45,7 @@ interface BankDetails {
 }
 
 const BookingReviewPage = () => {
+  const { t } = useTranslation();
   const bookingDetails = useSelector((state: RootState) => state.booking);
   const {
     startDate: checkIn,
@@ -282,7 +284,7 @@ const BookingReviewPage = () => {
       <div className="max-w-6xl pt-32 mx-auto p-6 flex justify-center items-center min-h-[400px]">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 mx-auto" style={{ borderColor: colors.primaryColor }}></div>
-          <p className="mt-4 text-gray-600">Loading payment details...</p>
+          <p className="mt-4 text-gray-600">{t("Payment.loadingPayment")}</p>
         </div>
       </div>
     );
@@ -598,15 +600,13 @@ const BookingReviewPage = () => {
             backgroundColor: `${colors.secondaryColor}10`,
             borderColor: colors.primaryColor
           }}>
-            <h4 className="font-medium mb-2" style={{ color: colors.primaryColor }}>Pay at Hotel</h4>
+            <h4 className="font-medium mb-2" style={{ color: colors.primaryColor }}>{t("Payment.payAtHotel.title")}</h4>
             <p className="text-sm" style={{ color: colors.primaryColor }}>
-              Your booking will be confirmed and you can pay directly at the
-              hotel during check-in. We accept cash, cards, and digital payments
-              at the property.
+              {t("Payment.payAtHotel.info")}
             </p>
             <div className="mt-3 flex items-center gap-2 text-xs" style={{ color: colors.primaryColor }}>
-              <span>✓ No advance payment required</span>
-              <span>✓ Flexible payment options</span>
+              <span>{t("Payment.payAtHotel.noAdvance")}</span>
+              <span>{t("Payment.payAtHotel.flexible")}</span>
             </div>
           </div>
         );
@@ -621,18 +621,17 @@ const BookingReviewPage = () => {
             }}>
               <h4 className="font-medium mb-2 flex items-center gap-2" style={{ color: colors.primaryColor }}>
                 <Wallet className="w-4 h-4" />
-                Secure Online Payment
+                {t("Payment.gateway.fikafiTitle")}
               </h4>
               <p className="text-sm" style={{ color: colors.primaryColor }}>
-                You&apos;ll be redirected to our secure payment partner to complete your payment
-                using credit/debit card, net banking, or other online payment methods.
+                {t("Payment.gateway.fikafiInfo")}
               </p>
 
               {/* Fikafi Payment Button - auto-redirects when booking is confirmed */}
               <div className="mt-4">
                 {!bookingConfirmedForFikafi ? (
                   <p className="text-sm text-gray-500 mt-2 p-3 bg-gray-50 rounded-lg">
-                    Click <strong>&quot;Confirm Booking&quot;</strong> below to create your reservation.
+                    {t("Payment.gateway.fikafiConfirmHint")}
                   </p>
                 ) : (
                   <FikafiPaymentButton
@@ -654,7 +653,7 @@ const BookingReviewPage = () => {
                     onPaymentError={(error) => {
                       toast.error("Payment failed. Please try again.", { id: "fikafi-error" });
                     }}
-                    buttonText="Pay Now"
+                    buttonText={t("Payment.payNow")}
                     className="w-full"
                   />
                 )}
@@ -690,10 +689,10 @@ const BookingReviewPage = () => {
                   className="font-semibold text-lg"
                   style={{ color: colors.primaryColor }}
                 >
-                  Pay with Card
+                  {t("Payment.gateway.ngeniusTitle")}
                 </h4>
                 <div className="text-xs font-medium px-2.5 py-1 rounded-full bg-green-100 text-green-800">
-                  Secure
+                  {t("Payment.gateway.secure")}
                 </div>
               </div>
 
@@ -701,8 +700,7 @@ const BookingReviewPage = () => {
                 className="text-sm mb-4 leading-relaxed"
                 style={{ color: colors.primaryColor }}
               >
-                Complete your payment securely via Network International payment gateway.
-                You will be redirected to their encrypted payment page.
+                {t("Payment.gateway.ngeniusInfo")}
               </p>
 
               <div className="flex flex-wrap gap-3 mb-4">
@@ -737,7 +735,7 @@ const BookingReviewPage = () => {
               </div>
 
               <p className="mt-3 text-xs text-gray-500 italic">
-                Supported cards processed in seconds • No hidden fees
+                {t("Payment.gateway.ngeniusFooter")}
               </p>
             </div>
           );
@@ -760,28 +758,26 @@ const BookingReviewPage = () => {
           {/* Booking Summary */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-5">
             <h2 className="text-lg font-semibold mb-4" style={{ color: colors.primaryColor }}>
-              Booking Summary
+              {t("Payment.bookingSummary")}
             </h2>
             <div className="text-sm text-gray-800 space-y-1">
               <p>
-                <strong>Stay Dates:</strong> {checkIn} - {checkOut} ({nights}{" "}
+                <strong>{t("Payment.stayDates")}</strong> {checkIn} - {checkOut} ({nights}{" "}
                 night{nights > 1 ? "s" : ""})
               </p>
               <p>
-                <strong>Guests:</strong> {rooms || 1} Room · {adults || 1} Adult
-                {adults !== 1 ? "s" : ""}
+                <strong>{t("Payment.guests")}</strong> {rooms || 1} {t("Payment.room")} ·{" "}
+                {adults !== 1 ? t("Payment.adults") : t("Payment.adult")}
                 {childrenCount > 0
-                  ? ` · ${childrenCount} Child${childrenCount !== 1 ? "ren" : ""}`
+                  ? ` · ${childrenCount} ${childrenCount !== 1 ? t("Payment.children") : t("Payment.child")}`
                   : ""}
               </p>
               <p>
-                <strong>Guest Name:</strong>{" "}
-                {guest && guest.length > 0
-                  ? `${guest[0].firstName} ${guest[0].lastName}`
-                  : ""}{" "}
+                <strong>{t("Payment.guestName")}</strong>{" "}
+                {guest && guest.length > 0 ? `${guest[0].firstName} ${guest[0].lastName}` : ""}{" "}
                 <br />
                 <span className="text-gray-500">
-                  <strong>Email:</strong> {email}
+                  <strong>{t("Payment.email")}</strong> {email}
                 </span>
               </p>
             </div>
@@ -790,7 +786,7 @@ const BookingReviewPage = () => {
           {/* Payment Method */}
           <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-5">
             <h2 className="text-lg font-semibold mb-4" style={{ color: colors.primaryColor }}>
-              Choose Payment Method
+              {t("Payment.choosePayment")}
             </h2>
 
             {noAvailablePayment ? (
@@ -798,29 +794,27 @@ const BookingReviewPage = () => {
                 backgroundColor: `${colors.secondaryColor}20`,
                 color: colors.primaryColor
               }}>
-                <strong>No payment methods available</strong>
-                <p className="mt-1">
-                  Please contact the hotel directly for payment arrangements.
-                </p>
+                <strong>{t("Payment.noPaymentAvailable")}</strong>
+                <p className="mt-1">{t("Payment.noPaymentContact")}</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {[
                   {
                     key: "payAtHotel",
-                    label: "Pay at Hotel",
+                    label: t("Payment.payAtHotel.label"),
                     icon: "🏨",
-                    description: "Pay directly at the property during check-in",
+                    description: t("Payment.payAtHotel.description"),
                   },
                   {
                     key: "gateway",
-                    label: "Pay Online",
+                    label: t("Payment.gateway.label"),
                     icon: "💳",
                     description: activeGateway === "fikafi"
-                      ? "Secure payment via Fikafi payment gateway"
+                      ? t("Payment.gateway.descriptionFikafi")
                       : activeGateway === "ngenius"
-                        ? "Secure payment via Network International gateway"
-                        : "Secure online payment",
+                        ? t("Payment.gateway.descriptionNgenius")
+                        : t("Payment.gateway.descriptionDefault"),
                     isRecommended: true,
                   },
                 ].map(({ key, label, icon, description, isRecommended }) => {
@@ -863,12 +857,12 @@ const BookingReviewPage = () => {
                               </span>
                               {isRecommended && isActive && (
                                 <span className="text-xs text-white bg-green-500 px-2 py-1 rounded">
-                                  Recommended
+                                  {t("Payment.recommended")}
                                 </span>
                               )}
                               {!isActive && (
                                 <span className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded">
-                                  Not Available
+                                  {t("Payment.notAvailable")}
                                 </span>
                               )}
                             </div>
@@ -906,14 +900,14 @@ const BookingReviewPage = () => {
                 {loading ? (
                   <div className="flex items-center justify-center gap-2">
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    Processing...
+                    {t("Payment.processing")}
                   </div>
                 ) : !selectedPayment ? (
-                  "Select Payment Method"
+                  t("Payment.selectPaymentMethod")
                 ) : bookingConfirmedForFikafi ? (
-                  "Booking Confirmed ✓"
+                  t("Payment.bookingConfirmed")
                 ) : (
-                  "Confirm Booking"
+                  t("Payment.confirmBooking")
                 )}
               </button>
             ) : null}

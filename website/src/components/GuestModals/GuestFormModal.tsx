@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage";
 import { currencies } from "../currencyCode/cuurency";
+import { useTranslation } from "react-i18next";
 
 interface Guest {
   type: "adult" | "child";
@@ -57,6 +58,7 @@ const GuestFormModal: React.FC<Props> = ({
   const [loyaltyDiscount, setLoyaltyDiscount] = useState<any>(null);
   const [verifyingLoyalty, setVerifyingLoyalty] = useState(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const { t } = useTranslation();
 
   // Auto-fill email if loyalty member
   useEffect(() => {
@@ -147,15 +149,15 @@ const GuestFormModal: React.FC<Props> = ({
     guestForms.forEach((guest, index) => {
       const gErrors: any = {};
       if (!guest.firstName.trim()) {
-        gErrors.firstName = "First name is required.";
+        gErrors.firstName = t("GuestForm.errors.firstNameRequired");
       } else if (!nameRegex.test(guest.firstName)) {
-        gErrors.firstName = "Invalid name format.";
+        gErrors.firstName = t("GuestForm.errors.invalidName");
       }
 
       if (!guest.lastName.trim()) {
-        gErrors.lastName = "Last name is required.";
+        gErrors.lastName = t("GuestForm.errors.lastNameRequired");
       } else if (!nameRegex.test(guest.lastName)) {
-        gErrors.lastName = "Invalid name format.";
+        gErrors.lastName = t("GuestForm.errors.invalidName");
       }
 
       if (Object.keys(gErrors).length > 0) {
@@ -165,17 +167,17 @@ const GuestFormModal: React.FC<Props> = ({
 
     // Validate email
     if (!contactInfo.email.trim()) {
-      newErrors.email = "Email is required.";
+      newErrors.email = t("GuestForm.errors.emailRequired");
     } else if (!emailRegex.test(contactInfo.email)) {
-      newErrors.email = "Invalid email address.";
+      newErrors.email = t("GuestForm.errors.invalidEmail");
     }
 
     // Validate phone
     // Validate phone
     if (!contactInfo.phoneNumber.trim()) {
-      newErrors.phoneNumber = "Phone number is required.";
+      newErrors.phoneNumber = t("GuestForm.errors.phoneRequired");
     } else if (!phoneRegex.test(contactInfo.phoneNumber)) {
-      newErrors.phoneNumber = "Phone number must be between 5 and 15 digits.";
+      newErrors.phoneNumber = t("GuestForm.errors.invalidPhone");
     }
 
     setErrors(newErrors);
@@ -200,7 +202,7 @@ const GuestFormModal: React.FC<Props> = ({
 
   const handleSubmit = () => {
     if (!price) {
-      setSubmitError("Something went wrong, please try again.");
+      setSubmitError(t("GuestForm.somethingWentWrong"));
       return;
     }
 
@@ -267,11 +269,6 @@ const GuestFormModal: React.FC<Props> = ({
     }
   };
 
-  const currencySymbol = currencies.find(
-    (c) => c.code === finalPrice?.currencyCode
-  )?.symbol ?? finalPrice?.currencyCode ?? "$";
-
-
   const getCurrencySymbol = (code: string) =>
     currencies.find((c) => c.code === code)?.symbol ?? code;
 
@@ -282,7 +279,7 @@ const GuestFormModal: React.FC<Props> = ({
         <CardHeader className="border-b space-y-0 pb-4" style={{ backgroundColor: colors.secondaryColor }}>
           <div className="flex items-center justify-between">
             <CardTitle className="text-2xl font-bold text-white">
-              Complete Your Booking
+              {t("GuestForm.title")}
             </CardTitle>
             <Button
               variant="ghost"
@@ -310,7 +307,9 @@ const GuestFormModal: React.FC<Props> = ({
                   <div className="flex items-center gap-2">
                     <User className="h-5 w-5" style={{ color: colors.primaryColor }} />
                     <CardTitle className="text-lg">
-                      {guest.type === "adult" ? `Adult ${typeCount}` : `Child ${typeCount}`}
+                      {guest.type === "adult"
+                        ? `${t("GuestForm.adult")} ${typeCount}`
+                        : `${t("GuestForm.child")} ${typeCount}`}
                     </CardTitle>
                     <Badge variant="outline" style={{ borderColor: colors.primaryColor, color: colors.primaryColor }}>
                       {guest.type}
@@ -321,11 +320,11 @@ const GuestFormModal: React.FC<Props> = ({
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor={`first-${index}`}>
-                        First Name <span className="text-red-500">*</span>
+                        {t("GuestForm.firstName")} <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id={`first-${index}`}
-                        placeholder="First Name"
+                        placeholder={t("GuestForm.firstNamePlaceholder")}
                         value={guest.firstName}
                         onChange={(e: any) =>
                           handleFieldChange('guest', index, "firstName", e.target.value)
@@ -339,11 +338,11 @@ const GuestFormModal: React.FC<Props> = ({
 
                     <div className="space-y-2">
                       <Label htmlFor={`last-${index}`}>
-                        Last Name <span className="text-red-500">*</span>
+                        {t("GuestForm.lastName")} <span className="text-red-500">*</span>
                       </Label>
                       <Input
                         id={`last-${index}`}
-                        placeholder="Last Name"
+                        placeholder={t("GuestForm.lastNamePlaceholder")}
                         value={guest.lastName}
                         onChange={(e: any) =>
                           handleFieldChange('guest', index, "lastName", e.target.value)
@@ -358,7 +357,7 @@ const GuestFormModal: React.FC<Props> = ({
                     <div className="space-y-2">
                       <Label htmlFor={`dob-${index}`}>
                         <Calendar className="inline h-4 w-4 mr-1" />
-                        Date of Birth
+                        {t("GuestForm.dateOfBirth")}
                       </Label>
                       <Input
                         id={`dob-${index}`}
@@ -382,10 +381,10 @@ const GuestFormModal: React.FC<Props> = ({
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Mail className="h-5 w-5" style={{ color: colors.primaryColor }} />
-                Contact Information
+                {t("GuestForm.contactInfo")}
                 {isLoyaltyMember && (
                   <Badge className="ml-2 bg-green-500 text-white">
-                    Loyalty Member
+                    {t("GuestForm.loyaltyMember")}
                   </Badge>
                 )}
               </CardTitle>
@@ -394,7 +393,7 @@ const GuestFormModal: React.FC<Props> = ({
               {/* Email */}
               <div className="space-y-2">
                 <Label htmlFor="email">
-                  Email Address <span className="text-red-500">*</span>
+                  {t("GuestForm.emailLabel")} <span className="text-red-500">*</span>
                 </Label>
                 <div className="relative">
                   <Input
@@ -408,7 +407,7 @@ const GuestFormModal: React.FC<Props> = ({
                         verifyLoyaltyMembership(e.target.value);
                       }
                     }}
-                    placeholder="your@email.com"
+                    placeholder={t("GuestForm.emailPlaceholder")}
                     className={errors.email ? "border-red-500" : ""}
                     disabled={!!loyaltyMemberEmail}
                   />
@@ -431,14 +430,16 @@ const GuestFormModal: React.FC<Props> = ({
                     </svg>
                     <span>
                       {loyaltyDiscount.type === "percentage"
-                        ? `${loyaltyDiscount.value}% loyalty discount will be applied`
-                        : `${loyaltyDiscount.currencyCode} ${loyaltyDiscount.value} loyalty discount will be applied`
-                      }
+                        ? t("GuestForm.loyaltyDiscountPercent", { value: loyaltyDiscount.value })
+                        : t("GuestForm.loyaltyDiscountFlat", {
+                          currency: loyaltyDiscount.currencyCode,
+                          value: loyaltyDiscount.value
+                        })}
                     </span>
                   </div>
                 )}
                 <p className="text-xs text-muted-foreground">
-                  Your booking confirmation will be sent here
+                  {t("GuestForm.emailConfirmation")}
                 </p>
               </div>
 
@@ -446,7 +447,7 @@ const GuestFormModal: React.FC<Props> = ({
               <div className="space-y-2">
                 <Label htmlFor="phone">
                   <Phone className="inline h-4 w-4 mr-1" />
-                  Phone Number <span className="text-red-500">*</span>
+                  {t("GuestForm.phoneLabel")} <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="phone"
@@ -456,15 +457,13 @@ const GuestFormModal: React.FC<Props> = ({
                   onChange={(e: any) =>
                     handleFieldChange('contact', 'phoneNumber', 'phoneNumber', e.target.value.replace(/\D/g, ''))
                   }
-                  placeholder="Enter Phone Number"
+                  placeholder={t("GuestForm.phonePlaceholder")}
                   className={errors.phoneNumber ? "border-red-500" : ""}
                 />
                 {errors.phoneNumber && (
                   <p className="text-sm text-red-600">{errors.phoneNumber}</p>
                 )}
-                <p className="text-xs text-muted-foreground">
-                  Used for booking-related notifications
-                </p>
+                <p className="text-xs text-muted-foreground">{t("GuestForm.phoneNote")}</p>
               </div>
             </CardContent>
           </Card>
@@ -473,7 +472,7 @@ const GuestFormModal: React.FC<Props> = ({
           <Card className="border-2">
             <CardHeader>
               <div className="flex items-center gap-2">
-                <CardTitle className="text-lg">Price Details</CardTitle>
+                <CardTitle className="text-lg">{t("GuestForm.priceDetails")}</CardTitle>
                 <div className="relative" ref={tooltipRef}>
                   <Button
                     variant="ghost"
@@ -488,7 +487,7 @@ const GuestFormModal: React.FC<Props> = ({
                     <Card className="absolute top-8 left-0 z-50 w-80 shadow-xl">
                       <CardHeader className="pb-3">
                         <div className="flex items-center justify-between">
-                          <CardTitle className="text-sm">Daily Breakdown</CardTitle>
+                          <CardTitle className="text-sm">{t("GuestForm.dailyBreakdown")}</CardTitle>
                           <Button
                             variant="ghost"
                             size="icon"
@@ -515,7 +514,7 @@ const GuestFormModal: React.FC<Props> = ({
                               {(Object.entries(grouped) as [string, any[]][]).map(([roomNumber, days]) => (<div key={roomNumber} className="mb-3">
                                 {/* Room Header */}
                                 <div className="flex items-center justify-between bg-gray-100 rounded px-2 py-1 mb-2">
-                                  <span className="font-bold text-xs text-gray-700">🏨 Room {roomNumber}</span>
+                                  <span className="font-bold text-xs text-gray-700">🏨 {t("GuestForm.room")} {roomNumber}</span>
                                   <span className="font-bold text-xs text-gray-700">
                                     {getCurrencySymbol(days[0]?.currencyCode || "USD")}{" "}
                                     {days.reduce((s: number, d: any) => s + (d.totalAmount || 0), 0).toFixed(2)}
@@ -532,12 +531,12 @@ const GuestFormModal: React.FC<Props> = ({
                                     </div>
                                     <div className="space-y-1 pl-2">
                                       <div className="flex justify-between">
-                                        <span>Base Rate:</span>
+                                        <span>{t("GuestForm.baseRate")}</span>
                                         <span>{getCurrencySymbol(day.currencyCode)} {(day.baseChargesAmount ?? 0).toFixed(2)}</span>
                                       </div>
                                       {(day.additionalChargesAmount ?? 0) > 0 && (
                                         <div className="flex justify-between">
-                                          <span>Additional:</span>
+                                          <span>{t("GuestForm.additional")}</span>
                                           <span>{getCurrencySymbol(day.currencyCode)} {day.additionalChargesAmount.toFixed(2)}</span>
                                         </div>
                                       )}
@@ -550,14 +549,14 @@ const GuestFormModal: React.FC<Props> = ({
                                         ))
                                         : (day.totalDailyTaxedAmount ?? 0) > 0 && (
                                           <div className="flex justify-between text-gray-500">
-                                            <span>Tax & Fees:</span>
+                                            <span>{t("GuestForm.taxFees")}</span>
                                             <span>{getCurrencySymbol(day.currencyCode)} {day.totalDailyTaxedAmount.toFixed(2)}</span>
                                           </div>
                                         )
                                       }
                                       {day.addOnBrakeDown?.length > 0 && (
                                         <div className="flex justify-between text-orange-600">
-                                          <span>Addons:</span>
+                                          <span>{t("GuestForm.addons")}</span>
                                           <span>
                                             {getCurrencySymbol(day.currencyCode)}{" "}
                                             {day.addOnBrakeDown.reduce((s: number, a: any) => s + (a.price || 0), 0).toFixed(2)}
@@ -565,7 +564,7 @@ const GuestFormModal: React.FC<Props> = ({
                                         </div>
                                       )}
                                       <div className="flex justify-between font-semibold pt-1 border-t">
-                                        <span>Day Total:</span>
+                                        <span>{t("GuestForm.dayTotal")}</span>
                                         <span>{getCurrencySymbol(day.currencyCode)} {(day.totalAmount ?? 0).toFixed(2)}</span>
                                       </div>
                                     </div>
@@ -577,15 +576,15 @@ const GuestFormModal: React.FC<Props> = ({
                               {/* Grand Summary */}
                               <div className="pt-2 border-t mt-2 space-y-1">
                                 <div className="flex justify-between font-semibold">
-                                  <span>Subtotal (before tax):</span>
+                                  <span>{t("GuestForm.subtotalBeforeTax")}</span>
                                   <span>{getCurrencySymbol(finalPrice.currencyCode)}{(finalPrice.amountBeforeTax ?? 0).toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between font-semibold">
-                                  <span>Total Tax:</span>
+                                  <span>{t("GuestForm.totalTax")}</span>
                                   <span>{getCurrencySymbol(finalPrice.currencyCode)}{(finalPrice.taxedAmount ?? 0).toFixed(2)}</span>
                                 </div>
                                 <div className="flex justify-between font-bold text-sm border-t pt-1">
-                                  <span>Grand Total:</span>
+                                  <span>{t("GuestForm.grandTotal")}</span>
                                   <span>{getCurrencySymbol(finalPrice.currencyCode)}{(finalPrice.totalAmount ?? 0).toFixed(2)}</span>
                                 </div>
                               </div>
@@ -602,71 +601,103 @@ const GuestFormModal: React.FC<Props> = ({
               {finalPrice && (
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span>Base Amount (before tax):</span>
+                    <span>{t("GuestForm.baseAmount")}</span>
                     <span>{getCurrencySymbol(finalPrice.currencyCode)}{(finalPrice.amountBeforeTax ?? 0).toFixed(2)}</span>
                   </div>
                   {(finalPrice.additionalGuestCharges ?? 0) > 0 && (
                     <div className="flex justify-between">
-                      <span>Additional Guest Charges:</span>
+                      <span>{t("GuestForm.additionalGuestCharges")}</span>
                       <span>{getCurrencySymbol(finalPrice.currencyCode)}{(finalPrice.additionalGuestCharges).toFixed(2)}</span>
                     </div>
                   )}
                   {(finalPrice.totalAddonAmount ?? 0) > 0 && (() => {
-  // Group by addonId+type, collapse child-age variants
-  const grouped = new Map<string, { name: string; quantity: number; total: number; currency: string; type: string }>();
+                    const grouped = new Map<
+                      string,
+                      { name: string; quantity: number; total: number; currency: string; type: string }
+                    >();
 
-  for (const addon of finalPrice.addonBrakeDown ?? []) {
-    const isChild = addon.name?.includes("Child age");
-    const key = isChild ? `${addon.addonId}::child` : `${addon.addonId}::${addon.type}`;
-    const displayName = isChild
-      ? addon.name.replace(/\s*\(Child age \d+\)/, "") + " (children)"
-      : addon.name;
+                    for (const addon of finalPrice.addonBrakeDown ?? []) {
+                      const isChild = addon.name?.includes("Child age");
 
-    if (grouped.has(key)) {
-      const e = grouped.get(key)!;
-      e.quantity += addon.quantity ?? 0;
-      e.total += addon.totalAmount ?? 0;
-    } else {
-      grouped.set(key, {
-        name: displayName,
-        quantity: addon.quantity ?? 0,
-        total: addon.totalAmount ?? 0,
-        currency: addon.currencyCode || finalPrice.currencyCode,
-        type: addon.type,
-      });
-    }
-  }
+                      const key = isChild
+                        ? `${addon.addonId}::child`
+                        : `${addon.addonId}::${addon.type}`;
 
-  return (
-    <div className="border-t pt-2 mt-2">
-      <div className="font-medium text-gray-700 mb-1">Add-ons:</div>
-      {Array.from(grouped.values()).map((addon, i) => (
-        <div key={i} className="flex justify-between text-gray-600 pl-4">
-          <span className="flex items-center gap-1.5">
-            {addon.type === "included" && (
-              <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-medium">included</span>
-            )}
-            {addon.name}
-            <span className="text-gray-400">×{addon.quantity}</span>
-          </span>
-          <span>
-            {addon.total === 0
-              ? <span className="text-green-600 text-xs font-medium">Free</span>
-              : `${getCurrencySymbol(addon.currency)}${addon.total.toFixed(2)}`
-            }
-          </span>
-        </div>
-      ))}
-      <div className="flex justify-between font-medium pt-1 border-t mt-1">
-        <span>Total Add-ons:</span>
-        <span>{getCurrencySymbol(finalPrice.currencyCode)}{finalPrice.totalAddonAmount.toFixed(2)}</span>
-      </div>
-    </div>
-  );
-})()}
+                      const baseName = isChild
+                        ? addon.name.replace(/\s*\(Child age \d+\)/, "")
+                        : addon.name;
+
+                      const displayName = isChild
+                        ? t("GuestForm.childrenAddon", { name: baseName })
+                        : baseName;
+
+                      if (grouped.has(key)) {
+                        const e = grouped.get(key)!;
+                        e.quantity += addon.quantity ?? 0;
+                        e.total += addon.totalAmount ?? 0;
+                      } else {
+                        grouped.set(key, {
+                          name: displayName,
+                          quantity: addon.quantity ?? 0,
+                          total: addon.totalAmount ?? 0,
+                          currency: addon.currencyCode || finalPrice.currencyCode,
+                          type: addon.type,
+                        });
+                      }
+                    }
+
+                    return (
+                      <div className="border-t pt-2 mt-2">
+
+                        {/* Label */}
+                        <div className="font-medium text-gray-700 mb-1">
+                          {t("GuestForm.addonsLabel")}
+                        </div>
+
+                        {/* Addon List */}
+                        {Array.from(grouped.values()).map((addon, i) => (
+                          <div key={`${addon.name}-${i}`} className="flex justify-between text-gray-600 pl-4">
+
+                            <span className="flex items-center gap-1.5">
+
+                              {/* Included badge */}
+                              {addon.type === "included" && (
+                                <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-medium">
+                                  {t("GuestForm.included")}
+                                </span>
+                              )}
+
+                              {addon.name}
+                              <span className="text-gray-400">×{addon.quantity}</span>
+                            </span>
+
+                            {/* Price */}
+                            <span>
+                              {addon.total === 0 ? (
+                                <span className="text-green-600 text-xs font-medium">
+                                  {t("GuestForm.free")}
+                                </span>
+                              ) : (
+                                `${getCurrencySymbol(addon.currency)}${addon.total.toFixed(2)}`
+                              )}
+                            </span>
+                          </div>
+                        ))}
+
+                        {/* Total */}
+                        <div className="flex justify-between font-medium pt-1 border-t mt-1">
+                          <span>{t("GuestForm.totalAddons")}</span>
+                          <span>
+                            {getCurrencySymbol(finalPrice.currencyCode)}
+                            {finalPrice.totalAddonAmount.toFixed(2)}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
                   {finalPrice.promotionBrakeDown && Array.isArray(finalPrice.promotionBrakeDown) && finalPrice.promotionBrakeDown.length > 0 && (
                     <div className="border-t pt-2 mt-2">
-                      <div className="font-medium text-gray-700 mb-1">Promotions & Adjustments:</div>
+                      <div className="font-medium text-gray-700 mb-1">{t("GuestForm.promotions")}</div>
                       {finalPrice.promotionBrakeDown.map((promo: any, index: number) => {
                         const isDiscount = promo.restrictionType === "decrease";
                         const isSurcharge = promo.restrictionType === "increase";
@@ -683,7 +714,7 @@ const GuestFormModal: React.FC<Props> = ({
                             <span>
                               {isDiscount ? "-" : isSurcharge ? "+" : ""}
                               {getCurrencySymbol(promo.currencyCode || finalPrice.currencyCode)}{(promo.discountAmount ?? 0).toFixed(2)}
-                              {isPayLater && " (pay at hotel)"}
+                              {isPayLater && ` ${t("GuestForm.payAtHotel")}`}
                             </span>
                           </div>
                         );
@@ -692,13 +723,13 @@ const GuestFormModal: React.FC<Props> = ({
                   )}
                   {(finalPrice.loyalityDiscount ?? 0) > 0 && (
                     <div className="flex justify-between text-green-600">
-                      <span>Loyalty Discount:</span>
+                      <span>{t("GuestForm.loyaltyDiscount")}</span>
                       <span>-${(finalPrice.loyalityDiscount).toFixed(2)}</span>
                     </div>
                   )}
                   {(finalPrice.promoCodeDiscount ?? 0) > 0 && (
                     <div className="flex justify-between text-green-600">
-                      <span>Promo Code Discount:</span>
+                      <span>{t("GuestForm.promoCodeDiscount")}</span>
                       <span>-${(finalPrice.promoCodeDiscount).toFixed(2)}</span>
                     </div>
                   )}
@@ -706,7 +737,7 @@ const GuestFormModal: React.FC<Props> = ({
                   {finalPrice.taxBrakeDown && Array.isArray(finalPrice.taxBrakeDown) && finalPrice.taxBrakeDown.length > 0 && (
                     <>
                       <div className="border-t pt-2 mt-2">
-                        <div className="font-medium text-gray-700 mb-1">Taxes & Fees:</div>
+                        <div className="font-medium text-gray-700 mb-1">{t("GuestForm.taxesAndFees")}</div>
                         {finalPrice.taxBrakeDown.map((taxItem: any, index: number) => (
                           <div key={index} className="flex justify-between text-gray-600 pl-4">
                             <span>{taxItem.name}:</span>
@@ -714,7 +745,7 @@ const GuestFormModal: React.FC<Props> = ({
                           </div>
                         ))}
                         <div className="flex justify-between font-medium pt-1 border-t mt-1">
-                          <span>Total Tax:</span>
+                          <span>{t("GuestForm.totalTax")}</span>
                           <span>{getCurrencySymbol(finalPrice.currencyCode)}{(finalPrice.taxedAmount || 0).toFixed(2)}</span>
                         </div>
                       </div>
@@ -723,14 +754,14 @@ const GuestFormModal: React.FC<Props> = ({
 
                   {(finalPrice.latterpayableAmount ?? 0) > 0 && (
                     <div className="flex justify-between text-amber-600 border-t pt-2 mt-2">
-                      <span>Amount to be Paid Later:</span>
+                      <span>{t("GuestForm.amountPaidLater")}</span>
                       <span>{getCurrencySymbol(finalPrice.currencyCode)}{(finalPrice.latterpayableAmount).toFixed(2)}</span>
                     </div>
                   )}
 
                   {finalPrice.currentChargeableAmount > 0 && (finalPrice.latterpayableAmount ?? 0) > 0 && (
                     <div className="flex justify-between text-green-600 border-t pt-2 mt-2">
-                      <span>Amount to be Paid Now:</span>
+                      <span>{t("GuestForm.amountPaidNow")}</span>
                       <span>{getCurrencySymbol(finalPrice.currencyCode)}{finalPrice.currentChargeableAmount.toFixed(2)}</span>
                     </div>
                   )}
@@ -738,14 +769,12 @@ const GuestFormModal: React.FC<Props> = ({
 
                   <div className="border-t-2 pt-3 mt-2">
                     <div className="flex justify-between items-center font-bold text-lg">
-                      <span>Grand Total:</span>
+                      <span>{t("GuestForm.grandTotal")}</span>
                       <span style={{ color: colors.primaryColor }}>
                         {getCurrencySymbol(finalPrice.currencyCode)}{(finalPrice.totalAmount).toFixed(2)}
                       </span>
                     </div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      Includes all taxes and fees
-                    </div>
+                    <div className="text-xs text-gray-500 mt-1">{t("GuestForm.includesAllTaxes")}</div>
                   </div>
                 </div>
               )}
@@ -777,10 +806,10 @@ const GuestFormModal: React.FC<Props> = ({
               {paymentProcessing ? (
                 <>
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Processing...
+                  {t("GuestForm.processing")}
                 </>
               ) : (
-                "Proceed to Payment"
+                t("GuestForm.proceedToPayment")
               )}
             </Button>
             <Button
@@ -789,12 +818,12 @@ const GuestFormModal: React.FC<Props> = ({
               size="lg"
               className="flex-1 py-4 sm:flex-none hover:bg-gray-100"
             >
-              Cancel
+              {t("GuestForm.cancel")}
             </Button>
           </div>
           {Object.keys(errors).length > 0 && (
             <p className="text-sm text-amber-600 text-center">
-              Please provide all the necessary information before proceeding
+              {t("GuestForm.validationError")}
             </p>
           )}
         </div>

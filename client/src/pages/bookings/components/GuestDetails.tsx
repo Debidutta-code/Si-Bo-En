@@ -112,21 +112,22 @@ const GuestCard: FC<IGuestCardProps> = ({ guest, index, displayIndex, errors, on
             />
           </div>
 
-          {/* Age — children only */}
           {guest.type === "child" && (
             <div className="space-y-1.5">
               <label className="text-xs font-medium text-muted-foreground">Age</label>
-              <input
-                type="number"
-                min="0"
-                max="17"
-                placeholder="0–17"
-                value={guest.age ?? ""}
+              <select
+                value={guest.age ?? 0}
                 onChange={(e) => onGuestChange(index, "age", e.target.value)}
                 className="w-full rounded-lg border border-border px-3.5 py-2.5 text-sm bg-background
-                  text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary/20
-                  focus:border-primary transition-all hover:border-primary/40"
-              />
+                text-card-foreground focus:outline-none focus:ring-2 focus:ring-primary/20
+                focus:border-primary transition-all hover:border-primary/40"
+              >
+                {Array.from({ length: 16 }, (_, age) => (
+                  <option key={age} value={age}>
+                    {age === 0 ? "< 1 year" : `${age} ${age === 1 ? "year" : "years"}`}
+                  </option>
+                ))}
+              </select>
             </div>
           )}
         </div>

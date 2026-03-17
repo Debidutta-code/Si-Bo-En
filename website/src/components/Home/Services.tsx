@@ -1,56 +1,47 @@
 import React from "react";
 import revchilliLogo from "../assets/revchilli.png";
 import { FaFacebookF, FaInstagram, FaLinkedinIn } from "react-icons/fa";
-
-const services = [
-  {
-    title: "DIGITAL MARKETING",
-    description:
-      "We craft tailored marketing strategies that highlight your unique offerings and drive guests to book directly through your website — boosting reservations and reducing reliance on third-party platforms.",
-    image:
-      "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=1200",
-  },
-  {
-    title: "WEB DESIGN",
-    description:
-      "Your website is your online identity. An optimized, mobile-friendly website is the first step toward winning control of your online business and converting visitors into bookings.",
-    image:
-      "https://images.unsplash.com/photo-1492724441997-5dc865305da7?q=80&w=1200",
-  },
-  {
-    title: "LOYALTY PROGRAM",
-    description:
-      "Turn loyalty into your competitive advantage. Offer value-added benefits to registered customers and differentiate your brand from competitors.",
-    image:
-      "https://images.unsplash.com/photo-1556761175-4b46a572b786?q=80&w=1200",
-  },
-  {
-    title: "BOOKING ENGINE",
-    description:
-      "Boost direct reservations with our plug-in booking engine integrated with your property management system. Secure, mobile-friendly and optimized for conversion.",
-    image:
-      "https://images.unsplash.com/photo-1521791136064-7986c2920216?q=80&w=1200",
-  },
-  {
-    title: "AI CHATBOT",
-    description:
-      "Engage guests smarter with AI. Route requests, convert leads, enrich CRM data and drive more direct bookings.",
-    image:
-      "https://images.unsplash.com/photo-1587560699334-cc4ff634909a?q=80&w=1200",
-  },
-  {
-    title: "DISTRIBUTION MANAGEMENT",
-    description:
-      "Maximize ROI and efficiency. Manage daily revenue tasks, maintain healthy distribution channels and strengthen your hotel's online presence.",
-    image:
-      "https://images.unsplash.com/photo-1554224155-6726b3ff858f?q=80&w=1200",
-  },
-];
+import { useTranslation } from "react-i18next";
 
 export default function Services() {
+  const { t } = useTranslation();
+
+  const services = [
+    {
+      titleKey: "Services.items.digitalMarketing.title",
+      descKey: "Services.items.digitalMarketing.description",
+      image: "https://images.unsplash.com/photo-1552664730-d307ca884978?q=80&w=1200",
+    },
+    {
+      titleKey: "Services.items.webDesign.title",
+      descKey: "Services.items.webDesign.description",
+      image: "https://images.unsplash.com/photo-1492724441997-5dc865305da7?q=80&w=1200",
+    },
+    {
+      titleKey: "Services.items.loyaltyProgram.title",
+      descKey: "Services.items.loyaltyProgram.description",
+      image: "https://images.unsplash.com/photo-1556761175-4b46a572b786?q=80&w=1200",
+    },
+    {
+      titleKey: "Services.items.bookingEngine.title",
+      descKey: "Services.items.bookingEngine.description",
+      image: "https://images.unsplash.com/photo-1521791136064-7986c2920216?q=80&w=1200",
+    },
+    {
+      titleKey: "Services.items.aiChatbot.title",
+      descKey: "Services.items.aiChatbot.description",
+      image: "https://images.unsplash.com/photo-1587560699334-cc4ff634909a?q=80&w=1200",
+    },
+    {
+      titleKey: "Services.items.distributionManagement.title",
+      descKey: "Services.items.distributionManagement.description",
+      image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?q=80&w=1200",
+    },
+  ];
+
   return (
     <div className="bg-white text-gray-800">
-      {/* Top Hero Section (No Nav) */}
+      {/* Hero Section */}
       <section className="bg-[#f2f2f2] border-b border-gray-300 py-16 px-6">
         <div className="max-w-5xl mx-auto text-center">
           <img
@@ -58,19 +49,14 @@ export default function Services() {
             alt="RevChill logo"
             className="mx-auto h-24 md:h-28 w-auto mb-10"
           />
-          <h1 className="text-2xl md:text-4xl font-bold text-[#1A98A6] tracking-wide leading-tight">
-            UNLOCK YOUR FULL
-            <br />
-            REVENUE POTENTIAL
+          <h1 className="text-2xl md:text-4xl font-bold text-[#1A98A6] tracking-wide leading-tight whitespace-pre-line">
+            {t("Services.hero.title")}
           </h1>
           <p className="max-w-4xl mx-auto mt-8 text-xl text-black leading-relaxed">
-            If you are ready to cut down on hefty commissions, increase direct
-            bookings, and secure the long-term success of your hotel, partner
-            with us and take the next step toward a future-proof hospitality
-            business.
+            {t("Services.hero.description")}
           </p>
           <button className="mt-10 bg-[#1A98A6] hover:bg-[#168894] text-white px-10 py-4 rounded-2xl font-semibold tracking-[0.2em]">
-            CONTACT US
+            {t("Services.hero.contactUs")}
           </button>
         </div>
       </section>
@@ -78,10 +64,10 @@ export default function Services() {
       {/* Services Section */}
       <section id="service" className="py-20 px-6 max-w-7xl mx-auto">
         <h2 className="text-4xl md:text-6xl font-bold text-center text-[#1A98A6] mb-4">
-          OUR SERVICES
+          {t("Services.section.title")}
         </h2>
         <p className="text-center text-gray-600 mb-16">
-          Dive into the new age of hospitality solutions with us
+          {t("Services.section.subtitle")}
         </p>
 
         <div className="grid md:grid-cols-2 gap-12">
@@ -92,16 +78,16 @@ export default function Services() {
             >
               <img
                 src={service.image}
-                alt={service.title}
+                alt={t(service.titleKey)}
                 className="h-64 w-full object-cover"
               />
               <div className="p-8">
                 <h4 className="text-2xl font-semibold mb-4">
-                  {service.title}
+                  {t(service.titleKey)}
                 </h4>
-                <p className="text-white/90 mb-6">{service.description}</p>
+                <p className="text-white/90 mb-6">{t(service.descKey)}</p>
                 <button className="bg-white text-[#1A98A6] px-6 py-2 rounded font-medium hover:bg-gray-100">
-                  Consult with us
+                  {t("Services.section.consultBtn")}
                 </button>
               </div>
             </div>
@@ -113,14 +99,13 @@ export default function Services() {
       <section className="relative bg-gray-100 py-24 px-6">
         <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl p-12 text-center">
           <h3 className="text-3xl font-bold text-[#1A98A6] mb-6">
-            YOUR TRUSTED PARTNER IN DIRECT BOOKING SUCCESS
+            {t("Services.cta.title")}
           </h3>
           <p className="text-gray-600 mb-6">
-            Slash commission costs and increase your earnings by joining
-            RevChill today.
+            {t("Services.cta.description")}
           </p>
           <button className="bg-[#1A98A6] hover:bg-[#168894] text-white px-8 py-3 rounded font-medium">
-            GET A FREE CONSULTATION
+            {t("Services.cta.btn")}
           </button>
         </div>
       </section>
@@ -131,19 +116,23 @@ export default function Services() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
             <div>
               <h4 className="font-semibold text-black mb-4 text-base md:text-lg">
-                Phone
+                {t("Services.footer.phone")}
               </h4>
-              <p className="text-black text-base md:text-lg">+971 (04) 5878 776</p>
+              <p className="text-black text-base md:text-lg">
+                {t("Services.footer.phoneNumber")}
+              </p>
             </div>
             <div>
               <h4 className="font-semibold text-black mb-4 text-base md:text-lg">
-                Email
+                {t("Services.footer.email")}
               </h4>
-              <p className="text-black text-base md:text-lg">info@revchill.com</p>
+              <p className="text-black text-base md:text-lg">
+                {t("Services.footer.emailAddress")}
+              </p>
             </div>
             <div>
               <h4 className="font-semibold text-black mb-4 text-base md:text-lg">
-                Follow
+                {t("Services.footer.follow")}
               </h4>
               <div className="flex justify-center md:justify-start space-x-3">
                 <a
@@ -178,7 +167,7 @@ export default function Services() {
           </div>
         </div>
         <p className="text-center mt-8 text-white text-sm md:text-base font-semibold">
-          ©2020 by RevChill
+          {t("Services.footer.copyright")}
         </p>
       </footer>
     </div>

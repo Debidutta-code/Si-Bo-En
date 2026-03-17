@@ -32,7 +32,7 @@ interface ModifyGuestSelectorProps {
   ) => void;
 }
 
-const MAX_GUESTS_PER_ROOM = 4;
+const MAX_GUESTS_PER_ROOM = 8;
 
 const ModifyGuestSelector: React.FC<ModifyGuestSelectorProps> = ({
   isOpen,

@@ -265,72 +265,133 @@ class NGeniusService {
     outletId?: string
   ): Promise<NGeniusRefundResponse> {
     try {
-      console.log(`\n========================================`);
-      console.log(`💸 PROCESSING N-GENIUS REFUND`);
-      console.log(`📋 Order Reference: ${orderReference}`);
-      console.log(`========================================`);
+      console.log(`\n${'='.repeat(60)}`);
+      console.log(`💸 [REFUND] PROCESSING N-GENIUS REFUND`);
+      console.log(`📋 [REFUND] Order Reference  : ${orderReference}`);
+      console.log(`🏪 [REFUND] Outlet ID        : ${outletId ?? '⚠️ (NOT PROVIDED — URL will be malformed!)'}`);
+      console.log(`⏰ [REFUND] Timestamp        : ${new Date().toISOString()}`);
+      console.log(`${'='.repeat(60)}`);
 
-      // Step 1: Get order status to extract payment and capture refs
-      console.log(`[DEBUG - N-GENIUS REFUND] 🔍 Step 1: Calling getOrderStatus to check order reference & extract refs for order: ${orderReference}`);
+      // ── Step 1: Fetch order status ──────────────────────────────────────────
+      console.log(`\n[REFUND - Step 1] 🔍 Calling getOrderStatus...`);
+      console.log(`[REFUND - Step 1]    orderReference : ${orderReference}`);
+      console.log(`[REFUND - Step 1]    outletId       : ${outletId ?? '(undefined)'}`);
+
       const orderStatus = await this.getOrderStatus(orderReference, outletId);
 
-      console.log(`[DEBUG - N-GENIUS REFUND] 📄 Order Status data:`, JSON.stringify(orderStatus));
+      // Log the entire raw response so we can see whatever N-Genius actually returns
+      console.log(`\n[REFUND - Step 1] 📥 Raw order status response:`);
+      console.log(JSON.stringify(orderStatus, null, 2));
 
+      // ── Step 2: Inspect top-level order fields ──────────────────────────────
+      console.log(`\n[REFUND - Step 2] 🧾 Order top-level fields:`);
+      console.log(`    _id              : ${(orderStatus as any)._id ?? '(not present)'}`);
+      console.log(`    reference        : ${(orderStatus as any).reference ?? '(not present)'}`);
+      console.log(`    action           : ${(orderStatus as any).action ?? '(not present)'}`);
+      console.log(`    state (order)    : ${(orderStatus as any).state ?? '(not present)'}`);
+      console.log(`    amount.value     : ${orderStatus.amount?.value ?? '(not present)'}`);
+      console.log(`    amount.currency  : ${orderStatus.amount?.currencyCode ?? '(not present)'}`);
+      console.log(`    outletId         : ${(orderStatus as any).outletId ?? '(not present)'}`);
+      console.log(`    _embedded keys   : ${JSON.stringify(Object.keys(orderStatus._embedded ?? {}))}`);
+      console.log(`    _links keys      : ${JSON.stringify(Object.keys((orderStatus as any)._links ?? {}))}`);
+
+      // ── Step 3: Inspect payments array ─────────────────────────────────────
       const payments = orderStatus._embedded?.payment;
+      console.log(`\n[REFUND - Step 3] 💳 Payments array length: ${payments?.length ?? 0}`);
 
       if (!payments || payments.length === 0) {
-        console.error(`[DEBUG - N-GENIUS REFUND] ❌ No payment found for this order: ${orderReference}`);
+        console.error(`[REFUND - Step 3] ❌ No payment found in _embedded.payment for order: ${orderReference}`);
+        console.error(`[REFUND - Step 3]    Full _embedded object:`, JSON.stringify(orderStatus._embedded, null, 2));
         return { success: false, message: 'No payment found for this order' };
       }
 
       const payment = payments[0];
+      console.log(`\n[REFUND - Step 3] 📋 Payment[0] fields:`);
+      console.log(`    _id              : ${(payment as any)._id ?? '(not present)'}`);
+      console.log(`    state            : ${payment.state ?? '(not present)'}`);
+      console.log(`    amount.value     : ${(payment as any).amount?.value ?? '(not present)'}`);
+      console.log(`    amount.currency  : ${(payment as any).amount?.currencyCode ?? '(not present)'}`);
+      console.log(`    _embedded keys   : ${JSON.stringify(Object.keys(payment._embedded ?? {}))}`);
+      console.log(`    _links keys      : ${JSON.stringify(Object.keys((payment as any)._links ?? {}))}`);
+      console.log(`    Full payment _links:`, JSON.stringify((payment as any)._links, null, 2));
 
-      // Step 2: Extract all IDs from the capture href URL
-      // URL format: .../outlets/{outletId}/orders/{orderRef}/payments/{paymentRef}/captures/{captureId}
+      // ── Step 4: Inspect captures ────────────────────────────────────────────
       const captures = payment._embedded?.['cnp:capture'];
+      console.log(`\n[REFUND - Step 4] 🗂️  cnp:capture array length: ${captures?.length ?? 0}`);
+      console.log(`[REFUND - Step 4]    All _embedded keys on payment:`, JSON.stringify(Object.keys(payment._embedded ?? {})));
+
       if (!captures || captures.length === 0) {
+        console.error(`[REFUND - Step 4] ❌ No captures found. Payment state is: ${payment.state}`);
+        console.error(`[REFUND - Step 4]    This usually means the payment was NOT captured (e.g., AUTHORISED but not CAPTURED, or PURCHASED via 3DS).`);
+        console.error(`[REFUND - Step 4]    Full payment._embedded:`, JSON.stringify(payment._embedded, null, 2));
         return { success: false, message: 'No capture found for this payment (payment may not be in CAPTURED state)' };
       }
 
-      const captureHref = captures[0]._links?.self?.href;
-      if (!captureHref) {
-        return { success: false, message: 'Capture href not found in order status' };
+      // Log every capture so we see all of them, not just [0]
+      captures.forEach((cap: any, idx: number) => {
+        console.log(`\n[REFUND - Step 4] 📦 Capture[${idx}]:`);
+        console.log(`    _id              : ${cap._id ?? '(not present)'}`);
+        console.log(`    state            : ${cap.state ?? '(not present)'}`);
+        console.log(`    amount.value     : ${cap.amount?.value ?? '(not present)'}`);
+        console.log(`    amount.currency  : ${cap.amount?.currencyCode ?? '(not present)'}`);
+        console.log(`    _links keys      : ${JSON.stringify(Object.keys(cap._links ?? {}))}`);
+        console.log(`    Full _links      :`, JSON.stringify(cap._links, null, 2));
+        console.log(`    cnp:refund href  : ${cap._links?.['cnp:refund']?.href ?? '⚠️ (NOT PRESENT on this capture)'}`);
+      });
+
+      // ── Step 5: Extract refund href from capture[0] ─────────────────────────
+      const rawCaptureHref = captures[0]._links?.['cnp:refund']?.href;
+
+      console.log(`\n[REFUND - Step 5] 🔗 cnp:refund href from capture[0]: ${rawCaptureHref ?? '(not present)'}`);
+
+      if (!rawCaptureHref) {
+        console.error(`[REFUND - Step 5] ❌ cnp:refund href NOT FOUND on capture[0].`);
+        console.error(`[REFUND - Step 5]    This is the "href not found" error!`);
+        console.error(`[REFUND - Step 5]    capture[0]._links full object:`, JSON.stringify(captures[0]._links, null, 2));
+        console.error(`[REFUND - Step 5]    Possible reasons:`);
+        console.error(`[REFUND - Step 5]      1. Payment captured < 24hrs ago (N-Genius doesn't expose refund link yet)`);
+        console.error(`[REFUND - Step 5]      2. Payment is in wrong state for refund`);
+        console.error(`[REFUND - Step 5]      3. API response schema changed or unexpected structure`);
+        return { success: false, message: 'Capture refund href not found in order status' };
       }
 
-      // Parse outletId, orderRef, paymentRef, and captureRef from the href URL
-      const hrefParts = captureHref.split('/');
-      // Expected segments: ...outlets/{outletId}/orders/{orderRef}/payments/{paymentRef}/captures/{captureId}
-      const capturesIndex = hrefParts.indexOf('captures');
-      const paymentsIndex = hrefParts.indexOf('payments');
-      const ordersIndex = hrefParts.indexOf('orders');
-      const outletsIndex = hrefParts.indexOf('outlets');
+      console.log(`[REFUND - Step 5] ✅ cnp:refund href found: ${rawCaptureHref}`);
+      console.log(`[REFUND - Step 5]    Ends with /refund? ${rawCaptureHref.endsWith('/refund')}`);
 
-      if (capturesIndex === -1 || paymentsIndex === -1 || ordersIndex === -1 || outletsIndex === -1) {
-        return { success: false, message: 'Failed to parse IDs from capture href URL' };
+      // ── Step 6: 24-hour check ───────────────────────────────────────────────
+      if (!rawCaptureHref.endsWith('/refund')) {
+        console.warn(`[REFUND - Step 6] ⏳ Refund endpoint NOT yet available (payment < 24hrs old).`);
+        console.warn(`[REFUND - Step 6]    Raw href: ${rawCaptureHref}`);
+        console.warn(`[REFUND - Step 6]    Expected it to end with '/refund' but it doesn't.`);
+        return {
+          success: false,
+          message: 'Reservation cannot be cancelled within 24 hours of booking. Please try again after 24 hours.',
+        };
       }
 
-      const parsedOutletId = hrefParts[outletsIndex + 1];
-      const parsedOrderRef = hrefParts[ordersIndex + 1];
-      const parsedPaymentRef = hrefParts[paymentsIndex + 1];
-      const captureRef = hrefParts[capturesIndex + 1];
+      const refundUrl = rawCaptureHref;
+      console.log(`\n[REFUND - Step 6] ✅ Refund URL confirmed available: ${refundUrl}`);
 
-      if (!parsedOutletId || !parsedOrderRef || !parsedPaymentRef || !captureRef) {
-        return { success: false, message: 'One or more IDs could not be parsed from capture href URL' };
-      }
+      // Parse captureRef from the URL for logging/reference purposes
+      const refundUrlParts = refundUrl.split('/');
+      const capturesIndex = refundUrlParts.indexOf('captures');
+      const captureRef = capturesIndex !== -1 ? refundUrlParts[capturesIndex + 1] : 'unknown';
 
-      // Step 3: Get refund amount and currency from the capture
-      const refundAmount = captures[0].amount.value;
-      const refundCurrency = captures[0].amount.currencyCode;
+      // ── Step 7: Build refund payload ────────────────────────────────────────
+      const orderAmount = orderStatus.amount;
+      const refundCurrency = orderAmount.currencyCode;
+      const refundAmount = orderAmount.value; // already in minor units (e.g. 100 = 1 AED)
 
-      console.log(`💳 Payment Reference: ${parsedPaymentRef}`);
-      console.log(`📦 Capture Reference: ${captureRef}`);
-      console.log(`💰 Refund Amount: ${refundAmount} ${refundCurrency}`);
+      console.log(`\n[REFUND - Step 7] 📦 Refund payload details:`);
+      console.log(`    captureRef       : ${captureRef}`);
+      console.log(`    refundUrl        : ${refundUrl}`);
+      console.log(`    refundAmount     : ${refundAmount} (minor units) = ${refundAmount / 100} ${refundCurrency}`);
+      console.log(`    refundCurrency   : ${refundCurrency}`);
+      console.log(`    Body to send     :`, JSON.stringify({ amount: { value: refundAmount, currencyCode: refundCurrency } }));
 
-      // Step 4: Call the refund API
+      // ── Step 8: Call refund API ─────────────────────────────────────────────
+      console.log(`\n[REFUND - Step 8] 🚀 Sending refund POST request to N-Genius...`);
       const token = await this.getValidToken();
-      const refundUrl = `${NGeniusConfig.baseUrl}${NGeniusConfig.endpoints.orders}/${parsedOutletId}/orders/${parsedOrderRef}/payments/${parsedPaymentRef}/captures/${captureRef}/refund`;
-
-      console.log(`🔗 Refund URL: ${refundUrl}`);
 
       const refundResponse = await axios.post(
         refundUrl,
@@ -349,9 +410,10 @@ class NGeniusService {
         }
       );
 
-      console.log(`✅ REFUND SUCCESSFUL`);
-      console.log(`📊 Refund Response Status: ${refundResponse.status}`);
-      console.log(`========================================\n`);
+      console.log(`\n[REFUND - Step 8] ✅ REFUND SUCCESSFUL`);
+      console.log(`[REFUND - Step 8]    HTTP Status  : ${refundResponse.status} ${refundResponse.statusText}`);
+      console.log(`[REFUND - Step 8]    Response data:`, JSON.stringify(refundResponse.data, null, 2));
+      console.log(`${'='.repeat(60)}\n`);
 
       return {
         success: true,
@@ -363,20 +425,20 @@ class NGeniusService {
       this.handleError(error, 'Failed to process refund');
       if (axios.isAxiosError(error)) {
         const errData = error.response?.data as any;
-        console.error(`\n❌ REFUND FAILED - Full Axios Error Details:`);
-        console.error(`- Response Status: ${error.response?.status} ${error.response?.statusText}`);
-        console.error(`- Response Data:`, JSON.stringify(errData, null, 2));
-        console.error(`- Request URL: ${error.config?.url}`);
-        console.error(`- Request Method: ${error.config?.method}`);
-        console.error(`- Request Data Context:`, error.config?.data);
-        console.error(`- Axios Error Message: ${error.message}\n`);
+        console.error(`\n[REFUND] ❌ REFUND FAILED — Axios Error:`);
+        console.error(`    HTTP Status   : ${error.response?.status} ${error.response?.statusText}`);
+        console.error(`    Request URL   : ${error.config?.url}`);
+        console.error(`    Request method: ${error.config?.method}`);
+        console.error(`    Request body  :`, error.config?.data);
+        console.error(`    Response data :`, JSON.stringify(errData, null, 2));
+        console.error(`    Axios message : ${error.message}\n`);
 
         const errMessage = errData?.message || errData?.errors?.[0]?.message || 'Refund API request failed';
-        console.error(`❌ REFUND FAILED: ${errMessage}`);
+        console.error(`[REFUND] ❌ Final error message: ${errMessage}`);
         return { success: false, message: errMessage };
       }
       const msg = error instanceof Error ? error.message : 'Unknown refund error';
-      console.error(`❌ REFUND ERRORED (Non-Axios):`, msg, error);
+      console.error(`[REFUND] ❌ Non-Axios error:`, msg, error);
       return { success: false, message: msg };
     }
   }
