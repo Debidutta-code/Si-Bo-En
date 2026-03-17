@@ -32,6 +32,7 @@ export interface RateCalculationResult {
   };
 }
 export interface BaseGuestAmount {
+  ageQualifyingCode: string;
   amountBeforeTax: number;
   numberOfGuests: number;
 }

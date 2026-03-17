@@ -1,95 +1,208 @@
 import { useState, useEffect } from "react";
-import { Edit, Plus, Trash2 } from "lucide-react";
+import { Edit, Plus } from "lucide-react";
+import { toast } from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+    Dialog, DialogContent, DialogDescription,
+    DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+    Select, SelectContent, SelectItem,
+    SelectTrigger, SelectValue,
 } from "@/components/ui/select";
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/components/ui/table";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import type { Charges, IBaseGuestAmounts, IAdditionalGuestAmount, IUpdatedCharges } from "../types";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { X } from "lucide-react";
+import type {
+    Charges, IBaseGuestAmounts, IAdditionalGuestAmount,
+    IUpdatedCharges, RoomTypes, qualifyingAgeCode
+} from "../types";
 
 interface UpdatePriceDialogProps {
     mapping: Charges | null;
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onSave: (updatedMapping: IUpdatedCharges) => void;
+    roomTypes: RoomTypes[];
 }
+
+const availableAgeCodes: qualifyingAgeCode[] = ["10", "8", "5"];
 
 export default function UpdatePriceDialog({
     mapping,
     open,
     onOpenChange,
     onSave,
+    roomTypes,
 }: UpdatePriceDialogProps) {
-    const [baseGuestAmounts, setBaseGuestAmounts] = useState<IBaseGuestAmounts[]>([]);
+    const [adultsBase, setAdultsBase] = useState<IBaseGuestAmounts[]>([]);
+    const [childrenBase, setChildrenBase] = useState<IBaseGuestAmounts[]>([]);
     const [additionalGuestAmounts, setAdditionalGuestAmounts] = useState<IAdditionalGuestAmount[]>([]);
+
+    // Derive the room for this mapping so we can enforce limits
+    const selectedRoom = roomTypes.find(r => r.roomType === mapping?.roomTypeCode);
+
+    const isAdultLimitReached = selectedRoom
+        ? adultsBase.length >= selectedRoom.maxNumberOfAdults
+        : false;
+
+    const isChildLimitReached = selectedRoom
+        ? childrenBase.length >= selectedRoom.maxNumberOfChildren
+        : false;
 
     useEffect(() => {
         if (mapping) {
-            setBaseGuestAmounts(mapping.baseGuestAmounts || []);
-            setAdditionalGuestAmounts(mapping.additionalGuestAmounts || []);
+            const adults = (mapping.baseGuestAmounts || [])
+                .filter(g => g.ageQualifyingCode === "10")
+                .map((g, i) => ({
+                    numberOfGuests: g.numberOfGuests ?? i + 1,
+                    amountBeforeTax: g.amountBeforeTax,
+                    ageQualifyingCode: g.ageQualifyingCode,
+                }));
+
+            const children = (mapping.baseGuestAmounts || [])
+                .filter(g => g.ageQualifyingCode === "8")
+                .map((g, i) => ({
+                    numberOfGuests: g.numberOfGuests ?? i + 1,
+                    amountBeforeTax: g.amountBeforeTax,
+                    ageQualifyingCode: g.ageQualifyingCode,
+                }));
+
+            setAdultsBase(adults.length > 0
+                ? adults
+                : [{ numberOfGuests: 1, amountBeforeTax: "0", ageQualifyingCode: "10" }]
+            );
+            setChildrenBase(children);
+            setAdditionalGuestAmounts(
+                (mapping.additionalGuestAmounts || []).map(g => ({
+                    ageQualifyingCode: g.ageQualifyingCode,
+                    amount: g.amount,
+                }))
+            );
         }
     }, [mapping]);
 
-    const handleAddBaseGuest = () => {
-        setBaseGuestAmounts([...baseGuestAmounts, { numberOfGuests: 1, amountBeforeTax: "0" }]);
+    // ── Adults ──────────────────────────────────────────────
+    const handleAddAdult = () => {
+        if (isAdultLimitReached) {
+            toast.error(`Max adults for this room is ${selectedRoom?.maxNumberOfAdults}`);
+            return;
+        }
+        setAdultsBase(prev => [
+            ...prev,
+            { numberOfGuests: prev.length + 1, amountBeforeTax: "", ageQualifyingCode: "10" },
+        ]);
     };
 
-    const handleRemoveBaseGuest = (index: number) => {
-        setBaseGuestAmounts(baseGuestAmounts.filter((_, i) => i !== index));
+    const handleRemoveAdult = (index: number) => {
+        if (adultsBase.length <= 1) {
+            toast.error("At least one adult base amount is required");
+            return;
+        }
+        setAdultsBase(prev =>
+            prev.filter((_, i) => i !== index).map((a, i) => ({ ...a, numberOfGuests: i + 1 }))
+        );
     };
 
-    const handleUpdateBaseGuest = (index: number, field: keyof IBaseGuestAmounts, value: number) => {
-        const updated = [...baseGuestAmounts];
-        updated[index] = { ...updated[index], [field]: value };
-        setBaseGuestAmounts(updated);
+    const handleAdultChange = (index: number, field: keyof IBaseGuestAmounts, value: string | number) => {
+        setAdultsBase(prev => {
+            const updated = [...prev];
+            if (field === "numberOfGuests") {
+                const n = Number(value) || 1;
+                if (selectedRoom && n > selectedRoom.maxNumberOfAdults) {
+                    toast.error(`Max adults is ${selectedRoom.maxNumberOfAdults}`);
+                    updated[index] = { ...updated[index], numberOfGuests: selectedRoom.maxNumberOfAdults };
+                    return updated;
+                }
+                updated[index] = { ...updated[index], numberOfGuests: Math.max(1, n) };
+            } else {
+                updated[index] = { ...updated[index], [field]: value } as any;
+            }
+            return updated;
+        });
     };
 
-    const handleAddAdditionalGuest = () => {
-        setAdditionalGuestAmounts([...additionalGuestAmounts, { ageQualifyingCode: "10", amount: 0 }]);
+    // ── Children ────────────────────────────────────────────
+    const handleAddChild = () => {
+        if (isChildLimitReached) {
+            toast.error(`Max children for this room is ${selectedRoom?.maxNumberOfChildren}`);
+            return;
+        }
+        setChildrenBase(prev => [
+            ...prev,
+            { numberOfGuests: prev.length + 1, amountBeforeTax: "", ageQualifyingCode: "8" },
+        ]);
     };
 
-    const handleRemoveAdditionalGuest = (index: number) => {
-        setAdditionalGuestAmounts(additionalGuestAmounts.filter((_, i) => i !== index));
+    const handleRemoveChild = (index: number) => {
+        setChildrenBase(prev =>
+            prev.filter((_, i) => i !== index).map((c, i) => ({ ...c, numberOfGuests: i + 1 }))
+        );
     };
 
-    const handleUpdateAdditionalGuest = (
-        index: number,
-        field: keyof IAdditionalGuestAmount,
-        value: string | number
-    ) => {
-        const updated = [...additionalGuestAmounts];
-        updated[index] = { ...updated[index], [field]: value };
-        setAdditionalGuestAmounts(updated);
+    const handleChildChange = (index: number, field: keyof IBaseGuestAmounts, value: string | number) => {
+        setChildrenBase(prev => {
+            const updated = [...prev];
+            if (field === "numberOfGuests") {
+                const n = Number(value) || 1;
+                if (selectedRoom && n > selectedRoom.maxNumberOfChildren) {
+                    toast.error(`Max children is ${selectedRoom.maxNumberOfChildren}`);
+                    updated[index] = { ...updated[index], numberOfGuests: selectedRoom.maxNumberOfChildren };
+                    return updated;
+                }
+                updated[index] = { ...updated[index], numberOfGuests: Math.max(1, n) };
+            } else {
+                updated[index] = { ...updated[index], [field]: value } as any;
+            }
+            return updated;
+        });
     };
 
+    // ── Additional guests ───────────────────────────────────
+    const handleAddAdditional = () => {
+        const usedCodes = additionalGuestAmounts.map(a => a.ageQualifyingCode);
+        const nextCode = availableAgeCodes.find(c => !usedCodes.includes(c));
+        if (!nextCode) {
+            toast.error("All age categories have been added (Adult, Child, Infant)");
+            return;
+        }
+        setAdditionalGuestAmounts(prev => [
+            ...prev,
+            { ageQualifyingCode: nextCode as qualifyingAgeCode, amount: 0 },
+        ]);
+    };
+
+    const handleRemoveAdditional = (index: number) => {
+        setAdditionalGuestAmounts(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const handleAdditionalChange = (index: number, field: keyof IAdditionalGuestAmount, value: string | number) => {
+        setAdditionalGuestAmounts(prev => {
+            const updated = [...prev];
+            updated[index] = { ...updated[index], [field]: value };
+            return updated;
+        });
+    };
+
+    // ── Submit ──────────────────────────────────────────────
     const handleSave = () => {
         if (!mapping) return;
 
+        const combined = [...adultsBase, ...childrenBase];
+        const hasInvalid = combined.some(g => parseFloat(String(g.amountBeforeTax)) <= 0);
+        if (hasInvalid) {
+            toast.error("All base guest amounts must be greater than 0");
+            return;
+        }
+
         const updated: IUpdatedCharges = {
             id: mapping.id,
-            baseGuestAmounts: baseGuestAmounts,
-            additionalGuestAmounts: additionalGuestAmounts,
+            baseGuestAmounts: [
+                ...adultsBase.map(a => ({ ...a, ageQualifyingCode: "10" as qualifyingAgeCode })),
+                ...childrenBase.map(c => ({ ...c, ageQualifyingCode: "8" as qualifyingAgeCode })),
+            ],
+            additionalGuestAmounts,
         };
 
         onSave(updated);
@@ -107,188 +220,181 @@ export default function UpdatePriceDialog({
                         Update Price
                     </DialogTitle>
                     <DialogDescription>
-                        Update pricing details for {mapping.ratePlanName} - {mapping.roomTypeName}
+                        Update pricing for {mapping.ratePlanName} - {mapping.roomTypeName}
                     </DialogDescription>
                 </DialogHeader>
 
                 <div className="space-y-6 py-4">
-                   
 
-                    {/* Base Guest Amounts */}
+                    {/* Adults */}
                     <Card>
-                        <CardHeader className="pb-3">
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="text-lg flex items-center gap-2">
-                                    <span className="w-2 h-2 bg-primary rounded-full"></span>
-                                    Base Guest Amounts
-                                </CardTitle>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={handleAddBaseGuest}
-                                >
-                                    <Plus className="w-4 h-4 mr-1" />
-                                    Add
-                                </Button>
-                            </div>
+                        <CardHeader>
+                            <CardTitle className="text-lg">Base Guest Amounts For Adults *</CardTitle>
+                            <CardDescription>Set pricing based on number of adult guests</CardDescription>
                         </CardHeader>
-                        <CardContent>
-                            {baseGuestAmounts.length > 0 ? (
-                                <div className="rounded-md border">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow className="bg-gray-50">
-                                                <TableHead className="font-semibold">Number of Guests</TableHead>
-                                                <TableHead className="font-semibold">Amount ($)</TableHead>
-                                                <TableHead className="font-semibold w-20">Action</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {baseGuestAmounts.map((guest, index) => (
-                                                <TableRow key={index}>
-                                                    <TableCell>
-                                                        <Input
-                                                            type="number"
-                                                            min="1"
-                                                            value={guest.numberOfGuests}
-                                                            onChange={(e) =>
-                                                                handleUpdateBaseGuest(
-                                                                    index,
-                                                                    "numberOfGuests",
-                                                                    parseInt(e.target.value) || 1
-                                                                )
-                                                            }
-                                                            className="h-9"
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Input
-                                                            type="number"
-                                                            min="0"
-                                                            step="1"
-                                                            value={guest.amountBeforeTax}
-                                                            onChange={(e) =>
-                                                                handleUpdateBaseGuest(
-                                                                    index,
-                                                                    "amountBeforeTax",
-                                                                    parseFloat(e.target.value) || 0
-                                                                )
-                                                            }
-                                                            className="h-9"
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Button
-                                                            type="button"
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => handleRemoveBaseGuest(index)}
-                                                            className="h-8 w-8 p-0 hover:bg-red-50"
-                                                        >
-                                                            <Trash2 className="w-4 h-4 text-red-600" />
-                                                        </Button>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
+                        <CardContent className="space-y-3">
+                            {adultsBase.map((item, index) => (
+                                <div key={index} className="flex items-end gap-3">
+                                    <div className="flex-1 space-y-2">
+                                        <Label>Number of Adults</Label>
+                                        <Input
+                                            type="number"
+                                            min="1"
+                                            value={item.numberOfGuests}
+                                            onChange={e => handleAdultChange(index, "numberOfGuests", parseInt(e.target.value) || 1)}
+                                        />
+                                    </div>
+                                    <div className="flex-1 space-y-2">
+                                        <Label>Amount</Label>
+                                        <Input
+                                            type="number"
+                                            min="0"
+                                            step="0.1"
+                                            value={item.amountBeforeTax}
+                                            onChange={e => handleAdultChange(index, "amountBeforeTax", e.target.value)}
+                                        />
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => handleRemoveAdult(index)}
+                                        disabled={adultsBase.length <= 1}
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </Button>
                                 </div>
-                            ) : (
-                                <p className="text-sm text-gray-500 text-center py-4">
-                                    No base guest amounts added yet. Click "Add" to add one.
-                                </p>
-                            )}
+                            ))}
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={handleAddAdult}
+                                className="w-full"
+                                disabled={isAdultLimitReached}
+                            >
+                                <Plus className="w-4 h-4 mr-2" />
+                                {isAdultLimitReached
+                                    ? `Max adults reached (${selectedRoom?.maxNumberOfAdults})`
+                                    : "Add Adult Guest Amount"}
+                            </Button>
                         </CardContent>
                     </Card>
 
-                    {/* Additional Guest Amounts */}
+                    {/* Children */}
                     <Card>
-                        <CardHeader className="pb-3">
-                            <div className="flex items-center justify-between">
-                                <CardTitle className="text-lg flex items-center gap-2">
-                                    <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
-                                    Additional Guest Amounts
-                                </CardTitle>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={handleAddAdditionalGuest}
-                                >
-                                    <Plus className="w-4 h-4 mr-1" />
-                                    Add
-                                </Button>
-                            </div>
+                        <CardHeader>
+                            <CardTitle className="text-lg">Base Guest Amount for Children</CardTitle>
+                            <CardDescription>Set pricing based on number of child guests</CardDescription>
                         </CardHeader>
-                        <CardContent>
-                            {additionalGuestAmounts.length > 0 ? (
-                                <div className="rounded-md border">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow className="bg-gray-50">
-                                                <TableHead className="font-semibold">Age Code</TableHead>
-                                                <TableHead className="font-semibold">Amount ($)</TableHead>
-                                                <TableHead className="font-semibold w-20">Action</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {additionalGuestAmounts.map((guest, index) => (
-                                                <TableRow key={index}>
-                                                    <TableCell>
-                                                        <Select
-                                                            value={guest.ageQualifyingCode}
-                                                            onValueChange={(value) =>
-                                                                handleUpdateAdditionalGuest(index, "ageQualifyingCode", value)
-                                                            }
-                                                        >
-                                                            <SelectTrigger className="h-9">
-                                                                <SelectValue />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem value="10">Age 10+</SelectItem>
-                                                                <SelectItem value="8">Age 8+</SelectItem>
-                                                                <SelectItem value="5">Age 5+</SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Input
-                                                            type="number"
-                                                            min="0"
-                                                            step="1"
-                                                            value={guest.amount}
-                                                            onChange={(e) =>
-                                                                handleUpdateAdditionalGuest(
-                                                                    index,
-                                                                    "amount",
-                                                                    parseFloat(e.target.value) || 0
-                                                                )
-                                                            }
-                                                            className="h-9"
-                                                        />
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <Button
-                                                            type="button"
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => handleRemoveAdditionalGuest(index)}
-                                                            className="h-8 w-8 p-0 hover:bg-red-50"
-                                                        >
-                                                            <Trash2 className="w-4 h-4 text-red-600" />
-                                                        </Button>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
+                        <CardContent className="space-y-3">
+                            {childrenBase.map((item, index) => (
+                                <div key={index} className="flex items-end gap-3">
+                                    <div className="flex-1 space-y-2">
+                                        <Label>Number of Children</Label>
+                                        <Input
+                                            type="number"
+                                            min="1"
+                                            value={item.numberOfGuests}
+                                            onChange={e => handleChildChange(index, "numberOfGuests", parseInt(e.target.value) || 1)}
+                                        />
+                                    </div>
+                                    <div className="flex-1 space-y-2">
+                                        <Label>Amount</Label>
+                                        <Input
+                                            type="number"
+                                            min="0"
+                                            step="0.1"
+                                            value={item.amountBeforeTax}
+                                            onChange={e => handleChildChange(index, "amountBeforeTax", e.target.value)}
+                                        />
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => handleRemoveChild(index)}
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </Button>
                                 </div>
-                            ) : (
-                                <p className="text-sm text-gray-500 text-center py-4">
-                                    No additional guest amounts added yet. Click "Add" to add one.
-                                </p>
-                            )}
+                            ))}
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={handleAddChild}
+                                className="w-full"
+                                disabled={isChildLimitReached}
+                            >
+                                <Plus className="w-4 h-4 mr-2" />
+                                {isChildLimitReached
+                                    ? `Max children reached (${selectedRoom?.maxNumberOfChildren})`
+                                    : "Add Child Guest Amount"}
+                            </Button>
+                        </CardContent>
+                    </Card>
+
+                    {/* Additional */}
+                    <Card>
+                        <CardHeader>
+                            <CardTitle className="text-lg">Additional Guest Amounts (Optional)</CardTitle>
+                            <CardDescription>Set pricing for additional guests by age category</CardDescription>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                            {additionalGuestAmounts.map((item, index) => (
+                                <div key={index} className="flex items-end gap-3">
+                                    <div className="flex-1 space-y-2">
+                                        <Label>Age Code</Label>
+                                        <Select
+                                            value={item.ageQualifyingCode}
+                                            onValueChange={value => handleAdditionalChange(index, "ageQualifyingCode", value)}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {availableAgeCodes
+                                                    .filter(code =>
+                                                        item.ageQualifyingCode === code ||
+                                                        !additionalGuestAmounts.some((g, i) => i !== index && g.ageQualifyingCode === code)
+                                                    )
+                                                    .map(code => (
+                                                        <SelectItem key={code} value={code}>
+                                                            {code === "10" ? "Adult" : code === "8" ? "Child" : "Infant"}
+                                                        </SelectItem>
+                                                    ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="flex-1 space-y-2">
+                                        <Label>Amount</Label>
+                                        <Input
+                                            type="number"
+                                            min="0"
+                                            step="0.01"
+                                            value={item.amount}
+                                            onChange={e => handleAdditionalChange(index, "amount", parseFloat(e.target.value) || 0)}
+                                        />
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => handleRemoveAdditional(index)}
+                                    >
+                                        <X className="w-4 h-4" />
+                                    </Button>
+                                </div>
+                            ))}
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={handleAddAdditional}
+                                className="w-full"
+                                disabled={additionalGuestAmounts.length >= availableAgeCodes.length}
+                            >
+                                <Plus className="w-4 h-4 mr-2" />
+                                Add Additional Guest Amount
+                            </Button>
                         </CardContent>
                     </Card>
                 </div>

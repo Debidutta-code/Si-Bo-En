@@ -31,18 +31,22 @@ interface Props {
  * Build per-room guestDistribution from priceBreakdowns dailyBreakdown.
  * We take the FIRST night's entries (one per roomNumber) to get the room layout.
  */
-const extractGuestDistribution = (bookingData: any): { adults: number; children: number; childAges: number[] }[] => {
+const extractGuestDistribution = (
+  bookingData: any,
+): { adults: number; children: number; childAges: number[] }[] => {
   const dailyBreakdown =
     bookingData.priceBreakdowns?.[0]?.dailyBreakdown ||
     bookingData.finalPrice?.dailyPriceBrakeDown ||
     bookingData.finalPrice?.dailyBreakdown ||
     [];
 
-  if (!dailyBreakdown.length) return [{ adults: 1, children: 0, childAges: [] }];
+  if (!dailyBreakdown.length)
+    return [{ adults: 1, children: 0, childAges: [] }];
 
   // Group by roomNumber, keep only the FIRST date's entry per room
   const seenRooms = new Set<string>();
-  const perRoom: { adults: number; children: number; childAges: number[] }[] = [];
+  const perRoom: { adults: number; children: number; childAges: number[] }[] =
+    [];
 
   for (const entry of dailyBreakdown) {
     if (seenRooms.has(String(entry.roomNumber))) continue;
@@ -58,7 +62,9 @@ const extractGuestDistribution = (bookingData: any): { adults: number; children:
 };
 
 /** Sum adults / children / childAges across all rooms */
-const sumGuests = (rooms: { adults: number; children: number; childAges: number[] }[]) => {
+const sumGuests = (
+  rooms: { adults: number; children: number; childAges: number[] }[],
+) => {
   let adults = 0;
   let children = 0;
   const childAges: number[] = [];
@@ -73,7 +79,8 @@ const sumGuests = (rooms: { adults: number; children: number; childAges: number[
 const normalizeGuests = (guests: any[], reservationGuests: any[]): Guest[] =>
   guests.map((guest) => {
     const rg = (reservationGuests || []).find(
-      (r: any) => r.firstName === guest.firstName && r.lastName === guest.lastName
+      (r: any) =>
+        r.firstName === guest.firstName && r.lastName === guest.lastName,
     );
     return {
       type: guest.type || "adult",
@@ -91,13 +98,29 @@ const countGuests = (guests: Guest[]) =>
       else acc.children++;
       return acc;
     },
-    { adults: 0, children: 0 }
+    { adults: 0, children: 0 },
   );
 
 const parseDate = (date: any): string => {
   if (typeof date === "string") return date.split("T")[0];
-  if (date && typeof date === "object" && "$date" in date) return date.$date.split("T")[0];
+  if (date && typeof date === "object" && "$date" in date)
+    return date.$date.split("T")[0];
   return "";
+};
+
+/**
+ * Build promotions payload from finalPrice.promotionBrakeDown.
+ * Only send user-applied promotions — auto-applied ones (e.g. MLOS) are
+ * recalculated server-side and should not be included.
+ */
+const buildPromotions = (
+  bookingData: any,
+): { id: string; promotionType: string }[] => {
+  const promotionBreakdown: any[] =
+    bookingData.finalPrice?.promotionBrakeDown ?? [];
+  return promotionBreakdown
+    .filter((p: any) => p.type === "user-applied" && p.id)
+    .map((p: any) => ({ id: p.id as string, promotionType: "normal" }));
 };
 
 // ─── Component ──────────────────────────────────────────────────────────────
@@ -105,8 +128,12 @@ const parseDate = (date: any): string => {
 const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
   const [activeTab, setActiveTab] = useState<"dates" | "guests">("dates");
 
-  const [checkInDate, setCheckInDate] = useState(parseDate(bookingData.checkInDate));
-  const [checkOutDate, setCheckOutDate] = useState(parseDate(bookingData.checkOutDate));
+  const [checkInDate, setCheckInDate] = useState(
+    parseDate(bookingData.checkInDate),
+  );
+  const [checkOutDate, setCheckOutDate] = useState(
+    parseDate(bookingData.checkOutDate),
+  );
 
   // ── Derive initial room layout from priceBreakdowns (source of truth) ──────
   const initialRoomDistribution = extractGuestDistribution(bookingData);
@@ -124,14 +151,18 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
     { adults: number; children: number; childAges: number[] }[]
   >(initialRoomDistribution);
 
-  const [childAges, setChildAges] = useState<number[]>(initialGuestTotals.childAges);
+  const [childAges, setChildAges] = useState<number[]>(
+    initialGuestTotals.childAges,
+  );
 
   const [guestForms, setGuestForms] = useState<Guest[]>(
-    normalizeGuests(bookingData.guests, bookingData.reservationGuests)
+    normalizeGuests(bookingData.guests, bookingData.reservationGuests),
   );
-  const [guestCounts, setGuestCounts] = useState(countGuests(
-    normalizeGuests(bookingData.guests, bookingData.reservationGuests)
-  ));
+  const [guestCounts, setGuestCounts] = useState(
+    countGuests(
+      normalizeGuests(bookingData.guests, bookingData.reservationGuests),
+    ),
+  );
   const [guestSummary, setGuestSummary] = useState("Add Guests");
 
   const [amount, setAmount] = useState(bookingData.amount);
@@ -144,11 +175,20 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
   const [finalPrice, setFinalPrice] = useState<any>({
     booking: { finalPayable: 0, refundAmount: 0, discount: 0 },
     totalAmount: bookingData.amount,
-    breakdown: { totalBaseAmount: 0, totalAdditionalCharges: 0, totalAmount: 0, totalTax: 0, priceAfterTax: 0 },
+    breakdown: {
+      totalBaseAmount: 0,
+      totalAdditionalCharges: 0,
+      totalAmount: 0,
+      totalTax: 0,
+      priceAfterTax: 0,
+    },
     tax: [],
   });
 
-  const [dateErrors, setDateErrors] = useState<{ checkIn?: string; checkOut?: string }>({});
+  const [dateErrors, setDateErrors] = useState<{
+    checkIn?: string;
+    checkOut?: string;
+  }>({});
   const [errors, setErrors] = useState<any>({});
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -157,7 +197,9 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
 
   // Keep childAges in sync with guestForms
   useEffect(() => {
-    const ages = guestForms.filter((g) => g.type === "child").map((g) => g.age || 0);
+    const ages = guestForms
+      .filter((g) => g.type === "child")
+      .map((g) => g.age || 0);
     setChildAges(ages);
   }, [guestForms]);
 
@@ -182,17 +224,42 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
         new Set(
           (bookingData.addOns || [])
             .filter((a: any) => a.type === "included")
-            .map((a: any) => a.addonId)
-        )
+            .map((a: any) => a.addonId),
+        ),
       ) as string[];
 
-      const selectedAddons = (bookingData.addOns || []).filter(
-        (a: any) => a.type === "selected" && !a.name.includes("Child age")
+      const addonMap = new Map<string, { date: string; quantity: number }[]>();
+      (bookingData.addOns || [])
+        .filter(
+          (a: any) => a.type === "selected" && !a.name.includes("Child age"),
+        )
+        .forEach((a: any) => {
+          // addon.date is UTC-shifted (18:30Z) — add 1 day to get correct local date
+          const d = new Date(a.date);
+          d.setUTCDate(d.getUTCDate() + 1);
+          d.setUTCHours(0, 0, 0, 0);
+          const normalizedDate = d.toISOString();
+
+          if (!addonMap.has(a.addonId)) addonMap.set(a.addonId, []);
+          const existing = addonMap
+            .get(a.addonId)!
+            .find((e) => e.date === normalizedDate);
+          if (existing) existing.quantity += a.quantity;
+          else
+            addonMap
+              .get(a.addonId)!
+              .push({ date: normalizedDate, quantity: a.quantity });
+        });
+
+      const parsedAddons = Array.from(addonMap.entries()).map(
+        ([addOnId, availability]) => ({
+          addOnId,
+          availability,
+        }),
       );
-      const parsedAddons = selectedAddons.map((a: any) => ({
-        addOnId: a.addonId,
-        availability: [{ date: new Date(checkInDate).toISOString(), quantity: a.quantity }],
-      }));
+
+      // Build promotions — only user-applied ones from finalPrice
+      const promotions = buildPromotions(bookingData);
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/pricing/get-price`,
@@ -207,15 +274,16 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
             noOfAdults,
             noOfChildren: noOfChildrens,
             noOfRooms: requestedRooms,
-            // ✅ FIX: send per-room distribution, NOT per-night entries
+            bookingCode: bookingData.bookingCode,
             guestDistribution,
             ratePlanCode: bookingData.ratePlanCode,
             childAges,
             parsedAddons,
             includedAddons: includedAddonIds,
+            promotions,
             promoCode: "",
           }),
-        }
+        },
       );
 
       const data = await response.json();
@@ -255,10 +323,20 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
     let valid = true;
     guestForms.forEach((guest, index) => {
       const gErrors: any = {};
-      if (!guest.firstName.trim()) { gErrors.firstName = "First name is required."; valid = false; }
-      else if (!nameRegex.test(guest.firstName)) { gErrors.firstName = "Invalid Name Format"; valid = false; }
-      if (!guest.lastName.trim()) { gErrors.lastName = "Last name is required."; valid = false; }
-      else if (!nameRegex.test(guest.lastName)) { gErrors.lastName = "Invalid Name Format"; valid = false; }
+      if (!guest.firstName.trim()) {
+        gErrors.firstName = "First name is required.";
+        valid = false;
+      } else if (!nameRegex.test(guest.firstName)) {
+        gErrors.firstName = "Invalid Name Format";
+        valid = false;
+      }
+      if (!guest.lastName.trim()) {
+        gErrors.lastName = "Last name is required.";
+        valid = false;
+      } else if (!nameRegex.test(guest.lastName)) {
+        gErrors.lastName = "Invalid Name Format";
+        valid = false;
+      }
       if (Object.keys(gErrors).length) newErrors[`guest-${index}`] = gErrors;
     });
     setErrors(newErrors);
@@ -266,7 +344,11 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
   };
 
   // ── Handlers ───────────────────────────────────────────────────────────────
-  const handleGuestDetailChange = (index: number, field: keyof Guest, value: string) => {
+  const handleGuestDetailChange = (
+    index: number,
+    field: keyof Guest,
+    value: string,
+  ) => {
     const updated = [...guestForms];
     updated[index] = { ...updated[index], [field]: value };
     setGuestForms(updated);
@@ -275,7 +357,9 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
 
   const handleUpdate = async () => {
     if (priceFetchError) {
-      toast.error("Cannot update booking due to pricing error. Please fetch the latest price first.");
+      toast.error(
+        "Cannot update booking due to pricing error. Please fetch the latest price first.",
+      );
       return;
     }
     if (!priceFetched) {
@@ -290,9 +374,16 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
     if (!checkInDate) errs.checkIn = "Check-in date is required.";
     else if (checkIn <= today) errs.checkIn = "Check-in must be after today.";
     if (!checkOutDate) errs.checkOut = "Check-out date is required.";
-    else if (checkOut <= checkIn) errs.checkOut = "Check-out must be after check-in.";
-    if (Object.keys(errs).length) { setDateErrors(errs); return; }
-    if (!validateGuests()) { toast.error("Please fill all the guest details"); return; }
+    else if (checkOut <= checkIn)
+      errs.checkOut = "Check-out must be after check-in.";
+    if (Object.keys(errs).length) {
+      setDateErrors(errs);
+      return;
+    }
+    if (!validateGuests()) {
+      toast.error("Please fill all the guest details");
+      return;
+    }
 
     try {
       setLoading(true);
@@ -321,11 +412,13 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
             refundAmount: finalPrice.booking?.refundAmount || 0,
             paymentType: bookingData.paymentType,
           }),
-        }
+        },
       );
       const data = await res.json();
       if (!res.ok) return toast.error(data.message || "Update failed");
-      toast.success("Booking updated successfully! Please check your email for details.");
+      toast.success(
+        "Booking updated successfully! Please check your email for details.",
+      );
       onUpdate();
       onClose();
     } catch {
@@ -335,31 +428,92 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
     }
   };
 
-  const handleDeleteClick = (index: number) => {
-    if (guestForms[index].type === "adult") {
-      if (guestForms.filter((g) => g.type === "adult").length <= 1) {
-        toast.error("At least one adult guest is required.");
-        return;
+const handleDeleteClick = (index: number) => {
+  const guest = guestForms[index];
+
+  if (guest.type === "adult") {
+    // Find which room this adult belongs to
+    let adultPointer = 0;
+    let guestRoom: { roomIdx: number; room: Room } | null = null;
+    for (let ri = 0; ri < rooms.length; ri++) {
+      for (let ai = 0; ai < rooms[ri].adults; ai++) {
+        if (adultPointer === index) {
+          guestRoom = { roomIdx: ri, room: rooms[ri] };
+          break;
+        }
+        adultPointer++;
+      }
+      if (guestRoom) break;
+    }
+
+    // If room has children, block deletion — adult required
+    if (guestRoom && guestRoom.room.children > 0) {
+      toast.error("Cannot remove the adult while children are assigned to this room.");
+      return;
+    }
+
+    // Last adult overall — block
+    if (guestForms.filter((g) => g.type === "adult").length <= 1) {
+      toast.error("At least one adult guest is required.");
+      return;
+    }
+
+    // Room has only this adult (no children) → deleting removes the room
+    if (guestRoom && guestRoom.room.adults === 1 && guestRoom.room.children === 0) {
+      setDeleteIndex(index);
+      setShowDeleteModal(true); // confirmDelete will handle room removal too
+      return;
+    }
+  }
+
+  setDeleteIndex(index);
+  setShowDeleteModal(true);
+};
+
+const confirmDelete = () => {
+  if (deleteIndex === null) return;
+
+  const guest = guestForms[deleteIndex];
+  let updatedRooms = [...rooms];
+
+  if (guest.type === "adult") {
+    // Find which room this adult belongs to
+    let adultPointer = 0;
+    let targetRoomIdx = -1;
+    outer: for (let ri = 0; ri < rooms.length; ri++) {
+      for (let ai = 0; ai < rooms[ri].adults; ai++) {
+        if (adultPointer === deleteIndex) { targetRoomIdx = ri; break outer; }
+        adultPointer++;
       }
     }
-    setDeleteIndex(index);
-    setShowDeleteModal(true);
-  };
 
-  const confirmDelete = () => {
-    if (deleteIndex !== null) {
-      const updated = guestForms.filter((_, i) => i !== deleteIndex);
-      setGuestForms(updated);
-      const counts = countGuests(updated);
-      setGuestCounts(counts);
-      setGuestSummary(
-        `${counts.adults} adult${counts.adults !== 1 ? "s" : ""}${counts.children > 0 ? ` - ${counts.children} child${counts.children !== 1 ? "ren" : ""}` : ""}`
+    if (targetRoomIdx !== -1 && rooms[targetRoomIdx].adults === 1 && rooms[targetRoomIdx].children === 0) {
+      // Remove the entire room
+      updatedRooms = rooms.filter((_, i) => i !== targetRoomIdx);
+      setRooms(updatedRooms);
+      setGuestDistribution(updatedRooms);
+      setRequestedRooms(updatedRooms.length);
+    } else if (targetRoomIdx !== -1) {
+      // Just decrement adults in that room
+      updatedRooms = rooms.map((r, i) =>
+        i === targetRoomIdx ? { ...r, adults: r.adults - 1 } : r
       );
-      setDeleteIndex(null);
-      setShowDeleteModal(false);
-      setPriceFetched(false);
+      setRooms(updatedRooms);
+      setGuestDistribution(updatedRooms);
     }
-  };
+  }
+
+  const updated = guestForms.filter((_, i) => i !== deleteIndex);
+  setGuestForms(updated);
+  const counts = countGuests(updated);
+  setGuestCounts(counts);
+  setGuestSummary(
+    `${counts.adults} adult${counts.adults !== 1 ? "s" : ""}${counts.children > 0 ? ` - ${counts.children} child${counts.children !== 1 ? "ren" : ""}` : ""}`,
+  );
+  setDeleteIndex(null);
+  setShowDeleteModal(false);
+  setPriceFetched(false);
+};
 
   const today = new Date();
   const tomorrow = new Date(today);
@@ -369,41 +523,83 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
   // ── Price breakdown helpers ────────────────────────────────────────────────
   const renderTaxBreakdown = () => {
     const taxes = finalPrice.taxBrakeDown || finalPrice.tax || [];
-    if (!taxes.length) return <p className="text-sm text-gray-500">No taxes applicable</p>;
+    if (!taxes.length)
+      return <p className="text-sm text-gray-500">No taxes applicable</p>;
     return (
       <div className="mt-1 space-y-1">
         {taxes.map((tax: any, i: number) => (
           <div key={i} className="flex justify-between text-sm">
             <span className="text-gray-600">🧾 {tax.name}</span>
-            <span>+{tax.currencyCode || bookingData?.currencyCode} {tax.taxedAmount?.toFixed(2)}</span>
+            <span>
+              +{tax.currencyCode || bookingData?.currencyCode}{" "}
+              {tax.taxedAmount?.toFixed(2)}
+            </span>
           </div>
         ))}
         <div className="flex justify-between font-medium border-t pt-1 mt-1">
           <span>Total Tax</span>
-          <span>{bookingData?.currencyCode} {(finalPrice.taxedAmount || finalPrice.totalTaxAmount)?.toFixed(2)}</span>
+          <span>
+            {bookingData?.currencyCode}{" "}
+            {(finalPrice.taxedAmount || finalPrice.totalTaxAmount)?.toFixed(2)}
+          </span>
         </div>
       </div>
     );
   };
 
   const getPriceBreakdown = () => {
-    const dailyBreakdowns = finalPrice.dailyPriceBrakeDown || finalPrice.dailyBreakdown || [];
+    const dailyBreakdowns =
+      finalPrice.dailyPriceBrakeDown || finalPrice.dailyBreakdown || [];
     return {
       baseAmount: finalPrice.amountBeforeTax || 0,
       additionalCharges: finalPrice.additionalGuestCharges || 0,
-      numberOfNights: dailyBreakdowns.length || 1,
+      numberOfNights:
+        new Set(dailyBreakdowns.map((d: any) => d.date)).size || 1,
       totalTax: finalPrice.taxedAmount || 0,
       priceAfterTax: finalPrice.totalAmount || amount,
     };
   };
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // No useMemo needed — just compute directly in render
+  const adults = guestForms.filter((g) => g.type === "adult");
+  const children = guestForms.filter((g) => g.type === "child");
+  const adultIndices = guestForms.reduce<number[]>((acc, g, i) => {
+    if (g.type === "adult") acc.push(i);
+    return acc;
+  }, []);
+  const childIndices = guestForms.reduce<number[]>((acc, g, i) => {
+    if (g.type === "child") acc.push(i);
+    return acc;
+  }, []);
+
+  let aIdx = 0;
+  let cIdx = 0;
+  const roomGuestMap = rooms.map((room, roomIdx) => {
+    const roomGuests: { guest: Guest; globalIndex: number }[] = [];
+    for (let i = 0; i < room.adults; i++) {
+      if (aIdx < adultIndices.length)
+        roomGuests.push({
+          guest: adults[aIdx],
+          globalIndex: adultIndices[aIdx++],
+        });
+    }
+    for (let i = 0; i < room.children; i++) {
+      if (cIdx < childIndices.length)
+        roomGuests.push({
+          guest: children[cIdx],
+          globalIndex: childIndices[cIdx++],
+        });
+    }
+    return { roomIdx, room, guests: roomGuests };
+  });
   return (
     <>
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 px-4">
         <div className="bg-white rounded-xl w-full max-w-2xl max-h-[90vh] shadow-lg overflow-x-hidden overflow-y-auto">
           <div className="bg-blue-700 text-white p-4">
-            <h2 className="text-xl font-bold text-center">Modify Your Booking</h2>
+            <h2 className="text-xl font-bold text-center">
+              Modify Your Booking
+            </h2>
           </div>
 
           <div>
@@ -415,16 +611,25 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
           <div className="p-4 border-b text-sm text-gray-700 grid md:grid-cols-3 gap-4">
             <div>
               <p className="font-semibold">Stay Dates</p>
-              <p>{new Date(checkInDate).toDateString()} - {new Date(checkOutDate).toDateString()}</p>
+              <p>
+                {new Date(checkInDate).toDateString()} -{" "}
+                {new Date(checkOutDate).toDateString()}
+              </p>
               <p className="text-xs text-gray-500">
-                {Math.ceil((new Date(checkOutDate).getTime() - new Date(checkInDate).getTime()) / 86400000)} nights
+                {Math.ceil(
+                  (new Date(checkOutDate).getTime() -
+                    new Date(checkInDate).getTime()) /
+                    86400000,
+                )}{" "}
+                nights
               </p>
             </div>
             <div>
               <p className="font-semibold">Room Details</p>
               <p>{bookingData.roomTypeCode}</p>
-              {/* ✅ FIX: show actual room count from priceBreakdowns */}
-              <p className="text-xs text-gray-500">{requestedRooms} room{requestedRooms !== 1 ? "s" : ""}</p>
+              <p className="text-xs text-gray-500">
+                {requestedRooms} room{requestedRooms !== 1 ? "s" : ""}
+              </p>
             </div>
             <div>
               <p className="font-semibold">Rate Plan</p>
@@ -432,14 +637,21 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
             </div>
           </div>
 
-          {/* ✅ FIX: Show per-room guest distribution from priceBreakdowns */}
           <div className="px-4 py-2 bg-blue-50 border-b text-xs text-gray-600">
-            <p className="font-medium text-gray-700 mb-1">Current Guest Distribution:</p>
+            <p className="font-medium text-gray-700 mb-1">
+              Current Guest Distribution:
+            </p>
             <div className="flex flex-wrap gap-2">
               {initialRoomDistribution.map((room, i) => (
-                <span key={i} className="bg-white border border-blue-200 rounded px-2 py-1">
-                  Room {i + 1}: {room.adults} adult{room.adults !== 1 ? "s" : ""}
-                  {room.children > 0 ? `, ${room.children} child${room.children !== 1 ? "ren" : ""}` : ""}
+                <span
+                  key={i}
+                  className="bg-white border border-blue-200 rounded px-2 py-1"
+                >
+                  Room {i + 1}: {room.adults} adult
+                  {room.adults !== 1 ? "s" : ""}
+                  {room.children > 0
+                    ? `, ${room.children} child${room.children !== 1 ? "ren" : ""}`
+                    : ""}
                 </span>
               ))}
             </div>
@@ -465,7 +677,9 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
               <div className="space-y-4">
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium">Check-In</label>
+                    <label className="block text-sm font-medium">
+                      Check-In
+                    </label>
                     <input
                       type="date"
                       value={checkInDate}
@@ -478,10 +692,16 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                       disabled={isBefore(new Date(checkInDate), new Date())}
                       className={`w-full border px-3 py-2 rounded ${dateErrors.checkIn ? "border-red-500" : ""}`}
                     />
-                    {dateErrors.checkIn && <p className="text-sm text-red-600 mt-1">{dateErrors.checkIn}</p>}
+                    {dateErrors.checkIn && (
+                      <p className="text-sm text-red-600 mt-1">
+                        {dateErrors.checkIn}
+                      </p>
+                    )}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium">Check-Out</label>
+                    <label className="block text-sm font-medium">
+                      Check-Out
+                    </label>
                     <input
                       type="date"
                       value={checkOutDate}
@@ -493,7 +713,11 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                       }}
                       className={`w-full border px-3 py-2 rounded ${dateErrors.checkOut ? "border-red-500" : ""}`}
                     />
-                    {dateErrors.checkOut && <p className="text-sm text-red-600 mt-1">{dateErrors.checkOut}</p>}
+                    {dateErrors.checkOut && (
+                      <p className="text-sm text-red-600 mt-1">
+                        {dateErrors.checkOut}
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="pt-4 border-t">
@@ -502,7 +726,17 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                     disabled={priceLoading || !checkInDate || !checkOutDate}
                     className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded font-medium flex items-center justify-center gap-2 disabled:bg-gray-400"
                   >
-                    {priceLoading ? <><Loader2 className="h-4 w-4 animate-spin" /><span>Fetching Price...</span></> : <><RefreshCw className="h-4 w-4" /><span>Check Updated Price</span></>}
+                    {priceLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Fetching Price...</span>
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="h-4 w-4" />
+                        <span>Check Updated Price</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>
@@ -517,54 +751,128 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                   </span>
                 </button>
 
-                <div className="mt-4 space-y-2 border p-4 rounded bg-gray-50">
-                  {guestForms.map((guest, index) => {
-                    const gErr = errors[`guest-${index}`] || {};
-                    const typeCount = guestForms.slice(0, index + 1).filter((g) => g.type === guest.type).length;
-                    return (
-                      <div key={index} className="bg-white relative border border-gray-300 p-4 rounded shadow-sm">
-                        <button onClick={() => handleDeleteClick(index)} className="absolute top-4 right-3 text-red-500 hover:text-red-700">
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                        <p className="font-medium text-gray-800 mb-2">
-                          {guest.type === "adult" ? `Adult ${typeCount}` : `Child ${typeCount}`}
-                        </p>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium mb-1 text-gray-700">First Name</label>
-                            <input
-                              type="text"
-                              placeholder="First Name"
-                              value={guest.firstName}
-                              onChange={(e) => handleGuestDetailChange(index, "firstName", e.target.value)}
-                              className={`w-full rounded-lg border px-4 py-2 focus:ring-2 focus:ring-indigo-500 ${gErr.firstName ? "border-red-500" : "border-gray-300"}`}
-                            />
-                            {gErr.firstName && <p className="text-sm text-red-600 mt-1">{gErr.firstName}</p>}
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-1 text-gray-700">Last Name</label>
-                            <input
-                              type="text"
-                              placeholder="Last Name"
-                              value={guest.lastName}
-                              onChange={(e) => handleGuestDetailChange(index, "lastName", e.target.value)}
-                              className={`w-full rounded-lg border px-4 py-2 focus:ring-2 focus:ring-indigo-500 ${gErr.lastName ? "border-red-500" : "border-gray-300"}`}
-                            />
-                            {gErr.lastName && <p className="text-sm text-red-600 mt-1">{gErr.lastName}</p>}
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-1 text-gray-700">Date of Birth</label>
-                            <input
-                              type="date"
-                              value={guest.dob}
-                              onChange={(e) => handleGuestDetailChange(index, "dob", e.target.value)}
-                              className="w-full rounded-lg border px-4 py-2 focus:ring-2 focus:ring-indigo-500 border-gray-300"
-                            />
-                          </div>
-                        </div>
+                <div className="mt-4 space-y-3">
+                  {roomGuestMap.map(({ roomIdx, room, guests }) => (
+                    <div
+                      key={roomIdx}
+                      className="border rounded-lg overflow-hidden"
+                    >
+                      {/* Room header */}
+                      <div className="bg-indigo-50 border-b px-4 py-2 flex items-center justify-between">
+                        <span className="font-semibold text-indigo-800 text-sm">
+                          🏨 Room {roomIdx + 1}
+                        </span>
+                        <span className="text-xs text-indigo-500">
+                          {room.adults} adult{room.adults !== 1 ? "s" : ""}
+                          {room.children > 0
+                            ? `, ${room.children} child${room.children !== 1 ? "ren" : ""}`
+                            : ""}
+                        </span>
                       </div>
-                    );
-                  })}
+
+                      <div className="p-3 space-y-3 bg-gray-50">
+                        {guests.map(({ guest, globalIndex }) => {
+                          const gErr = errors[`guest-${globalIndex}`] || {};
+                          const typeCount = guestForms
+                            .slice(0, globalIndex + 1)
+                            .filter((g) => g.type === guest.type).length;
+
+                          return (
+                            <div
+                              key={globalIndex}
+                              className="bg-white border border-gray-200 p-4 rounded-lg shadow-sm relative"
+                            >
+                              <button
+                                onClick={() => handleDeleteClick(globalIndex)}
+                                className="absolute top-3 right-3 text-red-400 hover:text-red-600"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </button>
+
+                              <p className="font-medium text-gray-700 text-sm mb-3 flex items-center gap-2">
+                                {guest.type === "adult" ? "👤" : "🧒"}
+                                {guest.type === "adult"
+                                  ? `Adult ${typeCount}`
+                                  : `Child ${typeCount}`}
+                                {guest.type === "child" &&
+                                  guest.age != null && (
+                                    <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full border">
+                                      Age {guest.age}
+                                    </span>
+                                  )}
+                              </p>
+
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                <div>
+                                  <label className="block text-xs font-medium mb-1 text-gray-600">
+                                    First Name
+                                  </label>
+                                  <input
+                                    type="text"
+                                    placeholder="First Name"
+                                    value={guest.firstName}
+                                    onChange={(e) =>
+                                      handleGuestDetailChange(
+                                        globalIndex,
+                                        "firstName",
+                                        e.target.value,
+                                      )
+                                    }
+                                    className={`w-full rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 ${gErr.firstName ? "border-red-500" : "border-gray-300"}`}
+                                  />
+                                  {gErr.firstName && (
+                                    <p className="text-xs text-red-600 mt-1">
+                                      {gErr.firstName}
+                                    </p>
+                                  )}
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium mb-1 text-gray-600">
+                                    Last Name
+                                  </label>
+                                  <input
+                                    type="text"
+                                    placeholder="Last Name"
+                                    value={guest.lastName}
+                                    onChange={(e) =>
+                                      handleGuestDetailChange(
+                                        globalIndex,
+                                        "lastName",
+                                        e.target.value,
+                                      )
+                                    }
+                                    className={`w-full rounded-lg border px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 ${gErr.lastName ? "border-red-500" : "border-gray-300"}`}
+                                  />
+                                  {gErr.lastName && (
+                                    <p className="text-xs text-red-600 mt-1">
+                                      {gErr.lastName}
+                                    </p>
+                                  )}
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium mb-1 text-gray-600">
+                                    Date of Birth
+                                  </label>
+                                  <input
+                                    type="date"
+                                    value={guest.dob}
+                                    onChange={(e) =>
+                                      handleGuestDetailChange(
+                                        globalIndex,
+                                        "dob",
+                                        e.target.value,
+                                      )
+                                    }
+                                    className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
                 <div className="pt-4 border-t mt-4">
@@ -573,7 +881,17 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                     disabled={priceLoading}
                     className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded font-medium flex items-center justify-center gap-2 disabled:bg-gray-400"
                   >
-                    {priceLoading ? <><Loader2 className="h-4 w-4 animate-spin" /><span>Fetching Price...</span></> : <><RefreshCw className="h-4 w-4" /><span>Check Updated Price</span></>}
+                    {priceLoading ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>Fetching Price...</span>
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="h-4 w-4" />
+                        <span>Check Updated Price</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </>
@@ -582,186 +900,323 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
 
           {/* Price section */}
           <div className="px-6 pb-4 text-gray-700 text-sm space-y-2 relative">
-            {bookingData?.paymentMethod === "pay_at_hotel" ? (
-              <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-yellow-800 font-semibold">You will be charged at the hotel:</p>
-                    <p className="text-lg text-blue-700 font-bold">{bookingData?.currencyCode || "USD"} {amount.toLocaleString()}</p>
-                  </div>
-                  {priceFetched && (
-                    <button onClick={() => setShowBreakdown(!showBreakdown)} className="text-yellow-600 hover:text-yellow-800">
-                      <FaInfoCircle className="h-5 w-5" />
-                    </button>
-                  )}
-                </div>
-                {showBreakdown && priceFetched && (
-                  <div className="mb-3 p-3 bg-white rounded border">
-                    <h4 className="font-medium text-gray-800 mb-2">Price Breakdown</h4>
-                    <div className="space-y-1 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Base Rate ({getPriceBreakdown().numberOfNights} night{getPriceBreakdown().numberOfNights > 1 ? "s" : ""})</span>
-                        <span>{bookingData?.currencyCode} {getPriceBreakdown().baseAmount?.toFixed(2)}</span>
+            <div
+              className={`p-4 rounded-lg border ${bookingData?.paymentMethod === "pay_at_hotel" ? "bg-yellow-50 border-yellow-300" : "bg-gray-50"}`}
+            >
+              {/* Header row */}
+              <div className="flex items-start justify-between mb-2">
+                <div>
+                  {bookingData?.paymentMethod === "pay_at_hotel" ? (
+                    <>
+                      <p className="text-yellow-800 font-semibold text-xs">
+                        Pay at Hotel
+                      </p>
+                      <p className="text-lg font-bold text-blue-700">
+                        {bookingData?.currencyCode} {amount.toLocaleString()}
+                      </p>
+                    </>
+                  ) : (
+                    <div className="flex gap-6">
+                      <div>
+                        <p className="text-xs text-gray-500">Original Price</p>
+                        <p className="font-semibold">
+                          {bookingData?.currencyCode}{" "}
+                          {bookingData.amount?.toLocaleString()}
+                        </p>
                       </div>
-                      {getPriceBreakdown().additionalCharges > 0 && (
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Additional Guest Charges</span>
-                          <span>{bookingData?.currencyCode} {getPriceBreakdown().additionalCharges?.toFixed(2)}</span>
-                        </div>
-                      )}
-                      {finalPrice.promotionBrakeDown?.length > 0 && finalPrice.promotionBrakeDown.map((promo: any, i: number) => {
-                        const isPayLater = promo.restrictionType === "payLater";
-                        return (
-                          <div key={i} className="flex justify-between">
-                            <span className={isPayLater ? "text-orange-600" : "text-green-600"}>
-                              {isPayLater ? "⏳" : "🏷"} {promo.name}
-                              <span className="text-xs text-gray-400 ml-1">({promo.discountType === "percentage" ? `${promo.discountValue}%` : `${promo.currencyCode || bookingData?.currencyCode} ${promo.discountValue}`})</span>
-                            </span>
-                            <span className={isPayLater ? "text-orange-600" : "text-green-600"}>{isPayLater ? "+" : "-"}{bookingData?.currencyCode} {promo.discountAmount?.toFixed(2)}</span>
-                          </div>
-                        );
-                      })}
-                      {renderTaxBreakdown()}
-                      <div className="flex justify-between font-bold border-t pt-2 mt-2">
-                        <span>Total</span>
-                        <span className="text-blue-700">{bookingData?.currencyCode} {getPriceBreakdown().priceAfterTax?.toFixed(2)}</span>
-                      </div>
-                      {finalPrice.latterpayableAmount > 0 && (
-                        <div className="flex justify-between text-orange-600">
-                          <span>⏳ Pay Later at Hotel</span>
-                          <span>{bookingData?.currencyCode} {finalPrice.latterpayableAmount?.toFixed(2)}</span>
-                        </div>
-                      )}
-                      {finalPrice.currentChargeableAmount > 0 && (
-                        <div className="flex justify-between font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded mt-1">
-                          <span>Amount Due Now</span>
-                          <span>{bookingData?.currencyCode} {finalPrice.currentChargeableAmount?.toFixed(2)}</span>
+                      {priceFetched && (
+                        <div>
+                          <p className="text-xs text-gray-500">Updated Price</p>
+                          <p className="font-bold text-blue-700">
+                            {bookingData?.currencyCode}{" "}
+                            {amount.toLocaleString()}
+                          </p>
                         </div>
                       )}
                     </div>
-                  </div>
+                  )}
+                </div>
+                {priceFetched && (
+                  <button
+                    onClick={() => setShowBreakdown(!showBreakdown)}
+                    className="text-gray-400 hover:text-blue-600 ml-2 mt-1"
+                  >
+                    <FaInfoCircle className="h-5 w-5" />
+                  </button>
                 )}
               </div>
-            ) : (
-              <>
-                <div className="bg-gray-50 p-4 rounded-lg border">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="grid grid-cols-2 gap-4 flex-1">
-                      <div>
-                        <p className="text-sm text-gray-600">Original Price</p>
-                        <p className="text-lg font-semibold">{bookingData?.currencyCode || "USD"} {bookingData.amount?.toLocaleString() || "0"}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">Updated Price</p>
-                        <p className={`text-lg font-bold ${priceFetched ? "text-blue-700" : "text-gray-800"}`}>{bookingData?.currencyCode || "USD"} {amount.toLocaleString()}</p>
-                      </div>
-                    </div>
-                    {priceFetched && (
-                      <button onClick={() => setShowBreakdown(!showBreakdown)} className="text-gray-500 hover:text-blue-600 ml-2">
-                        <FaInfoCircle className="h-5 w-5" />
-                      </button>
-                    )}
+
+              {/* Detailed breakdown (toggle) */}
+              {showBreakdown && priceFetched && (
+                <div className="bg-white rounded border p-3 mb-3 space-y-1">
+                  <p className="font-medium text-gray-800 mb-2">
+                    Price Breakdown
+                  </p>
+
+                  {/* Base */}
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">
+                      Base Amount (before tax):
+                    </span>
+                    <span>
+                      {bookingData?.currencyCode}{" "}
+                      {(finalPrice.amountBeforeTax ?? 0).toFixed(2)}
+                    </span>
                   </div>
 
-                  {showBreakdown && priceFetched && (
-                    <div className="mb-3 p-3 bg-white rounded border">
-                      <h4 className="font-medium text-gray-800 mb-2">Price Breakdown</h4>
-                      <div className="space-y-1 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Base Rate ({(finalPrice.dailyPriceBrakeDown || finalPrice.dailyBreakdown || []).length} nights)</span>
-                          <span>{bookingData?.currencyCode} {finalPrice.amountBeforeTax?.toFixed(2)}</span>
-                        </div>
-                        {finalPrice.promotionBrakeDown?.length > 0 && finalPrice.promotionBrakeDown.map((promo: any, i: number) => {
-                          const isPayLater = promo.restrictionType === "payLater";
-                          return (
-                            <div key={i} className="flex justify-between">
-                              <span className={isPayLater ? "text-orange-600" : "text-green-600"}>
-                                {isPayLater ? "⏳" : "🏷"} {promo.name}
-                                <span className="text-xs text-gray-400 ml-1">({promo.discountType === "percentage" ? `${promo.discountValue}%` : `${promo.currencyCode || bookingData?.currencyCode} ${promo.discountValue}`})</span>
+                  {/* Addons */}
+                  {/* Addons */}
+                  {(finalPrice.totalAddonAmount ?? 0) > 0 &&
+                    (() => {
+                      const grouped = new Map<
+                        string,
+                        {
+                          name: string;
+                          quantity: number;
+                          total: number;
+                          currency: string;
+                          type: string;
+                        }
+                      >();
+                      for (const addon of finalPrice.addonBrakeDown || []) {
+                        const isChild = addon.name?.includes("Child age");
+                        const key = isChild
+                          ? `${addon.addonId}::child`
+                          : `${addon.addonId}::${addon.type}`;
+                        const displayName = isChild
+                          ? addon.name.replace(/\s*\(Child age \d+\)/, "") +
+                            " (children)"
+                          : addon.name;
+                        if (grouped.has(key)) {
+                          const e = grouped.get(key)!;
+                          e.quantity += addon.quantity ?? 0;
+                          e.total += addon.totalAmount ?? 0;
+                        } else {
+                          grouped.set(key, {
+                            name: displayName,
+                            quantity: addon.quantity ?? 0,
+                            total: addon.totalAmount ?? 0,
+                            currency:
+                              addon.currencyCode || bookingData?.currencyCode,
+                            type: addon.type,
+                          });
+                        }
+                      }
+                      return (
+                        <div className="border-t pt-2 mt-2">
+                          <p className="font-medium text-gray-700 mb-1">
+                            Add-ons:
+                          </p>
+                          {Array.from(grouped.values()).map((addon, i) => (
+                            <div
+                              key={i}
+                              className="flex justify-between text-gray-600 pl-4"
+                            >
+                              <span className="flex items-center gap-1.5">
+                                {addon.type === "included" && (
+                                  <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded">
+                                    incl.
+                                  </span>
+                                )}
+                                {addon.name}
+                                <span className="text-gray-400">
+                                  ×{addon.quantity}
+                                </span>
                               </span>
-                              <span className={isPayLater ? "text-orange-600" : "text-green-600"}>{isPayLater ? "+" : "-"}{bookingData?.currencyCode} {promo.discountAmount?.toFixed(2)}</span>
+                              <span>
+                                {addon.total === 0 ? (
+                                  <span className="text-green-600 text-xs">
+                                    Free
+                                  </span>
+                                ) : (
+                                  `${addon.currency} ${addon.total.toFixed(2)}`
+                                )}
+                              </span>
+                            </div>
+                          ))}
+                          <div className="flex justify-between font-medium pt-1 border-t mt-1">
+                            <span>Total Add-ons:</span>
+                            <span>
+                              {bookingData?.currencyCode}{" "}
+                              {finalPrice.totalAddonAmount.toFixed(2)}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                  {/* Promotions */}
+                  {finalPrice.promotionBrakeDown?.length > 0 && (
+                    <div className="border-t pt-2 mt-2">
+                      <p className="font-medium text-gray-700 mb-1">
+                        Promotions:
+                      </p>
+                      {finalPrice.promotionBrakeDown.map(
+                        (promo: any, i: number) => {
+                          const isDiscount =
+                            promo.restrictionType === "decrease";
+                          const isPayLater =
+                            promo.restrictionType === "payLater";
+                          return (
+                            <div
+                              key={i}
+                              className={`flex justify-between pl-4 ${isDiscount ? "text-green-600" : isPayLater ? "text-amber-600" : "text-red-500"}`}
+                            >
+                              <span>
+                                {isDiscount ? "🏷" : isPayLater ? "⏳" : "+"}{" "}
+                                {promo.name}
+                                <span className="text-xs text-gray-400 ml-1">
+                                  (
+                                  {promo.discountType === "percentage"
+                                    ? `${promo.discountValue}%`
+                                    : `${promo.currencyCode || bookingData?.currencyCode} ${promo.discountValue}`}
+                                  )
+                                </span>
+                              </span>
+                              <span>
+                                {isDiscount ? "-" : "+"}
+                                {promo.currencyCode ||
+                                  bookingData?.currencyCode}{" "}
+                                {(promo.discountAmount ?? 0).toFixed(2)}
+                              </span>
                             </div>
                           );
-                        })}
-                        {finalPrice.taxBrakeDown?.map((tax: any, i: number) => (
-                          <div key={i} className="flex justify-between text-gray-600">
-                            <span>🧾 {tax.name}</span>
-                            <span>+{tax.currencyCode} {tax.taxedAmount?.toFixed(2)}</span>
-                          </div>
-                        ))}
-                        <div className="flex justify-between text-gray-600">
-                          <span>Total Tax</span>
-                          <span>{bookingData?.currencyCode} {finalPrice.taxedAmount?.toFixed(2)}</span>
+                        },
+                      )}
+                    </div>
+                  )}
+
+                  {/* Taxes */}
+                  {finalPrice.taxBrakeDown?.length > 0 && (
+                    <div className="border-t pt-2 mt-2">
+                      <p className="font-medium text-gray-700 mb-1">
+                        Taxes & Fees:
+                      </p>
+                      {finalPrice.taxBrakeDown.map((tax: any, i: number) => (
+                        <div
+                          key={i}
+                          className="flex justify-between text-gray-600 pl-4"
+                        >
+                          <span>🧾 {tax.name}:</span>
+                          <span>
+                            +{tax.currencyCode || bookingData?.currencyCode}{" "}
+                            {(tax.taxedAmount ?? 0).toFixed(2)}
+                          </span>
                         </div>
-                        <div className="flex justify-between font-bold border-t pt-2 mt-2">
-                          <span>Total</span>
-                          <span className="text-blue-700">{bookingData?.currencyCode} {finalPrice.totalAmount?.toFixed(2)}</span>
-                        </div>
-                        {finalPrice.latterpayableAmount > 0 && (
-                          <div className="flex justify-between text-orange-600">
-                            <span>⏳ Pay Later at Hotel</span>
-                            <span>{bookingData?.currencyCode} {finalPrice.latterpayableAmount?.toFixed(2)}</span>
-                          </div>
-                        )}
-                        <div className="flex justify-between font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded mt-1">
-                          <span>Amount Due Now</span>
-                          <span>{bookingData?.currencyCode} {finalPrice.currentChargeableAmount?.toFixed(2)}</span>
-                        </div>
+                      ))}
+                      <div className="flex justify-between font-medium pt-1 border-t mt-1">
+                        <span>Total Tax:</span>
+                        <span>
+                          {bookingData?.currencyCode}{" "}
+                          {(finalPrice.taxedAmount ?? 0).toFixed(2)}
+                        </span>
                       </div>
                     </div>
                   )}
 
-                  <div className="border-t pt-3">
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span>Already Paid:</span>
-                        <span className="text-green-600 font-medium">{bookingData?.currencyCode || "USD"} {bookingData?.paidAmount?.toLocaleString() || "0"}</span>
-                      </div>
-                      {finalPrice.booking?.discount > 0 && (
-                        <div className="flex justify-between">
-                          <span>Discount Applied:</span>
-                          <span className="text-red-600 font-medium">- {bookingData?.currencyCode || "USD"} {finalPrice.booking.discount.toLocaleString()}</span>
-                        </div>
-                      )}
-                      {priceFetched && finalPrice.booking?.finalPayable > 0 && (
-                        <div className="flex justify-between bg-red-50 p-2 rounded">
-                          <span className="text-red-700 font-semibold">To Pay at Hotel:</span>
-                          <span className="text-red-700 font-bold">{bookingData?.currencyCode || "USD"} {finalPrice.booking.finalPayable.toLocaleString()}</span>
-                        </div>
-                      )}
-                      {priceFetched && finalPrice.booking?.refundAmount > 0 && (
-                        <div className="flex justify-between bg-green-50 p-2 rounded">
-                          <span className="text-green-700 font-semibold">To Be Refunded:</span>
-                          <span className="text-green-700 font-bold">{bookingData?.currencyCode || "USD"} {finalPrice.booking.refundAmount.toLocaleString()}</span>
-                        </div>
-                      )}
-                      {!priceFetched && !priceFetchError && (
-                        <div className="text-center py-2">
-                          <p className="text-gray-600 italic">Click "Check Updated Price" to see price changes</p>
-                        </div>
-                      )}
+                  {/* Pay later split */}
+                  {(finalPrice.latterpayableAmount ?? 0) > 0 && (
+                    <div className="flex justify-between text-amber-600 border-t pt-2 mt-2">
+                      <span>⏳ Pay Later at Hotel:</span>
+                      <span>
+                        {bookingData?.currencyCode}{" "}
+                        {finalPrice.latterpayableAmount.toFixed(2)}
+                      </span>
                     </div>
+                  )}
+                  {(finalPrice.currentChargeableAmount ?? 0) > 0 &&
+                    (finalPrice.latterpayableAmount ?? 0) > 0 && (
+                      <div className="flex justify-between text-green-600">
+                        <span>Pay Now:</span>
+                        <span>
+                          {bookingData?.currencyCode}{" "}
+                          {finalPrice.currentChargeableAmount.toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+
+                  {/* Grand total */}
+                  <div className="flex justify-between font-bold border-t-2 pt-2 mt-2 text-base">
+                    <span>Grand Total:</span>
+                    <span className="text-blue-700">
+                      {bookingData?.currencyCode}{" "}
+                      {(finalPrice.totalAmount ?? 0).toFixed(2)}
+                    </span>
                   </div>
                 </div>
-                {priceFetchError && (
-                  <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded">
-                    <p className="text-red-700 font-semibold">Price Error</p>
-                    <p className="text-red-600 text-sm">Unable to fetch updated price. Please try again.</p>
-                  </div>
+              )}
+
+              {/* Already paid / extra to pay / refund */}
+              <div className="border-t pt-3 space-y-2">
+                <div className="flex justify-between">
+                  <span>Already Paid:</span>
+                  <span className="text-green-600 font-medium">
+                    {bookingData?.currencyCode}{" "}
+                    {bookingData?.paidAmount?.toLocaleString() || "0"}
+                  </span>
+                </div>
+                {priceFetched &&
+                  (finalPrice.booking?.finalPayable ?? 0) > 0 && (
+                    <div className="flex justify-between bg-red-50 p-2 rounded">
+                      <span className="text-red-700 font-semibold">
+                        Extra to Pay:
+                      </span>
+                      <span className="text-red-700 font-bold">
+                        {bookingData?.currencyCode}{" "}
+                        {finalPrice.booking.finalPayable.toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+                {priceFetched &&
+                  (finalPrice.booking?.refundAmount ?? 0) > 0 && (
+                    <div className="flex justify-between bg-green-50 p-2 rounded">
+                      <span className="text-green-700 font-semibold">
+                        To Be Refunded:
+                      </span>
+                      <span className="text-green-700 font-bold">
+                        {bookingData?.currencyCode}{" "}
+                        {finalPrice.booking.refundAmount.toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+                {!priceFetched && !priceFetchError && (
+                  <p className="text-center text-gray-500 italic py-1">
+                    Click "Check Updated Price" to see price changes
+                  </p>
                 )}
-              </>
+              </div>
+            </div>
+
+            {priceFetchError && (
+              <div className="bg-red-50 border-l-4 border-red-400 p-3 rounded">
+                <p className="text-red-700 font-semibold">Price Error</p>
+                <p className="text-red-600 text-sm">
+                  Unable to fetch updated price. Please try again.
+                </p>
+              </div>
             )}
 
-            <div className="bg-gray-100 p-3 rounded text-xs text-gray-600 space-y-1 mt-2">
+            <div className="bg-gray-100 p-3 rounded text-xs text-gray-600 space-y-1">
               <p>• Date changes are subject to availability</p>
-              <p>• Changes within 72 hours of check-in may incur additional fees</p>
-              <p>• Room upgrades are subject to availability and additional charges</p>
-              <p>• Reducing the length of stay may be subject to the original booking's cancellation policy</p>
+              <p>
+                • Changes within 72 hours of check-in may incur additional fees
+              </p>
+              <p>
+                • Room upgrades are subject to availability and additional
+                charges
+              </p>
+              <p>
+                • Reducing the length of stay may be subject to the original
+                booking's cancellation policy
+              </p>
             </div>
           </div>
 
           <div className="flex gap-4 px-6 pb-6">
-            <button className="w-full bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded" onClick={onClose}>
+            <button
+              className="w-full bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 rounded"
+              onClick={onClose}
+            >
               Cancel
             </button>
             <button
@@ -786,10 +1241,25 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
       {showDeleteModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
           <div className="bg-white p-6 rounded-lg shadow-lg w-80">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Do you really want to delete this guest?</h2>
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              Do you really want to delete this guest?
+            </h2>
             <div className="flex justify-end gap-3">
-              <button onClick={() => { setDeleteIndex(null); setShowDeleteModal(false); }} className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300">Cancel</button>
-              <button onClick={confirmDelete} className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">Delete</button>
+              <button
+                onClick={() => {
+                  setDeleteIndex(null);
+                  setShowDeleteModal(false);
+                }}
+                className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>
@@ -802,22 +1272,23 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
         initialAdults={guestCounts.adults}
         initialChildren={guestCounts.children}
         initialChildAges={childAges}
-        // ✅ FIX: pass per-room distribution so selector shows correct starting state
         initialRoomDistribution={initialRoomDistribution}
         onClose={() => setShowGuestSelector(false)}
         onApply={(summary, data) => {
           setGuestSummary(summary);
           setRequestedRooms(data.rooms);
-
-          // ✅ FIX: update rooms state AND guestDistribution from selector output
           setRooms(data.roomDistribution);
           setGuestDistribution(data.roomDistribution);
           setChildAges(data.childAges);
 
           const currentGuests = [...guestForms];
           const updatedGuests: Guest[] = [];
-          const existingAdults = currentGuests.filter((g) => g.type === "adult");
-          const existingChildren = currentGuests.filter((g) => g.type === "child");
+          const existingAdults = currentGuests.filter(
+            (g) => g.type === "adult",
+          );
+          const existingChildren = currentGuests.filter(
+            (g) => g.type === "child",
+          );
 
           for (let i = 0; i < data.adults; i++) {
             updatedGuests.push({

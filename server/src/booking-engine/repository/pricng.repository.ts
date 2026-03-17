@@ -1,9 +1,6 @@
 import { prisma } from '../../config';
-import { IGeoRatePlanWithoutRatePlan } from '../../promotions/geo-rate-plan/interfaces';
 import {
     IAddOn,
-    IIncludedAddons,
-    IPromotion,
     IRatePlan,
     ISelectedAddonsR,
 } from '../types';
@@ -113,6 +110,7 @@ export class PricingRepository {
             throw new Error('Failed to validate rate plan');
         }
     }
+    
     public async getMlos(mlosId: string[]): Promise<IMLOS[] | null> {
         try {
             return await prisma.ratePlanRule.findMany({

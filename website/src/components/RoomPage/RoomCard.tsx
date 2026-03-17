@@ -211,7 +211,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
   // Update price sidebar whenever addons change
   useEffect(() => {
     if (expandedRatePlan && onPriceUpdate && latestPrice) {
-      const currentRatePlan = room.room_price.find(
+      const currentRatePlan = room.roomPrice.find(
         (rp: any) => rp.ratePlanCode === expandedRatePlan,
       );
       if (currentRatePlan) {
@@ -246,10 +246,9 @@ const RoomCard: React.FC<RoomCardProps> = ({
         return "Special Offer";
     }
   };
-  console.log(bookingContext.guests);
-  const rooms = Array.isArray(bookingContext.guests?.roomsArray)
-    ? bookingContext.guests.roomsArray
-    : [{
+const rooms = Array.isArray(bookingContext.guests?.rooms)
+  ? bookingContext.guests.rooms
+  : [{ 
       adults: bookingContext.guests?.adults || 1,
       children: bookingContext.guests?.children || 0
     }];
@@ -319,16 +318,16 @@ const RoomCard: React.FC<RoomCardProps> = ({
 
       const payload: any = {
         propertyCode: bookingContext.PropertyCode,
-        invTypeCode: room.room_type,
+        invTypeCode: room.roomType,
         ratePlanCode: ratePlan.ratePlanCode,
         startDate: bookingContext.startDate,
         endDate: bookingContext.endDate,
         noOfAdults,
-        guestDistribution: bookingContext.guests.roomsArray,
         noOfChildren: noOfChildrens,
         noOfRooms,
         childAges,
         promoCode: bookingContext.promocode,
+        guestDistribution: bookingContext.guests.roomsArray,
       };
 
       // ✅ ADD LOYALTY GUEST EMAIL TO PAYLOAD
@@ -448,7 +447,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
   // Around line 355:
   const handleContinue = () => {
     const selectedAddonsList = Object.values(selectedAddons);
-    const currentRatePlan = room.room_price.find(
+    const currentRatePlan = room.roomPrice.find(
       (rp: any) => rp.ratePlanCode === expandedRatePlan,
     );
     const selectedPromotionsList =
@@ -467,7 +466,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
   };
 
   const handleSkip = () => {
-    const currentRatePlan = room.room_price.find(
+    const currentRatePlan = room.roomPrice.find(
       (rp: any) => rp.ratePlanCode === expandedRatePlan,
     );
     const selectedPromotionsList =
@@ -520,7 +519,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
     0,
   );
   // Group combos by ratePlanCode → one card per rate plan
-  const groupedRatePlans = room.room_price.reduce(
+  const groupedRatePlans = room.roomPrice.reduce(
     (acc: Record<string, any[]>, rp: any) => {
       if (!acc[rp.ratePlanCode]) acc[rp.ratePlanCode] = [];
       acc[rp.ratePlanCode].push(rp);
@@ -555,7 +554,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
               // Image Display
               <img
                 src={images[currentImageIndex]}
-                alt={room.room_name}
+                alt={room.roomName}
                 className="w-full h-48 object-cover"
               />
             )}
@@ -603,10 +602,10 @@ const RoomCard: React.FC<RoomCardProps> = ({
             <div className="flex items-start justify-between mb-2">
               <div className="flex-1">
                 <h2 className="text-xl md:text-2xl font-bold text-gray-900 leading-tight">
-                  {room.room_name}
+                  {room.roomName}
                 </h2>
                 <p className="text-xs md:text-sm text-gray-500 font-medium mt-1">
-                  {room.room_type}
+                  {room.roomType}
                 </p>
               </div>
             </div>
@@ -618,18 +617,18 @@ const RoomCard: React.FC<RoomCardProps> = ({
             <div className="flex flex-wrap gap-3 md:gap-4 text-xs md:text-sm text-gray-600 mb-3">
               <div className="flex items-center gap-1.5">
                 <Users size={16} className="text-orange-500 flex-shrink-0" />
-                <span className="font-medium">{room.max_occupancy} {t("RoomCard.guests")}</span>
+                <span className="font-medium">{room.maxOccupancy} Guests</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <Ruler size={16} className="text-orange-500 flex-shrink-0" />
                 <span className="font-medium">
-                  {room.room_size} {room.room_unit}
+                  {room.roomSize} {room.roomUnit}
                 </span>
               </div>
-              {room.room_view && (
+              {room.roomView && (
                 <div className="flex items-center gap-1.5">
                   <Eye size={16} className="text-orange-500 flex-shrink-0" />
-                  <span className="font-medium">{room.room_view}</span>
+                  <span className="font-medium">{room.roomView}</span>
                 </div>
               )}
             </div>
@@ -877,7 +876,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                       )}
                     </div>
 
-                    {/* Tourist Tax Badge */}
+                    {/* Tax info top-right (like in screenshot) */}
                     {firstCombo.touristTax?.calculatedTaxAmount > 0 && (
                       <div className="flex-shrink-0 self-start">
                         <span className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-300 text-amber-800 text-[11px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap">

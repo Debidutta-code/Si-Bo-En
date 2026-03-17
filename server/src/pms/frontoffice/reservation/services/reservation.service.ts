@@ -60,7 +60,10 @@ export class ReservationService {
         const code =
             'BOOK-' + Math.random().toString(36).substr(2, 9).toUpperCase();
         const existingReservation =
-            await this.reservationRepository.getReservaltionByCode(code, propertyCode);
+            await this.reservationRepository.getReservaltionByCode(
+                code,
+                propertyCode
+            );
 
         if (existingReservation !== null) {
             return this.generateBookingCode(propertyCode);
@@ -140,17 +143,15 @@ export class ReservationService {
             Array.isArray(finalPrice.addonBrakeDown) &&
             finalPrice.addonBrakeDown.length > 0
         ) {
-            selectedAddons = finalPrice.addonBrakeDown.map(
-                (addon: any) => ({
-                    addonId: addon.addonId || null,
-                    addonName: addon.name,
-                    price: addon.amount, // per-unit price
-                    quantity: addon.quantity,
-                    totalPrice: addon.totalAmount,
-                    type: addon.type || 'addon',
-                    date: addon.date || bookingDetails.startDate,
-                })
-            );
+            selectedAddons = finalPrice.addonBrakeDown.map((addon: any) => ({
+                addonId: addon.addonId || null,
+                addonName: addon.name,
+                price: addon.amount, // per-unit price
+                quantity: addon.quantity,
+                totalPrice: addon.totalAmount,
+                type: addon.type || 'addon',
+                date: addon.date || bookingDetails.startDate,
+            }));
         }
 
         return {
@@ -274,15 +275,23 @@ export class ReservationService {
                 activeIntegrationName =
                     propertyIntegration?.MasterIntegration?.name ?? null;
             }
-            console.log("active", activeIntegrationName)
+            console.log('active', activeIntegrationName);
 
             // Check if payment gateway is Fikafi - if so, payment is pending until webhook confirms
-            const isFikafiPayment = payload.bankDetails?.selectedPaymentIntegrations?.paymentIntegration?.name === 'fikafi';
+            const isFikafiPayment =
+                payload.bankDetails?.selectedPaymentIntegrations
+                    ?.paymentIntegration?.name === 'fikafi';
 
             // ── Compute numberOfNights from dates ──
             const checkIn = new Date(startDate);
             const checkOut = new Date(endDate);
-            const numberOfNights = Math.max(1, Math.ceil((checkOut.getTime() - checkIn.getTime()) / (24 * 60 * 60 * 1000)));
+            const numberOfNights = Math.max(
+                1,
+                Math.ceil(
+                    (checkOut.getTime() - checkIn.getTime()) /
+                        (24 * 60 * 60 * 1000)
+                )
+            );
 
             let paidAmount = 0;
             let initialBookingStatus: 'pending' | 'confirmed' = 'confirmed';
@@ -392,21 +401,31 @@ export class ReservationService {
   - Order Reference: ${ngeniusOrderRef}
   - Records Updated: ${updateResult.count}`);
                     } else {
-                        console.warn(`⚠️ No N-Genius payment record found with reference ${ngeniusOrderRef} to link with reservation ${reservation.id}`);
+                        console.warn(
+                            `⚠️ No N-Genius payment record found with reference ${ngeniusOrderRef} to link with reservation ${reservation.id}`
+                        );
                     }
                 } catch (linkError) {
-                    console.error(`❌ Database Error linking reservation ${reservation.id} to payment ${ngeniusOrderRef}:`, linkError);
+                    console.error(
+                        `❌ Database Error linking reservation ${reservation.id} to payment ${ngeniusOrderRef}:`,
+                        linkError
+                    );
                 }
             }
 
             const priceBreakdownPayload: IReservationPriceBrakeDownR = {
                 reservationId: reservation.id,
                 additionalGuestCharges: 0,
-                baseRatePerNight: numberOfNights > 0 ? Math.round(finalPrice.amountBeforeTax / numberOfNights) : 0,
+                baseRatePerNight:
+                    numberOfNights > 0
+                        ? Math.round(
+                              finalPrice.amountBeforeTax / numberOfNights
+                          )
+                        : 0,
                 numberOfNights: numberOfNights,
                 priceAfterTax: finalPrice.totalAmount,
                 totalAmount: finalPrice.totalAmount,
-                totalTax: finalPrice.taxedAmount|| 0,
+                totalTax: finalPrice.taxedAmount || 0,
                 breakdown: {
                     totalBaseAmount: finalPrice.amountBeforeTax,
                     totalAddonAmount: finalPrice.totalAddonAmount || 0,
@@ -433,20 +452,18 @@ export class ReservationService {
                 const addonPayloads: IBookingAddonCreate[] =
                     normalizedPayload.bookingDetails.selectedAddons
                         .filter((addon: any) => addon.addonId) // Skip addons without a valid addonId (required FK)
-                        .map(
-                            (addon: any) => ({
-                                reservationId: reservation.id,
-                                addonId: addon.addonId,
-                                name: addon.addonName || addon.name,
-                                unitPrice: addon.price,
-                                quantity: addon.quantity,
-                                totalPrice: addon.totalPrice,
-                                currencyCode: currency,
-                                specialInstructions: null,
-                                type: addon.type,
-                                date: new Date(addon.date),
-                            })
-                        );
+                        .map((addon: any) => ({
+                            reservationId: reservation.id,
+                            addonId: addon.addonId,
+                            name: addon.addonName || addon.name,
+                            unitPrice: addon.price,
+                            quantity: addon.quantity,
+                            totalPrice: addon.totalPrice,
+                            currencyCode: currency,
+                            specialInstructions: null,
+                            type: addon.type,
+                            date: new Date(addon.date),
+                        }));
 
                 if (addonPayloads.length > 0) {
                     await this.bookingAddonRepository.createBookingAddons(
@@ -524,10 +541,10 @@ export class ReservationService {
             const nonBlockingPromises: Promise<any>[] = [
                 ...(selfAriActive && !activeIntegrationType
                     ? [
-                        this.ariManupulationRepo.decreaseAvailableRooms(
-                            ariPayload
-                        ),
-                    ]
+                          this.ariManupulationRepo.decreaseAvailableRooms(
+                              ariPayload
+                          ),
+                      ]
                     : []),
                 this.emailService.reservationConfirmation({
                     ...bookingDetails,
@@ -684,37 +701,58 @@ export class ReservationService {
             );
 
             // 5. Calculate ARI changes
-            const oldRooms =
-                existingReservation.finalPrice?.requestedRooms || 1;
+            const oldRooms = updatePayload.previousRooms || 1;
             const newRooms = updatePayload.requestedRooms;
-
             // Determine dates that need ARI updates
+            const oldDateStrings = oldDates.map(
+                d => d.toISOString().split('T')[0]
+            );
+            const newDateStrings = newDates.map(
+                d => d.toISOString().split('T')[0]
+            );
+
             const datesToFree = oldDates.filter(
-                date => !newDates.includes(date)
+                (_, i) => !newDateStrings.includes(oldDateStrings[i])
             );
             const datesToReserve = newDates.filter(
-                date => !oldDates.includes(date)
+                (_, i) => !oldDateStrings.includes(newDateStrings[i])
             );
-            const commonDates = oldDates.filter(date =>
-                newDates.includes(date)
+            const commonDates = oldDates.filter((_, i) =>
+                newDateStrings.includes(oldDateStrings[i])
             );
 
             // 6. Check availability for new requirements
             if (datesToReserve.length > 0 || newRooms > oldRooms) {
-                const allNewDates = [...new Set([...newDates])]; // Unique dates
+                const additionalRoomsNeeded = newRooms - oldRooms;
 
-                const isAvailable =
-                    await this.reservationRepository.checkRoomAvailability(
-                        updatePayload.propertyCode,
-                        updatePayload.roomTypeCode,
-                        allNewDates,
-                        newRooms
-                    );
+                if (datesToReserve.length > 0) {
+                    const isAvailable =
+                        await this.reservationRepository.checkRoomAvailability(
+                            updatePayload.propertyCode,
+                            updatePayload.roomTypeCode,
+                            datesToReserve,
+                            newRooms
+                        );
+                    if (!isAvailable) {
+                        return errorResponse(
+                            'Not enough rooms available for the selected dates'
+                        );
+                    }
+                }
 
-                if (!isAvailable) {
-                    return errorResponse(
-                        'Not enough rooms available for the selected dates'
-                    );
+                if (additionalRoomsNeeded > 0) {
+                    const isAvailable =
+                        await this.reservationRepository.checkRoomAvailability(
+                            updatePayload.propertyCode,
+                            updatePayload.roomTypeCode,
+                            commonDates,
+                            additionalRoomsNeeded 
+                        );
+                    if (!isAvailable) {
+                        return errorResponse(
+                            'Not enough rooms available for the selected dates'
+                        );
+                    }
                 }
             }
 
@@ -748,8 +786,8 @@ export class ReservationService {
                 updatePropConfig?.channelManagerIntegrationActive
                     ? 'channel_manager'
                     : updatePropConfig?.pmsIntegrationActive
-                        ? 'pms'
-                        : null;
+                      ? 'pms'
+                      : null;
 
             if (activeIntegrationTypeU) {
                 const rtConfig = await RTIntegrationDao.getRTConfig(
@@ -883,10 +921,15 @@ export class ReservationService {
             };
 
             // Compute numberOfNights for update
-            const updateNumberOfNights = Math.max(1, Math.ceil(
-                (newCheckOutDate.getTime() - newCheckInDate.getTime()) / (24 * 60 * 60 * 1000)
-            ));
-            const addonBrakeDown = updatePayload.finalPrice.addonBrakeDown || [];
+            const updateNumberOfNights = Math.max(
+                1,
+                Math.ceil(
+                    (newCheckOutDate.getTime() - newCheckInDate.getTime()) /
+                        (24 * 60 * 60 * 1000)
+                )
+            );
+            const addonBrakeDown =
+                updatePayload.finalPrice.addonBrakeDown || [];
             const addonPayloads: IBookingAddonCreate[] = addonBrakeDown
                 .filter((addon: any) => addon.addonId)
                 .map((addon: any) => ({
@@ -896,25 +939,33 @@ export class ReservationService {
                     unitPrice: addon.amount,
                     quantity: addon.quantity,
                     totalPrice: addon.totalAmount,
-                    currencyCode: addon.currencyCode || updatePayload.currencyCode,
+                    currencyCode:
+                        addon.currencyCode || updatePayload.currencyCode,
                     specialInstructions: null,
                     type: addon.type,
                     date: new Date(addon.date),
                 }));
 
             // Prepare promotion payloads
-            const promotionBrakeDown = updatePayload.finalPrice.promotionBrakeDown || [];
-            const promotionPayloads: IReservationPromotionCreate[] = promotionBrakeDown
-                .filter((promo: any) => promo.id && promo.restrictionType !== 'payLater')
-                .map((promo: any) => ({
-                    bookingCode: existingReservation.bookingCode,
-                    bookingId: existingReservation.id,
-                    promotionId: promo.promotionType === 'mlos' ? null : promo.id,
-                    mlosId: promo.promotionType === 'mlos' ? promo.id : null,
-                    amount: promo.discountAmount,
-                    currency: updatePayload.currencyCode as CurrencyCode,
-                    promotionType: promo.promotionType,
-                }));
+            const promotionBrakeDown =
+                updatePayload.finalPrice.promotionBrakeDown || [];
+            const promotionPayloads: IReservationPromotionCreate[] =
+                promotionBrakeDown
+                    .filter(
+                        (promo: any) =>
+                            promo.id && promo.restrictionType !== 'payLater'
+                    )
+                    .map((promo: any) => ({
+                        bookingCode: existingReservation.bookingCode,
+                        bookingId: existingReservation.id,
+                        promotionId:
+                            promo.promotionType === 'mlos' ? null : promo.id,
+                        mlosId:
+                            promo.promotionType === 'mlos' ? promo.id : null,
+                        amount: promo.discountAmount,
+                        currency: updatePayload.currencyCode as CurrencyCode,
+                        promotionType: promo.promotionType,
+                    }));
 
             const updatedReservation =
                 await this.reservationRepository.updateReservationWithTransaction(
@@ -922,30 +973,46 @@ export class ReservationService {
                     updateData,
                     {
                         additionalGuestCharges: 0,
-                        baseRatePerNight: updateNumberOfNights > 0
-                            ? Math.round((updatePayload.finalPrice.amountBeforeTax || updatePayload.finalPrice.totalAmount || 0) / updateNumberOfNights)
-                            : 0,
+                        baseRatePerNight:
+                            updateNumberOfNights > 0
+                                ? Math.round(
+                                      (updatePayload.finalPrice
+                                          .amountBeforeTax ||
+                                          updatePayload.finalPrice
+                                              .totalAmount ||
+                                          0) / updateNumberOfNights
+                                  )
+                                : 0,
                         numberOfNights: updateNumberOfNights,
-                        priceAfterTax: 
-                            updatePayload.finalPrice.totalAmount || 0
-                        ,
-                        totalAmount: 
-                            updatePayload.finalPrice.totalAmount || 0
-                        ,
-                        totalTax: 
-                            updatePayload.finalPrice.taxedAmount || 0
-                        ,
+                        priceAfterTax:
+                            updatePayload.finalPrice.totalAmount || 0,
+                        totalAmount: updatePayload.finalPrice.totalAmount || 0,
+                        totalTax: updatePayload.finalPrice.taxedAmount || 0,
                         breakdown: {
-                            totalBaseAmount: updatePayload.finalPrice.amountBeforeTax || 0,
-                            totalAddonAmount: updatePayload.finalPrice.totalAddonAmount || 0,
-                            totalPromotionAmount: updatePayload.finalPrice.totalPromotionAmount || 0,
-                            currentChargeableAmount: updatePayload.finalPrice.currentChargeableAmount || updatePayload.finalPrice.totalAmount || 0,
-                            latterpayableAmount: updatePayload.finalPrice.latterpayableAmount || 0,
-                            promoCodeDiscount: updatePayload.finalPrice.promoCodeDiscount || 0,
-                            loyalityDiscount: updatePayload.finalPrice.loyalityDiscount || 0,
+                            totalBaseAmount:
+                                updatePayload.finalPrice.amountBeforeTax || 0,
+                            totalAddonAmount:
+                                updatePayload.finalPrice.totalAddonAmount || 0,
+                            totalPromotionAmount:
+                                updatePayload.finalPrice.totalPromotionAmount ||
+                                0,
+                            currentChargeableAmount:
+                                updatePayload.finalPrice
+                                    .currentChargeableAmount ||
+                                updatePayload.finalPrice.totalAmount ||
+                                0,
+                            latterpayableAmount:
+                                updatePayload.finalPrice.latterpayableAmount ||
+                                0,
+                            promoCodeDiscount:
+                                updatePayload.finalPrice.promoCodeDiscount || 0,
+                            loyalityDiscount:
+                                updatePayload.finalPrice.loyalityDiscount || 0,
                         },
-                        dailyBreakdown: updatePayload.finalPrice.dailyPriceBrakeDown || [],
-                        availableRooms: updatePayload.finalPrice.requestedRooms || 0,
+                        dailyBreakdown:
+                            updatePayload.finalPrice.dailyPriceBrakeDown || [],
+                        availableRooms:
+                            updatePayload.finalPrice.requestedRooms || 0,
                         requestedRooms: updatePayload.requestedRooms,
                         tax: updatePayload.finalPrice.taxBrakeDown || [],
                     },
@@ -1208,13 +1275,13 @@ export class ReservationService {
         specificPropertyId?: string,
         specificPropertyCode?: string,
         bookingStatus?: string,
-        bookingSource?: string, 
-        deviceType?: string, 
-        bookingCode?: string, 
-        guestName?: string, 
-        promoCode?: string, 
-        countryCode?: string, 
-        dateFilterType?: 'checkin' | 'booking' | 'modification' 
+        bookingSource?: string,
+        deviceType?: string,
+        bookingCode?: string,
+        guestName?: string,
+        promoCode?: string,
+        countryCode?: string,
+        dateFilterType?: 'checkin' | 'booking' | 'modification'
     ): Promise<IApiResponse> {
         try {
             const accessResult = await this.getAccessiblePropertyIds(
@@ -1227,7 +1294,7 @@ export class ReservationService {
             if (!accessResult.success) {
                 return errorResponse(
                     accessResult.message ||
-                    'Failed to get accessible properties'
+                        'Failed to get accessible properties'
                 );
             }
 
@@ -1297,7 +1364,7 @@ export class ReservationService {
             if (!accessResult.success) {
                 return errorResponse(
                     accessResult.message ||
-                    'Failed to get accessible properties'
+                        'Failed to get accessible properties'
                 );
             }
 
@@ -1356,7 +1423,7 @@ export class ReservationService {
             if (!accessResult.success) {
                 return errorResponse(
                     accessResult.message ||
-                    'Failed to get accessible properties'
+                        'Failed to get accessible properties'
                 );
             }
 
@@ -1417,7 +1484,7 @@ export class ReservationService {
             if (!accessResult.success) {
                 return errorResponse(
                     accessResult.message ||
-                    'Failed to get accessible properties'
+                        'Failed to get accessible properties'
                 );
             }
 
@@ -1477,7 +1544,7 @@ export class ReservationService {
             if (!accessResult.success) {
                 return errorResponse(
                     accessResult.message ||
-                    'Failed to get accessible properties'
+                        'Failed to get accessible properties'
                 );
             }
 
@@ -1520,8 +1587,10 @@ export class ReservationService {
         reservationId: string
     ): Promise<IApiResponse> {
         try {
-            console.log(`\n[DEBUG - REFUND FLOW] 🟢 Starting deleteReservation for reservationId: ${reservationId}`);
-            
+            console.log(
+                `\n[DEBUG - REFUND FLOW] 🟢 Starting deleteReservation for reservationId: ${reservationId}`
+            );
+
             const reservation =
                 await this.reservationRepository.getReservationById(
                     reservationId
@@ -1625,8 +1694,8 @@ export class ReservationService {
                 delPropConfig?.channelManagerIntegrationActive
                     ? 'channel_manager'
                     : delPropConfig?.pmsIntegrationActive
-                        ? 'pms'
-                        : null;
+                      ? 'pms'
+                      : null;
 
             // 4. ── RT pushCancel FIRST ──
             if (activeIntegrationTypeD) {
@@ -1660,9 +1729,14 @@ export class ReservationService {
                 );
 
             // Prepare email booking details for cancellation email
-            const cancelNumberOfNights = Math.max(1, Math.ceil(
-                (reservation.checkOutDate.getTime() - reservation.checkInDate.getTime()) / (24 * 60 * 60 * 1000)
-            ));
+            const cancelNumberOfNights = Math.max(
+                1,
+                Math.ceil(
+                    (reservation.checkOutDate.getTime() -
+                        reservation.checkInDate.getTime()) /
+                        (24 * 60 * 60 * 1000)
+                )
+            );
 
             const emailBookingDetails: IBookingDetails = {
                 startDate: reservation.checkInDate.toISOString(),
@@ -1698,31 +1772,31 @@ export class ReservationService {
                 guests: {
                     adults: Array.isArray(reservation.guests)
                         ? reservation.guests.filter(
-                            (g: any) => g.type === 'adult'
-                        ).length
+                              (g: any) => g.type === 'adult'
+                          ).length
                         : 1,
                     children: Array.isArray(reservation.guests)
                         ? reservation.guests.filter(
-                            (g: any) => g.type === 'child'
-                        ).length
+                              (g: any) => g.type === 'child'
+                          ).length
                         : 0,
                     rooms: 1,
                 },
                 guestDetails: Array.isArray(reservation.guests)
                     ? reservation.guests.map((guest: any) => ({
-                        type: guest.type,
-                        firstName: guest.firstName,
-                        lastName: guest.lastName,
-                        dateOfBirth: guest.dateOfBirth || guest.dob,
-                        email:
-                            guest.type === 'adult'
-                                ? reservation.bookingUserEmail
-                                : undefined,
-                        phone:
-                            guest.type === 'adult'
-                                ? reservation.bookingUserPhone || undefined
-                                : undefined,
-                    }))
+                          type: guest.type,
+                          firstName: guest.firstName,
+                          lastName: guest.lastName,
+                          dateOfBirth: guest.dateOfBirth || guest.dob,
+                          email:
+                              guest.type === 'adult'
+                                  ? reservation.bookingUserEmail
+                                  : undefined,
+                          phone:
+                              guest.type === 'adult'
+                                  ? reservation.bookingUserPhone || undefined
+                                  : undefined,
+                      }))
                     : [],
                 paymentMethod: reservation.paymentMethod,
                 bookingCode: reservation.bookingCode,
@@ -1778,9 +1852,71 @@ export class ReservationService {
                     });
             }
 
+            // After successful cancellation in DB and before returning response, attempt N-Genius refund if applicable
+            // let refundResult: {
+            //     success: boolean;
+            //     message: string;
+            //     data?: any;
+            // } | null = null;
+            // try {
+            //     console.log(
+            //         `[DEBUG - REFUND FLOW] 🔍 Looking up payment record for reservation: ${reservationId}`
+            //     );
+            //     const paymentRecord = await prisma.payment.findFirst({
+            //         where: { reservationId },
+            //         select: {
+            //             paymentIntentId: true,
+            //             paymentMethod: true,
+            //             PropertyPaymentIntegration: true,
+            //         },
+            //     });
+
+            //     console.log(
+            //         `[DEBUG - REFUND FLOW] 📄 Payment record found:`,
+            //         JSON.stringify(paymentRecord)
+            //     );
+
+            //     if (
+            //         paymentRecord?.paymentIntentId &&
+            //         paymentRecord.paymentMethod === 'payment_gateway'
+            //     ) {
+            //         console.log(
+            //             `[DEBUG - REFUND FLOW] 💸 Triggering N-Genius refund for order: ${paymentRecord.paymentIntentId}`
+            //         );
+            //         refundResult = await ngeniusService.processRefund(
+            //             paymentRecord.paymentIntentId,
+            //             paymentRecord.PropertyPaymentIntegration?.outletId
+            //         );
+
+            //         console.log(
+            //             `[DEBUG - REFUND FLOW] 📥 Refund result received:`,
+            //             JSON.stringify(refundResult)
+            //         );
+
+            //         if (!refundResult.success) {
+            //             console.error(
+            //                 `[DEBUG - REFUND FLOW] ⚠️ Refund failed for reservation ${reservationId}: ${refundResult.message}`
+            //             );
+            //         }
+            //     } else {
+            //         console.log(
+            //             `[DEBUG - REFUND FLOW] ⏭️ Skipping refund. reason: No paymentIntentId or method is not payment_gateway.`
+            //         );
+            //     }
+            // } catch (refundError) {
+            //     console.error(
+            //         `[DEBUG - REFUND FLOW] ❌ Error during refund for reservation ${reservationId}:`,
+            //         refundError
+            //     );
+            //     refundResult = {
+            //         success: false,
+            //         message: 'Refund processing encountered an error',
+            //     };
+            // }
+
             const returnData = {
                 ...cancelledReservation,
-                refund: refundResult
+                refund: refundResult,
             };
 
             return successResponse(

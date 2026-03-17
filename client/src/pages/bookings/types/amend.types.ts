@@ -1,6 +1,15 @@
-// ─── Guest ───────────────────────────────────────────────────────────────────
+import type {
+  IGuestDistribution,
+  ITaxBreakdown,
+  IAddonBreakdown,
+  IDailyPriceBreakdown,
+  IReservation,
+} from "./reservation";
 
-import type { IReservation } from "./reservation";
+// Re-export shared types for convenience
+export type { IGuestDistribution, ITaxBreakdown, IAddonBreakdown, IDailyPriceBreakdown };
+
+// ─── Guest ────────────────────────────────────────────────────────────────────
 
 export interface IAmendGuest {
   type: "adult" | "child";
@@ -10,6 +19,7 @@ export interface IAmendGuest {
   age?: number | null;
 }
 
+// ─── Room ─────────────────────────────────────────────────────────────────────
 
 export interface IAmendRoom {
   adults: number;
@@ -17,81 +27,86 @@ export interface IAmendRoom {
   childAges: number[];
 }
 
+// ─── Addons ───────────────────────────────────────────────────────────────────
+
+export interface IAddonAvailability {
+  date: string; // ISO date string e.g. "2026-03-15T00:00:00.000Z"
+  quantity: number;
+}
+
+export interface ISelectedAddons {
+  addOnId: string;
+  availability: IAddonAvailability[];
+}
+
+// ─── Promotions ───────────────────────────────────────────────────────────────
+
+export interface IPromotion {
+  id: string;
+  promotionType: "normal" | string;
+}
+
+// ─── Price Check Request ──────────────────────────────────────────────────────
+
 export interface IPriceCheckRequest {
   propertyCode: string;
   invTypeCode: string;
   startDate: string;
   endDate: string;
   noOfAdults: number;
-  noOfChildrens: number;
+  noOfChildren: number;
   noOfRooms: number;
   ratePlanCode: string;
   bookingCode: string;
-  previousRooms: number;
-  includedAddons?: string[];
+  childAges?: number[];
+  guestDistribution?: IGuestDistribution[];
   parsedAddons?: ISelectedAddons[];
-  childAges?:number[];
+  includedAddons?: string[];
+  promotions?: IPromotion[];
   promoCode?: string;
 }
-export interface ISelectedAddons {
-  addOnId: string;
-  availability: IAddonAvailability[];
-}
-export interface IAddonAvailability {
-  date: string;
-  quantity: number;
-}
-export interface ITaxItem {
-  name: string;
-  type: "percentage" | "fixed";
-  amount?: number;
-  percentage?: number;
-}
 
-export interface IPriceBreakdownDetail {
-  totalBaseAmount: number;
-  totalAdditionalCharges: number;
-  totalAmount: number;
-  totalTax: number;
-  priceAfterTax: number;
-}
-
-export interface IDailyBreakdown {
-  date: string;
-  baseRate: number;
-  totalPerRoom: number;
-  totalForAllRooms: number;
-  additionalCharges: number;
-  currencyCode: string;
-  ratePlanCode: string;
-}
-
-export interface IPriceCheckResponse {
-  totalAmount: number;
-  priceAfterTax: number;
-  totalTax: number;
-  numberOfNights: number;
-  numberOfRooms?: number;
-  baseRatePerNight: number;
-  breakdown: IPriceBreakdownDetail;
-  dailyBreakdown: IDailyBreakdown[];
-  tax: ITaxItem[];
-  discount?: number;
-  availableRooms?: number;
-}
-
+// ─── Booking Calculation ──────────────────────────────────────────────────────
 
 export interface IBookingCalculation {
-  finalPayable: number;   // extra amount guest owes
-  refundAmount: number;   // amount to be refunded
+  finalPayable: number;
+  refundAmount: number;
   discount: number;
 }
 
-export interface IAmendFinalPrice extends IPriceCheckResponse {
-  booking: IBookingCalculation;
+// ─── Amend Final Price ────────────────────────────────────────────────────────
+
+export interface IAmendPromotionBreakdown {
+  id: string;
+  promotionType: string;
+  name: string;
+  currencyCode: string | null;
+  discountAmount: number;
+  discountType: "percentage" | "fixed" | string;
+  discountValue: number;
+  restrictionType: "decrease" | "payLater" | string;
+  type: "user-applied" | string;
 }
 
-// ─── Amend Payload ───────────────────────────────────────────────────────────
+export interface IAmendFinalPrice {
+  totalAmount: number;
+  amountBeforeTax: number;
+  taxedAmount: number;
+  totalAddonAmount: number;
+  totalPromotionAmount: number;
+  currentChargeableAmount: number;
+  latterpayableAmount: number;
+  loyalityDiscount: number;
+  promoCodeDiscount: number;
+  currencyCode: string;
+  dailyPriceBrakeDown: IDailyPriceBreakdown[];
+  taxBrakeDown: ITaxBreakdown[];
+  addonBrakeDown: IAddonBreakdown[];
+  promotionBrakeDown: IAmendPromotionBreakdown[];
+  booking?: IBookingCalculation;
+}
+
+// ─── Amend Payload ────────────────────────────────────────────────────────────
 
 export interface IAmendPayload {
   propertyCode: string;
@@ -114,7 +129,7 @@ export interface IAmendPayload {
   paymentType: string;
 }
 
-// ─── Validation Errors ───────────────────────────────────────────────────────
+// ─── Validation Errors ────────────────────────────────────────────────────────
 
 export interface IGuestFieldErrors {
   firstName?: string;
@@ -126,20 +141,8 @@ export interface IAmendValidationErrors {
   checkOut?: string;
   guests?: Record<string, IGuestFieldErrors>;
 }
-export interface IBookingAddon {
-  id:string;
-  reservationId: string;
-  addonId: string;
-  name: string;
-  unitPrice: number;
-  quantity: number;
-  totalPrice: number;
-  currencyCode: string;
-  specialInstructions?: string | null; 
-  type: "included"|"selected";
-  date: Date;
-}
-// ─── Modal Props ─────────────────────────────────────────────────────────────
+
+// ─── Modal Props ──────────────────────────────────────────────────────────────
 
 export interface IAmendReservationModalProps {
   open: boolean;
@@ -148,6 +151,17 @@ export interface IAmendReservationModalProps {
   onSuccess: () => void;
 }
 
-// ─── Tab ─────────────────────────────────────────────────────────────────────
+// ─── Step State (shared across steps) ────────────────────────────────────────
 
-export type AmendTab = "dates" | "guests";
+export interface IAmendStepState {
+  checkInDate: string;
+  checkOutDate: string;
+  roomConfigs: IAmendRoom[];
+  guests: IAmendGuest[];
+}
+
+// ─── Tab ──────────────────────────────────────────────────────────────────────
+
+export type AmendStep = 1 | 2 | 3;
+
+export type PriceStatus = "idle" | "loading" | "success" | "error";

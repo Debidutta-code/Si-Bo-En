@@ -162,6 +162,7 @@ export interface ICharge {
 export interface IChargeBaseByGuest {
     amountBeforeTax: number;
     numberOfGuests: number;
+    ageQualifyingCode:string;
 }
 export interface IChargeAdditionalGuest {
     ageQualifyingCode: string;

@@ -56,7 +56,6 @@ export default class CreationService {
             if (daoRes) {
                 let updateRes;
                 updateRes = await this.addCreationToCreation(usersCreation, daoRes.id)
-                // console.log("updateRes", updateRes)
                 return successResponse("Created Successfully", daoRes)
             } else {
                 return errorResponse("Failed to create")
