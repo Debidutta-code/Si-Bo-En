@@ -361,3 +361,19 @@ enum IntegrationTypes {
   channel_manager
   pms
 }
+enum ReservationPromotionType {
+    early_bird
+    mlos
+    device_specific
+    offer_for_tonight
+    normal
+}
+enum CommissionOrDiscount {
+    commission
+    tax
+}
+enum PromotionType {
+    early_bird
+    offer_for_tonight
+    device_specific
+}

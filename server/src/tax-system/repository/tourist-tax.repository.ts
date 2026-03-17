@@ -1,13 +1,9 @@
-import { Decimal } from "../../../prisma/generated/prisma/internal/prismaNamespace";
 import { prisma } from "../../config";
 import { ICTouristTax, IGetTouristTax } from "../interfaces";
 const mapTouristTax = (tax: any): IGetTouristTax => ({
     ...tax,
     discountValue: tax.discountValue
-        ? (tax.discountValue instanceof Decimal
-            ? tax.discountValue.toNumber()
-            : tax.discountValue)
-        : null,
+        
 });
 export class TouristTaxRepository {
 

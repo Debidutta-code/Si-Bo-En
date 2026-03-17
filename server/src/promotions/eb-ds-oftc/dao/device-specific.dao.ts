@@ -1,6 +1,5 @@
 import { prisma } from '../../../config';
-import { PromotionType } from '@prisma/client';
-import { ICEbDsOftc, IDeviceSpecificPromotion, IDeviceSpecificPromotionUpdate, IEbDsOftc } from '../interfaces';
+import { ICEbDsOftc,  IDeviceSpecificPromotionUpdate, IEbDsOftc } from '../interfaces';
 
 export class DeviceSpecificPromotionDao {
 

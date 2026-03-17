@@ -1,0 +1,11 @@
+model PropertyVideo {
+    id         String   @id @default(uuid())
+    propertyId String   @unique
+    url        String
+    thumbnail  String?
+    createdAt  DateTime @default(now())
+
+    property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+    @@map("property_videos")
+}

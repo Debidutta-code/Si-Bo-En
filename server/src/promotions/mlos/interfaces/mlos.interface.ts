@@ -1,4 +1,3 @@
-import { Decimal } from "@prisma/client/runtime/library";
 import { DiscountType } from "../../customizable-deal/interfaces";
 import { CurrencyCode } from "../../../tax-system/interfaces/tourist-tax.type";
 

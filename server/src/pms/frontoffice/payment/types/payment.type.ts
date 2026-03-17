@@ -1,11 +1,10 @@
-import { Decimal } from "@prisma/client/runtime/library";
 import { IFolio } from "./folio.type";
 import { CurrencyCode } from "../../../../tax-system/interfaces/tourist-tax.type";
 export type PaymentMethod = "credit_card" | "debit_card" | "net_banking" | "upi" | "wallet" | "cash"
 export type PaymentStatus = "confirmed" | "cancelled" | "pending"
 export interface ICPayment {
     folioId: string;
-    amount: Decimal;
+    amount: number;
     paymentMethod: PaymentMethod
     paymentDate: Date;
     currency: CurrencyCode;

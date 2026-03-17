@@ -6,7 +6,6 @@ import {
   IRoomRatePlanPair,
    
 } from '../interfaces';
-import { PromotionType } from '@prisma/client';
 
 export class OfferForTonightPromotionDao {
   public  async createOfferForTonightPromotions(
@@ -83,7 +82,7 @@ export class OfferForTonightPromotionDao {
       return await prisma.promotion.findFirst({
         where: {
           id,
-          promotionType: PromotionType.offer_for_tonight,
+          promotionType: "offer_for_tonight",
         },
         include: {
           property: true,

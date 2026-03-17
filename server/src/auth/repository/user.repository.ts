@@ -1,17 +1,13 @@
-import { tryCatch } from 'bullmq';
 import type { IRUsers } from "../types/index"
 import { prisma } from '../../config';
-// Helper to safely convert any ID to string
-const toStringId = (id: any): string => {
-  return typeof id === 'string' ? id : String(id);
-};
+
 
 export class UserAuthRepository {
 
   public static async findUserById(userId: string) {
     try {
       return await prisma.user.findUnique({
-        where: { id: toStringId(userId) },
+        where: { id: userId },
         include: {
           creation:{
             include:{
@@ -31,6 +27,7 @@ export class UserAuthRepository {
         where: { email: email }
       });
     } catch (error: any) {
+      console.log(error);
       throw new Error('Error occurred while verifying email');
     }
   }
@@ -60,7 +57,7 @@ public static async recoveryUser(email:string){
     try {
       // Find creator by email to validate (optional)
       const creator = await prisma.user.findUnique({
-        where: { id: toStringId(creatorId) },
+        where: { id: creatorId },
       });
 
       if (!creator) {
@@ -75,7 +72,7 @@ public static async recoveryUser(email:string){
           password,
           role,
           userLevel: level,
-          createdById: toStringId(creatorId),
+          createdById: creatorId,
           isDrafted: false,
         },
       });
@@ -87,7 +84,7 @@ public static async recoveryUser(email:string){
   public static async deleteUser(userId: string) {
     try {
       return await prisma.user.update({
-        where: { id: toStringId(userId) },
+        where: { id: userId },
         data: { isDrafted: true },
       });
     } catch (error: any) {
@@ -111,11 +108,11 @@ public static async recoveryUser(email:string){
         lastName: data.lastName,
         email: data.email,
         password: data.password,
-        creationId: data.creationId ? toStringId(data.creationId) : undefined,
+        creationId: data.creationId ? data.creationId : undefined,
       };
 
       return await prisma.user.update({
-        where: { id: toStringId(id) },
+        where: { id: id },
         data: updateData,
       });
     } catch (error: any) {
@@ -165,7 +162,7 @@ export class Users {
   private static async getUnmappedUsersForGroupOrBrandManager(createdById: string): Promise<IRUsers[]> {
     return await prisma.user.findMany({
       where: {
-        createdById: toStringId(createdById),
+        createdById: createdById,
         creationId: null, // ← unmapped = no creationId
       },
       select: {
@@ -196,7 +193,7 @@ export class Users {
     try {
       return await prisma.user.findMany({
         where: {
-          createdById: toStringId(createdById),
+          createdById: createdById,
         },
         select: {
           firstName: true,
@@ -215,7 +212,7 @@ export class Users {
     try {
       return await prisma.user.findMany({
         where: {
-          creationId: toStringId(creationId),
+          creationId: creationId,
         },
         select: {
           firstName: true,
@@ -232,8 +229,8 @@ export class Users {
   public static async mapUser(userId: string, creationId: string): Promise<IRUsers> {
     try {
       return await prisma.user.update({
-        where: { id: toStringId(userId) },
-        data: { creationId: toStringId(creationId) },
+        where: { id: userId },
+        data: { creationId: creationId },
         select: {
           firstName: true,
           lastName: true,
@@ -257,7 +254,7 @@ export class UtilsRepository {
   public static async getPropertyDetailsById(propertyId: string) {
     try {
       return await prisma.property.findUnique({
-        where: { id: toStringId(propertyId) },
+        where: { id: propertyId },
         include: {
           creation: true,
           propertyCategory: true,

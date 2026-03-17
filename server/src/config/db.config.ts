@@ -1,7 +1,7 @@
 import { connect } from "mongoose";
-import { PrismaClient } from "../../prisma/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import config from "./env.config";
+import { PrismaClient } from "../../prisma/generated/prisma/client";
 
 export async function connectMongo() {
   try {

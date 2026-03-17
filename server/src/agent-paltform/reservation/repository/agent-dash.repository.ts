@@ -27,7 +27,7 @@ export class ReservationRepository {
                 sortOrder = 'desc'
             } = filters;
 
-            const whereClause = {
+            const whereClause:any = {
                 agencyId,
                 ...(bookingStatus && { bookingStatus }),
                 ...(bookingSource && { bookingSource }),

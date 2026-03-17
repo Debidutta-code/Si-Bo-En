@@ -1,4 +1,3 @@
-import { Decimal } from "@prisma/client/runtime/library";
 import {IFolioLine} from "./folio-line.type";
 import {IPayment} from "./payment.type";
 import { CurrencyCode } from "../../../../tax-system/interfaces/tourist-tax.type";
@@ -8,7 +7,7 @@ export interface ICFolio{
     bookingCode:string;
     reservationId:string;
     status:FolioStatus;
-    totalAmount:Decimal;
+    totalAmount:number;
     propertyId:string;
     currency:CurrencyCode
 }
