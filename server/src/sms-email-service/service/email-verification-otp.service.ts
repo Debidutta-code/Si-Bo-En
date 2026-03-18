@@ -3,6 +3,7 @@ import { EmailOTPRepository } from "../reposititory";
 import { generateOTPEmailTemplate, 
     generatePasswordResetLinkTemplate } from "../templatesss";
 import { config } from "../../config";
+import { emailQueue } from "../../index";
 
 export class EmailService {
     private transporter: nodemailer.Transporter;
@@ -34,7 +35,6 @@ export class EmailService {
         purpose: "email_verification" | "password_reset" | "login"
     ): Promise<{ success: boolean; message: string }> {
         try {
-            // Check if there's a recent OTP
             const existingOTP = await this.otpRepository.getOTPStatus(email, purpose);
             if (existingOTP && existingOTP.remainingAttempts <= 0) {
                 return {
@@ -43,13 +43,11 @@ export class EmailService {
                 };
             }
 
-            // Generate new OTP
             const otp = this.generateOTP();
 
             // Save to database
             await this.otpRepository.createOTP(email, otp, purpose, 10);
 
-            // Prepare email content
             const htmlContent = generateOTPEmailTemplate(otp, purpose, email);
             const subject = {
                 email_verification: "Verify Your Email - RevChill",
@@ -57,14 +55,17 @@ export class EmailService {
                 login: "Your Login Code - RevChill",
             }[purpose];
 
-            // Send email
-            await this.transporter.sendMail({
-                from: `"${this.senderName}" <${this.senderEmail}>`,
+            await emailQueue.enqueueEmail({
                 to: email,
+                cc: [],
                 subject,
-                html: htmlContent,
+                htmlContent,
+                priority: 'high',
+                meta: {
+                    template: 'otp',
+                    event: purpose,
+                },
             });
-
             return {
                 success: true,
                 message: "OTP sent successfully to your email",
@@ -78,7 +79,6 @@ export class EmailService {
         }
     }
 
-    // Verify OTP
     async verifyOTP(
         email: string,
         otp: string,
@@ -107,24 +107,25 @@ export class EmailService {
         }
     }
 
-
-    // Send password reset link
     async sendPasswordResetLink(email: string, resetToken: string): Promise<{ success: boolean; message: string }> {
         try {
             // Generate reset link
             const frontendUrl = config.frontendUrl || "http://localhost:5173";
             const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
 
-            // Prepare email content
             const htmlContent = generatePasswordResetLinkTemplate(resetLink);
             const subject = "Reset Your Password - RevChill";
 
-            // Send email
-            await this.transporter.sendMail({
-                from: `"${this.senderName}" <${this.senderEmail}>`,
+            await emailQueue.enqueueEmail({
                 to: email,
+                cc: [],
                 subject,
-                html: htmlContent,
+                htmlContent,
+                priority: 'high',
+                meta: {
+                    template: 'password_reset_link',
+                    event: 'password_reset',
+                },
             });
 
             return {

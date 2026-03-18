@@ -1,11 +1,11 @@
 import { Router } from 'express';
 import CurrencyController from '../controllers/currency.controller';
-import { bullMQHelper } from '../../index'; 
+import { currencyQueue } from '../../index'; 
 
 const router = Router();
 
 // No connection config, no init — all handled in server.ts
-const currencyController = new CurrencyController(bullMQHelper);
+const currencyController = new CurrencyController(currencyQueue);
 
 router.get('/rates', currencyController.getAllRates.bind(currencyController));
 router.get('/rates/:currency', currencyController.getCurrencyRate.bind(currencyController));
