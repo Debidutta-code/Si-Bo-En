@@ -16,7 +16,6 @@ import { handleDialogOpenChange } from '../utills/handleDialogOpenChange';
 import { User2Icon, MoreVertical, CloudCog, Upload, Trash2, Settings } from 'lucide-react';
 import { assignUserToProperty } from '../api/api';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import ImageSlider from '@/components/shared/ImageSlider';
 import ImageUploadModal from '@/components/property/ImageUploadModal';
 import DeleteCreationDialog from "@/components/creation/Delete-Creation.dialog";
 import type { ILoader } from '@/pages/dashboard/interface';
@@ -207,64 +206,12 @@ export default function Custom() {
     return (
         <div className="space-y-6 p-4">
             <BackButton />
-
-            {/* Brand Details Section */}
-            <div className="bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-lg overflow-hidden">
-                {/* Hero Image Slider Section */}
-                {customDetails.images?.length > 0 && (
-                    <div className="w-full">
-                        <ImageSlider
-                            images={customDetails.images}
-                            alt={customDetails.name}
-                            height="h-80"
-                        />
-                    </div>
-                )}
-
-                <div className="p-6">
-                    <div className="flex justify-between items-start mb-6">
-                        <div>
-                            <h1 className="text-3xl font-bold text-gray-900 mb-2">{customDetails.name}</h1>
-                            <div className="flex items-center space-x-3">
-                                <p className="text-sm text-gray-600">
-                                    Parent: <span className="font-semibold text-gray-800">{customDetails.under}</span>
-                                </p>
-                                <span className={`px-3 py-1 rounded-full text-xs font-semibold ${customDetails.isActive
-                                    ? 'bg-green-100 text-green-700 ring-1 ring-green-200'
-                                    : 'bg-red-100 text-red-700 ring-1 ring-red-200'
-                                    }`}>
-                                    {customDetails.isActive ? '● Active' : '● Inactive'}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-
-
-                    {/* Custom Managers List */}
-                    {customDetails.users?.length > 0 && (
-                        <div className="border-t border-gray-200 pt-5">
-                            <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center">
-                                <User2Icon className="h-4 w-4 mr-2 text-gray-500" />
-                                Assigned Managers
-                            </h3>
-                            <div className="flex flex-wrap gap-2">
-                                {customDetails.users.map((user) => (
-                                    <div key={user.id} className="flex items-center space-x-2 bg-gradient-to-r from-gray-100 to-gray-50 rounded-full px-4 py-2 border border-gray-200 hover:shadow-sm transition-shadow">
-                                        <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
-                                            <span className="text-xs font-semibold text-gray-600">
-                                                {user.firstName.charAt(0)}{user.lastName.charAt(0)}
-                                            </span>
-                                        </div>
-                                        <span className="text-sm font-medium text-gray-700">
-                                            {user.firstName} {user.lastName}
-                                        </span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </div>
+<div>
+          <h1 className="text-2xl font-bold text-gray-900">Hotels & Properties</h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Manage all your hotel properties and their performance
+          </p>
+        </div>
 
             {/* Actions Bar with Dropdown */}
             <div className="flex justify-between items-center">
