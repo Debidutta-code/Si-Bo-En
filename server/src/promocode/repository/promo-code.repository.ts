@@ -1,4 +1,4 @@
-import prisma from "../../config/prisma.client";
+import { prisma } from "../../config";
 import { ICreatePromoCode, IRPromoCode } from "../types"
 export class PromoCodeRepository {
     public async createPromoCode(data: ICreatePromoCode) {

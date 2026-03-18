@@ -71,3 +71,6 @@ ehthumbs.db
 /src/generated/prisma
 
 *.md*
+
+# Prisma generated output
+/prisma/generated/*

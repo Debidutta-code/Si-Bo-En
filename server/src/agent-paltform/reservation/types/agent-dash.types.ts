@@ -1,4 +1,5 @@
-import { BookingStatus, BookingSource, PaymentMethod, CurrencyCode, DeviceType } from "@prisma/client";
+import { BookingSource, BookingStatus, PaymentMethod } from "../../../pms/frontoffice/reservation/types/reservation.type";
+import { CurrencyCode } from "../../../tax-system/interfaces";
 
 export interface IReservationFilters {
     bookingStatus?: BookingStatus;

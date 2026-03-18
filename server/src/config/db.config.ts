@@ -1,5 +1,7 @@
-import { PrismaClient } from "@prisma/client";
 import { connect } from "mongoose";
+import { PrismaPg } from "@prisma/adapter-pg";
+import config from "./env.config";
+import { PrismaClient } from "../../prisma/generated/prisma/client";
 
 export async function connectMongo() {
   try {
@@ -10,8 +12,14 @@ export async function connectMongo() {
     console.error("❌ Error connecting mongodb:", error);
   }
 }
+const postgresUrl = config.postgresUrl;
+if (!postgresUrl) {
+  throw new Error("DATABASE_URL is required to initialize PrismaClient");
+}
 
-export const prisma = new PrismaClient();
+export const prisma = new PrismaClient({
+  adapter: new PrismaPg({ connectionString: postgresUrl }),
+});
 
 export async function connectPostgres() {
   try {

@@ -1,8 +1,7 @@
 
 import { Response } from 'express';
-import { CustomRequest, errorResponse, IApiResponse, toUTC, toUTCDate } from '../../../utils';
+import { CustomRequest, errorResponse, toUTCDate } from '../../../utils';
 import { MLOSService } from '../services';
-import { Decimal } from '@prisma/client/runtime/library';
 
 export class MLOSController {
     mlosService: MLOSService
@@ -144,7 +143,7 @@ export class MLOSController {
                     startDate: updateData.startDate&&toUTCDate(updateData.startDate) || null,
                     endDate: updateData.endDate&&toUTCDate(updateData.endDate) || null,
                     discountType: updateData.discountType === "none" ? null : updateData.discountType,
-                    discountValue: updateData.discountValue ? new Decimal(updateData.discountValue) : null,
+                    discountValue: updateData.discountValue ? updateData.discountValue : null,
                 }
             );
             const status = response.success ? 200 : 400;

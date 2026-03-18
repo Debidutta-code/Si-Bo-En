@@ -1,4 +1,5 @@
-import prisma from "../../config/prisma.client";
+import { prisma } from "../../config";
+
 export async function property(propertyId: string) {
     return await prisma.property.findUnique({ where: { id: propertyId } });
 }

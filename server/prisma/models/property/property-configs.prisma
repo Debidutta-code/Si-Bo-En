@@ -1,0 +1,44 @@
+model PropertyEmails {
+  id         String   @id @default(uuid())
+  propertyId String   @map("property_id")
+  email      String
+  Property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyId, email])
+}
+
+model PropertyConfigs {
+  id         String   @id @default(uuid())
+  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId String   @unique @map("property_id")
+
+  pmsIntegrationActive            Boolean      @default(true) @map("pms_integration_active")
+  channelManagerIntegrationActive Boolean      @default(true) @map("channel_manager_integration_active")
+  selfAriActive                   Boolean      @default(true) @map("self_ari_active")
+  isB2bAvailable                  Boolean      @default(true) @map("is_b2b_available")
+  isB2cAvailable                  Boolean      @default(true) @map("is_b2c_available")
+  showVideo                       Boolean      @default(true) @map("show_video")
+  commission                      Boolean      @default(false)
+  timezone                        String       @default("Asia/Kolkata") @map("timezone")
+  baseCurrency                    CurrencyCode @default(INR) @map("base_currency")
+  reservationResetMinutes         Int          @default(570) @map("reservation_reset_minutes")
+  createdAt                       DateTime     @default(now())
+  updatedAt                       DateTime     @updatedAt
+
+  @@map("property_configs")
+}
+
+model BookingEngineConfigurations {
+    id              String   @id @default(uuid())
+    property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+    propertyId      String   @unique @map("property_id")
+    primaryColor    String   @map("primary_color")
+    secondaryColor  String   @map("secondary_color")
+    tertiaryColor   String   @map("tertiary_color")
+    buttonTextColor String   @map("button_text_color")
+    bannerImage     String?  @map("banner_image")
+    logo            String
+    url             String?  @map("website_url")
+
+    @@map("booking_engine_configurations")
+}

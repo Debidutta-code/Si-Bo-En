@@ -1,10 +1,10 @@
 import { UpdatePlanData } from '../types/utills';
 import { formatDateToYYYYMMDD } from '../utils/date';
 import { IPaginatedResponse } from '../../utils/return';
-import prisma from '../../config/prisma.client';
 // import { MappedRate } from "../types/mapedRate.type"
 import { IRatePlanUpdate } from '../types/rateplan.type';
 import { nowUTC, toUTC } from '../../utils';
+import { prisma } from '../../config';
 export class RatePlanRepository {
   public static async createRatePlan(
     ratePlanName: string,

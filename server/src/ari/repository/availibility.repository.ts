@@ -1,5 +1,5 @@
-import prisma from '../../config/prisma.client';import { toUTCDate } from '../../utils';
-
+import { prisma } from '../../config';
+import { toUTCDate } from '../../utils';
 export class AvailabilityRepository {
    public static async getPropertyByCode(
     propertyCode: string, 

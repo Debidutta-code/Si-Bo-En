@@ -1,7 +1,7 @@
 // dao/CreationDao.ts
 
+import { prisma } from "../../config";
 import type { ICreation, PropertyFilters } from "../types";
-import prisma from "../../config/prisma.client";
 
 const toStringId = (id: string | any): string => {
   return typeof id === 'string' ? id : String(id);

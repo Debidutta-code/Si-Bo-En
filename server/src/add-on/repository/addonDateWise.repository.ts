@@ -1,4 +1,4 @@
-import { AddonAvailability } from "@prisma/client";
+import { AddonAvailability } from "../../../prisma/generated/prisma/client";
 import { prisma } from "../../config";
 import { ICreateAddonAvailability, IAddonAvailability } from "../interfaces"
 
@@ -71,7 +71,7 @@ export class AddonDateWiseDao {
 
             // Create a Set for fast lookup
             const existingKeys = new Set(
-                existingRecords.map(r => `${r.addonId}_${r.date.toISOString()}`)
+                existingRecords.map((r:any )=> `${r.addonId}_${r.date.toISOString()}`)
             );
 
             let createdCount = 0;

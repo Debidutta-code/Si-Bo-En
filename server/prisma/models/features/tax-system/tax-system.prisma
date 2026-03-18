@@ -1,0 +1,54 @@
+model TaxRule {
+    id           String          @id @default(uuid()) @map("id")
+    name         String          @map("name") @db.VarChar(100)
+    type         TaxType         @map("type")
+    value        Float           @map("value")
+    applicableOn TaxApplicableOn @map("applicable_on")
+    description  String?         @map("description") @db.Text
+    validFrom    DateTime        @map("valid_from")
+    validTo      DateTime        @map("valid_to")
+    isInclusive  Boolean         @default(false) @map("is_inclusive") // to be removed when the database reset happens
+    priority     Int             @default(0) @map("priority")
+    currencyCode CurrencyCode    @default(AED) @map("currency_code")
+
+    // Relations
+    propertyId String   @map("property_id")
+    property   Property @relation(fields: [propertyId], references: [id], name: "PropertyTaxRules", onDelete: Cascade)
+
+    taxGroupRules TaxGroupRule[]
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    @@index([propertyId])
+    @@map("tax_rules")
+}
+
+model TaxGroup {
+    id       String  @id @default(uuid()) @map("id")
+    name     String  @map("name") @db.VarChar(100)
+    isActive Boolean @default(false) @map("is_active")
+
+    propertyId    String         @map("property_id")
+    property      Property       @relation(fields: [propertyId], onDelete: Cascade, references: [id], name: "PropertyTaxGroups")
+    taxGroupRules TaxGroupRule[]
+    ratePlans     RatePlan[]
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    @@index([propertyId])
+    @@map("tax_groups")
+}
+
+model TaxGroupRule {
+    id         String @id @default(uuid()) @map("id")
+    taxGroupId String @map("tax_group_id")
+    taxRuleId  String @map("tax_rule_id")
+
+    taxGroup TaxGroup @relation(fields: [taxGroupId], references: [id], onDelete: Cascade)
+    taxRule  TaxRule  @relation(fields: [taxRuleId], references: [id], onDelete: Cascade)
+
+    @@unique([taxGroupId, taxRuleId])
+    @@map("tax_group_rules")
+}
