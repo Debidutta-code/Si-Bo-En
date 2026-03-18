@@ -126,7 +126,7 @@ export const GeoRatePlanList: React.FC = () => {
         currencyCode: payload.currencyCode,
         countryCode: payload.countryCode,
         isActive: payload.isActive,
-        propertyId: propertyId,
+        propertyId: payload.propertyId,
       });
 
       if (result.success) {
