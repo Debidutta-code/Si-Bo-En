@@ -35,14 +35,8 @@ class NGeniusService {
         }
       );
 
-      console.log("response inside the getaccesstoken function", response);
-
-      // Store token and expiry time
       this.accessToken = response.data.access_token;
-      console.log("after getting the token response");
-      this.tokenExpiry = new Date(
-        Date.now() + response.data.expires_in * 1000
-      );
+      this.tokenExpiry = new Date(Date.now() + response.data.expires_in * 1000);
 
       return response.data;
     } catch (error) {
@@ -53,39 +47,24 @@ class NGeniusService {
   }
 
   /**
-   * Get valid access token (refresh if expired)
+   * Get valid access token (always refresh)
    */
   private async getValidToken(): Promise<string> {
-    console.log("inside get valid token");
-    // if (this.accessToken && this.tokenExpiry) {
-    //   const now = new Date();
-    //   if (this.tokenExpiry > now) {
-    //     return this.accessToken;
-    //   }
-    // }
-
     const tokenResponse = await this.getAccessToken();
-    console.log("after getting the token response");
     return tokenResponse.access_token;
   }
 
   /**
    * Create Order in N-Genius
    */
-  async createOrder(
-    orderData: NGeniusOrderRequest
-  ): Promise<NGeniusOrderResponse> {
+  async createOrder(orderData: NGeniusOrderRequest): Promise<NGeniusOrderResponse> {
     console.log('\n========================================');
     console.log('🛒 CREATING N-GENIUS ORDER');
     console.log('========================================');
 
     try {
-      // Get valid access token
       const token = await this.getValidToken();
 
-      // Resolve outletId: use the one from the payload first, then look it up from
-      // the DB via propertyCode. outletId is per-property and only stored in DB —
-      // there is no valid global/env fallback, so we throw if it cannot be found.
       let targetOutletId = orderData.outletId;
 
       if (!targetOutletId && orderData.propertyCode) {
@@ -106,45 +85,29 @@ class NGeniusService {
           targetOutletId = activeIntegration.outletId;
           console.log(`[N-Genius] ✅ outletId resolved from DB: ${targetOutletId}`);
         } else {
-          throw new Error(`[N-Genius] No active payment integration with an outletId found for property: ${property.id} (code: ${orderData.propertyCode}). Please configure the outlet ID in the payment integration settings.`);
+          throw new Error(`[N-Genius] No active payment integration with an outletId found for property: ${property.id}`);
         }
       }
 
       if (!targetOutletId) {
-        throw new Error(`[N-Genius] outletId is required but was not provided and could not be resolved. Ensure propertyCode is sent in the request so the outletId can be looked up from the database.`);
+        throw new Error(`[N-Genius] outletId is required but was not provided and could not be resolved.`);
       }
 
-      console.log(`[N-Genius] 🏪 Using outletId: ${targetOutletId}`);
       const url = `${NGeniusConfig.baseUrl}${NGeniusConfig.endpoints.orders}/${targetOutletId}/orders`;
-
       const startTime = Date.now();
 
-      const response = await axios.post<NGeniusOrderResponse>(
-        url,
-        orderData,
-        {
-          headers: {
-            'Content-Type': 'application/vnd.ni-payment.v2+json',
-            Accept: 'application/vnd.ni-payment.v2+json',
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await axios.post<NGeniusOrderResponse>(url, orderData, {
+        headers: {
+          'Content-Type': 'application/vnd.ni-payment.v2+json',
+          Accept: 'application/vnd.ni-payment.v2+json',
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-      const endTime = Date.now();
-      const duration = endTime - startTime;
-
+      const duration = Date.now() - startTime;
       console.log('\n✅ ORDER CREATED SUCCESSFULLY');
       console.log('⏱️  Response Time:', duration, 'ms');
-      console.log('📊 Response Status:', response.status);
-      console.log('📊 Response Status Text:', response.statusText);
-      console.log('\n📄 Full Response Data:');
-      console.log(JSON.stringify(response.data, null, 2));
-      console.log('\n🔑 Order Reference:', response.data.reference);
-      console.log('🆔 Order ID:', response.data._id);
-      console.log('🏪 Outlet ID:', response.data.outletId);
-      console.log('💰 Amount:', response.data.amount.value, response.data.amount.currencyCode);
-      console.log('🎬 Action:', response.data.action);
+      console.log('🔑 Order Reference:', response.data.reference);
       console.log('🔗 Payment URL:', response.data._links?.payment?.href);
       console.log('========================================\n');
 
@@ -157,30 +120,17 @@ class NGeniusService {
           if (property) {
             const ngeniusState = response.data._embedded?.payment?.[0]?.state || "STARTED";
             const mappedStatus = this.mapNGeniusState(ngeniusState);
-
-            // The order response contains the outletId actually used by N-Genius.
-            // Use it to find the matching PropertyPaymentIntegration so we can store
-            // propertyPaymentIntegrationId on the Payment — required for refunds later.
             const orderOutletId = response.data.outletId;
             let propertyPaymentIntegrationId: string | null = null;
 
             if (orderOutletId) {
               const integration = await prisma.propertyPaymentIntegration.findFirst({
-                where: {
-                  propertyId: property.id,
-                  outletId: orderOutletId,
-                  isActive: true,
-                },
+                where: { propertyId: property.id, outletId: orderOutletId, isActive: true },
                 select: { id: true },
               });
               if (integration) {
                 propertyPaymentIntegrationId = integration.id;
-                console.log(`✅ Linked PropertyPaymentIntegration: ${integration.id} (outletId: ${orderOutletId})`);
-              } else {
-                console.warn(`⚠️ No active PropertyPaymentIntegration found for propertyId: ${property.id}, outletId: ${orderOutletId}`);
               }
-            } else {
-              console.warn(`⚠️ Order response did not include outletId — propertyPaymentIntegrationId will not be set`);
             }
 
             try {
@@ -196,17 +146,10 @@ class NGeniusService {
                   ...(propertyPaymentIntegrationId && { propertyPaymentIntegrationId }),
                 },
               });
-              console.log(`✅ N-Genius Payment record created in database:
-  - ID: ${payment.id}
-  - Status: ${mappedStatus}
-  - Amount: ${payment.amount} ${payment.currency}
-  - Order Reference: ${response.data.reference}
-  - PropertyPaymentIntegrationId: ${propertyPaymentIntegrationId ?? '(not linked)'}`);
+              console.log(`✅ Payment record created: ${payment.id}`);
             } catch (dbError) {
-              console.error(`❌ Failed to create N-Genius payment record in database for order ${response.data.reference}:`, dbError);
+              console.error(`❌ Failed to create payment record:`, dbError);
             }
-          } else {
-            console.warn(`⚠️ Property not found for code: ${orderData.propertyCode}`);
           }
         } catch (dbError) {
           console.error("❌ Failed to store payment record:", dbError);
@@ -228,11 +171,9 @@ class NGeniusService {
     outletId?: string
   ): Promise<NGeniusOrderStatusResponse> {
     try {
-      console.log(`[DEBUG - N-GENIUS GET STATUS] 🔍 Fetching status for order: ${orderReference}, outletId: ${outletId}`);
       const token = await this.getValidToken();
       const url = `${NGeniusConfig.baseUrl}${NGeniusConfig.endpoints.orders}/${outletId}/orders/${orderReference}`;
 
-      console.log(`[DEBUG - N-GENIUS GET STATUS] 🌐 GET request to: ${url}`);
       const response = await axios.get<NGeniusOrderStatusResponse>(url, {
         headers: {
           Accept: 'application/vnd.ni-payment.v2+json',
@@ -241,7 +182,6 @@ class NGeniusService {
         },
       });
 
-      console.log(`[DEBUG - N-GENIUS GET STATUS] 📥 Status response received for order: ${orderReference}, State: ${response.data._embedded?.payment?.[0]?.state}`);
       return response.data;
     } catch (error) {
       this.handleError(error, 'Failed to get order status');
@@ -257,150 +197,145 @@ class NGeniusService {
   }
 
   /**
-   * Process a refund for a captured SALE order
-   * Fetches order status to extract payment + capture refs, then calls the refund endpoint
+   * SAME-DAY REFUND: Step 1 — Cancel the Capture (DELETE)
+   * Must be done before midnight UAE/Dubai time (settlement).
+   * This voids the capture and returns the payment to AUTHORISED state.
    */
-  async processRefund(
+  async cancelCapture(
     orderReference: string,
-    outletId?: string
-  ): Promise<NGeniusRefundResponse> {
+    outletId: string
+  ): Promise<{ success: boolean; message: string; data?: any }> {
     try {
       console.log(`\n${'='.repeat(60)}`);
-      console.log(`💸 [REFUND] PROCESSING N-GENIUS REFUND`);
-      console.log(`📋 [REFUND] Order Reference  : ${orderReference}`);
-      console.log(`🏪 [REFUND] Outlet ID        : ${outletId ?? '⚠️ (NOT PROVIDED — URL will be malformed!)'}`);
-      console.log(`⏰ [REFUND] Timestamp        : ${new Date().toISOString()}`);
+      console.log(`🚫 [CANCEL CAPTURE] Starting capture cancellation`);
+      console.log(`📋 Order Reference : ${orderReference}`);
+      console.log(`🏪 Outlet ID       : ${outletId}`);
       console.log(`${'='.repeat(60)}`);
 
-      // ── Step 1: Fetch order status ──────────────────────────────────────────
-      console.log(`\n[REFUND - Step 1] 🔍 Calling getOrderStatus...`);
-      console.log(`[REFUND - Step 1]    orderReference : ${orderReference}`);
-      console.log(`[REFUND - Step 1]    outletId       : ${outletId ?? '(undefined)'}`);
-
+      // Step 1: Fetch order status to get payment + capture references
+      console.log(`\n[CANCEL CAPTURE - Step 1] 🔍 Fetching order status...`);
       const orderStatus = await this.getOrderStatus(orderReference, outletId);
-
-      // Log the entire raw response so we can see whatever N-Genius actually returns
-      console.log(`\n[REFUND - Step 1] 📥 Raw order status response:`);
+      console.log(`[CANCEL CAPTURE - Step 1] 📥 Raw order status:`);
       console.log(JSON.stringify(orderStatus, null, 2));
 
-      // ── Step 2: Inspect top-level order fields ──────────────────────────────
-      console.log(`\n[REFUND - Step 2] 🧾 Order top-level fields:`);
-      console.log(`    _id              : ${(orderStatus as any)._id ?? '(not present)'}`);
-      console.log(`    reference        : ${(orderStatus as any).reference ?? '(not present)'}`);
-      console.log(`    action           : ${(orderStatus as any).action ?? '(not present)'}`);
-      console.log(`    state (order)    : ${(orderStatus as any).state ?? '(not present)'}`);
-      console.log(`    amount.value     : ${orderStatus.amount?.value ?? '(not present)'}`);
-      console.log(`    amount.currency  : ${orderStatus.amount?.currencyCode ?? '(not present)'}`);
-      console.log(`    outletId         : ${(orderStatus as any).outletId ?? '(not present)'}`);
-      console.log(`    _embedded keys   : ${JSON.stringify(Object.keys(orderStatus._embedded ?? {}))}`);
-      console.log(`    _links keys      : ${JSON.stringify(Object.keys((orderStatus as any)._links ?? {}))}`);
-
-      // ── Step 3: Inspect payments array ─────────────────────────────────────
       const payments = orderStatus._embedded?.payment;
-      console.log(`\n[REFUND - Step 3] 💳 Payments array length: ${payments?.length ?? 0}`);
-
       if (!payments || payments.length === 0) {
-        console.error(`[REFUND - Step 3] ❌ No payment found in _embedded.payment for order: ${orderReference}`);
-        console.error(`[REFUND - Step 3]    Full _embedded object:`, JSON.stringify(orderStatus._embedded, null, 2));
         return { success: false, message: 'No payment found for this order' };
       }
 
       const payment = payments[0];
-      console.log(`\n[REFUND - Step 3] 📋 Payment[0] fields:`);
-      console.log(`    _id              : ${(payment as any)._id ?? '(not present)'}`);
-      console.log(`    state            : ${payment.state ?? '(not present)'}`);
-      console.log(`    amount.value     : ${(payment as any).amount?.value ?? '(not present)'}`);
-      console.log(`    amount.currency  : ${(payment as any).amount?.currencyCode ?? '(not present)'}`);
-      console.log(`    _embedded keys   : ${JSON.stringify(Object.keys(payment._embedded ?? {}))}`);
-      console.log(`    _links keys      : ${JSON.stringify(Object.keys((payment as any)._links ?? {}))}`);
-      console.log(`    Full payment _links:`, JSON.stringify((payment as any)._links, null, 2));
+      console.log(`\n[CANCEL CAPTURE - Step 2] 💳 Payment state: ${payment.state}`);
 
-      // ── Step 4: Inspect captures ────────────────────────────────────────────
       const captures = payment._embedded?.['cnp:capture'];
-      console.log(`\n[REFUND - Step 4] 🗂️  cnp:capture array length: ${captures?.length ?? 0}`);
-      console.log(`[REFUND - Step 4]    All _embedded keys on payment:`, JSON.stringify(Object.keys(payment._embedded ?? {})));
+      console.log(`[CANCEL CAPTURE - Step 2] 🗂️  Captures found: ${captures?.length ?? 0}`);
 
       if (!captures || captures.length === 0) {
-        console.error(`[REFUND - Step 4] ❌ No captures found. Payment state is: ${payment.state}`);
-        console.error(`[REFUND - Step 4]    This usually means the payment was NOT captured (e.g., AUTHORISED but not CAPTURED, or PURCHASED via 3DS).`);
-        console.error(`[REFUND - Step 4]    Full payment._embedded:`, JSON.stringify(payment._embedded, null, 2));
-        return { success: false, message: 'No capture found for this payment (payment may not be in CAPTURED state)' };
-      }
-
-      // Log every capture so we see all of them, not just [0]
-      captures.forEach((cap: any, idx: number) => {
-        console.log(`\n[REFUND - Step 4] 📦 Capture[${idx}]:`);
-        console.log(`    _id              : ${cap._id ?? '(not present)'}`);
-        console.log(`    state            : ${cap.state ?? '(not present)'}`);
-        console.log(`    amount.value     : ${cap.amount?.value ?? '(not present)'}`);
-        console.log(`    amount.currency  : ${cap.amount?.currencyCode ?? '(not present)'}`);
-        console.log(`    _links keys      : ${JSON.stringify(Object.keys(cap._links ?? {}))}`);
-        console.log(`    Full _links      :`, JSON.stringify(cap._links, null, 2));
-        console.log(`    cnp:refund href  : ${cap._links?.['cnp:refund']?.href ?? '⚠️ (NOT PRESENT on this capture)'}`);
-      });
-
-      // ── Step 5: Extract refund href from capture[0] ─────────────────────────
-      const rawCaptureHref = captures[0]._links?.['cnp:refund']?.href;
-
-      console.log(`\n[REFUND - Step 5] 🔗 cnp:refund href from capture[0]: ${rawCaptureHref ?? '(not present)'}`);
-
-      if (!rawCaptureHref) {
-        console.error(`[REFUND - Step 5] ❌ cnp:refund href NOT FOUND on capture[0].`);
-        console.error(`[REFUND - Step 5]    This is the "href not found" error!`);
-        console.error(`[REFUND - Step 5]    capture[0]._links full object:`, JSON.stringify(captures[0]._links, null, 2));
-        console.error(`[REFUND - Step 5]    Possible reasons:`);
-        console.error(`[REFUND - Step 5]      1. Payment captured < 24hrs ago (N-Genius doesn't expose refund link yet)`);
-        console.error(`[REFUND - Step 5]      2. Payment is in wrong state for refund`);
-        console.error(`[REFUND - Step 5]      3. API response schema changed or unexpected structure`);
-        return { success: false, message: 'Capture refund href not found in order status' };
-      }
-
-      console.log(`[REFUND - Step 5] ✅ cnp:refund href found: ${rawCaptureHref}`);
-      console.log(`[REFUND - Step 5]    Ends with /refund? ${rawCaptureHref.endsWith('/refund')}`);
-
-      // ── Step 6: 24-hour check ───────────────────────────────────────────────
-      if (!rawCaptureHref.endsWith('/refund')) {
-        console.warn(`[REFUND - Step 6] ⏳ Refund endpoint NOT yet available (payment < 24hrs old).`);
-        console.warn(`[REFUND - Step 6]    Raw href: ${rawCaptureHref}`);
-        console.warn(`[REFUND - Step 6]    Expected it to end with '/refund' but it doesn't.`);
+        console.warn(`[CANCEL CAPTURE - Step 2] ⚠️ No captures found. Payment state: ${payment.state}`);
         return {
           success: false,
-          message: 'Reservation cannot be cancelled within 24 hours of booking. Please try again after 24 hours.',
+          message: `No captures found. Payment is in state: ${payment.state}. Cannot cancel capture.`,
         };
       }
 
-      const refundUrl = rawCaptureHref;
-      console.log(`\n[REFUND - Step 6] ✅ Refund URL confirmed available: ${refundUrl}`);
+      // Extract the capture's self href for the DELETE request
+      const captureSelfHref = (captures[0] as any)._links?.self?.href;
+      console.log(`\n[CANCEL CAPTURE - Step 3] 🔗 Capture self href: ${captureSelfHref ?? '(not found)'}`);
 
-      // Parse captureRef from the URL for logging/reference purposes
-      const refundUrlParts = refundUrl.split('/');
-      const capturesIndex = refundUrlParts.indexOf('captures');
-      const captureRef = capturesIndex !== -1 ? refundUrlParts[capturesIndex + 1] : 'unknown';
+      if (!captureSelfHref) {
+        console.error(`[CANCEL CAPTURE - Step 3] ❌ capture[0]._links.self.href not found`);
+        console.error(`[CANCEL CAPTURE - Step 3]    Full capture[0]._links:`, JSON.stringify((captures[0] as any)._links, null, 2));
+        return { success: false, message: 'Capture self href not found — cannot cancel capture' };
+      }
 
-      // ── Step 7: Build refund payload ────────────────────────────────────────
-      const orderAmount = orderStatus.amount;
-      const refundCurrency = orderAmount.currencyCode;
-      const refundAmount = orderAmount.value; // already in minor units (e.g. 100 = 1 AED)
+      // Step 2: DELETE the capture
+      console.log(`\n[CANCEL CAPTURE - Step 4] 🚀 Sending DELETE to cancel capture...`);
+      console.log(`   URL: ${captureSelfHref}`);
 
-      console.log(`\n[REFUND - Step 7] 📦 Refund payload details:`);
-      console.log(`    captureRef       : ${captureRef}`);
-      console.log(`    refundUrl        : ${refundUrl}`);
-      console.log(`    refundAmount     : ${refundAmount} (minor units) = ${refundAmount / 100} ${refundCurrency}`);
-      console.log(`    refundCurrency   : ${refundCurrency}`);
-      console.log(`    Body to send     :`, JSON.stringify({ amount: { value: refundAmount, currencyCode: refundCurrency } }));
-
-      // ── Step 8: Call refund API ─────────────────────────────────────────────
-      console.log(`\n[REFUND - Step 8] 🚀 Sending refund POST request to N-Genius...`);
       const token = await this.getValidToken();
-
-      const refundResponse = await axios.post(
-        refundUrl,
-        {
-          amount: {
-            value: refundAmount,
-            currencyCode: refundCurrency,
-          },
+      const cancelCaptureResponse = await axios.delete(captureSelfHref, {
+        headers: {
+          'Content-Type': 'application/vnd.ni-payment.v2+json',
+          Accept: 'application/vnd.ni-payment.v2+json',
+          Authorization: `Bearer ${token}`,
         },
+      });
+
+      console.log(`\n[CANCEL CAPTURE - Step 4] ✅ Capture cancelled successfully`);
+      console.log(`   HTTP Status: ${cancelCaptureResponse.status} ${cancelCaptureResponse.statusText}`);
+      console.log(`   Response:`, JSON.stringify(cancelCaptureResponse.data, null, 2));
+      console.log(`${'='.repeat(60)}\n`);
+
+      return {
+        success: true,
+        message: 'Capture cancelled successfully',
+        data: cancelCaptureResponse.data,
+      };
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const errData = error.response?.data as any;
+        console.error(`\n[CANCEL CAPTURE] ❌ FAILED`);
+        console.error(`   HTTP Status : ${error.response?.status} ${error.response?.statusText}`);
+        console.error(`   Response    :`, JSON.stringify(errData, null, 2));
+        const errMessage = errData?.message || errData?.errors?.[0]?.message || 'Cancel capture API request failed';
+        return { success: false, message: errMessage };
+      }
+      const msg = error instanceof Error ? error.message : 'Unknown error during cancel capture';
+      return { success: false, message: msg };
+    }
+  }
+
+  /**
+   * SAME-DAY REFUND: Step 2 — Reverse the Authorization (PUT)
+   * Must be called AFTER cancelCapture succeeds.
+   * Payment must have no outstanding captures/refunds (hence cancel first).
+   * This permanently cancels the auth and releases funds back to customer.
+   */
+  async reverseAuthorization(
+    orderReference: string,
+    outletId: string
+  ): Promise<{ success: boolean; message: string; data?: any }> {
+    try {
+      console.log(`\n${'='.repeat(60)}`);
+      console.log(`↩️  [REVERSE AUTH] Starting authorization reversal`);
+      console.log(`📋 Order Reference : ${orderReference}`);
+      console.log(`🏪 Outlet ID       : ${outletId}`);
+      console.log(`${'='.repeat(60)}`);
+
+      // Step 1: Fetch fresh order status to get cnp:cancel href
+      console.log(`\n[REVERSE AUTH - Step 1] 🔍 Fetching fresh order status...`);
+      const orderStatus = await this.getOrderStatus(orderReference, outletId);
+      console.log(`[REVERSE AUTH - Step 1] 📥 Raw order status:`);
+      console.log(JSON.stringify(orderStatus, null, 2));
+
+      const payments = orderStatus._embedded?.payment;
+      if (!payments || payments.length === 0) {
+        return { success: false, message: 'No payment found for this order' };
+      }
+
+      const payment = payments[0];
+      console.log(`\n[REVERSE AUTH - Step 2] 💳 Payment state after capture cancel: ${payment.state}`);
+
+      // Extract cnp:cancel href from payment._links
+      const cancelHref = (payment as any)._links?.['cnp:cancel']?.href;
+      console.log(`\n[REVERSE AUTH - Step 2] 🔗 cnp:cancel href: ${cancelHref ?? '(not found)'}`);
+
+      if (!cancelHref) {
+        console.error(`[REVERSE AUTH - Step 2] ❌ cnp:cancel href not found`);
+        console.error(`   Full payment._links:`, JSON.stringify((payment as any)._links, null, 2));
+        return {
+          success: false,
+          message: 'Authorization cancel href not found — payment may not be in AUTHORISED state',
+        };
+      }
+
+      // Step 2: PUT to the cancel endpoint (no body required)
+      console.log(`\n[REVERSE AUTH - Step 3] 🚀 Sending PUT to reverse authorization...`);
+      console.log(`   URL: ${cancelHref}`);
+
+      const token = await this.getValidToken();
+      const reverseResponse = await axios.put(
+        cancelHref,
+        {}, // no body required per N-Genius docs
         {
           headers: {
             'Content-Type': 'application/vnd.ni-payment.v2+json',
@@ -410,9 +345,168 @@ class NGeniusService {
         }
       );
 
-      console.log(`\n[REFUND - Step 8] ✅ REFUND SUCCESSFUL`);
-      console.log(`[REFUND - Step 8]    HTTP Status  : ${refundResponse.status} ${refundResponse.statusText}`);
-      console.log(`[REFUND - Step 8]    Response data:`, JSON.stringify(refundResponse.data, null, 2));
+      console.log(`\n[REVERSE AUTH - Step 3] ✅ Authorization reversed successfully`);
+      console.log(`   HTTP Status : ${reverseResponse.status} ${reverseResponse.statusText}`);
+      console.log(`   State       : ${reverseResponse.data?.state}`);
+      console.log(`   Response    :`, JSON.stringify(reverseResponse.data, null, 2));
+      console.log(`${'='.repeat(60)}\n`);
+
+      return {
+        success: true,
+        message: 'Authorization reversed successfully',
+        data: reverseResponse.data,
+      };
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const errData = error.response?.data as any;
+        console.error(`\n[REVERSE AUTH] ❌ FAILED`);
+        console.error(`   HTTP Status : ${error.response?.status} ${error.response?.statusText}`);
+        console.error(`   Response    :`, JSON.stringify(errData, null, 2));
+        const errMessage = errData?.message || errData?.errors?.[0]?.message || 'Authorization reversal API request failed';
+        return { success: false, message: errMessage };
+      }
+      const msg = error instanceof Error ? error.message : 'Unknown error during authorization reversal';
+      return { success: false, message: msg };
+    }
+  }
+
+  /**
+   * SAME-DAY REFUND: Full flow
+   * 1. Cancel the capture (DELETE)
+   * 2. Reverse the authorization (PUT)
+   */
+  async processSameDayRefund(
+    orderReference: string,
+    outletId: string
+  ): Promise<NGeniusRefundResponse> {
+    try {
+      console.log(`\n${'='.repeat(60)}`);
+      console.log(`⚡ [SAME-DAY REFUND] Starting same-day refund flow`);
+      console.log(`📋 Order Reference : ${orderReference}`);
+      console.log(`🏪 Outlet ID       : ${outletId}`);
+      console.log(`${'='.repeat(60)}`);
+
+      // Step 1: Cancel the capture
+      console.log(`\n[SAME-DAY REFUND] ▶️ Step 1: Cancelling capture...`);
+      const cancelResult = await this.cancelCapture(orderReference, outletId);
+
+      if (!cancelResult.success) {
+        console.error(`[SAME-DAY REFUND] ❌ Cancel capture failed: ${cancelResult.message}`);
+        return {
+          success: false,
+          message: `Same-day refund failed at capture cancellation: ${cancelResult.message}`,
+        };
+      }
+
+      console.log(`[SAME-DAY REFUND] ✅ Capture cancelled. Proceeding to authorization reversal...`);
+
+      // Step 2: Reverse the authorization
+      console.log(`\n[SAME-DAY REFUND] ▶️ Step 2: Reversing authorization...`);
+      const reverseResult = await this.reverseAuthorization(orderReference, outletId);
+
+      if (!reverseResult.success) {
+        console.error(`[SAME-DAY REFUND] ❌ Authorization reversal failed: ${reverseResult.message}`);
+        return {
+          success: false,
+          message: `Same-day refund failed at authorization reversal: ${reverseResult.message}`,
+        };
+      }
+
+      console.log(`[SAME-DAY REFUND] ✅ Authorization reversed. Same-day refund complete!`);
+      console.log(`${'='.repeat(60)}\n`);
+
+      return {
+        success: true,
+        message: 'Same-day refund processed successfully (capture cancelled + authorization reversed)',
+        refundReference: orderReference,
+        data: {
+          cancelCapture: cancelResult.data,
+          reverseAuthorization: reverseResult.data,
+        },
+      };
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : 'Unknown same-day refund error';
+      console.error(`[SAME-DAY REFUND] ❌ Unexpected error:`, msg);
+      return { success: false, message: msg };
+    }
+  }
+
+  /**
+   * DAY-AFTER REFUND: Process a refund for a captured SALE order after settlement
+   * Fetches order status to extract payment + capture refs, then calls the refund endpoint.
+   */
+  async processRefund(
+    orderReference: string,
+    outletId?: string
+  ): Promise<NGeniusRefundResponse> {
+    try {
+      console.log(`\n${'='.repeat(60)}`);
+      console.log(`💸 [REFUND] PROCESSING N-GENIUS DAY-AFTER REFUND`);
+      console.log(`📋 Order Reference : ${orderReference}`);
+      console.log(`🏪 Outlet ID       : ${outletId ?? '⚠️ (NOT PROVIDED)'}`);
+      console.log(`${'='.repeat(60)}`);
+
+      const orderStatus = await this.getOrderStatus(orderReference, outletId);
+      console.log(`\n[REFUND - Step 1] 📥 Raw order status response:`);
+      console.log(JSON.stringify(orderStatus, null, 2));
+
+      const payments = orderStatus._embedded?.payment;
+      if (!payments || payments.length === 0) {
+        return { success: false, message: 'No payment found for this order' };
+      }
+
+      const payment = payments[0];
+      const captures = payment._embedded?.['cnp:capture'];
+
+      if (!captures || captures.length === 0) {
+        console.error(`[REFUND] ❌ No captures found. Payment state: ${payment.state}`);
+        return { success: false, message: 'No capture found for this payment (payment may not be in CAPTURED state)' };
+      }
+
+      captures.forEach((cap: any, idx: number) => {
+        console.log(`\n[REFUND] 📦 Capture[${idx}]: state=${cap.state}, cnp:refund=${cap._links?.['cnp:refund']?.href ?? '(not present)'}`);
+      });
+
+      const rawCaptureHref = captures[0]._links?.['cnp:refund']?.href;
+
+      if (!rawCaptureHref) {
+        return { success: false, message: 'Capture refund href not found in order status' };
+      }
+
+      if (!rawCaptureHref.endsWith('/refund')) {
+        return {
+          success: false,
+          message: 'Reservation cannot be cancelled within 24 hours of booking. Please try again after 24 hours.',
+        };
+      }
+
+      const refundUrl = rawCaptureHref;
+      const refundUrlParts = refundUrl.split('/');
+      const capturesIndex = refundUrlParts.indexOf('captures');
+      const captureRef = capturesIndex !== -1 ? refundUrlParts[capturesIndex + 1] : 'unknown';
+
+      const orderAmount = orderStatus.amount;
+      const refundCurrency = orderAmount.currencyCode;
+      const refundAmount = orderAmount.value;
+
+      console.log(`\n[REFUND] 📦 Sending refund: ${refundAmount} ${refundCurrency} to ${refundUrl}`);
+
+      const token = await this.getValidToken();
+      const refundResponse = await axios.post(
+        refundUrl,
+        { amount: { value: refundAmount, currencyCode: refundCurrency } },
+        {
+          headers: {
+            'Content-Type': 'application/vnd.ni-payment.v2+json',
+            Accept: 'application/vnd.ni-payment.v2+json',
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      console.log(`\n[REFUND] ✅ REFUND SUCCESSFUL`);
+      console.log(`   HTTP Status: ${refundResponse.status}`);
+      console.log(`   Response:`, JSON.stringify(refundResponse.data, null, 2));
       console.log(`${'='.repeat(60)}\n`);
 
       return {
@@ -425,20 +519,10 @@ class NGeniusService {
       this.handleError(error, 'Failed to process refund');
       if (axios.isAxiosError(error)) {
         const errData = error.response?.data as any;
-        console.error(`\n[REFUND] ❌ REFUND FAILED — Axios Error:`);
-        console.error(`    HTTP Status   : ${error.response?.status} ${error.response?.statusText}`);
-        console.error(`    Request URL   : ${error.config?.url}`);
-        console.error(`    Request method: ${error.config?.method}`);
-        console.error(`    Request body  :`, error.config?.data);
-        console.error(`    Response data :`, JSON.stringify(errData, null, 2));
-        console.error(`    Axios message : ${error.message}\n`);
-
         const errMessage = errData?.message || errData?.errors?.[0]?.message || 'Refund API request failed';
-        console.error(`[REFUND] ❌ Final error message: ${errMessage}`);
         return { success: false, message: errMessage };
       }
       const msg = error instanceof Error ? error.message : 'Unknown refund error';
-      console.error(`[REFUND] ❌ Non-Axios error:`, msg, error);
       return { success: false, message: msg };
     }
   }
@@ -449,7 +533,6 @@ class NGeniusService {
   private mapNGeniusState(state: string): string {
     const successStates = ["CAPTURED", "PURCHASED", "AUTHORISED"];
     const failedStates = ["FAILED", "DECLINED", "CANCELLED"];
-
     const upperState = state.toUpperCase();
     if (successStates.includes(upperState)) return "confirmed";
     if (failedStates.includes(upperState)) return "cancelled";
@@ -462,9 +545,7 @@ class NGeniusService {
   private handleError(error: unknown, context: string): void {
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError<NGeniusErrorResponse>;
-      // Console logs removed as per request
-    } else {
-      // Console logs removed as per request
+      // logging removed
     }
   }
 }

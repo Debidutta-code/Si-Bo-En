@@ -4,6 +4,7 @@ model PropertyPaymentIntegration {
     paymentIntegrationId String  @map("payment_integration_id")
     isActive             Boolean @default(false) @map("is_active")
     outletId             String  @map("outlet_id")
+    sameDayRefund        Boolean @default(true) @map("same_day_refund")
 
     property           Property                 @relation(fields: [propertyId], references: [id], onDelete: Cascade)
     paymentIntegration MasterPaymentIntegration @relation(fields: [paymentIntegrationId], references: [id])

@@ -1,6 +1,7 @@
 // N-Genius Payment Routes
 import { Router } from 'express';
 import { NGeniusController } from '../controllers/ngenius.controller';
+import { resolveRefundStrategy } from '../middlewares/refund-routing.middleware';
 
 const router = Router();
 
@@ -16,7 +17,7 @@ router.get('/order/:orderReference', NGeniusController.getOrderStatus);
 // Get payment URL
 router.get('/payment-url/:orderReference', NGeniusController.getPaymentUrl);
 
-// Process refund
-router.post('/refund', NGeniusController.processRefund);
+// Process refund — middleware resolves same_day vs day_after from DB, then controller routes accordingly
+router.post('/refund', resolveRefundStrategy, NGeniusController.processRefund);
 
 export const NGeniusRoutes = router;

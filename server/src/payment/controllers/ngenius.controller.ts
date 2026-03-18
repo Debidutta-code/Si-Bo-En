@@ -15,7 +15,6 @@ export class NGeniusController {
   ): Promise<void> {
     try {
       const tokenResponse = await ngeniusService.getAccessToken();
-
       res.status(200).json({
         success: true,
         message: 'Access token retrieved successfully',
@@ -37,41 +36,27 @@ export class NGeniusController {
   ): Promise<void> {
     try {
       const orderData: NGeniusOrderRequest = req.body;
-      console.log("📥 [BACKEND DEBUG] Received N-Genius order payload from frontend:", JSON.stringify(orderData, null, 2));
+      console.log("📥 [BACKEND DEBUG] Received N-Genius order payload:", JSON.stringify(orderData, null, 2));
 
-      // Validate request body
       if (!orderData.action || !orderData.amount) {
-        res.status(400).json({
-          success: false,
-          message: 'Invalid request. Action and amount are required.',
-        });
+        res.status(400).json({ success: false, message: 'Invalid request. Action and amount are required.' });
         return;
       }
 
-      // Validate action
       if (!['AUTH', 'SALE', 'PURCHASE'].includes(orderData.action)) {
-        res.status(400).json({
-          success: false,
-          message: 'Invalid action. Must be AUTH, SALE, or PURCHASE.',
-        });
+        res.status(400).json({ success: false, message: 'Invalid action. Must be AUTH, SALE, or PURCHASE.' });
         return;
       }
 
-      // Validate amount
       if (!orderData.amount.currencyCode || !orderData.amount.value) {
-        res.status(400).json({
-          success: false,
-          message: 'Invalid amount. currencyCode and value are required.',
-        });
+        res.status(400).json({ success: false, message: 'Invalid amount. currencyCode and value are required.' });
         return;
       }
 
       const orderResponse = await ngeniusService.createOrder(orderData);
-
-      console.log('\n✅ Order Created - Extracting Payment URL...');
       const paymentUrl = ngeniusService.getPaymentUrl(orderResponse);
 
-      const responseData = {
+      res.status(201).json({
         success: true,
         message: 'Order created successfully',
         data: {
@@ -79,9 +64,7 @@ export class NGeniusController {
           paymentUrl: paymentUrl,
           orderReference: orderResponse.reference,
         },
-      };
-
-      res.status(201).json(responseData);
+      });
     } catch (error) {
       next(error);
     }
@@ -100,10 +83,7 @@ export class NGeniusController {
       const { orderReference } = req.params;
 
       if (!orderReference) {
-        res.status(400).json({
-          success: false,
-          message: 'Order reference is required',
-        });
+        res.status(400).json({ success: false, message: 'Order reference is required' });
         return;
       }
 
@@ -132,10 +112,7 @@ export class NGeniusController {
       const { orderReference } = req.params;
 
       if (!orderReference) {
-        res.status(400).json({
-          success: false,
-          message: 'Order reference is required',
-        });
+        res.status(400).json({ success: false, message: 'Order reference is required' });
         return;
       }
 
@@ -145,10 +122,7 @@ export class NGeniusController {
       res.status(200).json({
         success: true,
         message: 'Payment URL retrieved successfully',
-        data: {
-          paymentUrl: paymentUrl,
-          orderReference: orderStatus.reference,
-        },
+        data: { paymentUrl, orderReference: orderStatus.reference },
       });
     } catch (error) {
       next(error);
@@ -156,8 +130,12 @@ export class NGeniusController {
   }
 
   /**
-   * Process Refund
+   * Process Refund — routes to same-day or day-after based on DB flag
    * POST /api/v1/payment/ngenius/refund
+   *
+   * Middleware `resolveRefundStrategy` must run before this and attaches:
+   *   - req.refundStrategy: 'same_day' | 'day_after'
+   *   - req.resolvedOutletId: string
    */
   static async processRefund(
     req: Request,
@@ -165,23 +143,42 @@ export class NGeniusController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { orderReference, outletId } = req.body;
+      const { orderReference } = req.body;
+      const refundStrategy: 'same_day' | 'day_after' = (req as any).refundStrategy ?? 'day_after';
+      const resolvedOutletId: string | undefined = (req as any).resolvedOutletId;
+
+      console.log(`\n[REFUND CONTROLLER] 💡 Strategy: ${refundStrategy}`);
+      console.log(`[REFUND CONTROLLER] 📋 Order Reference: ${orderReference}`);
+      console.log(`[REFUND CONTROLLER] 🏪 Outlet ID: ${resolvedOutletId ?? '(not resolved)'}`);
 
       if (!orderReference) {
-        res.status(400).json({
-          success: false,
-          message: 'orderReference is required',
-        });
+        res.status(400).json({ success: false, message: 'orderReference is required' });
         return;
       }
 
-      const refundResult = await ngeniusService.processRefund(orderReference);
+      let refundResult;
+
+      if (refundStrategy === 'same_day') {
+        if (!resolvedOutletId) {
+          res.status(400).json({
+            success: false,
+            message: 'outletId is required for same-day refund but could not be resolved from the database.',
+          });
+          return;
+        }
+
+        console.log(`[REFUND CONTROLLER] ⚡ Routing to SAME-DAY refund (cancel capture + reverse auth)`);
+        refundResult = await ngeniusService.processSameDayRefund(orderReference, resolvedOutletId);
+      } else {
+        console.log(`[REFUND CONTROLLER] 🕐 Routing to DAY-AFTER refund (standard refund API)`);
+        refundResult = await ngeniusService.processRefund(orderReference, resolvedOutletId);
+      }
 
       res.status(refundResult.success ? 200 : 422).json({
         success: refundResult.success,
         message: refundResult.message,
         data: refundResult.success
-          ? { refundReference: refundResult.refundReference, ...refundResult.data }
+          ? { refundReference: refundResult.refundReference, strategy: refundStrategy, ...refundResult.data }
           : undefined,
       });
     } catch (error) {
