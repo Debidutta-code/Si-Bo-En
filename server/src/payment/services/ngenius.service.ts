@@ -24,7 +24,7 @@ class NGeniusService {
       const url = `${NGeniusConfig.baseUrl}${NGeniusConfig.endpoints.token}`;
 
       const response = await axios.post<NGeniusTokenResponse>(
-        `https://api-gateway.ngenius-payments.com/identity/auth/access-token`,
+        url,
         {},
         {
           headers: {
