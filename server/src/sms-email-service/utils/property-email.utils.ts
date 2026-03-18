@@ -1,7 +1,6 @@
 import { prisma } from "../../config";
 
 export const getPropertyDetails = async (id: string,roomTypeCode:string) => {
-    console.log("jhavdjavs",id,roomTypeCode)
     return await prisma.property.findUnique({
         where: { id },
         include: {

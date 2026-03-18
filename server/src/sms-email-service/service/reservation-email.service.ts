@@ -1,7 +1,8 @@
 import { IBookingDetails } from "../../pms/frontoffice/reservation/types";
-import { getPropertyByPropertyCode, getPropertyDetails, sendEmail } from "../utils";
+import { getPropertyByPropertyCode, getPropertyDetails } from "../utils";
 import { EmailTemplates } from "../templatesss";
 import { PropertyEmailRepository } from "../reposititory";
+import { emailQueue } from "../../index";
 
 export class ReservationEmailService {
     private propertyEmailRepository: PropertyEmailRepository;
@@ -46,21 +47,35 @@ export class ReservationEmailService {
                 propertyAddress: propertyDetails.propertyAddress,
             });
 
+            const correlationId = bookingDetails.bookingCode;
+
             // Email 1 - Customer
-            await sendEmail(
-                bookingDetails.email,
-                [],
-                "Your Reservation Confirmation - RevChill",
-                htmlTemplate
-            );
+            await emailQueue.enqueueEmail({
+                to: bookingDetails.email,
+                cc: [],
+                subject: "Your Reservation Confirmation - RevChill",
+                htmlContent: htmlTemplate,
+                priority: 'high',
+                meta: {
+                    template: 'reservation_confirmation_customer',
+                    event: 'reservation_confirmation',
+                    correlationId,
+                },
+            });
 
             // Email 2 - Property (with other emails in CC)
-            await sendEmail(
-                propertyDetails.propertyEmail,
-                ccEmails,
-                "New Reservation - RevChill",
-                htmlTemplate
-            );
+            await emailQueue.enqueueEmail({
+                to: propertyDetails.propertyEmail,
+                cc: ccEmails,
+                subject: "New Reservation - RevChill",
+                htmlContent: htmlTemplate,
+                priority: 'high',
+                meta: {
+                    template: 'reservation_confirmation_property',
+                    event: 'reservation_confirmation',
+                    correlationId,
+                },
+            });
 
         } catch (error) {
             console.error("Error sending reservation confirmation email:", error);
@@ -99,21 +114,35 @@ export class ReservationEmailService {
                 propertyAddress: propertyDetails.propertyAddress,
             });
 
+            const correlationId = bookingDetails.bookingCode;
+
             // Email 1 - Customer
-            await sendEmail(
-                bookingDetails.email,
-                [],
-                "Your Reservation Has Been Updated - RevChill",
-                htmlTemplate
-            );
+            await emailQueue.enqueueEmail({
+                to: bookingDetails.email,
+                cc: [],
+                subject: "Your Reservation Has Been Updated - RevChill",
+                htmlContent: htmlTemplate,
+                priority: 'high',
+                meta: {
+                    template: 'reservation_updated_customer',
+                    event: 'reservation_updated',
+                    correlationId,
+                },
+            });
 
             // Email 2 - Property (with other emails in CC)
-            await sendEmail(
-                propertyDetails.propertyEmail,
-                ccEmails,
-                "Reservation Updated - RevChill",
-                htmlTemplate
-            );
+            await emailQueue.enqueueEmail({
+                to: propertyDetails.propertyEmail,
+                cc: ccEmails,
+                subject: "Reservation Updated - RevChill",
+                htmlContent: htmlTemplate,
+                priority: 'high',
+                meta: {
+                    template: 'reservation_updated_property',
+                    event: 'reservation_updated',
+                    correlationId,
+                },
+            });
 
         } catch (error) {
             console.error("Error sending reservation updated email:", error);
@@ -152,21 +181,35 @@ export class ReservationEmailService {
                 propertyAddress: propertyDetails.propertyAddress,
             });
 
+            const correlationId = bookingDetails.bookingCode;
+
             // Email 1 - Customer
-            await sendEmail(
-                bookingDetails.email,
-                [],
-                "Your Reservation Cancellation Confirmation - RevChill",
-                htmlTemplate
-            );
+            await emailQueue.enqueueEmail({
+                to: bookingDetails.email,
+                cc: [],
+                subject: "Your Reservation Cancellation Confirmation - RevChill",
+                htmlContent: htmlTemplate,
+                priority: 'high',
+                meta: {
+                    template: 'reservation_cancel_customer',
+                    event: 'reservation_cancel',
+                    correlationId,
+                },
+            });
 
             // Email 2 - Property (with other emails in CC)
-            await sendEmail(
-                propertyDetails.propertyEmail,
-                ccEmails,
-                "Reservation Cancelled - RevChill",
-                htmlTemplate
-            );
+            await emailQueue.enqueueEmail({
+                to: propertyDetails.propertyEmail,
+                cc: ccEmails,
+                subject: "Reservation Cancelled - RevChill",
+                htmlContent: htmlTemplate,
+                priority: 'high',
+                meta: {
+                    template: 'reservation_cancel_property',
+                    event: 'reservation_cancel',
+                    correlationId,
+                },
+            });
 
         } catch (error) {
             console.error("Error sending reservation cancellation email:", error);

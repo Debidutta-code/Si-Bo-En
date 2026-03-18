@@ -1,12 +1,12 @@
 import { Request, Response } from 'express';
-import BullMQHelper from '../helpers/bull-mq.helper';
+import { CurrencyQueue } from '../../queue';
 import { successResponse, errorResponse } from '../../utils';
 import {RedisClient} from '../../config';
 
 class CurrencyController {
-    private bullMQHelper: BullMQHelper;
+    private bullMQHelper: CurrencyQueue;
 
-    constructor(bullMQHelper: BullMQHelper) {
+    constructor(bullMQHelper: CurrencyQueue) {
         this.bullMQHelper = bullMQHelper;
     }
 

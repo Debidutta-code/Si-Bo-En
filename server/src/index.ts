@@ -4,20 +4,21 @@ import { initializeExpressRoutes } from './config/route.config';
 import { connectPostgres, connectMongo } from './config/index';
 import { createServer } from 'http';
 import { socketManager } from './socket';
-import BullMQHelper from './currency-maping/helpers/bull-mq.helper'; // 👈 adjust path
+import { CurrencyQueue, EmailQueue } from './queue'; 
 
 const httpServer = createServer(app);
 
 const connection = {
-    host: config.redisHost,
-    port: parseInt(config.redisPort || "6379"),
-    password: config.redisPassword,
-    maxRetriesPerRequest: null,
-    connectTimeout: 30000,
-    retryStrategy: (times: number) => Math.min(times * 1000, 5000),
+  host: config.redisHost,
+  port: parseInt(config.redisPort || "6379"),
+  password: config.redisPassword,
+  maxRetriesPerRequest: null,
+  connectTimeout: 30000,
+  retryStrategy: (times: number) => Math.min(times * 1000, 5000),
 };
 
-export const bullMQHelper = new BullMQHelper('currency-exchange-queue', connection); // 👈 exported
+export const currencyQueue = new CurrencyQueue( connection);
+export const emailQueue = new EmailQueue(connection);
 
 initializeExpressRoutes({ app }).then(async () => {
   try {
@@ -26,7 +27,7 @@ initializeExpressRoutes({ app }).then(async () => {
     await RedisClient.connect();
 
     // Init BullMQ after Redis is ready
-    await bullMQHelper.setupDailyCurrencyFetch();
+    await currencyQueue.setupDailyCurrencyFetch();
 
     socketManager.initialize(httpServer, config.allowedOrigins);
 
@@ -40,10 +41,11 @@ initializeExpressRoutes({ app }).then(async () => {
 
 // Graceful shutdown
 const shutdown = async () => {
-    console.log('⚠️  Shutting down...');
-    await bullMQHelper.close();
-    await RedisClient.close();
-    process.exit(0);
+  console.log('⚠️  Shutting down...');
+  await currencyQueue.close();
+  await emailQueue.close();
+  await RedisClient.close();
+  process.exit(0);
 };
 
 process.on('SIGINT', shutdown);

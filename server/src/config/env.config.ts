@@ -1,4 +1,5 @@
 import dotenv from 'dotenv';
+import { emailQueue } from '..';
 dotenv.config();
 
 const config = {
@@ -65,6 +66,11 @@ const config = {
     redisHost: process.env.REDIS_HOST || 'localhost',
     redisPort: process.env.REDIS_PORT || '6379',
     redisPassword: process.env.REDIS_PASSWORD || '',
+
+
+    emailQueue: process.env.EMAIL_QUEUE || 'email-send-queue',
+    deadLetterQueue: process.env.DEAD_LETTER_QUEUE || 'email-dead-queue',
+    currencyExchangeQueue: process.env.CURRENCY_EXCHANGE_QUEUE || 'currency-exchange-queue',
 
 }
 export default config;
