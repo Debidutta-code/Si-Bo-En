@@ -20,7 +20,7 @@ export interface IGeoRatePlanInput {
   currencyCode: CurrencyCode;
   countryCode: string[];
   isActive: boolean;
-restrictionTypeAction:restrictionTypeAction
+  restrictionTypeAction:restrictionTypeAction
 }
 
 // This is for INDIVIDUAL record creation (used internally)

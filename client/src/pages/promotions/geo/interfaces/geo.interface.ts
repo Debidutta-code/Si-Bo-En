@@ -65,6 +65,7 @@ export interface UpdateGeoRatePlan {
   currencyCode?: CurrencyCode | null;
   countryCode?: string[];
   isActive?: boolean;
+  propertyId:string;
 
 }
 
