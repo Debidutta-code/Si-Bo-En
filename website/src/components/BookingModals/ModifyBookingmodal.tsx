@@ -821,6 +821,47 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                           <span>{bookingData?.currencyCode} {getPriceBreakdown().additionalCharges?.toFixed(2)}</span>
                         </div>
                       )}
+                      {/* Addon Breakdown */}
+                      {(() => {
+                        const addons = finalPrice.addonBrakeDown || [];
+                        if (!addons.length) return null;
+
+                        const grouped = addons.reduce((acc: any, addon: any) => {
+                          if (!acc[addon.name]) acc[addon.name] = { ...addon, totalAmount: 0 };
+                          acc[addon.name].totalAmount += addon.totalAmount;
+                          return acc;
+                        }, {});
+
+                        const selectedAddons = Object.values(grouped).filter((a: any) => a.type === 'selected' && a.totalAmount > 0);
+                        const includedAddons = Object.values(grouped).filter((a: any) => a.type === 'included');
+
+                        return (
+                          <>
+                            {selectedAddons.map((addon: any, i: number) => (
+                              <div key={i} className="flex justify-between">
+                                <span className="text-gray-600">🍽 {addon.name}
+                                  <span className="text-xs text-blue-400 ml-1">(Selected)</span>
+                                </span>
+                                <span>+{bookingData?.currencyCode} {addon.totalAmount?.toFixed(2)}</span>
+                              </div>
+                            ))}
+                            {includedAddons.map((addon: any, i: number) => (
+                              <div key={i} className="flex justify-between">
+                                <span className="text-gray-600">✅ {addon.name}
+                                  <span className="text-xs text-green-500 ml-1">(Complimentary)</span>
+                                </span>
+                                <span className="text-green-600">Included</span>
+                              </div>
+                            ))}
+                            {finalPrice.totalAddonAmount > 0 && (
+                              <div className="flex justify-between text-gray-700 font-medium border-t pt-1">
+                                <span>Total Add-ons</span>
+                                <span>+{bookingData?.currencyCode} {finalPrice.totalAddonAmount?.toFixed(2)}</span>
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
                       {finalPrice.promotionBrakeDown?.length > 0 && finalPrice.promotionBrakeDown.map((promo: any, i: number) => {
                         const isPayLater = promo.restrictionType === "payLater";
                         return (

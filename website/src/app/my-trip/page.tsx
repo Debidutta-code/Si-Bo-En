@@ -750,18 +750,36 @@ export default function MyTripPage() {
                   )}
 
                   {/* Addon Breakdown */}
-                  {bookingData.finalPrice?.addonBrakeDown?.length > 0 && (
-                    <div className="space-y-1">
-                      {bookingData.finalPrice.addonBrakeDown.map((addon: any, i: number) => (
-                        <div key={i} className="flex justify-between items-center">
-                          <p className="text-gray-600">🍽 {addon.name}</p>
-                          <p className="font-medium">
-                            +{bookingData.currencyCode} {addon.amount?.toFixed(2)}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  )}
+                  {/* Addon Breakdown */}
+                  {bookingData.finalPrice?.addonBrakeDown?.length > 0 && (() => {
+                    // Group by name and sum totalAmount
+                    const grouped = bookingData.finalPrice.addonBrakeDown.reduce((acc: any, addon: any) => {
+                      if (!acc[addon.name]) {
+                        acc[addon.name] = { ...addon, totalAmount: 0 };
+                      }
+                      acc[addon.name].totalAmount += addon.totalAmount;
+                      return acc;
+                    }, {});
+
+                    return (
+                      <div className="space-y-1">
+                        {Object.values(grouped).map((addon: any, i: number) => (
+                          addon.totalAmount > 0 && (
+                            <div key={i} className="flex justify-between items-center">
+                              <p className="text-gray-600">🍽 {addon.name}
+                                <span className="text-xs text-gray-400 ml-1">
+                                  ({addon.type === 'included' ? 'Included' : 'Selected'})
+                                </span>
+                              </p>
+                              <p className="font-medium">
+                                +{bookingData.currencyCode} {addon.totalAmount?.toFixed(2)}
+                              </p>
+                            </div>
+                          )
+                        ))}
+                      </div>
+                    );
+                  })()}
 
                   {/* Divider */}
                   <div className="border-t pt-2 space-y-2">

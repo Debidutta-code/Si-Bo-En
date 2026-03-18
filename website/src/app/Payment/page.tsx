@@ -767,7 +767,7 @@ const BookingReviewPage = () => {
               </p>
               <p>
                 <strong>{t("Payment.guests")}</strong> {rooms || 1} {t("Payment.room")} ·{" "}
-                {adults !== 1 ? t("Payment.adults") : t("Payment.adult")}
+                {adults} {adults !== 1 ? t("Payment.adults") : t("Payment.adult")}
                 {childrenCount > 0
                   ? ` · ${childrenCount} ${childrenCount !== 1 ? t("Payment.children") : t("Payment.child")}`
                   : ""}
