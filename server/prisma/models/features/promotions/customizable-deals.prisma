@@ -1,0 +1,41 @@
+model CustomizableDeal {
+    id String @id @default(uuid())
+
+    propertyId   String @map("property_id")
+    propertyCode String @map("property_code")
+
+    discountType  DiscountType  @default(percentage) @map("discount_type")
+    discountValue Float         @map("discount_value")
+    currencyCode  CurrencyCode? @default(AED) @map("currency_code")
+    startDate     DateTime      @map("start_date") @db.Date
+    endDate       DateTime      @map("end_date") @db.Date
+    isActive      Boolean       @default(true) @map("is_active")
+    isAutoApplied Boolean       @default(false) @map("is_auto_applied")
+    roomType      String        @map("room_type")
+    roomId        String        @map("room_id")
+    ratePlanId    String        @map("rate_plan_id")
+    ratePlanCode  String        @map("rate_plan_code")
+    createdAt     DateTime      @default(now()) @map("created_at")
+
+    Property                          Property                            @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+    Room                              Room                                @relation(fields: [roomId], references: [id], onDelete: Cascade)
+    RatePlan                          RatePlan                            @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
+    CustomizableDealsApplicableAddons CustomizableDealsApplicableAddons[]
+
+    @@map("customizable_deals")
+}
+
+model CustomizableDealsApplicableAddons {
+    id String @id @default(uuid())
+
+    customizableDealId String @map("customizable_deal_id")
+    addOnId            String @map("add_on_id")
+
+    createdAt DateTime @default(now()) @map("created_at")
+
+    CustomizableDeal CustomizableDeal @relation(fields: [customizableDealId], references: [id], onDelete: Cascade)
+    AddOn            Addon            @relation(fields: [addOnId], references: [id], onDelete: Cascade)
+
+    @@unique([customizableDealId, addOnId])
+    @@map("customizable_deals_applicable_addons")
+}

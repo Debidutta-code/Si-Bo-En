@@ -18,6 +18,8 @@ class RedisClient {
                 host: config.redisHost,
                 port: parseInt(config.redisPort || '6379'),
                 connectTimeout: 30000, // 30 seconds
+                keepAlive: true,
+                noDelay: true,
                 reconnectStrategy: (retries) => {
                     if (retries > 10) {
                         console.error('❌ Too many Redis reconnection attempts. Stopping...');
@@ -32,6 +34,10 @@ class RedisClient {
 
         // Event handlers
         client.on('error', (err) => {
+            if ((err as NodeJS.ErrnoException).code === 'ECONNRESET') {
+                console.warn('⚠️  Redis connection was reset by peer. Retrying...');
+                return;
+            }
             console.error('❌ Redis Client Error:', err);
         });
 

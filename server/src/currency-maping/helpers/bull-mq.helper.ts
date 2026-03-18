@@ -17,6 +17,9 @@ class BullMQHelper {
     constructor(queueName: string, connection: any) {
         this.redisClient = RedisClient.getInstance();
         this.queue = new Queue(queueName, { connection });
+        this.queue.on('error', (err) => {
+            console.error('❌ BullMQ queue connection error:', err);
+        });
         
         this.worker = new Worker(
             queueName, 
@@ -25,6 +28,10 @@ class BullMQHelper {
             }, 
             { connection }
         );
+
+        this.worker.on('error', (err) => {
+            console.error('❌ BullMQ worker connection error:', err);
+        });
 
         this.worker.on('completed', (job) => {
             console.log(`✅ Job ${job.id} completed successfully at ${new Date()}`);

@@ -1,0 +1,102 @@
+model MasterLoyaltyRegistrationFields {
+  id String @id @default(uuid())
+
+  fieldName String
+
+  LoyaltyProgramFieldConfigs LoyaltyProgramFieldConfig[]
+
+  @@map("master_loyalty_registration_fields")
+}
+
+model MasterPropertyCategory {
+  id                  String  @id @default(uuid())
+  categoryName        String  @unique @map("category_name")
+  categoryDescription String? @map("category_description")
+  isActive            Boolean @default(true) @map("is_active")
+
+  // Relation to properties that selected this category
+  properties PropertyCategory[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("master_property_categories")
+}
+
+model MasterPropertyType {
+  id                      String  @id @default(uuid())
+  propertyTypeName        String  @unique @map("property_type_name")
+  propertyTypeDescription String? @map("property_type_description")
+  isActive                Boolean @default(true) @map("is_active")
+
+  // Relation to properties that selected this type
+  properties PropertyType[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("master_property_types")
+}
+
+model MasterAmenity {
+  id          String      @id @default(uuid())
+  amenityName String      @unique @map("amenity_name")
+  amenityType AmenityType @map("amenity_type") // room or property
+  description String?
+  icon        String? // for UI display
+  isActive    Boolean     @default(true) @map("is_active")
+
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @updatedAt
+  PropertyAmenitySelection PropertyAmenitySelection[]
+  RoomAmenitySelection     RoomAmenitySelection[]
+
+  @@map("master_amenities")
+}
+model MasterPaymentIntegration {
+    id                          String                       @id @default(uuid())
+    name                        String                       @unique
+    isActive                    Boolean                      @default(true) @map("is_active")
+    propertyPaymentIntegrations PropertyPaymentIntegration[]
+
+    @@map("master_payment_integrations")
+}
+model MasterIntegrations {
+    id       String           @id @default(uuid())
+    type     IntegrationTypes @default(channel_manager)
+    name     String
+    isActive Boolean          @default(true)
+
+    createdAt                          DateTime                          @default(now()) @map("created_at")
+    propertyIntegrations               PropertyIntegrations[]
+    requiredFieldsForMasterIntegration MasterIntegrationRequiredFields[]
+    masterIntegrationURLFields         MasterIntegrationURLFields[]
+
+    @@unique([name, type])
+    @@map("master_integrations")
+}
+
+model MasterIntegrationRequiredFields {
+    id                  String @id @default(uuid())
+    name                String
+    masterIntegrationId String @map("master_integration_id")
+
+    MasterIntegration          MasterIntegrations           @relation(fields: [masterIntegrationId], references: [id], onDelete: Cascade)
+    propertyInregrationSecrets PropertyInregrationSecrets[]
+
+    @@unique([masterIntegrationId, name])
+    @@index([masterIntegrationId])
+    @@map("required_fields_for_master_integration")
+}
+
+model MasterIntegrationURLFields {
+    id                  String @id @default(uuid())
+    name                String
+    url                 String
+    masterIntegrationId String @map("master_integration_id")
+
+    MasterIntegration MasterIntegrations @relation(fields: [masterIntegrationId], references: [id], onDelete: Cascade)
+
+    @@index([masterIntegrationId])
+    @@map("master_integration_url_fields")
+}

@@ -1,7 +1,6 @@
 import { successResponse, errorResponse, IApiResponse } from "../../../utils";
 import { ReservationRepository } from "../repository/agent-dash.repository";
 import { IReservationFilters, ICancelReservationPayload } from "../types";
-import { BookingStatus } from "@prisma/client";
 
 export class ReservationService {
     private reservationRepository: ReservationRepository;
@@ -89,7 +88,7 @@ export class ReservationService {
                 return errorResponse("Reservation not found", "No reservation found with the provided ID");
             }
 
-            if (existingReservation.bookingStatus === BookingStatus.cancelled) {
+            if (existingReservation.bookingStatus === "cancelled") {
                 return errorResponse("Reservation already cancelled", "This reservation has already been cancelled");
             }
 

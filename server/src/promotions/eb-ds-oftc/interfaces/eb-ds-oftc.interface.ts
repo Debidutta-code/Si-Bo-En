@@ -1,4 +1,3 @@
-import { Decimal } from "@prisma/client/runtime/library";
 import { DeviceType } from "../../../agent-paltform/property/types";
 import {  DiscountType, IRatePlan, IRoom } from "../../customizable-deal/interfaces";
 import { IProperty } from "../../../agency/types";

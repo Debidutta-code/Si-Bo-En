@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { CustomRequest } from '../utils/customRequest';
 import { errorResponse } from '../utils/return';
 import {prisma} from '../config';
-import { Role } from '@prisma/client';
+import { Role } from '../utils';
 
 type Permission =
   //Hotel

@@ -1,0 +1,14 @@
+model PropertyCommission {
+    id         String   @id @default(uuid())
+    propertyId String   @unique @map("property_id")
+    property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+    commissionType  commissionType @default(percentage) @map("commission_type")
+    commissionValue Float          @map("commission_value")
+    currencyCode    CurrencyCode?  @default(INR) @map("currency_code")
+
+    createdAt DateTime @default(now()) @map("created_at")
+    updatedAt DateTime @updatedAt @map("updated_at")
+
+    @@map("property_commission")
+}

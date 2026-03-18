@@ -1,5 +1,4 @@
 import config from './env.config';
-import {connectMongo,connectPostgres} from './db.config';
-import prisma from './prisma.client';
+import {connectMongo,connectPostgres,prisma} from './db.config';
 import RedisClient from "./redis.config";
 export { config, connectPostgres, connectMongo, prisma, RedisClient };

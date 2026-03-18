@@ -1,8 +1,22 @@
-import { BookingSource, BookingStatus, CurrencyCode, PaymentMethod, DeviceType, ReservationPromotionType } from "@prisma/client";
 import { DiscountType } from "../../../../promocode/types";
 import { DailyPriceBrakeDown, TaxBrakeDown, AddOnBrakeDown, PromotionBrakeDown } from "../../../../booking-engine/types/pricing.type";
+import { CurrencyCode } from "../../../../tax-system/interfaces";
+import { DeviceType } from "../../../../agent-paltform/property/types";
 
-// ==================== PAYLOAD TYPES ====================
+export type BookingSource="direct"|
+  "google"|
+  "trip_adviser"|
+  "trivago"|
+  "social_media"|
+  "agency"
+  export type BookingStatus="pending"|
+  "confirmed"|
+  "cancelled"|
+  "expired"|
+  "modified"|
+  "no_show"
+  export type PaymentMethod= "pay_at_hotel" | "net_banking" | "upi" | "payment_gateway";
+  export type ReservationPromotionType="early_bird" | "mlos" | "device_specific" | "offer_for_tonight"|"normal"
 export interface ICreateReservationPayload {
   data: {
     bookingDetails: IBookingDetails;
@@ -346,4 +360,3 @@ export interface IReservationPromotion extends IReservationPromotionCreate {
 }
 // ==================== ENUMS ====================
 export type ReservationStatus = "pending" | "confirmed" | "cancelled" | "modified";
-export { BookingStatus, BookingSource, PaymentMethod, CurrencyCode };
