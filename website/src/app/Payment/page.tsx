@@ -642,8 +642,8 @@ const BookingReviewPage = () => {
                     guestEmail={getGuestEmail()}
                     guestPhone={getGuestPhone()}
                     propertyName={propertyName}
-                    // propertyID={bankDetails?.selectedPaymentIntegrations?.outletId || ""}
-                    propertyID="KSA_MUK_01"
+                    propertyID={bankDetails?.selectedPaymentIntegrations?.outletId || ""}
+                    // propertyID="KSA_MUK_01"
                     checkInDate={checkIn}
                     numberOfNights={nights}
                     autoTrigger={true}
