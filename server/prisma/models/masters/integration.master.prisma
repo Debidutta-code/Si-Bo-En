@@ -1,0 +1,39 @@
+model MasterIntegrations {
+    id       String           @id @default(uuid())
+    type     IntegrationTypes @default(channel_manager)
+    name     String
+    isActive Boolean          @default(true)
+
+    createdAt                          DateTime                          @default(now()) @map("created_at")
+    propertyIntegrations               PropertyIntegrations[]
+    requiredFieldsForMasterIntegration MasterIntegrationRequiredFields[]
+    masterIntegrationURLFields         MasterIntegrationURLFields[]
+
+    @@unique([name, type])
+    @@map("master_integrations")
+}
+
+model MasterIntegrationRequiredFields {
+    id                  String @id @default(uuid())
+    name                String
+    masterIntegrationId String @map("master_integration_id")
+
+    MasterIntegration          MasterIntegrations           @relation(fields: [masterIntegrationId], references: [id], onDelete: Cascade)
+    propertyInregrationSecrets PropertyInregrationSecrets[]
+
+    @@unique([masterIntegrationId, name])
+    @@index([masterIntegrationId])
+    @@map("required_fields_for_master_integration")
+}
+
+model MasterIntegrationURLFields {
+    id                  String @id @default(uuid())
+    name                String
+    url                 String
+    masterIntegrationId String @map("master_integration_id")
+
+    MasterIntegration MasterIntegrations @relation(fields: [masterIntegrationId], references: [id], onDelete: Cascade)
+
+    @@index([masterIntegrationId])
+    @@map("master_integration_url_fields")
+}

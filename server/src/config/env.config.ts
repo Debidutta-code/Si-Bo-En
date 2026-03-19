@@ -1,5 +1,4 @@
 import dotenv from 'dotenv';
-import { emailQueue } from '..';
 dotenv.config();
 
 const config = {
@@ -45,7 +44,7 @@ const config = {
     ngenius: {
         baseUrl: process.env.NGENIUS_BASE_URL,
         apiKey: process.env.NGENIUS_API_KEY,
-        outletId: process.env.NGENIUS_OUTLET_ID,
+        outletId: process.env.NGENIUS_OUTLET_ID,            
     },
 
     rateTigerUsername: process.env.RATETIGER_USERNAME,

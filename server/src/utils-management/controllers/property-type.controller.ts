@@ -4,7 +4,11 @@ import { PropertyTypeService } from "../services";
 import { Response } from "express";
 
 export class PropertyType {
-  public static async createPropertyTypeController(
+  private propertyTypeService: PropertyTypeService;
+  constructor() {
+    this.propertyTypeService = new PropertyTypeService();
+  }
+  public  async createPropertyTypeController(
     req: CustomRequest,
     res: Response
   ) {
@@ -19,7 +23,7 @@ export class PropertyType {
             )
           );
       }
-      const serRes = await PropertyTypeService.createPropertyTypeService(
+      const serRes = await this.propertyTypeService.createPropertyTypeService(
         propertyTypeName,
         description
       );
@@ -34,12 +38,12 @@ export class PropertyType {
         .json(errorResponse('Internal Server Error', error?.message));
     }
   }
-  public static async getPropertyTypeController(
+  public  async getPropertyTypeController(
     req: CustomRequest,
     res: Response
   ) {
     try {
-      const serRes = await PropertyTypeService.getPropertyTypeService();
+      const serRes = await this.propertyTypeService.getPropertyTypeService();
       if (serRes.success) {
         return res.status(200).json(serRes);
       } else {
@@ -51,7 +55,7 @@ export class PropertyType {
         .json(errorResponse('Internal Server Error', error?.message));
     }
   }
-  public static async deletePropertyTypeController(
+  public  async deletePropertyTypeController(
     req: CustomRequest,
     res: Response
   ) {
@@ -63,7 +67,7 @@ export class PropertyType {
           .json(errorResponse('Category Name is required to delete category'));
       }
       const serRes =
-        await PropertyTypeService.deletePropertyTypeService(propertyTypeName);
+        await this.propertyTypeService.deletePropertyTypeService(propertyTypeName);
       if (serRes.success) {
         return res.status(200).json(serRes);
       } else {

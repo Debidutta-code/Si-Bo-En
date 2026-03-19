@@ -8,6 +8,7 @@ import {
   Users,
   DollarSign,
   Cable,
+  View,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import type {
@@ -17,6 +18,7 @@ import type {
   ILoyaltyGuestField,
   IPaymentIntegration,
   IMasterIntegrations,
+  IMasterRoomView,
 } from "./types";
 import {
   getCategoriesService,
@@ -34,23 +36,31 @@ import RoomAmenitiesTab from "./components/RoomAmenitiesTab";
 import LoyaltyFieldsTab from "./components/LoyaltyFieldsTab";
 import PaymentIntegrationsTab from "./components/PaymentIntegrationsTab";
 import MasterIntegrationsTab from "./components/MasterIntegrationsTab";
+import { getAllRoomViews } from "./services/room-view.services";
+import type { ILoader } from "../dashboard/interface";
+import RoomViewTab from "./components/RoomView";
 
 const TABS = [
   { value: "categories", label: "Categories", icon: Tag },
   { value: "property-types", label: "Property Types", icon: Home },
   { value: "property-amenities", label: "Property Amenities", icon: Sparkles },
   { value: "room-amenities", label: "Room Amenities", icon: Sparkles },
+  { value: "room-views", label: "Room Views", icon: View },
   { value: "loyalty-fields", label: "Loyalty Fields", icon: Users },
   { value: "payment-integrations", label: "Payment Integrations", icon: DollarSign },
   { value: "master-integrations", label: "Master Integrations", icon: Cable },
 ];
 
 export default function ManagementPage() {
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<ILoader> ({
+    isLoading:true,
+    message:"Loading Management Data ..."
+  });
   const [categories, setCategories] = useState<ICategory[]>([]);
   const [propertyTypes, setPropertyTypes] = useState<IPropertyType[]>([]);
   const [propertyAmenities, setPropertyAmenities] = useState<IAmenity[]>([]);
   const [roomAmenities, setRoomAmenities] = useState<IAmenity[]>([]);
+  const [roomViews, setRoomViews] = useState<IMasterRoomView[]>([]);
   const [loyaltyGuestFields, setLoyaltyGuestFields] = useState<ILoyaltyGuestField[]>([]);
   const [paymentIntegrations, setPaymentIntegrations] = useState<IPaymentIntegration[]>([]);
   const [masterIntegrations, setMasterIntegrations] = useState<IMasterIntegrations[]>([]);
@@ -60,7 +70,10 @@ export default function ManagementPage() {
   }, []);
 
   const fetchAllData = async () => {
-    setLoading(true);
+    setLoading({
+      isLoading: true,
+      message: "Loading Management Data ..."
+    });
     try {
       const [
         catRes,
@@ -70,6 +83,7 @@ export default function ManagementPage() {
         loyaltyFieldsRes,
         masterIntegrationsRes,
         masterPaymentIntegrationRes,
+        roomViewsRes,
       ] = await Promise.all([
         getCategoriesService(),
         getPropertyTypesService(),
@@ -78,6 +92,7 @@ export default function ManagementPage() {
         getLoyaltyGuestFieldsService(),
         getAllMasterIntegrationsService(),
         getMasterPaymentIntegrationService(),
+        getAllRoomViews(),
       ]);
 
       if (catRes.success) setCategories(catRes.data);
@@ -90,17 +105,22 @@ export default function ManagementPage() {
       }
       if (masterPaymentIntegrationRes.success)
         setPaymentIntegrations(masterPaymentIntegrationRes?.data);
-    } catch (error: any) {
+      if (roomViewsRes.success)
+        setRoomViews(roomViewsRes?.data);
+    } catch (error) {
       toast.error("Failed to fetch management data");
     } finally {
-      setLoading(false);
+      setLoading({
+        isLoading: false,
+        message: ""
+      });
     }
   };
 
-  if (loading) {
+  if (loading.isLoading) {
     return (
       <div className="min-h-screen w-full flex justify-center items-center">
-        <Loader text="Loading Management Data" />
+        <Loader text={loading.message} />
       </div>
     );
   }
@@ -118,15 +138,11 @@ export default function ManagementPage() {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="categories" className="w-full">
-        {/*
-          On mobile: horizontally scrollable single row of tabs.
-          On large screens: wraps into a 7-column grid.
-        */}
+      <Tabs defaultValue="categories" className="w-full ">
         <TabsList
           className="
-            flex w-full overflow-x-auto gap-1 rounded-lg bg-muted p-1
-            lg:grid lg:grid-cols-7 lg:overflow-visible
+             w-full h-96 md:h-36 lg:h-24 overflow-x-auto gap-1 rounded-lg bg-muted p-1 grid-cols-1 md:grid-cols-3
+            grid lg:grid-cols-5 overflow-visible
           "
           style={{ WebkitOverflowScrolling: "touch" }}
         >
@@ -141,23 +157,11 @@ export default function ManagementPage() {
               "
             >
               <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
-              <span className="hidden sm:inline">{label}</span>
-              {/* On very small screens show only icon; tooltip via title */}
-              <span className="sm:hidden sr-only">{label}</span>
+              {label}
             </TabsTrigger>
           ))}
         </TabsList>
 
-        {/* Tab label shown below tab bar on xs screens */}
-        <div className="sm:hidden mt-2 px-1">
-          {TABS.map(({ value, label }) => (
-            <TabsContent key={value} value={value}>
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
-                {label}
-              </p>
-            </TabsContent>
-          ))}
-        </div>
 
         <TabsContent value="categories" className="mt-4">
           <CategoriesTab categories={categories} setCategories={setCategories} />
@@ -182,6 +186,10 @@ export default function ManagementPage() {
             roomAmenities={roomAmenities}
             setRoomAmenities={setRoomAmenities}
           />
+        </TabsContent>
+
+        <TabsContent value="room-views" className="mt-4">
+          <RoomViewTab roomViews={roomViews} setRoomViews={setRoomViews} />
         </TabsContent>
 
         <TabsContent value="loyalty-fields" className="mt-4">

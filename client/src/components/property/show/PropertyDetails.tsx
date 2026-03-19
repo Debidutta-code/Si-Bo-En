@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { type IPropertyDetails, type IPropertyEmail } from "../types/types";
 import { getPropertyDetails } from "../api/show/propertyDetails";
 import { Button } from "../../ui/button";
-import { PenTool, X, AlertCircle, CheckCircle, Mail, Phone, Tag, House, Plus, Pencil, Trash2, MailPlus } from "lucide-react";
+import { PenTool, X, AlertCircle, CheckCircle, Mail, Phone, Tag, House, Plus, Pencil, Trash2, MailPlus, Copy } from "lucide-react";
 import ExpandableDescription from "@/components/ExplandableDescription";
 import {
   AlertDialog,
@@ -323,7 +323,7 @@ export default function PropertyDetails({
               </div>
               <h2 className="text-lg font-semibold text-gray-900">Contact & Details</h2>
             </div>
-            
+
             <div className="space-y-4">
               <div className="flex items-start justify-between py-3 border-b border-gray-100 last:border-0">
                 <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
@@ -334,7 +334,7 @@ export default function PropertyDetails({
                   {propertyDetails.propertyEmail || "Not provided"}
                 </span>
               </div>
-              
+
               <div className="flex items-start justify-between py-3 border-b border-gray-100 last:border-0">
                 <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
                   <Phone className="h-4 w-4 text-gray-400" />
@@ -342,6 +342,18 @@ export default function PropertyDetails({
                 </span>
                 <span className="text-sm text-gray-900 font-medium text-right">
                   {propertyDetails.propertyContact || "Not provided"}
+                </span>
+              </div>
+              <div className="flex items-start justify-between py-3 border-b border-gray-100 last:border-0">
+                <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                  <House className="h-4 w-4 text-gray-400" />
+                  Property Code
+                </span>
+                <span className="text-sm text-gray-900 font-medium text-right">
+                  {propertyDetails.propertyCode.replace(/[A-Z0-9]/g, "*")}
+                <Button variant={"ghost"} size={"sm"} onClick={() => navigator.clipboard.writeText(propertyDetails.propertyCode || "")}>
+                  <Copy className="h-3.5 w-3.5" />
+                </Button>
                 </span>
               </div>
             </div>
@@ -357,7 +369,7 @@ export default function PropertyDetails({
               </div>
               <h2 className="text-lg font-semibold text-gray-900">Property Information</h2>
             </div>
-            
+
             <div className="space-y-4">
               <div className="flex items-start justify-between py-3 border-b border-gray-100 last:border-0">
                 <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
@@ -368,15 +380,7 @@ export default function PropertyDetails({
                   {propertyDetails.propertyType?.masterPropertyType?.propertyTypeName || "Not specified"}
                 </span>
               </div>
-              <div className="flex items-start justify-between py-3 border-b border-gray-100 last:border-0">
-                <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
-                  <House className="h-4 w-4 text-gray-400" />
-                  Property Code
-                </span>
-                <span className="text-sm text-gray-900 font-medium text-right">
-                  {propertyDetails.propertyCode}
-                </span>
-              </div>
+
               <div className="flex items-start justify-between py-3 border-b border-gray-100 last:border-0">
                 <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
                   <Tag className="h-4 w-4 text-gray-400" />

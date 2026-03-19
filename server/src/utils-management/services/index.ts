@@ -5,3 +5,4 @@ export * from "./property-category.service";
 export * from "./property-amenity.service";
 export * from "./payment-integration.service";
 export * from "./loyality-integration.service";
+export * from "./room-view.service";

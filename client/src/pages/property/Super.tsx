@@ -123,9 +123,9 @@ export default function HotelsPage() {
           >
             {capitalizeFirstLetter(getTabDisplayName(tab))} ({
               tab === "regional" ? creations.regionals?.length :
-              tab === "group" ? creations.groups?.length :
-                tab === "brand" ? creations.brands?.length :
-                  creations.properties?.length
+                tab === "group" ? creations.groups?.length :
+                  tab === "brand" ? creations.brands?.length :
+                    creations.properties?.length
             })
           </Button>
         ))}
@@ -196,7 +196,7 @@ export default function HotelsPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className={`${item.type === "property" ? item.property?.isDraft && "flex-1" : "flex-1"}`}
+                    className={`${item.type === "property" ? item.property?.isDraft ? "flex-1" : "hidden" : "flex-1"}`}
                     onClick={() => {
                       item.type != "property" ?
                         navigate(`/app/property/${currentTab}/${item.id}`) :
@@ -215,6 +215,11 @@ export default function HotelsPage() {
                         onClick={() => navigate(`/app/property/${currentTab}/${item.id}`)}
                       >
                         <Settings className="h-4 w-4" />
+                        {!item.property?.isDraft &&
+
+                        <span className="ml-2">{!item.property?.isDraft && "Complete Setup"}</span>
+                        }
+                        
                       </Button>
                     )
                   }

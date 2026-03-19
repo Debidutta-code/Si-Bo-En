@@ -1,0 +1,8 @@
+model MasterPaymentIntegration {
+    id                          String                       @id @default(uuid())
+    name                        String                       @unique
+    isActive                    Boolean                      @default(true) @map("is_active")
+    propertyPaymentIntegrations PropertyPaymentIntegration[]
+
+    @@map("master_payment_integrations")
+}

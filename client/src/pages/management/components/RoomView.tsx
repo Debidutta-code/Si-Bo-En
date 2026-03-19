@@ -1,0 +1,234 @@
+
+import { useMemo, useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Pencil, Plus, Trash2 } from "lucide-react";
+import toast from "react-hot-toast";
+import type { ICMasterRoomView, IMasterRoomView } from "../types";
+import {
+    createNewRoomView,
+    deleteRoomViewService,
+    getAllRoomViews,
+    updateRoomViewService,
+} from "../services/room-view.services";
+
+interface RoomViewTabProps {
+    roomViews: IMasterRoomView[];
+    setRoomViews: React.Dispatch<React.SetStateAction<IMasterRoomView[]>>;
+}
+
+export default function RoomViewTab({ roomViews, setRoomViews }: RoomViewTabProps) {
+    const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+    const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+
+    const [createInput, setCreateInput] = useState<string>("");
+    const [editInput, setEditInput] = useState<string>("");
+    const [selectedRoomView, setSelectedRoomView] = useState<IMasterRoomView | null>(null);
+
+    const sortedRoomViews = useMemo(() => {
+        return [...roomViews].sort((a, b) => a.viewName.localeCompare(b.viewName));
+    }, [roomViews]);
+
+    const handleCreateRoomView = async () => {
+        const payload: ICMasterRoomView = { viewName: createInput };
+        const response = await createNewRoomView(payload);
+
+        if (response?.success) {
+            toast.success("Room view created successfully");
+            const data = await getAllRoomViews();
+            setRoomViews(data.data);
+            setCreateInput("");
+            setIsCreateDialogOpen(false);
+            return;
+        }
+
+        toast.error(response?.message || "Failed to create room view");
+    };
+
+    const openEditDialog = (roomView: IMasterRoomView) => {
+        setSelectedRoomView(roomView);
+        setEditInput(roomView.viewName || "");
+        setIsEditDialogOpen(true);
+    };
+
+    const handleUpdateRoomView = async () => {
+        if (!selectedRoomView?.id) {
+            toast.error("Select a room view to update");
+            return;
+        }
+
+        const payload: ICMasterRoomView = { viewName: editInput };
+        const response = await updateRoomViewService(selectedRoomView.id, payload);
+
+        if (response?.success) {
+            toast.success("Room view updated successfully");
+            const data = await getAllRoomViews();
+            setRoomViews(data.data);
+            setIsEditDialogOpen(false);
+            setSelectedRoomView(null);
+            setEditInput("");
+            return;
+        }
+
+        toast.error(response?.message || "Failed to update room view");
+    };
+
+    const handleDeleteRoomView = async (id: string) => {
+        const response = await deleteRoomViewService(id);
+        if (response?.success) {
+            toast.success("Room view deleted successfully");
+            const data = await getAllRoomViews();
+            setRoomViews(data.data); return;
+        }
+        toast.error(response?.message || "Failed to delete room view");
+    };
+
+    return (
+        <Card>
+            <CardHeader>
+                <div className="flex justify-between items-center">
+                    <div>
+                        <CardTitle>Room Views</CardTitle>
+                        <CardDescription>Manage room views</CardDescription>
+                    </div>
+
+                    <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+                        <DialogTrigger asChild>
+                            <Button>
+                                <Plus className="h-4 w-4 mr-2" />
+                                Add Room View
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Create Room View</DialogTitle>
+                                <DialogDescription>Add a new room view</DialogDescription>
+                            </DialogHeader>
+
+                            <div className="space-y-2">
+                                <Input
+                                    value={createInput}
+                                    onChange={(e) => setCreateInput(e.target.value)}
+                                    placeholder="e.g., Ocean View"
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            e.preventDefault();
+                                            handleCreateRoomView();
+                                        }
+                                    }}
+                                />
+                            </div>
+
+                            <DialogFooter>
+                                <Button
+                                    variant="outline"
+                                    onClick={() => {
+                                        setIsCreateDialogOpen(false);
+                                        setCreateInput("");
+                                    }}
+                                >
+                                    Cancel
+                                </Button>
+                                <Button onClick={handleCreateRoomView}>Create</Button>
+                            </DialogFooter>
+                        </DialogContent>
+                    </Dialog>
+                </div>
+            </CardHeader>
+
+            <CardContent>
+                <div className="flex flex-wrap gap-2">
+                    {sortedRoomViews.map((rv) => (
+                        <Badge
+                            key={rv.id}
+                            variant="outline"
+                            className="text-sm py-2 px-3 flex items-center gap-2"
+                        >
+                            <span className={rv.isActive ? "" : "text-gray-400 line-through"}>{rv.viewName}</span>
+
+                            <button
+                                type="button"
+                                onClick={() => openEditDialog(rv)}
+                                className="hover:text-blue-600"
+                                aria-label={`Edit ${rv.viewName}`}
+                            >
+                                <Pencil className="h-3 w-3" />
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => handleDeleteRoomView(rv.id)}
+                                className="hover:text-red-500"
+                                aria-label={`Delete ${rv.viewName}`}
+                            >
+                                <Trash2 className="h-3 w-3" />
+                            </button>
+                        </Badge>
+                    ))}
+
+                    {sortedRoomViews.length === 0 && (
+                        <div className="w-full text-center py-12 text-gray-500">
+                            No room views found. Create your first room view to get started.
+                        </div>
+                    )}
+                </div>
+
+                <Dialog
+                    open={isEditDialogOpen}
+                    onOpenChange={(open) => {
+                        setIsEditDialogOpen(open);
+                        if (!open) {
+                            setSelectedRoomView(null);
+                            setEditInput("");
+                        }
+                    }}
+                >
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Update Room View</DialogTitle>
+                            <DialogDescription>Edit the selected room view</DialogDescription>
+                        </DialogHeader>
+
+                        <div className="space-y-2">
+                            <Input
+                                value={editInput}
+                                onChange={(e) => setEditInput(e.target.value)}
+                                placeholder="e.g., City View"
+                                onKeyDown={(e) => {
+                                    if (e.key === "Enter") {
+                                        e.preventDefault();
+                                        handleUpdateRoomView();
+                                    }
+                                }}
+                            />
+                        </div>
+
+                        <DialogFooter>
+                            <Button
+                                variant="outline"
+                                onClick={() => {
+                                    setIsEditDialogOpen(false);
+                                    setSelectedRoomView(null);
+                                    setEditInput("");
+                                }}
+                            >
+                                Cancel
+                            </Button>
+                            <Button onClick={handleUpdateRoomView}>Update</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+            </CardContent>
+        </Card>
+    );
+}
