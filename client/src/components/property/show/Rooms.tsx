@@ -74,7 +74,7 @@ export default function Rooms({ propertyId }: PropertyId) {
   const [isVideoModalOpen, setIsVideoModalOpen] = useState<boolean>(false);
   const [selectedRoomId, setSelectedRoomId] = useState<string>("");
   const [selectedRoomName, setSelectedRoomName] = useState<string>("");
-  const [roomDetails, setRoomDetails] = useState<IRoomDetails>({
+  const emptyRoomDetails: IRoomDetails = {
     roomName: "",
     roomType: "",
     totalRoom: 0,
@@ -92,19 +92,15 @@ export default function Rooms({ propertyId }: PropertyId) {
     image: [],
     available: true,
     view360Link: "",
-    roomVideos: {
-      url: "",
-      thumbnail: "",
-    },
+    roomVideos: { url: "", thumbnail: "" },
     priority: 0,
-    RoomViews:{
-      MasterRoomView:{
-        id:"",
-        viewName:""
-      }
-    }
-  });
+    RoomViews: { MasterRoomView: { id: "", viewName: "" } }
+  };
+
+  const [roomDetails, setRoomDetails] = useState<IRoomDetails>(emptyRoomDetails);
+
   const [isDeletingVideo, setIsDeletingVideo] = useState<boolean>(false);
+  const [openDialog, setOpenDialog] = useState<"create" | "edit" | null>(null);
 
   const [updatedAmenities, setUpdatedAmenities] = useState<
     Record<string, boolean>
@@ -158,6 +154,7 @@ export default function Rooms({ propertyId }: PropertyId) {
       const res = await updateRoom(propertyId, roomId, roomDetails);
       if (res.success) {
         toast.success("Room Updated Successfully");
+        setOpenDialog(null);
       } else {
         toast.error(res.message || "Failed to Update Room Details");
       }
@@ -174,6 +171,7 @@ export default function Rooms({ propertyId }: PropertyId) {
       const res = await createRoom(propertyId, payload);
       if (res.success) {
         toast.success("Room Created Successfully");
+        setOpenDialog(null);
       } else {
         toast.error(res.message || "Failed to Create Room Details");
       }
@@ -301,9 +299,8 @@ export default function Rooms({ propertyId }: PropertyId) {
           {rooms.map((room) => (
             <Card
               key={room.id}
-              className={`overflow-hidden transition-all ${
-                !room.available ? "border-l-4 border-l-red-500" : ""
-              }`}
+              className={`overflow-hidden transition-all ${!room.available ? "border-l-4 border-l-red-500" : ""
+                }`}
             >
               <CardHeader className="border-b bg-primary/5">
                 <div className="flex items-start justify-between">
@@ -362,13 +359,23 @@ export default function Rooms({ propertyId }: PropertyId) {
                           className="p-0 focus:bg-transparent"
                           onSelect={(e) => e.preventDefault()}
                         >
-                          <AlertDialog>
+                          <AlertDialog
+                            open={openDialog === "create"}
+                            onOpenChange={(open) => {
+                              if (!open) {
+                                setOpenDialog(null);
+                                setRoomDetails(emptyRoomDetails);
+                              }
+                            }}
+                          >
                             <AlertDialogTrigger asChild>
                               <Button
                                 variant="ghost"
                                 className="w-full justify-start px-2 py-1.5 h-auto font-normal"
                                 onClick={(e) => {
                                   e.stopPropagation();
+                                  setOpenDialog("create");
+                                  setRoomDetails(emptyRoomDetails);
                                 }}
                               >
                                 <Plus className="h-4 w-4 mr-2" />
@@ -416,13 +423,21 @@ export default function Rooms({ propertyId }: PropertyId) {
                           className="p-0 focus:bg-transparent"
                           onSelect={(e) => e.preventDefault()}
                         >
-                          <AlertDialog>
+                          <AlertDialog
+                            open={openDialog === "edit"}
+                            onOpenChange={(open) => {
+                              if (!open) {
+                                setOpenDialog(null);
+                                setRoomDetails(emptyRoomDetails);
+                              }
+                            }}                          >
                             <AlertDialogTrigger asChild>
                               <Button
                                 variant="ghost"
                                 className="w-full justify-start px-2 py-1.5 h-auto font-normal"
                                 onClick={(e) => {
                                   e.stopPropagation();
+                                  setOpenDialog("edit");
                                   setRoomDetails({
                                     roomName: room.roomName,
                                     roomType: room.roomType,
@@ -443,6 +458,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                                     view360Link: room.view360Link,
                                     roomVideos: room.roomVideos,
                                     priority: room.priority,
+                                    RoomViews: room.RoomViews,
                                   });
                                 }}
                               >
@@ -642,6 +658,8 @@ export default function Rooms({ propertyId }: PropertyId) {
                         </p>
                       </div>
 
+
+
                       <div className="space-y-1">
                         <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block">
                           Bedrooms
@@ -831,87 +849,74 @@ export default function Rooms({ propertyId }: PropertyId) {
           ))}
         </div>
       ) : (
-          <Card className="border-dashed border-primary/30">
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
-                <Bed className="h-10 w-10 text-primary-400" />
-              </div>
-              <h3 className="text-lg font-semibold text-primary-900 mb-1">
-                No Rooms Configured
-              </h3>
-              <p className="text-sm text-primary-600 mb-4 text-center max-w-sm">
-                Start by creating your first room type to showcase your property's
-                accommodations
-              </p>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button
-                    className="gap-2 bg-primary hover:bg-primary/90"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setRoomDetails({
-                        roomName: "",
-                        roomType: "",
-                        totalRoom: 0,
-                        floor: 0,
-                        roomSize: 0,
-                        roomUnit: "sqm",
-                        smokingPolicy: "designated_area",
-                        maxOccupancy: 0,
-                        maxNumberOfAdults: 0,
-                        maxNumberOfChildren: 0,
-                        numberOfBedrooms: 0,
-                        numberOfLivingRoom: 0,
-                        extraBed: 0,
-                        description: "",
-                        priority: 0,
-                        image: [],
-                        available: true,
-                        roomVideos: {
-                          thumbnail:"",
-                          url:""
-                        }
-                      });
-                    }}
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create First Room
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
-                  <AlertDialogHeader>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <AlertDialogTitle className="text-xl">
-                          Create New Room
-                        </AlertDialogTitle>
-                        <p className="text-sm text-gray-500 mt-1">
-                          Add a new room type to your property
-                        </p>
-                      </div>
-                      <AlertDialogCancel className="rounded-full h-8 w-8 p-0 border-0 hover:bg-gray-100">
-                        <X className="h-4 w-4" />
-                      </AlertDialogCancel>
+        <Card className="border-dashed border-primary/30">
+          <CardContent className="flex flex-col items-center justify-center py-16">
+            <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+              <Bed className="h-10 w-10 text-primary-400" />
+            </div>
+            <h3 className="text-lg font-semibold text-primary-900 mb-1">
+              No Rooms Configured
+            </h3>
+            <p className="text-sm text-primary-600 mb-4 text-center max-w-sm">
+              Start by creating your first room type to showcase your property's
+              accommodations
+            </p>
+            <AlertDialog
+              open={openDialog === "create"}
+              onOpenChange={(open) => {
+                if (!open) {
+                  setOpenDialog(null);
+                  setRoomDetails(emptyRoomDetails);
+                }
+              }}
+            >
+              <AlertDialogTrigger asChild>
+                <Button
+                  className="gap-2 bg-primary hover:bg-primary/90"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setOpenDialog("create");
+                    setRoomDetails(emptyRoomDetails);
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create First Room
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
+                <AlertDialogHeader>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <AlertDialogTitle className="text-xl">
+                        Create New Room
+                      </AlertDialogTitle>
+                      <p className="text-sm text-gray-500 mt-1">
+                        Add a new room type to your property
+                      </p>
                     </div>
-                    <UpdateRoom
-                      roomDetails={roomDetails}
-                      isLoading={loading}
-                      updateRoomDetails={setRoomDetails}
-                    />
-                  </AlertDialogHeader>
-                  <AlertDialogFooter className="border-t ">
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => createRoomQ(propertyId, roomDetails)}
-                      disabled={loading}
-                    >
-                      {loading ? "Creating..." : "Create Room"}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </CardContent>
-          </Card>
+                    <AlertDialogCancel className="rounded-full h-8 w-8 p-0 border-0 hover:bg-gray-100">
+                      <X className="h-4 w-4" />
+                    </AlertDialogCancel>
+                  </div>
+                  <UpdateRoom
+                    roomDetails={roomDetails}
+                    isLoading={loading}
+                    updateRoomDetails={setRoomDetails}
+                  />
+                </AlertDialogHeader>
+                <AlertDialogFooter className="border-t ">
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => createRoomQ(propertyId, roomDetails)}
+                    disabled={loading}
+                  >
+                    {loading ? "Creating..." : "Create Room"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </CardContent>
+        </Card>
       )}
 
       {/* 360° View Modal */}
