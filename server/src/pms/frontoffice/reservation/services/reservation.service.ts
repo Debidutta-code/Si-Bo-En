@@ -124,7 +124,7 @@ export class ReservationService {
             finalPrice.promotionBrakeDown.length > 0
         ) {
             selectedPromotions = finalPrice.promotionBrakeDown
-                .filter((promo: any) => promo.restrictionType !== 'payLater') // Exclude tourist tax entries
+                .filter((promo: any) => promo.restrictionType !== 'payLater')
                 .map((promo: any) => ({
                     id: promo.id || null,
                     promotionType: promo.promotionType || 'normal',
@@ -135,7 +135,6 @@ export class ReservationService {
                 }));
         }
 
-        // Addons come from addonBrakeDown[] array directly
         let selectedAddons = bookingDetails.selectedAddons || [];
 
         if (
@@ -146,7 +145,7 @@ export class ReservationService {
             selectedAddons = finalPrice.addonBrakeDown.map((addon: any) => ({
                 addonId: addon.addonId || null,
                 addonName: addon.name,
-                price: addon.amount, // per-unit price
+                price: addon.amount,
                 quantity: addon.quantity,
                 totalPrice: addon.totalAmount,
                 type: addon.type || 'addon',
@@ -166,9 +165,109 @@ export class ReservationService {
         };
     }
 
+    // ─────────────────────────────────────────────────────────────────────────────
+    // PRIVATE HELPER: Resolve refund strategy from DB for a given orderReference
+    // Returns: strategy ('same_day' | 'day_after'), outletId, and a reason string
+    // This replaces the HTTP middleware for direct service-to-service calls
+    // ─────────────────────────────────────────────────────────────────────────────
+    private async resolveRefundStrategy(orderReference: string): Promise<{
+        strategy: 'same_day' | 'day_after';
+        outletId: string | undefined;
+        reason: string;
+    }> {
+        console.log(`\n[REFUND STRATEGY] 🔍 Resolving strategy for orderReference: ${orderReference}`);
+
+        try {
+            // ── Step 1: Check if same_day_refund column exists (migration guard) ──
+            try {
+                const columnCheck = await (prisma as any).$queryRaw`
+                    SELECT column_name
+                    FROM information_schema.columns
+                    WHERE table_name = 'property_payment_integrations'
+                      AND column_name = 'same_day_refund'
+                `;
+                const columnExists = Array.isArray(columnCheck) && columnCheck.length > 0;
+                console.log(`[REFUND STRATEGY] 🗄️  Column 'same_day_refund' exists in DB: ${columnExists}`);
+
+                if (!columnExists) {
+                    console.error(`[REFUND STRATEGY] ❌ MIGRATION NOT RUN!`);
+                    console.error(`[REFUND STRATEGY]    Run: npx prisma migrate dev --name add_same_day_refund_to_payment_integration`);
+                    console.error(`[REFUND STRATEGY]    Defaulting to 'same_day' since that is the intended default.`);
+                    return {
+                        strategy: 'same_day',
+                        outletId: undefined,
+                        reason: 'MIGRATION_NOT_RUN — defaulting to same_day',
+                    };
+                }
+            } catch (colErr) {
+                console.warn(`[REFUND STRATEGY] ⚠️  Could not verify column existence:`, colErr);
+            }
+
+            // ── Step 2: Find Payment record by paymentIntentId (N-Genius orderReference) ──
+            const payment = await prisma.payment.findFirst({
+                where: { paymentIntentId: orderReference },
+                include: {
+                    PropertyPaymentIntegration: true,
+                },
+            });
+
+            console.log(`[REFUND STRATEGY] 💳 Payment found: ${payment ? 'YES' : 'NO'}`);
+
+            if (!payment) {
+                console.warn(`[REFUND STRATEGY] ⚠️  No payment record found for orderReference: ${orderReference}`);
+                console.warn(`[REFUND STRATEGY]    Defaulting to 'same_day' (safe default for new payments).`);
+                return {
+                    strategy: 'same_day',
+                    outletId: undefined,
+                    reason: 'NO_PAYMENT_RECORD_FOUND — defaulting to same_day',
+                };
+            }
+
+            console.log(`[REFUND STRATEGY]    Payment ID                   : ${payment.id}`);
+            console.log(`[REFUND STRATEGY]    propertyPaymentIntegrationId : ${payment.propertyPaymentIntegrationId ?? '(null)'}`);
+
+            const integration = payment.PropertyPaymentIntegration;
+
+            if (!integration) {
+                console.warn(`[REFUND STRATEGY] ⚠️  No PropertyPaymentIntegration linked to payment: ${payment.id}`);
+                console.warn(`[REFUND STRATEGY]    Defaulting to 'same_day'.`);
+                return {
+                    strategy: 'same_day',
+                    outletId: undefined,
+                    reason: 'NO_INTEGRATION_LINKED — defaulting to same_day',
+                };
+            }
+
+            // ── Step 3: Read sameDayRefund flag ──
+            // Cast needed until Prisma client is regenerated after migration
+            const sameDayRefund: boolean = (integration as any).sameDayRefund ?? true;
+            const strategy: 'same_day' | 'day_after' = sameDayRefund ? 'same_day' : 'day_after';
+            const outletId: string = integration.outletId;
+
+            console.log(`[REFUND STRATEGY] ✅ Resolution complete:`);
+            console.log(`[REFUND STRATEGY]    Integration ID  : ${integration.id}`);
+            console.log(`[REFUND STRATEGY]    outletId        : ${outletId}`);
+            console.log(`[REFUND STRATEGY]    sameDayRefund   : ${sameDayRefund}`);
+            console.log(`[REFUND STRATEGY]    ➡️  Strategy     : ${strategy.toUpperCase()}`);
+
+            return {
+                strategy,
+                outletId,
+                reason: `sameDayRefund=${sameDayRefund} from integration ${integration.id}`,
+            };
+        } catch (error) {
+            console.error(`[REFUND STRATEGY] ❌ Unexpected error:`, error);
+            // Safe default — same_day is the intended default per requirements
+            return {
+                strategy: 'same_day',
+                outletId: undefined,
+                reason: `ERROR_RESOLVING — defaulting to same_day: ${error instanceof Error ? error.message : 'unknown'}`,
+            };
+        }
+    }
+
     public async createReservation(payload: any): Promise<IApiResponse> {
         try {
-            // Normalize the payload first
             const normalizedPayload = this.normalizePayload(payload);
             const { bookingDetails, guestDetails } = normalizedPayload;
 
@@ -233,7 +332,6 @@ export class ReservationService {
             const bookingCode = await this.generateBookingCode(propertyCode);
             const paymentMethods = this.mapPaymentMethod(paymentMethod);
 
-            // ── Integration check ─────────────────────────────────────────────────────
             const propertyConfig = await prisma.propertyConfigs.findUnique({
                 where: { propertyId },
                 select: {
@@ -277,12 +375,10 @@ export class ReservationService {
             }
             console.log('active', activeIntegrationName);
 
-            // Check if payment gateway is Fikafi - if so, payment is pending until webhook confirms
             const isFikafiPayment =
                 payload.bankDetails?.selectedPaymentIntegrations
                     ?.paymentIntegration?.name === 'fikafi';
 
-            // ── Compute numberOfNights from dates ──
             const checkIn = new Date(startDate);
             const checkOut = new Date(endDate);
             const numberOfNights = Math.max(
@@ -298,11 +394,9 @@ export class ReservationService {
 
             if (paymentMethods === 'payment_gateway') {
                 if (isFikafiPayment) {
-                    // For Fikafi, payment is pending until webhook confirms successful payment
                     paidAmount = 0;
                     initialBookingStatus = 'pending';
                 } else {
-                    // For other payment gateways, paidAmount = currentChargeableAmount (pay now)
                     paidAmount = finalPrice.currentChargeableAmount;
                 }
             }
@@ -440,7 +534,6 @@ export class ReservationService {
                 requestedRooms: finalPrice.requestedRooms || 0,
                 tax: finalPrice.taxBrakeDown || [],
             };
-            const loyalityBrakedown = finalPrice.loyaltyDiscount;
 
             await this.priceBrakeDownRepo.createpriceBrakeDowns([
                 priceBreakdownPayload,
@@ -451,7 +544,7 @@ export class ReservationService {
             ) {
                 const addonPayloads: IBookingAddonCreate[] =
                     normalizedPayload.bookingDetails.selectedAddons
-                        .filter((addon: any) => addon.addonId) // Skip addons without a valid addonId (required FK)
+                        .filter((addon: any) => addon.addonId)
                         .map((addon: any) => ({
                             reservationId: reservation.id,
                             addonId: addon.addonId,
@@ -489,9 +582,9 @@ export class ReservationService {
                         promotionPayloads.push({
                             bookingCode: bookingCode,
                             bookingId: reservation.id,
-                            promotionId: null, // ✅ NULL for MLOS
-                            mlosId: promo.id, // ✅ Use the id directly - it's the RatePlanRule ID
-                            amount: promo.amount, // ✅ Use pre-calculated amount
+                            promotionId: null,
+                            mlosId: promo.id,
+                            amount: promo.amount,
                             currency: currency as CurrencyCode,
                             promotionType: promo.promotionType,
                         });
@@ -504,9 +597,9 @@ export class ReservationService {
                         promotionPayloads.push({
                             bookingCode: bookingCode,
                             bookingId: reservation.id,
-                            promotionId: promo.id, // ✅ Use the id - it's the Promotion ID
-                            mlosId: null, // ✅ NULL for regular promotions
-                            amount: promo.amount, // ✅ Use pre-calculated amount
+                            promotionId: promo.id,
+                            mlosId: null,
+                            amount: promo.amount,
                             currency: currency as CurrencyCode,
                             promotionType: promo.promotionType,
                         });
@@ -535,9 +628,6 @@ export class ReservationService {
                 ],
             };
 
-            // ── Push to Rate Tiger if active integration is Rate Tiger ────────────────
-
-            // ── Non-blocking tasks ────────────────────────────────────────────────────
             const nonBlockingPromises: Promise<any>[] = [
                 ...(selfAriActive && !activeIntegrationType
                     ? [
@@ -564,7 +654,6 @@ export class ReservationService {
                 }),
             ];
 
-            // ✅ Add loyalty only if discount exists
             if (finalPrice?.loyaltyDiscount?.loyaltyMemberId) {
                 nonBlockingPromises.push(
                     this.loyalityGuestRepo.addGuest(
@@ -593,6 +682,7 @@ export class ReservationService {
             return errorResponse('Failed to create reservation');
         }
     }
+
     private async getPropertyIdByCode(
         propertyCode: string
     ): Promise<string | null> {
@@ -635,12 +725,12 @@ export class ReservationService {
             return errorResponse('Failed to fetch reservation');
         }
     }
+
     public async updateReservation(
         reservationCode: string,
         updatePayload: IReservationUpdatePayload
     ): Promise<IApiResponse> {
         try {
-            // 1. Get existing reservation
             const existingReservation =
                 await this.reservationRepository.getReservaltionByCode(
                     reservationCode,
@@ -651,7 +741,6 @@ export class ReservationService {
                 return errorResponse('Reservation not found');
             }
 
-            // 2. Validate property matches
             if (
                 existingReservation.propertyCode !== updatePayload.propertyCode
             ) {
@@ -676,20 +765,17 @@ export class ReservationService {
                 );
             }
 
-            // 3. Parse dates
             const newCheckInDate = new Date(updatePayload.checkInDate);
             const newCheckOutDate = new Date(updatePayload.checkOutDate);
             const oldCheckInDate = existingReservation.checkInDate;
             const oldCheckOutDate = existingReservation.checkOutDate;
 
-            // Validate new dates
             if (newCheckInDate >= newCheckOutDate) {
                 return errorResponse(
                     'Check-in date must be before check-out date'
                 );
             }
 
-            // 4. Generate date ranges for ARI comparison
             const oldDates = this.generateDateRange(
                 oldCheckInDate,
                 oldCheckOutDate
@@ -700,10 +786,9 @@ export class ReservationService {
                 newCheckOutDate
             );
 
-            // 5. Calculate ARI changes
             const oldRooms = updatePayload.previousRooms || 1;
             const newRooms = updatePayload.requestedRooms;
-            // Determine dates that need ARI updates
+
             const oldDateStrings = oldDates.map(
                 d => d.toISOString().split('T')[0]
             );
@@ -721,7 +806,6 @@ export class ReservationService {
                 newDateStrings.includes(oldDateStrings[i])
             );
 
-            // 6. Check availability for new requirements
             if (datesToReserve.length > 0 || newRooms > oldRooms) {
                 const additionalRoomsNeeded = newRooms - oldRooms;
 
@@ -746,7 +830,7 @@ export class ReservationService {
                             updatePayload.propertyCode,
                             updatePayload.roomTypeCode,
                             commonDates,
-                            additionalRoomsNeeded 
+                            additionalRoomsNeeded
                         );
                     if (!isAvailable) {
                         return errorResponse(
@@ -756,7 +840,6 @@ export class ReservationService {
                 }
             }
 
-            // 7. Calculate financial changes
             const oldAmount = existingReservation.amount;
             const newAmount = updatePayload.amount;
             const priceDifference = newAmount - oldAmount;
@@ -770,8 +853,6 @@ export class ReservationService {
                 refundAmount = Math.abs(priceDifference);
             }
 
-            // 8. Update ARI in a transaction
-            // ── Integration check for update ─────────────────────────────────────────
             const updatePropConfig = await prisma.propertyConfigs.findUnique({
                 where: { propertyId: existingReservation.propertyId },
                 select: {
@@ -819,10 +900,8 @@ export class ReservationService {
                 }
             }
 
-            // 8. Update ARI in a transaction — only if selfAri active and no external integration
             if (selfAriActiveU && !activeIntegrationTypeU) {
-                await prisma.$transaction(async tx => {
-                    // Free up old inventory for dates that are no longer needed
+                await prisma.$transaction(async (tx: any) => {
                     if (datesToFree.length > 0) {
                         const freeAriPayload: IAriManulupulation = {
                             propertyCode: updatePayload.propertyCode,
@@ -835,7 +914,6 @@ export class ReservationService {
                             ],
                         };
 
-                        // Use direct prisma call since AriManupulationRepo doesn't have transaction support
                         for (const room of freeAriPayload.roomInfos) {
                             await tx.inventory.updateMany({
                                 where: {
@@ -852,7 +930,6 @@ export class ReservationService {
                         }
                     }
 
-                    // For common dates, adjust if room count changed
                     if (commonDates.length > 0 && oldRooms !== newRooms) {
                         const roomDifference = newRooms - oldRooms;
                         if (roomDifference !== 0) {
@@ -874,7 +951,6 @@ export class ReservationService {
                         }
                     }
 
-                    // Reserve new inventory for new dates
                     if (datesToReserve.length > 0) {
                         const reserveAriPayload: IAriManulupulation = {
                             propertyCode: updatePayload.propertyCode,
@@ -905,7 +981,7 @@ export class ReservationService {
                     }
                 });
             }
-            // 9. Update reservation record
+
             const updateData: Partial<ICReservation> = {
                 checkInDate: newCheckInDate,
                 checkOutDate: newCheckOutDate,
@@ -920,7 +996,6 @@ export class ReservationService {
                 refundAmount: existingReservation.refundAmount + refundAmount,
             };
 
-            // Compute numberOfNights for update
             const updateNumberOfNights = Math.max(
                 1,
                 Math.ceil(
@@ -946,7 +1021,6 @@ export class ReservationService {
                     date: new Date(addon.date),
                 }));
 
-            // Prepare promotion payloads
             const promotionBrakeDown =
                 updatePayload.finalPrice.promotionBrakeDown || [];
             const promotionPayloads: IReservationPromotionCreate[] =
@@ -1021,7 +1095,6 @@ export class ReservationService {
                     promotionPayloads
                 );
 
-            // 10. Prepare response with change summary
             const modificationSummary = {
                 reservation: updatedReservation,
                 ariChanges: {
@@ -1054,7 +1127,6 @@ export class ReservationService {
                 },
             };
 
-            // Send reservation updated email (non-blocking)
             const emailBookingDetails: IBookingDetails = {
                 startDate: updatePayload.checkInDate,
                 endDate: updatePayload.checkOutDate,
@@ -1127,6 +1199,7 @@ export class ReservationService {
             return errorResponse('Failed to update reservation');
         }
     }
+
     private async getAccessiblePropertyIds(
         creationId: string,
         userLevel: number,
@@ -1134,9 +1207,7 @@ export class ReservationService {
         specificPropertyCode?: string
     ): Promise<{ success: boolean; propertyIds: string[]; message?: string }> {
         try {
-            // If specific property requested, validate access first
             if (specificPropertyId || specificPropertyCode) {
-                // First get all accessible properties for validation
                 let allAccessibleProperties: IPropertyCodeAndIds[] = [];
                 let daoRes: any;
 
@@ -1184,7 +1255,6 @@ export class ReservationService {
 
                 allAccessibleProperties = daoRes.data;
 
-                // Validate access to specific property
                 const hasAccess = allAccessibleProperties.some(
                     p =>
                         p.id === specificPropertyId ||
@@ -1199,7 +1269,6 @@ export class ReservationService {
                     };
                 }
 
-                // Return only the specific property ID
                 const specificProperty = allAccessibleProperties.find(
                     p =>
                         p.id === specificPropertyId ||
@@ -1208,7 +1277,6 @@ export class ReservationService {
                 return { success: true, propertyIds: [specificProperty!.id] };
             }
 
-            // Get all accessible properties
             let daoRes: any;
             switch (userLevel) {
                 case 4:
@@ -1265,6 +1333,7 @@ export class ReservationService {
             };
         }
     }
+
     public async getReservationsForDateRange(
         creationId: string,
         userLevel: number,
@@ -1317,13 +1386,13 @@ export class ReservationService {
                     page,
                     limit,
                     bookingStatus,
-                    bookingSource, // ← Add these
-                    deviceType, // ← Add these
-                    bookingCode, // ← Add these
-                    guestName, // ← Add these
-                    promoCode, // ← Add these
-                    countryCode, // ← Add these
-                    dateFilterType // ← Add these
+                    bookingSource,
+                    deviceType,
+                    bookingCode,
+                    guestName,
+                    promoCode,
+                    countryCode,
+                    dateFilterType
                 );
 
             return successResponse(
@@ -1587,9 +1656,10 @@ export class ReservationService {
         reservationId: string
     ): Promise<IApiResponse> {
         try {
-            console.log(
-                `\n[DEBUG - REFUND FLOW] 🟢 Starting deleteReservation for reservationId: ${reservationId}`
-            );
+            console.log(`\n${'='.repeat(60)}`);
+            console.log(`[CANCEL RESERVATION] 🟢 Starting deleteReservation`);
+            console.log(`[CANCEL RESERVATION] 📋 reservationId: ${reservationId}`);
+            console.log(`${'='.repeat(60)}`);
 
             const reservation =
                 await this.reservationRepository.getReservationById(
@@ -1606,10 +1676,12 @@ export class ReservationService {
                 reservation.checkOutDate
             );
 
-            // Attempt N-Genius refund FIRST, before cancelling in DB or RT
+            // ── REFUND FLOW ───────────────────────────────────────────────────────────
             let refundResult: { success: boolean; message: string; data?: any } | null = null;
+
             try {
-                console.log(`\n[DEBUG - REFUND FLOW] 🔍 Looking up payment record for reservation: ${reservationId}`);
+                console.log(`\n[CANCEL RESERVATION] 🔍 Looking up payment record for reservationId: ${reservationId}`);
+
                 const paymentRecord = await prisma.payment.findFirst({
                     where: { reservationId },
                     select: {
@@ -1625,61 +1697,73 @@ export class ReservationService {
                                 id: true,
                                 outletId: true,
                                 isActive: true,
-                            }
+                                // sameDayRefund selected via 'as any' cast below
+                                // because Prisma client may not have it yet if only db push was run
+                            },
                         },
-                    }
+                    },
                 });
 
-                console.log(`[DEBUG - REFUND FLOW] 📄 Raw payment record:`, JSON.stringify(paymentRecord, null, 2));
+                console.log(`[CANCEL RESERVATION] 📄 Payment record:`, JSON.stringify(paymentRecord, null, 2));
 
                 if (!paymentRecord) {
-                    console.warn(`[DEBUG - REFUND FLOW] ⚠️ No payment record found for reservationId: ${reservationId}. Skipping refund.`);
+                    console.warn(`[CANCEL RESERVATION] ⚠️  No payment record found. Skipping refund.`);
+                } else if (!paymentRecord.paymentIntentId) {
+                    console.warn(`[CANCEL RESERVATION] ⚠️  paymentIntentId is null. Skipping refund.`);
+                } else if (paymentRecord.paymentMethod !== 'payment_gateway') {
+                    console.log(`[CANCEL RESERVATION] ⏭️  Payment method is '${paymentRecord.paymentMethod}'. Not a gateway payment — skipping refund.`);
                 } else {
-                    console.log(`[DEBUG - REFUND FLOW] ℹ️ Payment Details:`);
-                    console.log(`    - Payment ID        : ${paymentRecord.id}`);
-                    console.log(`    - paymentIntentId   : ${paymentRecord.paymentIntentId ?? '(null/undefined)'}`);
-                    console.log(`    - paymentMethod     : ${paymentRecord.paymentMethod}`);
-                    console.log(`    - status            : ${paymentRecord.status}`);
-                    console.log(`    - amount            : ${paymentRecord.amount} ${paymentRecord.currency}`);
-                    console.log(`    - propPayIntegId    : ${paymentRecord.propertyPaymentIntegrationId ?? '(null — outletId will be missing!)'}`);
-                    console.log(`    - PropertyPaymentIntegration:`, JSON.stringify(paymentRecord.PropertyPaymentIntegration));
-                    console.log(`    - outletId (resolved): ${paymentRecord.PropertyPaymentIntegration?.outletId ?? '⚠️ (NOT FOUND — refund will have no outletId!)'}`);
-                }
+                    // ── This IS a gateway payment — resolve strategy and refund ──────────
+                    const orderReference = paymentRecord.paymentIntentId;
 
-                if (paymentRecord?.paymentIntentId && paymentRecord.paymentMethod === 'payment_gateway') {
-                    const resolvedOutletId = paymentRecord.PropertyPaymentIntegration?.outletId;
+                    console.log(`\n[CANCEL RESERVATION] 💡 Gateway payment detected. Resolving refund strategy...`);
+                    console.log(`[CANCEL RESERVATION]    orderReference : ${orderReference}`);
 
-                    console.log(`[DEBUG - REFUND FLOW] 💸 Calling ngeniusService.processRefund`);
-                    console.log(`    - orderReference (paymentIntentId): ${paymentRecord.paymentIntentId}`);
-                    console.log(`    - outletId passed to processRefund : ${resolvedOutletId ?? '(undefined — this will cause getOrderStatus URL to be malformed!)'}`);
+                    const { strategy, outletId, reason } = await this.resolveRefundStrategy(orderReference);
 
-                    refundResult = await ngeniusService.processRefund(paymentRecord.paymentIntentId, resolvedOutletId);
+                    console.log(`\n[CANCEL RESERVATION] 🎯 Refund strategy resolved:`);
+                    console.log(`[CANCEL RESERVATION]    strategy  : ${strategy.toUpperCase()}`);
+                    console.log(`[CANCEL RESERVATION]    outletId  : ${outletId ?? '(not resolved)'}`);
+                    console.log(`[CANCEL RESERVATION]    reason    : ${reason}`);
 
-                    console.log(`[DEBUG - REFUND FLOW] 📥 Refund result received:`, JSON.stringify(refundResult));
+                    if (strategy === 'same_day') {
+                        // ── SAME-DAY: Cancel capture → Reverse authorization ──────────────
+                        console.log(`\n[CANCEL RESERVATION] ⚡ Routing to SAME-DAY refund (cancel capture + reverse auth)`);
 
-                    if (!refundResult.success) {
-                        console.error(`[DEBUG - REFUND FLOW] ⚠️ Refund failed for reservation ${reservationId}: ${refundResult.message}`);
-                        return errorResponse(`Refund failed: ${refundResult.message}. Reservation was not cancelled.`);
+                        if (!outletId) {
+                            console.error(`[CANCEL RESERVATION] ❌ Cannot proceed with same-day refund — outletId is missing.`);
+                            return errorResponse(
+                                'Refund failed: outletId could not be resolved for same-day refund. Reservation was not cancelled.'
+                            );
+                        }
+
+                        refundResult = await ngeniusService.processSameDayRefund(orderReference, outletId);
+                    } else {
+                        // ── DAY-AFTER: Standard refund API ───────────────────────────────
+                        console.log(`\n[CANCEL RESERVATION] 🕐 Routing to DAY-AFTER refund (standard refund API)`);
+                        refundResult = await ngeniusService.processRefund(orderReference, outletId);
                     }
 
-                    console.log(`[DEBUG - REFUND FLOW] ✅ Refund succeeded. Proceeding to cancel reservation in DB.`);
-                } else {
-                    console.log(`[DEBUG - REFUND FLOW] ⏭️ Skipping refund.`);
-                    console.log(`    - paymentIntentId present: ${!!paymentRecord?.paymentIntentId}`);
-                    console.log(`    - paymentMethod          : ${paymentRecord?.paymentMethod}`);
-                    console.log(`    - reason                 : ${!paymentRecord?.paymentIntentId ? 'No paymentIntentId' : 'paymentMethod is not payment_gateway'}`);
+                    console.log(`\n[CANCEL RESERVATION] 📥 Refund result:`, JSON.stringify(refundResult));
+
+                    if (!refundResult.success) {
+                        console.error(`[CANCEL RESERVATION] ❌ Refund failed: ${refundResult.message}`);
+                        return errorResponse(
+                            `Refund failed: ${refundResult.message}. Reservation was not cancelled.`
+                        );
+                    }
+
+                    console.log(`[CANCEL RESERVATION] ✅ Refund succeeded. Proceeding to cancel reservation in DB.`);
                 }
             } catch (refundError) {
-                console.error(`[DEBUG - REFUND FLOW] ❌ Error during refund for reservation ${reservationId}:`, refundError);
-                return errorResponse('Refund processing encountered an error. Reservation was not cancelled.');
+                console.error(`[CANCEL RESERVATION] ❌ Unexpected error during refund:`, refundError);
+                return errorResponse(
+                    'Refund processing encountered an unexpected error. Reservation was not cancelled.'
+                );
             }
+            // ── END REFUND FLOW ───────────────────────────────────────────────────────
 
-            // Cancel reservation
-            // CORRECT ORDER:
-
-            // 1. getReservationById
-            // 2. generateDateRange
-            // 3. ── Integration check ──
+            // ── Integration check ─────────────────────────────────────────────────────
             const delPropConfig = await prisma.propertyConfigs.findUnique({
                 where: { propertyId: reservation.propertyId },
                 select: {
@@ -1697,7 +1781,7 @@ export class ReservationService {
                       ? 'pms'
                       : null;
 
-            // 4. ── RT pushCancel FIRST ──
+            // ── RT pushCancel ─────────────────────────────────────────────────────────
             if (activeIntegrationTypeD) {
                 const rtConfig = await RTIntegrationDao.getRTConfig(
                     reservation.propertyId,
@@ -1722,13 +1806,13 @@ export class ReservationService {
                 }
             }
 
-            // 5. ── Only AFTER RT success — cancel in DB ──
+            // ── Cancel in DB ──────────────────────────────────────────────────────────
             const cancelledReservation =
                 await this.reservationRepository.deleteReservation(
                     reservationId
                 );
 
-            // Prepare email booking details for cancellation email
+            // ── Email + ARI (non-blocking) ────────────────────────────────────────────
             const cancelNumberOfNights = Math.max(
                 1,
                 Math.ceil(
@@ -1841,7 +1925,6 @@ export class ReservationService {
                         });
                 }
             } else {
-                // If no room info, just send the email
                 this.emailService
                     .reservationCancelEmail(emailBookingDetails)
                     .catch(error => {
@@ -1852,77 +1935,13 @@ export class ReservationService {
                     });
             }
 
-            // After successful cancellation in DB and before returning response, attempt N-Genius refund if applicable
-            // let refundResult: {
-            //     success: boolean;
-            //     message: string;
-            //     data?: any;
-            // } | null = null;
-            // try {
-            //     console.log(
-            //         `[DEBUG - REFUND FLOW] 🔍 Looking up payment record for reservation: ${reservationId}`
-            //     );
-            //     const paymentRecord = await prisma.payment.findFirst({
-            //         where: { reservationId },
-            //         select: {
-            //             paymentIntentId: true,
-            //             paymentMethod: true,
-            //             PropertyPaymentIntegration: true,
-            //         },
-            //     });
+            console.log(`\n[CANCEL RESERVATION] ✅ Reservation cancelled successfully: ${reservationId}`);
+            console.log(`${'='.repeat(60)}\n`);
 
-            //     console.log(
-            //         `[DEBUG - REFUND FLOW] 📄 Payment record found:`,
-            //         JSON.stringify(paymentRecord)
-            //     );
-
-            //     if (
-            //         paymentRecord?.paymentIntentId &&
-            //         paymentRecord.paymentMethod === 'payment_gateway'
-            //     ) {
-            //         console.log(
-            //             `[DEBUG - REFUND FLOW] 💸 Triggering N-Genius refund for order: ${paymentRecord.paymentIntentId}`
-            //         );
-            //         refundResult = await ngeniusService.processRefund(
-            //             paymentRecord.paymentIntentId,
-            //             paymentRecord.PropertyPaymentIntegration?.outletId
-            //         );
-
-            //         console.log(
-            //             `[DEBUG - REFUND FLOW] 📥 Refund result received:`,
-            //             JSON.stringify(refundResult)
-            //         );
-
-            //         if (!refundResult.success) {
-            //             console.error(
-            //                 `[DEBUG - REFUND FLOW] ⚠️ Refund failed for reservation ${reservationId}: ${refundResult.message}`
-            //             );
-            //         }
-            //     } else {
-            //         console.log(
-            //             `[DEBUG - REFUND FLOW] ⏭️ Skipping refund. reason: No paymentIntentId or method is not payment_gateway.`
-            //         );
-            //     }
-            // } catch (refundError) {
-            //     console.error(
-            //         `[DEBUG - REFUND FLOW] ❌ Error during refund for reservation ${reservationId}:`,
-            //         refundError
-            //     );
-            //     refundResult = {
-            //         success: false,
-            //         message: 'Refund processing encountered an error',
-            //     };
-            // }
-
-            const returnData = {
+            return successResponse('Reservation cancelled successfully', {
                 ...cancelledReservation,
                 refund: refundResult,
-            };
-
-            return successResponse(
-                'Reservation cancelled successfully',
-                returnData
-            );
+            });
         } catch (error) {
             if (error instanceof Error) {
                 return errorResponse(
@@ -1956,7 +1975,6 @@ export class ReservationService {
             const noShowReservation =
                 await this.reservationRepository.NoShow(reservationId);
 
-            // Increase room availability back
             if (reservation.propertyCode && reservation.roomTypeCode) {
                 await this.ariManupulationRepo.increaseAvailableRooms({
                     propertyCode: reservation.propertyCode,
@@ -1982,6 +2000,7 @@ export class ReservationService {
             return errorResponse('Failed to update reservation status');
         }
     }
+
     public async amendReservation(
         reservationId: string,
         newCheckoutDate: Date
@@ -1996,7 +2015,6 @@ export class ReservationService {
                 return errorResponse('Reservation not found');
             }
 
-            // Calculate additional dates needed
             const currentCheckout = reservation.checkOutDate;
             const additionalDates = this.generateDateRange(
                 currentCheckout,
@@ -2008,7 +2026,6 @@ export class ReservationService {
                 reservation.propertyCode &&
                 reservation.roomTypeCode
             ) {
-                // Decrease availability for extended dates
                 await this.ariManupulationRepo.decreaseAvailableRooms({
                     propertyCode: reservation.propertyCode,
                     dates: additionalDates,
