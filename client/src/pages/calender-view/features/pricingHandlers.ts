@@ -405,23 +405,17 @@ export const savePriceChanges = async (
 
       const allTiers = Array.from(allTierNumbers).sort((a, b) => a - b);
 
-      // console.log(`👥 All guest tiers for this range:`, allTiers);
-
-      // ✅ Build base guest amounts - MUST include ALL tiers
       const baseGuestAmounts = allTiers.map(numberOfGuests => {
-        // First check if we have an edit for this tier
         const editedPrice = range.data.baseGuests.get(numberOfGuests);
         if (editedPrice !== undefined) {
-          // console.log(`✏️ Using edited price for ${numberOfGuests} guests: $${editedPrice}`);
           return { numberOfGuests, amountBeforeTax: editedPrice };
         }
         
-        // Otherwise, use existing tier data
         const existingTier = existingTiers.find((t: any) => t.numberOfGuests === numberOfGuests);
         if (existingTier) {
-          // console.log(`📋 Using existing price for ${numberOfGuests} guests: $${existingTier.amountBeforeTax}`);
           return {
             numberOfGuests,
+            ageQualifyingCode: existingTier.ageQualifyingCode,
             amountBeforeTax: existingTier.amountBeforeTax
           };
         }

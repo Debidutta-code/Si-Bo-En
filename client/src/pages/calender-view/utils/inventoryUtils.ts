@@ -180,9 +180,10 @@ export const generateKey = {
     ratePlan: string,
     dayIndex: number,
     numberOfGuests?: number,
+    ageQualifyingCode?: string,
   ) =>
     numberOfGuests
-      ? `${roomType}-${ratePlan}-${dayIndex}-price-${numberOfGuests}`
+      ? `${roomType}-${ratePlan}-${dayIndex}-price-${numberOfGuests}-${ageQualifyingCode}`
       : `${roomType}-${ratePlan}-${dayIndex}-price`,
 
   additionalCharge: (

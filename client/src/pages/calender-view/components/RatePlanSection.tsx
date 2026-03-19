@@ -48,7 +48,18 @@ interface RatePlanSectionProps {
   onDataUpdate?: () => void;
   renderMode: "labels" | "data";
 }
+function getGuestTierLabel(numberOfGuests: number, ageQualifyingCode: string): string {
+  const ageLabel = AGE_LABELS[ageQualifyingCode] || "Guest";
 
+  if (numberOfGuests > 1) {
+    if (ageLabel === "Adult") return `${numberOfGuests} Adults`;
+    if (ageLabel === "Child") return `${numberOfGuests} Children`;
+    if (ageLabel === "Infant") return `${numberOfGuests} Infants`;
+    return `${numberOfGuests} Guests`;
+  }
+
+  return `${numberOfGuests} ${ageLabel}`;
+}
 export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
   roomType,
   ratePlanType,
@@ -529,8 +540,7 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                 <div className="w-40 flex items-center justify-between px-2 border-r border-gray-300 bg-purple-50">
                   <div className="flex items-center gap-1">
                     <span className="font-semibold text-purple-700 text-xs">
-                      {guestTier.numberOfGuests}{" "}
-                      {guestTier.numberOfGuests === 1 ? "Guest" : "Guests"}
+                      {getGuestTierLabel(guestTier.numberOfGuests, guestTier.ageQualifyingCode)}
                     </span>
                     <span className="text-xs text-gray-600">
                       {ratePlanDetails?.currencyCode || "USD"}
@@ -1334,9 +1344,9 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                     return (
                       <span
                         className={`text-xs font-medium ${ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus ===
-                            "open"
-                            ? "text-green-600"
-                            : "text-red-600"
+                          "open"
+                          ? "text-green-600"
+                          : "text-red-600"
                           }`}
                       >
                         {ratePlanDetails?.ratePlan?.prices?.[0]?.sellStatus ===
@@ -1429,7 +1439,9 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                   ratePlanType,
                 );
                 const tierData = ratePlanDetails?.baseByGuestAmts?.find(
-                  (t: any) => t.numberOfGuests === guestTier.numberOfGuests,
+                  (t: any) =>
+                    t.numberOfGuests === guestTier.numberOfGuests &&
+                    t.ageQualifyingCode === guestTier.ageQualifyingCode,
                 );
 
                 return (
@@ -1624,8 +1636,8 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                       )
                     }
                     className={`${effectiveValue
-                        ? "data-[state=checked]:bg-red-500"
-                        : "data-[state=unchecked]:bg-gray-300"
+                      ? "data-[state=checked]:bg-red-500"
+                      : "data-[state=unchecked]:bg-gray-300"
                       } scale-50`}
                   />
                 </div>
@@ -1672,8 +1684,8 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                       )
                     }
                     className={`${effectiveValue
-                        ? "data-[state=checked]:bg-red-500"
-                        : "data-[state=unchecked]:bg-gray-300"
+                      ? "data-[state=checked]:bg-red-500"
+                      : "data-[state=unchecked]:bg-gray-300"
                       } scale-50`}
                   />
                 </div>
@@ -1723,8 +1735,8 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                         state.setPendingChanges(newPending);
                       }}
                       className={`w-14 h-7 text-center text-xs font-bold rounded border ${hasChanges
-                          ? "border-orange-400 bg-orange-50"
-                          : "border-gray-300"
+                        ? "border-orange-400 bg-orange-50"
+                        : "border-gray-300"
                         } focus:outline-none focus:ring-2 focus:ring-purple-400`}
                     />
                     {edit && (
@@ -1807,8 +1819,8 @@ export const RatePlanSection: React.FC<RatePlanSectionProps> = ({
                         state.setPendingChanges(newPending);
                       }}
                       className={`w-14 h-7 text-center text-xs font-bold rounded border ${hasChanges
-                          ? "border-orange-400 bg-orange-50"
-                          : "border-gray-300"
+                        ? "border-orange-400 bg-orange-50"
+                        : "border-gray-300"
                         } focus:outline-none focus:ring-2 focus:ring-purple-400`}
                     />
                     {edit && (

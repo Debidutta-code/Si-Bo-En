@@ -517,13 +517,14 @@ export default function InventoryPage() {
           baseByGuestAmts: price.baseByGuestAmts.map((guest) => ({
             amountBeforeTax: guest.amountBeforeTax,
             numberOfGuests: guest.numberOfGuests,
-            _id: guest._id,
+            ageQualifyingCode: guest.ageQualifyingCode,
+            id: guest.id,
           })),
           additionalGuestAmounts: price.additionalGuestAmounts.map(
             (additional) => ({
               ageQualifyingCode: additional.ageQualifyingCode,
               amount: additional.amount,
-              _id: additional._id,
+              id: additional.id,
             }),
           ),
         })),

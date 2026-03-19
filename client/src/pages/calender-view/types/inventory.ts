@@ -41,9 +41,7 @@ export interface RoomType {
   status: "open" | "close";
 }
 
-// =========================
-// RATE PLAN LEVEL
-// =========================
+
 export interface RatePlan {
   ratePlanCode: string;
   ratePlanName?: string;
@@ -57,9 +55,7 @@ export interface RatePlan {
   prices: RoomTypePricing[];
 }
 
-// =========================
-// PRICING FOR EACH ROOM TYPE
-// =========================
+
 export interface RoomTypePricing {
   invTypeCode: string;
   price?: number | string;
@@ -68,28 +64,25 @@ export interface RoomTypePricing {
   cta?: boolean;
   ctd?: boolean;
   
-  // ✅ Base guest amounts WITH COMMISSION
   baseByGuestAmts?: {
     numberOfGuests: number;
     amountBeforeTax: number;
-    commissionAmount?: number;        // ✅ Added
-    amountAfterCommission?: number;   // ✅ Added
+    ageQualifyingCode?: string;
+    commissionAmount?: number;        
+    amountAfterCommission?: number;     
     _id?: string;
   }[];
   
-  // ✅ Additional guest amounts WITH COMMISSION
   additionalGuestAmounts?: {
     ageQualifyingCode: string;
     amount: number;
-    commissionAmount?: number;        // ✅ Added
-    amountAfterCommission?: number;   // ✅ Added
-    _id?: string;
+    commissionAmount?: number;        
+    amountAfterCommission?: number;   
+    id?: string;
   }[];
 }
 
-// =========================
-// INVENTORY ANALYSIS (Full Response)
-// =========================
+
 export interface InventoryAnalysis {
   hotelCode: string;
   hotelName: string;
@@ -102,9 +95,7 @@ export interface InventoryAnalysis {
   days: InventoryDay[];
 }
 
-// =========================
-// FILTER STATE
-// =========================
+
 export interface FilterState {
   availability: boolean;
   occupancy: boolean;
@@ -118,14 +109,12 @@ export interface FilterState {
   earlyBooking: boolean;
   closedArrival: boolean;
   closedDeparture: boolean;
-  
-  // Date range filters
+
   dateRange: {
     startDate: string | null;
     endDate: string | null;
   };
   
-  // Room type filters
   selectedRoomTypes: string[];
 }
 

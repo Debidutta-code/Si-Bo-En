@@ -57,6 +57,7 @@ export async function updateRatePlanCharges(payload: {
   endDate: string; // YYYY-MM-DD format
   baseGuestAmounts: Array<{
     numberOfGuests: number;
+    ageQualifyingCode: string;
     amountBeforeTax: number;
   }>;
   additionalGuestAmounts?: Array<{

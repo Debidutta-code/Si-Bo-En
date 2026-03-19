@@ -10,12 +10,13 @@ interface PriceInputProps {
   currentPrice: number | string;
   currencyCode: string;
   numberOfGuests?: number;
+  ageQualifyingCode?: string;
   showOnlyInput?: boolean;
   priceEdits: Map<string, any>;
   pendingChanges: Set<string>;
   generateKey: (roomType: string, ratePlan: string, dayIndex: number, numberOfGuests?: number) => string;
-  onPriceChange: (roomType: string, ratePlan: string, dayIndex: number, value: string, numberOfGuests?: number) => void;
-  onApplyToRow: (roomType: string, ratePlan: string, dayIndex: number, numberOfGuests?: number) => void;
+  onPriceChange: (roomType: string, ratePlan: string, dayIndex: number, value: string, numberOfGuests?: number, ageQualifyingCode?: string) => void;
+  onApplyToRow: (roomType: string, ratePlan: string, dayIndex: number, numberOfGuests?: number, ageQualifyingCode?: string) => void;
   // ✅ Commission data directly from API response
   commissionAmount?: number;
   totalAfterCommission?: number;
@@ -28,6 +29,7 @@ export const PriceInput: React.FC<PriceInputProps> = ({
   currentPrice,
   currencyCode,
   numberOfGuests,
+  ageQualifyingCode,
   showOnlyInput = false,
   priceEdits,
   pendingChanges,
@@ -57,7 +59,7 @@ export const PriceInput: React.FC<PriceInputProps> = ({
             min="0"
             step="0.01"
             value={displayValue}
-            onChange={(e) => onPriceChange(roomType, ratePlan, dayIndex, e.target.value, numberOfGuests)}
+            onChange={(e) => onPriceChange(roomType, ratePlan, dayIndex, e.target.value, numberOfGuests , ageQualifyingCode)}
             className={`w-16 h-7 text-center text-xs font-bold rounded border ${
               hasChanges ? "border-orange-400 bg-orange-50" : "border-gray-300"
             } focus:outline-none focus:ring-2 focus:ring-purple-400 hover:border-gray-400 transition-colors`}
@@ -65,7 +67,7 @@ export const PriceInput: React.FC<PriceInputProps> = ({
           />
           {edit && (
             <button
-              onClick={() => onApplyToRow(roomType, ratePlan, dayIndex, numberOfGuests)}
+              onClick={() => onApplyToRow(roomType, ratePlan, dayIndex, numberOfGuests , ageQualifyingCode)}
               className="p-1 bg-purple-500 text-white rounded hover:bg-purple-600 transition-colors flex-shrink-0"
               title="Apply to entire row"
             >
@@ -75,18 +77,18 @@ export const PriceInput: React.FC<PriceInputProps> = ({
         </div>
 
         {/* Commission (Read-only) - Only show if exists */}
-        {commissionAmount > 0 && (
+        {/* {commissionAmount > 0 && (
           <span className="text-[10px] text-blue-600 font-medium">
             Comm: +{commissionAmount.toFixed(2)}
           </span>
-        )}
+        )} */}
 
         {/* Total (Read-only) - Only show if commission exists */}
-        {totalAfterCommission > 0 && commissionAmount > 0 && (
+        {/* {totalAfterCommission > 0 && commissionAmount > 0 && (
           <span className="text-[10px] text-green-700 font-semibold">
             Sell Rate: {totalAfterCommission.toFixed(2)}
           </span>
-        )}
+        )} */}
       </div>
     );
   }

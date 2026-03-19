@@ -10,13 +10,14 @@ export interface ICalendarRequest {
 export interface IBaseGuestAmount {
   amountBeforeTax: number;
   numberOfGuests: number;
-  _id: string;
+  ageQualifyingCode: string;
+  id: string;
 }
 
 export interface IAdditionalGuestAmount {
   ageQualifyingCode: string;
   amount: number;
-  _id: string;
+  id: string;
 }
 
 export interface IRoomTypePrice {

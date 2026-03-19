@@ -23,9 +23,9 @@ export class AvailabilityServices {
 
       // Fetch all required data
       const [property, inventories, charges, reservations] = await Promise.all([
-        AvailabilityRepository.getPropertyByCode(propertyCode, roomTypeCodes, ratePlanCodes), // ✅ ADD ratePlanCodes
+        AvailabilityRepository.getPropertyByCode(propertyCode, roomTypeCodes, ratePlanCodes), 
         AvailabilityRepository.getInventoryForDateRange(propertyCode, startDate, endDate, roomTypeCodes),
-        AvailabilityRepository.getChargesForDateRange(propertyCode, startDate, endDate, roomTypeCodes, ratePlanCodes), // ✅ ADD ratePlanCodes
+        AvailabilityRepository.getChargesForDateRange(propertyCode, startDate, endDate, roomTypeCodes, ratePlanCodes), 
         AvailabilityRepository.getReservationsForDateRange(propertyCode, startDate, endDate, roomTypeCodes),
       ]);
 
@@ -188,12 +188,13 @@ private static buildDayData(
         baseByGuestAmts: charge.baseGuestAmounts.map((bg: any) => ({
           amountBeforeTax: Number(bg.amountBeforeTax),
           numberOfGuests: bg.numberOfGuests,
-          _id: bg.id,
+          ageQualifyingCode: bg.ageQualifyingCode,
+          id: bg.id,
         })),
         additionalGuestAmounts: charge.additionalGuestAmounts.map((ag: any) => ({
           ageQualifyingCode: ag.ageQualifyingCode,
           amount: Number(ag.amount),
-          _id: ag.id,
+          id: ag.id,
         })),
       });
     });
