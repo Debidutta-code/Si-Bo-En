@@ -62,6 +62,7 @@ export interface DayData {
 
 export interface RoomTypeData {
   invTypeCode: string;
+  roomName?: string;
   available: number;
   sold: number;
   occupancy: number;

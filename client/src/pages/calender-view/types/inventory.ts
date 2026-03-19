@@ -35,6 +35,7 @@ export interface InventoryDay {
 // =========================
 export interface RoomType {
   invTypeCode: string;
+  roomName?: string;
   available: number;
   sold: number;
   occupancy: number;

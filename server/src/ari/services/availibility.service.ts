@@ -17,7 +17,7 @@ export class AvailabilityServices {
     startDate: Date,
     endDate: Date,
     roomTypeCodes: string[] = [],
-    ratePlanCodes: string[] = [] // ✅ ADD THIS
+    ratePlanCodes: string[] = [] 
   ) {
     try {
 
@@ -144,6 +144,7 @@ private static buildDayData(
 
       return {
         invTypeCode: room.roomType,
+        roomName: room.roomName,
         available,
         sold,
         occupancy: totalInventory > 0 ? (sold / totalInventory) * 100 : 0,

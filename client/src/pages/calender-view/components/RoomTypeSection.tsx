@@ -54,12 +54,14 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
   hotelCode,
   propertyId,
   ratePlanMap,
-  // roomSetupData,
+  roomSetupData,
   onMouseEnter,
   onMouseLeave,
   onDataUpdate,
 }) => {
   const roomTypeData = getRoomTypeData(roomType, days);
+  const matchedRoom = roomSetupData?.find((r) => r.roomType === roomType);
+  const displayName = matchedRoom ? matchedRoom.roomName : roomType;
 
   return (
     <div className="mb-6 border border-gray-300 rounded-lg">
@@ -68,8 +70,8 @@ export const RoomTypeSection: React.FC<RoomTypeSectionProps> = ({
         <div className="w-80 flex-shrink-0 bg-gray-50 border-r border-b border-gray-300 sticky left-0 z-10">
           {/* Room Type Header */}
           <div className="h-14 flex border-b border-gray-300">
-            <div className="w-40 flex items-center px-2 border-r border-gray-300 text-gray-700 font-bold">
-              {roomType}
+            <div className="w-40 flex items-center px-2 border-r border-gray-300 text-gray-700 font-bold" title={displayName}>
+              <span className="truncate whitespace-nowrap overflow-hidden">{displayName}</span>
             </div>
             <div className="w-40 flex items-center justify-center px-2 bg-blue-100 text-blue-800 font-bold text-sm">
               BULK

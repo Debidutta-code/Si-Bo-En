@@ -177,7 +177,7 @@ export const InventoryTooltip: React.FC<SmartInventoryTooltipProps> = ({
             <>
               {roomTypes.map((room) => (
                 <div key={room.invTypeCode} className="flex justify-between gap-2">
-                  <span className="truncate">{room.invTypeCode}:</span>
+                  <span className="truncate">{room.roomName || room.invTypeCode}:</span>
                   <span className="whitespace-nowrap">{room.available} available, {room.sold} sold</span>
                 </div>
               ))}
@@ -219,7 +219,7 @@ export const InventoryTooltip: React.FC<SmartInventoryTooltipProps> = ({
             <>
               {roomTypes.map((room) => (
                 <div key={room.invTypeCode} className="flex justify-between gap-2">
-                  <span className="truncate">{room.invTypeCode}:</span>
+                  <span className="truncate">{room.roomName || room.invTypeCode}:</span>
                   <span className="whitespace-nowrap">{room.occupancy}%</span>
                 </div>
               ))}

@@ -486,7 +486,8 @@ export default function InventoryPage() {
       roomTypes: apiDay.roomTypes.map((rt) => ({
         invTypeCode: rt.invTypeCode,
         roomTypeCode: rt.invTypeCode,
-        roomTypeName: rt.invTypeCode,
+        roomName: rt.roomName,
+        roomTypeName: rt.roomName || rt.invTypeCode,
         total: rt.available + rt.sold,
         sold: rt.sold,
         available: rt.available,

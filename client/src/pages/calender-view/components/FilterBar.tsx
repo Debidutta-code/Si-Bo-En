@@ -3,6 +3,7 @@ import { Bed, Calendar, ChevronDown, X } from 'lucide-react';
 
 interface RoomTypeFilter {
   invTypeCode: string;
+  name?: string;
 }
 
 interface FilterBarProps {
@@ -302,7 +303,7 @@ console.log("all the prop data ",{
                             className="w-4 h-4 mt-0.5 text-blue-600 border-gray-300 rounded focus:ring-2 focus:ring-blue-500"
                           />
                           <div className="flex-1">
-                            <div className="text-sm font-medium text-gray-900">{roomType.invTypeCode}</div>
+                            <div className="text-sm font-medium text-gray-900">{roomType.name || roomType.invTypeCode}</div>
                             {/* <div className="text-xs text-gray-500 mt-0.5">
                               {roomType.ratePlanCodes.length} rate plan{roomType.ratePlanCodes.length !== 1 ? 's' : ''}
                             </div> */}
@@ -449,7 +450,7 @@ console.log("all the prop data ",{
                     key={roomType}
                     className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 text-xs rounded-full"
                   >
-                    {roomType}
+                    {roomTypes.find(rt => rt.invTypeCode === roomType)?.name || roomType}
                     <button
                       onClick={() => {
                         const newSelection = selectedRoomTypes.filter(rt => rt !== roomType);
