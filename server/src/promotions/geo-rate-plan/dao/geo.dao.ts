@@ -21,7 +21,7 @@ export class GeoRatePlanDao {
               currencyCode: data.currencyCode || null,
               countryCode: data.countryCode,
               isActive: data.isActive ?? true,
-              restrictionTypeAction: data.restrictionTypeAction 
+              restrictionTypeAction: data.restrictionTypeAction
             },
             include: {
               room: {
@@ -45,7 +45,7 @@ export class GeoRatePlanDao {
 
       return createdRecords;
     } catch (error) {
-console.log(error)
+      console.log(error)
       throw new Error('Unknown error occurred while creating geo rate plans in bulk');
     }
   }
@@ -53,12 +53,12 @@ console.log(error)
     propertyId: string,
     filters?: IGeoRatePlanFilter
   ): Promise<IGeoRatePlan[]> {
-    console.log("Dao filters",filters);
+    console.log("Dao filters", filters);
     try {
       const whereClause: any = {
         propertyId,
-        };
-      if(filters?.roomTypeCode){
+      };
+      if (filters?.roomTypeCode) {
         whereClause.roomType = filters.roomTypeCode;
       }
       if (filters?.ratePlanCode) {
@@ -69,7 +69,7 @@ console.log(error)
       return await prisma.geoRatePlan.findMany({
         where: whereClause,
         include: {
-          
+
           room: {
             select: {
               id: true,
@@ -100,7 +100,7 @@ console.log(error)
       return await prisma.geoRatePlan.findUnique({
         where: { id },
         include: {
-          
+
           room: {
             select: {
               id: true,
@@ -162,5 +162,34 @@ console.log(error)
       throw new Error('Unknown error occurred while deleting geo rate plan');
     }
   }
+  public async checkDuplicates(
+    propertyId: string,
+    countryCode: string[],
+    combinations: { roomId: string | null; ratePlanId: string }[]
+  ): Promise<{ roomId: string | null; ratePlanId: string }[]> {
+    try {
+      const existing = await prisma.geoRatePlan.findMany({
+        where: {
+          propertyId,
+          countryCode:{
+            hasSome:countryCode
+          },
+          OR: combinations.map(c => ({
+            roomId: c.roomId,
+            ratePlanId: c.ratePlanId
+          }))
+        },
+        select: {
+          roomId: true,
+          ratePlanId: true,
+          ratePlanCode: true,
+          roomType: true
+        }
+      });
 
+      return existing.map(e => ({ roomId: e.roomId, ratePlanId: e.ratePlanId }));
+    } catch (error) {
+      throw new Error('Unknown error occurred while checking duplicate geo rate plans');
+    }
+  }
 }

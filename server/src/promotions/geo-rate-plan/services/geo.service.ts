@@ -1,6 +1,7 @@
 // services/geoRatePlan.service.ts
 
 import { getCurrencyConverter } from '../../../currency-maping/utils';
+import { CurrencyCode } from '../../../tax-system/interfaces';
 import { errorResponse, IApiResponse, successResponse } from '../../../utils';
 import { GeoRatePlanDao } from '../dao';
 import { IGeoRatePlanCreate, IGeoRatePlanFilter, IGeoRatePlanInput, } from '../interfaces';
@@ -12,67 +13,77 @@ export class GeoRatePlanService {
         this.geoRatePlanRepository = new GeoRatePlanDao();
     }
 
-    public async createGeoRatePlanBulk(data: IGeoRatePlanInput): Promise<IApiResponse> {
-        try {
+public async createGeoRatePlanBulk(data: IGeoRatePlanInput): Promise<IApiResponse> {
+    try {
+        let convert: ((amount: number) => number) | undefined;
+        let baseCurrency: CurrencyCode;
 
-            const { convert, baseCurrency } = await getCurrencyConverter(data.propertyId, data.currencyCode);
-
-            // let finalRestrictionValue = data.restrictionValue;
-            // if (data.restrictionType === 'restricted') {
-            //     finalRestrictionValue = null;
-            // }
-
-            // Generate all combinations of rooms x ratePlans
-            const geoRatePlanData: IGeoRatePlanCreate[] = [];
-            console.log(geoRatePlanData);
-            if (!data.rooms || data.rooms.length === 0) {
-                for (const ratePlan of data.ratePlans) {
-                    geoRatePlanData.push({
-                        propertyId: data.propertyId,
-                        roomId: null,
-                        roomType: null,
-                        ratePlanId: ratePlan.id,
-                        ratePlanCode: ratePlan.code,
-                        restrictionType: data.restrictionType,
-                        restrictionValue: data.restrictionType === "fixed" ? convert(Number(data.restrictionValue)) : data.restrictionValue,
-                        currencyCode: data.restrictionType === "fixed" ? baseCurrency : data.currencyCode,
-                        countryCode: data.countryCode,
-                        isActive: data.isActive ?? true,
-                        restrictionTypeAction: data.restrictionTypeAction
-                    });
-                }
-            } else {
-                for (const room of data.rooms) {
-                    for (const ratePlan of data.ratePlans) {
-                        geoRatePlanData.push({
-                            propertyId: data.propertyId,
-                            roomId: room.id,
-                            roomType: room.type,
-                            ratePlanId: ratePlan.id,
-                            ratePlanCode: ratePlan.code,
-                            restrictionType: data.restrictionType,
-                            restrictionValue: data.restrictionType === "fixed" ? convert(Number(data.restrictionValue)) : data.restrictionValue,
-                            currencyCode: data.restrictionType === "fixed" ? baseCurrency : data.currencyCode,
-                            countryCode: data.countryCode,
-                            isActive: data.isActive ?? true,
-                            restrictionTypeAction: data.restrictionTypeAction
-                        });
-                    }
-                }
-            }
-
-            const daoRes = await this.geoRatePlanRepository.createGeoRatePlan(geoRatePlanData);
-            console.log("Dao Response:", daoRes);
-            return successResponse(
-                `Successfully created geo rate plan`,
-            );
-        } catch (error) {
-            if (error instanceof Error) {
-                return errorResponse('Failed to create geo rate plans', error?.message);
-            }
-            return errorResponse('Failed to create geo rate plans');
+        if (data.restrictionType === "fixed") {
+            const currencyData = await getCurrencyConverter(data.propertyId, data.currencyCode);
+            convert = currencyData.convert;
+            baseCurrency = currencyData.baseCurrency;
         }
+
+        // Build combinations to check for duplicates
+        const combinations: { roomId: string | null; ratePlanId: string }[] = [];
+
+        if (!data.rooms || data.rooms.length === 0) {
+            for (const ratePlan of data.ratePlans) {
+                combinations.push({ roomId: null, ratePlanId: ratePlan.id });
+            }
+        } else {
+            for (const room of data.rooms) {
+                for (const ratePlan of data.ratePlans) {
+                    combinations.push({ roomId: room.id, ratePlanId: ratePlan.id });
+                }
+            }
+        }
+
+        // Check for duplicates before inserting
+        const duplicates = await this.geoRatePlanRepository.checkDuplicates(
+            data.propertyId,
+            data.countryCode,
+            combinations
+        );
+
+        if (duplicates.length > 0) {
+            const detail = duplicates
+                .map(d => `ratePlanId: ${d.ratePlanId}, roomId: ${d.roomId ?? 'N/A'}`)
+                .join(' | ');
+            return errorResponse(
+                'Duplicate geo rate plans found for this country',
+                `The following combinations already exist: ${detail}`
+            );
+        }
+
+        // Build the data array
+        const geoRatePlanData: IGeoRatePlanCreate[] = combinations.map(({ roomId, ratePlanId }) => {
+            const room = data.rooms?.find(r => r.id === roomId);
+            const ratePlan = data.ratePlans.find(rp => rp.id === ratePlanId)!;
+            return {
+                propertyId: data.propertyId,
+                roomId: roomId,
+                roomType: room?.type ?? null,
+                ratePlanId: ratePlan.id,
+                ratePlanCode: ratePlan.code,
+                restrictionType: data.restrictionType,
+                restrictionValue: data.restrictionType === "fixed" ? convert!(Number(data.restrictionValue)) : data.restrictionValue,
+                currencyCode: data.restrictionType === "fixed" ? baseCurrency! : data.currencyCode,
+                countryCode: data.countryCode,
+                isActive: data.isActive ?? true,
+                restrictionTypeAction: data.restrictionTypeAction
+            };
+        });
+
+        await this.geoRatePlanRepository.createGeoRatePlan(geoRatePlanData);
+        return successResponse(`Successfully created geo rate plan`);
+    } catch (error) {
+        if (error instanceof Error) {
+            return errorResponse('Failed to create geo rate plans', error?.message);
+        }
+        return errorResponse('Failed to create geo rate plans');
     }
+}
     public async getGeoRatePlansByPropertyId(
         propertyId: string,
         filters?: IGeoRatePlanFilter
