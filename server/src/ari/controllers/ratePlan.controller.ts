@@ -209,7 +209,8 @@ export class RatePlanController {
         startDate,
         endDate,
         baseGuestAmounts,
-        additionalGuestAmounts
+        additionalGuestAmounts,
+        currencyCode
       } = req.body;
 
       // Validation
@@ -232,7 +233,8 @@ export class RatePlanController {
         new Date(startDate),
         new Date(endDate),
         baseGuestAmounts,
-        additionalGuestAmounts || []
+        additionalGuestAmounts || [],
+        currencyCode
       );
 
       const statusCode = response.success ? 200 : 400;

@@ -175,7 +175,8 @@ public static async updateOrCreateRatePlanCharges(
   startDate: Date,
   endDate: Date,
   baseGuestAmounts: any[],
-  additionalGuestAmounts: any[]
+  additionalGuestAmounts: any[],
+  currencyCode?: any
 ) {
   try {
     const result = await RatePlanRepository.updateOrCreateChargesForDateRange(
@@ -185,7 +186,8 @@ public static async updateOrCreateRatePlanCharges(
       startDate,
       endDate,
       baseGuestAmounts,
-      additionalGuestAmounts
+      additionalGuestAmounts,
+      currencyCode
     );
 
     if (result) {

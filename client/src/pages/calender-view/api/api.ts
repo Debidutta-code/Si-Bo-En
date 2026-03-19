@@ -64,6 +64,7 @@ export async function updateRatePlanCharges(payload: {
     ageQualifyingCode: string;
     amount: number;
   }>;
+  currencyCode?: string;
 }) {
   const axiosInstance = createAxiosInstance();
   try {

@@ -27,17 +27,18 @@ export const handlePriceInputChange = (
   priceEdits: Map<string, PriceEdit>,
   pendingChanges: Set<string>,
   setPriceEdits: (edits: Map<string, PriceEdit>) => void,
-  setPendingChanges: (changes: Set<string>) => void
+  setPendingChanges: (changes: Set<string>) => void,
+  ageQualifyingCode?: string
 ) => {
-  const key = generateKey.price(roomType, ratePlan, dayIndex, numberOfGuests);
+  const key = generateKey.price(roomType, ratePlan, dayIndex, numberOfGuests, ageQualifyingCode);
   const newEdits = new Map(priceEdits);
   const newPending = new Set(pendingChanges);
 
   if (value === "") {
-    newEdits.set(key, { roomType, ratePlan, dayIndex, value: "", numberOfGuests });
+    newEdits.set(key, { roomType, ratePlan, dayIndex, value: "", numberOfGuests, ageQualifyingCode });
     newPending.add(key);
   } else {
-    newEdits.set(key, { roomType, ratePlan, dayIndex, value, numberOfGuests });
+    newEdits.set(key, { roomType, ratePlan, dayIndex, value, numberOfGuests, ageQualifyingCode });
     newPending.add(key);
   }
 
@@ -87,9 +88,10 @@ export const applyPriceToRow = (
   priceEdits: Map<string, PriceEdit>,
   pendingChanges: Set<string>,
   setPriceEdits: (edits: Map<string, PriceEdit>) => void,
-  setPendingChanges: (changes: Set<string>) => void
+  setPendingChanges: (changes: Set<string>) => void,
+  ageQualifyingCode?: string
 ) => {
-  const key = generateKey.price(roomType, ratePlan, dayIndex, numberOfGuests);
+  const key = generateKey.price(roomType, ratePlan, dayIndex, numberOfGuests, ageQualifyingCode);
   const edit = priceEdits.get(key);
 
   if (!edit || !edit.value) return;
@@ -99,13 +101,14 @@ export const applyPriceToRow = (
 
   days.forEach((_, index) => {
     if (index >= dayIndex) { 
-    const rowKey = generateKey.price(roomType, ratePlan, index, numberOfGuests);
+    const rowKey = generateKey.price(roomType, ratePlan, index, numberOfGuests, ageQualifyingCode);
     newEdits.set(rowKey, {
       roomType,
       ratePlan,
       dayIndex: index,
       value: edit.value,
       numberOfGuests,
+      ageQualifyingCode,
     });
     newPending.add(rowKey);
   }
@@ -179,11 +182,19 @@ export const validatePricingBeforeSave = (
   const firstDayData = getRatePlanDetails(days[0], roomType, ratePlan);
   const existingTiers = firstDayData?.ratePlan?.prices?.[0]?.baseByGuestAmts || [];
 
-  const allTiers = [...existingTiers.map(t => t.numberOfGuests)];
-  customData.baseGuests.forEach(num => {
-    if (!allTiers.includes(num)) allTiers.push(num);
+  const allTiersMap = new Map<string, { numberOfGuests: number; ageQualifyingCode: string }>();
+  existingTiers.forEach((t: any) => {
+    const ageCode = t.ageQualifyingCode || "10";
+    allTiersMap.set(`${t.numberOfGuests}-${ageCode}`, { numberOfGuests: t.numberOfGuests, ageQualifyingCode: ageCode });
   });
-  allTiers.sort((a, b) => a - b);
+  customData.baseGuests.forEach((num: number) => {
+    const ageCode = "10";
+    if (!allTiersMap.has(`${num}-${ageCode}`)) {
+      allTiersMap.set(`${num}-${ageCode}`, { numberOfGuests: num, ageQualifyingCode: ageCode });
+    }
+  });
+  const allTiers = Array.from(allTiersMap.values());
+  allTiers.sort((a, b) => a.numberOfGuests - b.numberOfGuests);
 
   const existingCharges = firstDayData?.ratePlan?.prices?.[0]?.additionalGuestAmounts || [];
   const allChargeIds = new Set<string>();
@@ -198,7 +209,7 @@ export const validatePricingBeforeSave = (
   // Validate new guest tiers
   for (const tierNum of customData.baseGuests) {
     for (let dayIndex = 0; dayIndex < days.length; dayIndex++) {
-      const tierKey = generateKey.price(roomType, ratePlan, dayIndex, tierNum);
+      const tierKey = generateKey.price(roomType, ratePlan, dayIndex, tierNum, "10");
       const tierEdit = priceEdits.get(tierKey);
 
       if (!tierEdit || tierEdit.value === "" || tierEdit.value === undefined) {
@@ -242,14 +253,14 @@ export const validatePricingBeforeSave = (
     const hadOccupancyData = (originalData?.ratePlan?.prices?.[0]?.baseByGuestAmts?.length || 0) > 0;
 
     if (!hadOccupancyData) {
-      for (const tierNum of allTiers) {
-        const tierKey = generateKey.price(roomType, ratePlan, dayIndex, tierNum);
+      for (const tier of allTiers) {
+        const tierKey = generateKey.price(roomType, ratePlan, dayIndex, tier.numberOfGuests, tier.ageQualifyingCode);
         const tierEdit = priceEdits.get(tierKey);
 
         if (!tierEdit || tierEdit.value === "" || tierEdit.value === undefined) {
           return {
             isValid: false,
-            error: `Please complete all pricing tiers (${tierNum} Guest${tierNum > 1 ? 's' : ''}) for ${day.month.slice(0, 3)} ${day.date} before saving`
+            error: `Please complete all pricing tiers (${tier.numberOfGuests} Guest${tier.numberOfGuests > 1 ? 's' : ''}) for ${day.month.slice(0, 3)} ${day.date} before saving`
           };
         }
       }
@@ -314,11 +325,11 @@ export const savePriceChanges = async (
   try {
     // Group edits by date
     const editsByDate = new Map<number, {
-      baseGuests: Map<number, number>;
+      baseGuests: Map<string, { numberOfGuests: number; amountBeforeTax: number; ageQualifyingCode: string }>;
       additionalCharges: Map<string, number>;
     }>();
 
-    relevantEdits.forEach(([_key, edit]) => {
+    relevantEdits.forEach(([key, edit]) => {
       if (!editsByDate.has(edit.dayIndex)) {
         editsByDate.set(edit.dayIndex, {
           baseGuests: new Map(),
@@ -328,14 +339,21 @@ export const savePriceChanges = async (
 
       const dayData = editsByDate.get(edit.dayIndex)!;
 
-      if (edit.ageQualifyingCode) {
-        // ✅ FIXED: Extract actual age code properly
-        const ageCode = extractAgeCode(edit.ageQualifyingCode);
+      if (key.includes('-additional-')) {
+        // This is an additional charge edit
+        const ageCode = extractAgeCode(edit.ageQualifyingCode!);
         const amount = edit.value === "" ? 0 : parseFloat(edit.value) || 0;
         dayData.additionalCharges.set(ageCode, amount);
       } else if (edit.numberOfGuests) {
         const price = edit.value === "" ? 0 : parseFloat(edit.value) || 0;
-        dayData.baseGuests.set(edit.numberOfGuests, price);
+        const ageCode = edit.ageQualifyingCode || "10";
+        // Use composite key of numberOfGuests+ageCode to distinguish adult vs child
+        const compositeKey = `${edit.numberOfGuests}-${ageCode}`;
+        dayData.baseGuests.set(compositeKey, {
+          numberOfGuests: edit.numberOfGuests,
+          amountBeforeTax: price,
+          ageQualifyingCode: ageCode,
+        });
       }
     });
 
@@ -346,7 +364,7 @@ export const savePriceChanges = async (
     const dateRanges: Array<{
       startIndex: number;
       endIndex: number;
-      data: { baseGuests: Map<number, number>; additionalCharges: Map<string, number> };
+      data: { baseGuests: Map<string, { numberOfGuests: number; amountBeforeTax: number; ageQualifyingCode: string }>; additionalCharges: Map<string, number> };
     }> = [];
 
     let currentRange: typeof dateRanges[0] | null = null;
@@ -362,7 +380,7 @@ export const savePriceChanges = async (
         };
       } else {
         const isSameStructure = 
-          areMapsEqual(currentRange.data.baseGuests, dayData.baseGuests) &&
+          areMapsEqualDeep(currentRange.data.baseGuests, dayData.baseGuests) &&
           areMapsEqual(currentRange.data.additionalCharges, dayData.additionalCharges);
 
         if (dayIndex === currentRange.endIndex + 1 && isSameStructure) {
@@ -397,34 +415,53 @@ export const savePriceChanges = async (
       const existingTiers = firstDayData?.ratePlan?.prices?.[0]?.baseByGuestAmts || [];
       const existingAdditional = firstDayData?.ratePlan?.prices?.[0]?.additionalGuestAmounts || [];
 
-      // ✅ Build complete list of all guest tiers
-      const allTierNumbers = new Set<number>();
-      existingTiers.forEach((t: any) => allTierNumbers.add(t.numberOfGuests));
-      customData.baseGuests.forEach((num: number) => allTierNumbers.add(num));
-      range.data.baseGuests.forEach((_, num) => allTierNumbers.add(num));
+      // ✅ Build complete list of all guest tiers using composite key (numberOfGuests-ageCode)
+      const allTierKeys = new Map<string, { numberOfGuests: number; ageQualifyingCode: string }>();
+      existingTiers.forEach((t: any) => {
+        const key = `${t.numberOfGuests}-${t.ageQualifyingCode || "10"}`;
+        allTierKeys.set(key, { numberOfGuests: t.numberOfGuests, ageQualifyingCode: t.ageQualifyingCode || "10" });
+      });
+      customData.baseGuests.forEach((num: number) => {
+        const key = `${num}-10`;
+        if (!allTierKeys.has(key)) {
+          allTierKeys.set(key, { numberOfGuests: num, ageQualifyingCode: "10" });
+        }
+      });
+      range.data.baseGuests.forEach((editData, compositeKey) => {
+        if (!allTierKeys.has(compositeKey)) {
+          allTierKeys.set(compositeKey, { numberOfGuests: editData.numberOfGuests, ageQualifyingCode: editData.ageQualifyingCode });
+        }
+      });
 
-      const allTiers = Array.from(allTierNumbers).sort((a, b) => a - b);
-
-      const baseGuestAmounts = allTiers.map(numberOfGuests => {
-        const editedPrice = range.data.baseGuests.get(numberOfGuests);
-        if (editedPrice !== undefined) {
-          return { numberOfGuests, amountBeforeTax: editedPrice };
+      const baseGuestAmounts = Array.from(allTierKeys.entries()).map(([compositeKey, tierInfo]) => {
+        // Check if we have an edit for this tier
+        const editData = range.data.baseGuests.get(compositeKey);
+        if (editData !== undefined) {
+          return {
+            numberOfGuests: editData.numberOfGuests,
+            ageQualifyingCode: editData.ageQualifyingCode,
+            amountBeforeTax: editData.amountBeforeTax,
+          };
         }
         
-        const existingTier = existingTiers.find((t: any) => t.numberOfGuests === numberOfGuests);
+        // Fallback to existing data
+        const existingTier = existingTiers.find((t: any) =>
+          t.numberOfGuests === tierInfo.numberOfGuests &&
+          (t.ageQualifyingCode || "10") === tierInfo.ageQualifyingCode
+        );
         if (existingTier) {
           return {
-            numberOfGuests,
-            ageQualifyingCode: existingTier.ageQualifyingCode,
-            amountBeforeTax: existingTier.amountBeforeTax
+            numberOfGuests: existingTier.numberOfGuests,
+            ageQualifyingCode: existingTier.ageQualifyingCode || "10",
+            amountBeforeTax: existingTier.amountBeforeTax,
           };
         }
 
         // If neither exists (new tier), use 0
-        // console.log(`🆕 New tier ${numberOfGuests} guests with default price: $0`);
         return {
-          numberOfGuests,
-          amountBeforeTax: 0
+          numberOfGuests: tierInfo.numberOfGuests,
+          ageQualifyingCode: tierInfo.ageQualifyingCode,
+          amountBeforeTax: 0,
         };
       });
 
@@ -478,17 +515,22 @@ export const savePriceChanges = async (
       //   baseGuestAmounts,
       //   additionalGuestAmounts
       // });
+      
+      const currencyCode = getRatePlanDetails(days[0], roomType, ratePlan)?.currencyCode || "USD";
 
-      // Call API
-      return updateRatePlanChargesService({
+      const payload = {
         propertyCode,
         roomTypeCode: roomType,
         ratePlanCode: ratePlan,
         startDate,
         endDate,
         baseGuestAmounts,
-        additionalGuestAmounts: additionalGuestAmounts.length > 0 ? additionalGuestAmounts : undefined
-      });
+        additionalGuestAmounts: additionalGuestAmounts.length > 0 ? additionalGuestAmounts : undefined,
+        currencyCode
+      };
+
+      // Call API
+      return updateRatePlanChargesService(payload);
     });
 
     const results = await Promise.all(promises);
@@ -555,12 +597,25 @@ function extractAgeCode(chargeId: string): string {
   return chargeId.split('-')[0];
 }
 
-// Helper function to compare Maps
+// Helper function to compare Maps with primitive values
 function areMapsEqual<K, V>(map1: Map<K, V>, map2: Map<K, V>): boolean {
   if (map1.size !== map2.size) return false;
   
   for (const [key, value] of map1) {
     if (!map2.has(key) || map2.get(key) !== value) {
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+// Helper function to compare Maps with object values (deep comparison)
+function areMapsEqualDeep<K, V>(map1: Map<K, V>, map2: Map<K, V>): boolean {
+  if (map1.size !== map2.size) return false;
+  
+  for (const [key, value] of map1) {
+    if (!map2.has(key) || JSON.stringify(map2.get(key)) !== JSON.stringify(value)) {
       return false;
     }
   }

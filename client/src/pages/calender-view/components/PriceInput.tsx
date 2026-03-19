@@ -10,11 +10,11 @@ interface PriceInputProps {
   currentPrice: number | string;
   currencyCode: string;
   numberOfGuests?: number;
-  ageQualifyingCode?: string;
+  ageQualifyingCode: string;
   showOnlyInput?: boolean;
   priceEdits: Map<string, any>;
   pendingChanges: Set<string>;
-  generateKey: (roomType: string, ratePlan: string, dayIndex: number, numberOfGuests?: number) => string;
+  generateKey: (roomType: string, ratePlan: string, dayIndex: number, numberOfGuests?: number, ageQualifyingCode?: string) => string;
   onPriceChange: (roomType: string, ratePlan: string, dayIndex: number, value: string, numberOfGuests?: number, ageQualifyingCode?: string) => void;
   onApplyToRow: (roomType: string, ratePlan: string, dayIndex: number, numberOfGuests?: number, ageQualifyingCode?: string) => void;
   // ✅ Commission data directly from API response
@@ -39,7 +39,7 @@ export const PriceInput: React.FC<PriceInputProps> = ({
   commissionAmount = 0,
   totalAfterCommission = 0,
 }) => {
-  const key = generateKey(roomType, ratePlan, dayIndex, numberOfGuests);
+  const key = generateKey(roomType, ratePlan, dayIndex, numberOfGuests, ageQualifyingCode);
   const edit = priceEdits.get(key);
 
   const numericPrice = typeof currentPrice === 'string' 
@@ -102,7 +102,7 @@ export const PriceInput: React.FC<PriceInputProps> = ({
           min="0"
           step="0.01"
           value={displayValue}
-          onChange={(e) => onPriceChange(roomType, ratePlan, dayIndex, e.target.value, numberOfGuests)}
+          onChange={(e) => onPriceChange(roomType, ratePlan, dayIndex, e.target.value, numberOfGuests, ageQualifyingCode)}
           className={`w-14 h-7 text-center text-xs font-bold rounded border ${
             hasChanges ? "border-orange-400 bg-orange-50" : "border-gray-300"
           } focus:outline-none focus:ring-2 focus:ring-blue-400 hover:border-gray-400 transition-colors`}
@@ -111,7 +111,7 @@ export const PriceInput: React.FC<PriceInputProps> = ({
         <span className="text-[10px] text-gray-600">{currencyCode}</span>
         {edit && (
           <button
-            onClick={() => onApplyToRow(roomType, ratePlan, dayIndex, numberOfGuests)}
+            onClick={() => onApplyToRow(roomType, ratePlan, dayIndex, numberOfGuests, ageQualifyingCode)}
             className="p-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
             title="Apply to entire row"
           >

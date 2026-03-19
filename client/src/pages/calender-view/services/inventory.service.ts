@@ -74,6 +74,7 @@ export async function updateRatePlanChargesService(payload: {
     ageQualifyingCode: string;
     amount: number;
   }>;
+  currencyCode?: string;
 }) {
   // Validation
   if (!payload.propertyCode) {

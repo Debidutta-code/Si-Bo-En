@@ -345,7 +345,8 @@ export class RatePlanRepository {
     startDate: Date,
     endDate: Date,
     baseGuestAmounts: any[],
-    additionalGuestAmounts: any[]
+    additionalGuestAmounts: any[],
+    currencyCode?: any
   ): Promise<{ updated: number; created: number; dates: string[] }> {
     try {
       // First, fetch the rate plan and room type names
@@ -432,10 +433,12 @@ export class RatePlanRepository {
           await prisma.charge.update({
             where: { id: existingChargeId },
             data: {
+              ...(currencyCode && { currencyCode }),
               baseGuestAmounts: {
                 create: baseGuestAmounts.map((guest) => ({
                   numberOfGuests: guest.numberOfGuests,
                   amountBeforeTax: guest.amountBeforeTax,
+                  ageQualifyingCode: guest.ageQualifyingCode,
                 })),
               },
               additionalGuestAmounts: {
@@ -458,11 +461,13 @@ export class RatePlanRepository {
               ratePlanCode,
               ratePlanName, // ✅ Added
               roomTypeName, // ✅ Added
+              ...(currencyCode && { currencyCode }),
               date: new Date(date),
               baseGuestAmounts: {
                 create: baseGuestAmounts.map((guest) => ({
                   numberOfGuests: guest.numberOfGuests,
                   amountBeforeTax: guest.amountBeforeTax,
+                  ageQualifyingCode: guest.ageQualifyingCode,
                 })),
               },
               additionalGuestAmounts: {
