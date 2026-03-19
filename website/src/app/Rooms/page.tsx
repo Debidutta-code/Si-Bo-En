@@ -372,14 +372,14 @@ const Rooms = () => {
       setLoyaltyProgram(propertyDetails?.loyaltyProgramConfig || null);
       const bookingEngineColor = propertyDetails?.bookingEngineConfig
         ? {
-            primaryColor: propertyDetails.bookingEngineConfig.primaryColor,
-            secondaryColor: propertyDetails.bookingEngineConfig.secondaryColor,
-            tertiaryColor: propertyDetails.bookingEngineConfig.tertiaryColor,
-            buttonTextColor:
-              propertyDetails.bookingEngineConfig.buttonTextColor,
-            bgImage: propertyDetails.bookingEngineConfig.bannerImage,
-            logo: propertyDetails.bookingEngineConfig.logo,
-          }
+          primaryColor: propertyDetails.bookingEngineConfig.primaryColor,
+          secondaryColor: propertyDetails.bookingEngineConfig.secondaryColor,
+          tertiaryColor: propertyDetails.bookingEngineConfig.tertiaryColor,
+          buttonTextColor:
+            propertyDetails.bookingEngineConfig.buttonTextColor,
+          bgImage: propertyDetails.bookingEngineConfig.bannerImage,
+          logo: propertyDetails.bookingEngineConfig.logo,
+        }
         : undefined;
 
       const updatedContext = {
@@ -695,16 +695,15 @@ const Rooms = () => {
     bookingContext?.PropertyDetails?.image?.[0];
 
   useEffect(() => {
-    if (!bgImage) return;
-
+    if (!bgImage) {
+      setLoaded(true); 
+      return;
+    }
     setLoaded(false);
     const img = new Image();
     img.src = bgImage;
     img.onload = () => setLoaded(true);
-    img.onerror = () => {
-      console.error("Failed to load background image:", bgImage);
-      setLoaded(true);
-    };
+    img.onerror = () => setLoaded(true);
   }, [bgImage]);
 
   const { primaryColor } = useBookingColors();
@@ -839,9 +838,8 @@ const Rooms = () => {
         </div>
       )}
       <div
-        className={`min-h-screen bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${
-          loaded ? "opacity-100" : "opacity-0"
-        }`}
+        className={`min-h-screen bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${loaded ? "opacity-100" : "opacity-0"
+          }`}
         onLoad={() => setLoaded(true)}
       >
         <div className=" z-40 bg-white/90 backdrop-blur shadow-sm">
@@ -999,8 +997,8 @@ const Rooms = () => {
                       {t("Rooms.noRoomsHotel")}
                     </div>
                   ) : roomsData.filter(
-                      (room: Room) => room.hasValidRate === true,
-                    ).length === 0 ? (
+                    (room: Room) => room.hasValidRate === true,
+                  ).length === 0 ? (
                     <div className="text-center py-10 text-gray-600 text-lg font-medium">
                       {t("Rooms.noRooms")}
                     </div>
