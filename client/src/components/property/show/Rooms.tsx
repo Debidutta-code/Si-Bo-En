@@ -78,7 +78,6 @@ export default function Rooms({ propertyId }: PropertyId) {
     roomName: "",
     roomType: "",
     totalRoom: 0,
-    roomView: "others",
     floor: 0,
     roomSize: 0,
     roomUnit: "sqft",
@@ -97,7 +96,13 @@ export default function Rooms({ propertyId }: PropertyId) {
       url: "",
       thumbnail: "",
     },
-    priority: 0
+    priority: 0,
+    RoomViews:{
+      MasterRoomView:{
+        id:"",
+        viewName:""
+      }
+    }
   });
   const [isDeletingVideo, setIsDeletingVideo] = useState<boolean>(false);
 
@@ -418,7 +423,27 @@ export default function Rooms({ propertyId }: PropertyId) {
                                 className="w-full justify-start px-2 py-1.5 h-auto font-normal"
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  setRoomDetails(room);
+                                  setRoomDetails({
+                                    roomName: room.roomName,
+                                    roomType: room.roomType,
+                                    totalRoom: room.totalRoom,
+                                    floor: room.floor,
+                                    roomSize: room.roomSize,
+                                    roomUnit: room.roomUnit,
+                                    smokingPolicy: room.smokingPolicy,
+                                    maxOccupancy: room.maxOccupancy,
+                                    maxNumberOfAdults: room.maxNumberOfAdults,
+                                    maxNumberOfChildren: room.maxNumberOfChildren,
+                                    numberOfBedrooms: room.numberOfBedrooms,
+                                    numberOfLivingRoom: room.numberOfLivingRoom,
+                                    extraBed: room.extraBed,
+                                    description: room.description,
+                                    image: room.image,
+                                    available: room.available,
+                                    view360Link: room.view360Link,
+                                    roomVideos: room.roomVideos,
+                                    priority: room.priority,
+                                  });
                                 }}
                               >
                                 <PenTool className="h-4 w-4 mr-2" />
@@ -613,7 +638,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                           Room View
                         </label>
                         <p className="text-sm text-gray-900">
-                          {room.roomView || "—"}
+                          {room.RoomViews?.MasterRoomView?.viewName || "—"}
                         </p>
                       </div>
 
@@ -829,7 +854,6 @@ export default function Rooms({ propertyId }: PropertyId) {
                         roomType: "",
                         totalRoom: 0,
                         floor: 0,
-                        roomView: "others",
                         roomSize: 0,
                         roomUnit: "sqm",
                         smokingPolicy: "designated_area",

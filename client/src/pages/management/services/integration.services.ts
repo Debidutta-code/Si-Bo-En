@@ -13,7 +13,7 @@ export const createMasterIntegrationService = async (
   data: ICMasterIntegrationsS
 ): Promise<ApiResponse<IMasterIntegrations>> => {
   try {
-    const response = await axiosInstance().post("/property-management/property/management/integration-partner", data);
+    const response = await axiosInstance().post("/utils-management/integration-partner", data);
     return response.data;
   } catch (error: any) {
     return {
@@ -25,7 +25,7 @@ export const createMasterIntegrationService = async (
 
 export const getAllMasterIntegrationsService = async (): Promise<ApiResponse<IMasterIntegrations[]>> => {
   try {
-    const response = await axiosInstance().get("/property-management/property/management/integration-partner");
+    const response = await axiosInstance().get("/utils-management/integration-partner");
     return response.data;
   } catch (error: any) {
     return {
@@ -38,7 +38,7 @@ export const getAllMasterIntegrationsService = async (): Promise<ApiResponse<IMa
 
 export const deleteMasterIntegrationService = async (id: string): Promise<ApiResponse> => {
   try {
-    const response = await axiosInstance().delete(`/property-management/property/management/integration-partner/${id}`);
+    const response = await axiosInstance().delete(`/utils-management/integration-partner/${id}`);
     return response.data;
   } catch (error: any) {
     return {
@@ -53,7 +53,7 @@ export const addUrlFieldService = async (
   data: ICMasterIntegrationUrlFields & { masterIntegrationId: string }
 ): Promise<ApiResponse> => {
   try {
-    const response = await axiosInstance().post("/property-management/property/management/integration-partner/url-fields", data);
+    const response = await axiosInstance().post("/utils-management/integration-partner/url-fields", data);
     return response.data;
   } catch (error: any) {
     return {
@@ -65,7 +65,7 @@ export const addUrlFieldService = async (
 
 export const deleteUrlFieldService = async (id: string): Promise<ApiResponse> => {
   try {
-    const response = await axiosInstance().delete(`/property-management/property/management/integration-partner/url-fields/${id}`);
+    const response = await axiosInstance().delete(`/utils-management/integration-partner/url-fields/${id}`);
     return response.data;
   } catch (error: any) {
     return {
@@ -80,7 +80,7 @@ export const addRequiredFieldService = async (
   data: ICMasterIntegrationIntegrationFields & { masterIntegrationId: string }
 ): Promise<ApiResponse> => {
   try {
-    const response = await axiosInstance().post("/property-management/property/management/integration-partner/required-fields", data);
+    const response = await axiosInstance().post("/utils-management/integration-partner/required-fields", data);
     return response.data;
   } catch (error: any) {
     return {
@@ -92,7 +92,7 @@ export const addRequiredFieldService = async (
 
 export const deleteRequiredFieldService = async (id: string): Promise<ApiResponse> => {
   try {
-    const response = await axiosInstance().delete(`/property-management/property/management/integration-partner/required-fields/${id}`);
+    const response = await axiosInstance().delete(`/utils-management/integration-partner/required-fields/${id}`);
     return response.data;
   } catch (error: any) {
     return {

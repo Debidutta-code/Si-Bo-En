@@ -4,13 +4,17 @@ import { AminityServices, CategoryService } from "../services";
 import { Response } from "express";
 
 export class AminityController {
-  public static async createAminity(req: CustomRequest, res: Response) {
+  private aminityServices: AminityServices;
+  constructor() {
+    this.aminityServices = new AminityServices();
+  }
+  public  async createAminity(req: CustomRequest, res: Response) {
     try {
       const { amenities } = req.body;
       if (!amenities || amenities.length == 0) {
         return res.status(400).json(errorResponse('Aminity is empty'));
       }
-      const serRes = await AminityServices.createCategory(amenities);
+      const serRes = await this.aminityServices.createCategory(amenities);
       if (serRes.success) {
         return res.status(200).json(serRes);
       } else {
@@ -22,10 +26,10 @@ export class AminityController {
         .json(errorResponse('Internal Server Error', error?.message));
     }
   }
-  public static async getAmenities(req: CustomRequest, res: Response) {
+  public  async getAmenities(req: CustomRequest, res: Response) {
     try {
       const type=req.query.type as string | "property"
-      const serRes = await AminityServices.getCategory(type);
+      const serRes = await this.aminityServices.getCategory(type);
       if (serRes.success) {
         return res.status(200).json(serRes);
       } else {
@@ -37,7 +41,7 @@ export class AminityController {
         .json(errorResponse('Internal Server Error', error?.message));
     }
   }
-  public static async deleteAmenities(req: CustomRequest, res: Response) {
+  public  async deleteAmenities(req: CustomRequest, res: Response) {
     try {
       const { amenities } = req.body;
       if (!amenities) {
@@ -45,7 +49,7 @@ export class AminityController {
           .status(400)
           .json(errorResponse('Aminity is required to delete'));
       }
-      const serRes = await AminityServices.deleteCategory(amenities);
+      const serRes = await this.aminityServices.deleteCategory(amenities);
       if (serRes.success) {
         return res.status(200).json(serRes);
       } else {

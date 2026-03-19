@@ -21,7 +21,7 @@ model Room {
   image              String[]
   available          Boolean  @default(true)
   isDeleted          Boolean  @default(false) @map("is_deleted")
-
+  RoomViews          MRoomView?
   property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   propertyId String   @map("property_id")
 

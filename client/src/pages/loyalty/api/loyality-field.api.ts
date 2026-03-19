@@ -4,7 +4,7 @@ const axiosInstance = createAxiosInstance();
 
 export const getAllFields = async () => {
     try {
-        const response = await axiosInstance.get("/property-management/property/management/loyalty-guest-field");
+        const response = await axiosInstance.get("/utils-management/loyalty-guest-field");
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {

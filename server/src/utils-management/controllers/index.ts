@@ -5,3 +5,4 @@ export * from "./payment-integration.controller";
 export * from "./property-type.controller";
 export * from "./room-amenity.controller";
 export * from "./property-amenity.controller";
+export * from "./room-view.controller";

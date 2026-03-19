@@ -4,7 +4,7 @@ import { getCustomCreationId, getUsersForMapping, updateCreationService } from "
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
-import type { IBrandDetails, ICcreations, ICreation,  ICustomManagersMapping, IUpdateCreation } from '../types/types';
+import type { IBrandDetails, ICcreations, ICreation, ICustomManagersMapping, IUpdateCreation } from '../types/types';
 import Loader from '@/components/Loader/Loader';
 import CreateEntityDialog from '@/components/creation/creationDialog';
 import BackButton from '@/components/shared/BackButton';
@@ -171,18 +171,18 @@ export default function Custom() {
             images: prev.images.filter((_, i) => i !== index)
         }));
     };
-  const getCurrentData = (): ICreation[] => {
-    switch (currentTab) {
-      case "group":
-        return creations.groups;
-      case "brand":
-        return creations.brands;
-      case "property":
-        return creations.properties;
-      default:
-        return [];
-    }
-  };
+    const getCurrentData = (): ICreation[] => {
+        switch (currentTab) {
+            case "group":
+                return creations.groups;
+            case "brand":
+                return creations.brands;
+            case "property":
+                return creations.properties;
+            default:
+                return [];
+        }
+    };
     const handleUpdateCustom = async () => {
         if (!creationId) {
             toast.error('Invalid Custom Details');
@@ -201,17 +201,17 @@ export default function Custom() {
             toast.error('Failed to update brand');
         }
     };
-      const currentData = getCurrentData();
+    const currentData = getCurrentData();
 
     return (
         <div className="space-y-6 p-4">
             <BackButton />
-<div>
-          <h1 className="text-2xl font-bold text-gray-900">Hotels & Properties</h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Manage all your hotel properties and their performance
-          </p>
-        </div>
+            <div>
+                <h1 className="text-2xl font-bold text-gray-900">Hotels & Properties</h1>
+                <p className="text-sm text-gray-600 mt-1">
+                    Manage all your hotel properties and their performance
+                </p>
+            </div>
 
             {/* Actions Bar with Dropdown */}
             <div className="flex justify-between items-center">
@@ -431,7 +431,7 @@ export default function Custom() {
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        className={`${item.type === "property" ? item.property?.isDraft && "flex-1" : "flex-1"}`}
+                                        className={`${item.type === "property" ? item.property?.isDraft ? "flex-1" : "hidden" : "flex-1"}`}
                                         onClick={() => {
                                             item.type != "property" ?
                                                 navigate(`/app/property/${currentTab}/${item.id}`) :
@@ -441,18 +441,23 @@ export default function Custom() {
                                         View Details
                                     </Button>
                                     {
-                                        item.type == "property" && (
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                className={`${item.type === "property" && !item.property?.isDraft && "flex-1"}`}
+                    item.type == "property" && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className={`${item.type === "property" && !item.property?.isDraft && "flex-1"}`}
 
-                                                onClick={() => navigate(`/app/property/${currentTab}/${item.id}`)}
-                                            >
-                                                <Settings className="h-4 w-4" />
-                                            </Button>
-                                        )
-                                    }
+                        onClick={() => navigate(`/app/property/${currentTab}/${item.id}`)}
+                      >
+                        <Settings className="h-4 w-4" />
+                        {!item.property?.isDraft &&
+
+                        <span className="ml-2">{!item.property?.isDraft && "Complete Setup"}</span>
+                        }
+                        
+                      </Button>
+                    )
+                  }
                                 </div>
                             </div>
                         ))}
