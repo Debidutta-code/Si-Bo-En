@@ -33,19 +33,20 @@ export default function RoomAmenities({
       try {
         const res = await getAmenities("room");
         if (res.success && Array.isArray(res.data)) {
-          const allAmenities = res.data
-          const cleanedAmenities = allAmenities
-            .map((name: {amenityName:string}) => name.amenityName)
-            // console.log("Cleaned Amenities:", cleanedAmenities);
+          const cleanedAmenities = res.data
+            .map((a: { amenityName: string }) => a.amenityName)
+            .filter(Boolean);
+
           setAvailableAmenities(cleanedAmenities);
-          
-          propAvailableAmenities.forEach((selectedName: string) => {
-            if (cleanedAmenities.hasOwnProperty(selectedName)) {
-              cleanedAmenities[selectedName] = true;
-            }
-          });
-          // setSelectedAmenities(cleanedAmenities);
-          // propSetSelectedAmenities(cleanedAmenities);
+
+          // Build initial selected state based on propAvailableAmenities (already selected names)
+          const initialSelected: AmenityState = {};
+          for (const name of cleanedAmenities) {
+            initialSelected[name] = propAvailableAmenities.includes(name);
+          }
+
+          setSelectedAmenities(initialSelected);
+          propSetSelectedAmenities(initialSelected);
         } else {
           setAvailableAmenities([]);
         }
@@ -59,7 +60,7 @@ export default function RoomAmenities({
       }
     };
     fetchAmenities();
-  }, []);
+  }, [propAvailableAmenities, propSetSelectedAmenities]);
 
 
   // --- TOGGLE HANDLER ---

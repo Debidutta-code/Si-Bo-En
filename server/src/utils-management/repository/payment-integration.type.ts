@@ -126,6 +126,7 @@ export class PaymentIntegrationDao {
         }
       });
     } catch (error) {
+      console.log("Error fetching property payment integrations:", error);
       throw new Error("Failed to fetch property payment integrations");
     }
   }

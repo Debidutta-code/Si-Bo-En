@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { z } from "zod";
+import {  z } from "zod";
 import toast from "react-hot-toast";
 import { usePropertyForm } from "@/contexts/PropertyFormContext";
 import {
@@ -38,6 +38,7 @@ import type {
 } from "./types/types";
 import Loader from "@/components/Loader/Loader";
 import { useSearchParams } from "react-router-dom";
+import { getCreationId } from "@/pages/property/api/api";
 
 // Zod Validation Schema
 const propertyInfoSchema = z.object({
@@ -80,26 +81,22 @@ export default function PropertyInfo() {
   const [propertyTypes, setPropertyTypes] = useState<IPropertyType[]>([]);
   const [propertyCategories, setPropertyCategories] = useState<IPropertyCategory[]>([]);
 
-  // State for UI feedback
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [modalOpen, setModalOpen] = useState<boolean>(false);
 
-  // This component's own "update" mode tracker
   const [isExistingData, setIsExistingData] = useState<boolean>(false);
   const [errors, setErrors] = useState<FormErrors | null>(null);
   const [searchParams] = useSearchParams();
   const creationId = searchParams.get("creationId");
-  // --- DATA FETCHING ---
-  // Effect to fetch dropdown data once on mount
   useEffect(() => {
     const fetchManagementDetails = async () => {
       try {
         const [categoryRes, typeRes] = await Promise.all([
           getAllCategory(),
           getAllPropertyType(),
+          getCreationPropertyDetails(creationId)
         ]);
-        // console.log(categoryRes.data, destRes.data, typeRes.data);
         if (categoryRes.success) setPropertyCategories(categoryRes.data);
         if (typeRes.success) setPropertyTypes(typeRes.data);
       } catch (error: any) {
@@ -108,8 +105,28 @@ export default function PropertyInfo() {
     };
     fetchManagementDetails();
   }, []);
-
-  // Effect to fetch existing property details if propertyId exists
+  const getCreationPropertyDetails = async (creationId: string|null) => {
+    if(!creationId) return;
+    setIsLoading(true);
+    try {
+      const response = await getCreationId(creationId);
+      if (response.success && response.data) {
+        setPropertyDetails({
+          ...propertyDetails,
+          propertyName:response.data.creation.name,
+          image: response.data.creation.images || [],
+        })
+      } else {
+        toast.error(response.message || "Could not find property details.");
+        setIsExistingData(false);
+      }
+    } catch (error: any) {
+      toast.error(error?.message || "Failed to fetch property details");
+      setIsExistingData(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
   useEffect(() => {
     const fetchPropertyData = async () => {
       if (!propertyId) {

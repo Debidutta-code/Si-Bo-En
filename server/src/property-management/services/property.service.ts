@@ -101,10 +101,24 @@ export class PropertyService {
     data: IUpdatePropertyData
   ) {
     try {
-      const daoRes = await PropertyDao.updatePropertyById(
-        propertyId,
-        data
-      );
+      const daoRes = await Promise.all([
+        PropertyDao.updatePropertyById(
+          propertyId,
+          data
+        ),
+        PropertyDao.updatePropertyCategory(
+          {
+            propertyId: propertyId,
+            masterCategoryId: data.propertyCategory.masterCategory.id
+          }
+        ),
+        PropertyDao.updatePropertyType(
+          {
+            propertyId: propertyId,
+            masterTypeId: data.propertyType.masterPropertyType.id
+          }
+        )
+      ]);
       if (daoRes) {
         return successResponse(
           'property details  updated successfully',
@@ -217,6 +231,7 @@ export class PropertyAminityService {
   ) {
     try {
       const daoRes = await PropertyAmenityDao.getActiveAmenities(propertyId);
+      console.log(daoRes)
       if (daoRes) {
         return successResponse('Property Aminity fetched successfully', daoRes);
       } else {
