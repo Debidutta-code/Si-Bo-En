@@ -557,8 +557,8 @@ export default function PropertyPage() {
                                 </Button>
                             </DropdownMenuItem>
 
-                            {user?.role === "super_admin" && propertyDetails?.id && (
-                                <DropdownMenuItem 
+                            {(user?.role === "super_admin" || user?.role === "regional_admin") && propertyDetails?.id && (
+                                <DropdownMenuItem
                                     onSelect={(e) => {
                                         e.preventDefault();
                                         setIsPropertyConfigDialogOpen(true);
