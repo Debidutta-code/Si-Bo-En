@@ -56,7 +56,7 @@ const propertyAddressSchema = z.object({
   landmark: z.string().optional(),
   zipCode: z
     .string()
-    .regex(/^\d{6}$/, "A valid 6-digit Indian PIN code is required."),
+    ,
   latitude: z.string().optional(),
   longitude: z.string().optional(),
 });

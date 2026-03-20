@@ -351,9 +351,9 @@ export default function PropertyDetails({
                 </span>
                 <span className="text-sm text-gray-900 font-medium text-right">
                   {propertyDetails.propertyCode.replace(/[A-Z0-9]/g, "*")}
-                <Button variant={"ghost"} size={"sm"} onClick={() => navigator.clipboard.writeText(propertyDetails.propertyCode || "")}>
-                  <Copy className="h-3.5 w-3.5" />
-                </Button>
+                  <Button variant={"ghost"} size={"sm"} onClick={() => navigator.clipboard.writeText(propertyDetails.propertyCode || "")}>
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
                 </span>
               </div>
             </div>
@@ -389,6 +389,18 @@ export default function PropertyDetails({
                 <span className="text-sm text-gray-900 font-medium text-right">
                   {propertyDetails.propertyCategory?.masterCategory?.categoryName || "Not specified"}
                 </span>
+              </div>
+              <div className="flex items-start justify-between py-3 border-b border-gray-100 last:border-0">
+                <span className="text-sm font-medium text-gray-600 flex items-center gap-2">
+                  <Tag className="h-4 w-4 text-gray-400" />
+                  Booking Engine Url
+                </span>
+                <a className="text-xs text-gray-900 font-medium text-right" target="_blank" rel="noopener noreferrer"
+                  href={`https://bookings.revchilltech.com/Rooms/?code=${propertyDetails.propertyCode}`}  
+                >
+
+                  {`https://bookings.revchilltech.com/Rooms/?code=${propertyDetails.propertyCode.replace(/[A-Z0-9]/g, "*")}`}
+                </a>
               </div>
             </div>
           </CardContent>

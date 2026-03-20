@@ -114,20 +114,39 @@ export default function PropertyInfo({
     fieldName: "propertyCategory" | "propertyType" | "destinationType",
     selectedValue: string
   ) => {
-    let selectedObject;
     if (fieldName === "propertyCategory") {
-      selectedObject = propertyCategories.find(
-        (cat) => cat.id === selectedValue
-      );
-    } else  {
-      selectedObject = propertyTypes.find((type) => type.id === selectedValue);
-    } 
+      const selected = propertyCategories.find((cat) => cat.id === selectedValue);
+      if (!selected) return;
 
-    if (selectedObject) {
       modifyPropertyDetails((prev) => ({
         ...prev,
-        [fieldName]: selectedObject,
+        propertyCategory: {
+          masterCategory: {
+            id: selected.id,
+            categoryName: selected.categoryName,
+            categoryDescription: (selected as any).categoryDescription ?? (selected as any).description ?? "",
+          },
+        },
       }));
+      return;
+    }
+
+    if (fieldName === "propertyType") {
+      const selected = propertyTypes.find((type) => type.id === selectedValue);
+      if (!selected) return;
+
+      modifyPropertyDetails((prev) => ({
+        ...prev,
+        propertyType: {
+          masterPropertyType: {
+            id: selected.id,
+            propertyTypeName: selected.propertyTypeName,
+            propertyTypeDescription:
+              (selected as any).propertyTypeDescription ?? (selected as any).description ?? "",
+          },
+        },
+      }));
+      return;
     }
   };
 

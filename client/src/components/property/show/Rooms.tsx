@@ -701,6 +701,13 @@ export default function Rooms({ propertyId }: PropertyId) {
                               variant="ghost"
                               size="sm"
                               className="h-7 gap-1 text-primary-600 hover:text-primary-700"
+                              onClick={() => {
+                                const initial: Record<string, boolean> = {};
+                                (room.roomAmenities ?? []).forEach((selection) => {
+                                  initial[selection.amenity.amenityName] = true;
+                                });
+                                setUpdatedAmenities(initial);
+                              }}
                             >
                               <PenTool className="h-3.5 w-3.5" />
                               Edit
@@ -752,6 +759,9 @@ export default function Rooms({ propertyId }: PropertyId) {
                               variant="ghost"
                               size="sm"
                               className="h-7 gap-1 text-primary-600 hover:text-primary-700"
+                              onClick={() => {
+                                setUpdatedAmenities({});
+                              }}
                             >
                               <Plus className="h-3.5 w-3.5" />
                               Add

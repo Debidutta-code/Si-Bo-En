@@ -1,4 +1,4 @@
-import {prisma} from "../../config";
+import { prisma } from "../../config";
 import type { IPropertyInfoType } from "../types/propertyModel.types";
 export class PropertyDao {
   public static async createProperty(data: IPropertyInfoType) {
@@ -54,20 +54,29 @@ export class PropertyDao {
       if (!property.propertyType) {
         throw new Error('Property type is required');
       }
-      await prisma.propertyConfigs.create({
-        data: {
-          propertyId: property.id,
-          channelManagerIntegrationActive:false,
-          pmsIntegrationActive:false,
-          baseCurrency:"AED",
-          commission:false,
-          isB2cAvailable:true,
-          isB2bAvailable:false,
-          reservationResetMinutes:570,
-          selfAriActive:true,
-          showVideo:true
-        }
-      });
+      await Promise.all([
+        await prisma.propertyConfigs.create({
+          data: {
+            propertyId: property.id,
+            channelManagerIntegrationActive: false,
+            pmsIntegrationActive: false,
+            baseCurrency: "AED",
+            commission: false,
+            isB2cAvailable: true,
+            isB2bAvailable: false,
+            reservationResetMinutes: 570,
+            selfAriActive: true,
+            showVideo: true
+          }
+        }),
+        await prisma.creation.update({
+          where: { id: data.creationId },
+          data: {
+            name: property.propertyName,
+            images: property.image
+          }
+        })
+      ])
       return property;
     } catch (error: any) {
       throw new Error(`Failed to create property: ${error.message}`);
@@ -90,16 +99,16 @@ export class PropertyDao {
               createdAt: 'desc'
             },
             where: {
-              
+
               isDeleted: false,
-              
+
             },
-            include:{
+            include: {
               roomAmenities: {
-                include:{
+                include: {
                   amenity: {
-                    select:{
-                      id:true,
+                    select: {
+                      id: true,
                       amenityName: true,
                       description: true,
                       icon: true
@@ -107,10 +116,10 @@ export class PropertyDao {
                   }
                 }
               },
-              roomVideos:true,
-              RoomViews:{
-                include:{
-                  MasterRoomView:true
+              roomVideos: true,
+              RoomViews: {
+                include: {
+                  MasterRoomView: true
                 }
               }
 
@@ -127,8 +136,8 @@ export class PropertyDao {
               masterPropertyType: true,
             },
           }, propertyAddress: true,
-          propertyVideos:true,
-          propertyEmails:true,
+          propertyVideos: true,
+          propertyEmails: true,
 
 
         },
@@ -173,27 +182,79 @@ export class PropertyDao {
     }
   ) {
     try {
-      const updatedProperty = await prisma.property.update({
-        where: { id },
-        data: {
-          ...(data.propertyName && { propertyName: data.propertyName }),
-          ...(data.propertyEmail && { propertyEmail: data.propertyEmail }),
-          ...(data.propertyContact && { propertyContact: data.propertyContact }),
-          ...(data.propertyCode && { propertyCode: data.propertyCode }),
-          ...(data.description && { description: data.description }),
-          ...(data.image && { image: data.image }),
-          ...(data.starRating !== undefined && { starRating: data.starRating }),
-          ...(data.isDraft !== undefined && { isDraft: data.isDraft }),
-          ...(data.isAvailable !== undefined && { isAvailable: data.isAvailable }),
-        },
-      });
+      const updatedProperty = await Promise.all([
+        prisma.property.update({
+          where: { id },
+          data: {
+            ...(data.propertyName && { propertyName: data.propertyName }),
+            ...(data.propertyEmail && { propertyEmail: data.propertyEmail }),
+            ...(data.propertyContact && { propertyContact: data.propertyContact }),
+            ...(data.propertyCode && { propertyCode: data.propertyCode }),
+            ...(data.description && { description: data.description }),
+            ...(data.image && { image: data.image }),
+            ...(data.starRating !== undefined && { starRating: data.starRating }),
+            ...(data.isDraft !== undefined && { isDraft: data.isDraft }),
+            ...(data.isAvailable !== undefined && { isAvailable: data.isAvailable }),
+          },
+        }),
+        prisma.creation.update({
+          where: {
+            propertyId: id
+          },
+          data: {
+            name: data.propertyName,
+            images: data.image
+          }
+        })
+      ])
 
       return updatedProperty;
     } catch (error: any) {
       throw new Error(`Failed to update property: ${error?.message}`);
     }
   }
-
+  public static async updatePropertyCategory(
+    viewData: { propertyId: string; masterCategoryId: string }
+  ): Promise<any> {
+    try {
+      return await prisma.propertyCategory.upsert({
+        where: {
+          propertyId: viewData.propertyId,
+        },
+        create: {
+          propertyId: viewData.propertyId,
+          masterCategoryId: viewData.masterCategoryId,
+        },
+        update: {
+          masterCategoryId: viewData.masterCategoryId,
+        },
+      });
+    } catch (error) {
+      console.log("Error updating property category:", error);
+      throw new Error("Failed to update property category");
+    }
+  }
+  public static async updatePropertyType(
+    viewData: { propertyId: string; masterTypeId: string }
+  ): Promise<any> {
+    try {
+      return await prisma.propertyType.upsert({
+        where: {
+          propertyId: viewData.propertyId,
+        },
+        create: {
+          propertyId: viewData.propertyId,
+          masterPropertyTypeId: viewData.masterTypeId,
+        },
+        update: {
+          masterPropertyTypeId: viewData.masterTypeId,
+        },
+      });
+    } catch (error) {
+      console.log("Error updating property category:", error);
+      throw new Error("Failed to update property category");
+    }
+  }
   public static async deletePropertyById(id: string) {
     try {
       const deletedProperty = await prisma.property.update({
@@ -409,17 +470,13 @@ export class PropertyAmenityDao {
       if (selectedAmenityIds.length === 0) {
         throw new Error('No amenities selected');
       }
+      console.log('Selected Amenity IDs:', selectedAmenityIds);
 
-      const existingAmenities = await prisma.masterAmenity.findMany({
-        where: {
-          amenityName: { in: selectedAmenityIds },
-          isActive: true
-        }
-      });
 
-      const amenitySelections = existingAmenities.map(amenityId => ({
+
+      const amenitySelections = selectedAmenityIds.map(amenityId => ({
         propertyId: propertyId,
-        amenityId: amenityId.id,
+        amenityId: amenityId,
       }));
 
       const result = await prisma.propertyAmenitySelection.createMany({
@@ -464,16 +521,7 @@ export class PropertyAmenityDao {
       const amenities = await prisma.propertyAmenitySelection.findMany({
         where: { propertyId: propertyId },
         include: {
-          amenity: {
-            select: {
-              id: true,
-              amenityName: true,
-              amenityType: true,
-              description: true,
-              icon: true,
-              isActive: true
-            }
-          }
+          amenity: true
         }
       });
 
@@ -498,65 +546,20 @@ export class PropertyAmenityDao {
         throw new Error('Property not found');
       }
 
-      // Filter selected amenities
       const selectedAmenityNames = Object.entries(amenities)
         .filter(([_, isSelected]) => isSelected === true)
         .map(([amenityName, _]) => amenityName);
-//console.log(selectedAmenityNames);
-      // Use transaction to ensure atomicity
-      const result = await prisma.$transaction(async (prisma) => {
-        // Delete existing amenity selections
-        await prisma.propertyAmenitySelection.deleteMany({
-          where: { propertyId: propertyId }
-        });
 
-        // If no amenities selected, return early
-        if (selectedAmenityNames.length === 0) {
-          return { success: true, count: 0, amenitySelections: [] };
-        }
-
-        // Find amenities by name
-        const existingAmenities = await prisma.masterAmenity.findMany({
-          where: {
-            amenityName: { in: selectedAmenityNames },
-            isActive: true
-          }
-        });
-        //console.log(existingAmenities);
-
-
-        // Create new selections
-        const amenitySelections = existingAmenities.map(amenity => ({
-          propertyId: propertyId,
-          amenityId: amenity.id,
-        }));
-
-        const createResult = await prisma.propertyAmenitySelection.createMany({
-          data: amenitySelections,
-          skipDuplicates: true,
-        });
-//console.log(createResult);
-        // Get the created amenities with details
-        const createdAmenities = await prisma.propertyAmenitySelection.findMany({
-          where: {
-            propertyId: propertyId,
-            amenityId: { in: existingAmenities.map(a => a.id) }
-          },
-          include: {
-            amenity: {
-              select: {
-                id: true,
-                amenityName: true,
-              }
-            }
-          }
-        });
-
-        return {
-          success: true,
-          count: createResult.count,
-          amenitySelections: createdAmenities
-        };
+      await prisma.propertyAmenitySelection.deleteMany({
+        where: { propertyId: propertyId }
+      });
+      const amenitySelections = selectedAmenityNames.map(amenityId => ({
+        propertyId: propertyId,
+        amenityId: amenityId,
+      }));
+      const result = await prisma.propertyAmenitySelection.createMany({
+        data: amenitySelections,
+        skipDuplicates: true,
       });
 
       return result;
@@ -608,20 +611,20 @@ export class PropertyAmenityDao {
     }
   }
 
- public static async getActiveAmenities(
-  propertyId: string
-): Promise<{ id: string; name: string }[]> {
-  try {
-    const amenitySelections = await this.findByPropertyId(propertyId);
-
-    return amenitySelections.map(selection => ({
-      id: selection.amenity.id,
-      name: selection.amenity.amenityName
-    }));
-  } catch (error: any) {
-    throw new Error(`Failed to get active amenities: ${error.message}`);
+  public static async getActiveAmenities(
+    propertyId: string
+  ): Promise<{ id: string; name: string }[]> {
+    try {
+      const amenitySelections = await this.findByPropertyId(propertyId);
+      console.log(amenitySelections);
+      return amenitySelections.map(selection => ({
+        id: selection.amenity.id,
+        name: selection.amenity.amenityName
+      }));
+    } catch (error: any) {
+      throw new Error(`Failed to get active amenities: ${error.message}`);
+    }
   }
-}
 
 }
 

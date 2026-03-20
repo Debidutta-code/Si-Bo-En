@@ -17,27 +17,27 @@ export interface IPropertyAmenity {
   amenities: Record<string, boolean>;
 }
 export interface ICategory {
-  masterCategory:{
-  id: string
-  categoryName: string;
-  categoryDescription: string;
+  masterCategory: {
+    id: string
+    categoryName: string;
+    categoryDescription: string;
   }
 }
 export interface IDestinationType {
-  masterDestinationType:{
+  masterDestinationType: {
 
     id: string
-  
+
     destinationTypeName: string;
     destinationDescription: string;
   }
 }
 export interface IPropertyType {
-  masterPropertyType:{
-  id: string
+  masterPropertyType: {
+    id: string
 
-  propertyTypeName: string;
-  propertyTypeDescription: string;
+    propertyTypeName: string;
+    propertyTypeDescription: string;
   }
 }
 export interface IPropertyInfoType {
@@ -77,14 +77,15 @@ export interface ICreatePropertyData {
 
 }
 export interface IUpdatePropertyData {
-  propertyName?: string;
-  propertyEmail?: string;
-  propertyContact?: string;
-  starRating?: number;
-  description?: string;
-  image?: string[];
-  isAvailable?: boolean;
+  propertyName: string;
+  propertyEmail: string;
+  propertyContact: string;
+  starRating: number;
+  description: string;
+  image: string[];
+  isAvailable: boolean;
   propertyType: IPropertyType;
   propertyCategory: ICategory;
   destinationType: IDestinationType;
+
 }

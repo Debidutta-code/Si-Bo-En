@@ -19,10 +19,10 @@ import {
   Tv,
   Wind,
   Dumbbell,
-  
+
 } from "lucide-react";
 import Loader from "@/components/Loader/Loader";
-import type {IAmenityTypes} from "./types/types";
+import type { IAmenityTypes } from "./types/types";
 
 
 // Zod Validation
@@ -87,65 +87,59 @@ export default function RoomAmenities() {
   const [apiError, setApiError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchAmenities = async () => {
-      if (!propertyId || !roomId) {
-        toast.error("Missing property or room ID.");
-        setIsLoading(false);
-        return;
-      }
 
-      setIsLoading(true);
-      setApiError(null);
-
-      try {
-        // Fetch available room amenities
-        const amenitiesRes = await getAmenities("room");
-        if (!amenitiesRes.success || !Array.isArray(amenitiesRes.data) || amenitiesRes.data.length == 0) {
-          throw new Error("Failed to load available amenities.");
-        }
-
-        const roomAmenityLabels = amenitiesRes.data;
-        if (!Array.isArray(roomAmenityLabels) || roomAmenityLabels.length === 0) {
-          throw new Error("No room amenities defined in system.");
-        }
-
-        setAvailableAmenities(roomAmenityLabels);
-
-        // Initialize all to false
-        const defaultState = roomAmenityLabels.reduce((acc, label) => {
-          acc[label] = false;
-          return acc;
-        }, {} as Record<string, boolean>);
-
-        // Fetch current room's selected amenities
-        const selectedRes = await getRoomAmenities(propertyId, roomId);
-        // console.log("🔧 Selected Amenities Response:", selectedRes);
-
-        if (selectedRes.success && Array.isArray(selectedRes.data)) {
-          const selectedMap = { ...defaultState };
-          selectedRes.data.forEach((label: string) => {
-            if (selectedMap.hasOwnProperty(label)) {
-              selectedMap[label] = true;
-            }
-          });
-          // console.log("Selected Amenities Map:", selectedMap);
-          setSelectedAmenities(selectedMap);
-          setIsExistingData(true);
-        } else {
-          setSelectedAmenities(defaultState);
-          setIsExistingData(false);
-        }
-      } catch (error: any) {
-        console.error("Error fetching room amenities:", error);
-        setApiError(error.message || "Could not load room amenities.");
-      } finally {
-        setIsLoading(false);
-      }
-    };
 
     fetchAmenities();
   }, [propertyId, roomId]);
+  const fetchAmenities = async () => {
+    if (!propertyId || !roomId) {
+      toast.error("Missing property or room ID.");
+      setIsLoading(false);
+      return;
+    }
 
+    setIsLoading(true);
+    setApiError(null);
+
+    try {
+      const amenitiesRes = await getAmenities("room");
+      if (!amenitiesRes.success || !Array.isArray(amenitiesRes.data) || amenitiesRes.data.length == 0) {
+        throw new Error("Failed to load available amenities.");
+      }
+
+      const roomAmenityLabels = amenitiesRes.data;
+      if (!Array.isArray(roomAmenityLabels) || roomAmenityLabels.length === 0) {
+        throw new Error("No room amenities defined in system.");
+      }
+
+      setAvailableAmenities(roomAmenityLabels);
+      const defaultState = roomAmenityLabels.reduce((acc, amenity) => {
+        acc[amenity.amenityName] = false;
+        return acc;
+      }, {} as Record<string, boolean>);
+
+      // Fetch current room's selected amenities
+      const selectedRes = await getRoomAmenities(propertyId, roomId);
+      if (selectedRes.success && Array.isArray(selectedRes.data)) {
+        const selectedMap = { ...defaultState };
+        selectedRes.data.forEach((amenityName: string) => {
+          if (amenityName in selectedMap) {
+            selectedMap[amenityName] = true;
+          }
+        });
+        setSelectedAmenities(selectedMap);
+        setIsExistingData(true);
+      } else {
+        setSelectedAmenities(defaultState);
+        setIsExistingData(false);
+      }
+    } catch (error: any) {
+      console.error("Error fetching room amenities:", error);
+      setApiError(error.message || "Could not load room amenities.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
   const handleToggle = (label: string) => {
     setSelectedAmenities((prev) => ({
       ...prev,
@@ -239,7 +233,7 @@ export default function RoomAmenities() {
           {!apiError && (
             <div className="bg-white">
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-8">
-                {availableAmenities.map((label:IAmenityTypes) => {
+                {availableAmenities.map((label: IAmenityTypes) => {
                   const isSelected = selectedAmenities[label.amenityName] || false;
                   return (
                     <button

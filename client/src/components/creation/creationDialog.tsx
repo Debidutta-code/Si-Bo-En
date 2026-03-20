@@ -85,7 +85,6 @@ const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, cr
             message: `Creating ${capitalizeFirstLetter(newGBP.type)}...`
         });
         try {
-            console.log("user", user)
             const payload = { ...newGBP, isCustom: newGBP.assignTo ? true : false };
             if(user?.role==="regional_admin"){
                 payload.assignTo = user.creation;
