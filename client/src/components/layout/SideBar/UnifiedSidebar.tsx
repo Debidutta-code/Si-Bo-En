@@ -50,7 +50,7 @@ const navigation: NavItem[] = [
   { name: 'Logs', href: '/app/logs', icon: FileText, userLevels: [ 4] },
   { name: 'Manage Members', href: '/app/members', icon: Users, userLevels: [4, 3, 2, 1] },
   { name: 'Access Control', href: '/app/access-control', icon: Shield, userLevels: [4] },
-  { name: 'Utils Management', href: '/app/utils-management', icon: Wrench, userLevels: [4] },
+  { name: 'Utils Management', href: '/app/utils-management', icon: Wrench, userLevels: [4, 3] },
 
 ];
 

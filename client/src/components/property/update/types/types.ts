@@ -1,4 +1,4 @@
-import type { roomUnit, roomView, smokingPolicy } from "../../create/types/types";
+import type { roomUnit,  smokingPolicy } from "../../create/types/types";
 
 export interface IPropertyType {
   id: string;
@@ -68,7 +68,6 @@ export interface IRoomDetails {
   roomType: string;
   totalRoom: number;
   floor: number;
-  roomView: roomView;
   roomSize: number;
   roomUnit: roomUnit;
   smokingPolicy: smokingPolicy;
@@ -87,5 +86,10 @@ export interface IRoomDetails {
     thumbnail: string;
     url: string;
   };
-
+  RoomViews?: {
+    MasterRoomView?: {
+      id: string;
+      viewName: string;
+    };
+  };
 }

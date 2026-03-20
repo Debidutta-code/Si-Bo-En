@@ -1,6 +1,5 @@
 import { ICreatePropertyData } from ".";
 
-export type roomView = "sea" | "garden" | "city" | "mountain" | "others";
 export type roomUnit = "sqm" | "sqft";
 export type smokingPolicy = "smoking" | "non_smoking" | "designated_area";
 export interface ICRoom {
@@ -8,7 +7,6 @@ export interface ICRoom {
     roomType: string;
     totalRoom: number;
     floor: number;
-    roomView: roomView;
     roomSize: number;
     roomUnit: roomUnit;
     smokingPolicy: smokingPolicy;
@@ -23,6 +21,13 @@ export interface ICRoom {
     description: string | null;
     available: boolean;
     priority: number;
+    RoomViews: {
+        MasterRoomView: {
+            id: string;
+            viewName: string;
+        }
+
+    }|null
 }
 export interface IRoom extends ICRoom {
     id: string;

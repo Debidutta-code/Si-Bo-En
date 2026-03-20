@@ -1,8 +1,8 @@
 import { prisma } from "../../config";
-import type {ICRoom} from "../types";
+import type { ICRoom } from "../types";
 
 export class RoomDao {
-  public  async create(roomData: ICRoom) {
+  public async create(roomData: ICRoom) {
     try {
       return await prisma.room.create({
         data: {
@@ -10,7 +10,6 @@ export class RoomDao {
           roomType: roomData.roomType,
           totalRoom: roomData.totalRoom,
           floor: roomData.floor,
-          roomView: roomData.roomView ,
           roomSize: roomData.roomSize,
           roomUnit: roomData.roomUnit,
           smokingPolicy: roomData.smokingPolicy,
@@ -31,14 +30,14 @@ export class RoomDao {
       throw new Error("Failed to create room");
     }
   }
-  public  async findByRoomId(roomId: string) {
+  public async findByRoomId(roomId: string) {
     try {
       return await prisma.room.findUnique({
         where: {
           id: roomId,
           isDeleted: false
         },
-        include:{
+        include: {
           property: true
         }
       });
@@ -47,7 +46,7 @@ export class RoomDao {
     }
   }
 
-  public  async findByRoomName(
+  public async findByRoomName(
     propertyId: string,
     roomName: string
   ) {
@@ -62,7 +61,7 @@ export class RoomDao {
       throw new Error("Failed to find room by name");
     }
   }
-  public  async findByRoomType(
+  public async findByRoomType(
     propertyId: string,
     roomType: string
   ) {
@@ -72,6 +71,13 @@ export class RoomDao {
           roomType: roomType,
           propertyId
         },
+        include: {
+          RoomViews: {
+            include: {
+              MasterRoomView: true
+            }
+          }
+        }
       });
     } catch (error) {
       throw new Error("Failed to find room by type");
@@ -79,19 +85,18 @@ export class RoomDao {
   }
 
 
-  public  async updateRoom(
+  public async updateRoom(
     id: string,
     roomData: ICRoom
   ) {
     try {
       const updatedRoom = await prisma.room.update({
         where: { id },
-        data:{
+        data: {
           roomName: roomData.roomName,
           roomType: roomData.roomType,
           totalRoom: roomData.totalRoom,
           floor: roomData.floor,
-          roomView: roomData.roomView ,
           roomSize: roomData.roomSize,
           roomUnit: roomData.roomUnit,
           smokingPolicy: roomData.smokingPolicy,
@@ -114,7 +119,7 @@ export class RoomDao {
     }
   }
 
-  public  async delete(id: string) {
+  public async delete(id: string) {
     try {
       const deletedRoom = await prisma.room.delete({
         where: { id },
@@ -126,22 +131,22 @@ export class RoomDao {
     }
   }
 
-  public  async getRoomsByPropertyId(propertyId: string,isDeleted:boolean) {
+  public async getRoomsByPropertyId(propertyId: string, isDeleted: boolean) {
     try {
       const rooms = await prisma.room.findMany({
-        where: { propertyId,isDeleted },
-        orderBy:{
+        where: { propertyId, isDeleted },
+        orderBy: {
           createdAt: 'desc'
         },
-        include:{
-          roomAmenities:{
-            include:{
-              amenity:{
-                select:{
-                  amenityName:true,
-                  id:true,
-                  icon:true,
-                  description:true
+        include: {
+          roomAmenities: {
+            include: {
+              amenity: {
+                select: {
+                  amenityName: true,
+                  id: true,
+                  icon: true,
+                  description: true
                 }
               }
             }
@@ -153,10 +158,10 @@ export class RoomDao {
       throw new Error("Failed to fetch rooms");
     }
   }
-  public  async getAllPropertyRoomsForInvSetup(propertyId: string) {
+  public async getAllPropertyRoomsForInvSetup(propertyId: string) {
     try {
       const rooms = await prisma.room.findMany({
-        where: { propertyId ,isDeleted:false},
+        where: { propertyId, isDeleted: false },
         select: {
           id: true,
           roomName: true,
@@ -165,13 +170,14 @@ export class RoomDao {
           maxNumberOfAdults: true,
           maxNumberOfChildren: true,
           maxOccupancy: true
-      }});
+        }
+      });
       return rooms;
     } catch (error) {
       throw new Error("Failed to fetch rooms");
     }
   }
-  public  async add360ViewLinkToRoom(
+  public async add360ViewLinkToRoom(
     roomId: string,
     view360Link: string
   ) {
@@ -187,10 +193,66 @@ export class RoomDao {
       throw new Error("Failed to add 360 view link");
     }
   }
+  public async createRoomView(
+    viewData: { roomId: string; masterViewId: string }
+  ): Promise<any> {
+    try {
+      return await prisma.mRoomView.create({
+        data: {
+          roomId: viewData.roomId,
+          masterRoomViewId: viewData.masterViewId
+        }
+      });
+    } catch (error) {
+      throw new Error("Failed to create room view");
+    }
+  }
+  public async updateRoomView(
+    viewData: { roomId: string; masterViewId: string }
+  ): Promise<any> {
+    try {
+      return await prisma.mRoomView.upsert({
+        where: {
+          roomId: viewData.roomId,
+        },
+        create: {
+          roomId: viewData.roomId,
+          masterRoomViewId: viewData.masterViewId,
+        },
+        update: {
+          masterRoomViewId: viewData.masterViewId,
+        },
+      });
+    } catch (error) {
+      console.log("Error updating room view:", error);
+      throw new Error("Failed to update room view");
+    }
+  }
+  public async deleteRoomView(
+    roomId: string
+  ): Promise<any> {
+    try {
+      // Tolerate delete when mapping doesn't exist.
+      const existing = await prisma.mRoomView.findUnique({
+        where: { roomId },
+        select: { roomId: true },
+      });
+
+      if (!existing) {
+        return { success: true, deleted: false };
+      }
+
+      return await prisma.mRoomView.delete({
+        where: { roomId },
+      });
+    } catch (error) {
+      throw new Error("Failed to delete room view");
+    }
+  }
 }
 
 export class RoomAmenityDao {
-  public  async createAmenities(
+  public async createAmenities(
     roomId: string,
     amenities: Record<string, boolean>
   ) {
@@ -268,7 +330,7 @@ export class RoomAmenityDao {
     }
   }
 
-  private  async findByRoomId(
+  private async findByRoomId(
     roomId: string
   ): Promise<Record<string, boolean> | null> {
     try {
@@ -298,7 +360,7 @@ export class RoomAmenityDao {
     }
   }
 
-  public  async updateByRoomId(
+  public async updateByRoomId(
     roomId: string,
     amenities: Record<string, boolean>
   ): Promise<Record<string, boolean> | null> {
@@ -350,7 +412,7 @@ export class RoomAmenityDao {
     }
   }
 
-  public  async deleteByRoomId(
+  public async deleteByRoomId(
     roomId: string
   ): Promise<{ deleted: boolean }> {
     try {
@@ -376,7 +438,7 @@ export class RoomAmenityDao {
     }
   }
 
-  public  async existsByRoomId(
+  public async existsByRoomId(
     roomId: string
   ): Promise<boolean> {
     try {
@@ -390,7 +452,7 @@ export class RoomAmenityDao {
     }
   }
 
-  public  async getActiveAmenities(
+  public async getActiveAmenities(
     roomId: string
   ): Promise<string[]> {
     try {

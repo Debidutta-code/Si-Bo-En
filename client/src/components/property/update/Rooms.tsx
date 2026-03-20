@@ -1,4 +1,4 @@
-import { useState, type Dispatch, type SetStateAction } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -16,8 +16,10 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import Loader from "@/components/Loader/Loader";
 import { Switch } from "@/components/ui/switch";
-import type { roomUnit, roomView, smokingPolicy } from "../create/types/types";
-
+import type { roomUnit, smokingPolicy } from "../create/types/types";
+import type { IMasterRoomView } from "@/pages/management/types";
+import toast from "react-hot-toast";
+import { getAllRoomViews } from "@/pages/management/services/room-view.services";
 const roomSchema = z.object({
   roomName: z.string().min(3, "Room name is required and must be at least 3 characters."),
   roomType: z.string().min(1, "Please select a room type."),
@@ -25,7 +27,6 @@ const roomSchema = z.object({
   description: z.string().min(1, "Description must be at least 20 characters.").max(5000, "Description cannot exceed 500 characters."),
   maxOccupancy: z.coerce.number().min(1, "Max occupancy must be at least 1."),
   image: z.array(z.string()).min(1, "Please upload at least one room image."),
-  roomView: z.enum(["sea", "garden", "city", "mountain", "others"]),
   floor: z.coerce.number(),
   roomSize: z.coerce.number().default(0),
   roomUnit: z.enum(["sqm", "sqft"]).default("sqft"),
@@ -36,8 +37,13 @@ const roomSchema = z.object({
   numberOfLivingRoom: z.coerce.number().optional(),
   extraBed: z.coerce.number().optional(),
   available: z.boolean().default(true),
-  priority: z.coerce.number().min(0).default(0)
-
+  priority: z.coerce.number().min(0).default(0),
+  RoomViews: z.object({
+    MasterRoomView: z.object({
+      id: z.string().min(1, "Please select a room view."),
+      viewName: z.string()
+    })
+  }),
 });
 
 type FormErrors = z.inferFormattedError<typeof roomSchema>;
@@ -51,14 +57,29 @@ export default function Rooms({
   updateRoomDetails: Dispatch<SetStateAction<IRoomDetails>>;
   isLoading: boolean;
 }) {
+  useEffect(() => {
+    fetchRoomViews();
+  }, []);
   const [errors, _setErrors] = useState<FormErrors | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [roomViews, setRoomViews] = useState<IMasterRoomView[]>([]);
 
   const updateRoom = (updates: IRoomDetails) => {
     updateRoomDetails((prev) => ({ ...prev, ...updates }));
 
   };
-
+  const fetchRoomViews = async () => {
+    try {
+      const response = await getAllRoomViews();
+      if (response.success && response.data) {
+        setRoomViews(response.data);
+      } else {
+        toast.error("Failed to load room views for the dropdown.");
+      }
+    } catch (error) {
+      toast.error("Could not fetch room views.");
+    }
+  };
   const handleUploadSuccess = (newImageUrls: string[]) => {
     updateRoom({
       ...roomDetails,
@@ -254,7 +275,7 @@ export default function Rooms({
                       >
                         Priority
                       </Label>
-                       <Input
+                      <Input
                         id="priority"
                         type="number"
                         value={roomDetails.priority || ""}
@@ -276,40 +297,24 @@ export default function Rooms({
                       >
                         Room View
                       </Label>
-                      <Select
-                        value={roomDetails.roomView}
-                        onValueChange={(value) =>
-                          updateRoom({ ...roomDetails, roomView: value as roomView })
-                        }
-                      >
+                      <Select value={roomDetails.RoomViews?.MasterRoomView?.id || ''} onValueChange={(value) =>
+                        updateRoomDetails((prev) => ({
+                          ...prev,
+                          RoomViews: {
+                            MasterRoomView: {
+                              id: value,
+                              viewName: roomViews.find(view => view.id === value)?.viewName || ''
+                            }
+                          }
+                        }))}>
                         <SelectTrigger className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100">
                           <SelectValue placeholder="Select view" />
                         </SelectTrigger>
                         <SelectContent className="bg-white border border-gray-300">
-                          <SelectItem
-                            value="city"
-                            className="hover:bg-gray-100"
-                          >
-                            City View
-                          </SelectItem>
-                          <SelectItem
-                            value="sea"
-                            className="hover:bg-gray-100"
-                          >
-                            Sea View
-                          </SelectItem>
-                          <SelectItem
-                            value="mountain"
-                            className="hover:bg-gray-100"
-                          >
-                            Mountain View
-                          </SelectItem>
-                          <SelectItem
-                            value="garden"
-                            className="hover:bg-gray-100"
-                          >
-                            Garden View
-                          </SelectItem>
+                          {roomViews.length > 0 && roomViews.map((view) => (
+                            <SelectItem key={view.id} value={view.id} className="hover:bg-gray-100">{view.viewName}</SelectItem>
+                          ))}
+
                         </SelectContent>
                       </Select>
                     </div>

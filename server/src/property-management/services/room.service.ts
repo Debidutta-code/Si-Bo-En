@@ -29,6 +29,10 @@ export class RoomService {
         );
       }
       const createdRoom = await this.roomDao.create(roomData);
+      await this.roomDao.createRoomView({
+        roomId: createdRoom.id,
+        masterViewId: roomData.RoomViews!.MasterRoomView.id
+      });
       if (createdRoom) {
         return successResponse('Room created successfully', createdRoom);
       } else {
@@ -67,6 +71,7 @@ export class RoomService {
         return errorResponse('Room Does not exists');
       }
       const updatedRoom = await this.roomDao.updateRoom(id, roomData);
+      await this.roomDao.updateRoomView({roomId:id, masterViewId:roomData.RoomViews!.MasterRoomView.id});
       if (updatedRoom) {
         return successResponse('Room updated successfully', updatedRoom);
       } else {

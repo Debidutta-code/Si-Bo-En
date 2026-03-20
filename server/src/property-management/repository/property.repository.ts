@@ -107,8 +107,13 @@ export class PropertyDao {
                   }
                 }
               },
-              roomVideos:true
-              
+              roomVideos:true,
+              RoomViews:{
+                include:{
+                  MasterRoomView:true
+                }
+              }
+
             }
 
           },

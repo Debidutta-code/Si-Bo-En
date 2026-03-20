@@ -10,9 +10,11 @@ import type { IRoomDetails } from "./types/types";
 import ImageUploadModal from '../ImageUploadModal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import {  createRoom, updateRoom } from '../api/show/room'; // Corrected import path
-import {getRoomDetails } from "../api/create/room"
+import { createRoom, updateRoom } from '../api/show/room'; // Corrected import path
+import { getRoomDetails } from "../api/create/room"
 import Loader from '@/components/Loader/Loader';
+import { getAllRoomViews } from '@/pages/management/services/room-view.services';
+import type { IMasterRoomView } from '@/pages/management/types';
 
 const roomSchema = z.object({
   roomName: z.string().min(3, "Room name is required and must be at least 3 characters."),
@@ -21,7 +23,6 @@ const roomSchema = z.object({
   description: z.string().min(1, "Description must be at least 20 characters.").max(5000, "Description cannot exceed 500 characters."),
   maxOccupancy: z.coerce.number().min(1, "Max occupancy must be at least 1."),
   image: z.array(z.string()).min(1, "Please upload at least one room image."),
-  roomView: z.enum(["sea", "garden", "city", "mountain", "others"]),
   floor: z.coerce.number(),
   roomSize: z.coerce.number().default(0),
   roomUnit: z.enum(["sqm", "sqft"]).default("sqft"),
@@ -32,7 +33,13 @@ const roomSchema = z.object({
   numberOfLivingRoom: z.coerce.number().optional(),
   extraBed: z.coerce.number().optional(),
   available: z.boolean().default(true),
-  priority: z.coerce.number().min(0).default(0)
+  priority: z.coerce.number().min(0).default(0),
+  RoomViews: z.object({
+    MasterRoomView: z.object({
+      id: z.string().min(1, "Please select a room view."),
+      viewName: z.string()
+    })
+  }),
 });
 
 type FormErrors = z.inferFormattedError<typeof roomSchema>;
@@ -42,33 +49,49 @@ export default function Rooms() {
   const { propertyId, roomId, setRoomIdAndUrl, next, previous, markStepAsCompleted } = usePropertyForm();
 
   const [roomDetails, setRoomDetails] = useState<IRoomDetails>({
-    roomName: '', roomType: '', totalRoom: 0, roomView: "city", floor: 0,
-    roomSize: 0, roomUnit: 'sqft', smokingPolicy: 'designated_area', maxOccupancy: 0,
-    maxNumberOfAdults: 0, maxNumberOfChildren: 0, numberOfBedrooms: 1,
-    numberOfLivingRoom: 0, extraBed: 0, description: '', image: [], available: true,
-    priority:0
+    roomName: '',
+    roomType: '',
+    totalRoom: 0,
+    floor: 0,
+    roomSize: 0,
+    roomUnit: 'sqft',
+    smokingPolicy: 'designated_area',
+    maxOccupancy: 0,
+    maxNumberOfAdults: 0,
+    maxNumberOfChildren: 0,
+    numberOfBedrooms: 1,
+    numberOfLivingRoom: 0,
+    extraBed: 0,
+    description: '',
+    image: [],
+    available: true,
+    priority: 0,
+    RoomViews: {
+      MasterRoomView: {
+        id: "",
+        viewName: ""
+      }
+    }
   });
 
   const [errors, setErrors] = useState<FormErrors | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isExistingData, setIsExistingData] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [isExistingData, setIsExistingData] = useState<boolean>(false);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [roomViews, setRoomViews] = useState<IMasterRoomView[]>([]);
   useEffect(() => {
     // console.log("Use Effect")
     const fetchRoomData = async () => {
-      // Only fetch if we have a propertyId AND a roomId, indicating an update.
       if (propertyId && roomId) {
         setIsLoading(true);
         try {
-          const response = await getRoomDetails(roomId, propertyId);
+          const response = await getRoomDetails(roomId, propertyId)
           if (response.success && response.data) {
             setRoomDetails({ ...response.data, image: response.data.image || [] });
             setIsExistingData(true);
             toast.success("Loaded existing room details.");
           } else {
-            // A roomId was in the URL but not found in the DB. Treat as new.
             setIsExistingData(false);
           }
         } catch (error) {
@@ -84,8 +107,20 @@ export default function Rooms() {
       }
     };
     fetchRoomData();
+    fetchRoomViews();
   }, [propertyId, roomId]);
-
+  const fetchRoomViews = async () => {
+    try {
+      const response = await getAllRoomViews();
+      if (response.success && response.data) {
+        setRoomViews(response.data);
+      } else {
+        toast.error("Failed to load room views for the dropdown.");
+      }
+    } catch (error) {
+      toast.error("Could not fetch room views.");
+    }
+  };
   const updateroomDetails = (updates: Partial<IRoomDetails>) => {
     setRoomDetails(prev => ({ ...prev, ...updates }));
     if (errors) {
@@ -107,8 +142,8 @@ export default function Rooms() {
 
   const handleSave = async () => {
     if (!propertyId) {
-        toast.error("Cannot save a room without a property. Please go back.");
-        return;
+      toast.error("Cannot save a room without a property. Please go back.");
+      return;
     }
 
     setErrors(null);
@@ -123,14 +158,14 @@ export default function Rooms() {
     try {
       const dataToSubmit = result.data;
       let response;
-      
+
       // Use isExistingData and roomId to determine the correct API call
       if (isExistingData && roomId) {
         response = await updateRoom(propertyId, roomId, dataToSubmit);
       } else {
         response = await createRoom(propertyId, dataToSubmit);
         if (response.success && response.data.id) {
-            setRoomIdAndUrl(response.data.id);
+          setRoomIdAndUrl(response.data.id);
         }
       }
 
@@ -157,7 +192,7 @@ export default function Rooms() {
   }
   return (
     <>
-<div className="bg-gradient-to-br from-gray-50 via-white to-gray-100 max-h-[90vh] overflow-y-auto">
+      <div className="bg-gradient-to-br from-gray-50 via-white to-gray-100 max-h-[90vh] overflow-y-auto">
         <div className="max-w-7xl mx-auto">
           <div className="bg-white rounded-3xl shadow-xl border border-gray-200">
             <div className="p-8 sm:p-12 bg-white">
@@ -190,14 +225,14 @@ export default function Rooms() {
                     <div>
                       <Label htmlFor="roomType" className="text-gray-800 font-medium">Room Type *</Label>
                       <Input
-                      id="roomType"
-                      value={roomDetails.roomType || ""}
-                      onChange={(e) =>
-                        updateroomDetails({ roomType: e.target.value })
-                      }
-                      placeholder="e.g., Deluxe King Suite"
-                      className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
-                    />
+                        id="roomType"
+                        value={roomDetails.roomType || ""}
+                        onChange={(e) =>
+                          updateroomDetails({ roomType: e.target.value })
+                        }
+                        placeholder="e.g., Deluxe King Suite"
+                        className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
+                      />
                       {errors?.roomType?._errors[0] && (
                         <p className="text-red-500 text-sm mt-1">{errors.roomType._errors[0]}</p>
                       )}
@@ -229,21 +264,20 @@ export default function Rooms() {
                       className="mt-2 min-h-[100px] border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100 p-3"
                     />
                     {errors?.description ? (
-                <p className="text-sm text-red-600">
-                  {errors.description._errors[0]}
-                </p>
-              ) : (
-                <div></div>
-              )}
-              <p
-                className={`text-xs ml-auto ${
-                  (roomDetails.description || '').length > 5000
-                    ? "text-red-600"
-                    : "text-gray-500"
-                }`}
-              >
-                {(roomDetails.description || '').length || 0}/5000 characters
-              </p>
+                      <p className="text-sm text-red-600">
+                        {errors.description._errors[0]}
+                      </p>
+                    ) : (
+                      <div></div>
+                    )}
+                    <p
+                      className={`text-xs ml-auto ${(roomDetails.description || '').length > 5000
+                        ? "text-red-600"
+                        : "text-gray-500"
+                        }`}
+                    >
+                      {(roomDetails.description || '').length || 0}/5000 characters
+                    </p>
                   </div>
                 </div>
                 <div className="space-y-6">
@@ -257,15 +291,23 @@ export default function Rooms() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                       <Label htmlFor="roomView" className="text-gray-800 font-medium">Room View</Label>
-                      <Select value={roomDetails.roomView || ''} onValueChange={(value) => updateroomDetails({ roomView: value as IRoomDetails["roomView"] })}>
+                      <Select value={roomDetails.RoomViews?.MasterRoomView?.id || ''} onValueChange={(value) =>
+                        updateroomDetails({
+                          RoomViews: {
+                            MasterRoomView: {
+                              id: value,
+                              viewName: roomViews.find(view => view.id === value)?.viewName || ''
+                            }
+                          }
+                        })}>
                         <SelectTrigger className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100">
                           <SelectValue placeholder="Select view" />
                         </SelectTrigger>
                         <SelectContent className="bg-white border border-gray-300">
-                          <SelectItem value="city" className="hover:bg-gray-100">City View</SelectItem>
-                          <SelectItem value="sea" className="hover:bg-gray-100">Sea View</SelectItem>
-                          <SelectItem value="mountain" className="hover:bg-gray-100">Mountain View</SelectItem>
-                          <SelectItem value="garden" className="hover:bg-gray-100">Garden View</SelectItem>
+                          {roomViews.length > 0 && roomViews.map((view) => (
+                            <SelectItem key={view.id} value={view.id} className="hover:bg-gray-100">{view.viewName}</SelectItem>
+                          ))}
+
                         </SelectContent>
                       </Select>
                     </div>
