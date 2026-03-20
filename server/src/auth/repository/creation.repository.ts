@@ -174,7 +174,11 @@ export default class CreationDao {
             }
           },
           regional: true,
-          regionalChildren:true
+          regionalChildren: {
+            include: {
+              property:true
+            }
+          },
 
         },
       });
