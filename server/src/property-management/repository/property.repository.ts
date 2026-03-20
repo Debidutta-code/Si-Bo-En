@@ -95,9 +95,9 @@ export class PropertyDao {
         },
         include: {
           propertyRooms: {
-            orderBy: {
-              createdAt: 'desc'
-            },
+            orderBy: [{
+              priority: "asc"
+            },{createdAt: "asc"}],
             where: {
 
               isDeleted: false,
