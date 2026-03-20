@@ -441,23 +441,23 @@ export default function Custom() {
                                         View Details
                                     </Button>
                                     {
-                    item.type == "property" && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className={`${item.type === "property" && !item.property?.isDraft && "flex-1"}`}
+                                        item.type == "property" && (
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className={`${item.type === "property" && !item.property?.isDraft && "flex-1"}`}
 
-                        onClick={() => navigate(`/app/property/${currentTab}/${item.id}`)}
-                      >
-                        <Settings className="h-4 w-4" />
-                        {!item.property?.isDraft &&
+                                                onClick={() => navigate(`/app/property/${currentTab}/${item.id}`)}
+                                            >
+                                                <Settings className="h-4 w-4" />
+                                                {!item.property?.isDraft &&
 
-                        <span className="ml-2">{!item.property?.isDraft && "Complete Setup"}</span>
-                        }
-                        
-                      </Button>
-                    )
-                  }
+                                                    <span className="ml-2">{!item.property?.isDraft && "Complete Setup"}</span>
+                                                }
+
+                                            </Button>
+                                        )
+                                    }
                                 </div>
                             </div>
                         ))}
