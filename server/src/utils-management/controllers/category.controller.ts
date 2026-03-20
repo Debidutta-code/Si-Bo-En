@@ -3,7 +3,11 @@ import { errorResponse } from "../../utils/return";
 import { CategoryService } from "../services";
 import { Response } from "express";
 export class Category {
-  public static async createCategory(req: CustomRequest, res: Response) {
+  private categoryService: CategoryService;
+  constructor() {
+    this.categoryService = new CategoryService();
+  }
+  public async createCategory(req: CustomRequest, res: Response) {
     try {
       const { categoryName, description } = req.body;
       if (!categoryName || !description) {
@@ -15,7 +19,7 @@ export class Category {
             )
           );
       }
-      const serRes = await CategoryService.createCategory(
+      const serRes = await this.categoryService.createCategory(
         categoryName,
         description
       );
@@ -30,9 +34,9 @@ export class Category {
         .json(errorResponse('Internal Server Error', error?.message));
     }
   }
-  public static async getCategory(req: CustomRequest, res: Response) {
+  public  async getCategory(req: CustomRequest, res: Response) {
     try {
-      const serRes = await CategoryService.getCategory();
+      const serRes = await this.categoryService.getCategory();
       if (serRes.success) {
         return res.status(200).json(serRes);
       } else {
@@ -44,7 +48,7 @@ export class Category {
         .json(errorResponse('Internal Server Error', error?.message));
     }
   }
-  public static async deleteCategory(req: CustomRequest, res: Response) {
+  public  async deleteCategory(req: CustomRequest, res: Response) {
     try {
       const categoryName = req.params.categoryName;
       if (!categoryName) {
@@ -52,7 +56,7 @@ export class Category {
           .status(400)
           .json(errorResponse('Category Name is required to delete category'));
       }
-      const serRes = await CategoryService.deleteCategory(categoryName);
+      const serRes = await this.categoryService.deleteCategory(categoryName);
       if (serRes.success) {
         return res.status(200).json(serRes);
       } else {

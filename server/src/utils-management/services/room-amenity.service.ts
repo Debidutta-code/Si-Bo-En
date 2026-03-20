@@ -2,28 +2,41 @@ import { errorResponse, IApiResponse, successResponse } from "../../utils";
 import { RoomAminityDao } from "../repository";
 
 export class RoomAmenityServices {
-  public static async createRoomAmenity(amenities: string[]) :Promise<IApiResponse>{
+  private roomAminityDao: RoomAminityDao;
+  constructor() {
+    this.roomAminityDao = new RoomAminityDao();
+  }
+  public  async createRoomAmenity(amenities: string[]) :Promise<IApiResponse>{
     try {
-      const daoRes = await RoomAminityDao.addRoomAmenities(amenities);
+      const daoRes = await this.roomAminityDao.addRoomAmenities(amenities);
       return successResponse('Aminity added successfully', daoRes);
-    } catch (error: any) {
-      return errorResponse('Failed to create category', error?.message);
+    } catch (error) {
+      if(error instanceof Error){
+        return errorResponse('Failed to create category', error?.message);
+      }
+      return errorResponse('Failed to create category', 'Unknown error');
     }
   }
-  public static async getRoomAmenity() :Promise<IApiResponse>{
+  public  async getRoomAmenity() :Promise<IApiResponse>{
     try {
-      const daoRes = await RoomAminityDao.getAllRoomAmenities();
+      const daoRes = await this.roomAminityDao.getAllRoomAmenities();
       return successResponse('Aminity fetched Successfully', daoRes);
-    } catch (error: any) {
-      return errorResponse('Failed to fetch aminity', error?.message);
+    } catch (error) {
+      if(error instanceof Error){
+        return errorResponse('Failed to fetch aminity', error?.message);
+      }
+      return errorResponse('Failed to fetch aminity', 'Unknown error');
     }
   }
-  public static async deleteRoomAmenity(amenities: string[]) :Promise<IApiResponse>{
+  public  async deleteRoomAmenity(amenities: string[]) :Promise<IApiResponse>{
     try {
-      const daoRes = await RoomAminityDao.deleteAmenities(amenities);
+      const daoRes = await this.roomAminityDao.deleteAmenities(amenities);
       return successResponse('Aminity Deleted Successfully', daoRes);
-    } catch (error: any) {
-      return errorResponse('Failed to delete aminity', error?.message);
+    } catch (error) {
+      if(error instanceof Error){
+        return errorResponse('Failed to delete aminity', error?.message);
+      }
+      return errorResponse('Failed to delete aminity', 'Unknown error');
     }
   }
 }

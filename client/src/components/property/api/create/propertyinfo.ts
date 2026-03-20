@@ -5,7 +5,7 @@ export const getAllCategory = async () => {
   const axiosInstance = createAxiosInstance();
   try {
     const response = await axiosInstance.get(
-      "property-management/property/management/category/get"
+      "utils-management/category/get"
     );
     return response.data;
   } catch (error: any) {
@@ -16,7 +16,7 @@ export const getAllPropertyType = async () => {
   const axiosInstance = createAxiosInstance();
   try {
     const response = await axiosInstance.get(
-      "/property-management/property/management/type/get"
+      "/utils-management/type/get"
     );
     return response.data;
   } catch (error: any) {

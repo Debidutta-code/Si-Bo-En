@@ -5,3 +5,4 @@ export * from "./payment-integration.type";
 export * from "./property-types.repository";
 export * from "./property.amenity.repository";
 export * from "./room-amenity.repository";
+export * from "./room-view.repository";

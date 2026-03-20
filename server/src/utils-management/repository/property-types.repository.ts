@@ -1,6 +1,6 @@
 import {prisma} from "../../config";
 export class PropertyTypesDao {
-  public static async getTypeByName(propertyTypeName: string) {
+  public  async getTypeByName(propertyTypeName: string) {
     try {
       return await prisma.masterPropertyType.findFirst({
         where: {
@@ -8,12 +8,12 @@ export class PropertyTypesDao {
           isActive: true,
         },
       });
-    } catch (error: any) {
-      throw new Error(error?.message);
+    } catch (error) {
+      throw new Error("Failed to get property type");
     }
   }
 
-  public static async createPropertyType(
+  public  async createPropertyType(
     propertyTypeName: string,
     description: string
   ) {
@@ -25,32 +25,32 @@ export class PropertyTypesDao {
           isActive: true,
         },
       });
-    } catch (error: any) {
-      throw new Error(error?.message);
+    } catch (error) {
+      throw new Error("Failed to create property type");
     }
   }
 
-  public static async getPropertyType() {
+  public  async getPropertyType() {
     try {
       return await prisma.masterPropertyType.findMany({
         where: {
           isActive: true,
         },
       });
-    } catch (error: any) {
-      throw new Error(error?.message);
+    } catch (error) {
+      throw new Error("Failed to get property types");
     }
   }
 
-  public static async deletePropertyType(propertyTypeName: string) {
+  public  async deletePropertyType(propertyTypeName: string) {
     try {
       // Soft delete by setting isActive to false
       return await prisma.masterPropertyType.updateMany({
         where: { propertyTypeName: propertyTypeName },
         data: { isActive: false },
       });
-    } catch (error: any) {
-      throw new Error(error?.message);
+    } catch (error) {
+      throw new Error("Failed to delete property type");
     }
   }
 }

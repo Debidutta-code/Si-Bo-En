@@ -58,7 +58,6 @@ export interface PropertyAddressProps {
   onNext?: () => void;
   onPrevious?: () => void;
 }
-export type roomView = "sea" | "garden" | "city" | "mountain" | "others";
 export type roomUnit = "sqm" | "sqft";
 export type smokingPolicy = "smoking" | "non_smoking" | "designated_area";
 
@@ -67,7 +66,6 @@ export interface IRoomDetails {
   roomType: string;
   totalRoom: number;
   floor: number;
-  roomView: roomView;
   roomSize: number;
   roomUnit: roomUnit;
   smokingPolicy: smokingPolicy;
@@ -81,6 +79,12 @@ export interface IRoomDetails {
   description: string | null;
   available: boolean;
   priority: number;
+  RoomViews?: {
+    MasterRoomView?: {
+      id: string;
+      viewName: string;
+    };
+  };
 }
 export interface IAmenityTypes {
   amenityName: string;

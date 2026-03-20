@@ -102,9 +102,9 @@ export default function page() {
       if (!creationId) return;
       const response = await getGroupCreationId(creationId);
       if (response.success) {
-        if(response.data.brands.length>0){
+        if (response.data.brands.length > 0) {
           setCurrentTab("brand");
-        }else{
+        } else {
           setCurrentTab("property");
         }
         setCreations(response.data);
@@ -277,11 +277,10 @@ export default function page() {
                   </span>
                 </p>
                 <span
-                  className={`px-3 py-1 rounded-full text-xs font-semibold ${
-                    creations.groupData.isActive
+                  className={`px-3 py-1 rounded-full text-xs font-semibold ${creations.groupData.isActive
                       ? "bg-green-100 text-green-700 ring-1 ring-green-200"
                       : "bg-red-100 text-red-700 ring-1 ring-red-200"
-                  }`}
+                    }`}
                 >
                   {creations.groupData.isActive ? "● Active" : "● Inactive"}
                 </span>
@@ -614,11 +613,10 @@ export default function page() {
             key={tab}
             variant={currentTab === tab ? "secondary" : "ghost"}
             onClick={() => setCurrentTab(tab)}
-            className={`px-4 py-2 rounded-t-lg border-b-2 ${!isCreationButtonVisible(tab) && "hidden"} ${
-              currentTab === tab
+            className={`px-4 py-2 rounded-t-lg border-b-2 ${!isCreationButtonVisible(tab) && "hidden"} ${currentTab === tab
                 ? "border-primary bg-primary/10 text-primary"
                 : "border-transparent hover:border-gray-300"
-            }`}
+              }`}
           >
             {capitalizeFirstLetter(getTabDisplayName(tab))} (
             {tab === "brand"
@@ -689,7 +687,7 @@ export default function page() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className={`${item.type === "property" ? item.property?.isDraft && "flex-1" : "flex-1"}`}
+                    className={`${item.type === "property" ? item.property?.isDraft ? "flex-1" : "hidden" : "flex-1"}`}
                     onClick={() => {
                       item.type != "property" ?
                         navigate(`/app/property/${currentTab}/${item.id}`) :
@@ -708,6 +706,11 @@ export default function page() {
                         onClick={() => navigate(`/app/property/${currentTab}/${item.id}`)}
                       >
                         <Settings className="h-4 w-4" />
+                        {!item.property?.isDraft &&
+
+                          <span className="ml-2">{!item.property?.isDraft && "Complete Setup"}</span>
+                        }
+
                       </Button>
                     )
                   }

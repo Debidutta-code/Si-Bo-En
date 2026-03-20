@@ -1,7 +1,7 @@
 import { AmenityType } from "../types";
 import {prisma} from "../../config"
 export class RoomAminityDao {
-  public static async getAllRoomAmenities() {
+  public  async getAllRoomAmenities() {
     try {
       return await prisma.masterAmenity.findMany({
         where: {
@@ -15,35 +15,32 @@ export class RoomAminityDao {
           icon: true,
         },
       });
-    } catch (error: any) {
-      throw new Error(error?.message);
+    } catch (error) {
+      throw new Error("Failed to get room amenities");
     }
   }
 
-  public static async addRoomAmenities(newAmenities: string[]) {
+  public  async addRoomAmenities(newAmenities: string[]) {
     try {
-      // Create multiple amenities
       const amenityData = newAmenities.map(name => ({
         amenityName: name,
         amenityType: "room" as AmenityType,
         isActive: true,
       }));
 
-      const createdAmenities = await prisma.masterAmenity.createMany({
+      await prisma.masterAmenity.createMany({
         data: amenityData,
-        skipDuplicates: true, // Skip if amenityName already exists (unique constraint)
+        skipDuplicates: true,
       });
 
-      // Return all room amenities after creation
       return await this.getAllRoomAmenities();
-    } catch (error: any) {
-      throw new Error(`Error adding room amenities: ${error.message}`);
+    } catch (error) {
+      throw new Error(`Error adding room amenities`);
     }
   }
 
-  public static async deleteAmenities(amenityNames: string[]) {
+  public  async deleteAmenities(amenityNames: string[]) {
     try {
-      // Soft delete by setting isActive to false
       const result = await prisma.masterAmenity.updateMany({
         where: {
           amenityName: { in: amenityNames },
@@ -58,10 +55,9 @@ export class RoomAminityDao {
         throw new Error('No room amenities found to delete');
       }
 
-      // Return all active room amenities after deletion
       return await this.getAllRoomAmenities();
-    } catch (error: any) {
-      throw new Error(`Error deleting amenities: ${error.message}`);
+    } catch (error) {
+      throw new Error(`Error deleting amenities`);
     }
   }
 }

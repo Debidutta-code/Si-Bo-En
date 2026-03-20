@@ -30,7 +30,7 @@ export const updatePropertyAmenity=async(propertyId:string,amenities:any) =>{
 export const getAmenities=async(type:string="property") =>{
     const axiosInstance=createAxiosInstance()
     try {
-        const response=await axiosInstance.get(`/property-management/property/management/amenity/get?type=${type}`)
+        const response=await axiosInstance.get(`/utils-management/amenity/get?type=${type}`)
         return response.data
     } catch (error:any) {
         return error?.response.data

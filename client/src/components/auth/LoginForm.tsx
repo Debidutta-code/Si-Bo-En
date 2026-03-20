@@ -32,6 +32,8 @@ export default function LoginForm() {
   const navigate = useNavigate();
 
   useEffect(() => {
+        fetchUser();
+
     const savedCredentials = localStorage.getItem("swiftRoomsLogCred");
     if (savedCredentials) {
       try {
@@ -43,7 +45,19 @@ export default function LoginForm() {
       }
     }
   }, []);
-
+  const fetchUser = async () => {
+      try {
+        const axiosInstance = AxiosInstance();
+        const response = await axiosInstance.get('/user/me');
+        if (response.data.success) {
+          navigate('/app');
+        } else {
+          
+        }
+      } catch (error: any) {
+        
+      }
+    };
   const handleLogin = async () => {
     const validation = loginSchema.safeParse(loginDetails);
 

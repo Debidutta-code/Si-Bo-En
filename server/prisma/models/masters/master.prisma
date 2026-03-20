@@ -1,13 +1,3 @@
-model MasterLoyaltyRegistrationFields {
-  id String @id @default(uuid())
-
-  fieldName String
-
-  LoyaltyProgramFieldConfigs LoyaltyProgramFieldConfig[]
-
-  @@map("master_loyalty_registration_fields")
-}
-
 model MasterPropertyCategory {
   id                  String  @id @default(uuid())
   categoryName        String  @unique @map("category_name")
@@ -53,50 +43,15 @@ model MasterAmenity {
 
   @@map("master_amenities")
 }
-model MasterPaymentIntegration {
-    id                          String                       @id @default(uuid())
-    name                        String                       @unique
-    isActive                    Boolean                      @default(true) @map("is_active")
-    propertyPaymentIntegrations PropertyPaymentIntegration[]
 
-    @@map("master_payment_integrations")
-}
-model MasterIntegrations {
-    id       String           @id @default(uuid())
-    type     IntegrationTypes @default(channel_manager)
-    name     String
-    isActive Boolean          @default(true)
+model MasterRoomView {
+  id String @id @default(uuid())
 
-    createdAt                          DateTime                          @default(now()) @map("created_at")
-    propertyIntegrations               PropertyIntegrations[]
-    requiredFieldsForMasterIntegration MasterIntegrationRequiredFields[]
-    masterIntegrationURLFields         MasterIntegrationURLFields[]
+  viewName String @map("view_name")
+  isActive Boolean @default(true) @map("is_active")
+  metaData Json? @map("meta_data") // for storing additional info
+  RoomViews MRoomView[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    @@unique([name, type])
-    @@map("master_integrations")
-}
-
-model MasterIntegrationRequiredFields {
-    id                  String @id @default(uuid())
-    name                String
-    masterIntegrationId String @map("master_integration_id")
-
-    MasterIntegration          MasterIntegrations           @relation(fields: [masterIntegrationId], references: [id], onDelete: Cascade)
-    propertyInregrationSecrets PropertyInregrationSecrets[]
-
-    @@unique([masterIntegrationId, name])
-    @@index([masterIntegrationId])
-    @@map("required_fields_for_master_integration")
-}
-
-model MasterIntegrationURLFields {
-    id                  String @id @default(uuid())
-    name                String
-    url                 String
-    masterIntegrationId String @map("master_integration_id")
-
-    MasterIntegration MasterIntegrations @relation(fields: [masterIntegrationId], references: [id], onDelete: Cascade)
-
-    @@index([masterIntegrationId])
-    @@map("master_integration_url_fields")
 }

@@ -1,4 +1,4 @@
-import type { roomView,roomUnit,smokingPolicy } from "../create/types/types";
+import type { roomUnit,smokingPolicy } from "../create/types/types";
 
 export interface IPropertyEmail {
   id: string;
@@ -76,7 +76,6 @@ export interface IRoom {
   totalRoom: number;
   availableRooms: number;
   floor: number;
-  roomView: roomView;
   roomSize: number;
   roomUnit: roomUnit;
   smokingPolicy: smokingPolicy;
@@ -99,6 +98,12 @@ export interface IRoom {
   };
   // New relational structure for amenities
   roomAmenities?: IRoomAmenitySelection[];
+  RoomViews?: {
+    MasterRoomView?: {
+      id: string;
+      viewName: string;
+    };
+  };
 }
 export interface IRatePlans {
   hotelCode: string
