@@ -179,7 +179,7 @@ export class Users {
     try {
       if (role === "super_admin") {
         return await this.getUnmappedUsersForSuperAdmin();
-      } else if (role === "group_manager" || role === "brand_manager" || role === "hotel_manager") {
+      } else if (role === "group_manager" || role === "brand_manager" || role === "hotel_manager"||role==="regional_admin") {
         return await this.getUnmappedUsersForGroupOrBrandManager(createdById);
       } else {
         throw new Error("Role not authorized to fetch unmapped users");
