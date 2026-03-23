@@ -10,14 +10,11 @@ import {
 import { cn } from "@/lib/utils";
 import { useGeolocated } from "react-geolocated";
 
-import {
-  Country,
-  State,
-  City,
+import csc, {
   type ICountry,
   type IState,
   type ICity,
-} from "country-state-city";
+} from "countries-states-cities";
 
 // UI Components
 import { Button } from "@/components/ui/button";
@@ -56,7 +53,7 @@ const propertyAddressSchema = z.object({
   landmark: z.string().optional(),
   zipCode: z
     .string()
-    ,
+  ,
   latitude: z.string().optional(),
   longitude: z.string().optional(),
 });
@@ -114,8 +111,28 @@ export default function PropertyAddress() {
   const [extractionMessage, setExtractionMessage] = useState("");
 
   useEffect(() => {
-    setCountries(Country.getAllCountries());
+    setCountries(csc.getAllCountries());
   }, []);
+
+  const resolveCountry = (value: string): ICountry | undefined => {
+    const v = value.trim();
+    if (!v) return undefined;
+    const byCode = csc.getCountryByCode(v.toUpperCase());
+    if (byCode) return byCode;
+    return csc
+      .getAllCountries()
+      .find((c) => c.name.toLowerCase() === v.toLowerCase());
+  };
+
+  const resolveState = (countryId: number, stateCodeOrName: string): IState | undefined => {
+    const needle = stateCodeOrName.trim();
+    if (!needle) return undefined;
+    return csc.getStatesOfCountry(countryId).find(
+      (s) =>
+        s.state_code.toLowerCase() === needle.toLowerCase() ||
+        s.name.toLowerCase() === needle.toLowerCase(),
+    );
+  };
   const extractCoordinatesFromLink = (link: string): { lat: number; lng: number } | null => {
     try {
       const cleanLink = link.trim();
@@ -272,12 +289,7 @@ export default function PropertyAddress() {
       try {
         const response = await getPropertyAddress(propertyId);
         if (response.success && response.data) {
-          const countryObj = Country.getAllCountries().find(
-            (c) => c.name === response.data.country
-          );
-          const stateObj = State.getStatesOfCountry(countryObj?.isoCode || "").find(
-            (s) => s.name === response.data.state
-          );
+        
           setPropertyAddress(response.data);
           setPropertyAddress({
             ...propertyAddress,
@@ -285,8 +297,8 @@ export default function PropertyAddress() {
             addressLine1: response.data.addressLine1,
             addressLine2: response.data.addressLine2,
             city: response.data.city,
-            country: countryObj?.isoCode || "",
-            state: stateObj?.isoCode || "",
+            country: response.data.country || "",
+            state: response.data.state || "",
             landmark: response.data.landmark,
             location: response.data.location,
             latitude: response.data.latitude.toString(),
@@ -310,16 +322,19 @@ export default function PropertyAddress() {
 
   useEffect(() => {
     if (propertyAddress.country) {
-      setStates(State.getStatesOfCountry(propertyAddress.country));
+      const country = resolveCountry(propertyAddress.country);
+      setStates(country ? csc.getStatesOfCountry(country.id) : []);
       setCities([]);
     }
   }, [propertyAddress.country]);
 
   useEffect(() => {
     if (propertyAddress.country && propertyAddress.state) {
-      setCities(
-        City.getCitiesOfState(propertyAddress.country, propertyAddress.state)
-      );
+      const country = resolveCountry(propertyAddress.country);
+      const state = country
+        ? resolveState(country.id, propertyAddress.state)
+        : undefined;
+      setCities(state ? csc.getCitiesOfState(state.id) : []);
     }
   }, [propertyAddress.country, propertyAddress.state]);
 
@@ -349,18 +364,8 @@ export default function PropertyAddress() {
 
   const handleSave = async () => {
     setErrors(null);
-    const validationData = {
-      ...propertyAddress,
-      country: Country.getCountryByCode(propertyAddress.country)?.name || "",
-      state:
-        State.getStateByCodeAndCountry(
-          propertyAddress.state,
-          propertyAddress.country
-        )?.name || "",
-      city: propertyAddress.city,
-    };
 
-    const result = propertyAddressSchema.safeParse(validationData);
+    const result = propertyAddressSchema.safeParse(propertyAddress);
     if (!result.success) {
       setErrors(result.error.format());
       toast.error("Please fix the errors before continuing.");
@@ -370,8 +375,8 @@ export default function PropertyAddress() {
     setIsSaving(true);
     const finalDataToSubmit = {
       ...propertyAddress,
-      country: validationData.country,
-      state: validationData.state,
+      country: propertyAddress.country,
+      state: propertyAddress.state,
       zipCode: propertyAddress.zipCode,
       latitude: propertyAddress.latitude,
       longitude: propertyAddress.longitude
@@ -493,26 +498,22 @@ export default function PropertyAddress() {
                   >
                     <Globe className="w-4 h-4" /> Country *
                   </Label>
-                  <select
+                  <Input
                     id="country"
+                    list="country-list"
                     value={propertyAddress.country}
-                    onChange={(e) =>
-                      handleFieldChange("country", e.target.value)
-                    }
+                    onChange={(e) => handleFieldChange("country", e.target.value)}
+                    placeholder="Search or type country..."
                     className={cn(
-                      "h-12 border-2 w-full bg-white rounded-lg",
-                      errors?.country
-                        ? "border-red-500"
-                        : "border-gray-400 focus:border-black"
+                      "h-10 border-gray-300 focus:border-black",
+                      errors?.country && "border-red-500 focus:border-red-600",
                     )}
-                  >
-                    <option value="">Select Country</option>
+                  />
+                  <datalist id="country-list">
                     {countries.map((country) => (
-                      <option key={country.isoCode} value={country.isoCode}>
-                        {country.name}
-                      </option>
+                      <option key={country.iso2} value={country.name} />
                     ))}
-                  </select>
+                  </datalist>
                   {errors?.country?._errors[0] && (
                     <p className="text-red-500 text-sm mt-2">
                       <X className="inline w-4 h-4 mr-1" />
@@ -527,25 +528,23 @@ export default function PropertyAddress() {
                   >
                     <MapPin className="w-4 h-4" /> State/Province *
                   </Label>
-                  <select
+                  <Input
                     id="state"
+                    list="state-list"
                     value={propertyAddress.state}
                     onChange={(e) => handleFieldChange("state", e.target.value)}
-                    disabled={!propertyAddress.country || states.length === 0}
+                    disabled={!propertyAddress.country}
+                    placeholder="Search or type state..."
                     className={cn(
-                      "h-12 border-2 w-full bg-white rounded-lg",
-                      errors?.state
-                        ? "border-red-500"
-                        : "border-gray-400 focus:border-black"
+                      "h-10 border-gray-300 focus:border-black",
+                      errors?.state && "border-red-500 focus:border-red-600",
                     )}
-                  >
-                    <option value="">Select State</option>
+                  />
+                  <datalist id="state-list">
                     {states.map((state) => (
-                      <option key={state.isoCode} value={state.isoCode}>
-                        {state.name}
-                      </option>
+                      <option key={state.state_code} value={state.name} />
                     ))}
-                  </select>
+                  </datalist>
                   {errors?.state?._errors[0] && (
                     <p className="text-red-500 text-sm mt-2">
                       <X className="inline w-4 h-4 mr-1" />
@@ -560,25 +559,23 @@ export default function PropertyAddress() {
                   >
                     <Home className="w-4 h-4" /> City *
                   </Label>
-                  <select
+                  <Input
                     id="city"
+                    list="city-list"
                     value={propertyAddress.city}
                     onChange={(e) => handleFieldChange("city", e.target.value)}
-                    disabled={!propertyAddress.state || cities.length === 0}
+                    disabled={!propertyAddress.state}
+                    placeholder="Search or type city..."
                     className={cn(
-                      "h-12 border-2 w-full bg-white rounded-lg",
-                      errors?.city
-                        ? "border-red-500"
-                        : "border-gray-400 focus:border-black"
+                      "h-10 border-gray-300 focus:border-black",
+                      errors?.city && "border-red-500 focus:border-red-600",
                     )}
-                  >
-                    <option value="">Select City</option>
+                  />
+                  <datalist id="city-list">
                     {cities.map((city) => (
-                      <option key={city.name} value={city.name}>
-                        {city.name}
-                      </option>
+                      <option key={city.name} value={city.name} />
                     ))}
-                  </select>
+                  </datalist>
                   {errors?.city?._errors[0] && (
                     <p className="text-red-500 text-sm mt-2">
                       <X className="inline w-4 h-4 mr-1" />
@@ -729,7 +726,7 @@ export default function PropertyAddress() {
                 <Link className="w-5 h-5" />
                 <span className="font-medium">Use Map Link</span>
               </Button>
-              
+
             </div>
 
             {coordinateMethod === "link" && (

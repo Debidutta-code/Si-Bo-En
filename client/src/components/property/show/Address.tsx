@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import UpdatePropertyAddress from "../update/PropertyAddress";
 import { updatePropertyAddress } from "../api/create/propertyAddress";
-import { getCountryISO, getStateISO } from "@/lib/geoUtils";
+// import { getCountryISO } from "@/lib/geoUtils";
 interface PropertyId {
   propertyId: string;
 }
@@ -79,26 +79,10 @@ export default function PropertyAddress({ propertyId }: PropertyId) {
   ) => {
     setLoading(true);
     try {
-      const countryISO = getCountryISO(payload.country);
-      // console.log(payload.country)
-      // console.log(countryISO)
-      if (!countryISO) {
-        toast.error("Invalid country");
-        return;
-      }
-
-      // Normalize state
-      const stateISO = getStateISO(payload.state, countryISO);
-      // console.log(stateISO);
-      if (!stateISO) {
-        toast.error("Invalid state for selected country");
-        return;
-      }
-
       payload = {
         ...payload,
-        country: countryISO, // ← now "IN"
-        state: stateISO, // ← now "OR"
+        country: payload.country,
+        state: payload.state,
         zipCode: payload.zipCode.toString() || "",
       };
       const response = await updatePropertyAddress(propertyId, payload);

@@ -6,7 +6,7 @@ import { PrismaClient } from "../../prisma/generated/prisma/client";
 export async function connectMongo() {
   try {
 
-    const connection = await connect(process.env.EXTRANET_MONGO_URI as string);
+    await connect(process.env.EXTRANET_MONGO_URI as string);
     console.log(`✅ MongoDB connected successfully`);
   } catch (error) {
     console.error("❌ Error connecting mongodb:", error);

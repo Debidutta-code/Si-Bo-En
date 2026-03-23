@@ -1,25 +1,33 @@
-import { Country, State } from "country-state-city";
+// import csc, { type ICountry, type IState } from "countries-states-cities";
 
-export const getCountryISO = (input: string): string | null => {
-  if (!input) return null;
+// export const getCountryISO = (input: string): string | null => {
+//   if (!input) return null;
 
+//   const code = input.trim().toLowerCase();
 
-  const country = Country.getAllCountries().find(
-    (c) =>
-      c.isoCode.toLowerCase() === input.toLowerCase()
-  );
-  // console.log(country)
-  return country?.name || null;
-};
+//   // Accept either "US" style codes or full country names.
+//   const country: ICountry | undefined = csc
+//     .getAllCountries()
+//     .find((c) => c.iso2.toLowerCase() === code || c.name.toLowerCase() === code);
 
-export const getStateISO = (input: string, countryISO: string): string | null => {
-  if (!input || !countryISO) return null;
+//   // Returns normalized country name for the server.
+//   return country?.name || null;
+// };
 
+// export const getStateISO = (input: string, countryISO: string): string | null => {
+//   if (!input || !countryISO) return null;
 
-  const state = State.getStatesOfCountry(countryISO).find(
-    (s) =>
-      s.isoCode.toLowerCase() === input.toLowerCase()
-  );
-  // console.log(state)
-  return state?.name || null;
-};
+//   const country = csc.getCountryByCode(countryISO);
+//   if (!country) return null;
+
+//   const needle = input.trim().toLowerCase();
+//   const state: IState | undefined = csc
+//     .getStatesOfCountry(country.id)
+//     .find(
+//       (s) =>
+//         s.state_code.toLowerCase() === needle || s.name.toLowerCase() === needle,
+//     );
+
+//   // Returns normalized state name for the server.
+//   return state?.name || null;
+// };

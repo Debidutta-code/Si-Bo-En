@@ -1,14 +1,11 @@
 import { useState, useEffect } from "react";
 import { z } from "zod";
 import { cn } from "@/lib/utils";
-import {
-  Country,
-  State,
-  City,
+import csc, {
   type ICountry,
   type IState,
   type ICity,
-} from "country-state-city";
+} from "countries-states-cities";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -84,15 +81,43 @@ export default function UpdatePropertyAddress({
 
   // Fetch all countries on mount
   useEffect(() => {
-    setCountries(Country.getAllCountries());
+    setCountries(csc.getAllCountries());
   }, []);
+
+  const resolveCountry = (value: string): ICountry | undefined => {
+    const v = value.trim();
+    if (!v) return undefined;
+
+    // Prefer code lookup first.
+    const byCode = csc.getCountryByCode(v.toUpperCase());
+    if (byCode) return byCode;
+
+    // Fallback: sometimes `address.country` can be the country name.
+    return csc
+      .getAllCountries()
+      .find((c) => c.name.toLowerCase() === v.toLowerCase());
+  };
+
+  const resolveState = (countryId: number, stateCodeOrName: string): IState | undefined => {
+    const needle = stateCodeOrName.trim();
+    if (!needle) return undefined;
+    return csc.getStatesOfCountry(countryId).find(
+      (s) =>
+        s.state_code.toLowerCase() === needle.toLowerCase() ||
+        s.name.toLowerCase() === needle.toLowerCase(),
+    );
+  };
   useEffect(() => {
     if (address.country) {
-      const countryStates = State.getStatesOfCountry(address.country);
+      const country = resolveCountry(address.country);
+      const countryStates: IState[] = country
+        ? csc.getStatesOfCountry(country.id)
+        : [];
       setStates(countryStates);
+
       if (
         address.state &&
-        !countryStates.some((s) => s.isoCode === address.state)
+        !countryStates.some((s) => s.state_code === address.state)
       ) {
         setAddress((prev) => ({ ...prev, state: "", city: "" }));
       }
@@ -106,10 +131,10 @@ export default function UpdatePropertyAddress({
   // Sync cities when state changes
   useEffect(() => {
     if (address.country && address.state) {
-      const countryCities = City.getCitiesOfState(
-        address.country,
-        address.state,
-      );
+      const country = resolveCountry(address.country);
+      const state = country ? resolveState(country.id, address.state) : undefined;
+
+      const countryCities: ICity[] = state ? csc.getCitiesOfState(state.id) : [];
       setCities(countryCities);
 
       // If current city is not in this state, reset
@@ -238,6 +263,7 @@ export default function UpdatePropertyAddress({
   }, [coords, coordinateMethod, isFetchingLocation]);
   const handleFieldChange = (field: keyof IPropertyAddress, value: string) => {
     if (field === "country") {
+      console.log("Country changed:", value);
       setAddress((prev) => ({
         ...prev,
         country: value,
@@ -326,22 +352,22 @@ export default function UpdatePropertyAddress({
             >
               <Globe className="w-4 h-4" /> Country *
             </Label>
-            <select
+            <Input
               id="country"
+              list="country-list"
               value={address.country}
               onChange={(e) => handleFieldChange("country", e.target.value)}
+              placeholder="Search or type country..."
               className={cn(
-                "w-full h-10 border border-gray-300 rounded-md px-3 bg-white focus:border-black",
+                "h-10 border-gray-300 focus:border-black",
                 errors?.country && "border-red-500 focus:border-red-600",
               )}
-            >
-              <option value="">Select Country</option>
+            />
+            <datalist id="country-list">
               {countries.map((country) => (
-                <option key={country.isoCode} value={country.isoCode}>
-                  {country.name}
-                </option>
+                <option key={country.iso2} value={country.name} />
               ))}
-            </select>
+            </datalist>
             {errors?.country?._errors[0] && (
               <p className="text-red-600 text-xs mt-1 flex items-center gap-1">
                 <X className="w-3 h-3" />
@@ -358,23 +384,23 @@ export default function UpdatePropertyAddress({
             >
               <MapPin className="w-4 h-4" /> State *
             </Label>
-            <select
+            <Input
               id="state"
+              list="state-list"
               value={address.state}
               onChange={(e) => handleFieldChange("state", e.target.value)}
-              disabled={!address.country || states.length === 0}
+              disabled={!address.country}
+              placeholder="Search or type state..."
               className={cn(
-                "w-full h-10 border border-gray-300 rounded-md px-3 bg-white focus:border-black",
+                "h-10 border-gray-300 focus:border-black",
                 errors?.state && "border-red-500 focus:border-red-600",
               )}
-            >
-              <option value="">Select State</option>
+            />
+            <datalist id="state-list">
               {states.map((state) => (
-                <option key={state.isoCode} value={state.isoCode}>
-                  {state.name}
-                </option>
+                <option key={state.state_code} value={state.name} />
               ))}
-            </select>
+            </datalist>
             {errors?.state?._errors[0] && (
               <p className="text-red-600 text-xs mt-1 flex items-center gap-1">
                 <X className="w-3 h-3" />
@@ -391,23 +417,23 @@ export default function UpdatePropertyAddress({
             >
               <Home className="w-4 h-4" /> City *
             </Label>
-            <select
+            <Input
               id="city"
+              list="city-list"
               value={address.city}
               onChange={(e) => handleFieldChange("city", e.target.value)}
-              disabled={!address.state || cities.length === 0}
+              disabled={!address.state}
+              placeholder="Search or type city..."
               className={cn(
-                "w-full h-10 border border-gray-300 rounded-md px-3 bg-white focus:border-black",
+                "h-10 border-gray-300 focus:border-black",
                 errors?.city && "border-red-500 focus:border-red-600",
               )}
-            >
-              <option value="">Select City</option>
+            />
+            <datalist id="city-list">
               {cities.map((city) => (
-                <option key={city.name} value={city.name}>
-                  {city.name}
-                </option>
+                <option key={city.name} value={city.name} />
               ))}
-            </select>
+            </datalist>
             {errors?.city?._errors[0] && (
               <p className="text-red-600 text-xs mt-1 flex items-center gap-1">
                 <X className="w-3 h-3" />
@@ -550,40 +576,40 @@ export default function UpdatePropertyAddress({
             Manual Entry
           </Button>
         </div>
-            {coordinateMethod === "auto" && (
-              <div className="bg-green-50 border-2 border-green-200 p-6 rounded-lg space-y-4">
-                <div className="flex items-center gap-2 text-sm font-semibold text-black mb-2">
-                  <Navigation className="w-4 h-4" /> Auto Location
-                </div>
-                {extractionStatus !== "idle" && (
-                  <div
-                    className={cn(
-                      "flex items-center gap-2 p-3 rounded-lg text-sm font-medium",
-                      extractionStatus === "success"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    )}
-                  >
-                    {extractionStatus === "success" ? (
-                      <CheckCircle className="w-5 h-5" />
-                    ) : (
-                      <AlertCircle className="w-5 h-5" />
-                    )}
-                    {extractionMessage}
-                  </div>
+        {coordinateMethod === "auto" && (
+          <div className="bg-green-50 border-2 border-green-200 p-6 rounded-lg space-y-4">
+            <div className="flex items-center gap-2 text-sm font-semibold text-black mb-2">
+              <Navigation className="w-4 h-4" /> Auto Location
+            </div>
+            {extractionStatus !== "idle" && (
+              <div
+                className={cn(
+                  "flex items-center gap-2 p-3 rounded-lg text-sm font-medium",
+                  extractionStatus === "success"
+                    ? "bg-green-100 text-green-800"
+                    : "bg-red-100 text-red-800"
                 )}
-                {address.latitude && address.longitude && (
-                  <div className="bg-white border border-green-300 p-4 rounded-lg">
-                    <p className="text-sm text-gray-700">
-                      <strong>Latitude:</strong> {address.latitude}
-                    </p>
-                    <p className="text-sm text-gray-700 mt-2">
-                      <strong>Longitude:</strong> {address.longitude}
-                    </p>
-                  </div>
+              >
+                {extractionStatus === "success" ? (
+                  <CheckCircle className="w-5 h-5" />
+                ) : (
+                  <AlertCircle className="w-5 h-5" />
                 )}
+                {extractionMessage}
               </div>
             )}
+            {address.latitude && address.longitude && (
+              <div className="bg-white border border-green-300 p-4 rounded-lg">
+                <p className="text-sm text-gray-700">
+                  <strong>Latitude:</strong> {address.latitude}
+                </p>
+                <p className="text-sm text-gray-700 mt-2">
+                  <strong>Longitude:</strong> {address.longitude}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
         {coordinateMethod === "link" && (
           <div className="bg-blue-50 border border-blue-200 p-4 rounded-lg space-y-3">
             <Label
