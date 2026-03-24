@@ -36,14 +36,8 @@ export default function UpdatePropertyAmenity({
   const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState<FormErrors | null>(null);
   const [_apiError, setApiError] = useState<string | null>(null);
-  const [availableAmenities, setAvailableAmenities] = useState<string[]>([]); // all possible
+  const [availableAmenities, setAvailableAmenities] = useState<IAmenity[]>([]); // all possible
   const [selectedAmenities, setSelectedAmenities] = useState<AmenityState>({});
-
-  // Slugify: "Free Wi-Fi" → "free_wifi"
-  const toKey = (name: string): string => {
-    return name
-        
-  };
 
   // --- FETCH ALL AVAILABLE AMENITIES (list of strings) ---
   useEffect(() => {
@@ -56,24 +50,29 @@ export default function UpdatePropertyAmenity({
         if (!amenitiesRes.success) throw new Error("Failed to fetch amenities");
 
         // Extract and clean all possible amenities
-        const allAmenities = amenitiesRes.data || [];
-        const cleanedAmenities = allAmenities
-          .map((name: {amenityName: string}) => name.amenityName)
+        const allAmenities = (amenitiesRes.data || []) as Array<{
+          id: string;
+          amenityName: string;
+        }>;
+        const cleanedAmenities: IAmenity[] = allAmenities
+          .map((a) => ({ id: a.id, name: a.amenityName }))
+          .filter((a) => a.id && a.name);
+
         setAvailableAmenities(cleanedAmenities);
 
-        // Build initial state: all false
-        const initialState = cleanedAmenities.reduce((acc: AmenityState, name: string) => {
-          const key = toKey(name);
-          acc[key] = false;
-          return acc;
-        }, {});
+        // Build initial state: all false (keys are amenity UUIDs)
+        const initialState = cleanedAmenities.reduce(
+          (acc: AmenityState, amenity: IAmenity) => {
+            acc[amenity.id] = false;
+            return acc;
+          },
+          {},
+        );
 
-        // Mark selected ones as true
+        // Mark selected ones as true (propAvailableAmenities are already selected amenities)
         propAvailableAmenities.forEach((amenity: IAmenity) => {
-          const cleanSelectedName = amenity.name.trim()
-          const key = toKey(cleanSelectedName);
-          if (initialState.hasOwnProperty(key)) {
-            initialState[key] = true;
+          if (amenity?.id && Object.prototype.hasOwnProperty.call(initialState, amenity.id)) {
+            initialState[amenity.id] = true;
           }
         });
 
@@ -92,11 +91,9 @@ export default function UpdatePropertyAmenity({
   }, [propAvailableAmenities]); // Re-run if parent list changes
 
   // --- TOGGLE HANDLER ---
-  const handleToggle = (humanName: string) => {
-    const key = toKey(humanName);
-    const newValue = !selectedAmenities[key];
-
-    const newState = { ...selectedAmenities, [key]: newValue };
+  const handleToggle = (amenityId: string) => {
+    const newValue = !selectedAmenities[amenityId];
+    const newState = { ...selectedAmenities, [amenityId]: newValue };
     setSelectedAmenities(newState);
     propSetSelectedAmenities(newState);
 
@@ -111,15 +108,14 @@ export default function UpdatePropertyAmenity({
     <div className="max-h-[80vh] overflow-y-auto px-2 py-1">
       {/* Amenity Grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-6">
-        {availableAmenities.map((name) => {
-          const key = toKey(name);
-          const isSelected = selectedAmenities[key] || false;
+        {availableAmenities.map((amenity) => {
+          const isSelected = selectedAmenities[amenity.id] || false;
 
           return (
             <button
-              key={name}
+              key={amenity.id}
               type="button"
-              onClick={() => handleToggle(name)}
+              onClick={() => handleToggle(amenity.id)}
               className={cn( 
                 "relative flex flex-col items-center p-4 rounded-xl border-2 transition-all duration-200 focus:outline-none",
                 isSelected
@@ -128,7 +124,7 @@ export default function UpdatePropertyAmenity({
               )}
             >
               <span className="text-xs  font-medium capitalize text-center">
-                {name.replace(/_/g, " ")}
+                {amenity.name}
               </span>
               <div
                 className={cn(

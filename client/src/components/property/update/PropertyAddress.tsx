@@ -107,6 +107,12 @@ export default function UpdatePropertyAddress({
         s.name.toLowerCase() === needle.toLowerCase(),
     );
   };
+
+  const resolvedCountry = resolveCountry(address.country);
+  const resolvedState =
+    resolvedCountry && address.state
+      ? resolveState(resolvedCountry.id, address.state)
+      : undefined;
   useEffect(() => {
     if (address.country) {
       const country = resolveCountry(address.country);
@@ -114,17 +120,16 @@ export default function UpdatePropertyAddress({
         ? csc.getStatesOfCountry(country.id)
         : [];
       setStates(countryStates);
-
-      if (
-        address.state &&
-        !countryStates.some((s) => s.state_code === address.state)
-      ) {
-        setAddress((prev) => ({ ...prev, state: "", city: "" }));
+      if (address.state && country) {
+        const resolved = resolveState(country.id, address.state);
+        if (!resolved) {
+          setAddress((prev) => ({ ...prev, state: "", city: "" }));
+        }
       }
     } else {
       setStates([]);
     }
-    setAddress((prev) => ({ ...prev, city: "" })); // Reset city
+    // Keep city reset scoped to the state's effect; here we just clear cities list.
     setCities([]);
   }, [address.country, setAddress]);
 
@@ -389,7 +394,7 @@ export default function UpdatePropertyAddress({
               list="state-list"
               value={address.state}
               onChange={(e) => handleFieldChange("state", e.target.value)}
-              disabled={!address.country}
+              disabled={!resolvedCountry || states.length === 0}
               placeholder="Search or type state..."
               className={cn(
                 "h-10 border-gray-300 focus:border-black",
@@ -422,7 +427,7 @@ export default function UpdatePropertyAddress({
               list="city-list"
               value={address.city}
               onChange={(e) => handleFieldChange("city", e.target.value)}
-              disabled={!address.state}
+              disabled={!resolvedState || cities.length === 0}
               placeholder="Search or type city..."
               className={cn(
                 "h-10 border-gray-300 focus:border-black",
