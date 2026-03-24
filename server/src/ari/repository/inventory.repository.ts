@@ -109,49 +109,25 @@ class InventoryRepository {
         }
     }
 
-    public static async createInventory(
-        repoData: ICreateInventoryRepo[]
-    ): Promise<boolean> {
+    public static async createInventory(repoData: ICreateInventoryRepo[]): Promise<boolean> {
         try {
-            const ops: any[] = [];
-
-            for (const item of repoData) {
-                const isExists = await prisma.inventory.findFirst({
-                    where: {
-                        propertyCode: item.propertyCode,
-                        roomTypeCode: item.roomTypeCode,
-                        date: toUTC(item.date)
-                    }
+            await Promise.all(
+                repoData.map(item => {
+                    const dateUTC = toUTC(item.date);
+                    return prisma.inventory.upsert({
+                        where: {
+                            propertyCode_roomTypeCode_date: {
+                                propertyCode: item.propertyCode,
+                                roomTypeCode: item.roomTypeCode,
+                                date: dateUTC,
+                            },
+                        },
+                        create: { ...item, date: dateUTC },
+                        update: { availability: item.availability },
+                    });
                 })
-                if (isExists) {
-                    ops.push(
-                        prisma.inventory.update({
-                            where: {
-                                id: isExists.id
-                            },
-                            data: { availability: item.availability },
-                        })
-                    )
-
-                } else {
-                    ops.push(
-                        prisma.inventory.create({
-                            data: {
-                                ...item,
-                                date: toUTC(item.date),
-                            },
-                        })
-                    );
-                }
-
-            }
-
-            if (ops.length > 0) {
-                await prisma.$transaction(ops);
-            }
-
-            return true
-
+            );
+            return true;
         } catch (error: any) {
             throw new Error(error.message);
         }
@@ -159,112 +135,81 @@ class InventoryRepository {
 
 
 
-    public static async mapRatePlans(
-        payload: ICharges[]
-    ) {
+    public static async mapRatePlans(payload: ICharges[]) {
         try {
             if (!payload || payload.length === 0) {
                 throw new Error('No charge data provided');
             }
-            const chargeUpdates = [];
 
-            for (const chargeData of payload) {
-                const {
-                    propertyCode,
-                    ratePlanCode,
-                    ratePlanName,
-                    roomTypeCode,
-                    roomTypeName,
-                    currencyCode,
-                    date,
-                    baseGuestAmounts,
-                    additionalGuestAmounts,
-                } = chargeData;
+            // ── Step 1: Upsert all charges in parallel ────────────────────────────
+            const upsertedCharges = await Promise.all(
+                payload.map((chargeData) => {
+                    const {
+                        propertyCode, ratePlanCode, ratePlanName,
+                        roomTypeCode, roomTypeName, currencyCode, date,
+                    } = chargeData;
 
-                const chargeDoc: any = {
-                    propertyCode,
-                    ratePlanCode,
-                    ratePlanName,
-                    roomTypeCode,
-                    roomTypeName,
-                    currencyCode: currencyCode.toUpperCase() as any,
-                    date: new Date(date.toString()),
-                    baseGuestAmounts: {
-                        create: baseGuestAmounts.map(bg => ({
-                            numberOfGuests: bg.noOfGuests,
-                            amountBeforeTax: Number(bg.amount),
-                            ageQualifyingCode: bg.ageQualifyingCode,
-
-                        })),
-                    },
-                    additionalGuestAmounts: {
-                        create: additionalGuestAmounts.map(ag => ({
-                            ageQualifyingCode: ag.ageCode,
-                            amount: ag.amount,
-                        })),
-                    },
-                };
-
-                // First check if the charge exists
-                const existingCharge = await prisma.charge.findFirst({
-                    where: {
-                        propertyCode,
-                        ratePlanCode,
-                        roomTypeCode,
-                        date: new Date(date.toString()),
-                    },
-                });
-
-                // Then either update or create based on existence
-                if (existingCharge) {
-                    chargeUpdates.push(
-                        prisma.charge.update({
-                            where: { id: existingCharge.id },
-                            data: {
-                                ratePlanName,
-                                roomTypeName,
-                                currencyCode: currencyCode.toUpperCase() as any,
-                                baseGuestAmounts: {
-                                    deleteMany: {},
-                                    create: baseGuestAmounts.map(bg => ({
-                                        numberOfGuests: bg.noOfGuests,
-                                        amountBeforeTax: Number(bg.amount),
-                                        ageQualifyingCode: bg.ageQualifyingCode,
-                                    })),
-                                },
-                                additionalGuestAmounts: {
-                                    deleteMany: {},
-                                    create: additionalGuestAmounts.map(ag => ({
-                                        ageQualifyingCode: ag.ageCode,
-                                        amount: ag.amount,
-                                    })),
-                                },
+                    return prisma.charge.upsert({
+                        where: {
+                            propertyCode_roomTypeCode_ratePlanCode_date: {
+                                propertyCode,
+                                roomTypeCode,
+                                ratePlanCode,
+                                date: new Date(date.toString()),
                             },
-                        })
-                    );
-                } else {
-                    chargeUpdates.push(
-                        prisma.charge.create({
-                            data: chargeDoc
-                        }
-                        )
-                    );
-                }
-            }
+                        },
+                        create: {
+                            propertyCode, ratePlanCode, ratePlanName,
+                            roomTypeCode, roomTypeName,
+                            currencyCode: currencyCode.toUpperCase() as any,
+                            date: new Date(date.toString()),
+                        },
+                        update: {
+                            ratePlanName, roomTypeName,
+                            currencyCode: currencyCode.toUpperCase() as any,
+                        },
+                        select: { id: true, propertyCode: true, ratePlanCode: true, roomTypeCode: true, date: true },
+                    });
+                })
+            );
 
-            if (chargeUpdates.length > 0) {
-                await prisma.$transaction(chargeUpdates);
-            }
+            // ── Step 2: Delete old nested records in bulk ─────────────────────────
+            const chargeIds = upsertedCharges.map(c => c.id);
 
-            // Update ratePlans array in Inventory for the affected room types
+            await Promise.all([
+                prisma.chargeBaseByGuest.deleteMany({ where: { chargeId: { in: chargeIds } } }),
+                prisma.chargeAdditionalGuest.deleteMany({ where: { chargeId: { in: chargeIds } } }),
+            ]);
+
+            // ── Step 3: Re-insert all nested records in bulk ──────────────────────
+            const baseGuestData = upsertedCharges.flatMap((charge, i) =>
+                payload[i].baseGuestAmounts.map(bg => ({
+                    chargeId: charge.id,
+                    numberOfGuests: bg.noOfGuests,
+                    amountBeforeTax: Number(bg.amount),
+                    ageQualifyingCode: bg.ageQualifyingCode,
+                }))
+            );
+
+            const additionalGuestData = upsertedCharges.flatMap((charge, i) =>
+                payload[i].additionalGuestAmounts.map(ag => ({
+                    chargeId: charge.id,
+                    ageQualifyingCode: ag.ageCode,
+                    amount: ag.amount,
+                }))
+            );
+
+            await Promise.all([
+                prisma.chargeBaseByGuest.createMany({ data: baseGuestData }),
+                prisma.chargeAdditionalGuest.createMany({ data: additionalGuestData }),
+            ]);
+
+            // ── Step 4: Update inventory ratePlans array ──────────────────────────
             if (payload.length > 0) {
                 const { propertyCode, roomTypeCode, ratePlanCode } = payload[0];
 
                 const inventories = await prisma.inventory.findMany({
-                    where: {
-                        propertyCode,
-                        roomTypeCode,
-                    },
+                    where: { propertyCode, roomTypeCode },
                 });
 
                 const inventoryUpdates = inventories
@@ -272,24 +217,21 @@ class InventoryRepository {
                     .map(inv =>
                         prisma.inventory.update({
                             where: { id: inv.id },
-                            data: {
-                                ratePlans: {
-                                    push: ratePlanCode,
-                                },
-                            },
+                            data: { ratePlans: { push: ratePlanCode } },
                         })
                     );
 
                 if (inventoryUpdates.length > 0) {
-                    await prisma.$transaction(inventoryUpdates);
+                    await Promise.all(inventoryUpdates);
                 }
             }
 
             return {
                 success: true,
-                message: `Added/Updated ${chargeUpdates.length} charge records and updated rate plans for rooms`,
-                recordsCreated: chargeUpdates.length,
+                message: `Added/Updated ${upsertedCharges.length} charge records and updated rate plans for rooms`,
+                recordsCreated: upsertedCharges.length,
             };
+
         } catch (error: any) {
             console.error('Error mapping rate plans:', error);
             throw new Error(error.message);

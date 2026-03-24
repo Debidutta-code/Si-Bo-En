@@ -3,39 +3,75 @@ import { prisma } from '../../../../config';
 export class ReportsRepository {
     public async getReservationDetails(bookingCode: string) {
         try {
-            return await prisma.reservation.findUnique({
-                where: {
-                    bookingCode: bookingCode,
-                },
+            const reservation = await prisma.reservation.findUnique({
+                where: { bookingCode },
                 include: {
                     addOns: {
                         include: {
-                            addon: true,
+                            addon: {
+                                select: {
+                                    images: true,
+                                    name: true,
+                                    description: true,
+                                },
+                            },
                         },
                     },
                     primaryGuest: true,
                     priceBreakdowns: true,
+                    reservationGuests: true,
+                    reservationPromotions: true,
                     property: {
                         include: {
                             propertyAddress: true,
                             propertyAmenities: {
                                 include: {
                                     amenity: {
-                                        select: {
-                                            amenityName: true,
-                                            icon: true,
-                                        },
+                                        select: { amenityName: true, icon: true },
                                     },
                                 },
+                            },
+                            bookingEngineConfig: {
+                                select: { logo: true, primaryColor: true },
                             },
                         },
                     },
                 },
             });
+
+            if (!reservation) return null;
+
+            // ── Fetch room images ─────────────────────────────────────────────
+            const room = reservation.roomTypeCode
+                ? await prisma.room.findFirst({
+                    where: {
+                        propertyId: reservation.propertyId,
+                        roomType: reservation.roomTypeCode,
+                    },
+                    select: {
+                        roomName: true,
+                        roomType: true,
+                        image: true,
+                        description: true,
+                        maxOccupancy: true,
+                        roomSize: true,
+                        roomUnit: true,
+                    },
+                })
+                : null;
+
+            // ── Fetch rate plan name ──────────────────────────────────────────
+            const ratePlan = reservation.ratePlanCode
+                ? await prisma.ratePlan.findUnique({
+                    where: { ratePlanCode: reservation.ratePlanCode },
+                    select: { ratePlanName: true },
+                })
+                : null;
+
+            return { ...reservation, room, ratePlanName: ratePlan?.ratePlanName ?? reservation.ratePlanCode };
+
         } catch (error) {
-            if (error instanceof Error) {
-                throw new Error(error.message);
-            }
+            if (error instanceof Error) throw new Error(error.message);
             throw new Error('Internal Server Error');
         }
     }
@@ -192,7 +228,7 @@ export class ReportsRepository {
     public async getArrivalsForDate(propertyId: string, date: Date) {
         const startOfDay = new Date(date);
         startOfDay.setHours(0, 0, 0, 0);
-        
+
         const endOfDay = new Date(date);
         endOfDay.setHours(23, 59, 59, 999);
 
@@ -216,7 +252,7 @@ export class ReportsRepository {
     public async getDeparturesForDate(propertyId: string, date: Date) {
         const startOfDay = new Date(date);
         startOfDay.setHours(0, 0, 0, 0);
-        
+
         const endOfDay = new Date(date);
         endOfDay.setHours(23, 59, 59, 999);
 

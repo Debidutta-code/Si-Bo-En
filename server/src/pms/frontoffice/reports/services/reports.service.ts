@@ -32,7 +32,6 @@ export class ReportsService {
         try {
             const reservation =
                 await this.reportsRepository.getReservationDetails(bookingCode);
-
             if (!reservation) {
                 return errorResponse(
                     'Reservation not found',
@@ -68,57 +67,63 @@ export class ReportsService {
                     propertyCode: property.propertyCode,
                     description: property.description,
                     image: property.image,
+                    // ── Use logo from booking engine config ───────────────────────
+                    logo: property.bookingEngineConfig?.logo ?? property.image?.[0] ?? null,
+                    primaryColor: property.bookingEngineConfig?.primaryColor ?? '#1e293b',
                     starRating: property.starRating,
                     propertyAddress: property.propertyAddress,
                     propertyAmenities: property.propertyAmenities,
                 },
+                room: reservation.room ?? null,
+                // ── Pass ratePlanName ─────────────────────────────────────────────
+                ratePlanName: reservation.ratePlanName ?? reservation.ratePlanCode,
                 reservation: {
                     bookingCode: reservation.bookingCode,
                     checkInDate: reservation.checkInDate,
                     checkOutDate: reservation.checkOutDate,
-                    numberOfGuests:
-                        (guestsData?.adults || 0) +
-                        (guestsData?.children || 0) +
-                        (guestsData?.infants || 0),
+                    numberOfGuests: reservation.reservationGuests?.length ?? 0,
                     bookingSource: reservation.bookingSource,
                     bookingStatus: reservation.bookingStatus,
                     amount: reservation.amount,
+                    paidAmount: reservation.paidAmount,
                     currencyCode: reservation.currencyCode,
                     createdAt: reservation.createdAt,
                     roomTypeCode: reservation.roomTypeCode,
                     ratePlanCode: reservation.ratePlanCode,
                     guests: reservation.guests,
+                    paymentMethod: reservation.paymentMethod,
                 },
-                primaryGuest: reservation.primaryGuest
-                    ? {
-                          firstName: reservation.primaryGuest.firstName,
-                          lastName: reservation.primaryGuest.lastName,
-                          email: reservation.primaryGuest.email,
-                          phoneNumber: reservation.primaryGuest.phoneNumber,
-                          userType: reservation.primaryGuest.userType,
-                          userIdentityCardType:
-                              reservation.primaryGuest.userIdentityCardType,
-                          identityCardNumber:
-                              reservation.primaryGuest.identityCardNumber,
-                      }
-                    : null,
+                reservationGuests: reservation.reservationGuests ?? [],
+                primaryGuest: reservation.primaryGuest ? {
+                    firstName: reservation.primaryGuest.firstName,
+                    lastName: reservation.primaryGuest.lastName,
+                    email: reservation.primaryGuest.email,
+                    phoneNumber: reservation.primaryGuest.phoneNumber,
+                    userType: reservation.primaryGuest.userType,
+                    userIdentityCardType: reservation.primaryGuest.userIdentityCardType,
+                    identityCardNumber: reservation.primaryGuest.identityCardNumber,
+                } : null,
                 addOns: reservation.addOns.map(addon => ({
                     name: addon.name,
                     quantity: addon.quantity,
                     totalPrice: addon.totalPrice,
+                    unitPrice: addon.unitPrice,
+                    date: addon.date,
+                    type: addon.type,
+                    images: addon.addon?.images ?? [],
                 })),
-                priceBreakdown: priceBreakdown
-                    ? {
-                          totalAmount: Number(priceBreakdown.totalAmount),
-                          totalTax: Number(priceBreakdown.totalTax),
-                          baseRatePerNight: Number(
-                              priceBreakdown.baseRatePerNight
-                          ),
-                          numberOfNights: priceBreakdown.numberOfNights,
-                      }
-                    : null,
+                priceBreakdown: priceBreakdown ? {
+                    totalAmount: Number(priceBreakdown.totalAmount),
+                    totalTax: Number(priceBreakdown.totalTax),
+                    baseRatePerNight: Number(priceBreakdown.baseRatePerNight),
+                    numberOfNights: priceBreakdown.numberOfNights,
+                    requestedRooms: priceBreakdown.requestedRooms,
+                    dailyBreakdown: priceBreakdown.dailyBreakdown ?? [],
+                    breakdown: priceBreakdown.breakdown,
+                    tax: priceBreakdown.tax ?? [],
+                } : null,
+                finalPrice: reservation.finalPrice,
             };
-
             // Generate HTML
             const html = generateBookingVoucherHTML(voucherData);
 
@@ -219,16 +224,16 @@ export class ReportsService {
                 },
                 primaryGuest: reservation.primaryGuest
                     ? {
-                          firstName: reservation.primaryGuest.firstName,
-                          lastName: reservation.primaryGuest.lastName,
-                          email: reservation.primaryGuest.email,
-                          phoneNumber: reservation.primaryGuest.phoneNumber,
-                          userType: reservation.primaryGuest.userType,
-                          userIdentityCardType:
-                              reservation.primaryGuest.userIdentityCardType,
-                          identityCardNumber:
-                              reservation.primaryGuest.identityCardNumber,
-                      }
+                        firstName: reservation.primaryGuest.firstName,
+                        lastName: reservation.primaryGuest.lastName,
+                        email: reservation.primaryGuest.email,
+                        phoneNumber: reservation.primaryGuest.phoneNumber,
+                        userType: reservation.primaryGuest.userType,
+                        userIdentityCardType:
+                            reservation.primaryGuest.userIdentityCardType,
+                        identityCardNumber:
+                            reservation.primaryGuest.identityCardNumber,
+                    }
                     : null,
                 addOns: reservation.addOns.map(addon => ({
                     name: addon.name,
@@ -237,16 +242,16 @@ export class ReportsService {
                 })),
                 priceBreakdown: priceBreakdown
                     ? {
-                          totalAmount: Number(priceBreakdown.totalAmount),
-                          totalTax: Number(priceBreakdown.totalTax),
-                          baseRatePerNight: Number(
-                              priceBreakdown.baseRatePerNight
-                          ),
-                          numberOfNights: priceBreakdown.numberOfNights,
-                          additionalGuestCharges:
-                              priceBreakdown.additionalGuestCharges,
-                          breakdown: priceBreakdown.breakdown,
-                      }
+                        totalAmount: Number(priceBreakdown.totalAmount),
+                        totalTax: Number(priceBreakdown.totalTax),
+                        baseRatePerNight: Number(
+                            priceBreakdown.baseRatePerNight
+                        ),
+                        numberOfNights: priceBreakdown.numberOfNights,
+                        additionalGuestCharges:
+                            priceBreakdown.additionalGuestCharges,
+                        breakdown: priceBreakdown.breakdown,
+                    }
                     : null,
             };
 
@@ -391,10 +396,10 @@ export class ReportsService {
             const lastVisit =
                 guest.primaryReservations.length > 0
                     ? guest.primaryReservations.sort(
-                          (a, b) =>
-                              new Date(b.checkInDate).getTime() -
-                              new Date(a.checkInDate).getTime()
-                      )[0].checkInDate
+                        (a, b) =>
+                            new Date(b.checkInDate).getTime() -
+                            new Date(a.checkInDate).getTime()
+                    )[0].checkInDate
                     : null;
 
             return {
