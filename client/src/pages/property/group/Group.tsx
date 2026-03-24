@@ -708,9 +708,9 @@ export default function page() {
                         <Settings className="h-4 w-4" />
                         {!item.property?.isDraft &&
 
-                          <span className="ml-2">{!item.property?.isDraft && "Complete Setup"}</span>
+                        <span className="ml-2">{!item.property?.isDraft && "Complete Setup"}</span>
                         }
-
+                        
                       </Button>
                     )
                   }

@@ -167,10 +167,19 @@ export default class CreationDao {
           group: true,
           brand: true,
           property: true,
-          brandChildren: true,
+          brandChildren: {
+            include: {
+              property: true
+            }
+          },
           groupChildren: {
             include: {
-              brandChildren: true
+              property: true,
+              brandChildren: {
+                include: {
+                  property: true
+                }
+              }
             }
           },
           regional: true,
