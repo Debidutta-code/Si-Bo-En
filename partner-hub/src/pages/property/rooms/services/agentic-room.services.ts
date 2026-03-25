@@ -4,29 +4,28 @@ import {
 import { getAgentPricing } from "../api/agentic-room.api";
 
 export const fetchRoomsByPropertyIdService = async (
-    agenticPropertyId: string,
-    startDate: string,
-    endDate: string
+  agenticPropertyId: string,
+  startDate: string,
+  endDate: string,
+  guests: {
+    adults: number;
+    children: number;
+    rooms: number;
+    roomsArray: { adults: number; children: number; childAges: number[] }[];
+  }
 ) => {
-    try {
-        if (!agenticPropertyId || agenticPropertyId.trim() === "") {
-            return { success: false, message: "Property ID is required." };
-        }
+  try {
+    if (!agenticPropertyId?.trim())
+      return { success: false, message: "Property ID is required." };
+    if (!startDate || !endDate)
+      return { success: false, message: "Start date and end date are required." };
+    if (new Date(startDate) > new Date(endDate))
+      return { success: false, message: "Start date must be before end date." };
 
-        if (!startDate || !endDate) {
-            return { success: false, message: "Start date and end date are required." };
-        }
-
-        // Validate date order
-        if (new Date(startDate) > new Date(endDate)) {
-            return { success: false, message: "Start date must be before end date." };
-        }
-
-        const response = await fetchRoomsByPropertyId(agenticPropertyId, startDate, endDate);
-        return response;
-    } catch (error) {
-        return { success: false, message: "Failed to fetch rooms." };
-    }
+    return await fetchRoomsByPropertyId(agenticPropertyId, startDate, endDate, guests);
+  } catch {
+    return { success: false, message: "Failed to fetch rooms." };
+  }
 };
 export const getAgentPricingService = async (data: {
     propertyCode: string;

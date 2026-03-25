@@ -56,16 +56,84 @@ export interface IRoomDetails {
 }
 
 // Agentic room interface
-export interface IAgenticRoom {
+export interface IAgenticRoomPrice {
+    ratePlanName: string;
+    ratePlanCode: string;
+    currencyCode: string;
+    baseByGuestAmts: {
+        numberOfGuests: number;
+        amountBeforeTax: number;
+        ageQualifyingCode: string;
+    }[];
+    policy: {
+        depositPolicy: null | object;
+        cancellationPolicy: null | object;
+        guaranteePolicy: null | object;
+    };
+    availablePromotions: unknown[];
+    appliedDiscounts: unknown[];
+    touristTax: null | object;
+    comboLabel: string;
+    addons: unknown[];
+    totalAmount: number;
+}
+
+export interface IAgenticAmenity {
     id: string;
-    agenticPropertyId: string;
-    roomId: string;
-    roomType: string;
-    roomName: string;
+    amenityName: string;
+    amenityType: string;
+    description: string | null;
+    icon: string | null;
     isActive: boolean;
-    isDeleted: boolean;
     createdAt: string;
-    room: IRoomDetails;
+    updatedAt: string;
+}
+
+export interface IAgenticRoomFull {
+    id: string;
+    roomName: string;
+    roomType: string;
+    roomSize: number;
+    roomUnit: string;
+    roomView: string;
+    smokingPolicy: string;
+    maxOccupancy: number;
+    maxNumberOfAdults: number;
+    maxNumberOfChildren: number;
+    numberOfBedrooms: number;
+    numberOfLivingRoom: number | null;
+    extraBed: number | null;
+    totalRoom: number;
+    floor: number;
+    description: string | null;
+    view360Link: string | null;
+    available: boolean;
+    isDeleted: boolean;
+    propertyId: string;
+    images: string[];
+    roomVideos: { roomId: string; url: string; thumbnail: string | null } | null;
+    amenities: IAgenticAmenity[];
+    hasValidRate: boolean;
+    roomPrice: IAgenticRoomPrice[];
+}
+
+export interface IAgenticRoomsResponse {
+    propertyDetails: {
+        id: string;
+        propertyName: string;
+        propertyCode: string;
+    };
+    rooms: IAgenticRoomFull[];
+    searchCriteria: {
+        startDate: string;
+        endDate: string;
+        guests: {
+            adults: number;
+            children: number;
+            rooms: number;
+            roomsArray: { adults: number; children: number; childAges: number[] }[];
+        };
+    };
 }
 
 // Rate plan pricing interfaces
@@ -159,7 +227,7 @@ export interface IRatePlanWithPrice {
 
 // Room with rate plans
 export interface IRoomWithRatePlans {
-    room: IAgenticRoom;
+    room: IAgenticRoomFull;
     ratePlans: IRatePlanWithPrice[];
 }
 

@@ -4,6 +4,7 @@ import { Response } from "express";
 import {
     AgenticRoomService
 } from "../services";
+import { getGeoLocationDetails } from "../../../utils/get-location.utils";
 
 export class AgenticRoomController{
     private agenticRoomService: AgenticRoomService;
@@ -22,14 +23,35 @@ export class AgenticRoomController{
             if(!agencyId){
                 return res.status(400).json(errorResponse("Agency not found", "agent is not assigned or unauthorized"));
             }
-            let {startDate,endDate} = req.query;
-            if(!startDate || !endDate){
+
+            const { startDate, endDate, guests } = req.body || {};
+
+            if (!startDate || !endDate) {
                 return res.status(400).json(errorResponse("Invalid date range", "Start date and end date are required"));
             }
-            if(startDate>endDate){
+            if (startDate > endDate) {
                 return res.status(400).json(errorResponse("Invalid date range", "Start date must be before end date"));
             }
-            const rooms = await this.agenticRoomService.getRoomDetails(agencyId,propertyId,toUTC(startDate as string),toUTC(endDate as string));
+            if (
+                !guests ||
+                typeof guests.adults !== "number" ||
+                typeof guests.children !== "number" ||
+                typeof guests.rooms !== "number"
+            ) {
+                return res.status(400).json(errorResponse("Invalid guests", "guests with adults, children, and rooms are required"));
+            }
+
+            const geoDetails = await getGeoLocationDetails(req);
+            const countryCode = geoDetails.country;
+
+            const rooms = await this.agenticRoomService.getRoomDetails(
+                agencyId,
+                propertyId,
+                startDate,
+                endDate,
+                guests,
+                countryCode
+            );
 
             return res.status(rooms.success ? 200 : 400).json(rooms);
         } catch (error) {

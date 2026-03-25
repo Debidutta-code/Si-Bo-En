@@ -9,7 +9,7 @@ const agenticRoomController = new AgenticRoomController();
 
 agenticRoomRouter
 .route("/:propertyId")
-.get( 
+.post( 
     partnerProtected, 
     agenticRoomController.getAgenticRooms.bind(agenticRoomController));
 

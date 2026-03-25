@@ -17,11 +17,13 @@ export interface IRatePlan {
   guaranteePolicy   :IPolicy | null;
   guaranteePolicyId :string | null;
 
+  roomOnlyVisible   :boolean;
   b2bAvailable      :boolean;
   b2cAvailable      :boolean;
 }
 export interface IPolicy{
-policyName  :string;
+  id          :string;
+  policyName  :string;
   type        :PolicyType;
   description :string;
 }

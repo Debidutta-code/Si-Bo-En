@@ -8,7 +8,14 @@ export interface SearchFilters {
   rooms: number;
   priceRange: [number, number];
   amenities: string[];
+  roomsArray: IRoomConfig[];
   searchQuery: string;
+}
+
+export interface IRoomConfig {
+  adults: number;
+  children: number;
+  childAges: number[];
 }
 
 interface SearchContextType {
@@ -20,11 +27,12 @@ interface SearchContextType {
 const defaultFilters: SearchFilters = {
   checkIn: undefined,
   checkOut: undefined,
-  adults: 2,
+  adults: 1,
   children:0,
   rooms: 1,
   priceRange: [0, 50000],
   amenities: [],
+  roomsArray: [{adults: 1, children: 0, childAges: []}],
   searchQuery: "",
 };
 

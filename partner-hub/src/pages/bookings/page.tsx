@@ -62,21 +62,23 @@ export default function BookingPage() {
 
   useEffect(() => {
     // Check if we have the required state data
-    if (!locationState?.pricingDetails || !locationState?.ratePlan) {
-      toast.error('Missing booking details. Please start from property selection.');
-      navigate('/property');
-      return;
-    }
+    // if (!locationState?.pricingDetails || !locationState?.ratePlan) {
+    //   toast.error('Missing booking details. Please start from property selection.');
+    //   navigate('/property');
+    //   return;
+    // }
 
     const fetchPaymentMethods = async () => {
+      console.log(propertyId, "propertyId")
       if (!propertyId) return;
 
       setLoading(true);
       const result = await fetchPaymentDetailsService(propertyId);
+      console.log(result, "result")
 
       if (result.success && result.data) {
         setPaymentDetails(result.data);
-        
+
         // Auto-select the first available payment method
         if (result.data.payAtHotel) {
           setSelectedPaymentMethod('payAtHotel');
@@ -152,15 +154,16 @@ export default function BookingPage() {
       return;
     }
 
-    if (!locationState?.pricingDetails || !locationState?.ratePlan || !locationState?.dateRange) {
-      toast.error('Missing booking information');
-      return;
-    }
+    // if (!locationState?.pricingDetails || !locationState?.ratePlan || !locationState?.dateRange) {
+    //   toast.error('Missing booking information');
+    //   return;
+    // }
 
     setIsProcessing(true);
 
     try {
       const { pricingDetails, ratePlan, dateRange, roomsData } = locationState;
+      console.log(roomsData, "pricingDetails, ratePlan, dateRange, roomsData")
       const room = roomsData.find((r: any) => r.room.room.id === roomId);
       
       if (!room) {
@@ -186,7 +189,7 @@ export default function BookingPage() {
             propertyCode: firstCharge.propertyCode,
             hotelName: room.room.room.roomName, // You might want to get actual hotel name
             roomTypeCode: firstCharge.roomTypeCode,
-            ratePlanCode: ratePlan.ratePlan.ratePlanCode,
+            ratePlanCode: ratePlan?.ratePlan.ratePlanCode,
             numberOfRooms: pricingDetails.requestedRooms,
             finalPrice: pricingDetails,
             currency: pricingDetails.dailyBreakdown[0]?.currencyCode || 'USD',
@@ -214,7 +217,7 @@ export default function BookingPage() {
         },
       };
 
-      // console.log('Creating booking with payload:', bookingPayload);
+      console.log('Creating booking with payload:', bookingPayload);
 
       const result = await createBookingService(bookingPayload);
 
@@ -496,7 +499,7 @@ export default function BookingPage() {
                 {/* Rate Plan Info */}
                 <div className="p-3 bg-muted/50 rounded-lg">
                   <p className="text-sm font-medium text-foreground mb-1">
-                    {ratePlan.ratePlan.ratePlanName}
+                    {ratePlan?.ratePlan.ratePlanName}
                   </p>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <CalendarDays className="h-3 w-3" />
