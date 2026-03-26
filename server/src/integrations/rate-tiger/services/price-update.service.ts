@@ -58,25 +58,45 @@ export class PriceUpdateService {
                 // Get currency from first base amount
                 const currencyCode =
                     (baseByGuestAmts[0]?.currencyCode as CurrencyCode) ??
-                    "AED";
+                    'AED';
 
-                // Parse base guest amounts (adult prices, numberOfGuests 1–6)
-                const parsedBaseAmounts = baseByGuestAmts
+                // Parse adult amounts (ageQualifyingCode '10' with numberOfGuests)
+                const adultAmounts = baseByGuestAmts
                     .filter(
-                        bg => bg.ageQualifyingCode === '10' && bg.numberOfGuests
+                        bg =>
+                            bg.ageQualifyingCode === '10' && bg.numberOfGuests
                     )
                     .map(bg => ({
                         numberOfGuests: parseInt(bg.numberOfGuests),
+                        ageQualifyingCode: bg.ageQualifyingCode,
                         amountBeforeTax: parseFloat(
                             bg.amountBeforeTax ?? bg.amountAfterTax
                         ),
                     }));
 
+                // Parse child amounts (ageQualifyingCode '8')
+                // If numberOfGuests is present use it, otherwise auto-assign sequentially (1, 2, 3...)
+                const childAmounts = baseByGuestAmts
+                    .filter(bg => bg.ageQualifyingCode === '8')
+                    .map((bg, index) => ({
+                        numberOfGuests: bg.numberOfGuests
+                            ? parseInt(bg.numberOfGuests)
+                            : index + 1,
+                        ageQualifyingCode: bg.ageQualifyingCode,
+                        amountBeforeTax: parseFloat(
+                            bg.amountBeforeTax ?? bg.amountAfterTax
+                        ),
+                    }));
+
+                const parsedBaseAmounts = [...adultAmounts, ...childAmounts];
+
                 // Parse additional guest amounts (extra adult + extra child)
-                const parsedAdditionalAmounts = additionalGuestAmts.map(ag => ({
-                    ageQualifyingCode: ag.ageQualifyingCode,
-                    amount: parseFloat(ag.amount),
-                }));
+                const parsedAdditionalAmounts = additionalGuestAmts.map(
+                    ag => ({
+                        ageQualifyingCode: ag.ageQualifyingCode,
+                        amount: parseFloat(ag.amount),
+                    })
+                );
 
                 // Expand date range day by day and upsert each date
                 const startDate = new Date(start);

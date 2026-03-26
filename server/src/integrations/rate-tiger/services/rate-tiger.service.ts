@@ -113,7 +113,7 @@ export class RateTigerService {
                         roomRates: mappingData.roomRates.map(roomRate => ({
                             ratePlanCode: roomRate.ratePlanCode,
                             roomTypeCode: roomRate.roomTypeCode,
-                            status: roomRate.status,
+                            status: "Active",
                         })),
 
                         // 3. Room Types array
