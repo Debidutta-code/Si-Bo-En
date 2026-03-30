@@ -4,7 +4,7 @@ model Room {
   roomType            String        @map("room_type")
   totalRoom           Int           @map("total_room")
   floor               Int
-  roomView            RoomView      @default(others) @map("room_view")
+  roomView            RoomView      @default(others) @map("room_view") //this is not being used RoomViews this is being used from now onwads
   roomSize            Float         @map("room_size")
   roomUnit            RoomUnit      @default(sqft) @map("room_unit")
   smokingPolicy       SmokingPolicy @default(non_smoking) @map("smoking_policy")
@@ -13,17 +13,17 @@ model Room {
   maxNumberOfChildren Int           @map("max_number_of_children")
   numberOfBedrooms    Int           @default(1) @map("number_of_bedrooms")
   numberOfBeds        Int           @default(1) @map("number_of_beds")
-  numberOfLivingRoom Int      @default(0) @map("number_of_living_room")
-  extraBed           Int      @default(0) @map("extra_bed")
-  description        String?
-  priority           Int      @default(0) @map("priority")
-  view360Link        String?  @map("360_view_link")
-  image              String[]
-  available          Boolean  @default(true)
-  isDeleted          Boolean  @default(false) @map("is_deleted")
-  RoomViews          MRoomView?
-  property   Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  propertyId String   @map("property_id")
+  numberOfLivingRoom  Int           @default(0) @map("number_of_living_room")
+  extraBed            Int           @default(0) @map("extra_bed")
+  description         String?
+  priority            Int           @default(0) @map("priority")
+  view360Link         String?       @map("360_view_link")
+  image               String[]
+  available           Boolean       @default(true)
+  isDeleted           Boolean       @default(false) @map("is_deleted")
+  RoomViews           MRoomView?
+  property            Property      @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId          String        @map("property_id")
 
   roomAmenities RoomAmenitySelection[]
   roomVideos    RoomVideo?
@@ -34,6 +34,7 @@ model Room {
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   customizableDeals CustomizableDeal[]
+  TouristTaxs       TouristTaxes[]
 
   @@unique([propertyId, roomType])
   @@unique([propertyId, roomName])

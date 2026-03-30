@@ -288,7 +288,7 @@ export default function Rooms() {
                     <h3 className="text-xl font-bold text-black">Room Specifications</h3>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <Label htmlFor="roomView" className="text-gray-800 font-medium">Room View</Label>
                       <Select value={roomDetails.RoomViews?.MasterRoomView?.id || ''} onValueChange={(value) =>
@@ -325,22 +325,7 @@ export default function Rooms() {
                       />
                     </div>
 
-                    <div>
-                      <Label htmlFor="smokingPolicy" className="text-gray-800 font-medium">Smoking Policy</Label>
-                      <Select value={roomDetails.smokingPolicy || ''} onValueChange={(value) => updateroomDetails({ smokingPolicy: value as IRoomDetails["smokingPolicy"] })}>
-                        <SelectTrigger className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100">
-                          <SelectValue placeholder="Select policy" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-white border border-gray-300">
-                          <SelectItem value="non_smoking" className="hover:bg-gray-100">Non-Smoking</SelectItem>
-                          <SelectItem value="smoking" className="hover:bg-gray-100">Smoking Allowed</SelectItem>
-                          <SelectItem value="designated_area" className="hover:bg-gray-100">Designated Area</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    
                     <div>
                       <Label htmlFor="roomSize" className="text-gray-800 font-medium">Room Size</Label>
                       <Input
@@ -366,6 +351,19 @@ export default function Rooms() {
                       </Select>
                     </div>
                     <div>
+                      <Label htmlFor="smokingPolicy" className="text-gray-800 font-medium">Smoking Policy</Label>
+                      <Select value={roomDetails.smokingPolicy || ''} onValueChange={(value) => updateroomDetails({ smokingPolicy: value as IRoomDetails["smokingPolicy"] })}>
+                        <SelectTrigger className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100">
+                          <SelectValue placeholder="Select policy" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border border-gray-300">
+                          <SelectItem value="non_smoking" className="hover:bg-gray-100">Non-Smoking</SelectItem>
+                          <SelectItem value="smoking" className="hover:bg-gray-100">Smoking Allowed</SelectItem>
+                          <SelectItem value="designated_area" className="hover:bg-gray-100">Designated Area</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
                       <Label htmlFor="bedrooms" className="text-gray-800 font-medium">No.of Bedrooms</Label>
                       <Input
                         id="bedrooms"
@@ -377,7 +375,32 @@ export default function Rooms() {
                         className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
                       />
                     </div>
+                                        <div>
+                      <Label htmlFor="bedrooms" className="text-gray-800 font-medium">No.of Bedrooms</Label>
+                      <Input
+                        id="bedrooms"
+                        min={1}
+                        type="number"
+                        value={roomDetails.numberOfLivingRoom || ''}
+                        onChange={(e) => updateroomDetails({ numberOfLivingRoom: parseInt(e.target.value) || 1 })}
+                        placeholder="e.g., 1"
+                        className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
+                      />
+                    </div>
+                                        <div>
+                      <Label htmlFor="bedrooms" className="text-gray-800 font-medium">No.of Bedrooms</Label>
+                      <Input
+                        id="bedrooms"
+                        min={1}
+                        type="number"
+                        value={roomDetails.extraBed || ''}
+                        onChange={(e) => updateroomDetails({ extraBed: parseInt(e.target.value) || 1 })}
+                        placeholder="e.g., 1"
+                        className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
+                      />
+                    </div>
                   </div>
+
                 </div>
 
                 {/* --- Section 3: Occupancy Details --- */}

@@ -7,23 +7,22 @@ export type DiscountType = "flat" | "percentage";
 
 export interface ITouristTax {
     id: string;
-    ratePlanId: string;
-    ratePlanCode: string;
+    roomId: string;
     discountType: DiscountType;
     discountValue: number | null;
     currencyCode: CurrencyCode | null;
     createdAt: Date;
     name:string;
-    ratePlan?: {
+    Room?: {
         id: string;
-        ratePlanCode: string;
-        ratePlanName: string;
+        roomCode: string;
+        roomName: string;
     };
 }
 
 export interface ICTouristTax {
     name:string;
-    ratePlanCode: string;
+    roomId: string;
     discountType: DiscountType;
     discountValue?: number;
     currencyCode?: CurrencyCode;

@@ -28,7 +28,6 @@ model RatePlan {
     Addons            RatePlanWithAddon[]
     geoRatePlans      GeoRatePlan[]
     promotions        Promotion[]
-    TouristTaxs       TouristTaxes[]
     createdAt         DateTime            @default(now())
     updatedAt         DateTime            @updatedAt
     customizableDeals CustomizableDeal[]

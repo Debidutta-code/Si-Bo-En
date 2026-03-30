@@ -60,7 +60,7 @@ export default function RoomAmenities({
       }
     };
     fetchAmenities();
-  }, [propAvailableAmenities, propSetSelectedAmenities]);
+  }, []);
 
 
   // --- TOGGLE HANDLER ---

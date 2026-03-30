@@ -19,7 +19,7 @@ export type CurrencyCode =
   | 'XPF' | 'YER' | 'ZAR' | 'ZMW' | 'ZWG' | 'ZWL';
 export interface ICTouristTax {
     name:string|null
-    ratePlanCode: string;
+    roomId: string;
     discountType: DiscountType;
     discountValue: number|null;
     currencyCode: CurrencyCode|null;
@@ -27,12 +27,12 @@ export interface ICTouristTax {
 
 export interface IGetTouristTax extends ICTouristTax {
     id: string;
-    ratePlanId: string;
+    roomId: string;
     createdAt: Date;
-    ratePlan?: {
+    Room: {
         id: string;
-        ratePlanCode: string;
-        ratePlanName: string;
+        roomType: string;
+        roomName: string;
         propertyId: string;
     };
 }

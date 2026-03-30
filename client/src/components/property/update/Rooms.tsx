@@ -33,9 +33,9 @@ const roomSchema = z.object({
   smokingPolicy: z.enum(["smoking", "non_smoking", "designated_area"]).default("designated_area"),
   maxNumberOfAdults: z.coerce.number().default(0),
   maxNumberOfChildren: z.coerce.number().default(0),
-  numberOfBedrooms: z.coerce.number().optional(),
-  numberOfLivingRoom: z.coerce.number().optional(),
-  extraBed: z.coerce.number().optional(),
+  numberOfBedrooms: z.coerce.number().optional(),// this is being used
+  numberOfLivingRoom: z.coerce.number().optional(), //not used
+  extraBed: z.coerce.number().optional(),// not used
   available: z.boolean().default(true),
   priority: z.coerce.number().min(0).default(0),
   RoomViews: z.object({
@@ -183,6 +183,7 @@ export default function Rooms({
                             totalRoom: parseInt(e.target.value) || 0,
                           })
                         }
+                        min={0}
                         placeholder="e.g., 10"
                         className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
                       />
@@ -279,7 +280,7 @@ export default function Rooms({
                         id="priority"
                         type="number"
                         value={roomDetails.priority || ""}
-                        min={0}
+                        min={1}
                         onChange={(e) =>
                           updateRoom({
                             ...roomDetails,
@@ -380,9 +381,6 @@ export default function Rooms({
                         </SelectContent>
                       </Select>
                     </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div>
                       <Label
                         htmlFor="roomSize"
@@ -434,6 +432,10 @@ export default function Rooms({
                         </SelectContent>
                       </Select>
                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
                     <div>
                       <Label
                         htmlFor="numberOfBedrooms"
@@ -450,6 +452,50 @@ export default function Rooms({
                           updateRoom({
                             ...roomDetails,
                             numberOfBedrooms: parseInt(e.target.value) || 0,
+                          })
+                        }
+                        placeholder="e.g., 350"
+                        className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
+                      />
+                    </div>
+                    <div>
+                      <Label
+                        htmlFor="numberOfBedrooms"
+                        className="text-gray-800 font-medium"
+                      >
+                        No.of Living Rooms
+                      </Label>
+                      <Input
+                        id="numberOfLivingRoom"
+                        min={0}
+                        type="number"
+                        value={roomDetails.numberOfLivingRoom || ""}
+                        onChange={(e) =>
+                          updateRoom({
+                            ...roomDetails,
+                            numberOfLivingRoom: parseInt(e.target.value) || 0,
+                          })
+                        }
+                        placeholder="e.g., 350"
+                        className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
+                      />
+                    </div>
+                    <div>
+                      <Label
+                        htmlFor="extraBed"
+                        className="text-gray-800 font-medium"
+                      >
+                        No.of Extra Beds
+                      </Label>
+                      <Input
+                        id="extraBed"
+                        min={0}
+                        type="number"
+                        value={roomDetails.extraBed || ""}
+                        onChange={(e) =>
+                          updateRoom({
+                            ...roomDetails,
+                            extraBed: parseInt(e.target.value) || 0,
                           })
                         }
                         placeholder="e.g., 350"

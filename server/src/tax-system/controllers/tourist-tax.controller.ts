@@ -113,11 +113,9 @@ export class TouristTaxController {
         touristTaxData: ICTouristTax,
         isUpdate: boolean = false
     ): string | null {
-        // Rate plan code is required only for creation
-        if (!isUpdate && !touristTaxData.ratePlanCode) {
-            return 'Rate plan code is required';
+        if (!isUpdate && !touristTaxData.roomId) {
+            return 'Room type is required for creating a tourist tax';
         }
-        //console.log(typeof touristTaxData.discountValue);
 
         if (touristTaxData.discountType &&
             touristTaxData.discountType !== 'flat' &&

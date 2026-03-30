@@ -49,7 +49,7 @@ export interface ICustomizableDealApplicableAddon {
         code: string;
     };
 }
-export interface IGuestDistribution{
+export interface IGuestDistribution {
     adults: number;
     childAges: number[];
     children: number;
@@ -73,8 +73,16 @@ export interface IRatePlan {
     charges: ICharge[];
     Addons: IRatePlanWithAddon[];
     geoRatePlans: IGeoRatePlanWithoutRatePlan[];
-    TouristTaxs: ITouristTax[];
-    // customizableDeals: ICustomizableDeal[];   
+    // TouristTaxs: ITouristTax[];
+    // TouristTaxs: {
+    //     select: {
+    //         id: true,
+    //         name: true,
+    //         discountType: true,
+    //         discountValue: true,
+    //         currencyCode: true,
+    //     },
+    // },
     bookingOffsets: IBookingOffset[];
 }
 export interface ITaxGroup {
@@ -122,7 +130,7 @@ export interface IAddOn {
     isActive: boolean;
     images: string[];
     availability: IAddonAvailability[];
-    ChildAddons:IChildAddon[];
+    ChildAddons: IChildAddon[];
 }
 export interface ICustomizableDeal {
     id: string;
@@ -162,7 +170,7 @@ export interface ICharge {
 export interface IChargeBaseByGuest {
     amountBeforeTax: number;
     numberOfGuests: number;
-    ageQualifyingCode:string;
+    ageQualifyingCode: string;
 }
 export interface IChargeAdditionalGuest {
     ageQualifyingCode: string;
@@ -243,11 +251,11 @@ export interface PromotionBrakeDown {
     currencyCode: CurrencyCode | null;
     discountAmount: number;
     restrictionType: "increase" | "decrease" | "payLater"
-    type:"user-applied"|"auto-applied"
+    type: "user-applied" | "auto-applied"
 
 }
-export interface IRoomDetails{
-    adults:number;
-    children:number;
-    childAges:number[];
+export interface IRoomDetails {
+    adults: number;
+    children: number;
+    childAges: number[];
 }

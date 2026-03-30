@@ -3,20 +3,19 @@ import { ICTouristTax, IGetTouristTax } from "../interfaces";
 const mapTouristTax = (tax: any): IGetTouristTax => ({
     ...tax,
     discountValue: tax.discountValue
-        
+
 });
 export class TouristTaxRepository {
 
     public async createTouristTax(
-        ratePlanId: string,
+        roomId: string,
         touristTaxData: ICTouristTax,
-    ): Promise<IGetTouristTax > {
+    ): Promise<IGetTouristTax> {
         try {
             const createdTouristTax = await prisma.touristTaxes.create({
                 data: {
-                    name:touristTaxData.name,
-                    ratePlanId: ratePlanId,
-                    ratePlanCode: touristTaxData.ratePlanCode,
+                    name: touristTaxData.name,
+                    roomId,
                     discountType: touristTaxData.discountType,
                     discountValue:
                         touristTaxData.discountValue !== undefined &&
@@ -26,11 +25,12 @@ export class TouristTaxRepository {
                     currencyCode: touristTaxData.currencyCode ?? "USD",
                 },
                 include: {
-                    ratePlan: {
+                    Room: {
                         select: {
                             id: true,
-                            ratePlanCode: true,
-                            ratePlanName: true,
+                            roomName: true,
+                            roomType: true,
+                            propertyId: true,
                         }
                     }
                 }
@@ -41,20 +41,20 @@ export class TouristTaxRepository {
         }
     }
 
-    public async getTouristTaxesByPropertyId(propertyId: string): Promise<IGetTouristTax[] > {
+    public async getTouristTaxesByPropertyId(propertyId: string): Promise<IGetTouristTax[]> {
         try {
             const touristTaxes = await prisma.touristTaxes.findMany({
                 where: {
-                    ratePlan: {
+                    Room: {
                         propertyId: propertyId
                     }
                 },
                 include: {
-                    ratePlan: {
+                    Room: {
                         select: {
                             id: true,
-                            ratePlanCode: true,
-                            ratePlanName: true,
+                            roomName: true,
+                            roomType: true,
                         }
                     }
                 },
@@ -68,59 +68,59 @@ export class TouristTaxRepository {
         }
     }
 
-    public async getTouristTaxById(touristTaxId: string): Promise<IGetTouristTax | null > {
+    public async getTouristTaxById(touristTaxId: string): Promise<IGetTouristTax | null> {
         try {
             const touristTax = await prisma.touristTaxes.findUnique({
                 where: { id: touristTaxId },
                 include: {
-                    ratePlan: {
+                    Room: {
                         select: {
                             id: true,
-                            ratePlanCode: true,
-                            ratePlanName: true,
+                            roomName: true,
+                            roomType: true,
                             propertyId: true,
                         }
                     }
                 }
             });
-            return touristTax ? touristTax : null;
+            return touristTax;
         } catch (error) {
             throw new Error('Failed to fetch tourist tax');
         }
     }
 
-   public async getTouristTaxByRatePlanCode(
-  ratePlanCode: string,
-  propertyId: string
-): Promise<IGetTouristTax | null | Error> {
-  try {
-    const touristTax = await prisma.touristTaxes.findFirst({
-      where: {
-        ratePlanCode,
-        ratePlan: {
-          propertyId,
-        },
-      },
-      include: {
-        ratePlan: {
-          select: {
-            id: true,
-            ratePlanCode: true,
-            ratePlanName: true,
-          },
-        },
-      },
-    });
+    public async getTouristTaxByRoomType(
+        roomId: string,
+        propertyId: string
+    ): Promise<IGetTouristTax | null | Error> {
+        try {
+            const touristTax = await prisma.touristTaxes.findFirst({
+                where: {
+                    roomId,
+                    Room: {
+                        propertyId,
+                    },
+                },
+                include: {
+                    Room: {
+                        select: {
+                            id: true,
+                            roomName: true,
+                            roomType: true,
+                        },
+                    },
+                },
+            });
 
-    if (!touristTax) {
-      return null; // ✅ THIS WAS MISSING
+            if (!touristTax) {
+                return null; // ✅ THIS WAS MISSING
+            }
+
+            return mapTouristTax(touristTax);
+        } catch (error) {
+            throw new Error('Failed to fetch tourist tax by rate plan code');
+        }
     }
-
-    return mapTouristTax(touristTax);
-  } catch (error) {
-    throw new Error('Failed to fetch tourist tax by rate plan code');
-  }
-}
 
     public async updateTouristTax(
         touristTaxId: string,
@@ -131,11 +131,11 @@ export class TouristTaxRepository {
                 where: { id: touristTaxId },
                 data: updateData,
                 include: {
-                    ratePlan: {
+                    Room: {
                         select: {
                             id: true,
-                            ratePlanCode: true,
-                            ratePlanName: true,
+                            roomName: true,
+                            roomType: true,
                         }
                     }
                 }
@@ -151,11 +151,11 @@ export class TouristTaxRepository {
             const deletedTouristTax = await prisma.touristTaxes.delete({
                 where: { id: touristTaxId },
                 include: {
-                    ratePlan: {
+                    Room: {
                         select: {
                             id: true,
-                            ratePlanCode: true,
-                            ratePlanName: true,
+                            roomName: true,
+                            roomType: true,
                         }
                     }
                 }

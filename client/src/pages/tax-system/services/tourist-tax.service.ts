@@ -12,8 +12,8 @@ const validateTouristTaxData = (touristTaxData: ICTouristTax) => {
     if(!touristTaxData.name||touristTaxData.name.trim()==""){
         return {success:false,meassage:"Tourist Tax name is required"}
     }
-    if (!touristTaxData.ratePlanCode || touristTaxData.ratePlanCode.trim() === "") {
-        return { success: false, message: "Rate plan is required for tourist tax." };
+    if (!touristTaxData.roomId || touristTaxData.roomId.trim() === "") {
+        return { success: false, message: "Room type is required for tourist tax." };
     }
 
     if (touristTaxData.discountType !== "flat" && touristTaxData.discountType !== "percentage") {
@@ -68,7 +68,6 @@ export const updateTouristTaxService = async (touristTaxId: string, touristTaxDa
     try {
         const validation = validateTouristTaxData({
             ...touristTaxData,
-            ratePlanCode: "temp" // Skip rate plan validation on update
         } as ICTouristTax);
         
         if (!validation.success) {

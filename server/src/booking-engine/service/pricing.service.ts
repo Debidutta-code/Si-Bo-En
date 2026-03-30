@@ -127,14 +127,14 @@ export class PricingService {
             );
             priceBrakedowns =
                 await promotionClass.promotionPrices(userCountryCode);
-            // console.log("priceBrakedowns promotions price", priceBrakedowns);
-
+            const diffInDays = this.differenceReservationDays(startDate, endDate);
             const touristTaxClass = new TouristTaxClass(
-                ratePlan.TouristTaxs,
-                priceBrakedowns
+                selectedRoom.TouristTaxs,
+                selectedRoom,
+                priceBrakedowns,
+                diffInDays
             );
             priceBrakedowns = touristTaxClass.findTouristTax();
-            // console.log("priceBrakedowns tourist tax price", priceBrakedowns);
             if (guestEmail) {
                 const loyalityDiscountClass = new LoyalityDiscountClass(
                     guestEmail,
@@ -167,6 +167,11 @@ export class PricingService {
             }
             return errorResponse('Failed to calculate Room Price');
         }
+    }
+    private differenceReservationDays(startDate: Date, endDate: Date): number {
+        const msPerDay = 1000 * 60 * 60 * 24;
+        const diffInMs = endDate.getTime() - startDate.getTime();
+        return Math.ceil(diffInMs / msPerDay);
     }
     private async fetchAddons(parsedAddons?: ISelectedAddonsS[]) {
         try {
@@ -1225,10 +1230,14 @@ class PromotionClass {
 
 class TouristTaxClass {
     touristTax: ITouristTax[];
+    room: IRoom;
     priceBrakedown: PriceBrakeDown;
-    constructor(touristTax: ITouristTax[], priceBrakeDown: PriceBrakeDown) {
+    noOfDays: number;
+    constructor(touristTax: ITouristTax[], room: IRoom, priceBrakeDown: PriceBrakeDown, noOfDays: number) {
         this.touristTax = touristTax;
+        this.room = room;
         this.priceBrakedown = priceBrakeDown;
+        this.noOfDays = noOfDays;
     }
     public findTouristTax(): PriceBrakeDown {
         let touristTaxes: PromotionBrakeDown[] = [];
@@ -1240,10 +1249,11 @@ class TouristTaxClass {
             (sum, tax) => sum + tax.discountAmount,
             0
         );
+        const touristTaxForThisReservation = totalTouristCharges * this.room.numberOfBedrooms * this.noOfDays;
         return {
             ...this.priceBrakedown,
-            latterpayableAmount: totalTouristCharges,
-            totalAmount: this.priceBrakedown.totalAmount + totalTouristCharges,
+            latterpayableAmount: touristTaxForThisReservation,
+            totalAmount: this.priceBrakedown.totalAmount + touristTaxForThisReservation,
             promotionBrakeDown: [
                 ...this.priceBrakedown.promotionBrakeDown,
                 ...touristTaxes,

@@ -116,9 +116,9 @@ export class AgenticRoomRepository {
         });
     }
 
-    public async getTouristTax(ratePlanId: string) {
+    public async getTouristTax(roomId: string) {
         return prisma.touristTaxes.findFirst({
-            where: { ratePlanId },
+            where: { roomId },
         });
     }
 

@@ -76,7 +76,16 @@ export class RoomDao {
             include: {
               MasterRoomView: true
             }
-          }
+          },
+          TouristTaxs: {
+            select: {
+              id: true,
+              name: true,
+              discountType: true,
+              discountValue: true,
+              currencyCode: true,
+            },
+          },
         }
       });
     } catch (error) {

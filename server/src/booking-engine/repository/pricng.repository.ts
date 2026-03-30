@@ -89,15 +89,7 @@ export class PricingRepository {
                         },
                     },
                     geoRatePlans: true,
-                    TouristTaxs: {
-                        select: {
-                            id: true,
-                            name: true,
-                            discountType: true,
-                            discountValue: true,
-                            currencyCode: true,
-                        },
-                    },
+                    
                     // customizableDeals:{
                     //     include:{
                     //         CustomizableDealsApplicableAddons:true

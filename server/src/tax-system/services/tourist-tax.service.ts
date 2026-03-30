@@ -5,12 +5,15 @@ import { successResponse, errorResponse } from "../../utils/return";
 import { IApiResponse } from "../../utils/return.types";
 import { RatePlanRepository } from "../../ari/repository";
 import { getCurrencyConverter } from "../../currency-maping/utils";
+import { RoomDao } from "../../property-management/repository";
 
 export class TouristTaxService {
     touristTaxRepository: TouristTaxRepository;
+    roomDao: RoomDao;
 
     constructor() {
         this.touristTaxRepository = new TouristTaxRepository();
+        this.roomDao = new RoomDao();
     }
 
     public async createTouristTax(
@@ -26,17 +29,17 @@ export class TouristTaxService {
             if (!property) {
                 return errorResponse('Property not found');
             }
-            const ratePlan = await RatePlanRepository.getRatePlanByCode(
-                touristTaxData.ratePlanCode,
+            const room = await this.roomDao.findByRoomId(
+                touristTaxData.roomId,
             );
 
-            if (!ratePlan) {
-                return errorResponse('Rate plan not found or does not belong to this property');
+            if (!room) {
+                return errorResponse('Room not found or does not belong to this property');
             }
 
 
-            const existingTouristTax = await this.touristTaxRepository.getTouristTaxByRatePlanCode(
-                touristTaxData.ratePlanCode,
+            const existingTouristTax = await this.touristTaxRepository.getTouristTaxByRoomType(
+                room.id,
                 propertyId
             );
 
@@ -45,7 +48,7 @@ export class TouristTaxService {
             }
 
             const newTouristTax = await this.touristTaxRepository.createTouristTax(
-                ratePlan.id,
+                room.id,
                 {
                     ...touristTaxData,
                     currencyCode: touristTaxData.discountType === "flat" ? baseCurrency : touristTaxData.currencyCode,
@@ -89,7 +92,7 @@ export class TouristTaxService {
             if (!exists) {
                 return errorResponse('Tourist tax does not exist');
             }
-            const propertyId = exists.ratePlan?.propertyId;
+            const propertyId = exists.Room?.propertyId;
             if(!propertyId){
                 return errorResponse('Associated property not found for this tourist tax');
             }

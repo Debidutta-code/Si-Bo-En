@@ -75,7 +75,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { TaxRuleDialog, TaxGroupDialog, TouristTaxDialog } from "./components";
-
+import { fetchRoomTypesService } from "../inventory/services";
+import type { RoomTypes } from "../inventory/types";
 interface LoadingProps {
     isLoading: boolean;
     message: string;
@@ -133,6 +134,7 @@ export default function TaxSystem() {
         type: null,
         item: null,
     });
+  const [allRooms, setAllRooms] = useState<RoomTypes[]>([]);
 
     const [groupActionDialog, setGroupActionDialog] = useState<{
         open: boolean;
@@ -168,7 +170,7 @@ export default function TaxSystem() {
     const fetchAllData = async () => {
         setLoader({ isLoading: true, message: "Loading tax system data..." });
         try {
-            await Promise.all([fetchTaxRules(), fetchTaxGroups(), fetchRatePlans(), fetchTouristTaxes()]);
+            await Promise.all([fetchTaxRules(), fetchTaxGroups(), fetchRatePlans(), fetchTouristTaxes(), fetchRoomTypes()]);
         } catch (error) {
             toast.error("Failed to load tax system data");
         } finally {
@@ -188,6 +190,19 @@ export default function TaxSystem() {
             toast.error("Failed to fetch tourist taxes");
         }
     }
+    const fetchRoomTypes = async () => {
+        if (!propertyId) return;
+        try {
+            const response = await fetchRoomTypesService(propertyId);
+            if (response.success) {
+                setAllRooms(response.data || []);
+            } else {
+                toast.error(response.message || "Failed to fetch room types");
+            }
+        } catch (error) {
+            toast.error("Failed to fetch room types");
+        }
+    };
     const handleSaveTouristTax = async (data: ICTouristTax) => {
         if (touristTaxDialog.mode === "create") {
             await handleCreateTouristTax(data);
@@ -1248,10 +1263,10 @@ export default function TaxSystem() {
                                             <div className="flex items-start justify-between">
                                                 <div className="flex-1">
                                                     <CardTitle className="text-lg mb-1">
-                                                        {charge.name || charge.ratePlan?.ratePlanName}
+                                                        {charge.name || charge.Room?.roomName}
                                                     </CardTitle>
                                                     <CardDescription className="text-xs">
-                                                        Rate Plan name: {charge.ratePlan?.ratePlanName}
+                                                        Room name: {charge.Room?.roomName}
                                                     </CardDescription>
                                                 </div>
                                                 <DropdownMenu>
@@ -1357,10 +1372,8 @@ export default function TaxSystem() {
                     onSave={handleSaveTouristTax}
                     touristTax={touristTaxDialog.touristTax}
                     mode={touristTaxDialog.mode}
-                    ratePlans={ratePlans}
+                    roomTypes={allRooms}
                 />
-                {/* Delete Confirmation Dialog */}
-                {/* Delete Confirmation Dialog */}
                 <AlertDialog
                     open={deleteDialog.open}
                     onOpenChange={(open) =>
@@ -1378,7 +1391,7 @@ export default function TaxSystem() {
                                         ? "tax group"
                                         : "additional charge"} "
                                 {deleteDialog.type === "charge"
-                                    ? (deleteDialog.item as ITouristTax)?.ratePlan?.ratePlanName || (deleteDialog.item as ITouristTax)?.ratePlanCode
+                                    ? (deleteDialog.item as ITouristTax)?.Room?.roomName || (deleteDialog.item as ITouristTax)?.roomId
                                     : (deleteDialog.item as ITaxRule | ITaxGroup)?.name}".
                                 This action cannot be undone.
                             </AlertDialogDescription>

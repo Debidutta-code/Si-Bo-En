@@ -19,9 +19,10 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import type { ICTouristTax, ITouristTax, DiscountType, RatePlan } from "../interface";
+import type { ICTouristTax, ITouristTax, DiscountType } from "../interface";
 import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
 import { currencies } from "@/components/currency-code/cuurency";
+import type { RoomTypes } from "@/pages/inventory/types/inv.types";
 
 interface TouristTaxDialogProps {
     open: boolean;
@@ -29,7 +30,7 @@ interface TouristTaxDialogProps {
     onSave: (data: ICTouristTax) => Promise<void>;
     touristTax?: ITouristTax | null;
     mode: "create" | "edit";
-    ratePlans: RatePlan[];
+    roomTypes: RoomTypes[];
 }
 
 export default function TouristTaxDialog({
@@ -38,10 +39,10 @@ export default function TouristTaxDialog({
     onSave,
     touristTax,
     mode,
-    ratePlans,
+    roomTypes,
 }: TouristTaxDialogProps) {
     const [formData, setFormData] = useState<ICTouristTax>({
-        ratePlanCode: "",
+        roomId: "",
         discountType: "flat",
         discountValue: 0,
         currencyCode: "USD",
@@ -53,7 +54,7 @@ export default function TouristTaxDialog({
         if (open) {
             if (touristTax && mode === "edit") {
                 setFormData({
-                    ratePlanCode: touristTax.ratePlanCode,
+                    roomId: touristTax.roomId,
                     discountType: touristTax.discountType,
                     discountValue: touristTax.discountValue || 0,
                     currencyCode: touristTax.currencyCode || "USD",
@@ -61,7 +62,7 @@ export default function TouristTaxDialog({
                 });
             } else {
                 setFormData({
-                    ratePlanCode: "",
+                    roomId: "",
                     discountType: "flat",
                     discountValue: 0,
                     currencyCode: "USD",
@@ -90,7 +91,7 @@ export default function TouristTaxDialog({
         if (mode === "create") {
             setFormData({
                 name: "",
-                ratePlanCode: "",
+                roomId: "",
                 discountType: "flat",
                 discountValue: 0,
                 currencyCode: "USD",
@@ -130,21 +131,21 @@ export default function TouristTaxDialog({
 
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="ratePlan">Rate Plan *</Label>
+                        <Label htmlFor="room">Room Type *</Label>
                         <Select
-                            value={formData.ratePlanCode}
+                            value={formData.roomId}
                             onValueChange={(value) =>
-                                setFormData({ ...formData, ratePlanCode: value })
+                                setFormData({ ...formData, roomId: value })
                             }
                             disabled={mode === "edit"}
                         >
                             <SelectTrigger>
-                                <SelectValue placeholder="Select a rate plan" />
+                                <SelectValue placeholder="Select a Room Type" />
                             </SelectTrigger>
                             <SelectContent>
-                                {ratePlans.map((ratePlan) => (
-                                    <SelectItem key={ratePlan.id} value={ratePlan.ratePlanCode}>
-                                        {ratePlan.ratePlanName}
+                                {roomTypes.map((roomType) => (
+                                    <SelectItem key={roomType.id} value={roomType.id}>
+                                        {roomType.roomName}
                                     </SelectItem>
                                 ))}
                             </SelectContent>

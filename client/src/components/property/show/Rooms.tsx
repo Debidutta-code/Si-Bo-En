@@ -327,6 +327,8 @@ export default function Rooms({ propertyId }: PropertyId) {
                         {room.totalRoom}{" "}
                         {room.totalRoom === 1 ? "Room" : "Rooms"}
                       </span>
+                      <span className="text-gray-400">•</span>
+                      <span className="text-gray-400">Priority: {room.priority}</span>
                     </CardDescription>
                   </div>
                   <div className="flex items-center gap-2">
@@ -618,7 +620,6 @@ export default function Rooms({ propertyId }: PropertyId) {
 
               <CardContent className="p-6">
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-                  {/* Room Media Gallery */}
                   <div className="lg:col-span-4">
                     <PropertyMediaGallery
                       propertyVideo={
@@ -632,7 +633,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                   {/* Room Details */}
                   <div className="lg:col-span-5 space-y-5">
                     <div>
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2 block">
+                      <label className="text-xs font-medium text-gray-500  tracking-wide mb-2 block">
                         Description
                       </label>
                       <PropertyDetailsDialog description={room.description} />
@@ -640,7 +641,7 @@ export default function Rooms({ propertyId }: PropertyId) {
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1">
-                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block">
+                        <label className="text-xs font-medium text-gray-500  tracking-wide block">
                           Max Occupancy
                         </label>
                         <p className="text-sm text-gray-900">
@@ -650,7 +651,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block">
+                        <label className="text-xs font-medium text-gray-500  tracking-wide block">
                           Room View
                         </label>
                         <p className="text-sm text-gray-900">
@@ -659,19 +660,8 @@ export default function Rooms({ propertyId }: PropertyId) {
                       </div>
 
 
-
                       <div className="space-y-1">
-                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block">
-                          Bedrooms
-                        </label>
-                        <p className="text-sm text-gray-900">
-                          {room.numberOfBedrooms} Bedroom
-                          {room.numberOfBedrooms !== 1 ? "s" : ""}
-                        </p>
-                      </div>
-
-                      <div className="space-y-1">
-                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block">
+                        <label className="text-xs font-medium text-gray-500  tracking-wide block">
                           Smoking Policy
                         </label>
                         <p className="text-sm text-gray-900">
@@ -680,7 +670,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block">
+                        <label className="text-xs font-medium text-gray-500  tracking-wide block">
                           Floor
                         </label>
                         <p className="text-sm text-gray-900">
@@ -688,7 +678,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                         </p>
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block">
+                        <label className="text-xs font-medium text-gray-500  tracking-wide block">
                           Available Rooms
                         </label>
                         <p className="text-sm text-gray-900">
@@ -696,11 +686,27 @@ export default function Rooms({ propertyId }: PropertyId) {
                         </p>
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wide block">
-                          Room Priority
+                        <label className="text-xs font-medium text-gray-500  tracking-wide block">
+                          No. of Living Rooms
                         </label>
                         <p className="text-sm text-gray-900">
-                          {room.priority}
+                          {room.numberOfLivingRoom}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium text-gray-500  tracking-wide block">
+                          Bedrooms
+                        </label>
+                        <p className="text-sm text-gray-900">
+                          {room.numberOfBedrooms}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-medium text-gray-500  tracking-wide block">
+                          Extra Beds
+                        </label>
+                        <p className="text-sm text-gray-900">
+                          {room.extraBed}
                         </p>
                       </div>
                     </div>
@@ -709,7 +715,7 @@ export default function Rooms({ propertyId }: PropertyId) {
                   {/* Room Amenities */}
                   <div className="lg:col-span-3">
                     <div className="flex items-center justify-between mb-3 border-b border-primary/20 pb-2">
-                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                      <label className="text-xs font-medium text-gray-500  tracking-wide">
                         Room Amenities
                       </label>
                       {room.roomAmenities && room.roomAmenities.length > 0 ? (

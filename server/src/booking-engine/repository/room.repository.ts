@@ -275,9 +275,9 @@ export class RoomBookingRepository {
         });
     }
 
-    public static async getTouristTax(ratePlanId: string) {
+    public static async getTouristTax(roomId: string) {
         return prisma.touristTaxes.findFirst({
-            where: { ratePlanId },
+            where: { roomId },
         });
     }
     public static async getBookingOffset(ratePlanId: string, checkInDate: Date) {

@@ -15,9 +15,9 @@ export interface ICRoom {
     maxNumberOfChildren: number;
     propertyId: string;
     image: string[];
-    numberOfBedrooms?: number;
-    numberOfLivingRoom?: number;
-    extraBed?: number;
+    numberOfBedrooms: number;
+    numberOfLivingRoom: number;
+    extraBed: number;
     description: string | null;
     available: boolean;
     priority: number;
