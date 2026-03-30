@@ -268,4 +268,15 @@ export class PaymentIntegrationDao {
           throw new Error(error?.message);
       }
   }
+
+  public static async updatePropertyIntegrationOutletId(id: string, outletId: string) {
+      try {
+          return await prisma.propertyPaymentIntegration.update({
+              where: { id },
+              data: { outletId }
+          });
+      } catch (error: any) {
+          throw new Error(error?.message);
+      }
+  }
 }

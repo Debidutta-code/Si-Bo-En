@@ -8,12 +8,11 @@ export class BankController {
   public static async getBankDetailsByPropertyId(req: PropertyRequest, res: Response) {
     try {
       const id = req.params.id;
-      const from = req.query.from as string;
 
       if (!id) {
         return res.status(400).json(errorResponse('Property id not found'));
       }
-      const response = await BankService.getBankDetailsByPropertyId(id, from);
+      const response = await BankService.getBankDetailsByPropertyId(id);
       if (response.success) {
         return res.status(200).json(response);
       } else {
@@ -129,9 +128,7 @@ export class BankController {
 
       return res.status(response.success ? 200 : 400).json(response);
     } catch (error: any) {
-      return res
-        .status(500)
-        .json(errorResponse('Internal Server Error', error?.message));
+      return errorResponse('Internal server Error', error?.message);
     }
   }
 }

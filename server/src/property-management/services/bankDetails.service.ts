@@ -5,20 +5,15 @@ import { errorResponse, successResponse } from '../../utils/return';
 import { BankDetailsDao } from '../repository';
 
 export class BankService {
-  public static async getBankDetailsByPropertyId(propertyId: string, all?: string) {
+  public static async getBankDetailsByPropertyId(propertyId: string) {
     try {
       const response = await BankDetailsDao.getBankDetailsByPropertyId(propertyId);
       if (response) {
         const paymentIntegrations = await PaymentIntegrationDao.getAllByPropertyId(propertyId);
-        let selectedPaymentIntegrations = paymentIntegrations;
-
-        if (!all) {
-          selectedPaymentIntegrations = paymentIntegrations.filter(i => i.isActive);
-        }
 
         return successResponse('Bank details fetched Successfully', {
           ...response,
-          selectedPaymentIntegrations
+          selectedPaymentIntegrations: paymentIntegrations
         });
       } else {
         return errorResponse('Bank details Not found');
@@ -49,14 +44,6 @@ export class BankService {
           return errorResponse('Invalid payment integration selected');
         }
 
-        // Check if all required fields are provided
-        if (masterIntegration.requiredFieldsForMasterPaymentIntegration.length > 0) {
-          if (!secrets || secrets.length < masterIntegration.requiredFieldsForMasterPaymentIntegration.length) {
-             // We might want to allow partial updates, but for activation we usually need all.
-             // For now let's just proceed and let the DAO handle upserts.
-          }
-        }
-
         let propertyIntegration = await BankDetailsDao.getPropertyPaymentIntegration(
           propertyId,
           selectedPaymentIntegration
@@ -73,9 +60,9 @@ export class BankService {
 
           await PaymentIntegrationDao.togglePropertyIntegration(propertyIntegration.id, true);
 
+          // Update outletId if provided
           if (outletId) {
-             // Optionally update outletId if needed, but the current DAO doesn't have an updatePropertyIntegration method.
-             // We could add it or just focus on secrets.
+             await PaymentIntegrationDao.updatePropertyIntegrationOutletId(propertyIntegration.id, outletId);
           }
 
         } else {
@@ -125,7 +112,6 @@ export class BankService {
     outletId: string | null,
     secrets?: { requiredFieldId: string, value: string }[]
   ) {
-      // Re-using update logic for adding as it handles the complexity
       return this.updatePaymentMethodsByPropertyId(propertyId, payAtHotel, paymentGateway, selectedPaymentIntegration, outletId, secrets);
   }
 }
