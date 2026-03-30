@@ -22,12 +22,12 @@ export class EmailQueue {
 
         this.emailQueue = new Queue(config.emailQueue, { connection });
         this.emailQueue.on('error', (err) => {
-            console.error('❌ Email queue connection error:', err);
+            // console.error('❌ Email queue connection error:', err);
         });
 
         this.deadLetterQueue = new Queue(config.deadLetterQueue, { connection });
         this.deadLetterQueue.on('error', (err) => {
-            console.error('❌ Dead-letter queue connection error:', err);
+            // console.error('❌ Dead-letter queue connection error:', err);
         });
 
         this.emailWorker = new Worker(
@@ -39,7 +39,7 @@ export class EmailQueue {
         );
 
         this.emailWorker.on('error', (err) => {
-            console.error('❌ Email worker connection error:', err);
+            // console.error('❌ Email worker connection error:', err);
         });
 
         this.emailWorker.on('completed', (job) => {
@@ -64,7 +64,7 @@ export class EmailQueue {
         );
 
         this.deadLetterWorker.on('error', (err) => {
-            console.error('❌ Dead-letter worker connection error:', err);
+            // console.error('❌ Dead-letter worker connection error:', err);
         });
 
         this.deadLetterWorker.on('completed', (job) => {

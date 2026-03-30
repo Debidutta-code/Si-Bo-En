@@ -38,7 +38,7 @@ class RedisClient {
                 console.warn('⚠️  Redis connection was reset by peer. Retrying...');
                 return;
             }
-            console.error('❌ Redis Client Error:', err);
+            // console.error('❌ Redis Client Error:', err);
         });
 
         client.on('connect', () => {

@@ -24,7 +24,7 @@ export class CurrencyQueue {
         this.redisClient = RedisClient.getInstance();
         this.queue = new Queue(config.currencyExchangeQueue, { connection });
         this.queue.on('error', (err) => {
-            console.error('❌ Currency queue connection error:', err);
+            // console.error('❌ Currency queue connection error:', err);
         });
         this.worker = new Worker(
             config.currencyExchangeQueue,
@@ -35,7 +35,7 @@ export class CurrencyQueue {
         );
 
         this.worker.on('error', (err) => {
-            console.error('❌ Currency worker connection error:', err);
+            // console.error('❌ Currency worker connection error:', err);
         });
 
         this.worker.on('completed', (job) => {
