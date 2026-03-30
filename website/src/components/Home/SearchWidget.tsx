@@ -161,10 +161,9 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
 
 
   const { colors, logoIcon } = useBookingStorage(bookingContext);
-  const [currentLogo, setCurrentLogo] = useState<string | null>(logoIcon);
   const { primaryColor, secondaryColor, tertiaryColor, buttonTextColor } =
     colors;
-  const hotelcode = bookingContext?.PropertyCode || "D3RSVJ";
+  const hotelcode = bookingContext?.PropertyCode || "4BTXDZ";
   const PathName = usePathname();
 
   const totalGuests = guestInfo.adults + guestInfo.children;
@@ -241,56 +240,6 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   useEffect(() => {
     setIsRoomsPage(PathName.includes('/Rooms'));
   }, [PathName]);
-  useEffect(() => {
-    const updateLogoFromStorage = () => {
-      // Priority 1: Check bookingContext first
-      const logoFromContext =
-        bookingContext?.bookingEngineColor?.logo ||
-        bookingContext?.PropertyDetails?.bookingEngineConfig?.logo;
-
-      if (logoFromContext) {
-        setCurrentLogo(logoFromContext);
-        return;
-      }
-
-      // Priority 2: Check localStorage
-      try {
-        const stored = localStorage.getItem("bookingstorage");
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (parsed.logoIcon) {
-            setCurrentLogo(parsed.logoIcon);
-          } else {
-            setCurrentLogo(null); // Reset if no logo
-          }
-        }
-      } catch (error) {
-        console.error("Error reading logo from storage:", error);
-      }
-    };
-
-    // Run on mount and when dependencies change
-    updateLogoFromStorage();
-
-    // ✅ CRITICAL: Listen for storage changes (custom event)
-    const handleStorageUpdate = () => {
-      updateLogoFromStorage();
-    };
-
-    window.addEventListener("storage", handleStorageUpdate);
-
-    // ✅ Also listen for a custom event we'll dispatch from Rooms
-    window.addEventListener("bookingStorageUpdated", handleStorageUpdate);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageUpdate);
-      window.removeEventListener("bookingStorageUpdated", handleStorageUpdate);
-    };
-  }, [
-    bookingContext?.bookingEngineColor?.logo,
-    bookingContext?.PropertyDetails?.bookingEngineConfig?.logo,
-    logoIcon,
-  ]);
   const handleGuestSelection = (summary: string, data: any) => {
     setGuestSummary(summary);
 
@@ -379,14 +328,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
       router.push(`Rooms/?${new URLSearchParams({ code: hotelcode }).toString()}`);
     }
   };
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedContext = window.localStorage.getItem("bookingContext");
-      if (storedContext) {
-        dispatch(setBookingContext(JSON.parse(storedContext)));
-      }
-    }
-  }, [dispatch]);
+
 
   const handleDateSelect = (date: Date) => {
     if (selectionMode === "checkin") {
@@ -422,9 +364,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
     }
   };
 
-  const handleDateMouseLeave = () => {
-    setTemporaryCheckOut(null);
-  };
+
 
   const openCalendar = () => {
     setIsCalendarOpen(true);
@@ -453,17 +393,10 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
     }
   };
 
+  // ✅ Redux only, no sessionStorage
   const handleHomeClick = () => {
-    let url = senderUrl;
-
-    // If Redux is empty (page reload), read from sessionStorage
-    if (!url) {
-      url = sessionStorage.getItem("senderUrl") || undefined;
-      if (url) dispatch(setSenderUrl(url)); // sync back to Redux
-    }
-
-    if (url) {
-      window.location.href = url;
+    if (senderUrl) {
+      window.location.href = senderUrl;
     } else {
       router.push("/");
     }
