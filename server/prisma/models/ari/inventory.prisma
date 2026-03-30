@@ -4,7 +4,7 @@ model Inventory {
     roomTypeCode String   @map("room_type_code")
     date         DateTime @db.Date
     availability Int
-    ratePlans    String[] @map("rate_plans")
+    ratePlans    String[] @default([]) @map("rate_plans")
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt

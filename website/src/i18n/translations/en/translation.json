@@ -178,7 +178,7 @@
     "onlyRoomsLeftPlural": "Only {{count}} Rooms Left!",
     "touristTax": {
       "notIncluded": "not included",
-      "paidAtHotel": "is not included in the room rate — to be paid directly at the hotel."
+      "paidAtHotel": " in the room rate — to be paid directly at the hotel."
     },
     "promotions": {
       "minNightStay": "Minimum {{count}} night stay",
@@ -473,8 +473,9 @@
       "amountPaidLaterHotel": "Amount to be Paid Later at Hotel:",
       "paidAmount": "Paid Amount:",
       "refundable": "Refundable Amount:"
-    },
-    "ModifyBooking": {
+    }
+  },
+  "ModifyBooking": {
       "title": "Modify Your Booking",
       "stayDates": "Stay Dates",
       "nights": "nights",
@@ -544,8 +545,7 @@
         "updateSuccess": "Booking updated successfully! Please check your email for details.",
         "updateFailed": "Something went wrong. Please try again."
       }
-    }
-  },
+    },
   "GuestSelector": {
     "title": "Select Occupancy",
     "numberOfRooms": "Number of Rooms:",
