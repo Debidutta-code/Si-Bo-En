@@ -82,6 +82,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
     }
   };
   const formatPaymentIntegrationName = (name: string): string => {
+    if (!name) return "";
     return name
       .split('_')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -100,7 +101,8 @@ export default function BankDetails({ propertyId }: PropertyId) {
         payAtHotel,
         paymentGateway,
         selectedPaymentIntegration: selectedPaymentData?.integrationId || null,
-        outletId: selectedPaymentData?.outletId || null
+        outletId: selectedPaymentData?.outletId || null,
+        secrets: selectedPaymentData?.secrets || []
       };
       
       const res = await updatePaymentMethod(propertyId, payload);
@@ -399,7 +401,7 @@ export default function BankDetails({ propertyId }: PropertyId) {
                       <div className="flex items-center gap-2">
                         <div className={`w-2 h-2 rounded-full ${integration.isActive?"bg-green-500":"bg-gray-500"}`}></div>
                         <span className="text-sm font-medium text-gray-900">
-                          {formatPaymentIntegrationName(integration.paymentIntegration.name)}
+                          {formatPaymentIntegrationName(integration.paymentIntegration?.name)}
                         </span>
                       </div>
                      

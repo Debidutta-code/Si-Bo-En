@@ -9,15 +9,16 @@ export class BankService {
     try {
       const response = await BankDetailsDao.getBankDetailsByPropertyId(propertyId);
       if (response) {
-        const paymentIntegrations = await PaymentIntegrationDao.getAllForPropertyId(propertyId);
-        let activeIntegration;
+        const paymentIntegrations = await PaymentIntegrationDao.getAllByPropertyId(propertyId);
+        let selectedPaymentIntegrations = paymentIntegrations;
+
         if (!all) {
-          activeIntegration = await PaymentIntegrationDao.getAllByPropertyId(propertyId);
-          activeIntegration = activeIntegration.find(i => i.isActive);
+          selectedPaymentIntegrations = paymentIntegrations.filter(i => i.isActive);
         }
+
         return successResponse('Bank details fetched Successfully', {
           ...response,
-          selectedPaymentIntegrations: all ? paymentIntegrations : activeIntegration
+          selectedPaymentIntegrations
         });
       } else {
         return errorResponse('Bank details Not found');
