@@ -212,7 +212,7 @@ export class RoomBookingService {
                     deviceType
                 ) as Promise<IRoomPromotionData | null>
                 : Promise.resolve(null),
-            RoomBookingRepository.getTouristTax(ratePlan.id) as Promise<IRoomTouristTaxData | null>,
+            RoomBookingRepository.getTouristTax(room.id) as Promise<IRoomTouristTaxData | null>,
             RoomBookingRepository.getBookingOffset(ratePlan.id, toUTCDate(checkInDate)) as Promise<IRoomBookingOffset | null>,
         ]);
 

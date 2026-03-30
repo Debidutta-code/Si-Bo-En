@@ -375,10 +375,10 @@ export default function Rooms() {
                         className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
                       />
                     </div>
-                                        <div>
-                      <Label htmlFor="bedrooms" className="text-gray-800 font-medium">No.of Bedrooms</Label>
+                    <div>
+                      <Label htmlFor="livingrooms" className="text-gray-800 font-medium">No.of Living rooms</Label>
                       <Input
-                        id="bedrooms"
+                        id="livingrooms"
                         min={1}
                         type="number"
                         value={roomDetails.numberOfLivingRoom || ''}
@@ -387,10 +387,10 @@ export default function Rooms() {
                         className="mt-2 h-12 border-2 border-gray-300 hover:border-gray-400 focus:border-black transition-all duration-300 focus:ring-4 focus:ring-gray-100"
                       />
                     </div>
-                                        <div>
-                      <Label htmlFor="bedrooms" className="text-gray-800 font-medium">No.of Bedrooms</Label>
+                    <div>
+                      <Label htmlFor="extrabed" className="text-gray-800 font-medium">Extra Beds</Label>
                       <Input
-                        id="bedrooms"
+                        id="extrabed"
                         min={1}
                         type="number"
                         value={roomDetails.extraBed || ''}
