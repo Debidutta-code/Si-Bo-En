@@ -8,13 +8,12 @@ export class BankController {
   public static async getBankDetailsByPropertyId(req: PropertyRequest, res: Response) {
     try {
       const id = req.params.id;
-      const from=req.query.from as string;
+      const from = req.query.from as string;
 
-      
       if (!id) {
         return res.status(400).json(errorResponse('Property id not found'));
       }
-      const response = await BankService.getBankDetailsByPropertyId(id,from);
+      const response = await BankService.getBankDetailsByPropertyId(id, from);
       if (response.success) {
         return res.status(200).json(response);
       } else {
@@ -29,16 +28,17 @@ export class BankController {
 
   public static async addBankDetails(req: CustomRequest, res: Response) {
     try {
-      const propertyId=req.params.id;
+      const propertyId = req.params.id;
       const {
         payAtHotel,
         paymentGateway,
         selectedPaymentIntegration,
-        outletId
+        outletId,
+        secrets
       } = req.body.activatedPaymentMethod;
 
-      const userRole =req.user?.role;
-      if(!userRole) {
+      const userRole = req.user?.role;
+      if (!userRole) {
         return res
           .status(403)
           .json(errorResponse('User role not found'));
@@ -51,17 +51,17 @@ export class BankController {
       }
       if (!payAtHotel && !paymentGateway) {
         return res
-        .status(400)
-        .json(
-          errorResponse('At least one payment method activation is required')
-        );
+          .status(400)
+          .json(
+            errorResponse('At least one payment method activation is required')
+          );
       }
-      if(userRole!=="super_admin"&& paymentGateway){
+      if (userRole !== "super_admin" && paymentGateway) {
         return res
           .status(403)
           .json(errorResponse('Only Super Admin can activate payment gateway'));
       }
-      if(selectedPaymentIntegration&&!outletId){
+      if (selectedPaymentIntegration && !outletId) {
         return res
           .status(400)
           .json(errorResponse('Outlet ID is required for selected payment integration'));
@@ -71,7 +71,8 @@ export class BankController {
         payAtHotel,
         paymentGateway,
         selectedPaymentIntegration,
-        outletId
+        outletId,
+        secrets
       );
 
       return res.status(response.success ? 200 : 400).json(response);
@@ -95,14 +96,15 @@ export class BankController {
           .json(errorResponse('In sufficient Property details'));
       }
 
-      const { 
-        payAtHotel, 
+      const {
+        payAtHotel,
         paymentGateway,
-        selectedPaymentIntegration, 
-        outletId
+        selectedPaymentIntegration,
+        outletId,
+        secrets
       } = req.body.activatedPaymentMethod;
 
-      if(req.user?.role !== 'super_admin' && paymentGateway) {
+      if (req.user?.role !== 'super_admin' && paymentGateway) {
         return res
           .status(403)
           .json(errorResponse('Only Super Admin can activate payment gateway'));
@@ -121,7 +123,8 @@ export class BankController {
         payAtHotel,
         paymentGateway,
         selectedPaymentIntegration,
-        outletId
+        outletId,
+        secrets
       );
 
       return res.status(response.success ? 200 : 400).json(response);

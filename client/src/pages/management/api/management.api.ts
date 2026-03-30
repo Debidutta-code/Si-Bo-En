@@ -1,4 +1,5 @@
 import AxiosInstance from "@/components/axiosInstance";
+import type { ICMasterPaymentIntegrationS } from "../types";
 
 const axios = AxiosInstance();
 
@@ -346,11 +347,9 @@ export const getMasterPaymentIntegrations = async () => {
   }
 };
 
-export const createPaymentIntegration = async (name: string) => {
+export const createPaymentIntegration = async (data: ICMasterPaymentIntegrationS) => {
   try {
-    const response = await axios.post("/utils-management/payment-integrations/", {
-      name,
-    });
+    const response = await axios.post("/utils-management/payment-integrations/", data);
     return response.data;
   } catch (error: any) {
     if (error?.response?.data) {
@@ -377,5 +376,41 @@ export const deletePaymentIntegration = async (id: string) => {
         message: error?.message
       }
     }
+  }
+};
+
+export const addPaymentRequiredField = async (data: { name: string; masterPaymentIntegrationId: string }) => {
+  try {
+    const response = await axios.post("/utils-management/payment-integrations/required-field", data);
+    return response.data;
+  } catch (error: any) {
+    return error.response?.data || { success: false, message: error.message };
+  }
+};
+
+export const deletePaymentRequiredField = async (id: string) => {
+  try {
+    const response = await axios.delete(`/utils-management/payment-integrations/required-field/${id}`);
+    return response.data;
+  } catch (error: any) {
+    return error.response?.data || { success: false, message: error.message };
+  }
+};
+
+export const addPaymentUrlField = async (data: { name: string; url: string; masterPaymentIntegrationId: string }) => {
+  try {
+    const response = await axios.post("/utils-management/payment-integrations/url-field", data);
+    return response.data;
+  } catch (error: any) {
+    return error.response?.data || { success: false, message: error.message };
+  }
+};
+
+export const deletePaymentUrlField = async (id: string) => {
+  try {
+    const response = await axios.delete(`/utils-management/payment-integrations/url-field/${id}`);
+    return response.data;
+  } catch (error: any) {
+    return error.response?.data || { success: false, message: error.message };
   }
 };

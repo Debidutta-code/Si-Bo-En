@@ -7,12 +7,12 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
-import type { IPaymentIntegration } from "../types";
+import type { IMasterPaymentIntegration } from "../types";
 import { createPaymentIntegrationService, deletePaymentIntegrationService } from "../services/management.services";
 
 interface PropertyIntegrationsTabProps {
-  propertyIntegrations: IPaymentIntegration[];
-  setPropertyIntegrations: React.Dispatch<React.SetStateAction<IPaymentIntegration[]>>;
+  propertyIntegrations: IMasterPaymentIntegration[];
+  setPropertyIntegrations: React.Dispatch<React.SetStateAction<IMasterPaymentIntegration[]>>;
 }
 
 export default function PropertyIntegrationsTab({ propertyIntegrations, setPropertyIntegrations }: PropertyIntegrationsTabProps) {
@@ -31,7 +31,7 @@ export default function PropertyIntegrationsTab({ propertyIntegrations, setPrope
       toast.error("Please enter a property integration name");
       return;
     }
-    const response = await createPaymentIntegrationService(propertyIntegrationInput);
+    const response = await createPaymentIntegrationService({ name: propertyIntegrationInput, urlFileds: [], requiredFields: [] });
     if (response.success) {
       toast.success("Property integration created successfully");
       setPropertyIntegrations([...propertyIntegrations, response.data]);

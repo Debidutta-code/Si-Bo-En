@@ -6,11 +6,28 @@ model PropertyPaymentIntegration {
     outletId             String  @map("outlet_id")
     sameDayRefund        Boolean @default(true) @map("same_day_refund")
 
-    property           Property                 @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-    paymentIntegration MasterPaymentIntegration @relation(fields: [paymentIntegrationId], references: [id])
+    property           Property                            @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+    paymentIntegration MasterPaymentIntegration            @relation(fields: [paymentIntegrationId], references: [id])
     payments           Payment[]
+    propertyPaymentIntegrationSecrets PropertyPaymentIntegrationSecrets[]
 
     @@unique([id, outletId])
     @@unique([propertyId, paymentIntegrationId])
     @@map("property_payment_integrations")
+}
+
+model PropertyPaymentIntegrationSecrets {
+    id                           String                                 @id @default(uuid())
+    propertyPaymentIntegrationId String                                 @map("property_payment_integration_id")
+    requiredFieldId              String                                 @map("required_field_id")
+    value                        String
+    PropertyPaymentIntegration   PropertyPaymentIntegration            @relation(fields: [propertyPaymentIntegrationId], references: [id], onDelete: Cascade)
+    RequiredField                MasterPaymentIntegrationRequiredFields @relation(fields: [requiredFieldId], references: [id], onDelete: Cascade)
+
+    createdAt DateTime @default(now()) @map("created_at")
+
+    @@unique([propertyPaymentIntegrationId, requiredFieldId])
+    @@index([propertyPaymentIntegrationId])
+    @@index([requiredFieldId])
+    @@map("property_payment_integration_secrets")
 }

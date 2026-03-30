@@ -4,5 +4,33 @@ model MasterPaymentIntegration {
     isActive                    Boolean                      @default(true) @map("is_active")
     propertyPaymentIntegrations PropertyPaymentIntegration[]
 
+    requiredFieldsForMasterPaymentIntegration MasterPaymentIntegrationRequiredFields[]
+    masterPaymentIntegrationURLFields         MasterPaymentIntegrationURLFields[]
+
     @@map("master_payment_integrations")
+}
+
+model MasterPaymentIntegrationRequiredFields {
+    id                         String @id @default(uuid())
+    name                       String
+    masterPaymentIntegrationId String @map("master_payment_integration_id")
+
+    MasterPaymentIntegration          MasterPaymentIntegration           @relation(fields: [masterPaymentIntegrationId], references: [id], onDelete: Cascade)
+    propertyPaymentIntegrationSecrets PropertyPaymentIntegrationSecrets[]
+
+    @@unique([masterPaymentIntegrationId, name])
+    @@index([masterPaymentIntegrationId])
+    @@map("required_fields_for_master_payment_integration")
+}
+
+model MasterPaymentIntegrationURLFields {
+    id                         String @id @default(uuid())
+    name                       String
+    url                        String
+    masterPaymentIntegrationId String @map("master_payment_integration_id")
+
+    MasterPaymentIntegration MasterPaymentIntegration @relation(fields: [masterPaymentIntegrationId], references: [id], onDelete: Cascade)
+
+    @@index([masterPaymentIntegrationId])
+    @@map("master_payment_integration_url_fields")
 }

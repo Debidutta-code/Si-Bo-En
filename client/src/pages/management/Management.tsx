@@ -16,9 +16,9 @@ import type {
   IPropertyType,
   IAmenity,
   ILoyaltyGuestField,
-  IPaymentIntegration,
   IMasterIntegrations,
   IMasterRoomView,
+  IMasterPaymentIntegration,
 } from "./types";
 import {
   getCategoriesService,
@@ -62,7 +62,7 @@ export default function ManagementPage() {
   const [roomAmenities, setRoomAmenities] = useState<IAmenity[]>([]);
   const [roomViews, setRoomViews] = useState<IMasterRoomView[]>([]);
   const [loyaltyGuestFields, setLoyaltyGuestFields] = useState<ILoyaltyGuestField[]>([]);
-  const [paymentIntegrations, setPaymentIntegrations] = useState<IPaymentIntegration[]>([]);
+  const [paymentIntegrations, setPaymentIntegrations] = useState<IMasterPaymentIntegration[]>([]);
   const [masterIntegrations, setMasterIntegrations] = useState<IMasterIntegrations[]>([]);
 
   useEffect(() => {

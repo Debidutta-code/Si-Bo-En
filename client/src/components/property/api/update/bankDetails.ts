@@ -6,6 +6,7 @@ interface UpdatePaymentMethodPayload {
   paymentGateway: boolean;
   selectedPaymentIntegration: string | null;
   outletId: string | null;
+  secrets?: { requiredFieldId: string; value: string }[];
 }
 
 export const updateBankDetails=async(propertyId:string,bankDetails:IBankDetails)=>{

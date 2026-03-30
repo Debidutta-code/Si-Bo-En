@@ -8,8 +8,8 @@ export class PaymentIntegrationController {
         res: Response
     ) {
         try {
-            const { name } = req.body;
-            if (!name || typeof name !== 'string') {
+            const data = req.body;
+            if (!data.name || typeof data.name !== 'string') {
                 return res
                     .status(400)
                     .json(
@@ -20,7 +20,7 @@ export class PaymentIntegrationController {
             }
 
             const serRes =
-                await PaymentIntegrationService.createPaymentIntegration(name);
+                await PaymentIntegrationService.createPaymentIntegration(data);
             if (serRes.success) {
                 return res.status(200).json(serRes);
             } else {
@@ -155,6 +155,44 @@ export class PaymentIntegrationController {
             return res
                 .status(500)
                 .json(errorResponse('Internal Server Error', error?.message));
+        }
+    }
+
+    public static async addRequiredField(req: CustomRequest, res: Response) {
+        try {
+            const serRes = await PaymentIntegrationService.addRequiredField(req.body);
+            return res.status(serRes.success ? 200 : 400).json(serRes);
+        } catch (error: any) {
+            return res.status(500).json(errorResponse('Internal Server Error', error?.message));
+        }
+    }
+
+    public static async deleteRequiredField(req: CustomRequest, res: Response) {
+        try {
+            const { id } = req.params;
+            const serRes = await PaymentIntegrationService.deleteRequiredField(id);
+            return res.status(serRes.success ? 200 : 400).json(serRes);
+        } catch (error: any) {
+            return res.status(500).json(errorResponse('Internal Server Error', error?.message));
+        }
+    }
+
+    public static async addUrlField(req: CustomRequest, res: Response) {
+        try {
+            const serRes = await PaymentIntegrationService.addUrlField(req.body);
+            return res.status(serRes.success ? 200 : 400).json(serRes);
+        } catch (error: any) {
+            return res.status(500).json(errorResponse('Internal Server Error', error?.message));
+        }
+    }
+
+    public static async deleteUrlField(req: CustomRequest, res: Response) {
+        try {
+            const { id } = req.params;
+            const serRes = await PaymentIntegrationService.deleteUrlField(id);
+            return res.status(serRes.success ? 200 : 400).json(serRes);
+        } catch (error: any) {
+            return res.status(500).json(errorResponse('Internal Server Error', error?.message));
         }
     }
 }

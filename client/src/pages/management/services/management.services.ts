@@ -18,7 +18,12 @@ import {
   createPaymentIntegration,
   deletePaymentIntegration,
   getMasterPaymentIntegrations,
+  addPaymentRequiredField,
+  deletePaymentRequiredField,
+  addPaymentUrlField,
+  deletePaymentUrlField,
 } from "../api";
+import type { ICMasterPaymentIntegrationS } from "../types";
 
 // Category Services
 export const getCategoriesService = async () => {
@@ -365,23 +370,16 @@ export const getMasterPaymentIntegrationService = async () => {
 };
 
 
-export const createPaymentIntegrationService = async (name: string) => {
-  if (!name) {
+export const createPaymentIntegrationService = async (data: ICMasterPaymentIntegrationS) => {
+  if (!data.name) {
     return {
       success: false,
       message: "Payment integration name is required",
     };
   }
 
-  if (name.trim().length < 2) {
-    return {
-      success: false,
-      message: "Payment integration name must be at least 2 characters long",
-    };
-  }
-
   try {
-    return await createPaymentIntegration(name.trim());
+    return await createPaymentIntegration(data);
   } catch (error: any) {
     return {
       success: false,
@@ -406,4 +404,36 @@ export const deletePaymentIntegrationService = async (id: string) => {
       message: error.message || "Failed to delete payment integration",
     };
   }
+};
+
+export const addPaymentRequiredFieldService = async (data: { name: string; masterPaymentIntegrationId: string }) => {
+    try {
+        return await addPaymentRequiredField(data);
+    } catch (error: any) {
+        return { success: false, message: error.message };
+    }
+};
+
+export const deletePaymentRequiredFieldService = async (id: string) => {
+    try {
+        return await deletePaymentRequiredField(id);
+    } catch (error: any) {
+        return { success: false, message: error.message };
+    }
+};
+
+export const addPaymentUrlFieldService = async (data: { name: string; url: string; masterPaymentIntegrationId: string }) => {
+    try {
+        return await addPaymentUrlField(data);
+    } catch (error: any) {
+        return { success: false, message: error.message };
+    }
+};
+
+export const deletePaymentUrlFieldService = async (id: string) => {
+    try {
+        return await deletePaymentUrlField(id);
+    } catch (error: any) {
+        return { success: false, message: error.message };
+    }
 };

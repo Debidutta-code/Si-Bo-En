@@ -10,12 +10,28 @@ paymentIntegrationRouter
     .post(protect, PaymentIntegrationController.createPaymentIntegration);
 
 paymentIntegrationRouter
+    .route('/master-payment-integrations')
+    .get(protect, PaymentIntegrationController.getMasterPaymentIntegrations);
+
+paymentIntegrationRouter
+    .route('/required-field')
+    .post(protect, PaymentIntegrationController.addRequiredField);
+
+paymentIntegrationRouter
+    .route('/required-field/:id')
+    .delete(protect, PaymentIntegrationController.deleteRequiredField);
+
+paymentIntegrationRouter
+    .route('/url-field')
+    .post(protect, PaymentIntegrationController.addUrlField);
+
+paymentIntegrationRouter
+    .route('/url-field/:id')
+    .delete(protect, PaymentIntegrationController.deleteUrlField);
+
+paymentIntegrationRouter
     .route('/:id')
     .patch(protect, PaymentIntegrationController.updatePaymentIntegration)
     .delete(protect, PaymentIntegrationController.deletePaymentIntegration);
-
-paymentIntegrationRouter
-    .route('/master-payment-integrations')
-    .get(protect, PaymentIntegrationController.getMasterPaymentIntegrations);
 
 export { paymentIntegrationRouter };
