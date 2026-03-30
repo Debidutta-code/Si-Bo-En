@@ -110,37 +110,34 @@ export class TouristTaxController {
     }
 
     private validateTouristTaxData(
-        touristTaxData: ICTouristTax, 
+        touristTaxData: ICTouristTax,
         isUpdate: boolean = false
     ): string | null {
         // Rate plan code is required only for creation
         if (!isUpdate && !touristTaxData.ratePlanCode) {
             return 'Rate plan code is required';
         }
-//console.log(typeof touristTaxData.discountValue);
+        //console.log(typeof touristTaxData.discountValue);
 
-        if (touristTaxData.discountType && 
-            touristTaxData.discountType !== 'flat' && 
+        if (touristTaxData.discountType &&
+            touristTaxData.discountType !== 'flat' &&
             touristTaxData.discountType !== 'percentage') {
             return 'Discount type must be either flat or percentage';
         }
 
-        if (touristTaxData.discountValue !== undefined && 
+        if (touristTaxData.discountValue !== undefined &&
             touristTaxData.discountValue !== null) {
             if (touristTaxData.discountValue < 0) {
                 return 'Discount value cannot be negative';
             }
 
-            if (touristTaxData.discountType === 'percentage' && 
+            if (touristTaxData.discountType === 'percentage' &&
                 touristTaxData.discountValue > 100) {
                 return 'Discount percentage value cannot be greater than 100';
             }
         }
 
-        if (touristTaxData.currencyCode && 
-            !['USD', 'EUR', 'INR'].includes(touristTaxData.currencyCode)) {
-            return 'Invalid currency code';
-        }
+
 
         return null;
     }
