@@ -3,9 +3,6 @@ import { X, Video,  } from 'lucide-react';
 import axios from "axios";
 import createAxiosInstance from '../axiosInstance';
 
-/* =========================
-   S3 Upload (Production)
-========================= */
 const uploadToS3 = async (
   file: File,
   onProgress: (p: number) => void
