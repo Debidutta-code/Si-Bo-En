@@ -71,5 +71,13 @@ const config = {
     deadLetterQueue: process.env.DEAD_LETTER_QUEUE || 'email-dead-queue',
     currencyExchangeQueue: process.env.CURRENCY_EXCHANGE_QUEUE || 'currency-exchange-queue',
 
+    //s3 bucket config
+    awsRegion: process.env.AWS_REGION!,
+    awsAccessKey: process.env.AWS_ACCESS_KEY!,
+    awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+    awsBucketName: process.env.AWS_BUCKET_NAME!,
+
+
+
 }
 export default config;
