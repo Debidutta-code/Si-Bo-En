@@ -21,7 +21,10 @@ export class BankService {
             let resolvedOutletId = integration.outletId;
             if (!resolvedOutletId || resolvedOutletId === "") {
                 const outletIdSecret = integration.propertyPaymentIntegrationSecrets.find(
-                    s => ['outletid', 'outlet id', 'outlet_id', 'pg id', 'pgid'].includes(s.RequiredField.name.toLowerCase())
+                    s => {
+                        const name = s.RequiredField.name.toLowerCase().replace(/[\s_]/g, '');
+                        return name === 'outletid' || name === 'pgid' || name === 'merchantid';
+                    }
                 );
                 if (outletIdSecret) {
                     resolvedOutletId = outletIdSecret.value;

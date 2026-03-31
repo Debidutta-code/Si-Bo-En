@@ -81,13 +81,14 @@ export class NGeniusController {
   ): Promise<void> {
     try {
       const { orderReference } = req.params;
+      const { propertyId } = req.query;
 
       if (!orderReference) {
         res.status(400).json({ success: false, message: 'Order reference is required' });
         return;
       }
 
-      const orderStatus = await ngeniusService.getOrderStatus(orderReference);
+      const orderStatus = await ngeniusService.getOrderStatus(orderReference, undefined, propertyId as string);
 
       res.status(200).json({
         success: true,
@@ -110,13 +111,14 @@ export class NGeniusController {
   ): Promise<void> {
     try {
       const { orderReference } = req.params;
+      const { propertyId } = req.query;
 
       if (!orderReference) {
         res.status(400).json({ success: false, message: 'Order reference is required' });
         return;
       }
 
-      const orderStatus = await ngeniusService.getOrderStatus(orderReference);
+      const orderStatus = await ngeniusService.getOrderStatus(orderReference, undefined, propertyId as string);
       const paymentUrl = ngeniusService.getPaymentUrl(orderStatus);
 
       res.status(200).json({

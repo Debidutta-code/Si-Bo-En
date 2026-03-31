@@ -121,7 +121,7 @@ export class FikafiPaymentController {
             }
 
             const result =
-                await fikafiPaymentService.getPaymentStatus(bookingRefNum, fikafiRefNum);
+                await fikafiPaymentService.getPaymentStatus(bookingRefNum, fikafiRefNum, (req.query.propertyCode || req.body.propertyCode) as string);
 
             return res.status(200).json(successResponse("Payment status fetched successfully", result));
         }
@@ -426,7 +426,8 @@ export class FikafiPaymentController {
                 bookingRefNum,
                 fikafiRefNum,
                 action,
-                req.headers['x-fikafi-token'] as string
+                req.headers['x-fikafi-token'] as string,
+                (req.body.propertyCode || req.query.propertyCode) as string
             );
 
             if (result.success) {

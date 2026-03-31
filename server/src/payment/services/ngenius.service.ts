@@ -11,17 +11,85 @@ import {
 } from '../types/ngenius.types';
 import { prisma } from '../../config/db.config';
 
+interface NGeniusSecrets {
+  baseUrl: string;
+  apiKey: string;
+  outletId: string;
+}
+
 class NGeniusService {
   private accessToken: string | null = null;
   private tokenExpiry: Date | null = null;
+  private tokenCache: Map<string, { token: string, expiry: Date }> = new Map();
+
+  /**
+   * Get Dynamic N-Genius Config from DB
+   */
+  private async getDynamicConfig(propertyId: string): Promise<NGeniusSecrets> {
+    const activeIntegration = await prisma.propertyPaymentIntegration.findFirst({
+      where: { propertyId, isActive: true },
+      include: {
+        propertyPaymentIntegrationSecrets: {
+          include: {
+            RequiredField: true,
+          }
+        }
+      }
+    });
+
+    if (!activeIntegration) {
+      throw new Error(`[N-Genius] No active payment integration found for property: ${propertyId}`);
+    }
+
+    const secrets: Partial<NGeniusSecrets> = {};
+    activeIntegration.propertyPaymentIntegrationSecrets.forEach(s => {
+      const name = s.RequiredField.name;
+      if (name === 'Base URL') secrets.baseUrl = s.value;
+      if (name === 'API Key') secrets.apiKey = s.value;
+      if (name === 'Outlet ID') secrets.outletId = s.value;
+
+      // Also allow some variations if needed, but prioritize exact matches
+      if (!secrets.baseUrl && name.toLowerCase().replace(/[\s_]/g, '') === 'baseurl') secrets.baseUrl = s.value;
+      if (!secrets.apiKey && name.toLowerCase().replace(/[\s_]/g, '') === 'apikey') secrets.apiKey = s.value;
+      if (!secrets.outletId && name.toLowerCase().replace(/[\s_]/g, '') === 'outletid') secrets.outletId = s.value;
+    });
+
+    // Fallback to legacy outletId column if secret not found
+    if (!secrets.outletId && activeIntegration.outletId) {
+      secrets.outletId = activeIntegration.outletId;
+    }
+
+    // Fallback to env config if secrets not found
+    return {
+      baseUrl: secrets.baseUrl || NGeniusConfig.baseUrl || '',
+      apiKey: secrets.apiKey || NGeniusConfig.apiKey || '',
+      outletId: secrets.outletId || NGeniusConfig.outletId || '',
+    };
+  }
 
   /**
    * Get Access Token from N-Genius
    */
-  async getAccessToken(): Promise<NGeniusTokenResponse> {
+  async getAccessToken(propertyId?: string): Promise<NGeniusTokenResponse> {
     try {
       console.log("inside getaccess token../..");
-      const url = `${NGeniusConfig.baseUrl}${NGeniusConfig.endpoints.token}`;
+
+      const cacheKey = propertyId || 'default';
+      const cached = this.tokenCache.get(cacheKey);
+      if (cached && new Date() < cached.expiry) {
+        console.log(`✅ Using cached N-Genius token for ${cacheKey}`);
+        return { access_token: cached.token, expires_in: (cached.expiry.getTime() - Date.now()) / 1000 };
+      }
+      let baseUrl = NGeniusConfig.baseUrl;
+      let apiKey = NGeniusConfig.apiKey;
+
+      if (propertyId) {
+        const dynamicConfig = await this.getDynamicConfig(propertyId);
+        baseUrl = dynamicConfig.baseUrl;
+        apiKey = dynamicConfig.apiKey;
+      }
+
+      const url = `${baseUrl}${NGeniusConfig.endpoints.token}`;
 
       const response = await axios.post<NGeniusTokenResponse>(
         url,
@@ -30,13 +98,18 @@ class NGeniusService {
           headers: {
             'Content-Type': 'application/vnd.ni-identity.v1+json',
             Accept: 'application/vnd.ni-identity.v1+json',
-            Authorization: `Basic ${NGeniusConfig.apiKey}`,
+            Authorization: `Basic ${apiKey}`,
           },
         }
       );
 
-      this.accessToken = response.data.access_token;
-      this.tokenExpiry = new Date(Date.now() + response.data.expires_in * 1000);
+      const expiry = new Date(Date.now() + response.data.expires_in * 1000);
+      this.tokenCache.set(cacheKey, { token: response.data.access_token, expiry });
+
+      if (!propertyId) {
+        this.accessToken = response.data.access_token;
+        this.tokenExpiry = expiry;
+      }
 
       return response.data;
     } catch (error) {
@@ -49,8 +122,8 @@ class NGeniusService {
   /**
    * Get valid access token (always refresh)
    */
-  private async getValidToken(): Promise<string> {
-    const tokenResponse = await this.getAccessToken();
+  private async getValidToken(propertyId?: string): Promise<string> {
+    const tokenResponse = await this.getAccessToken(propertyId);
     return tokenResponse.access_token;
   }
 
@@ -63,56 +136,30 @@ class NGeniusService {
     console.log('========================================');
 
     try {
-      const token = await this.getValidToken();
-
       let targetOutletId = orderData.outletId;
+      let baseUrl = NGeniusConfig.baseUrl;
+      let propertyId: string | undefined;
 
-      if (!targetOutletId && orderData.propertyCode) {
-        console.log(`[N-Genius] outletId not in payload — looking up from DB for propertyCode: ${orderData.propertyCode}`);
+      if (orderData.propertyCode) {
         const property = await prisma.property.findFirst({
           where: { propertyCode: orderData.propertyCode },
         });
-
-        if (!property) {
-          throw new Error(`[N-Genius] Property not found for code: ${orderData.propertyCode}`);
-        }
-
-        const activeIntegration = await prisma.propertyPaymentIntegration.findFirst({
-          where: { propertyId: property.id, isActive: true },
-          include: {
-            propertyPaymentIntegrationSecrets: {
-              include: {
-                RequiredField: true,
-              }
-            }
-          }
-        });
-
-        if (activeIntegration) {
-          // Check for outletId in secrets first (dynamic input)
-          const outletIdSecret = activeIntegration.propertyPaymentIntegrationSecrets.find(
-            s => s.RequiredField.name.toLowerCase() === 'outletid' || s.RequiredField.name.toLowerCase() === 'outlet id'
-          );
-
-          if (outletIdSecret) {
-            targetOutletId = outletIdSecret.value;
-            console.log(`[N-Genius] ✅ outletId resolved from dynamic secrets: ${targetOutletId}`);
-          } else if (activeIntegration.outletId) {
-            targetOutletId = activeIntegration.outletId;
-            console.log(`[N-Genius] ✅ outletId resolved from DB column: ${targetOutletId}`);
-          }
-        }
-
-        if (!targetOutletId) {
-          throw new Error(`[N-Genius] No active payment integration with an outletId found for property: ${property.id}`);
-        }
+        if (property) propertyId = property.id;
       }
+
+      if (propertyId) {
+        const dynamicConfig = await this.getDynamicConfig(propertyId);
+        if (!targetOutletId) targetOutletId = dynamicConfig.outletId;
+        baseUrl = dynamicConfig.baseUrl;
+      }
+
+      const token = await this.getValidToken(propertyId);
 
       if (!targetOutletId) {
         throw new Error(`[N-Genius] outletId is required but was not provided and could not be resolved.`);
       }
 
-      const url = `${NGeniusConfig.baseUrl}${NGeniusConfig.endpoints.orders}/${targetOutletId}/orders`;
+      const url = `${baseUrl}${NGeniusConfig.endpoints.orders}/${targetOutletId}/orders`;
       const startTime = Date.now();
 
       const response = await axios.post<NGeniusOrderResponse>(url, orderData, {
@@ -206,11 +253,19 @@ class NGeniusService {
    */
   async getOrderStatus(
     orderReference: string,
-    outletId?: string
+    outletId?: string,
+    propertyId?: string
   ): Promise<NGeniusOrderStatusResponse> {
     try {
-      const token = await this.getValidToken();
-      const url = `${NGeniusConfig.baseUrl}${NGeniusConfig.endpoints.orders}/${outletId}/orders/${orderReference}`;
+      let baseUrl = NGeniusConfig.baseUrl;
+      if (propertyId) {
+        const dynamicConfig = await this.getDynamicConfig(propertyId);
+        baseUrl = dynamicConfig.baseUrl;
+        if (!outletId) outletId = dynamicConfig.outletId;
+      }
+
+      const token = await this.getValidToken(propertyId);
+      const url = `${baseUrl}${NGeniusConfig.endpoints.orders}/${outletId}/orders/${orderReference}`;
 
       const response = await axios.get<NGeniusOrderStatusResponse>(url, {
         headers: {

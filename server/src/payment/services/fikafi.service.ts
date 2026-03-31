@@ -97,6 +97,7 @@ class FikafiPaymentService {
     private apiBaseUrl: string;
     private cachedToken: string | null = null;  // ← ADD
     private tokenExpiry: number = 0;             // ← ADD
+    private tokenCache: Map<string, { token: string, expiry: number }> = new Map();
 
     constructor() {
         this.baseUrl = process.env.FIKAFI_BASE_URL!;
@@ -128,15 +129,17 @@ class FikafiPaymentService {
      * Generate Fikafi Bearer token using client credentials
      */
     private async generateFikafiToken(propertyCode?: string): Promise<string> {
-        // ← ADD: return cached token if still valid
-        if (!propertyCode && this.cachedToken && Date.now() < this.tokenExpiry) {
-            console.log('✅ Using cached Fikafi token');
-            return this.cachedToken;
+        // Check cache first
+        const cacheKey = propertyCode || 'default';
+        const cached = this.tokenCache.get(cacheKey);
+        if (cached && Date.now() < cached.expiry) {
+            console.log(`✅ Using cached Fikafi token for ${cacheKey}`);
+            return cached.token;
         }
 
         let clientId = process.env.FIKAFI_CLIENT_ID;
         let key = process.env.FIKAFI_SECRET_KEY;
-        const tokenBaseUrl = process.env.FIKAFI_TOKEN_BASE_URL;
+        let tokenBaseUrl = process.env.FIKAFI_TOKEN_BASE_URL;
 
         if (propertyCode) {
             const property = await prisma.property.findFirst({
@@ -156,15 +159,14 @@ class FikafiPaymentService {
                 });
 
                 if (activeIntegration) {
-                    const clientIdSecret = activeIntegration.propertyPaymentIntegrationSecrets.find(
-                        s => s.RequiredField.name.toLowerCase().includes('clientid') || s.RequiredField.name.toLowerCase().includes('client id')
-                    );
-                    const keySecret = activeIntegration.propertyPaymentIntegrationSecrets.find(
-                        s => s.RequiredField.name.toLowerCase().includes('secret') || s.RequiredField.name.toLowerCase().includes('key')
-                    );
+                    activeIntegration.propertyPaymentIntegrationSecrets.forEach(s => {
+                        const name = s.RequiredField.name;
+                        const nameLower = name.toLowerCase().replace(/[\s_]/g, '');
 
-                    if (clientIdSecret) clientId = clientIdSecret.value;
-                    if (keySecret) key = keySecret.value;
+                        if (name === 'Client ID' || nameLower === 'clientid') clientId = s.value;
+                        if (name === 'Secret Key' || nameLower === 'secretkey' || nameLower === 'secret') key = s.value;
+                        if (name === 'Token Base URL' || nameLower === 'tokenbaseurl') tokenBaseUrl = s.value;
+                    });
                 }
             }
         }
@@ -205,8 +207,13 @@ class FikafiPaymentService {
             }
 
             // ← ADD: cache token for 55 minutes
-            this.cachedToken = token;
-            this.tokenExpiry = Date.now() + (55 * 60 * 1000);
+            const expiry = Date.now() + (55 * 60 * 1000);
+            this.tokenCache.set(cacheKey, { token, expiry });
+
+            if (!propertyCode) {
+                this.cachedToken = token;
+                this.tokenExpiry = expiry;
+            }
 
             return token;
         } catch (error: any) {
@@ -244,6 +251,34 @@ class FikafiPaymentService {
     ): Promise<FikafiServiceResponse> {
         try {
             console.log('📤 Creating Fikafi payment link...');
+
+            let paymentBaseUrl = process.env.FIKAFI_BASE_URL;
+
+            if (request.bookingDetails.propertyID) {
+                const property = await prisma.property.findFirst({
+                    where: { propertyCode: request.bookingDetails.propertyID },
+                });
+                if (property) {
+                    const activeIntegration = await prisma.propertyPaymentIntegration.findFirst({
+                        where: { propertyId: property.id, isActive: true },
+                        include: {
+                            propertyPaymentIntegrationSecrets: {
+                                include: {
+                                    RequiredField: true,
+                                }
+                            }
+                        }
+                    });
+
+                    if (activeIntegration) {
+                        activeIntegration.propertyPaymentIntegrationSecrets.forEach(s => {
+                            const name = s.RequiredField.name;
+                            const nameLower = name.toLowerCase().replace(/[\s_]/g, '');
+                            if (name === 'Base URL' || nameLower === 'baseurl') paymentBaseUrl = s.value;
+                        });
+                    }
+                }
+            }
 
             const body = {
                 bookingRefNum: request.bookingRefNum,
@@ -308,7 +343,6 @@ class FikafiPaymentService {
                 Authorization: `Bearer ${tokenValue}`,
             };
 
-            const paymentBaseUrl = process.env.FIKAFI_BASE_URL;
             if (!paymentBaseUrl) {
                 throw new Error('Fikafi payment base URL is not configured.');
             }
@@ -370,18 +404,46 @@ class FikafiPaymentService {
         }
     }
 
-    public async getPaymentStatus(bookingRefNum: string, fikafiRefNum: string) {
+    public async getPaymentStatus(bookingRefNum: string, fikafiRefNum: string, propertyCode?: string) {
         try {
             // Get token
-            const tokenResponse = await this.getFikafiToken();
+            const tokenResponse = await this.getFikafiToken(propertyCode);
             if (!tokenResponse.success || !tokenResponse.token) {
                 throw new Error('Failed to get Fikafi token');
             }
             const tokenValue = tokenResponse.token;
 
+            let apiBaseUrl = this.apiBaseUrl;
+
+            if (propertyCode) {
+                const property = await prisma.property.findFirst({
+                    where: { propertyCode },
+                });
+                if (property) {
+                    const activeIntegration = await prisma.propertyPaymentIntegration.findFirst({
+                        where: { propertyId: property.id, isActive: true },
+                        include: {
+                            propertyPaymentIntegrationSecrets: {
+                                include: {
+                                    RequiredField: true,
+                                }
+                            }
+                        }
+                    });
+
+                    if (activeIntegration) {
+                        activeIntegration.propertyPaymentIntegrationSecrets.forEach(s => {
+                            const name = s.RequiredField.name;
+                            const nameLower = name.toLowerCase().replace(/[\s_]/g, '');
+                            if (name === 'API Base URL' || nameLower === 'apibaseurl') apiBaseUrl = s.value;
+                        });
+                    }
+                }
+            }
+
             // Use apiBaseUrl for this endpoint
             const apiClient = axios.create({
-                baseURL: this.apiBaseUrl,
+                baseURL: apiBaseUrl,
                 headers: { 'Content-Type': 'application/json' },
                 timeout: 30000,
             });
@@ -413,7 +475,8 @@ class FikafiPaymentService {
         bookingRefNum: string,
         fikafiRefNum: string,
         action: 'resend' | 'cancel',
-        fikafiToken?: string
+        fikafiToken?: string,
+        propertyCode?: string
     ): Promise<FikafiServiceResponse> {
         try {
             console.log(`📤 Taking payment action: ${action} for ${bookingRefNum}`);
@@ -421,7 +484,7 @@ class FikafiPaymentService {
             // Get token
             let tokenValue = fikafiToken;
             if (!tokenValue) {
-                const tokenResponse = await this.getFikafiToken();
+                const tokenResponse = await this.getFikafiToken(propertyCode);
                 if (tokenResponse.success && tokenResponse.token) {
                     tokenValue = tokenResponse.token;
                 } else {
@@ -432,7 +495,34 @@ class FikafiPaymentService {
                 }
             }
 
-            const actionBaseUrl = process.env.FIKAFI_ACTION_BASE_URL;
+            let actionBaseUrl = process.env.FIKAFI_ACTION_BASE_URL;
+
+            if (propertyCode) {
+                const property = await prisma.property.findFirst({
+                    where: { propertyCode },
+                });
+                if (property) {
+                    const activeIntegration = await prisma.propertyPaymentIntegration.findFirst({
+                        where: { propertyId: property.id, isActive: true },
+                        include: {
+                            propertyPaymentIntegrationSecrets: {
+                                include: {
+                                    RequiredField: true,
+                                }
+                            }
+                        }
+                    });
+
+                    if (activeIntegration) {
+                        activeIntegration.propertyPaymentIntegrationSecrets.forEach(s => {
+                            const name = s.RequiredField.name;
+                            const nameLower = name.toLowerCase().replace(/[\s_]/g, '');
+                            if (name === 'Action Base URL' || nameLower === 'actionbaseurl') actionBaseUrl = s.value;
+                        });
+                    }
+                }
+            }
+
             if (!actionBaseUrl) {
                 throw new Error('FIKAFI_ACTION_BASE_URL is not configured.');
             }
