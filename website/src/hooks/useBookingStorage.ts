@@ -5,6 +5,7 @@ interface BookingColors {
   secondaryColor: string;
   tertiaryColor: string;
   buttonTextColor: string;
+  logoIcon: string | null;
 }
 
 interface BookingStorage {
@@ -13,10 +14,11 @@ interface BookingStorage {
 }
 
 const DEFAULT_COLORS: BookingColors = {
-  primaryColor: "#1E3A8A",
-  secondaryColor: "#DBEAFE",
-  tertiaryColor: "#3B82F6",
+  primaryColor: "#1E3A8A",      
+  secondaryColor: "#DBEAFE",    
+  tertiaryColor: "#3B82F6",     
   buttonTextColor: "#FFFFFF",
+  logoIcon: null,
 };
 
 const getContrastTextColor = (bgColor: string): string => {
