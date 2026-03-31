@@ -26,8 +26,8 @@ interface Room {
 interface GuestInfo {
   adults: number;
   children: number;
-  rooms: number | Room[]; // ✅ Change from 'number' to allow both types
-  roomsArray?: Room[]; // ✅ Add this
+  rooms: number; 
+  roomsArray?: Room[]; 
 }
 interface SearchWidgetProps {
   onSearchStart?: (payload: {
@@ -243,7 +243,6 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   }, [PathName]);
   useEffect(() => {
     const updateLogoFromStorage = () => {
-      // Priority 1: Check bookingContext first
       const logoFromContext =
         bookingContext?.bookingEngineColor?.logo ||
         bookingContext?.PropertyDetails?.bookingEngineConfig?.logo;
@@ -252,35 +251,13 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
         setCurrentLogo(logoFromContext);
         return;
       }
-
-      // Priority 2: Check localStorage
-      try {
-        const stored = localStorage.getItem("bookingstorage");
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (parsed.logoIcon) {
-            setCurrentLogo(parsed.logoIcon);
-          } else {
-            setCurrentLogo(null); // Reset if no logo
-          }
-        }
-      } catch (error) {
-        console.error("Error reading logo from storage:", error);
-      }
     };
 
-    // Run on mount and when dependencies change
     updateLogoFromStorage();
 
-    // ✅ CRITICAL: Listen for storage changes (custom event)
     const handleStorageUpdate = () => {
       updateLogoFromStorage();
     };
-
-    window.addEventListener("storage", handleStorageUpdate);
-
-    // ✅ Also listen for a custom event we'll dispatch from Rooms
-    window.addEventListener("bookingStorageUpdated", handleStorageUpdate);
 
     return () => {
       window.removeEventListener("storage", handleStorageUpdate);
@@ -352,13 +329,16 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
         : typeof guestInfo.rooms === "number"
           ? guestInfo.rooms
           : 1;
-
-    // Build a CLEAN payload — only the fields the API needs
-    // Do NOT spread bookingContext to avoid leaking PropertyDetails, bookingEngineColor, etc.
+    const toLocalDateString = (date: Date) => {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    };
     const payload = {
       PropertyCode: hotelcode,
-      startDate: checkIn.toISOString().split("T")[0],
-      endDate: checkOut.toISOString().split("T")[0],
+      startDate: toLocalDateString(checkIn),
+      endDate: toLocalDateString(checkOut),
       guests: guestInfo,
       location: bookingContext.location || "",
       numberOfRooms: roomsCount,
@@ -379,14 +359,6 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
       router.push(`Rooms/?${new URLSearchParams({ code: hotelcode }).toString()}`);
     }
   };
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const storedContext = window.localStorage.getItem("bookingContext");
-      if (storedContext) {
-        dispatch(setBookingContext(JSON.parse(storedContext)));
-      }
-    }
-  }, [dispatch]);
 
   const handleDateSelect = (date: Date) => {
     if (selectionMode === "checkin") {

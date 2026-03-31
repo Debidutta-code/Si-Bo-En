@@ -17,17 +17,23 @@ import userReducer from './userSlice';
 import bookingViewReducer from './bookingviewSlice'; // or correct path
 
 
+const bookingPersistConfig = {
+  key: 'booking',
+  storage,
+  blacklist: ['startDate', 'endDate', 'PropertyDetails', 'bookingEngineColor', 'roomsData'],
+};
+
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['user', 'booking'], // persist user and booking slices
+  whitelist: ['user'], 
 };
 
 const rootReducer = combineReducers({
   rooms: roomsReducer,
-  booking: bookingReducer,
+  booking: persistReducer(bookingPersistConfig, bookingReducer),
   user: userReducer,
-    bookingView: bookingViewReducer, // ✅ Add this line
+  bookingView: bookingViewReducer, // ✅ Add this line
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

@@ -37,6 +37,7 @@ interface Guests {
 interface Room {
   adults: number;
   children: number;
+  childAges: number[];
 }
 
 interface GuestDetail {
@@ -149,7 +150,11 @@ const initialState: BookingState = {
     adults: 1,
     children: 0,
     rooms: 1,
-    //  childAges: []
+    roomsArray: [{
+      adults: 1,
+      children: 0,
+      childAges: [],
+    }],
   },
   promocode:"",
   location: "",
@@ -202,8 +207,7 @@ const bookingSlice = createSlice({
     setSenderUrl(state, action: PayloadAction<string>) {
       state.senderUrl = action.payload;
     },
-    setBookingSource(state, action: PayloadAction<string>) { // ADD THIS
-      state.bookingSource = action.payload;
+    setBookingSource(state, action: PayloadAction<string>) { 
     },
     clearSenderUrl(state) {
       state.senderUrl = undefined;

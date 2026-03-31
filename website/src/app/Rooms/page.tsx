@@ -390,21 +390,6 @@ const Rooms = () => {
       };
 
       dispatch(setBookingContext(updatedContext));
-      localStorage.setItem("bookingContext", JSON.stringify(updatedContext));
-
-      if (bookingEngineColor) {
-        const bookingStorage = {
-          colors: {
-            primaryColor: bookingEngineColor.primaryColor,
-            secondaryColor: bookingEngineColor.secondaryColor,
-            tertiaryColor: bookingEngineColor.tertiaryColor,
-            buttonTextColor: bookingEngineColor.buttonTextColor,
-            logoIcon: null,
-          },
-          logoIcon: bookingEngineColor.logo,
-        };
-        localStorage.setItem("bookingstorage", JSON.stringify(bookingStorage));
-      }
 
       dispatch({ type: "rooms/setRooms", payload: data.data || [] });
       setRoomsData(data.data?.rooms || []);
@@ -458,30 +443,15 @@ const Rooms = () => {
       const defaultStartDate = today.toISOString().split("T")[0];
       const defaultEndDate = tomorrow.toISOString().split("T")[0];
 
-      // Parse rooms data from localStorage if available
-      let roomsArray = [];
+      let roomsArray: { adults: number; children: number; childAges: number[] }[] = [];
       const numRooms = parseInt(rooms || "1");
-
-      try {
-        const storedContext = localStorage.getItem("bookingContext");
-        if (storedContext) {
-          const parsed = JSON.parse(storedContext);
-          if (parsed.guests?.rooms && Array.isArray(parsed.guests.rooms)) {
-            roomsArray = parsed.guests.rooms;
-          } else if (parsed.roomsDetail && Array.isArray(parsed.roomsDetail)) {
-            roomsArray = parsed.roomsDetail;
-          }
-        }
-      } catch (e) {
-        console.error("Error parsing localStorage:", e);
-      }
 
       const buildRoomsArrayFallback = (
         numRooms: number,
         totalAdults: number,
         totalChildren: number,
       ) => {
-        const MAX_PER_ROOM = 4;
+        const MAX_PER_ROOM = 8;
         const roomsArray = [];
         let remainingAdults = totalAdults - numRooms;
         let remainingChildren = totalChildren;
@@ -529,7 +499,7 @@ const Rooms = () => {
           rooms: numRooms,
           adults: parseInt(adults || "1"),
           children: parseInt(children || "0"),
-          roomsArray, // ✅ now properly distributed
+          roomsArray, 
         },
         location: "",
         numberOfRooms: numRooms,
@@ -542,34 +512,26 @@ const Rooms = () => {
     return null;
   };
 
-  // NEW: Initialize booking context from URL params or localStorage
   useEffect(() => {
     if (initializedRef.current) return;
     initializedRef.current = true;
 
     const initBookingContext = async () => {
-      // Get default dates
       const today = new Date();
-      today.setDate(today.getDate() + 1);
       const tomorrow = new Date(today);
       tomorrow.setDate(today.getDate() + 1);
 
       const defaultStartDate = today.toISOString().split("T")[0];
       const defaultEndDate = tomorrow.toISOString().split("T")[0];
 
-      // First, try to get data from URL params
       const paramsData = getBookingDataFromParams();
 
       if (paramsData) {
-        // Data from external source (URL params)
-        //console.log("📥 Loading from URL params:", paramsData);
 
-        // Mark as external and show loader
         setIsExternalRequest(true);
         setInitialLoading(true);
-        isLoadingFromExternal.current = true; // Prevent SearchWidget from triggering
+        isLoadingFromExternal.current = true;
 
-        // Ensure dates are set
         const contextWithDates = {
           ...paramsData,
           startDate: paramsData.startDate || defaultStartDate,
@@ -580,16 +542,11 @@ const Rooms = () => {
         };
         dispatch(setBookingSource(paramsData.bookingSource));
         dispatch(setBookingContext(contextWithDates));
-        // Store the referrer so navbar logo can go back
         const referrer = document.referrer;
         if (referrer) {
           dispatch(setSenderUrl(referrer));
           sessionStorage.setItem("senderUrl", referrer);
         }
-        localStorage.setItem(
-          "bookingContext",
-          JSON.stringify(contextWithDates),
-        );
         await handleSearchStart(contextWithDates);
         isLoadingFromExternal.current = false;
       } else {
@@ -601,52 +558,31 @@ const Rooms = () => {
         if (hasValidReduxState) {
           await handleSearchStart(bookingContext);
         } else {
-          const storedContext = localStorage.getItem("bookingContext");
+          const urlCode = searchParams.get("code") || "4BTXDZ";
 
-          if (storedContext) {
-            const parsedContext = JSON.parse(storedContext);
-            const validatedContext = {
-              ...parsedContext,
-              PropertyCode:
-                parsedContext.PropertyCode ||
-                searchParams.get("code") ||
-                "WOQDD3",
-              startDate: parsedContext.startDate || defaultStartDate,
-              endDate: parsedContext.endDate || defaultEndDate,
-              guests: parsedContext.guests || {
-                rooms: 1,
-                adults: 1,
-                children: 0,
-              },
-              location: parsedContext.location || "",
-              promocode: parsedContext.promocode || "",
-              numberOfRooms:
-                parsedContext.numberOfRooms || parsedContext.guests?.rooms || 1,
-            };
+          const defaultContext = {
+            PropertyCode: urlCode,
+            startDate: defaultStartDate,
+            endDate: defaultEndDate,
+            guests: {
+              rooms: 1,
+              adults: 1,
+              children: 0,
+              roomsArray: [
+                {
+                  adults: 1,
+                  children: 0,
+                  childAges: [],
+                },
+              ],
+            },
+            location: "",
+            numberOfRooms: 1,
+            promocode: "",
+          };
 
-            dispatch(setBookingContext(validatedContext));
-            dispatch(setBookingSource(parsedContext.bookingSource || "direct"));
-            await handleSearchStart(validatedContext);
-          } else {
-            const urlCode = searchParams.get("code") || "WOQDD3";
-
-            const defaultContext = {
-              PropertyCode: urlCode,
-              startDate: defaultStartDate,
-              endDate: defaultEndDate,
-              guests: {
-                rooms: 1,
-                adults: 1,
-                children: 0,
-              },
-              location: "",
-              numberOfRooms: 1,
-              promocode: "",
-            };
-
-            dispatch(setBookingContext(defaultContext));
-            await handleSearchStart(defaultContext);
-          }
+          dispatch(setBookingContext(defaultContext));
+          await handleSearchStart(defaultContext);
         }
       }
     };
@@ -654,17 +590,14 @@ const Rooms = () => {
     initBookingContext();
   }, []);
 
-  // Handle property code changes
   useEffect(() => {
-    if (!initializedRef.current) return; // Only run after initialization
-    if (isLoadingFromExternal.current) return; // Don't run during external load
+    if (!initializedRef.current) return;
+    if (isLoadingFromExternal.current) return;
 
     const urlCode = searchParams.get("code");
+    if (initialLoading) return;
 
     if (urlCode && urlCode !== bookingContext.PropertyCode) {
-      //console.log("🔄 Property code changed in URL:", urlCode);
-
-      // Ensure we have valid dates
       const today = new Date();
       today.setDate(today.getDate() + 1);
       const tomorrow = new Date(today);
@@ -696,7 +629,7 @@ const Rooms = () => {
 
   useEffect(() => {
     if (!bgImage) {
-      setLoaded(true); 
+      setLoaded(true);
       return;
     }
     setLoaded(false);
@@ -707,14 +640,6 @@ const Rooms = () => {
   }, [bgImage]);
 
   const { primaryColor } = useBookingColors();
-
-  useEffect(() => {
-    const isDismissed = localStorage.getItem("urgencyBannerDismissed");
-    if (isDismissed === "true") {
-      setShowUrgencyBanner(true);
-      localStorage.setItem("urgencyBannerDismissed", "false");
-    }
-  }, []);
 
   const availableBoardTypes = Array.from(
     new Set(
@@ -866,7 +791,6 @@ const Rooms = () => {
                   <button
                     onClick={() => {
                       setShowUrgencyBanner(false);
-                      localStorage.setItem("urgencyBannerDismissed", "true");
                     }}
                     className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 transition-colors"
                   >
