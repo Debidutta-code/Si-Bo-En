@@ -16,23 +16,18 @@ export class BankService {
           selectedPaymentIntegrations = paymentIntegrations.filter(i => i.isActive);
         }
 
-        // Resolve outletId dynamically for each selected integration from secrets if it's empty in the main column
+        // Resolve dynamic secrets for each selected integration
         const enhancedIntegrations = selectedPaymentIntegrations.map(integration => {
-            let resolvedOutletId = integration.outletId;
-            if (!resolvedOutletId || resolvedOutletId === "") {
-                const outletIdSecret = integration.propertyPaymentIntegrationSecrets.find(
-                    s => {
-                        const name = s.RequiredField.name.toLowerCase().replace(/[\s_]/g, '');
-                        return name === 'outletid' || name === 'pgid' || name === 'merchantid';
-                    }
-                );
-                if (outletIdSecret) {
-                    resolvedOutletId = outletIdSecret.value;
-                }
-            }
+            const dynamicSecrets: Record<string, string> = {};
+            integration.propertyPaymentIntegrationSecrets.forEach(s => {
+                dynamicSecrets[s.RequiredField.name] = s.value;
+            });
+
+            // Also include legacy outletId for backward compatibility
             return {
                 ...integration,
-                outletId: resolvedOutletId
+                ...dynamicSecrets,
+                outletId: integration.outletId || dynamicSecrets['outletId'] || dynamicSecrets['outlet_id'] || dynamicSecrets['Outlet ID'] || ''
             };
         });
 

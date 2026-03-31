@@ -161,11 +161,10 @@ class FikafiPaymentService {
                 if (activeIntegration) {
                     activeIntegration.propertyPaymentIntegrationSecrets.forEach(s => {
                         const name = s.RequiredField.name;
-                        const nameLower = name.toLowerCase().replace(/[\s_]/g, '');
 
-                        if (name === 'Client ID' || nameLower === 'clientid') clientId = s.value;
-                        if (name === 'Secret Key' || nameLower === 'secretkey' || nameLower === 'secret') key = s.value;
-                        if (name === 'Token Base URL' || nameLower === 'tokenbaseurl') tokenBaseUrl = s.value;
+                        if (name === 'Client ID' || name === 'clientId' || name === 'client_id') clientId = s.value;
+                        if (name === 'Secret Key' || name === 'secretKey' || name === 'secret_key' || name === 'secret') key = s.value;
+                        if (name === 'Token Base URL' || name === 'tokenBaseUrl' || name === 'token_base_url') tokenBaseUrl = s.value;
                     });
                 }
             }
@@ -273,8 +272,7 @@ class FikafiPaymentService {
                     if (activeIntegration) {
                         activeIntegration.propertyPaymentIntegrationSecrets.forEach(s => {
                             const name = s.RequiredField.name;
-                            const nameLower = name.toLowerCase().replace(/[\s_]/g, '');
-                            if (name === 'Base URL' || nameLower === 'baseurl') paymentBaseUrl = s.value;
+                            if (name === 'Base URL' || name === 'baseUrl' || name === 'base_url') paymentBaseUrl = s.value;
                         });
                     }
                 }
@@ -434,8 +432,7 @@ class FikafiPaymentService {
                     if (activeIntegration) {
                         activeIntegration.propertyPaymentIntegrationSecrets.forEach(s => {
                             const name = s.RequiredField.name;
-                            const nameLower = name.toLowerCase().replace(/[\s_]/g, '');
-                            if (name === 'API Base URL' || nameLower === 'apibaseurl') apiBaseUrl = s.value;
+                            if (name === 'API Base URL' || name === 'apiBaseUrl' || name === 'api_base_url') apiBaseUrl = s.value;
                         });
                     }
                 }
@@ -516,8 +513,7 @@ class FikafiPaymentService {
                     if (activeIntegration) {
                         activeIntegration.propertyPaymentIntegrationSecrets.forEach(s => {
                             const name = s.RequiredField.name;
-                            const nameLower = name.toLowerCase().replace(/[\s_]/g, '');
-                            if (name === 'Action Base URL' || nameLower === 'actionbaseurl') actionBaseUrl = s.value;
+                            if (name === 'Action Base URL' || name === 'actionBaseUrl' || name === 'action_base_url') actionBaseUrl = s.value;
                         });
                     }
                 }

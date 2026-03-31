@@ -432,10 +432,14 @@ const BookingReviewPage = () => {
 
       toast.loading("Creating secure payment order...", { id: "ngenius-order" });
 
-      // Resolve outletId from payment-details API response
-      const outletId = bankDetails?.selectedPaymentIntegrations?.outletId ?? null;
+      // Resolve outletId dynamically from the flattened payment-details response
+      const selectedIntegration = bankDetails?.selectedPaymentIntegrations;
+      const outletId = selectedIntegration?.outletId ||
+                       selectedIntegration?.['Outlet ID'] ||
+                       selectedIntegration?.['outlet_id'] ||
+                       selectedIntegration?.['outletId'] || null;
+
       console.log("🏪 [FRONTEND DEBUG] Resolved outletId from payment-details API:", outletId);
-      console.log("🔍 [FRONTEND DEBUG] bankDetails.selectedPaymentIntegrations:", JSON.stringify(bankDetails?.selectedPaymentIntegrations, null, 2));
 
       const ngeniusPayload: {
         action: "SALE";
@@ -642,8 +646,13 @@ const BookingReviewPage = () => {
                     guestEmail={getGuestEmail()}
                     guestPhone={getGuestPhone()}
                     propertyName={propertyName}
-                    propertyID={bankDetails?.selectedPaymentIntegrations?.outletId || ""}
-                    // propertyID="KSA_MUK_01"
+                      propertyID={
+                        (bankDetails?.selectedPaymentIntegrations as any)?.outlet_id ||
+                        (bankDetails?.selectedPaymentIntegrations as any)?.['Outlet ID'] ||
+                        (bankDetails?.selectedPaymentIntegrations as any)?.outletId ||
+                        bankDetails?.selectedPaymentIntegrations?.outletId ||
+                        ""
+                      }
                     checkInDate={checkIn}
                     numberOfNights={nights}
                     autoTrigger={true}

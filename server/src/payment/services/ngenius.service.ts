@@ -44,14 +44,10 @@ class NGeniusService {
     const secrets: Partial<NGeniusSecrets> = {};
     activeIntegration.propertyPaymentIntegrationSecrets.forEach(s => {
       const name = s.RequiredField.name;
-      if (name === 'Base URL') secrets.baseUrl = s.value;
-      if (name === 'API Key') secrets.apiKey = s.value;
-      if (name === 'Outlet ID') secrets.outletId = s.value;
-
-      // Also allow some variations if needed, but prioritize exact matches
-      if (!secrets.baseUrl && name.toLowerCase().replace(/[\s_]/g, '') === 'baseurl') secrets.baseUrl = s.value;
-      if (!secrets.apiKey && name.toLowerCase().replace(/[\s_]/g, '') === 'apikey') secrets.apiKey = s.value;
-      if (!secrets.outletId && name.toLowerCase().replace(/[\s_]/g, '') === 'outletid') secrets.outletId = s.value;
+      // Map secrets dynamically to the required fields based on integration setup
+      if (name === 'Base URL' || name === 'baseUrl' || name === 'base_url') secrets.baseUrl = s.value;
+      if (name === 'API Key' || name === 'apiKey' || name === 'api_key') secrets.apiKey = s.value;
+      if (name === 'Outlet ID' || name === 'outletId' || name === 'outlet_id') secrets.outletId = s.value;
     });
 
     // Fallback to legacy outletId column if secret not found
