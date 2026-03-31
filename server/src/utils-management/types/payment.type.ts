@@ -16,6 +16,15 @@ export interface IPropertyPaymentIntegration {
     isActive: boolean;
     outletId: string;
     sameDayRefund: boolean;
+    propertyPaymentIntegrationSecrets?: IPropertyPaymentIntegrationSecrets[];
+}
+
+export interface IPropertyPaymentIntegrationSecrets {
+    id: string;
+    propertyPaymentIntegrationId: string;
+    requiredFieldId: string;
+    value: string;
+    RequiredField: IMasterPaymentIntegrationFields;
 }
 
 export interface IPropertyPaymentIntegrationWMaster extends IPropertyPaymentIntegration {

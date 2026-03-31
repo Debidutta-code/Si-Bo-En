@@ -19,7 +19,7 @@ export class BankService {
         // Resolve dynamic secrets for each selected integration
         const enhancedIntegrations = selectedPaymentIntegrations.map(integration => {
             const dynamicSecrets: Record<string, string> = {};
-            integration.propertyPaymentIntegrationSecrets.forEach(s => {
+            integration.propertyPaymentIntegrationSecrets?.forEach(s => {
                 dynamicSecrets[s.RequiredField.name] = s.value;
             });
 
