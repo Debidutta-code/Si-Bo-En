@@ -101,7 +101,6 @@ export default function BankDetails({ propertyId }: PropertyId) {
         payAtHotel,
         paymentGateway,
         selectedPaymentIntegration: selectedPaymentData?.integrationId || null,
-        outletId: selectedPaymentData?.outletId || null,
         secrets: selectedPaymentData?.secrets || []
       };
       

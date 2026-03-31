@@ -9,7 +9,6 @@ import { getPaymentIntegrationsService } from '@/pages/management/services/manag
 interface PaymentMethodSelection {
   integrationId: string;
   propertyPaymentIntegrationId?: string;
-  outletId: string;
   isActive: boolean;
   secrets?: { requiredFieldId: string; value: string }[];
 }
@@ -27,7 +26,6 @@ export default function PaymentMethodsUi({
   const [paymentIntegrations, setPaymentIntegrations] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedIntegration, setSelectedIntegration] = useState<string | null>(null);
-  const [outletIds, setOutletIds] = useState<Record<string, string>>({});
   const [secrets, setSecrets] = useState<Record<string, Record<string, string>>>({});
 
   useEffect(() => {
@@ -41,14 +39,11 @@ export default function PaymentMethodsUi({
       if (response.success) {
         setPaymentIntegrations(response.data);
         
-        const initialOutletIds: Record<string, string> = {};
         const initialSecrets: Record<string, Record<string, string>> = {};
 
         response.data.forEach((integration: any) => {
           const propertyIntegration = integration.propertyPaymentIntegrations?.[0];
           if (propertyIntegration) {
-            initialOutletIds[integration.id] = propertyIntegration.outletId;
-
             if (propertyIntegration.id === paymentMethodId) {
               setSelectedIntegration(integration.id);
             }
@@ -61,7 +56,6 @@ export default function PaymentMethodsUi({
           }
         });
 
-        setOutletIds(initialOutletIds);
         setSecrets(initialSecrets);
       } else {
         toast.error("Failed to fetch payment integrations");
@@ -87,16 +81,6 @@ export default function PaymentMethodsUi({
     updateParent(integrationId);
   };
 
-  const handleOutletIdChange = (integrationId: string, value: string) => {
-    setOutletIds(prev => {
-        const next = { ...prev, [integrationId]: value };
-        if (selectedIntegration === integrationId) {
-            updateParent(integrationId, next, secrets);
-        }
-        return next;
-    });
-  };
-
   const handleSecretChange = (integrationId: string, fieldId: string, value: string) => {
     setSecrets(prev => {
         const next = {
@@ -107,18 +91,17 @@ export default function PaymentMethodsUi({
             }
         };
         if (selectedIntegration === integrationId) {
-            updateParent(integrationId, outletIds, next);
+            updateParent(integrationId, next);
         }
         return next;
     });
   };
 
-  const updateParent = (integrationId: string, currentOutlets = outletIds, currentSecrets = secrets) => {
+  const updateParent = (integrationId: string, currentSecrets = secrets) => {
     const integration = paymentIntegrations.find(pi => pi.id === integrationId);
     if (!integration) return;
 
     const propertyIntegration = integration.propertyPaymentIntegrations?.[0];
-    const outletId = currentOutlets[integrationId] || '';
 
     const secretValues = Object.entries(currentSecrets[integrationId] || {}).map(([requiredFieldId, value]) => ({
       requiredFieldId,
@@ -128,7 +111,6 @@ export default function PaymentMethodsUi({
     onSelectionChange({
       integrationId: integration.id,
       propertyPaymentIntegrationId: propertyIntegration?.id,
-      outletId: outletId,
       isActive: true,
       secrets: secretValues
     });
@@ -163,7 +145,6 @@ export default function PaymentMethodsUi({
             <div className="space-y-3">
             {paymentIntegrations.map((integration) => {
                 const isChecked = selectedIntegration === integration.id;
-                const currentOutletId = outletIds[integration.id] || '';
 
                 return (
                 <div
@@ -201,19 +182,6 @@ export default function PaymentMethodsUi({
                         {/* Config Fields */}
                         {isChecked && (
                             <div className="mt-4 space-y-4 border-t pt-4">
-                                <div className="space-y-1">
-                                    <label className="text-xs font-semibold text-gray-600 uppercase">
-                                    Outlet Id / PG Id *
-                                    </label>
-                                    <Input
-                                    type="text"
-                                    placeholder="Enter Outlet ID"
-                                    value={currentOutletId}
-                                    onChange={(e) => handleOutletIdChange(integration.id, e.target.value)}
-                                    className="h-9 text-sm"
-                                    />
-                                </div>
-
                                 {integration.requiredFieldsForMasterPaymentIntegration?.map((field: any) => (
                                     <div key={field.id} className="space-y-1">
                                         <label className="text-xs font-semibold text-gray-600 uppercase">

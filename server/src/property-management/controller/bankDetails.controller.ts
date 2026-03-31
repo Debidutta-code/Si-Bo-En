@@ -33,7 +33,7 @@ export class BankController {
         payAtHotel,
         paymentGateway,
         selectedPaymentIntegration,
-        outletId,
+        outletId, // Optional now
         secrets
       } = req.body.activatedPaymentMethod;
 
@@ -60,11 +60,6 @@ export class BankController {
         return res
           .status(403)
           .json(errorResponse('Only Super Admin can activate payment gateway'));
-      }
-      if (selectedPaymentIntegration && !outletId) {
-        return res
-          .status(400)
-          .json(errorResponse('Outlet ID is required for selected payment integration'));
       }
       const response = await BankService.addBankDetails(
         propertyId,
@@ -100,7 +95,7 @@ export class BankController {
         payAtHotel,
         paymentGateway,
         selectedPaymentIntegration,
-        outletId,
+        outletId, // Optional now
         secrets
       } = req.body.activatedPaymentMethod;
 

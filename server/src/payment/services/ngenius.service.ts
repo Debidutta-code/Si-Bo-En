@@ -79,12 +79,31 @@ class NGeniusService {
 
         const activeIntegration = await prisma.propertyPaymentIntegration.findFirst({
           where: { propertyId: property.id, isActive: true },
+          include: {
+            propertyPaymentIntegrationSecrets: {
+              include: {
+                RequiredField: true,
+              }
+            }
+          }
         });
 
-        if (activeIntegration?.outletId) {
-          targetOutletId = activeIntegration.outletId;
-          console.log(`[N-Genius] ✅ outletId resolved from DB: ${targetOutletId}`);
-        } else {
+        if (activeIntegration) {
+          // Check for outletId in secrets first (dynamic input)
+          const outletIdSecret = activeIntegration.propertyPaymentIntegrationSecrets.find(
+            s => s.RequiredField.name.toLowerCase() === 'outletid' || s.RequiredField.name.toLowerCase() === 'outlet id'
+          );
+
+          if (outletIdSecret) {
+            targetOutletId = outletIdSecret.value;
+            console.log(`[N-Genius] ✅ outletId resolved from dynamic secrets: ${targetOutletId}`);
+          } else if (activeIntegration.outletId) {
+            targetOutletId = activeIntegration.outletId;
+            console.log(`[N-Genius] ✅ outletId resolved from DB column: ${targetOutletId}`);
+          }
+        }
+
+        if (!targetOutletId) {
           throw new Error(`[N-Genius] No active payment integration with an outletId found for property: ${property.id}`);
         }
       }
@@ -125,7 +144,26 @@ class NGeniusService {
 
             if (orderOutletId) {
               const integration = await prisma.propertyPaymentIntegration.findFirst({
-                where: { propertyId: property.id, outletId: orderOutletId, isActive: true },
+                where: {
+                  propertyId: property.id,
+                  isActive: true,
+                  OR: [
+                    { outletId: orderOutletId },
+                    {
+                      propertyPaymentIntegrationSecrets: {
+                        some: {
+                          value: orderOutletId,
+                          RequiredField: {
+                            name: {
+                              in: ['outletId', 'Outlet ID', 'outlet_id', 'outlet id'],
+                              mode: 'insensitive'
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                },
                 select: { id: true },
               });
               if (integration) {

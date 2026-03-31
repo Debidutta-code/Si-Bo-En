@@ -127,16 +127,47 @@ class FikafiPaymentService {
     /**
      * Generate Fikafi Bearer token using client credentials
      */
-    private async generateFikafiToken(): Promise<string> {
+    private async generateFikafiToken(propertyCode?: string): Promise<string> {
         // ← ADD: return cached token if still valid
-        if (this.cachedToken && Date.now() < this.tokenExpiry) {
+        if (!propertyCode && this.cachedToken && Date.now() < this.tokenExpiry) {
             console.log('✅ Using cached Fikafi token');
             return this.cachedToken;
         }
 
-        const clientId = process.env.FIKAFI_CLIENT_ID;
-        const key = process.env.FIKAFI_SECRET_KEY;
+        let clientId = process.env.FIKAFI_CLIENT_ID;
+        let key = process.env.FIKAFI_SECRET_KEY;
         const tokenBaseUrl = process.env.FIKAFI_TOKEN_BASE_URL;
+
+        if (propertyCode) {
+            const property = await prisma.property.findFirst({
+                where: { propertyCode },
+            });
+
+            if (property) {
+                const activeIntegration = await prisma.propertyPaymentIntegration.findFirst({
+                    where: { propertyId: property.id, isActive: true },
+                    include: {
+                        propertyPaymentIntegrationSecrets: {
+                            include: {
+                                RequiredField: true,
+                            }
+                        }
+                    }
+                });
+
+                if (activeIntegration) {
+                    const clientIdSecret = activeIntegration.propertyPaymentIntegrationSecrets.find(
+                        s => s.RequiredField.name.toLowerCase().includes('clientid') || s.RequiredField.name.toLowerCase().includes('client id')
+                    );
+                    const keySecret = activeIntegration.propertyPaymentIntegrationSecrets.find(
+                        s => s.RequiredField.name.toLowerCase().includes('secret') || s.RequiredField.name.toLowerCase().includes('key')
+                    );
+
+                    if (clientIdSecret) clientId = clientIdSecret.value;
+                    if (keySecret) key = keySecret.value;
+                }
+            }
+        }
 
         const tokenUrl = tokenBaseUrl!;
 
@@ -145,7 +176,7 @@ class FikafiPaymentService {
 
             console.log("TOKEN URL:", tokenUrl);
             console.log("CLIENT ID:", clientId);
-            console.log("SECRET KEY:", key);
+            // console.log("SECRET KEY:", key);
 
             const response = await axios.post(
                 tokenUrl,
@@ -191,9 +222,9 @@ class FikafiPaymentService {
     /**
      * Get Fikafi token for frontend use
      */
-    public async getFikafiToken(): Promise<FikafiTokenResponse> {
+    public async getFikafiToken(propertyCode?: string): Promise<FikafiTokenResponse> {
         try {
-            const token = await this.generateFikafiToken();
+            const token = await this.generateFikafiToken(propertyCode);
             return {
                 success: true,
                 token,
@@ -251,7 +282,7 @@ class FikafiPaymentService {
             // Check if token is provided, otherwise generate a new one
             let tokenValue = fikafiToken;
             if (!tokenValue) {
-                const tokenResponse = await this.getFikafiToken();
+                const tokenResponse = await this.getFikafiToken(request.bookingDetails.propertyID);
                 if (tokenResponse.success && tokenResponse.token) {
                     tokenValue = tokenResponse.token;
                 } else {

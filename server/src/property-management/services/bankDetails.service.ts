@@ -16,9 +16,26 @@ export class BankService {
           selectedPaymentIntegrations = paymentIntegrations.filter(i => i.isActive);
         }
 
+        // Resolve outletId dynamically for each selected integration from secrets if it's empty in the main column
+        const enhancedIntegrations = selectedPaymentIntegrations.map(integration => {
+            let resolvedOutletId = integration.outletId;
+            if (!resolvedOutletId || resolvedOutletId === "") {
+                const outletIdSecret = integration.propertyPaymentIntegrationSecrets.find(
+                    s => ['outletid', 'outlet id', 'outlet_id', 'pg id', 'pgid'].includes(s.RequiredField.name.toLowerCase())
+                );
+                if (outletIdSecret) {
+                    resolvedOutletId = outletIdSecret.value;
+                }
+            }
+            return {
+                ...integration,
+                outletId: resolvedOutletId
+            };
+        });
+
         return successResponse('Bank details fetched Successfully', {
           ...response,
-          selectedPaymentIntegrations
+          selectedPaymentIntegrations: enhancedIntegrations
         });
       } else {
         return errorResponse('Bank details Not found');
@@ -36,7 +53,7 @@ export class BankService {
     payAtHotel: boolean,
     paymentGateway: boolean,
     selectedPaymentIntegration: string,
-    outletId: string | null,
+    outletId?: string | null,
     secrets?: { requiredFieldId: string, value: string }[]
   ): Promise<IApiResponse> {
     try {
@@ -79,13 +96,10 @@ export class BankService {
           }
 
         } else {
-          if (!outletId) {
-            return errorResponse('Please provide an outlet ID');
-          }
           propertyIntegration = await PaymentIntegrationDao.createPropertyIntegrations(
             propertyId,
             selectedPaymentIntegration,
-            outletId
+            outletId || ''
           );
         }
 

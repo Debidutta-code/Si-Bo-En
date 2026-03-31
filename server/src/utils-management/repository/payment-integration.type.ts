@@ -162,14 +162,14 @@ export class PaymentIntegrationDao {
   public static async createPropertyIntegrations(
     propertyId: string,
     integrationId: string,
-    outletId: string
+    outletId?: string
   ): Promise<IPropertyPaymentIntegration> {
     try {
       return await prisma.propertyPaymentIntegration.create({
         data: {
           propertyId,
           paymentIntegrationId: integrationId,
-          outletId,
+          outletId: outletId || '',
         },
       });
     } catch (error: any) {
