@@ -26,8 +26,8 @@ interface Room {
 interface GuestInfo {
   adults: number;
   children: number;
-  rooms: number | Room[]; // ✅ Change from 'number' to allow both types
-  roomsArray?: Room[]; // ✅ Add this
+  rooms: number; 
+  roomsArray?: Room[]; 
 }
 interface SearchWidgetProps {
   onSearchStart?: (payload: {
@@ -161,6 +161,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
 
 
   const { colors, logoIcon } = useBookingStorage(bookingContext);
+  const [currentLogo, setCurrentLogo] = useState<string | null>(logoIcon);
   const { primaryColor, secondaryColor, tertiaryColor, buttonTextColor } =
     colors;
   const hotelcode = bookingContext?.PropertyCode || "4BTXDZ";
@@ -240,6 +241,33 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   useEffect(() => {
     setIsRoomsPage(PathName.includes('/Rooms'));
   }, [PathName]);
+  useEffect(() => {
+    const updateLogoFromStorage = () => {
+      const logoFromContext =
+        bookingContext?.bookingEngineColor?.logo ||
+        bookingContext?.PropertyDetails?.bookingEngineConfig?.logo;
+
+      if (logoFromContext) {
+        setCurrentLogo(logoFromContext);
+        return;
+      }
+    };
+
+    updateLogoFromStorage();
+
+    const handleStorageUpdate = () => {
+      updateLogoFromStorage();
+    };
+
+    return () => {
+      window.removeEventListener("storage", handleStorageUpdate);
+      window.removeEventListener("bookingStorageUpdated", handleStorageUpdate);
+    };
+  }, [
+    bookingContext?.bookingEngineColor?.logo,
+    bookingContext?.PropertyDetails?.bookingEngineConfig?.logo,
+    logoIcon,
+  ]);
   const handleGuestSelection = (summary: string, data: any) => {
     setGuestSummary(summary);
 
@@ -301,13 +329,16 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
         : typeof guestInfo.rooms === "number"
           ? guestInfo.rooms
           : 1;
-
-    // Build a CLEAN payload — only the fields the API needs
-    // Do NOT spread bookingContext to avoid leaking PropertyDetails, bookingEngineColor, etc.
+    const toLocalDateString = (date: Date) => {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    };
     const payload = {
       PropertyCode: hotelcode,
-      startDate: checkIn.toISOString().split("T")[0],
-      endDate: checkOut.toISOString().split("T")[0],
+      startDate: toLocalDateString(checkIn),
+      endDate: toLocalDateString(checkOut),
       guests: guestInfo,
       location: bookingContext.location || "",
       numberOfRooms: roomsCount,
@@ -328,7 +359,6 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
       router.push(`Rooms/?${new URLSearchParams({ code: hotelcode }).toString()}`);
     }
   };
-
 
   const handleDateSelect = (date: Date) => {
     if (selectionMode === "checkin") {
@@ -364,7 +394,9 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
     }
   };
 
-
+  const handleDateMouseLeave = () => {
+    setTemporaryCheckOut(null);
+  };
 
   const openCalendar = () => {
     setIsCalendarOpen(true);
@@ -393,10 +425,17 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
     }
   };
 
-  // ✅ Redux only, no sessionStorage
   const handleHomeClick = () => {
-    if (senderUrl) {
-      window.location.href = senderUrl;
+    let url = senderUrl;
+
+    // If Redux is empty (page reload), read from sessionStorage
+    if (!url) {
+      url = sessionStorage.getItem("senderUrl") || undefined;
+      if (url) dispatch(setSenderUrl(url)); // sync back to Redux
+    }
+
+    if (url) {
+      window.location.href = url;
     } else {
       router.push("/");
     }
@@ -617,4 +656,3 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
 };
 
 export default SearchWidget;
-

@@ -278,7 +278,9 @@ export class RoomBookingService {
 
         const touristTax = RoomTouristTaxCalculator.calculate(
             touristTaxData,
-            baseAmount
+            baseAmount,
+            numberOfNights,
+            roomsArray.length
         );
 
         const sharedFields = {
@@ -882,14 +884,16 @@ calculate(): {
 class RoomTouristTaxCalculator {
     static calculate(
         touristTaxData: IRoomTouristTaxData | null,
-        baseAmount: number
+        baseAmount: number,
+        numberOfNights: number,
+        numberOfRooms: number
     ): ITouristTax | null {
         if (!touristTaxData) return null;
 
         const calculatedTaxAmount =
             touristTaxData.discountType === 'percentage'
                 ? baseAmount * (Number(touristTaxData.discountValue) / 100)
-                : Number(touristTaxData.discountValue);
+                : Number(touristTaxData.discountValue) * numberOfNights * numberOfRooms; // ✅
 
         return {
             id: touristTaxData.id,

@@ -31,6 +31,7 @@ import platformRouter from '../platforms/routes/platform.routes';
 import { currencyRoutes } from "../currency-maping/routes"
 import { fikafiPaymentRoutes } from '../payment/routes/fikafi.routes';
 import { managementRoute } from '../utils-management/routes';
+import { uploadRouter } from '../uploads/routes';
 export async function initializeExpressRoutes({ app }: { app: Express }) {
     // Health check
     app.head('/status', (_, res: Response) => res.status(200).end());
@@ -71,7 +72,7 @@ export async function initializeExpressRoutes({ app }: { app: Express }) {
     apiV1Router.use('/loyalty', loyaltyRouter);
     apiV1Router.use('/fikafi', fikafiPaymentRoutes);
     apiV1Router.use('/utils-management', managementRoute);
-
+    apiV1Router.use("/upload",uploadRouter)
     apiV1Router.use('/payment', PaymentRoutes);
     apiV1Router.use('/integrations', integrationRouter);
     apiV1Router.use('/platform', platformRouter);

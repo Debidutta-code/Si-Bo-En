@@ -246,13 +246,14 @@ const RoomCard: React.FC<RoomCardProps> = ({
         return "Special Offer";
     }
   };
-const rooms = Array.isArray(bookingContext.guests?.rooms)
-  ? bookingContext.guests.rooms
-  : [{ 
+const rooms = Array.isArray(bookingContext.guests?.roomsArray) && 
+              bookingContext.guests.roomsArray.length > 0
+  ? bookingContext.guests.roomsArray
+  : [{
       adults: bookingContext.guests?.adults || 1,
-      children: bookingContext.guests?.children || 0
+      children: bookingContext.guests?.children || 0,
+      childAges: []
     }];
-
   const noOfRooms = rooms.length || 1;
 
   const noOfAdults = rooms.reduce(

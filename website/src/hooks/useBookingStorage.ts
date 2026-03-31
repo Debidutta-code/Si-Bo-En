@@ -33,30 +33,36 @@ export const useBookingStorage = (bookingContext: any): BookingStorage => {
   const [logoIcon, setLogoIcon] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!bookingContext?.bookingEngineColor) return;
+    if (bookingContext?.bookingEngineColor) {
+      const engineColor = bookingContext.bookingEngineColor;
+      
+      const primaryColor = engineColor.primaryColor || DEFAULT_COLORS.primaryColor;
+      const secondaryColor = engineColor.primaryColor || DEFAULT_COLORS.secondaryColor;
+      const tertiaryColor = engineColor.tertiaryColor || DEFAULT_COLORS.tertiaryColor;
+      let buttonTextColor = engineColor.buttonTextColor || DEFAULT_COLORS.buttonTextColor;
+      
+      if (!engineColor.buttonTextColor) {
+        buttonTextColor = getContrastTextColor(secondaryColor);
+      }
 
-    const engineColor = bookingContext.bookingEngineColor;
+      const newColors: BookingColors = {
+        primaryColor,
+        secondaryColor,
+        tertiaryColor,
+        buttonTextColor,
+        logoIcon: null,
+      };
 
-    const primaryColor = engineColor.primaryColor || DEFAULT_COLORS.primaryColor;
-    const secondaryColor = engineColor.secondaryColor || DEFAULT_COLORS.secondaryColor;
-    const tertiaryColor = engineColor.tertiaryColor || DEFAULT_COLORS.tertiaryColor;
-    const buttonTextColor = engineColor.buttonTextColor
-      ? engineColor.buttonTextColor
-      : getContrastTextColor(secondaryColor);
+      const newLogoIcon = bookingContext.PropertyDetails?.bookingEngineConfig?.logo ||
+                          engineColor.logo || null;
 
-    const newLogoIcon =
-      bookingContext.PropertyDetails?.bookingEngineConfig?.logo ||
-      engineColor.logo ||
-      null;
+      setColors(newColors);
+      setLogoIcon(newLogoIcon);
+    }
+  }, [bookingContext]);
 
-    setColors({ primaryColor, secondaryColor, tertiaryColor, buttonTextColor });
-    setLogoIcon(newLogoIcon);
-
-
-  }, [
-    bookingContext?.bookingEngineColor,
-    bookingContext?.PropertyDetails?.bookingEngineConfig?.logo,
-  ]);
-
-  return { colors, logoIcon };
+  return {
+    colors,
+    logoIcon,
+  };
 };

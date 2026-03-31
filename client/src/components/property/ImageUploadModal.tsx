@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import toast from 'react-hot-toast'
+import createAxiosInstance from '../axiosInstance'
 
 interface Props {
   isOpen: boolean
@@ -47,7 +48,25 @@ const uploadToCloudinary = async (file: File): Promise<string> => {
   const data = await response.json()
   return data.secure_url
 }
+const uploadToS3 = async (file: File): Promise<string> => {
+  const axiosinstance = createAxiosInstance();
 
+  const res = await axiosinstance.post("/upload/generate-url", {
+    fileType: file.type,
+  });
+
+  const { uploadUrl, fileUrl } = res.data.data;
+
+  await fetch(uploadUrl, {
+    method: "PUT",
+    headers: {
+      "Content-Type": file.type,
+    },
+    body: file,
+  });
+
+  return fileUrl;
+};
 export default function ImageUploadModal({
   isOpen,
   onClose,
@@ -140,10 +159,14 @@ export default function ImageUploadModal({
     const uploadedUrls: string[] = []
     
     try {
-      // Upload files one by one to Cloudinary directly
       for (let i = 0; i < files.length; i++) {
         setUploadProgress(`Uploading ${i + 1} of ${files.length}...`)
-        const url = await uploadToCloudinary(files[i])
+        let url ;
+        if(import.meta.env.VITE_NODE_ENV==="production"){
+          url=await uploadToS3(files[i])
+        }else{
+          url=await uploadToCloudinary(files[i])
+        }
         uploadedUrls.push(url)
       }
       

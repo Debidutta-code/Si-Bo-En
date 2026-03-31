@@ -5,7 +5,6 @@ import {Property,
 } from "./property.controller";
 import {RoomAminityController,RoomController} from "./room.controller";
 
-import {uploadHandler} from "./upload.controller";
 import {PropertyConfigController} from "./property-config.controller";
 import {BookingEngineController} from "./bookingEngine.controller";
 export {
@@ -19,7 +18,6 @@ export{
     PropertyAminityController,
     RoomAminityController,
     RoomController,
-    uploadHandler,
     PropertyConfigController,
     BookingEngineController,
 }

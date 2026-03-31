@@ -131,6 +131,7 @@ export class PricingService {
             const touristTaxClass = new TouristTaxClass(
                 selectedRoom.TouristTaxs,
                 selectedRoom,
+                rooms,
                 priceBrakedowns,
                 diffInDays
             );
@@ -1231,11 +1232,13 @@ class PromotionClass {
 class TouristTaxClass {
     touristTax: ITouristTax[];
     room: IRoom;
+    noOfRooms: number;
     priceBrakedown: PriceBrakeDown;
     noOfDays: number;
-    constructor(touristTax: ITouristTax[], room: IRoom, priceBrakeDown: PriceBrakeDown, noOfDays: number) {
+    constructor(touristTax: ITouristTax[], room: IRoom, noOfRooms: number, priceBrakeDown: PriceBrakeDown, noOfDays: number) {
         this.touristTax = touristTax;
         this.room = room;
+        this.noOfRooms = noOfRooms;
         this.priceBrakedown = priceBrakeDown;
         this.noOfDays = noOfDays;
     }
@@ -1249,11 +1252,10 @@ class TouristTaxClass {
             (sum, tax) => sum + tax.discountAmount,
             0
         );
-        const touristTaxForThisReservation = totalTouristCharges * this.room.numberOfBedrooms * this.noOfDays;
         return {
             ...this.priceBrakedown,
-            latterpayableAmount: touristTaxForThisReservation,
-            totalAmount: this.priceBrakedown.totalAmount + touristTaxForThisReservation,
+            latterpayableAmount: totalTouristCharges,
+            totalAmount: this.priceBrakedown.totalAmount + totalTouristCharges,
             promotionBrakeDown: [
                 ...this.priceBrakedown.promotionBrakeDown,
                 ...touristTaxes,
@@ -1287,7 +1289,7 @@ class TouristTaxClass {
                 discountType: touristTax.discountType,
                 discountValue: Number(touristTax.discountValue),
                 currencyCode: touristTax.currencyCode,
-                discountAmount: Number(touristTax.discountValue),
+                discountAmount: Number(touristTax.discountValue) * this.noOfDays * this.noOfRooms, // ← fully calculated
                 restrictionType: 'payLater',
                 type: "auto-applied"
 

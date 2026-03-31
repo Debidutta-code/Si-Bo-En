@@ -1,11 +1,16 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import SearchWidget from './SearchWidget';
 import ROOMBG from '../assets/ROOMBG.jpg';
 import { useTranslation } from 'react-i18next';
+import { useDispatch } from 'react-redux';
+import { clearBookingContext } from '../../store/bookingSlice';
 
 const Hero = () => {
   const { t } = useTranslation();
-
+  const dispatch = useDispatch();
+  useEffect(() => {
+    dispatch(clearBookingContext());
+  }, []);
   return (
     <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image */}

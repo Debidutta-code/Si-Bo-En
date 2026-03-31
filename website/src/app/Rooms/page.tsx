@@ -141,41 +141,6 @@ function normalizePriceBrakeDown(
   };
 }
 
-const isDateInPast = (dateStr: string | undefined): boolean => {
-  if (!dateStr) return true;
-  const date = new Date(dateStr);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return date < today;
-};
-
-const getDefaultDates = () => {
-  const today = new Date();
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
-  const dayAfter = new Date(today);
-  dayAfter.setDate(today.getDate() + 2);
-  return {
-    defaultStartDate: tomorrow.toISOString().split("T")[0],
-    defaultEndDate: dayAfter.toISOString().split("T")[0],
-  };
-};
-
-const buildRoomsArray = (numRooms: number, totalAdults: number, totalChildren: number) => {
-  const MAX_PER_ROOM = 8;
-  let remainingAdults = totalAdults - numRooms;
-  let remainingChildren = totalChildren;
-  if (remainingAdults < 0) remainingAdults = 0;
-  return Array.from({ length: numRooms }, () => {
-    let roomAdults = 1;
-    const adultsToAdd = Math.min(remainingAdults, MAX_PER_ROOM - roomAdults);
-    roomAdults += adultsToAdd;
-    remainingAdults -= adultsToAdd;
-    const childrenToAdd = Math.min(remainingChildren, MAX_PER_ROOM - roomAdults);
-    remainingChildren -= childrenToAdd;
-    return { adults: roomAdults, children: childrenToAdd, childAges: Array(childrenToAdd).fill(0) };
-  });
-};
 const Rooms = () => {
   const { t } = useTranslation();
   const [urgencyModalOpen, setUrgencyModalOpen] = useState(false);
@@ -205,18 +170,15 @@ const Rooms = () => {
   const [errorRooms, setErrorRooms] = useState<string | null>(null);
   // const [loadingRooms, setLoadingRooms] = useState<boolean>(false);
   const [loadingBookNow, setLoadingBookNow] = useState<string | null>(null);
-  const initializedRef = useRef(false);
-  const initCompleteRef = useRef(false); 
+  const initializedRef = useRef(false); // Prevent double initialization
   const [roomsData, setRoomsData] = useState<any[]>([]);
   const [addons, setAddons] = useState<any[]>([]);
   const [propertyDetails, setPropertyDetails] = useState<any>(null);
 
   // Ref to track if we're loading from external source
   const isLoadingFromExternal = useRef(false);
-  const bookingContextRef = useRef(bookingContext);
-  const searchParams = useSearchParams();
 
-
+  // Price summary sidebar state
   const [showPriceSummary, setShowPriceSummary] = useState(false);
   const [priceSummaryData, setPriceSummaryData] =
     useState<PriceSummaryData | null>(null);
@@ -229,118 +191,7 @@ const Rooms = () => {
     setPriceSummaryData(data);
     setShowPriceSummary(true);
   };
- useEffect(() => {
-  if (initializedRef.current) return;
-  initializedRef.current = true;
 
-  const { defaultStartDate, defaultEndDate } = getDefaultDates();
-  const urlCode = searchParams.get("code");
-  const propertyCode = urlCode || "4BTXDZ";
-
-  const checkin = searchParams.get("checkin");
-  const checkout = searchParams.get("checkout");
-  const adults = parseInt(searchParams.get("adults") || "1");
-  const children = parseInt(searchParams.get("children") || "0");
-  const rooms = parseInt(searchParams.get("rooms") || "1");
-  const promocode = searchParams.get("promoCode") || "";
-  const bookingSource = searchParams.get("utm_source") || "direct";
-
-  const isExternalLink = !!(
-    checkin || checkout ||
-    searchParams.get("adults") ||
-    searchParams.get("children") ||
-    searchParams.get("rooms")
-  );
-
-  if (isExternalLink) {
-    isLoadingFromExternal.current = true;
-    setIsExternalRequest(true);
-
-    const startDate = checkin && !isDateInPast(checkin) ? checkin : defaultStartDate;
-    const endDate = checkout && !isDateInPast(checkout) && checkout > startDate ? checkout : defaultEndDate;
-
-    const externalContext = {
-      PropertyCode: propertyCode,
-      startDate,
-      endDate,
-      guests: { rooms, adults, children, roomsArray: buildRoomsArray(rooms, adults, children) },
-      location: "",
-      numberOfRooms: rooms,
-      promocode,
-      bookingSource,
-      paymentMethod: "pay_at_hotel",
-    };
-
-    const referrer = document.referrer;
-    if (referrer) dispatch(setSenderUrl(referrer));
-
-    dispatch(setBookingSource(bookingSource));
-    dispatch(setBookingContext(externalContext));
-    handleSearchStart(externalContext);
-    isLoadingFromExternal.current = false;
-    initCompleteRef.current = true; // ✅ SET HERE
-    return;
-  }
-
-  const hasValidReduxState =
-    bookingContext.PropertyCode &&
-    bookingContext.startDate &&
-    !isDateInPast(bookingContext.startDate);
-
-  if (hasValidReduxState) {
-    const contextToUse = { ...bookingContext, PropertyCode: propertyCode };
-    if (propertyCode !== bookingContext.PropertyCode) dispatch(setBookingContext(contextToUse));
-    handleSearchStart(contextToUse);
-    initCompleteRef.current = true; // ✅ SET HERE
-    return;
-  }
-
-  const defaultContext = {
-    PropertyCode: propertyCode,
-    startDate: defaultStartDate,
-    endDate: defaultEndDate,
-    guests: { rooms: 1, adults: 1, children: 0, roomsArray: buildRoomsArray(1, 1, 0) },
-    location: "",
-    numberOfRooms: 1,
-    promocode: "",
-    bookingSource: "direct",
-    paymentMethod: "pay_at_hotel",
-  };
-
-  dispatch(setBookingSource("direct"));
-  dispatch(setBookingContext(defaultContext));
-  handleSearchStart(defaultContext);
-  initCompleteRef.current = true; // ✅ SET HERE
-}, []);
-useEffect(() => {
-  if (!initCompleteRef.current) return; // ✅ CHANGED
-  if (isLoadingFromExternal.current) return;
-
-  const urlCode = searchParams.get("code");
-  if (!urlCode) return;
-
-  const currentContext = bookingContextRef.current;
-  if (urlCode === currentContext.PropertyCode) return;
-
-  const { defaultStartDate, defaultEndDate } = getDefaultDates();
-
-  const updatedContext = {
-    ...currentContext,
-    PropertyCode: urlCode,
-    startDate: isDateInPast(currentContext.startDate) ? defaultStartDate : currentContext.startDate,
-    endDate: isDateInPast(currentContext.endDate) ? defaultEndDate : currentContext.endDate,
-    numberOfRooms:
-      typeof currentContext.guests?.rooms === "number"
-        ? currentContext.guests.rooms
-        : Array.isArray(currentContext.guests?.rooms)
-          ? currentContext.guests.rooms.length
-          : 1,
-    location: currentContext.location || "",
-  };
-
-  dispatch(setBookingContext(updatedContext));
-  handleSearchStart(updatedContext);
-}, [searchParams.get("code")]);
   const handleBookNow = (
     room: Room,
     ratePlan: any,
@@ -563,6 +414,214 @@ useEffect(() => {
     }
   };
 
+  const searchParams = useSearchParams();
+
+  // NEW: Get booking data from URL params
+  const getBookingDataFromParams = () => {
+    const code = searchParams.get("code");
+    const checkin = searchParams.get("checkin");
+    const checkout = searchParams.get("checkout");
+    const adults = searchParams.get("adults");
+    const children = searchParams.get("children");
+    const rooms = searchParams.get("rooms");
+    const promocode = searchParams.get("promoCode");
+    const bookingSource = searchParams.get("utm_source") || "direct";
+
+    // Check if we have external params (checkin/checkout indicates external source)
+    const hasExternalParams = !!(
+      code &&
+      (checkin || checkout || adults || children || rooms)
+    );
+
+    if (hasExternalParams) {
+      // Will be set in the initialization useEffect
+      const today = new Date();
+      today.setDate(today.getDate() + 1);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+
+      const defaultStartDate = today.toISOString().split("T")[0];
+      const defaultEndDate = tomorrow.toISOString().split("T")[0];
+
+      let roomsArray: { adults: number; children: number; childAges: number[] }[] = [];
+      const numRooms = parseInt(rooms || "1");
+
+      const buildRoomsArrayFallback = (
+        numRooms: number,
+        totalAdults: number,
+        totalChildren: number,
+      ) => {
+        const MAX_PER_ROOM = 8;
+        const roomsArray = [];
+        let remainingAdults = totalAdults - numRooms;
+        let remainingChildren = totalChildren;
+        if (remainingAdults < 0) {
+          remainingAdults = 0;
+        }
+        for (let i = 0; i < numRooms; i++) {
+          let roomAdults = 1;
+          let roomChildren = 0;
+          const adultSpace = MAX_PER_ROOM - roomAdults;
+          const adultsToAdd = Math.min(remainingAdults, adultSpace);
+          roomAdults += adultsToAdd;
+          remainingAdults -= adultsToAdd;
+          const childSpace = MAX_PER_ROOM - roomAdults;
+          const childrenToAdd = Math.min(remainingChildren, childSpace);
+          roomChildren = childrenToAdd;
+          remainingChildren -= childrenToAdd;
+          roomsArray.push({
+            adults: roomAdults,
+            children: roomChildren,
+            childAges: Array(roomChildren).fill(0),
+          });
+        }
+        return roomsArray;
+      };
+
+      // If no rooms array from localStorage, build it with fallback
+      if (roomsArray.length === 0) {
+        const totalAdults = parseInt(adults || "1");
+        const totalChildren = parseInt(children || "0");
+
+        // ✅ Replace the old dumb distribution with smart fallback
+        roomsArray = buildRoomsArrayFallback(
+          numRooms,
+          totalAdults,
+          totalChildren,
+        );
+      }
+
+      return {
+        PropertyCode: code,
+        startDate: checkin || defaultStartDate,
+        endDate: checkout || defaultEndDate,
+        guests: {
+          rooms: numRooms,
+          adults: parseInt(adults || "1"),
+          children: parseInt(children || "0"),
+          roomsArray, 
+        },
+        location: "",
+        numberOfRooms: numRooms,
+        promocode: promocode || "",
+        isExternal: true,
+        bookingSource: bookingSource,
+      };
+    }
+
+    return null;
+  };
+
+  useEffect(() => {
+    if (initializedRef.current) return;
+    initializedRef.current = true;
+
+    const initBookingContext = async () => {
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+
+      const defaultStartDate = today.toISOString().split("T")[0];
+      const defaultEndDate = tomorrow.toISOString().split("T")[0];
+
+      const paramsData = getBookingDataFromParams();
+
+      if (paramsData) {
+
+        setIsExternalRequest(true);
+        setInitialLoading(true);
+        isLoadingFromExternal.current = true;
+
+        const contextWithDates = {
+          ...paramsData,
+          startDate: paramsData.startDate || defaultStartDate,
+          endDate: paramsData.endDate || defaultEndDate,
+          numberOfRooms: paramsData.numberOfRooms || 1,
+          location: paramsData.location || "",
+          promocode: paramsData.promocode || "",
+        };
+        dispatch(setBookingSource(paramsData.bookingSource));
+        dispatch(setBookingContext(contextWithDates));
+        const referrer = document.referrer;
+        if (referrer) {
+          dispatch(setSenderUrl(referrer));
+          sessionStorage.setItem("senderUrl", referrer);
+        }
+        await handleSearchStart(contextWithDates);
+        isLoadingFromExternal.current = false;
+      } else {
+        const hasValidReduxState =
+          bookingContext?.PropertyCode &&
+          bookingContext?.startDate &&
+          bookingContext?.endDate;
+
+        if (hasValidReduxState) {
+          await handleSearchStart(bookingContext);
+        } else {
+          const urlCode = searchParams.get("code") || "4BTXDZ";
+
+          const defaultContext = {
+            PropertyCode: urlCode,
+            startDate: defaultStartDate,
+            endDate: defaultEndDate,
+            guests: {
+              rooms: 1,
+              adults: 1,
+              children: 0,
+              roomsArray: [
+                {
+                  adults: 1,
+                  children: 0,
+                  childAges: [],
+                },
+              ],
+            },
+            location: "",
+            numberOfRooms: 1,
+            promocode: "",
+          };
+
+          dispatch(setBookingContext(defaultContext));
+          await handleSearchStart(defaultContext);
+        }
+      }
+    };
+
+    initBookingContext();
+  }, []);
+
+  useEffect(() => {
+    if (!initializedRef.current) return;
+    if (isLoadingFromExternal.current) return;
+
+    const urlCode = searchParams.get("code");
+    if (initialLoading) return;
+
+    if (urlCode && urlCode !== bookingContext.PropertyCode) {
+      const today = new Date();
+      today.setDate(today.getDate() + 1);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(today.getDate() + 1);
+
+      const updatedContext = {
+        ...bookingContext,
+        PropertyCode: urlCode,
+        startDate:
+          bookingContext.startDate || today.toISOString().split("T")[0],
+        endDate: bookingContext.endDate || tomorrow.toISOString().split("T")[0],
+        numberOfRooms:
+          typeof bookingContext.guests?.rooms === "number"
+            ? bookingContext.guests.rooms
+            : Array.isArray(bookingContext.guests?.rooms)
+              ? bookingContext.guests.rooms.length
+              : 1,
+        location: bookingContext.location || "",
+      };
+
+      dispatch(setBookingContext(updatedContext));
+      handleSearchStart(updatedContext);
+    }
+  }, [searchParams.get("code")]);
 
   const bgImage =
     bookingContext?.bookingEngineColor?.bgImage ||
@@ -581,8 +640,6 @@ useEffect(() => {
   }, [bgImage]);
 
   const { primaryColor } = useBookingColors();
-
-
 
   const availableBoardTypes = Array.from(
     new Set(
