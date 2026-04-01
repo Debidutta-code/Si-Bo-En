@@ -480,7 +480,7 @@ class BasePriceClass {
                     }
                 }
 
-                const totalBaseCharges = adultBasePrice + childBasePrice;
+                const totalBaseCharges = (adultBasePrice + childBasePrice);
                 const totalAdditionalCharges = additionalAdultCharges + additionalChildCharges;
                 const totalDailyAmount = totalBaseCharges + totalAdditionalCharges;
 
@@ -1235,12 +1235,14 @@ class TouristTaxClass {
     noOfRooms: number;
     priceBrakedown: PriceBrakeDown;
     noOfDays: number;
+    noOfBedrooms: number;
     constructor(touristTax: ITouristTax[], room: IRoom, noOfRooms: number, priceBrakeDown: PriceBrakeDown, noOfDays: number) {
         this.touristTax = touristTax;
         this.room = room;
         this.noOfRooms = noOfRooms;
         this.priceBrakedown = priceBrakeDown;
         this.noOfDays = noOfDays;
+        this.noOfBedrooms = room.numberOfBedrooms;
     }
     public findTouristTax(): PriceBrakeDown {
         let touristTaxes: PromotionBrakeDown[] = [];
@@ -1289,7 +1291,7 @@ class TouristTaxClass {
                 discountType: touristTax.discountType,
                 discountValue: Number(touristTax.discountValue),
                 currencyCode: touristTax.currencyCode,
-                discountAmount: Number(touristTax.discountValue) * this.noOfDays * this.noOfRooms, // ← fully calculated
+                discountAmount: Number(touristTax.discountValue) * this.noOfDays * this.noOfRooms * this.noOfBedrooms, // ← fully calculated
                 restrictionType: 'payLater',
                 type: "auto-applied"
 

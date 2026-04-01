@@ -80,6 +80,7 @@ export interface IPropertyRoom {
   maxOccupancy: number;
   maxNumberOfAdults: number;
   maxNumberOfChildren: number;
+  numberOfBedrooms: number;  // ✅ add this
   description: string | null;
   image: string[];
   available: boolean;

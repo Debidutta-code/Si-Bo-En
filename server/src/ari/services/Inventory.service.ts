@@ -9,8 +9,12 @@ import {
 import { toUTC } from '../../utils';
 import { getCurrencyConverter } from '../../currency-maping/utils';
 import { CurrencyCode } from '../../tax-system/interfaces/tourist-tax.type';
-class InventoryServices {
-    public static async getInventoryServices(
+ class InventoryServices {
+    inventoryDao :InventoryDao;
+    constructor(){
+        this.inventoryDao = new InventoryDao();
+    }
+    public async getInventoryServices(
         hotelCode: string,
         page: number,
         resultPerPage: number,
@@ -19,7 +23,7 @@ class InventoryServices {
         invTypeCode?: string
     ) {
         try {
-            const response = await InventoryDao.getInventoryDao(
+            const response = await this.inventoryDao.getInventoryDao(
                 hotelCode,
                 page,
                 invTypeCode && invTypeCode,
@@ -38,13 +42,13 @@ class InventoryServices {
             return errorResponse(`Failed to delete RatePlan`, error?.message);
         }
     }
-    public static async getAllRoomTypeService(hotelCode: string) {
+    public async getAllRoomTypeService(hotelCode: string) {
         try {
-            const property = await InventoryDao.isPropertyExists(hotelCode);
+            const property = await this.inventoryDao.isPropertyExists(hotelCode);
             if (!property) {
                 return errorResponse('Property not found');
             }
-            const roomTypes = await InventoryDao.getAllRoomTypeDao(property.id);
+            const roomTypes = await this.inventoryDao.getAllRoomTypeDao(property.id);
             if (!roomTypes) {
                 return errorResponse('No Room found under this property');
             }
@@ -53,7 +57,7 @@ class InventoryServices {
             return errorResponse(`Failed to delete RatePlan`, error?.message);
         }
     }
-    public static async createInventoryService(
+    public async createInventoryService(
         propertyCode: string,
         roomType: string,
         startDate: string,
@@ -62,11 +66,11 @@ class InventoryServices {
         pushFromCalender?: boolean
     ) {
         try {
-            const property = await InventoryDao.isPropertyExists(propertyCode);
+            const property = await this.inventoryDao.isPropertyExists(propertyCode);
             if (!property) {
                 return errorResponse('Property not found');
             }
-            const isRoomExists = await InventoryDao.getRoom(
+            const isRoomExists = await this.inventoryDao.getRoom(
                 property.id,
                 roomType
             );
@@ -107,7 +111,7 @@ class InventoryServices {
                     availability: availableRooms,
                 });
             }
-            const response = await InventoryDao.createInventory(invTOCreated);
+            const response = await this.inventoryDao.createInventory(invTOCreated);
             if (response) {
                 return successResponse(
                     'Availability added/updated successfully',
@@ -123,7 +127,7 @@ class InventoryServices {
             return errorResponse('Failed to add/update availability');
         }
     }
-    public static async mapRatePlanService(
+    public async mapRatePlanService(
         propertyId: string,
         propertyCode: string,
         roomTypeName: string,
@@ -138,7 +142,7 @@ class InventoryServices {
     ) {
         try {
             const [room, { convert, baseCurrency }] = await Promise.all([
-                InventoryDao.getRoom(propertyId, roomTypeCode),
+                this.inventoryDao.getRoom(propertyId, roomTypeCode),
                 getCurrencyConverter(propertyId, currencyCode)
             ]);
 
@@ -161,7 +165,7 @@ class InventoryServices {
             }
 
             const inventoryCheck =
-                await InventoryDao.checkInventoryAvailability(
+                await this.inventoryDao.checkInventoryAvailability(
                     propertyCode,
                     roomTypeCode,
                     startDate,
@@ -202,7 +206,7 @@ class InventoryServices {
                         date: dateStr,
                     });
                 }
-                const daoRes = await InventoryDao.mapRatePlans(mappedRI);
+                const daoRes = await this.inventoryDao.mapRatePlans(mappedRI);
 
                 if (daoRes) {
                     // Format the missing dates for better readability
@@ -262,7 +266,7 @@ class InventoryServices {
                     date: toUTC(yyyyMmDd),
                 });
             }
-            const daoRes = await InventoryDao.mapRatePlans(mappedRI);
+            const daoRes = await this.inventoryDao.mapRatePlans(mappedRI);
             if (daoRes) {
                 return successResponse('Rate plan mapped successfully', daoRes);
             } else {
@@ -277,6 +281,18 @@ class InventoryServices {
                 );
             }
             return errorResponse('Failed to map room with rate plan');
+        }
+    }
+    public async getRoomAvailabilityService(propertyCode: string, roomType: string) {
+        try {
+            const response = await this.inventoryDao.getRoomAvailability(propertyCode, roomType);
+            if (response) {
+                return successResponse('Date based availability fetched successfully', response);
+            } else {
+                return errorResponse('Failed to fetch date based availability');
+            }
+        } catch (error: any) {
+            return errorResponse('Failed to fetch date based availability', error?.message);
         }
     }
 }

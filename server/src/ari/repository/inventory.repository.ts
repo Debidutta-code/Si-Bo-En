@@ -4,9 +4,8 @@ import { toUTC } from '../../utils';
 import type { ICreateInventoryRepo, IIdInventory, IWeekdayCharges, IWeekdayAdditionalCharges, IAdditionalGuestAmount, ICharges } from "../types"
 import { formatDate, localMidnight, parseDdMmYyyy } from "../utils/date"
 
-
 class InventoryRepository {
-    public static async getInventoryDao(
+    public async getInventoryDao(
         hotelCode: string,
         currentPage: number,
         invTypeCode?: string,
@@ -65,7 +64,7 @@ class InventoryRepository {
         }
     }
 
-    public static async isPropertyExists(hotelCode: string) {
+    public async isPropertyExists(hotelCode: string) {
         try {
             return await prisma.property.findFirst({
                 where: { propertyCode: hotelCode },
@@ -75,7 +74,7 @@ class InventoryRepository {
         }
     }
 
-    public static async getRoom(propertyId: string, roomType: string) {
+    public async getRoom(propertyId: string, roomType: string) {
         try {
             const room = await prisma.room.findFirst({
                 where: {
@@ -90,7 +89,7 @@ class InventoryRepository {
         }
     }
 
-    public static async getAllRoomTypeDao(propertyId: string) {
+    public async getAllRoomTypeDao(propertyId: string) {
         try {
             const roomTypes = await prisma.room.findMany({
                 where: {
@@ -109,7 +108,7 @@ class InventoryRepository {
         }
     }
 
-    public static async createInventory(repoData: ICreateInventoryRepo[]): Promise<boolean> {
+    public async createInventory(repoData: ICreateInventoryRepo[]): Promise<boolean> {
         try {
             await Promise.all(
                 repoData.map(item => {
@@ -133,9 +132,7 @@ class InventoryRepository {
         }
     }
 
-
-
-    public static async mapRatePlans(payload: ICharges[]) {
+    public async mapRatePlans(payload: ICharges[]) {
         try {
             if (!payload || payload.length === 0) {
                 throw new Error('No charge data provided');
@@ -237,7 +234,8 @@ class InventoryRepository {
             throw new Error(error.message);
         }
     }
-    public static async checkInventoryAvailability(
+
+    public async checkInventoryAvailability(
         propertyCode: string,
         roomTypeCode: string,
         startDate: string,
@@ -291,6 +289,27 @@ class InventoryRepository {
             };
         } catch (error) {
             throw new Error("Error checking inventory availability");
+        }
+    }
+
+    public async getRoomAvailability(propertyCode: string,
+        roomTypeCode: string
+    ) {
+        try {
+            const inventories = await prisma.inventory.findMany({
+                where: {
+                    propertyCode,
+                    roomTypeCode,
+
+                },
+                select: {
+                    date: true,
+                    availability: true
+                }
+            });
+            return inventories;
+        } catch (error: any) {
+            throw new Error(error.message);
         }
     }
 }

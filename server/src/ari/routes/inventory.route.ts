@@ -7,6 +7,7 @@ export const inventoryRouter = Router();
 import { protect } from '../../middlewares/auth.middleware';
 import { checkRoleBased } from "../../middlewares/checkRole.middleware";
 import { attachPropertyDetails } from "../../middlewares/property.middleware";
+const inventoryController = new InventoryController();
 
 inventoryRouter
   .route('/room-types/:hotelCode')
@@ -19,7 +20,7 @@ inventoryRouter
       key: "hotelCode",
       source: "params"
     }),
-    InventoryController.getRoomTypeController
+    inventoryController.getRoomTypeController
   );
 inventoryRouter
   .route('/create/:propertyId')
@@ -31,7 +32,7 @@ inventoryRouter
       key: "propertyId",
       source: "params"
     }),
-    InventoryController.createNewInventory
+    inventoryController.createNewInventory
   );
 inventoryRouter
   .route('/map/rateplan/:propertyId')
@@ -43,7 +44,7 @@ inventoryRouter
       key: "propertyId",
       source: "params"
     }),
-    InventoryController.mapRatePlans
+    inventoryController.mapRatePlans
   );
 inventoryRouter
   .route('/get-mapped/rateplan')
@@ -75,4 +76,15 @@ inventoryRouter
       source: "body"
     }),
     RatePlanController.updateOrCreateRatePlanCharges
+  );
+  inventoryRouter.route('/availability')
+  .post(
+    protect,
+    checkRoleBased('canUpdateRoomPrice'),
+    attachPropertyDetails({
+      identifierType: "code",
+      key: "propertyCode",
+      source: "body"
+    }),
+    inventoryController.getRoomAvailibility
   );
