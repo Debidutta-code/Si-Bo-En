@@ -1,17 +1,16 @@
 import { useState } from "react";
-import { Play, ChevronLeft, ChevronRight, Video, Image as ImageIcon } from "lucide-react";
+import { Play, ChevronLeft, ChevronRight, Video, Image as ImageIcon, Volume2, VolumeX } from "lucide-react";
 
 interface PropertyMediaGalleryProps {
   propertyVideo?: {
     url: string;
-    thumbnail: string | null;
   };
   propertyImages: string[];
   type: "room" | "property";
 }
 
 type MediaItem = 
-  | { type: 'video'; url: string; thumbnail: string | null }
+  | { type: 'video'; url: string }
   | { type: 'image'; url: string };
 
 export default function PropertyMediaGallery({ 
@@ -21,13 +20,14 @@ export default function PropertyMediaGallery({
 
 }: PropertyMediaGalleryProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [isMuted, setIsMuted] = useState(type === "property");
 
   const hasVideo = !!propertyVideo?.url;
   const hasImages = propertyImages.length > 0;
 
   // Combine video and images for both slider and lightbox
   const allMedia: MediaItem[] = [
-    ...(hasVideo ? [{ type: 'video' as const, url: propertyVideo.url, thumbnail: propertyVideo.thumbnail }] : []),
+    ...(hasVideo && propertyVideo ? [{ type: 'video' as const, url: propertyVideo.url }] : []),
     ...propertyImages.map(url => ({ type: 'image' as const, url }))
   ];
 
@@ -84,22 +84,43 @@ export default function PropertyMediaGallery({
                     autoPlay={type === "property" ? true : false}
                     controls={type === "property" ? false : true}
                     loop
-                    muted
+                    muted={type === "property" ? false : true}
                     playsInline
                     src={currentMedia.url}
                     className="w-full h-full object-cover"
-                    poster={currentMedia.thumbnail || ""}
                   >
                     Your browser does not support the video tag.
                   </video>
                   
                   {/* Video Badge */}
+                  {
+                    type==="property"&&(
+
                   <div className="absolute top-6 left-6 bg-black/70 backdrop-blur-sm px-4 py-2 rounded-full">
                     <div className="flex items-center gap-2 text-white text-sm font-medium">
                       <Play className="h-3.5 w-3.5" fill="currentColor" />
                       <span>Video Tour</span>
                     </div>
                   </div>
+                    )
+                  }
+
+                  {/* Mute Toggle */}
+                  {
+                    type==="property"&&(
+
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsMuted(!isMuted);
+                    }}
+                    className="absolute bottom-6 right-6 bg-black/50 hover:bg-black/70 backdrop-blur-sm p-2 rounded-full transition-all duration-200 z-10 text-white"
+                    aria-label={isMuted ? "Unmute video" : "Mute video"}
+                  >
+                    {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                  </button>
+                    )
+                  }
                 </div>
               ) : (
                 <div className="relative h-full w-full">
@@ -146,14 +167,15 @@ export default function PropertyMediaGallery({
                         : 'ring-2 ring-gray-200 opacity-70 hover:opacity-100 hover:ring-gray-300'
                     }`}
                   >
-                    <img
-                      src={media.type === 'video' ? (media.thumbnail || '') : media.url}
-                      alt={`Thumbnail ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                    {media.type === 'video' && (
-                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                        <div className="w-8 h-8 bg-white/90 rounded-full flex items-center justify-center">
+                    {media.type === 'image' ? (
+                      <img
+                        src={media.url}
+                        alt={`Thumbnail ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
+                        <div className="w-8 h-8 bg-white/90 rounded-full flex items-center justify-center shadow-md">
                           <Play className="h-4 w-4 text-blue-600 ml-0.5" fill="currentColor" />
                         </div>
                       </div>

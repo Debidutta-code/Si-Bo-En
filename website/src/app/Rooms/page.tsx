@@ -27,6 +27,7 @@ import { IPropertyLoyalityWithLoyality } from "./interface";
 import { LoyaltyProgramBanner } from "@/src/components/RoomPage/LoyalityBanner";
 import { LoyaltyContainer } from "../../components/RoomPage/LoyalityContainer";
 import { useTranslation } from "react-i18next";
+import { Volume2, VolumeX } from "lucide-react";
 
 interface Guest {
   type: "adult" | "child";
@@ -142,6 +143,7 @@ function normalizePriceBrakeDown(
 }
 
 const Rooms = () => {
+  const [isMuted, setIsMuted] = useState<boolean>(false);
   const { t } = useTranslation();
   const [urgencyModalOpen, setUrgencyModalOpen] = useState(false);
   const [selectedBoardType, setSelectedBoardType] = useState("all");
@@ -499,7 +501,7 @@ const Rooms = () => {
           rooms: numRooms,
           adults: parseInt(adults || "1"),
           children: parseInt(children || "0"),
-          roomsArray, 
+          roomsArray,
         },
         location: "",
         numberOfRooms: numRooms,
@@ -831,27 +833,33 @@ const Rooms = () => {
                     <div
                       className={`relative w-full ${loyaltyProgram ? "h-[348px]" : "h-[350px]"}`}
                     >
+
                       <video
                         className="w-full h-full object-cover"
                         autoPlay
                         loop
-                        muted
-                        playsInline
-                        poster={propertyDetails.propertyVideos.thumbnail}
+                        muted={isMuted}
+                        // playsInline
+                        src={propertyDetails.propertyVideos.url}
                       >
-                        <source
-                          src={propertyDetails.propertyVideos.url}
-                          type="video/mp4"
-                        />
-                        Your browser does not support the video tag.
+                        Your browser does not support the video.
                       </video>
-
                       {/* Optional: Video Title Overlay */}
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
                         <h3 className="text-white font-semibold text-lg">
                           {propertyDetails.propertyName} - {t("Rooms.videoOverlay")}
                         </h3>
                       </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setIsMuted(!isMuted);
+                        }}
+                        className="absolute bottom-6 right-6 bg-black/50 hover:bg-black/70 backdrop-blur-sm p-2 rounded-full transition-all duration-200 z-10 text-white"
+                        aria-label={isMuted ? "Unmute video" : "Mute video"}
+                      >
+                        {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                      </button>
                     </div>
                   </div>
                 </div>

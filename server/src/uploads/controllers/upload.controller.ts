@@ -25,7 +25,7 @@ export class UploadController {
 
       const ext = fileType.split("/")[1] || "jpg";
 
-      const key = `SwiftRooms-Images/${uuid()}.${ext}`;
+      const key = `Revchill-Images/${uuid()}.${ext}`;
       const command = new PutObjectCommand({
         Bucket: config.awsBucketName!,
         Key: key,
