@@ -1,6 +1,7 @@
-import {getAllRoomTypesForProperty,addRoomInventory} from "./inv.api";
+import {getAllRoomTypesForProperty,addRoomInventory,getRoomAvailability} from "./inv.api";
 
 export {
     getAllRoomTypesForProperty,
-    addRoomInventory
+    addRoomInventory,
+    getRoomAvailability
 };

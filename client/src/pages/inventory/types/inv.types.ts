@@ -20,8 +20,17 @@ export interface SelectedRoom {
 
 }
 
-
 export interface Loader {
     isLoading: boolean;
     text: string;
+}
+export interface IRoomDateAvailability {
+    date: string;
+    availability: number;
+}
+
+export interface IRoomAvailabilityResponse {
+    success: boolean;
+    message: string;
+    data: IRoomDateAvailability[];
 }

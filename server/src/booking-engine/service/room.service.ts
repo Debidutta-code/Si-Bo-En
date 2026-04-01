@@ -254,7 +254,6 @@ export class RoomBookingService {
             const calc = new RoomBasePriceCalculator(charges[0], perRoomGuests);
             const result = calc.calculate();
             if (result === null) return null;
-            console.log(result.baseAmount, numberOfNights, room.numberOfBedrooms);
             baseAmount += result.baseAmount * numberOfNights;
             sortedBaseAmounts = result.sortedBaseAmounts;
         }

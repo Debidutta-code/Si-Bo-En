@@ -1,4 +1,4 @@
-import {InventoryController, RatePlanController} from "../controllers";
+import { InventoryController, RatePlanController } from "../controllers";
 import { Router } from 'express';
 
 export const inventoryRouter = Router();
@@ -13,14 +13,13 @@ inventoryRouter
   .route('/room-types/:hotelCode')
   .get(
     protect,
-
     checkRoleBased('canAddInventory'),
     attachPropertyDetails({
       identifierType: "code",
       key: "hotelCode",
       source: "params"
     }),
-    inventoryController.getRoomTypeController
+    inventoryController.getRoomTypeController.bind(inventoryController)
   );
 inventoryRouter
   .route('/create/:propertyId')
@@ -32,7 +31,7 @@ inventoryRouter
       key: "propertyId",
       source: "params"
     }),
-    inventoryController.createNewInventory
+    inventoryController.createNewInventory.bind(inventoryController)
   );
 inventoryRouter
   .route('/map/rateplan/:propertyId')
@@ -44,7 +43,7 @@ inventoryRouter
       key: "propertyId",
       source: "params"
     }),
-    inventoryController.mapRatePlans
+    inventoryController.mapRatePlans.bind(inventoryController)
   );
 inventoryRouter
   .route('/get-mapped/rateplan')
@@ -77,14 +76,14 @@ inventoryRouter
     }),
     RatePlanController.updateOrCreateRatePlanCharges
   );
-  inventoryRouter.route('/availability')
-  .post(
+inventoryRouter.route('/availability')
+  .get(
     protect,
     checkRoleBased('canUpdateRoomPrice'),
     attachPropertyDetails({
-      identifierType: "code",
-      key: "propertyCode",
-      source: "body"
+      identifierType: "id",
+      key: "propertyId",
+      source: "query"
     }),
-    inventoryController.getRoomAvailibility
+    inventoryController.getRoomAvailibility.bind(inventoryController)
   );

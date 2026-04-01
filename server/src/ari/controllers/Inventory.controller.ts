@@ -157,23 +157,23 @@ class InventoryController {
   }
   public async getRoomAvailibility(req: PropertyCustomRequest, res: Response) {
     try {
-      const { propertyId, roomType } = req.body;
-      if (!propertyId || !roomType) {
+      const { roomType } = req.query;
+
+      if (!roomType) {
         return res
           .status(400)
-          .json(errorResponse('Missing required fields to get date based availability'));
+          .json(errorResponse('roomType is required'));
       }
-      const propertyCode = await getPropertyCode(propertyId);
+      const propertyCode = req.property?.propertyCode;
       if (!propertyCode) {
         return res
           .status(400)
-          .json(
-            errorResponse('Property Not Found', "property code is not available")
-          );
+          .json(errorResponse('Property Not Found'));
       }
+
       const serRes = await this.inventoryServices.getRoomAvailabilityService(
         propertyCode,
-        roomType,
+        roomType as string,
       );
       const resStatus = serRes?.success ? 200 : 400;
       return res.status(resStatus).json(serRes);
