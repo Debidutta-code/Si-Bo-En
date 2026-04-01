@@ -10,6 +10,7 @@ import { prisma } from '../../config';
  * Attaches to req:
  *   - req.refundStrategy: 'same_day' | 'day_after'
  *   - req.resolvedOutletId: string (outlet ID from integration)
+ *   - req.resolvedPropertyId: string (property ID from payment)
  *
  * Expects req.body: { orderReference: string }
  */
@@ -44,6 +45,7 @@ export async function resolveRefundStrategy(
       // Default to day_after if no record found (safer — avoids accidental same-day reversal)
       (req as any).refundStrategy = 'day_after';
       (req as any).resolvedOutletId = undefined;
+      (req as any).resolvedPropertyId = undefined;
       return next();
     }
 
@@ -53,6 +55,7 @@ export async function resolveRefundStrategy(
       console.warn(`[REFUND MIDDLEWARE] ⚠️ No PropertyPaymentIntegration linked to payment: ${payment.id}`);
       (req as any).refundStrategy = 'day_after';
       (req as any).resolvedOutletId = undefined;
+      (req as any).resolvedPropertyId = payment.propertyId;
       return next();
     }
 
@@ -61,6 +64,7 @@ export async function resolveRefundStrategy(
 
     console.log(`[REFUND MIDDLEWARE] ✅ Resolved:`);
     console.log(`   Payment ID       : ${payment.id}`);
+    console.log(`   Property ID      : ${payment.propertyId}`);
     console.log(`   Integration ID   : ${integration.id}`);
     console.log(`   Outlet ID        : ${outletId}`);
     console.log(`   sameDayRefund    : ${integration.sameDayRefund}`);
@@ -68,6 +72,7 @@ export async function resolveRefundStrategy(
 
     (req as any).refundStrategy = strategy;
     (req as any).resolvedOutletId = outletId;
+    (req as any).resolvedPropertyId = payment.propertyId;
 
     next();
   } catch (error) {

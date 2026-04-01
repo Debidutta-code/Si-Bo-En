@@ -11,7 +11,7 @@ import {
 } from '../types/ngenius.types';
 import { prisma } from '../../config/db.config';
 
-interface NGeniusSecrets {
+export interface NGeniusSecrets {
   baseUrl: string;
   apiKey: string;
   outletId: string;
@@ -23,67 +23,21 @@ class NGeniusService {
   private tokenCache: Map<string, { token: string, expiry: Date }> = new Map();
 
   /**
-   * Get Dynamic N-Genius Config from DB
-   */
-  private async getDynamicConfig(propertyId: string): Promise<NGeniusSecrets> {
-    const activeIntegration = await prisma.propertyPaymentIntegration.findFirst({
-      where: { propertyId, isActive: true },
-      include: {
-        propertyPaymentIntegrationSecrets: {
-          include: {
-            RequiredField: true,
-          }
-        }
-      }
-    });
-
-    if (!activeIntegration) {
-      throw new Error(`[N-Genius] No active payment integration found for property: ${propertyId}`);
-    }
-
-    const secrets: Partial<NGeniusSecrets> = {};
-    activeIntegration.propertyPaymentIntegrationSecrets.forEach(s => {
-      const name = s.RequiredField.name;
-      // Map secrets dynamically to the required fields based on integration setup
-      if (name === 'Base URL' || name === 'baseUrl' || name === 'base_url') secrets.baseUrl = s.value;
-      if (name === 'API Key' || name === 'apiKey' || name === 'api_key') secrets.apiKey = s.value;
-      if (name === 'Outlet ID' || name === 'outletId' || name === 'outlet_id') secrets.outletId = s.value;
-    });
-
-    // Fallback to legacy outletId column if secret not found
-    if (!secrets.outletId && activeIntegration.outletId) {
-      secrets.outletId = activeIntegration.outletId;
-    }
-
-    // Fallback to env config if secrets not found
-    return {
-      baseUrl: secrets.baseUrl || NGeniusConfig.baseUrl || '',
-      apiKey: secrets.apiKey || NGeniusConfig.apiKey || '',
-      outletId: secrets.outletId || NGeniusConfig.outletId || '',
-    };
-  }
-
-  /**
    * Get Access Token from N-Genius
    */
-  async getAccessToken(propertyId?: string): Promise<any> {
+  async getAccessToken(config: NGeniusSecrets, propertyId?: string): Promise<any> {
     try {
       console.log("inside getaccess token../..");
 
-      const cacheKey = propertyId || 'default';
+      const cacheKey = propertyId || config.apiKey || 'default';
       const cached = this.tokenCache.get(cacheKey);
       if (cached && new Date() < cached.expiry) {
         console.log(`✅ Using cached N-Genius token for ${cacheKey}`);
         return { access_token: cached.token, expires_in: (cached.expiry.getTime() - Date.now()) / 1000 };
       }
-      let baseUrl = NGeniusConfig.baseUrl;
-      let apiKey = NGeniusConfig.apiKey;
 
-      if (propertyId) {
-        const dynamicConfig = await this.getDynamicConfig(propertyId);
-        baseUrl = dynamicConfig.baseUrl;
-        apiKey = dynamicConfig.apiKey;
-      }
+      const baseUrl = config.baseUrl;
+      const apiKey = config.apiKey;
 
       const url = `${baseUrl}${NGeniusConfig.endpoints.token}`;
 
@@ -118,22 +72,22 @@ class NGeniusService {
   /**
    * Get valid access token (always refresh)
    */
-  private async getValidToken(propertyId?: string): Promise<string> {
-    const tokenResponse = await this.getAccessToken(propertyId);
+  private async getValidToken(config: NGeniusSecrets, propertyId?: string): Promise<string> {
+    const tokenResponse = await this.getAccessToken(config, propertyId);
     return tokenResponse.access_token;
   }
 
   /**
    * Create Order in N-Genius
    */
-  async createOrder(orderData: NGeniusOrderRequest): Promise<NGeniusOrderResponse> {
+  async createOrder(config: NGeniusSecrets, orderData: NGeniusOrderRequest): Promise<NGeniusOrderResponse> {
     console.log('\n========================================');
     console.log('🛒 CREATING N-GENIUS ORDER');
     console.log('========================================');
 
     try {
-      let targetOutletId = orderData.outletId;
-      let baseUrl = NGeniusConfig.baseUrl;
+      let targetOutletId = orderData.outletId || config.outletId;
+      let baseUrl = config.baseUrl;
       let propertyId: string | undefined;
 
       if (orderData.propertyCode) {
@@ -143,13 +97,7 @@ class NGeniusService {
         if (property) propertyId = property.id;
       }
 
-      if (propertyId) {
-        const dynamicConfig = await this.getDynamicConfig(propertyId);
-        if (!targetOutletId) targetOutletId = dynamicConfig.outletId;
-        baseUrl = dynamicConfig.baseUrl;
-      }
-
-      const token = await this.getValidToken(propertyId);
+      const token = await this.getValidToken(config, propertyId);
 
       if (!targetOutletId) {
         throw new Error(`[N-Genius] outletId is required but was not provided and could not be resolved.`);
@@ -248,20 +196,17 @@ class NGeniusService {
    * Get Order Status
    */
   async getOrderStatus(
+    config: NGeniusSecrets,
     orderReference: string,
     outletId?: string,
     propertyId?: string
   ): Promise<NGeniusOrderStatusResponse> {
     try {
-      let baseUrl = NGeniusConfig.baseUrl;
-      if (propertyId) {
-        const dynamicConfig = await this.getDynamicConfig(propertyId);
-        baseUrl = dynamicConfig.baseUrl;
-        if (!outletId) outletId = dynamicConfig.outletId;
-      }
+      let baseUrl = config.baseUrl;
+      const targetOutletId = outletId || config.outletId;
 
-      const token = await this.getValidToken(propertyId);
-      const url = `${baseUrl}${NGeniusConfig.endpoints.orders}/${outletId}/orders/${orderReference}`;
+      const token = await this.getValidToken(config, propertyId);
+      const url = `${baseUrl}${NGeniusConfig.endpoints.orders}/${targetOutletId}/orders/${orderReference}`;
 
       const response = await axios.get<NGeniusOrderStatusResponse>(url, {
         headers: {
@@ -291,6 +236,7 @@ class NGeniusService {
    * This voids the capture and returns the payment to AUTHORISED state.
    */
   async cancelCapture(
+    config: NGeniusSecrets,
     orderReference: string,
     outletId: string
   ): Promise<{ success: boolean; message: string; data?: any }> {
@@ -303,7 +249,7 @@ class NGeniusService {
 
       // Step 1: Fetch order status to get payment + capture references
       console.log(`\n[CANCEL CAPTURE - Step 1] 🔍 Fetching order status...`);
-      const orderStatus = await this.getOrderStatus(orderReference, outletId);
+      const orderStatus = await this.getOrderStatus(config, orderReference, outletId);
       console.log(`[CANCEL CAPTURE - Step 1] 📥 Raw order status:`);
       console.log(JSON.stringify(orderStatus, null, 2));
 
@@ -340,7 +286,7 @@ class NGeniusService {
       console.log(`\n[CANCEL CAPTURE - Step 4] 🚀 Sending DELETE to cancel capture...`);
       console.log(`   URL: ${captureSelfHref}`);
 
-      const token = await this.getValidToken();
+      const token = await this.getValidToken(config);
       const cancelCaptureResponse = await axios.delete(captureSelfHref, {
         headers: {
           'Content-Type': 'application/vnd.ni-payment.v2+json',
@@ -380,6 +326,7 @@ class NGeniusService {
    * This permanently cancels the auth and releases funds back to customer.
    */
   async reverseAuthorization(
+    config: NGeniusSecrets,
     orderReference: string,
     outletId: string
   ): Promise<{ success: boolean; message: string; data?: any }> {
@@ -392,7 +339,7 @@ class NGeniusService {
 
       // Step 1: Fetch fresh order status to get cnp:cancel href
       console.log(`\n[REVERSE AUTH - Step 1] 🔍 Fetching fresh order status...`);
-      const orderStatus = await this.getOrderStatus(orderReference, outletId);
+      const orderStatus = await this.getOrderStatus(config, orderReference, outletId);
       console.log(`[REVERSE AUTH - Step 1] 📥 Raw order status:`);
       console.log(JSON.stringify(orderStatus, null, 2));
 
@@ -421,7 +368,7 @@ class NGeniusService {
       console.log(`\n[REVERSE AUTH - Step 3] 🚀 Sending PUT to reverse authorization...`);
       console.log(`   URL: ${cancelHref}`);
 
-      const token = await this.getValidToken();
+      const token = await this.getValidToken(config);
       const reverseResponse = await axios.put(
         cancelHref,
         {}, // no body required per N-Genius docs
@@ -465,6 +412,7 @@ class NGeniusService {
    * 2. Reverse the authorization (PUT)
    */
   async processSameDayRefund(
+    config: NGeniusSecrets,
     orderReference: string,
     outletId: string
   ): Promise<NGeniusRefundResponse> {
@@ -477,7 +425,7 @@ class NGeniusService {
 
       // Step 1: Cancel the capture
       console.log(`\n[SAME-DAY REFUND] ▶️ Step 1: Cancelling capture...`);
-      const cancelResult = await this.cancelCapture(orderReference, outletId);
+      const cancelResult = await this.cancelCapture(config, orderReference, outletId);
 
       if (!cancelResult.success) {
         console.error(`[SAME-DAY REFUND] ❌ Cancel capture failed: ${cancelResult.message}`);
@@ -491,7 +439,7 @@ class NGeniusService {
 
       // Step 2: Reverse the authorization
       console.log(`\n[SAME-DAY REFUND] ▶️ Step 2: Reversing authorization...`);
-      const reverseResult = await this.reverseAuthorization(orderReference, outletId);
+      const reverseResult = await this.reverseAuthorization(config, orderReference, outletId);
 
       if (!reverseResult.success) {
         console.error(`[SAME-DAY REFUND] ❌ Authorization reversal failed: ${reverseResult.message}`);
@@ -525,6 +473,7 @@ class NGeniusService {
    * Fetches order status to extract payment + capture refs, then calls the refund endpoint.
    */
   async processRefund(
+    config: NGeniusSecrets,
     orderReference: string,
     outletId?: string
   ): Promise<NGeniusRefundResponse> {
@@ -535,7 +484,7 @@ class NGeniusService {
       console.log(`🏪 Outlet ID       : ${outletId ?? '⚠️ (NOT PROVIDED)'}`);
       console.log(`${'='.repeat(60)}`);
 
-      const orderStatus = await this.getOrderStatus(orderReference, outletId);
+      const orderStatus = await this.getOrderStatus(config, orderReference, outletId);
       console.log(`\n[REFUND - Step 1] 📥 Raw order status response:`);
       console.log(JSON.stringify(orderStatus, null, 2));
 
@@ -580,7 +529,7 @@ class NGeniusService {
 
       console.log(`\n[REFUND] 📦 Sending refund: ${refundAmount} ${refundCurrency} to ${refundUrl}`);
 
-      const token = await this.getValidToken();
+      const token = await this.getValidToken(config);
       const refundResponse = await axios.post(
         refundUrl,
         { amount: { value: refundAmount, currencyCode: refundCurrency } },

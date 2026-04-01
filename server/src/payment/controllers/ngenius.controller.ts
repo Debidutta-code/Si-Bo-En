@@ -1,9 +1,31 @@
 // N-Genius Payment Controller with Comprehensive Logging
 import { Request, Response, NextFunction } from 'express';
-import { ngeniusService } from '../services/ngenius.service';
+import { ngeniusService, NGeniusSecrets } from '../services/ngenius.service';
 import { NGeniusOrderRequest } from '../types/ngenius.types';
+import { PaymentConfigResolver } from '../utils/config-resolver';
+import { prisma } from '../../config';
 
 export class NGeniusController {
+  private static async resolveNGeniusConfig(propertyId?: string, propertyCode?: string): Promise<NGeniusSecrets> {
+    let config;
+    if (propertyId) {
+      config = await PaymentConfigResolver.resolveConfig(propertyId, 'N-Genius');
+    } else if (propertyCode) {
+      config = await PaymentConfigResolver.resolveConfigByPropertyCode(propertyCode, 'N-Genius');
+    }
+
+    if (!config) {
+      throw new Error('N-Genius configuration not found or not active for this property.');
+    }
+
+    const secrets = config.secrets;
+    return {
+      baseUrl: config.baseUrl,
+      apiKey: secrets['API Key'] || secrets['apiKey'] || secrets['api_key'] || '',
+      outletId: secrets['Outlet ID'] || secrets['outletId'] || secrets['outlet_id'] || secrets['outlet id'] || ''
+    };
+  }
+
   /**
    * Get Access Token
    * POST /api/v1/payment/ngenius/token
@@ -14,7 +36,10 @@ export class NGeniusController {
     next: NextFunction
   ): Promise<void> {
     try {
-      const tokenResponse = await ngeniusService.getAccessToken();
+      const { propertyId, propertyCode } = req.query;
+      const config = await NGeniusController.resolveNGeniusConfig(propertyId as string, propertyCode as string);
+
+      const tokenResponse = await ngeniusService.getAccessToken(config, propertyId as string);
       res.status(200).json({
         success: true,
         message: 'Access token retrieved successfully',
@@ -53,7 +78,19 @@ export class NGeniusController {
         return;
       }
 
-      const orderResponse = await ngeniusService.createOrder(orderData);
+      // Resolve propertyId from propertyCode if needed for config resolution
+      let propertyId: string | undefined;
+      if (orderData.propertyCode) {
+        const property = await prisma.property.findFirst({
+            where: { propertyCode: orderData.propertyCode },
+            select: { id: true }
+        });
+        if (property) propertyId = property.id;
+      }
+
+      const config = await NGeniusController.resolveNGeniusConfig(propertyId, orderData.propertyCode);
+
+      const orderResponse = await ngeniusService.createOrder(config, orderData);
       const paymentUrl = ngeniusService.getPaymentUrl(orderResponse);
 
       res.status(201).json({
@@ -81,14 +118,15 @@ export class NGeniusController {
   ): Promise<void> {
     try {
       const { orderReference } = req.params;
-      const { propertyId } = req.query;
+      const { propertyId, propertyCode } = req.query;
 
       if (!orderReference) {
         res.status(400).json({ success: false, message: 'Order reference is required' });
         return;
       }
 
-      const orderStatus = await ngeniusService.getOrderStatus(orderReference, undefined, propertyId as string);
+      const config = await NGeniusController.resolveNGeniusConfig(propertyId as string, propertyCode as string);
+      const orderStatus = await ngeniusService.getOrderStatus(config, orderReference, undefined, propertyId as string);
 
       res.status(200).json({
         success: true,
@@ -111,14 +149,15 @@ export class NGeniusController {
   ): Promise<void> {
     try {
       const { orderReference } = req.params;
-      const { propertyId } = req.query;
+      const { propertyId, propertyCode } = req.query;
 
       if (!orderReference) {
         res.status(400).json({ success: false, message: 'Order reference is required' });
         return;
       }
 
-      const orderStatus = await ngeniusService.getOrderStatus(orderReference, undefined, propertyId as string);
+      const config = await NGeniusController.resolveNGeniusConfig(propertyId as string, propertyCode as string);
+      const orderStatus = await ngeniusService.getOrderStatus(config, orderReference, undefined, propertyId as string);
       const paymentUrl = ngeniusService.getPaymentUrl(orderStatus);
 
       res.status(200).json({
@@ -138,6 +177,7 @@ export class NGeniusController {
    * Middleware `resolveRefundStrategy` must run before this and attaches:
    *   - req.refundStrategy: 'same_day' | 'day_after'
    *   - req.resolvedOutletId: string
+   *   - req.resolvedPropertyId: string (added for dynamic config)
    */
   static async processRefund(
     req: Request,
@@ -148,6 +188,7 @@ export class NGeniusController {
       const { orderReference } = req.body;
       const refundStrategy: 'same_day' | 'day_after' = (req as any).refundStrategy ?? 'day_after';
       const resolvedOutletId: string | undefined = (req as any).resolvedOutletId;
+      const resolvedPropertyId: string | undefined = (req as any).resolvedPropertyId;
 
       console.log(`\n[REFUND CONTROLLER] 💡 Strategy: ${refundStrategy}`);
       console.log(`[REFUND CONTROLLER] 📋 Order Reference: ${orderReference}`);
@@ -158,6 +199,12 @@ export class NGeniusController {
         return;
       }
 
+      if (!resolvedPropertyId) {
+          res.status(400).json({ success: false, message: 'propertyId could not be resolved from orderReference.' });
+          return;
+      }
+
+      const config = await NGeniusController.resolveNGeniusConfig(resolvedPropertyId);
       let refundResult;
 
       if (refundStrategy === 'same_day') {
@@ -170,10 +217,10 @@ export class NGeniusController {
         }
 
         console.log(`[REFUND CONTROLLER] ⚡ Routing to SAME-DAY refund (cancel capture + reverse auth)`);
-        refundResult = await ngeniusService.processSameDayRefund(orderReference, resolvedOutletId);
+        refundResult = await ngeniusService.processSameDayRefund(config, orderReference, resolvedOutletId);
       } else {
         console.log(`[REFUND CONTROLLER] 🕐 Routing to DAY-AFTER refund (standard refund API)`);
-        refundResult = await ngeniusService.processRefund(orderReference, resolvedOutletId);
+        refundResult = await ngeniusService.processRefund(config, orderReference, resolvedOutletId);
       }
 
       res.status(refundResult.success ? 200 : 422).json({

@@ -31,7 +31,8 @@ import { RTIntegrationDao } from '../../../../integrations/rate-tiger/dao/rt-int
 import { RTReservationPushService } from '../../../../integrations/rate-tiger/services/rt-reservation-push.service';
 import { CurrencyCode } from '../../../../tax-system/interfaces/tourist-tax.type';
 import { BookingStatus } from '../types/reservation.type';
-import { ngeniusService } from '../../../../payment/services/ngenius.service';
+import { ngeniusService, NGeniusSecrets } from '../../../../payment/services/ngenius.service';
+import { PaymentConfigResolver } from '../../../../payment/utils/config-resolver';
 
 export class ReservationService {
     reservationRepository: ReservationRepository;
@@ -1697,6 +1698,7 @@ export class ReservationService {
                                 id: true,
                                 outletId: true,
                                 isActive: true,
+                                propertyId: true,
                                 // sameDayRefund selected via 'as any' cast below
                                 // because Prisma client may not have it yet if only db push was run
                             },
@@ -1726,22 +1728,35 @@ export class ReservationService {
                     console.log(`[CANCEL RESERVATION]    outletId  : ${outletId ?? '(not resolved)'}`);
                     console.log(`[CANCEL RESERVATION]    reason    : ${reason}`);
 
+                    // Resolve N-Genius config for the property
+                    const resolvedPropertyId = paymentRecord.PropertyPaymentIntegration?.propertyId || reservation.propertyId;
+                    const configRes = await PaymentConfigResolver.resolveConfig(resolvedPropertyId, 'N-Genius');
+                    if (!configRes) {
+                        return errorResponse('Refund failed: N-Genius configuration not found. Reservation was not cancelled.');
+                    }
+                    const ngeniusConfig: NGeniusSecrets = {
+                        baseUrl: configRes.baseUrl,
+                        apiKey: configRes.secrets['API Key'] || configRes.secrets['apiKey'] || configRes.secrets['api_key'] || '',
+                        outletId: configRes.secrets['Outlet ID'] || configRes.secrets['outletId'] || configRes.secrets['outlet_id'] || configRes.secrets['outlet id'] || outletId || ''
+                    };
+
                     if (strategy === 'same_day') {
                         // ── SAME-DAY: Cancel capture → Reverse authorization ──────────────
                         console.log(`\n[CANCEL RESERVATION] ⚡ Routing to SAME-DAY refund (cancel capture + reverse auth)`);
 
-                        if (!outletId) {
+                        const targetOutletId = ngeniusConfig.outletId;
+                        if (!targetOutletId) {
                             console.error(`[CANCEL RESERVATION] ❌ Cannot proceed with same-day refund — outletId is missing.`);
                             return errorResponse(
                                 'Refund failed: outletId could not be resolved for same-day refund. Reservation was not cancelled.'
                             );
                         }
 
-                        refundResult = await ngeniusService.processSameDayRefund(orderReference, outletId);
+                        refundResult = await ngeniusService.processSameDayRefund(ngeniusConfig, orderReference, targetOutletId);
                     } else {
                         // ── DAY-AFTER: Standard refund API ───────────────────────────────
                         console.log(`\n[CANCEL RESERVATION] 🕐 Routing to DAY-AFTER refund (standard refund API)`);
-                        refundResult = await ngeniusService.processRefund(orderReference, outletId);
+                        refundResult = await ngeniusService.processRefund(ngeniusConfig, orderReference, ngeniusConfig.outletId);
                     }
 
                     console.log(`\n[CANCEL RESERVATION] 📥 Refund result:`, JSON.stringify(refundResult));
