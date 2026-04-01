@@ -1698,6 +1698,7 @@ export class ReservationService {
                                 id: true,
                                 outletId: true,
                                 isActive: true,
+                                propertyId: true,
                                 // sameDayRefund selected via 'as any' cast below
                                 // because Prisma client may not have it yet if only db push was run
                             },
