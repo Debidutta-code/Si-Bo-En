@@ -20,7 +20,7 @@ export default function PropertyMediaGallery({
 
 }: PropertyMediaGalleryProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [isMuted, setIsMuted] = useState(type === "property");
+  const [isMuted, setIsMuted] = useState(true);
 
   const hasVideo = !!propertyVideo?.url;
   const hasImages = propertyImages.length > 0;
@@ -84,7 +84,7 @@ export default function PropertyMediaGallery({
                     autoPlay={type === "property" ? true : false}
                     controls={type === "property" ? false : true}
                     loop
-                    muted={type === "property" ? false : true}
+                    muted={type === "property" ? isMuted : true}
                     playsInline
                     src={currentMedia.url}
                     className="w-full h-full object-cover"

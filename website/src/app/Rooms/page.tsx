@@ -836,7 +836,7 @@ const Rooms = () => {
 
                       <video
                         className="w-full h-full object-cover"
-                        autoPlay
+                        autoPlay={true}
                         loop
                         muted={isMuted}
                         // playsInline
