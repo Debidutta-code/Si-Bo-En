@@ -898,12 +898,12 @@ const Rooms = () => {
         </div>
 
         <div className="px-4 pb-2">
-          <div className="max-w-7xl mx-auto mt-10">
+          <div className="max-w-7xl mx-auto">
             <div className="flex gap-6">
               <div
                 className={`flex-1 ${showPriceSummary ? "lg:w-2/3" : "w-full"} transition-all duration-300`}
               >
-                <div className="px-4 sm:px-4 py-4 bg-white border border-gray-200 rounded-xl">
+                <div className=" p-2 sm:p-4 bg-white border border-gray-200 rounded-xl">
                   {initialLoading ? (
                     <div className="text-center py-20">
                       <div

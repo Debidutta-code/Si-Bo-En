@@ -246,10 +246,10 @@ const RoomCard: React.FC<RoomCardProps> = ({
         return "Special Offer";
     }
   };
-const rooms = Array.isArray(bookingContext.guests?.roomsArray) && 
-              bookingContext.guests.roomsArray.length > 0
-  ? bookingContext.guests.roomsArray
-  : [{
+  const rooms = Array.isArray(bookingContext.guests?.roomsArray) &&
+    bookingContext.guests.roomsArray.length > 0
+    ? bookingContext.guests.roomsArray
+    : [{
       adults: bookingContext.guests?.adults || 1,
       children: bookingContext.guests?.children || 0,
       childAges: []
@@ -266,7 +266,7 @@ const rooms = Array.isArray(bookingContext.guests?.roomsArray) &&
   );
 
   const handleBookNowClick = async (ratePlan: any) => {
-    setLoadingPriceFor(ratePlan.comboLabel);
+    setLoadingPriceFor(`${ratePlan.ratePlanCode}-${ratePlan.comboLabel}`);
     setPendingRatePlan(ratePlan);
 
     try {
@@ -311,7 +311,7 @@ const rooms = Array.isArray(bookingContext.guests?.roomsArray) &&
     ratePlan: any,
     selectedAddonsList: any[],
   ) => {
-    setLoadingPriceFor(ratePlan.comboLabel);
+    setLoadingPriceFor(`${ratePlan.ratePlanCode}-${ratePlan.comboLabel}`);
     try {
       const childAges = bookingContext.guests.roomsArray
         ? bookingContext.guests.roomsArray.flatMap((room: any) => room.childAges || [])
@@ -690,493 +690,323 @@ const rooms = Array.isArray(bookingContext.guests?.roomsArray) &&
                 );
               }
             }
-
             return (
               <div
                 key={ratePlanCode}
-                className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200"
+                className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden"
               >
                 {/* ── Card Header ── */}
-                <div className="p-4 md:p-5">
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
-                    <div className="flex-1 min-w-0">
-                      {/* Rate Plan Name + Badges */}
-                      <div className="flex flex-wrap items-center gap-2 mb-3">
-                        <h3 className="text-lg md:text-xl font-bold text-gray-900 leading-tight uppercase">
-                          {firstCombo.ratePlanName}
-                        </h3>
-                        {firstCombo.availableRooms &&
-                          firstCombo.availableRooms <= 5 && (
-                            <span className="px-3 py-1 bg-red-50 text-red-600 border border-red-200 text-xs font-bold rounded-md uppercase animate-pulse">
-                              ⚠ {firstCombo.availableRooms === 1
-                                ? t("RoomCard.onlyRoomsLeft", { count: firstCombo.availableRooms })
-                                : t("RoomCard.onlyRoomsLeftPlural", { count: firstCombo.availableRooms })}
-                            </span>
-                          )}
-                        {selectedPromotions[ratePlanCode]?.length > 0 && (
-                          <span className="px-2.5 py-1 bg-blue-50 border border-blue-200 text-blue-800 text-xs font-bold rounded-md">
-                            {t("RoomCard.promotionalRate")}
-                          </span>
-                        )}
-                      </div>
+                <div className="flex items-center justify-between p-2 sm:px-4 sm:py-3 border-b border-gray-100">
+                  <div className="flex items-center gap-2 flex-wrap min-w-0">
+                    <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wide">
+                      {firstCombo.ratePlanName}
+                    </h3>
 
-                      {!isCollapsed && (
-                        <>
-                          <button
-                            onClick={() => handleViewDetails(firstCombo)}
-                            className="text-xs md:text-sm text-blue-600 hover:text-blue-700 font-medium hover:underline"
-                          >
-                            {t("RoomCard.bookingConditions")}
-                          </button>
+                    {firstCombo.availableRooms && firstCombo.availableRooms <= 5 && (
+                      <span className="px-2 py-0.5 bg-red-50 text-red-600 border border-red-200 text-[10px] font-bold rounded uppercase animate-pulse">
+                        ⚠ {firstCombo.availableRooms === 1
+                          ? t("RoomCard.onlyRoomsLeft", { count: firstCombo.availableRooms })
+                          : t("RoomCard.onlyRoomsLeftPlural", { count: firstCombo.availableRooms })}
+                      </span>
+                    )}
 
-                          {/* Available Promotions Toggle */}
-                          {firstCombo.availablePromotions?.length > 0 && (
-                            <button
-                              onClick={() =>
-                                setExpandedPromotions(
-                                  expandedPromotions === ratePlanCode
-                                    ? null
-                                    : ratePlanCode,
-                                )
-                              }
-                              className="mt-2 flex items-center gap-1.5 text-xs md:text-sm text-orange-600 hover:text-orange-700 font-medium hover:underline"
-                            >
-                              <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-                                />
-                              </svg>
-                              {selectedPromotions[ratePlanCode]?.length > 0
-                                ? `${selectedPromotions[ratePlanCode].length} ${t("RoomCard.offersApplied")} • ${firstCombo.availablePromotions.length} ${t("RoomCard.available")}`
-                                : `${firstCombo.availablePromotions.length} ${firstCombo.availablePromotions.length > 1 ? t("RoomCard.specialOffersAvailable") : t("RoomCard.specialOfferAvailable")}`}
-                            </button>
-                          )}
+                    {selectedPromotions[ratePlanCode]?.length > 0 && (
+                      <span className="px-2 py-0.5 bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-bold rounded">
+                        {t("RoomCard.promotionalRate")}
+                      </span>
+                    )}
 
-                          {/* Promotions Panel — same as before, just use ratePlanCode as key */}
-                          {expandedPromotions === ratePlanCode &&
-                            firstCombo.availablePromotions?.length > 0 && (
-                              <div className="mt-4 p-4 bg-gradient-to-br from-orange-50 to-amber-50 border-l-4 border-orange-400 rounded-lg">
-                                <p className="text-xs font-bold text-orange-800 uppercase tracking-wide mb-3">
-                                  🏷 {t("RoomCard.specialOffersAvailable")}
-                                </p>
-                                <div className="space-y-2">
-                                  {firstCombo.availablePromotions.map(
-                                    (promo: any) => {
-                                      const isSelected = selectedPromotions[
-                                        ratePlanCode
-                                      ]?.some((p: any) => p.id === promo.id);
-                                      return (
-                                        <div
-                                          key={promo.id}
-                                          onClick={() => {
-                                            setSelectedPromotions((prev) => {
-                                              const current =
-                                                prev[ratePlanCode] || [];
-                                              const alreadySelected =
-                                                current.some(
-                                                  (p: any) => p.id === promo.id,
-                                                );
-                                              return {
-                                                ...prev,
-                                                [ratePlanCode]: alreadySelected
-                                                  ? current.filter(
-                                                    (p: any) =>
-                                                      p.id !== promo.id,
-                                                  )
-                                                  : [...current, promo],
-                                              };
-                                            });
-                                          }}
-                                          className={`flex items-center justify-between p-3 rounded-lg border-2 cursor-pointer transition-all ${isSelected
-                                            ? "border-orange-500 bg-orange-100"
-                                            : "border-orange-200 bg-white hover:border-orange-400"
-                                            }`}
-                                        >
-                                          <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-2 mb-0.5">
-                                              <span className="text-xs font-bold text-orange-900">
-                                                {promo.promotionType ===
-                                                  "device_specific"
-                                                  ? "📱"
-                                                  : promo.promotionType ===
-                                                    "mlos"
-                                                    ? "🌙"
-                                                    : promo.promotionType ===
-                                                      "early_bird"
-                                                      ? "🐦"
-                                                      : promo.promotionType ===
-                                                        "offer_for_tonight"
-                                                        ? "🌙"
-                                                        : "🏷"}{" "}
-                                                {promo.promotionName}
-                                              </span>
-                                              <span className="px-1.5 py-0.5 bg-orange-500 text-white text-[9px] font-bold rounded">
-                                                -{promo.discountValue}%
-                                              </span>
-                                            </div>
-                                            <p className="text-[10px] text-orange-700">
-                                              {promo.promotionType === "mlos"
-                                                ? `Minimum ${promo.minLos} night stay`
-                                                : promo.promotionType ===
-                                                  "device_specific"
-                                                  ? "Device exclusive offer"
-                                                  : promo.promotionType ===
-                                                    "early_bird"
-                                                    ? t("RoomCard.promotions.bookDaysInAdvance", { count: promo.advanceBookingDays })
-                                                    : t("RoomCard.promotions.specialOffer")}
-                                              {promo.validTo && ` • ${t("RoomCard.promotions.validUntil")} ${new Date(promo.validTo).toLocaleDateString()}`}
-                                            </p>
-                                          </div>
-                                          <div
-                                            className={`ml-3 w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all ${isSelected
-                                              ? "border-orange-500 bg-orange-500"
-                                              : "border-gray-300"
-                                              }`}
-                                          >
-                                            {isSelected && (
-                                              <svg
-                                                className="w-3 h-3 text-white"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                              >
-                                                <path
-                                                  strokeLinecap="round"
-                                                  strokeLinejoin="round"
-                                                  strokeWidth={3}
-                                                  d="M5 13l4 4L19 7"
-                                                />
-                                              </svg>
-                                            )}
-                                          </div>
-                                        </div>
-                                      );
-                                    },
-                                  )}
-                                </div>
-
-                                {selectedPromotions[ratePlanCode]?.length >
-                                  0 && (
-                                    <p className="mt-2 text-[10px] text-orange-700 font-medium text-center">
-                                      ✓ {selectedPromotions[ratePlanCode].length}{" "}
-                                      offer(s) selected — will be applied at
-                                      checkout
-                                    </p>
-                                  )}
-                              </div>
-                            )}
-                        </>
-                      )}
-                    </div>
-
-                    {/* Tax info top-right (like in screenshot) */}
                     {firstCombo.touristTax?.calculatedTaxAmount > 0 && (
-                      <div className="flex-shrink-0 self-start">
-                        <span className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-300 text-amber-800 text-[11px] font-semibold px-2.5 py-1 rounded-full whitespace-nowrap">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0" />
-                          {t("RoomCard.taxNotIncluded")}
-                        </span>
-                      </div>
+                      <span className="inline-flex items-center gap-1 bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-semibold px-2 py-0.5 rounded-full">
+                        <span className="w-1 h-1 rounded-full bg-amber-500" />
+                        {t("RoomCard.taxNotIncluded")}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Booking conditions + promotions toggle — right side */}
+                  <div className="flex items-center gap-3 flex-shrink-0 ml-2">
+                    <button
+                      onClick={() => handleViewDetails(firstCombo)}
+                      className="text-[11px] text-blue-500 hover:text-blue-700 font-medium hover:underline whitespace-nowrap"
+                    >
+                      {t("RoomCard.bookingConditions")}
+                    </button>
+
+                    {firstCombo.availablePromotions?.length > 0 && (
+                      <button
+                        onClick={() =>
+                          setExpandedPromotions(
+                            expandedPromotions === ratePlanCode ? null : ratePlanCode,
+                          )
+                        }
+                        className="flex items-center gap-1 text-[11px] text-orange-500 hover:text-orange-700 font-semibold whitespace-nowrap"
+                      >
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                            d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                        </svg>
+                        {selectedPromotions[ratePlanCode]?.length > 0
+                          ? `${selectedPromotions[ratePlanCode].length} ${t("RoomCard.offersApplied")}`
+                          : `${firstCombo.availablePromotions.length} ${t("RoomCard.specialOfferAvailable")}`}
+                      </button>
                     )}
                   </div>
                 </div>
 
-                {/* ── Combo Rows ── */}
-                {!isCollapsed && (
-                  <div className="divide-y divide-gray-100 border-t border-gray-100">
-                    {combos.map((combo: any) => {
-                      const match = combo.comboLabel.match(/\((.+)\)$/);
-                      const rawLabel = match ? match[1] : combo.comboLabel;
-
-                      const subLabel =
-                        rawLabel === "Room Only"
-                          ? "Room Only"
-                          : rawLabel.startsWith("+")
-                            ? rawLabel
-                              .split("+")
-                              .filter(Boolean)
-                              .map((s: string) => s.trim())
-                              .join(" & ")
-                            : rawLabel;
-                      const comboBase = combo.totalAmount || 0;
-                      const comboAfterLoyalty =
-                        comboBase -
-                        (loyalty?.discountPercentage !== null &&
-                          loyalty?.discountPercentage !== undefined
-                          ? (comboBase * loyalty.discountPercentage) / 100
-                          : loyaltyDiscount?.loyaltyDiscountType ===
-                            "percentage"
-                            ? (comboBase * loyaltyDiscount.discountValue) / 100
-                            : loyaltyDiscount?.discountValue || 0);
-                      const isComboExpanded =
-                        expandedCombo === combo.comboLabel;
-
-                      return (
-                        <div
-                          key={combo.comboLabel}
-                          className="border-b border-gray-100 last:border-b-0"
-                        >
-                          {/* ── Main Row ── */}
-                          <div className="flex items-center justify-between px-4 md:px-5 py-3 hover:bg-gray-50 transition-colors">
-                            {/* Left: combo name + expand toggle */}
-                            <div className="flex items-center gap-2">
-                              <button
-                                onClick={() =>
-                                  setExpandedCombo(
-                                    isComboExpanded ? null : combo.comboLabel,
-                                  )
-                                }
-                                className="flex items-center gap-1.5 text-sm font-semibold text-gray-800 hover:text-orange-600 transition-colors"
-                              >
-                                {isComboExpanded ? (
-                                  <ChevronUp size={15} />
-                                ) : (
-                                  <ChevronDown size={15} />
-                                )}
-                                {subLabel}
-                              </button>
-                            </div>
-
-                            {/* Right: pricing + ADD */}
-                            <div className="flex items-center gap-2 sm:gap-3 flex-wrap justify-end">
-                              {/* Unlock box (non-members with loyalty) */}
-                              {!isLoyaltyMember &&
-                                loyaltyProgram &&
-                                loyaltyDiscountAmount > 0 && (
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      if (onUnlockLoyalty) onUnlockLoyalty();
-                                    }}
-                                    className="flex flex-col items-center border-2 border-dashed border-gray-400 rounded-lg px-2.5 py-1.5 hover:border-blue-500 transition-all group"
-                                  >
-                                    <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest mb-0.5">
-                                      — {t("RoomCard.unlock")} —
-                                    </span>
-                                    <div className="flex items-center gap-1">
-                                      <svg
-                                        className="w-3 h-3 text-gray-600 group-hover:text-blue-600"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        viewBox="0 0 24 24"
-                                      >
-                                        <path
-                                          strokeLinecap="round"
-                                          strokeLinejoin="round"
-                                          strokeWidth={2}
-                                          d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"
-                                        />
-                                      </svg>
-                                      <span className="text-xs font-bold text-gray-800">
-                                        {currency}{" "}
-                                        {comboAfterLoyalty.toLocaleString(
-                                          undefined,
-                                          {
-                                            minimumFractionDigits: 2,
-                                            maximumFractionDigits: 2,
-                                          },
-                                        )}
-                                      </span>
-                                    </div>
-                                  </button>
-                                )}
-
-                              {/* Price */}
-                              <div className="text-right">
-                                {(isLoyaltyMember ||
-                                  (!isLoyaltyMember && loyaltyProgram)) &&
-                                  loyaltyDiscountAmount > 0 && (
-                                    <div className="flex items-center gap-1 justify-end mb-0.5">
-                                      <span className="text-xs text-gray-400 line-through">
-                                        {currency}{" "}
-                                        {comboBase.toLocaleString(undefined, {
-                                          minimumFractionDigits: 2,
-                                          maximumFractionDigits: 2,
-                                        })}
-                                      </span>
-                                      <span className="px-1.5 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded">
-                                        -{loyaltyDiscountPercentage}%
-                                      </span>
-                                    </div>
-                                  )}
-                                <span className="text-lg sm:text-xl font-bold text-gray-900">
-                                  {currency}{" "}
-                                  {(isLoyaltyMember
-                                    ? comboAfterLoyalty
-                                    : comboBase
-                                  ).toLocaleString(undefined, {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2,
-                                  })}
-                                </span>
+                {/* ── Promotions Panel ── */}
+                {expandedPromotions === ratePlanCode && firstCombo.availablePromotions?.length > 0 && (
+                  <div className="px-4 py-3 bg-orange-50 border-b border-orange-100">
+                    <p className="text-[10px] font-bold text-orange-800 uppercase tracking-wide mb-2">
+                      🏷 {t("RoomCard.specialOffersAvailable")}
+                    </p>
+                    <div className="flex flex-col gap-1.5">
+                      {firstCombo.availablePromotions.map((promo: any) => {
+                        const isSelected = selectedPromotions[ratePlanCode]?.some((p: any) => p.id === promo.id);
+                        return (
+                          <div
+                            key={promo.id}
+                            onClick={() => {
+                              setSelectedPromotions((prev) => {
+                                const current = prev[ratePlanCode] || [];
+                                const alreadySelected = current.some((p: any) => p.id === promo.id);
+                                return {
+                                  ...prev,
+                                  [ratePlanCode]: alreadySelected
+                                    ? current.filter((p: any) => p.id !== promo.id)
+                                    : [...current, promo],
+                                };
+                              });
+                            }}
+                            className={`flex items-center justify-between px-3 py-2 rounded-lg border cursor-pointer transition-all ${isSelected
+                              ? "border-orange-400 bg-orange-100"
+                              : "border-orange-200 bg-white hover:border-orange-300"
+                              }`}
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="text-sm">
+                                {promo.promotionType === "device_specific" ? "📱"
+                                  : promo.promotionType === "mlos" ? "🌙"
+                                    : promo.promotionType === "early_bird" ? "🐦"
+                                      : promo.promotionType === "offer_for_tonight" ? "🌙"
+                                        : "🏷"}
+                              </span>
+                              <div className="min-w-0">
+                                <p className="text-xs font-semibold text-orange-900 truncate">{promo.promotionName}</p>
+                                <p className="text-[10px] text-orange-600">
+                                  {promo.promotionType === "mlos"
+                                    ? `Min. ${promo.minLos} nights`
+                                    : promo.promotionType === "early_bird"
+                                      ? t("RoomCard.promotions.bookDaysInAdvance", { count: promo.advanceBookingDays })
+                                      : t("RoomCard.promotions.specialOffer")}
+                                  {promo.validTo && ` · Until ${new Date(promo.validTo).toLocaleDateString()}`}
+                                </p>
                               </div>
-
-                              {/* ADD button */}
-                              <button
-                                onClick={() => handleBookNowClick(combo)}
-                                disabled={isLoadingForRatePlan(
-                                  combo.comboLabel,
+                            </div>
+                            <div className="flex items-center gap-2 flex-shrink-0 ml-2">
+                              <span className="px-1.5 py-0.5 bg-orange-500 text-white text-[9px] font-bold rounded">
+                                -{promo.discountValue}%
+                              </span>
+                              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? "border-orange-500 bg-orange-500" : "border-gray-300"
+                                }`}>
+                                {isSelected && (
+                                  <svg className="w-2.5 h-2.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                  </svg>
                                 )}
-                                style={{
-                                  backgroundColor: primaryColor || "#777",
-                                  color: buttonTextColor || "#fff",
-                                }}
-                                className="px-4 sm:px-5 py-2 sm:py-3 rounded-lg font-bold text-xs sm:text-sm uppercase transition-all disabled:opacity-50 shadow-lg hover:shadow-xl whitespace-nowrap hover:opacity-90 hover:scale-105 active:scale-95"
-                              >
-                                {isLoadingForRatePlan(combo.comboLabel) ? (
-                                  <div className="flex items-center gap-1.5">
-                                    <div className="h-3.5 w-3.5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                                    <span>{t("RoomCard.loading")}</span>
-                                  </div>
-                                ) : (
-                                  t("RoomCard.add")
-                                )}
-                              </button>
+                              </div>
                             </div>
                           </div>
-
-                          {/* ── Expanded Details ── */}
-                          {isComboExpanded && (
-                            <div className="px-4 md:px-5 pb-4 bg-gray-50 border-t border-gray-100">
-                              {/* Base price breakdown */}
-                              <div className="mt-3 grid grid-cols-1 lg:grid-cols-3 gap-2">
-                                <div className="bg-white border border-gray-200 rounded-lg px-3 py-2">
-                                  <p className="text-[10px] text-gray-500 uppercase font-semibold tracking-wide mb-1">
-                                    {t("RoomCard.basePrice")}
-                                  </p>
-                                  <p className="text-sm font-bold text-gray-800">
-                                    {currency}{" "}
-                                    {(
-                                      combo.totalAmount +
-                                      (combo.appliedDiscounts?.reduce(
-                                        (sum: number, d: any) =>
-                                          sum + d.calculatedDiscountAmount,
-                                        0,
-                                      ) ?? 0) -
-                                      (combo.addons?.reduce(
-                                        (sum: number, a: any) => sum + a.price,
-                                        0,
-                                      ) ?? 0)
-                                    ).toFixed(2)}
-                                  </p>
-                                  <p className="text-[10px] text-gray-400">
-                                    {t("RoomCard.perNight")}
-                                  </p>
-                                </div>
-
-                                {combo.appliedDiscounts?.length > 0 && (
-                                  <div className="bg-green-50 border border-green-200 rounded-lg px-3 py-2">
-                                    <p className="text-[10px] text-green-700 uppercase font-semibold tracking-wide mb-1">
-                                      {t("RoomCard.autoAppliedDiscounts")}
-                                    </p>
-                                    <div className="space-y-1">
-                                      {combo.appliedDiscounts.map(
-                                        (discount: any) => (
-                                          <div
-                                            key={discount.id}
-                                            className="flex items-center justify-between gap-2"
-                                          >
-                                            <span className="text-[11px] text-green-800 truncate">
-                                              {discount.promotionType ===
-                                                "promocode"
-                                                ? `🎟 ${discount.promotionName}`
-                                                : discount.promotionType ===
-                                                  "early_bird"
-                                                  ? `🐦 ${discount.promotionName}`
-                                                  : discount.promotionType ===
-                                                    "geo"
-                                                    ? `🌍 ${discount.promotionName}`
-                                                    : discount.promotionType ===
-                                                      "mlos"
-                                                      ? `🌙 ${discount.promotionName}`
-                                                      : `✓ ${discount.promotionName}`}
-                                            </span>
-                                            <span className="text-[11px] font-bold text-green-700 whitespace-nowrap">
-                                              -{currency}{" "}
-                                              {discount.calculatedDiscountAmount.toFixed(
-                                                2,
-                                              )}
-                                            </span>
-                                          </div>
-                                        ),
-                                      )}
-                                    </div>
-                                  </div>
-                                )}
-
-                                {combo.addons?.filter((a: any) => a.price > 0)
-                                  .length > 0 && (
-                                    <div className="bg-orange-50 border border-orange-200 rounded-lg px-3 py-2">
-                                      <p className="text-[10px] text-orange-700 uppercase font-semibold tracking-wide mb-1">
-                                        {t("RoomCard.includedAddons")}
-                                      </p>
-                                      <div className="space-y-1">
-                                        {combo.addons
-                                          .filter((a: any) => a.price > 0)
-                                          .map((addon: any) => (
-                                            <div
-                                              key={addon.id}
-                                              className="flex items-center justify-between gap-2"
-                                            >
-                                              <span className="text-[11px] text-orange-800 truncate">
-                                                🍽 {addon.name}
-                                              </span>
-                                              <span className="text-[11px] font-bold text-orange-700 whitespace-nowrap">
-                                                +{currency}{" "}
-                                                {addon.price.toFixed(2)}
-                                              </span>
-                                            </div>
-                                          ))}
-                                      </div>
-                                    </div>
-                                  )}
-                              </div>
-
-                              {/* Policies */}
-                              <div className="mt-3 flex flex-wrap gap-2">
-                                <button
-                                  onClick={() => handleViewDetails(combo)}
-                                  className="text-xs text-blue-600 hover:text-blue-700 font-medium hover:underline"
-                                >
-                                  {t("RoomCard.bookingConditions")}
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
+                    {selectedPromotions[ratePlanCode]?.length > 0 && (
+                      <p className="mt-2 text-[10px] text-orange-600 font-medium text-center">
+                        ✓ {selectedPromotions[ratePlanCode].length} offer(s) selected — applied at checkout
+                      </p>
+                    )}
                   </div>
                 )}
 
+                {/* ── Combo Rows ── */}
+                <div className="divide-y divide-gray-100">
+                  {combos.map((combo: any) => {
+                    const match = combo.comboLabel.match(/\((.+)\)$/);
+                    const rawLabel = match ? match[1] : combo.comboLabel;
+                    const isOnlyRoomOnly = combos.length === 1 && rawLabel === "Room Only";
+                    const subLabel = isOnlyRoomOnly
+                      ? combo.ratePlanName
+                      : rawLabel === "Room Only"
+                        ? "Room Only"
+                        : rawLabel.startsWith("+")
+                          ? rawLabel.split("+").filter(Boolean).map((s: string) => s.trim()).join(" & ")
+                          : rawLabel;
+
+                    const comboBase = combo.totalAmount || 0;
+                    const comboAfterLoyalty =
+                      comboBase -
+                      (loyalty?.discountPercentage !== null && loyalty?.discountPercentage !== undefined
+                        ? (comboBase * loyalty.discountPercentage) / 100
+                        : loyaltyDiscount?.loyaltyDiscountType === "percentage"
+                          ? (comboBase * loyaltyDiscount.discountValue) / 100
+                          : loyaltyDiscount?.discountValue || 0);
+                    const isComboExpanded = expandedCombo === `${ratePlanCode}-${combo.comboLabel}`;
+
+                    return (
+                      <div key={combo.comboLabel}>
+                        {/* ── Main Row ── */}
+                        <div className="flex items-center justify-between sm:px-4 p-2 hover:bg-gray-50 transition-colors">
+                          {/* Left */}
+                          <button
+                            onClick={() => setExpandedCombo(isComboExpanded ? null : `${ratePlanCode}-${combo.comboLabel}`)}
+                            className="flex items-center gap-1 text-xs sm:text-sm font-medium text-gray-700 hover:text-orange-600 transition-colors"
+                          >
+                            {isComboExpanded
+                              ? <ChevronUp size={14} className="text-gray-400" />
+                              : <ChevronDown size={14} className="text-gray-400" />}
+                            {subLabel}
+                          </button>
+
+                          {/* Right */}
+                          <div className="flex items-center gap-2 sm:gap-3">
+                            {/* Loyalty unlock */}
+                            {!isLoyaltyMember && loyaltyProgram && loyaltyDiscountAmount > 0 && (
+                              <button
+                                onClick={(e) => { e.stopPropagation(); if (onUnlockLoyalty) onUnlockLoyalty(); }}
+                                className="flex flex-col items-center border border-dashed border-gray-300 rounded-lg px-2 py-1 hover:border-blue-400 transition-all group"
+                              >
+                                <span className="text-[8px] font-bold text-gray-400 uppercase tracking-widest">
+                                  — {t("RoomCard.unlock")} —
+                                </span>
+                                <div className="flex items-center gap-1">
+                                  <svg className="w-3 h-3 text-gray-500 group-hover:text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                                      d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                                  </svg>
+                                  <span className="text-xs font-bold text-gray-700">
+                                    {currency} {comboAfterLoyalty.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </span>
+                                </div>
+                              </button>
+                            )}
+
+                            {/* Price */}
+                            <div className="text-right">
+                              {(isLoyaltyMember || (!isLoyaltyMember && loyaltyProgram)) && loyaltyDiscountAmount > 0 && (
+                                <div className="flex items-center gap-1 justify-end">
+                                  <span className="text-[9px] sm:text-[10px] text-gray-400 line-through">
+                                    {currency} {comboBase.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                  </span>
+                                  <span className="px-1 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded">
+                                    -{loyaltyDiscountPercentage}%
+                                  </span>
+                                </div>
+                              )}
+                              <span className="text-sm sm:text-base font-bold text-gray-900">
+                                {currency}{" "}
+                                {(isLoyaltyMember ? comboAfterLoyalty : comboBase).toLocaleString(undefined, {
+                                  minimumFractionDigits: 2,
+                                  maximumFractionDigits: 2,
+                                })}
+                              </span>
+                            </div>
+
+                            {/* ADD button */}
+                            <button
+                              onClick={() => handleBookNowClick(combo)}
+                              disabled={isLoadingForRatePlan(`${ratePlanCode}-${combo.comboLabel}`)}
+                              style={{ backgroundColor: primaryColor || "#777", color: buttonTextColor || "#fff" }}
+                              className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg font-bold text-[10px] sm:text-xs uppercase transition-all disabled:opacity-50 hover:opacity-90 hover:scale-105 active:scale-95 whitespace-nowrap shadow-sm"
+                            >
+                              {isLoadingForRatePlan(`${ratePlanCode}-${combo.comboLabel}`) ? (
+                                <div className="flex items-center gap-1.5">
+                                  <div className="h-3 w-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                                  <span>{t("RoomCard.loading")}</span>
+                                </div>
+                              ) : (
+                                t("RoomCard.add")
+                              )}
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* ── Expanded Details ── */}
+                        {isComboExpanded && (
+                          <div className="px-4 py-2.5 bg-gray-50 border-t border-gray-100">
+                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+
+                              {/* Base Price */}
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">
+                                  {t("RoomCard.basePrice")}:
+                                </span>
+                                <span className="text-xs font-bold text-gray-800">
+                                  {currency}{" "}
+                                  {(
+                                    combo.totalAmount +
+                                    (combo.appliedDiscounts?.reduce((sum: number, d: any) => sum + d.calculatedDiscountAmount, 0) ?? 0) -
+                                    (combo.addons?.reduce((sum: number, a: any) => sum + a.price, 0) ?? 0)
+                                  ).toFixed(2)}
+                                </span>
+                                <span className="text-[10px] text-gray-400">{t("RoomCard.perNight")}</span>
+                              </div>
+
+                              {(combo.appliedDiscounts?.length > 0 || combo.addons?.filter((a: any) => a.price > 0).length > 0) && (
+                                <span className="text-gray-300 text-xs">|</span>
+                              )}
+
+                              {/* Applied Discounts inline */}
+                              {combo.appliedDiscounts?.map((discount: any) => (
+                                <div key={discount.id} className="flex items-center gap-1">
+                                  <span className="text-[10px] text-green-700 truncate max-w-[120px]">
+                                    {discount.promotionType === "promocode" ? `🎟 ${discount.promotionName}`
+                                      : discount.promotionType === "early_bird" ? `🐦 ${discount.promotionName}`
+                                        : discount.promotionType === "geo" ? `🌍 ${discount.promotionName}`
+                                          : discount.promotionType === "mlos" ? `🌙 ${discount.promotionName}`
+                                            : `✓ ${discount.promotionName}`}
+                                  </span>
+                                  <span className="text-[10px] font-bold text-green-600 whitespace-nowrap">
+                                    -{currency} {discount.calculatedDiscountAmount.toFixed(2)}
+                                  </span>
+                                </div>
+                              ))}
+
+                              {/* Included Addons inline */}
+                              {combo.addons?.filter((a: any) => a.price > 0).map((addon: any) => (
+                                <div key={addon.id} className="flex items-center gap-1">
+                                  <span className="text-[10px] text-orange-700 truncate max-w-[120px]">
+                                    🍽 {addon.name}
+                                  </span>
+                                  <span className="text-[10px] font-bold text-orange-600 whitespace-nowrap">
+                                    +{currency} {addon.price.toFixed(2)}
+                                  </span>
+                                </div>
+                              ))}
+
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
                 {/* ── Tourist Tax Footer ── */}
-                {!isCollapsed &&
-                  firstCombo.touristTax?.calculatedTaxAmount > 0 && (
-                    <div className="px-4 py-2.5 border-t border-amber-200 bg-amber-50 flex items-center justify-center gap-2">
-                      <span className="text-amber-500 text-sm">ℹ️</span>
-                      <p className="text-xs text-amber-800 text-center">
-                        <span className="font-bold">{firstCombo.touristTax.name || t("RoomCard.taxNotIncluded")}</span>{" "}
-                        of{" "}
-                        <span className="font-bold">
-                          {firstCombo.touristTax.currencyCode || currency}{" "}
-                          {firstCombo.touristTax.calculatedTaxAmount.toFixed(2)}
-                        </span>{" "}
-                        is{" "}
-                        <span className="font-bold text-amber-900">
-                          {t("RoomCard.touristTax.notIncluded")}
-                        </span>{" "}
-                        {t("RoomCard.touristTax.paidAtHotel")}
-                      </p>
-                    </div>
-                  )}
+                {firstCombo.touristTax?.calculatedTaxAmount > 0 && (
+                  <div className="px-4 py-2 border-t border-amber-100 bg-amber-50 flex items-center justify-center gap-1.5">
+                    <span className="text-amber-400 text-xs">ℹ️</span>
+                    <p className="text-[11px] text-amber-800 text-center">
+                      <span className="font-semibold">{firstCombo.touristTax.name || t("RoomCard.taxNotIncluded")}</span>
+                      {" "}of{" "}
+                      <span className="font-semibold">
+                        {firstCombo.touristTax.currencyCode || currency} {firstCombo.touristTax.calculatedTaxAmount.toFixed(2)}
+                      </span>
+                      {" "}is{" "}
+                      <span className="font-semibold text-amber-900">{t("RoomCard.touristTax.notIncluded")}</span>
+                      {" "}{t("RoomCard.touristTax.paidAtHotel")}
+                    </p>
+                  </div>
+                )}
               </div>
             );
           })}
