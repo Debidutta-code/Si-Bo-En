@@ -11,7 +11,7 @@ import {
   updateCreationLoyalityService
 } from "./services";
 import { fetchProperties } from "../dashboard/api/dash.api";
-import type { 
+import type {
   ICloyaltyProgram,
   // IAdvanceLoyaltyprogram,
   ICreationLoyality
@@ -44,9 +44,8 @@ export default function Loyalty() {
 
   const [basicProgram, setBasicProgram] = useState<ICloyaltyProgram | null>(null);
   // const [advanceProgram, setAdvanceProgram] = useState<IAdvanceLoyaltyprogram | null>(null);
-  
-  const [activeTab, setActiveTab] = useState<"discounts" | "basic" | "advanced">("basic");
-  
+
+  const [activeTab, setActiveTab] = useState<"discounts" | "basic" | "properties">("basic");
   const [availableProperties, setAvailableProperties] = useState<Property[]>([]);
 
   // Creation Loyalty Form State
@@ -106,10 +105,10 @@ export default function Loyalty() {
     setLoader({ isLoading: true, message: "Loading Loyalty Configuration..." });
     try {
       const creationResponse = await getLoyalityByCreationService(creationId);
-      
+
       if (creationResponse.success && creationResponse.data) {
         const data = creationResponse.data;
-        
+
         // Set creation loyalty
         setCreationLoyalty(data);
         setHasCreationLoyalty(true);
@@ -262,9 +261,9 @@ export default function Loyalty() {
 
     setLoader({ isLoading: true, message: "Updating Basic Configuration..." });
     try {
-      const response = await updateLoyaltyProgramService(creationLoyalty.id!, { 
+      const response = await updateLoyaltyProgramService(creationLoyalty.id!, {
         logo: logos,
-        isActive: isBasicActive 
+        isActive: isBasicActive
       });
 
       if (response.success) {
@@ -286,7 +285,7 @@ export default function Loyalty() {
   //   setLoader({ isLoading: true, message: "Updating Advanced Configuration..." });
   //   try {
   //     let response;
-      
+
   //     if (advanceProgram?.id) {
   //       // Update existing
   //       response = await updateAdvanceLoyaltyProgramService(advanceProgram.id, advanceConfig);
@@ -343,13 +342,14 @@ export default function Loyalty() {
         </p>
       </div>
 
-     
 
-      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "discounts" | "basic" | "advanced")} className="w-full">
-        <TabsList className="grid w-full grid-cols-2 mb-6">
+
+      <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "discounts" | "basic" | "properties")} className="w-full">
+        <TabsList className="grid w-full grid-cols-3 mb-6">
           <TabsTrigger value="basic">Basic Config</TabsTrigger>
           {/* <TabsTrigger value="advanced">Advanced Config</TabsTrigger> */}
           <TabsTrigger value="discounts">Discounts</TabsTrigger>
+          <TabsTrigger value="properties">Properties</TabsTrigger>
         </TabsList>
 
         {/* Discounts Tab */}
@@ -389,22 +389,25 @@ export default function Loyalty() {
             onSave={handleUpdateAdvanceConfig}
           />
         </TabsContent> */}
+        <ImageUploadModal
+          isOpen={isImageModalOpen}
+          onClose={() => setIsImageModalOpen(false)}
+          // uploadImages={uploadImages}
+          onUploadSuccess={handleImageUploadSuccess}
+        />
+        {/* Add Property to Loyalty Program Section */}
+        <TabsContent value="properties" className="space-y-6">
+          {creationLoyalty?.id && (
+            <AddPropertyToLoyalty
+              loyaltyProgramId={creationLoyalty.id}
+              availableProperties={availableProperties}
+            />
+          )}
+        </TabsContent>
       </Tabs>
 
       {/* Image Upload Modal */}
-      <ImageUploadModal
-        isOpen={isImageModalOpen}
-        onClose={() => setIsImageModalOpen(false)}
-        // uploadImages={uploadImages}
-        onUploadSuccess={handleImageUploadSuccess}
-      />
-       {/* Add Property to Loyalty Program Section */}
-      {creationLoyalty?.id && (
-        <AddPropertyToLoyalty
-          loyaltyProgramId={creationLoyalty.id}
-          availableProperties={availableProperties}
-        />
-      )}
+
     </div>
   );
 }
