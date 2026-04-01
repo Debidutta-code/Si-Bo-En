@@ -66,7 +66,7 @@ class NGeniusService {
   /**
    * Get Access Token from N-Genius
    */
-  async getAccessToken(propertyId?: string): Promise<NGeniusTokenResponse> {
+  async getAccessToken(propertyId?: string): Promise<any> {
     try {
       console.log("inside getaccess token../..");
 

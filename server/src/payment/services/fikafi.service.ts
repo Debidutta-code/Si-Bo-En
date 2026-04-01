@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
+import { prisma } from '../../config/db.config';
 
 /* =====================================================
    Types
