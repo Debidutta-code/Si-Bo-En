@@ -16,28 +16,11 @@ import {
 import Loader from "@/components/Loader/Loader";
 import { getAllPropertyLoyalityWithLoyality } from "./api/property-loyality.api";
 import BackButton from "@/components/shared/BackButton";
+import type { IPropertyLoyaltyConfig, IPropertyLoyalityWithLoyality } from "./interfaces";
 
 interface ILoader {
   isLoading: boolean;
   message: string;
-}
-
-interface ICreationLoyalty {
-  id: string;
-  creationId: string;
-  loyaltyDiscountType: string;
-  discountValue: number;
-  currencyCode: string;
-}
-
-interface IPropertyLoyalty {
-  id: string;
-  propertyId: string;
-  propertyCode: string;
-  propertyName: string;
-  creationLoyaltyConfigId: string;
-  isActive: boolean;
-  CreationLoyaltyConfig: ICreationLoyalty;
 }
 
 export default function PropertyLoyalityManagement() {
@@ -47,7 +30,7 @@ export default function PropertyLoyalityManagement() {
     isLoading: true,
     message: "Loading loyalty programs..."
   });
-  const [loyalties, setLoyalties] = useState<IPropertyLoyalty[]>([]);
+  const [loyalties, setLoyalties] = useState<Array<IPropertyLoyaltyConfig & IPropertyLoyalityWithLoyality>>([]);
 
   useEffect(() => {
     if (propertyId) {

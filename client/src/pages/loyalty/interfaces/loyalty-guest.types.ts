@@ -1,3 +1,5 @@
+import type { ILoyalityLevels } from ".";
+
 export interface ICGuest {
   firstName: string;
   lastName: string;
@@ -10,9 +12,9 @@ export interface ICGuest {
   state: string | null;
   country: string | null;
   zipCode: string | null;
-  userIdentityCardType?: string | null;
-  identityCardNumber?: string | null;
-  identityCardImage?: string | null;
+  userIdentityCardType: string | null;
+  identityCardNumber: string | null;
+  identityCardImage: string | null;
 }
 
 export interface IGuests extends ICGuest {
@@ -20,26 +22,32 @@ export interface IGuests extends ICGuest {
   createdAt: Date;
   updatedAt: Date;
 }
-
 export interface ICloyalityGuests{
-    creationLoyaltyConfigId:string;
-    propertyId:string;
-    propertyCode:string;
-    guestId:string;
+    guestId:string|null;
+    guestEmail:string;
+    password:string;
+    metaData:any;
+    guestLevel?:number;
+}
+export interface ICCloyalityGuests{
+    guestId:string|null;
+    guestEmail:string;
+    password:string;
+    metaData:any;
+    
 }
 export interface ILoyalityGuests extends ICloyalityGuests{
 id:string;
 createdAt:Date;
 }
 export interface ILoyalityGuestsWDP extends ILoyalityGuests{
-    property:{
-        id:string;
-        propertyName:string;
-        propertyCode:string;
-    };
-    guest?:IGuests;
-    metaData:JSON;
-    guestEmail:string;
     
+    guest:IGuests|null;
     
+}
+export interface IGetLoyaltyGuestsForCreation{
+    LoyalityGuest:ILoyalityGuestsWDP|null
+    CreationLoyaltyConfig:{
+        LoyalityLevels:ILoyalityLevels[]
+    }
 }

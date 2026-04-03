@@ -30,7 +30,7 @@ import {
   deleteSpecialConditionService,
   getSpecialConditionsByProgramIdService
 } from "./services/loyality-condition.service";
-import type { ILoyalityCondition, ILoyalitySpecialCondition } from "./interfaces/loyality-condition.interface";
+import type { ILoyalityCondition, ILoyalitySpecialCondition } from "./interfaces";
 import { getLoyaltyProgramByCreationId } from "./services/loyality-program.service";
 import type { ILoader } from "../dashboard/interface";
 import Loader from "@/components/Loader/Loader";

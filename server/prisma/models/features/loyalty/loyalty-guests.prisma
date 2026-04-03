@@ -4,12 +4,13 @@ model LoyalityGuest {
     guestEmail   String   @unique @map("guest_email")
     guestId      String?  @map("guest_id")
     metaData     Json     @map("meta_data")
-    createdAt    DateTime @default(now())
     guestLevel   Int      @default(1) @map("guest_level")
     password     String   @map("password")
 
     guest        Guests?  @relation(fields: [guestId], references: [id], onDelete: Cascade)
     CreationGuest CreationGuest[]
+    
+    createdAt    DateTime @default(now())
     @@map("loyality_guests")
 }
 

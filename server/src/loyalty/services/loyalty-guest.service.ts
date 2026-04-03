@@ -101,7 +101,6 @@ export class LoyaltyGuestService {
                     });
                 return successResponse("Successfully registered for loyalty program");
             }
-            // if guest does not exist, create a new guest
             const [newGuest, loyaltyConfig] = await Promise.all([
                 this.loyaltyGuestRepository.createGuestsLoyaltyConfig({
                     guestEmail: email,
