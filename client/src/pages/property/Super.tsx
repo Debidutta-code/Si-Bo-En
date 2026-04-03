@@ -34,6 +34,15 @@ export default function HotelsPage() {
           properties: [],
           regionals: []
         });
+        if(response.data.groups.length > 0){
+          setCurrentTab("group");
+        }
+        if(response.data.brands.length > 0 ){
+          setCurrentTab("brand");
+        }
+        if(response.data.properties.length > 0){
+          setCurrentTab("property");
+      }
       } else {
         toast.error(response.message || 'Failed to fetch');
       }
