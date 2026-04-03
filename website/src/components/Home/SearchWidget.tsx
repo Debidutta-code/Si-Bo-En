@@ -656,4 +656,3 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
 };
 
 export default SearchWidget;
-

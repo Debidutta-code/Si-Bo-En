@@ -73,16 +73,6 @@ export interface IRatePlan {
     charges: ICharge[];
     Addons: IRatePlanWithAddon[];
     geoRatePlans: IGeoRatePlanWithoutRatePlan[];
-    // TouristTaxs: ITouristTax[];
-    // TouristTaxs: {
-    //     select: {
-    //         id: true,
-    //         name: true,
-    //         discountType: true,
-    //         discountValue: true,
-    //         currencyCode: true,
-    //     },
-    // },
     bookingOffsets: IBookingOffset[];
 }
 export interface ITaxGroup {

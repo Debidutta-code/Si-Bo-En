@@ -1,4 +1,4 @@
-import {getAllRoomTypesForProperty,addRoomInventory} from "../api";
+import {getAllRoomTypesForProperty,addRoomInventory, getRoomAvailability} from "../api";
 import type {SelectedRoom} from "../types"
 
 export async function fetchRoomTypesService(propertyId: string) {
@@ -25,5 +25,16 @@ export async function addRoomInventoryService(propertyId: string,payload:Selecte
         }
     }
     const result = await addRoomInventory(propertyId,payload);
+    return result;
+}
+export async function fetchRoomAvailabilityService(propertyId: string, roomType: string) {
+    if (!propertyId || !roomType) {
+        return {
+            success: false,
+            message: "Property ID and room type are required",
+            data: []
+        }
+    }
+    const result = await getRoomAvailability(propertyId, roomType);
     return result;
 }

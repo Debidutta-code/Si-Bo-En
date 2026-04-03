@@ -7,7 +7,6 @@ import Hero from "@/src/components/Home/Hero";
 import Services from "@/src/components/Home/Services";
 
 export default function Home() {
-
   const dispatch = useDispatch();
 
   useEffect(() => {

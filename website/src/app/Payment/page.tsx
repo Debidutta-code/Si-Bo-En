@@ -369,11 +369,11 @@ const BookingReviewPage = () => {
         if (data?.errors && Array.isArray(data.errors)) {
           data.errors.forEach((err: string) => toast.error(err, { id: err }));
         } else {
-          toast.error(data.message || "Booking failed", {
-            id: "booking-error",
+          toast.error("Reservation failed", {
+            id: "reservation-error",
           });
         }
-        throw new Error(data.message || "Booking failed");
+        throw new Error(data.message || "Reservation failed");
       }
 
       const newBookingCode = data.data.bookingCode;

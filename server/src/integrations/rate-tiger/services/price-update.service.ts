@@ -1,5 +1,6 @@
 // services/price-update.service.ts
 
+import { getRatePlanName } from '../../../pms/frontoffice/room-management/utils';
 import { CurrencyCode } from '../../../tax-system/interfaces/tourist-tax.type';
 import { PriceUpdateDao } from '../dao/price-update.dao';
 import {
@@ -90,7 +91,6 @@ export class PriceUpdateService {
 
                 const parsedBaseAmounts = [...adultAmounts, ...childAmounts];
 
-                // Parse additional guest amounts (extra adult + extra child)
                 const parsedAdditionalAmounts = additionalGuestAmts.map(
                     ag => ({
                         ageQualifyingCode: ag.ageQualifyingCode,
@@ -98,16 +98,48 @@ export class PriceUpdateService {
                     })
                 );
 
-                // Expand date range day by day and upsert each date
                 const startDate = new Date(start);
                 const endDate = new Date(end);
                 const currentDate = new Date(startDate);
-
+                const ratePlanName = await PriceUpdateDao.getRatePlanName(ratePlanCode);
+                if(!ratePlanName){
+                    return {
+                        otaRateAmountNotifRS: {
+                            hotelCode,
+                            requestId,
+                            success: 'false',
+                            timeStamp: new Date().toISOString(),
+                            error: {
+                                type: 'ProcessingError',
+                                errorCode: '404',
+                                text: `Rate plan with code ${ratePlanCode} not found`,
+                            },
+                        },
+                    };
+                }
+                const roomTypeName = await PriceUpdateDao.getRoomTypeName(roomTypeCode, hotelCode);
+                if(!roomTypeName){
+                    return {
+                        otaRateAmountNotifRS: {
+                            hotelCode,
+                            requestId,
+                            success: 'false',
+                            timeStamp: new Date().toISOString(),
+                            error: {
+                                type: 'ProcessingError',
+                                errorCode: '404',
+                                text: `Room type with code ${roomTypeCode} not found`,
+                            },
+                        },
+                    };
+                }
                 while (currentDate <= endDate) {
                     await PriceUpdateDao.upsertCharge({
                         propertyCode: hotelCode,
                         roomTypeCode,
                         ratePlanCode,
+                        ratePlanName,
+                        roomTypeName,
                         date: new Date(currentDate),
                         currencyCode,
                         baseByGuestAmounts: parsedBaseAmounts,

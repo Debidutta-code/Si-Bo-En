@@ -143,7 +143,7 @@ function normalizePriceBrakeDown(
 }
 
 const Rooms = () => {
-  const [isMuted, setIsMuted] = useState<boolean>(false);
+  const [isMuted, setIsMuted] = useState<boolean>(true);
   const { t } = useTranslation();
   const [urgencyModalOpen, setUrgencyModalOpen] = useState(false);
   const [selectedBoardType, setSelectedBoardType] = useState("all");
@@ -374,14 +374,14 @@ const Rooms = () => {
       setLoyaltyProgram(propertyDetails?.loyaltyProgramConfig || null);
       const bookingEngineColor = propertyDetails?.bookingEngineConfig
         ? {
-          primaryColor: propertyDetails.bookingEngineConfig.primaryColor,
-          secondaryColor: propertyDetails.bookingEngineConfig.secondaryColor,
-          tertiaryColor: propertyDetails.bookingEngineConfig.tertiaryColor,
-          buttonTextColor:
-            propertyDetails.bookingEngineConfig.buttonTextColor,
-          bgImage: propertyDetails.bookingEngineConfig.bannerImage,
-          logo: propertyDetails.bookingEngineConfig.logo,
-        }
+            primaryColor: propertyDetails.bookingEngineConfig.primaryColor,
+            secondaryColor: propertyDetails.bookingEngineConfig.secondaryColor,
+            tertiaryColor: propertyDetails.bookingEngineConfig.tertiaryColor,
+            buttonTextColor:
+              propertyDetails.bookingEngineConfig.buttonTextColor,
+            bgImage: propertyDetails.bookingEngineConfig.bannerImage,
+            logo: propertyDetails.bookingEngineConfig.logo,
+          }
         : undefined;
 
       const updatedContext = {
@@ -445,7 +445,11 @@ const Rooms = () => {
       const defaultStartDate = today.toISOString().split("T")[0];
       const defaultEndDate = tomorrow.toISOString().split("T")[0];
 
-      let roomsArray: { adults: number; children: number; childAges: number[] }[] = [];
+      let roomsArray: {
+        adults: number;
+        children: number;
+        childAges: number[];
+      }[] = [];
       const numRooms = parseInt(rooms || "1");
 
       const buildRoomsArrayFallback = (
@@ -529,7 +533,6 @@ const Rooms = () => {
       const paramsData = getBookingDataFromParams();
 
       if (paramsData) {
-
         setIsExternalRequest(true);
         setInitialLoading(true);
         isLoadingFromExternal.current = true;
@@ -765,8 +768,9 @@ const Rooms = () => {
         </div>
       )}
       <div
-        className={`min-h-screen bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${loaded ? "opacity-100" : "opacity-0"
-          }`}
+        className={`min-h-screen bg-cover bg-center bg-no-repeat transition-opacity duration-700 ${
+          loaded ? "opacity-100" : "opacity-0"
+        }`}
         onLoad={() => setLoaded(true)}
       >
         <div className=" z-40 bg-white/90 backdrop-blur shadow-sm">
@@ -833,21 +837,19 @@ const Rooms = () => {
                     <div
                       className={`relative w-full ${loyaltyProgram ? "h-[348px]" : "h-[350px]"}`}
                     >
-
                       <video
                         className="w-full h-full object-cover"
                         autoPlay
                         loop
                         muted={isMuted}
-                        // playsInline
+                        playsInline
                         src={propertyDetails.propertyVideos.url}
-                      >
-                        Your browser does not support the video.
-                      </video>
+                      />
                       {/* Optional: Video Title Overlay */}
                       <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
                         <h3 className="text-white font-semibold text-lg">
-                          {propertyDetails.propertyName} - {t("Rooms.videoOverlay")}
+                          {propertyDetails.propertyName} -{" "}
+                          {t("Rooms.videoOverlay")}
                         </h3>
                       </div>
                       <button
@@ -858,7 +860,11 @@ const Rooms = () => {
                         className="absolute bottom-6 right-6 bg-black/50 hover:bg-black/70 backdrop-blur-sm p-2 rounded-full transition-all duration-200 z-10 text-white"
                         aria-label={isMuted ? "Unmute video" : "Mute video"}
                       >
-                        {isMuted ? <VolumeX className="h-5 w-5" /> : <Volume2 className="h-5 w-5" />}
+                        {isMuted ? (
+                          <VolumeX className="h-5 w-5" />
+                        ) : (
+                          <Volume2 className="h-5 w-5" />
+                        )}
                       </button>
                     </div>
                   </div>
@@ -906,19 +912,21 @@ const Rooms = () => {
         </div>
 
         <div className="px-4 pb-2">
-          <div className="max-w-7xl mx-auto mt-10">
+          <div className="max-w-7xl mx-auto">
             <div className="flex gap-6">
               <div
                 className={`flex-1 ${showPriceSummary ? "lg:w-2/3" : "w-full"} transition-all duration-300`}
               >
-                <div className="px-4 sm:px-4 py-4 bg-white border border-gray-200 rounded-xl">
+                <div className=" p-2 sm:p-4 bg-white border border-gray-200 rounded-xl">
                   {initialLoading ? (
                     <div className="text-center py-20">
                       <div
                         className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 mx-auto"
                         style={{ borderColor: primaryColor }}
                       ></div>
-                      <p className="mt-4 text-gray-600">{t("Rooms.searchingRooms")}</p>
+                      <p className="mt-4 text-gray-600">
+                        {t("Rooms.searchingRooms")}
+                      </p>
                     </div>
                   ) : errorRooms ? (
                     <div className="text-center text-red-600 text-xl py-10 font-medium">
@@ -929,8 +937,8 @@ const Rooms = () => {
                       {t("Rooms.noRoomsHotel")}
                     </div>
                   ) : roomsData.filter(
-                    (room: Room) => room.hasValidRate === true,
-                  ).length === 0 ? (
+                      (room: Room) => room.hasValidRate === true,
+                    ).length === 0 ? (
                     <div className="text-center py-10 text-gray-600 text-lg font-medium">
                       {t("Rooms.noRooms")}
                     </div>
@@ -1008,7 +1016,9 @@ const Rooms = () => {
             </div>
 
             <div className="space-y-3">
-              <h4 className="font-semibold text-gray-800">{t("Rooms.modal.keyConditions")}</h4>
+              <h4 className="font-semibold text-gray-800">
+                {t("Rooms.modal.keyConditions")}
+              </h4>
               <ul className="space-y-2 text-gray-700">
                 <li className="flex items-start gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-gray-400 mt-1.5 flex-shrink-0"></div>
@@ -1035,7 +1045,8 @@ const Rooms = () => {
 
             <div className="pt-4 border-t border-gray-200">
               <p className="text-sm text-gray-600">
-                <strong>{t("Rooms.modal.note")}</strong> {t("Rooms.modal.noteText")}
+                <strong>{t("Rooms.modal.note")}</strong>{" "}
+                {t("Rooms.modal.noteText")}
               </p>
             </div>
           </div>

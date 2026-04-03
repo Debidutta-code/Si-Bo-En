@@ -280,7 +280,8 @@ export class RoomBookingService {
             touristTaxData,
             baseAmount,
             numberOfNights,
-            roomsArray.length
+            roomsArray.length,
+            room.numberOfBedrooms,
         );
 
         const sharedFields = {
@@ -690,27 +691,27 @@ class RoomDiscountCalculator {
         this.deviceType = deviceType;
     }
 
-calculate(): {
-    totalAutoDiscount: number;
-    appliedDiscounts: IAppliedDiscount[];
-    availablePromotions: IPromotion[];
-} {
-    const appliedDiscounts: IAppliedDiscount[] = [];
-    const internalDiscounts: IAppliedDiscount[] = [];
-    const availablePromotions: IPromotion[] = [];
+    calculate(): {
+        totalAutoDiscount: number;
+        appliedDiscounts: IAppliedDiscount[];
+        availablePromotions: IPromotion[];
+    } {
+        const appliedDiscounts: IAppliedDiscount[] = [];
+        const internalDiscounts: IAppliedDiscount[] = [];
+        const availablePromotions: IPromotion[] = [];
 
-    // Apply all discounts
-    this.applyDevicePromotion(appliedDiscounts);
-    this.applyGeoDiscount(internalDiscounts);
-    this.applyPromotions(appliedDiscounts, availablePromotions);
-    this.applyRatePlanRule(appliedDiscounts, availablePromotions);
-    this.applyPromoCode(appliedDiscounts);
+        // Apply all discounts
+        this.applyDevicePromotion(appliedDiscounts);
+        this.applyGeoDiscount(internalDiscounts);
+        this.applyPromotions(appliedDiscounts, availablePromotions);
+        this.applyRatePlanRule(appliedDiscounts, availablePromotions);
+        this.applyPromoCode(appliedDiscounts);
 
-    const totalAutoDiscount = [...appliedDiscounts, ...internalDiscounts]
-        .reduce((sum, d) => sum + d.calculatedDiscountAmount, 0);
+        const totalAutoDiscount = [...appliedDiscounts, ...internalDiscounts]
+            .reduce((sum, d) => sum + d.calculatedDiscountAmount, 0);
 
-    return { totalAutoDiscount, appliedDiscounts, availablePromotions };
-}
+        return { totalAutoDiscount, appliedDiscounts, availablePromotions };
+    }
 
     private applyDevicePromotion(appliedDiscounts: IAppliedDiscount[]): void {
         if (!this.devicePromotion || !this.devicePromotion.isAutoApplied) return;
@@ -886,14 +887,15 @@ class RoomTouristTaxCalculator {
         touristTaxData: IRoomTouristTaxData | null,
         baseAmount: number,
         numberOfNights: number,
-        numberOfRooms: number
+        numberOfRooms: number,
+        numberOfBedrooms: number,
     ): ITouristTax | null {
         if (!touristTaxData) return null;
 
         const calculatedTaxAmount =
             touristTaxData.discountType === 'percentage'
                 ? baseAmount * (Number(touristTaxData.discountValue) / 100)
-                : Number(touristTaxData.discountValue) * numberOfNights * numberOfRooms; // ✅
+                : Number(touristTaxData.discountValue) * numberOfNights * numberOfRooms * numberOfBedrooms;
 
         return {
             id: touristTaxData.id,

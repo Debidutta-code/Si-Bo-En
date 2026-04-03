@@ -2,10 +2,15 @@ import { Response } from 'express';
 import { CustomRequest, PropertyCustomRequest } from '../../utils/customRequest';
 import { errorResponse } from '../../utils/return';
 import { InventoryServices } from '../services';
-import {getPropertyCode} from "../utils"
+import { getPropertyCode } from "../utils"
 import { ICharges } from '../types';
+
 class InventoryController {
-  public static async getInventoryController(
+  inventoryServices: InventoryServices;
+  constructor() {
+    this.inventoryServices = new InventoryServices();
+  }
+  public async getInventoryController(
     req: PropertyCustomRequest,
     res: Response
   ) {
@@ -18,7 +23,7 @@ class InventoryController {
           .status(400)
           .json(errorResponse('Hotel code is must required field'));
       }
-      const serRes = await InventoryServices.getInventoryServices(
+      const serRes = await this.inventoryServices.getInventoryServices(
         hotelCode,
         Number(currentPage),
         Number(resultPerPage),
@@ -36,14 +41,14 @@ class InventoryController {
       };
     }
   }
-  public static async getRoomTypeController(req: PropertyCustomRequest, res: Response) {
+  public async getRoomTypeController(req: PropertyCustomRequest, res: Response) {
     try {
       const hotelCode = req.params.hotelCode;
       if (!hotelCode) {
         return res.status(400).json(errorResponse('Hotel code not found'));
       }
       const roomTypes =
-        await InventoryServices.getAllRoomTypeService(hotelCode);
+        await this.inventoryServices.getAllRoomTypeService(hotelCode);
       const resStatus = roomTypes.success ? 200 : 400;
       return res.status(resStatus).json(roomTypes);
     } catch (error: any) {
@@ -52,49 +57,49 @@ class InventoryController {
         .json(errorResponse('Internal Server Error', error?.message));
     }
   }
-  public static async createNewInventory(req: PropertyCustomRequest, res: Response) {
-  try {
-    const { roomType, startDate, endDate, availableRooms, pushFromCalender } = req.body;
-    const propertyId = req.params.propertyId;
-    const propertyCode = await getPropertyCode(propertyId);
+  public async createNewInventory(req: PropertyCustomRequest, res: Response) {
+    try {
+      const { roomType, startDate, endDate, availableRooms, pushFromCalender } = req.body;
+      const propertyId = req.params.propertyId;
+      const propertyCode = await getPropertyCode(propertyId);
 
-    if (
-      !propertyCode ||
-      !roomType ||
-      !startDate ||
-      !endDate ||
-      !availableRooms
-    ) {
+      if (
+        !propertyCode ||
+        !roomType ||
+        !startDate ||
+        !endDate ||
+        !availableRooms
+      ) {
+        return res
+          .status(400)
+          .json(
+            errorResponse(
+              'Missing required fields to create an inventory record'
+            )
+          );
+      }
+      if (new Date(startDate) > new Date(endDate)) {
+        return res
+          .status(400)
+          .json(errorResponse('Start Date must come before end Date'));
+      }
+      const serRes = await this.inventoryServices.createInventoryService(
+        propertyCode,
+        roomType,
+        startDate,
+        endDate,
+        availableRooms,
+        pushFromCalender
+      );
+      const resStatus = serRes?.success ? 200 : 400;
+      return res.status(resStatus).json(serRes);
+    } catch (error: any) {
       return res
-        .status(400)
-        .json(
-          errorResponse(
-            'Missing required fields to create an inventory record'
-          )
-        );
+        .status(500)
+        .json(errorResponse('Internal Server Error', error?.message));
     }
-    if (new Date(startDate) > new Date(endDate)) {
-      return res
-        .status(400)
-        .json(errorResponse('Start Date must come before end Date'));
-    }
-    const serRes = await InventoryServices.createInventoryService(
-      propertyCode,
-      roomType,
-      startDate,
-      endDate,
-      availableRooms,
-      pushFromCalender
-    );
-    const resStatus = serRes?.success ? 200 : 400;
-    return res.status(resStatus).json(serRes);
-  } catch (error: any) {
-    return res
-      .status(500)
-      .json(errorResponse('Internal Server Error', error?.message));
   }
-}
-  public static async mapRatePlans(req: PropertyCustomRequest, res: Response) {
+  public async mapRatePlans(req: PropertyCustomRequest, res: Response) {
     try {
       const {
         ratePlanCode,
@@ -107,13 +112,13 @@ class InventoryController {
         startDate,
         endDate
       } = req.body;
-      const propertyId=req.params.propertyId;
-      const propertyCode=await getPropertyCode(propertyId);
+      const propertyId = req.params.propertyId;
+      const propertyCode = await getPropertyCode(propertyId);
       if (!propertyCode) {
         return res
           .status(400)
           .json(
-            errorResponse('Property Not Found',"property code is not available")
+            errorResponse('Property Not Found', "property code is not available")
           );
       }
       if (
@@ -129,7 +134,7 @@ class InventoryController {
       ) {
         return res.status(400).json(errorResponse('All fields are required'));
       }
-      const serRes = await InventoryServices.mapRatePlanService(
+      const serRes = await this.inventoryServices.mapRatePlanService(
         propertyId,
         propertyCode,
         roomTypeName,
@@ -141,6 +146,34 @@ class InventoryController {
         currencyCode,
         startDate,
         endDate
+      );
+      const resStatus = serRes?.success ? 200 : 400;
+      return res.status(resStatus).json(serRes);
+    } catch (error: any) {
+      return res
+        .status(500)
+        .json(errorResponse('Internal Server Error', error?.message));
+    }
+  }
+  public async getRoomAvailibility(req: PropertyCustomRequest, res: Response) {
+    try {
+      const { roomType } = req.query;
+
+      if (!roomType) {
+        return res
+          .status(400)
+          .json(errorResponse('roomType is required'));
+      }
+      const propertyCode = req.property?.propertyCode;
+      if (!propertyCode) {
+        return res
+          .status(400)
+          .json(errorResponse('Property Not Found'));
+      }
+
+      const serRes = await this.inventoryServices.getRoomAvailabilityService(
+        propertyCode,
+        roomType as string,
       );
       const resStatus = serRes?.success ? 200 : 400;
       return res.status(resStatus).json(serRes);

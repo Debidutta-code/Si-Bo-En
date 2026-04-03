@@ -1,10 +1,12 @@
 import {addRoomInventoryService,
-    fetchRoomTypesService
+    fetchRoomTypesService,
+    fetchRoomAvailabilityService
 } from "./inv.service";
 
 
 export{
     addRoomInventoryService,
-    fetchRoomTypesService
+    fetchRoomTypesService,
+    fetchRoomAvailabilityService
 }
 
