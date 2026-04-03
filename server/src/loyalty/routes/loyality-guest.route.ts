@@ -2,6 +2,7 @@ import { Router } from "express";
 import { protect } from "../../middlewares/auth.middleware";
 import { checkRoleBased } from "../../middlewares/checkRole.middleware";
 import { LoyaltyGuestController } from "../controllers";
+import { attachPropertyDetails } from "../../middlewares/property.middleware";
 
 const router = Router();
 
@@ -29,6 +30,11 @@ router.route("/creation/:creationLoyaltyId")
 
 router.route("/register")
     .post(
+        attachPropertyDetails({
+            identifierType:"id",
+            key:"propertyId",
+            source:"body"
+        }),
         loyaltyGuestController.registerGuestFromBookingEngine.bind(loyaltyGuestController)
     );
 

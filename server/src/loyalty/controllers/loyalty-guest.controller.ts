@@ -1,5 +1,5 @@
 import { Response } from "express";
-import { CustomRequest, errorResponse } from "../../utils";
+import { CustomRequest, errorResponse, PropertyRequest } from "../../utils";
 import { LoyaltyGuestService } from "../services";
 import { ICloyalityGuests } from "../types";
 
@@ -40,7 +40,7 @@ export class LoyaltyGuestController {
                 return res.status(400).json(errorResponse("Invalid Request", "Property ID is required"));
             }
 
-            const result = await this.loyaltyGuestService.createGetLoyalityGuestsForProperty(propertyId, skip, take);
+            const result = await this.loyaltyGuestService.getLoyalityGuestsForProperty(propertyId, skip, take);
             return res.status(result.success ? 200 : 404).json(result);
         } catch (error) {
             if (error instanceof Error) {
@@ -70,12 +70,11 @@ export class LoyaltyGuestController {
         }
     }
 
-    /**
-     * Register a new loyalty guest from booking engine
-     * POST /api/v1/loyalty/guest/register
-     */
-    public async registerGuestFromBookingEngine(req: CustomRequest, res: Response): Promise<Response> {
+    public async registerGuestFromBookingEngine(req: PropertyRequest, res: Response): Promise<Response> {
         try {
+            if(!req.property) {
+                return res.status(400).json(errorResponse("Invalid Request", "Property information is required"));
+            }
             const { email, propertyId, metadata } = req.body;
 
             // Validation
@@ -83,7 +82,6 @@ export class LoyaltyGuestController {
                 return res.status(400).json(errorResponse("Invalid Field Provided", "Email and propertyId are required"));
             }
 
-            // Validate email format
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(email)) {
                 return res.status(400).json(errorResponse("Invalid Email", "Invalid email format"));
@@ -93,6 +91,7 @@ export class LoyaltyGuestController {
                 email,
                 propertyId,
                 metadata: metadata || {},
+                propertyCode: req.property.propertyCode
             });
 
             return res.status(result.success ? 201 : 400).json(result);
@@ -106,11 +105,6 @@ export class LoyaltyGuestController {
             return res.status(500).json(errorResponse("Internal Server Error", "Failed to register for loyalty program"));
         }
     }
-
-    /**
-     * Check if guest is a loyalty member and get discount details
-     * POST /api/v1/loyalty/guest/check-discount
-     */
     public async checkLoyaltyDiscount(req: CustomRequest, res: Response): Promise<Response> {
         try {
             const { email, propertyId } = req.body;
@@ -130,10 +124,6 @@ export class LoyaltyGuestController {
         }
     }
 
-    /**
-     * Get loyalty guest by email for a specific property
-     * GET /api/v1/loyalty/guest/by-email/:propertyId/:email
-     */
     public async getLoyaltyGuestByEmail(req: CustomRequest, res: Response): Promise<Response> {
         try {
             const { email, propertyId } = req.params;

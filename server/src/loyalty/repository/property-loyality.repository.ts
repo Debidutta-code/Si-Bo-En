@@ -9,7 +9,6 @@ export class propertyLoyalityRepository {
     public async createPropertyLoyalityConfig(
         data: ICPropertyLoyaltyConfig
     ): Promise<IPropertyLoyaltyConfig> {
-        console.log(data);
         try {
             return await prisma.propertyLoyaltyConfig.create({
                 data,

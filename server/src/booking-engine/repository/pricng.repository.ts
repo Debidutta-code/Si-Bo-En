@@ -230,12 +230,12 @@ export class PricingRepository {
         propertyId: string
     ): Promise<boolean> {
         try {
-            const isLoyalityGuest = await prisma.loyalityGuest.findUnique({
+            const isLoyalityGuest = await prisma.creationGuest.findFirst({
                 where: {
-                    propertyId_guestEmail: {
-                        propertyId,
-                        guestEmail,
-                    },
+                    propertyId,
+                    LoyalityGuest: {
+                        guestEmail
+                    }
                 },
             });
             return isLoyalityGuest ? true : false;

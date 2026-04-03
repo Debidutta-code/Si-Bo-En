@@ -1,18 +1,20 @@
 import { IApiResponse } from "../../utils";
-import { successResponse,errorResponse } from "../../utils";
-import { LoyaltyGuestRepository } from "../repository";
+import { successResponse, errorResponse } from "../../utils";
+import { LoyaltyGuestRepository, propertyLoyalityRepository } from "../repository";
 import {
     ICloyalityGuests
 } from "../types";
 import { paginatedSuccessResponse } from "../../utils";
-import {GuestRepository} from "../../pms/frontoffice/guest/repository/guest.repository";
+import { CreationGuestRepository } from "../repository/creation-guest.repository";
 export class LoyaltyGuestService {
     private loyaltyGuestRepository: LoyaltyGuestRepository;
-    // private guestRepository: GuestRepository;
+    private creationGuestRepository: CreationGuestRepository;
+    private propertyLoyaltyRepository: propertyLoyalityRepository;
 
     constructor() {
         this.loyaltyGuestRepository = new LoyaltyGuestRepository();
-        // this.guestRepository = new GuestRepository();
+        this.creationGuestRepository = new CreationGuestRepository();
+        this.propertyLoyaltyRepository = new propertyLoyalityRepository();
     }
 
     public async deleteLoyaltyGuest(loyaltyGuestId: string): Promise<IApiResponse> {
@@ -20,13 +22,34 @@ export class LoyaltyGuestService {
             const deletedLoyaltyGuest = await this.loyaltyGuestRepository.deleteLoyaltyGuestById(loyaltyGuestId);
             return successResponse("Loyalty guest deleted successfully", deletedLoyaltyGuest);
         } catch (error) {
-            if(error instanceof Error){
-                return errorResponse("Failed to delete loyalty guest",error.message)
+            if (error instanceof Error) {
+                return errorResponse("Failed to delete loyalty guest", error.message)
             }
             return errorResponse("Failed to delete loyalty guest");
         }
     }
-    public async createGetLoyalityGuestsForProperty(propertyId:string,skip:number=0,take:number=10): Promise<IApiResponse> {
+    public async getLoyalityGuestForcreationLoyality(creationLoyalityId: string, skip: number = 0, take: number = 10): Promise<IApiResponse> {
+        try {
+            const [loyaltyGuests, count] = await Promise.all([
+                this.loyaltyGuestRepository.getLoyalityGuestForCreation(creationLoyalityId, skip, take),
+                this.loyaltyGuestRepository.getTotalLoyalityGuests(creationLoyalityId)
+            ])
+            return paginatedSuccessResponse("Loyalty guests fetched successfully", loyaltyGuests, {
+                currentPage: Math.floor(skip / take) + 1,
+                limit: take,
+                totalCount: count,
+                totalPages: Math.ceil(count / take),
+                hasNextPage: skip + take < count,
+                hasPrevPage: skip > 0
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                return errorResponse("Failed to get loyalty guests for property", error.message)
+            }
+            return errorResponse("Failed to get loyalty guests for property");
+        }
+    }
+    public async getLoyalityGuestsForProperty(propertyId:string,skip:number=0,take:number=10): Promise<IApiResponse> {
         try {
             const [loyaltyGuests,count] = await Promise.all([
                 this.loyaltyGuestRepository.getLoyalityGuestsForProperty(propertyId,skip,take),
@@ -47,52 +70,52 @@ export class LoyaltyGuestService {
             return errorResponse("Failed to get loyalty guests for property");
         }
     }
-    public async getLoyalityGuestForcreationLoyality(creationLoyalityId:string,skip:number=0,take:number=10): Promise<IApiResponse> {
-        try {
-            const [loyaltyGuests,count] = await Promise.all([
-                this.loyaltyGuestRepository.getLoyalityGuestForCreation(creationLoyalityId,skip,take),
-                this.loyaltyGuestRepository.getTotalLoyalityGuests(creationLoyalityId)
-            ])
-            return paginatedSuccessResponse("Loyalty guests fetched successfully", loyaltyGuests,{
-                currentPage: Math.floor(skip / take) + 1,
-                limit: take,
-                totalCount: count,
-                totalPages: Math.ceil(count / take),
-                hasNextPage: skip + take < count,
-                hasPrevPage: skip > 0
-            });
-        } catch (error) {
-            if(error instanceof Error){
-                return errorResponse("Failed to get loyalty guests for property",error.message)
-            }
-            return errorResponse("Failed to get loyalty guests for property");
-        }
-    }
 
-    /**
-     * Register a new loyalty guest from booking engine (without guestId)
-     */
     public async registerGuestFromBookingEngine(data: {
         email: string;
         propertyId: string;
+        propertyCode: string;
         metadata: any;
     }): Promise<IApiResponse> {
         try {
-            const { email, propertyId, metadata } = data;
+            const { email, propertyId, propertyCode, metadata } = data;
 
-            // Check if guest is already registered for this property's loyalty program
-            const existingLoyalty = await this.loyaltyGuestRepository.getLoyaltyGuestByPropertyAndGuest(
-                propertyId,
-                email
-            );
+            const existingGuest = await this.loyaltyGuestRepository.checkIfGuestExists(email);
 
-            if (existingLoyalty) {
-                return errorResponse("You are already registered for this property's loyalty program");
+            if (existingGuest) {
+                const guestExistForProperty = await this.creationGuestRepository.checkIfGuestExist(propertyId, existingGuest.id);
+                if (guestExistForProperty) {
+                    return errorResponse("You are already registered for this property's loyalty program");
+                }
+                // Check if there's an active loyalty program for the property then add user to it
+                const getActiveLoyalityForProperty = await this.propertyLoyaltyRepository.getLoyalityForPropertyWhereTrue(propertyId);
+                if (!getActiveLoyalityForProperty) {
+                    return errorResponse("No active loyalty program found for this property");
+                }
+                await this.creationGuestRepository.createCreationGuest(
+                    {
+                        propertyId,
+                        loyalityGuestId: existingGuest.id,
+                        creationLoyaltyConfigId: getActiveLoyalityForProperty.creationLoyaltyConfigId,
+                        propertyCode: propertyCode
+                    });
+                return successResponse("Successfully registered for loyalty program");
             }
+            // if guest does not exist, create a new guest
+            const [newGuest, loyaltyConfig] = await Promise.all([
+                this.loyaltyGuestRepository.createGuestsLoyaltyConfig({
+                    guestEmail: email,
+                    guestId: "",
+                    metaData: metadata,
+                    password: "",
+                    guestLevel:1
+                }),
+                this.loyaltyGuestRepository.getPropertyLoyaltyConfig(propertyId)
+            ]);
 
-            // Get the property's loyalty config
-            const loyaltyConfig = await this.loyaltyGuestRepository.getPropertyLoyaltyConfig(propertyId);
-            
+            if (!newGuest) {
+                return errorResponse("Failed to create new guest");
+            }
             if (!loyaltyConfig || !loyaltyConfig.isActive) {
                 return errorResponse("Loyalty program is not active for this property");
             }
@@ -101,28 +124,14 @@ export class LoyaltyGuestService {
                 return errorResponse("Loyalty program configuration is incomplete");
             }
 
-            // Create loyalty guest without guestId (booking engine flow)
-            const loyaltyGuestData: ICloyalityGuests = {
-                creationLoyaltyConfigId: loyaltyConfig.creationLoyaltyConfigId,
-                propertyId: propertyId,
-                propertyCode: loyaltyConfig.Property.propertyCode,
-                guestId: "", // Empty string, will be updated when guest books
-                guestEmail: email,
-                metaData: metadata,
-            };
-
-            const loyaltyGuest = await this.loyaltyGuestRepository.createGuestsLoyaltyConfigFromBookingEngine(
-                loyaltyGuestData
-            );
-
-            return successResponse("Successfully registered for loyalty program", {
-                id: loyaltyGuest.id,
-                email: loyaltyGuest.guestEmail,
-                propertyId: loyaltyGuest.propertyId,
-                discountType: loyaltyConfig.CreationLoyaltyConfig.loyaltyDiscountType,
-                discountValue: loyaltyConfig.CreationLoyaltyConfig.discountValue,
-                currencyCode: loyaltyConfig.CreationLoyaltyConfig.currencyCode,
-            });
+            await this.creationGuestRepository.createCreationGuest(
+                {
+                    propertyId,
+                    loyalityGuestId: newGuest.id,
+                    creationLoyaltyConfigId: loyaltyConfig.creationLoyaltyConfigId,
+                    propertyCode: propertyCode
+                });
+            return successResponse("Successfully registered for loyalty program");
         } catch (error) {
             if (error instanceof Error) {
                 return errorResponse("Failed to register for loyalty program", error.message);
@@ -130,13 +139,8 @@ export class LoyaltyGuestService {
             return errorResponse("Failed to register for loyalty program");
         }
     }
-
-    /**
-     * Check if guest is a loyalty member and return discount details
-     */
     public async checkLoyaltyDiscount(email: string, propertyId: string): Promise<IApiResponse> {
         try {
-            // Check if loyalty guest exists
             const loyaltyGuest = await this.loyaltyGuestRepository.getLoyaltyGuestByPropertyAndGuest(
                 propertyId,
                 email
@@ -148,26 +152,14 @@ export class LoyaltyGuestService {
                     discount: null,
                 });
             }
-
-            // Get loyalty config to fetch discount details
-            const loyaltyConfig = await this.loyaltyGuestRepository.getPropertyLoyaltyConfig(propertyId);
-
-            if (!loyaltyConfig || !loyaltyConfig.isActive) {
-                return successResponse("Loyalty program is not active", {
-                    isLoyaltyMember: true,
-                    discount: null,
-                });
-            }
-
+            const currentGuestlevel=loyaltyGuest.LoyalityGuest?.guestLevel
+            const discountLevel=loyaltyGuest.CreationLoyaltyConfig.LoyalityLevels.find(level => level.level === currentGuestlevel)?.discountPercentage
             return successResponse("Loyalty discount available", {
                 isLoyaltyMember: true,
-                loyaltyGuestId: loyaltyGuest.id,
                 discount: {
-                    type: loyaltyConfig.CreationLoyaltyConfig.loyaltyDiscountType,
-                    value: loyaltyConfig.CreationLoyaltyConfig.discountValue,
-                    currencyCode: loyaltyConfig.CreationLoyaltyConfig.currencyCode,
+                    type: "percentage",
+                    value: discountLevel,
                 },
-                metadata: loyaltyGuest.metaData,
             });
         } catch (error) {
             if (error instanceof Error) {
@@ -176,10 +168,6 @@ export class LoyaltyGuestService {
             return errorResponse("Failed to check loyalty discount");
         }
     }
-
-    /**
-     * Get loyalty guest by email and property
-     */
     public async getGuestByEmailAndProperty(email: string, propertyId: string): Promise<IApiResponse> {
         try {
             const loyaltyGuest = await this.loyaltyGuestRepository.getLoyaltyGuestByPropertyAndGuest(

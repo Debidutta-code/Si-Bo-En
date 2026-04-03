@@ -1,0 +1,11 @@
+model LoyalityLevel{
+    id          String   @id @default(uuid())
+    level      Int      @map("level")
+    discountPercentage Float @map("discount_percentage")
+    loyaltyProgramId String                @unique @map("loyalty_program_id")
+    LoyaltyProgram   CreationLoyaltyConfig @relation(fields: [loyaltyProgramId], references: [id], onDelete: Cascade)
+
+    @@unique([loyaltyProgramId, level])
+
+    @@map("loyalty_levels")
+}

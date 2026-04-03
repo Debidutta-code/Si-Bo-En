@@ -4,3 +4,4 @@ export * from "./loyality-condition.repository";
 export * from "./loyality-field.repository";
 export * from "./loyality-program.repository";
 export * from "./loyalty-guest.repository";
+export * from "./loyality-level.repository";
