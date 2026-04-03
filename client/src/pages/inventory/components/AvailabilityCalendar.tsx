@@ -172,16 +172,20 @@ export default function AvailabilityCalendar({
       </div>
 
       {/* Legend */}
+      {/* Legend */}
       <div className="mt-4 pt-3 border-t grid grid-cols-2 gap-y-1.5 gap-x-2">
         {[
-          { label: "High availability", dot: "bg-green-500" },
-          { label: "Medium availability", dot: "bg-yellow-500" },
-          { label: "Low availability", dot: "bg-orange-500" },
-          { label: "Fully booked", dot: "bg-red-500" },
-        ].map(({ label, dot }) => (
+          { label: "High availability", range: "70% – 100%", dot: "bg-green-500" },
+          { label: "Medium availability", range: "30% – 69%", dot: "bg-yellow-500" },
+          { label: "Low availability", range: "1% – 29%", dot: "bg-orange-500" },
+          { label: "Fully booked", range: "0%", dot: "bg-red-500" },
+        ].map(({ label, range, dot }) => (
           <div key={label} className="flex items-center gap-1.5">
             <span className={`w-2 h-2 rounded-full shrink-0 ${dot}`} />
-            <span className="text-[11px] text-gray-600 leading-tight">{label}</span>
+            <div className="flex flex-col">
+              <span className="text-[11px] text-gray-600 leading-tight">{label}</span>
+              <span className="text-[10px] text-gray-400 leading-tight">{range}</span>
+            </div>
           </div>
         ))}
       </div>

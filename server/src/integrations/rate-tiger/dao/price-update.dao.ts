@@ -21,6 +21,8 @@ export class PriceUpdateDao {
     propertyCode: string;
     roomTypeCode: string;
     ratePlanCode: string;
+    ratePlanName: string;
+    roomTypeName: string;
     date: Date;
     currencyCode: CurrencyCode;
     baseByGuestAmounts: Array<{
@@ -39,10 +41,11 @@ export class PriceUpdateDao {
       date,
       currencyCode,
       baseByGuestAmounts,
-      additionalGuestAmounts
+      additionalGuestAmounts,
+      ratePlanName,
+      roomTypeName
     } = params;
 
-    // Find existing charge for this property/room/rateplan/date
     const existingCharge = await prisma.charge.findFirst({
       where: {
         propertyCode,
@@ -54,22 +57,17 @@ export class PriceUpdateDao {
     });
 
     if (existingCharge) {
-      // Update existing charge — delete old price rows, insert new ones
       await prisma.$transaction([
-        // Delete old base amounts
         prisma.chargeBaseByGuest.deleteMany({
           where: { chargeId: existingCharge.id }
         }),
-        // Delete old additional amounts
         prisma.chargeAdditionalGuest.deleteMany({
           where: { chargeId: existingCharge.id }
         }),
-        // Update the charge itself
         prisma.charge.update({
           where: { id: existingCharge.id },
           data: { currencyCode }
         }),
-        // Insert new base amounts
         prisma.chargeBaseByGuest.createMany({
           data: baseByGuestAmounts.map(bg => ({
             chargeId: existingCharge.id,
@@ -77,28 +75,26 @@ export class PriceUpdateDao {
             amountBeforeTax: bg.amountBeforeTax
           }))
         }),
-        // Insert new additional amounts
         ...(additionalGuestAmounts.length > 0
           ? [
-              prisma.chargeAdditionalGuest.createMany({
-                data: additionalGuestAmounts.map(ag => ({
-                  chargeId: existingCharge.id,
-                  ageQualifyingCode: ag.ageQualifyingCode,
-                  amount: ag.amount
-                }))
-              })
-            ]
+            prisma.chargeAdditionalGuest.createMany({
+              data: additionalGuestAmounts.map(ag => ({
+                chargeId: existingCharge.id,
+                ageQualifyingCode: ag.ageQualifyingCode,
+                amount: ag.amount
+              }))
+            })
+          ]
           : [])
       ]);
     } else {
-      // Create new charge with nested price rows
       await prisma.charge.create({
         data: {
           propertyCode,
           roomTypeCode,
           ratePlanCode,
-          ratePlanName: ratePlanCode, // fallback, RT doesn't send name
-          roomTypeName: roomTypeCode, // fallback, RT doesn't send name
+          ratePlanName:ratePlanName,
+          roomTypeName:roomTypeName,
           date,
           currencyCode,
           baseGuestAmounts: {
@@ -116,5 +112,31 @@ export class PriceUpdateDao {
         }
       });
     }
+  }
+  public static async getRatePlanName(ratePlanCode: string) {
+    try {
+      const ratePlan = await prisma.ratePlan.findUnique({
+        where: { ratePlanCode },
+        select: { ratePlanName: true }
+      });
+      return ratePlan?.ratePlanName;
+    } catch (error) {
+      throw new Error('Failed to get rate plan name');
+    }
+  }
+  public static async getRoomTypeName(roomTypeCode: string, propertyCode: string): Promise<string> {
+    const roomType = await prisma.room.findFirst({
+      where: {
+        roomType: roomTypeCode,
+        property: {
+          propertyCode: propertyCode
+        }
+      },
+      select: { roomName: true }
+    });
+
+    if (!roomType) throw new Error(`RoomType ${roomTypeCode} not found for property ${propertyCode}`);
+
+    return roomType.roomName;
   }
 }

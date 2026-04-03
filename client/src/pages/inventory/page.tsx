@@ -324,7 +324,7 @@ export default function Inventory() {
           <div className="flex flex-col gap-6 lg:sticky lg:top-4 lg:max-h-[calc(100vh-8rem)] overflow-y-auto pr-2 pb-4 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden">
 
             {/* Card 1: Selected Details */}
-            <Card className="shadow-lg rounded-xl">
+            {/* <Card className="shadow-lg rounded-xl">
               <CardHeader className="border-b bg-primary text-primary-foreground rounded-t-xl">
                 <CardTitle className="text-lg">Selected Details</CardTitle>
               </CardHeader>
@@ -371,7 +371,7 @@ export default function Inventory() {
                   </div>
                 )}
               </CardContent>
-            </Card>
+            </Card> */}
 
             <AvailabilityCalendar
               availability={availability}
