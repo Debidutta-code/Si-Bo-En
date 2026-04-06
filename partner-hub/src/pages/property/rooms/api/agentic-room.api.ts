@@ -6,18 +6,20 @@ export const fetchRoomsByPropertyId = async (
     agenticPropertyId: string,
     startDate: string,
     endDate: string,
-    guests: {                                    // ← add this param
+    guests: {
         adults: number;
         children: number;
         rooms: number;
         roomsArray: { adults: number; children: number; childAges: number[] }[];
-    }
+    },
+    agencyId: string
 ) => {
     try {
         const response = await axiosInstance.post(`/agent-platform/rooms/${agenticPropertyId}`, {
             startDate,
             endDate,
-            guests,                              // ← was `guests: roomsArray` (broken)
+            guests,
+            agencyId,
         });
         return response.data;
     } catch (error: any) {
@@ -27,6 +29,7 @@ export const fetchRoomsByPropertyId = async (
         return { success: false, message: error?.message };
     }
 };
+
 export const getAgentPricing = async (pricingData: {
     propertyCode: string;
     invTypeCode: string;
@@ -36,6 +39,10 @@ export const getAgentPricing = async (pricingData: {
     noOfAdults: number;
     noOfChildren: number;
     noOfRooms: number;
+    childAges: number[];
+    guestDistribution: { adults: number; children: number; childAges: number[] }[];
+    agencyId: string;
+    includedAddons?: string[];
 }) => {
     try {
         const response = await axiosInstance.post('/agent-platform/pricing/get-pricing', pricingData);

@@ -6,7 +6,7 @@ import {
 } from "../services";
 import { getGeoLocationDetails } from "../../../utils/get-location.utils";
 
-export class AgenticRoomController{
+export class AgenticRoomController {
     private agenticRoomService: AgenticRoomService;
 
     constructor() {
@@ -16,16 +16,15 @@ export class AgenticRoomController{
         try {
 
             const propertyId = req.params.propertyId;
-            const agencyId = req.agent?.agencyId;
             if (!propertyId) {
                 return res.status(400).json(errorResponse("Property not found", "agent is not assigned or unauthorized"));
             }
-            if(!agencyId){
-                return res.status(400).json(errorResponse("Agency not found", "agent is not assigned or unauthorized"));
+
+
+            const { startDate, endDate, guests, agencyId } = req.body || {};
+            if (!agencyId) {
+                return res.status(400).json(errorResponse("Agency not found", "agency is not assigned or unauthorized"));
             }
-
-            const { startDate, endDate, guests } = req.body || {};
-
             if (!startDate || !endDate) {
                 return res.status(400).json(errorResponse("Invalid date range", "Start date and end date are required"));
             }

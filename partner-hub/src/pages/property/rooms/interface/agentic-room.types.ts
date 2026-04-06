@@ -1,4 +1,5 @@
-// Amenity interfaces
+// ─── Amenity interfaces ────────────────────────────────────────────────────────
+
 export interface IRoomAmenity {
     id: string;
     amenityName: string;
@@ -17,7 +18,8 @@ export interface IRoomAmenityItem {
     amenity: IRoomAmenity;
 }
 
-// Video interface
+// ─── Video interface ───────────────────────────────────────────────────────────
+
 export interface IRoomVideo {
     id: string;
     roomId: string;
@@ -26,7 +28,8 @@ export interface IRoomVideo {
     createdAt: string;
 }
 
-// Room details interface
+// ─── Room details interface ────────────────────────────────────────────────────
+
 export interface IRoomDetails {
     id: string;
     roomName: string;
@@ -55,28 +58,110 @@ export interface IRoomDetails {
     roomAmenities: IRoomAmenityItem[];
 }
 
-// Agentic room interface
+// ─── Tourist tax ───────────────────────────────────────────────────────────────
+
+export interface ITouristTax {
+    id: string;
+    name: string;
+    discountType: "flat" | "percentage";
+    discountValue: number;
+    currencyCode: string;
+    calculatedTaxAmount: number;
+}
+
+// ─── Addon interfaces ──────────────────────────────────────────────────────────
+
+export interface IAddonCategory {
+    id: string;
+    name: string;
+    code: string;
+}
+
+export interface IAddonVariant {
+    id: string;
+    name: string;
+    code: string;
+}
+
+export interface IRoomAddon {
+    id: string;
+    name: string;
+    code: string;
+    price: number;
+    postingRhythm: string;
+    description: string;
+    images: string[];
+    category: IAddonCategory;
+    subCategory: IAddonCategory;
+    addonVariant: IAddonVariant;
+}
+
+// ─── Policy interfaces ─────────────────────────────────────────────────────────
+
+export interface ICancellationPolicy {
+    id?: string;
+    name?: string;
+    description?: string;
+}
+
+export interface IDepositPolicy {
+    id?: string;
+    name?: string;
+    description?: string;
+}
+
+export interface IGuaranteePolicy {
+    id?: string;
+    name?: string;
+    description?: string;
+}
+
+export interface IRatePlanPolicy {
+    depositPolicy: IDepositPolicy | null;
+    cancellationPolicy: ICancellationPolicy | null;
+    guaranteePolicy: IGuaranteePolicy | null;
+}
+
+// ─── Rate plan pricing ─────────────────────────────────────────────────────────
+
+export interface IBaseByGuestAmt {
+    numberOfGuests: number;
+    amountBeforeTax: number;
+    ageQualifyingCode: string; // "10" = adult, "8" = child
+}
+
+export interface IAppliedDiscount {
+    id: string;
+    promotionName: string;
+    promotionType: string;
+    calculatedDiscountAmount: number;
+}
+
+export interface IAvailablePromotion {
+    id: string;
+    promotionName: string;
+    promotionType: string;
+    discountValue: number;
+    minLos?: number;
+    advanceBookingDays?: number;
+    validTo?: string | null;
+}
+
 export interface IAgenticRoomPrice {
     ratePlanName: string;
     ratePlanCode: string;
     currencyCode: string;
-    baseByGuestAmts: {
-        numberOfGuests: number;
-        amountBeforeTax: number;
-        ageQualifyingCode: string;
-    }[];
-    policy: {
-        depositPolicy: null | object;
-        cancellationPolicy: null | object;
-        guaranteePolicy: null | object;
-    };
-    availablePromotions: unknown[];
-    appliedDiscounts: unknown[];
-    touristTax: null | object;
+    baseByGuestAmts: IBaseByGuestAmt[];
+    policy: IRatePlanPolicy;
+    availablePromotions: IAvailablePromotion[];
+    appliedDiscounts: IAppliedDiscount[];
+    touristTax: ITouristTax | null;
     comboLabel: string;
-    addons: unknown[];
+    addons: IRoomAddon[];
     totalAmount: number;
 }
+
+// ─── Agentic amenity ───────────────────────────────────────────────────────────
 
 export interface IAgenticAmenity {
     id: string;
@@ -85,9 +170,11 @@ export interface IAgenticAmenity {
     description: string | null;
     icon: string | null;
     isActive: boolean;
-    createdAt: string;
-    updatedAt: string;
+    createdAt?: string;
+    updatedAt?: string;
 }
+
+// ─── Full room with pricing ────────────────────────────────────────────────────
 
 export interface IAgenticRoomFull {
     id: string;
@@ -117,6 +204,8 @@ export interface IAgenticRoomFull {
     roomPrice: IAgenticRoomPrice[];
 }
 
+// ─── Rooms response ────────────────────────────────────────────────────────────
+
 export interface IAgenticRoomsResponse {
     propertyDetails: {
         id: string;
@@ -136,7 +225,15 @@ export interface IAgenticRoomsResponse {
     };
 }
 
-// Rate plan pricing interfaces
+// ─── Agent pricing response ────────────────────────────────────────────────────
+
+export interface IAgentPricingResponse {
+    // Extend this as the pricing endpoint response shape becomes known
+    [key: string]: unknown;
+}
+
+// ─── Charge interfaces ─────────────────────────────────────────────────────────
+
 export interface IAdditionalGuestAmount {
     id: string;
     chargeId: string;
@@ -185,20 +282,8 @@ export interface IChargePerDay {
     charge: ICharge;
 }
 
-// Policy interfaces
-export interface ICancellationPolicy {
-    // Add fields when available
-}
+// ─── Rate plan interface ───────────────────────────────────────────────────────
 
-export interface IDepositPolicy {
-    // Add fields when available
-}
-
-export interface IGuaranteePolicy {
-    // Add fields when available
-}
-
-// Rate plan interface
 export interface IRatePlan {
     id: string;
     ratePlanName: string;
@@ -225,19 +310,18 @@ export interface IRatePlanWithPrice {
     chargesPerDay: IChargePerDay[];
 }
 
-// Room with rate plans
+// ─── Room with rate plans ──────────────────────────────────────────────────────
+
 export interface IRoomWithRatePlans {
     room: IAgenticRoomFull;
     ratePlans: IRatePlanWithPrice[];
 }
 
-// Date range interface
 export interface IDateRange {
     startDate: string;
     endDate: string;
 }
 
-// Complete response interface
 export interface IRoomResponse {
     rooms: IRoomWithRatePlans[];
     dateRange: IDateRange;

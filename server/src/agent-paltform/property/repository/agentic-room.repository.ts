@@ -81,34 +81,34 @@ export class AgenticRoomRepository {
         });
     }
 
-    public async getGeoRatePlan(
-        propertyId: string,
-        roomId: string,
-        ratePlanId: string,
-        countryCode: string
-    ) {
-        const roomSpecificGeo = await prisma.geoRatePlan.findFirst({
-            where: {
-                propertyId,
-                roomId,
-                ratePlanId,
-                countryCode: { has: countryCode },
-                isActive: true,
-            },
-        });
+    // public async getGeoRatePlan(
+    //     propertyId: string,
+    //     roomId: string,
+    //     ratePlanId: string,
+    //     countryCode: string
+    // ) {
+    //     const roomSpecificGeo = await prisma.geoRatePlan.findFirst({
+    //         where: {
+    //             propertyId,
+    //             roomId,
+    //             ratePlanId,
+    //             countryCode: { has: countryCode },
+    //             isActive: true,
+    //         },
+    //     });
 
-        if (roomSpecificGeo) return roomSpecificGeo;
+    //     if (roomSpecificGeo) return roomSpecificGeo;
 
-        return prisma.geoRatePlan.findFirst({
-            where: {
-                propertyId,
-                roomId: null,
-                ratePlanId,
-                countryCode: { has: countryCode },
-                isActive: true,
-            },
-        });
-    }
+    //     return prisma.geoRatePlan.findFirst({
+    //         where: {
+    //             propertyId,
+    //             roomId: null,
+    //             ratePlanId,
+    //             countryCode: { has: countryCode },
+    //             isActive: true,
+    //         },
+    //     });
+    // }
 
     public async getRatePlanRule(ratePlanId: string) {
         return prisma.ratePlanRule.findUnique({
@@ -129,6 +129,32 @@ export class AgenticRoomRepository {
                 date: checkInDate,
                 isActive: true,
             },
+        });
+    }
+    public async getRatePlanAddons(ratePlanId: string) {
+        return prisma.ratePlanWithAddon.findMany({
+            where: { ratePlanId },
+            include: {
+                addon: {
+                    include: {
+                        category: true,
+                        subCategory: true,
+                        addonVariant: true,
+                        ChildAddons: true,
+                    },
+                },
+            },
+        });
+    }
+
+    public async getAddonAvailability(addonId: string, dates: Date[]) {
+        return prisma.addonAvailability.findMany({
+            where: {
+                addonId,
+                date: { in: dates },
+                isAvailable: true,
+            },
+            orderBy: { date: 'asc' },
         });
     }
 }

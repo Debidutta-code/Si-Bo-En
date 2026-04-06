@@ -1,3 +1,10 @@
+export interface IPropertyConfigs {
+    baseCurrency: string;
+    showVideo: boolean;
+    commission: boolean;
+    timezone: string;
+}
+
 export interface IProperty {
     id: string;
     propertyName: string;
@@ -6,11 +13,12 @@ export interface IProperty {
     propertyCode: string;
     description: string;
     image: string[];
-    propertyAddress?: IPropertyAddress|null;
+    propertyAddress?: IPropertyAddress | null;
     propertyAmenities: IPropertyAmenities[];
-    propertyCategory: IPropertyCategory|null;
-    propertyType: IPropertyType|null;
-    propertyVideos: PropertyVideo|null;
+    propertyCategory: IPropertyCategory | null;
+    propertyType: IPropertyType | null;
+    propertyVideos: PropertyVideo | null;
+    propertyConfigs: IPropertyConfigs | null; // ✅ add this
 }
 export interface IPropertyAddress {
     addressLine1: string;
