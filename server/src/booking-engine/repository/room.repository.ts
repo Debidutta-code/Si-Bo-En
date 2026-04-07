@@ -1,6 +1,7 @@
 import { DateTime } from 'luxon';
 import { prisma } from '../../config';
 import { toUTCDate } from '../../utils';
+import { IPromotion } from '../types';
 
 export class RoomBookingRepository {
     public static async getPropertyByCode(propertyCode: string) {
@@ -156,7 +157,7 @@ export class RoomBookingRepository {
         checkInDate: Date,
         today: Date,
         numberOfNights: number
-    ) {
+    ):Promise<IPromotion[]|null> {
         const checkInUTC = toUTCDate(checkInDate);
         const todayUTC = toUTCDate(today);
         const dayOfWeek = checkInUTC.getDay();
@@ -222,7 +223,7 @@ export class RoomBookingRepository {
         ratePlanId: string,
         checkInDate: Date,
         deviceType: string
-    ) {
+    ):Promise<IPromotion|null> {
         const checkInUTC = toUTCDate(checkInDate);
         const todayUTC = toUTCDate(new Date());
         const dayOfWeek = checkInUTC.getDay();

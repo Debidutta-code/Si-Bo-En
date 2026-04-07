@@ -318,7 +318,7 @@ export class AgenticRoomService {
 
         const totalAmount = baseAmount + commissionAmount;
 
-        const touristTax = this.calculateTouristTax(touristTaxData, baseAmount);
+        const touristTax = this.calculateTouristTax(touristTaxData, baseAmount, numberOfNights, roomsArray.length, room.numberOfBedrooms);
 
         // ✅ Calculate available addons
         const addonCalc = new AgenticAddonCalculator(
@@ -360,7 +360,6 @@ export class AgenticRoomService {
             totalAmount,
         });
 
-        // ✅ One combo per addon — commission already baked into totalAmount
         for (const addon of availableAddons) {
             combos.push({
                 ...sharedFields,
@@ -399,8 +398,6 @@ export class AgenticRoomService {
 
         return 0;
     }
-
-    // ─── Charge Validation ─────────────────────────────────────────────
 
     private validateCharges(charges: IRoomCharge[], dates: Date[]): boolean {
         if (charges.length !== dates.length) return false;
@@ -530,43 +527,19 @@ export class AgenticRoomService {
         return { basePrice, additionalCharges };
     }
 
-    // ─── Geo Discount ──────────────────────────────────────────────────
-
-    // private calculateGeoDiscount(
-    //     baseAmount: number,
-    //     geoRatePlan: IRoomGeoRatePlan | null
-    // ): { totalGeoDiscount: number } {
-    //     if (!geoRatePlan || geoRatePlan.restrictionType === 'restricted') {
-    //         return { totalGeoDiscount: 0 };
-    //     }
-
-    //     const restrictionValue = Number(geoRatePlan.restrictionValue ?? 0);
-    //     let geoDiscount = 0;
-
-    //     if (geoRatePlan.restrictionType === 'percentage') {
-    //         const delta = baseAmount * (restrictionValue / 100);
-    //         geoDiscount = geoRatePlan.restrictionTypeAction === 'increase' ? -delta : delta;
-    //     } else if (geoRatePlan.restrictionType === 'fixed') {
-    //         geoDiscount = geoRatePlan.restrictionTypeAction === 'increase'
-    //             ? -restrictionValue
-    //             : restrictionValue;
-    //     }
-
-    //     return { totalGeoDiscount: geoDiscount };
-    // }
-
-    // ─── Tourist Tax ───────────────────────────────────────────────────
-
     private calculateTouristTax(
         touristTaxData: IRoomTouristTaxData | null,
-        baseAmount: number
+        baseAmount: number,
+        noOfNights: number,
+        noOfRooms: number,
+        noOfAdults: number,
     ): ITouristTax | null {
         if (!touristTaxData) return null;
 
         const calculatedTaxAmount =
             touristTaxData.discountType === 'percentage'
                 ? baseAmount * (Number(touristTaxData.discountValue) / 100)
-                : Number(touristTaxData.discountValue);
+                : Number(touristTaxData.discountValue) * noOfNights * noOfRooms * noOfAdults;
 
         return {
             id: touristTaxData.id,

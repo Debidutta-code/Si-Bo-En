@@ -1,6 +1,6 @@
 import { useParams } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { Plus, Shield, FileText, CreditCard, AlertCircle, Check, MoreVertical, Trash2, Link2 } from "lucide-react";
+import { useEffect, useState, useMemo } from "react";
+import { Plus, Shield, FileText, CreditCard, AlertCircle, MoreVertical, Trash2, Link2, Pencil, Tag } from "lucide-react";
 import { toast } from "react-hot-toast";
 import BackButton from "@/components/shared/BackButton";
 import Loader from "@/components/Loader/Loader";
@@ -8,12 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
+
 import {
     Select,
     SelectContent,
@@ -54,9 +49,17 @@ import {
     TabsList,
     TabsTrigger
 } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { createPolicyService, getPoliciesService, fetchRatePlansService, addPolicyToRatePlanService, deletePolicyService } from "./services";
+import { createPolicyService, getPoliciesService, fetchRatePlansService, addPolicyToRatePlanService, deletePolicyService, updatePolicyDetailsService } from "./services";
 import type { IPolicy, PolicyTypes, ICPolicy, RatePlan } from "./interfaces";
+
+interface GroupedPolicy {
+    id: string;
+    policyName: string;
+    type: PolicyTypes;
+    description?: string;
+    propertyId: string;
+    ratePlans: { code: string; name: string }[];
+}
 
 export default function PoliciesPage() {
     const { propertyId } = useParams<{ propertyId: string }>();
@@ -75,10 +78,48 @@ export default function PoliciesPage() {
     });
     const [ratePlans, setRatePlans] = useState<RatePlan[]>([]);
 
-    // New state for actions
-    const [policyToDelete, setPolicyToDelete] = useState<IPolicy | null>(null);
-    const [policyToAssign, setPolicyToAssign] = useState<IPolicy | null>(null);
+    const [policyToDelete, setPolicyToDelete] = useState<GroupedPolicy | null>(null);
+    const [policyToAssign, setPolicyToAssign] = useState<GroupedPolicy | null>(null);
     const [selectedRatePlanId, setSelectedRatePlanId] = useState<string>("");
+
+    const [policyToEdit, setPolicyToEdit] = useState<GroupedPolicy | null>(null);
+    const [editForm, setEditForm] = useState<{ policyName: string; description: string }>({
+        policyName: "",
+        description: "",
+    });
+
+    const groupedPolicies = useMemo(() => {
+        const map = new Map<string, GroupedPolicy>();
+        policies.forEach((policy) => {
+            if (map.has(policy.id)) {
+                const existing = map.get(policy.id)!;
+                if (policy.ratePlanName && policy.ratePlanCode) {
+                    const alreadyExists = existing.ratePlans.some(
+                        (rp) => rp.code === policy.ratePlanCode
+                    );
+                    if (!alreadyExists) {
+                        existing.ratePlans.push({
+                            code: policy.ratePlanCode,
+                            name: policy.ratePlanName,
+                        });
+                    }
+                }
+            } else {
+                map.set(policy.id, {
+                    id: policy.id,
+                    policyName: policy.policyName,
+                    type: policy.type,
+                    description: policy.description,
+                    propertyId: policy.propertyId,
+                    ratePlans:
+                        policy.ratePlanName && policy.ratePlanCode
+                            ? [{ code: policy.ratePlanCode, name: policy.ratePlanName }]
+                            : [],
+                });
+            }
+        });
+        return Array.from(map.values());
+    }, [policies]);
 
     const fetchPolicies = async () => {
         if (!propertyId) return;
@@ -96,15 +137,13 @@ export default function PoliciesPage() {
             setLoading({ isLoading: false, text: "" });
         }
     };
+
     const fetchRatePlans = async (propertyId: string) => {
-        // setLoading({ isLoading: true, text: "Loading rate plans..." }); // Don't block UI for this
         try {
             const ratePlans = await fetchRatePlansService(propertyId);
             if (ratePlans.success) {
-                // toast.success("Rate plans fetched successfully"); // Too noisy
                 setRatePlans(ratePlans.data || []);
-            }
-            else {
+            } else {
                 console.error(ratePlans.message || "Failed to fetch rate plans");
             }
         } catch (error) {
@@ -127,7 +166,6 @@ export default function PoliciesPage() {
             toast.error("Policy name is required");
             return;
         }
-
         setIsSubmitting(true);
         try {
             const response = await createPolicyService(
@@ -138,11 +176,7 @@ export default function PoliciesPage() {
             );
             if (response.success) {
                 toast.success("Policy created successfully");
-                setNewPolicy({
-                    policyName: "",
-                    type: "cancellation",
-                    description: "",
-                });
+                setNewPolicy({ policyName: "", type: "cancellation", description: "" });
                 setIsDialogOpen(false);
                 fetchPolicies();
             } else {
@@ -155,9 +189,7 @@ export default function PoliciesPage() {
         }
     };
 
-    const handleDeleteClick = (policy: IPolicy) => {
-        setPolicyToDelete(policy);
-    };
+    const handleDeleteClick = (policy: GroupedPolicy) => setPolicyToDelete(policy);
 
     const handleConfirmDelete = async () => {
         if (!policyToDelete) return;
@@ -178,7 +210,7 @@ export default function PoliciesPage() {
         }
     };
 
-    const handleAssignClick = (policy: IPolicy) => {
+    const handleAssignClick = (policy: GroupedPolicy) => {
         setPolicyToAssign(policy);
         setSelectedRatePlanId("");
     };
@@ -194,6 +226,7 @@ export default function PoliciesPage() {
             if (response.success) {
                 toast.success("Policy assigned to rate plan successfully");
                 setPolicyToAssign(null);
+                fetchPolicies();
             } else {
                 toast.error(response.message || "Failed to assign policy");
             }
@@ -204,30 +237,52 @@ export default function PoliciesPage() {
         }
     };
 
-    const getPolicyIcon = (type: PolicyTypes) => {
-        switch (type) {
-            case "cancellation":
-                return <AlertCircle className="h-5 w-5 text-red-500" />;
-            case "deposit":
-                return <CreditCard className="h-5 w-5 text-primary" />;
-            case "guarantee":
-                return <Shield className="h-5 w-5 text-green-500" />;
-            default:
-                return <FileText className="h-5 w-5 text-gray-500" />;
+    const handleEditClick = (policy: GroupedPolicy) => {
+        setPolicyToEdit(policy);
+        setEditForm({
+            policyName: policy.policyName,
+            description: policy.description || "",
+        });
+    };
+
+    const handleConfirmEdit = async () => {
+        if (!policyToEdit) return;
+        if (!editForm.policyName.trim()) {
+            toast.error("Policy name is required");
+            return;
+        }
+        setIsSubmitting(true);
+        try {
+            const response = await updatePolicyDetailsService(
+                policyToEdit.id,
+                editForm.policyName,
+                editForm.description
+            );
+            if (response.success) {
+                toast.success("Policy updated successfully");
+                setPolicyToEdit(null);
+                fetchPolicies();
+            } else {
+                toast.error(response.message || "Failed to update policy");
+            }
+        } catch (error) {
+            toast.error("Error updating policy");
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
-    const getPolicyColor = (type: PolicyTypes) => {
+    const getPolicyIcon = (type: PolicyTypes) => {
         switch (type) {
-            case "cancellation":
-                return "bg-red-50 text-red-700 hover:bg-red-100 border border-red-200";
-            case "deposit":
-                return "bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200";
-            case "guarantee":
-                return "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200";
-            default:
-                return "bg-gray-50 text-gray-700 hover:bg-gray-100 border border-gray-200";
+            case "cancellation": return <AlertCircle className="h-4 w-4" />;
+            case "deposit": return <CreditCard className="h-4 w-4" />;
+            case "guarantee": return <Shield className="h-4 w-4" />;
+            default: return <FileText className="h-4 w-4" />;
         }
+    };
+
+    const getTypeLabel = (type: PolicyTypes) => {
+        return type.charAt(0).toUpperCase() + type.slice(1);
     };
 
     if (loading.isLoading) {
@@ -239,33 +294,39 @@ export default function PoliciesPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50/50 px-6 lg:px-10">
-            <div className="mx-auto max-w-7xl space-y-8">
-                {/* Header Section */}
+        <div className="min-h-screen bg-Primary px-4 sm:px-6 lg:px-10 pb-12">
+            <div className="mx-auto max-w-7xl space-y-6">
                 <BackButton />
+
+                {/* Header */}
                 <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-gray-900">
-                            Property Policies
-                        </h1>
-                        <p className="mt-2 text-sm text-gray-500">
-                            Manage cancellation, deposit, and guarantee policies for your property.
-                        </p>
+                    <div className="flex items-center gap-4">
+                        <div className="h-12 w-12 rounded-xl bg-[#1e293b] flex items-center justify-center">
+                            <Shield className="h-6 w-6 text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-2xl font-bold text-[#0f172a]">
+                                Property Policies
+                            </h1>
+                            <p className="text-sm text-[#64748b]">
+                                Manage cancellation, deposit, and guarantee policies
+                            </p>
+                        </div>
                     </div>
                     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button className="bg-primary text-white hover:bg-gray-800">
-                                <Plus className="mr-2 h-4 w-4" /> Add New Policy
+                            <Button className="bg-[#1e293b] text-white hover:bg-[#334155]">
+                                <Plus className="mr-2 h-4 w-4" /> Add Policy
                             </Button>
                         </DialogTrigger>
                         <DialogContent className="sm:max-w-[500px]">
                             <DialogHeader>
                                 <DialogTitle>Create New Policy</DialogTitle>
                                 <DialogDescription>
-                                    Define the terms for your new policy. Click save when you're done.
+                                    Define the terms for your new policy.
                                 </DialogDescription>
                             </DialogHeader>
-                            <div className="grid gap-6 py-4">
+                            <div className="grid gap-5 py-4">
                                 <div className="grid gap-2">
                                     <Label htmlFor="name">Policy Name</Label>
                                     <Input
@@ -309,18 +370,10 @@ export default function PoliciesPage() {
                                 </div>
                             </div>
                             <DialogFooter>
-                                <Button
-                                    variant="outline"
-                                    onClick={() => setIsDialogOpen(false)}
-                                    disabled={isSubmitting}
-                                >
+                                <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isSubmitting}>
                                     Cancel
                                 </Button>
-                                <Button
-                                    onClick={handleCreatePolicy}
-                                    disabled={isSubmitting}
-                                    className="bg-black text-white hover:bg-gray-800"
-                                >
+                                <Button onClick={handleCreatePolicy} disabled={isSubmitting} className="bg-[#1e293b] text-white hover:bg-[#334155]">
                                     {isSubmitting ? "Saving..." : "Save Policy"}
                                 </Button>
                             </DialogFooter>
@@ -328,105 +381,162 @@ export default function PoliciesPage() {
                     </Dialog>
                 </div>
 
-                {/* Content Section */}
+                {/* Stats */}
+                <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+                    {[
+                        { label: "Total", count: groupedPolicies.length, icon: <FileText className="h-5 w-5" /> },
+                        { label: "Cancellation", count: groupedPolicies.filter((p) => p.type === "cancellation").length, icon: <AlertCircle className="h-5 w-5" /> },
+                        { label: "Deposit", count: groupedPolicies.filter((p) => p.type === "deposit").length, icon: <CreditCard className="h-5 w-5" /> },
+                        { label: "Guarantee", count: groupedPolicies.filter((p) => p.type === "guarantee").length, icon: <Shield className="h-5 w-5" /> },
+                    ].map((stat) => (
+                        <div key={stat.label} className="rounded-xl border border-[#e2e8f0] bg-white p-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-2xl font-bold text-[#0f172a]">{stat.count}</p>
+                                    <p className="text-xs font-medium text-[#94a3b8] mt-0.5">{stat.label}</p>
+                                </div>
+                                <div className="h-10 w-10 rounded-lg bg-[#f1f5f9] flex items-center justify-center text-[#475569]">
+                                    {stat.icon}
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                {/* Tabs */}
                 <Tabs defaultValue="all" className="w-full">
-                    <TabsList className="grid w-full max-w-md grid-cols-4 bg-white p-1 shadow-sm">
-                        <TabsTrigger value="all">All</TabsTrigger>
-                        <TabsTrigger value="cancellation">Cancellation</TabsTrigger>
-                        <TabsTrigger value="deposit">Deposit</TabsTrigger>
-                        <TabsTrigger value="guarantee">Guarantee</TabsTrigger>
+                    <TabsList className="w-full max-w-md bg-white border border-[#e2e8f0] p-1 rounded-lg">
+                        <TabsTrigger value="all" className="flex-1 rounded-md text-sm data-[state=active]:bg-[#1e293b] data-[state=active]:text-white">All</TabsTrigger>
+                        <TabsTrigger value="cancellation" className="flex-1 rounded-md text-sm data-[state=active]:bg-[#1e293b] data-[state=active]:text-white">Cancellation</TabsTrigger>
+                        <TabsTrigger value="deposit" className="flex-1 rounded-md text-sm data-[state=active]:bg-[#1e293b] data-[state=active]:text-white">Deposit</TabsTrigger>
+                        <TabsTrigger value="guarantee" className="flex-1 rounded-md text-sm data-[state=active]:bg-[#1e293b] data-[state=active]:text-white">Guarantee</TabsTrigger>
                     </TabsList>
 
-                    <div className="mt-6">
+                    <div className="mt-5">
                         {["all", "cancellation", "deposit", "guarantee"].map((tabValue) => (
                             <TabsContent key={tabValue} value={tabValue} className="mt-0">
-                                <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                                    {policies
-                                        .filter(
-                                            (p) => tabValue === "all" || p.type === tabValue
-                                        )
+                                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                                    {groupedPolicies
+                                        .filter((p) => tabValue === "all" || p.type === tabValue)
                                         .map((policy) => (
-                                            <Card
+                                            <div
                                                 key={policy.id}
-                                                className="group relative overflow-hidden transition-all hover:shadow-md"
+                                                className="group rounded-xl bg-white border border-[#e2e8f0] overflow-hidden transition-all duration-200 hover:shadow-md hover:border-[#cbd5e1]"
                                             >
-                                                <div className={`absolute left-0 top-0 h-full w-1 ${getPolicyColor(policy.type).split(" ")[0].replace("bg-", "bg-opacity-100 bg-")}`} />
-                                                <CardHeader className="pb-3">
-                                                    <div className="flex items-start justify-between">
-                                                        <div className="flex items-center gap-2">
+                                                {/* Card header with dark strip */}
+                                                <div className="bg-[#1e293b] px-5 py-3 flex items-center justify-between">
+                                                    <div className="flex items-center gap-2.5">
+                                                        <div className="h-7 w-7 rounded-lg bg-white/15 flex items-center justify-center text-white">
                                                             {getPolicyIcon(policy.type)}
-                                                            <Badge
-                                                                variant="secondary"
-                                                                className={`capitalize ${getPolicyColor(policy.type)}`}
-                                                            >
-                                                                {policy.type}
-                                                            </Badge>
                                                         </div>
-                                                        <DropdownMenu>
-                                                            <DropdownMenuTrigger asChild>
-                                                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                                                    <span className="sr-only">Open menu</span>
-                                                                    <MoreVertical className="h-4 w-4" />
-                                                                </Button>
-                                                            </DropdownMenuTrigger>
-                                                            <DropdownMenuContent align="end">
-                                                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                                                                <DropdownMenuItem onClick={() => handleAssignClick(policy)}>
-                                                                    <Link2 className="mr-2 h-4 w-4" />
-                                                                    Add to Rate Plan
-                                                                </DropdownMenuItem>
-                                                                <DropdownMenuSeparator />
-                                                                <DropdownMenuItem
-                                                                    onClick={() => handleDeleteClick(policy)}
-                                                                    className="text-red-600 focus:text-red-600"
-                                                                >
-                                                                    <Trash2 className="mr-2 h-4 w-4" />
-                                                                    Delete
-                                                                </DropdownMenuItem>
-                                                            </DropdownMenuContent>
-                                                        </DropdownMenu>
+                                                        <span className="text-xs font-semibold text-white/80 uppercase tracking-wider">
+                                                            {getTypeLabel(policy.type)}
+                                                        </span>
                                                     </div>
-                                                    <CardTitle className="mt-3 text-lg font-semibold flex items-center gap-2">
-                                                        {policy.policyName}
-                                                        {policy.ratePlanName && (
-                                                            <Badge variant="outline" className="text-xs font-normal text-gray-500">
-                                                                {policy.ratePlanName}
-                                                            </Badge>
-                                                        )}
-                                                    </CardTitle>
-                                                </CardHeader>
-                                                <CardContent>
-                                                    <p className="text-sm leading-relaxed text-gray-600 line-clamp-3">
-                                                        {policy.description || "No description provided."}
-                                                    </p>
-                                                    <div className={`mt-4 flex items-center gap-2 text-xs ${policy.ratePlanName ? "text-green-600" : "text-gray-400"}`}>
-                                                        {policy.ratePlanName ? <Check className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
-                                                        <span>{policy.ratePlanName ? "Active" : "Inactive"}</span>
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
-                                        ))}
-                                    {policies.filter((p) => tabValue === "all" || p.type === tabValue)
-                                        .length === 0 && (
-                                            <div className="col-span-full flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-gray-200 bg-white py-12 text-center">
-                                                <div className="rounded-full bg-gray-50 p-4">
-                                                    <FileText className="h-8 w-8 text-gray-400" />
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button
+                                                                variant="ghost"
+                                                                className="h-7 w-7 p-0 text-white/60 hover:text-white hover:bg-white/10 rounded-lg"
+                                                            >
+                                                                <MoreVertical className="h-4 w-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end" className="w-44">
+                                                            <DropdownMenuLabel className="text-xs text-[#94a3b8]">Actions</DropdownMenuLabel>
+                                                            <DropdownMenuItem onClick={() => handleEditClick(policy)} className="cursor-pointer text-sm">
+                                                                <Pencil className="mr-2 h-3.5 w-3.5 text-[#64748b]" />
+                                                                Edit Policy
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => handleAssignClick(policy)} className="cursor-pointer text-sm">
+                                                                <Link2 className="mr-2 h-3.5 w-3.5 text-[#64748b]" />
+                                                                Add to Rate Plan
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem
+                                                                onClick={() => handleDeleteClick(policy)}
+                                                                className="text-red-600 focus:text-red-600 cursor-pointer text-sm"
+                                                            >
+                                                                <Trash2 className="mr-2 h-3.5 w-3.5" />
+                                                                Delete
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
                                                 </div>
-                                                <h3 className="mt-4 text-lg font-semibold text-gray-900">
+
+                                                {/* Card body */}
+                                                <div className="p-5 space-y-4">
+                                                    <div>
+                                                        <h3 className="text-base font-semibold text-[#0f172a] leading-tight">
+                                                            {policy.policyName}
+                                                        </h3>
+                                                        <p className="text-sm text-[#94a3b8] mt-1 line-clamp-2 leading-relaxed">
+                                                            {policy.description || "No description provided."}
+                                                        </p>
+                                                    </div>
+
+                                                    {/* Rate Plans */}
+                                                    <div className="bg-Primary rounded-lg p-3 border border-[#f1f5f9]">
+                                                        <div className="flex items-center gap-1.5 mb-2">
+                                                            <Tag className="h-3 w-3 text-[#94a3b8]" />
+                                                            <span className="text-[10px] font-semibold text-[#94a3b8] uppercase tracking-widest">
+                                                                Linked Rate Plans
+                                                            </span>
+                                                        </div>
+                                                        {policy.ratePlans.length > 0 ? (
+                                                            <div className="flex flex-wrap gap-1.5">
+                                                                {policy.ratePlans.map((rp) => (
+                                                                    <span
+                                                                        key={rp.code}
+                                                                        className="inline-flex items-center gap-1.5 rounded-md bg-white px-2 py-1 text-xs font-medium text-[#475569] border border-[#e2e8f0]"
+                                                                    >
+                                                                        <span className="h-1.5 w-1.5 rounded-full bg-[#3b82f6]" />
+                                                                        {rp.name}
+                                                                    </span>
+                                                                ))}
+                                                            </div>
+                                                        ) : (
+                                                            <p className="text-xs text-[#cbd5e1] italic">
+                                                                No rate plans linked
+                                                            </p>
+                                                        )}
+                                                    </div>
+
+                                                    {/* Status */}
+                                                    <div className="flex items-center justify-between pt-2 border-t border-[#f1f5f9]">
+                                                        <div className={`flex items-center gap-1.5 text-xs font-medium ${policy.ratePlans.length > 0 ? "text-[#22c55e]" : "text-[#cbd5e1]"}`}>
+                                                            <span className={`h-1.5 w-1.5 rounded-full ${policy.ratePlans.length > 0 ? "bg-[#22c55e]" : "bg-[#cbd5e1]"}`} />
+                                                            {policy.ratePlans.length > 0 ? "Active" : "Inactive"}
+                                                        </div>
+                                                        {policy.ratePlans.length > 0 && (
+                                                            <span className="text-[11px] text-[#94a3b8]">
+                                                                {policy.ratePlans.length} plan{policy.ratePlans.length > 1 ? "s" : ""}
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    {groupedPolicies.filter((p) => tabValue === "all" || p.type === tabValue)
+                                        .length === 0 && (
+                                            <div className="col-span-full flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-[#e2e8f0] bg-white py-16 text-center">
+                                                <div className="rounded-xl bg-[#f1f5f9] p-4">
+                                                    <FileText className="h-8 w-8 text-[#94a3b8]" />
+                                                </div>
+                                                <h3 className="mt-4 text-lg font-semibold text-[#0f172a]">
                                                     No policies found
                                                 </h3>
-                                                <p className="mt-2 text-sm text-gray-500">
+                                                <p className="mt-1.5 text-sm text-[#94a3b8] max-w-xs">
                                                     {tabValue === "all"
                                                         ? "Get started by creating your first policy."
-                                                        : `No ${tabValue} policies found.`}
+                                                        : `No ${tabValue} policies yet.`}
                                                 </p>
                                                 {tabValue === "all" && (
                                                     <Button
-                                                        variant="link"
                                                         onClick={() => setIsDialogOpen(true)}
-                                                        className="mt-2 text-primary"
+                                                        className="mt-4 bg-[#1e293b] text-white hover:bg-[#334155]"
                                                     >
-                                                        Create one now
+                                                        <Plus className="mr-2 h-4 w-4" /> Create Policy
                                                     </Button>
                                                 )}
                                             </div>
@@ -437,23 +547,19 @@ export default function PoliciesPage() {
                     </div>
                 </Tabs>
 
-                {/* Delete Confirmation Dialog */}
+                {/* Delete Dialog */}
                 <AlertDialog open={!!policyToDelete} onOpenChange={(open) => !open && setPolicyToDelete(null)}>
                     <AlertDialogContent>
                         <AlertDialogHeader>
                             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
                             <AlertDialogDescription>
-                                This action cannot be undone. This will permanently delete the policy
-                                "{policyToDelete?.policyName}".
+                                This will permanently delete "{policyToDelete?.policyName}". This action cannot be undone.
                             </AlertDialogDescription>
                         </AlertDialogHeader>
                         <AlertDialogFooter>
                             <AlertDialogCancel disabled={isSubmitting}>Cancel</AlertDialogCancel>
                             <AlertDialogAction
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    handleConfirmDelete();
-                                }}
+                                onClick={(e) => { e.preventDefault(); handleConfirmDelete(); }}
                                 className="bg-red-600 hover:bg-red-700"
                                 disabled={isSubmitting}
                             >
@@ -463,7 +569,7 @@ export default function PoliciesPage() {
                     </AlertDialogContent>
                 </AlertDialog>
 
-                {/* Add to Rate Plan Dialog */}
+                {/* Assign to Rate Plan Dialog */}
                 <Dialog open={!!policyToAssign} onOpenChange={(open) => !open && setPolicyToAssign(null)}>
                     <DialogContent className="sm:max-w-[425px]">
                         <DialogHeader>
@@ -474,11 +580,8 @@ export default function PoliciesPage() {
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                             <div className="grid gap-2">
-                                <Label htmlFor="ratePlan">Select Rate Plan</Label>
-                                <Select
-                                    value={selectedRatePlanId}
-                                    onValueChange={setSelectedRatePlanId}
-                                >
+                                <Label>Select Rate Plan</Label>
+                                <Select value={selectedRatePlanId} onValueChange={setSelectedRatePlanId}>
                                     <SelectTrigger>
                                         <SelectValue placeholder="Select a rate plan" />
                                     </SelectTrigger>
@@ -493,19 +596,56 @@ export default function PoliciesPage() {
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button
-                                variant="outline"
-                                onClick={() => setPolicyToAssign(null)}
-                                disabled={isSubmitting}
-                            >
+                            <Button variant="outline" onClick={() => setPolicyToAssign(null)} disabled={isSubmitting}>
                                 Cancel
                             </Button>
-                            <Button
-                                onClick={handleConfirmAssign}
-                                disabled={isSubmitting}
-                                className="bg-black text-white hover:bg-gray-800"
-                            >
+                            <Button onClick={handleConfirmAssign} disabled={isSubmitting} className="bg-[#1e293b] text-white hover:bg-[#334155]">
                                 {isSubmitting ? "Assigning..." : "Add to Rate Plan"}
+                            </Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
+
+                {/* Edit Policy Dialog */}
+                <Dialog open={!!policyToEdit} onOpenChange={(open) => !open && setPolicyToEdit(null)}>
+                    <DialogContent className="sm:max-w-[500px]">
+                        <DialogHeader>
+                            <DialogTitle>Edit Policy</DialogTitle>
+                            <DialogDescription>
+                                Update the name and description for "{policyToEdit?.policyName}".
+                            </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-5 py-4">
+                            <div className="grid gap-2">
+                                <Label htmlFor="edit-name">Policy Name</Label>
+                                <Input
+                                    id="edit-name"
+                                    placeholder="e.g., Standard Cancellation"
+                                    value={editForm.policyName}
+                                    onChange={(e) =>
+                                        setEditForm({ ...editForm, policyName: e.target.value })
+                                    }
+                                />
+                            </div>
+                            <div className="grid gap-2">
+                                <Label htmlFor="edit-description">Description</Label>
+                                <Textarea
+                                    id="edit-description"
+                                    placeholder="Enter policy details..."
+                                    className="min-h-[100px]"
+                                    value={editForm.description}
+                                    onChange={(e) =>
+                                        setEditForm({ ...editForm, description: e.target.value })
+                                    }
+                                />
+                            </div>
+                        </div>
+                        <DialogFooter>
+                            <Button variant="outline" onClick={() => setPolicyToEdit(null)} disabled={isSubmitting}>
+                                Cancel
+                            </Button>
+                            <Button onClick={handleConfirmEdit} disabled={isSubmitting} className="bg-[#1e293b] text-white hover:bg-[#334155]">
+                                {isSubmitting ? "Updating..." : "Update Policy"}
                             </Button>
                         </DialogFooter>
                     </DialogContent>

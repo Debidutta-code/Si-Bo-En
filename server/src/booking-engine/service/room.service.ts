@@ -251,7 +251,7 @@ export class RoomBookingService {
                 adults: roomConfig.adults,
                 children: roomConfig.children
             };
-            const calc = new RoomBasePriceCalculator(charges[0], perRoomGuests);
+            const calc = new RoomBasePriceCalculator(charges[0], perRoomGuests, room);
             const result = calc.calculate();
             if (result === null) return null;
             baseAmount += result.baseAmount * numberOfNights;
@@ -551,13 +551,31 @@ class PromotionFilter {
 class RoomBasePriceCalculator {
     private charge: IRoomCharge;
     private guests: IBookingSearchPayload['guests'];
+    private room: IPropertyRoom;
 
-    constructor(charge: IRoomCharge, guests: IBookingSearchPayload['guests']) {
+    constructor(
+        charge: IRoomCharge,
+        guests: IBookingSearchPayload['guests'],
+        room: IPropertyRoom                     // ← new param
+    ) {
         this.charge = charge;
         this.guests = guests;
+        this.room = room;
     }
 
     calculate(): { baseAmount: number; sortedBaseAmounts: IRoomChargeBaseByGuest[] } | null {
+        const { adults, children } = this.guests;
+        const { maxOccupancy, maxNumberOfAdults, maxNumberOfChildren } = this.room;
+
+        if (adults + children > maxOccupancy) return null;
+
+        // ✅ NEW: validate that extra guests don't exceed the available gap
+        const extraAdults = Math.max(0, adults - maxNumberOfAdults);
+        const extraChildren = Math.max(0, children - maxNumberOfChildren);
+        const extraGuestGap = maxOccupancy - maxNumberOfAdults - maxNumberOfChildren;
+
+        if (extraAdults + extraChildren > extraGuestGap) return null;
+
         const adultBaseAmounts = this.charge.baseGuestAmounts
             .filter((b: IRoomChargeBaseByGuest) => b.ageQualifyingCode === '10')
             .sort((a: IRoomChargeBaseByGuest, b: IRoomChargeBaseByGuest) => a.numberOfGuests - b.numberOfGuests);
@@ -572,17 +590,23 @@ class RoomBasePriceCalculator {
         const additionalChildCharge = this.charge.additionalGuestAmounts
             .find((a: IRoomChargeAdditionalGuest) => a.ageQualifyingCode === '8');
 
-        // Calculate adult price
-        const adultResult = this.calculateAdultPrice(adultBaseAmounts, additionalAdultCharge);
+        const adultResult = this.calculateAdultPrice(
+            adults,
+            maxNumberOfAdults,
+            adultBaseAmounts,
+            additionalAdultCharge
+        );
         if (adultResult === null) return null;
 
-        // Calculate child price
-        const childResult = this.calculateChildPrice(childBaseAmounts, additionalChildCharge);
+        const childResult = this.calculateChildPrice(
+            children,
+            maxNumberOfChildren,
+            childBaseAmounts,
+            additionalChildCharge
+        );
         if (childResult === null) return null;
 
-        const baseAmount =
-            adultResult.basePrice + childResult.basePrice +
-            adultResult.additionalCharges + childResult.additionalCharges;
+        const baseAmount = adultResult + childResult;
 
         const sortedBaseAmounts = [...this.charge.baseGuestAmounts].sort(
             (a: IRoomChargeBaseByGuest, b: IRoomChargeBaseByGuest) => a.numberOfGuests - b.numberOfGuests
@@ -592,63 +616,62 @@ class RoomBasePriceCalculator {
     }
 
     private calculateAdultPrice(
+        adults: number,
+        maxAdults: number,
         adultBaseAmounts: IRoomChargeBaseByGuest[],
         additionalAdultCharge: IRoomChargeAdditionalGuest | undefined
-    ): { basePrice: number; additionalCharges: number } | null {
-        let basePrice = 0;
-        let additionalCharges = 0;
+    ): number | null {
 
-        const exactAdultBase = adultBaseAmounts.find(b => b.numberOfGuests === this.guests.adults);
-        if (exactAdultBase) {
-            basePrice = Number(exactAdultBase.amountBeforeTax);
-        } else if (adultBaseAmounts.length > 0) {
-            const maxAdultBase = adultBaseAmounts[adultBaseAmounts.length - 1];
-            basePrice = Number(maxAdultBase.amountBeforeTax);
-            const extraAdults = this.guests.adults - maxAdultBase.numberOfGuests;
-            if (extraAdults > 0) {
-                if (!additionalAdultCharge) return null;
-                additionalCharges = extraAdults * Number(additionalAdultCharge.amount);
-            }
-        } else {
-            if (additionalAdultCharge) {
-                additionalCharges = this.guests.adults * Number(additionalAdultCharge.amount);
-            } else {
-                return null;
-            }
+        if (adults <= maxAdults) {
+            const exact = adultBaseAmounts.find(b => b.numberOfGuests === adults);
+            if (!exact) return null;
+            return Number(exact.amountBeforeTax);
         }
 
-        return { basePrice, additionalCharges };
+        const maxBase = adultBaseAmounts.find(b => b.numberOfGuests === maxAdults);
+        if (!maxBase) return null;
+        if (!additionalAdultCharge) return null;
+
+        const extraAdults = adults - maxAdults;
+        return Number(maxBase.amountBeforeTax) + extraAdults * Number(additionalAdultCharge.amount);
     }
 
     private calculateChildPrice(
+        children: number,
+        maxChildren: number,
         childBaseAmounts: IRoomChargeBaseByGuest[],
         additionalChildCharge: IRoomChargeAdditionalGuest | undefined
-    ): { basePrice: number; additionalCharges: number } | null {
-        let basePrice = 0;
-        let additionalCharges = 0;
+    ): number | null {
 
-        if (this.guests.children <= 0) return { basePrice: 0, additionalCharges: 0 };
+        if (children === 0) return 0;
 
-        const exactChildBase = childBaseAmounts.find(b => b.numberOfGuests === this.guests.children);
-        if (exactChildBase) {
-            basePrice = Number(exactChildBase.amountBeforeTax);
-        } else if (childBaseAmounts.length > 0) {
-            const maxChildBase = childBaseAmounts[childBaseAmounts.length - 1];
-            basePrice = Number(maxChildBase.amountBeforeTax);
-            const extraChildren = this.guests.children - maxChildBase.numberOfGuests;
-            if (extraChildren > 0) {
-                if (!additionalChildCharge) return null;
-                additionalCharges = extraChildren * Number(additionalChildCharge.amount);
-            }
-        } else {
-            if (additionalChildCharge) {
-                additionalCharges = this.guests.children * Number(additionalChildCharge.amount);
-            } else {
-                return null;
-            }
-        }
+        if (children <= maxChildren && childBaseAmounts.length === 0) return 0;
 
-        return { basePrice, additionalCharges };
+        const basePrice = this.resolveChildBasePrice(
+            Math.min(children, maxChildren),
+            childBaseAmounts
+        );
+        if (basePrice === null) return null;
+
+        if (children <= maxChildren) return basePrice;
+
+        if (!additionalChildCharge) return null;
+
+        const extraChildren = children - maxChildren;
+        return basePrice + extraChildren * Number(additionalChildCharge.amount);
+    }
+
+    private resolveChildBasePrice(
+        count: number,
+        childBaseAmounts: IRoomChargeBaseByGuest[]
+    ): number | null {
+        if (childBaseAmounts.length === 0) return 0;
+
+        const exact = childBaseAmounts.find(b => b.numberOfGuests === count);
+        if (exact) return Number(exact.amountBeforeTax);
+
+        const highest = childBaseAmounts[childBaseAmounts.length - 1];
+        return Number(highest.amountBeforeTax);
     }
 }
 

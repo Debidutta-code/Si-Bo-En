@@ -38,37 +38,37 @@ export default function Dashboard() {
     code: "",
     name: ""
   })
-  
+
   useEffect(() => {
-    if(user?.role!="housekeeping"&&user?.role != "front_desk"){
+    if (user?.role != "housekeeping" && user?.role != "front_desk") {
       fetchProperties();
     }
   }, []);
 
   // 🆕 NEW: Fetch statistics when comparison type or date changes
-useEffect(() => {
-  // Always fetch statistics when comparison type or date changes
-  // regardless of property selection
-  if (allProperties.length > 0 || !selectedProperty.id) {
-    fetchStatistics(selectedProperty?.id, selectedProperty?.code, selectedProperty?.name);
-  }
-}, [comparisonType, selectedDate, selectedProperty.id]);
-
-const handlePropertyChange = (propertyId: string) => {
-  if (propertyId === "all") {
-    // Reset to show all properties
-    setSelectedProperty({ id: "", code: "", name: "" });
-    fetchAnalytics();
-    fetchStatistics();
-  } else {
-    const property = allProperties.find(p => p.id === propertyId);
-    if (property) {
-      setSelectedProperty(property);
-      fetchAnalytics(property?.id, property?.code, property?.name);
-      fetchStatistics(property?.id, property?.code, property?.name);
+  useEffect(() => {
+    // Always fetch statistics when comparison type or date changes
+    // regardless of property selection
+    if (allProperties.length > 0 || !selectedProperty.id) {
+      fetchStatistics(selectedProperty?.id, selectedProperty?.code, selectedProperty?.name);
     }
-  }
-};
+  }, [comparisonType, selectedDate, selectedProperty.id]);
+
+  const handlePropertyChange = (propertyId: string) => {
+    if (propertyId === "all") {
+      // Reset to show all properties
+      setSelectedProperty({ id: "", code: "", name: "" });
+      fetchAnalytics();
+      fetchStatistics();
+    } else {
+      const property = allProperties.find(p => p.id === propertyId);
+      if (property) {
+        setSelectedProperty(property);
+        fetchAnalytics(property?.id, property?.code, property?.name);
+        fetchStatistics(property?.id, property?.code, property?.name);
+      }
+    }
+  };
 
   // 🆕 NEW FUNCTION: Fetch Statistics Comparison
   const fetchStatistics = async (propertyId?: string, propertyCode?: string, propertyName?: string) => {
@@ -97,7 +97,7 @@ const handlePropertyChange = (propertyId: string) => {
     }
   };
 
-  const fetchAnalytics = async (propertyId?:string, propertyCode?:string, propertyName?:string) => {
+  const fetchAnalytics = async (propertyId?: string, propertyCode?: string, propertyName?: string) => {
     try {
       setLoader({ isLoading: true, message: "Fetching Analytics ..." });
       setError(null);
@@ -120,33 +120,33 @@ const handlePropertyChange = (propertyId: string) => {
       setLoader({ isLoading: false, message: "" });
     }
   };
-  
-const fetchProperties = async () => {
-  try {
-    setLoader({ isLoading: true, message: "Fetching Property Names ..." });
-    setError(null);
 
-    const response = await fetchPropertiesService();
+  const fetchProperties = async () => {
+    try {
+      setLoader({ isLoading: true, message: "Fetching Property Names ..." });
+      setError(null);
 
-    if (response.success) {
-      setAllProperties(response.data);
-      
-      // ✅ Fetch analytics without property filter
-      await fetchAnalytics();
-      await fetchStatistics();
-    } else {
-      setError(response.message || "Failed to fetch properties");
-      toast.error(response.message || "Failed to fetch properties");
+      const response = await fetchPropertiesService();
+
+      if (response.success) {
+        setAllProperties(response.data);
+
+        // ✅ Fetch analytics without property filter
+        await fetchAnalytics();
+        await fetchStatistics();
+      } else {
+        setError(response.message || "Failed to fetch properties");
+        toast.error(response.message || "Failed to fetch properties");
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
+      setError(errorMessage);
+      toast.error(errorMessage);
+      console.error("Error fetching properties:", err);
+    } finally {
+      setLoader({ isLoading: false, message: "" });
     }
-  } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
-    setError(errorMessage);
-    toast.error(errorMessage);
-    console.error("Error fetching properties:", err);
-  } finally {
-    setLoader({ isLoading: false, message: "" });
   }
-}
 
   if (loader.isLoading) {
     return (
@@ -166,7 +166,7 @@ const fetchProperties = async () => {
           </div>
           <p className="text-red-700 mb-4">{error}</p>
           <button
-            onClick={()=>{
+            onClick={() => {
               fetchAnalytics();
               fetchStatistics(); // 🆕 NEW
             }}
@@ -185,7 +185,7 @@ const fetchProperties = async () => {
         <div className="text-center">
           <p className="text-muted-foreground mb-4">No analytics data available</p>
           <button
-            onClick={()=>{
+            onClick={() => {
               fetchAnalytics();
               fetchStatistics(); // 🆕 NEW
             }}
@@ -225,39 +225,66 @@ const fetchProperties = async () => {
             </Select>
 
             {/* 🆕 NEW: Date/Month Picker */}
-            <input
-              type={comparisonType === 'date' ? 'date' : 'month'}
-              value={comparisonType === 'date' 
-                ? selectedDate.toISOString().split('T')[0]
-                : `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}`
-              }
-              onChange={(e) => setSelectedDate(new Date(e.target.value))}
-              className="px-3 py-2 border rounded-md text-sm"
-            />
+            {/* 🆕 UPDATED: Date / Month / Year Picker */}
+            {comparisonType === 'year' ? (
+              <Select
+                value={selectedDate.getFullYear().toString()}
+                onValueChange={(year) =>
+                  setSelectedDate(new Date(`${year}-01-01`))
+                }
+              >
+                <SelectTrigger className="w-[120px]">
+                  <SelectValue placeholder="Select Year" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 10 }, (_, i) => {
+                    const year = new Date().getFullYear() - i;
+                    return (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            ) : (
+              <input
+                type={comparisonType === 'date' ? 'date' : 'month'}
+                value={
+                  comparisonType === 'date'
+                    ? selectedDate.toISOString().split('T')[0]
+                    : `${selectedDate.getFullYear()}-${String(
+                      selectedDate.getMonth() + 1
+                    ).padStart(2, '0')}`
+                }
+                onChange={(e) => setSelectedDate(new Date(e.target.value))}
+                className="px-3 py-2 border rounded-md text-sm"
+              />
+            )}
 
             {allProperties.length > 1 && (
-  <Select
-    value={selectedProperty.id || "all"}
-    onValueChange={handlePropertyChange}
-  >
-    <SelectTrigger className="w-[200px]">
-      <Building2 className="h-4 w-4 mr-2" />
-      <SelectValue placeholder="Select All" />
-    </SelectTrigger>
-    <SelectContent>
-      <SelectItem value="all">Select All</SelectItem>
-      {allProperties.map((property) => (
-        <SelectItem key={property.id} value={property.id}>
-          <div className="flex flex-col">
-            <span className="font-medium">{property.name}</span>
-          </div>
-        </SelectItem>
-      ))}
-    </SelectContent>
-  </Select>
-)}
+              <Select
+                value={selectedProperty.id || "all"}
+                onValueChange={handlePropertyChange}
+              >
+                <SelectTrigger className="w-[200px]">
+                  <Building2 className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Select All" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Select All</SelectItem>
+                  {allProperties.map((property) => (
+                    <SelectItem key={property.id} value={property.id}>
+                      <div className="flex flex-col">
+                        <span className="font-medium">{property.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
             <Button
-              onClick={()=>{
+              onClick={() => {
                 if (selectedProperty.id) {
                   fetchAnalytics(selectedProperty.id, selectedProperty.code, selectedProperty.name);
                   fetchStatistics(selectedProperty.id, selectedProperty.code, selectedProperty.name); // 🆕 NEW

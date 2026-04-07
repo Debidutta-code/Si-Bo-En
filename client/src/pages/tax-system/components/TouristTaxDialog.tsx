@@ -58,7 +58,7 @@ export default function TouristTaxDialog({
                     discountType: touristTax.discountType,
                     discountValue: touristTax.discountValue || 0,
                     currencyCode: touristTax.currencyCode || "USD",
-                    name: ""
+                    name: touristTax.name || ""
                 });
             } else {
                 setFormData({

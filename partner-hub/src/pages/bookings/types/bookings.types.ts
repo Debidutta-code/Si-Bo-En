@@ -1,4 +1,5 @@
-// Payment Details Interface
+// ─── Payment ──────────────────────────────────────────────────────────────────
+
 export interface IPaymentDetails {
   id: string;
   payAtHotel: boolean;
@@ -8,105 +9,117 @@ export interface IPaymentDetails {
   updatedAt: string;
 }
 
-export interface IPaymentDetailsResponse {
-  success: boolean;
-  message: string;
-  data: IPaymentDetails;
-  timestamp: string;
-}
-
-// Guest Form Interface
-export interface IGuestFormData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phoneNumber: string;
-  dateOfBirth?: string;
-}
-
-// Payment Method Type
 export type PaymentMethodType = 'payAtHotel' | 'paymentGateway';
 
-// Daily Breakdown
-export interface IDailyBreakdown {
-  date: string;
-  dayOfWeek: string;
-  ratePlanCode: string;
-  baseRate: number;
-  additionalCharges: number;
-  totalPerRoom: number;
-  totalForAllRooms: number;
-  currencyCode: string;
-  breakdown: {
-    baseAmount: number;
-    additionalAdultCharges: number;
-    additionalChildrenCharges: number;
-    totalAdditionalCharges: number;
-    baseGuestsIncluded: number;
-    adultsInBaseRate: number;
-    childrenInBaseRate: number;
-    adultsNotInBaseRate: number;
-    childrenNotInBaseRate: number;
-  };
+// ─── Guest Form ───────────────────────────────────────────────────────────────
+
+export type GuestType = 'adult' | 'child';
+
+export interface IGuestEntry {
+  type: GuestType;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
 }
 
-// Included Addon
-export interface IIncludedAddon {
-  addonId: string;
-  addonName: string;
-  addonCode: string;
-  postingRhythm: string;
-  amount: number;
-  currencyCode: string;
-  description: string;
+export interface IGuestFormData {
+  primaryEmail: string;
+  primaryPhone: string;
+  guests: IGuestEntry[];
 }
 
-// Tax
-export interface ITax {
-  name: string;
-  amount: number;
-  type: string;
+export interface IGuestFormErrors {
+  primaryEmail?: string;
+  primaryPhone?: string;
+  guests: Partial<IGuestEntry>[];
 }
 
-// Agency Commission
-export interface IAgencyCommission {
-  commissionType: string;
+// ─── Pricing Response ─────────────────────────────────────────────────────────
+
+export interface IAgencyCommissionDetail {
+  commissionType: 'percentage' | 'fixed';
   commissionValue: number;
   commissionAmount: number;
   commissionCurrency: string;
 }
 
-// Pricing Breakdown
-export interface IPricingBreakdown {
-  totalBaseAmount: number;
-  totalAdditionalCharges: number;
-  totalIncludedAddons: number;
+export interface ITaxDetail {
+  name: string;
+  amount: number;
+  type: 'percentage' | 'fixed';
+}
+
+export interface ITouristTaxDetail {
+  id: string;
+  name: string;
+  discountType: 'percentage' | 'fixed';
+  discountValue: number;
+  calculatedAmount: number;
+  currencyCode: string;
+}
+
+export interface IIncludedAddonDetail {
+  addonId: string;
+  addonName: string;
+  addonCode: string;
+  postingRhythm: string;
+  totalAmount: number;
+  currencyCode: string;
+  description: string;
+}
+
+export interface IPerRoomBreakdown {
+  roomNumber: number;
+  adults: number;
+  children: number;
+  adultBaseAmount: number;
+  childBaseAmount: number;
+  additionalAdultCharges: number;
+  additionalChildCharges: number;
+  roomTotal: number;
+}
+
+export interface IDailyBreakdown {
+  date: string;
+  dayOfWeek: string;
+  baseAmount: number;
+  additionalCharges: number;
+  totalForAllRooms: number;
+  currencyCode: string;
+  perRoomBreakdown: IPerRoomBreakdown[];
+}
+
+export interface IAgentPricingBreakdown {
+  amountBeforeTax: number;
+  totalAddonAmount: number;
   subtotal: number;
-  agencyCommission: number;
-  totalBeforeTax: number;
-  totalTax: number;
+  agencyCommissionAmount: number;
+  totalAfterCommission: number;
+  taxedAmount: number;
+  currentChargeableAmount: number;
+  latterpayableAmount: number;
   totalAmount: number;
   averagePerNight: number;
 }
 
-// Main Pricing Response
-export interface IAgentPricingResponse {
-  totalAmount: number;
+export interface IAgentFinalPriceResponse {
   numberOfNights: number;
-  baseRatePerNight: number;
-  additionalGuestCharges: number;
-  breakdown: IPricingBreakdown;
+  currencyCode: string;
+  currentChargeableAmount: number;
+  latterpayableAmount: number;
+  totalAmount: number;
+  breakdown: IAgentPricingBreakdown;
   dailyBreakdown: IDailyBreakdown[];
+  includedAddons: IIncludedAddonDetail[];
+  agencyCommission: IAgencyCommissionDetail;
+  taxes: ITaxDetail[];
+  touristTax: ITouristTaxDetail | null;
   availableRooms: number;
   requestedRooms: number;
-  includedAddons: IIncludedAddon[];
-  agencyCommission: IAgencyCommission;
-  tax: ITax[];
-  totalTax: number;
-  priceAfterTax: number;
 }
 
-// Booking Payload
+// ─── Booking Payload ──────────────────────────────────────────────────────────
+
 export interface ICreateBookingPayload {
   data: {
     bookingDetails: {
@@ -117,7 +130,7 @@ export interface ICreateBookingPayload {
       roomTypeCode: string;
       ratePlanCode: string;
       numberOfRooms: number;
-      finalPrice: IAgentPricingResponse;
+      finalPrice: IAgentFinalPriceResponse;
       promoCode?: string | null;
       currency: string;
       email: string;
@@ -128,11 +141,11 @@ export interface ICreateBookingPayload {
         rooms: number;
       };
       paymentMethod: string;
-      selectedAddons?: any[];
-      selectedPromotions?: any[];
+      selectedAddons?: string[];
+      selectedPromotions?: string[];
     };
     guestDetails: Array<{
-      type: "adult" | "child" | "infant";
+      type: 'adult' | 'child' | 'infant';
       firstName: string;
       lastName: string;
       dateOfBirth?: string;
@@ -142,7 +155,8 @@ export interface ICreateBookingPayload {
   };
 }
 
-// Booking Response Data
+// ─── Booking Response ─────────────────────────────────────────────────────────
+
 export interface IBookingData {
   id: string;
   bookingCode: string;
@@ -155,25 +169,18 @@ export interface IBookingData {
   checkOutDate: string;
   bookedAt: string;
   primaryGuestId: string;
-  guests: any;
   bookingUserEmail: string;
   bookingUserPhone: string;
   amount: number;
   currencyCode: string;
-  finalPrice: IAgentPricingResponse;
+  finalPrice: IAgentFinalPriceResponse;
   paidAmount: number;
   extraAmountToPay: number;
   refundAmount: number;
   paymentMethod: string;
-  paymentImages: any;
   bookingStatus: string;
   cancellationReason: string | null;
   bookingSource: string;
-  isPromoUsed: boolean;
-  promoId: string | null;
-  countryCode: string;
-  timezone: string;
-  deviceTypes: string;
   agencyId: string;
   createdAt: string;
   updatedAt: string;
@@ -184,7 +191,6 @@ export interface IBookingData {
     email: string;
     phoneNumber: string;
   };
-  priceBreakdowns?: any[];
 }
 
 export interface ICreateBookingResponse {

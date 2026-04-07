@@ -62,14 +62,13 @@ const StatCard = ({
   const getPeriodLabel = (label: string) => {
     const monthMatch = label.match(/^(\w+)\s+(\d{4})$/);
     if (monthMatch) {
-      return monthMatch[2];
+      return monthMatch[1].slice(0, 3);
     }
-    
     const rangeMatch = label.match(/(\d{4})/g);
     if (rangeMatch && rangeMatch.length >= 1) {
       return rangeMatch[rangeMatch.length - 1];
     }
-    
+
     return label;
   };
 
@@ -80,10 +79,10 @@ const StatCard = ({
   const maxValue = Math.max(metric.current, metric.previous);
   const currentHeight = maxValue > 0 ? (metric.current / maxValue) * 100 : 0;
   const previousHeight = maxValue > 0 ? (metric.previous / maxValue) * 100 : 0;
-  
+
   // Get descriptive label based on card title
   const getDescriptiveLabel = () => {
-    switch(title) {
+    switch (title) {
       case 'Bookings':
         return `${formatValue(metric.current)} Bookings`;
       case 'Revenue':
@@ -151,13 +150,12 @@ const StatCard = ({
       </div>
 
       {/* Percentage Change */}
-      <div className={`flex items-center justify-center gap-1 text-xs font-semibold ${
-        isPositive 
-          ? 'text-green-600' 
-          : isNegative 
-          ? 'text-red-600' 
-          : 'text-gray-600'
-      }`}>
+      <div className={`flex items-center justify-center gap-1 text-xs font-semibold ${isPositive
+          ? 'text-green-600'
+          : isNegative
+            ? 'text-red-600'
+            : 'text-gray-600'
+        }`}>
         {isPositive ? (
           <>
             <TrendingUp className="h-3.5 w-3.5" />
@@ -201,7 +199,7 @@ export default function StatisticsStats({ data }: StatisticsStatsProps) {
           period={data.period}
           format="number"
         />
-        
+
         <StatCard
           title="Revenue"
           metric={data.revenue}
@@ -209,7 +207,7 @@ export default function StatisticsStats({ data }: StatisticsStatsProps) {
           format="currency"
           currency="USD"
         />
-        
+
         <StatCard
           title="Average Booking Value"
           metric={data.averageBookingValue}
@@ -217,14 +215,14 @@ export default function StatisticsStats({ data }: StatisticsStatsProps) {
           format="currency"
           currency="USD"
         />
-        
+
         <StatCard
           title="Cancellation Rate"
           metric={data.cancelledBookings}
           period={data.period}
           format="number"
         />
-        
+
         <StatCard
           title="Room Nights"
           metric={data.roomNights}

@@ -10,6 +10,7 @@ export interface IPolicy{
     policyName: string;
     type: PolicyTypes;
     description?: string;
+    ratePlanCode?: string;
     ratePlanName?:string;
     propertyId: string;
     createdAt: Date;

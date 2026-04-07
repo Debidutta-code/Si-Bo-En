@@ -3,9 +3,12 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { fetchPaymentDetailsService, createBookingService } from './service/bookings.service';
 import type {
   IGuestFormData,
+  IGuestFormErrors,
+  IGuestEntry,
+  GuestType,
   IPaymentDetails,
   PaymentMethodType,
-  IAgentPricingResponse,
+  IAgentFinalPriceResponse,
   ICreateBookingPayload,
 } from './types/bookings.types';
 import toast from 'react-hot-toast';
@@ -23,6 +26,7 @@ import {
   DollarSign,
   CalendarDays,
   User,
+  Users,
   Mail,
   Phone,
   Cake,
@@ -31,10 +35,40 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface LocationState {
-  roomsData: any[];
-  ratePlan: any;
-  dateRange: any;
-  pricingDetails: IAgentPricingResponse;
+  room: {
+    id: string;
+    roomType: string;
+    roomName: string;
+  };
+  roomPrice: {
+    ratePlanCode: string;
+    ratePlanName: string;
+    currencyCode: string;
+  };
+  searchCriteria: {
+    startDate: string;
+    endDate: string;
+  };
+  pricingDetails: IAgentFinalPriceResponse;
+}
+
+// ─── Build initial guest list from dailyBreakdown ──────────────────────────────
+
+function buildInitialGuests(pricingDetails: IAgentFinalPriceResponse): IGuestEntry[] {
+  const guests: IGuestEntry[] = [];
+  const firstDay = pricingDetails.dailyBreakdown[0];
+  if (!firstDay) return guests;
+
+  firstDay.perRoomBreakdown.forEach((room) => {
+    for (let i = 0; i < room.adults; i++) {
+      guests.push({ type: 'adult', firstName: '', lastName: '', dateOfBirth: '' });
+    }
+    for (let i = 0; i < room.children; i++) {
+      guests.push({ type: 'child', firstName: '', lastName: '', dateOfBirth: '' });
+    }
+  });
+
+  return guests;
 }
 
 export default function BookingPage() {
@@ -48,38 +82,30 @@ export default function BookingPage() {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethodType | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // Guest form data
+  const initialGuests = locationState?.pricingDetails
+    ? buildInitialGuests(locationState.pricingDetails)
+    : [];
+
   const [guestData, setGuestData] = useState<IGuestFormData>({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phoneNumber: '',
-    dateOfBirth: '',
+    primaryEmail: '',
+    primaryPhone: '',
+    guests: initialGuests,
   });
 
-  // Validation errors
-  const [errors, setErrors] = useState<Partial<IGuestFormData>>({});
+  const [errors, setErrors] = useState<IGuestFormErrors>({
+    primaryEmail: undefined,
+    primaryPhone: undefined,
+    guests: initialGuests.map(() => ({})),
+  });
 
   useEffect(() => {
-    // Check if we have the required state data
-    // if (!locationState?.pricingDetails || !locationState?.ratePlan) {
-    //   toast.error('Missing booking details. Please start from property selection.');
-    //   navigate('/property');
-    //   return;
-    // }
-
     const fetchPaymentMethods = async () => {
-      console.log(propertyId, "propertyId")
       if (!propertyId) return;
-
       setLoading(true);
       const result = await fetchPaymentDetailsService(propertyId);
-      console.log(result, "result")
 
       if (result.success && result.data) {
         setPaymentDetails(result.data);
-
-        // Auto-select the first available payment method
         if (result.data.payAtHotel) {
           setSelectedPaymentMethod('payAtHotel');
         } else if (result.data.paymentGateway) {
@@ -92,139 +118,146 @@ export default function BookingPage() {
     };
 
     fetchPaymentMethods();
-  }, [propertyId, locationState, navigate]);
+  }, [propertyId]);
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-IN', {
+  const formatDate = (dateString: string) =>
+    new Date(dateString).toLocaleDateString('en-IN', {
       day: '2-digit',
       month: 'short',
       year: 'numeric',
     });
-  };
 
-  const formatCurrency = (amount: number, currency: string = 'USD') => {
-    return new Intl.NumberFormat('en-US', {
+  const formatCurrency = (amount: number, currency: string = 'USD') =>
+    new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: currency,
+      currency,
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(amount);
-  };
+
+  // ─── Validation ─────────────────────────────────────────────────────────────
 
   const validateForm = (): boolean => {
-    const newErrors: Partial<IGuestFormData> = {};
+    const newErrors: IGuestFormErrors = {
+      primaryEmail: undefined,
+      primaryPhone: undefined,
+      guests: guestData.guests.map(() => ({})),
+    };
 
-    if (!guestData.firstName.trim()) {
-      newErrors.firstName = 'First name is required';
+    if (!guestData.primaryEmail.trim()) {
+      newErrors.primaryEmail = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestData.primaryEmail)) {
+      newErrors.primaryEmail = 'Invalid email format';
     }
-    if (!guestData.lastName.trim()) {
-      newErrors.lastName = 'Last name is required';
+
+    if (!guestData.primaryPhone.trim()) {
+      newErrors.primaryPhone = 'Phone number is required';
+    } else if (!/^[0-9+\s\-()]{10,}$/.test(guestData.primaryPhone)) {
+      newErrors.primaryPhone = 'Invalid phone number';
     }
-    if (!guestData.email.trim()) {
-      newErrors.email = 'Email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(guestData.email)) {
-      newErrors.email = 'Invalid email format';
-    }
-    if (!guestData.phoneNumber.trim()) {
-      newErrors.phoneNumber = 'Phone number is required';
-    } else if (!/^[0-9+\s-()]{10,}$/.test(guestData.phoneNumber)) {
-      newErrors.phoneNumber = 'Invalid phone number';
-    }
+
+    guestData.guests.forEach((guest, i) => {
+      const guestErrors: Partial<IGuestEntry> = {};
+      if (!guest.firstName.trim()) guestErrors.firstName = 'First name is required';
+      if (!guest.lastName.trim()) guestErrors.lastName = 'Last name is required';
+      newErrors.guests[i] = guestErrors;
+    });
 
     setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+
+    const hasContactErrors = !!newErrors.primaryEmail || !!newErrors.primaryPhone;
+    const hasGuestErrors = newErrors.guests.some(
+      (g) => Object.keys(g).length > 0
+    );
+    return !hasContactErrors && !hasGuestErrors;
   };
 
-  const handleInputChange = (field: keyof IGuestFormData, value: string) => {
+  // ─── Input handlers ──────────────────────────────────────────────────────────
+
+  const handleContactChange = (field: 'primaryEmail' | 'primaryPhone', value: string) => {
     setGuestData((prev) => ({ ...prev, [field]: value }));
-    // Clear error for this field when user starts typing
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
+
+  const handleGuestChange = (index: number, field: keyof IGuestEntry, value: string) => {
+    setGuestData((prev) => {
+      const updated = [...prev.guests];
+      updated[index] = { ...updated[index], [field]: value };
+      return { ...prev, guests: updated };
+    });
+    setErrors((prev) => {
+      const updated = [...prev.guests];
+      updated[index] = { ...updated[index], [field]: undefined };
+      return { ...prev, guests: updated };
+    });
+  };
+
+  // ─── Submit ──────────────────────────────────────────────────────────────────
 
   const handleConfirmBooking = async () => {
     if (!validateForm()) {
       toast.error('Please fill in all required fields correctly');
       return;
     }
-
     if (!selectedPaymentMethod) {
       toast.error('Please select a payment method');
       return;
     }
 
-    // if (!locationState?.pricingDetails || !locationState?.ratePlan || !locationState?.dateRange) {
-    //   toast.error('Missing booking information');
-    //   return;
-    // }
-
     setIsProcessing(true);
 
     try {
-      const { pricingDetails, ratePlan, dateRange, roomsData } = locationState;
-      console.log(roomsData, "pricingDetails, ratePlan, dateRange, roomsData")
-      const room = roomsData.find((r: any) => r.room.room.id === roomId);
-      
-      if (!room) {
-        toast.error('Room information not found');
-        setIsProcessing(false);
-        return;
-      }
+      const { pricingDetails, room, roomPrice, searchCriteria } = locationState;
 
-      // Get property details from the first charge
-      const firstCharge = ratePlan.chargesPerDay[0]?.charge;
-      if (!firstCharge) {
-        toast.error('Pricing information not found');
-        setIsProcessing(false);
-        return;
-      }
+      const totalAdults = pricingDetails.dailyBreakdown[0]?.perRoomBreakdown.reduce(
+        (sum, r) => sum + r.adults, 0
+      ) ?? 0;
+      const totalChildren = pricingDetails.dailyBreakdown[0]?.perRoomBreakdown.reduce(
+        (sum, r) => sum + r.children, 0
+      ) ?? 0;
 
-      // Build booking payload
       const bookingPayload: ICreateBookingPayload = {
         data: {
           bookingDetails: {
-            startDate: dateRange.startDate,
-            endDate: dateRange.endDate,
-            propertyCode: firstCharge.propertyCode,
-            hotelName: room.room.room.roomName, // You might want to get actual hotel name
-            roomTypeCode: firstCharge.roomTypeCode,
-            ratePlanCode: ratePlan?.ratePlan.ratePlanCode,
+            startDate: searchCriteria.startDate,
+            endDate: searchCriteria.endDate,
+            propertyCode: pricingDetails.dailyBreakdown[0]?.currencyCode ?? '',
+            hotelName: room.roomName,
+            roomTypeCode: room.roomType,
+            ratePlanCode: roomPrice.ratePlanCode,
             numberOfRooms: pricingDetails.requestedRooms,
             finalPrice: pricingDetails,
-            currency: pricingDetails.dailyBreakdown[0]?.currencyCode || 'USD',
-            email: guestData.email,
-            phone: guestData.phoneNumber,
+            currency: pricingDetails.currencyCode,
+            email: guestData.primaryEmail,
+            phone: guestData.primaryPhone,
             guests: {
-              adults: 2, // You might want to track this from search filters
-              children: 0,
+              adults: totalAdults,
+              children: totalChildren,
               rooms: pricingDetails.requestedRooms,
             },
             paymentMethod: selectedPaymentMethod,
-            selectedAddons: [],
+            selectedAddons: pricingDetails.includedAddons.map((a) => a.addonId),
             selectedPromotions: [],
           },
-          guestDetails: [
-            {
-              type: 'adult',
-              firstName: guestData.firstName,
-              lastName: guestData.lastName,
-              dateOfBirth: guestData.dateOfBirth,
-              email: guestData.email,
-              phone: guestData.phoneNumber,
-            },
-          ],
+          guestDetails: guestData.guests.map((guest, index) => ({
+            type: guest.type,
+            firstName: guest.firstName,
+            lastName: guest.lastName,
+            dateOfBirth: guest.dateOfBirth || undefined,
+            ...(index === 0 && {
+              email: guestData.primaryEmail,
+              phone: guestData.primaryPhone,
+            }),
+          })),
         },
       };
-
-      console.log('Creating booking with payload:', bookingPayload);
 
       const result = await createBookingService(bookingPayload);
 
       if (result.success) {
         toast.success('Booking confirmed successfully!');
-        
-        // Navigate to payment success page with booking data
         navigate('/payment-success', {
           state: {
             bookingData: result.data,
@@ -243,16 +276,11 @@ export default function BookingPage() {
     }
   };
 
-  if (loading) {
-    return <Loader fullScreen text="Loading payment details..." />;
-  }
+  if (loading) return <Loader fullScreen text="Loading payment details..." />;
+  if (!locationState?.pricingDetails || !paymentDetails) return null;
 
-  if (!locationState?.pricingDetails || !paymentDetails) {
-    return null;
-  }
-
-  const { pricingDetails, ratePlan, dateRange } = locationState;
-  const currencyCode = pricingDetails.dailyBreakdown[0]?.currencyCode || 'USD';
+  const { pricingDetails, roomPrice, searchCriteria } = locationState;
+  const currencyCode = pricingDetails.currencyCode;
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
@@ -269,9 +297,10 @@ export default function BookingPage() {
         <div className="flex-1">
           <h1 className="text-2xl font-bold text-foreground">Complete Your Booking</h1>
           <p className="text-muted-foreground">
-            {dateRange && (
+            {searchCriteria && (
               <span>
-                {formatDate(dateRange.startDate)} - {formatDate(dateRange.endDate)} • {pricingDetails.numberOfNights} night{pricingDetails.numberOfNights > 1 ? 's' : ''}
+                {formatDate(searchCriteria.startDate)} – {formatDate(searchCriteria.endDate)} •{' '}
+                {pricingDetails.numberOfNights} night{pricingDetails.numberOfNights > 1 ? 's' : ''}
               </span>
             )}
           </p>
@@ -279,9 +308,10 @@ export default function BookingPage() {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Left Column - Forms */}
+        {/* Left Column */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Guest Information */}
+
+          {/* Contact Details (single set) */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -290,98 +320,122 @@ export default function BookingPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <User className="h-5 w-5" />
-                  Guest Information
+                  <Mail className="h-5 w-5" />
+                  Contact Details
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="firstName">
-                      First Name <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      id="firstName"
-                      value={guestData.firstName}
-                      onChange={(e) => handleInputChange('firstName', e.target.value)}
-                      placeholder="Enter first name"
-                      className={cn(errors.firstName && 'border-destructive')}
-                    />
-                    {errors.firstName && (
-                      <p className="text-sm text-destructive">{errors.firstName}</p>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">
-                      Last Name <span className="text-destructive">*</span>
-                    </Label>
-                    <Input
-                      id="lastName"
-                      value={guestData.lastName}
-                      onChange={(e) => handleInputChange('lastName', e.target.value)}
-                      placeholder="Enter last name"
-                      className={cn(errors.lastName && 'border-destructive')}
-                    />
-                    {errors.lastName && (
-                      <p className="text-sm text-destructive">{errors.lastName}</p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">
+                    <Label htmlFor="primaryEmail">
                       Email <span className="text-destructive">*</span>
                     </Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
-                        id="email"
+                        id="primaryEmail"
                         type="email"
-                        value={guestData.email}
-                        onChange={(e) => handleInputChange('email', e.target.value)}
+                        value={guestData.primaryEmail}
+                        onChange={(e) => handleContactChange('primaryEmail', e.target.value)}
                         placeholder="guest@email.com"
-                        className={cn('pl-9', errors.email && 'border-destructive')}
+                        className={cn('pl-9', errors.primaryEmail && 'border-destructive')}
                       />
                     </div>
-                    {errors.email && (
-                      <p className="text-sm text-destructive">{errors.email}</p>
+                    {errors.primaryEmail && (
+                      <p className="text-sm text-destructive">{errors.primaryEmail}</p>
                     )}
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="phoneNumber">
+                    <Label htmlFor="primaryPhone">
                       Phone Number <span className="text-destructive">*</span>
                     </Label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
-                        id="phoneNumber"
+                        id="primaryPhone"
                         type="tel"
-                        value={guestData.phoneNumber}
-                        onChange={(e) => handleInputChange('phoneNumber', e.target.value)}
+                        value={guestData.primaryPhone}
+                        onChange={(e) => handleContactChange('primaryPhone', e.target.value)}
                         placeholder="+1 234 567 8900"
-                        className={cn('pl-9', errors.phoneNumber && 'border-destructive')}
+                        className={cn('pl-9', errors.primaryPhone && 'border-destructive')}
                       />
                     </div>
-                    {errors.phoneNumber && (
-                      <p className="text-sm text-destructive">{errors.phoneNumber}</p>
+                    {errors.primaryPhone && (
+                      <p className="text-sm text-destructive">{errors.primaryPhone}</p>
                     )}
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+          </motion.div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="dateOfBirth">Date of Birth (Optional)</Label>
-                  <div className="relative">
-                    <Cake className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="dateOfBirth"
-                      type="date"
-                      value={guestData.dateOfBirth}
-                      onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
-                      className="pl-9"
-                    />
+          {/* Per-guest name + dob */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: 0.05 }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Guest Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {guestData.guests.map((guest, index) => (
+                  <div key={index} className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        {guest.type === 'adult' ? '👤' : '🧒'} {guest.type === 'adult' ? 'Adult' : 'Child'} {index + 1}
+                      </span>
+                      {index === 0 && (
+                        <span className="text-[10px] px-2 py-0.5 bg-blue-50 text-blue-600 border border-blue-200 rounded-full font-semibold">
+                          Primary Guest
+                        </span>
+                      )}
+                    </div>
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="space-y-2">
+                        <Label>First Name <span className="text-destructive">*</span></Label>
+                        <Input
+                          value={guest.firstName}
+                          onChange={(e) => handleGuestChange(index, 'firstName', e.target.value)}
+                          placeholder="First name"
+                          className={cn(errors.guests[index]?.firstName && 'border-destructive')}
+                        />
+                        {errors.guests[index]?.firstName && (
+                          <p className="text-sm text-destructive">{errors.guests[index].firstName}</p>
+                        )}
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Last Name <span className="text-destructive">*</span></Label>
+                        <Input
+                          value={guest.lastName}
+                          onChange={(e) => handleGuestChange(index, 'lastName', e.target.value)}
+                          placeholder="Last name"
+                          className={cn(errors.guests[index]?.lastName && 'border-destructive')}
+                        />
+                        {errors.guests[index]?.lastName && (
+                          <p className="text-sm text-destructive">{errors.guests[index].lastName}</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Date of Birth (Optional)</Label>
+                      <div className="relative">
+                        <Cake className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          type="date"
+                          value={guest.dateOfBirth}
+                          onChange={(e) => handleGuestChange(index, 'dateOfBirth', e.target.value)}
+                          className="pl-9"
+                        />
+                      </div>
+                    </div>
+                    {index < guestData.guests.length - 1 && <Separator />}
                   </div>
-                </div>
+                ))}
               </CardContent>
             </Card>
           </motion.div>
@@ -412,24 +466,18 @@ export default function BookingPage() {
                   )}
                   onClick={() => paymentDetails.payAtHotel && setSelectedPaymentMethod('payAtHotel')}
                 >
-                  <div
-                    className={cn(
-                      'flex h-10 w-10 items-center justify-center rounded-lg',
-                      paymentDetails.payAtHotel
-                        ? selectedPaymentMethod === 'payAtHotel'
-                          ? 'bg-accent text-accent-foreground'
-                          : 'bg-muted'
-                        : 'bg-muted/50'
-                    )}
-                  >
+                  <div className={cn(
+                    'flex h-10 w-10 items-center justify-center rounded-lg',
+                    paymentDetails.payAtHotel
+                      ? selectedPaymentMethod === 'payAtHotel' ? 'bg-accent text-accent-foreground' : 'bg-muted'
+                      : 'bg-muted/50'
+                  )}>
                     <Building className="h-5 w-5" />
                   </div>
                   <div className="flex-1">
                     <p className="font-medium text-foreground">Pay at Hotel</p>
                     <p className="text-sm text-muted-foreground">
-                      {paymentDetails.payAtHotel
-                        ? 'Pay during check-in at the property'
-                        : 'Not available for this property'}
+                      {paymentDetails.payAtHotel ? 'Pay during check-in at the property' : 'Not available for this property'}
                     </p>
                   </div>
                   {paymentDetails.payAtHotel && selectedPaymentMethod === 'payAtHotel' && (
@@ -447,28 +495,20 @@ export default function BookingPage() {
                         : 'border-border hover:bg-muted/50 cursor-pointer'
                       : 'border-muted bg-muted/30 cursor-not-allowed opacity-60'
                   )}
-                  onClick={() =>
-                    paymentDetails.paymentGateway && setSelectedPaymentMethod('paymentGateway')
-                  }
+                  onClick={() => paymentDetails.paymentGateway && setSelectedPaymentMethod('paymentGateway')}
                 >
-                  <div
-                    className={cn(
-                      'flex h-10 w-10 items-center justify-center rounded-lg',
-                      paymentDetails.paymentGateway
-                        ? selectedPaymentMethod === 'paymentGateway'
-                          ? 'bg-accent text-accent-foreground'
-                          : 'bg-muted'
-                        : 'bg-muted/50'
-                    )}
-                  >
+                  <div className={cn(
+                    'flex h-10 w-10 items-center justify-center rounded-lg',
+                    paymentDetails.paymentGateway
+                      ? selectedPaymentMethod === 'paymentGateway' ? 'bg-accent text-accent-foreground' : 'bg-muted'
+                      : 'bg-muted/50'
+                  )}>
                     <CreditCard className="h-5 w-5" />
                   </div>
                   <div className="flex-1">
                     <p className="font-medium text-foreground">Pay Online</p>
                     <p className="text-sm text-muted-foreground">
-                      {paymentDetails.paymentGateway
-                        ? 'Secure online payment via card/UPI'
-                        : 'Not available for this property'}
+                      {paymentDetails.paymentGateway ? 'Secure online payment via card/UPI' : 'Not available for this property'}
                     </p>
                   </div>
                   {paymentDetails.paymentGateway && selectedPaymentMethod === 'paymentGateway' && (
@@ -499,7 +539,7 @@ export default function BookingPage() {
                 {/* Rate Plan Info */}
                 <div className="p-3 bg-muted/50 rounded-lg">
                   <p className="text-sm font-medium text-foreground mb-1">
-                    {ratePlan?.ratePlan.ratePlanName}
+                    {roomPrice?.ratePlanName}
                   </p>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <CalendarDays className="h-3 w-3" />
@@ -511,72 +551,46 @@ export default function BookingPage() {
 
                 <Separator />
 
-                {/* Pricing Breakdown */}
+                {/* Breakdown */}
                 <div className="space-y-2">
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Base Amount</span>
                     <span className="font-medium">
-                      {formatCurrency(pricingDetails.breakdown.totalBaseAmount, currencyCode)}
+                      {formatCurrency(pricingDetails.breakdown.amountBeforeTax + pricingDetails.breakdown.agencyCommissionAmount, currencyCode)}
                     </span>
                   </div>
 
-                  {pricingDetails.breakdown.totalAdditionalCharges > 0 && (
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Additional Charges</span>
-                      <span className="font-medium">
-                        {formatCurrency(pricingDetails.breakdown.totalAdditionalCharges, currencyCode)}
-                      </span>
-                    </div>
-                  )}
-
-                  {pricingDetails.includedAddons.length > 0 && (
+                  {pricingDetails.breakdown.totalAddonAmount > 0 && (
                     <>
                       <div className="flex justify-between text-sm">
                         <span className="text-muted-foreground">Included Add-ons</span>
                         <span className="font-medium">
-                          {formatCurrency(pricingDetails.breakdown.totalIncludedAddons, currencyCode)}
+                          {formatCurrency(pricingDetails.breakdown.totalAddonAmount, currencyCode)}
                         </span>
                       </div>
-                      <div className="pl-4 space-y-1">
-                        {pricingDetails.includedAddons.map((addon) => (
-                          <div key={addon.addonId} className="flex justify-between text-xs text-muted-foreground">
-                            <span>• {addon.addonName}</span>
-                            <span>{formatCurrency(addon.amount, addon.currencyCode)}</span>
-                          </div>
-                        ))}
-                      </div>
+                      {pricingDetails.includedAddons.map((addon) => (
+                        <div key={addon.addonId} className="flex justify-between text-xs text-muted-foreground pl-3">
+                          <span>• {addon.addonName}</span>
+                          <span>{formatCurrency(addon.totalAmount, addon.currencyCode)}</span>
+                        </div>
+                      ))}
                     </>
                   )}
-                </div>
 
-                <Separator />
-
-                {/* Subtotal */}
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal</span>
-                  <span className="font-medium">
-                    {formatCurrency(pricingDetails.breakdown.subtotal, currencyCode)}
-                  </span>
-                </div>
-
-                {/* Commission */}
-                {pricingDetails.breakdown.agencyCommission > 0 && (
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">
-                      Agency Commission ({pricingDetails.agencyCommission.commissionValue}%)
-                    </span>
+                    <span className="text-muted-foreground">Subtotal</span>
                     <span className="font-medium">
-                      {formatCurrency(pricingDetails.breakdown.agencyCommission, currencyCode)}
+                      {formatCurrency(pricingDetails.breakdown.subtotal + pricingDetails.breakdown.agencyCommissionAmount, currencyCode)}
                     </span>
                   </div>
-                )}
+                </div>
 
                 {/* Taxes */}
-                {pricingDetails.tax.length > 0 && (
+                {pricingDetails.taxes.length > 0 && (
                   <>
                     <Separator />
                     <div className="space-y-1">
-                      {pricingDetails.tax.map((tax, index) => (
+                      {pricingDetails.taxes.map((tax, index) => (
                         <div key={index} className="flex justify-between text-sm">
                           <span className="text-muted-foreground">{tax.name}</span>
                           <span className="font-medium">
@@ -590,20 +604,30 @@ export default function BookingPage() {
 
                 <Separator />
 
-                {/* Total */}
-                <div className="flex justify-between pt-2">
-                  <span className="font-semibold text-foreground">Total Amount</span>
+                {/* Pay Now */}
+                <div className="flex justify-between pt-1">
+                  <span className="font-semibold text-foreground">Pay Now</span>
                   <span className="font-bold text-xl text-foreground">
-                    {formatCurrency(pricingDetails.totalAmount, currencyCode)}
+                    {formatCurrency(pricingDetails.currentChargeableAmount, currencyCode)}
                   </span>
                 </div>
 
-                {/* Average per night */}
+                {/* Tourist Tax - pay later */}
+                {pricingDetails.latterpayableAmount > 0 && pricingDetails.touristTax && (
+                  <div className="flex justify-between text-sm p-2.5 bg-amber-50 border border-amber-100 rounded-lg">
+                    <span className="text-amber-700 font-medium">
+                      🏛 {pricingDetails.touristTax.name} (pay at hotel)
+                    </span>
+                    <span className="font-semibold text-amber-800">
+                      {formatCurrency(pricingDetails.latterpayableAmount, currencyCode)}
+                    </span>
+                  </div>
+                )}
+
                 <div className="text-center text-xs text-muted-foreground">
                   {formatCurrency(pricingDetails.breakdown.averagePerNight, currencyCode)} per night
                 </div>
 
-                {/* Confirm Button */}
                 <Button
                   className="w-full bg-accent hover:bg-accent/90 text-accent-foreground mt-4"
                   size="lg"
@@ -616,7 +640,7 @@ export default function BookingPage() {
                       <div className="h-4 w-4 border-2 border-accent-foreground/30 border-t-accent-foreground rounded-full animate-spin" />
                     </>
                   ) : (
-                    <>Confirm Booking • {formatCurrency(pricingDetails.totalAmount, currencyCode)}</>
+                    <>Confirm Booking • {formatCurrency(pricingDetails.currentChargeableAmount, currencyCode)}</>
                   )}
                 </Button>
               </CardContent>

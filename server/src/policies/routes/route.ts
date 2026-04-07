@@ -15,6 +15,9 @@ router.route("/:id")
     .patch(protect,
         checkRoleBased("canUpdatePolicy"),
         PolicyController.updatePolicy)
+    .put(protect,
+        checkRoleBased("canUpdatePolicy"),
+        PolicyController.updatePolicyDetails)
     .delete(protect,
         checkRoleBased("canDeletePolicy"),
         PolicyController.deletePolicy);

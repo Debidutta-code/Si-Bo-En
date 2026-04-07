@@ -69,7 +69,7 @@ export default function ReservationStats({ data }: ReservationStatsProps) {
           title="Cancellation Rate"
           value={`${data?.cancellationRate}%`}
           icon={TrendingUp}
-          description={`${data?.last30DaysBookings} bookings last 30 days`}
+          description={`all time cancellation rate`}
         />
       </div>
 

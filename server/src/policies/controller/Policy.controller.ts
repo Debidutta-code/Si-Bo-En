@@ -34,6 +34,23 @@ export class PolicyController {
             return res.status(500).json(errorResponse("Internal server error", error?.message))
         }
     }
+    public static async updatePolicyDetails(req: CustomRequest, res: Response) {
+        try {
+            const id = req.params.id;
+            if (!id) {
+                return res.status(400).json(errorResponse("Policy Id is required for update"))
+            }
+            const { policyName, description } = req.body
+            if (!policyName && description === undefined) {
+                return res.status(400).json(errorResponse("At least one field (policyName or description) is required"))
+            }
+            const serRes = await PoliciesServices.updatePolicyDetailsService(id, policyName, description)
+            const resStatus = serRes?.success ? 200 : 400
+            return res.status(resStatus).json(serRes)
+        } catch (error: any) {
+            return res.status(500).json(errorResponse("Internal server error", error?.message))
+        }
+    }
     public static async deletePolicy(req: CustomRequest, res: Response) {
         try {
             const id = req.params.id;

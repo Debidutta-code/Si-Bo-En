@@ -253,10 +253,32 @@ export class PolicyRepository {
       return await prisma.policy.findUnique({
         where: { id: toStringId(id) },
       });
-
-      
     } catch (error: any) {
       throw new Error(`Failed to get policy by ID: ${error.message}`);
+    }
+  }
+
+  public static async updatePolicyDetails(id: string, data: { policyName?: string; description?: string }): Promise<IPolicy | null> {
+    try {
+      const policy = await prisma.policy.findUnique({
+        where: { id: toStringId(id) },
+      });
+
+      if (!policy) {
+        throw new Error("Policy not found");
+      }
+
+      const updatedPolicy = await prisma.policy.update({
+        where: { id: toStringId(id) },
+        data: {
+          ...(data.policyName && { policyName: data.policyName }),
+          ...(data.description !== undefined && { description: data.description }),
+        },
+      });
+
+      return updatedPolicy;
+    } catch (error: any) {
+      throw new Error(`Failed to update policy details: ${error.message}`);
     }
   }
 

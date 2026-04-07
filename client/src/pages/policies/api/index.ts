@@ -1,9 +1,10 @@
-import { createPolicy, getPolicies,addPolicyToRatePlan,deletePolicyApi } from "./policy.api";
+import { createPolicy, getPolicies, addPolicyToRatePlan, deletePolicyApi, updatePolicyApi } from "./policy.api";
 
 
 export {
     createPolicy,
     getPolicies,
     addPolicyToRatePlan,
-    deletePolicyApi
+    deletePolicyApi,
+    updatePolicyApi
 };

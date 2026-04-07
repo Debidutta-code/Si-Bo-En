@@ -8,20 +8,22 @@ import { ButtonLoader } from '@/components/Loader';
 import { Building2, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { motion } from 'framer-motion';
-import { loginService } from './services';
+import { getMeService, loginService } from './services';
 import type { IAgentLogin, ILoading } from './interface';
+import { setUser } from '@/redux/slices/authSlice';
+import { useAppDispatch } from '@/redux/hooks';
 export default function LoginPage() {
-const [loginCred,setLoginCred] = useState<IAgentLogin>({
+  const [loginCred, setLoginCred] = useState<IAgentLogin>({
     email: '',
     password: ''
-});
+  });
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<ILoading>({
     isLoading: false,
     message: ''
   });
   const navigate = useNavigate();
-
+  const dispatch = useAppDispatch();
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -35,9 +37,12 @@ const [loginCred,setLoginCred] = useState<IAgentLogin>({
     const result = await loginService(loginCred);
 
     if (result.success) {
+      const meResult = await getMeService();
+      if (meResult.success && meResult.data?.agent) {
+        dispatch(setUser(meResult.data.agent));
+      }
       toast.success('Welcome back!');
       navigate('/dashboard');
-      
     } else {
       toast.error(result.message || 'Login failed. Please try again.');
     }
@@ -78,12 +83,12 @@ const [loginCred,setLoginCred] = useState<IAgentLogin>({
           transition={{ duration: 0.5, delay: 0.2 }}
           className="w-full max-w-md"
         >
-          
+
           <div
-          className='w-full flex flex-row justify-center '
+            className='w-full flex flex-row justify-center '
           >
 
-          <img src="/revchill.png" alt="Revchill Logo" className='w-3/4  '/>
+            <img src="/revchill.png" alt="Revchill Logo" className='w-3/4  ' />
           </div>
           <Card className="border-0 shadow-lg">
             <CardHeader className="text-center pb-2">

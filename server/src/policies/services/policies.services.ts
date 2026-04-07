@@ -33,6 +33,21 @@ export class PoliciesServices {
         }
 
     }
+    public static async updatePolicyDetailsService(id: string, policyName?: string, description?: string) {
+        try {
+            if (!policyName && description === undefined) {
+                return errorResponse("At least one field (policyName or description) is required")
+            }
+            const response = await PolicyRepository.updatePolicyDetails(id, { policyName, description })
+            if (response) {
+                return successResponse("Policy Updated Successfully", response)
+            } else {
+                return errorResponse("Error occurred while updating the Policy")
+            }
+        } catch (error: any) {
+            return errorResponse("Error occurred while updating the Policy", error.message)
+        }
+    }
     public static async deletePolicyService(id: string) {
         try {
             const existingPolicy = await PolicyRepository.getPolicyById(id)

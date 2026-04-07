@@ -16,10 +16,39 @@ const sizeClasses = {
 
 export function Loader({ size = "md", className, text, fullScreen = false }: LoaderProps) {
   const loader = (
-    <div className={cn("flex flex-col items-center justify-center gap-3", className)}>
-      <Loader2 className={cn("loader-spin text-accent", sizeClasses[size])} />
-      {text && <p className="text-sm text-muted-foreground animate-pulse-subtle">{text}</p>}
-    </div>
+    <>
+      <style>{`
+        .loader {
+          width: 50px;
+          aspect-ratio: 1;
+          display: grid;
+          border: 4px solid #0000;
+          border-radius: 50%;
+          border-right-color: #25b09b;
+          animation: l15 1s infinite linear;
+        }
+        .loader::before,
+        .loader::after {
+          content: "";
+          grid-area: 1/1;
+          margin: 2px;
+          border: inherit;
+          border-radius: 50%;
+          animation: l15 2s infinite;
+        }
+        .loader::after {
+          margin: 8px;
+          animation-duration: 3s;
+        }
+        @keyframes l15 {
+          100% { transform: rotate(1turn); }
+        }
+      `}</style>
+      <div className={cn("flex flex-col items-center justify-center gap-3", className)}>
+        <div className="loader" />
+        {text && <p className="text-sm text-muted-foreground animate-pulse">{text}</p>}
+      </div>
+    </>
   );
 
   if (fullScreen) {

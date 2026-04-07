@@ -1,5 +1,5 @@
 import type { PolicyTypes } from "../interfaces";
-import { createPolicy, getPolicies,addPolicyToRatePlan,deletePolicyApi } from "../api"
+import { createPolicy, getPolicies,addPolicyToRatePlan,deletePolicyApi, updatePolicyApi } from "../api"
 export const createPolicyService = async (policyName: string, type: PolicyTypes, propertyId: string, description?: string) => {
     if (!policyName || !type) {
         return {
@@ -69,6 +69,28 @@ export const addPolicyToRatePlanService = async (policyId: string, ratePlanId: s
     }
     try {
         return await addPolicyToRatePlan(policyId, ratePlanId);
+    } catch (error: any) {
+        return {
+            success: false,
+            message: error.message
+        }
+    }
+}
+export const updatePolicyDetailsService = async (policyId: string, policyName?: string, description?: string) => {
+    if (!policyId) {
+        return {
+            success: false,
+            message: "Policy ID is required"
+        }
+    }
+    if (!policyName && description === undefined) {
+        return {
+            success: false,
+            message: "At least one field is required"
+        }
+    }
+    try {
+        return await updatePolicyApi(policyId, { policyName, description });
     } catch (error: any) {
         return {
             success: false,
