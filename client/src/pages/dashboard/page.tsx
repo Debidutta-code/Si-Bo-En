@@ -204,9 +204,6 @@ export default function Dashboard() {
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
             <h1 className="text-2xl font-bold">Dashboard Analytics</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Comprehensive overview of your property management system
-            </p>
           </div>
           <div className="flex items-center gap-3">
             {/* 🆕 NEW: Comparison Type Selector */}
