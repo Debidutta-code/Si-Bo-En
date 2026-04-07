@@ -332,11 +332,11 @@ export class AgentPricingService {
             const { adults, children } = guestDistribution[i];
             const roomNum = i + 1;
 
-            if (adults > room.maxNumberOfAdults) {
-                return `Room ${roomNum}: exceeds maximum adults allowed (${room.maxNumberOfAdults})`;
+            if (adults > room.maxOccupancy - room.maxNumberOfChildren) {
+                return `Room ${roomNum}: exceeds maximum adults allowed (${room.maxOccupancy - room.maxNumberOfChildren})`;
             }
-            if (children > room.maxNumberOfChildren) {
-                return `Room ${roomNum}: exceeds maximum children allowed (${room.maxNumberOfChildren})`;
+            if (children > room.maxOccupancy - room.maxNumberOfAdults) {
+                return `Room ${roomNum}: exceeds maximum children allowed (${room.maxOccupancy - room.maxNumberOfAdults})`;
             }
             if (adults + children > room.maxOccupancy) {
                 return `Room ${roomNum}: exceeds maximum occupancy (${room.maxOccupancy})`;

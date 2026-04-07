@@ -280,17 +280,25 @@ export class AgenticRoomService {
         )) return null;
 
         if (roomsArray.length > 0) {
-            const anyExceeds = roomsArray.some(r =>
-                r.adults > room.maxNumberOfAdults ||
-                r.children > room.maxNumberOfChildren ||
-                (r.adults + r.children) > room.maxOccupancy
-            );
+            const anyExceeds = roomsArray.some(r => {
+                const extraAdults = Math.max(0, r.adults - room.maxNumberOfAdults);
+                const extraChildren = Math.max(0, r.children - room.maxNumberOfChildren);
+                const extraGuestGap = room.maxOccupancy - room.maxNumberOfAdults - room.maxNumberOfChildren;
+
+                return (
+                    (r.adults + r.children) > room.maxOccupancy ||
+                    (extraAdults + extraChildren) > extraGuestGap  // ✅ shared gap check
+                );
+            });
             if (anyExceeds) return null;
         } else {
+            const extraAdults = Math.max(0, guests.adults - room.maxNumberOfAdults);
+            const extraChildren = Math.max(0, guests.children - room.maxNumberOfChildren);
+            const extraGuestGap = room.maxOccupancy - room.maxNumberOfAdults - room.maxNumberOfChildren;
+
             if (
-                guests.adults > room.maxNumberOfAdults ||
-                guests.children > room.maxNumberOfChildren ||
-                (guests.adults + guests.children) > room.maxOccupancy
+                (guests.adults + guests.children) > room.maxOccupancy ||
+                (extraAdults + extraChildren) > extraGuestGap  // ✅ shared gap check
             ) return null;
         }
 
