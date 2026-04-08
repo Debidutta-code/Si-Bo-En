@@ -6,6 +6,7 @@ import {
 } from "../types";
 import { paginatedSuccessResponse } from "../../utils";
 import { CreationGuestRepository } from "../repository/creation-guest.repository";
+import { createHash } from "../../auth/utills/bcryptHelper";
 export class LoyaltyGuestService {
     private loyaltyGuestRepository: LoyaltyGuestRepository;
     private creationGuestRepository: CreationGuestRepository;
@@ -75,10 +76,11 @@ export class LoyaltyGuestService {
         email: string;
         propertyId: string;
         propertyCode: string;
-        metadata: any;
+        metaData: any;
+        password: string;
     }): Promise<IApiResponse> {
         try {
-            const { email, propertyId, propertyCode, metadata } = data;
+            const { email, propertyId, propertyCode, metaData, password } = data;
 
             const existingGuest = await this.loyaltyGuestRepository.checkIfGuestExists(email);
 
@@ -87,27 +89,30 @@ export class LoyaltyGuestService {
                 if (guestExistForProperty) {
                     return errorResponse("You are already registered for this property's loyalty program");
                 }
-                // Check if there's an active loyalty program for the property then add user to it
                 const getActiveLoyalityForProperty = await this.propertyLoyaltyRepository.getLoyalityForPropertyWhereTrue(propertyId);
                 if (!getActiveLoyalityForProperty) {
                     return errorResponse("No active loyalty program found for this property");
+                }
+                const loyaltyConfigForEnrollment = await this.loyaltyGuestRepository.getPropertyLoyaltyConfig(propertyId);
+                if (!loyaltyConfigForEnrollment) {
+                    return errorResponse("No loyalty configuration found for this property");
                 }
                 await this.creationGuestRepository.createCreationGuest(
                     {
                         propertyId,
                         loyalityGuestId: existingGuest.id,
-                        creationLoyaltyConfigId: getActiveLoyalityForProperty.creationLoyaltyConfigId,
-                        propertyCode: propertyCode
+                        creationLoyaltyConfigId: loyaltyConfigForEnrollment.CreationLoyaltyConfig?.id || "",
+                        propertyCode: propertyCode,
+                        metaData: metaData,
                     });
                 return successResponse("Successfully registered for loyalty program");
             }
+            const hashedPassword = await createHash(password);
             const [newGuest, loyaltyConfig] = await Promise.all([
                 this.loyaltyGuestRepository.createGuestsLoyaltyConfig({
                     guestEmail: email,
                     guestId: "",
-                    metaData: metadata,
-                    password: "",
-                    guestLevel:1
+                    password: hashedPassword,
                 }),
                 this.loyaltyGuestRepository.getPropertyLoyaltyConfig(propertyId)
             ]);
@@ -119,16 +124,13 @@ export class LoyaltyGuestService {
                 return errorResponse("Loyalty program is not active for this property");
             }
 
-            if (!loyaltyConfig.creationLoyaltyConfigId) {
-                return errorResponse("Loyalty program configuration is incomplete");
-            }
-
             await this.creationGuestRepository.createCreationGuest(
                 {
                     propertyId,
                     loyalityGuestId: newGuest.id,
-                    creationLoyaltyConfigId: loyaltyConfig.creationLoyaltyConfigId,
-                    propertyCode: propertyCode
+                    creationLoyaltyConfigId: loyaltyConfig.CreationLoyaltyConfig?.id || "",
+                    propertyCode: propertyCode,
+                    metaData: metaData,
                 });
             return successResponse("Successfully registered for loyalty program");
         } catch (error) {
@@ -151,8 +153,12 @@ export class LoyaltyGuestService {
                     discount: null,
                 });
             }
-            const currentGuestlevel=loyaltyGuest.LoyalityGuest?.guestLevel
-            const discountLevel=loyaltyGuest.CreationLoyaltyConfig.LoyalityLevels.find(level => level.level === currentGuestlevel)?.discountPercentage
+            const currentGuestLevel = loyaltyGuest.guestLevel;
+            // Levels now live on PropertyLoyaltyConfig — fetch them
+            const propertyConfig = await this.propertyLoyaltyRepository.getActiveLoyaltyConfigByPropertyId(propertyId);
+            const discountLevel = (propertyConfig as any)?.loyalityLevels?.find(
+                (level: any) => level.level === currentGuestLevel
+            )?.discountPercentage;
             return successResponse("Loyalty discount available", {
                 isLoyaltyMember: true,
                 discount: {

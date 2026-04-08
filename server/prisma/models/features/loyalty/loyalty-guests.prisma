@@ -1,16 +1,15 @@
 model LoyalityGuest {
-    id                      String                @id @default(uuid())
+    id String @id @default(uuid())
 
-    guestEmail   String   @unique @map("guest_email")
-    guestId      String?  @map("guest_id")
-    metaData     Json     @map("meta_data")
-    guestLevel   Int      @default(1) @map("guest_level")
-    password     String   @map("password")
+    guestEmail String  @unique @map("guest_email")
+    guestId    String? @map("guest_id")
+    password   String  @map("password")
 
-    guest        Guests?  @relation(fields: [guestId], references: [id], onDelete: Cascade)
+    guest         Guests?         @relation(fields: [guestId], references: [id], onDelete: Cascade)
     CreationGuest CreationGuest[]
-    
-    createdAt    DateTime @default(now())
+
+    createdAt DateTime @default(now())
+
     @@map("loyality_guests")
 }
 
@@ -18,13 +17,15 @@ model CreationGuest {
     id              String @id @default(uuid())
     loyalityGuestId String @map("loyality_guest_id")
     propertyId      String @map("property_id")
-        propertyCode String   @map("property_code")
+    propertyCode    String @map("property_code")
+    metaData        Json   @map("meta_data")
+    guestLevel      Int    @default(1) @map("guest_level")
 
+    Property                Property              @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+    LoyalityGuest           LoyalityGuest         @relation(fields: [loyalityGuestId], references: [id], onDelete: Cascade)
     creationLoyaltyConfigId String                @map("creation_loyalty_config_id")
-    Property       Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
     CreationLoyaltyConfig   CreationLoyaltyConfig @relation(fields: [creationLoyaltyConfigId], references: [id], onDelete: Cascade)
 
-    LoyalityGuest  LoyalityGuest @relation(fields: [loyalityGuestId], references: [id], onDelete: Cascade)
     @@unique([propertyId, loyalityGuestId])
     @@map("creation_guests")
 }

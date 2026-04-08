@@ -37,6 +37,7 @@ import {
 import { getLoyalityByCreationService } from "./services";
 import type { IGetLoyaltyGuestsForCreation } from "./interfaces";
 import BackButton from "@/components/shared/BackButton";
+import Badge from "./components/Badge";
 
 interface ILoader {
   isLoading: boolean;
@@ -230,7 +231,7 @@ export default function LoyaltyGuest() {
                       <TableHead>Guest Name</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Phone</TableHead>
-                      {/* <TableHead>Property</TableHead> */}
+                      <TableHead>Loyality Guest Level</TableHead>
                       <TableHead>Loyality Fields</TableHead>
 
                       <TableHead>Enrolled On</TableHead>
@@ -268,13 +269,16 @@ export default function LoyaltyGuest() {
                             </span>
                           </div>
                         </TableCell>
-                        
+                        <TableCell className="text-sm text-center">
+
+                          <Badge level={row?.guestLevel} />
+                        </TableCell>
 
                         <TableCell className="flex justify-center items-center">
-                          {row.LoyalityGuest?.metaData ? (
+                          {row?.metaData ? (
                             <span
                               onClick={() =>
-                                openMetadataDialog(row.LoyalityGuest!.metaData)
+                                openMetadataDialog(row?.metaData)
                               }
                               className="gap-2"
                             >
@@ -365,7 +369,7 @@ export default function LoyaltyGuest() {
                   className="grid grid-cols-3 gap-4 items-start border-b pb-3 last:border-b-0"
                 >
                   <div className="font-medium text-sm capitalize">
-                    {key.replace(/([A-Z])/g, " $1").trim()}:
+                    {key.replace(/([A-Z])/g, " $1").trim().replaceAll("_", " ")}:
                   </div>
                   <div className="col-span-2 text-sm text-muted-foreground break-words">
                     {typeof value === "object" && value !== null

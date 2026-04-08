@@ -93,7 +93,6 @@ export class creationLoyalityRepository {
                     LoyaltyProgramFieldConfig: true,
                     loyaltyConditions: true,
                     loyaltySpecialConditions: true,
-                    PropertyLoyaltyConfig: true
                 }
             });
         } catch (error) {

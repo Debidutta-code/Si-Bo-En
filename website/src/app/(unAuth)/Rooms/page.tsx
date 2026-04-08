@@ -2,20 +2,20 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { RootState } from "../../store/store";
-import SearchWidget from "../../components/Home/SearchWidget";
+import { RootState } from "../../../store/store";
+import SearchWidget from "../../../components/Home/SearchWidget";
 import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
 import {
   setBookingContext,
   setBookingSource,
   setSenderUrl,
-} from "../../store/bookingSlice";
-import { useBookingColors } from "../../hooks/useBookingColors";
+} from "../../../store/bookingSlice";
+import { useBookingColors } from "../../../hooks/useBookingColors";
 import RoomCard from "@/src/components/RoomPage/RoomCard";
-import PriceSummarySidebar from "../../components/RoomPage/Pricesummerysidebar";
+import PriceSummarySidebar from "../../../components/RoomPage/Pricesummerysidebar";
 import { Room } from "@/src/store/roomsSlice";
-import GuestFormModal from "../../components/GuestModals/GuestFormModal";
+import GuestFormModal from "../../../components/GuestModals/GuestFormModal";
 import {
   Dialog,
   DialogContent,
@@ -25,7 +25,7 @@ import {
 } from "@/src/components/ui/dialog";
 import { IPropertyLoyalityWithLoyality } from "./interface";
 import { LoyaltyProgramBanner } from "@/src/components/RoomPage/LoyalityBanner";
-import { LoyaltyContainer } from "../../components/RoomPage/LoyalityContainer";
+import { LoyaltyContainer } from "../../../components/RoomPage/LoyalityContainer";
 import { useTranslation } from "react-i18next";
 import { Volume2, VolumeX } from "lucide-react";
 

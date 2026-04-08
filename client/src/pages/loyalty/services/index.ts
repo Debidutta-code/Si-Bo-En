@@ -53,3 +53,10 @@ export {
     getLoyaltyGuestsForPropertyService,
     getLoyaltyGuestsForCreationService
 } from "./loyalty.guest.service";
+
+export {
+    getLoyalityLevelsService,
+    createLoyalityLevelService,
+    updateLoyalityLevelService,
+    deleteLoyalityLevelService
+} from "./loyality-level.service";

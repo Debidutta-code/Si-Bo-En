@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSelector } from "react-redux";
 import toast from "react-hot-toast";
 import { XCircle, ArrowLeft, RefreshCw, Home, Send, X } from "lucide-react";
-import type { RootState } from "../../store/store";
+import type { RootState } from "../../../store/store";
 
 export default function PaymentFailedPage() {
   const router = useRouter();

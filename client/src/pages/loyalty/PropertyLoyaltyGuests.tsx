@@ -319,7 +319,7 @@ export default function PropertyLoyaltyGuests() {
               Object.entries(selectedMetadata).map(([key, value]) => (
                 <div key={key} className="grid grid-cols-3 gap-4 items-start border-b pb-3 last:border-b-0">
                   <div className="font-medium text-sm capitalize">
-                    {key.replace(/([A-Z])/g, ' $1').trim()}:
+                    {key.replace(/([A-Z])/g, ' $1').trim().replaceAll("_", " ")}:
                   </div>
                   <div className="col-span-2 text-sm text-muted-foreground break-words">
                     {typeof value === 'object' && value !== null

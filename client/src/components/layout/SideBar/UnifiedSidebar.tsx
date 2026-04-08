@@ -146,6 +146,7 @@ const scrollPosition = useRef(0);
       { name: 'Register Form', href: `/app/property/loyalty/register-form/${user?.creation}`, icon: FileText, userLevels: [0, 1, 2, 3, 4] },
       { name: 'Content Configuration', href: `/app/property/loyalty/content-config/${user?.creation}`, icon: Users, userLevels: [4, 3, 2, 1] },
       { name: 'Loyalty Guests', href: `/app/property/loyalty/loyalty-guests/${user?.creation}`, icon: Shield, userLevels: [4] },
+      { name: 'Loyalty Levels', href: `/app/property/loyalty/levels/${user?.creation}`, icon: Award, userLevels: [4, 3, 2, 1] },
     ];
     
     if (isPropertyContext && propertyId) {

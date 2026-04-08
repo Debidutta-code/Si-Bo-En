@@ -5,15 +5,11 @@ export interface ICloyalityGuests{
     guestId:string|null;
     guestEmail:string;
     password:string;
-    metaData:any;
-    guestLevel?:number;
 }
 export interface ICCloyalityGuests{
     guestId:string|null;
     guestEmail:string;
     password:string;
-    metaData:any;
-    
 }
 export interface ILoyalityGuests extends ICloyalityGuests{
 id:string;
@@ -25,8 +21,11 @@ export interface ILoyalityGuestsWDP extends ILoyalityGuests{
     
 }
 export interface IGetLoyaltyGuestsForCreation{
-    LoyalityGuest:ILoyalityGuestsWDP|null
-    CreationLoyaltyConfig:{
-        LoyalityLevels:ILoyalityLevels[]
-    }
+    LoyalityGuest:ILoyalityGuestsWDP|null;
+    CreationLoyaltyConfig: {
+        id: string;
+        loyaltyDiscountType: string;
+        discountValue: number;
+    } | null;
+    guestLevel: number;
 }

@@ -2,6 +2,7 @@ import { ShoppingBag, Globe } from 'lucide-react';
 import DonutChart from './DonutChart';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { IAddonAnalytics, IBookingSourceAnalytics, IPaymentMethodAnalytics } from '../interface';
+import { capitalizeFirstLetter } from '@/lib/utils';
 
 interface AdditionalStatsProps {
   addonData: IAddonAnalytics;
@@ -125,7 +126,7 @@ export default function AdditionalStats({
           data={paymentMethodData?.methodBreakdown?.map((method, index) => {
             const colors = ['#3b82f6', '#10b981', '#a855f7', '#f97316'];
             return {
-              label: method.method.replace('_', ' '),
+              label: method.method.split('_').map(capitalizeFirstLetter).join(' '),
               value: method.count,
               color: colors[index % colors.length]
             };

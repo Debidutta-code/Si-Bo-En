@@ -30,23 +30,14 @@ export class LoyaltyGuestRepository {
             return await prisma.creationGuest.findFirst({
                 where: {
                     propertyId,
-                    LoyalityGuest: {
-                        guestEmail
-                    },
-                }, include: {
-                    LoyalityGuest: {
-                        include: {
-                            guest: true
-                        }
-                    },
-
-                    CreationLoyaltyConfig: {
-                        include: {
-                            LoyalityLevels: true
-                        }
-                    }
+                    LoyalityGuest: { guestEmail },
                 },
-
+                include: {
+                    LoyalityGuest: {
+                        include: { guest: true }
+                    },
+                    CreationLoyaltyConfig: true,
+                },
             })
         } catch (error) {
             console.log(error)
@@ -171,7 +162,6 @@ export class LoyaltyGuestRepository {
                 data: {
                     guestEmail: data.guestEmail,
                     guestId: data.guestId || undefined,
-                    metaData: data.metaData,
                     password: data.password,
                 }
             });
@@ -184,9 +174,7 @@ export class LoyaltyGuestRepository {
     public async getPropertyLoyaltyConfig(propertyId: string): Promise<any> {
         try {
             return await prisma.propertyLoyaltyConfig.findUnique({
-                where: {
-                    propertyId: propertyId
-                },
+                where: { propertyId },
                 include: {
                     Property: {
                         select: {
@@ -195,14 +183,7 @@ export class LoyaltyGuestRepository {
                             propertyName: true
                         }
                     },
-                    CreationLoyaltyConfig: {
-                        select: {
-                            id: true,
-                            loyaltyDiscountType: true,
-                            discountValue: true,
-                            currencyCode: true
-                        }
-                    }
+                    loyalityLevels: true,
                 }
             });
         } catch (error) {
@@ -220,6 +201,35 @@ export class LoyaltyGuestRepository {
             })
         } catch (error) {
             throw new Error("Failed to add guest")
+        }
+    }
+
+    public async addGuestTOLoyalty(email: string,guestEmailId:string): Promise<ILoyalityGuests | null> {
+        try {
+            return await prisma.loyalityGuest.update({
+                where: {
+                    guestEmail: email
+                },
+                data:{
+                    guestId:guestEmailId
+                }
+            });
+        } catch (error) {
+            throw new Error("Failed to get guest by email");
+        }
+    }
+    public async updateGuest(email: string, password: string): Promise<ILoyalityGuests | null> {
+        try {
+            return await prisma.loyalityGuest.update({
+                where: {
+                    guestEmail: email
+                },
+                data:{
+                    password:password
+                }
+            });
+        } catch (error) {
+            throw new Error("Failed to update guest");
         }
     }
 

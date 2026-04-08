@@ -15,7 +15,6 @@ export class LoyaltyGuestController {
     public async deleteLoyaltyGuest(req: CustomRequest, res: Response): Promise<Response> {
         try {
             const { id } = req.params;
-
             if (!id) {
                 return res.status(400).json(errorResponse("Invalid Request", "Loyalty Guest ID is required"));
             }
@@ -75,7 +74,7 @@ export class LoyaltyGuestController {
             if(!req.property) {
                 return res.status(400).json(errorResponse("Invalid Request", "Property information is required"));
             }
-            const { email, propertyId, metadata } = req.body;
+            const { email, propertyId, metadata,password } = req.body;
 
             // Validation
             if (!email || !propertyId) {
@@ -90,8 +89,9 @@ export class LoyaltyGuestController {
             const result = await this.loyaltyGuestService.registerGuestFromBookingEngine({
                 email,
                 propertyId,
-                metadata: metadata || {},
-                propertyCode: req.property.propertyCode
+                propertyCode: req.property.propertyCode,
+                metaData: metadata || {},
+                password
             });
 
             return res.status(result.success ? 201 : 400).json(result);

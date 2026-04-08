@@ -1,17 +1,25 @@
 import jwt from 'jsonwebtoken';
-import { Types } from 'mongoose';
 
 export type Role = 'super_admin' | 'group_manager' | 'hotel_manager' |'brand_manager'| 'staff' | 'revenue_manager' | 'regional_admin';
 
 export type Payload = {
-  id?: Types.ObjectId | string;
+  id?:  string;
   email?: string;
   role?: Role;
+};
+export type LoyaltyPayload = {
+  id?:  string;
+  email?: string;
 };
 
 const expiresInSeconds = (days: number) => days * 24 * 60 * 60;
 
 const assignToken = (payload: Payload, secret: string, expiresIn: string) => {
+  return jwt.sign(payload, secret, {
+    expiresIn: expiresInSeconds(parseInt(expiresIn?.split('d')[0]!)),
+  });
+};
+const assignLoyaltyToken = (payload: LoyaltyPayload, secret: string, expiresIn: string) => {
   return jwt.sign(payload, secret, {
     expiresIn: expiresInSeconds(parseInt(expiresIn?.split('d')[0]!)),
   });
@@ -30,4 +38,4 @@ const decodeToken = async (
   });
 };
 
-export { assignToken, decodeToken };
+export { assignToken, decodeToken,assignLoyaltyToken };

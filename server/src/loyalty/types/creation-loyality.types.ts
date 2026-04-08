@@ -26,6 +26,4 @@ export interface ICreationLoyality extends ICCreationLoyality {
       LoyaltyProgramFieldConfig: ILoyaltyField[] | null;
       loyaltySpecialConditions: ILoyalitySpecialCondition[] | null;
 }
-export interface ICreationLoyalityWithProperty{
-      PropertyLoyaltyConfig: IPropertyLoyaltyConfig[]|null;
-}
+export interface ICreationLoyalityWithProperty extends ICreationLoyality {}

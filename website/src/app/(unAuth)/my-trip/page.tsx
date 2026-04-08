@@ -1,11 +1,11 @@
 "use client";
 import { useTranslation } from "react-i18next";
-import CancelModal from "../../components/BookingModals/CancelModal";
+import CancelModal from "../../../components/BookingModals/CancelModal";
 import ModifyBookingModal from "@/src/components/BookingModals/ModifyBookingmodal";
 import { useEffect, useRef, useState } from "react";
 import toast, { Toaster } from "react-hot-toast";
 import { useDispatch } from "react-redux";
-import { setBookingData as setBookingViewData } from "../../store/bookingviewSlice";
+import { setBookingData as setBookingViewData } from "../../../store/bookingviewSlice";
 import { useSearchParams } from "next/navigation";
 import jsPDF from "jspdf";
 import {

@@ -76,8 +76,21 @@ const Navbar = () => {
       if (url) dispatch(setSenderUrl(url));
     }
 
-    if (url) {
-      window.location.href = url;
+    // If we are inside the booking engine (this Next.js app),
+    // prefer client navigation to avoid hard reload/blank screen issues.
+    // Only redirect to `senderUrl` when it is truly an external referrer.
+    const isExternalUrl = (candidate?: string) => {
+      if (!candidate) return false;
+      try {
+        const u = new URL(candidate, window.location.origin);
+        return u.origin !== window.location.origin;
+      } catch {
+        return false;
+      }
+    };
+
+    if (isExternalUrl(url)) {
+      window.location.href = url!;
     } else {
       router.push("/");
     }
@@ -159,6 +172,18 @@ const Navbar = () => {
               }}
             >
               {t("Navbar.partnerLogin")}
+            </button>
+            <button
+              onClick={() => router.push(`/login`)}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
+                  ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
+                  : "#F4EFE6",
+                color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
+              }}
+            >
+              {t("Navbar.loyaltyGuestLogin")}
             </button>
 
             {/* My Booking */}

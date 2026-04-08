@@ -1,4 +1,4 @@
-import { IPropertyLoyalityWithLoyality } from "@/src/app/Rooms/interface";
+import { IPropertyLoyalityWithLoyality } from "@/src/app/(unAuth)/Rooms/interface";
 import {
   Award,
   Gift,
@@ -356,7 +356,7 @@ export const LoyaltyProgramBanner = ({
               {/* Program Terms */}
               {program.loyaltyConditions &&
                 program.loyaltyConditions.filter((c) => c.isActive).length >
-                  0 && (
+                0 && (
                   <div>
                     <h3 className="text-[10px] sm:text-xs font-semibold text-gray-700 mb-1.5 flex items-center gap-1">
                       <CheckCircle2
@@ -538,13 +538,14 @@ export const LoyaltyProgramBanner = ({
                     className="w-full text-sm"
                   />
                 </div>
+                
 
                 {/* Dynamic Fields */}
                 {program.LoyaltyProgramFieldConfig &&
                   program.LoyaltyProgramFieldConfig.filter(
                     (field) =>
                       field.visibleInRegistration &&
-                      field.fieldName.toLowerCase() !== "email",
+                      field.fieldName.toLowerCase() !== "email" 
                   ).length > 0 && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {program.LoyaltyProgramFieldConfig.filter(

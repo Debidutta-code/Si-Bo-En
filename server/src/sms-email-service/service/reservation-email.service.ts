@@ -1,8 +1,8 @@
-import { IBookingDetails } from "../../pms/frontoffice/reservation/types";
-import { getPropertyByPropertyCode, getPropertyDetails } from "../utils";
-import { EmailTemplates } from "../templatesss";
-import { PropertyEmailRepository } from "../reposititory";
-import { emailQueue } from "../../index";
+import { IBookingDetails } from '../../pms/frontoffice/reservation/types';
+import { getPropertyByPropertyCode, getPropertyDetails } from '../utils';
+import { EmailTemplates } from '../templatesss';
+import { PropertyEmailRepository } from '../reposititory';
+import { emailQueue } from '../../index';
 
 export class ReservationEmailService {
     private propertyEmailRepository: PropertyEmailRepository;
@@ -11,19 +11,28 @@ export class ReservationEmailService {
         this.propertyEmailRepository = new PropertyEmailRepository();
     }
 
-    public async reservationConfirmation(bookingDetails: IBookingDetails): Promise<void> {
-
+    public async reservationConfirmation(
+        bookingDetails: IBookingDetails
+    ): Promise<void> {
         try {
-            const property = await getPropertyByPropertyCode(bookingDetails.propertyCode);
-            if(!property) return;
+            const property = await getPropertyByPropertyCode(
+                bookingDetails.propertyCode
+            );
+            if (!property) return;
 
-            const propertyDetails = await getPropertyDetails(property.id, bookingDetails.roomTypeCode);
+            const propertyDetails = await getPropertyDetails(
+                property.id,
+                bookingDetails.roomTypeCode
+            );
             if (!propertyDetails || !propertyDetails.propertyAddress) return;
 
             const room = propertyDetails.propertyRooms[0];
             if (!room) return;
 
-            const propertyEmails = await this.propertyEmailRepository.getPropertyEmails(propertyDetails.id);
+            const propertyEmails =
+                await this.propertyEmailRepository.getPropertyEmails(
+                    propertyDetails.id
+                );
             const ccEmails = propertyEmails
                 .map(e => e.email)
                 .filter(e => e !== propertyDetails.propertyEmail);
@@ -35,7 +44,7 @@ export class ReservationEmailService {
                     image: propertyDetails.image,
                     propertyContact: propertyDetails.propertyContact,
                     propertyEmail: propertyDetails.propertyEmail,
-                    propertyCode: propertyDetails.propertyCode
+                    propertyCode: propertyDetails.propertyCode,
                 },
                 room: {
                     roomName: room.roomName,
@@ -53,9 +62,9 @@ export class ReservationEmailService {
             await emailQueue.enqueueEmail({
                 to: bookingDetails.email,
                 cc: [],
-                subject: "Your Reservation Confirmation - RevChill",
+                subject: 'Your Reservation Confirmation - RevChill',
                 htmlContent: htmlTemplate,
-                priority: 'high',
+                priority: 'critical',
                 meta: {
                     template: 'reservation_confirmation_customer',
                     event: 'reservation_confirmation',
@@ -67,7 +76,7 @@ export class ReservationEmailService {
             await emailQueue.enqueueEmail({
                 to: propertyDetails.propertyEmail,
                 cc: ccEmails,
-                subject: "New Reservation - RevChill",
+                subject: 'New Reservation - RevChill',
                 htmlContent: htmlTemplate,
                 priority: 'high',
                 meta: {
@@ -76,21 +85,31 @@ export class ReservationEmailService {
                     correlationId,
                 },
             });
-
         } catch (error) {
-            console.error("Error sending reservation confirmation email:", error);
+            console.error(
+                'Error sending reservation confirmation email:',
+                error
+            );
         }
     }
 
-    public async reservationUpdatedEmail(bookingDetails: IBookingDetails): Promise<void> {
+    public async reservationUpdatedEmail(
+        bookingDetails: IBookingDetails
+    ): Promise<void> {
         try {
-            const propertyDetails = await getPropertyDetails(bookingDetails.propertyCode, bookingDetails.roomTypeCode);
+            const propertyDetails = await getPropertyDetails(
+                bookingDetails.propertyCode,
+                bookingDetails.roomTypeCode
+            );
             if (!propertyDetails || !propertyDetails.propertyAddress) return;
 
             const room = propertyDetails.propertyRooms[0];
             if (!room) return;
 
-            const propertyEmails = await this.propertyEmailRepository.getPropertyEmails(propertyDetails.id);
+            const propertyEmails =
+                await this.propertyEmailRepository.getPropertyEmails(
+                    propertyDetails.id
+                );
             const ccEmails = propertyEmails
                 .map(e => e.email)
                 .filter(e => e !== propertyDetails.propertyEmail);
@@ -102,7 +121,7 @@ export class ReservationEmailService {
                     image: propertyDetails.image,
                     propertyContact: propertyDetails.propertyContact,
                     propertyEmail: propertyDetails.propertyEmail,
-                    propertyCode: propertyDetails.propertyCode
+                    propertyCode: propertyDetails.propertyCode,
                 },
                 room: {
                     roomName: room.roomName,
@@ -120,7 +139,7 @@ export class ReservationEmailService {
             await emailQueue.enqueueEmail({
                 to: bookingDetails.email,
                 cc: [],
-                subject: "Your Reservation Has Been Updated - RevChill",
+                subject: 'Your Reservation Has Been Updated - RevChill',
                 htmlContent: htmlTemplate,
                 priority: 'high',
                 meta: {
@@ -134,30 +153,37 @@ export class ReservationEmailService {
             await emailQueue.enqueueEmail({
                 to: propertyDetails.propertyEmail,
                 cc: ccEmails,
-                subject: "Reservation Updated - RevChill",
+                subject: 'Reservation Updated - RevChill',
                 htmlContent: htmlTemplate,
-                priority: 'high',
+                priority: 'normal',
                 meta: {
                     template: 'reservation_updated_property',
                     event: 'reservation_updated',
                     correlationId,
                 },
             });
-
         } catch (error) {
-            console.error("Error sending reservation updated email:", error);
+            console.error('Error sending reservation updated email:', error);
         }
     }
 
-    public async reservationCancelEmail(bookingDetails: IBookingDetails): Promise<void> {
+    public async reservationCancelEmail(
+        bookingDetails: IBookingDetails
+    ): Promise<void> {
         try {
-            const propertyDetails = await getPropertyDetails(bookingDetails.propertyCode, bookingDetails.roomTypeCode);
+            const propertyDetails = await getPropertyDetails(
+                bookingDetails.propertyCode,
+                bookingDetails.roomTypeCode
+            );
             if (!propertyDetails || !propertyDetails.propertyAddress) return;
 
             const room = propertyDetails.propertyRooms[0];
             if (!room) return;
 
-            const propertyEmails = await this.propertyEmailRepository.getPropertyEmails(propertyDetails.id);
+            const propertyEmails =
+                await this.propertyEmailRepository.getPropertyEmails(
+                    propertyDetails.id
+                );
             const ccEmails = propertyEmails
                 .map(e => e.email)
                 .filter(e => e !== propertyDetails.propertyEmail);
@@ -169,7 +195,7 @@ export class ReservationEmailService {
                     image: propertyDetails.image,
                     propertyContact: propertyDetails.propertyContact,
                     propertyEmail: propertyDetails.propertyEmail,
-                    propertyCode: propertyDetails.propertyCode
+                    propertyCode: propertyDetails.propertyCode,
                 },
                 room: {
                     roomName: room.roomName,
@@ -187,7 +213,8 @@ export class ReservationEmailService {
             await emailQueue.enqueueEmail({
                 to: bookingDetails.email,
                 cc: [],
-                subject: "Your Reservation Cancellation Confirmation - RevChill",
+                subject:
+                    'Your Reservation Cancellation Confirmation - RevChill',
                 htmlContent: htmlTemplate,
                 priority: 'high',
                 meta: {
@@ -201,18 +228,20 @@ export class ReservationEmailService {
             await emailQueue.enqueueEmail({
                 to: propertyDetails.propertyEmail,
                 cc: ccEmails,
-                subject: "Reservation Cancelled - RevChill",
+                subject: 'Reservation Cancelled - RevChill',
                 htmlContent: htmlTemplate,
-                priority: 'high',
+                priority: 'normal',
                 meta: {
                     template: 'reservation_cancel_property',
                     event: 'reservation_cancel',
                     correlationId,
                 },
             });
-
         } catch (error) {
-            console.error("Error sending reservation cancellation email:", error);
+            console.error(
+                'Error sending reservation cancellation email:',
+                error
+            );
         }
     }
 }

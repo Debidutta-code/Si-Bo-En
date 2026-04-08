@@ -14,20 +14,7 @@ export class RoomBookingRepository {
                 loyaltyProgramConfig: {
                     where: { isActive: true },
                     include: {
-                        CreationLoyaltyConfig: {
-                            include: {
-                                AdvanceLoyaltyProgram: true,
-                                BasicLoyaltyProgram: true,
-                                loyaltyConditions: {
-                                    where: {
-                                        isActive: true,
-                                        isDeleted: false
-                                    },
-                                },
-                                LoyaltyProgramFieldConfig: true,
-                                loyaltySpecialConditions: true,
-                            },
-                        },
+                        loyalityLevels: true,
                     },
                 },
                 propertyVideos: true,

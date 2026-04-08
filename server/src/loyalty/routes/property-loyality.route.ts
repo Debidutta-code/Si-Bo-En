@@ -15,11 +15,6 @@ router.route("/")
         protect,
         propertyLoyalityController.createPropertyLoyalityConfig.bind(propertyLoyalityController)
     );
-router.route("/by-program/:loyaltyProgramId")
-    .get(
-        protect,
-        propertyLoyalityController.getPropertiesByLoyaltyProgram.bind(propertyLoyalityController)
-    );
 router.route("/:propertyId")
     .get(
         protect,

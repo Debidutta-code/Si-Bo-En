@@ -26,8 +26,6 @@ export interface ICloyalityGuests{
     guestId:string|null;
     guestEmail:string;
     password:string;
-    metaData:any;
-    guestLevel?:number;
 }
 export interface ICCloyalityGuests{
     guestId:string|null;
@@ -50,4 +48,7 @@ export interface IGetLoyaltyGuestsForCreation{
     CreationLoyaltyConfig:{
         LoyalityLevels:ILoyalityLevels[]
     }
+        metaData:any;
+    guestLevel:number;
+
 }

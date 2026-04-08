@@ -14,9 +14,6 @@ export class PropertyLoyalityController {
         try {
             const data: ICPropertyLoyaltyConfig = req.body;
 
-            if (!data.creationLoyaltyConfigId) {
-                return res.status(400).json(errorResponse("Invalid Field Provided", "Creation Loyalty Config ID is required"));
-            }
             if (!data.propertyId) {
                 return res.status(400).json(errorResponse("Property not chosen", "Property ID is required"));
             }
@@ -131,21 +128,4 @@ export class PropertyLoyalityController {
         }
     }
 
-    public async getPropertiesByLoyaltyProgram(req: CustomRequest, res: Response): Promise<Response> {
-        try {
-            const { loyaltyProgramId } = req.params;
-
-            if (!loyaltyProgramId) {
-                return res.status(400).json(errorResponse("Loyalty program not chosen", "Loyalty Program ID is required"));
-            }
-
-            const result = await this.propertyLoyalityService.getPropertiesByLoyaltyProgram(loyaltyProgramId);
-            return res.status(result.success ? 200 : 401).json(result);
-        } catch (error) {
-            if (error instanceof Error) {
-                return res.status(500).json(errorResponse("Failed to retrieve properties", error.message));
-            }
-            return res.status(500).json(errorResponse("Internal Server Error", "Failed to retrieve properties"));
-        }
-    }
 }

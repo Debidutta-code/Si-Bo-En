@@ -4,7 +4,8 @@
     "services": "Services",
     "contactUs": "Contact Us",
     "partnerLogin": "Partner Login",
-    "myBooking": "My Booking"
+    "myBooking": "My Booking",
+    "loyaltyGuestLogin": "Loyalty Guest Login"
   },
   "Hero": {
     "title": "Find Next Place To Visit",
@@ -118,6 +119,8 @@
       "autoApplied": "Auto-applied on every booking",
       "emailLabel": "Email Address",
       "emailPlaceholder": "your.email@example.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Password@123",
       "cancel": "Cancel",
       "registering": "Registering...",
       "signUp": "Sign Up",

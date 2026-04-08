@@ -4,6 +4,7 @@ import { generateOTPEmailTemplate,
     generatePasswordResetLinkTemplate } from "../templatesss";
 import { config } from "../../config";
 import { emailQueue } from "../../index";
+import { generateLoyaltyOTPEmailTemplate } from "../templatesss/loyality-otp.tempate";
 
 export class EmailService {
     private transporter: nodemailer.Transporter;
@@ -48,7 +49,7 @@ export class EmailService {
             // Save to database
             await this.otpRepository.createOTP(email, otp, purpose, 10);
 
-            const htmlContent = generateOTPEmailTemplate(otp, purpose, email);
+            const htmlContent = generateLoyaltyOTPEmailTemplate(otp, purpose, email);
             const subject = {
                 email_verification: "Verify Your Email - RevChill",
                 password_reset: "Reset Your Password - RevChill",
@@ -60,7 +61,7 @@ export class EmailService {
                 cc: [],
                 subject,
                 htmlContent,
-                priority: 'high',
+                priority: 'critical',
                 meta: {
                     template: 'otp',
                     event: purpose,
@@ -121,7 +122,7 @@ export class EmailService {
                 cc: [],
                 subject,
                 htmlContent,
-                priority: 'high',
+                priority: 'critical',
                 meta: {
                     template: 'password_reset_link',
                     event: 'password_reset',

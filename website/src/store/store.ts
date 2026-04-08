@@ -14,7 +14,8 @@ import storage from 'redux-persist/lib/storage'; // defaults to localStorage for
 import roomsReducer from './roomsSlice';
 import bookingReducer from './bookingSlice';
 import userReducer from './userSlice';
-import bookingViewReducer from './bookingviewSlice'; // or correct path
+import bookingViewReducer from './bookingviewSlice';
+import loyaltyUserReducer from './loyaltyUserSlice';
 
 
 const bookingPersistConfig = {
@@ -26,14 +27,15 @@ const bookingPersistConfig = {
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['user'], 
+  whitelist: ['user', 'loyaltyUser'], 
 };
 
 const rootReducer = combineReducers({
   rooms: roomsReducer,
   booking: persistReducer(bookingPersistConfig, bookingReducer),
   user: userReducer,
-  bookingView: bookingViewReducer, // ✅ Add this line
+  bookingView: bookingViewReducer,
+  loyaltyUser: loyaltyUserReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

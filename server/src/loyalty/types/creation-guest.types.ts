@@ -5,18 +5,20 @@ export interface ICCreationLoyaltyGuest {
     propertyId: string;
     creationLoyaltyConfigId: string;
     propertyCode: string;
+    metaData: any;
+    guestLevel?: number;
 }
 export interface ICreationLoyaltyGuest extends ICCreationLoyaltyGuest {
-    id:string;
+    id: string;
 }
 export interface ICreationLoyaltyGuestWG extends ICreationLoyaltyGuest {
-    LoyalityGuest:ILoyalityGuests
+    LoyalityGuest: ILoyalityGuests;
 }
 export interface ICreationLoyaltyGuestWDP extends ICreationLoyaltyGuest {
-    LoyalityGuest:ILoyalityGuestsWDP;
-    Property:{
-        id:string;
-        propertyName:string;
-        propertyCode:string;
+    LoyalityGuest: ILoyalityGuestsWDP;
+    Property: {
+        id: string;
+        propertyName: string;
+        propertyCode: string;
     };
 }

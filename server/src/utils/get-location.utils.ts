@@ -11,12 +11,6 @@ export const getGeoLocationDetails = async (
         ip = ip.replace('::ffff:', '');
     }
 
-
-    // const isLocal = !ip || ip === '::1' || ip === '127.0.0.1';
-
-    // if (isLocal) {
-    //     return { success: false, ip: 'localhost', city: 'Unknown', country: 'Unknown', coordinates: [0, 0] };
-    // }
    const isLocal = !ip || ip === '::1' || ip === '127.0.0.1';
 
     // Skip API call in local — return India directly

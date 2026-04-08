@@ -53,6 +53,7 @@ import LoyaltyContent from "./pages/loyalty/LoyaltyContent.tsx";
 import PropertyLoyalityManagement from "./pages/loyalty/PropertyLoyalties.tsx";
 import PropertyLoyaltyGuests from "./pages/loyalty/PropertyLoyaltyGuests.tsx";
 import ActivePropertyLoyalty from "./pages/loyalty/ActivepropertyLoyaty.tsx";
+import LoyaltyLevels from "./pages/loyalty/LoyaltyLevels.tsx";
 import AgenciesListPage from "./pages/agency/AgenciesListPage.tsx";
 import AgencyDetailsPage from "./pages/agency/AgencyDetailsPage.tsx";
 import AgencyAgentsPage from "./pages/agency/AgencyAgentsPage.tsx";
@@ -98,6 +99,10 @@ export const router = createBrowserRouter(
               path="loyalty-guests/:creationId"
               index
               element={<LoyaltyGuest />}
+            />
+            <Route
+              path="levels/:creationId"
+              element={<LoyaltyLevels />}
             />
           </Route>
         </Route>

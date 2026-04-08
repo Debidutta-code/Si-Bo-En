@@ -11,7 +11,6 @@ export const sendOtp = async (req: Request, res: Response) => {
     });
   }
 
-  // Default purpose to email_verification if not provided
   const otpPurpose = purpose || "email_verification";
 
   // Validate purpose

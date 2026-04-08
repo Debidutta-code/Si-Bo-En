@@ -32,6 +32,8 @@ import { RTReservationPushService } from '../../../../integrations/rate-tiger/se
 import { CurrencyCode } from '../../../../tax-system/interfaces/tourist-tax.type';
 import { BookingStatus } from '../types/reservation.type';
 import { ngeniusService } from '../../../../payment/services/ngenius.service';
+import { CreationLoyalityService } from '../../../../loyalty/services';
+import { CreationGuestRepository } from '../../../../loyalty/repository/creation-guest.repository';
 
 export class ReservationService {
     reservationRepository: ReservationRepository;
@@ -43,6 +45,7 @@ export class ReservationService {
     reservationPromotionRepository: ReservationPromotionRepository;
     emailService: ReservationEmailService;
     loyalityGuestRepo: LoyaltyGuestRepository;
+    creationGuestRepository:CreationGuestRepository;
     constructor() {
         this.reservationRepository = new ReservationRepository();
         this.priceBrakeDownRepo = new PriceBrakeDownRepo();
@@ -54,6 +57,7 @@ export class ReservationService {
             new ReservationPromotionRepository();
         this.emailService = new ReservationEmailService();
         this.loyalityGuestRepo = new LoyaltyGuestRepository();
+        this.creationGuestRepository = new CreationGuestRepository();
     }
 
     private async generateBookingCode(propertyCode: string): Promise<string> {
@@ -165,11 +169,6 @@ export class ReservationService {
         };
     }
 
-    // ─────────────────────────────────────────────────────────────────────────────
-    // PRIVATE HELPER: Resolve refund strategy from DB for a given orderReference
-    // Returns: strategy ('same_day' | 'day_after'), outletId, and a reason string
-    // This replaces the HTTP middleware for direct service-to-service calls
-    // ─────────────────────────────────────────────────────────────────────────────
     private async resolveRefundStrategy(orderReference: string): Promise<{
         strategy: 'same_day' | 'day_after';
         outletId: string | undefined;
@@ -328,6 +327,19 @@ export class ReservationService {
                     await this.guestRepository.createGuest(newGuestPayload);
                 primaryGuestId = newGuest.id;
             }
+            //add loyalty guest
+            await this.loyalityGuestRepo.addGuestTOLoyalty(email,primaryGuestId);
+            // const checkIfguestExist=await this.creationGuestRepository.checkIfGuestExist(propertyId,primaryGuestId);
+            // console.log("checkIfguestExist",checkIfguestExist);
+            // if(!checkIfguestExist){
+            //     await this.creationGuestRepository.createCreationGuest({
+            //         propertyId,
+            //         loyalityGuestId:primaryGuestId,
+                    
+            //     });
+            // }
+            
+            
 
             const bookingCode = await this.generateBookingCode(propertyCode);
             const paymentMethods = this.mapPaymentMethod(paymentMethod);

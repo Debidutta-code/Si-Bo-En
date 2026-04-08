@@ -21,7 +21,7 @@ import AddonSelectionModal from "./AddonSelectionModal";
 import { Room } from "../../store/roomsSlice";
 import { useBookingStorage } from "../../hooks/useBookingStorage";
 import toast from "react-hot-toast";
-import { IPropertyLoyalityWithLoyality } from "@/src/app/Rooms/interface";
+import { IPropertyLoyalityWithLoyality } from "@/src/app/(unAuth)/Rooms/interface";
 import { useTranslation } from "react-i18next";
 
 interface RoomCardProps {

@@ -164,7 +164,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   const [currentLogo, setCurrentLogo] = useState<string | null>(logoIcon);
   const { primaryColor, secondaryColor, tertiaryColor, buttonTextColor } =
     colors;
-  const hotelcode = bookingContext?.PropertyCode || "4BTXDZ";
+  const hotelcode = bookingContext?.PropertyCode || "D3RSVJ";
   const PathName = usePathname();
 
   const totalGuests = guestInfo.adults + guestInfo.children;
