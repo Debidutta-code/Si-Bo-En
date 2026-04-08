@@ -130,14 +130,14 @@ export default function PropertyLoyalityManagement() {
                       </TableCell>
                       <TableCell>{loyalty.propertyCode}</TableCell>
                       <TableCell className="capitalize">
-                        {loyalty.CreationLoyaltyConfig.loyaltyDiscountType}
+                        {loyalty.CreationLoyaltyConfig?.loyaltyDiscountType}
                       </TableCell>
                       <TableCell className="font-semibold">
-                        {loyalty.CreationLoyaltyConfig.loyaltyDiscountType === "percentage"
-                          ? `${loyalty.CreationLoyaltyConfig.discountValue}%`
-                          : loyalty.CreationLoyaltyConfig.discountValue}
+                        {loyalty.CreationLoyaltyConfig?.loyaltyDiscountType === "percentage"
+                          ? `${loyalty.CreationLoyaltyConfig?.discountValue}%`
+                          : loyalty.CreationLoyaltyConfig?.discountValue}
                       </TableCell>
-                      <TableCell>{loyalty.CreationLoyaltyConfig.currencyCode}</TableCell>
+                      <TableCell>{loyalty.CreationLoyaltyConfig?.currencyCode}</TableCell>
                       <TableCell>
                         <Badge variant={loyalty.isActive ? "default" : "secondary"}>
                           {loyalty.isActive ? "Active" : "Inactive"}

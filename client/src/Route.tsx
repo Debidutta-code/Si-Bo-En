@@ -83,28 +83,29 @@ export const router = createBrowserRouter(
           <Route path="regional/:creationId" element={<CustomId />} />
 
           <Route path="property/:creationId" element={<PropertyId />} />
-          <Route path="loyalty">
-            <Route path=":creationId" index element={<Loyalty />} />
-            <Route
-              path="register-form/:creationId"
-              index
-              element={<LoyaltyForm />}
-            />
-            <Route
-              path="content-config/:creationId"
-              index
-              element={<LoyaltyContent />}
-            />
-            <Route
-              path="loyalty-guests/:creationId"
-              index
-              element={<LoyaltyGuest />}
-            />
-            <Route
-              path="levels/:creationId"
-              element={<LoyaltyLevels />}
-            />
-          </Route>
+
+        </Route>
+        <Route path="loyalty">
+          <Route path=":creationId" index element={<Loyalty />} />
+          <Route
+            path="register-form/:creationId"
+            index
+            element={<LoyaltyForm />}
+          />
+          <Route
+            path="content-config/:creationId"
+            index
+            element={<LoyaltyContent />}
+          />
+          <Route
+            path="loyalty-guests/:creationId"
+            index
+            element={<LoyaltyGuest />}
+          />
+          <Route
+            path="levels/:creationId"
+            element={<LoyaltyLevels />}
+          />
         </Route>
         <Route path="members" element={<MembersPage />} />
         <Route path="logs" element={<LogsPage />} />

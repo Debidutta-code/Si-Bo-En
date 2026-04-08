@@ -47,7 +47,7 @@ const navigation: NavItem[] = [
   { name: 'Properties', href: '/app/property', icon: Building, userLevels: [2, 3, 4] },
   { name: "My Property", href: `/app/property`, icon: Building, userLevels: [1, 0] },
   { name: "Reservations", href: "/app/bookings", icon: CalendarClock, userLevels: [0, 1, 2, 3, 4] },
-  { name: 'Logs', href: '/app/logs', icon: FileText, userLevels: [ 4] },
+  { name: 'Logs', href: '/app/logs', icon: FileText, userLevels: [4] },
   { name: 'Manage Members', href: '/app/members', icon: Users, userLevels: [4, 3, 2, 1] },
   { name: 'Access Control', href: '/app/access-control', icon: Shield, userLevels: [4] },
   { name: 'Utils Management', href: '/app/utils-management', icon: Wrench, userLevels: [4, 3] },
@@ -67,11 +67,11 @@ interface SidebarProps {
 
 export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) {
   const { propertyId } = useParams();
-  // const { creationId } = useParams();
+  const { creationId } = useParams();
   const { user } = useAppSelector((state) => state.user);
   const location = useLocation();
   const navRef = useRef<HTMLDivElement | null>(null);
-const scrollPosition = useRef(0);
+  const scrollPosition = useRef(0);
 
   const navigate = useNavigate();
   const [isManagementOpen, setIsManagementOpen] = useState(false);
@@ -104,9 +104,9 @@ const scrollPosition = useRef(0);
     const axiosInstance = createAxiosInstance();
     try {
       const response = await axiosInstance.post('/auth/logout');
-      if(response.data.success) {
+      if (response.data.success) {
         navigate('/');
-      }else{
+      } else {
         navigate('/');
       }
     } catch (error) {
@@ -129,31 +129,41 @@ const scrollPosition = useRef(0);
     { name: 'Tax System', href: `/property/tax-system/${propertyId}`, icon: Shield, userLevels: [4] },
   ];
   const promotionsItems = [
-    { name: 'GEO', href: `/property/promotion/geo/${propertyId}`, icon: Globe, userLevels: [4, 3, 2, 1,0] },
-    { name: 'MLOS', href: `/property/promotion/mlos/${propertyId}`, icon: ListEndIcon, userLevels: [4, 3, 2, 1,0] },
-    { name: 'Device Specific', href: `/property/promotion/device-specific/${propertyId}`, icon: Smartphone, userLevels: [4, 3, 2, 1,0] },
-    { name: 'Early Bird', href: `/property/promotion/early-bird/${propertyId}`, icon:Sun , userLevels: [4, 3, 2, 1,0] },
-    { name: 'Offer For Tonight', href: `/property/promotion/offer-for-tonight/${propertyId}`, icon: MoonIcon, userLevels: [4, 3, 2, 1,0] },
-    { name: 'Customizable Deal', href: `/property/promotion/customizable-deal/${propertyId}`, icon: Pen, userLevels: [4, 3, 2, 1,0] },
+    { name: 'GEO', href: `/property/promotion/geo/${propertyId}`, icon: Globe, userLevels: [4, 3, 2, 1, 0] },
+    { name: 'MLOS', href: `/property/promotion/mlos/${propertyId}`, icon: ListEndIcon, userLevels: [4, 3, 2, 1, 0] },
+    { name: 'Device Specific', href: `/property/promotion/device-specific/${propertyId}`, icon: Smartphone, userLevels: [4, 3, 2, 1, 0] },
+    { name: 'Early Bird', href: `/property/promotion/early-bird/${propertyId}`, icon: Sun, userLevels: [4, 3, 2, 1, 0] },
+    { name: 'Offer For Tonight', href: `/property/promotion/offer-for-tonight/${propertyId}`, icon: MoonIcon, userLevels: [4, 3, 2, 1, 0] },
+    { name: 'Customizable Deal', href: `/property/promotion/customizable-deal/${propertyId}`, icon: Pen, userLevels: [4, 3, 2, 1, 0] },
 
   ];
 
-  const isPropertyContext = !!propertyId && location.pathname.startsWith('/property/')||user?.userLevel===0||user?.userLevel==1
-  
+  const isPropertyContext =
+    (!!propertyId && location.pathname.startsWith('/property/')) ||
+    user?.userLevel === 0 ||
+    user?.userLevel === 1;
+
+  const finalCreationId = creationId || propertyId || user?.creation;
+
   const getLoyaltyItems = () => {
-    const baseItems = [
-      { name: 'Configuration', href: `/app/property/loyalty/${user?.creation}`, icon: CalendarClock, userLevels: [0, 1, 2, 3, 4] },
-      { name: 'Register Form', href: `/app/property/loyalty/register-form/${user?.creation}`, icon: FileText, userLevels: [0, 1, 2, 3, 4] },
-      { name: 'Content Configuration', href: `/app/property/loyalty/content-config/${user?.creation}`, icon: Users, userLevels: [4, 3, 2, 1] },
-      { name: 'Loyalty Guests', href: `/app/property/loyalty/loyalty-guests/${user?.creation}`, icon: Shield, userLevels: [4] },
-      { name: 'Loyalty Levels', href: `/app/property/loyalty/levels/${user?.creation}`, icon: Award, userLevels: [4, 3, 2, 1] },
-    ];
-    
     if (isPropertyContext && propertyId) {
-      baseItems.push({ name: 'Property Loyalty', href: `/property/loyalty/${propertyId}`, icon: Award, userLevels: [0, 1, 2, 3, 4] });
+      return [
+        {
+          name: 'Property Loyalty',
+          href: `/property/loyalty/${propertyId}`,
+          icon: Award,
+          userLevels: [0, 1, 2, 3, 4],
+        },
+      ];
     }
-    
-    return baseItems;
+
+    return [
+      { name: 'Configuration', href: `/app/loyalty/${finalCreationId}`, icon: CalendarClock, userLevels: [1, 2, 3, 4] },
+      { name: 'Register Form', href: `/app/loyalty/register-form/${finalCreationId}`, icon: FileText, userLevels: [1, 2, 3, 4] },
+      { name: 'Content Configuration', href: `/app/loyalty/content-config/${finalCreationId}`, icon: Users, userLevels: [4, 3, 2, 1] },
+      { name: 'Loyalty Guests', href: `/app/loyalty/loyalty-guests/${finalCreationId}`, icon: Shield, userLevels: [4] },
+      { name: 'Loyalty Levels', href: `/app/loyalty/levels/${finalCreationId}`, icon: Award, userLevels: [4, 3, 2, 1] },
+    ];
   };
 
   const filteredLoyaltyItems = getLoyaltyItems().filter(item =>
@@ -165,11 +175,11 @@ const scrollPosition = useRef(0);
       { name: 'Agencies', href: `/app/agency`, icon: Briefcase, userLevels: [4] },
       { name: 'Agency Applications', href: `/app/agency/applications`, icon: ClipboardCheck, userLevels: [4] },
     ];
-    
+
     if (isPropertyContext && propertyId) {
       baseItems.push({ name: 'Property Agencies', href: `/property/${propertyId}/agencies`, icon: Briefcase, userLevels: [0, 1, 2, 3, 4] });
     }
-    
+
     return baseItems;
   };
 
@@ -185,7 +195,7 @@ const scrollPosition = useRef(0);
 
   const filteredManagementItems = managementItems.filter(item =>
     user && item.userLevels.includes(user.userLevel)
-  );  const restrictionsItems = [
+  ); const restrictionsItems = [
     { name: 'Start/Stop Sell', href: `/property/start-stop-sell/${propertyId}` },
     { name: 'CTA-CTD', href: `/property/cta-ctd/${propertyId}` },
     { name: 'Booking Offset', href: `/property/booking-offset/${propertyId}` },
@@ -364,7 +374,7 @@ const SidebarContent = memo<SidebarContentProps>(({
         {filteredNavigation.map((item) => {
           const targetHref = item.href === `/app/property` ? (
             user?.userLevel === 4 ? `/app/property/super/${user.creation}` :
-              user?.userLevel === 3 ? user.role==="group_manager" ? `/app/property/group/${user.creation}` : `/app/property/regional/${user.creation}` :
+              user?.userLevel === 3 ? user.role === "group_manager" ? `/app/property/group/${user.creation}` : `/app/property/regional/${user.creation}` :
                 user?.userLevel === 2 ? `/app/property/brand/${user.creation}` :
                   user?.userLevel === 1 ? `/property/${user.propertyId}` :
                     user?.userLevel === 0 ? `/property/${user.propertyId}` :
