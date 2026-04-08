@@ -174,6 +174,8 @@ export interface IRoomPromoCode {
   applicableRoomTypes: string[];
   applicableRatePlans: string[];
   isActive: boolean;
+  isDeleted: boolean;          
+  usageLimit: number | null;   
 }
 
 export interface IRoomTouristTaxData {

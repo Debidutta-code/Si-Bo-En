@@ -42,6 +42,23 @@ export class RoomBookingService {
                 property.id,
                 payload.promocode
             ) as IRoomPromoCode | null;
+
+            if (!promoCodeData) {
+                return { success: false, message: 'Invalid promo code' };
+            }
+            const now = new Date();
+            if (!promoCodeData.isActive || promoCodeData.isDeleted) {
+                return { success: false, message: 'Promo code is no longer active' };
+            }
+            if (promoCodeData.validFrom && new Date(promoCodeData.validFrom) > now) {
+                return { success: false, message: 'Promo code is not yet valid' };
+            }
+            if (promoCodeData.validTo && new Date(promoCodeData.validTo) < now) {
+                return { success: false, message: 'Promo code has expired' };
+            }
+            if (promoCodeData.usageLimit === 0) {
+                return { success: false, message: 'Promo code usage limit reached' };
+            }
         }
 
         const dates: Date[] = [];
@@ -266,8 +283,8 @@ export class RoomBookingService {
             promoCodeData ?? null,
             numberOfNights,
             payload,
-            room.roomType,
-            ratePlan.ratePlanCode,
+            room.id,
+            ratePlan.id,
             deviceType
         );
         const {
