@@ -29,7 +29,7 @@ export class LoyaltyGuestRepository {
         try {
             return await prisma.creationGuest.findFirst({
                 where: {
-                    propertyId,
+                    creationLoyaltyConfigId: propertyId,
                     LoyalityGuest: { guestEmail },
                 },
                 include: {
@@ -59,23 +59,21 @@ export class LoyaltyGuestRepository {
         try {
             return await prisma.creationGuest.findMany({
                 where: {
-                    propertyId
+                    creationLoyaltyConfigId:propertyId
                 },
                 include: {
                     LoyalityGuest: {
                         include: {
                             guest: true,
-
-
                         }
                     },
-                    Property: {
-                        select: {
-                            id: true,
-                            propertyName: true,
-                            propertyCode: true
-                        }
-                    }
+                    // Property: {
+                    //     select: {
+                    //         id: true,
+                    //         propertyName: true,
+                    //         propertyCode: true
+                    //     }
+                    // }
                 },
                 skip,
                 take
@@ -86,9 +84,9 @@ export class LoyaltyGuestRepository {
     }
     public async totalLoyalityGuestsForProperty(propertyId: string): Promise<number> {
         try {
-            return await prisma.creationGuest.count({
+            return await prisma.propertyLoyalityGuests.count({
                 where: {
-                    propertyId
+                    propertyLoyalityId:propertyId
                 }
             });
         } catch (error) {
@@ -113,13 +111,13 @@ export class LoyaltyGuestRepository {
                     creationLoyaltyConfigId: creationLoyaltyConfigId
                 },
                 include: {
-                    Property: {
-                        select: {
-                            id: true,
-                            propertyName: true,
-                            propertyCode: true,
-                        }
-                    },
+                    // Property: {
+                    //     select: {
+                    //         id: true,
+                    //         propertyName: true,
+                    //         propertyCode: true,
+                    //     }
+                    // },
                     CreationLoyaltyConfig: {
                         select: {
                             id: true,
@@ -183,7 +181,7 @@ export class LoyaltyGuestRepository {
                             propertyName: true
                         }
                     },
-                    loyalityLevels: true,
+                    // loyalityLevels: true,
                 }
             });
         } catch (error) {

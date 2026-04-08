@@ -3,6 +3,7 @@ import {
     fetchProperties,
     fetchStatisticsComparison  // 🆕 ADD THIS IMPORT
 } from "../api";
+import { fetchPropertiesByCreationId } from "../api/dash.api";
 
 export const fetchAnaltyticsService = async(propertyid?: string, propertyCode?: string, propetyName?: string) => {
     try {
@@ -22,6 +23,16 @@ export const fetchPropertiesService = async() => {
         return {
             success: false,
             message: "Failed to Properties"
+        }
+    }
+}
+export const fetchPropertiesByCreationIdService = async(creationId: string) => {
+    try {
+        return await fetchPropertiesByCreationId(creationId)
+    } catch (error) {
+        return {
+            success: false,
+            message: "Failed to fetch Properties"
         }
     }
 }

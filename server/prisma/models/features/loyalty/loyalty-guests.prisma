@@ -20,6 +20,7 @@ model CreationGuest {
     guestLevel              Int                   @default(1) @map("guest_level")
     LoyalityGuest           LoyalityGuest         @relation(fields: [loyalityGuestId], references: [id], onDelete: Cascade)
     creationLoyaltyConfigId String                @map("creation_loyalty_config_id")
+    noOfBookings            Int                   @default(0) @map("no_of_bookings")
     CreationLoyaltyConfig   CreationLoyaltyConfig @relation(fields: [creationLoyaltyConfigId], references: [id], onDelete: Cascade)
 
     @@unique([creationLoyaltyConfigId, loyalityGuestId])

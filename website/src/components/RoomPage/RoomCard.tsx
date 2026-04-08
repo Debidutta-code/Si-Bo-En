@@ -948,7 +948,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                                     (combo.addons?.reduce((sum: number, a: any) => sum + a.price, 0) ?? 0)
                                   ).toFixed(2)}
                                 </span>
-                                <span className="text-[10px] text-gray-400">{t("RoomCard.perNight")}</span>
+                                {/* <span className="text-[10px] text-gray-400">{t("RoomCard.perNight")}</span> */}
                               </div>
 
                               {(combo.appliedDiscounts?.length > 0 || combo.addons?.filter((a: any) => a.price > 0).length > 0) && (

@@ -882,7 +882,6 @@ export class DashUtilsRepo {
                             propertyName: true
                         }
                     },
-                    // Everything under super (level 4) is in superChildren
                     superChildren: {
                         where: {
                             isActive: true,
@@ -944,9 +943,22 @@ export class DashUtilsRepo {
                                         }
                                     }
                                 }
+                            },
+                            brandChildren: {
+                                where: { isActive: true, isDeleted: false },
+                                include: {
+                                    property: { select: { id: true, propertyCode: true, propertyName: true } },
+                                    groupChildren: {
+                                        where: { isActive: true, isDeleted: false },
+                                        include: {
+                                            property: { select: { id: true, propertyCode: true, propertyName: true } }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
+
                 }
             });
 
@@ -1011,7 +1023,27 @@ export class DashUtilsRepo {
                         }
                     }
                 }
+
+                for (const brandChild of superChild.brandChildren) {
+                    if (brandChild.property) {
+                        propertyData.push({
+                            id: brandChild.property.id,
+                            code: brandChild.property.propertyCode,
+                            name: brandChild.property.propertyName
+                        });
+                    }
+                    for (const level1 of brandChild.groupChildren) {
+                        if (level1.property) {
+                            propertyData.push({
+                                id: level1.property.id,
+                                code: level1.property.propertyCode,
+                                name: level1.property.propertyName
+                            });
+                        }
+                    }
+                }
             }
+
 
             return {
                 success: true,
@@ -1299,5 +1331,11 @@ export class DashUtilsRepo {
             };
         }
     }
-
+    public async getCreationByCreationId(creationId: string) {
+        const creation = await prisma.creation.findUnique({
+            where: { id: creationId },
+            select: { type: true }
+        });
+        return creation;
+    }
 }

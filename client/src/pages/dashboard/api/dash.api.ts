@@ -32,6 +32,21 @@ export const fetchProperties = async() => {
         }
     }
 }
+export const fetchPropertiesByCreationId = async(creationId: string) => {
+    try {
+        const response = await axiosInstance.get(`/dash/properties-by-creation-id?creationId=${creationId}`)
+        return response.data
+    } catch (error: any) {
+        if (error?.response?.data) {
+            return error.response.data
+        } else {
+            return {
+                success: false,
+                message: error?.message
+            }
+        }
+    }
+}
 
 // 🆕 ADD THIS NEW API FUNCTION
 export const fetchStatisticsComparison = async(

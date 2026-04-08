@@ -1,13 +1,15 @@
 import { ILoyalityGuests, ILoyalityGuestsWDP } from ".";
+import { CurrencyCode } from "../../tax-system/interfaces";
 
 export interface ICCreationLoyaltyGuest {
     loyalityGuestId: string;
-    propertyId: string;
+    creationId?: string;
     creationLoyaltyConfigId: string;
-    propertyCode: string;
+    currencyCode? :CurrencyCode;
     metaData: any;
     guestLevel?: number;
 }
+
 export interface ICreationLoyaltyGuest extends ICCreationLoyaltyGuest {
     id: string;
 }
@@ -16,9 +18,9 @@ export interface ICreationLoyaltyGuestWG extends ICreationLoyaltyGuest {
 }
 export interface ICreationLoyaltyGuestWDP extends ICreationLoyaltyGuest {
     LoyalityGuest: ILoyalityGuestsWDP;
-    Property: {
-        id: string;
-        propertyName: string;
-        propertyCode: string;
-    };
+    // Property: {
+    //     id: string;
+    //     propertyName: string;
+    //     propertyCode: string;
+    // };
 }

@@ -5,6 +5,7 @@ import {
 } from "../repository";
 
 import {
+  CreationType,
     IPropertyCodeAndIds
 } from "../types";
 import { successResponse, errorResponse } from "../../utils/return";
@@ -100,6 +101,48 @@ export class DashBoardServices {
             return errorResponse("Failed to fetch property Names", error instanceof Error ? error.message : "Internal server error")
         }
     }
+    public async getPropertyNamesByCreationId(creationId: string) {
+    try {
+        // Step 1: find the creation and read its level
+        const creation = await this.dashboardUtils.getCreationByCreationId(creationId);
+
+        if (!creation) {
+            return errorResponse("Creation not found");
+        }
+
+        // Step 2: route based on level — same logic as before but driven by DB level
+        let daoRes: any;
+
+        switch (creation.type) {
+            case CreationType.super:
+                daoRes = await this.dashboardUtils.getPropertyIdsAndCodesForLevel4(creationId);
+                break;
+            case CreationType.group:
+                daoRes = await this.dashboardUtils.getPropertyIdsAndCodesForLevel3(creationId);
+                break;
+            case CreationType.brand:
+                daoRes = await this.dashboardUtils.getPropertyIdsAndCodesForLevel2(creationId);
+                break;
+            case CreationType.property:
+                daoRes = await this.dashboardUtils.getPropertyIdAndCodeForLevel0And1(creationId);
+                break;
+            default:
+                return errorResponse("Invalid creation level");
+        }
+
+        if (!daoRes.success) {
+            return errorResponse(daoRes.message || "Failed to fetch properties");
+        }
+
+        return successResponse("Properties fetched successfully", daoRes.data);
+
+    } catch (error) {
+        return errorResponse(
+            "Failed to fetch property names",
+            error instanceof Error ? error.message : "Internal server error"
+        );
+    }
+}
     public async getStatisticsComparisonServices(
   creationId: string,
   userLevel: number,

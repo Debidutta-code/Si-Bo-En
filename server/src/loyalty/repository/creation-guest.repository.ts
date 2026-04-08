@@ -32,8 +32,8 @@ export class CreationGuestRepository {
         try {
             return await prisma.creationGuest.findUnique({
                 where: {
-                    propertyId_loyalityGuestId:{
-                        propertyId,
+                    creationLoyaltyConfigId_loyalityGuestId:{
+                        creationLoyaltyConfigId: propertyId,
                         loyalityGuestId: guestId
                     }
                 }

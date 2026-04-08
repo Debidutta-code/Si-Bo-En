@@ -15,6 +15,7 @@ model CreationLoyaltyConfig {
     LoyaltyProgramFieldConfig LoyaltyProgramFieldConfig[]
     CreationGuest             CreationGuest[]
     LoyalityLevels            LoyalityLevel[]
+    PropertyLoyaltyConfig     PropertyLoyaltyConfig[]
     createdAt                 DateTime                    @default(now())
 
     @@map("loyalty_program_configs")

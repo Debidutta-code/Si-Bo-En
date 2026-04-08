@@ -1,6 +1,7 @@
 import { ILoyalityLevels } from "./loyality-level.types";
 
 export interface ICPropertyLoyaltyConfig {
+    creationLoyaltyConfigId: string;
     propertyId: string;
     propertyCode: string;
     propertyName: string;

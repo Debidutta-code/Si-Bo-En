@@ -232,10 +232,11 @@ export class PricingRepository {
         try {
             const isLoyalityGuest = await prisma.creationGuest.findFirst({
                 where: {
-                    propertyId,
+                    // propertyId,
+                    creationLoyaltyConfigId:propertyId,
                     LoyalityGuest: {
                         guestEmail
-                    }
+                    },
                 },
             });
             return isLoyalityGuest ? true : false;

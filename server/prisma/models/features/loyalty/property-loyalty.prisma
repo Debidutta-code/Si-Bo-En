@@ -1,6 +1,7 @@
 model PropertyLoyaltyConfig {
     id                 String  @id @default(uuid())
     propertyId         String  @unique @map("property_id")
+    creationLoyaltyConfigId String @map("creation_loyalty_config_id")
     propertyCode       String  @unique @map("property_code")
     propertyName       String  @map("property_name")
     Property           Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
@@ -8,6 +9,8 @@ model PropertyLoyaltyConfig {
     loyalityConfigLogo String? @map("loyality_config_logo")
     isActive           Boolean @default(true) @map("is_active")
     PropertyLoyalityGuests PropertyLoyalityGuests[]
+    CreationLoyaltyConfig CreationLoyaltyConfig @relation(fields: [creationLoyaltyConfigId], references: [id], onDelete: Cascade)
+
     @@map("property_loyalty_configs")
 }
 

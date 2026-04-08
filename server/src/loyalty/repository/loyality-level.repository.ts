@@ -7,7 +7,7 @@ import {
 export class LoyalityLevelRepository {
     public async create(data: ICLoyalityLevels): Promise<ILoyalityLevels> {
         try {
-            const loyaltyLevel = await prisma.loyalityLevel.create({ data });
+            const loyaltyLevel = await prisma.loyalityLevel.create({ data });            
             return loyaltyLevel;
         } catch (error) {
             console.log(error);
@@ -18,7 +18,7 @@ export class LoyalityLevelRepository {
     public async findAllByPropertyConfigId(propertyLoyaltyConfigId: string): Promise<ILoyalityLevels[]> {
         try {
             return await prisma.loyalityLevel.findMany({
-                where: { propertyLoyaltyConfigId }
+                where: { creationLoyaltyConfigId:propertyLoyaltyConfigId }
             });
         } catch (error) {
             throw new Error(`Failed to retrieve loyalty levels`);

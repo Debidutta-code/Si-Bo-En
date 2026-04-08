@@ -2,7 +2,7 @@ export interface ICLoyalityLevels {
     level: number;
     discountPercentage: number;
     noOfReservations: number;
-    propertyLoyaltyConfigId: string;
+    creationLoyaltyConfigId: string;
 }
 export interface ILoyalityLevels extends ICLoyalityLevels {
     id: string;

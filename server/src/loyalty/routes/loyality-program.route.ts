@@ -13,7 +13,7 @@ const advanceLoyaltyProgramController = new AdvanceLoyaltyProgramController();
 router.route("/")
     .post(
         protect,
-       loyalityProgramController.createLoyaltyProgram.bind(loyalityProgramController)
+        loyalityProgramController.createLoyaltyProgram.bind(loyalityProgramController)
     );
 
 router.route("/:loyaltyProgramId")
@@ -36,7 +36,12 @@ router.route("/creation/:creationId")
         loyalityProgramController.getLoyaltyProgramByCreationId.bind(loyalityProgramController)
     );
 
-// ===== Advance Loyalty Program Routes =====
+router.route("/property/:creationLoyaltyConfigId")
+    .get(
+        protect,
+        loyalityProgramController.getPropertyLoyalityProgramByCreationId.bind(loyalityProgramController)
+    );
+
 router.route("/advance")
     .post(
         protect,

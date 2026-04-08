@@ -99,6 +99,21 @@ export class LoyalityProgramService {
             return errorResponse("failed to delete loyalty program");
         }
     }
+
+    public async getPropertyLoyalityProgramByCreationId(creationLoyaltyConfigId: string): Promise<IApiResponse> {
+        try {
+            const result = await this.loyaltyProgramRepository.getPropertyLoyaltyProgramByCreationId(creationLoyaltyConfigId);
+            if(!result){
+                return errorResponse("Failed to retrieve property loyalty program");
+            }
+            return successResponse("Successfully retrieved property loyalty program", result);
+        } catch (error) {
+            if(error instanceof Error) {
+                return errorResponse("failed to retrieve property loyalty program", error.message);
+            }
+            return errorResponse("failed to retrieve property loyalty program");
+        }
+    }
 }
 
 export class AdvanceLoyaltyProgramService {

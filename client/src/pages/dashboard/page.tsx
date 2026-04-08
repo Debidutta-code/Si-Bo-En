@@ -205,7 +205,7 @@ export default function Dashboard() {
           <div>
             <h1 className="text-2xl font-bold">Dashboard Analytics</h1>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             {/* 🆕 NEW: Comparison Type Selector */}
             <Select
               value={comparisonType}
@@ -255,7 +255,7 @@ export default function Dashboard() {
                     ).padStart(2, '0')}`
                 }
                 onChange={(e) => setSelectedDate(new Date(e.target.value))}
-                className="px-3 py-2 border rounded-md text-sm"
+                className="px-3 py-2 w-[140px] border rounded-md text-sm"
               />
             )}
 

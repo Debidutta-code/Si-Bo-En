@@ -53,7 +53,7 @@ import {
   updatePropertyLoyalityConfigService,
   getPropertiesByLoyaltyProgramService,
 } from "../services/property-loyality.service";
-import type { IPropertyLoyaltyConfig } from "../interfaces/property-loyality.interface";
+import type { IPropertyLoyaltyConfig } from "../interfaces/property-loyality.types";
 import { Input } from "@/components/ui/input";
 import ImageUploadModal from "@/components/property/ImageUploadModal";
 

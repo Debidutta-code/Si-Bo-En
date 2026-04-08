@@ -123,7 +123,7 @@ export const getPropertiesByLoyaltyProgram = async (
 ) => {
   try {
     const response = await axiosInstance.get(
-      `/loyalty/property/by-program/${loyaltyProgramId}`,
+      `/loyalty/program/property/${loyaltyProgramId}`,
     );
     return response.data;
   } catch (error: any) {

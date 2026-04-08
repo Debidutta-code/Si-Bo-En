@@ -3,6 +3,7 @@ import {
     IAdvanceLoyaltyprogram,
     ICAdvanceLoyaltyprogram,
     ICloyaltyProgram,
+    IPropertyLoyaltyConfig,
     IUAdvanceLoyaltyprogram,
     IULoyalityProgram,
     IloyaltyProgram
@@ -55,7 +56,17 @@ export class LoyaltyProgramRepository {
             throw new Error("Error fetching loyalty program by creation ID");
         }
     }
-    
+    public async getPropertyLoyaltyProgramByCreationId(creationLoyaltyConfigId: string): Promise<IPropertyLoyaltyConfig[]> {
+        try {
+            return await prisma.propertyLoyaltyConfig.findMany({
+               where:{
+                 creationLoyaltyConfigId
+               },
+            });
+        } catch (error) {
+            throw new Error("Error fetching loyalty program by creation ID");
+        }
+    }
     public async deleteLoyaltyProgram(loyaltyProgramId: string): Promise<IloyaltyProgram> {
         try {
             return await prisma.basicLoyaltyProgram.delete({

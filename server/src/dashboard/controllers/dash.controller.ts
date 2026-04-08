@@ -37,6 +37,24 @@ export class DashBoardController {
             return res.status(500).json(errorResponse("Internal Server Error"))
         }
     }
+    public async getPropertyByCreationId(req: CustomRequest, res: Response): Promise<Response> {
+    try {
+        const creationId = req.query.creationId as string;
+
+        if (!creationId) {
+            return res.status(400).json(errorResponse("creationId is required in query params"));
+        }
+
+        const serRes = await this.dashboardServices.getPropertyNamesByCreationId(creationId);
+        return res.status(serRes.success ? 200 : 400).json(serRes);
+
+    } catch (error) {
+        if (error instanceof Error) {
+            return res.status(500).json(errorResponse("Failed to fetch properties", error.message));
+        }
+        return res.status(500).json(errorResponse("Internal Server Error"));
+    }
+}
     public async getStatisticsComparison(req: CustomRequest, res: Response): Promise<Response> {
   try {
     if (!req.user?.creationId || req.user.level === undefined) {

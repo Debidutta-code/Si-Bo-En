@@ -28,7 +28,6 @@ model Property {
   propertyConfigs             PropertyConfigs?
   Commissions                 PropertyCommission?
   loyaltyProgramConfig        PropertyLoyaltyConfig?
-  CreationGuest              CreationGuest[]
   propertyEmails              PropertyEmails[]
   reservations                Reservation[]
   propertyAmenities           PropertyAmenitySelection[]

@@ -14,8 +14,8 @@ export class LoyalityLevelService {
     public async createLoyalityLevel(data: ICLoyalityLevels): Promise<IApiResponse> {
         try {
             const [propertyConfig, existingLevels] = await Promise.all([
-                this.propertyLoyalityRepo.getLoyalityForProperty(data.propertyLoyaltyConfigId),
-                this.loyalityLevelRepository.findAllByPropertyConfigId(data.propertyLoyaltyConfigId),
+                this.propertyLoyalityRepo.getLoyalityForProperty(data.creationLoyaltyConfigId),
+                this.loyalityLevelRepository.findAllByPropertyConfigId(data.creationLoyaltyConfigId),
             ]);
             if (!propertyConfig) {
                 return errorResponse(`Property loyalty config not found`);
@@ -49,8 +49,8 @@ export class LoyalityLevelService {
         try {
             const [isLevelExists, allLevels, propertyConfig] = await Promise.all([
                 this.loyalityLevelRepository.findById(id),
-                this.loyalityLevelRepository.findAllByPropertyConfigId(data.propertyLoyaltyConfigId),
-                this.propertyLoyalityRepo.getLoyalityForProperty(data.propertyLoyaltyConfigId),
+                this.loyalityLevelRepository.findAllByPropertyConfigId(data.creationLoyaltyConfigId),
+                this.propertyLoyalityRepo.getLoyalityForProperty(data.creationLoyaltyConfigId),
             ]);
             if (!propertyConfig) {
                 return errorResponse(`Property loyalty config not found`);

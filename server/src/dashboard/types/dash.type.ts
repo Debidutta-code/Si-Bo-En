@@ -3,7 +3,12 @@ export interface IPropertyCodeAndIds {
     code: string;
     name: string;
 }
-
+export enum CreationType {
+    super = "super",
+    group = "group",
+    brand = "brand",
+    property = "property",
+}
 // Reservation Analytics Interfaces
 export interface IReservationStatusBreakdown {
     status: string;

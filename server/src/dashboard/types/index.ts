@@ -26,7 +26,8 @@ import {
     ICountryBreakdown,
     IRoomTypeOccupancy,
     IComparisonPeriod,
-    IStatisticsComparison
+    IStatisticsComparison,
+    CreationType
 } from "./dash.type";
 
 
@@ -58,5 +59,6 @@ export {
     ICountryBreakdown,
     IRoomTypeOccupancy,
     IComparisonPeriod,
-    IStatisticsComparison
+    IStatisticsComparison,
+    CreationType
 }

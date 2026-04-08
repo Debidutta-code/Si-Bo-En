@@ -10,7 +10,6 @@ import {
   getLoyalityByCreationService,
   updateCreationLoyalityService
 } from "./services";
-import { fetchProperties } from "../dashboard/api/dash.api";
 import type {
   ICloyaltyProgram,
   // IAdvanceLoyaltyprogram,
@@ -25,6 +24,7 @@ import DiscountsTab from "./components/DiscountsTab";
 import BasicConfigTab from "./components/BasicConfigTab";
 // import AdvancedConfigTab from "./components/AdvancedConfigTab";
 import AddPropertyToLoyalty from "./components/AddPropertyToLoyalty";
+import { fetchPropertiesByCreationIdService } from "../dashboard/services/dash.service";
 
 interface Property {
   id: string;
@@ -73,13 +73,13 @@ export default function Loyalty() {
   useEffect(() => {
     if (creationId) {
       fetchLoyaltyData();
-      fetchPropertiesByCreation();
+      fetchPropertiesByCreation(creationId);
     }
   }, [creationId]);
 
-  const fetchPropertiesByCreation = async () => {
+  const fetchPropertiesByCreation = async (creationId: string) => {
     try {
-      const response = await fetchProperties();
+      const response = await fetchPropertiesByCreationIdService(creationId);
       if (response.success && response.data) {
         // Map the response to match the Property interface
         const properties: Property[] = response.data.map((prop: any) => ({

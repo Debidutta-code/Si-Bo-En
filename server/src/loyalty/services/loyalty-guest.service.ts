@@ -7,6 +7,7 @@ import {
 import { paginatedSuccessResponse } from "../../utils";
 import { CreationGuestRepository } from "../repository/creation-guest.repository";
 import { createHash } from "../../auth/utills/bcryptHelper";
+import { CurrencyCode } from "../../tax-system/interfaces";
 export class LoyaltyGuestService {
     private loyaltyGuestRepository: LoyaltyGuestRepository;
     private creationGuestRepository: CreationGuestRepository;
@@ -78,9 +79,10 @@ export class LoyaltyGuestService {
         propertyCode: string;
         metaData: any;
         password: string;
+        currencyCode:CurrencyCode;
     }): Promise<IApiResponse> {
         try {
-            const { email, propertyId, propertyCode, metaData, password } = data;
+            const { email, propertyId, propertyCode, metaData, password,currencyCode } = data;
 
             const existingGuest = await this.loyaltyGuestRepository.checkIfGuestExists(email);
 
@@ -99,10 +101,10 @@ export class LoyaltyGuestService {
                 }
                 await this.creationGuestRepository.createCreationGuest(
                     {
-                        propertyId,
+                        creationId: propertyId,
                         loyalityGuestId: existingGuest.id,
                         creationLoyaltyConfigId: loyaltyConfigForEnrollment.CreationLoyaltyConfig?.id || "",
-                        propertyCode: propertyCode,
+                        currencyCode:currencyCode,
                         metaData: metaData,
                     });
                 return successResponse("Successfully registered for loyalty program");
@@ -126,10 +128,10 @@ export class LoyaltyGuestService {
 
             await this.creationGuestRepository.createCreationGuest(
                 {
-                    propertyId,
+                    creationId:propertyId,
                     loyalityGuestId: newGuest.id,
                     creationLoyaltyConfigId: loyaltyConfig.CreationLoyaltyConfig?.id || "",
-                    propertyCode: propertyCode,
+                    currencyCode:currencyCode,
                     metaData: metaData,
                 });
             return successResponse("Successfully registered for loyalty program");

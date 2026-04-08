@@ -23,7 +23,10 @@ export class propertyLoyalityRepository {
         try {
             return await prisma.propertyLoyaltyConfig.findFirst({
                 where: { propertyId },
-                include: { loyalityLevels: true },
+                include:{
+                    PropertyLoyalityGuests:true
+                }
+
             });
         } catch (error) {
             throw new Error('Failed to get loyalty for property');
@@ -36,7 +39,9 @@ export class propertyLoyalityRepository {
         try {
             return await prisma.propertyLoyaltyConfig.findFirst({
                 where: { propertyId },
-                include: { loyalityLevels: true },
+                include: {
+                    PropertyLoyalityGuests:true
+                }
             });
         } catch (error) {
             console.log(error);
@@ -68,6 +73,7 @@ export class propertyLoyalityRepository {
                 where: { id: propertyLoyalityId },
                 data: {
                     discountPercentage: data.discountPercentage,
+                    creationLoyaltyConfigId: data.creationLoyaltyConfigId,
                     loyalityConfigLogo: data.loyalityConfigLogo,
                     isActive,
                 },
@@ -95,7 +101,7 @@ export class propertyLoyalityRepository {
         try {
             return await prisma.propertyLoyaltyConfig.findMany({
                 where: { propertyId },
-                include: { loyalityLevels: true },
+                // include: { loyalityLevels: true },
             });
         } catch (error) {
             throw new Error('Failed to get property loyalty with loyalty');
@@ -108,7 +114,6 @@ export class propertyLoyalityRepository {
         try {
             return await prisma.propertyLoyaltyConfig.findFirst({
                 where: { propertyId, isActive: true },
-                include: { loyalityLevels: true },
             });
         } catch (error) {
             throw new Error('Error fetching active loyalty config by property');
