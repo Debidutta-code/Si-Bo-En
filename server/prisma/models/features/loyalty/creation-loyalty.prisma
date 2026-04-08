@@ -13,8 +13,8 @@ model CreationLoyaltyConfig {
     loyaltySpecialConditions LoyaltySpecialCondition[]
 
     LoyaltyProgramFieldConfig LoyaltyProgramFieldConfig[]
-    PropertyLoyaltyConfig     PropertyLoyaltyConfig[]
-    LoyalityGuests            LoyalityGuest[]
+    CreationGuest             CreationGuest[]
+    LoyalityLevels            LoyalityLevel[]
     createdAt                 DateTime                    @default(now())
 
     @@map("loyalty_program_configs")

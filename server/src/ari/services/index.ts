@@ -1,6 +1,6 @@
 import { InventoryServices } from "./Inventory.service";
 import { RatePlanServices } from "./ratePlan.service";
-import { RoomRentCalculationService } from "./roomRentCalculation.service";
+// import { RoomRentCalculationService } from "./roomRentCalculation.service";
 import { StartStopSellService } from "./start-stop-sell.service";
 import {AvailabilityServices} from "./availibility.service";
 import {RestrictionServices} from "./restriction.services";
@@ -10,7 +10,7 @@ export * from "./booking-offset.service";
 export {
     InventoryServices,
     RatePlanServices,
-    RoomRentCalculationService,
+    // RoomRentCalculationService,
     StartStopSellService,
     AvailabilityServices,
     RestrictionServices,

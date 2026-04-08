@@ -55,7 +55,6 @@ export class creationLoyalityRepository {
                     loyaltyConditions:true,
                     LoyaltyProgramFieldConfig:true,
                     loyaltySpecialConditions:true,
-                    // PropertyLoyaltyConfig:true
                 }
             });
         } catch (error) {
@@ -75,7 +74,6 @@ export class creationLoyalityRepository {
                     LoyaltyProgramFieldConfig: true,
                     loyaltyConditions: true,
                     loyaltySpecialConditions: true,
-                    // PropertyLoyaltyConfig: true
                 }
             });
         } catch (error) {
@@ -95,7 +93,6 @@ export class creationLoyalityRepository {
                     LoyaltyProgramFieldConfig: true,
                     loyaltyConditions: true,
                     loyaltySpecialConditions: true,
-                    PropertyLoyaltyConfig: true
                 }
             });
         } catch (error) {

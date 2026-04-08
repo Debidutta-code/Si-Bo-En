@@ -53,6 +53,7 @@ import LoyaltyContent from "./pages/loyalty/LoyaltyContent.tsx";
 import PropertyLoyalityManagement from "./pages/loyalty/PropertyLoyalties.tsx";
 import PropertyLoyaltyGuests from "./pages/loyalty/PropertyLoyaltyGuests.tsx";
 import ActivePropertyLoyalty from "./pages/loyalty/ActivepropertyLoyaty.tsx";
+import LoyaltyLevels from "./pages/loyalty/LoyaltyLevels.tsx";
 import AgenciesListPage from "./pages/agency/AgenciesListPage.tsx";
 import AgencyDetailsPage from "./pages/agency/AgencyDetailsPage.tsx";
 import AgencyAgentsPage from "./pages/agency/AgencyAgentsPage.tsx";
@@ -82,24 +83,29 @@ export const router = createBrowserRouter(
           <Route path="regional/:creationId" element={<CustomId />} />
 
           <Route path="property/:creationId" element={<PropertyId />} />
-          <Route path="loyalty">
-            <Route path=":creationId" index element={<Loyalty />} />
-            <Route
-              path="register-form/:creationId"
-              index
-              element={<LoyaltyForm />}
-            />
-            <Route
-              path="content-config/:creationId"
-              index
-              element={<LoyaltyContent />}
-            />
-            <Route
-              path="loyalty-guests/:creationId"
-              index
-              element={<LoyaltyGuest />}
-            />
-          </Route>
+
+        </Route>
+        <Route path="loyalty">
+          <Route path=":creationId" index element={<Loyalty />} />
+          <Route
+            path="register-form/:creationId"
+            index
+            element={<LoyaltyForm />}
+          />
+          <Route
+            path="content-config/:creationId"
+            index
+            element={<LoyaltyContent />}
+          />
+          <Route
+            path="loyalty-guests/:creationId"
+            index
+            element={<LoyaltyGuest />}
+          />
+          <Route
+            path="levels/:creationId"
+            element={<LoyaltyLevels />}
+          />
         </Route>
         <Route path="members" element={<MembersPage />} />
         <Route path="logs" element={<LogsPage />} />

@@ -35,8 +35,9 @@ import {
   deleteLoyaltyGuestService,
 } from "./services/loyalty.guest.service";
 import { getLoyalityByCreationService } from "./services";
-import type { ILoyalityGuestsWDP } from "./interfaces";
+import type { IGetLoyaltyGuestsForCreation } from "./interfaces";
 import BackButton from "@/components/shared/BackButton";
+import Badge from "./components/Badge";
 
 interface ILoader {
   isLoading: boolean;
@@ -61,7 +62,7 @@ export default function LoyaltyGuest() {
   const [creationLoyaltyId, setCreationLoyaltyId] = useState<string | null>(
     null,
   );
-  const [guests, setGuests] = useState<ILoyalityGuestsWDP[]>([]);
+  const [guests, setGuests] = useState<IGetLoyaltyGuestsForCreation[]>([]);
   const [pagination, setPagination] = useState<IPaginationData>({
     currentPage: 1,
     limit: 10,
@@ -230,7 +231,7 @@ export default function LoyaltyGuest() {
                       <TableHead>Guest Name</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Phone</TableHead>
-                      <TableHead>Property</TableHead>
+                      <TableHead>Loyality Guest Level</TableHead>
                       <TableHead>Loyality Fields</TableHead>
 
                       <TableHead>Enrolled On</TableHead>
@@ -238,14 +239,14 @@ export default function LoyaltyGuest() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {guests.map((loyaltyGuest) => (
-                      <TableRow key={loyaltyGuest.id}>
+                    {guests.map((row) => (
+                      <TableRow key={row.LoyalityGuest?.id ?? Math.random()}>
                         <TableCell className="font-medium">
                           <div className="flex items-center gap-2">
                             <User className="h-4 w-4 text-muted-foreground" />
                             <span>
-                              {loyaltyGuest.guest
-                                ? `${loyaltyGuest.guest.firstName} ${loyaltyGuest.guest.lastName}`
+                              {row.LoyalityGuest?.guest
+                                ? `${row.LoyalityGuest.guest.firstName} ${row.LoyalityGuest.guest.lastName}`
                                 : "N/A"}
                             </span>
                           </div>
@@ -254,7 +255,7 @@ export default function LoyaltyGuest() {
                           <div className="flex items-center gap-2">
                             <Mail className="h-4 w-4 text-muted-foreground" />
                             <span className="text-sm">
-                              {loyaltyGuest.guestEmail || "N/A"}
+                              {row.LoyalityGuest?.guestEmail || "N/A"}
                             </span>
                           </div>
                         </TableCell>
@@ -262,25 +263,22 @@ export default function LoyaltyGuest() {
                           <div className="flex items-center gap-2">
                             <Phone className="h-4 w-4 text-muted-foreground" />
                             <span className="text-sm">
-                              {(loyaltyGuest.guest &&
-                                loyaltyGuest.guest.phoneNumber) ||
+                              {(row.LoyalityGuest?.guest &&
+                                row.LoyalityGuest.guest.phoneNumber) ||
                                 "N/A"}
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            <p className="font-medium text-sm">
-                              {loyaltyGuest.property.propertyName}
-                            </p>
-                          </div>
+                        <TableCell className="text-sm text-center">
+
+                          <Badge level={row?.guestLevel} />
                         </TableCell>
 
                         <TableCell className="flex justify-center items-center">
-                          {loyaltyGuest.metaData ? (
+                          {row?.metaData ? (
                             <span
                               onClick={() =>
-                                openMetadataDialog(loyaltyGuest.metaData)
+                                openMetadataDialog(row?.metaData)
                               }
                               className="gap-2"
                             >
@@ -294,13 +292,18 @@ export default function LoyaltyGuest() {
                           )}
                         </TableCell>
                         <TableCell className="text-sm">
-                          {formatDate(loyaltyGuest.createdAt)}
+                          {formatDate(row.LoyalityGuest?.createdAt ?? new Date())}
                         </TableCell>
                         <TableCell className="text-right">
                           <Button
                             variant="ghost"
                             size="icon"
-                            onClick={() => openDeleteDialog(loyaltyGuest.id)}
+                            onClick={() =>
+                              row.LoyalityGuest?.id
+                                ? openDeleteDialog(row.LoyalityGuest.id)
+                                : undefined
+                            }
+                            disabled={!row.LoyalityGuest?.id}
                             className="hover:bg-destructive/10 hover:text-destructive"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -366,7 +369,7 @@ export default function LoyaltyGuest() {
                   className="grid grid-cols-3 gap-4 items-start border-b pb-3 last:border-b-0"
                 >
                   <div className="font-medium text-sm capitalize">
-                    {key.replace(/([A-Z])/g, " $1").trim()}:
+                    {key.replace(/([A-Z])/g, " $1").trim().replaceAll("_", " ")}:
                   </div>
                   <div className="col-span-2 text-sm text-muted-foreground break-words">
                     {typeof value === "object" && value !== null

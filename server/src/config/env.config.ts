@@ -16,9 +16,13 @@ const config = {
     agencyJWTSecret: process.env.AGENT_JWT_SECRET,
     agencyJWTExpiresIn: process.env.AGENT_JWT_EXPIRES_IN,
 
+    loyaltyJWTSecret: process.env.LOYALTY_GUEST_JWT_SECRETE,
+    loyaltyJWTExpiresIn: process.env.LOYALTY_GUEST_JWT_EXPIRES,
+
     cloudinaryUrl: process.env.CLOUDINARY_URL,
 
     frontendUrl: process.env.FRONTEND_URL,
+    bookingEngineUrl: process.env.BOOKING_ENGINE_URL,
 
     allowedOrigins: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ["*"],
 

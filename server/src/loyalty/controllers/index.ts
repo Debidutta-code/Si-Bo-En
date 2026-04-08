@@ -4,3 +4,4 @@ export { LoyalityConditionController, LoyalitySpecialConditionController } from 
 export { PropertyLoyalityController } from "./property-loyality.controller";
 export { CreationLoyalityController } from "./creation-loyality.controller";
 export { LoyaltyGuestController } from "./loyalty-guest.controller";
+export * from "./loyality-level.controller";

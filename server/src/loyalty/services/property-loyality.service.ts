@@ -16,14 +16,12 @@ export class PropertyLoyalityService {
     public async createPropertyLoyalityConfig(data: ICPropertyLoyaltyConfig): Promise<IApiResponse> {
         try {
             const activeExisting = await this.propertyLoyalityRepository.getLoyalityForPropertyWhereTrue(data.propertyId);
-            console.log(data)
-            console.log("Active existing config:", activeExisting);
-            if (activeExisting && activeExisting.creationLoyaltyConfigId != data.creationLoyaltyConfigId) {
-                const updateRes = await this.propertyLoyalityRepository.updatePropertyLoyality(activeExisting.id, data,true);
+            if (activeExisting && !activeExisting.isActive) {
+                const activateRes = await this.propertyLoyalityRepository.updatePropertyLoyalityConfig(activeExisting.id, true);
+                return successResponse("Successfully activated property loyalty config", activateRes);
+            } else if (activeExisting) {
+                const updateRes = await this.propertyLoyalityRepository.updatePropertyLoyality(activeExisting.id, data, true);
                 return successResponse("Successfully updated property loyalty config", updateRes);
-            } else if (activeExisting  && !activeExisting.isActive) {
-                const existingActivateRes = await this.propertyLoyalityRepository.updatePropertyLoyalityConfig(activeExisting.id, true);
-                return successResponse("Successfully updated property loyalty config", existingActivateRes);
             } else {
                 const result = await this.propertyLoyalityRepository.createPropertyLoyalityConfig(data);
                 return successResponse("Successfully created property loyalty config", result);
@@ -40,7 +38,7 @@ export class PropertyLoyalityService {
         try {
             const result = await this.propertyLoyalityRepository.getLoyalityForProperty(propertyId);
             if (!result) {
-                return errorResponse("No active loyalty config found for this property");
+                return errorResponse("No loyalty config found for this property");
             }
             return successResponse("Successfully retrieved property loyalty config", result);
         } catch (error) {
@@ -51,18 +49,22 @@ export class PropertyLoyalityService {
         }
     }
 
-    public async updatePropertyLoyalityConfig(propertyId: string, isActive: boolean,dicountPercentage:number|null,loyaltyImage:string|null): Promise<IApiResponse> {
+    public async updatePropertyLoyalityConfig(
+        propertyId: string,
+        isActive: boolean,
+        discountPercentage: number | null,
+        loyaltyImage: string | null
+    ): Promise<IApiResponse> {
         try {
             const existingConfig = await this.propertyLoyalityRepository.getLoyalityForProperty(propertyId);
             if (!existingConfig) {
                 return errorResponse("Property loyalty config not found");
             }
-            const updateData:ICPropertyLoyaltyConfig={
-                ...existingConfig,
-                discountPercentage:dicountPercentage,
-                loyalityConfigLogo:loyaltyImage
-            }
-            const result = await this.propertyLoyalityRepository.updatePropertyLoyality(existingConfig.id, updateData,isActive);
+            const updateData: Partial<ICPropertyLoyaltyConfig> = {
+                discountPercentage,
+                loyalityConfigLogo: loyaltyImage,
+            };
+            const result = await this.propertyLoyalityRepository.updatePropertyLoyality(existingConfig.id, updateData, isActive);
             if (!result) {
                 return errorResponse("Failed to update property loyalty config");
             }
@@ -121,19 +123,6 @@ export class PropertyLoyalityService {
                 return errorResponse("Failed to retrieve active loyalty config", error.message);
             }
             return errorResponse("Failed to retrieve active loyalty config");
-        }
-    }
-
-    public async getPropertiesByLoyaltyProgram(loyaltyProgramId: string): Promise<IApiResponse> {
-        try {
-            const result = await this.propertyLoyalityRepository.getPropertiesByLoyaltyProgram(loyaltyProgramId);
-            
-            return successResponse("Successfully retrieved properties", result);
-        } catch (error) {
-            if (error instanceof Error) {
-                return errorResponse("Failed to retrieve properties", error.message);
-            }
-            return errorResponse("Failed to retrieve properties");
         }
     }
 }

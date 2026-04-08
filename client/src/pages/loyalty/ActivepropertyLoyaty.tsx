@@ -8,38 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Loader from "@/components/Loader/Loader";
 import { getLoyalityForProperty } from "./api/property-loyality.api";
+import type { ICreationLoyality } from "./interfaces";
 
 interface ILoader {
   isLoading: boolean;
   message: string;
-}
-
-interface IBasicLoyaltyProgram {
-  id: string;
-  logo: string[];
-  isActive: boolean;
-}
-
-interface IAdvanceLoyaltyProgram {
-  id: string;
-  activeInCorporateWeb: boolean;
-  defaultLoginMode: boolean;
-  allowEmailRecovery: boolean;
-  allowNewRequest: boolean;
-  allowNewRequestInCorporate: boolean;
-  roomLimitByBooking: number;
-  externalRegistrationUrl: string;
-  blockUserFieldFromForm: boolean;
-}
-
-interface ICreationLoyalty {
-  id: string;
-  creationId: string;
-  loyaltyDiscountType: string;
-  discountValue: number;
-  currencyCode: string;
-  BasicLoyaltyProgram?: IBasicLoyaltyProgram;
-  AdvanceLoyaltyProgram?: IAdvanceLoyaltyProgram;
 }
 
 interface IPropertyLoyalty {
@@ -49,7 +22,7 @@ interface IPropertyLoyalty {
   propertyName: string;
   creationLoyaltyConfigId: string;
   isActive: boolean;
-  CreationLoyaltyConfig: ICreationLoyalty;
+  CreationLoyaltyConfig: ICreationLoyality;
 }
 
 export default function ActivePropertyLoyalty() {
@@ -287,24 +260,6 @@ export default function ActivePropertyLoyalty() {
                     <span className="text-sm">Default Login Mode</span>
                     <Badge variant={CreationLoyaltyConfig.AdvanceLoyaltyProgram.defaultLoginMode ? "default" : "secondary"}>
                       {CreationLoyaltyConfig.AdvanceLoyaltyProgram.defaultLoginMode ? "Yes" : "No"}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-3 border rounded">
-                    <span className="text-sm">Allow Email Recovery</span>
-                    <Badge variant={CreationLoyaltyConfig.AdvanceLoyaltyProgram.allowEmailRecovery ? "default" : "secondary"}>
-                      {CreationLoyaltyConfig.AdvanceLoyaltyProgram.allowEmailRecovery ? "Yes" : "No"}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-3 border rounded">
-                    <span className="text-sm">Allow New Request</span>
-                    <Badge variant={CreationLoyaltyConfig.AdvanceLoyaltyProgram.allowNewRequest ? "default" : "secondary"}>
-                      {CreationLoyaltyConfig.AdvanceLoyaltyProgram.allowNewRequest ? "Yes" : "No"}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between p-3 border rounded">
-                    <span className="text-sm">Allow Corporate Request</span>
-                    <Badge variant={CreationLoyaltyConfig.AdvanceLoyaltyProgram.allowNewRequestInCorporate ? "default" : "secondary"}>
-                      {CreationLoyaltyConfig.AdvanceLoyaltyProgram.allowNewRequestInCorporate ? "Yes" : "No"}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between p-3 border rounded">

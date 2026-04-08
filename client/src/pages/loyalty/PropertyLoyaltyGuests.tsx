@@ -80,15 +80,18 @@ export default function PropertyLoyaltyGuests() {
       const response = await getLoyaltyGuestsForCreationService(loyalityId, skip, limit);
 
       if (response.success && response.data) {
+        // API returns guests array in `data` and pagination in `pagination`
         setGuests(response.data || []);
-        setPagination({
-          currentPage: response.data.currentPage || 1,
-          totalPages: response.data.totalPages || 1,
-          totalCount: response.data.totalCount || 0,
-          hasNextPage: response.data.hasNextPage || false,
-          hasPrevPage: response.data.hasPrevPage || false,
-          limit: 10
-        });
+        if (response.pagination) {
+          setPagination({
+            currentPage: response.pagination.currentPage || 1,
+            totalPages: response.pagination.totalPages || 1,
+            totalCount: response.pagination.totalCount || 0,
+            hasNextPage: response.pagination.hasNextPage || false,
+            hasPrevPage: response.pagination.hasPrevPage || false,
+            limit: response.pagination.limit || limit,
+          });
+        }
       } else {
         toast.error(response.message || "Failed to fetch loyalty guests");
         setGuests([]);
@@ -233,9 +236,7 @@ export default function PropertyLoyaltyGuests() {
                         </TableCell>
                         <TableCell>
                           <div className="space-y-1">
-                            <p className="font-medium text-sm">
-                              {loyaltyGuest.property.propertyName}
-                            </p>
+                            <p className="font-medium text-sm">{propertyId || "N/A"}</p>
                           </div>
                         </TableCell>
 
@@ -318,7 +319,7 @@ export default function PropertyLoyaltyGuests() {
               Object.entries(selectedMetadata).map(([key, value]) => (
                 <div key={key} className="grid grid-cols-3 gap-4 items-start border-b pb-3 last:border-b-0">
                   <div className="font-medium text-sm capitalize">
-                    {key.replace(/([A-Z])/g, ' $1').trim()}:
+                    {key.replace(/([A-Z])/g, ' $1').trim().replaceAll("_", " ")}:
                   </div>
                   <div className="col-span-2 text-sm text-muted-foreground break-words">
                     {typeof value === 'object' && value !== null

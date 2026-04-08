@@ -14,8 +14,8 @@ export const Pagination: React.FC<PaginationProps> = ({
   currentPage,
   totalPages,
   onPageChange,
-  itemsPerPage = 10,
-  totalItems,
+  // itemsPerPage = 10,
+  // totalItems,
 }) => {
   const getPageNumbers = () => {
     const pages: (number | string)[] = [];
@@ -57,18 +57,9 @@ export const Pagination: React.FC<PaginationProps> = ({
     return pages;
   };
 
-  const startItem = (currentPage - 1) * itemsPerPage + 1;
-  const endItem = Math.min(currentPage * itemsPerPage, totalItems || 0);
-
   return (
-    <div className="flex items-center justify-between px-2 py-4">
-      <div className="text-sm text-muted-foreground">
-        {totalItems && (
-          <span>
-            Showing {startItem} to {endItem} of {totalItems} results
-          </span>
-        )}
-      </div>
+    <div className="flex items-end flex-col justify-between px-2 py-4">
+
 
       <div className="flex items-center space-x-2">
         <Button

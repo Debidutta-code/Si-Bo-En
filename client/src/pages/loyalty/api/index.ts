@@ -61,3 +61,11 @@ export {
     getLoyaltyGuestsForProperty,
     
 } from "./loyalty-guest.api";
+
+// Loyalty Level APIs
+export {
+    getLoyalityLevels,
+    createLoyalityLevel,
+    updateLoyalityLevel,
+    deleteLoyalityLevel
+} from "./loyality-level.api";

@@ -1,4 +1,4 @@
-import { IPropertyLoyalityWithLoyality } from "@/src/app/Rooms/interface";
+import { IPropertyLoyalityWithLoyality } from "@/src/app/(unAuth)/Rooms/interface";
 import { Award, CheckCircle2, User, LogOut, Gift } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
@@ -39,9 +39,6 @@ export const LoyaltyContainer = ({
     if (toggleOn !== undefined) setIsToggleOn(toggleOn);
   }, [toggleOn]);
 
-  const [showIdentifyModal, setShowIdentifyModal] = useState(false);
-  const [identifyEmail, setIdentifyEmail] = useState("");
-  const [isIdentifying, setIsIdentifying] = useState(false);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isRegistered, setIsRegistered] = useState(false);
@@ -53,9 +50,6 @@ export const LoyaltyContainer = ({
     currencyCode: string;
   } | null>(null);
 
-  // Use external state when provided (e.g. triggered by onUnlockLoyalty from RoomCard),
-  // otherwise fall back to internal state. LoyaltyProgramBanner uses its own independent
-  // internal state so the two modals no longer share the same onOpenChange callback.
   const showSignUpModal =
     externalShowSignUpModal !== undefined
       ? externalShowSignUpModal
@@ -67,13 +61,11 @@ export const LoyaltyContainer = ({
 
   const handleToggle = () => {
     if (isRegistered) {
-      // Once registered, the toggle cannot be disabled.
       return;
     }
 
     const next = !isToggleOn;
     if (next) {
-      // If toggling ON and not registered, open the sign-up modal
       setShowSignUpModal(true);
     } else {
       setIsToggleOn(false);
@@ -155,7 +147,7 @@ export const LoyaltyContainer = ({
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const { email, ...otherFields } = formData;
+      const { email,password, ...otherFields } = formData;
       if (!email) {
         toast.error(t("LoyaltyContainer.modal.emailRequired"));
         setIsSubmitting(false);
@@ -169,6 +161,7 @@ export const LoyaltyContainer = ({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             email,
+            password,
             propertyId: loyaltyProgram.propertyId,
             metadata: otherFields,
           }),
@@ -251,7 +244,6 @@ export const LoyaltyContainer = ({
   const benefitItems: { bold: string; normal: string }[] = [
     { bold: `${getDiscountDisplay()}`, normal: ` ${t("LoyaltyContainer.membersDiscount")}` },
     ...activeConditions.map((c) => ({ bold: "", normal: c.text })),
-    // Each special condition shows title (bold) + subTitle (normal) as separate items
     ...activeSpecialConditions.flatMap((c) => {
       const items: { bold: string; normal: string }[] = [];
       if ((c as any).title) items.push({ bold: (c as any).title, normal: "" });
@@ -472,12 +464,29 @@ export const LoyaltyContainer = ({
                     className="w-full text-sm"
                   />
                 </div>
-
+                <div className="space-y-1.5">
+                  <Label
+                    htmlFor="password"
+                    className="text-xs sm:text-sm font-medium"
+                  >
+                    {t("LoyaltyBanner.modal.passwordLabel")} <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder={t("LoyaltyBanner.modal.passwordPlaceholder")}
+                    required
+                    value={formData.password || ""}
+                    onChange={(e) => handleFieldChange("password", e.target.value)}
+                    className="w-full text-sm"
+                  />
+                </div>
                 {program.LoyaltyProgramFieldConfig &&
                   program.LoyaltyProgramFieldConfig.filter(
                     (f) =>
                       f.visibleInRegistration &&
-                      f.fieldName.toLowerCase() !== "email",
+                      f.fieldName.toLowerCase() !== "email"&&
+                      f.fieldName.toLowerCase() !== "password",
                   ).length > 0 && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {program.LoyaltyProgramFieldConfig.filter(

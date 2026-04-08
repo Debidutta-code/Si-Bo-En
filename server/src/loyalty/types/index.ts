@@ -4,3 +4,4 @@ export * from "./loyality-field.types";
 export * from "./loyality-program.types";
 export * from "./property-loyality.types";
 export * from "./loyalty-guest.types";
+export * from "./loyality-level.types";

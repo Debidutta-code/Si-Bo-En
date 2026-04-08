@@ -30,7 +30,7 @@ import {
   deleteSpecialConditionService,
   getSpecialConditionsByProgramIdService
 } from "./services/loyality-condition.service";
-import type { ILoyalityCondition, ILoyalitySpecialCondition } from "./interfaces/loyality-condition.interface";
+import type { ILoyalityCondition, ILoyalitySpecialCondition } from "./interfaces";
 import { getLoyaltyProgramByCreationId } from "./services/loyality-program.service";
 import type { ILoader } from "../dashboard/interface";
 import Loader from "@/components/Loader/Loader";
@@ -328,11 +328,8 @@ if (isLoading.isLoading) {
             ) : (
               conditions.map((condition) => (
                 <Card key={condition.id} className={!condition.isActive ? "opacity-50" : ""}>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">
-                      {condition.language.toUpperCase()}
-                    </CardTitle>
-                    <div className="flex items-center gap-2">
+                  <CardHeader className="p-0 flex flex-row-reverse items-center justify-between space-y-0 pb-2">
+                    <div className="flex justify-between items-center gap-2 px-4">
                       <Switch
                         checked={condition.isActive}
                         onCheckedChange={() => handleToggleConditionStatus(condition)}
@@ -352,10 +349,8 @@ if (isLoading.isLoading) {
                         <Trash2 className="w-4 h-4 text-destructive" />
                       </Button>
                     </div>
+                    <p className="text-sm px-4">{condition.text}</p>
                   </CardHeader>
-                  <CardContent>
-                    <p className="text-sm">{condition.text}</p>
-                  </CardContent>
                 </Card>
               ))
             )}

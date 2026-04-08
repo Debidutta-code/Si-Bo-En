@@ -1,19 +1,16 @@
 import { prisma } from '../../config';
 import {
     ICPropertyLoyaltyConfig,
-    IPropertyLoyalityWithLoyality,
     IPropertyLoyaltyConfig,
+    IPropertyLoyalityWithLoyality,
 } from '../types/property-loyality.types';
 
 export class propertyLoyalityRepository {
     public async createPropertyLoyalityConfig(
         data: ICPropertyLoyaltyConfig
     ): Promise<IPropertyLoyaltyConfig> {
-        console.log(data);
         try {
-            return await prisma.propertyLoyaltyConfig.create({
-                data,
-            });
+            return await prisma.propertyLoyaltyConfig.create({ data });
         } catch (error) {
             console.log(error);
             throw new Error('Failed to create property loyalty config');
@@ -25,44 +22,21 @@ export class propertyLoyalityRepository {
     ): Promise<IPropertyLoyaltyConfig | null> {
         try {
             return await prisma.propertyLoyaltyConfig.findFirst({
-                where: {
-                    propertyId,
-                },
-                include: {
-                    CreationLoyaltyConfig: {
-                        include: {
-                            BasicLoyaltyProgram: true,
-                            AdvanceLoyaltyProgram: true,
-                            LoyaltyProgramFieldConfig: true,
-                            loyaltyConditions: true,
-                            loyaltySpecialConditions: true,
-                        },
-                    },
-                },
+                where: { propertyId },
+                include: { loyalityLevels: true },
             });
         } catch (error) {
             throw new Error('Failed to get loyalty for property');
         }
     }
+
     public async getLoyalityForPropertyWhereTrue(
         propertyId: string
     ): Promise<IPropertyLoyaltyConfig | null> {
         try {
             return await prisma.propertyLoyaltyConfig.findFirst({
-                where: {
-                    propertyId,
-                },
-                include: {
-                    CreationLoyaltyConfig: {
-                        include: {
-                            BasicLoyaltyProgram: true,
-                            AdvanceLoyaltyProgram: true,
-                            LoyaltyProgramFieldConfig: true,
-                            loyaltyConditions: true,
-                            loyaltySpecialConditions: true,
-                        },
-                    },
-                },
+                where: { propertyId },
+                include: { loyalityLevels: true },
             });
         } catch (error) {
             console.log(error);
@@ -76,33 +50,26 @@ export class propertyLoyalityRepository {
     ): Promise<IPropertyLoyaltyConfig> {
         try {
             return await prisma.propertyLoyaltyConfig.update({
-                where: {
-                    id: propertyLoyalityId,
-                },
-                data: {
-                    isActive,
-                },
+                where: { id: propertyLoyalityId },
+                data: { isActive },
             });
         } catch (error) {
             throw new Error('Failed to update property loyalty config');
         }
     }
+
     public async updatePropertyLoyality(
         propertyLoyalityId: string,
-        newLoyalityConfig:ICPropertyLoyaltyConfig,
-        isActive:boolean,
-        
+        data: Partial<ICPropertyLoyaltyConfig>,
+        isActive: boolean
     ): Promise<IPropertyLoyaltyConfig> {
         try {
             return await prisma.propertyLoyaltyConfig.update({
-                where: {
-                    id: propertyLoyalityId,
-                },
+                where: { id: propertyLoyalityId },
                 data: {
-                    creationLoyaltyConfigId:newLoyalityConfig.creationLoyaltyConfigId,
-                    discountPercentage:newLoyalityConfig.discountPercentage,
-                    loyalityConfigLogo:newLoyalityConfig.loyalityConfigLogo,
-                    isActive:true
+                    discountPercentage: data.discountPercentage,
+                    loyalityConfigLogo: data.loyalityConfigLogo,
+                    isActive,
                 },
             });
         } catch (error) {
@@ -115,9 +82,7 @@ export class propertyLoyalityRepository {
     ): Promise<IPropertyLoyaltyConfig> {
         try {
             return await prisma.propertyLoyaltyConfig.delete({
-                where: {
-                    id: propertyLoyalityId,
-                },
+                where: { id: propertyLoyalityId },
             });
         } catch (error) {
             throw new Error('Failed to delete property loyalty config');
@@ -129,21 +94,8 @@ export class propertyLoyalityRepository {
     ): Promise<IPropertyLoyalityWithLoyality[]> {
         try {
             return await prisma.propertyLoyaltyConfig.findMany({
-                where: {
-                    propertyId,
-                },
-                include: {
-                    CreationLoyaltyConfig: {
-                        include: {
-                            BasicLoyaltyProgram: true,
-                            AdvanceLoyaltyProgram: true,
-                            LoyaltyProgramFieldConfig: true,
-                            loyaltyConditions: true,
-                            loyaltySpecialConditions: true,
-                            PropertyLoyaltyConfig: true,
-                        },
-                    },
-                },
+                where: { propertyId },
+                include: { loyalityLevels: true },
             });
         } catch (error) {
             throw new Error('Failed to get property loyalty with loyalty');
@@ -155,39 +107,11 @@ export class propertyLoyalityRepository {
     ): Promise<IPropertyLoyaltyConfig | null> {
         try {
             return await prisma.propertyLoyaltyConfig.findFirst({
-                where: {
-                    propertyId,
-                    isActive: true,
-                },
-                include: {
-                    CreationLoyaltyConfig: {
-                        include: {
-                            BasicLoyaltyProgram: true,
-                            AdvanceLoyaltyProgram: true,
-                            LoyaltyProgramFieldConfig: true,
-                            loyaltyConditions: true,
-                            loyaltySpecialConditions: true,
-                            PropertyLoyaltyConfig: true,
-                        },
-                    },
-                },
+                where: { propertyId, isActive: true },
+                include: { loyalityLevels: true },
             });
         } catch (error) {
             throw new Error('Error fetching active loyalty config by property');
-        }
-    }
-
-    public async getPropertiesByLoyaltyProgram(
-        loyaltyProgramId: string
-    ): Promise<IPropertyLoyaltyConfig[]> {
-        try {
-            return await prisma.propertyLoyaltyConfig.findMany({
-                where: {
-                    creationLoyaltyConfigId: loyaltyProgramId,
-                },
-            });
-        } catch (error) {
-            throw new Error('Error fetching properties by loyalty program');
         }
     }
 }

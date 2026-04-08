@@ -118,6 +118,8 @@
       "autoApplied": "يُطبَّق تلقائياً على كل حجز",
       "emailLabel": "البريد الإلكتروني",
       "emailPlaceholder": "example@email.com",
+      "passwordLabel": "كلمة المرور",
+      "passwordPlaceholder": "Password@123",
       "cancel": "إلغاء",
       "registering": "جارٍ التسجيل...",
       "signUp": "إنشاء حساب",

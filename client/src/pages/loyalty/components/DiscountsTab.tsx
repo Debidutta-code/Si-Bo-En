@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CheckCircle, Percent, DollarSign as DollarSignIcon } from "lucide-react";
+import { CheckCircle, Percent  } from "lucide-react";
 
 interface DiscountsTabProps {
   discountType: string;
@@ -56,12 +56,12 @@ export default function DiscountsTab({
                   <span>Percentage Discount</span>
                 </div>
               </SelectItem>
-              <SelectItem value="fixed">
+              {/* <SelectItem value="fixed">
                 <div className="flex items-center gap-2">
                   <DollarSignIcon className="h-4 w-4" />
                   <span>Fixed Amount</span>
                 </div>
-              </SelectItem>
+              </SelectItem> */}
             </SelectContent>
           </Select>
         </div>

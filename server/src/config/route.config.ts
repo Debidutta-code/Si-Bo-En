@@ -1,12 +1,10 @@
 import { Express, NextFunction, Request, Response, Router } from 'express';
 import { AppError } from '../utils/error.util';
 
-// // Route imports
 import {
     AuthRouter,
     CreationRouter,
     UserRouter,
-    initRouter,
 } from '../auth/routes';
 import { AccessControlRoutes } from '../access-control/routes';
 import PropertyManagement from '../property-management/routes/index.route';
@@ -19,7 +17,6 @@ import { AddonsRoute } from '../add-on/routes';
 import { pmsRoute } from '../pms/routes';
 import { BookingEngineRoutes } from '../booking-engine/routes';
 import { dashboardRouter } from '../dashboard/routes';
-// import EmailService from '../sms-email-service/routes/route';
 import { PaymentRoutes } from '../payment/routes';
 
 import { agencyMainRouter } from '../agency/routes/index.route';
@@ -32,6 +29,7 @@ import { currencyRoutes } from "../currency-maping/routes"
 import { fikafiPaymentRoutes } from '../payment/routes/fikafi.routes';
 import { managementRoute } from '../utils-management/routes';
 import { uploadRouter } from '../uploads/routes';
+import { loyalityGuestRouter } from '../loyality-users/routes/loyality-user.route';
 export async function initializeExpressRoutes({ app }: { app: Express }) {
     // Health check
     app.head('/status', (_, res: Response) => res.status(200).end());
@@ -51,7 +49,6 @@ export async function initializeExpressRoutes({ app }: { app: Express }) {
     apiV1Router.use('/auth', AuthRouter);
     apiV1Router.use('/user', UserRouter);
     apiV1Router.use('/create', CreationRouter);
-    apiV1Router.use('/init', initRouter);
 
     apiV1Router.use('/dash', dashboardRouter);
 
@@ -66,6 +63,7 @@ export async function initializeExpressRoutes({ app }: { app: Express }) {
     apiV1Router.use('/tax-system', TaxSystemRouter);
     apiV1Router.use('/addon', AddonsRoute);
     apiV1Router.use('/pms', pmsRoute);
+    apiV1Router.use('/loyalit-guest',loyalityGuestRouter)
     apiV1Router.use('/booking-engine', BookingEngineRoutes);
     apiV1Router.use('/agency', agencyMainRouter);
     apiV1Router.use('/promotions', promotionRouter);
