@@ -5,12 +5,25 @@ export interface ICPropertyLoyaltyConfig {
     propertyId: string;
     propertyCode: string;
     propertyName: string;
-    discountPercentage: number | null;
     loyalityConfigLogo: string | null;
 }
+export interface ICreationLoyalityConfig{
+    id:string;
+    creationId:string;
+    loyaltyDiscountType:"percentage"|"flat";
+    discountValue:number;
+    currencyCode:string|null;
+    LoyalityLevels?:ILoyalityLevels[];
+}
+
 export interface IPropertyLoyaltyConfig extends ICPropertyLoyaltyConfig {
     id: string;
     isActive: boolean;
-    loyalityLevels?: ILoyalityLevels[];
+    CreationLoyaltyConfig?: ICreationLoyalityConfig;
+}
+export interface IPropertyLoyalityGuest {
+    id: string;
+    propertyLoyalityId: string;
+    loyalityGuestId: string;
 }
 export interface IPropertyLoyalityWithLoyality extends IPropertyLoyaltyConfig {}

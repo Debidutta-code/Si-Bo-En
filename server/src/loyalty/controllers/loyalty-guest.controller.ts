@@ -74,7 +74,7 @@ export class LoyaltyGuestController {
             if(!req.property) {
                 return res.status(400).json(errorResponse("Invalid Request", "Property information is required"));
             }
-            const { email, propertyId, metadata,password ,currencyCode} = req.body;
+            const { email, propertyId, metadata , password} = req.body;
 
             // Validation
             if (!email || !propertyId) {
@@ -89,10 +89,8 @@ export class LoyaltyGuestController {
             const result = await this.loyaltyGuestService.registerGuestFromBookingEngine({
                 email,
                 propertyId,
-                propertyCode: req.property.propertyCode,
                 metaData: metadata || {},
                 password,
-                currencyCode
             });
 
             return res.status(result.success ? 201 : 400).json(result);

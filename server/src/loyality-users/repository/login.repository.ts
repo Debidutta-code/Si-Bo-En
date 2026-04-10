@@ -36,13 +36,6 @@ export class LoyalityLoginRepository {
                 include: {
                     CreationGuest: {
                         include: {
-                            // Property: {
-                            //     select: {
-                            //         id: true,
-                            //         propertyName: true,
-                            //         propertyCode: true,
-                            //     },
-                            // },
                             CreationLoyaltyConfig: {
                                 include: {
                                     BasicLoyaltyProgram: true,
@@ -50,6 +43,18 @@ export class LoyalityLoginRepository {
                                     LoyaltyProgramFieldConfig: true,
                                     loyaltyConditions: true,
                                     loyaltySpecialConditions: true,
+                                    LoyalityLevels:true,
+                                    PropertyLoyaltyConfig:{
+                                        include:{
+                                            Property:{
+                                               select:{
+                                                id:true,
+                                                propertyCode:true,
+                                                propertyName:true,
+                                               }
+                                            }
+                                        }
+                                    }
                                 },
                             },
                         },

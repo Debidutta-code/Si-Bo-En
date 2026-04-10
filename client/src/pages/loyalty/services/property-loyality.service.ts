@@ -60,7 +60,6 @@ export const getLoyalityForPropertyService = async (propertyId: string) => {
 export const updatePropertyLoyalityConfigService = async (
   propertyId: string,
   isActive: boolean,
-  discountPercentage?: number | null,
   loyalityConfigLogo?: string | null,
 ) => {
   try {
@@ -73,7 +72,6 @@ export const updatePropertyLoyalityConfigService = async (
     const response = await updatePropertyLoyalityConfig(
       propertyId,
       isActive,
-      discountPercentage,
       loyalityConfigLogo,
     );
     return response;

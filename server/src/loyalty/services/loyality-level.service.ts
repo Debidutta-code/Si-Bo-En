@@ -13,12 +13,23 @@ export class LoyalityLevelService {
 
     public async createLoyalityLevel(data: ICLoyalityLevels): Promise<IApiResponse> {
         try {
+            console.log(data);
             const [propertyConfig, existingLevels] = await Promise.all([
-                this.propertyLoyalityRepo.getLoyalityForProperty(data.creationLoyaltyConfigId),
+                this.propertyLoyalityRepo.getPropertyLoyaltyConfigById(data.creationLoyaltyConfigId),
                 this.loyalityLevelRepository.findAllByPropertyConfigId(data.creationLoyaltyConfigId),
             ]);
+            console.log(propertyConfig);
             if (!propertyConfig) {
                 return errorResponse(`Property loyalty config not found`);
+            }
+            if (!propertyConfig.CreationLoyaltyConfig) {
+                return errorResponse(`No loyalty configuration found for this property`);
+            }
+            if (data.discountPercentage < 0 || data.discountPercentage > 100) {
+                return errorResponse(`Invalid discount percentage`);
+            }
+            if (data.discountPercentage > propertyConfig.CreationLoyaltyConfig.discountValue) {
+                return errorResponse(`Discount percentage cannot exceed the property's maximum discount of ${propertyConfig.CreationLoyaltyConfig.discountValue}%`);
             }
             if (existingLevels.find(l => l.level === data.level)) {
                 return errorResponse(`Loyalty level ${data.level} already exists for this property`);
@@ -50,13 +61,25 @@ export class LoyalityLevelService {
             const [isLevelExists, allLevels, propertyConfig] = await Promise.all([
                 this.loyalityLevelRepository.findById(id),
                 this.loyalityLevelRepository.findAllByPropertyConfigId(data.creationLoyaltyConfigId),
-                this.propertyLoyalityRepo.getLoyalityForProperty(data.creationLoyaltyConfigId),
+                this.propertyLoyalityRepo.getPropertyLoyaltyConfigById(data.creationLoyaltyConfigId),
             ]);
             if (!propertyConfig) {
                 return errorResponse(`Property loyalty config not found`);
             }
+            if (!propertyConfig.CreationLoyaltyConfig) {
+                return errorResponse(`No loyalty configuration found for this property`);
+            }
             if (!isLevelExists) {
                 return errorResponse(`Loyalty level not found`);
+            }
+            if (data.discountPercentage < 0 || data.discountPercentage > 100) {
+                return errorResponse(`Invalid discount percentage`);
+            }
+            if (propertyConfig.CreationLoyaltyConfig.discountValue !== null &&
+                data.discountPercentage > propertyConfig.CreationLoyaltyConfig.discountValue) {
+                return errorResponse(
+                    `Discount percentage cannot exceed the property's maximum discount of ${propertyConfig.CreationLoyaltyConfig.discountValue}%`
+                );
             }
             if (allLevels.find(l => l.level === data.level && l.id !== id)) {
                 return errorResponse(`Loyalty level ${data.level} already exists for this property`);

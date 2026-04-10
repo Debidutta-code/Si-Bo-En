@@ -242,7 +242,7 @@ export default function PropertyLoyaltyGuests() {
 
 
                         <TableCell className="flex justify-center items-center">
-                          {loyaltyGuest.metaData ? (
+                          {loyaltyGuest?.metaData ? (
                             <span
                               onClick={() => openMetadataDialog(loyaltyGuest.metaData)}
                               className="gap-2"

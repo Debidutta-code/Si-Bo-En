@@ -48,4 +48,5 @@ export class LoyalityLevelRepository {
             throw new Error(`Failed to delete loyalty level`);
         }
     }
+
 }

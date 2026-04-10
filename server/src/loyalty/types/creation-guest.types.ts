@@ -3,9 +3,7 @@ import { CurrencyCode } from "../../tax-system/interfaces";
 
 export interface ICCreationLoyaltyGuest {
     loyalityGuestId: string;
-    creationId?: string;
     creationLoyaltyConfigId: string;
-    currencyCode? :CurrencyCode;
     metaData: any;
     guestLevel?: number;
 }

@@ -320,7 +320,7 @@ export default function LoyaltyForm() {
                 <tr className="text-left">
                   <th className="pb-3 pr-4 font-medium text-sm">Field</th>
                   <th className="pb-3 px-4 font-medium text-sm text-center">Visible in registration form</th>
-                  <th className="pb-3 px-4 font-medium text-sm text-center">Visible in customer form</th>
+                  {/* <th className="pb-3 px-4 font-medium text-sm text-center">Visible in customer form</th> */}
                   <th className="pb-3 px-4 font-medium text-sm text-center">Required</th>
                 </tr>
               </thead>
@@ -344,14 +344,14 @@ export default function LoyaltyForm() {
                         />
                       </div>
                     </td>
-                    <td className="py-4 px-4 text-center">
+                    {/* <td className="py-4 px-4 text-center">
                       <div className="flex justify-center">
                         <Checkbox
                           checked={field.visibleInCustomerForm}
                           onCheckedChange={() => handleCheckboxChange(index, 'visibleInCustomerForm')}
                         />
                       </div>
-                    </td>
+                    </td> */}
                     <td className="py-4 px-4 text-center">
                       <div className="flex justify-center">
                         <Checkbox

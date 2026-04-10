@@ -39,7 +39,7 @@ id:string;
 createdAt:Date;
 }
 export interface ILoyalityGuestsWDP extends ILoyalityGuests{
-    
+    metaData: any;
     guest:IGuests|null;
     
 }

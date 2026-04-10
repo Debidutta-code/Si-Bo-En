@@ -1,4 +1,5 @@
 import { prisma } from "../../config/db.config";
+import { IPropertyLoyalityGuest } from "../types";
 import { ICreationLoyaltyGuest, ICCreationLoyaltyGuest } from "../types/creation-guest.types";
 
 export class CreationGuestRepository {
@@ -7,8 +8,7 @@ export class CreationGuestRepository {
 
             const creationGuest = await prisma.creationGuest.create({
                 data:{
-                    ...data,
-                    
+                    ...data,   
                 }
             });
             return creationGuest;
@@ -42,5 +42,36 @@ export class CreationGuestRepository {
             throw new Error("Failed to check if guest registered for property")
         }
 
+    }
+    public async guestExistForProperty(
+        propertyLoyalityId:string,
+        loyalityGuestId:string
+    ):Promise<IPropertyLoyalityGuest | null>{
+        try {
+            return await prisma.propertyLoyalityGuests.findUnique({
+                where: {
+                    propertyLoyalityId_loyalityGuestId:{
+                        propertyLoyalityId,
+                        loyalityGuestId
+                    }
+                }
+            });
+        } catch (error) {
+            throw new Error("Failed to check if guest registered for property")
+        }
+    }
+    public async createPropertyLoyaltyGuest(
+        data: {
+            propertyLoyalityId: string;
+            loyalityGuestId: string;
+        }
+    ): Promise<IPropertyLoyalityGuest> {
+        try {
+            return await prisma.propertyLoyalityGuests.create({
+                data,
+            });
+        } catch (error) {
+            throw new Error("Failed to create property loyalty guest");
+        }
     }
 }

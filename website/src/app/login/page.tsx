@@ -7,12 +7,9 @@ import toast from "react-hot-toast";
 import { loginApi, loginWithEmail, verifyOtpApi, updatePasswordApi } from "./api";
 import { loyaltyLoginSuccess } from "@/src/store/loyaltyUserSlice";
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 type LoginMode = "withPassword" | "withEmail";
-// otpFlow steps:  email → otp → setPassword → done
 type OtpStep = "email" | "otp" | "setPassword" | "done";
 
-// ─── Perks (left panel) ───────────────────────────────────────────────────────
 const perks = [
   { icon: "🎁", title: "Exclusive Rewards", desc: "Redeem points for stays, dining & spa vouchers" },
   { icon: "⭐", title: "Member Tiers",      desc: "Silver, Gold & Platinum levels with unique perks" },
@@ -20,7 +17,6 @@ const perks = [
   { icon: "✈️", title: "Travel Perks",      desc: "Earn miles on every booking & partner stays" },
 ];
 
-// ─── Shared styles ─────────────────────────────────────────────────────────────
 const inputBase =
   "w-full rounded-[9px] text-[13.5px] font-light outline-none transition-all duration-200 placeholder:text-[#c8c8c8]";
 const inputStyle: React.CSSProperties = {

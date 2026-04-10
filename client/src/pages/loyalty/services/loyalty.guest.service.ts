@@ -12,15 +12,6 @@ export { getLoyaltyGuestsForProperty, getLoyaltyGuestsForCreation };
 // ===== Loyalty Guest Services =====
 export const createLoyaltyGuestService = async (data: ICloyalityGuests) => {
     try {
-        if (!data.creationLoyaltyConfigId || data.creationLoyaltyConfigId.trim() === "") {
-            return { success: false, message: "Creation Loyalty Config ID is required." };
-        }
-        if (!data.propertyId || data.propertyId.trim() === "") {
-            return { success: false, message: "Property ID is required." };
-        }
-        if (!data.propertyCode || data.propertyCode.trim() === "") {
-            return { success: false, message: "Property Code is required." };
-        }
         if (!data.guestId || data.guestId.trim() === "") {
             return { success: false, message: "Guest ID is required." };
         }

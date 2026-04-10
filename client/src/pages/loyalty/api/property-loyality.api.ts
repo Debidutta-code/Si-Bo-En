@@ -39,13 +39,12 @@ export const getLoyalityForProperty = async (propertyId: string) => {
 export const updatePropertyLoyalityConfig = async (
   propertyId: string,
   isActive: boolean,
-  discountPercentage?: number | null,
   loyalityConfigLogo?: string | null,
 ) => {
   try {
     const response = await axiosInstance.patch(
       `/loyalty/property/config/${propertyId}`,
-      { isActive, discountPercentage, loyalityConfigLogo },
+      { isActive, loyalityConfigLogo },
     );
     return response.data;
   } catch (error: any) {

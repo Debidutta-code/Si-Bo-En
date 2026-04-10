@@ -5,7 +5,6 @@ model PropertyLoyaltyConfig {
     propertyCode       String  @unique @map("property_code")
     propertyName       String  @map("property_name")
     Property           Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-    discountPercentage Int?    @map("discount_percentage")
     loyalityConfigLogo String? @map("loyality_config_logo")
     isActive           Boolean @default(true) @map("is_active")
     PropertyLoyalityGuests PropertyLoyalityGuests[]

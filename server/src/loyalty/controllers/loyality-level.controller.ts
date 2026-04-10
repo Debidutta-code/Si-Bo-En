@@ -17,9 +17,6 @@ export class LoyalityLevelController {
             if (data.discountPercentage < 0 || data.discountPercentage > 100) {
                 return res.status(400).json(errorResponse("Invalid discount percentage", "Discount percentage must be between 0 and 100"));
             }
-            if (data.noOfReservations < 1) {
-                return res.status(400).json(errorResponse("Invalid noOfReservations", "Must be at least 1"));
-            }
             const response = await this.loyalityLevelService.createLoyalityLevel(data);
             return res.status(response.success ? 200 : 400).json(response);
         } catch (error) {

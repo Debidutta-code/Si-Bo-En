@@ -1,7 +1,7 @@
 export interface ICLoyalityLevels{
     level:number;
     discountPercentage:number;
-    loyaltyProgramId:string;
+    creationLoyaltyConfigId:string;
 }
 export interface ILoyalityLevels extends ICLoyalityLevels {
     id:string;

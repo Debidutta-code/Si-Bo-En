@@ -1,4 +1,4 @@
-import {prisma} from "../../config";
+import { prisma } from "../../config";
 import {
     IAdvanceLoyaltyprogram,
     ICAdvanceLoyaltyprogram,
@@ -18,12 +18,12 @@ export class LoyaltyProgramRepository {
             throw new Error("Error creating loyalty program");
         }
     }
-    
+
     public async updateLoyaltyProgram(loyaltyProgramId: string, data: IULoyalityProgram): Promise<IULoyalityProgram> {
         try {
             return await prisma.basicLoyaltyProgram.update({
-                where: {loyaltyProgramId},
-                data:{
+                where: { loyaltyProgramId },
+                data: {
                     isActive: data.isActive,
                     logo: data.logo,
                 }
@@ -32,11 +32,11 @@ export class LoyaltyProgramRepository {
             throw new Error("Error updating loyalty program");
         }
     }
-    
+
     public async getLoyaltyProgramById(loyaltyProgramId: string): Promise<IloyaltyProgram | null> {
         try {
             return await prisma.basicLoyaltyProgram.findUnique({
-                where: {loyaltyProgramId}
+                where: { loyaltyProgramId }
             });
         } catch (error) {
             throw new Error("Error fetching loyalty program");
@@ -59,9 +59,12 @@ export class LoyaltyProgramRepository {
     public async getPropertyLoyaltyProgramByCreationId(creationLoyaltyConfigId: string): Promise<IPropertyLoyaltyConfig[]> {
         try {
             return await prisma.propertyLoyaltyConfig.findMany({
-               where:{
-                 creationLoyaltyConfigId
-               },
+                where: {
+                    creationLoyaltyConfigId
+                },
+                include: {
+                    CreationLoyaltyConfig:true
+                }
             });
         } catch (error) {
             throw new Error("Error fetching loyalty program by creation ID");
@@ -70,7 +73,7 @@ export class LoyaltyProgramRepository {
     public async deleteLoyaltyProgram(loyaltyProgramId: string): Promise<IloyaltyProgram> {
         try {
             return await prisma.basicLoyaltyProgram.delete({
-                where: {loyaltyProgramId}
+                where: { loyaltyProgramId }
             });
         } catch (error) {
             throw new Error("Error deleting loyalty program");
@@ -87,11 +90,11 @@ export class AdvanceLoyaltyProgramRepository {
             throw new Error("Error creating advance loyalty program");
         }
     }
-    
+
     public async updateAdvanceLoyaltyProgram(id: string, data: IUAdvanceLoyaltyprogram): Promise<IUAdvanceLoyaltyprogram> {
         try {
             return await prisma.advanceLoyaltyProgram.update({
-                where: {id},
+                where: { id },
                 data: {
                     activeInCorporateWeb: data.activeInCorporateWeb,
                     blockUserFieldFromForm: data.blockUserFieldFromForm,
@@ -104,31 +107,31 @@ export class AdvanceLoyaltyProgramRepository {
             throw new Error("Error updating advance loyalty program");
         }
     }
-    
+
     public async getById(id: string): Promise<IAdvanceLoyaltyprogram | null> {
         try {
             return await prisma.advanceLoyaltyProgram.findUnique({
-                where: {id}
+                where: { id }
             });
         } catch (error) {
             throw new Error("Error fetching advance loyalty program by id");
         }
     }
-    
+
     public async getAdvanceLoyaltyProgramById(loyaltyProgramId: string): Promise<IAdvanceLoyaltyprogram | null> {
         try {
             return await prisma.advanceLoyaltyProgram.findUnique({
-                where: {loyaltyProgramId}
+                where: { loyaltyProgramId }
             });
         } catch (error) {
             throw new Error("Error fetching advance loyalty program");
         }
     }
-    
+
     public async deleteAdvanceLoyaltyProgram(id: string): Promise<IAdvanceLoyaltyprogram> {
         try {
             return await prisma.advanceLoyaltyProgram.delete({
-                where: {id}
+                where: { id }
             });
         } catch (error) {
             throw new Error("Error deleting advance loyalty program");

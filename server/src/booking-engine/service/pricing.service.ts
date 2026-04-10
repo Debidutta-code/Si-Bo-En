@@ -1405,17 +1405,20 @@ class LoyalityDiscountClass {
         if (!checkIfPropertyLoyalityIsActive) {
             return this.priceBrakedown;
         }
-        if (checkIfPropertyLoyalityIsActive.discountPercentage) {
-            const loyaltyDiscount =
-                (this.priceBrakedown.amountBeforeTax *
-                    checkIfPropertyLoyalityIsActive.discountPercentage) /
-                100;
-            return {
-                ...this.priceBrakedown,
-                loyalityDiscount: loyaltyDiscount,
-                totalAmount: this.priceBrakedown.totalAmount - loyaltyDiscount,
-            };
-        }
+if (checkIfPropertyLoyalityIsActive.CreationLoyaltyConfig) {
+    const { discountValue, loyaltyDiscountType } = checkIfPropertyLoyalityIsActive.CreationLoyaltyConfig;
+
+    // ✅ Check discount type
+    const loyaltyDiscount = loyaltyDiscountType === "percentage"
+        ? (this.priceBrakedown.amountBeforeTax * discountValue) / 100
+        : discountValue; // flat — just subtract the value directly
+
+    return {
+        ...this.priceBrakedown,
+        loyalityDiscount: loyaltyDiscount,
+        totalAmount: this.priceBrakedown.totalAmount - loyaltyDiscount,
+    };
+}
         // No property-level discount configured
         return this.priceBrakedown;
     }

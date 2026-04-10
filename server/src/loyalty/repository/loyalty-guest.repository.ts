@@ -44,6 +44,17 @@ export class LoyaltyGuestRepository {
             throw new Error("Failed to get loyalty guest by property and guest");
         }
     }
+    public async getLoyaltyGuestByEmail(guestEmail: string): Promise<ILoyalityGuests | null> {
+        try {
+            return await prisma.loyalityGuest.findUnique({
+                where: {
+                    guestEmail
+                },
+            });
+        } catch (error) {
+            throw new Error("Failed to get loyalty guest by email");
+        }
+    }
     public async checkIfGuestExists(guestEmail: string): Promise<ILoyalityGuests | null> {
         try {
             return await prisma.loyalityGuest.findUnique({
@@ -53,6 +64,25 @@ export class LoyaltyGuestRepository {
             });
         } catch (error) {
             throw new Error("Failed to check if guest exists");
+        }
+    }
+    public async checkIfCreationGuestExists(creationLoyaltyConfigId: string, loyalityGuestId: string): Promise<ICreationLoyaltyGuestWDP | null> {
+        try {
+            return await prisma.creationGuest.findFirst({
+                where: {
+                    creationLoyaltyConfigId,
+                    loyalityGuestId,
+                },
+                include: {
+                    LoyalityGuest: {
+                        include: { guest: true }
+                    },
+                    CreationLoyaltyConfig: true,
+                },
+            })
+        } catch (error) {
+            console.log(error)
+            throw new Error("Failed to check if creation guest exists");
         }
     }
     public async getLoyalityGuestsForProperty(propertyId: string, skip: number = 0, take: number = 10): Promise<ICreationLoyaltyGuestWDP[]> {
@@ -172,16 +202,9 @@ export class LoyaltyGuestRepository {
     public async getPropertyLoyaltyConfig(propertyId: string): Promise<any> {
         try {
             return await prisma.propertyLoyaltyConfig.findUnique({
-                where: { propertyId },
-                include: {
-                    Property: {
-                        select: {
-                            id: true,
-                            propertyCode: true,
-                            propertyName: true
-                        }
-                    },
-                    // loyalityLevels: true,
+                where: { propertyId ,isActive:true},
+                include:{
+                    CreationLoyaltyConfig:true
                 }
             });
         } catch (error) {
@@ -231,5 +254,4 @@ export class LoyaltyGuestRepository {
         }
     }
 
-    //check if guest if from 
 }

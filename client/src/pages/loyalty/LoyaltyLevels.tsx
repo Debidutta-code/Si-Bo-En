@@ -207,7 +207,7 @@ export default function LoyaltyLevels() {
       const payload = {
         level: form.level,
         discountPercentage: form.discountPercentage,
-        loyaltyProgramId: programId,
+        creationLoyaltyConfigId: programId,
       };
 
       const response = editingLevel

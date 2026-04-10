@@ -54,7 +54,6 @@ import {
   getPropertiesByLoyaltyProgramService,
 } from "../services/property-loyality.service";
 import type { IPropertyLoyaltyConfig } from "../interfaces/property-loyality.types";
-import { Input } from "@/components/ui/input";
 import ImageUploadModal from "@/components/property/ImageUploadModal";
 
 interface Property {
@@ -71,7 +70,7 @@ interface AddPropertyToLoyaltyProps {
 export default function AddPropertyToLoyalty({
   loyaltyProgramId,
   availableProperties,
-}: AddPropertyToLoyaltyProps) {
+  }: AddPropertyToLoyaltyProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [assignedProperties, setAssignedProperties] = useState<
@@ -83,11 +82,9 @@ export default function AddPropertyToLoyalty({
   const [isUpdateImageModalOpen, setIsUpdateImageModalOpen] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<{
     id: string;
-    discountPercentage: number | null;
     loyalityConfigLogo: string | null;
   }>({
     id: "",
-    discountPercentage: null,
     loyalityConfigLogo: null,
   });
   const [deletePropertyId, setDeletePropertyId] = useState<string | null>(null);
@@ -116,7 +113,6 @@ export default function AddPropertyToLoyalty({
       toast.error("Please select a property");
       return;
     }
-
     const property = availableProperties.find(
       (p) => p.id === selectedProperty.id,
     );
@@ -132,7 +128,6 @@ export default function AddPropertyToLoyalty({
         propertyId: selectedProperty.id,
         propertyCode: property.propertyCode,
         propertyName: property.propertyName,
-        discountPercentage: selectedProperty.discountPercentage,
         loyalityConfigLogo: selectedProperty.loyalityConfigLogo,
       });
 
@@ -141,7 +136,6 @@ export default function AddPropertyToLoyalty({
         setIsDialogOpen(false);
         setSelectedProperty({
           id: "",
-          discountPercentage: 0,
           loyalityConfigLogo: "",
         });
         await fetchAssignedProperties();
@@ -182,7 +176,6 @@ export default function AddPropertyToLoyalty({
       const response = await updatePropertyLoyalityConfigService(
         editingProperty.propertyId,
         editingProperty.isActive,
-        editingProperty.discountPercentage,
         editingProperty.loyalityConfigLogo,
       );
 
@@ -239,11 +232,10 @@ export default function AddPropertyToLoyalty({
             {assignedProperties.map((property) => (
               <Card
                 key={property.id}
-                className={`overflow-hidden flex flex-col transition-opacity ${
-                  !property.isActive
+                className={`overflow-hidden flex flex-col transition-opacity ${!property.isActive
                     ? "opacity-60 grayscale-[50%]"
                     : "border-border"
-                }`}
+                  }`}
               >
                 {/* Top Section: Info & Actions */}
                 <div className="flex items-start justify-between p-4 pb-2">
@@ -251,11 +243,11 @@ export default function AddPropertyToLoyalty({
                     <h3 className="text-base font-semibold leading-none tracking-tight">
                       {property.propertyName}
                     </h3>
-                    {property.discountPercentage != null && (
+                    {/* {property.creationLoyaltyConfig.discountPercentage != null && (
                       <span className="text-sm font-medium text-muted-foreground">
-                        {property.discountPercentage}% Discount
+                        {property.creationLoyaltyConfig.discountPercentage}% Discount
                       </span>
-                    )}
+                    )} */}
                   </div>
 
                   <DropdownMenu>
@@ -342,27 +334,6 @@ export default function AddPropertyToLoyalty({
               </Select>
             </div>
             <div>
-              <Label htmlFor="discount-percentage">Discount Percentage</Label>
-              <Input
-                id="discount-percentage"
-                type="number"
-                min="0"
-                max="100"
-                value={
-                  selectedProperty.discountPercentage
-                    ? selectedProperty.discountPercentage
-                    : 0
-                }
-                onChange={(e) =>
-                  setSelectedProperty((prev) => ({
-                    ...prev,
-                    discountPercentage: Number(e.target.value),
-                  }))
-                }
-                placeholder="e.g., 10"
-              />
-            </div>
-            <div>
               <Label>Loyalty Image</Label>
               <div className="mt-2 flex items-center justify-between border rounded-md p-3">
                 <div className="flex items-center gap-3">
@@ -419,29 +390,6 @@ export default function AddPropertyToLoyalty({
           <div className="space-y-4">
             {editingProperty ? (
               <>
-                <div>
-                  <Label htmlFor="edit-discount-percentage">
-                    Discount Percentage
-                  </Label>
-                  <Input
-                    id="edit-discount-percentage"
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={editingProperty.discountPercentage ?? 0}
-                    onChange={(e) =>
-                      setEditingProperty((prev) =>
-                        prev
-                          ? {
-                              ...prev,
-                              discountPercentage: Number(e.target.value),
-                            }
-                          : null,
-                      )
-                    }
-                    placeholder="e.g., 10"
-                  />
-                </div>
                 <div>
                   <div className="flex items-center justify-between border rounded-md p-3">
                     <Label

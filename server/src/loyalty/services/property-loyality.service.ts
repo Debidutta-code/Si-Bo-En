@@ -52,7 +52,6 @@ export class PropertyLoyalityService {
     public async updatePropertyLoyalityConfig(
         propertyId: string,
         isActive: boolean,
-        discountPercentage: number | null,
         loyaltyImage: string | null
     ): Promise<IApiResponse> {
         try {
@@ -61,7 +60,6 @@ export class PropertyLoyalityService {
                 return errorResponse("Property loyalty config not found");
             }
             const updateData: Partial<ICPropertyLoyaltyConfig> = {
-                discountPercentage,
                 loyalityConfigLogo: loyaltyImage,
             };
             const result = await this.propertyLoyalityRepository.updatePropertyLoyality(existingConfig.id, updateData, isActive);

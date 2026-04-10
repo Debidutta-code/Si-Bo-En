@@ -14,9 +14,19 @@ export class RoomBookingRepository {
                 },
                 loyaltyProgramConfig: {
                     where: { isActive: true },
-                    // include: {
-                    //     loyalityLevels: true,
-                    // },
+                include:{
+                    CreationLoyaltyConfig:{
+                        include:{
+                            BasicLoyaltyProgram:true,
+                            loyaltyConditions:true,
+                            loyaltySpecialConditions:true,
+                            LoyaltyProgramFieldConfig:true,
+                            AdvanceLoyaltyProgram:true,
+                            PropertyLoyaltyConfig:true,
+                        }
+                    },
+
+                }
                 },
                 propertyVideos: true,
                 propertyRooms: {
