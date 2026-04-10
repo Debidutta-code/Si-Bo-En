@@ -14,7 +14,6 @@ interface Star {
 const NotFound = () => {
   const location = useLocation();
   
-  // 2. Tell TypeScript that this state will hold an array of Stars
   const [stars, setStars] = useState<Star[]>([]);
 
   useEffect(() => {

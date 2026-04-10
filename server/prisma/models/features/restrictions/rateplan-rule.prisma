@@ -1,24 +1,24 @@
 model RatePlanRule {
-    id String @id @default(uuid())
+  id String @id @default(uuid())
 
-    ratePlanId String   @unique @map("rate_plan_id")
-    ratePlan   RatePlan @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
+  ratePlanId String   @unique @map("rate_plan_id")
+  ratePlan   RatePlan @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
 
-    startDate DateTime? @map("start_date")
-    endDate   DateTime? @map("end_date")
+  startDate DateTime? @map("start_date")
+  endDate   DateTime? @map("end_date")
 
-    minLos               Int                    @default(0) @map("min_los")
-    maxLos               Int?                   @map("max_los")
-    isAutoApplied        Boolean                @default(false) @map("is_auto_applied")
-    discountType         DiscountType?          @map("discount_type")
-    currencyCode         CurrencyCode           @default(AED) @map("currency_code")
-    discountValue        Float?                 @map("discount_value")
-    ReservationPromotion ReservationPromotion[]
+  minLos               Int                    @default(0) @map("min_los")
+  maxLos               Int?                   @map("max_los")
+  isAutoApplied        Boolean                @default(false) @map("is_auto_applied")
+  discountType         DiscountType?          @map("discount_type")
+  currencyCode         CurrencyCode           @default(AED) @map("currency_code")
+  discountValue        Float?                 @map("discount_value")
+  ReservationPromotion ReservationPromotion[]
 
-    isActive Boolean @default(true)
+  isActive Boolean @default(true)
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    @@map("rate_plan_rules")
+  @@map("rate_plan_rules")
 }

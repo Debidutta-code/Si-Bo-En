@@ -29,16 +29,16 @@ model PropertyConfigs {
 }
 
 model BookingEngineConfigurations {
-    id              String   @id @default(uuid())
-    property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-    propertyId      String   @unique @map("property_id")
-    primaryColor    String   @map("primary_color")
-    secondaryColor  String   @map("secondary_color")
-    tertiaryColor   String   @map("tertiary_color")
-    buttonTextColor String   @map("button_text_color")
-    bannerImage     String?  @map("banner_image")
-    logo            String
-    url             String?  @map("website_url")
+  id              String   @id @default(uuid())
+  property        Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  propertyId      String   @unique @map("property_id")
+  primaryColor    String   @map("primary_color")
+  secondaryColor  String   @map("secondary_color")
+  tertiaryColor   String   @map("tertiary_color")
+  buttonTextColor String   @map("button_text_color")
+  bannerImage     String?  @map("banner_image")
+  logo            String
+  url             String?  @map("website_url")
 
-    @@map("booking_engine_configurations")
+  @@map("booking_engine_configurations")
 }

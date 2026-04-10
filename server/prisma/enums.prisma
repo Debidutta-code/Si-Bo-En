@@ -361,19 +361,36 @@ enum IntegrationTypes {
   channel_manager
   pms
 }
+
 enum ReservationPromotionType {
-    early_bird
-    mlos
-    device_specific
-    offer_for_tonight
-    normal
+  early_bird
+  mlos
+  device_specific
+  offer_for_tonight
+  normal
 }
+
 enum CommissionOrDiscount {
-    commission
-    tax
+  commission
+  tax
 }
+
 enum PromotionType {
-    early_bird
-    offer_for_tonight
-    device_specific
+  early_bird
+  offer_for_tonight
+  device_specific
+}
+
+enum TicketStatus {
+  open
+  in_progress
+  resolved
+  closed
+}
+
+enum TicketPriority {
+  low
+  medium
+  high
+  urgent
 }

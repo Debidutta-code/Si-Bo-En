@@ -28,7 +28,7 @@ model Property {
   propertyConfigs             PropertyConfigs?
   Commissions                 PropertyCommission?
   loyaltyProgramConfig        PropertyLoyaltyConfig?
-  CreationGuest              CreationGuest[]
+  CreationGuest               CreationGuest[]
   propertyEmails              PropertyEmails[]
   reservations                Reservation[]
   propertyAmenities           PropertyAmenitySelection[]
@@ -50,6 +50,7 @@ model Property {
   payments                    Payment[]
   propertyIntegrations        PropertyIntegrations[]
   bookingOffsets              BookingOffset[]
+  ProblemTickets              ProblemTickets[]
 
   @@index([createdById])
   @@index([creationId])

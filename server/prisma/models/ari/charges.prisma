@@ -1,60 +1,60 @@
 model Charge {
-    id            String       @id @default(uuid())
-    propertyCode  String
-    ratePlanName  String
-    ratePlanCode  String
-    roomTypeCode  String
-    roomTypeName  String
-    currencyCode  CurrencyCode @default(INR)
-    date          DateTime     @db.Date
-    isAvailable   Boolean      @default(true)
-    // Days of week applicability
-    isSaleStopped Boolean      @default(false) @map("is_sale_stopped") // for start/stop sales
+  id            String       @id @default(uuid())
+  propertyCode  String
+  ratePlanName  String
+  ratePlanCode  String
+  roomTypeCode  String
+  roomTypeName  String
+  currencyCode  CurrencyCode @default(INR)
+  date          DateTime     @db.Date
+  isAvailable   Boolean      @default(true)
+  // Days of week applicability
+  isSaleStopped Boolean      @default(false) @map("is_sale_stopped") // for start/stop sales
 
-    monApplicable       Boolean @default(true) @map("mon_applicable")
-    tueApplicable       Boolean @default(true) @map("tue_applicable")
-    wedApplicable       Boolean @default(true) @map("wed_applicable")
-    thuApplicable       Boolean @default(true) @map("thu_applicable")
-    friApplicable       Boolean @default(true) @map("fri_applicable")
-    satApplicable       Boolean @default(true) @map("sat_applicable")
-    sunApplicable       Boolean @default(true) @map("sun_applicable")
-    isClosedToArrival   Boolean @default(false) @map("is_closed_to_arrival")
-    isClosedToDeparture Boolean @default(false) @map("is_closed_to_departure")
-    restrictionNotes    String? @map("restriction_notes")
+  monApplicable       Boolean @default(true) @map("mon_applicable")
+  tueApplicable       Boolean @default(true) @map("tue_applicable")
+  wedApplicable       Boolean @default(true) @map("wed_applicable")
+  thuApplicable       Boolean @default(true) @map("thu_applicable")
+  friApplicable       Boolean @default(true) @map("fri_applicable")
+  satApplicable       Boolean @default(true) @map("sat_applicable")
+  sunApplicable       Boolean @default(true) @map("sun_applicable")
+  isClosedToArrival   Boolean @default(false) @map("is_closed_to_arrival")
+  isClosedToDeparture Boolean @default(false) @map("is_closed_to_departure")
+  restrictionNotes    String? @map("restriction_notes")
 
-    // Relations
-    ratePlan               RatePlan                @relation(fields: [ratePlanCode], references: [ratePlanCode], onDelete: Cascade)
-    // room                   Room?                 @relation(fields: [roomId], references: [id], onDelete: Cascade)
-    baseGuestAmounts       ChargeBaseByGuest[]
-    additionalGuestAmounts ChargeAdditionalGuest[]
+  // Relations
+  ratePlan               RatePlan                @relation(fields: [ratePlanCode], references: [ratePlanCode], onDelete: Cascade)
+  // room                   Room?                 @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  baseGuestAmounts       ChargeBaseByGuest[]
+  additionalGuestAmounts ChargeAdditionalGuest[]
 
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-    @@unique([propertyCode, roomTypeCode, ratePlanCode, date])
-    @@map("charges")
+  @@unique([propertyCode, roomTypeCode, ratePlanCode, date])
+  @@map("charges")
 }
 
 model ChargeBaseByGuest {
-    id                String @id @default(uuid())
-    charge            Charge @relation(fields: [chargeId], references: [id], onDelete: Cascade)
-    chargeId          String
-    ageQualifyingCode String @default("10") @map("age_qualifying_code")
+  id                String @id @default(uuid())
+  charge            Charge @relation(fields: [chargeId], references: [id], onDelete: Cascade)
+  chargeId          String
+  ageQualifyingCode String @default("10") @map("age_qualifying_code")
 
-    amountBeforeTax Float @map("amount_before_tax")
-    numberOfGuests  Int   @map("number_of_guests")
+  amountBeforeTax Float @map("amount_before_tax")
+  numberOfGuests  Int   @map("number_of_guests")
 
-    @@index([chargeId])
-    @@map("charge_base_by_guests")
+  @@index([chargeId])
+  @@map("charge_base_by_guests")
 }
 
 model ChargeAdditionalGuest {
-    id                String @id @default(uuid())
-    charge            Charge @relation(fields: [chargeId], references: [id], onDelete: Cascade)
-    chargeId          String
-    ageQualifyingCode String @map("age_qualifying_code")
-    amount            Float
+  id                String @id @default(uuid())
+  charge            Charge @relation(fields: [chargeId], references: [id], onDelete: Cascade)
+  chargeId          String
+  ageQualifyingCode String @map("age_qualifying_code")
+  amount            Float
 
-    @@index([chargeId])
-    @@map("charge_additional_guests")
+  @@index([chargeId])
+  @@map("charge_additional_guests")
 }

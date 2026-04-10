@@ -1,4 +1,3 @@
-
 model Creation {
   id          String       @id @default(uuid())
   type        CreationType
@@ -28,8 +27,8 @@ model Creation {
   regionalId       String?    @map("regional_id")
   regionalChildren Creation[] @relation("RegionalRelation")
   // 1:1 relation to Property
-  property   Property?
-  propertyId String?   @unique @map("property_id")
+  property         Property?
+  propertyId       String?    @unique @map("property_id")
 
   // Users that belong to this creation
   users User[] @relation("UserCreation")

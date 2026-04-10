@@ -1,22 +1,22 @@
 model Agency {
-    id                 String              @id @default(uuid())
-    agencyName         String              @unique @map("agency_name")
-    agencyType         AgencyType          @default(travel_agency) @map("agency_type")
-    agencyEmail        String              @unique @map("agency_email")
-    contactNo          String              @map("contact_no")
-    taxNo              String              @unique @map("tax_no")
-    commissionType     AgentCommissionType @default(percentage) @map("commission_type")
-    commissionValue    Int                 @map("commission_value")
-    commissionCurrency CurrencyCode?       @default(INR) @map("commission_currency")
-    iataCode           String              @map("iata_code")
-    address            String              @map("address")
+  id                 String              @id @default(uuid())
+  agencyName         String              @unique @map("agency_name")
+  agencyType         AgencyType          @default(travel_agency) @map("agency_type")
+  agencyEmail        String              @unique @map("agency_email")
+  contactNo          String              @map("contact_no")
+  taxNo              String              @unique @map("tax_no")
+  commissionType     AgentCommissionType @default(percentage) @map("commission_type")
+  commissionValue    Int                 @map("commission_value")
+  commissionCurrency CurrencyCode?       @default(INR) @map("commission_currency")
+  iataCode           String              @map("iata_code")
+  address            String              @map("address")
 
-    Agents            Agents[]
-    AgenticProperties AgenticProperty[]
-    Reservations      Reservation[]
-    isDeleted         Boolean           @default(false) @map("is_deleted")
-    createdAt         DateTime          @default(now()) @map("created_at")
-    updatedAt         DateTime          @updatedAt @map("updated_at")
+  Agents            Agents[]
+  AgenticProperties AgenticProperty[]
+  Reservations      Reservation[]
+  isDeleted         Boolean           @default(false) @map("is_deleted")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
 
-    @@map("agency")
+  @@map("agency")
 }

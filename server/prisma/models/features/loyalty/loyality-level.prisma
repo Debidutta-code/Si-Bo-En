@@ -1,12 +1,11 @@
-model LoyalityLevel{
-    id          String   @id @default(uuid())
-    level      Int      @map("level")
-    discountPercentage Float @map("discount_percentage")
-    noOfReservations Int @default(1) @map("no_of_reservations")
-    creationLoyaltyConfigId String                @map("creation_loyalty_config_id")
-    CreationLoyaltyConfig   CreationLoyaltyConfig @relation(fields: [creationLoyaltyConfigId], references: [id], onDelete: Cascade)
+model LoyalityLevel {
+  id                      String                @id @default(uuid())
+  level                   Int                   @map("level")
+  discountPercentage      Float                 @map("discount_percentage")
+  noOfReservations        Int                   @default(1) @map("no_of_reservations")
+  creationLoyaltyConfigId String                @map("creation_loyalty_config_id")
+  CreationLoyaltyConfig   CreationLoyaltyConfig @relation(fields: [creationLoyaltyConfigId], references: [id], onDelete: Cascade)
 
-    @@unique([creationLoyaltyConfigId, level])
-
-    @@map("loyalty_levels")
+  @@unique([creationLoyaltyConfigId, level])
+  @@map("loyalty_levels")
 }

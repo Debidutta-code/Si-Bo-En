@@ -1,30 +1,30 @@
 model BookingOffset {
-    id String @id @default(uuid())
+  id String @id @default(uuid())
 
-    propertyId String @map("property_id")
+  propertyId String @map("property_id")
 
-    ratePlanCode                String @map("rate_plan_code")
-    ratePlanId                  String @map("rate_plan_id")
-    ratePlanName                String @map("rate_plan_name")
-    //these payments are to be set in hours format
-    // for booking
-    minimumAdvanceBookingOffset Int?   @map("minimum_advance_booking_offset")
-    maximumAdvanceBookingOffset Int?   @map("maximum_advance_booking_offset")
-    // for amend
-    minimumAmendBookingOffset   Int?   @map("minimum_amend_booking_offset")
-    maximumAmendBookingOffset   Int?   @map("maximum_amend_booking_offset")
+  ratePlanCode                String @map("rate_plan_code")
+  ratePlanId                  String @map("rate_plan_id")
+  ratePlanName                String @map("rate_plan_name")
+  //these payments are to be set in hours format
+  // for booking
+  minimumAdvanceBookingOffset Int?   @map("minimum_advance_booking_offset")
+  maximumAdvanceBookingOffset Int?   @map("maximum_advance_booking_offset")
+  // for amend
+  minimumAmendBookingOffset   Int?   @map("minimum_amend_booking_offset")
+  maximumAmendBookingOffset   Int?   @map("maximum_amend_booking_offset")
 
-    // for cancel
-    minimumCancelBookingOffset Int?     @map("minimum_cancel_booking_offset")
-    maximumCancelBookingOffset Int?     @map("maximum_cancel_booking_offset")
-    isActive                   Boolean  @default(true) @map("is_active")
-    date                       DateTime @db.Date
+  // for cancel
+  minimumCancelBookingOffset Int?     @map("minimum_cancel_booking_offset")
+  maximumCancelBookingOffset Int?     @map("maximum_cancel_booking_offset")
+  isActive                   Boolean  @default(true) @map("is_active")
+  date                       DateTime @db.Date
 
-    createdAt DateTime @default(now())
+  createdAt DateTime @default(now())
 
-    ratePlan RatePlan @relation(fields: [ratePlanCode], references: [ratePlanCode], onDelete: Cascade)
-    property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  ratePlan RatePlan @relation(fields: [ratePlanCode], references: [ratePlanCode], onDelete: Cascade)
+  property Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
 
-    @@unique([ratePlanId, date])
-    @@map("booking_offsets")
+  @@unique([ratePlanId, date])
+  @@map("booking_offsets")
 }
