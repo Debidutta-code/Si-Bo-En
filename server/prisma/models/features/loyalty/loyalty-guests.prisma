@@ -1,16 +1,16 @@
 model LoyalityGuest {
-    id String @id @default(uuid())
+  id String @id @default(uuid())
 
-    guestEmail String  @unique @map("guest_email")
-    guestId    String? @map("guest_id")
-    password   String  @map("password")
+  guestEmail String  @unique @map("guest_email")
+  guestId    String? @map("guest_id")
+  password   String  @map("password")
 
-    guest                  Guests?                  @relation(fields: [guestId], references: [id], onDelete: Cascade)
-    CreationGuest          CreationGuest[]
-    PropertyLoyalityGuests PropertyLoyalityGuests[]
-    createdAt              DateTime                 @default(now())
+  guest                  Guests?                  @relation(fields: [guestId], references: [id], onDelete: Cascade)
+  CreationGuest          CreationGuest[]
+  PropertyLoyalityGuests PropertyLoyalityGuests[]
+  createdAt              DateTime                 @default(now())
 
-    @@map("loyality_guests")
+  @@map("loyality_guests")
 }
 
 model CreationGuest {
@@ -23,6 +23,6 @@ model CreationGuest {
     noOfBookings            Int                   @default(0) @map("no_of_bookings")
     CreationLoyaltyConfig   CreationLoyaltyConfig @relation(fields: [creationLoyaltyConfigId], references: [id], onDelete: Cascade)
 
-    @@unique([creationLoyaltyConfigId, loyalityGuestId])
-    @@map("creation_guests")
+  @@unique([creationLoyaltyConfigId, loyalityGuestId])
+  @@map("creation_guests")
 }

@@ -49,6 +49,7 @@ model Property {
   payments                    Payment[]
   propertyIntegrations        PropertyIntegrations[]
   bookingOffsets              BookingOffset[]
+  ProblemTickets              ProblemTickets[]
 
   @@index([createdById])
   @@index([creationId])

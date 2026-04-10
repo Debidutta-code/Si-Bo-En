@@ -1247,6 +1247,7 @@ class PromotionClass {
         if (!country) return [];
 
         this.geoRatePlans.forEach(geo => {
+            if(!geo.isActive) return;
             if (geo.roomType && geo.roomType !== this.roomType) return;
             if (!geo.countryCode.includes(country)) return;
 
@@ -1398,10 +1399,7 @@ class LoyalityDiscountClass {
             await this.pricingRepository.findPropertyLoyalityConfig(
                 this.propertyId
             );
-        console.log(
-            'checkIfPropertyLoyalityIsActive',
-            checkIfPropertyLoyalityIsActive
-        );
+        
         if (!checkIfPropertyLoyalityIsActive) {
             return this.priceBrakedown;
         }

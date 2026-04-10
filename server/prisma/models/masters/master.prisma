@@ -47,11 +47,10 @@ model MasterAmenity {
 model MasterRoomView {
   id String @id @default(uuid())
 
-  viewName String @map("view_name")
-  isActive Boolean @default(true) @map("is_active")
-  metaData Json? @map("meta_data") // for storing additional info
+  viewName  String      @map("view_name")
+  isActive  Boolean     @default(true) @map("is_active")
+  metaData  Json?       @map("meta_data") // for storing additional info
   RoomViews MRoomView[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 }

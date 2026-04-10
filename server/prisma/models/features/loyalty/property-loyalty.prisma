@@ -14,11 +14,12 @@ model PropertyLoyaltyConfig {
 }
 
 model PropertyLoyalityGuests {
-    id String @id @default(uuid())
-    propertyLoyalityId String @map("property_loyality_id")
-    loyalityGuestId String @map("loyality_guest_id")
-    PropertyLoyalityConfig PropertyLoyaltyConfig @relation(fields: [propertyLoyalityId], references: [id], onDelete: Cascade)
-    LoyalityGuest LoyalityGuest @relation(fields: [loyalityGuestId], references: [id], onDelete: Cascade)
-    @@unique([propertyLoyalityId, loyalityGuestId])
-    @@map("property_loyality_guests")
+  id                     String                @id @default(uuid())
+  propertyLoyalityId     String                @map("property_loyality_id")
+  loyalityGuestId        String                @map("loyality_guest_id")
+  PropertyLoyalityConfig PropertyLoyaltyConfig @relation(fields: [propertyLoyalityId], references: [id], onDelete: Cascade)
+  LoyalityGuest          LoyalityGuest         @relation(fields: [loyalityGuestId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyLoyalityId, loyalityGuestId])
+  @@map("property_loyality_guests")
 }
