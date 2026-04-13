@@ -7,6 +7,7 @@ import {
     successResponse,
     toUTC,
 } from '../../utils';
+import { IPropertyLoyaltyConfig } from '../../loyalty/types';
 import { PricingRepository } from '../repository';
 import {
     AddOnBrakeDown,
@@ -65,6 +66,8 @@ export class PricingService {
                 endDate instanceof Date ? endDate : new Date(endDate);
             startDate = parsedStartDate;
             endDate = parsedEndDate;
+
+            // ─── Phase 1: fetch ratePlan + room + addons + user promotions ───
             const [ratePlan, selectedAddons, appliedPromotions, selectedRoom] =
                 await Promise.all([
                     this.pricingRepository.validateRatePlan(
@@ -77,6 +80,7 @@ export class PricingService {
                     this.fetchAllPromotions(promotions),
                     this.roomRepo.findByRoomType(propertyId, invTypeCode),
                 ]);
+
             if (!ratePlan) {
                 return errorResponse('Rate plan not found');
             }
@@ -85,6 +89,41 @@ export class PricingService {
                     'Room not found for the selected room type'
                 );
             }
+
+            // ─── Phase 2: now we have ratePlan.id — fetch remaining in parallel
+            const [
+                autoAppliedMLOS,
+                autoAppliedPromotions,
+                promoCodeData,
+                loyaltyGuest,
+                propertyLoyaltyConfig,
+            ] = await Promise.all([
+                this.pricingRepository.fetchAutoAppliedMLOS(
+                    ratePlan.id,
+                    toUTC(startDate),
+                    toUTC(endDate)
+                ),
+                this.pricingRepository.getAutoAppliedPromotions(
+                    ratePlan.id,
+                    toUTC(startDate),
+                    toUTC(endDate)
+                ),
+                promoCode
+                    ? this.pricingRepository.findPromoCode(promoCode)
+                    : Promise.resolve(null),
+                guestEmail
+                    ? this.pricingRepository.findLoyalityGuest(
+                          guestEmail,
+                          propertyId
+                      )
+                    : Promise.resolve(false),
+                guestEmail
+                    ? this.pricingRepository.findPropertyLoyalityConfig(
+                          propertyId
+                      )
+                    : Promise.resolve(null),
+            ]);
+
             const basePrice = new BasePriceClass(
                 startDate,
                 endDate,
@@ -96,10 +135,8 @@ export class PricingService {
                 guestDistribution,
                 selectedRoom
             );
-            // Step 1: Base price (pure — no tax)
             let priceBrakedowns = basePrice.calculateTotalPrice();
 
-            // Step 2: Addons
             const addOnPrice = new AddOnPriceClass(
                 selectedAddons,
                 ratePlan.Addons,
@@ -117,7 +154,6 @@ export class PricingService {
             );
             priceBrakedowns = addOnPrice.addonBrakeDowns();
 
-            // Step 3: Promotions (geo + user/auto promotions)
             const promotionClass = new PromotionClass(
                 startDate,
                 endDate,
@@ -128,42 +164,40 @@ export class PricingService {
                 priceBrakedowns.amountBeforeTax,
                 invTypeCode,
                 (detectedDeviceType as DeviceType) || null,
-                priceBrakedowns
+                priceBrakedowns,
+                autoAppliedMLOS,
+                autoAppliedPromotions
             );
-            priceBrakedowns =
-                await promotionClass.promotionPrices(userCountryCode);
+            priceBrakedowns = promotionClass.promotionPrices(userCountryCode);
 
-            // Step 4: Promo code discount
             if (detectedDeviceType && promoCode) {
                 const deviceDiscountClass = new PromoCodeDiscountClass(
                     priceBrakedowns,
                     promoCode,
                     selectedRoom.id,
                     ratePlan.id,
-                    detectedDeviceType as DeviceType
+                    detectedDeviceType as DeviceType,
+                    promoCodeData
                 );
                 priceBrakedowns =
-                    await deviceDiscountClass.findPromoCodeDiscount();
+                    deviceDiscountClass.findPromoCodeDiscount();
             }
 
-            // Step 5: Loyalty discount
             if (guestEmail) {
                 const loyalityDiscountClass = new LoyalityDiscountClass(
-                    guestEmail,
-                    propertyId,
-                    priceBrakedowns
+                    priceBrakedowns,
+                    loyaltyGuest,
+                    propertyLoyaltyConfig
                 );
                 priceBrakedowns =
-                    await loyalityDiscountClass.findLoyalityDiscount();
+                    loyalityDiscountClass.findLoyalityDiscount();
             }
 
-            // Keep amountBeforeTax in sync with post-discount total before tax
             priceBrakedowns = {
                 ...priceBrakedowns,
                 amountBeforeTax: priceBrakedowns.currentChargeableAmount,
             };
 
-            // Step 6: Tourist tax → on pre-room-tax discounted base (amountBeforeTax)
             const diffInDays = this.differenceReservationDays(
                 startDate,
                 endDate
@@ -177,7 +211,6 @@ export class PricingService {
             );
             priceBrakedowns = touristTaxClass.findTouristTax();
 
-            // Step 7: Apply room tax last — totalAmount = currentChargeableAmount + latterpayableAmount
             const taxClass = new TaxClass(ratePlan.taxGroup, priceBrakedowns);
             priceBrakedowns = taxClass.applyTax();
 
@@ -792,6 +825,8 @@ class PromotionClass {
     baseAmount: number;
     detectedDeviceType: DeviceType | null;
     priceBrakeDown: PriceBrakeDown;
+    autoAppliedMLOSData: IMLOS[];
+    autoAppliedPromotionsData: ICEbDsOftc[];
     constructor(
         startDate: Date,
         endDate: Date,
@@ -802,7 +837,9 @@ class PromotionClass {
         baseAmount: number,
         roomType: string,
         detectedDeviceType: DeviceType | null,
-        priceBrakeDown: PriceBrakeDown
+        priceBrakeDown: PriceBrakeDown,
+        autoAppliedMLOS: IMLOS[],
+        autoAppliedPromotions: ICEbDsOftc[]
     ) {
         this.startDate = startDate;
         this.endDate = endDate;
@@ -815,18 +852,17 @@ class PromotionClass {
         this.detectedDeviceType = detectedDeviceType;
         this.priceBrakeDown = priceBrakeDown;
         this.geoRatePlans = geoRatePlans;
+        this.autoAppliedMLOSData = autoAppliedMLOS;
+        this.autoAppliedPromotionsData = autoAppliedPromotions;
     }
-    public async promotionPrices(country?: string): Promise<PriceBrakeDown> {
-        const { autoAppliedMLOS, autoAppliedPromotions } =
-            await this.fetchAllAutoAppliedPromotions();
-
+    public promotionPrices(country?: string): PriceBrakeDown {
         const autoAppliedMlosBrakeDown = this.calculateAutoAppliedMLOSPrices(
-            autoAppliedMLOS,
+            this.autoAppliedMLOSData,
             'auto-applied'
         );
         const autoAppliedPromotionBrakeDown =
             this.calculateAutoAppliedPromotionPrices(
-                autoAppliedPromotions,
+                this.autoAppliedPromotionsData,
                 'auto-applied'
             );
         const mlsoBrakeDown = this.calculateAutoAppliedMLOSPrices(
@@ -881,21 +917,6 @@ class PromotionClass {
         const msPerDay = 1000 * 60 * 60 * 24;
         const diffInMs = endDate.getTime() - startDate.getTime();
         return Math.ceil(diffInMs / msPerDay);
-    }
-    private async fetchAllAutoAppliedPromotions() {
-        const [autoAppliedMLOS, autoAppliedPromotions] = await Promise.all([
-            this.pricingRepository.fetchAutoAppliedMLOS(
-                this.ratePlanId,
-                this.startDate,
-                this.endDate
-            ),
-            this.pricingRepository.getAutoAppliedPromotions(
-                this.ratePlanId,
-                this.startDate,
-                this.endDate
-            ),
-        ]);
-        return { autoAppliedMLOS, autoAppliedPromotions };
     }
     private calculateAutoAppliedMLOSPrices(
         mlos: IMLOS[],
@@ -1291,25 +1312,25 @@ class PromoCodeDiscountClass {
     roomTypeId: string;
     ratePlanId: string;
     deviceType: DeviceType;
-    private pricingRepository: PricingRepository;
+    private promoCodeData: IPromoCode | null;
 
     constructor(
         priceBrakedown: PriceBrakeDown,
         promoCode: string,
         roomTypeId: string,
         ratePlanId: string,
-        deviceType: DeviceType
+        deviceType: DeviceType,
+        promoCodeData: IPromoCode | null
     ) {
         this.priceBrakedown = priceBrakedown;
         this.promoCode = promoCode;
-        this.pricingRepository = new PricingRepository();
+        this.promoCodeData = promoCodeData;
         this.roomTypeId = roomTypeId;
         this.ratePlanId = ratePlanId;
         this.deviceType = deviceType;
     }
-    public async findPromoCodeDiscount(): Promise<PriceBrakeDown> {
-        const checkIfPromoCodeIsValid =
-            await this.pricingRepository.findPromoCode(this.promoCode);
+    public findPromoCodeDiscount(): PriceBrakeDown {
+        const checkIfPromoCodeIsValid = this.promoCodeData;
         if (!checkIfPromoCodeIsValid) {
             return this.priceBrakedown;
         }
@@ -1406,48 +1427,35 @@ class PromoCodeDiscountClass {
     }
 }
 class LoyalityDiscountClass {
-    guestEmail: string;
-    propertyId: string;
     priceBrakedown: PriceBrakeDown;
-    private pricingRepository: PricingRepository;
+    private loyaltyGuest: boolean;
+    private propertyLoyaltyConfig: IPropertyLoyaltyConfig | null;
 
     constructor(
-        guestEmail: string,
-        propertyId: string,
-        priceBrakedown: PriceBrakeDown
+        priceBrakedown: PriceBrakeDown,
+        loyaltyGuest: boolean,
+        propertyLoyaltyConfig: IPropertyLoyaltyConfig | null
     ) {
-        this.pricingRepository = new PricingRepository();
-        this.guestEmail = guestEmail;
-        this.propertyId = propertyId;
         this.priceBrakedown = priceBrakedown;
+        this.loyaltyGuest = loyaltyGuest;
+        this.propertyLoyaltyConfig = propertyLoyaltyConfig;
     }
-    public async findLoyalityDiscount(): Promise<PriceBrakeDown> {
-        const checkIfguestIsMember =
-            await this.pricingRepository.findLoyalityGuest(
-                this.guestEmail,
-                this.propertyId
-            );
-        if (!checkIfguestIsMember) {
+    public findLoyalityDiscount(): PriceBrakeDown {
+        if (!this.loyaltyGuest) {
             return this.priceBrakedown;
         }
-        const checkIfPropertyLoyalityIsActive =
-            await this.pricingRepository.findPropertyLoyalityConfig(
-                this.propertyId
-            );
-
-        if (!checkIfPropertyLoyalityIsActive) {
+        if (!this.propertyLoyaltyConfig) {
             return this.priceBrakedown;
         }
-        if (checkIfPropertyLoyalityIsActive.CreationLoyaltyConfig) {
+        if (this.propertyLoyaltyConfig.CreationLoyaltyConfig) {
             const { discountValue, loyaltyDiscountType } =
-                checkIfPropertyLoyalityIsActive.CreationLoyaltyConfig;
+                this.propertyLoyaltyConfig.CreationLoyaltyConfig;
 
-            // ✅ Check discount type
             const loyaltyDiscount =
                 loyaltyDiscountType === 'percentage'
                     ? (this.priceBrakedown.amountBeforeTax * discountValue) /
                       100
-                    : discountValue; // flat — just subtract the value directly
+                    : discountValue;
 
             return {
                 ...this.priceBrakedown,
@@ -1458,7 +1466,6 @@ class LoyalityDiscountClass {
                 totalAmount: this.priceBrakedown.totalAmount - loyaltyDiscount,
             };
         }
-        // No property-level discount configured
         return this.priceBrakedown;
     }
 }
