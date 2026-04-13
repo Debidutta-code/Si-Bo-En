@@ -71,7 +71,7 @@ export class PricingService {
                         ratePlanCode,
                         invTypeCode,
                         toUTC(startDate),
-                        toUTC(endDate),
+                        toUTC(endDate)
                     ),
                     this.fetchAddons(parsedAddons),
                     this.fetchAllPromotions(promotions),
@@ -163,11 +163,7 @@ export class PricingService {
                 amountBeforeTax: priceBrakedowns.currentChargeableAmount,
             };
 
-            // Step 6: Apply tax on discounted base
-            const taxClass = new TaxClass(ratePlan.taxGroup, priceBrakedowns);
-            priceBrakedowns = taxClass.applyTax();
-
-            // Step 7: Tourist tax → latterpayableAmount only (pay at hotel)
+            // Step 6: Tourist tax → on pre-room-tax discounted base (amountBeforeTax)
             const diffInDays = this.differenceReservationDays(
                 startDate,
                 endDate
@@ -180,6 +176,10 @@ export class PricingService {
                 diffInDays
             );
             priceBrakedowns = touristTaxClass.findTouristTax();
+
+            // Step 7: Apply room tax last — totalAmount = currentChargeableAmount + latterpayableAmount
+            const taxClass = new TaxClass(ratePlan.taxGroup, priceBrakedowns);
+            priceBrakedowns = taxClass.applyTax();
 
             return successResponse('Rate plan found', priceBrakedowns);
         } catch (error) {
@@ -389,6 +389,7 @@ class BasePriceClass {
 
         this.guestDistributions.forEach((guestDistribution, index) => {
             const { adults, children } = guestDistribution;
+            
             const totalPersons = adults + children;
 
             if (totalPersons > this.roomDetails.maxOccupancy) {
@@ -396,22 +397,14 @@ class BasePriceClass {
                     `This room has a maximum occupancy of ${this.roomDetails.maxOccupancy}.`
                 );
             }
-            if (
-                adults >
-                this.roomDetails.maxOccupancy -
-                    this.roomDetails.maxNumberOfChildren
-            ) {
+            if (adults > this.roomDetails.maxNumberOfAdults) {
                 throw new Error(
-                    `This room can only accommodate ${this.roomDetails.maxOccupancy - this.roomDetails.maxNumberOfChildren} adults.`
+                    `This room can only accommodate maximum ${this.roomDetails.maxNumberOfAdults} adults.`
                 );
             }
-            if (
-                children >
-                this.roomDetails.maxOccupancy -
-                    this.roomDetails.maxNumberOfAdults
-            ) {
+            if (children > this.roomDetails.maxNumberOfChildren) {
                 throw new Error(
-                    `This room can only accommodate ${this.roomDetails.maxOccupancy - this.roomDetails.maxNumberOfAdults} children.`
+                    `This room can only accommodate maximum ${this.roomDetails.maxNumberOfChildren} children.`
                 );
             }
             this.charges.forEach(charge => {
@@ -1252,6 +1245,12 @@ class TouristTaxClass {
         touristTax: ITouristTax
     ): PromotionBrakeDown {
         if (touristTax.discountType === 'percentage') {
+            const baseRoomCharge =
+                this.priceBrakedown.dailyPriceBrakeDown.reduce(
+                    (sum, day) =>
+                        sum + day.baseChargesAmount + day.additionalChargesAmount,
+                    0
+                );
             return {
                 id: touristTax.id,
                 promotionType: 'normal',
@@ -1260,9 +1259,10 @@ class TouristTaxClass {
                 discountValue: Number(touristTax.discountValue),
                 currencyCode: touristTax.currencyCode,
                 discountAmount:
-                    (this.priceBrakedown.amountBeforeTax *
+                    ((baseRoomCharge *
                         Number(touristTax.discountValue)) /
-                    100,
+                    100) *
+                    this.noOfBedrooms,
                 restrictionType: 'payLater',
                 type: 'auto-applied',
             };
@@ -1330,15 +1330,21 @@ class PromoCodeDiscountClass {
         }
         if (
             checkIfPromoCodeIsValid.applicableRoomTypes &&
-            !(checkIfPromoCodeIsValid.applicableRoomTypes.includes(this.roomTypeId)||
-            checkIfPromoCodeIsValid.applicableRoomTypes.includes('all'))
+            !(
+                checkIfPromoCodeIsValid.applicableRoomTypes.includes(
+                    this.roomTypeId
+                ) || checkIfPromoCodeIsValid.applicableRoomTypes.includes('all')
+            )
         ) {
             return this.priceBrakedown;
         }
         if (
             checkIfPromoCodeIsValid.applicableRatePlans &&
-            !(checkIfPromoCodeIsValid.applicableRatePlans.includes(this.ratePlanId)||
-            checkIfPromoCodeIsValid.applicableRatePlans.includes('all'))
+            !(
+                checkIfPromoCodeIsValid.applicableRatePlans.includes(
+                    this.ratePlanId
+                ) || checkIfPromoCodeIsValid.applicableRatePlans.includes('all')
+            )
         ) {
             return this.priceBrakedown;
         }
