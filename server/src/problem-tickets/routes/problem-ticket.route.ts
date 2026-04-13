@@ -1,17 +1,17 @@
 import { Router } from "express";
 import { ProblemTicketController } from "../controllers";
-import { customerProtect, protect } from "../../../../common/middlewares";
+import { protect } from "../../middlewares/auth.middleware";
 
 const problemTicketRouter = Router();
 const controller = new ProblemTicketController();
 
 // Customer routes
 problemTicketRouter.route("/")
-    .post(customerProtect, controller.createTicket.bind(controller))
-    .get(customerProtect, controller.getTicketsForCustomer.bind(controller));
+    .post(controller.createTicket.bind(controller))
+    .get(controller.getTicketsForCustomer.bind(controller));
 problemTicketRouter.route("/:id")
-    .patch(customerProtect, controller.updateTicket.bind(controller))
-    .delete(customerProtect, controller.deleteTicket.bind(controller));
+    .patch(controller.updateTicket.bind(controller))
+    .delete(controller.deleteTicket.bind(controller));
 
 // Property routes
 problemTicketRouter.get("/property/:propertyId", protect, controller.getTicketsForProperty.bind(controller));
