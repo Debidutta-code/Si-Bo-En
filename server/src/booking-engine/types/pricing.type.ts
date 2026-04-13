@@ -210,12 +210,9 @@ export interface DailyPriceBrakeDown {
     date: string;
     baseChargesAmount: number;
     additionalChargesAmount: number;
-    taxBrakeDown: TaxBrakeDown[];
     addOnBrakeDown: AddOnBrakeDown[];
     totalAmount: number;
     currencyCode: CurrencyCode;
-    totalDailyTaxedAmount: number;
-
 }
 export interface TaxBrakeDown {
     name: string;

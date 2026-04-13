@@ -97,7 +97,10 @@ export class PricingService {
                 guestDistribution,
                 selectedRoom
             );
+            // Step 1: Base price (pure — no tax)
             let priceBrakedowns = basePrice.calculateTotalPrice();
+
+            // Step 2: Addons
             const addOnPrice = new AddOnPriceClass(
                 selectedAddons,
                 ratePlan.Addons,
@@ -115,6 +118,7 @@ export class PricingService {
             );
             priceBrakedowns = addOnPrice.addonBrakeDowns();
 
+            // Step 3: Promotions (geo + user/auto promotions)
             const promotionClass = new PromotionClass(
                 startDate,
                 endDate,
@@ -129,6 +133,42 @@ export class PricingService {
             );
             priceBrakedowns =
                 await promotionClass.promotionPrices(userCountryCode);
+
+            // Step 4: Promo code discount
+            if (detectedDeviceType && promoCode) {
+                const deviceDiscountClass = new PromoCodeDiscountClass(
+                    priceBrakedowns,
+                    promoCode,
+                    selectedRoom.id,
+                    ratePlan.id,
+                    detectedDeviceType as DeviceType
+                );
+                priceBrakedowns =
+                    await deviceDiscountClass.findPromoCodeDiscount();
+            }
+
+            // Step 5: Loyalty discount
+            if (guestEmail) {
+                const loyalityDiscountClass = new LoyalityDiscountClass(
+                    guestEmail,
+                    propertyId,
+                    priceBrakedowns
+                );
+                priceBrakedowns =
+                    await loyalityDiscountClass.findLoyalityDiscount();
+            }
+
+            // Keep amountBeforeTax in sync with post-discount total before tax
+            priceBrakedowns = {
+                ...priceBrakedowns,
+                amountBeforeTax: priceBrakedowns.currentChargeableAmount,
+            };
+
+            // Step 6: Apply tax on discounted base
+            const taxClass = new TaxClass(ratePlan.taxGroup, priceBrakedowns);
+            priceBrakedowns = taxClass.applyTax();
+
+            // Step 7: Tourist tax → latterpayableAmount only (pay at hotel)
             const diffInDays = this.differenceReservationDays(
                 startDate,
                 endDate
@@ -141,28 +181,7 @@ export class PricingService {
                 diffInDays
             );
             priceBrakedowns = touristTaxClass.findTouristTax();
-            if (guestEmail) {
-                const loyalityDiscountClass = new LoyalityDiscountClass(
-                    guestEmail,
-                    propertyId,
-                    priceBrakedowns
-                );
-                priceBrakedowns =
-                    await loyalityDiscountClass.findLoyalityDiscount();
-                // console.log("priceBrakedowns loyality discount price", priceBrakedowns);
-            }
-            if (detectedDeviceType && promoCode) {
-                const deviceDiscountClass = new PromoCodeDiscountClass(
-                    priceBrakedowns,
-                    promoCode,
-                    invTypeCode,
-                    ratePlanCode,
-                    detectedDeviceType as DeviceType
-                );
-                priceBrakedowns =
-                    await deviceDiscountClass.findPromoCodeDiscount();
-                // console.log("priceBrakedowns device discount price", priceBrakedowns);
-            }
+
             return successResponse('Rate plan found', priceBrakedowns);
         } catch (error) {
             if (error instanceof Error) {
@@ -307,52 +326,15 @@ class BasePriceClass {
         this.checkCTA();
         this.checkCTD();
         this.checkIsSaleStopped();
-        let { dailyPriceBrakeDown } = this.calculateBasePrice();
-        dailyPriceBrakeDown = this.addTax(dailyPriceBrakeDown);
+        const { totalAmount, dailyPriceBrakeDown } = this.calculateBasePrice();
 
-        // Compute global totals from daily breakdowns
-        let totalAmount = 0;
-        let amountBeforeTax = 0;
-        let taxedAmount = 0;
-        const globalTaxMap = new Map<
-            string,
-            {
-                taxedAmount: number;
-                currencyCode: (typeof dailyPriceBrakeDown)[0]['currencyCode'];
-            }
-        >();
-
-        dailyPriceBrakeDown.forEach(day => {
-            totalAmount += day.totalAmount;
-            amountBeforeTax +=
-                day.baseChargesAmount + day.additionalChargesAmount;
-            taxedAmount += day.totalDailyTaxedAmount;
-
-            day.taxBrakeDown.forEach(tax => {
-                const existing = globalTaxMap.get(tax.name);
-                if (existing) {
-                    existing.taxedAmount += tax.taxedAmount;
-                } else {
-                    globalTaxMap.set(tax.name, {
-                        taxedAmount: tax.taxedAmount,
-                        currencyCode: tax.currencyCode,
-                    });
-                }
-            });
-        });
-
-        const taxBrakeDown: TaxBrakeDown[] = Array.from(
-            globalTaxMap.entries()
-        ).map(([name, data]) => ({
-            name,
-            taxedAmount: data.taxedAmount,
-            currencyCode: data.currencyCode,
-        }));
+        // amountBeforeTax = pure base (no tax applied yet)
+        const amountBeforeTax = totalAmount;
 
         return {
             totalAmount,
             amountBeforeTax,
-            taxedAmount,
+            taxedAmount: 0,
             totalAddonAmount: 0,
             totalPromotionAmount: 0,
             currentChargeableAmount: totalAmount,
@@ -361,7 +343,7 @@ class BasePriceClass {
             promoCodeDiscount: 0,
             currencyCode: dailyPriceBrakeDown[0]?.currencyCode,
             dailyPriceBrakeDown,
-            taxBrakeDown,
+            taxBrakeDown: [],
             addonBrakeDown: [],
             promotionBrakeDown: [],
         };
@@ -415,15 +397,19 @@ class BasePriceClass {
                     `This room has a maximum occupancy of ${this.roomDetails.maxOccupancy}.`
                 );
             }
-           if (
-                adults > this.roomDetails.maxOccupancy-this.roomDetails.maxNumberOfChildren
+            if (
+                adults >
+                this.roomDetails.maxOccupancy -
+                    this.roomDetails.maxNumberOfChildren
             ) {
                 throw new Error(
-                    `This room can only accommodate ${this.roomDetails.maxOccupancy-this.roomDetails.maxNumberOfChildren } adults.`
+                    `This room can only accommodate ${this.roomDetails.maxOccupancy - this.roomDetails.maxNumberOfChildren} adults.`
                 );
             }
             if (
-                children > this.roomDetails.maxOccupancy - this.roomDetails.maxNumberOfAdults
+                children >
+                this.roomDetails.maxOccupancy -
+                    this.roomDetails.maxNumberOfAdults
             ) {
                 throw new Error(
                     `This room can only accommodate ${this.roomDetails.maxOccupancy - this.roomDetails.maxNumberOfAdults} children.`
@@ -515,71 +501,75 @@ class BasePriceClass {
                     date: charge.date.toDateString(),
                     baseChargesAmount: totalBaseCharges,
                     additionalChargesAmount: totalAdditionalCharges,
-                    taxBrakeDown: [],
                     addOnBrakeDown: [],
                     totalAmount: totalDailyAmount,
                     currencyCode: charge.currencyCode,
-                    totalDailyTaxedAmount: 0,
                 });
             });
         });
 
         return { totalAmount: basePrice, dailyPriceBrakeDown };
     }
-    private addTax(
-        dailyPriceBrakeDown: DailyPriceBrakeDown[]
-    ): DailyPriceBrakeDown[] {
+}
+
+class TaxClass {
+    taxGroup: ITaxGroup | null;
+    priceBrakeDown: PriceBrakeDown;
+    constructor(taxGroup: ITaxGroup | null, priceBrakeDown: PriceBrakeDown) {
+        this.taxGroup = taxGroup || null;
+        this.priceBrakeDown = priceBrakeDown;
+    }
+    public applyTax(): PriceBrakeDown {
         if (!this.taxGroup) {
-            return dailyPriceBrakeDown;
+            return {
+                ...this.priceBrakeDown,
+                taxedAmount: 0,
+                taxBrakeDown: [],
+                currentChargeableAmount: this.priceBrakeDown.amountBeforeTax,
+                totalAmount:
+                    this.priceBrakeDown.amountBeforeTax +
+                    this.priceBrakeDown.latterpayableAmount,
+            };
         }
-        const sortedTaxRules = this.taxGroup.taxGroupRules.sort(
+
+        const sortedTaxRules = [...this.taxGroup.taxGroupRules].sort(
             (a, b) => a.taxRule.priority - b.taxRule.priority
         );
-        const dailyPriceBrakeDownWithTax: DailyPriceBrakeDown[] = [];
 
-        dailyPriceBrakeDown.forEach(day => {
-            const dailyTaxBrakeDown: TaxBrakeDown[] = [];
-            let runningTotal = day.totalAmount;
+        const base = this.priceBrakeDown.amountBeforeTax;
+        let runningTotal = base;
+        const taxBrakeDown: TaxBrakeDown[] = [];
 
-            sortedTaxRules.forEach(rule => {
-                let taxForThisRule = 0;
-                if (rule.taxRule.type === 'fixed') {
-                    taxForThisRule = Number(rule.taxRule.value);
-                } else {
-                    taxForThisRule =
-                        (Number(rule.taxRule.value) * runningTotal) / 100;
-                }
-                if (rule.taxRule.applicableOn == 'room_rate') {
-                    runningTotal += taxForThisRule;
-                } else {
-                    runningTotal = runningTotal + taxForThisRule;
-                }
+        sortedTaxRules.forEach(rule => {
+            let taxForThisRule = 0;
+            if (rule.taxRule.type === 'fixed') {
+                taxForThisRule = Number(rule.taxRule.value);
+            } else {
+                taxForThisRule =
+                    (Number(rule.taxRule.value) * runningTotal) / 100;
+            }
+            runningTotal += taxForThisRule;
 
-                dailyTaxBrakeDown.push({
-                    name: rule.taxRule.name,
-                    taxedAmount: taxForThisRule,
-                    // rule.taxRule.applicableOn == 'total_amount'
-                    //     ? taxForThisRule
-                    //     : taxForThisRule * this.rooms,
-                    currencyCode: day.currencyCode,
-                });
-            });
-
-            dailyPriceBrakeDownWithTax.push({
-                roomNumber: day.roomNumber,
-                guestDistribution: day.guestDistribution,
-                date: day.date,
-                baseChargesAmount: day.baseChargesAmount,
-                additionalChargesAmount: day.additionalChargesAmount,
-                taxBrakeDown: dailyTaxBrakeDown,
-                addOnBrakeDown: day.addOnBrakeDown,
-                totalAmount: runningTotal,
-                currencyCode: day.currencyCode,
-                totalDailyTaxedAmount: runningTotal - day.totalAmount,
+            taxBrakeDown.push({
+                name: rule.taxRule.name,
+                taxedAmount: taxForThisRule,
+                currencyCode: this.priceBrakeDown.currencyCode,
             });
         });
 
-        return dailyPriceBrakeDownWithTax;
+        const taxedAmount = runningTotal - base;
+        // currentChargeableAmount = discounted base + tax (no tourist tax yet)
+        const currentChargeableAmount = runningTotal;
+
+        return {
+            ...this.priceBrakeDown,
+            taxedAmount,
+            taxBrakeDown,
+            currentChargeableAmount,
+            totalAmount:
+                currentChargeableAmount +
+                this.priceBrakeDown.latterpayableAmount,
+        };
     }
 }
 
@@ -1247,7 +1237,7 @@ class PromotionClass {
         if (!country) return [];
 
         this.geoRatePlans.forEach(geo => {
-            if(!geo.isActive) return;
+            if (!geo.isActive) return;
             if (geo.roomType && geo.roomType !== this.roomType) return;
             if (!geo.countryCode.includes(country)) return;
 
@@ -1326,7 +1316,9 @@ class TouristTaxClass {
         return {
             ...this.priceBrakedown,
             latterpayableAmount: totalTouristCharges,
-            totalAmount: this.priceBrakedown.totalAmount + totalTouristCharges,
+            totalAmount:
+                this.priceBrakedown.currentChargeableAmount +
+                totalTouristCharges,
             promotionBrakeDown: [
                 ...this.priceBrakedown.promotionBrakeDown,
                 ...touristTaxes,
@@ -1399,48 +1391,55 @@ class LoyalityDiscountClass {
             await this.pricingRepository.findPropertyLoyalityConfig(
                 this.propertyId
             );
-        
+
         if (!checkIfPropertyLoyalityIsActive) {
             return this.priceBrakedown;
         }
-if (checkIfPropertyLoyalityIsActive.CreationLoyaltyConfig) {
-    const { discountValue, loyaltyDiscountType } = checkIfPropertyLoyalityIsActive.CreationLoyaltyConfig;
+        if (checkIfPropertyLoyalityIsActive.CreationLoyaltyConfig) {
+            const { discountValue, loyaltyDiscountType } =
+                checkIfPropertyLoyalityIsActive.CreationLoyaltyConfig;
 
-    // ✅ Check discount type
-    const loyaltyDiscount = loyaltyDiscountType === "percentage"
-        ? (this.priceBrakedown.amountBeforeTax * discountValue) / 100
-        : discountValue; // flat — just subtract the value directly
+            // ✅ Check discount type
+            const loyaltyDiscount =
+                loyaltyDiscountType === 'percentage'
+                    ? (this.priceBrakedown.amountBeforeTax * discountValue) /
+                      100
+                    : discountValue; // flat — just subtract the value directly
 
-    return {
-        ...this.priceBrakedown,
-        loyalityDiscount: loyaltyDiscount,
-        totalAmount: this.priceBrakedown.totalAmount - loyaltyDiscount,
-    };
-}
+            return {
+                ...this.priceBrakedown,
+                loyalityDiscount: loyaltyDiscount,
+                currentChargeableAmount:
+                    this.priceBrakedown.currentChargeableAmount -
+                    loyaltyDiscount,
+                totalAmount: this.priceBrakedown.totalAmount - loyaltyDiscount,
+            };
+        }
         // No property-level discount configured
         return this.priceBrakedown;
     }
 }
+//corrected
 class PromoCodeDiscountClass {
     priceBrakedown: PriceBrakeDown;
     promoCode: string;
-    roomType: string;
-    ratePlan: string;
+    roomTypeId: string;
+    ratePlanId: string;
     deviceType: DeviceType;
     private pricingRepository: PricingRepository;
 
     constructor(
         priceBrakedown: PriceBrakeDown,
         promoCode: string,
-        roomType: string,
-        ratePlan: string,
+        roomTypeId: string,
+        ratePlanId: string,
         deviceType: DeviceType
     ) {
         this.priceBrakedown = priceBrakedown;
         this.promoCode = promoCode;
         this.pricingRepository = new PricingRepository();
-        this.roomType = roomType;
-        this.ratePlan = ratePlan;
+        this.roomTypeId = roomTypeId;
+        this.ratePlanId = ratePlanId;
         this.deviceType = deviceType;
     }
     public async findPromoCodeDiscount(): Promise<PriceBrakeDown> {
@@ -1464,6 +1463,20 @@ class PromoCodeDiscountClass {
         ) {
             return this.priceBrakedown;
         }
+        if (
+            checkIfPromoCodeIsValid.applicableRoomTypes &&
+            !(checkIfPromoCodeIsValid.applicableRoomTypes.includes(this.roomTypeId)||
+            checkIfPromoCodeIsValid.applicableRoomTypes.includes('all'))
+        ) {
+            return this.priceBrakedown;
+        }
+        if (
+            checkIfPromoCodeIsValid.applicableRatePlans &&
+            !(checkIfPromoCodeIsValid.applicableRatePlans.includes(this.ratePlanId)||
+            checkIfPromoCodeIsValid.applicableRatePlans.includes('all'))
+        ) {
+            return this.priceBrakedown;
+        }
         if (checkIfPromoCodeIsValid.discountType === 'percentage') {
             let promoCodeDiscountAmount =
                 (this.priceBrakedown.amountBeforeTax *
@@ -1480,6 +1493,9 @@ class PromoCodeDiscountClass {
             return {
                 ...this.priceBrakedown,
                 promoCodeDiscount: promoCodeDiscountAmount,
+                currentChargeableAmount:
+                    this.priceBrakedown.currentChargeableAmount -
+                    promoCodeDiscountAmount,
                 totalAmount:
                     this.priceBrakedown.totalAmount - promoCodeDiscountAmount,
             };
@@ -1496,6 +1512,9 @@ class PromoCodeDiscountClass {
             return {
                 ...this.priceBrakedown,
                 promoCodeDiscount: promoCodeDiscountAmount,
+                currentChargeableAmount:
+                    this.priceBrakedown.currentChargeableAmount -
+                    promoCodeDiscountAmount,
                 totalAmount:
                     this.priceBrakedown.totalAmount - promoCodeDiscountAmount,
             };

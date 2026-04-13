@@ -158,7 +158,14 @@ export class PromoCodeController {
             if (promoCodeData.applicableRatePlans && promoCodeData.applicableRatePlans.length === 0) {
                 promoCodeData.applicableRatePlans = ["all"];
             }
-
+            if(promoCodeData.applicableRoomTypes&&promoCodeData.applicableRoomTypes?.length>1){
+                promoCodeData.applicableRoomTypes=promoCodeData.applicableRoomTypes.filter((roomType)=>roomType!=="all")
+                
+            }
+            if(promoCodeData.applicableRatePlans&&promoCodeData.applicableRatePlans?.length>1){
+                promoCodeData.applicableRatePlans=promoCodeData.applicableRatePlans.filter((ratePlan)=>ratePlan!=="all")
+                
+            }
             const result = await this.promoCodeService.updatePromoCode(id, promoCodeData);
             if (result.success) {
                 return res.status(200).json(result);
