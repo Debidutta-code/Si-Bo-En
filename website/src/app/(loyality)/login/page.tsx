@@ -19,12 +19,12 @@ const perks = [
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 const IconUser = () => (
-  <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5a5a6e" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+  <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7ab8be" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
   </svg>
 );
 const IconLock = () => (
-  <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5a5a6e" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+  <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7ab8be" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
   </svg>
 );
@@ -162,23 +162,23 @@ export default function LoginPage() {
   };
 
   // ── Input style helper ─────────────────────────────────────────────────────
-  const inputCls = "w-full rounded-xl text-[13.5px] font-light outline-none transition-all duration-200 placeholder:text-[#3a3a52]";
+  const inputCls = "w-full rounded-xl text-[13.5px] font-light outline-none transition-all duration-200 placeholder:text-[#9bbfc3]";
 
   const s = {
     input: {
-      background: "rgba(255,255,255,0.04)",
-      border: "1px solid rgba(255,255,255,0.1)",
-      color: "#e8e4f0",
+      background: "rgba(21,149,162,0.04)",
+      border: "1px solid rgba(21,149,162,0.2)",
+      color: "#0d4a52",
       padding: "13px 13px 13px 42px",
     } as React.CSSProperties,
     inputFocus: {
-      borderColor: "rgba(212,168,83,0.55)",
-      background: "rgba(212,168,83,0.04)",
-      boxShadow: "0 0 0 3px rgba(212,168,83,0.08)",
+      borderColor: "rgba(21,149,162,0.6)",
+      background: "rgba(21,149,162,0.07)",
+      boxShadow: "0 0 0 3px rgba(21,149,162,0.1)",
     },
     inputBlur: {
-      borderColor: "rgba(255,255,255,0.1)",
-      background: "rgba(255,255,255,0.04)",
+      borderColor: "rgba(21,149,162,0.2)",
+      background: "rgba(21,149,162,0.04)",
       boxShadow: "none",
     },
   };
@@ -194,13 +194,13 @@ export default function LoginPage() {
 
         .lumiere-root { font-family: 'Jost', sans-serif; }
 
-        /* animated gold shimmer on logo text */
+        /* teal shimmer on headline */
         @keyframes shimmer {
           0%   { background-position: -200% center; }
           100% { background-position:  200% center; }
         }
-        .gold-shimmer {
-          background: linear-gradient(90deg, #c49a2a 0%, #f0d080 40%, #d4a853 60%, #c49a2a 100%);
+        .teal-shimmer {
+          background: linear-gradient(90deg, #0d7a87 0%, #1fc8d8 40%, #1595A2 60%, #0d7a87 100%);
           background-size: 200% auto;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
@@ -210,8 +210,8 @@ export default function LoginPage() {
 
         /* soft pulse on the decorative ring */
         @keyframes pulse-ring {
-          0%, 100% { opacity: 0.18; transform: scale(1); }
-          50%       { opacity: 0.32; transform: scale(1.04); }
+          0%, 100% { opacity: 0.14; transform: scale(1); }
+          50%       { opacity: 0.28; transform: scale(1.04); }
         }
         .pulse-ring { animation: pulse-ring 6s ease-in-out infinite; }
 
@@ -230,26 +230,26 @@ export default function LoginPage() {
         .cta-btn:active { transform: scale(0.985); }
 
         /* eye-toggle hover */
-        .eye-btn { color: #3a3a55; transition: color 0.2s; }
-        .eye-btn:hover { color: #d4a853; }
+        .eye-btn { color: #7ab8be; transition: color 0.2s; }
+        .eye-btn:hover { color: #1595A2; }
 
         /* perk card hover */
         .perk-card:hover {
-          border-color: rgba(212,168,83,0.35) !important;
-          background: rgba(212,168,83,0.06) !important;
+          border-color: rgba(21,149,162,0.4) !important;
+          background: rgba(21,149,162,0.08) !important;
         }
 
         /* resend link */
-        .resend-link { color: #d4a853; transition: opacity 0.2s; font-size: 12px; margin-top: 8px; display: inline-block; }
+        .resend-link { color: #1595A2; transition: opacity 0.2s; font-size: 12px; margin-top: 8px; display: inline-block; }
         .resend-link:hover { opacity: 0.65; }
 
         /* disabled input */
         .disabled-input { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
 
-        /* scrollbar dark */
+        /* scrollbar */
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(212,168,83,0.25); border-radius: 2px; }
+        ::-webkit-scrollbar-thumb { background: rgba(21,149,162,0.25); border-radius: 2px; }
       `}</style>
 
       <div
@@ -257,80 +257,80 @@ export default function LoginPage() {
         style={{ background: "white" }}
       >
 
-        {/* ═══════════════════════════════════════════════════════
-            LEFT PANEL — dark atmospheric showcase
-        ════════════════════════════════════════════════════════ */}
+        {/* ── LEFT PANEL ──────────────────────────────────────────────────── */}
         <div
           className="hidden lg:flex w-[48%] flex-shrink-0 relative items-center justify-center overflow-hidden"
           style={{
-            background: "white",
+            background: "linear-gradient(160deg, #0d8a97 0%, #1595A2 40%, #0f7882 100%)",
           }}
         >
 
           {/* Noise texture overlay */}
           <div className="absolute inset-0 pointer-events-none" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E")`,
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E")`,
             backgroundSize: "256px 256px",
           }} />
 
-          {/* Radial warm glow */}
+          {/* Radial light glow */}
           <div className="absolute inset-0 pointer-events-none" style={{
-            background: "radial-gradient(ellipse 60% 50% at 50% 35%, rgba(212,168,83,0.09) 0%, transparent 65%)",
+            background: "radial-gradient(ellipse 60% 50% at 50% 35%, rgba(255,255,255,0.12) 0%, transparent 65%)",
           }} />
 
           {/* Decorative SVG composition */}
           <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 520 800" preserveAspectRatio="xMidYMid slice">
             {/* Concentric circles — top right */}
-            <circle className="pulse-ring" cx="480" cy="90"  r="380" fill="none" stroke="rgba(212,168,83,0.12)" strokeWidth="0.8"/>
-            <circle cx="480" cy="90"  r="260" fill="none" stroke="rgba(212,168,83,0.09)" strokeWidth="0.8"/>
-            <circle cx="480" cy="90"  r="160" fill="none" stroke="rgba(212,168,83,0.07)" strokeWidth="0.8"/>
-            <circle cx="480" cy="90"  r="80"  fill="none" stroke="rgba(212,168,83,0.06)" strokeWidth="0.8"/>
+            <circle className="pulse-ring" cx="480" cy="90"  r="380" fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth="0.8"/>
+            <circle cx="480" cy="90"  r="260" fill="none" stroke="rgba(255,255,255,0.1)"  strokeWidth="0.8"/>
+            <circle cx="480" cy="90"  r="160" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="0.8"/>
+            <circle cx="480" cy="90"  r="80"  fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="0.8"/>
 
             {/* Bottom-left accent geometry */}
-            <polygon points="40,740 90,780 20,790" fill="none" stroke="rgba(212,168,83,0.2)" strokeWidth="0.8"/>
-            <line x1="0" y1="680" x2="140" y2="800" stroke="rgba(212,168,83,0.08)" strokeWidth="0.6"/>
+            <polygon points="40,740 90,780 20,790" fill="none" stroke="rgba(255,255,255,0.22)" strokeWidth="0.8"/>
+            <line x1="0" y1="680" x2="140" y2="800" stroke="rgba(255,255,255,0.08)" strokeWidth="0.6"/>
 
             {/* Center diamond ornament */}
-            <polygon points="260,340 274,360 260,380 246,360" fill="none" stroke="rgba(212,168,83,0.3)" strokeWidth="0.8"/>
-            <polygon points="260,346 270,360 260,374 250,360" fill="rgba(212,168,83,0.06)"/>
+            <polygon points="260,340 274,360 260,380 246,360" fill="none" stroke="rgba(255,255,255,0.35)" strokeWidth="0.8"/>
+            <polygon points="260,346 270,360 260,374 250,360" fill="rgba(255,255,255,0.08)"/>
 
             {/* Thin horizontal rule */}
-            <line x1="60" y1="460" x2="460" y2="460" stroke="rgba(212,168,83,0.06)" strokeWidth="0.5"/>
+            <line x1="60" y1="460" x2="460" y2="460" stroke="rgba(255,255,255,0.07)" strokeWidth="0.5"/>
 
             {/* Scattered dots */}
-            <circle cx="100" cy="200" r="1.5" fill="rgba(212,168,83,0.3)"/>
-            <circle cx="420" cy="600" r="1"   fill="rgba(212,168,83,0.25)"/>
-            <circle cx="50"  cy="560" r="2"   fill="rgba(212,168,83,0.15)"/>
-            <circle cx="390" cy="300" r="1.2" fill="rgba(212,168,83,0.2)"/>
+            <circle cx="100" cy="200" r="1.5" fill="rgba(255,255,255,0.35)"/>
+            <circle cx="420" cy="600" r="1"   fill="rgba(255,255,255,0.25)"/>
+            <circle cx="50"  cy="560" r="2"   fill="rgba(255,255,255,0.18)"/>
+            <circle cx="390" cy="300" r="1.2" fill="rgba(255,255,255,0.22)"/>
 
             {/* Corner bracket — bottom right */}
-            <path d="M500 770 L500 800 L470 800" fill="none" stroke="rgba(212,168,83,0.22)" strokeWidth="0.8"/>
+            <path d="M500 770 L500 800 L470 800" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="0.8"/>
             {/* Corner bracket — top left */}
-            <path d="M20 30 L20 0 L50 0" fill="none" stroke="rgba(212,168,83,0.22)" strokeWidth="0.8"/>
+            <path d="M20 30 L20 0 L50 0" fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="0.8"/>
           </svg>
 
           {/* Content */}
-          <div className="relative z-10 px-14 py-12 max-w-[460px] w-full">
+          <div className="relative z-10 max-w-[460px] w-full">
 
             {/* Brand mark */}
             <div className="flex items-center gap-3 mb-16">
               <div
-                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 bg-white"
                 style={{
-                  background: "linear-gradient(135deg, #c49a2a 0%, #e8c55a 50%, #b8881a 100%)",
-                  boxShadow: "0 4px 24px rgba(212,168,83,0.3)",
+                  boxShadow: "0 4px 24px rgba(0,0,0,0.15)",
                 }}
               >
-                <span
-                  className="text-[#0b0b14] font-semibold text-xl"
-                  style={{ fontFamily: "'Cormorant', serif", letterSpacing: "0.02em" }}
-                >R</span>
+                {/* Inline SVG logo mark */}
+                <svg width="24" height="24" viewBox="0 0 3508 3508" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path fill="#1595A2" d="M1247.16,715.18 C1259.13,695.08 1270.78,675.66 1282.26,656.14 C1285.08,651.34 1288.77,648.18 1293.99,646.01 C1373.29,613.01 1455.15,588.87 1539.71,573.68 C1622.37,558.83 1705.65,553.23 1789.48,556.27 C1913.57,560.78 2034.05,584.25 2150.55,627.42 C2314.68,688.26 2457.95,781.41 2580.61,906.20 C2647.74,974.50 2705.39,1050.13 2753.96,1132.69 C2757.12,1138.07 2758.67,1143.28 2758.26,1149.61 C2752.87,1232.72 2735.02,1313.02 2702.98,1389.91 C2619.64,1589.89 2477.20,1732.78 2281.81,1824.14 C2213.76,1855.95 2142.41,1876.91 2068.10,1887.55 C2009.85,1895.88 1951.30,1897.91 1892.61,1893.56 C1741.15,1882.34 1604.23,1830.66 1482.09,1741.42 C1319.29,1622.47 1215.68,1463.37 1168.70,1267.48 C1158.90,1226.63 1153.97,1184.95 1151.46,1142.95 C1149.20,1105.26 1149.47,1067.64 1152.44,1030.08 C1159.51,940.28 1181.22,854.14 1218.88,772.21 C1227.64,753.16 1237.46,734.60 1247.16,715.18 Z"/>
+                  <path fill="#1595A2" d="M1244.86,1901.13 C1270.52,1931.16 1300.41,1955.85 1328.31,1982.57 C1397.88,2049.20 1467.68,2115.57 1537.38,2182.05 C1727.67,2363.55 1917.96,2545.05 2108.25,2726.55 C2131.16,2748.40 2154.06,2770.26 2177.05,2792.03 C2179.43,2794.28 2182.41,2795.91 2186.46,2798.79 C2181.16,2801.29 2178.59,2802.68 2175.89,2803.75 C2097.55,2834.60 2016.89,2856.94 1933.73,2870.40 C1867.13,2881.18 1800.12,2886.54 1732.69,2885.54 C1527.61,2882.49 1336.06,2830.08 1158.35,2727.36 C1152.07,2723.72 1149.84,2719.73 1149.84,2712.49 C1150.02,2401.85 1150.00,2091.22 1150.00,1780.58 C1150.00,1777.70 1150.00,1774.82 1150.00,1771.95 C1180.18,1816.15 1208.52,1861.11 1244.86,1901.13 Z"/>
+                  <path fill="#1695A2" d="M2828.25,2158.27 C2773.80,2291.49 2697.75,2410.01 2600.12,2514.66 C2555.69,2562.28 2507.62,2605.92 2455.81,2645.42 C2453.71,2647.02 2451.51,2648.50 2448.72,2650.49 C2287.17,2496.85 2125.74,2343.31 1964.31,2189.77 C1964.45,2189.12 1964.59,2188.47 1964.73,2187.82 C2092.72,2187.05 2217.15,2166.60 2336.85,2120.90 C2456.42,2075.26 2565.79,2011.89 2664.43,1930.22 C2763.19,1848.45 2844.81,1752.18 2909.25,1640.86 C2917.70,1729.25 2912.76,1816.91 2899.10,1904.14 C2885.45,1991.32 2861.90,2075.82 2828.25,2158.27 Z"/>
+                  <path fill="#1695A2" d="M725.19,1155.14 C764.92,1083.96 811.20,1018.34 865.67,955.69 C864.15,972.33 862.53,986.47 861.65,1000.66 C860.10,1025.92 858.88,1051.20 857.76,1076.49 C857.35,1085.81 857.59,1095.15 857.59,1104.49 C857.58,1557.11 857.58,2009.72 857.58,2462.34 C857.58,2465.86 857.58,2469.37 857.58,2474.03 C580.64,2164.05 462.60,1629.54 725.19,1155.14 Z"/>
+                </svg>
               </div>
               <div>
                 <p className="text-[19px] font-medium leading-none tracking-[0.06em] text-white" style={{ fontFamily: "'Cormorant', serif" }}>
                   Revchill
                 </p>
-                <p className="text-[9.5px] tracking-[0.22em] uppercase mt-0.5" style={{ color: "#d4a853" }}>
+                <p className="text-[9.5px] tracking-[0.22em] uppercase mt-0.5" style={{ color: "rgba(255,255,255,0.65)" }}>
                   Guest Loyalty
                 </p>
               </div>
@@ -348,11 +348,11 @@ export default function LoginPage() {
               >
                 Where every<br/>
                 stay becomes<br/>
-                <em className="gold-shimmer not-italic font-normal">unforgettable.</em>
+                <em className="not-italic font-normal" style={{ color: "rgba(255,255,255,0.9)", textShadow: "0 0 40px rgba(255,255,255,0.3)" }}>unforgettable.</em>
               </h1>
               <p
                 className="text-[13px] leading-[1.8] font-light"
-                style={{ color: "rgba(255,255,255,0.38)", maxWidth: "320px" }}
+                style={{ color: "rgba(255,255,255,0.55)", maxWidth: "320px" }}
               >
                 Join a curated loyalty experience built for those who appreciate the finest details of travel.
               </p>
@@ -365,51 +365,51 @@ export default function LoginPage() {
                   key={perk.title}
                   className="perk-card rounded-2xl p-4 transition-all duration-300"
                   style={{
-                    background: "rgba(255,255,255,0.03)",
-                    border: "1px solid rgba(255,255,255,0.07)",
+                    background: "rgba(255,255,255,0.07)",
+                    border: "1px solid rgba(255,255,255,0.14)",
                   }}
                 >
-                  <p className="text-[#d4a853] text-[18px] mb-2 leading-none">{perk.icon}</p>
+                  <p className="text-white text-[18px] mb-2 leading-none opacity-80">{perk.icon}</p>
                   <p className="text-white text-[12px] font-medium mb-1 tracking-wide">{perk.title}</p>
-                  <p className="text-[11px] font-light leading-[1.55]" style={{ color: "rgba(255,255,255,0.35)" }}>
+                  <p className="text-[11px] font-light leading-[1.55]" style={{ color: "rgba(255,255,255,0.45)" }}>
                     {perk.desc}
                   </p>
                 </div>
               ))}
             </div>
 
-            
           </div>
         </div>
-        <div
-          className="hidden lg:block w-px flex-shrink-0"
-          style={{ background: "linear-gradient(to bottom, transparent, rgba(212,168,83,0.15) 25%, rgba(212,168,83,0.15) 75%, transparent)" }}
-        />
 
+
+        {/* ── RIGHT PANEL ─────────────────────────────────────────────────── */}
         <div
-          className="flex-1 flex items-center justify-center p-8 lg:p-12"
-          style={{ background: "#0d0d1a" }}
+          className="flex-1 flex items-center justify-center p-8 lg:p-6"
+          style={{ background: "#f4fafb" }}
         >
           <div className="w-full max-w-[380px] fade-up">
 
             {/* Mobile brand */}
             <div className="flex lg:hidden items-center gap-2.5 mb-8">
               <div
-                className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-                style={{ background: "linear-gradient(135deg, #c49a2a, #e8c55a)" }}
+                className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 bg-white"
+                style={{ boxShadow: "0 2px 12px rgba(21,149,162,0.2)" }}
               >
-                <span className="text-[#0b0b14] font-semibold text-base" style={{ fontFamily: "'Cormorant', serif" }}>R</span>
+                <svg width="18" height="18" viewBox="0 0 3508 3508" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path fill="#1595A2" d="M1247.16,715.18 C1259.13,695.08 1270.78,675.66 1282.26,656.14 C1285.08,651.34 1288.77,648.18 1293.99,646.01 C1373.29,613.01 1455.15,588.87 1539.71,573.68 C1622.37,558.83 1705.65,553.23 1789.48,556.27 C1913.57,560.78 2034.05,584.25 2150.55,627.42 C2314.68,688.26 2457.95,781.41 2580.61,906.20 C2647.74,974.50 2705.39,1050.13 2753.96,1132.69 C2757.12,1138.07 2758.67,1143.28 2758.26,1149.61 C2752.87,1232.72 2735.02,1313.02 2702.98,1389.91 C2619.64,1589.89 2477.20,1732.78 2281.81,1824.14 C2213.76,1855.95 2142.41,1876.91 2068.10,1887.55 C2009.85,1895.88 1951.30,1897.91 1892.61,1893.56 C1741.15,1882.34 1604.23,1830.66 1482.09,1741.42 C1319.29,1622.47 1215.68,1463.37 1168.70,1267.48 C1158.90,1226.63 1153.97,1184.95 1151.46,1142.95 C1149.20,1105.26 1149.47,1067.64 1152.44,1030.08 C1159.51,940.28 1181.22,854.14 1218.88,772.21 C1227.64,753.16 1237.46,734.60 1247.16,715.18 Z"/>
+                  <path fill="#1595A2" d="M1244.86,1901.13 C1270.52,1931.16 1300.41,1955.85 1328.31,1982.57 C1397.88,2049.20 1467.68,2115.57 1537.38,2182.05 C1727.67,2363.55 1917.96,2545.05 2108.25,2726.55 C2131.16,2748.40 2154.06,2770.26 2177.05,2792.03 C2179.43,2794.28 2182.41,2795.91 2186.46,2798.79 C2181.16,2801.29 2178.59,2802.68 2175.89,2803.75 C2097.55,2834.60 2016.89,2856.94 1933.73,2870.40 C1867.13,2881.18 1800.12,2886.54 1732.69,2885.54 C1527.61,2882.49 1336.06,2830.08 1158.35,2727.36 C1152.07,2723.72 1149.84,2719.73 1149.84,2712.49 C1150.02,2401.85 1150.00,2091.22 1150.00,1780.58 C1150.00,1777.70 1150.00,1774.82 1150.00,1771.95 C1180.18,1816.15 1208.52,1861.11 1244.86,1901.13 Z"/>
+                </svg>
               </div>
-              <span className="text-white text-[16px] tracking-[0.06em]" style={{ fontFamily: "'Cormorant', serif" }}>Revchill</span>
+              <span className="text-[16px] tracking-[0.06em]" style={{ color: "#0d4a52", fontFamily: "'Cormorant', serif" }}>Revchill</span>
             </div>
 
             {/* Status badge */}
             <div
               className="inline-flex items-center gap-2 rounded-full px-3 py-1 mb-7"
-              style={{ background: "rgba(212,168,83,0.1)", border: "1px solid rgba(212,168,83,0.2)" }}
+              style={{ background: "rgba(21,149,162,0.08)", border: "1px solid rgba(21,149,162,0.2)" }}
             >
-              <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#d4a853" }} />
-              <span className="text-[10px] font-medium tracking-[0.1em] uppercase" style={{ color: "#d4a853" }}>
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: "#1595A2" }} />
+              <span className="text-[10px] font-medium tracking-[0.1em] uppercase" style={{ color: "#1595A2" }}>
                 Member Portal
               </span>
             </div>
@@ -417,12 +417,12 @@ export default function LoginPage() {
             {/* Heading */}
             <div className="mb-7">
               <h2
-                className="text-[32px] font-light leading-tight mb-2 text-white"
-                style={{ fontFamily: "'Cormorant', serif", letterSpacing: "-0.01em" }}
+                className="text-[32px] font-light leading-tight mb-2"
+                style={{ fontFamily: "'Cormorant', serif", letterSpacing: "-0.01em", color: "#0a3a42" }}
               >
                 {heading()}
               </h2>
-              <p className="text-[13px] font-light" style={{ color: "rgba(255,255,255,0.38)" }}>
+              <p className="text-[13px] font-light" style={{ color: "#5a8a92" }}>
                 {subtext()}
               </p>
             </div>
@@ -441,26 +441,26 @@ export default function LoginPage() {
                         className="step-dot w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-semibold"
                         style={{
                           background: done
-                            ? "rgba(212,168,83,0.25)"
+                            ? "rgba(21,149,162,0.15)"
                             : active
-                            ? "linear-gradient(135deg, #c49a2a, #e8c55a)"
-                            : "rgba(255,255,255,0.06)",
-                          color: done || active ? "#d4a853" : "rgba(255,255,255,0.3)",
-                          boxShadow: active ? "0 0 12px rgba(212,168,83,0.35)" : "none",
-                          border: done ? "1px solid rgba(212,168,83,0.4)" : "none",
+                            ? "linear-gradient(135deg, #1595A2, #1fc8d8)"
+                            : "rgba(21,149,162,0.08)",
+                          color: done || active ? "#1595A2" : "rgba(21,149,162,0.4)",
+                          boxShadow: active ? "0 0 12px rgba(21,149,162,0.3)" : "none",
+                          border: done ? "1px solid rgba(21,149,162,0.35)" : "none",
                         }}
                       >
                         {done ? "✓" : i + 1}
                       </div>
                       {i < 2 && (
                         <div className="w-10 h-px transition-all duration-500" style={{
-                          background: i < current ? "rgba(212,168,83,0.5)" : "rgba(255,255,255,0.08)"
+                          background: i < current ? "rgba(21,149,162,0.5)" : "rgba(21,149,162,0.12)"
                         }} />
                       )}
                     </div>
                   );
                 })}
-                <span className="ml-1 text-[11px]" style={{ color: "rgba(255,255,255,0.3)" }}>
+                <span className="ml-1 text-[11px]" style={{ color: "#5a8a92" }}>
                   {otpStep === "email" ? "Enter email" : otpStep === "otp" ? "Verify code" : "Set password"}
                 </span>
               </div>
@@ -470,7 +470,7 @@ export default function LoginPage() {
             <div className="mb-4">
               <label
                 className="block text-[10.5px] uppercase tracking-[0.12em] font-medium mb-2"
-                style={{ color: "rgba(255,255,255,0.35)" }}
+                style={{ color: "#5a8a92" }}
               >
                 Email Address
               </label>
@@ -495,7 +495,7 @@ export default function LoginPage() {
               <div className="mb-1">
                 <label
                   className="block text-[10.5px] uppercase tracking-[0.12em] font-medium mb-2"
-                  style={{ color: "rgba(255,255,255,0.35)" }}
+                  style={{ color: "#5a8a92" }}
                 >
                   Password
                 </label>
@@ -520,7 +520,7 @@ export default function LoginPage() {
                 <div className="flex justify-end mt-3 mb-4">
                   <button
                     className="text-[12px] transition-opacity hover:opacity-60"
-                    style={{ color: "#d4a853" }}
+                    style={{ color: "#1595A2" }}
                     onClick={() => switchMode("withEmail")}
                   >
                     Forgot password?
@@ -534,7 +534,7 @@ export default function LoginPage() {
               <div className="mb-4">
                 <label
                   className="block text-[10.5px] uppercase tracking-[0.12em] font-medium mb-2"
-                  style={{ color: "rgba(255,255,255,0.35)" }}
+                  style={{ color: "#5a8a92" }}
                 >
                   One-Time Code
                 </label>
@@ -552,7 +552,7 @@ export default function LoginPage() {
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
                     onKeyDown={(e) => e.key === "Enter" && handleVerifyOtp()}
                   />
-                  <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#5a5a6e" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7ab8be" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
                   </svg>
                 </div>
@@ -575,7 +575,7 @@ export default function LoginPage() {
                   <div key={label} className="mb-4">
                     <label
                       className="block text-[10.5px] uppercase tracking-[0.12em] font-medium mb-2"
-                      style={{ color: "rgba(255,255,255,0.35)" }}
+                      style={{ color: "#5a8a92" }}
                     >
                       {label}
                     </label>
@@ -609,9 +609,9 @@ export default function LoginPage() {
               disabled={loading}
               className="cta-btn w-full py-[14px] rounded-xl text-[13.5px] font-medium tracking-[0.06em] border-none cursor-pointer transition-all duration-200 relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
               style={{
-                background: "linear-gradient(135deg, #c49a2a 0%, #e8c55a 50%, #b8881a 100%)",
-                color: "#0b0b14",
-                boxShadow: "0 4px 24px rgba(212,168,83,0.3), inset 0 1px 0 rgba(255,255,255,0.25)",
+                background: "linear-gradient(135deg, #0d8a97 0%, #1595A2 50%, #0f7882 100%)",
+                color: "#ffffff",
+                boxShadow: "0 4px 24px rgba(21,149,162,0.35), inset 0 1px 0 rgba(255,255,255,0.2)",
               }}
               onClick={primaryAction}
             >
@@ -630,28 +630,28 @@ export default function LoginPage() {
 
             {/* ── Divider ───────────────────────────────────── */}
             <div className="flex items-center gap-3 my-5">
-              <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
-              <span className="text-[10px] uppercase tracking-[0.12em]" style={{ color: "rgba(255,255,255,0.2)" }}>or</span>
-              <div className="flex-1 h-px" style={{ background: "rgba(255,255,255,0.07)" }} />
+              <div className="flex-1 h-px" style={{ background: "rgba(21,149,162,0.12)" }} />
+              <span className="text-[10px] uppercase tracking-[0.12em]" style={{ color: "rgba(21,149,162,0.4)" }}>or</span>
+              <div className="flex-1 h-px" style={{ background: "rgba(21,149,162,0.12)" }} />
             </div>
 
             {/* ── Secondary toggle ──────────────────────────── */}
             <button
               className="w-full py-[13px] rounded-xl text-[13px] font-light flex items-center justify-center gap-2.5 cursor-pointer transition-all duration-200"
               style={{
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.09)",
-                color: "rgba(255,255,255,0.65)",
+                background: "rgba(21,149,162,0.04)",
+                border: "1px solid rgba(21,149,162,0.15)",
+                color: "#3a8a94",
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "rgba(212,168,83,0.3)";
-                e.currentTarget.style.background = "rgba(212,168,83,0.05)";
-                e.currentTarget.style.color = "#d4a853";
+                e.currentTarget.style.borderColor = "rgba(21,149,162,0.4)";
+                e.currentTarget.style.background = "rgba(21,149,162,0.08)";
+                e.currentTarget.style.color = "#1595A2";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "rgba(255,255,255,0.09)";
-                e.currentTarget.style.background = "rgba(255,255,255,0.03)";
-                e.currentTarget.style.color = "rgba(255,255,255,0.65)";
+                e.currentTarget.style.borderColor = "rgba(21,149,162,0.15)";
+                e.currentTarget.style.background = "rgba(21,149,162,0.04)";
+                e.currentTarget.style.color = "#3a8a94";
               }}
               onClick={() => switchMode(mode === "withPassword" ? "withEmail" : "withPassword")}
             >
@@ -673,15 +673,15 @@ export default function LoginPage() {
             </button>
 
             {/* ── Legal ─────────────────────────────────────── */}
-            <p
+            {/* <p
               className="mt-6 text-center text-[11px] leading-relaxed"
-              style={{ color: "rgba(255,255,255,0.18)" }}
+              style={{ color: "rgba(21,149,162,0.45)" }}
             >
               By signing in you agree to our{" "}
-              <a href="#" className="transition-opacity hover:opacity-60" style={{ color: "rgba(212,168,83,0.7)" }}>Terms of Service</a>
+              <a href="#" className="transition-opacity hover:opacity-60" style={{ color: "#1595A2" }}>Terms of Service</a>
               {" "}&amp;{" "}
-              <a href="#" className="transition-opacity hover:opacity-60" style={{ color: "rgba(212,168,83,0.7)" }}>Privacy Policy</a>.
-            </p>
+              <a href="#" className="transition-opacity hover:opacity-60" style={{ color: "#1595A2" }}>Privacy Policy</a>.
+            </p> */}
 
           </div>
         </div>
