@@ -430,16 +430,16 @@ class BasePriceClass {
                     `This room has a maximum occupancy of ${this.roomDetails.maxOccupancy}.`
                 );
             }
-            if (adults > this.roomDetails.maxNumberOfAdults) {
-                throw new Error(
-                    `This room can only accommodate maximum ${this.roomDetails.maxNumberOfAdults} adults.`
-                );
-            }
-            if (children > this.roomDetails.maxNumberOfChildren) {
-                throw new Error(
-                    `This room can only accommodate maximum ${this.roomDetails.maxNumberOfChildren} children.`
-                );
-            }
+            // if (adults > this.roomDetails.maxOccupancy- this.roomDetails.maxNumberOfChildren) {
+            //     throw new Error(
+            //         `This room can only accommodate maximum ${this.roomDetails.maxNumberOfAdults} adults.`
+            //     );
+            // }
+            // if (children > this.roomDetails.maxNumberOfChildren) {
+            //     throw new Error(
+            //         `This room can only accommodate maximum ${this.roomDetails.maxNumberOfChildren} children.`
+            //     );
+            // }
             this.charges.forEach(charge => {
                 const adultBaseAmounts = charge.baseGuestAmounts
                     .filter(b => b.ageQualifyingCode === '10')

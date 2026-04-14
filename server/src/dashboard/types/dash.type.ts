@@ -1,3 +1,5 @@
+import { CurrencyCode } from "../../tax-system/interfaces";
+
 export interface IPropertyCodeAndIds {
     id: string;
     code: string;
@@ -180,6 +182,7 @@ export interface ITopPerformingProperties {
 
 // Combined Analytics Response Interface - UPDATED: Removed housekeeping
 export interface IAnalyticsData {
+    currencyCode: CurrencyCode;
     reservation: IReservationAnalytics;
     revenue: IRevenueAnalytics;
     // room: IRoomAnalytics;
@@ -205,6 +208,7 @@ export interface IComparisonPeriod {
 }
 
 export interface IStatisticsComparison {
+  currencyCode: CurrencyCode;
   bookings: {
     current: number;
     previous: number;

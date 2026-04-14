@@ -892,7 +892,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
 
                             {/* Price */}
                             <div className="text-right">
-                              {(isLoyaltyMember || (!isLoyaltyMember && loyaltyProgram)) && loyaltyDiscountAmount > 0 && (
+                              {/* {(isLoyaltyMember || (!isLoyaltyMember && loyaltyProgram)) && loyaltyDiscountAmount > 0 && (
                                 <div className="flex items-center gap-1 justify-end">
                                   <span className="text-[9px] sm:text-[10px] text-gray-400 line-through">
                                     {currency} {comboBase.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -901,7 +901,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
                                     -{loyaltyDiscountPercentage}%
                                   </span>
                                 </div>
-                              )}
+                              )} */}
                               <span className="text-sm sm:text-base font-bold text-gray-900">
                                 {currency}{" "}
                                 {(isLoyaltyMember ? comboAfterLoyalty : comboBase).toLocaleString(undefined, {

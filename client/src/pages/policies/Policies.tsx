@@ -301,7 +301,7 @@ export default function PoliciesPage() {
                 {/* Header */}
                 <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                     <div className="flex items-center gap-4">
-                        <div className="h-12 w-12 rounded-xl bg-[#1e293b] flex items-center justify-center">
+                        <div className="h-12 w-12 rounded-xl bg-primary flex items-center justify-center">
                             <Shield className="h-6 w-6 text-white" />
                         </div>
                         <div>
@@ -315,7 +315,7 @@ export default function PoliciesPage() {
                     </div>
                     <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                         <DialogTrigger asChild>
-                            <Button className="bg-[#1e293b] text-white hover:bg-[#334155]">
+                            <Button className="bg-primary text-white hover:bg-primary/80">
                                 <Plus className="mr-2 h-4 w-4" /> Add Policy
                             </Button>
                         </DialogTrigger>
@@ -373,7 +373,7 @@ export default function PoliciesPage() {
                                 <Button variant="outline" onClick={() => setIsDialogOpen(false)} disabled={isSubmitting}>
                                     Cancel
                                 </Button>
-                                <Button onClick={handleCreatePolicy} disabled={isSubmitting} className="bg-[#1e293b] text-white hover:bg-[#334155]">
+                                <Button onClick={handleCreatePolicy} disabled={isSubmitting} className="bg-primary text-white hover:bg-primary/80">
                                     {isSubmitting ? "Saving..." : "Save Policy"}
                                 </Button>
                             </DialogFooter>
@@ -406,10 +406,10 @@ export default function PoliciesPage() {
                 {/* Tabs */}
                 <Tabs defaultValue="all" className="w-full">
                     <TabsList className="w-full max-w-md bg-white border border-[#e2e8f0] p-1 rounded-lg">
-                        <TabsTrigger value="all" className="flex-1 rounded-md text-sm data-[state=active]:bg-[#1e293b] data-[state=active]:text-white">All</TabsTrigger>
-                        <TabsTrigger value="cancellation" className="flex-1 rounded-md text-sm data-[state=active]:bg-[#1e293b] data-[state=active]:text-white">Cancellation</TabsTrigger>
-                        <TabsTrigger value="deposit" className="flex-1 rounded-md text-sm data-[state=active]:bg-[#1e293b] data-[state=active]:text-white">Deposit</TabsTrigger>
-                        <TabsTrigger value="guarantee" className="flex-1 rounded-md text-sm data-[state=active]:bg-[#1e293b] data-[state=active]:text-white">Guarantee</TabsTrigger>
+                        <TabsTrigger value="all" className="flex-1 rounded-md text-sm data-[state=active]:bg-primary data-[state=active]:text-white">All</TabsTrigger>
+                        <TabsTrigger value="cancellation" className="flex-1 rounded-md text-sm data-[state=active]:bg-primary data-[state=active]:text-white">Cancellation</TabsTrigger>
+                        <TabsTrigger value="deposit" className="flex-1 rounded-md text-sm data-[state=active]:bg-primary data-[state=active]:text-white">Deposit</TabsTrigger>
+                        <TabsTrigger value="guarantee" className="flex-1 rounded-md text-sm data-[state=active]:bg-primary data-[state=active]:text-white">Guarantee</TabsTrigger>
                     </TabsList>
 
                     <div className="mt-5">
@@ -424,7 +424,7 @@ export default function PoliciesPage() {
                                                 className="group rounded-xl bg-white border border-[#e2e8f0] overflow-hidden transition-all duration-200 hover:shadow-md hover:border-[#cbd5e1]"
                                             >
                                                 {/* Card header with dark strip */}
-                                                <div className="bg-[#1e293b] px-5 py-3 flex items-center justify-between">
+                                                <div className="bg-primary px-5 py-3 flex items-center justify-between">
                                                     <div className="flex items-center gap-2.5">
                                                         <div className="h-7 w-7 rounded-lg bg-white/15 flex items-center justify-center text-white">
                                                             {getPolicyIcon(policy.type)}
@@ -470,7 +470,7 @@ export default function PoliciesPage() {
                                                         <h3 className="text-base font-semibold text-[#0f172a] leading-tight">
                                                             {policy.policyName}
                                                         </h3>
-                                                        <p className="text-sm text-[#94a3b8] mt-1 line-clamp-2 leading-relaxed">
+                                                        <p className="text-sm text-gray-500 mt-1 line-clamp-2 leading-relaxed">
                                                             {policy.description || "No description provided."}
                                                         </p>
                                                     </div>
@@ -478,8 +478,8 @@ export default function PoliciesPage() {
                                                     {/* Rate Plans */}
                                                     <div className="bg-Primary rounded-lg p-3 border border-[#f1f5f9]">
                                                         <div className="flex items-center gap-1.5 mb-2">
-                                                            <Tag className="h-3 w-3 text-[#94a3b8]" />
-                                                            <span className="text-[10px] font-semibold text-[#94a3b8] uppercase tracking-widest">
+                                                            <Tag className="h-3 w-3 text-gray-500" />
+                                                            <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest">
                                                                 Linked Rate Plans
                                                             </span>
                                                         </div>
@@ -599,7 +599,7 @@ export default function PoliciesPage() {
                             <Button variant="outline" onClick={() => setPolicyToAssign(null)} disabled={isSubmitting}>
                                 Cancel
                             </Button>
-                            <Button onClick={handleConfirmAssign} disabled={isSubmitting} className="bg-[#1e293b] text-white hover:bg-[#334155]">
+                            <Button onClick={handleConfirmAssign} disabled={isSubmitting} className="bg-primary text-white hover:bg-primary/80">
                                 {isSubmitting ? "Assigning..." : "Add to Rate Plan"}
                             </Button>
                         </DialogFooter>
@@ -644,7 +644,7 @@ export default function PoliciesPage() {
                             <Button variant="outline" onClick={() => setPolicyToEdit(null)} disabled={isSubmitting}>
                                 Cancel
                             </Button>
-                            <Button onClick={handleConfirmEdit} disabled={isSubmitting} className="bg-[#1e293b] text-white hover:bg-[#334155]">
+                            <Button onClick={handleConfirmEdit} disabled={isSubmitting} className="bg-primary text-white hover:bg-primary/80">
                                 {isSubmitting ? "Updating..." : "Update Policy"}
                             </Button>
                         </DialogFooter>

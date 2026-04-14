@@ -9,6 +9,7 @@ export class RoomBookingRepository {
             where: { propertyCode },
             include: {
                 propertyAddress: true,
+                
                 propertyAmenities: {
                     include: { amenity: true },
                 },

@@ -217,7 +217,7 @@ import { CurrencyCode } from '../../tax-system/interfaces/tourist-tax.type';
                         ];
 
                     return successResponse(
-                        `Rate plan mapped successfully for available dates. WARNING: Please update your inventory from ${firstMissing} to ${lastMissing} to map rate plans for the remaining dates.`,
+                        `Rate plan mapped successfully for available dates.`,
                         {
                             ...daoRes,
                             warning: {

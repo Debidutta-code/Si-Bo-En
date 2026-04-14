@@ -115,13 +115,13 @@ export interface IRoomBookingOffset {
 
 export interface IRoomGeoRatePlan {
   id: string;
-  restrictionType: "percentage"|"fixed"|"restricted";
-  restrictionTypeAction: "increase"|"decrease"|null;
+  restrictionType: "percentage" | "fixed" | "restricted";
+  restrictionTypeAction: "increase" | "decrease" | null;
   restrictionValue: number | null;
   countryCode: string[];
   isActive: boolean;
 }
- 
+
 
 
 export interface IRoomPromotionData {
@@ -174,8 +174,8 @@ export interface IRoomPromoCode {
   applicableRoomTypes: string[];
   applicableRatePlans: string[];
   isActive: boolean;
-  isDeleted: boolean;          
-  usageLimit: number | null;   
+  isDeleted: boolean;
+  usageLimit: number | null;
 }
 
 export interface IRoomTouristTaxData {
@@ -338,9 +338,21 @@ export interface IPropertyData {
   isAvailable: boolean;
   propertyAddress: IPropertyAddress;
   propertyVideos: IPropertyVideo[];
-  propertyConfigs: { showVideo: boolean } | null;
+  propertyConfigs: IPropertyConfig | null;
   loyaltyProgramConfig: ILoyaltyProgramConfig | null;
   bookingEngineConfig: IBookingEngineConfig;
   propertyRooms: IPropertyRoom[];
   ratePlans: IPropertyRatePlan[];
+}
+export interface IPropertyConfig {
+  id: string;
+  propertyId: string;
+  pmsIntegrationActive: Boolean;
+  channelManagerIntegrationActive: Boolean;
+  selfAriActive: Boolean;
+  isB2bAvailable: Boolean;
+  isB2cAvailable: Boolean;
+  showVideo: Boolean;
+  commission: Boolean;
+  baseCurrency: CurrencyCode;
 }

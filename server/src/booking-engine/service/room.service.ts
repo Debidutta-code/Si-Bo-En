@@ -35,7 +35,6 @@ export class RoomBookingService {
         if (!property || !property.isAvailable) {
             return { success: false, message: 'Property not available' };
         }
-
         let promoCodeData: IRoomPromoCode | null = null;
         if (payload.promocode) {
             promoCodeData = await RoomBookingRepository.getPromoCodeByPropertyAndCode(
@@ -71,26 +70,27 @@ export class RoomBookingService {
 
         const totalGuests = guests.adults + guests.children;
         const numberOfNights = calculateNights(startDate, endDate);
+        const rooms: IRoom[] = [];
 
-        const roomResults = await Promise.all(
-            property.propertyRooms.map(room =>
-                this.processRoom(
-                    room,
-                    property,
-                    dates,
-                    totalGuests,
-                    numberOfNights,
-                    guests,
-                    payload,
-                    countryCode,
-                    deviceType,
-                    promoCodeData
+        if (property.propertyConfigs?.isB2cAvailable) {
+            const roomResults = await Promise.all(
+                property.propertyRooms.map(room =>
+                    this.processRoom(
+                        room,
+                        property,
+                        dates,
+                        totalGuests,
+                        numberOfNights,
+                        guests,
+                        payload,
+                        countryCode,
+                        deviceType,
+                        promoCodeData
+                    )
                 )
-            )
-        );
-
-        const rooms: IRoom[] = roomResults.filter((r): r is IRoom => r !== null);
-
+            );
+            rooms.push(...roomResults.filter((r): r is IRoom => r !== null));
+        }
         return {
             success: true,
             message: 'Rooms fetched successfully',
@@ -586,12 +586,14 @@ class RoomBasePriceCalculator {
 
         if (adults + children > maxOccupancy) return null;
 
-        // ✅ NEW: validate that extra guests don't exceed the available gap
-        const extraAdults = Math.max(0, adults - maxNumberOfAdults);
-        const extraChildren = Math.max(0, children - maxNumberOfChildren);
-        const extraGuestGap = maxOccupancy - maxNumberOfAdults - maxNumberOfChildren;
+        const gap = Math.max(0, maxOccupancy - maxNumberOfAdults - maxNumberOfChildren);
 
-        if (extraAdults + extraChildren > extraGuestGap) return null;
+        if (adults > maxNumberOfAdults + gap) return null;
+        if (children > maxNumberOfChildren + gap) return null;
+
+        const adultGapUsed = Math.max(0, adults - maxNumberOfAdults);
+        const childGapUsed = Math.max(0, children - maxNumberOfChildren);
+        if (adultGapUsed + childGapUsed > gap) return null;
 
         const adultBaseAmounts = this.charge.baseGuestAmounts
             .filter((b: IRoomChargeBaseByGuest) => b.ageQualifyingCode === '10')
