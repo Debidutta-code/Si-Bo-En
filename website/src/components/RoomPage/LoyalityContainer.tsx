@@ -1,4 +1,4 @@
-import { IPropertyLoyalityWithLoyality } from "@/src/app/(unAuth)/Rooms/interface";
+import { IPropertyLoyalityWithLoyality } from "@/src/app/(unauth)/Rooms/interface";
 import { Award, CheckCircle2, User, LogOut, Gift } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";

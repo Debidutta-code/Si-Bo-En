@@ -26,8 +26,8 @@ interface Room {
 interface GuestInfo {
   adults: number;
   children: number;
-  rooms: number; 
-  roomsArray?: Room[]; 
+  rooms: number;
+  roomsArray?: Room[];
 }
 interface SearchWidgetProps {
   onSearchStart?: (payload: {
@@ -164,7 +164,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   const [currentLogo, setCurrentLogo] = useState<string | null>(logoIcon);
   const { primaryColor, secondaryColor, tertiaryColor, buttonTextColor } =
     colors;
-  const hotelcode = bookingContext?.PropertyCode || "4BTXDZ";
+  const hotelcode = bookingContext?.PropertyCode || "P9N88A";
   const PathName = usePathname();
 
   const totalGuests = guestInfo.adults + guestInfo.children;

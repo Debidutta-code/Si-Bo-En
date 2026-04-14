@@ -6,7 +6,6 @@ export class RoomAminityDao {
       return await prisma.masterAmenity.findMany({
         where: {
           amenityType: "room",
-          isActive: true,
         },
         select: {
           id: true,
@@ -41,13 +40,10 @@ export class RoomAminityDao {
 
   public  async deleteAmenities(amenityNames: string[]) {
     try {
-      const result = await prisma.masterAmenity.updateMany({
+      const result = await prisma.masterAmenity.deleteMany({
         where: {
           amenityName: { in: amenityNames },
           amenityType: "room",
-        },
-        data: {
-          isActive: false,
         },
       });
 

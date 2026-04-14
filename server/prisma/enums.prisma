@@ -394,3 +394,9 @@ enum TicketPriority {
   high
   urgent
 }
+
+enum Platforms {
+  web
+  mobile
+  desktop
+}

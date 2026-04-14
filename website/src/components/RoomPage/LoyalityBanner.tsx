@@ -1,4 +1,4 @@
-import { IPropertyLoyalityWithLoyality } from "@/src/app/(unAuth)/Rooms/interface";
+import { IPropertyLoyalityWithLoyality } from "@/src/app/(unauth)/Rooms/interface";
 import {
   Award,
   Gift,

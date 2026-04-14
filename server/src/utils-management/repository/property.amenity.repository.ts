@@ -41,13 +41,10 @@ export class PropertyAminityDao {
 
   public  async deletePropertyAmenities(amenityNames: string[]) {
     try {
-      const result = await prisma.masterAmenity.updateMany({
+      const result = await prisma.masterAmenity.deleteMany({
         where: {
           amenityName: { in: amenityNames },
           amenityType: "property",
-        },
-        data: {
-          isActive: false,
         },
       });
 

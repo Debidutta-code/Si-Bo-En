@@ -19,6 +19,7 @@ model Reservation {
   countryCode    String     @map("country_code") @db.VarChar(5)
   timezone       String     @map("timezone") @db.VarChar(50)
   deviceTypes    DeviceType @map("device_types")
+  platforms      Platforms @default(web) @map("platforms")
   // Primary Guest Relation (one-to-many: one guest can have multiple reservations)
   primaryGuestId String     @map("primary_guest_id") @db.VarChar(36)
   primaryGuest   Guests     @relation("ReservationPrimaryGuest", fields: [primaryGuestId], references: [id], onDelete: Cascade)
