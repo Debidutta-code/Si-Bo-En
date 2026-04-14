@@ -27,3 +27,9 @@ export interface IPropertyLoyalityGuest {
     loyalityGuestId: string;
 }
 export interface IPropertyLoyalityWithLoyality extends IPropertyLoyaltyConfig {}
+
+export interface ILoyaltyDiscountData {
+    guestLevel: number | null;
+    loyalityLevels: ILoyalityLevels[];
+    fallback: { value: number; type: 'percentage' | 'flat' } | null;
+}

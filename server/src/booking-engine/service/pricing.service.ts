@@ -7,7 +7,7 @@ import {
     successResponse,
     toUTC,
 } from '../../utils';
-import { IPropertyLoyaltyConfig } from '../../loyalty/types';
+import { IPropertyLoyaltyConfig, ILoyaltyDiscountData } from '../../loyalty/types';
 import { PricingRepository } from '../repository';
 import {
     AddOnBrakeDown,
@@ -95,8 +95,7 @@ export class PricingService {
                 autoAppliedMLOS,
                 autoAppliedPromotions,
                 promoCodeData,
-                loyaltyGuest,
-                propertyLoyaltyConfig,
+                loyaltyDiscountData,
             ] = await Promise.all([
                 this.pricingRepository.fetchAutoAppliedMLOS(
                     ratePlan.id,
@@ -112,13 +111,8 @@ export class PricingService {
                     ? this.pricingRepository.findPromoCode(promoCode)
                     : Promise.resolve(null),
                 guestEmail
-                    ? this.pricingRepository.findLoyalityGuest(
+                    ? this.pricingRepository.findLoyaltyDiscountData(
                           guestEmail,
-                          propertyId
-                      )
-                    : Promise.resolve(false),
-                guestEmail
-                    ? this.pricingRepository.findPropertyLoyalityConfig(
                           propertyId
                       )
                     : Promise.resolve(null),
@@ -183,11 +177,10 @@ export class PricingService {
                     deviceDiscountClass.findPromoCodeDiscount();
             }
 
-            if (guestEmail) {
+            if (guestEmail && loyaltyDiscountData) {
                 const loyalityDiscountClass = new LoyalityDiscountClass(
                     priceBrakedowns,
-                    loyaltyGuest,
-                    propertyLoyaltyConfig
+                    loyaltyDiscountData
                 );
                 priceBrakedowns =
                     loyalityDiscountClass.findLoyalityDiscount();
@@ -1428,45 +1421,50 @@ class PromoCodeDiscountClass {
 }
 class LoyalityDiscountClass {
     priceBrakedown: PriceBrakeDown;
-    private loyaltyGuest: boolean;
-    private propertyLoyaltyConfig: IPropertyLoyaltyConfig | null;
+    private loyaltyData: ILoyaltyDiscountData;
 
     constructor(
         priceBrakedown: PriceBrakeDown,
-        loyaltyGuest: boolean,
-        propertyLoyaltyConfig: IPropertyLoyaltyConfig | null
+        loyaltyData: ILoyaltyDiscountData
     ) {
         this.priceBrakedown = priceBrakedown;
-        this.loyaltyGuest = loyaltyGuest;
-        this.propertyLoyaltyConfig = propertyLoyaltyConfig;
+        this.loyaltyData = loyaltyData;
     }
     public findLoyalityDiscount(): PriceBrakeDown {
-        if (!this.loyaltyGuest) {
-            return this.priceBrakedown;
-        }
-        if (!this.propertyLoyaltyConfig) {
-            return this.priceBrakedown;
-        }
-        if (this.propertyLoyaltyConfig.CreationLoyaltyConfig) {
-            const { discountValue, loyaltyDiscountType } =
-                this.propertyLoyaltyConfig.CreationLoyaltyConfig;
+        const { guestLevel, loyalityLevels, fallback } = this.loyaltyData;
+        let loyaltyDiscount = 0;
 
-            const loyaltyDiscount =
-                loyaltyDiscountType === 'percentage'
-                    ? (this.priceBrakedown.amountBeforeTax * discountValue) /
+        // Try to find a matching LoyalityLevel for this guest's level
+        const matchedLevel = guestLevel !== null
+            ? loyalityLevels.find((l: { level: number }) => l.level === guestLevel)
+            : null;
+
+        if (matchedLevel) {
+            // Level-based: percentage of amountBeforeTax
+            loyaltyDiscount =
+                (this.priceBrakedown.amountBeforeTax *
+                    matchedLevel.discountPercentage) /
+                100;
+        } else if (fallback) {
+            // Fallback to CreationLoyaltyConfig global discount
+            loyaltyDiscount =
+                fallback.type === 'percentage'
+                    ? (this.priceBrakedown.amountBeforeTax * fallback.value) /
                       100
-                    : discountValue;
-
-            return {
-                ...this.priceBrakedown,
-                loyalityDiscount: loyaltyDiscount,
-                currentChargeableAmount:
-                    this.priceBrakedown.currentChargeableAmount -
-                    loyaltyDiscount,
-                totalAmount: this.priceBrakedown.totalAmount - loyaltyDiscount,
-            };
+                    : fallback.value;
         }
-        return this.priceBrakedown;
+
+        if (loyaltyDiscount === 0) {
+            return this.priceBrakedown;
+        }
+
+        return {
+            ...this.priceBrakedown,
+            loyalityDiscount: loyaltyDiscount,
+            currentChargeableAmount:
+                this.priceBrakedown.currentChargeableAmount - loyaltyDiscount,
+            totalAmount: this.priceBrakedown.totalAmount - loyaltyDiscount,
+        };
     }
 }
 
