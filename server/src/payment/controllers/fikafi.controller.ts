@@ -164,8 +164,8 @@ export class FikafiPaymentController {
                 return res.status(404).json(errorResponse("Reservation not found"));
             }
 
-            const checkInDate = new Date(reservation.checkInDate);
-            const checkOutDate = new Date(reservation.checkOutDate);
+            const checkInDate = new Date(reservation.reservationStartDate);
+            const checkOutDate = new Date(reservation.reservationEndDate);
             const numberOfNights = Math.ceil(
                 (checkOutDate.getTime() - checkInDate.getTime()) /
                 (1000 * 60 * 60 * 24)

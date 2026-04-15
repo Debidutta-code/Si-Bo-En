@@ -100,8 +100,8 @@ export class DashBoardRepository {
                 where: { propertyId: { in: propertyIds } },
                 select: {
                     bookingStatus: true,
-                    checkInDate: true,
-                    checkOutDate: true,
+                    reservationStartDate:true,
+                    reservationEndDate:true,
                     guests: true
                 }
             }),
@@ -159,8 +159,8 @@ export class DashBoardRepository {
         let totalGuests = 0;
 
         reservations.forEach(reservation => {
-            const checkIn = new Date(reservation.checkInDate);
-            const checkOut = new Date(reservation.checkOutDate);
+            const checkIn = new Date(reservation.reservationStartDate);
+            const checkOut = new Date(reservation.reservationEndDate);
             const stayDuration = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
             totalStayDays += stayDuration;
 
@@ -465,8 +465,9 @@ export class DashBoardRepository {
                 select: {
                     bookingStatus: true,
                     amount: true,
-                    checkInDate: true,
-                    checkOutDate: true
+                    reservationStartDate:true,
+                    reservationEndDate:true,
+                    
                 }
             }),
             prisma.reservation.findMany({
@@ -483,7 +484,7 @@ export class DashBoardRepository {
                     bookingStatus: 'confirmed',
                     createdAt: { gte: startDate, lte: endDate }
                 },
-                select: { checkInDate: true, checkOutDate: true }
+                select: { reservationStartDate: true, reservationEndDate: true }
             })
         ]);
 
@@ -502,8 +503,8 @@ export class DashBoardRepository {
         const averageBookingValue = confirmedBookings > 0 ? revenue / confirmedBookings : 0;
 
         const roomNights = roomNightsData.reduce((total, booking) => {
-            const checkIn = new Date(booking.checkInDate);
-            const checkOut = new Date(booking.checkOutDate);
+            const checkIn = new Date(booking.reservationStartDate);
+            const checkOut = new Date(booking.reservationEndDate);
             const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
             return total + nights;
         }, 0);

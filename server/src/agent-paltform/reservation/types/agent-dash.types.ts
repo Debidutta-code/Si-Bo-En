@@ -29,8 +29,10 @@ export interface IReservationResponse {
     hotelName: string | null;
     roomTypeCode: string | null;
     ratePlanCode: string | null;
-    checkInDate: Date;
-    checkOutDate: Date;
+    checkInDate: Date | null;
+    checkOutDate: Date | null;
+    reservationStartDate: Date ;
+    reservationEndDate: Date;
     bookingStatus: BookingStatus;
     bookingSource: BookingSource;
     amount: number;
@@ -40,8 +42,6 @@ export interface IReservationResponse {
     bookingUserEmail: string;
     bookingUserPhone: string | null;
     bookedAt: Date;
-    actualCheckInAt: Date | null;
-    actualCheckOutAt: Date | null;
     cancelledAt: Date | null;
     cancellationReason: string | null;
     guests: any;

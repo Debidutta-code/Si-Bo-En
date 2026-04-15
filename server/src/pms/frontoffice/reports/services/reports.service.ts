@@ -49,8 +49,8 @@ export class ReportsService {
             };
 
             // Calculate nights
-            const checkIn = new Date(reservation.checkInDate);
-            const checkOut = new Date(reservation.checkOutDate);
+            const checkIn = new Date(reservation.reservationStartDate);
+            const checkOut = new Date(reservation.reservationEndDate);
             const nights = Math.ceil(
                 (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)
             );
@@ -79,8 +79,8 @@ export class ReportsService {
                 ratePlanName: reservation.ratePlanName ?? reservation.ratePlanCode,
                 reservation: {
                     bookingCode: reservation.bookingCode,
-                    checkInDate: reservation.checkInDate,
-                    checkOutDate: reservation.checkOutDate,
+                    checkInDate: reservation.reservationStartDate,
+                    checkOutDate: reservation.reservationEndDate,
                     numberOfGuests: reservation.reservationGuests?.length ?? 0,
                     bookingSource: reservation.bookingSource,
                     bookingStatus: reservation.bookingStatus,
@@ -205,8 +205,8 @@ export class ReportsService {
                 },
                 reservation: {
                     bookingCode: reservation.bookingCode,
-                    checkInDate: reservation.checkInDate,
-                    checkOutDate: reservation.checkOutDate,
+                    checkInDate: reservation.reservationStartDate,
+                    checkOutDate: reservation.reservationEndDate,
                     numberOfGuests:
                         (guestsData.adults || 0) +
                         (guestsData.children || 0) +
@@ -397,9 +397,9 @@ export class ReportsService {
                 guest.primaryReservations.length > 0
                     ? guest.primaryReservations.sort(
                         (a, b) =>
-                            new Date(b.checkInDate).getTime() -
-                            new Date(a.checkInDate).getTime()
-                    )[0].checkInDate
+                            new Date(b.reservationStartDate).getTime() -
+                            new Date(a.reservationEndDate).getTime()
+                    )[0].reservationStartDate
                     : null;
 
             return {
@@ -450,8 +450,8 @@ export class ReportsService {
                 (guestsData.children || 0) +
                 (guestsData.infants || 0);
 
-            const checkIn = new Date(res.checkInDate);
-            const checkOut = new Date(res.checkOutDate);
+            const checkIn = new Date(res.reservationStartDate);
+            const checkOut = new Date(res.reservationEndDate);
             const numberOfNights = Math.ceil(
                 (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)
             );
@@ -461,8 +461,8 @@ export class ReportsService {
                 bookingCode: res.bookingCode,
                 bookedAt: res.bookedAt,
                 bookingStatus: res.bookingStatus,
-                checkInDate: res.checkInDate,
-                checkOutDate: res.checkOutDate,
+                checkInDate: res.reservationStartDate,
+                checkOutDate: res.reservationEndDate,
                 numberOfNights,
                 numberOfGuests,
                 amount: Number(res.amount),
@@ -527,8 +527,8 @@ export class ReportsService {
                 (guestsData.children || 0) +
                 (guestsData.infants || 0);
 
-            const checkIn = new Date(res.checkInDate);
-            const checkOut = new Date(res.checkOutDate);
+            const checkIn = new Date(res.reservationStartDate);
+            const checkOut = new Date(res.reservationEndDate);
             const numberOfNights = Math.ceil(
                 (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)
             );
@@ -537,8 +537,8 @@ export class ReportsService {
                 id: res.id,
                 bookingCode: res.bookingCode,
                 bookingStatus: res.bookingStatus,
-                checkInDate: res.checkInDate,
-                checkOutDate: res.checkOutDate,
+                checkInDate: res.reservationStartDate,
+                checkOutDate: res.reservationEndDate,
                 numberOfNights,
                 numberOfGuests,
                 amount: Number(res.amount),
@@ -579,8 +579,8 @@ export class ReportsService {
                 (guestsData.children || 0) +
                 (guestsData.infants || 0);
 
-            const checkIn = new Date(res.checkInDate);
-            const checkOut = new Date(res.checkOutDate);
+            const checkIn = new Date(res.reservationStartDate);
+            const checkOut = new Date(res.reservationEndDate);
             const numberOfNights = Math.ceil(
                 (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)
             );
@@ -589,8 +589,8 @@ export class ReportsService {
                 id: res.id,
                 bookingCode: res.bookingCode,
                 bookingStatus: res.bookingStatus,
-                checkInDate: res.checkInDate,
-                checkOutDate: res.checkOutDate,
+                checkInDate: res.reservationStartDate,
+                checkOutDate: res.reservationEndDate,
                 numberOfNights,
                 numberOfGuests,
                 amount: Number(res.amount),

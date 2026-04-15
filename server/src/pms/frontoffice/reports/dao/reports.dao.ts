@@ -177,8 +177,8 @@ export class ReportsRepository {
                     select: {
                         id: true,
                         amount: true,
-                        checkInDate: true,
-                        checkOutDate: true,
+                        reservationStartDate: true,
+                        reservationEndDate: true,
                     },
                 },
             },
