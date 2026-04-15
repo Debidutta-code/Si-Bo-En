@@ -31,4 +31,8 @@ reservationRoute.route("/update/:reservationCode")
     .patch( reservationController.updateReservation.bind(reservationController));
 reservationRoute.route("/no-show/:reservationId")
     .patch( reservationController.noShowReservation.bind(reservationController));
+    reservationRoute.route("/check-in/:bookingCode")
+    .patch( reservationController.checkInReservation.bind(reservationController));
+    reservationRoute.route("/check-out/:bookingCode")
+    .patch( reservationController.checkOutReservation.bind(reservationController));
 export { reservationRoute };
