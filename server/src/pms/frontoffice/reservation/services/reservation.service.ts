@@ -7,7 +7,6 @@ import {
 import { successResponse, errorResponse } from '../../../../utils/return';
 import { IApiResponse } from '../../../../utils/return.types';
 import {
-    ICReservation,
     IReservationPriceBrakeDownR,
     IAriManulupulation,
     ICreateReservationPayload,
@@ -16,6 +15,7 @@ import {
     IReservationPromotionCreate,
     IBookingAddonCreate,
     IBookingDetails,
+    ICReservationR
 } from '../types';
 import { prisma } from '../../../../config';
 import { IPropertyCodeAndIds } from '../../../../dashboard/types';
@@ -45,7 +45,7 @@ export class ReservationService {
     reservationPromotionRepository: ReservationPromotionRepository;
     emailService: ReservationEmailService;
     loyalityGuestRepo: LoyaltyGuestRepository;
-    creationGuestRepository:CreationGuestRepository;
+    creationGuestRepository: CreationGuestRepository;
     constructor() {
         this.reservationRepository = new ReservationRepository();
         this.priceBrakeDownRepo = new PriceBrakeDownRepo();
@@ -118,8 +118,6 @@ export class ReservationService {
         const { bookingDetails, guestDetails } = payload;
         const { finalPrice } = bookingDetails;
 
-        // ── New PriceBrakeDown shape ──
-        // Promotions come from promotionBrakeDown[] array directly
         let selectedPromotions = bookingDetails.selectedPromotions || [];
 
         if (
@@ -328,18 +326,9 @@ export class ReservationService {
                 primaryGuestId = newGuest.id;
             }
             //add loyalty guest
-            await this.loyalityGuestRepo.addGuestTOLoyalty(email,primaryGuestId);
-            // const checkIfguestExist=await this.creationGuestRepository.checkIfGuestExist(propertyId,primaryGuestId);
-            // console.log("checkIfguestExist",checkIfguestExist);
-            // if(!checkIfguestExist){
-            //     await this.creationGuestRepository.createCreationGuest({
-            //         propertyId,
-            //         loyalityGuestId:primaryGuestId,
-                    
-            //     });
-            // }
-            
-            
+            await this.loyalityGuestRepo.addGuestTOLoyalty(email, primaryGuestId);
+
+
 
             const bookingCode = await this.generateBookingCode(propertyCode);
             const paymentMethods = this.mapPaymentMethod(paymentMethod);
@@ -397,7 +386,7 @@ export class ReservationService {
                 1,
                 Math.ceil(
                     (checkOut.getTime() - checkIn.getTime()) /
-                        (24 * 60 * 60 * 1000)
+                    (24 * 60 * 60 * 1000)
                 )
             );
 
@@ -413,7 +402,7 @@ export class ReservationService {
                 }
             }
 
-            const reservationPayload: ICReservation = {
+            const reservationPayload: ICReservationR = {
                 bookingCode,
                 propertyId,
                 propertyCode,
@@ -421,9 +410,13 @@ export class ReservationService {
                 roomTypeCode,
                 ratePlanCode,
 
-                checkInDate: toUTC(startDate),
-                checkOutDate: toUTC(endDate),
+                checkInDate: null,
+                checkOutDate: null,
                 bookedAt: nowUTC(),
+                cancelledAt: null,
+                platforms: "desktop",
+                reservationEndDate: toUTC(endDate),
+                reservationStartDate: toUTC(startDate),
 
                 primaryGuestId,
                 guests: guestDetails,
@@ -525,8 +518,8 @@ export class ReservationService {
                 baseRatePerNight:
                     numberOfNights > 0
                         ? Math.round(
-                              finalPrice.amountBeforeTax / numberOfNights
-                          )
+                            finalPrice.amountBeforeTax / numberOfNights
+                        )
                         : 0,
                 numberOfNights: numberOfNights,
                 priceAfterTax: finalPrice.totalAmount,
@@ -643,10 +636,10 @@ export class ReservationService {
             const nonBlockingPromises: Promise<any>[] = [
                 ...(selfAriActive && !activeIntegrationType
                     ? [
-                          this.ariManupulationRepo.decreaseAvailableRooms(
-                              ariPayload
-                          ),
-                      ]
+                        this.ariManupulationRepo.decreaseAvailableRooms(
+                            ariPayload
+                        ),
+                    ]
                     : []),
                 this.emailService.reservationConfirmation({
                     ...bookingDetails,
@@ -777,25 +770,25 @@ export class ReservationService {
                 );
             }
 
-            const newCheckInDate = new Date(updatePayload.checkInDate);
-            const newCheckOutDate = new Date(updatePayload.checkOutDate);
-            const oldCheckInDate = existingReservation.checkInDate;
-            const oldCheckOutDate = existingReservation.checkOutDate;
+            const startDate = new Date(updatePayload.checkInDate);
+            const endDate = new Date(updatePayload.checkOutDate);
+            const oldStartDate = existingReservation.reservationStartDate;
+            const oldEndDate = existingReservation.reservationEndDate;
 
-            if (newCheckInDate >= newCheckOutDate) {
+            if (startDate >= endDate) {
                 return errorResponse(
                     'Check-in date must be before check-out date'
                 );
             }
 
             const oldDates = this.generateDateRange(
-                oldCheckInDate,
-                oldCheckOutDate
+                oldStartDate,
+                oldEndDate
             );
 
             const newDates = this.generateDateRange(
-                newCheckInDate,
-                newCheckOutDate
+                startDate,
+                endDate
             );
 
             const oldRooms = updatePayload.previousRooms || 1;
@@ -879,8 +872,8 @@ export class ReservationService {
                 updatePropConfig?.channelManagerIntegrationActive
                     ? 'channel_manager'
                     : updatePropConfig?.pmsIntegrationActive
-                      ? 'pms'
-                      : null;
+                        ? 'pms'
+                        : null;
 
             if (activeIntegrationTypeU) {
                 const rtConfig = await RTIntegrationDao.getRTConfig(
@@ -897,8 +890,8 @@ export class ReservationService {
                 const rtResult = await RTReservationPushService.pushModify(
                     existingReservation as any,
                     {
-                        checkInDate: newCheckInDate,
-                        checkOutDate: newCheckOutDate,
+                        checkInDate: startDate,
+                        checkOutDate: endDate,
                         amount: newAmount,
                         finalPrice: updatePayload.finalPrice,
                     },
@@ -994,9 +987,10 @@ export class ReservationService {
                 });
             }
 
-            const updateData: Partial<ICReservation> = {
-                checkInDate: newCheckInDate,
-                checkOutDate: newCheckOutDate,
+            const updateData: ICReservationR = {
+                ...existingReservation,
+                reservationStartDate: startDate,
+                reservationEndDate: endDate,
                 amount: newAmount,
                 finalPrice: updatePayload.finalPrice,
                 guests: updatePayload.guests,
@@ -1011,8 +1005,8 @@ export class ReservationService {
             const updateNumberOfNights = Math.max(
                 1,
                 Math.ceil(
-                    (newCheckOutDate.getTime() - newCheckInDate.getTime()) /
-                        (24 * 60 * 60 * 1000)
+                    (endDate.getTime() - startDate.getTime()) /
+                    (24 * 60 * 60 * 1000)
                 )
             );
             const addonBrakeDown =
@@ -1062,12 +1056,12 @@ export class ReservationService {
                         baseRatePerNight:
                             updateNumberOfNights > 0
                                 ? Math.round(
-                                      (updatePayload.finalPrice
-                                          .amountBeforeTax ||
-                                          updatePayload.finalPrice
-                                              .totalAmount ||
-                                          0) / updateNumberOfNights
-                                  )
+                                    (updatePayload.finalPrice
+                                        .amountBeforeTax ||
+                                        updatePayload.finalPrice
+                                            .totalAmount ||
+                                        0) / updateNumberOfNights
+                                )
                                 : 0,
                         numberOfNights: updateNumberOfNights,
                         priceAfterTax:
@@ -1129,10 +1123,10 @@ export class ReservationService {
                         existingReservation.refundAmount + refundAmount,
                 },
                 dateChanges: {
-                    oldCheckIn: oldCheckInDate,
-                    oldCheckOut: oldCheckOutDate,
-                    newCheckIn: newCheckInDate,
-                    newCheckOut: newCheckOutDate,
+                    oldCheckIn: oldStartDate,
+                    oldCheckOut: oldEndDate,
+                    newCheckIn: startDate,
+                    newCheckOut: endDate,
                     nightsChanged:
                         updateNumberOfNights -
                         (existingReservation.finalPrice?.numberOfNights || 1),
@@ -1375,7 +1369,7 @@ export class ReservationService {
             if (!accessResult.success) {
                 return errorResponse(
                     accessResult.message ||
-                        'Failed to get accessible properties'
+                    'Failed to get accessible properties'
                 );
             }
 
@@ -1445,7 +1439,7 @@ export class ReservationService {
             if (!accessResult.success) {
                 return errorResponse(
                     accessResult.message ||
-                        'Failed to get accessible properties'
+                    'Failed to get accessible properties'
                 );
             }
 
@@ -1504,7 +1498,7 @@ export class ReservationService {
             if (!accessResult.success) {
                 return errorResponse(
                     accessResult.message ||
-                        'Failed to get accessible properties'
+                    'Failed to get accessible properties'
                 );
             }
 
@@ -1544,125 +1538,6 @@ export class ReservationService {
         }
     }
 
-    public async getCheckedInReservations(
-        creationId: string,
-        userLevel: number,
-        startDate: Date,
-        endDate: Date,
-        page: number,
-        limit: number,
-        specificPropertyId?: string,
-        specificPropertyCode?: string
-    ): Promise<IApiResponse> {
-        try {
-            const accessResult = await this.getAccessiblePropertyIds(
-                creationId,
-                userLevel,
-                specificPropertyId,
-                specificPropertyCode
-            );
-
-            if (!accessResult.success) {
-                return errorResponse(
-                    accessResult.message ||
-                        'Failed to get accessible properties'
-                );
-            }
-
-            if (accessResult.propertyIds.length === 0) {
-                return successResponse('No check-ins found', [], {
-                    currentPage: page,
-                    totalPages: 0,
-                    totalResults: 0,
-                    hasNextPage: false,
-                    hasPreviousPage: false,
-                    resultsPerPage: limit,
-                });
-            }
-
-            const result = await this.reservationRepository.getCheckIns(
-                accessResult.propertyIds,
-                startDate,
-                endDate,
-                page,
-                limit
-            );
-
-            return successResponse(
-                'Checked-in reservations fetched successfully',
-                result.data,
-                result.pagination
-            );
-        } catch (error) {
-            if (error instanceof Error) {
-                return errorResponse(
-                    'Failed to fetch checked-in reservations',
-                    error.message
-                );
-            }
-            return errorResponse('Failed to fetch checked-in reservations');
-        }
-    }
-
-    public async getCheckedOutReservations(
-        creationId: string,
-        userLevel: number,
-        startDate: Date,
-        endDate: Date,
-        page: number,
-        limit: number,
-        specificPropertyId?: string,
-        specificPropertyCode?: string
-    ): Promise<IApiResponse> {
-        try {
-            const accessResult = await this.getAccessiblePropertyIds(
-                creationId,
-                userLevel,
-                specificPropertyId,
-                specificPropertyCode
-            );
-
-            if (!accessResult.success) {
-                return errorResponse(
-                    accessResult.message ||
-                        'Failed to get accessible properties'
-                );
-            }
-
-            if (accessResult.propertyIds.length === 0) {
-                return successResponse('No check-outs found', [], {
-                    currentPage: page,
-                    totalPages: 0,
-                    totalResults: 0,
-                    hasNextPage: false,
-                    hasPreviousPage: false,
-                    resultsPerPage: limit,
-                });
-            }
-
-            const result = await this.reservationRepository.getCheckouts(
-                accessResult.propertyIds,
-                startDate,
-                endDate,
-                page,
-                limit
-            );
-
-            return successResponse(
-                'Checked-out reservations fetched successfully',
-                result.data,
-                result.pagination
-            );
-        } catch (error) {
-            if (error instanceof Error) {
-                return errorResponse(
-                    'Failed to fetch checked-out reservations',
-                    error.message
-                );
-            }
-            return errorResponse('Failed to fetch checked-out reservations');
-        }
-    }
 
     public async deleteReservation(
         reservationId: string
@@ -1684,8 +1559,8 @@ export class ReservationService {
 
             // Generate dates for ARI increase
             const reservationDates = this.generateDateRange(
-                reservation.checkInDate,
-                reservation.checkOutDate
+                reservation.reservationStartDate,
+                reservation.reservationEndDate
             );
 
             // ── REFUND FLOW ───────────────────────────────────────────────────────────
@@ -1790,8 +1665,8 @@ export class ReservationService {
                 delPropConfig?.channelManagerIntegrationActive
                     ? 'channel_manager'
                     : delPropConfig?.pmsIntegrationActive
-                      ? 'pms'
-                      : null;
+                        ? 'pms'
+                        : null;
 
             // ── RT pushCancel ─────────────────────────────────────────────────────────
             if (activeIntegrationTypeD) {
@@ -1828,15 +1703,15 @@ export class ReservationService {
             const cancelNumberOfNights = Math.max(
                 1,
                 Math.ceil(
-                    (reservation.checkOutDate.getTime() -
-                        reservation.checkInDate.getTime()) /
-                        (24 * 60 * 60 * 1000)
+                    (reservation.reservationEndDate.getTime() -
+                        reservation.reservationStartDate.getTime()) /
+                    (24 * 60 * 60 * 1000)
                 )
             );
 
             const emailBookingDetails: IBookingDetails = {
-                startDate: reservation.checkInDate.toISOString(),
-                endDate: reservation.checkOutDate.toISOString(),
+                startDate: reservation.reservationStartDate.toISOString(),
+                endDate: reservation.reservationEndDate.toISOString(),
                 propertyCode: reservation.propertyCode || '',
                 hotelName: reservation.hotelName || '',
                 refundAmount: reservation.refundAmount || 0,
@@ -1868,31 +1743,31 @@ export class ReservationService {
                 guests: {
                     adults: Array.isArray(reservation.guests)
                         ? reservation.guests.filter(
-                              (g: any) => g.type === 'adult'
-                          ).length
+                            (g: any) => g.type === 'adult'
+                        ).length
                         : 1,
                     children: Array.isArray(reservation.guests)
                         ? reservation.guests.filter(
-                              (g: any) => g.type === 'child'
-                          ).length
+                            (g: any) => g.type === 'child'
+                        ).length
                         : 0,
                     rooms: 1,
                 },
                 guestDetails: Array.isArray(reservation.guests)
                     ? reservation.guests.map((guest: any) => ({
-                          type: guest.type,
-                          firstName: guest.firstName,
-                          lastName: guest.lastName,
-                          dateOfBirth: guest.dateOfBirth || guest.dob,
-                          email:
-                              guest.type === 'adult'
-                                  ? reservation.bookingUserEmail
-                                  : undefined,
-                          phone:
-                              guest.type === 'adult'
-                                  ? reservation.bookingUserPhone || undefined
-                                  : undefined,
-                      }))
+                        type: guest.type,
+                        firstName: guest.firstName,
+                        lastName: guest.lastName,
+                        dateOfBirth: guest.dateOfBirth || guest.dob,
+                        email:
+                            guest.type === 'adult'
+                                ? reservation.bookingUserEmail
+                                : undefined,
+                        phone:
+                            guest.type === 'adult'
+                                ? reservation.bookingUserPhone || undefined
+                                : undefined,
+                    }))
                     : [],
                 paymentMethod: reservation.paymentMethod,
                 bookingCode: reservation.bookingCode,
@@ -1964,7 +1839,6 @@ export class ReservationService {
             return errorResponse('Failed to cancel reservation');
         }
     }
-
     public async noShowReservation(
         reservationId: string
     ): Promise<IApiResponse> {
@@ -1978,9 +1852,9 @@ export class ReservationService {
                 return errorResponse('Reservation not found');
             }
 
-            const currentCheckout = reservation.checkOutDate;
+            const currentCheckout = reservation.reservationEndDate;
             const additionalDates = this.generateDateRange(
-                reservation.checkInDate,
+                reservation.reservationStartDate,
                 currentCheckout
             );
 
@@ -2013,62 +1887,7 @@ export class ReservationService {
         }
     }
 
-    public async amendReservation(
-        reservationId: string,
-        newCheckoutDate: Date
-    ): Promise<IApiResponse> {
-        try {
-            const reservation =
-                await this.reservationRepository.getReservationById(
-                    reservationId
-                );
 
-            if (!reservation) {
-                return errorResponse('Reservation not found');
-            }
 
-            const currentCheckout = reservation.checkOutDate;
-            const additionalDates = this.generateDateRange(
-                currentCheckout,
-                newCheckoutDate
-            );
 
-            if (
-                additionalDates.length > 0 &&
-                reservation.propertyCode &&
-                reservation.roomTypeCode
-            ) {
-                await this.ariManupulationRepo.decreaseAvailableRooms({
-                    propertyCode: reservation.propertyCode,
-                    dates: additionalDates,
-                    roomInfos: [
-                        {
-                            roomTypeCode: reservation.roomTypeCode,
-                            numberOfRooms: 1,
-                        },
-                    ],
-                });
-            }
-
-            // Update reservation
-            const updatedReservation =
-                await this.reservationRepository.amendReservation(
-                    reservationId,
-                    newCheckoutDate
-                );
-
-            return successResponse(
-                'Reservation amended successfully',
-                updatedReservation
-            );
-        } catch (error) {
-            if (error instanceof Error) {
-                return errorResponse(
-                    'Failed to amend reservation',
-                    error.message
-                );
-            }
-            return errorResponse('Failed to amend reservation');
-        }
-    }
 }

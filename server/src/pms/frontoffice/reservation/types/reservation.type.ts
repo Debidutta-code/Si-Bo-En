@@ -2,7 +2,7 @@ import { DiscountType } from "../../../../promocode/types";
 import { DailyPriceBrakeDown, TaxBrakeDown, AddOnBrakeDown, PromotionBrakeDown } from "../../../../booking-engine/types/pricing.type";
 import { CurrencyCode } from "../../../../tax-system/interfaces";
 import { DeviceType } from "../../../../agent-paltform/property/types";
-
+export type Platforms = 'web' | 'mobile' | 'desktop';
 export type BookingSource="direct"|
   "google"|
   "trip_adviser"|
@@ -14,7 +14,9 @@ export type BookingSource="direct"|
   "cancelled"|
   "expired"|
   "modified"|
-  "no_show"
+  "no_show"|
+  "checked_in"|
+  "checked_out"
   export type PaymentMethod= "pay_at_hotel" | "net_banking" | "upi" | "payment_gateway";
   export type ReservationPromotionType="early_bird" | "mlos" | "device_specific" | "offer_for_tonight"|"normal"
 export interface ICreateReservationPayload {
@@ -111,35 +113,47 @@ export interface IBankDetails {
   createdAt: string;
   updatedAt: string;
 }
+export interface ICReservationR {
 
-// ==================== DATABASE TYPES ====================
-export interface ICReservation {
-  bookingCode: string;
-  propertyId: string;
-  propertyCode: string | null;
-  hotelName: string | null;
-  roomTypeCode: string | null;
-  ratePlanCode: string | null;
 
-  checkInDate: Date;
-  checkOutDate: Date;
-  bookedAt: Date;
+    propertyId: string;
+    propertyCode: string;
+    hotelName: string;
+
+    roomTypeCode: string;
+    ratePlanCode: string;
+
+    bookingCode: string;
+
+    bookedAt: Date;
+
+    checkInDate: Date|null;
+    checkOutDate: Date|null;
+
+    reservationStartDate: Date;
+    reservationEndDate: Date;
+
+    countryCode: string;
+    timezone: string;
+    deviceTypes: DeviceType;
+    platforms: Platforms;
 
   primaryGuestId: string;
+
   guests: any;
   bookingUserEmail: string;
   bookingUserPhone: string | null;
 
   amount: number;
   currencyCode: CurrencyCode;
-  finalPrice: any | null; // JSON field
+  finalPrice: any;
 
   paidAmount: number;
   extraAmountToPay: number;
   refundAmount: number;
 
   paymentMethod: PaymentMethod;
-  paymentImages: any | null; // JSON field
+  paymentImages: any;
 
   bookingStatus: BookingStatus;
   cancellationReason: string | null;
@@ -148,13 +162,13 @@ export interface ICReservation {
 
   isPromoUsed: boolean;
   promoId: string | null;
-  countryCode: string;
-  timezone: string;
-  deviceTypes: DeviceType
-  agencyId?: string | null; // ✅ ADD THIS
+
+  cancelledAt: Date | null;
+  agencyId: string | null;
+
 }
 
-export interface IReservation extends ICReservation {
+export interface IReservation extends ICReservationR {
   id: string;
   createdAt: Date;
   updatedAt: Date;

@@ -256,6 +256,8 @@ enum BookingStatus {
   expired
   modified
   no_show
+  checked_in
+  checked_out
 }
 
 enum AmenityType {
@@ -393,4 +395,10 @@ enum TicketPriority {
   medium
   high
   urgent
+}
+
+enum Platforms {
+  web
+  mobile
+  desktop
 }

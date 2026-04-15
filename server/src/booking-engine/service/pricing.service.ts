@@ -7,7 +7,10 @@ import {
     successResponse,
     toUTC,
 } from '../../utils';
-import { IPropertyLoyaltyConfig, ILoyaltyDiscountData } from '../../loyalty/types';
+import {
+    IPropertyLoyaltyConfig,
+    ILoyaltyDiscountData,
+} from '../../loyalty/types';
 import { PricingRepository } from '../repository';
 import {
     AddOnBrakeDown,
@@ -74,7 +77,8 @@ export class PricingService {
                         ratePlanCode,
                         invTypeCode,
                         toUTC(startDate),
-                        toUTC(endDate)
+                        toUTC(endDate),
+                        includedAddons?includedAddons:[]
                     ),
                     this.fetchAddons(parsedAddons),
                     this.fetchAllPromotions(promotions),
@@ -173,8 +177,7 @@ export class PricingService {
                     detectedDeviceType as DeviceType,
                     promoCodeData
                 );
-                priceBrakedowns =
-                    deviceDiscountClass.findPromoCodeDiscount();
+                priceBrakedowns = deviceDiscountClass.findPromoCodeDiscount();
             }
 
             if (guestEmail && loyaltyDiscountData) {
@@ -182,8 +185,7 @@ export class PricingService {
                     priceBrakedowns,
                     loyaltyDiscountData
                 );
-                priceBrakedowns =
-                    loyalityDiscountClass.findLoyalityDiscount();
+                priceBrakedowns = loyalityDiscountClass.findLoyalityDiscount();
             }
 
             priceBrakedowns = {
@@ -411,28 +413,34 @@ class BasePriceClass {
         const dailyPriceBrakeDown: DailyPriceBrakeDown[] = [];
 
         this.charges.sort((a, b) => a.date.getTime() - b.date.getTime());
-        this.charges.pop(); // remove checkout date
+        this.charges.pop();
 
         this.guestDistributions.forEach((guestDistribution, index) => {
             const { adults, children } = guestDistribution;
-            
-            const totalPersons = adults + children;
 
+            const totalPersons = adults + children;
+            const gap =
+                this.roomDetails.maxOccupancy -
+                this.roomDetails.maxOccupancy +
+                this.roomDetails.maxNumberOfChildren;
             if (totalPersons > this.roomDetails.maxOccupancy) {
                 throw new Error(
                     `This room has a maximum occupancy of ${this.roomDetails.maxOccupancy}.`
                 );
             }
-            // if (adults > this.roomDetails.maxOccupancy- this.roomDetails.maxNumberOfChildren) {
-            //     throw new Error(
-            //         `This room can only accommodate maximum ${this.roomDetails.maxNumberOfAdults} adults.`
-            //     );
-            // }
-            // if (children > this.roomDetails.maxNumberOfChildren) {
-            //     throw new Error(
-            //         `This room can only accommodate maximum ${this.roomDetails.maxNumberOfChildren} children.`
-            //     );
-            // }
+            if (adults > (gap < 0 ? this.roomDetails.maxNumberOfAdults : gap)) {
+                throw new Error(
+                    `This room can only accommodate maximum ${gap < 0 ? this.roomDetails.maxNumberOfAdults : gap} adults.`
+                );
+            }
+            if (
+                children >
+                (gap < 0 ? this.roomDetails.maxNumberOfChildren : gap)
+            ) {
+                throw new Error(
+                    `This room can only accommodate maximum ${gap < 0 ? this.roomDetails.maxNumberOfChildren : gap} children.`
+                );
+            }
             this.charges.forEach(charge => {
                 const adultBaseAmounts = charge.baseGuestAmounts
                     .filter(b => b.ageQualifyingCode === '10')
@@ -468,12 +476,13 @@ class BasePriceClass {
                         additionalAdultCharges =
                             extraAdults *
                             Number(additionalChargeForAdults.amount);
+                    } else if (extraAdults > 0 && !additionalAdultCharges) {
+                        throw new Error(
+                            `No additional charge found for adults`
+                        );
                     }
                 } else {
-                    if (additionalChargeForAdults) {
-                        additionalAdultCharges =
-                            adults * Number(additionalChargeForAdults.amount); // No base entries at all → every adult is additional
-                    }
+                    throw new Error('Base Price not found for adults');
                 }
 
                 let childBasePrice = 0;
@@ -486,8 +495,9 @@ class BasePriceClass {
                     if (exactChildBase) {
                         childBasePrice = Number(exactChildBase.amountBeforeTax); // Exact match found → use it directly
                     } else if (childBaseAmounts.length > 0) {
-                        const maxChildBase =
+                        let maxChildBase =
                             childBaseAmounts[childBaseAmounts.length - 1]; // No exact match → use highest available base + charge for extras
+                            
                         childBasePrice = Number(maxChildBase.amountBeforeTax);
                         const extraChildren =
                             children - maxChildBase.numberOfGuests;
@@ -497,10 +507,12 @@ class BasePriceClass {
                                 Number(additionalChargeForChildren.amount);
                         }
                     } else {
-                        if (additionalChargeForChildren) {
+                        const extraChilds =
+                            children - this.roomDetails.maxNumberOfChildren;
+                        if (extraChilds > 0) {
                             additionalChildCharges =
-                                children *
-                                Number(additionalChargeForChildren.amount); // No base entries at all → every child is additional
+                                extraChilds *
+                                Number(additionalChargeForChildren?.amount);
                         }
                     }
                 }
@@ -1262,7 +1274,9 @@ class TouristTaxClass {
             const baseRoomCharge =
                 this.priceBrakedown.dailyPriceBrakeDown.reduce(
                     (sum, day) =>
-                        sum + day.baseChargesAmount + day.additionalChargesAmount,
+                        sum +
+                        day.baseChargesAmount +
+                        day.additionalChargesAmount,
                     0
                 );
             return {
@@ -1273,9 +1287,8 @@ class TouristTaxClass {
                 discountValue: Number(touristTax.discountValue),
                 currencyCode: touristTax.currencyCode,
                 discountAmount:
-                    ((baseRoomCharge *
-                        Number(touristTax.discountValue)) /
-                    100) *
+                    ((baseRoomCharge * Number(touristTax.discountValue)) /
+                        100) *
                     this.noOfBedrooms,
                 restrictionType: 'payLater',
                 type: 'auto-applied',
@@ -1435,9 +1448,12 @@ class LoyalityDiscountClass {
         let loyaltyDiscount = 0;
 
         // Try to find a matching LoyalityLevel for this guest's level
-        const matchedLevel = guestLevel !== null
-            ? loyalityLevels.find((l: { level: number }) => l.level === guestLevel)
-            : null;
+        const matchedLevel =
+            guestLevel !== null
+                ? loyalityLevels.find(
+                      (l: { level: number }) => l.level === guestLevel
+                  )
+                : null;
 
         if (matchedLevel) {
             // Level-based: percentage of amountBeforeTax

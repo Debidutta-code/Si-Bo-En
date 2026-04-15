@@ -1,402 +1,641 @@
-import { errorResponse } from "../../../../utils/return";
-import { Response,Request } from "express";
-import { CustomRequest, PropertyRequest } from "../../../../utils/customRequest";
-import { ReservationService } from "../services";
+import { errorResponse } from '../../../../utils/return';
+import { Response, Request } from 'express';
+import {
+    CustomRequest,
+    PropertyRequest,
+} from '../../../../utils/customRequest';
+import { ReservationService } from '../services';
 
 export class ReservationController {
     private reservationService: ReservationService;
-    
+
     constructor() {
         this.reservationService = new ReservationService();
     }
 
-    public async createReservation(req: PropertyRequest, res: Response): Promise<Response> {
+    public async createReservation(
+        req: PropertyRequest,
+        res: Response
+    ): Promise<Response> {
         try {
             const body = req.body;
 
             if (!body?.data?.bookingDetails) {
-                return res.status(400).json(errorResponse("Invalid payload - missing bookingDetails"));
+                return res
+                    .status(400)
+                    .json(
+                        errorResponse(
+                            'Invalid payload - missing bookingDetails'
+                        )
+                    );
             }
 
-            if (!body?.data?.guestDetails || body.data.guestDetails.length === 0) {
-                return res.status(400).json(errorResponse("Invalid payload - at least one guest is required"));
+            if (
+                !body?.data?.guestDetails ||
+                body.data.guestDetails.length === 0
+            ) {
+                return res
+                    .status(400)
+                    .json(
+                        errorResponse(
+                            'Invalid payload - at least one guest is required'
+                        )
+                    );
             }
 
-            //console.log("Creating reservation with data:", JSON.stringify(body.data, null, 2));
 
-            const serviceRes = await this.reservationService.createReservation(body.data);
+            const serviceRes = await this.reservationService.createReservation(
+                body.data
+            );
 
             return res.status(serviceRes.success ? 200 : 400).json(serviceRes);
         } catch (error) {
-            console.error("Controller error:", error);
+            console.error('Controller error:', error);
             if (error instanceof Error) {
-                return res.status(500).json(errorResponse("Failed to create reservation", error.message));
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse(
+                            'Failed to create reservation',
+                            error.message
+                        )
+                    );
             }
-            return res.status(500).json(errorResponse("Failed to create reservation"));
+            return res
+                .status(500)
+                .json(errorResponse('Failed to create reservation'));
         }
     }
 
-    public async getReservationByCode(req: Request, res: Response): Promise<Response> {
+    public async getReservationByCode(
+        req: Request,
+        res: Response
+    ): Promise<Response> {
         try {
             const reservationCode = req.params.reservationCode;
-            const propertyCode=req.query.propertyCode as string;
-            if(!propertyCode){
-                return res.status(400).json(errorResponse("Property details is required to find the reservation"));
+            const propertyCode = req.query.propertyCode as string;
+            if (!propertyCode) {
+                return res
+                    .status(400)
+                    .json(
+                        errorResponse(
+                            'Property details is required to find the reservation'
+                        )
+                    );
             }
             if (!reservationCode) {
-                return res.status(400).json(errorResponse("Reservation code is required"));
+                return res
+                    .status(400)
+                    .json(errorResponse('Reservation code is required'));
             }
 
-            const serRes = await this.reservationService.getReservaltionByCode(reservationCode, propertyCode);
+            const serRes = await this.reservationService.getReservaltionByCode(
+                reservationCode,
+                propertyCode
+            );
             return res.status(serRes.success ? 200 : 400).json(serRes);
         } catch (error) {
             if (error instanceof Error) {
-                return res.status(500).json(errorResponse("Failed to fetch Reservation", error.message));
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse(
+                            'Failed to fetch Reservation',
+                            error.message
+                        )
+                    );
             }
-            return res.status(500).json(errorResponse("Internal server Error"));
+            return res.status(500).json(errorResponse('Internal server Error'));
         }
     }
 
-   public async updateReservation(req: CustomRequest, res: Response): Promise<Response> {
-    try {
-        const reservationCode = req.params.reservationCode;
-        const updateData = req.body;
-
-        if (!reservationCode) {
-            return res.status(400).json(errorResponse("Reservation code is required"));
-        }
-
-        if (!updateData) {
-            return res.status(400).json(errorResponse("Update data is required"));
-        }
-
-        // Validate required fields
-        if (!updateData.propertyCode || !updateData.checkInDate || !updateData.checkOutDate) {
-            return res.status(400).json(errorResponse("Missing required fields: propertyCode, checkInDate, checkOutDate"));
-        }
-
-        //console.log("Updating reservation:", reservationCode, "with data:", JSON.stringify(updateData, null, 2));
-
-        const serviceRes = await this.reservationService.updateReservation(reservationCode, updateData);
-
-        return res.status(serviceRes.success ? 200 : 400).json(serviceRes);
-    } catch (error) {
-        console.error("Controller error updating reservation:", error);
-        if (error instanceof Error) {
-            return res.status(500).json(errorResponse("Failed to update reservation", error.message));
-        }
-        return res.status(500).json(errorResponse("Failed to update reservation"));
-    }
-} 
-
-public async getAllReservations(req: CustomRequest, res: Response): Promise<Response> {
-    try {
-        if (!req.user?.creationId || req.user.level === undefined) {
-            return res.status(400).json(errorResponse("User is not assigned to any creation", "Creation ID not found"));
-        }
-
-        const { 
-            startDate, 
-            endDate, 
-            page = '1', 
-            limit = '10', 
-            propertyId, 
-            propertyCode, 
-            bookingStatus,
-            bookingSource,     
-            deviceType,         
-            bookingCode,        
-            guestName,          
-            promoCode,          
-            countryCode,        
-            dateFilterType      
-        } = req.query;
-
-        if (!startDate || !endDate) {
-            return res.status(400).json(errorResponse("Start date and end date are required"));
-        }
-
-        const start = new Date(startDate as string);
-        const end = new Date(endDate as string);
-        
-        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-            return res.status(400).json(errorResponse("Invalid date format"));
-        }
-        
-        if (start > end) {
-            return res.status(400).json(errorResponse("Start date must be before end date"));
-        }
-
-        const pageNum = parseInt(page as string, 10);
-        const limitNum = parseInt(limit as string, 10);
-
-        if (pageNum < 1 || limitNum < 1) {
-            return res.status(400).json(errorResponse("Page and limit must be positive numbers"));
-        }
-
-        const serRes = await this.reservationService.getReservationsForDateRange(
-            req.user.creationId,
-            req.user.level,
-            start, 
-            end,
-            pageNum,
-            limitNum,
-            propertyId?.toString(),
-            propertyCode?.toString(),
-            bookingStatus?.toString(),
-            bookingSource?.toString(),      
-            deviceType?.toString(),         
-            bookingCode?.toString(),        
-            guestName?.toString(),          
-            promoCode?.toString(),          
-            countryCode?.toString(),        
-            dateFilterType?.toString() as 'checkin' | 'booking' | 'modification' | undefined
-        );
-        
-        return res.status(serRes.success ? 200 : 400).json(serRes);
-    } catch (error) {
-        if (error instanceof Error) {
-            return res.status(500).json(errorResponse("Failed to fetch Reservations", error.message));
-        }
-        return res.status(500).json(errorResponse("Internal server Error"));
-    }
-}
-
-public async getArrivalsForADate(req: CustomRequest, res: Response): Promise<Response> {
-    try {
-        if (!req.user?.creationId || req.user.level === undefined) {
-            return res.status(400).json(errorResponse("User is not assigned to any creation"));
-        }
-
-        const { startDate, endDate, page = '1', limit = '10', propertyId, propertyCode ,bookingStatus } = req.query;
-
-        if (!startDate || !endDate) {
-            return res.status(400).json(errorResponse("Start date and end date are required"));
-        }
-
-        const start = new Date(startDate as string);
-        const end = new Date(endDate as string);
-        
-        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-            return res.status(400).json(errorResponse("Invalid date format"));
-        }
-        
-        if (start > end) {
-            return res.status(400).json(errorResponse("Start date must be before end date"));
-        }
-
-        const pageNum = parseInt(page as string, 10);
-        const limitNum = parseInt(limit as string, 10);
-
-        const serRes = await this.reservationService.getArrivals(
-            req.user.creationId,
-            req.user.level,
-            start,
-            end,
-            pageNum,
-            limitNum,
-            propertyId?.toString(),
-            propertyCode?.toString(),
-            bookingStatus?.toString(),
-        );
-        
-        return res.status(serRes.success ? 200 : 400).json(serRes);
-    } catch (error) {
-        if (error instanceof Error) {
-            return res.status(500).json(errorResponse("Failed to fetch Arrivals", error.message));
-        }
-        return res.status(500).json(errorResponse("Internal server Error"));
-    }
-}
-
-public async getDeparturesForADate(req: CustomRequest, res: Response): Promise<Response> {
-    try {
-        if (!req.user?.creationId || req.user.level === undefined) {
-            return res.status(400).json(errorResponse("User is not assigned to any creation"));
-        }
-
-        const { startDate, endDate, page = '1', limit = '10', propertyId, propertyCode,bookingStatus } = req.query;
-
-        if (!startDate || !endDate) {
-            return res.status(400).json(errorResponse("Start date and end date are required"));
-        }
-
-        const start = new Date(startDate as string);
-        const end = new Date(endDate as string);
-        
-        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-            return res.status(400).json(errorResponse("Invalid date format"));
-        }
-        
-        if (start > end) {
-            return res.status(400).json(errorResponse("Start date must be before end date"));
-        }
-
-        const pageNum = parseInt(page as string, 10);
-        const limitNum = parseInt(limit as string, 10);
-
-        const serRes = await this.reservationService.getDepartures(
-            req.user.creationId,
-            req.user.level,
-            start,
-            end,
-            pageNum,
-            limitNum,
-            propertyId?.toString(),
-            propertyCode?.toString(),
-            bookingStatus?.toString()
-        );
-        
-        return res.status(serRes.success ? 200 : 400).json(serRes);
-    } catch (error) {
-        if (error instanceof Error) {
-            return res.status(500).json(errorResponse("Failed to fetch Departures", error.message));
-        }
-        return res.status(500).json(errorResponse("Internal server Error"));
-    }
-}
-
-public async getCheckInsForADate(req: CustomRequest, res: Response): Promise<Response> {
-    try {
-        if (!req.user?.creationId || req.user.level === undefined) {
-            return res.status(400).json(errorResponse("User is not assigned to any creation"));
-        }
-
-        const { startDate, endDate, page = '1', limit = '10', propertyId, propertyCode } = req.query;
-
-        if (!startDate || !endDate) {
-            return res.status(400).json(errorResponse("Start date and end date are required"));
-        }
-
-        const start = new Date(startDate as string);
-        const end = new Date(endDate as string);
-        
-        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-            return res.status(400).json(errorResponse("Invalid date format"));
-        }
-        
-        if (start > end) {
-            return res.status(400).json(errorResponse("Start date must be before end date"));
-        }
-
-        const pageNum = parseInt(page as string, 10);
-        const limitNum = parseInt(limit as string, 10);
-
-        const serRes = await this.reservationService.getCheckedInReservations(
-            req.user.creationId,
-            req.user.level,
-            start,
-            end,
-            pageNum,
-            limitNum,
-            propertyId?.toString(),
-            propertyCode?.toString()
-        );
-        
-        return res.status(serRes.success ? 200 : 400).json(serRes);
-    } catch (error) {
-        if (error instanceof Error) {
-            return res.status(500).json(errorResponse("Failed to fetch Check-Ins", error.message));
-        }
-        return res.status(500).json(errorResponse("Internal server Error"));
-    }
-}
-
-public async getCheckOutsForADate(req: CustomRequest, res: Response): Promise<Response> {
-    try {
-        if (!req.user?.creationId || req.user.level === undefined) {
-            return res.status(400).json(errorResponse("User is not assigned to any creation"));
-        }
-
-        const { startDate, endDate, page = '1', limit = '10', propertyId, propertyCode } = req.query;
-
-        if (!startDate || !endDate) {
-            return res.status(400).json(errorResponse("Start date and end date are required"));
-        }
-
-        const start = new Date(startDate as string);
-        const end = new Date(endDate as string);
-        
-        if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-            return res.status(400).json(errorResponse("Invalid date format"));
-        }
-        
-        if (start > end) {
-            return res.status(400).json(errorResponse("Start date must be before end date"));
-        }
-
-        const pageNum = parseInt(page as string, 10);
-        const limitNum = parseInt(limit as string, 10);
-
-        const serRes = await this.reservationService.getCheckedOutReservations(
-            req.user.creationId,
-            req.user.level,
-            start,
-            end,
-            pageNum,
-            limitNum,
-            propertyId?.toString(),
-            propertyCode?.toString()
-        );
-        
-        return res.status(serRes.success ? 200 : 400).json(serRes);
-    } catch (error) {
-        if (error instanceof Error) {
-            return res.status(500).json(errorResponse("Failed to fetch Check-Outs", error.message));
-        }
-        return res.status(500).json(errorResponse("Internal server Error"));
-    }
-}
-    public async amendReservation(req: CustomRequest, res: Response): Promise<Response> {
+    public async updateReservation(
+        req: CustomRequest,
+        res: Response
+    ): Promise<Response> {
         try {
-            const reservationId = req.params.reservationId;
-            
-            if (!reservationId) {
-                return res.status(400).json(errorResponse("Reservation id is required"));
+            const reservationCode = req.params.reservationCode;
+            const updateData = req.body;
+
+            if (!reservationCode) {
+                return res
+                    .status(400)
+                    .json(errorResponse('Reservation code is required'));
             }
 
-            const newCheckoutDate = req.body.newCheckoutDate;
-            if (!newCheckoutDate) {
-                return res.status(400).json(errorResponse("New checkout date is required"));
+            if (!updateData) {
+                return res
+                    .status(400)
+                    .json(errorResponse('Update data is required'));
             }
 
-            const serRes = await this.reservationService.amendReservation(reservationId, new Date(newCheckoutDate));
-            return res.status(serRes.success ? 200 : 400).json(serRes);
+            // Validate required fields
+            if (
+                !updateData.propertyCode ||
+                !updateData.checkInDate ||
+                !updateData.checkOutDate
+            ) {
+                return res
+                    .status(400)
+                    .json(
+                        errorResponse(
+                            'Missing required fields: propertyCode, checkInDate, checkOutDate'
+                        )
+                    );
+            }
+
+            //console.log("Updating reservation:", reservationCode, "with data:", JSON.stringify(updateData, null, 2));
+
+            const serviceRes = await this.reservationService.updateReservation(
+                reservationCode,
+                updateData
+            );
+
+            return res.status(serviceRes.success ? 200 : 400).json(serviceRes);
         } catch (error) {
+            console.error('Controller error updating reservation:', error);
             if (error instanceof Error) {
-                return res.status(500).json(errorResponse("Failed to amend Reservation", error.message));
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse(
+                            'Failed to update reservation',
+                            error.message
+                        )
+                    );
             }
-            return res.status(500).json(errorResponse("Internal server Error"));
+            return res
+                .status(500)
+                .json(errorResponse('Failed to update reservation'));
         }
     }
 
-    public async cancelReservation(req: CustomRequest, res: Response): Promise<Response> {
+    public async getAllReservations(
+        req: CustomRequest,
+        res: Response
+    ): Promise<Response> {
+        try {
+            if (!req.user?.creationId || req.user.level === undefined) {
+                return res
+                    .status(400)
+                    .json(
+                        errorResponse(
+                            'User is not assigned to any creation',
+                            'Creation ID not found'
+                        )
+                    );
+            }
+
+            const {
+                startDate,
+                endDate,
+                page = '1',
+                limit = '10',
+                propertyId,
+                propertyCode,
+                bookingStatus,
+                bookingSource,
+                deviceType,
+                bookingCode,
+                guestName,
+                promoCode,
+                countryCode,
+                dateFilterType,
+            } = req.query;
+
+            if (!startDate || !endDate) {
+                return res
+                    .status(400)
+                    .json(
+                        errorResponse('Start date and end date are required')
+                    );
+            }
+
+            const start = new Date(startDate as string);
+            const end = new Date(endDate as string);
+
+            if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                return res
+                    .status(400)
+                    .json(errorResponse('Invalid date format'));
+            }
+
+            if (start > end) {
+                return res
+                    .status(400)
+                    .json(errorResponse('Start date must be before end date'));
+            }
+
+            const pageNum = parseInt(page as string, 10);
+            const limitNum = parseInt(limit as string, 10);
+
+            if (pageNum < 1 || limitNum < 1) {
+                return res
+                    .status(400)
+                    .json(
+                        errorResponse('Page and limit must be positive numbers')
+                    );
+            }
+
+            const serRes =
+                await this.reservationService.getReservationsForDateRange(
+                    req.user.creationId,
+                    req.user.level,
+                    start,
+                    end,
+                    pageNum,
+                    limitNum,
+                    propertyId?.toString(),
+                    propertyCode?.toString(),
+                    bookingStatus?.toString(),
+                    bookingSource?.toString(),
+                    deviceType?.toString(),
+                    bookingCode?.toString(),
+                    guestName?.toString(),
+                    promoCode?.toString(),
+                    countryCode?.toString(),
+                    dateFilterType?.toString() as
+                        | 'checkin'
+                        | 'booking'
+                        | 'modification'
+                        | undefined
+                );
+
+            return res.status(serRes.success ? 200 : 400).json(serRes);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse(
+                            'Failed to fetch Reservations',
+                            error.message
+                        )
+                    );
+            }
+            return res.status(500).json(errorResponse('Internal server Error'));
+        }
+    }
+
+    public async getArrivalsForADate(
+        req: CustomRequest,
+        res: Response
+    ): Promise<Response> {
+        try {
+            if (!req.user?.creationId || req.user.level === undefined) {
+                return res
+                    .status(400)
+                    .json(
+                        errorResponse('User is not assigned to any creation')
+                    );
+            }
+
+            const {
+                startDate,
+                endDate,
+                page = '1',
+                limit = '10',
+                propertyId,
+                propertyCode,
+                bookingStatus,
+            } = req.query;
+
+            if (!startDate || !endDate) {
+                return res
+                    .status(400)
+                    .json(
+                        errorResponse('Start date and end date are required')
+                    );
+            }
+
+            const start = new Date(startDate as string);
+            const end = new Date(endDate as string);
+
+            if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                return res
+                    .status(400)
+                    .json(errorResponse('Invalid date format'));
+            }
+
+            if (start > end) {
+                return res
+                    .status(400)
+                    .json(errorResponse('Start date must be before end date'));
+            }
+
+            const pageNum = parseInt(page as string, 10);
+            const limitNum = parseInt(limit as string, 10);
+
+            const serRes = await this.reservationService.getArrivals(
+                req.user.creationId,
+                req.user.level,
+                start,
+                end,
+                pageNum,
+                limitNum,
+                propertyId?.toString(),
+                propertyCode?.toString(),
+                bookingStatus?.toString()
+            );
+
+            return res.status(serRes.success ? 200 : 400).json(serRes);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse('Failed to fetch Arrivals', error.message)
+                    );
+            }
+            return res.status(500).json(errorResponse('Internal server Error'));
+        }
+    }
+
+    public async getDeparturesForADate(
+        req: CustomRequest,
+        res: Response
+    ): Promise<Response> {
+        try {
+            if (!req.user?.creationId || req.user.level === undefined) {
+                return res
+                    .status(400)
+                    .json(
+                        errorResponse('User is not assigned to any creation')
+                    );
+            }
+
+            const {
+                startDate,
+                endDate,
+                page = '1',
+                limit = '10',
+                propertyId,
+                propertyCode,
+                bookingStatus,
+            } = req.query;
+
+            if (!startDate || !endDate) {
+                return res
+                    .status(400)
+                    .json(
+                        errorResponse('Start date and end date are required')
+                    );
+            }
+
+            const start = new Date(startDate as string);
+            const end = new Date(endDate as string);
+
+            if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+                return res
+                    .status(400)
+                    .json(errorResponse('Invalid date format'));
+            }
+
+            if (start > end) {
+                return res
+                    .status(400)
+                    .json(errorResponse('Start date must be before end date'));
+            }
+
+            const pageNum = parseInt(page as string, 10);
+            const limitNum = parseInt(limit as string, 10);
+
+            const serRes = await this.reservationService.getDepartures(
+                req.user.creationId,
+                req.user.level,
+                start,
+                end,
+                pageNum,
+                limitNum,
+                propertyId?.toString(),
+                propertyCode?.toString(),
+                bookingStatus?.toString()
+            );
+
+            return res.status(serRes.success ? 200 : 400).json(serRes);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse(
+                            'Failed to fetch Departures',
+                            error.message
+                        )
+                    );
+            }
+            return res.status(500).json(errorResponse('Internal server Error'));
+        }
+    }
+
+    // public async getCheckInsForADate(
+    //     req: CustomRequest,
+    //     res: Response
+    // ): Promise<Response> {
+    //     try {
+    //         if (!req.user?.creationId || req.user.level === undefined) {
+    //             return res
+    //                 .status(400)
+    //                 .json(
+    //                     errorResponse('User is not assigned to any creation')
+    //                 );
+    //         }
+
+    //         const {
+    //             startDate,
+    //             endDate,
+    //             page = '1',
+    //             limit = '10',
+    //             propertyId,
+    //             propertyCode,
+    //         } = req.query;
+
+    //         if (!startDate || !endDate) {
+    //             return res
+    //                 .status(400)
+    //                 .json(
+    //                     errorResponse('Start date and end date are required')
+    //                 );
+    //         }
+
+    //         const start = new Date(startDate as string);
+    //         const end = new Date(endDate as string);
+
+    //         if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+    //             return res
+    //                 .status(400)
+    //                 .json(errorResponse('Invalid date format'));
+    //         }
+
+    //         if (start > end) {
+    //             return res
+    //                 .status(400)
+    //                 .json(errorResponse('Start date must be before end date'));
+    //         }
+
+    //         const pageNum = parseInt(page as string, 10);
+    //         const limitNum = parseInt(limit as string, 10);
+
+    //         const serRes =
+    //             await this.reservationService.getCheckedInReservations(
+    //                 req.user.creationId,
+    //                 req.user.level,
+    //                 start,
+    //                 end,
+    //                 pageNum,
+    //                 limitNum,
+    //                 propertyId?.toString(),
+    //                 propertyCode?.toString()
+    //             );
+
+    //         return res.status(serRes.success ? 200 : 400).json(serRes);
+    //     } catch (error) {
+    //         if (error instanceof Error) {
+    //             return res
+    //                 .status(500)
+    //                 .json(
+    //                     errorResponse(
+    //                         'Failed to fetch Check-Ins',
+    //                         error.message
+    //                     )
+    //                 );
+    //         }
+    //         return res.status(500).json(errorResponse('Internal server Error'));
+    //     }
+    // }
+
+    // public async getCheckOutsForADate(
+    //     req: CustomRequest,
+    //     res: Response
+    // ): Promise<Response> {
+    //     try {
+    //         if (!req.user?.creationId || req.user.level === undefined) {
+    //             return res
+    //                 .status(400)
+    //                 .json(
+    //                     errorResponse('User is not assigned to any creation')
+    //                 );
+    //         }
+
+    //         const {
+    //             startDate,
+    //             endDate,
+    //             page = '1',
+    //             limit = '10',
+    //             propertyId,
+    //             propertyCode,
+    //         } = req.query;
+
+    //         if (!startDate || !endDate) {
+    //             return res
+    //                 .status(400)
+    //                 .json(
+    //                     errorResponse('Start date and end date are required')
+    //                 );
+    //         }
+
+    //         const start = new Date(startDate as string);
+    //         const end = new Date(endDate as string);
+
+    //         if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+    //             return res
+    //                 .status(400)
+    //                 .json(errorResponse('Invalid date format'));
+    //         }
+
+    //         if (start > end) {
+    //             return res
+    //                 .status(400)
+    //                 .json(errorResponse('Start date must be before end date'));
+    //         }
+
+    //         const pageNum = parseInt(page as string, 10);
+    //         const limitNum = parseInt(limit as string, 10);
+
+    //         const serRes =
+    //             await this.reservationService.getCheckedOutReservations(
+    //                 req.user.creationId,
+    //                 req.user.level,
+    //                 start,
+    //                 end,
+    //                 pageNum,
+    //                 limitNum,
+    //                 propertyId?.toString(),
+    //                 propertyCode?.toString()
+    //             );
+
+    //         return res.status(serRes.success ? 200 : 400).json(serRes);
+    //     } catch (error) {
+    //         if (error instanceof Error) {
+    //             return res
+    //                 .status(500)
+    //                 .json(
+    //                     errorResponse(
+    //                         'Failed to fetch Check-Outs',
+    //                         error.message
+    //                     )
+    //                 );
+    //         }
+    //         return res.status(500).json(errorResponse('Internal server Error'));
+    //     }
+    // }
+
+
+    public async cancelReservation(
+        req: CustomRequest,
+        res: Response
+    ): Promise<Response> {
         try {
             const reservationId = req.params.reservationId;
 
             console.log(`\n${'='.repeat(60)}`);
             console.log(`[CANCEL API] 🚨 Cancel Reservation API HIT`);
-            console.log(`[CANCEL API] 📋 reservationId param: ${reservationId}`);
-            console.log(`[CANCEL API] 👤 Requested by user: ${(req as any).user?.id ?? 'unknown'}`);
-            console.log(`[CANCEL API] ⏰ Timestamp: ${new Date().toISOString()}`);
+            console.log(
+                `[CANCEL API] 📋 reservationId param: ${reservationId}`
+            );
+            console.log(
+                `[CANCEL API] 👤 Requested by user: ${(req as any).user?.id ?? 'unknown'}`
+            );
+            console.log(
+                `[CANCEL API] ⏰ Timestamp: ${new Date().toISOString()}`
+            );
             console.log(`${'='.repeat(60)}`);
 
             if (!reservationId) {
-                console.warn(`[CANCEL API] ⚠️ Missing reservationId in request params`);
-                return res.status(400).json(errorResponse("Reservation id is required"));
+                console.warn(
+                    `[CANCEL API] ⚠️ Missing reservationId in request params`
+                );
+                return res
+                    .status(400)
+                    .json(errorResponse('Reservation id is required'));
             }
 
-            const serRes = await this.reservationService.deleteReservation(reservationId);
+            const serRes =
+                await this.reservationService.deleteReservation(reservationId);
 
-            console.log(`[CANCEL API] 📤 Service response - success: ${serRes.success}, message: ${(serRes as any).message ?? 'N/A'}`);
+            console.log(
+                `[CANCEL API] 📤 Service response - success: ${serRes.success}, message: ${(serRes as any).message ?? 'N/A'}`
+            );
 
             return res.status(serRes.success ? 200 : 400).json(serRes);
         } catch (error) {
-            console.error(`[CANCEL API] ❌ Unhandled exception in cancelReservation controller:`, error);
+            console.error(
+                `[CANCEL API] ❌ Unhandled exception in cancelReservation controller:`,
+                error
+            );
             if (error instanceof Error) {
-                return res.status(500).json(errorResponse("Failed to cancel Reservation", error.message));
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse(
+                            'Failed to cancel Reservation',
+                            error.message
+                        )
+                    );
             }
-            return res.status(500).json(errorResponse("Failed to cancel Reservation"));
+            return res
+                .status(500)
+                .json(errorResponse('Failed to cancel Reservation'));
         }
     }
     public async noShowReservation(req: CustomRequest, res: Response): Promise<Response> {
@@ -416,4 +655,5 @@ public async getCheckOutsForADate(req: CustomRequest, res: Response): Promise<Re
             return res.status(500).json(errorResponse("Internal server Error"));
         }
     }
+    // public async checkInReservation(req:Request,res:Response):Promise
 }

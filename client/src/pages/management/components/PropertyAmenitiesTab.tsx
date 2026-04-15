@@ -33,7 +33,7 @@ export default function PropertyAmenitiesTab({ propertyAmenities, setPropertyAme
     const response = await createPropertyAmenitiesService(amenitiesList);
     if (response.success) {
       toast.success("Property amenities created successfully");
-      setPropertyAmenities([...propertyAmenities, ...response.data]);
+      setPropertyAmenities([ ...response.data]);
       setAmenitiesList([]);
       setIsPropertyAmenityDialogOpen(false);
     } else {
