@@ -67,14 +67,13 @@ export default function Dashboard() {
       const property = allProperties.find(p => p.id === propertyId);
       if (property) {
         setSelectedProperty(property);
-        fetchAnalytics(property?.id, property?.code, property?.name);
-        fetchStatistics(property?.id, property?.code, property?.name);
+        fetchAnalytics(property?.id, property?.code, property?.name, property?.currencyCode);
+        fetchStatistics(property?.id, property?.code, property?.name, property?.currencyCode);
       }
     }
   };
 
-  // 🆕 NEW FUNCTION: Fetch Statistics Comparison
-  const fetchStatistics = async (propertyId?: string, propertyCode?: string, propertyName?: string, selectedCurrency?: CurrencyCode) => {
+  const fetchStatistics = async (propertyId?: string, propertyCode?: string, propertyName?: string, selectedCurrency?: CurrencyCode | "USD") => {
     try {
       setError(null);
 
@@ -101,7 +100,7 @@ export default function Dashboard() {
     }
   };
 
-  const fetchAnalytics = async (propertyId?: string, propertyCode?: string, propertyName?: string, selectedCurrency?: CurrencyCode) => {
+  const fetchAnalytics = async (propertyId?: string, propertyCode?: string, propertyName?: string, selectedCurrency?: CurrencyCode |"USD") => {
     try {
       setLoader({ isLoading: true, message: "Fetching Analytics ..." });
       setError(null);
@@ -181,7 +180,7 @@ export default function Dashboard() {
           <button
             onClick={() => {
               fetchAnalytics();
-              fetchStatistics(); // 🆕 NEW
+              fetchStatistics();
             }}
             className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded transition-colors"
           >

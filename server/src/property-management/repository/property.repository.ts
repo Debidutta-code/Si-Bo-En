@@ -103,6 +103,7 @@ export class PropertyDao {
               isDeleted: false,
 
             },
+            
             include: {
               roomAmenities: {
                 include: {
@@ -138,6 +139,7 @@ export class PropertyDao {
           }, propertyAddress: true,
           propertyVideos: true,
           propertyEmails: true,
+          propertyConfigs:true
 
 
         },

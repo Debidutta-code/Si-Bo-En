@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { type IPropertyDetails, type IPropertyEmail } from "../types/types";
 import { getPropertyDetails } from "../api/show/propertyDetails";
 import { Button } from "../../ui/button";
-import { PenTool, X, AlertCircle, CheckCircle, Mail, Phone, Tag, House, Plus, Pencil, Trash2, MailPlus, Copy } from "lucide-react";
+import { PenTool, X, AlertCircle, CheckCircle, Mail, Phone, Tag, House, Plus, Pencil, Trash2, MailPlus, Copy, Edit2 } from "lucide-react";
 import ExpandableDescription from "@/components/ExplandableDescription";
 import {
   AlertDialog,
@@ -37,6 +37,9 @@ import {
   getPropertyEmails,
   updatePropertyEmail,
 } from "../api/create/propertyEmails.apis";
+import PropertyConfigDialog from "@/pages/property/property/components/PropertyConfigDialog";
+import type { IUPropertyConfig } from "@/pages/property/property/types";
+import { useAppSelector } from "@/redux/hooks";
 
 export default function PropertyDetails({
   propertyId,
@@ -88,6 +91,20 @@ export default function PropertyDetails({
   const [editEmailLoading, setEditEmailLoading] = useState(false);
   const [deleteEmailId, setDeleteEmailId] = useState<string | null>(null);
   const [deleteEmailLoading, setDeleteEmailLoading] = useState(false);
+  const [isConfigOpen, setIsConfigOpen] = useState(false);
+  const [propertyConfig, setPropertyConfig] = useState<IUPropertyConfig>({
+    channelManagerIntegrationActive: false,
+    pmsIntegrationActive: false,
+    selfAriActive: false,
+    isB2bAvailable: false,
+    isB2cAvailable: true,
+    commission: false,
+    showVideo: false,
+    reservationResetMinutes: 0,
+    timezone: "Asia/Kolkata",
+    baseCurrency: "AED"
+  });
+  const user = useAppSelector((state) => state.user.user);
   useEffect(() => {
     if (!propertyId) {
       toast.error("Property id not found");
@@ -189,6 +206,18 @@ export default function PropertyDetails({
           propertyType: data.propertyType,
           image: data.image,
           propertyEmails: data.propertyEmails || [],
+        });
+        setPropertyConfig({
+          channelManagerIntegrationActive: data.propertyConfigs?.channelManagerIntegrationActive || false,
+          pmsIntegrationActive: data.propertyConfigs?.pmsIntegrationActive || false,
+          selfAriActive: data.propertyConfigs?.selfAriActive || false,
+          isB2bAvailable: data.propertyConfigs?.isB2bAvailable || false,
+          isB2cAvailable: data.propertyConfigs?.isB2cAvailable || false,
+          commission: data.propertyConfigs?.commission || false,
+          showVideo: data.propertyConfigs?.showVideo || false,
+          reservationResetMinutes: data.propertyConfigs?.reservationResetMinutes || 0,
+          timezone: data.propertyConfigs?.timezone || "Asia/Kolkata",
+          baseCurrency: data.propertyConfigs?.baseCurrency || "AED"
         });
       } else {
         throw new Error(response.message || "Failed to fetch property details");
@@ -309,8 +338,37 @@ export default function PropertyDetails({
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+          {(user?.userLevel === 0 || user?.userLevel === 1) && (
+            <Button
+              className="ml-4 shadow-sm hover:shadow-md transition-shadow bg-primary hover:bg-primary/90"
+              onClick={() => setIsConfigOpen(true)}
+            >
+              <Edit2 className="h-4 w-4 mr-2" />
+              Property Configuration
+            </Button>
+          )}
+
+          <PropertyConfigDialog
+            isOpen={isConfigOpen}
+            onClose={() => setIsConfigOpen(false)}
+            propertyConfig={propertyConfig}
+            setPropertyConfig={setPropertyConfig}
+            masterPartners={[]} // TODO: pass actual partners
+            onIntegrate={(partner) => console.log("Integrate", partner)}
+            onToggleStatus={(id, status) => console.log(id, status)}
+            onViewDetails={(partner) => console.log(partner)}
+            onManageFields={(partner) => console.log(partner)}
+            onSave={() => {
+              console.log("Saving config:", propertyConfig);
+              setIsConfigOpen(false);
+            }}
+            isSaving={false}
+            userLevel={4}
+            isLoading={{}}
+          />
         </div>
       </div>
+
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -396,7 +454,7 @@ export default function PropertyDetails({
                   Booking Engine Url
                 </span>
                 <a className="text-xs text-gray-900 font-medium text-right" target="_blank" rel="noopener noreferrer"
-                  href={`https://bookings.revchilltech.com/Rooms/?code=${propertyDetails.propertyCode}`}  
+                  href={`https://bookings.revchilltech.com/Rooms/?code=${propertyDetails.propertyCode}`}
                 >
 
                   {`https://bookings.revchilltech.com/Rooms/?code=${propertyDetails.propertyCode.replace(/[A-Z0-9]/g, "*")}`}
