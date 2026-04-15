@@ -14,7 +14,9 @@ export type BookingSource="direct"|
   "cancelled"|
   "expired"|
   "modified"|
-  "no_show"
+  "no_show"|
+  "checked_in"|
+  "checked_out"
   export type PaymentMethod= "pay_at_hotel" | "net_banking" | "upi" | "payment_gateway";
   export type ReservationPromotionType="early_bird" | "mlos" | "device_specific" | "offer_for_tonight"|"normal"
 export interface ICreateReservationPayload {

@@ -655,4 +655,5 @@ export class ReservationController {
             return res.status(500).json(errorResponse("Internal server Error"));
         }
     }
+    // public async checkInReservation(req:Request,res:Response):Promise
 }

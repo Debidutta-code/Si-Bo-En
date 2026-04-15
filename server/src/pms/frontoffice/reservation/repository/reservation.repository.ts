@@ -466,8 +466,6 @@ export class ReservationRepository {
             throw new Error("Failed to fetch departures");
         }
     }
-
-
     public async getCheckIns(
         propertyIds: string[],
         startDate: Date,
@@ -709,6 +707,24 @@ export class ReservationRepository {
             throw new Error("Failed to delete ReservationDate");
         }
     }
+
+    // public async makeCheckIn(bookingCode: string): Promise<IReservation | null> {
+    //     try {
+    //         return await prisma.reservation.update({
+    //             where: { bookingCode },
+    //             data: { bookingStatus: "checked_in" },
+    //             include: {
+    //                 primaryGuest: true,
+    //                 priceBreakdowns: true
+    //             }
+    //         });
+    //     } catch (error) {
+    //         if (error instanceof Error) {
+    //             throw new Error(`Failed to check in reservation: ${error.message}`);
+    //         }
+    //         throw new Error("Failed to check in reservation");
+    //     }
+    // }
 
 }
 
