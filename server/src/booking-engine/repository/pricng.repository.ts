@@ -15,7 +15,7 @@ export class PricingRepository {
         roomTypeCode: string,
         startDate: Date,
         endDate: Date,
-        // includedAddons: string[]
+        includedAddons: string[]
     ): Promise<IRatePlan | null> {
         try {
             return await prisma.ratePlan.findUnique({
@@ -42,12 +42,12 @@ export class PricingRepository {
                         },
                     },
                     Addons: {
-                        // where: {
-                        //     addonId: {
-                        //         in: includedAddons,
-                        //     },
+                        where: {
+                            addonId: {
+                                in: includedAddons,
+                            },
 
-                        // },
+                        },
                         include: {
                             addon: {
                                 include: {

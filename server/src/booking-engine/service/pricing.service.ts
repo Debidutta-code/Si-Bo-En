@@ -77,7 +77,8 @@ export class PricingService {
                         ratePlanCode,
                         invTypeCode,
                         toUTC(startDate),
-                        toUTC(endDate)
+                        toUTC(endDate),
+                        includedAddons?includedAddons:[]
                     ),
                     this.fetchAddons(parsedAddons),
                     this.fetchAllPromotions(promotions),

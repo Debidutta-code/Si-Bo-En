@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useDispatch } from "react-redux";
 import { loyaltyLogout } from "@/src/store/loyaltyUserSlice";
+import { LogOut } from "lucide-react";
 
 const tabs = [
   { label: "My Profile", href: "/profile" },
@@ -55,20 +56,12 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
 
           {/* Sign out */}
           <button
-            onClick={handleLogout}
-            className="text-[12.5px] font-medium px-3 py-1.5 rounded-[8px] transition-all"
-            style={{ color: "#999", border: "1px solid #e8e8e8" }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.color = "#b8291a";
-              e.currentTarget.style.borderColor = "#f0c0b8";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.color = "#999";
-              e.currentTarget.style.borderColor = "#e8e8e8";
-            }}
-          >
-            Sign out
-          </button>
+  onClick={handleLogout}
+  className="inline-flex items-center gap-1.5 bg-red-600 hover:bg-red-700 active:scale-[0.97] text-white text-[13px] font-medium px-3.5 py-[7px] rounded-lg transition-all"
+>
+  <LogOut size={14} />
+  Sign out
+</button>
         </div>
       </div>
 

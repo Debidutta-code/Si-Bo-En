@@ -9,15 +9,11 @@ import { ProfileData } from "@/src/store/loyaltyUserTypes";
 import { getMyProfileApi } from "./api/profile.api";
 import { useRouter } from "next/navigation";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 const levelColour = (level: number) => {
   if (level === 1) return { bg: "#f5f5f5", text: "#555", label: "Silver" };
   if (level === 2) return { bg: "#fff8e1", text: "#b8912a", label: "Gold" };
   return { bg: "#e8f5e9", text: "#2e7d32", label: "Platinum" };
 };
-
-const gold = "#b8912a";
-
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function ProfileHomePage() {
   const dispatch = useDispatch();
@@ -68,8 +64,8 @@ export default function ProfileHomePage() {
       <div className="flex items-center justify-center py-24">
         <div className="text-center">
           <div
-            className="w-12 h-12 rounded-full border-2 border-t-transparent animate-spin mx-auto mb-4"
-            style={{ borderColor: "#e0e0e0", borderTopColor: gold }}
+            className="w-12 h-12 rounded-full border-2 border-t-transparent animate-spin mx-auto mb-4 border-t-teal-500"
+            style={{ borderColor: "#e0e0e0" }}
           />
           <p className="text-[13px]" style={{ color: "#999" }}>
             Loading your profile…
@@ -85,8 +81,8 @@ export default function ProfileHomePage() {
       <div
         className="rounded-2xl overflow-hidden"
         style={{
-          background: `linear-gradient(135deg, #c9a020 0%, #b8912a 100%)`,
           boxShadow: "0 8px 32px rgba(184,145,42,0.2)",
+          background:"linear-gradient(90deg, #0d7a87 0%, #1fc8d8 40%, #1595A2 60%, #0d7a87 100%)"
         }}
       >
         <div className="px-8 py-8 relative overflow-hidden">
@@ -148,8 +144,8 @@ export default function ProfileHomePage() {
           <h3 className="text-[14px] font-semibold text-[#1a1a1a] mb-3">
             Loyalty Programs
             <span
-              className="ml-2 text-[11px] font-normal px-2 py-0.5 rounded-full"
-              style={{ background: "#fdf8ee", color: gold }}
+              className="ml-2 text-[11px] font-normal px-2 py-0.5 rounded-full "
+              style={{ background: "#fdf8ee",  }}
             >
               {profile.CreationGuest.length} program
               {profile.CreationGuest.length !== 1 ? "s" : ""}
@@ -192,49 +188,35 @@ export default function ProfileHomePage() {
                         </div>
                       )}
                       <div className="min-w-0">
-                        <p className="text-[13px] font-semibold text-[#1a1a1a]">
+                        <p className="text-[13px] font-semibold text-black">
                           {config.loyaltyDiscountType === "percentage"
                             ? `Up to ${config.discountValue}% off`
                             : `${config.currencyCode} ${config.discountValue} off`}
                         </p>
-                        <p className="text-[10px] font-mono mt-0.5" style={{ color: "#bbb" }}>
-                          {config.id.slice(0, 8).toUpperCase()}
-                        </p>
+                        
                       </div>
                     </div>
-                    <div className="flex items-center gap-2 flex-shrink-0">
-                      <span
-                        className="text-[11px] font-semibold px-2.5 py-1 rounded-full"
-                        style={{ background: lc.bg, color: lc.text }}
-                      >
-                        {lc.label}
-                      </span>
-                      <span
-                        className="text-[10px] px-2 py-1 rounded-full"
-                        style={{ background: "#f5f5f5", color: "#888" }}
-                      >
-                        {totalLevels} tier{totalLevels !== 1 ? "s" : ""}
-                      </span>
-                    </div>
+                   
                   </div>
 
                   {/* Stats row */}
-                  <div className="px-5 py-4 flex items-center gap-6 border-b border-[#f8f8f8]">
+                 
+                    <div className="px-5 py-4 flex items-center gap-6 border-b border-[#f8f8f8] text-black">
                     <div>
                       <p
                         className="text-[10px] uppercase tracking-[0.07em] font-medium mb-0.5"
-                        style={{ color: "#aaa" }}
+                        // style={{ color: "#aaa" }}
                       >
                         Your Discount
                       </p>
-                      <p className="text-[15px] font-bold" style={{ color: gold }}>
+                      <p className="text-[15px] font-bold text-cyan-500">
                         {effectiveDiscount} off
                       </p>
                     </div>
+                     {totalLevels > 1 && (
                     <div>
                       <p
-                        className="text-[10px] uppercase tracking-[0.07em] font-medium mb-0.5"
-                        style={{ color: "#aaa" }}
+                        className="text-[10px] uppercase tracking-[0.07em] font-medium mb-0.5 text-black"
                       >
                         Level
                       </p>
@@ -242,10 +224,10 @@ export default function ProfileHomePage() {
                         {cg.guestLevel} / {totalLevels}
                       </p>
                     </div>
+                  )}
                     <div>
                       <p
                         className="text-[10px] uppercase tracking-[0.07em] font-medium mb-0.5"
-                        style={{ color: "#aaa" }}
                       >
                         Bookings
                       </p>
@@ -272,7 +254,8 @@ export default function ProfileHomePage() {
                           className="h-full rounded-full transition-all"
                           style={{
                             width: `${Math.min((cg.guestLevel / totalLevels) * 100, 100)}%`,
-                            background: gold,
+                                      background:"linear-gradient(90deg, #0d7a87 0%, #1fc8d8 40%, #1595A2 60%, #0d7a87 100%)"
+
                           }}
                         />
                       </div>
@@ -287,8 +270,7 @@ export default function ProfileHomePage() {
                   {/* Properties list */}
                   <div className="px-5 py-3">
                     <p
-                      className="text-[10px] uppercase tracking-[0.07em] font-medium mb-2"
-                      style={{ color: "#aaa" }}
+                      className="text-[10px] tracking-[0.07em] font-medium mb-2 text-black"
                     >
                       Valid at {config.PropertyLoyaltyConfig.length} propert
                       {config.PropertyLoyaltyConfig.length !== 1 ? "ies" : "y"}
