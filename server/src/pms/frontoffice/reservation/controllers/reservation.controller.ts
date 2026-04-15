@@ -5,6 +5,7 @@ import {
     PropertyRequest,
 } from '../../../../utils/customRequest';
 import { ReservationService } from '../services';
+import { IGuestCheckInDetails } from '../types';
 
 export class ReservationController {
     private reservationService: ReservationService;
@@ -658,12 +659,13 @@ export class ReservationController {
     public async checkInReservation(req:Request,res:Response):Promise<Response>{
         try {
             const bookingCode = req.params.bookingCode;
-
+            const guestDetails:IGuestCheckInDetails = req.body.guestDetails;
+            
             if (!bookingCode) {
                 return res.status(400).json(errorResponse("Reservation not found"));
             }
 
-            const serRes = await this.reservationService.makeCheckIn(bookingCode);
+            const serRes = await this.reservationService.makeCheckIn(bookingCode, guestDetails);
             return res.status(serRes.success ? 200 : 400).json(serRes);
         } catch (error) {
             if(error instanceof Error){

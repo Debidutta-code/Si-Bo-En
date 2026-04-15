@@ -5,7 +5,8 @@ import {
     IReservationWithAllDetails,
     IReservationPriceBrakeDownR,
     IAriManulupulation,
-    ICReservationR
+    ICReservationR,
+    IGuestCheckInDetails
 } from "../types";
 import { BookingStatus, IBookingAddon, IBookingAddonCreate, IGuestDetail, IPropertyEmails, IReservationPromotion, IReservationPromotionCreate } from "../types/reservation.type";
 
@@ -832,6 +833,21 @@ export class GuestRepository {
                 throw new Error(`Failed to create guest: ${error.message}`);
             }
             throw new Error("Failed to create guest");
+        }
+    }
+    public async addGuestDetails(guestId:string, details: IGuestCheckInDetails) {
+        try {
+            return await prisma.guests.update({
+                where: { id: guestId },
+                data: {
+                    ...details
+                }
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`Failed to add guest details: ${error.message}`);
+            }
+            throw new Error("Failed to add guest details");
         }
     }
 }

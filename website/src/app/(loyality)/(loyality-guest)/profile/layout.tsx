@@ -7,8 +7,8 @@ import { loyaltyLogout } from "@/src/store/loyaltyUserSlice";
 import { LogOut } from "lucide-react";
 
 const tabs = [
-  { label: "My Profile", href: "/profile" },
-  { label: "My Bookings", href: "/profile/bookings" },
+  { label: "My Profile", href: "/profile/" },
+  { label: "My Bookings", href: "/profile/bookings/" },
 ];
 
 export default function ProfileLayout({
@@ -47,7 +47,7 @@ export default function ProfileLayout({
                   className="px-4 py-1.5 rounded-[8px] text-[13px] font-medium transition-all duration-150"
                   style={{
                     background: isActive ? "#fff" : "transparent",
-                    color: isActive ? "#1a1a1a" : "#999",
+                    color: isActive ? "black" : "#999",
                     boxShadow: isActive ? "0 1px 4px rgba(0,0,0,0.08)" : "none",
                     textDecoration: "none",
                   }}

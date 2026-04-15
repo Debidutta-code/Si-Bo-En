@@ -25,6 +25,7 @@ import { fetchAddOnsService } from "@/pages/add-on/services";
 import type { IAddon } from "@/pages/add-on/interface";
 import type { ILoader } from "@/pages/dashboard/interface";
 import { format } from "date-fns";
+import BackButton from "@/components/shared/BackButton";
 
 export const CustomizableDealList: React.FC = () => {
   const { propertyId } = useParams<{ propertyId: string }>();
@@ -151,6 +152,8 @@ export const CustomizableDealList: React.FC = () => {
 
   return (
     <div className="space-y-4">
+                  <BackButton/>
+      
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Customizable Deals</h2>

@@ -12,7 +12,7 @@ export class RoomService {
 
   public  async create(roomData: ICRoom):Promise<IApiResponse> {
     try {
-      const [roomByName,roomByCode] = await Promise.all([
+      const [roomByName,roomByCode,roomsByProperty] = await Promise.all([
         this.roomDao.findByRoomName(
           roomData.propertyId,
           roomData.roomName
@@ -20,13 +20,16 @@ export class RoomService {
         this.roomDao.findByRoomType(
           roomData.propertyId,
           roomData.roomType
-        )
+        ),
+        this.roomDao.getRoomsByPropertyId(roomData.propertyId,false)
       ]);
       if (roomByName || roomByCode) {
-        
         return errorResponse(
           `Room with Name ${roomData.roomName} or Type ${roomData.roomType} already exists for this property`
         );
+      }
+      if(roomsByProperty.length>0){
+        return errorResponse("Complete Property setup to create multiple rooms")
       }
       const createdRoom = await this.roomDao.create(roomData);
       await this.roomDao.createRoomView({

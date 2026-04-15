@@ -347,7 +347,6 @@ export default function Loyalty() {
       <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as "discounts" | "basic" | "properties")} className="w-full">
         <TabsList className="grid w-full grid-cols-3 mb-6">
           <TabsTrigger value="basic">Basic Config</TabsTrigger>
-          {/* <TabsTrigger value="advanced">Advanced Config</TabsTrigger> */}
           <TabsTrigger value="discounts">Discounts</TabsTrigger>
           <TabsTrigger value="properties">Properties</TabsTrigger>
         </TabsList>
@@ -380,15 +379,7 @@ export default function Loyalty() {
           />
         </TabsContent>
 
-        {/* Advanced Configuration Tab */}
-        {/* <TabsContent value="advanced" className="space-y-6">
-          <AdvancedConfigTab
-            advanceProgram={advanceProgram}
-            advanceConfig={advanceConfig}
-            setAdvanceConfig={setAdvanceConfig}
-            onSave={handleUpdateAdvanceConfig}
-          />
-        </TabsContent> */}
+      
         <ImageUploadModal
           isOpen={isImageModalOpen}
           onClose={() => setIsImageModalOpen(false)}

@@ -5,8 +5,11 @@ model Reservation {
   propertyCode String @map("property_code") @db.VarChar(50)
   hotelName    String @map("hotel_name") @db.VarChar(150)
 
+  roomName String? @map("room_name") @db.VarChar(50)
   roomTypeCode String @map("room_type_code") @db.VarChar(50)
+  
   ratePlanCode String @map("rate_plan_code") @db.VarChar(50)
+  ratePlanName String? @map("rate_plan_name") @db.VarChar(50)
 
   bookingCode String @unique @map("booking_code") @db.VarChar(50)
 

@@ -479,7 +479,7 @@ export default function PoliciesPage() {
                                                     <div className="bg-Primary rounded-lg p-3 border border-[#f1f5f9]">
                                                         <div className="flex items-center gap-1.5 mb-2">
                                                             <Tag className="h-3 w-3 text-gray-500" />
-                                                            <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-widest">
+                                                            <span className="text-[10px] font-semibold text-gray-500 ">
                                                                 Linked Rate Plans
                                                             </span>
                                                         </div>
@@ -496,7 +496,7 @@ export default function PoliciesPage() {
                                                                 ))}
                                                             </div>
                                                         ) : (
-                                                            <p className="text-xs text-[#cbd5e1] italic">
+                                                            <p className="text-xs text-[#cbd5e1]">
                                                                 No rate plans linked
                                                             </p>
                                                         )}
