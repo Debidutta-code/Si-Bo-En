@@ -1887,7 +1887,39 @@ export class ReservationService {
         }
     }
 
+    public async makeCheckOut(bookingCode: string): Promise<IApiResponse> {
+        try {
+            const reservation = await this.reservationRepository.getReservationByBookingCode(bookingCode);
 
+            if (!reservation) {
+                return errorResponse('Reservation not found');
+            }
 
+            const updatedReservation = await this.reservationRepository.makeCheckOut(reservation.id, nowUTC());
 
+            return successResponse("Reservation checked out successfully", updatedReservation);
+        } catch (error) {
+            if (error instanceof Error) {
+                return Promise.reject(new Error(`Failed to check out reservation: ${error.message}`));
+            }
+            return Promise.reject(new Error('Failed to check out reservation'));
+        }
+    }
+    public async makeCheckIn(bookingCode: string): Promise<IApiResponse> {
+        try {
+            const reservation = await this.reservationRepository.getReservationByBookingCode(bookingCode);
+
+            if (!reservation) {
+                return errorResponse('Reservation not found');
+            }
+            const updatedReservation = await this.reservationRepository.makeCheckIn(reservation.id, nowUTC());
+
+            return successResponse("Reservation checked in successfully", updatedReservation);
+        } catch (error) {
+            if (error instanceof Error) {
+                return Promise.reject(new Error(`Failed to check out reservation: ${error.message}`));
+            }
+            return Promise.reject(new Error('Failed to check out reservation'));
+        }
+    }
 }

@@ -655,5 +655,38 @@ export class ReservationController {
             return res.status(500).json(errorResponse("Internal server Error"));
         }
     }
-    // public async checkInReservation(req:Request,res:Response):Promise
+    public async checkInReservation(req:Request,res:Response):Promise<Response>{
+        try {
+            const bookingCode = req.params.bookingCode;
+
+            if (!bookingCode) {
+                return res.status(400).json(errorResponse("Reservation not found"));
+            }
+
+            const serRes = await this.reservationService.makeCheckIn(bookingCode);
+            return res.status(serRes.success ? 200 : 400).json(serRes);
+        } catch (error) {
+            if(error instanceof Error){
+                return res.status(500).json(errorResponse("Failed to check-in Reservation",error.message));
+            }
+            return res.status(500).json(errorResponse("Failed to check-in Reservation","Internal server Error"));
+        }
+    }
+        public async checkOutReservation(req:Request,res:Response):Promise<Response>{
+        try {
+            const bookingCode = req.params.bookingCode;
+
+            if (!bookingCode) {
+                return res.status(400).json(errorResponse("Reservation not found"));
+            }
+
+            const serRes = await this.reservationService.makeCheckOut(bookingCode);
+            return res.status(serRes.success ? 200 : 400).json(serRes);
+        } catch (error) {
+            if(error instanceof Error){
+                return res.status(500).json(errorResponse("Failed to check-out Reservation",error.message));
+            }
+            return res.status(500).json(errorResponse("Failed to check-out Reservation","Internal server Error"));
+        }
+    }
 }

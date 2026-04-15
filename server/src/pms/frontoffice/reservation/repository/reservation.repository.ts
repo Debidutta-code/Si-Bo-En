@@ -10,15 +10,10 @@ import {
 import { BookingStatus, IBookingAddon, IBookingAddonCreate, IGuestDetail, IPropertyEmails, IReservationPromotion, IReservationPromotionCreate } from "../types/reservation.type";
 
 export class ReservationRepository {
-    public async createReservation(data: ICReservationR): Promise<IReservation> {
+    public async createReservation(data: ICReservationR): Promise<IReservation> {   
         try {
             return await prisma.reservation.create({
-                data,
-                // include: {
-                //     primaryGuest: true,
-                //     priceBreakdowns: true,
-                //     reservationGuests: true,
-                // }
+                data
             });
         } catch (error) {
             if (error instanceof Error) {
@@ -599,13 +594,6 @@ export class ReservationRepository {
             throw new Error("Failed to fetch check-outs");
         }
     }
-    private getNextDate(currentDate: Date): Date {
-        const start = new Date(currentDate);
-        start.setHours(0, 0, 0, 0);
-        const end = new Date(start);
-        end.setDate(end.getDate() + 1);
-        return end;
-    }
     public async deleteReservation(reservationId: string): Promise<IReservation> {
         try {
             return await prisma.reservation.update({
@@ -707,25 +695,39 @@ export class ReservationRepository {
             throw new Error("Failed to delete ReservationDate");
         }
     }
+    public async getReservationByBookingCode(bookingCode: string): Promise<IReservation | null> {
+        try {
+            return await prisma.reservation.findUnique({
+                where: { bookingCode },
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`Failed to fetch reservation: ${error.message}`);
+            }
+            throw new Error("Failed to fetch reservation by booking code");
+        }
+    }
 
-    // public async makeCheckIn(bookingCode: string): Promise<IReservation | null> {
-    //     try {
-    //         return await prisma.reservation.update({
-    //             where: { bookingCode },
-    //             data: { bookingStatus: "checked_in" },
-    //             include: {
-    //                 primaryGuest: true,
-    //                 priceBreakdowns: true
-    //             }
-    //         });
-    //     } catch (error) {
-    //         if (error instanceof Error) {
-    //             throw new Error(`Failed to check in reservation: ${error.message}`);
-    //         }
-    //         throw new Error("Failed to check in reservation");
-    //     }
-    // }
-
+    public async makeCheckIn(reservationId: string,time: Date): Promise<IReservation > {
+        try {
+            return await prisma.reservation.update({
+                where: { id: reservationId },
+                data: { bookingStatus: "checked_in", checkInDate: time },
+            });
+        } catch (error) {
+            throw new Error("Failed to check in reservation");
+        }
+    }
+    public async makeCheckOut(reservationId: string,time: Date): Promise<IReservation> {
+        try {
+            return await prisma.reservation.update({
+                where: { id: reservationId },
+                data: { bookingStatus: "checked_out", checkOutDate: time },
+            });
+        } catch (error) {
+            throw new Error("Failed to check out reservation");
+        }
+    }
 }
 
 export class PriceBrakeDownRepo {
