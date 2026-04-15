@@ -3,25 +3,27 @@ import DonutChart from './DonutChart';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { IAddonAnalytics, IBookingSourceAnalytics, IPaymentMethodAnalytics } from '../interface';
 import { capitalizeFirstLetter } from '@/lib/utils';
+import type { CurrencyCode } from '@/components/currency-code/currency-code.type';
+import { getCurrencySymbol } from '../utils/currencyUtils';
 
 interface AdditionalStatsProps {
   addonData: IAddonAnalytics;
   bookingSourceData: IBookingSourceAnalytics;
   paymentMethodData: IPaymentMethodAnalytics;
+  currencyCode:CurrencyCode
 }
 
 export default function AdditionalStats({ 
   addonData, 
   bookingSourceData, 
-  paymentMethodData 
+  paymentMethodData,
+  currencyCode
 }: AdditionalStatsProps) {
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
+    const symbol = getCurrencySymbol(currencyCode);
+    return `${symbol} ${amount.toLocaleString('en-US', {
+      minimumFractionDigits: 2, maximumFractionDigits: 2,
+    })}`;
   };
 
   return (

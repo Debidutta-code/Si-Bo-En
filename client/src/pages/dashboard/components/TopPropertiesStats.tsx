@@ -1,19 +1,20 @@
 import { Trophy, TrendingUp, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { ITopPerformingProperties } from '../interface';
+import type { CurrencyCode } from '@/components/currency-code/currency-code.type';
+import { getCurrencySymbol } from '../utils/currencyUtils';
 
 interface TopPropertiesStatsProps {
   data: ITopPerformingProperties;
+  currencyCode:CurrencyCode
 }
 
-export default function TopPropertiesStats({ data }: TopPropertiesStatsProps) {
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
+export default function TopPropertiesStats({ data , currencyCode }: TopPropertiesStatsProps) {
+const formatCurrency = (amount: number) => {
+    const symbol = getCurrencySymbol(currencyCode);
+    return `${symbol} ${amount.toLocaleString('en-US', {
+      minimumFractionDigits: 2, maximumFractionDigits: 2,
+    })}`;
   };
 
   return (

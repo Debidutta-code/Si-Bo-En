@@ -1,3 +1,4 @@
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
 import {
     fetchAnalytics,
     fetchProperties,
@@ -5,9 +6,9 @@ import {
 } from "../api";
 import { fetchPropertiesByCreationId } from "../api/dash.api";
 
-export const fetchAnaltyticsService = async(propertyid?: string, propertyCode?: string, propetyName?: string) => {
+export const fetchAnaltyticsService = async(propertyid?: string, propertyCode?: string, propetyName?: string,selectedCurrency?: CurrencyCode) => {
     try {
-        return await fetchAnalytics(propertyid && propertyid, propertyCode && propertyCode, propetyName && propetyName)
+        return await fetchAnalytics(propertyid && propertyid, propertyCode && propertyCode, propetyName && propetyName,selectedCurrency && selectedCurrency)
     } catch (error) {
         return {
             success: false,
@@ -43,10 +44,11 @@ export const fetchStatisticsComparisonService = async(
     selectedDate: string,
     propertyId?: string,
     propertyCode?: string,
-    propertyName?: string
+    propertyName?: string,
+    selectedCurrency?:CurrencyCode
 ) => {
     try {
-        return await fetchStatisticsComparison(comparisonType, selectedDate, propertyId, propertyCode, propertyName)
+        return await fetchStatisticsComparison(comparisonType, selectedDate, propertyId, propertyCode, propertyName,selectedCurrency)
     } catch (error) {
         return {
             success: false,

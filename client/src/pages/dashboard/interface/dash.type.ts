@@ -1,3 +1,5 @@
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
+
 export interface ILoader {
     isLoading: boolean;
     message: string;
@@ -7,6 +9,7 @@ export interface IPropertyCodeAndIds {
     id: string;
     code: string;
     name: string;
+    currencyCode: CurrencyCode;
 }
 
 // Reservation Analytics Interfaces
@@ -115,7 +118,7 @@ export interface IGuestAnalytics {
 // Addon Analytics Interfaces
 export interface IPopularAddon {
     addonId: string;
-    addonName:string,
+    addonName: string,
     revenue: number;
     bookingCount: number;
 }
@@ -180,6 +183,7 @@ export interface ITopPerformingProperties {
 
 // Combined Analytics Response Interface - REMOVED housekeeping
 export interface IAnalyticsData {
+    currencyCode: CurrencyCode;
     reservation: IReservationAnalytics;
     revenue: IRevenueAnalytics;
     room: IRoomAnalytics;
@@ -192,29 +196,30 @@ export interface IAnalyticsData {
 // Add these to your interface.ts file
 
 export interface IComparisonPeriod {
-  current: {
-    start: string;
-    end: string;
-    label: string;
-  };
-  previous: {
-    start: string;
-    end: string;
-    label: string;
-  };
+    current: {
+        start: string;
+        end: string;
+        label: string;
+    };
+    previous: {
+        start: string;
+        end: string;
+        label: string;
+    };
 }
 
 export interface IStatisticMetric {
-  current: number;
-  previous: number;
-  percentageChange: number;
+    current: number;
+    previous: number;
+    percentageChange: number;
 }
 
 export interface IStatisticsComparison {
-  bookings: IStatisticMetric;
-  cancelledBookings: IStatisticMetric;
-  revenue: IStatisticMetric;
-  averageBookingValue: IStatisticMetric;
-  roomNights: IStatisticMetric;
-  period: IComparisonPeriod;
+    currencyCode: CurrencyCode;
+    bookings: IStatisticMetric;
+    cancelledBookings: IStatisticMetric;
+    revenue: IStatisticMetric;
+    averageBookingValue: IStatisticMetric;
+    roomNights: IStatisticMetric;
+    period: IComparisonPeriod;
 }

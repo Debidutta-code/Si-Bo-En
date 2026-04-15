@@ -9,6 +9,7 @@ import {
     IPropertyCodeAndIds
 } from "../types";
 import { successResponse, errorResponse } from "../../utils/return";
+import { CurrencyCode } from "../../tax-system/interfaces";
 export class DashBoardServices {
     private dashboardRepository: DashBoardRepository;
     private dashboardUtils: DashUtilsRepo;
@@ -17,7 +18,7 @@ export class DashBoardServices {
         this.dashboardUtils = new DashUtilsRepo();
 
     }
-    public async getPropertyIdsAndCodesServices(creationId: string, userLevel: number, propertyId?: string, propertyCode?: string, propertyName?: string) {
+    public async getPropertyIdsAndCodesServices(creationId: string, userLevel: number, propertyId?: string, propertyCode?: string, propertyName?: string , currencyCode?:CurrencyCode) {
         try {
             let propertyIdAndCodes: IPropertyCodeAndIds[] = [];
             let daoRes: any;
@@ -50,7 +51,8 @@ export class DashBoardServices {
                 (!propertyId && !propertyCode && !propertyName)
                     ? propertyIdAndCodes
                     : [{ id: propertyId!, code: propertyCode!, name: propertyName! }],
-                userLevel
+                userLevel,
+                currencyCode
             );
 
             if (!analyticsData.success) {
@@ -146,7 +148,8 @@ export class DashBoardServices {
         selectedDate: Date,
         propertyId?: string,
         propertyCode?: string,
-        propertyName?: string
+        propertyName?: string,
+        currencyCode?:CurrencyCode
     ) {
         try {
             let propertyIdAndCodes: IPropertyCodeAndIds[] = [];
@@ -187,7 +190,8 @@ export class DashBoardServices {
             const statisticsData = await this.dashboardRepository.getStatisticsComparison(
                 propertyIds,
                 comparisonType,
-                selectedDate
+                selectedDate,
+                currencyCode as CurrencyCode
             );
 
             return successResponse("Statistics comparison fetched successfully", statisticsData);

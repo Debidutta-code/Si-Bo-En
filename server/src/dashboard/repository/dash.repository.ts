@@ -17,21 +17,12 @@ import {
 } from "../types";
 
 export class DashBoardRepository {
-    private async getTargetCurrency(propertyIds: string[]): Promise<CurrencyCode> {
-        if (propertyIds.length === 1) {
-            const config = await prisma.propertyConfigs.findUnique({
-                where: { propertyId: propertyIds[0] },
-                select: { baseCurrency: true }
-            });
-            return (config?.baseCurrency ?? 'USD') as CurrencyCode;
-        }
-        return 'USD' as CurrencyCode;
-    }
 
-    public async getAnalyticsData(propertyIdsAndCodes: IPropertyCodeAndIds[], userLevel?: number) {
+
+    public async getAnalyticsData(propertyIdsAndCodes: IPropertyCodeAndIds[], userLevel?: number, currencyCode?: CurrencyCode) {
         try {
             const propertyIds = propertyIdsAndCodes.map(p => p.id);
-            const targetCurrency = await this.getTargetCurrency(propertyIds);
+            const targetCurrency = currencyCode || "USD"
 
             const [
                 reservationStats,
@@ -437,9 +428,10 @@ export class DashBoardRepository {
     public async getStatisticsComparison(
         propertyIds: string[],
         comparisonType: 'date' | 'month' | 'year',
-        selectedDate: Date
+        selectedDate: Date,
+        currencyCode: CurrencyCode
     ): Promise<IStatisticsComparison> {
-        const targetCurrency = await this.getTargetCurrency(propertyIds); // ✅ resolve here
+        const targetCurrency = currencyCode
         const periods = this.calculateComparisonPeriods(comparisonType, selectedDate);
 
         const [currentPeriodData, previousPeriodData] = await Promise.all([
@@ -895,19 +887,23 @@ export class DashBoardRepository {
 export class DashUtilsRepo {
     public async getPropertyIdsAndCodesForLevel4(creationId: string) {
         try {
-            const propertyData: Array<{ id: string; code: string, name: string }> = [];
+            const propertyData: Array<{ id: string; code: string, name: string, currencyCode: CurrencyCode }> = [];
 
             const level4Creation = await prisma.creation.findUnique({
                 where: {
                     id: creationId,
                 },
                 include: {
-                    // Direct property (if level4 somehow has a direct property)
                     property: {
                         select: {
                             id: true,
                             propertyCode: true,
-                            propertyName: true
+                            propertyName: true,
+                            propertyConfigs: {
+                                select: {
+                                    baseCurrency: true
+                                }
+                            }
                         }
                     },
                     superChildren: {
@@ -920,7 +916,12 @@ export class DashUtilsRepo {
                                 select: {
                                     id: true,
                                     propertyCode: true,
-                                    propertyName: true
+                                    propertyName: true,
+                                    propertyConfigs: {
+                                        select: {
+                                            baseCurrency: true
+                                        }
+                                    }
 
                                 }
                             },
@@ -935,7 +936,12 @@ export class DashUtilsRepo {
                                         select: {
                                             id: true,
                                             propertyCode: true,
-                                            propertyName: true
+                                            propertyName: true,
+                                            propertyConfigs: {
+                                                select: {
+                                                    baseCurrency: true
+                                                }
+                                            }
                                         }
                                     },
                                     // Everything under brand (level 2) is in brandChildren
@@ -949,7 +955,12 @@ export class DashUtilsRepo {
                                                 select: {
                                                     id: true,
                                                     propertyCode: true,
-                                                    propertyName: true
+                                                    propertyName: true,
+                                                    propertyConfigs: {
+                                                        select: {
+                                                            baseCurrency: true
+                                                        }
+                                                    }
                                                 }
                                             },
                                             // Level 1 properties
@@ -963,7 +974,12 @@ export class DashUtilsRepo {
                                                         select: {
                                                             id: true,
                                                             propertyCode: true,
-                                                            propertyName: true
+                                                            propertyName: true,
+                                                            propertyConfigs: {
+                                                                select: {
+                                                                    baseCurrency: true
+                                                                }
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -975,11 +991,29 @@ export class DashUtilsRepo {
                             brandChildren: {
                                 where: { isActive: true, isDeleted: false },
                                 include: {
-                                    property: { select: { id: true, propertyCode: true, propertyName: true } },
+                                    property: {
+                                        select: {
+                                            id: true, propertyCode: true, propertyName: true,
+                                            propertyConfigs: {
+                                                select: {
+                                                    baseCurrency: true
+                                                }
+                                            }
+                                        }
+                                    },
                                     groupChildren: {
                                         where: { isActive: true, isDeleted: false },
                                         include: {
-                                            property: { select: { id: true, propertyCode: true, propertyName: true } }
+                                            property: {
+                                                select: {
+                                                    id: true, propertyCode: true, propertyName: true,
+                                                    propertyConfigs: {
+                                                        select: {
+                                                            baseCurrency: true
+                                                        }
+                                                    }
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -1002,7 +1036,8 @@ export class DashUtilsRepo {
                 propertyData.push({
                     id: level4Creation.property.id,
                     code: level4Creation.property.propertyCode,
-                    name: level4Creation.property.propertyName
+                    name: level4Creation.property.propertyName,
+                    currencyCode: (level4Creation.property.propertyConfigs?.baseCurrency ?? 'USD') as CurrencyCode
                 });
             }
 
@@ -1013,7 +1048,8 @@ export class DashUtilsRepo {
                     propertyData.push({
                         id: superChild.property.id,
                         code: superChild.property.propertyCode,
-                        name: superChild.property.propertyName
+                        name: superChild.property.propertyName,
+                        currencyCode: (superChild.property.propertyConfigs?.baseCurrency ?? "USD") as CurrencyCode
                     });
                 }
 
@@ -1024,7 +1060,8 @@ export class DashUtilsRepo {
                         propertyData.push({
                             id: groupChild.property.id,
                             code: groupChild.property.propertyCode,
-                            name: groupChild.property.propertyName
+                            name: groupChild.property.propertyName,
+                            currencyCode: (groupChild.property.propertyConfigs?.baseCurrency ?? "USD") as CurrencyCode
                         });
                     }
 
@@ -1035,7 +1072,8 @@ export class DashUtilsRepo {
                             propertyData.push({
                                 id: brandChild.property.id,
                                 code: brandChild.property.propertyCode,
-                                name: brandChild.property.propertyName
+                                name: brandChild.property.propertyName,
+                                currencyCode: (brandChild.property.propertyConfigs?.baseCurrency ?? "USD") as CurrencyCode
                             });
                         }
 
@@ -1045,7 +1083,8 @@ export class DashUtilsRepo {
                                 propertyData.push({
                                     id: level1.property.id,
                                     code: level1.property.propertyCode,
-                                    name: level1.property.propertyName
+                                    name: level1.property.propertyName,
+                                    currencyCode: (level1.property.propertyConfigs?.baseCurrency ?? "USD") as CurrencyCode
                                 });
                             }
                         }
@@ -1057,7 +1096,8 @@ export class DashUtilsRepo {
                         propertyData.push({
                             id: brandChild.property.id,
                             code: brandChild.property.propertyCode,
-                            name: brandChild.property.propertyName
+                            name: brandChild.property.propertyName,
+                            currencyCode: (brandChild.property.propertyConfigs?.baseCurrency ?? "USD") as CurrencyCode
                         });
                     }
                     for (const level1 of brandChild.groupChildren) {
@@ -1065,7 +1105,8 @@ export class DashUtilsRepo {
                             propertyData.push({
                                 id: level1.property.id,
                                 code: level1.property.propertyCode,
-                                name: level1.property.propertyName
+                                name: level1.property.propertyName,
+                                currencyCode: (level1.property.propertyConfigs?.baseCurrency ?? "USD") as CurrencyCode
                             });
                         }
                     }
@@ -1091,7 +1132,7 @@ export class DashUtilsRepo {
     }
     public async getPropertyIdsAndCodesForLevel3(creationId: string) {
         try {
-            const propertyData: Array<{ id: string; code: string; name: string }> = [];
+            const propertyData: Array<{ id: string; code: string; name: string, currencyCode: CurrencyCode }> = [];
 
             const level3Creation = await prisma.creation.findUnique({
                 where: {
@@ -1102,8 +1143,12 @@ export class DashUtilsRepo {
                         select: {
                             id: true,
                             propertyCode: true,
-                            propertyName: true
-
+                            propertyName: true,
+                            propertyConfigs: {
+                                select: {
+                                    baseCurrency: true
+                                }
+                            }
                         }
                     },
                     // Everything under group (level 3) is in groupChildren
@@ -1117,7 +1162,12 @@ export class DashUtilsRepo {
                                 select: {
                                     id: true,
                                     propertyCode: true,
-                                    propertyName: true
+                                    propertyName: true,
+                                    propertyConfigs: {
+                                        select: {
+                                            baseCurrency: true
+                                        }
+                                    }
                                 }
                             },
                             // Everything under brand (level 2) is in brandChildren
@@ -1131,7 +1181,12 @@ export class DashUtilsRepo {
                                         select: {
                                             id: true,
                                             propertyCode: true,
-                                            propertyName: true
+                                            propertyName: true,
+                                            propertyConfigs: {
+                                                select: {
+                                                    baseCurrency: true
+                                                }
+                                            }
                                         }
                                     },
                                     // Level 1 properties
@@ -1145,7 +1200,12 @@ export class DashUtilsRepo {
                                                 select: {
                                                     id: true,
                                                     propertyCode: true,
-                                                    propertyName: true
+                                                    propertyName: true,
+                                                    propertyConfigs: {
+                                                        select: {
+                                                            baseCurrency: true
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
@@ -1170,7 +1230,8 @@ export class DashUtilsRepo {
                 propertyData.push({
                     id: level3Creation.property.id,
                     code: level3Creation.property.propertyCode,
-                    name: level3Creation.property.propertyName
+                    name: level3Creation.property.propertyName,
+                    currencyCode: level3Creation.property.propertyConfigs?.baseCurrency as CurrencyCode
                 });
             }
 
@@ -1181,7 +1242,8 @@ export class DashUtilsRepo {
                     propertyData.push({
                         id: groupChild.property.id,
                         code: groupChild.property.propertyCode,
-                        name: groupChild.property.propertyName
+                        name: groupChild.property.propertyName,
+                        currencyCode: groupChild.property.propertyConfigs?.baseCurrency as CurrencyCode
                     });
                 }
 
@@ -1192,7 +1254,8 @@ export class DashUtilsRepo {
                         propertyData.push({
                             id: brandChild.property.id,
                             code: brandChild.property.propertyCode,
-                            name: brandChild.property.propertyName
+                            name: brandChild.property.propertyName,
+                            currencyCode: brandChild.property.propertyConfigs?.baseCurrency as CurrencyCode
                         });
                     }
 
@@ -1202,7 +1265,8 @@ export class DashUtilsRepo {
                             propertyData.push({
                                 id: level1.property.id,
                                 code: level1.property.propertyCode,
-                                name: level1.property.propertyName
+                                name: level1.property.propertyName,
+                                currencyCode: level1.property.propertyConfigs?.baseCurrency as CurrencyCode
                             });
                         }
                     }
@@ -1226,7 +1290,7 @@ export class DashUtilsRepo {
     }
     public async getPropertyIdsAndCodesForLevel2(creationId: string) {
         try {
-            const propertyData: Array<{ id: string; code: string, name: string }> = [];
+            const propertyData: Array<{ id: string; code: string, name: string, currencyCode: CurrencyCode }> = [];
 
             const level2Creation = await prisma.creation.findUnique({
                 where: {
@@ -1238,7 +1302,12 @@ export class DashUtilsRepo {
                         select: {
                             id: true,
                             propertyCode: true,
-                            propertyName: true
+                            propertyName: true,
+                            propertyConfigs: {
+                                select: {
+                                    baseCurrency: true
+                                }
+                            }
                         }
                     },
                     // Everything under brand (level 2) is in brandChildren
@@ -1252,7 +1321,12 @@ export class DashUtilsRepo {
                                 select: {
                                     id: true,
                                     propertyCode: true,
-                                    propertyName: true
+                                    propertyName: true,
+                                    propertyConfigs: {
+                                        select: {
+                                            baseCurrency: true
+                                        }
+                                    }
                                 }
                             },
                             // Level 1 properties
@@ -1266,7 +1340,12 @@ export class DashUtilsRepo {
                                         select: {
                                             id: true,
                                             propertyCode: true,
-                                            propertyName: true
+                                            propertyName: true,
+                                            propertyConfigs: {
+                                                select: {
+                                                    baseCurrency: true
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -1288,8 +1367,8 @@ export class DashUtilsRepo {
                 propertyData.push({
                     id: level2Creation.property.id,
                     code: level2Creation.property.propertyCode,
-
-                    name: level2Creation.property.propertyName
+                    name: level2Creation.property.propertyName,
+                    currencyCode: (level2Creation.property.propertyConfigs?.baseCurrency ?? "USD") as CurrencyCode
                 });
             }
 
@@ -1300,7 +1379,8 @@ export class DashUtilsRepo {
                     propertyData.push({
                         id: brandChild.property.id,
                         code: brandChild.property.propertyCode,
-                        name: brandChild.property.propertyName
+                        name: brandChild.property.propertyName,
+                        currencyCode: brandChild.property.propertyConfigs?.baseCurrency as CurrencyCode
                     });
                 }
 
@@ -1310,7 +1390,8 @@ export class DashUtilsRepo {
                         propertyData.push({
                             id: level1.property.id,
                             code: level1.property.propertyCode,
-                            name: level1.property.propertyName
+                            name: level1.property.propertyName,
+                            currencyCode: level1.property.propertyConfigs?.baseCurrency as CurrencyCode
                         });
                     }
                 }
@@ -1341,7 +1422,12 @@ export class DashUtilsRepo {
                         select: {
                             id: true,
                             propertyCode: true,
-                            propertyName: true
+                            propertyName: true,
+                            propertyConfigs: {
+                                select: {
+                                    baseCurrency: true
+                                }
+                            }
                         }
                     }
                 }
@@ -1349,7 +1435,7 @@ export class DashUtilsRepo {
             return {
                 success: true,
                 message: "",
-                data: [{ id: propertyCreation?.property?.id, code: propertyCreation?.property?.propertyCode, name: propertyCreation?.property?.propertyName }]
+                data: [{ id: propertyCreation?.property?.id, code: propertyCreation?.property?.propertyCode, name: propertyCreation?.property?.propertyName, currencyCode: propertyCreation?.property?.propertyConfigs?.baseCurrency as CurrencyCode }]
             }
         } catch (error) {
             return {

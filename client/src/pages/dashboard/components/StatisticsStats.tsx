@@ -1,4 +1,6 @@
+import type { CurrencyCode } from '@/components/currency-code/currency-code.type';
 import { TrendingUp, TrendingDown, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { getCurrencySymbol } from '../utils/currencyUtils';
 
 interface IStatisticMetric {
   current: number;
@@ -30,6 +32,7 @@ interface IStatisticsComparison {
 
 interface StatisticsStatsProps {
   data: IStatisticsComparison;
+  currencyCode:CurrencyCode;
 }
 
 const StatCard = ({
@@ -37,23 +40,24 @@ const StatCard = ({
   metric,
   period,
   format = 'number',
-  currency = 'USD'
+  currency
 }: {
   title: string;
   metric: IStatisticMetric;
   period: IComparisonPeriod;
   format?: 'number' | 'currency';
-  currency?: string;
+  currency?: CurrencyCode;
 }) => {
-  const formatValue = (value: number) => {
-    if (format === 'currency') {
-      return value.toLocaleString('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2,
-      });
-    }
-    return value.toLocaleString('en-US');
-  };
+const formatValue = (value: number) => {
+  if (format === 'currency') {
+    const symbol = getCurrencySymbol(currency ?? 'USD');
+    return `${symbol} ${value.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  }
+  return value.toLocaleString('en-US');
+};
 
   const isPositive = metric.percentageChange > 0;
   const isNegative = metric.percentageChange < 0;
@@ -86,9 +90,9 @@ const StatCard = ({
       case 'Bookings':
         return `${formatValue(metric.current)} Bookings`;
       case 'Revenue':
-        return `${formatValue(metric.current)} ${currency}`;
+        return `${formatValue(metric.current)}`;
       case 'Average Booking Value':
-        return `Avg ${formatValue(metric.current)} ${currency}`;
+        return `Avg ${formatValue(metric.current)}`;
       case 'Cancellation Rate':
         return `${formatValue(metric.current)} Cancelled`;
       case 'Room Nights':
@@ -176,7 +180,7 @@ const StatCard = ({
   );
 };
 
-export default function StatisticsStats({ data }: StatisticsStatsProps) {
+export default function StatisticsStats({ data , currencyCode }: StatisticsStatsProps) {
   return (
     <div className="space-y-4">
       {/* Header */}
@@ -205,7 +209,7 @@ export default function StatisticsStats({ data }: StatisticsStatsProps) {
           metric={data.revenue}
           period={data.period}
           format="currency"
-          currency="USD"
+          currency={currencyCode}
         />
 
         <StatCard
@@ -213,7 +217,7 @@ export default function StatisticsStats({ data }: StatisticsStatsProps) {
           metric={data.averageBookingValue}
           period={data.period}
           format="currency"
-          currency="USD"
+          currency={currencyCode}
         />
 
         <StatCard

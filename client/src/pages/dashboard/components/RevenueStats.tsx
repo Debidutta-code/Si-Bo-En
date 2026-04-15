@@ -1,41 +1,45 @@
-import { DollarSign, TrendingUp, CreditCard, AlertCircle } from 'lucide-react';
+import { TrendingUp, CreditCard, AlertCircle } from 'lucide-react';
 import StatCard from './StatCard';
 // import RevenueChart from './RevenueChart';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { IRevenueAnalytics } from '../interface';
+import type { CurrencyCode } from '@/components/currency-code/currency-code.type';
+import { getCurrencySymbol } from '../utils/currencyUtils';
 
 interface RevenueStatsProps {
   data: IRevenueAnalytics;
+  currencyCode: CurrencyCode
 }
 
-export default function RevenueStats({ data }: RevenueStatsProps) {
+export default function RevenueStats({ data, currencyCode }: RevenueStatsProps) {
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
+    const symbol = getCurrencySymbol(currencyCode);  // or import formatCurrency from utils
+    return `${symbol} ${amount.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
   };
 
   const growthIsPositive = parseFloat(data?.monthOverMonthGrowth) >= 0;
-
+  const CurrencyIcon = getCurrencySymbol(currencyCode)
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg shadow-lg">
-          <DollarSign className="h-5 w-5 text-white" />
+        <div className="p-2 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg shadow-lg flex items-center justify-center w-9 h-9">
+          <span className="text-white font-bold text-sm leading-none">
+            {CurrencyIcon}
+          </span>
         </div>
         <h2 className="text-2xl font-bold bg-gradient-to-r from-green-600 to-emerald-600 bg-clip-text text-transparent">
           Revenue Analytics
         </h2>
       </div>
-      
+
       <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
         <StatCard
           title="Total Revenue"
           value={formatCurrency(data?.totalRevenue)}
-          icon={DollarSign}
+          customIcon={CurrencyIcon}
           description="All time"
         />
         <StatCard
@@ -65,7 +69,7 @@ export default function RevenueStats({ data }: RevenueStatsProps) {
         <StatCard
           title="RevPAR"
           value={formatCurrency(data?.revPAR)}
-          icon={DollarSign}
+          customIcon={CurrencyIcon}
           description="Revenue per available room"
         />
         <StatCard
@@ -84,7 +88,7 @@ export default function RevenueStats({ data }: RevenueStatsProps) {
         <StatCard
           title="Last Month"
           value={formatCurrency(data?.lastMonthRevenue)}
-          icon={DollarSign}
+          customIcon={CurrencyIcon}
           description="Previous month revenue"
         />
       </div>
@@ -94,43 +98,42 @@ export default function RevenueStats({ data }: RevenueStatsProps) {
 
       {/* Payment Status Breakdown */}
       <Card className="bg-gradient-to-br from-purple-50 to-pink-50">
-  <CardHeader>
-    <CardTitle className="text-xl font-bold">Payment Status Breakdown</CardTitle>
-  </CardHeader>
-  <CardContent>
-    <div className="space-y-3">
-      {data?.paymentStatusBreakdown.map((payment) => {
-        // Calculate max amount to normalize bar widths
-        const maxAmount = Math.max(...(data?.paymentStatusBreakdown.map(p => p.amount) || [0]));
-        const percentage = maxAmount > 0 ? (payment.amount / maxAmount * 100) : 0;
-        
-        return (
-          <div key={payment.status} className="space-y-1">
-            <div className="flex items-center justify-between text-sm">
-              <span className="capitalize font-medium">{payment.status}</span>
-              <span className="font-semibold">{formatCurrency(payment.amount)}</span>
-            </div>
-            <div className="text-xs text-muted-foreground">
-              {payment.count} payments
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
-              <div 
-                className={`h-2 rounded-full transition-all duration-1000 ${
-                  payment.status === 'confirmed' ? 'bg-gradient-to-r from-green-500 to-green-600' : 
-                  payment.status === 'pending' ? 'bg-gradient-to-r from-orange-500 to-orange-600' : 
-                  'bg-gradient-to-r from-red-500 to-red-600'
-                }`}
-                style={{ 
-                  width: `${percentage}%` 
-                }}
-              />
-            </div>
+        <CardHeader>
+          <CardTitle className="text-xl font-bold">Payment Status Breakdown</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {data?.paymentStatusBreakdown.map((payment) => {
+              // Calculate max amount to normalize bar widths
+              const maxAmount = Math.max(...(data?.paymentStatusBreakdown.map(p => p.amount) || [0]));
+              const percentage = maxAmount > 0 ? (payment.amount / maxAmount * 100) : 0;
+
+              return (
+                <div key={payment.status} className="space-y-1">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="capitalize font-medium">{payment.status}</span>
+                    <span className="font-semibold">{formatCurrency(payment.amount)}</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {payment.count} payments
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className={`h-2 rounded-full transition-all duration-1000 ${payment.status === 'confirmed' ? 'bg-gradient-to-r from-green-500 to-green-600' :
+                        payment.status === 'pending' ? 'bg-gradient-to-r from-orange-500 to-orange-600' :
+                          'bg-gradient-to-r from-red-500 to-red-600'
+                        }`}
+                      style={{
+                        width: `${percentage}%`
+                      }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        );
-      })}
-    </div>
-  </CardContent>
-</Card>
+        </CardContent>
+      </Card>
     </div>
   );
 }

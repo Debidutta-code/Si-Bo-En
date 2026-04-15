@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 interface StatCardProps {
   title: string;
   value: string | number;
-  icon: LucideIcon;
+  icon?: LucideIcon;          // ✅ now optional
+  customIcon?: string;        // ✅ NEW — for currency symbols like "₹", "د.إ"
   description?: string;
   trend?: {
     value: string;
@@ -17,6 +18,7 @@ export default function StatCard({
   title, 
   value, 
   icon: Icon, 
+  customIcon,                 // ✅ NEW
   description, 
   trend,
   className = '' 
@@ -38,7 +40,14 @@ export default function StatCard({
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
         <CardTitle className="text-sm font-medium text-gray-700">{title}</CardTitle>
         <div className={`p-2 rounded-lg bg-gradient-to-br ${randomGradient}`}>
-          <Icon className="h-4 w-4 text-white" />
+          {customIcon ? (
+            // ✅ renders the currency symbol string as the icon
+            <span className="h-4 w-4 text-white font-bold text-sm flex items-center justify-center leading-none">
+              {customIcon}
+            </span>
+          ) : Icon ? (
+            <Icon className="h-4 w-4 text-white" />
+          ) : null}
         </div>
       </CardHeader>
       <CardContent className="relative">

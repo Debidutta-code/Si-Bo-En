@@ -19,6 +19,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAppSelector } from '@/redux/hooks';
+import type { CurrencyCode } from '@/components/currency-code/currency-code.type';
+import { currencies } from '@/components/currency-code/cuurency';
 
 export default function Dashboard() {
   const { user } = useAppSelector((state) => state.user);
@@ -28,36 +30,37 @@ export default function Dashboard() {
   });
 
   const [analyticsData, setAnalyticsData] = useState<IAnalyticsData | null>(null);
-  const [statisticsData, setStatisticsData] = useState<IStatisticsComparison | null>(null); // 🆕 NEW STATE
-  const [comparisonType, setComparisonType] = useState<'date' | 'month' | 'year'>('month'); // 🆕 NEW STATE
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date()); // 🆕 NEW STATE
+  const [statisticsData, setStatisticsData] = useState<IStatisticsComparison | null>(null);
+  const [comparisonType, setComparisonType] = useState<'date' | 'month' | 'year'>('month');
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedCurrency, setSelectedCurrency] = useState<CurrencyCode>('USD');
   const [error, setError] = useState<string | null>(null);
   const [allProperties, setAllProperties] = useState<IPropertyCodeAndIds[]>([])
   const [selectedProperty, setSelectedProperty] = useState<IPropertyCodeAndIds>({
     id: "",
     code: "",
-    name: ""
+    name: "",
+    currencyCode: "USD"
   })
 
   useEffect(() => {
+    if (!user) return;
     if (user?.role != "housekeeping" && user?.role != "front_desk") {
       fetchProperties();
     }
-  }, []);
+  }, [user?.role]);
 
-  // 🆕 NEW: Fetch statistics when comparison type or date changes
   useEffect(() => {
-    // Always fetch statistics when comparison type or date changes
-    // regardless of property selection
     if (allProperties.length > 0 || !selectedProperty.id) {
-      fetchStatistics(selectedProperty?.id, selectedProperty?.code, selectedProperty?.name);
+      fetchStatistics(selectedProperty?.id, selectedProperty?.code, selectedProperty?.name, selectedCurrency);
+      fetchAnalytics(selectedProperty?.id, selectedProperty?.code, selectedProperty?.name, selectedCurrency)
     }
-  }, [comparisonType, selectedDate, selectedProperty.id]);
+  }, [comparisonType, selectedDate, selectedProperty.id, selectedCurrency]);
 
   const handlePropertyChange = (propertyId: string) => {
     if (propertyId === "all") {
       // Reset to show all properties
-      setSelectedProperty({ id: "", code: "", name: "" });
+      setSelectedProperty({ id: "", code: "", name: "", currencyCode: "USD" });
       fetchAnalytics();
       fetchStatistics();
     } else {
@@ -71,7 +74,7 @@ export default function Dashboard() {
   };
 
   // 🆕 NEW FUNCTION: Fetch Statistics Comparison
-  const fetchStatistics = async (propertyId?: string, propertyCode?: string, propertyName?: string) => {
+  const fetchStatistics = async (propertyId?: string, propertyCode?: string, propertyName?: string, selectedCurrency?: CurrencyCode) => {
     try {
       setError(null);
 
@@ -80,7 +83,8 @@ export default function Dashboard() {
         selectedDate.toISOString(),
         propertyId,
         propertyCode,
-        propertyName
+        propertyName,
+        selectedCurrency
       );
 
       if (response.success && response.data) {
@@ -97,12 +101,12 @@ export default function Dashboard() {
     }
   };
 
-  const fetchAnalytics = async (propertyId?: string, propertyCode?: string, propertyName?: string) => {
+  const fetchAnalytics = async (propertyId?: string, propertyCode?: string, propertyName?: string, selectedCurrency?: CurrencyCode) => {
     try {
       setLoader({ isLoading: true, message: "Fetching Analytics ..." });
       setError(null);
 
-      const response = await fetchAnaltyticsService(propertyId, propertyCode, propertyName);
+      const response = await fetchAnaltyticsService(propertyId, propertyCode, propertyName, selectedCurrency);
 
       if (response.success && response.data) {
         setAnalyticsData(response.data.analytics);
@@ -121,19 +125,29 @@ export default function Dashboard() {
     }
   };
 
+
   const fetchProperties = async () => {
     try {
       setLoader({ isLoading: true, message: "Fetching Property Names ..." });
       setError(null);
-
       const response = await fetchPropertiesService();
 
       if (response.success) {
         setAllProperties(response.data);
 
-        // ✅ Fetch analytics without property filter
-        await fetchAnalytics();
-        await fetchStatistics();
+        // Resolve currency synchronously before calling fetch functions
+        const isSingleProperty = response.data.length === 1 &&
+          (user?.role === "hotel_manager" || user?.role === "staff");
+
+        const resolvedCurrency: CurrencyCode = isSingleProperty
+          ? (response.data[0].currencyCode ?? 'USD') as CurrencyCode
+          : selectedCurrency;
+
+        setSelectedCurrency(resolvedCurrency); // for future renders
+
+        // Pass resolved currency directly — don't rely on state
+        await fetchAnalytics(undefined, undefined, undefined, resolvedCurrency);
+        await fetchStatistics(undefined, undefined, undefined, resolvedCurrency);
       } else {
         setError(response.message || "Failed to fetch properties");
         toast.error(response.message || "Failed to fetch properties");
@@ -142,11 +156,10 @@ export default function Dashboard() {
       const errorMessage = err instanceof Error ? err.message : "An unexpected error occurred";
       setError(errorMessage);
       toast.error(errorMessage);
-      console.error("Error fetching properties:", err);
     } finally {
       setLoader({ isLoading: false, message: "" });
     }
-  }
+  };
 
   if (loader.isLoading) {
     return (
@@ -280,6 +293,21 @@ export default function Dashboard() {
                 </SelectContent>
               </Select>
             )}
+            <Select
+              value={selectedCurrency}
+              onValueChange={(value: CurrencyCode) => setSelectedCurrency(value)}
+            >
+              <SelectTrigger className="w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {currencies.map((currency) => (
+                  <SelectItem key={currency.code} value={currency.code}>
+                    {currency.symbol} {currency.code}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Button
               onClick={() => {
                 if (selectedProperty.id) {
@@ -299,13 +327,15 @@ export default function Dashboard() {
         </div>
 
         {/* 🆕 NEW: Statistics Comparison Section */}
-        {statisticsData && <StatisticsStats data={statisticsData} />}
-
+        {statisticsData && (
+          <StatisticsStats data={statisticsData} currencyCode={statisticsData.currencyCode} />
+        )}
         {/* Reservation Analytics */}
         <ReservationStats data={analyticsData.reservation} />
 
         {/* Revenue Analytics */}
-        <RevenueStats data={analyticsData.revenue} />
+        <RevenueStats data={analyticsData.revenue}
+          currencyCode={analyticsData.currencyCode} />
 
         {/* Guest Analytics */}
         {/* <GuestStats data={analyticsData.guest} /> */}
@@ -315,11 +345,13 @@ export default function Dashboard() {
           addonData={analyticsData.addon}
           bookingSourceData={analyticsData.bookingSource}
           paymentMethodData={analyticsData.paymentMethod}
+          currencyCode={analyticsData.currencyCode}
         />
 
         {/* Top Performing Properties */}
         {analyticsData.topPerformingProperties && (
-          <TopPropertiesStats data={analyticsData.topPerformingProperties} />
+          <TopPropertiesStats data={analyticsData.topPerformingProperties}
+          currencyCode={analyticsData.currencyCode} />
         )}
       </div>
     </div>
