@@ -1,24 +1,24 @@
 import { prisma } from "../../../../config";
 import { IPaginatedResponse } from "../../../../utils/return";
 import {
-    ICReservation,
     IReservation,
     IReservationWithAllDetails,
     IReservationPriceBrakeDownR,
-    IAriManulupulation
+    IAriManulupulation,
+    ICReservationR
 } from "../types";
 import { BookingStatus, IBookingAddon, IBookingAddonCreate, IGuestDetail, IPropertyEmails, IReservationPromotion, IReservationPromotionCreate } from "../types/reservation.type";
 
 export class ReservationRepository {
-    public async createReservation(data: ICReservation) {
+    public async createReservation(data: ICReservationR): Promise<IReservation> {
         try {
             return await prisma.reservation.create({
                 data,
-                include: {
-                    primaryGuest: true,
-                    priceBreakdowns: true,
-                    reservationGuests: true,
-                }
+                // include: {
+                //     primaryGuest: true,
+                //     priceBreakdowns: true,
+                //     reservationGuests: true,
+                // }
             });
         } catch (error) {
             if (error instanceof Error) {
@@ -48,7 +48,7 @@ export class ReservationRepository {
     }
     public async updateReservation(
         reservationId: string,
-        updateData: Partial<ICReservation>
+        updateData: Partial<ICReservationR>
     ): Promise<IReservation> {
         try {
             return await prisma.reservation.update({
@@ -69,7 +69,7 @@ export class ReservationRepository {
 
     public async updateReservationWithTransaction(
         reservationId: string,
-        updateData: Partial<ICReservation>,
+        updateData: Partial<ICReservationR>,
         priceBreakdownData?: Partial<IReservationPriceBrakeDownR>,
         guestDetails?: IGuestDetail[],
         addonDetails?: IBookingAddonCreate[],
@@ -608,25 +608,6 @@ export class ReservationRepository {
         end.setDate(end.getDate() + 1);
         return end;
     }
-
-    public async amendReservation(reservationId: string, newCheckoutDate: Date): Promise<IReservation> {
-        try {
-            return await prisma.reservation.update({
-                where: { id: reservationId },
-                data: { checkOutDate: newCheckoutDate },
-                include: {
-                    primaryGuest: true,
-                    priceBreakdowns: true
-                }
-            });
-        } catch (error) {
-            if (error instanceof Error) {
-                throw new Error(`Failed to amend reservation: ${error.message}`);
-            }
-            throw new Error("Failed to extend ReservationDate");
-        }
-    }
-
     public async deleteReservation(reservationId: string): Promise<IReservation> {
         try {
             return await prisma.reservation.update({
@@ -644,23 +625,7 @@ export class ReservationRepository {
             throw new Error("Failed to delete ReservationDate");
         }
     }
-    public async NoShow(reservationId: string): Promise<IReservation> {
-        try {
-            return await prisma.reservation.update({
-                where: { id: reservationId },
-                data: { bookingStatus: "no_show" },
-                include: {
-                    primaryGuest: true,
-                    priceBreakdowns: true
-                }
-            });
-        } catch (error) {
-            if (error instanceof Error) {
-                throw new Error(`Failed to cancel reservation: ${error.message}`);
-            }
-            throw new Error("Failed to delete ReservationDate");
-        }
-    }
+
     public async getReservaltionByCode(reservationCode: string, propertyCode: string): Promise<IReservationWithAllDetails | null> {
         try {
             return await prisma.reservation.findUnique({
@@ -725,6 +690,23 @@ export class ReservationRepository {
             return property;
         } catch (error) {
             throw new Error(`Failed to fetch property emails`);
+        }
+    }
+    public async NoShow(reservationId: string): Promise<IReservation> {
+        try {
+            return await prisma.reservation.update({
+                where: { id: reservationId },
+                data: { bookingStatus: "no_show" },
+                include: {
+                    primaryGuest: true,
+                    priceBreakdowns: true
+                }
+            });
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`Failed to cancel reservation: ${error.message}`);
+            }
+            throw new Error("Failed to delete ReservationDate");
         }
     }
 

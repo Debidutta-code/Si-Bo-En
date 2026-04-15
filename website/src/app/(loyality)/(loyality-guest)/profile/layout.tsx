@@ -11,7 +11,11 @@ const tabs = [
   { label: "My Bookings", href: "/profile/bookings" },
 ];
 
-export default function ProfileLayout({ children }: { children: React.ReactNode }) {
+export default function ProfileLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const pathname = usePathname();
   const router = useRouter();
   const dispatch = useDispatch();
@@ -56,12 +60,12 @@ export default function ProfileLayout({ children }: { children: React.ReactNode 
 
           {/* Sign out */}
           <button
-  onClick={handleLogout}
-  className="inline-flex items-center gap-1.5 bg-red-600 hover:bg-red-700 active:scale-[0.97] text-white text-[13px] font-medium px-3.5 py-[7px] rounded-lg transition-all"
->
-  <LogOut size={14} />
-  Sign out
-</button>
+            onClick={handleLogout}
+            className="inline-flex items-center gap-1.5 bg-red-600 hover:bg-red-700 active:scale-[0.97] text-white text-[13px] font-medium px-3.5 py-[7px] rounded-lg transition-all"
+          >
+            <LogOut size={14} />
+            Sign out
+          </button>
         </div>
       </div>
 
