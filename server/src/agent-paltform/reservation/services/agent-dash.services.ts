@@ -92,7 +92,7 @@ export class ReservationService {
                 return errorResponse("Reservation already cancelled", "This reservation has already been cancelled");
             }
 
-            const checkInDate = new Date(existingReservation.checkInDate);
+            const checkInDate = new Date(existingReservation.reservationStartDate);
             const today = new Date();
             today.setHours(0, 0, 0, 0);
 
