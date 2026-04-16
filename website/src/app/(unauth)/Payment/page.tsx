@@ -58,10 +58,8 @@ const BookingReviewPage = () => {
     PropertyDetails,
   } = bookingDetails;
 
-  const ratePlanCode = finalPrice?.dailyBreakdown?.[0]?.ratePlanCode;
-  const currencyCode = finalPrice?.dailyBreakdown?.[0]?.currencyCode || "USD";
+  const currencyCode = finalPrice?.currencyCode || "USD";
   const roomTypeCode = bookingDetails.roomTypeCode;
-  const propertyCode = bookingDetails.PropertyCode;
   const PropertyId = bookingDetails.PropertyDetails?.id;
   const propertyName = PropertyDetails?.propertyName || hotelName || "";
   const router = useRouter();
@@ -86,7 +84,6 @@ const BookingReviewPage = () => {
   const totalAmount = finalPrice?.totalAmount || 0;
   const [updatedPrice, setUpdatedPrice] = useState(totalAmount);
   const [promoDetails, setPromoDetails] = useState<any>(null);
-  const [discount, setDiscount] = useState(0);
 
   const { colors } = useBookingStorage({});
 
@@ -109,13 +106,6 @@ const BookingReviewPage = () => {
     }
     return bankDetails.selectedPaymentIntegrations.paymentIntegration.name === "fikafi" ? "fikafi" : "ngenius";
   };
-
-  useEffect(() => {
-    if (finalPrice?.totalAmount) {
-      setUpdatedPrice(finalPrice.totalAmount - discount);
-    }
-  }, [finalPrice?.totalAmount, discount]);
-
   useEffect(() => {
     const fetchBankDetails = async () => {
       if (!PropertyId) {
@@ -307,49 +297,39 @@ const BookingReviewPage = () => {
     }
     return g;
   });
+  console.log(bookingDetails, "bookingDetails")
   const handleConfirmBooking = async () => {
     setLoading(true);
     setError(null);
     try {
-      // If gateway payment is selected, route to appropriate handler
       if (selectedPayment === "gateway") {
         if (activeGateway === "ngenius") {
           await handleNGeniusPayment();
           return;
         }
-        // For Fikafi, the FikafiPaymentButton handles the flow
-        // We just create the booking first
       }
-
-      // For payAtHotel or Fikafi (before payment), create booking
       const bookingData = {
-        data: {
-          bookingDetails: {
-            startDate: checkIn,
-            endDate: checkOut,
-            propertyCode: bookingDetails.PropertyCode,
-            hotelName,
-            roomTypeCode,
-            numberOfRooms: bookingDetails.numberOfRooms || 1,
-            finalPrice: {
-              ...finalPrice,
-              totalAmount: updatedPrice,
-            },
-            promoCode: promoDetails || null,
-            currency: currencyCode,
-            email,
-            phone: bookingDetails.phone,
-            guests: guests,
-            guestDetails: enrichedGuests,
-            ratePlanCode: bookingDetails.ratePlanCode,
-            paymentMethod: mapPaymentMethodToEnum(selectedPayment || ""),
-            bookingSource: bookingDetails.bookingSource,
-            selectedPromotions: bookingDetails.selectedPromotions || [],
-            selectedAddons: bookingDetails.selectedAddons || [],
-          },
+          propertyCode: bookingDetails.PropertyCode,
+          reservationStartDate: checkIn,
+          reservationEndDate: checkOut,
+          hotelName,
           bankDetails,
+          roomName: bookingDetails.roomName,
+          roomTypeCode,
+          guests: guests,
+          bookingUserEmail: email,
+          bookingUserPhone: bookingDetails.phone,
+          numberOfRooms: bookingDetails.numberOfRooms || 1,
+          finalPrice: finalPrice,
+          promoCode: bookingDetails.promocode,
+          currencyCode,
           guestDetails: enrichedGuests,
-        },
+          ratePlanCode: bookingDetails.ratePlanCode,
+          paymentMethod: mapPaymentMethodToEnum(selectedPayment || ""),
+          bookingSource: bookingDetails.bookingSource,
+          selectedPromotions: bookingDetails.selectedPromotions || [],
+          selectedAddons: bookingDetails.selectedAddons || [],
+          platforms: "web"
       };
 
       const response = await fetch(
@@ -924,11 +904,6 @@ const BookingReviewPage = () => {
         <div className="space-y-6">
           <PriceDetails
             bookingDetails={bookingDetails}
-            onPriceUpdate={(total, discountAmount, promo) => {
-              setUpdatedPrice(total);
-              setDiscount(discountAmount);
-              setPromoDetails(promo);
-            }}
           />
           {/* <HelpBox hotelEmail={PropertyDetails?.property_email} /> */}
         </div>

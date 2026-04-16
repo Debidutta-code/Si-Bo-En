@@ -1,7 +1,7 @@
 import { DiscountType } from "../../../../promocode/types";
-import { DailyPriceBrakeDown, TaxBrakeDown, AddOnBrakeDown, PromotionBrakeDown } from "../../../../booking-engine/types/pricing.type";
+import { PromotionBrakeDown } from "../../../../booking-engine/types/pricing.type";
 import { CurrencyCode } from "../../../../tax-system/interfaces";
-import { DeviceType } from "../../../../agent-paltform/property/types";
+import { PostingRhythm } from "../../../../add-on/interfaces";
 export type Platforms = 'web' | 'mobile' | 'desktop';
 export type BookingSource = "direct" |
   "google" |
@@ -18,14 +18,8 @@ export type BookingStatus = "pending" |
   "checked_in" |
   "checked_out"
 export type PaymentMethod = "pay_at_hotel" | "net_banking" | "upi" | "payment_gateway";
-export type ReservationPromotionType = "early_bird" | "mlos" | "device_specific" | "offer_for_tonight" | "normal"
-export interface ICreateReservationPayload {
-  data: {
-    bookingDetails: IBookingDetails;
-    bankDetails: IBankDetails;
-    guestDetails: IGuestDetail[];
-  };
-}
+export type ReservationPromotionType = "early_bird" | "mlos" | "device_specific" | "offer_for_tonight" | "normal";
+
 export interface IPropertyEmails {
   email: string;
 }
@@ -73,99 +67,44 @@ export interface IGuestDetail {
   phone?: string;
 }
 
-// New PriceBrakeDown-aligned IFinalPrice
-export interface IFinalPrice {
-  totalAmount: number;
-  amountBeforeTax: number;
-  taxedAmount: number;
-  totalAddonAmount: number;
-  totalPromotionAmount: number;
-  currentChargeableAmount: number;
-  latterpayableAmount: number;
-  promoCodeDiscount: number;
-  loyalityDiscount: number;
-  currencyCode: CurrencyCode;
-  dailyPriceBrakeDown: DailyPriceBrakeDown[];
-  taxBrakeDown: TaxBrakeDown[];
-  addonBrakeDown: AddOnBrakeDown[];
-  promotionBrakeDown: PromotionBrakeDown[];
-  // Fields preserved from old shape for backward compat / email usage
-  numberOfNights?: number;
-  requestedRooms?: number;
-  loyaltyDiscount?: {
-    amountAfterDiscount: number;
-    appliedTo: string;
-    currencyCode: CurrencyCode;
-    discountAmount: number;
-    discountType: DiscountType;
-    discountValue: number;
-    guestEmail: string;
-    loyaltyMemberId: string;
-    originalAmount: number;
-    propertyName: string;
-  } | null;
-}
-
-export interface IBankDetails {
-  id: string
-  payAtHotel: boolean;
-  paymentGateway: boolean;
-  createdAt: string;
-  updatedAt: string;
-}
 export interface ICReservationR {
-
-
   propertyId: string;
   propertyCode: string;
+  currencyCode: CurrencyCode;
   hotelName: string;
-
   roomTypeCode: string;
+  roomName: string | null;
   ratePlanCode: string;
-
+  ratePlanName: string | null;
   bookingCode: string;
-
   bookedAt: Date;
-
   checkInDate: Date | null;
   checkOutDate: Date | null;
-
   reservationStartDate: Date;
   reservationEndDate: Date;
-
   countryCode: string;
   timezone: string;
   deviceTypes: DeviceType;
   platforms: Platforms;
-
   primaryGuestId: string;
-
   guests: any;
   bookingUserEmail: string;
   bookingUserPhone: string | null;
-
   amount: number;
-  currencyCode: CurrencyCode;
   finalPrice: any;
-
   paidAmount: number;
   extraAmountToPay: number;
   refundAmount: number;
-
   paymentMethod: PaymentMethod;
   paymentImages: any;
-
   bookingStatus: BookingStatus;
   cancellationReason: string | null;
-
   bookingSource: BookingSource;
-
+  pricingBrakedownId: string | null;
   isPromoUsed: boolean;
   promoId: string | null;
-
   cancelledAt: Date | null;
   agencyId: string | null;
-
 }
 
 export interface IReservation extends ICReservationR {
@@ -193,7 +132,6 @@ export interface IReservationGuest {
   dateOfBirth: Date | null;
   age: number | null;
 }
-// ==================== GUEST TYPES ====================
 export interface ICGuest {
   firstName: string;
   lastName: string;
@@ -216,7 +154,6 @@ export interface IGuests extends ICGuest {
   createdAt: Date;
   updatedAt: Date;
 }
-// ==================== NORMALIZED PROMOTION TYPES (for internal use) ====================
 export interface INormalizedPromotion {
   id?: string;
   promotionType: string;
@@ -237,6 +174,7 @@ export interface IReservationPromotionCreate {
   mlosId?: string | null;
   amount: number;
   currency: CurrencyCode;
+  type: PromotionBrakeDownType;
 }
 
 // ==================== PRICE BREAKDOWN TYPES ====================
@@ -380,13 +318,179 @@ export type userIdentityCardType = "passport"
   | "adhar_card"
   | "pan_card"
   | "others"
-export interface IGuestCheckInDetails{
-  address?:string
-  city?:string
-  state?:string
-  country?:string
-  zipCode?:string
-  userIdentityCardType:userIdentityCardType
-  identityCardNumber:string
-  identityCardImage?:string
+
+
+export interface IGuestCheckInDetails {
+  address?: string
+  city?: string
+  state?: string
+  country?: string
+  zipCode?: string
+  userIdentityCardType: userIdentityCardType
+  identityCardNumber: string
+  identityCardImage?: string
 }
+
+
+
+export interface IPropertyDetails {
+  id: string;
+  propertyName: string;
+  propertyCode: string;
+  creationId: string;
+  timezone?: string | undefined;
+  currencyCode?: string | undefined;
+}
+export interface ICReservationPayload {
+  propertyCode: string;
+  reservationStartDate: Date;
+  reservationEndDate: Date;
+  hotelName: string;
+  bankDetails: IBankDetails;
+  roomName: string;
+  roomTypeCode: string;
+  guests: IGuestdistribution;
+  bookingUserEmail: string;
+  bookingUserPhone: string;
+  numberOfRooms: number;
+  finalPrice: IFinalPrice;
+  promoCode: string;
+  currencyCode: CurrencyCode;
+  guestDetails: IGuestDetails[];
+  ratePlanCode: string;
+  paymentMethod: string;
+  bookingSource: BookingSource;
+  selectedPromotions: ISelectedPromotions[];
+  selectedAddons: ISelectedAddons[];
+  platforms: Platforms;
+  agencyId?: string;
+  ngeniusOrderRef?: string;
+}
+
+export interface IBankDetails {
+  id: string;
+  payAtHotel: boolean;
+  paymentGateway: boolean;
+  propertyId: string;
+  selectedPaymentIntegrations: ISelectedPaymentIntegrations | null;
+
+}
+export interface ISelectedPaymentIntegrations {
+  id: string;
+  propertyId: string;
+  paymentIntegrationId: string;
+  isActive: boolean;
+  outletId: string;
+  sameDayRefund: boolean;
+  paymentIntegration: {
+    id: string;
+    name: string;
+    isActive: boolean;
+  }
+}
+export interface IGuestdistribution {
+  adults: number;
+  children: number;
+  rooms: number;
+  roomsArray: IRoomArray[]
+}
+export interface IRoomArray {
+  adults: number;
+  children: number;
+  childAges: number[];
+}
+export interface IGuestDetails {
+  type: "adult" | "child" | "infant";
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  salutation?: string;
+}
+export interface ISelectedAddons {
+  addonCode: string;
+  addonId: string;
+  addonName: string;
+  availabilityId: string;
+  date: Date;
+  price: number;
+  quantity: number;
+  totalPrice: number;
+  type: PostingRhythm;
+}
+export interface ISelectedPromotions {
+  discountType: DiscountType;
+  discountValue: number;
+  id: string;
+  promotionName: string;
+}
+export type DeviceType = "mobile" | "tablet" | "desktop"
+export interface IFinalPrice {
+  additionalGuestCharges: number;
+  amountBeforeTax: number;
+  addonBrakeDown: IAddonBreakdown[];
+  amountAfterTax: number;
+  baseRatePerNight: number;
+  currencyCode: CurrencyCode;
+  currentChargeableAmount: number;
+  dailyPriceBrakeDown: IDailyPriceBrakeDown[];
+  latterpayableAmount: number;
+  loyalityDiscount: number;
+  numberOfNights: number;
+  promoCodeDiscount: number;
+  promotionBrakeDown: PromotionBrakeDown[];
+  requestedRooms: number;
+  taxBrakeDown: ITaxBrakeDown[];
+  taxedAmount: number;
+  totalAddonAmount: number;
+  totalAmount: number;
+  totalPromotionAmount: number;
+  totalTaxAmount: number;
+}
+
+export interface ITaxBrakeDown {
+  currencyCode: CurrencyCode
+  name: string;
+  taxedAmount: number;
+}
+export interface IPromotionBrakeDown {
+  id: string;
+  name: string;
+  promotionType: ReservationPromotionType;
+  restrictionType: PromotionrestrictionType;
+  type: PromotionBrakeDownType;
+  currencyCode: CurrencyCode;
+  discountAmount: number;
+  discountType: DiscountType;
+  discountValue: number;
+}
+export type PromotionBrakeDownType = "auto-applied" | "user-applied";
+export type PromotionrestrictionType = "decrease" | "payLater";
+export interface IDailyPriceBrakeDown {
+  addOnBrakeDown: IAddonBreakdown[];
+  additionalChargesAmount: number;
+  baseChargesAmount: number;
+  currencyCode: CurrencyCode;
+  date: string;
+  guestDistribution: { adults: number; children: number; childAges: number[] };
+  roomNumber: string;
+  totalAmount: number;
+}
+export type AddonBreakDownType = "included" | "selected"
+export interface IAddonBreakdown {
+  addonId: string;
+  amount: number;
+  currencyCode: CurrencyCode;
+  date: string;
+  name: string;
+  quantity: number;
+  totalAmount: number;
+  type: AddonBreakDownType;
+}
+export interface IReservationPromocode {
+  id: string;
+  reservationId: string;
+  promoCodeId: string;
+  amount: number;
+  currency: CurrencyCode;
+}
+

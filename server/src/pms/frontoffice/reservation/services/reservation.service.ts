@@ -9,14 +9,16 @@ import { IApiResponse } from '../../../../utils/return.types';
 import {
     IReservationPriceBrakeDownR,
     IAriManulupulation,
-    ICreateReservationPayload,
     ICGuest,
     IReservationUpdatePayload,
     IReservationPromotionCreate,
     IBookingAddonCreate,
-    IBookingDetails,
     ICReservationR,
-    IGuestCheckInDetails
+    IGuestCheckInDetails,
+    ICReservationPayload,
+    IPropertyDetails,
+    DeviceType,
+    IBookingDetails
 } from '../types';
 import { prisma } from '../../../../config';
 import { IPropertyCodeAndIds } from '../../../../dashboard/types';
@@ -35,7 +37,7 @@ import { BookingStatus } from '../types/reservation.type';
 import { ngeniusService } from '../../../../payment/services/ngenius.service';
 import { CreationLoyalityService } from '../../../../loyalty/services';
 import { CreationGuestRepository } from '../../../../loyalty/repository/creation-guest.repository';
-
+import { PromoCodeRepository } from '../../../../promocode/repository/index';
 export class ReservationService {
     reservationRepository: ReservationRepository;
     priceBrakeDownRepo: PriceBrakeDownRepo;
@@ -47,6 +49,7 @@ export class ReservationService {
     emailService: ReservationEmailService;
     loyalityGuestRepo: LoyaltyGuestRepository;
     creationGuestRepository: CreationGuestRepository;
+    promoCodeRepository: PromoCodeRepository;
     constructor() {
         this.reservationRepository = new ReservationRepository();
         this.priceBrakeDownRepo = new PriceBrakeDownRepo();
@@ -59,6 +62,7 @@ export class ReservationService {
         this.emailService = new ReservationEmailService();
         this.loyalityGuestRepo = new LoyaltyGuestRepository();
         this.creationGuestRepository = new CreationGuestRepository();
+        this.promoCodeRepository = new PromoCodeRepository();
     }
 
     private async generateBookingCode(propertyCode: string): Promise<string> {
@@ -115,58 +119,6 @@ export class ReservationService {
         return methodMap[method] || 'pay_at_hotel';
     }
 
-    private normalizePayload(payload: any): ICreateReservationPayload['data'] {
-        const { bookingDetails, guestDetails } = payload;
-        const { finalPrice } = bookingDetails;
-
-        let selectedPromotions = bookingDetails.selectedPromotions || [];
-
-        if (
-            finalPrice.promotionBrakeDown &&
-            Array.isArray(finalPrice.promotionBrakeDown) &&
-            finalPrice.promotionBrakeDown.length > 0
-        ) {
-            selectedPromotions = finalPrice.promotionBrakeDown
-                .filter((promo: any) => promo.restrictionType !== 'payLater')
-                .map((promo: any) => ({
-                    id: promo.id || null,
-                    promotionType: promo.promotionType || 'normal',
-                    promotionName: promo.name,
-                    discountValue: promo.discountValue,
-                    discountType: promo.discountType,
-                    amount: promo.discountAmount,
-                }));
-        }
-
-        let selectedAddons = bookingDetails.selectedAddons || [];
-
-        if (
-            finalPrice.addonBrakeDown &&
-            Array.isArray(finalPrice.addonBrakeDown) &&
-            finalPrice.addonBrakeDown.length > 0
-        ) {
-            selectedAddons = finalPrice.addonBrakeDown.map((addon: any) => ({
-                addonId: addon.addonId || null,
-                addonName: addon.name,
-                price: addon.amount,
-                quantity: addon.quantity,
-                totalPrice: addon.totalAmount,
-                type: addon.type || 'addon',
-                date: addon.date || bookingDetails.startDate,
-            }));
-        }
-
-        return {
-            bookingDetails: {
-                ...bookingDetails,
-                finalPrice,
-                selectedPromotions,
-                selectedAddons,
-            },
-            guestDetails: guestDetails,
-            bankDetails: payload.bankDetails,
-        };
-    }
 
     private async resolveRefundStrategy(orderReference: string): Promise<{
         strategy: 'same_day' | 'day_after';
@@ -264,40 +216,54 @@ export class ReservationService {
         }
     }
 
-    public async createReservation(payload: any): Promise<IApiResponse> {
+    public async createReservation(payload: ICReservationPayload, propertyDetails: IPropertyDetails, countryCode: CurrencyCode, deviceType: DeviceType): Promise<IApiResponse> {
         try {
-            const normalizedPayload = this.normalizePayload(payload);
-            const { bookingDetails, guestDetails } = normalizedPayload;
-
             const {
-                startDate,
-                endDate,
                 propertyCode,
-                hotelName,
                 roomTypeCode,
                 ratePlanCode,
+                hotelName,
+                roomName,
+                numberOfRooms,
+                guestDetails,
+                reservationStartDate,
+                reservationEndDate,
+                platforms,
+                guests,
+                bookingUserEmail,
+                bookingUserPhone,
+                currencyCode,
                 finalPrice,
-                currency,
-                email,
-                phone,
                 paymentMethod,
                 bookingSource,
+                promoCode,
                 agencyId,
-            } = bookingDetails;
+                bankDetails,
 
-            const propertyId = await this.getPropertyIdByCode(propertyCode);
-            if (!propertyId) {
-                return errorResponse('Property not found');
-            }
-
-            const primaryGuestData = guestDetails[0];
+            } = payload;
+            const primaryGuestData = payload.guestDetails.find(guest => guest.type === 'adult');
             if (!primaryGuestData) {
-                return errorResponse('At least one guest is required');
+                return errorResponse('At least one adult guest is required');
+            }
+            let promoCodeId: string | null = null;
+            let promoCodeDetails: any = null;
+
+            if (promoCode && promoCode !== '') {
+                promoCodeDetails = await this.promoCodeRepository.getPromoCodeByIdOrCode(
+                    propertyDetails.id,
+                    promoCode
+                );
+
+                if (!promoCodeDetails) {
+                    return errorResponse('Promo code is invalid');
+                }
+
+                promoCodeId = promoCodeDetails.id;
             }
 
             let primaryGuestId: string;
             const existingGuest =
-                await this.guestRepository.getGuestByEmail(email);
+                await this.guestRepository.getGuestByEmail(bookingUserEmail);
 
             if (existingGuest) {
                 primaryGuestId = existingGuest.id;
@@ -305,13 +271,11 @@ export class ReservationService {
                 const newGuestPayload: ICGuest = {
                     firstName: primaryGuestData.firstName,
                     lastName: primaryGuestData.lastName,
-                    email: email,
-                    phoneNumber: phone || null,
-                    propertyId: propertyId,
+                    email: bookingUserEmail,
+                    phoneNumber: bookingUserPhone || null,
+                    propertyId: propertyDetails.id,
                     userType: primaryGuestData.type as
-                        | 'adult'
-                        | 'child'
-                        | 'infant',
+                        | 'adult',
                     address: null,
                     city: null,
                     state: null,
@@ -327,15 +291,21 @@ export class ReservationService {
                 primaryGuestId = newGuest.id;
             }
             //add loyalty guest
-            await this.loyalityGuestRepo.addGuestTOLoyalty(email, primaryGuestId);
+            await this.loyalityGuestRepo.addGuestTOLoyalty(bookingUserEmail, primaryGuestId);
 
 
 
             const bookingCode = await this.generateBookingCode(propertyCode);
             const paymentMethods = this.mapPaymentMethod(paymentMethod);
+            const rateplan = await this.ariManupulationRepo.getRatePlanName(ratePlanCode, propertyDetails.id);
+            if (!rateplan) {
+                return errorResponse('Rate plan name not found');
+            }
+
+
 
             const propertyConfig = await prisma.propertyConfigs.findUnique({
-                where: { propertyId },
+                where: { propertyId: propertyDetails.id },
                 select: {
                     selfAriActive: true,
                     pmsIntegrationActive: true,
@@ -356,7 +326,7 @@ export class ReservationService {
                 const propertyIntegration =
                     await prisma.propertyIntegrations.findFirst({
                         where: {
-                            propertyId,
+                            propertyId: propertyDetails.id,
                             isActive: true,
                             MasterIntegration: {
                                 type:
@@ -381,8 +351,8 @@ export class ReservationService {
                 payload.bankDetails?.selectedPaymentIntegrations
                     ?.paymentIntegration?.name === 'fikafi';
 
-            const checkIn = new Date(startDate);
-            const checkOut = new Date(endDate);
+            const checkIn = new Date(reservationStartDate);
+            const checkOut = new Date(reservationEndDate);
             const numberOfNights = Math.max(
                 1,
                 Math.ceil(
@@ -405,57 +375,58 @@ export class ReservationService {
 
             const reservationPayload: ICReservationR = {
                 bookingCode,
-                propertyId,
+                propertyId: propertyDetails.id,
                 propertyCode,
                 hotelName,
                 roomTypeCode,
                 ratePlanCode,
-
+                roomName,
+                ratePlanName: rateplan.ratePlanName,
                 checkInDate: null,
                 checkOutDate: null,
                 bookedAt: nowUTC(),
                 cancelledAt: null,
-                platforms: "desktop",
-                reservationEndDate: toUTC(endDate),
-                reservationStartDate: toUTC(startDate),
-
+                reservationEndDate: toUTC(reservationEndDate),
+                reservationStartDate: toUTC(reservationStartDate),
                 primaryGuestId,
                 guests: guestDetails,
-                bookingUserEmail: email,
-                bookingUserPhone: phone || null,
-
+                bookingUserEmail,
+                bookingUserPhone,
                 amount: finalPrice.totalAmount,
-                currencyCode: currency,
-                finalPrice: finalPrice,
+                currencyCode,
+                finalPrice,
+                pricingBrakedownId: null,
 
                 paidAmount: paidAmount,
                 extraAmountToPay: finalPrice.latterpayableAmount || 0,
                 refundAmount: 0,
-                timezone: payload.timezone || 'Asia/Kolkata',
-                countryCode: payload.countryCode || 'IN',
+                timezone: propertyDetails.timezone || 'Asia/Kolkata',
+                countryCode: countryCode || 'IN',
                 paymentMethod: paymentMethods,
                 paymentImages: null,
 
                 bookingStatus: initialBookingStatus,
                 cancellationReason: null,
-                deviceTypes: payload.deviceTypes || 'desktop',
+                deviceTypes: deviceType || 'desktop',
                 bookingSource: bookingSource || 'direct',
 
                 isPromoUsed: !!(
-                    bookingDetails.promoCode ||
-                    (normalizedPayload.bookingDetails.selectedPromotions &&
-                        normalizedPayload.bookingDetails.selectedPromotions
+                    payload.promoCode ||
+                    (payload.selectedPromotions &&
+                        payload.selectedPromotions
                             .length > 0)
                 ),
-                promoId: null,
+                promoId: promoCodeId || null,
                 agencyId: agencyId || null,
+                platforms: platforms || 'web',
             };
+
             if (
                 activeIntegrationType &&
                 activeIntegrationName === 'Rate Tiger'
             ) {
                 const rtConfig = await RTIntegrationDao.getRTConfig(
-                    propertyId,
+                    propertyDetails.id,
                     activeIntegrationType
                 );
 
@@ -466,7 +437,8 @@ export class ReservationService {
                 }
 
                 const rtResult = await RTReservationPushService.pushCommit(
-                    normalizedPayload as any,
+                    payload,
+                    countryCode,
                     bookingCode,
                     rtConfig
                 );
@@ -481,14 +453,27 @@ export class ReservationService {
                 await this.reservationRepository.createReservation(
                     reservationPayload
                 );
-
+            if (promoCode) {
+                await Promise.all([
+                    promoCodeDetails.usageLimit !== null &&
+                    this.promoCodeRepository.decreasePromoCodeUsageCount(promoCodeDetails.id),
+                    prisma.reservationPromoCode.create({
+                        data: {
+                            reservationId: reservation.id,
+                            promoCodeId: promoCodeDetails.id,
+                            amount: finalPrice.promoCodeDiscount || 0,
+                            currency: currencyCode,
+                        }
+                    })
+                ]);
+            }
             if (guestDetails && guestDetails.length > 0) {
                 await this.reservationRepository.createReservationGuests(
                     reservation.id,
                     guestDetails
                 );
             }
-            const ngeniusOrderRef = bookingDetails.ngeniusOrderRef;
+            const ngeniusOrderRef = payload?.ngeniusOrderRef;
             if (ngeniusOrderRef) {
                 try {
                     const updateResult = await prisma.payment.updateMany({
@@ -545,11 +530,11 @@ export class ReservationService {
                 priceBreakdownPayload,
             ]);
             if (
-                normalizedPayload.bookingDetails.selectedAddons &&
-                normalizedPayload.bookingDetails.selectedAddons.length > 0
+                payload.finalPrice.addonBrakeDown &&
+                payload.finalPrice.addonBrakeDown.length > 0
             ) {
                 const addonPayloads: IBookingAddonCreate[] =
-                    normalizedPayload.bookingDetails.selectedAddons
+                    payload.finalPrice.addonBrakeDown
                         .filter((addon: any) => addon.addonId)
                         .map((addon: any) => ({
                             reservationId: reservation.id,
@@ -558,7 +543,7 @@ export class ReservationService {
                             unitPrice: addon.price,
                             quantity: addon.quantity,
                             totalPrice: addon.totalPrice,
-                            currencyCode: currency,
+                            currencyCode: addon.currencyCode,
                             specialInstructions: null,
                             type: addon.type,
                             date: new Date(addon.date),
@@ -572,13 +557,12 @@ export class ReservationService {
             }
 
             if (
-                normalizedPayload.bookingDetails.selectedPromotions &&
-                normalizedPayload.bookingDetails.selectedPromotions.length > 0
+                payload.finalPrice.promotionBrakeDown &&
+                payload.finalPrice.promotionBrakeDown.length > 0
             ) {
                 const promotionPayloads: IReservationPromotionCreate[] = [];
 
-                for (const promo of normalizedPayload.bookingDetails
-                    .selectedPromotions) {
+                for (const promo of payload.finalPrice.promotionBrakeDown) {
                     if (promo.promotionType === 'mlos') {
                         if (!promo.id) {
                             console.warn('MLOS promotion missing id:', promo);
@@ -590,9 +574,10 @@ export class ReservationService {
                             bookingId: reservation.id,
                             promotionId: null,
                             mlosId: promo.id,
-                            amount: promo.amount,
-                            currency: currency as CurrencyCode,
+                            amount: promo.discountAmount,
+                            currency: promo.currencyCode as CurrencyCode,
                             promotionType: promo.promotionType,
+                            type: promo.type
                         });
                     } else {
                         if (!promo.id) {
@@ -605,9 +590,10 @@ export class ReservationService {
                             bookingId: reservation.id,
                             promotionId: promo.id,
                             mlosId: null,
-                            amount: promo.amount,
-                            currency: currency as CurrencyCode,
-                            promotionType: promo.promotionType,
+                            amount: promo.discountAmount,
+                            currency: promo.currencyCode as CurrencyCode,
+                            promotionType: promo.promotionType || "normal",
+                            type: promo.type
                         });
                     }
                 }
@@ -620,8 +606,8 @@ export class ReservationService {
             }
 
             const reservationDates = this.generateDateRange(
-                toUTCDate(startDate),
-                toUTCDate(endDate)
+                toUTCDate(reservationStartDate),
+                toUTCDate(reservationEndDate)
             );
             const ariPayload: IAriManulupulation = {
                 propertyCode,
@@ -643,15 +629,15 @@ export class ReservationService {
                     ]
                     : []),
                 this.emailService.reservationConfirmation({
-                    ...bookingDetails,
+                    ...payload,
                     numberOfNights: numberOfNights,
                     guestDetails: guestDetails.map((guest: any) => ({
                         type: guest.type,
                         firstName: guest.firstName,
                         lastName: guest.lastName,
                         dateOfBirth: guest.dateOfBirth || guest.dob || '',
-                        email: guest.type === 'adult' ? email : undefined,
-                        phone: guest.type === 'adult' ? phone : undefined,
+                        email: payload.bookingUserEmail,
+                        phone: payload.bookingUserPhone
                     })),
                     bookingCode: reservation.bookingCode,
                     reservationId: reservation.id,
@@ -660,10 +646,9 @@ export class ReservationService {
                 }),
             ];
 
-            if (finalPrice?.loyaltyDiscount?.loyaltyMemberId) {
+            if (finalPrice?.loyalityDiscount > 0) {
                 nonBlockingPromises.push(
                     this.loyalityGuestRepo.addGuest(
-                        finalPrice.loyaltyDiscount.loyaltyMemberId,
                         primaryGuestId
                     )
                 );
@@ -1046,6 +1031,7 @@ export class ReservationService {
                         amount: promo.discountAmount,
                         currency: updatePayload.currencyCode as CurrencyCode,
                         promotionType: promo.promotionType,
+                        type: promo.type,
                     }));
 
             const updatedReservation =

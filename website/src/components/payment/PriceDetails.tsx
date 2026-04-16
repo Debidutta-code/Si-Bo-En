@@ -1,13 +1,10 @@
 "use client";
-import React, { useState } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
-import toast from "react-hot-toast";
-import axios from "axios";
 import { currencies } from "../currencyCode/cuurency";
 
 interface PriceDetailsProps {
   bookingDetails: any;
-  onPriceUpdate: (totalAmount: number, discount: number, promo?: any) => void;
 }
 
 // ── Image Links (Reliable CDN hosted SVGs) ────────────────────────────────────
@@ -59,14 +56,8 @@ const PAYMENT_METHODS = [
   { id: "mastercard", Icon: MastercardIcon },
 ];
 
-const PriceDetails: React.FC<PriceDetailsProps> = ({ bookingDetails, onPriceUpdate }) => {
+const PriceDetails: React.FC<PriceDetailsProps> = ({ bookingDetails }) => {
   const { t } = useTranslation();
-  const [promo, setPromo] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [discount, setDiscount] = useState(0);
-  const [totalPrice, setTotalPrice] = useState<number>(
-    bookingDetails?.finalPrice?.totalAmount || 0
-  );
 
   const currencyCode = bookingDetails?.finalPrice?.currencyCode || "USD";
   const currencySymbol = currencies.find((c) => c.code === currencyCode)?.symbol ?? currencyCode;
@@ -84,47 +75,6 @@ const PriceDetails: React.FC<PriceDetailsProps> = ({ bookingDetails, onPriceUpda
     return "Desktop";
   };
 
-  const handleApply = async () => {
-    if (!promo) { toast.error(t("PriceDetails.promoPlaceholder")); return; }
-    setLoading(true);
-    try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/pms/property/promocode/validate`,
-        {
-          data: {
-            promoCode: promo,
-            propertyId: bookingDetails.propertyDetails?.id,
-            Devicetype: getDeviceType(),
-            bookingDetails,
-          },
-        }
-      );
-      const data = response.data;
-      if (data.success) {
-        const newDiscount = data.data.discount || 0;
-        const newTotal = data.data.finalprice || bookingDetails.finalPrice?.totalAmount || 0;
-        setDiscount(newDiscount);
-        setTotalPrice(newTotal);
-        onPriceUpdate(newTotal, newDiscount, data.data.promo);
-        toast.success(data.message || "Promo code applied!");
-      } else {
-        const fallbackTotal = bookingDetails.finalPrice?.totalAmount || 0;
-        setDiscount(0);
-        setTotalPrice(fallbackTotal);
-        onPriceUpdate(fallbackTotal, 0);
-        toast.error(data.message || t("PriceDetails.promoInvalid"));
-      }
-    } catch (err: any) {
-      const fallbackTotal = bookingDetails.finalPrice?.totalAmount || 0;
-      setDiscount(0);
-      setTotalPrice(fallbackTotal);
-      onPriceUpdate(fallbackTotal, 0);
-      toast.error(err?.response?.data?.message || t("PriceDetails.promoError"));
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-5 max-w-sm">
       <h2 className="text-lg font-semibold text-orange-600 mb-4">
@@ -134,7 +84,7 @@ const PriceDetails: React.FC<PriceDetailsProps> = ({ bookingDetails, onPriceUpda
       {/* Total Amount */}
       <div className="flex justify-between items-center text-base border-t pt-3">
         <span className="font-semibold text-gray-900">{t("PriceDetails.totalAmount")}</span>
-        <span className="font-bold text-orange-600 text-xl">{formatCurrency(totalPrice)}</span>
+        <span className="font-bold text-orange-600 text-xl">{formatCurrency(bookingDetails?.finalPrice?.totalAmount || 0)}</span>
       </div>
 
       {/* Secure Payment */}

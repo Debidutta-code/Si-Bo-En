@@ -68,6 +68,7 @@ model Reservation {
   reservationPromotions ReservationPromotion[]
   payments              Payment[]
   reservationGuests     ReservationGuest[]
+  reservationPromoCodes ReservationPromoCode[]
 
   @@index([propertyCode])
   @@index([propertyId])

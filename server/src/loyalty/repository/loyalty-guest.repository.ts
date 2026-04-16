@@ -211,11 +211,11 @@ export class LoyaltyGuestRepository {
             throw new Error("Failed to get property loyalty config");
         }
     }
-    public async addGuest(id: string, guestId: string): Promise<ILoyalityGuests | null> {
+    public async addGuest(guestId: string): Promise<ILoyalityGuests | null> {
         try {
             return await prisma.loyalityGuest.update({
                 where: {
-                    id
+                    id:guestId
                 }, data: {
                     guestId
                 }

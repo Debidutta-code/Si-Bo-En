@@ -1,9 +1,10 @@
 model TaxBrakeDown {
-        id                      String       @id @default(uuid())
-        pricingBrakeDownId      String       @map("pricing_breakdown_id")
-    name                      String       @map("name")
-    taxedAmount               Float        @map("taxed_amount")
-    currencyCode              CurrencyCode @map("currency_code")
-    PricingBreakdown          PricingBreakdown @relation(fields: [pricingBrakeDownId], references: [id], onDelete: Cascade)
+    id                 String           @id @default(uuid())
+    pricingBrakeDownId String           @map("pricing_breakdown_id")
+    name               String           @map("name")
+    taxedAmount        Float            @map("taxed_amount")
+    currencyCode       CurrencyCode     @map("currency_code")
+    PricingBreakdown   PricingBreakdown @relation(fields: [pricingBrakeDownId], references: [id], onDelete: Cascade)
+
     @@map("tax_breakdown")
 }

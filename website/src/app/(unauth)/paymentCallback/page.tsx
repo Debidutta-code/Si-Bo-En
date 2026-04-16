@@ -68,33 +68,32 @@ const PaymentCallbackPage = () => {
         const currentBooking = bookingRef.current;
 
         bookingData = {
-          data: {
-            bookingDetails: {
-              startDate: currentBooking.startDate,
-              endDate: currentBooking.endDate,
-              propertyCode: currentBooking.PropertyCode,
-              hotelName: currentBooking.hotelName,
-              roomTypeCode: currentBooking.roomTypeCode,
-              numberOfRooms: currentBooking.numberOfRooms || 1,
-              finalPrice: currentBooking.finalPrice,
-              currency: currentBooking.finalPrice?.dailyBreakdown?.[0]?.currencyCode || "AED",
-              email: currentBooking.email,
-              phone: currentBooking.phone,
-              guests: currentBooking.guests,
-              guestDetails: currentBooking.guestDetails,
-              ratePlanCode: currentBooking.ratePlanCode,
-              paymentMethod: "payment_gateway",
-              bookingSource: currentBooking.bookingSource,
-            },
-            guestDetails: currentBooking.guestDetails,
-          },
+          bookingSource: currentBooking.bookingSource,
+          propertyCode: currentBooking.PropertyCode,
+          reservationStartDate: currentBooking.startDate,
+          reservationEndDate: currentBooking.endDate,
+          hotelName: currentBooking.hotelName,
+          roomName: currentBooking.roomName,
+          roomTypeCode: currentBooking.roomTypeCode,
+          guests: currentBooking.guests,
+          bookingUserEmail: currentBooking.email,
+          bookingUserPhone: currentBooking.phone,
+          numberOfRooms: currentBooking.numberOfRooms || 1,
+          finalPrice: currentBooking.finalPrice,
+          promoCode: currentBooking.promocode,
+          currencyCode: currentBooking.finalPrice?.dailyPriceBrakeDown?.[0]?.currencyCode || "AED",
+          guestDetails: currentBooking.guestDetails,
+          ratePlanCode: currentBooking.ratePlanCode,
+          paymentMethod: "payment_gateway",
+          selectedPromotions: currentBooking.selectedPromotions || [],
+          selectedAddons: currentBooking.selectedAddons || [],
+          platforms: "web"
         };
       }
 
       // Attach payment info to booking
-      if (bookingData?.data?.bookingDetails) {
-        bookingData.data.bookingDetails.ngeniusOrderRef = orderRef;
-        bookingData.data.bookingDetails.paymentMethod = "payment_gateway";
+      if (bookingData) {
+        bookingData.ngeniusOrderRef = orderRef;
       }
 
       //console.log("📤 Sending booking request:", bookingData);

@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { CurrencyCode } from "../components/currencyCode/currency-code.type";
 
 
 interface BookingEngineConfig {
@@ -83,10 +84,7 @@ export interface BookingEngineColor {
   url?: string;
 }
 
-// Matches the PriceBrakeDown shape from /booking-engine/pricing/get-price,
-// plus the backward-compat fields added by normalizePriceBrakeDown() in Rooms/page.tsx
 interface FinalPrice {
-  // Core fields from backend PriceBrakeDown
   totalAmount: number;
   amountBeforeTax: number;
   taxedAmount: number;
@@ -94,20 +92,18 @@ interface FinalPrice {
   totalPromotionAmount: number;
   currentChargeableAmount: number;
   latterpayableAmount: number;
-  promoCodeDiscount: number;
   loyalityDiscount: number;
-  currencyCode: string;
+  promoCodeDiscount: number;
+  currencyCode: CurrencyCode;
   dailyPriceBrakeDown: any[];
   taxBrakeDown: any[];
   addonBrakeDown: any[];
   promotionBrakeDown: any[];
-  // Computed by normalizePriceBrakeDown on the frontend
   numberOfNights: number;
   baseRatePerNight: number;
   requestedRooms: number;
   additionalGuestCharges: number;
   totalTaxAmount: number;
-  dailyBreakdown: any[];
   availableRooms?: number;
 }
 

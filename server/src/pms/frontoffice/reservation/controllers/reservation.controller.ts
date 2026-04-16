@@ -5,7 +5,8 @@ import {
     PropertyRequest,
 } from '../../../../utils/customRequest';
 import { ReservationService } from '../services';
-import { IGuestCheckInDetails } from '../types';
+import { ICReservationPayload, IGuestCheckInDetails } from '../types';
+import { getDeviceInfo, getGeoLocationDetails } from '../../../../utils';
 
 export class ReservationController {
     private reservationService: ReservationService;
@@ -19,34 +20,56 @@ export class ReservationController {
         res: Response
     ): Promise<Response> {
         try {
-            const body = req.body;
-
-            if (!body?.data?.bookingDetails) {
-                return res
-                    .status(400)
-                    .json(
-                        errorResponse(
-                            'Invalid payload - missing bookingDetails'
-                        )
-                    );
+            const data: ICReservationPayload = req.body;
+            if (!data) {
+                return res.status(400).json(errorResponse('Invalid payload'));
             }
-
-            if (
-                !body?.data?.guestDetails ||
-                body.data.guestDetails.length === 0
-            ) {
-                return res
-                    .status(400)
-                    .json(
-                        errorResponse(
-                            'Invalid payload - at least one guest is required'
-                        )
-                    );
+            if (!data.propertyCode) {
+                return res.status(400).json(errorResponse('Property code is required'));
             }
-
+            if (!data.reservationStartDate) {
+                return res.status(400).json(errorResponse('Check-in date is required'));
+            }
+            if (!data.reservationEndDate) {
+                return res.status(400).json(errorResponse('Check-out date is required'));
+            }
+            if (!data.guests) {
+                return res.status(400).json(errorResponse('Guests details is required'));
+            }
+            if (!data.numberOfRooms) {
+                return res.status(400).json(errorResponse('Number of rooms is required'));
+            }
+            if (!data.ratePlanCode) {
+                return res.status(400).json(errorResponse('Rate plan code is required'));
+            }
+            if (!data.roomTypeCode) {
+                return res.status(400).json(errorResponse('Room type code is required'));
+            }
+            if (!data.guestDetails) {
+                return res.status(400).json(errorResponse('Guest details is required'));
+            }
+            if (!data.finalPrice) {
+                return res.status(400).json(errorResponse('Final price is required'));
+            }
+            if (!data.bookingSource) {
+                return res.status(400).json(errorResponse('Booking source is required'));
+            }
+            if (!data.paymentMethod) {
+                return res.status(400).json(errorResponse('Payment method is required'));
+            }
+            const PropertyDetails = req.property;
+            if (!PropertyDetails) {
+                return res.status(400).json(errorResponse('Property details is required'));
+            }
+            const geoLocation = await getGeoLocationDetails(req);
+            const countryCode = geoLocation?.country;
+            const { deviceType } = getDeviceInfo(req);
 
             const serviceRes = await this.reservationService.createReservation(
-                body.data
+                data,
+                PropertyDetails,
+                countryCode,
+                deviceType
             );
 
             return res.status(serviceRes.success ? 200 : 400).json(serviceRes);
@@ -67,6 +90,8 @@ export class ReservationController {
                 .json(errorResponse('Failed to create reservation'));
         }
     }
+
+
 
     public async getReservationByCode(
         req: Request,
@@ -256,10 +281,10 @@ export class ReservationController {
                     promoCode?.toString(),
                     countryCode?.toString(),
                     dateFilterType?.toString() as
-                        | 'checkin'
-                        | 'booking'
-                        | 'modification'
-                        | undefined
+                    | 'checkin'
+                    | 'booking'
+                    | 'modification'
+                    | undefined
                 );
 
             return res.status(serRes.success ? 200 : 400).json(serRes);
@@ -642,7 +667,7 @@ export class ReservationController {
     public async noShowReservation(req: CustomRequest, res: Response): Promise<Response> {
         try {
             const reservationId = req.params.reservationId;
-            
+
             if (!reservationId) {
                 return res.status(400).json(errorResponse("Reservation id is required"));
             }
@@ -656,11 +681,11 @@ export class ReservationController {
             return res.status(500).json(errorResponse("Internal server Error"));
         }
     }
-    public async checkInReservation(req:Request,res:Response):Promise<Response>{
+    public async checkInReservation(req: Request, res: Response): Promise<Response> {
         try {
             const bookingCode = req.params.bookingCode;
-            const guestDetails:IGuestCheckInDetails = req.body.guestDetails;
-            
+            const guestDetails: IGuestCheckInDetails = req.body.guestDetails;
+
             if (!bookingCode) {
                 return res.status(400).json(errorResponse("Reservation not found"));
             }
@@ -668,13 +693,13 @@ export class ReservationController {
             const serRes = await this.reservationService.makeCheckIn(bookingCode, guestDetails);
             return res.status(serRes.success ? 200 : 400).json(serRes);
         } catch (error) {
-            if(error instanceof Error){
-                return res.status(500).json(errorResponse("Failed to check-in Reservation",error.message));
+            if (error instanceof Error) {
+                return res.status(500).json(errorResponse("Failed to check-in Reservation", error.message));
             }
-            return res.status(500).json(errorResponse("Failed to check-in Reservation","Internal server Error"));
+            return res.status(500).json(errorResponse("Failed to check-in Reservation", "Internal server Error"));
         }
     }
-        public async checkOutReservation(req:Request,res:Response):Promise<Response>{
+    public async checkOutReservation(req: Request, res: Response): Promise<Response> {
         try {
             const bookingCode = req.params.bookingCode;
 
@@ -685,10 +710,10 @@ export class ReservationController {
             const serRes = await this.reservationService.makeCheckOut(bookingCode);
             return res.status(serRes.success ? 200 : 400).json(serRes);
         } catch (error) {
-            if(error instanceof Error){
-                return res.status(500).json(errorResponse("Failed to check-out Reservation",error.message));
+            if (error instanceof Error) {
+                return res.status(500).json(errorResponse("Failed to check-out Reservation", error.message));
             }
-            return res.status(500).json(errorResponse("Failed to check-out Reservation","Internal server Error"));
+            return res.status(500).json(errorResponse("Failed to check-out Reservation", "Internal server Error"));
         }
     }
 }

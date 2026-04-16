@@ -231,7 +231,7 @@ export interface AddOnBrakeDown {
 }
 export interface PromotionBrakeDown {
     id: string;
-    promotionType?: string;
+    promotionType?: "mlos" | "normal"|"early_bird"|"device_specific"|"offer_for_tonight";
     name: string;
     discountType: DiscountType;
     discountValue: number;

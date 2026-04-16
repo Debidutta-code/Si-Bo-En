@@ -55,3 +55,15 @@ export interface IRPromoCode {
     createdAt: Date;
     updatedAt: Date;
 }
+
+
+
+export interface ICReservationPromoCode {
+    reservationId: string;
+    promoCodeId: string;
+    amount: number;
+    currency: CurrencyCode;
+}
+export interface IReservationPromoCode extends ICReservationPromoCode {
+    id: string;
+}

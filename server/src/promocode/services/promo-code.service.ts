@@ -160,5 +160,19 @@ export class PromoCodeService {
             return errorResponse('An unexpected error occurred');
         }
     }
+    public async getPromoCodeByCode(propertyId: string, code: string): Promise<IApiResponse> {
+        try {
+            const promoCode = await this.promoCodeRepository.getPromoCodeByIdOrCode(propertyId, code);
+            if (!promoCode) {
+                return errorResponse('PromoCode not found',);
+            }
+            return successResponse('PromoCode fetched successfully', promoCode);
+        } catch (error) {
+            if (error instanceof Error) {
+                return errorResponse(error.message);
+            }
+            return errorResponse('An unexpected error occurred');
+        }
+    }
 
 }

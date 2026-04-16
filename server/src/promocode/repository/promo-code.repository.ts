@@ -1,5 +1,6 @@
 import { prisma } from "../../config";
 import { ICreatePromoCode, IRPromoCode } from "../types"
+import { ICReservationPromoCode, IReservationPromoCode } from "../types/promo-code.type";
 export class PromoCodeRepository {
     public async createPromoCode(data: ICreatePromoCode) {
         return await prisma.promoCode.create({ data });
@@ -80,4 +81,22 @@ export class PromoCodeRepository {
         });
     }
 
+    public async decreasePromoCodeUsageCount(id: string): Promise<IRPromoCode | null> {
+        return await prisma.promoCode.update({
+            where: {
+                id,
+                OR: [
+                    { usageLimit: null },
+                    { usageLimit: { gt: 0 } }
+                ]
+            },
+            data: {
+                usageLimit: { decrement: 1 }
+            }
+        });
+    }
+
+    public async createReservationPromoCode(data: ICReservationPromoCode): Promise<IReservationPromoCode> {
+        return await prisma.reservationPromoCode.create({ data });
+    }
 }

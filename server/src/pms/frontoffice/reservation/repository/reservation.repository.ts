@@ -806,9 +806,23 @@ export class AriManupulationRepo {
             throw new Error("Failed to increase Available Rooms");
         }
     }
+
+    public async getRatePlanName(ratePlanCode: string, propertyId: string) {
+        try {
+            return await prisma.ratePlan.findUnique({
+                where: { ratePlanCode, propertyId },
+                select: { ratePlanName: true }
+            })
+        } catch (error) {
+            if (error instanceof Error) {
+                throw new Error(`Failed to fetch rate plan: ${error.message}`);
+            }
+            throw new Error("Failed to fetch rate plan by code");
+        }
+    }
 }
 
-// Guest Repository
+
 export class GuestRepository {
     public async getGuestByEmail(email: string) {
         try {

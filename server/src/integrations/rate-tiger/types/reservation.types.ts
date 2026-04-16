@@ -86,7 +86,7 @@ export interface RTGuestDetail {
     guestID: string;
     profileType: string;
     personName: {
-        salutation: string;
+        salutation?: string;
         firstName: string;
         middleName: string;
         surName: string;

@@ -12,7 +12,7 @@ export class ReservationEmailService {
     }
 
     public async reservationConfirmation(
-        bookingDetails: IBookingDetails
+        bookingDetails: any
     ): Promise<void> {
         try {
             const property = await getPropertyByPropertyCode(
