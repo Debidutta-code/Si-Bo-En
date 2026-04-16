@@ -402,3 +402,16 @@ enum Platforms {
   mobile
   desktop
 }
+enum AddOnType {
+    included
+    selected
+}
+enum RestrictionType {
+    increase
+    decrease
+    payLater
+}
+enum PromotionApplyType {
+    user_applied
+    auto_applied
+}

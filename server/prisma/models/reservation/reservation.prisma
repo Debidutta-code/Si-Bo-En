@@ -58,7 +58,8 @@ model Reservation {
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-
+  pricingBrakedownId String? @unique @map("pricing_breakdown_id")
+  PricingBrakeDown   PricingBreakdown? @relation(fields: [pricingBrakedownId], references: [id], onDelete: Cascade)
   property              Property                    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   promo                 PromoCode?                  @relation(fields: [promoId], references: [id], onDelete: Cascade)
   addOns                BookingAddon[]
