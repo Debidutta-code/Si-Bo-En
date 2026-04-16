@@ -37,7 +37,7 @@ const defaultPromotion = (propertyId: string): CreateOfferForTonight => ({
   discountType: "percentage",
   discountValue: 10,
   currencyCode: "USD" as CurrencyCode,
-  validFrom: "",
+  validFrom: new Date(),
   validTo: null,
   roomRatePlans: [],
   monApplicable: true,
@@ -112,7 +112,7 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
         discountType: editData.discountType,
         discountValue: editData.discountValue,
         currencyCode: editData.currencyCode || ("USD" as CurrencyCode),
-        validFrom: "",
+        validFrom: new Date(),
         validTo: null,
         roomRatePlans: editData.roomRatePlans || [],
         monApplicable: editData.applicableDays.monday,
@@ -125,8 +125,6 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
         isAutoApplied: editData.isAutoApplied,
         isActive: editData.isActive,
       });
-
-      // Extract date and time from validFrom and validTo
       if (editData.validFrom) {
         const fromDate = new Date(editData.validFrom);
         setStartDate(fromDate.toISOString().split("T")[0]);
@@ -282,14 +280,19 @@ const OfferForTonightForm: React.FC<OfferForTonightFormProps> = ({
     }
 
     // Combine date and time to create ISO timestamp for validFrom
-    const validFromDateTime = new Date(`${startDate}T${bookingTimeFrom}:00`);
-    const validFrom = validFromDateTime.toISOString();
+    const [fromYear, fromMonth, fromDay] = startDate.split('-').map(Number);
+    const [fromHour, fromMinute] = bookingTimeFrom.split(':').map(Number);
+    const validFromDate = new Date(fromYear, fromMonth - 1, fromDay, fromHour, fromMinute, 0);
+    // Pad local offset artificially
+    const validFrom = new Date(validFromDate.getTime() - (validFromDate.getTimezoneOffset() * 60000));
 
     // Combine date and time to create ISO timestamp for validTo
-    let validTo: string | null = null;
+    let validTo: Date | null = null;
     const dateForValidTo = hasEndDate && endDate ? endDate : startDate;
-    const validToDateTime = new Date(`${dateForValidTo}T${bookingTimeTo}:00`);
-    validTo = validToDateTime.toISOString();
+    const [toYear, toMonth, toDay] = dateForValidTo.split('-').map(Number);
+    const [toHour, toMinute] = bookingTimeTo.split(':').map(Number);
+    const validToDate = new Date(toYear, toMonth - 1, toDay, toHour, toMinute, 0);
+    validTo = new Date(validToDate.getTime() - (validToDate.getTimezoneOffset() * 60000));
 
     const payload: CreateOfferForTonight = {
       ...offerForTonight,

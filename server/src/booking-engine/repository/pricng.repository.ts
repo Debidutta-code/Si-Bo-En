@@ -174,7 +174,7 @@ export class PricingRepository {
                         {
                             OR: [
                                 { validTo: null },
-                                { validTo: { gte: endDate } },
+                                { validTo: { gte: startDate } },// debug here if the the problem arries with promotions
                             ],
                         },
                     ],

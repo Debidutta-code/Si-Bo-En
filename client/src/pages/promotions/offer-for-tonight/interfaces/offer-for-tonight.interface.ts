@@ -30,8 +30,8 @@ export interface CreateOfferForTonight {
   discountType: DiscountType;
   discountValue: number;
   currencyCode?: CurrencyCode;
-  validFrom: string;
-  validTo?: string | null;
+  validFrom: Date;
+  validTo?: Date | null;
   roomRatePlans: RoomRatePlanPair[];
   monApplicable: boolean;
   tueApplicable: boolean;
@@ -48,8 +48,8 @@ isActive:boolean;
 // Update Early Bird Promotion payload
 export interface UpdateOfferForTonight {
   promotionName?: string;
-  validFrom?: string;
-  validTo?: string | null;
+  validFrom: Date;
+  validTo?: Date | null;
   discountType?: DiscountType;
   discountValue?: number;
   currencyCode?: CurrencyCode;
