@@ -1,0 +1,17 @@
+
+model AddOnBrakeDown {
+    id                      String       @id @default(cuid())
+    dailyPriceBrakeDownId   String?       @map("daily_price_breakdown_id")
+    pricingBrakeDownId      String?       @map("pricing_breakdown_id")
+    addonId                 String       @map("addon_id")
+    name                    String       @map("name")
+    amount                  Float        @map("amount")
+    quantity                Int          @map("quantity")
+    totalAmount             Float        @map("total_amount")
+    currencyCode            CurrencyCode @map("currency_code")
+    date                    DateTime     @map("date")
+    type                    AddOnType    @map("type")
+    DailyPriceBrakeDown     DailyPriceBrakeDown? @relation(fields: [dailyPriceBrakeDownId], references: [id], onDelete: Cascade)
+    PricingBreakdown        PricingBreakdown? @relation(fields: [pricingBrakeDownId], references: [id], onDelete: Cascade)
+    @@map("add_on_brake_down")
+}

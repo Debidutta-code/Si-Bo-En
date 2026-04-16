@@ -29,6 +29,7 @@ import { Calendar, Check, Clock, Edit, MoreVertical, Trash2, X } from 'lucide-re
 import { convertBackendToApplicableDays } from '../device-specific/interfaces/mobilePromotion.type';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import type { ILoader } from '@/pages/dashboard/interface';
+import BackButton from '@/components/shared/BackButton';
 
 export const OfferForTonightList: React.FC = () => {
     const { propertyId } = useParams<{ propertyId: string }>();
@@ -291,6 +292,7 @@ export const OfferForTonightList: React.FC = () => {
 
     return (
         <div className="space-y-4">
+            <BackButton />
             <div className="flex items-center justify-between">
                 <div>
                     <h2 className="text-2xl font-bold text-foreground">Offer For Tonight Promotions</h2>
@@ -381,7 +383,7 @@ export const OfferForTonightList: React.FC = () => {
                                                 ? ' text-success '
                                                 : ' text-destructive'
                                                 }`}>
-                                                {promotion.isAutoApplied ? <Check className='h-4 w-4'/> : <X className='h-4 w-4'/>}
+                                                {promotion.isAutoApplied ? <Check className='h-4 w-4' /> : <X className='h-4 w-4' />}
                                             </span>
                                         </TableCell>
                                         <TableCell>

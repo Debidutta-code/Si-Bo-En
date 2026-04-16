@@ -8,6 +8,19 @@ import { setLoyaltyProfile } from "@/src/store/loyaltyUserSlice";
 import { PropertyLoyaltyConfig } from "@/src/store/loyaltyUserTypes";
 import { getMyProfileApi } from "../api/profile.api";
 
+type userIdentityCardType = "PASSPORT" | "DRIVERS_LICENSE" | "NATIONAL_ID" | "OTHER";
+
+interface IGuestCheckInDetails {
+  address?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  zipCode?: string;
+  userIdentityCardType: userIdentityCardType;
+  identityCardNumber: string;
+  identityCardImage?: string;
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 export default function MyBookingsPage() {
   const dispatch = useDispatch();
@@ -18,6 +31,20 @@ export default function MyBookingsPage() {
   const [bookingPropertyCode, setBookingPropertyCode] = useState("");
   const [bookingData, setBookingData] = useState<any | null>(null);
   const [bookingLoading, setBookingLoading] = useState(false);
+
+  const [isCheckinDialogOpen, setIsCheckinDialogOpen] = useState(false);
+  const [checkinForm, setCheckinForm] = useState<IGuestCheckInDetails>({
+    userIdentityCardType: "NATIONAL_ID",
+    identityCardNumber: "",
+    address: "",
+    city: "",
+    state: "",
+    country: "",
+    zipCode: "",
+  });
+  const [isCheckingIn, setIsCheckingIn] = useState(false);
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [isCheckoutDialogOpen, setIsCheckoutDialogOpen] = useState(false);
 
   useEffect(() => {
     if (loyaltyUser?.profile) {
@@ -31,7 +58,7 @@ export default function MyBookingsPage() {
             ])
           )
         ).values()
-      ) as PropertyLoyaltyConfig[];
+      ) as unknown as PropertyLoyaltyConfig[];
       setAllProperties(props);
     } else {
       // Fetch profile if not cached
@@ -50,8 +77,9 @@ export default function MyBookingsPage() {
   };
 
   const handleBookingSearch = async () => {
+    console.log("Searching for booking with code:", bookingCode, "and property code:", bookingPropertyCode);
     if (!bookingPropertyCode.trim() || !bookingCode.trim()) {
-      toast.error("Please enter both property code and booking code");
+      toast.error("Select a Property then enter a Reservation Code");
       return;
     }
     setBookingLoading(true);
@@ -70,12 +98,68 @@ export default function MyBookingsPage() {
     }
   };
 
+  const handleCheckInSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bookingData?.bookingCode) return;
+
+    setIsCheckingIn(true);
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/pms/front-office/reservations/check-in/${bookingData.bookingCode}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(checkinForm),
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to check-in");
+
+      toast.success("Successfully checked in!");
+      setIsCheckinDialogOpen(false);
+      setBookingData({ ...bookingData, bookingStatus: "checkedIn" });
+    } catch (error: any) {
+      toast.error(error.message || "An error occurred during check-in");
+    } finally {
+      setIsCheckingIn(false);
+    }
+  };
+
+  const handleCheckOutSubmit = async () => {
+    if (!bookingData?.bookingCode) return;
+
+    setIsCheckingOut(true);
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/pms/front-office/reservations/check-out/${bookingData.bookingCode}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to check-out");
+
+      toast.success("Successfully checked out!");
+      setIsCheckoutDialogOpen(false);
+      setBookingData({ ...bookingData, bookingStatus: "checkedOut" });
+    } catch (error: any) {
+      toast.error(error.message || "An error occurred during check-out");
+    } finally {
+      setIsCheckingOut(false);
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
       {/* ── Booking lookup */}
       <div className="bg-white rounded-2xl p-6" style={{ border: "1px solid #f0f0f0" }}>
-        <h3 className="text-[14px] font-semibold text-[#1a1a1a] mb-1">Look up a Booking</h3>
-        <p className="text-[12.5px] mb-4" style={{ color: "#aaa" }}>
+        <h3 className="text-[18px] font-bold text-[#1a1a1a] mb-1">Look up a Booking</h3>
+        <p className="text-[12.5px] mb-4 text-black">
           Enter your property code and booking number to view reservation details.
         </p>
 
@@ -90,11 +174,11 @@ export default function MyBookingsPage() {
                 padding: "10px 36px 10px 14px",
                 background: "#fafafa",
                 border: "1.5px solid #e0e0e0",
-                color: bookingPropertyCode ? "#1a1a1a" : "#aaa",
+                color: "black",
                 fontFamily: "'DM Sans', sans-serif",
               }}
               onFocus={(e) => {
-                e.currentTarget.style.borderColor = "rgba(184,145,42,0.5)";
+                e.currentTarget.style.borderColor = "#e0e0e0";
                 e.currentTarget.style.background = "#fff";
               }}
               onBlur={(e) => {
@@ -129,10 +213,9 @@ export default function MyBookingsPage() {
               background: "#fafafa",
               border: "1.5px solid #e0e0e0",
               color: "#1a1a1a",
-              fontFamily: "'DM Sans', sans-serif",
             }}
             onFocus={(e) => {
-              e.currentTarget.style.borderColor = "rgba(184,145,42,0.5)";
+              e.currentTarget.style.borderColor = "#e0e0e0";
               e.currentTarget.style.background = "#fff";
             }}
             onBlur={(e) => {
@@ -147,7 +230,7 @@ export default function MyBookingsPage() {
             disabled={bookingLoading}
             className="px-5 py-2.5 rounded-[9px] text-white text-[13px] font-medium border-none cursor-pointer disabled:opacity-60 whitespace-nowrap"
             style={{
-              background: `linear-gradient(135deg, #c9a020 0%, #b8912a 100%)`,
+              background: "linear-gradient(90deg, #0d7a87 0%,  #0d7a87 100%)",
               boxShadow: "0 4px 12px rgba(184,145,42,0.25)",
             }}
           >
@@ -164,7 +247,7 @@ export default function MyBookingsPage() {
         >
           <div
             className="px-6 py-4 flex items-center justify-between"
-            style={{ background: `linear-gradient(135deg, #c9a020 0%, #b8912a 100%)` }}
+            style={{ background: `linear-gradient(135deg, #1fc8d8 0%, #0d7a87 100%)` }}
           >
             <div>
               <p className="text-white font-semibold text-[15px]">🏨 {bookingData.hotelName}</p>
@@ -173,13 +256,16 @@ export default function MyBookingsPage() {
               </p>
             </div>
             <span
-              className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${
-                bookingData.bookingStatus === "cancelled"
+              className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${bookingData.bookingStatus === "cancelled"
                   ? "bg-red-100 text-red-600"
                   : bookingData.bookingStatus === "modified"
-                  ? "bg-yellow-100 text-yellow-700"
-                  : "bg-green-100 text-green-700"
-              }`}
+                    ? "bg-yellow-100 text-yellow-700"
+                    : bookingData.bookingStatus === "checkedIn"
+                    ? "bg-blue-100 text-blue-700"
+                    : bookingData.bookingStatus === "checkedOut"
+                    ? "bg-gray-100 text-gray-700"
+                    : "bg-green-100 text-green-700"
+                }`}
             >
               {bookingData.bookingStatus}
             </span>
@@ -212,8 +298,7 @@ export default function MyBookingsPage() {
               ].map((row) => (
                 <div key={row.label}>
                   <p
-                    className="text-[11px] uppercase tracking-[0.07em] font-medium mb-0.5"
-                    style={{ color: "#aaa" }}
+                    className="text-[14px] font-bold text-black mb-0.5"
                   >
                     {row.label}
                   </p>
@@ -235,11 +320,34 @@ export default function MyBookingsPage() {
                 </p>
               </div>
             )}
+
+            {bookingData.bookingStatus === "confirmed" && (
+              <div className="pt-4 mt-4 border-t border-[#f5f5f5] flex justify-end">
+                <button
+                  onClick={() => setIsCheckinDialogOpen(true)}
+                  className="px-6 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity"
+                  style={{ background: "#0d7a87" }}
+                >
+                  Check In Now
+                </button>
+              </div>
+            )}
+
+            {bookingData.bookingStatus === "checked_in" && (
+              <div className="pt-4 mt-4 border-t border-[#f5f5f5] flex justify-end">
+                <button
+                  onClick={() => setIsCheckoutDialogOpen(true)}
+                  className="px-6 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity"
+                  style={{ background: "#e53e3e" }}
+                >
+                  Check Out Now
+                </button>
+              </div>
+            )}
           </div>
         </div>
       )}
 
-      {/* ── Empty state */}
       {!bookingData && !bookingLoading && (
         <div
           className="bg-white rounded-2xl p-8 text-center"
@@ -250,6 +358,165 @@ export default function MyBookingsPage() {
           <p className="text-[12px]" style={{ color: "#aaa" }}>
             Enter your booking code above to view reservation details.
           </p>
+        </div>
+      )}
+
+      {isCheckinDialogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+              <h3 className="text-lg font-bold text-gray-900">Online Check-In</h3>
+              <button 
+                onClick={() => setIsCheckinDialogOpen(false)}
+                className="text-gray-400 hover:text-gray-600 text-xl font-bold"
+              >
+                &times;
+              </button>
+            </div>
+            
+            <form onSubmit={handleCheckInSubmit} className="p-6 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-gray-600">ID Type <span className="text-red-500">*</span></label>
+                  <select 
+                    value={checkinForm.userIdentityCardType}
+                    onChange={(e) => setCheckinForm({...checkinForm, userIdentityCardType: e.target.value as userIdentityCardType})}
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0d7a87]"
+                    required
+                  >
+                    <option value="NATIONAL_ID">National ID</option>
+                    <option value="PASSPORT">Passport</option>
+                    <option value="DRIVERS_LICENSE">Driver's License</option>
+                    <option value="OTHER">Other</option>
+                  </select>
+                </div>
+                
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-gray-600">ID Number <span className="text-red-500">*</span></label>
+                  <input 
+                    type="text" 
+                    value={checkinForm.identityCardNumber}
+                    onChange={(e) => setCheckinForm({...checkinForm, identityCardNumber: e.target.value})}
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0d7a87]"
+                    required
+                    placeholder="Enter ID number"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-gray-600">Address</label>
+                <input 
+                  type="text" 
+                  value={checkinForm.address}
+                  onChange={(e) => setCheckinForm({...checkinForm, address: e.target.value})}
+                  className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0d7a87]"
+                  placeholder="Street address"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-gray-600">City</label>
+                  <input 
+                    type="text" 
+                    value={checkinForm.city}
+                    onChange={(e) => setCheckinForm({...checkinForm, city: e.target.value})}
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0d7a87]"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-gray-600">State/Province</label>
+                  <input 
+                    type="text" 
+                    value={checkinForm.state}
+                    onChange={(e) => setCheckinForm({...checkinForm, state: e.target.value})}
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0d7a87]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-gray-600">Country</label>
+                  <input 
+                    type="text" 
+                    value={checkinForm.country}
+                    onChange={(e) => setCheckinForm({...checkinForm, country: e.target.value})}
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0d7a87]"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-gray-600">Zip/Postal Code</label>
+                  <input 
+                    type="text" 
+                    value={checkinForm.zipCode}
+                    onChange={(e) => setCheckinForm({...checkinForm, zipCode: e.target.value})}
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-[#0d7a87]"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 flex gap-3 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setIsCheckinDialogOpen(false)}
+                  className="px-5 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCheckingIn}
+                  className="px-5 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+                  style={{ background: "#0d7a87" }}
+                >
+                  {isCheckingIn ? "Processing..." : "Complete Check-In"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isCheckoutDialogOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+              <h3 className="text-lg font-bold text-gray-900">Confirm Check-Out</h3>
+              <button 
+                onClick={() => setIsCheckoutDialogOpen(false)}
+                className="text-gray-400 hover:text-gray-600 text-xl font-bold"
+                disabled={isCheckingOut}
+              >
+                &times;
+              </button>
+            </div>
+            <div className="p-6 space-y-6">
+              <p className="text-sm text-gray-600">
+                Are you sure you want to check out of this reservation? This action cannot be undone.
+              </p>
+              
+              <div className="flex gap-3 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setIsCheckoutDialogOpen(false)}
+                  className="px-5 py-2 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+                  disabled={isCheckingOut}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCheckOutSubmit}
+                  disabled={isCheckingOut}
+                  className="px-5 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity disabled:opacity-50"
+                  style={{ background: "#e53e3e" }}
+                >
+                  {isCheckingOut ? "Processing..." : "Confirm Check-Out"}
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

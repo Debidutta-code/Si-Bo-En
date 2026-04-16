@@ -11,10 +11,11 @@ import ImageUploadModal from '../ImageUploadModal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { createRoom, updateRoom } from '../api/show/room'; // Corrected import path
-import { getRoomDetails } from "../api/create/room"
+// import { getRoomDetails } from "../api/create/room"
 import Loader from '@/components/Loader/Loader';
 import { getAllRoomViews } from '@/pages/management/services/room-view.services';
 import type { IMasterRoomView } from '@/pages/management/types';
+import { getPropertyDetails } from '../api/show/propertyDetails';
 
 const roomSchema = z.object({
   roomName: z.string().min(3, "Room name is required and must be at least 3 characters."),
@@ -83,14 +84,15 @@ export default function Rooms() {
   useEffect(() => {
     // console.log("Use Effect")
     const fetchRoomData = async () => {
-      if (propertyId && roomId) {
+      if (propertyId ) {
         setIsLoading(true);
         try {
-          const response = await getRoomDetails(roomId, propertyId)
+          const response =await getPropertyDetails(propertyId);
+          
           if (response.success && response.data) {
-            setRoomDetails({ ...response.data, image: response.data.image || [] });
+            setRoomDetails({ ...response.data.propertyRooms[0], image: response.data.propertyRooms[0].image || [] });
+            setRoomIdAndUrl(response.data.propertyRooms[0].id);
             setIsExistingData(true);
-            toast.success("Loaded existing room details.");
           } else {
             setIsExistingData(false);
           }

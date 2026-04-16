@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, AlertCircle, Percent, DollarSign } from "lucide-react";
+import { Plus, AlertCircle, Percent } from "lucide-react";
 
 interface CreateLoyaltyFormProps {
   onSubmit: (data: { discountType: string; discountValue: number; currencyCode: string }) => void;
@@ -44,12 +44,12 @@ export default function CreateLoyaltyForm({ onSubmit }: CreateLoyaltyFormProps) 
                     <span>Percentage Discount</span>
                   </div>
                 </SelectItem>
-                <SelectItem value="fixed">
+                {/* <SelectItem value="fixed">
                   <div className="flex items-center gap-2">
                     <DollarSign className="h-4 w-4" />
                     <span>Fixed Amount</span>
                   </div>
-                </SelectItem>
+                </SelectItem> */}
               </SelectContent>
             </Select>
           </div>

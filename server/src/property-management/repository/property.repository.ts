@@ -313,6 +313,7 @@ export class PropertyDao {
       throw new Error(`Failed to update property status: ${error?.message}`);
     }
   }
+  
 }
 
 export class PropertyAddressDao {

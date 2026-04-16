@@ -3,22 +3,22 @@ import { DailyPriceBrakeDown, TaxBrakeDown, AddOnBrakeDown, PromotionBrakeDown }
 import { CurrencyCode } from "../../../../tax-system/interfaces";
 import { DeviceType } from "../../../../agent-paltform/property/types";
 export type Platforms = 'web' | 'mobile' | 'desktop';
-export type BookingSource="direct"|
-  "google"|
-  "trip_adviser"|
-  "trivago"|
-  "social_media"|
+export type BookingSource = "direct" |
+  "google" |
+  "trip_adviser" |
+  "trivago" |
+  "social_media" |
   "agency"
-  export type BookingStatus="pending"|
-  "confirmed"|
-  "cancelled"|
-  "expired"|
-  "modified"|
-  "no_show"|
-  "checked_in"|
+export type BookingStatus = "pending" |
+  "confirmed" |
+  "cancelled" |
+  "expired" |
+  "modified" |
+  "no_show" |
+  "checked_in" |
   "checked_out"
-  export type PaymentMethod= "pay_at_hotel" | "net_banking" | "upi" | "payment_gateway";
-  export type ReservationPromotionType="early_bird" | "mlos" | "device_specific" | "offer_for_tonight"|"normal"
+export type PaymentMethod = "pay_at_hotel" | "net_banking" | "upi" | "payment_gateway";
+export type ReservationPromotionType = "early_bird" | "mlos" | "device_specific" | "offer_for_tonight" | "normal"
 export interface ICreateReservationPayload {
   data: {
     bookingDetails: IBookingDetails;
@@ -68,7 +68,7 @@ export interface IGuestDetail {
   firstName: string;
   lastName: string;
   dateOfBirth: string;
-  age?: number|null;
+  age?: number | null;
   email?: string;
   phone?: string;
 }
@@ -116,27 +116,27 @@ export interface IBankDetails {
 export interface ICReservationR {
 
 
-    propertyId: string;
-    propertyCode: string;
-    hotelName: string;
+  propertyId: string;
+  propertyCode: string;
+  hotelName: string;
 
-    roomTypeCode: string;
-    ratePlanCode: string;
+  roomTypeCode: string;
+  ratePlanCode: string;
 
-    bookingCode: string;
+  bookingCode: string;
 
-    bookedAt: Date;
+  bookedAt: Date;
 
-    checkInDate: Date|null;
-    checkOutDate: Date|null;
+  checkInDate: Date | null;
+  checkOutDate: Date | null;
 
-    reservationStartDate: Date;
-    reservationEndDate: Date;
+  reservationStartDate: Date;
+  reservationEndDate: Date;
 
-    countryCode: string;
-    timezone: string;
-    deviceTypes: DeviceType;
-    platforms: Platforms;
+  countryCode: string;
+  timezone: string;
+  deviceTypes: DeviceType;
+  platforms: Platforms;
 
   primaryGuestId: string;
 
@@ -252,7 +252,7 @@ export interface IReservationPriceBrakeDownR {
   dailyBreakdown: any[]; // JSON array
   availableRooms: number;
   requestedRooms: number;
-  tax: any[]; 
+  tax: any[];
 }
 
 export interface IReservationPriceBrakeDown extends IReservationPriceBrakeDownR {
@@ -275,8 +275,8 @@ export interface AriManupulationRooms {
 
 export interface IReservationUpdatePayload {
   propertyCode: string;
-  checkInDate: string;  
-  checkOutDate: string; 
+  checkInDate: string;
+  checkOutDate: string;
   requestedRooms: number;
   rooms: Array<{
     adults: number;
@@ -339,8 +339,8 @@ export interface IBookingAddonCreate {
   quantity: number;
   totalPrice: number;
   currencyCode: string;
-  specialInstructions?: string | null; 
-  type: "included"|"selected";
+  specialInstructions?: string | null;
+  type: "included" | "selected";
   date: Date;
 }
 
@@ -374,3 +374,19 @@ export interface IReservationPromotion extends IReservationPromotionCreate {
 }
 // ==================== ENUMS ====================
 export type ReservationStatus = "pending" | "confirmed" | "cancelled" | "modified";
+export type userIdentityCardType = "passport"
+  | "drivers_license"
+  | "national_id"
+  | "adhar_card"
+  | "pan_card"
+  | "others"
+export interface IGuestCheckInDetails{
+  address?:string
+  city?:string
+  state?:string
+  country?:string
+  zipCode?:string
+  userIdentityCardType:userIdentityCardType
+  identityCardNumber:string
+  identityCardImage?:string
+}

@@ -15,7 +15,8 @@ import {
     IReservationPromotionCreate,
     IBookingAddonCreate,
     IBookingDetails,
-    ICReservationR
+    ICReservationR,
+    IGuestCheckInDetails
 } from '../types';
 import { prisma } from '../../../../config';
 import { IPropertyCodeAndIds } from '../../../../dashboard/types';
@@ -1905,14 +1906,16 @@ export class ReservationService {
             return Promise.reject(new Error('Failed to check out reservation'));
         }
     }
-    public async makeCheckIn(bookingCode: string): Promise<IApiResponse> {
+    public async makeCheckIn(bookingCode: string, guestDetails: IGuestCheckInDetails): Promise<IApiResponse> {
         try {
             const reservation = await this.reservationRepository.getReservationByBookingCode(bookingCode);
-
             if (!reservation) {
                 return errorResponse('Reservation not found');
             }
-            const updatedReservation = await this.reservationRepository.makeCheckIn(reservation.id, nowUTC());
+            const [updatedReservation, guestDetailsUpdateRes] = await Promise.all([
+                this.reservationRepository.makeCheckIn(reservation.id, nowUTC()),
+                this.guestRepository.addGuestDetails(reservation.primaryGuestId, guestDetails)
+            ]);
 
             return successResponse("Reservation checked in successfully", updatedReservation);
         } catch (error) {
