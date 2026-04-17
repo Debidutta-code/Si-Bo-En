@@ -15,6 +15,7 @@ import {
 } from "../ui/dialog";
 import { Button } from "../ui/button";
 import { Label } from "../ui/label";
+import { useBookingStorage } from "@/src/hooks/useBookingStorage";
 
 interface Room {
   adults: number;
@@ -41,6 +42,7 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
   const bookingContext = useSelector((state: RootState) => state.booking);
   const [rooms, setRooms] = useState<Room[]>([{ adults: 1, children: 0, childAges: [] }]);
   const [totalRooms, setTotalRooms] = useState(1);
+  const { colors, logoIcon } = useBookingStorage(bookingContext);
 
   useEffect(() => {
     if (bookingContext.guests) {
@@ -332,7 +334,8 @@ const GuestSelector: React.FC<GuestSelectorProps> = ({
           <Button
             type="button"
             onClick={handleApply}
-            className="w-full bg-orange-500 hover:bg-orange-600 text-white py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg transition-colors duration-200"
+            style={{ backgroundColor:colors.primaryColor  }}
+            className="w-full text-white py-3 sm:py-4 rounded-xl font-semibold text-base sm:text-lg transition-colors duration-200"
           >
             {t("GuestSelector.apply")}
           </Button>

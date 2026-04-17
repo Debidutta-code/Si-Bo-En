@@ -4,7 +4,7 @@ export class PropertyTypesDao {
     try {
       return await prisma.masterPropertyType.findFirst({
         where: {
-          propertyTypeName: propertyTypeName,
+          propertyTypeName: propertyTypeName.toLocaleLowerCase(),
           isActive: true,
         },
       });
@@ -20,7 +20,7 @@ export class PropertyTypesDao {
     try {
       return await prisma.masterPropertyType.create({
         data: {
-          propertyTypeName,
+          propertyTypeName: propertyTypeName.toLocaleLowerCase(),
           propertyTypeDescription: description,
           isActive: true,
         },
@@ -46,7 +46,7 @@ export class PropertyTypesDao {
     try {
       // Soft delete by setting isActive to false
       return await prisma.masterPropertyType.updateMany({
-        where: { propertyTypeName: propertyTypeName },
+        where: { propertyTypeName: propertyTypeName.toLocaleLowerCase() },
         data: { isActive: false },
       });
     } catch (error) {

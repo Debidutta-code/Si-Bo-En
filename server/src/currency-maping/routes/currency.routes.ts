@@ -4,14 +4,29 @@ import { currencyQueue } from '../../index';
 
 const router = Router();
 
-// No connection config, no init — all handled in server.ts
-const currencyController = new CurrencyController(currencyQueue);
-
-router.get('/rates', currencyController.getAllRates.bind(currencyController));
-router.get('/rates/:currency', currencyController.getCurrencyRate.bind(currencyController));
-router.get('/rates-hash', currencyController.getAllRatesFromHash.bind(currencyController));
-router.post('/fetch', currencyController.triggerManualFetch.bind(currencyController));
-router.get('/queue-status', currencyController.getQueueStatus.bind(currencyController));
-router.get('/metadata', currencyController.getMetadata.bind(currencyController));
+router.route('/rates').get((req, res) => {
+    const currencyController = new CurrencyController(currencyQueue);
+    return currencyController.getAllRates(req, res);
+});
+router.route('/rates/:currency').get((req, res) => {
+    const currencyController = new CurrencyController(currencyQueue);
+    return currencyController.getCurrencyRate(req, res);
+});
+router.route('/rates-hash').get((req, res) => {
+    const currencyController = new CurrencyController(currencyQueue);
+    return currencyController.getAllRatesFromHash(req, res);
+});
+router.route('/fetch').post((req, res) => {
+    const currencyController = new CurrencyController(currencyQueue);
+    return currencyController.triggerManualFetch(req, res);
+});
+router.route('/queue-status').get((req, res) => {
+    const currencyController = new CurrencyController(currencyQueue);
+    return currencyController.getQueueStatus(req, res);
+});
+router.route('/metadata').get((req, res) => {
+    const currencyController = new CurrencyController(currencyQueue);
+    return currencyController.getMetadata(req, res);
+});
 
 export default router;

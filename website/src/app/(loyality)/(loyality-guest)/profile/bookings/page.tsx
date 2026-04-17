@@ -119,7 +119,7 @@ export default function MyBookingsPage() {
 
       toast.success("Successfully checked in!");
       setIsCheckinDialogOpen(false);
-      setBookingData({ ...bookingData, bookingStatus: "checkedIn" });
+      setBookingData({ ...bookingData, bookingStatus: "checked_in" });
     } catch (error: any) {
       toast.error(error.message || "An error occurred during check-in");
     } finally {

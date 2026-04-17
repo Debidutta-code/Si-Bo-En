@@ -10,7 +10,7 @@ class CurrencyController {
         this.bullMQHelper = bullMQHelper;
     }
 
-    getAllRates = async (req: Request, res: Response) => {
+    public getAllRates = async (req: Request, res: Response) => {
         try {
             const rates = await this.bullMQHelper.getExchangeRates();
             
@@ -37,7 +37,7 @@ class CurrencyController {
         }
     };
 
-    getCurrencyRate = async (req: Request, res: Response) => {
+    public getCurrencyRate = async (req: Request, res: Response) => {
         try {
             let { currency } = req.params;
 
@@ -80,7 +80,7 @@ class CurrencyController {
     /**
      * Get all rates from Redis hash
      */
-    getAllRatesFromHash = async (req: Request, res: Response) => {
+    public getAllRatesFromHash = async (req: Request, res: Response) => {
         try {
             const rates = await this.bullMQHelper.getAllRatesFromHash();
 
@@ -114,7 +114,7 @@ class CurrencyController {
     /**
      * Manually trigger a currency fetch
      */
-    triggerManualFetch = async (req: Request, res: Response) => {
+   public triggerManualFetch = async (req: Request, res: Response) => {
         try {
             const job = await this.bullMQHelper.triggerManualFetch();
 
@@ -142,7 +142,7 @@ class CurrencyController {
     /**
      * Get queue status and scheduler info
      */
-    getQueueStatus = async (req: Request, res: Response) => {
+    public getQueueStatus = async (req: Request, res: Response) => {
         try {
             const status = await this.bullMQHelper.getQueueStatus();
 
@@ -166,7 +166,7 @@ class CurrencyController {
     /**
      * Get Redis metadata
      */
-    getMetadata = async (req: Request, res: Response) => {
+    public getMetadata = async (req: Request, res: Response) => {
         try {
             const redisClient = RedisClient.getInstance();
             const metadata = await redisClient.hGetAll('exchange:metadata');
@@ -197,7 +197,7 @@ class CurrencyController {
     /**
      * Health check endpoint
      */
-    healthCheck = async (req: Request, res: Response) => {
+    public healthCheck = async (req: Request, res: Response) => {
         try {
             const redisHealthy = await RedisClient.testConnection();
             const queueStatus = await this.bullMQHelper.getQueueStatus();

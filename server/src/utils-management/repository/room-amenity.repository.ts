@@ -22,7 +22,7 @@ export class RoomAminityDao {
   public  async addRoomAmenities(newAmenities: string[]) {
     try {
       const amenityData = newAmenities.map(name => ({
-        amenityName: name,
+        amenityName: name.toLocaleLowerCase(),
         amenityType: "room" as AmenityType,
         isActive: true,
       }));

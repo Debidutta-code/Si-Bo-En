@@ -254,6 +254,22 @@ const Navbar = () => {
             {isRoomsPage && (
               <>
                 <button
+              onClick={() => router.push(`/login`)}
+                  className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors"
+                  style={{
+                    backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
+                      ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
+                      : "#F4EFE6",
+                    color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
+                  }}
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
+              {t("Navbar.loyaltyGuestLogin")}
+                </button>
+                <button
                   onClick={() => { setIsMenuOpen(false); window.open(agenturl, "_blank"); }}
                   className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors"
                   style={{

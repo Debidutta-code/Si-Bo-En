@@ -6,7 +6,7 @@ export class MasterRoomView{
             
             const roomView = await prisma.masterRoomView.create({
                 data: {
-                    viewName: data.viewName,
+                    viewName: data.viewName.toLocaleLowerCase(),
                     isActive: true,
                     createdAt: new Date(),
                     updatedAt: new Date(),
@@ -43,6 +43,7 @@ export class MasterRoomView{
                 where: { id },
                 data: {
                     ...data,
+                    viewName: data.viewName.toLocaleLowerCase(),
                     updatedAt: new Date(),
                 },
             });

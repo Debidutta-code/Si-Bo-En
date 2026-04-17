@@ -441,26 +441,24 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
     }
   };
 
-  // Function to get text color that contrasts with background
-  const getContrastTextColor = (bgColor: string) => {
-    // Convert hex to RGB
-    const hex = bgColor.replace("#", "");
-    const r = parseInt(hex.substring(0, 2), 16);
-    const g = parseInt(hex.substring(2, 4), 16);
-    const b = parseInt(hex.substring(4, 6), 16);
+  // const getContrastTextColor = (bgColor: string) => {
+  //   // Convert hex to RGB
+  //   const hex = bgColor.replace("#", "");
+  //   const r = parseInt(hex.substring(0, 2), 16);
+  //   const g = parseInt(hex.substring(2, 4), 16);
+  //   const b = parseInt(hex.substring(4, 6), 16);
 
-    // Calculate luminance
-    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  //   // Calculate luminance
+  //   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 
-    // Return black or white based on luminance
-    return luminance > 0.5 ? "#2F2A1F" : "#FFFFFF";
-  };
+  //   // Return black or white based on luminance
+  //   return luminance > 0.5 ? "#2F2A1F" : "#FFFFFF";
+  // };
 
-  // Calculate button text color - use provided buttonTextColor or get contrast color
-  const calculatedButtonTextColor =
-    buttonTextColor || getContrastTextColor(secondaryColor);
+  // // Calculate button text color - use provided buttonTextColor or get contrast color
+  // const calculatedButtonTextColor =
+  //   buttonTextColor || getContrastTextColor(secondaryColor);
 
-  // //console.log("Rendering SearchWidget with colors:", { primaryColor, secondaryColor, tertiaryColor, buttonTextColor }, bookingContext);
 
   return (
     <>
@@ -480,35 +478,35 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
             <div
               onClick={openCalendar}
               className="bg-white border-2 rounded-xl lg:rounded-[40px] px-4 lg:px-6 py-3 lg:py-4 flex items-center gap-3 lg:gap-6 shadow-sm cursor-pointer hover:border-[#7D7566] transition-colors flex-1 lg:flex-initial"
-              style={{ borderColor: tertiaryColor }}
+              style={{ borderColor: secondaryColor }}
             >
               {/* Check-in */}
               <div className="text-center flex-1 min-w-[70px] lg:min-w-[100px]">
-                <p className="text-[9px] tracking-[0.15em] font-medium mb-1" style={{ color: tertiaryColor }}>
+                <p className="text-[9px] tracking-[0.15em] font-medium mb-1" style={{ color: primaryColor }}>
                   {t("SearchWidget.checkIn")}
                 </p>
                 <p className="text-2xl lg:text-[40px] font-semibold leading-none mb-1" style={{ color: primaryColor }}>
                   {formatNumber(checkIn?.getDate() ?? 0)}
                 </p>
-                <p className="text-[9px] lg:text-[10px] uppercase tracking-wider font-medium" style={{ color: tertiaryColor }}>
+                <p className="text-[9px] lg:text-[10px] uppercase tracking-wider font-medium" style={{ color: primaryColor }}>
                   {checkIn?.toLocaleDateString(i18n.language === "ar" ? "ar-EG" : "en-US", { month: "short", year: "numeric" })}
                 </p>
               </div>
 
               {/* Arrow */}
-              <div className="text-xl lg:text-[32px] font-light px-2 flex-shrink-0" style={{ color: tertiaryColor }}>
+              <div className="text-xl lg:text-[32px] font-light px-2 flex-shrink-0" style={{ color: primaryColor }}>
                 ›
               </div>
 
               {/* Check-out */}
               <div className="text-center flex-1 min-w-[70px] lg:min-w-[100px]">
-                <p className="text-[9px] tracking-[0.15em] font-medium mb-1" style={{ color: tertiaryColor }}>
+                <p className="text-[9px] tracking-[0.15em] font-medium mb-1" style={{ color: primaryColor }}>
                   {t("SearchWidget.checkOut")}
                 </p>
                 <p className="text-2xl lg:text-[40px] font-semibold leading-none mb-1" style={{ color: primaryColor }}>
                   {checkOut ? formatNumber(checkOut.getDate()) : "--"}
                 </p>
-                <p className="text-[9px] lg:text-[10px] uppercase tracking-wider font-medium" style={{ color: tertiaryColor }}>
+                <p className="text-[9px] lg:text-[10px] uppercase tracking-wider font-medium" style={{ color: primaryColor }}>
                   {checkOut
                     ? checkOut.toLocaleDateString(i18n.language === "ar" ? "ar-EG" : "en-US", { month: "short", year: "numeric" })
                     : t("SearchWidget.checkOutSelect")}
@@ -520,9 +518,9 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
             <button
               onClick={() => setIsGuestSelectorOpen(true)}
               className="bg-white border rounded-xl px-4 py-3 hover:bg-[#FAFAF8] transition-colors shadow-sm w-full md:w-auto"
-              style={{ borderColor: "#C4BAA5" }}
+              style={{ borderColor: secondaryColor }}
             >
-              <p className="text-[9px] tracking-[0.15em] font-medium mb-2" style={{ color: tertiaryColor }}>
+              <p className="text-[9px] tracking-[0.15em] font-medium mb-2" style={{ color: primaryColor }}>
                 {t("SearchWidget.occupancy")}
               </p>
               <div className="flex items-center justify-center gap-3">
@@ -577,7 +575,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 }}
                 placeholder={t("SearchWidget.promoCode")}
                 className="bg-transparent border-b-2 pb-2 text-[10px] tracking-[0.15em] placeholder-[#9B8B6F] focus:outline-none transition-colors w-full"
-                style={{ borderColor: tertiaryColor, color: tertiaryColor }}
+                style={{ borderColor: secondaryColor, color: "black" }}
               />
             </div>
 
@@ -586,7 +584,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
               onClick={handleSearch}
               disabled={loading}
               className="w-full md:w-auto px-6 lg:px-10 py-3 lg:py-4 rounded-full text-xs lg:text-[11px] font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm hover:opacity-90 whitespace-nowrap"
-              style={{ backgroundColor: secondaryColor, color: calculatedButtonTextColor }}
+              style={{ backgroundColor: secondaryColor,color:buttonTextColor }}
             >
               {loading ? t("SearchWidget.loading") : t("SearchWidget.bookNow")}
             </button>

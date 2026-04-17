@@ -19,6 +19,7 @@ import type {
     RoomType,
     RatePlan
 } from "../interfaces";
+import BackButton from "@/components/shared/BackButton";
 
 interface RestrictionsPageProps {
     propertyId: string;
@@ -88,7 +89,7 @@ export default function RestrictionsPage({ propertyId, propertyCode }: Restricti
 
                 const futureRestrictions = (response.data || [])
                     .filter((r: Restriction) => new Date(r.date) >= today)
-                    .sort((a: Restriction, b: Restriction) => 
+                    .sort((a: Restriction, b: Restriction) =>
                         new Date(a.date).getTime() - new Date(b.date).getTime()
                     );
 
@@ -146,9 +147,10 @@ export default function RestrictionsPage({ propertyId, propertyCode }: Restricti
     }
 
     return (
-        <div className="container mx-auto py-8 px-4">
+        <div className="container mx-auto py-2 px-4">
             {/* Header */}
-            <div className="flex items-center justify-between mb-6">
+            <BackButton />
+            <div className="flex items-center justify-between my-6">
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900">CTA/CTD Restrictions</h1>
                     <p className="text-gray-600 mt-1">

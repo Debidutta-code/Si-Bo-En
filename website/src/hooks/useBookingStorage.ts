@@ -15,7 +15,7 @@ interface BookingStorage {
 
 const DEFAULT_COLORS: BookingColors = {
   primaryColor: "#1E3A8A",      
-  secondaryColor: "#DBEAFE",    
+  secondaryColor: "#0d7a87",    
   tertiaryColor: "#3B82F6",     
   buttonTextColor: "#FFFFFF",
   logoIcon: null,

@@ -32,12 +32,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Edit, MoreVertical, Trash2, Calendar } from "lucide-react";
+import { Edit, MoreVertical, Trash2, Calendar, Filter } from "lucide-react";
 import {
   OffsetFormModal,
   DeleteConfirmDialog,
   CreateBookingOffsetForm,
 } from "./components";
+import { Button } from "@/components/ui/button";
 
 export default function BookingOffset() {
   const { propertyId } = useParams();
@@ -84,9 +85,9 @@ export default function BookingOffset() {
     maximumCancelBookingOffset: null,
   });
 
-  // Bulk date range (separate from the page-level filter)
   const [bulkStartDate, setBulkStartDate] = useState<string>("");
   const [bulkEndDate, setBulkEndDate] = useState<string>("");
+  const [bulkRatePlanId, setBulkRatePlanId] = useState<string>("");
 
   // Create modal
   const [createModalOpen, setCreateModalOpen] = useState<boolean>(false);
@@ -94,7 +95,7 @@ export default function BookingOffset() {
   useEffect(() => {
     if (propertyId) {
       loadRatePlans();
-    }else{
+    } else {
       console.log("Property ID is required");
     }
   }, [propertyId]);
@@ -193,6 +194,7 @@ export default function BookingOffset() {
   const handleBulkDeleteClick = () => {
     setBulkStartDate(startDate);
     setBulkEndDate(endDate);
+    setBulkRatePlanId(selectedRatePlan?.id || "");
     setDeleteTarget({ type: "bulk" });
     setDeleteDialogOpen(true);
   };
@@ -207,13 +209,13 @@ export default function BookingOffset() {
       } else if (
         deleteTarget.type === "bulk" &&
         propertyId &&
-        selectedRatePlan &&
+        bulkRatePlanId &&
         bulkStartDate &&
         bulkEndDate
       ) {
         result = await deleteBookingOffsetsService(
           propertyId,
-          selectedRatePlan.id,
+          bulkRatePlanId,
           bulkStartDate,
           bulkEndDate,
         );
@@ -246,6 +248,7 @@ export default function BookingOffset() {
   const handleBulkUpdateClick = () => {
     setBulkStartDate(startDate);
     setBulkEndDate(endDate);
+    setBulkRatePlanId(selectedRatePlan?.id || "");
     setBulkUpdateForm({
       minimumAdvanceBookingOffset: null,
       maximumAdvanceBookingOffset: null,
@@ -258,13 +261,13 @@ export default function BookingOffset() {
   };
 
   const handleBulkUpdateSubmit = async () => {
-    if (!propertyId || !selectedRatePlan || !bulkStartDate || !bulkEndDate)
+    if (!propertyId || !bulkRatePlanId || !bulkStartDate || !bulkEndDate)
       return;
     setLoader({ isLoading: true, message: "Updating Booking Offsets..." });
     try {
       const result = await updateBookingOffsetsService(
         propertyId,
-        selectedRatePlan.id,
+        bulkRatePlanId,
         bulkStartDate,
         bulkEndDate,
         bulkUpdateForm,
@@ -312,16 +315,37 @@ export default function BookingOffset() {
       <BackButton />
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold text-foreground">Booking Offsets</h2>
-        <button
+        <Button
           onClick={() => setCreateModalOpen(true)}
-          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+          // className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
         >
           + Create Booking Offsets
-        </button>
+        </Button>
       </div>
 
       {/* Rate Plan Selector */}
       <div className="bg-card rounded-lg border border-border p-4 space-y-4">
+        <div className="flex justify-between">
+
+        <div className="flex items-center gap-2 mb-4">
+          <Filter className="w-5 h-5 text-gray-600" />
+          <h3 className="text-lg font-semibold">Filters</h3>
+        </div>
+         <div className="flex items-center justify-end gap-3">
+            <Button
+              onClick={handleBulkUpdateClick}
+              variant={"default"}
+            >
+              Bulk Update
+            </Button>
+            <Button
+              onClick={handleBulkDeleteClick}
+              variant={"destructive"} 
+            >
+              Bulk Delete
+            </Button>
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-medium text-muted-foreground mb-1">
@@ -384,28 +408,15 @@ export default function BookingOffset() {
       ) : (
         <>
           {/* Bulk Action Buttons */}
-          <div className="flex items-center justify-end gap-3">
-            <button
-              onClick={handleBulkUpdateClick}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors text-sm"
-              disabled={bookingOffsets.length === 0}
-            >
-              Bulk Update
-            </button>
-            <button
-              onClick={handleBulkDeleteClick}
-              className="px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors text-sm"
-              disabled={bookingOffsets.length === 0}
-            >
-              Bulk Delete
-            </button>
-          </div>
+         
 
           {/* Offsets Table */}
           <div className="bg-card rounded-lg border border-border overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="text-center">Rate Plan</TableHead>
+
                   <TableHead className="text-center">Date</TableHead>
                   <TableHead className="text-center">Min Advance Booking</TableHead>
                   <TableHead className="text-center">Max Advance Booking</TableHead>
@@ -430,6 +441,10 @@ export default function BookingOffset() {
                 ) : (
                   bookingOffsets.map((offset) => (
                     <TableRow key={offset.id}>
+                      <TableCell className="font-medium">
+                        {offset.ratePlanName}
+                      </TableCell>
+
                       <TableCell className="font-medium">
                         {formatDate(offset.date)}
                       </TableCell>
@@ -513,7 +528,7 @@ export default function BookingOffset() {
       {bulkUpdateModalOpen && (
         <OffsetFormModal
           title="Bulk Update Booking Offsets"
-          subtitle={`This will update all offsets for ${selectedRatePlan?.ratePlanName}.`}
+          subtitle={`This will update offsets for the selected rate plan.`}
           form={bulkUpdateForm}
           onFormChange={setBulkUpdateForm}
           onSubmit={handleBulkUpdateSubmit}
@@ -524,6 +539,9 @@ export default function BookingOffset() {
           endDate={bulkEndDate}
           onStartDateChange={setBulkStartDate}
           onEndDateChange={setBulkEndDate}
+          ratePlans={ratePlans}
+          selectedRatePlanId={bulkRatePlanId}
+          onRatePlanChange={setBulkRatePlanId}
         />
       )}
 
@@ -537,7 +555,7 @@ export default function BookingOffset() {
           }
           message={
             deleteTarget?.type === "bulk"
-              ? `Are you sure you want to delete all booking offsets for ${selectedRatePlan?.ratePlanName}? This action cannot be undone.`
+              ? `Are you sure you want to delete all booking offsets for the selected rate plan? This action cannot be undone.`
               : "Are you sure you want to delete this booking offset? This action cannot be undone."
           }
           onConfirm={handleDeleteConfirm}
@@ -548,6 +566,9 @@ export default function BookingOffset() {
           endDate={bulkEndDate}
           onStartDateChange={setBulkStartDate}
           onEndDateChange={setBulkEndDate}
+          ratePlans={deleteTarget?.type === "bulk" ? ratePlans : undefined}
+          selectedRatePlanId={bulkRatePlanId}
+          onRatePlanChange={setBulkRatePlanId}
         />
       )}
 
