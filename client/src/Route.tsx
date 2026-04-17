@@ -33,7 +33,7 @@ import CalendarView from "./pages/price-management/calendar/CalendarView.tsx";
 import PeriodsManagement from "./pages/price-management/periods/PeriodsManagement.tsx";
 import TableView from "./pages/price-management/table/TableView.tsx";
 import Bookings from "./pages/bookings/Bookings.tsx";
-import RestrictionsPageWrapper from "./pages/cta-ctd/page.tsx";
+import RestrictionsPageWrapper from "./pages/cta-ctd/CTA-CTD.tsx";
 import InventoryPage from "./pages/calender-view/page.tsx";
 import ForgotPasswordForm from "./components/auth/ForgotPasswordForm.tsx";
 import LinkVerification from "./components/auth/LinkVerification.tsx";

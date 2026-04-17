@@ -1,6 +1,17 @@
 import { useState, useEffect } from "react";
 import type { ICBookingOffsetS } from "../interfaces";
-import { X } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import type { RatePlan } from "@/pages/tax-system/interface";
 
 const OFFSET_FIELDS: { key: keyof ICBookingOffsetS; label: string }[] = [
   { key: "minimumAdvanceBookingOffset", label: "Min Advance" },
@@ -46,6 +57,9 @@ interface OffsetFormModalProps {
   endDate?: string;
   onStartDateChange?: (date: string) => void;
   onEndDateChange?: (date: string) => void;
+  ratePlans?: RatePlan[];
+  selectedRatePlanId?: string;
+  onRatePlanChange?: (id: string) => void;
 }
 
 export default function OffsetFormModal({
@@ -61,6 +75,9 @@ export default function OffsetFormModal({
   endDate = "",
   onStartDateChange,
   onEndDateChange,
+  ratePlans,
+  selectedRatePlanId,
+  onRatePlanChange,
 }: OffsetFormModalProps) {
   const [units, setUnits] = useState<UnitsMap>(() => getInitialUnits(form));
 
@@ -83,90 +100,91 @@ export default function OffsetFormModal({
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-card border border-border rounded-lg shadow-lg max-w-4xl w-full mx-4 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-          <button
-            onClick={onClose}
-            className="p-1 hover:bg-accent rounded-md transition-colors"
-          >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        {subtitle && (
-          <p className="text-sm text-muted-foreground mb-4">{subtitle}</p>
-        )}
-        {showDateRange && (
-          <div className="grid grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-1">
-                Start Date
-              </label>
-              <input
-                type="date"
-                className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                value={startDate}
-                onChange={(e) => onStartDateChange?.(e.target.value)}
-              />
+    <Dialog open={true} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          {subtitle && <DialogDescription>{subtitle}</DialogDescription>}
+        </DialogHeader>
+
+        <div className="space-y-6 py-4">
+          {(showDateRange || ratePlans) && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {ratePlans && (
+                <div className="space-y-2">
+                  <Label>Rate Plan</Label>
+                  <select
+                    className="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                    value={selectedRatePlanId || ""}
+                    onChange={(e) => onRatePlanChange?.(e.target.value)}
+                  >
+                    <option value="">Select a Rate Plan</option>
+                    {ratePlans.map((rp) => (
+                      <option key={rp.id} value={rp.id}>
+                        {rp.ratePlanName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              {showDateRange && (
+                <>
+                  <div className="space-y-2">
+                    <Label>Start Date</Label>
+                    <Input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => onStartDateChange?.(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>End Date</Label>
+                    <Input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => onEndDateChange?.(e.target.value)}
+                    />
+                  </div>
+                </>
+              )}
             </div>
-            <div>
-              <label className="block text-sm font-medium text-muted-foreground mb-1">
-                End Date
-              </label>
-              <input
-                type="date"
-                className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                value={endDate}
-                onChange={(e) => onEndDateChange?.(e.target.value)}
-              />
-            </div>
-          </div>
-        )}
-        <div className="grid grid-cols-2 gap-4">
-          {OFFSET_FIELDS.map((field) => (
-            <div key={field.key}>
-              <label className="block text-sm font-medium text-muted-foreground mb-1">
-                {field.label}
-              </label>
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  min="0"
-                  className="flex-1 px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  value={toDisplay(form[field.key], units[field.key])}
-                  onChange={(e) => handleValueChange(field.key, e.target.value)}
-                  placeholder="—"
-                />
-                <select
-                  className="px-2 py-2 bg-background border border-border rounded-md text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                  value={units[field.key]}
-                  onChange={(e) =>
-                    handleUnitChange(field.key, e.target.value as Unit)
-                  }
-                >
-                  <option value="hours">Hours</option>
-                  <option value="days">Days</option>
-                </select>
+          )}
+
+          <div className="grid grid-cols-2 gap-4">
+            {OFFSET_FIELDS.map((field) => (
+              <div key={field.key} className="space-y-2">
+                <Label>{field.label}</Label>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    min="0"
+                    placeholder="—"
+                    value={toDisplay(form[field.key], units[field.key])}
+                    onChange={(e) => handleValueChange(field.key, e.target.value)}
+                  />
+                  <select
+                    className="px-3 py-2 bg-background border border-input rounded-md text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    value={units[field.key]}
+                    onChange={(e) =>
+                      handleUnitChange(field.key, e.target.value as Unit)
+                    }
+                  >
+                    <option value="hours">Hours</option>
+                    <option value="days">Days</option>
+                  </select>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-        <div className="flex justify-end space-x-3 pt-4 mt-4 border-t border-border">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
-          >
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>
             Cancel
-          </button>
-          <button
-            onClick={onSubmit}
-            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-          >
-            {submitLabel}
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+          <Button onClick={onSubmit}>{submitLabel}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

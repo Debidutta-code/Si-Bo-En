@@ -1,11 +1,11 @@
-import { CustomRequest, s3 } from "../../utils";
+import { CustomRequest } from "../../utils";
 import { Response } from "express";
 import { IApiResponse, successResponse, errorResponse } from "../../utils";
 
 import { PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { v4 as uuid } from "uuid";
-import { config } from "../../config";
+import { config, s3 } from "../../config";
 
 
 

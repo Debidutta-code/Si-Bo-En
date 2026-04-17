@@ -11,6 +11,19 @@ interface DeleteConfirmDialogProps {
   onEndDateChange?: (date: string) => void;
 }
 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import type { RatePlan } from "@/pages/tax-system/interface";
+
 export default function DeleteConfirmDialog({
   title,
   message,
@@ -22,59 +35,73 @@ export default function DeleteConfirmDialog({
   endDate = "",
   onStartDateChange,
   onEndDateChange,
-}: DeleteConfirmDialogProps) {
+  ratePlans,
+  selectedRatePlanId,
+  onRatePlanChange,
+}: DeleteConfirmDialogProps & {
+  ratePlans?: RatePlan[];
+  selectedRatePlanId?: string;
+  onRatePlanChange?: (id: string) => void;
+}) {
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-card border border-border rounded-lg shadow-lg max-w-md w-full mx-4 p-6">
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-            <p className="text-sm text-muted-foreground mt-2">{message}</p>
-          </div>
-          {showDateRange && (
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-1">
-                  Start Date
-                </label>
-                <input
-                  type="date"
-                  className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  value={startDate}
-                  onChange={(e) => onStartDateChange?.(e.target.value)}
-                />
+    <Dialog open={true} onOpenChange={(open) => !open && onCancel()}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{message}</DialogDescription>
+        </DialogHeader>
+
+        {(showDateRange || ratePlans) && (
+          <div className="grid grid-cols-1 gap-4 py-4">
+            {ratePlans && (
+              <div className="space-y-2">
+                <Label>Rate Plan</Label>
+                <select
+                  className="w-full px-3 py-2 bg-background border border-input rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  value={selectedRatePlanId || ""}
+                  onChange={(e) => onRatePlanChange?.(e.target.value)}
+                >
+                  <option value="">Select a Rate Plan</option>
+                  {ratePlans.map((rp) => (
+                    <option key={rp.id} value={rp.id}>
+                      {rp.ratePlanName}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-muted-foreground mb-1">
-                  End Date
-                </label>
-                <input
-                  type="date"
-                  className="w-full px-3 py-2 bg-background border border-border rounded-md text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-                  value={endDate}
-                  onChange={(e) => onEndDateChange?.(e.target.value)}
-                />
+            )}
+            {showDateRange && (
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Start Date</Label>
+                  <Input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => onStartDateChange?.(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>End Date</Label>
+                  <Input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => onEndDateChange?.(e.target.value)}
+                  />
+                </div>
               </div>
-            </div>
-          )}
-          <div className="flex justify-end space-x-3 pt-4 border-t border-border">
-            <button
-              onClick={onCancel}
-              className="px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/90 transition-colors"
-              disabled={isLoading}
-            >
-              Cancel
-            </button>
-            <button
-              onClick={onConfirm}
-              className="px-4 py-2 bg-destructive text-destructive-foreground rounded-md hover:bg-destructive/90 transition-colors"
-              disabled={isLoading}
-            >
-              {isLoading ? "Deleting..." : "Delete"}
-            </button>
+            )}
           </div>
-        </div>
-      </div>
-    </div>
+        )}
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onCancel} disabled={isLoading}>
+            Cancel
+          </Button>
+          <Button variant="destructive" onClick={onConfirm} disabled={isLoading}>
+            {isLoading ? "Deleting..." : "Delete"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

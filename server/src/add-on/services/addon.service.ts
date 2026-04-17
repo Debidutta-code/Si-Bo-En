@@ -4,6 +4,8 @@ import VariantRepository from "../repository/variant.repository";
 import { IAddon ,ICAddon} from "../interfaces";
 import { successResponse,errorResponse } from "../../utils/return";
 import {IApiResponse} from "../../utils/return.types"
+import { deleteFileByUrl } from "../../utils/delete-images.utils";
+
 export class AddonService {
     /**
      * Create a new addon
@@ -130,6 +132,17 @@ export class AddonService {
             const existingAddon = await AddonRepository.getAddonById(addonId);
             if (!existingAddon) {
                     return errorResponse("Addon not found", "Addon not found");
+            }
+
+            // Remove deleted images
+            if (updateData.images) {
+                const oldImages: string[] = existingAddon.images || [];
+                const newImages: string[] = updateData.images || [];
+                const imagesToDelete = oldImages.filter(img => !newImages.includes(img));
+                
+                if (imagesToDelete.length > 0) {
+                    await Promise.all(imagesToDelete.map(img => deleteFileByUrl(img).catch(err => console.error("Failed to delete addon image:", img, err))));
+                }
             }
 
             // Validate optional references if being updated

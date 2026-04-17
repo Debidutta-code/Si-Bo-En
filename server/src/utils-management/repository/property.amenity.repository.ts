@@ -23,7 +23,7 @@ export class PropertyAminityDao {
   public  async addPropertyAmenities(newAmenities: string[]) {
     try {
       const amenityData = newAmenities.map(name => ({
-        amenityName: name,
+        amenityName: name.toLocaleLowerCase(),
         amenityType: "property" as AmenityType,
         isActive: true,
       }));

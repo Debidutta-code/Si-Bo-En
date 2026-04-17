@@ -1,8 +1,22 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import toast from "react-hot-toast";
+import ImageSlider from "@/components/shared/ImageSlider";
+import {
+  Package,
+  Settings,
+  DollarSign,
+  Calendar,
+  Search,
+  Plus,
+  Filter,
+  MoreVertical,
+  Pencil,
+  Trash2,
+  Baby,
+} from "lucide-react";
 import Loader from "@/components/Loader/Loader";
 import BackButton from "@/components/shared/BackButton";
-import toast from "react-hot-toast";
 import {
   createAddOnService,
   updateAddOnService,
@@ -78,19 +92,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Plus,
-  MoreVertical,
-  Pencil,
-  Trash2,
-  Package,
-  Search,
-  Filter,
-  Calendar,
-  DollarSign,
-  Settings,
-  Baby,
-} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import AddOnDialog from "./components/AddOnDialog";
 import CategoryDialog from "./components/CategoryDialog";
@@ -660,7 +661,7 @@ export default function AddOns() {
   };
 
   const handleCreateChildAddon = async (data: ICChildAddoon) => {
-    if(!propertyId)return;
+    if (!propertyId) return;
     setChildAddonLoading(true);
     try {
       const response = await createChildAddonService(data, propertyId);
@@ -686,7 +687,7 @@ export default function AddOns() {
     data: IUpdateChildAddon,
   ) => {
     setChildAddonLoading(true);
-    if(!propertyId)return;
+    if (!propertyId) return;
     try {
       const response = await updateChildAddonService(id, data, propertyId);
       if (response.success) {
@@ -964,8 +965,17 @@ export default function AddOns() {
                 {filteredAddOns.map((addOn) => (
                   <Card
                     key={addOn.id}
-                    className="hover:shadow-xl transition-shadow duration-200"
+                    className="hover:shadow-xl transition-shadow duration-200 overflow-hidden"
                   >
+                    <div className="h-48 w-full border-b">
+                      {addOn.images && addOn.images.length > 0 ? (
+                        <ImageSlider images={addOn.images} alt={addOn.name} height="h-48" />
+                      ) : (
+                        <div className="w-full h-full bg-muted flex items-center justify-center">
+                          <Package className="w-12 h-12 text-muted-foreground/30" />
+                        </div>
+                      )}
+                    </div>
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">

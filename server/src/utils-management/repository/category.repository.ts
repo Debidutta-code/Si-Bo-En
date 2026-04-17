@@ -5,7 +5,7 @@ export class CategoryDao {
     try {
       return await prisma.masterPropertyCategory.findFirst({
         where: {
-          categoryName: categoryName,
+          categoryName: categoryName.toLocaleLowerCase(),
           isActive: true,
         },
       });
@@ -18,7 +18,7 @@ export class CategoryDao {
     try {
       return await prisma.masterPropertyCategory.create({
         data: {
-          categoryName,
+          categoryName: categoryName.toLocaleLowerCase(),
           categoryDescription: description,
           isActive: true,
         },
@@ -42,9 +42,8 @@ export class CategoryDao {
 
   public  async deleteCategory(categoryName: string) {
     try {
-      // Soft delete by setting isActive to false
       return await prisma.masterPropertyCategory.updateMany({
-        where: { categoryName: categoryName },
+        where: { categoryName: categoryName.toLocaleLowerCase() },
         data: { isActive: false },
       });
     } catch (error) {

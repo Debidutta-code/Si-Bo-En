@@ -31,6 +31,7 @@ import NoShowConfirmationModal from "./NoShowModal";
 import { downloadBookingVoucher } from "../api/reservation.api";
 import toast from "react-hot-toast";
 import AmendReservationModal from "./Amendreservationmodal";
+import { Button } from "@/components/ui/button";
 
 // ─── View Details Modal ───────────────────────────────────────────────────────
 
@@ -323,6 +324,15 @@ export default function ReservationsTable({
                           Cancel
                         </DropdownMenuItem>
                       )}
+                      {
+                        reservation.bookingStatus==="checked_in" &&(
+                          <>
+                          <Button>
+                            Checked in Details
+                          </Button>
+                          </>
+                        )
+                      }
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

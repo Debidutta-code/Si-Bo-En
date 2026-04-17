@@ -11,12 +11,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Eye, EyeOff } from 'lucide-react';
 import { z } from 'zod';
 import type { IUser, ICreateUser, IRoleAccess } from '../../pages/members/types/types';
-import { useAppSelector } from '@/redux/hooks';
-import { capitalizeFirstLetter } from "@/lib/utils";
 
 interface EditMemberDialogProps {
   user: IUser | null;
@@ -30,14 +27,13 @@ interface EditMemberDialogProps {
 
 export default function EditMemberDialog({
   user,
-  roles,
+  // roles,
   isOpen,
   onOpenChange,
   onSubmit,
   errors,
   loading
 }: EditMemberDialogProps) {
-  const { user: currentUser } = useAppSelector((state) => state.user);
   const [formData, setFormData] = useState<ICreateUser>({
     firstName: '',
     lastName: '',
@@ -203,49 +199,6 @@ export default function EditMemberDialog({
             {getErrorMessage('confirmPassword') && (
               <p id="confirmPassword-error" className="text-sm text-red-500 mt-1">
                 {getErrorMessage('confirmPassword')}
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="role">Role</Label>
-            <Select
-              value={formData.role}
-              onValueChange={(value) => {
-                const selectedRole = roles.find((role) => role.role === value);
-                if (selectedRole) {
-                  setFormData({ 
-                    ...formData, 
-                    role: selectedRole.role, 
-                    level: selectedRole.level 
-                  });
-                }
-              }}
-            >
-              <SelectTrigger 
-                className={getErrorMessage('role') ? 'border-red-500' : ''}
-                aria-invalid={!!getErrorMessage('role')} 
-                aria-describedby={getErrorMessage('role') ? "role-error" : undefined}
-              >
-                <SelectValue placeholder="Select role" />
-              </SelectTrigger>
-              <SelectContent>
-                {roles && roles.length > 0 ? (
-                  roles.map((item, index) => (
-                    item.level <= (currentUser?.userLevel ?? 0) && (
-                      <SelectItem key={index} value={item.role}>
-                        {capitalizeFirstLetter(item.role).replace(/_/g, ' ')}
-                      </SelectItem>
-                    )
-                  ))
-                ) : (
-                  <div className="p-2 text-sm text-gray-500">No roles available</div>
-                )}
-              </SelectContent>
-            </Select>
-            {getErrorMessage('role') && (
-              <p id="role-error" className="text-sm text-red-500 mt-1">
-                {getErrorMessage('role')}
               </p>
             )}
           </div>

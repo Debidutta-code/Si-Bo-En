@@ -222,23 +222,23 @@ export const OfferForTonightList: React.FC = () => {
         setShowForm(true);
     };
 
-    const formatDate = (date: string | null | undefined) => {
-        if (!date) return 'N/A';
-        return new Date(date).toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
-    };
+    // const formatDate = (date: string | null | undefined) => {
+    //     if (!date) return 'N/A';
+    //     return new Date(date).toLocaleDateString('en-US', {
+    //         year: 'numeric',
+    //         month: 'short',
+    //         day: 'numeric'
+    //     });
+    // };
 
-    const formatTime = (date: string | null | undefined) => {
-        if (!date) return 'N/A';
-        return new Date(date).toLocaleTimeString('en-US', {
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false
-        });
-    };
+    // const formatTime = (date: string | null | undefined) => {
+    //     if (!date) return 'N/A';
+    //     return new Date(date).toLocaleTimeString('en-US', {
+    //         hour: '2-digit',
+    //         minute: '2-digit',
+    //         hour12: false
+    //     });
+    // };
 
     const getActiveDays = (days: any) => {
         const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -261,9 +261,9 @@ export const OfferForTonightList: React.FC = () => {
 
     const getBookingTimeRange = (validFrom: string | null, validTo: string | null) => {
         if (!validFrom) return 'N/A';
-        const fromTime = formatTime(validFrom);
-        const toTime = validTo ? formatTime(validTo) : '23:59';
-        return `${fromTime} - ${toTime}`;
+        const fromTime = validFrom;
+        const toTime = validTo ? validTo : '23:59';
+        return `${fromTime.split('T')[1].split('.')[0]} - ${toTime.split('T')[1].split('.')[0]}`;
     };
 
     if (showForm) {
@@ -364,13 +364,13 @@ export const OfferForTonightList: React.FC = () => {
                                         <TableCell>
                                             <div className="flex items-center gap-1 text-xs">
                                                 <Calendar className="w-3 h-3 text-muted-foreground" />
-                                                {formatDate(promotion.validFrom)}
+                                                {promotion.validFrom?.split('T')[0]}
                                             </div>
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex items-center gap-1 text-xs">
                                                 <Calendar className="w-3 h-3 text-muted-foreground" />
-                                                {formatDate(promotion.validTo)}
+                                                {promotion.validTo?.split('T')[0]}
                                             </div>
                                         </TableCell>
                                         <TableCell>

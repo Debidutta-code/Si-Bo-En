@@ -3,6 +3,8 @@ import { IApiResponse } from '../../utils/return.types';
 import { RoomDao, RoomAmenityDao } from '../repository';
 import { RatePlanRepository } from "../../ari/repository/ratePlan.repository"
 import { ICRoom } from '../types';
+import { deleteFileByUrl } from '../../utils/delete-images.utils';
+
 export class RoomService {
   private roomDao: RoomDao;
 
@@ -73,6 +75,16 @@ export class RoomService {
       if (!isExists) {
         return errorResponse('Room Does not exists');
       }
+
+      const oldImages: string[] = isExists.image || [];
+      const newImages: string[] = roomData.image || [];
+
+      const imagesToDelete = oldImages.filter(img => !newImages.includes(img));
+      
+      if (imagesToDelete.length > 0) {
+        await Promise.all(imagesToDelete.map(img => deleteFileByUrl(img).catch(err => console.error("Failed to delete room image:", img, err))));
+      }
+
       const updatedRoom = await this.roomDao.updateRoom(id, roomData);
       await this.roomDao.updateRoomView({roomId:id, masterViewId:roomData.RoomViews!.MasterRoomView.id});
       if (updatedRoom) {

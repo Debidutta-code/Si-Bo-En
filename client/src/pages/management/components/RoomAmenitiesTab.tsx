@@ -33,7 +33,7 @@ export default function RoomAmenitiesTab({ roomAmenities, setRoomAmenities }: Ro
     const response = await createRoomAmenitiesService(amenitiesList);
     if (response.success) {
       toast.success("Room amenities created successfully");
-      setRoomAmenities([...roomAmenities, ...response.data]);
+      setRoomAmenities([...response.data]);
       setAmenitiesList([]);
       setIsRoomAmenityDialogOpen(false);
     } else {
