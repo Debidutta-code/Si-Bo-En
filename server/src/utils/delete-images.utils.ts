@@ -1,81 +1,72 @@
-// import { v2 as cloudinary } from "cloudinary";
-// import { s3 } from ".";
+import { cloudinary, config, s3 } from "../config";
+import { DeleteObjectCommand } from "@aws-sdk/client-s3";
+export const deleteFileByUrl = async (fileUrl: string) => {
+  if (!fileUrl) return;
 
-// =
-// export const deleteFileByUrl = async (fileUrl: string) => {
-//   if (!fileUrl) return;
+  try {
+    const url = new URL(fileUrl);
+    const hostname = url.hostname;
 
-//   try {
-//     const url = new URL(fileUrl);
-//     const hostname = url.hostname;
+    if (hostname.endsWith("amazonaws.com")) {
+      return await deleteFromS3(fileUrl);
+    }
 
-//     if (hostname.includes("amazonaws.com")) {
-//       return await deleteFromS3(fileUrl);
-//     }
+    if (hostname.endsWith("cloudinary.com")) {
+      return await deleteFromCloudinary(fileUrl);
+    }
 
-//     if (hostname.includes("cloudinary.com")) {
-//       return await deleteFromCloudinary(fileUrl);
-//     }
+    console.warn("Unknown storage provider:", hostname);
+  } catch (error) {
+    console.error("Delete resolver error:", error);
+  }
+};
 
-//     console.warn("Unknown storage provider:", hostname);
-//   } catch (error) {
-//     console.error("Delete resolver error:", error);
-//   }
-// };
+const deleteFromCloudinary = async (fileUrl: string) => {
+  try {
+    const url = new URL(fileUrl);
+    const parts = url.pathname.split("/");
 
+    const uploadIndex = parts.findIndex(p => p === "upload");
 
+    if (uploadIndex === -1) {
+      throw new Error("Invalid Cloudinary URL");
+    }
 
-// cloudinary.config({
-//   cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
-//   api_key: process.env.CLOUDINARY_API_KEY!,
-//   api_secret: process.env.CLOUDINARY_API_SECRET!,
-// });
+    const publicIdParts = parts.slice(uploadIndex + 1);
 
-// export const deleteFromCloudinary = async (fileUrl: string) => {
-//   try {
-//     const url = new URL(fileUrl);
+    if (publicIdParts[0]?.startsWith("v")) {
+      publicIdParts.shift();
+    }
 
-//     // Example:
-//     // https://res.cloudinary.com/<cloud_name>/image/upload/v1234567/folder/file.jpg
+    const public_id = publicIdParts
+      .join("/")
+      .replace(/\.[^/.]+$/, "");
 
-//     const parts = url.pathname.split("/");
+    await cloudinary.uploader.destroy(public_id);
 
-//     const uploadIndex = parts.findIndex(p => p === "upload");
+    console.log("Deleted from Cloudinary:", public_id);
+  } catch (error) {
+    console.error("Cloudinary delete error:", error);
+  }
+};
 
-//     // public_id = everything after "upload" excluding version
-//     const publicIdParts = parts.slice(uploadIndex + 1);
+const deleteFromS3 = async (fileUrl: string) => {
+  try {
+    const url = new URL(fileUrl);
 
-//     // remove version (v123456)
-//     if (publicIdParts[0]?.startsWith("v")) {
-//       publicIdParts.shift();
-//     }
+    const key = decodeURIComponent(
+      url.pathname.replace(/^\/+/, "")
+    );
 
-//     const public_id = publicIdParts.join("/").replace(/\.[^/.]+$/, "");
+    await s3.send(
+      new DeleteObjectCommand({
+        Bucket: config.awsBucketName!,
+        Key: key,
+      })
+    );
 
-//     await cloudinary.uploader.destroy(public_id);
-
-//     console.log("Deleted from Cloudinary:", public_id);
-//   } catch (error) {
-//     console.error("Cloudinary delete error:", error);
-//   }
-// };
-
-// export const deleteFromS3 = async (fileUrl: string) => {
-//   try {
-//     const url = new URL(fileUrl);
-
-//     // Extract key (everything after bucket domain)
-//     const key = decodeURIComponent(url.pathname.slice(1));
-
-//     await s3.send(
-//       new DeleteObjectCommand({
-//         Bucket: process.env.AWS_BUCKET!,
-//         Key: key,
-//       })
-//     );
-
-//     console.log("Deleted from S3:", key);
-//   } catch (error) {
-//     console.error("S3 delete error:", error);
-//   }
-// };
+    console.log("Deleted from S3:", key);
+  } catch (error) {
+    console.error("S3 delete error:", error);
+  }
+};

@@ -5,6 +5,7 @@ import {
     PropertyVideoRepository,
     RoomVideoRepository
 } from "../repository";
+import { deleteFileByUrl } from "../../utils/delete-images.utils";
 export class PropertyVideoService {
     private propertyVideoRepo = new PropertyVideoRepository();
     constructor() {
@@ -43,6 +44,14 @@ export class PropertyVideoService {
             if (!existingVideo) {
                 throw new Error("Property video does not exist");
             }
+            
+            if (existingVideo.url !== url) {
+              await deleteFileByUrl(existingVideo.url).catch(err => console.error("Failed to delete property video:", existingVideo.url, err));
+            }
+            if (thumbnail && existingVideo.thumbnail && existingVideo.thumbnail !== thumbnail) {
+                await deleteFileByUrl(existingVideo.thumbnail).catch(err => console.error("Failed to delete property thumbnail:", existingVideo.thumbnail, err));
+            }
+
             const video = await this.propertyVideoRepo.updateVideo(propertyId, url, thumbnail);
             return successResponse("Property video updated successfully", video);
         } catch (error) {
@@ -123,6 +132,14 @@ export class RoomVideoService {
             if (!existingVideo) {
                 throw new Error("Room video does not exist");
             }
+            
+            if (existingVideo.url !== url) {
+              await deleteFileByUrl(existingVideo.url).catch(err => console.error("Failed to delete room video:", existingVideo.url, err));
+            }
+            if (thumbnail && existingVideo.thumbnail && existingVideo.thumbnail !== thumbnail) {
+                await deleteFileByUrl(existingVideo.thumbnail).catch(err => console.error("Failed to delete room thumbnail:", existingVideo.thumbnail, err));
+            }
+
             const video = await this.roomVideoRepo.updateVideo(roomId, url, thumbnail);
             return successResponse("Room video updated successfully", video);
         } catch (error) {

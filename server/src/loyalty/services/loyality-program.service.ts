@@ -11,7 +11,7 @@ import {
     IUAdvanceLoyaltyprogram,
     IULoyalityProgram
 } from "../types";
-
+import { deleteFileByUrl } from "../../utils/delete-images.utils";
 
 export class LoyalityProgramService {
     private loyaltyProgramRepository: LoyaltyProgramRepository;
@@ -65,11 +65,22 @@ export class LoyalityProgramService {
     public async updateLoyaltyProgram(loyaltyProgramId: string, data: IULoyalityProgram): Promise<IApiResponse> {
         try {
             const existingProgram = await this.loyaltyProgramRepository.getLoyaltyProgramById(loyaltyProgramId);
-            if(!existingProgram){
-                return errorResponse("Failed to find loyalty program");
+            if (!existingProgram) {
+                return errorResponse("Loyalty program not found");
             }
+
+            if (data.logo) {
+                const oldImages: string[] = existingProgram.logo || [];
+                const newImages: string[] = data.logo || [];
+                const imagesToDelete = oldImages.filter(img => !newImages.includes(img));
+                
+                if (imagesToDelete.length > 0) {
+                    await Promise.all(imagesToDelete.map(img => deleteFileByUrl(img).catch(err => console.error("Failed to delete loyalty program logo:", img, err))));
+                }
+            }
+
             const result = await this.loyaltyProgramRepository.updateLoyaltyProgram(loyaltyProgramId, data);
-            if(!result){
+            if (!result) {
                 return errorResponse("Failed to update loyalty program");
             }
             return successResponse("Successfully updated loyalty program", result);

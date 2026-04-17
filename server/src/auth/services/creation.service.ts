@@ -8,6 +8,8 @@ import {
 } from "../repository";
 import { PropertyDao } from "../../property-management/repository/property.repository";
 import { IApiResponse } from "../../utils";
+import { deleteFileByUrl } from "../../utils/delete-images.utils";
+
 export default class CreationService {
     public static async create(
         type: "group" | "property" | "brand" | "super" | "regional",
@@ -88,6 +90,16 @@ export default class CreationService {
     }
     public static async update(creationId: string, name: string, images: string[] = [], isActive: boolean) {
         try {
+            const existingCreation: any = await CreationRepository.getSpecificCreation(creationId);
+            if (existingCreation) {
+                const oldImages: string[] = existingCreation.images || [];
+                const imagesToDelete = oldImages.filter(img => !images.includes(img));
+                
+                if (imagesToDelete.length > 0) {
+                    await Promise.all(imagesToDelete.map(img => deleteFileByUrl(img).catch(err => console.error("Failed to delete creation image:", img, err))));
+                }
+            }
+
             const daoRes = await CreationRepository.update(creationId, name, images, isActive);
             if (daoRes) {
                 return successResponse("Updated Successfully", daoRes)

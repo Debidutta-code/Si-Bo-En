@@ -8,6 +8,8 @@ import {
 import { AddCreationToCreation, UserAuthRepository } from "../../auth/repository"
 import { generateUniquePropertyCode } from '../utils/generatePropertyCode';
 import type { IPropertyInfoType, IUpdatePropertyData, IPropertyAddress } from '../types/propertyModel.types';
+import { deleteFileByUrl } from '../../utils/delete-images.utils';
+
 export class PropertyService {
   public static async createPropertyService(
     {
@@ -106,6 +108,17 @@ export class PropertyService {
         return errorResponse('Property not found');
       }
       
+      const oldImages: string[] | string = getProperty.image || [];
+      const currentOldImages = Array.isArray(oldImages) ? oldImages : typeof oldImages === 'string' ? [oldImages] : [];
+      const newImages: string[] | string = data.image || [];
+      const currentNewImages = Array.isArray(newImages) ? newImages : typeof newImages === 'string' ? [newImages] : [];
+
+      const imagesToDelete = currentOldImages.filter((img: string) => !currentNewImages.includes(img));
+      
+      if (imagesToDelete.length > 0) {
+        await Promise.all(imagesToDelete.map((img: string) => deleteFileByUrl(img).catch(err => console.error("Failed to delete property image:", img, err))));
+      }
+
       const daoRes = await Promise.all([
         PropertyDao.updatePropertyById(
           propertyId,
