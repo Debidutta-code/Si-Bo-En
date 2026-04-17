@@ -24,13 +24,6 @@ interface Props {
   onClose: () => void;
   onUpdate: () => void;
 }
-
-// ─── Helpers ────────────────────────────────────────────────────────────────
-
-/**
- * Build per-room guestDistribution from priceBreakdowns dailyBreakdown.
- * We take the FIRST night's entries (one per roomNumber) to get the room layout.
- */
 const extractGuestDistribution = (
   bookingData: any,
 ): { adults: number; children: number; childAges: number[] }[] => {
@@ -42,6 +35,7 @@ const extractGuestDistribution = (
 
   if (!dailyBreakdown.length)
     return [{ adults: 1, children: 0, childAges: [] }];
+console.log(bookingData);
 
   // Group by roomNumber, keep only the FIRST date's entry per room
   const seenRooms = new Set<string>();
@@ -130,10 +124,10 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
   const [activeTab, setActiveTab] = useState<"dates" | "guests">("dates");
 
   const [checkInDate, setCheckInDate] = useState(
-    parseDate(bookingData.checkInDate),
+    parseDate(bookingData.reservationStartDate),
   );
   const [checkOutDate, setCheckOutDate] = useState(
-    parseDate(bookingData.checkOutDate),
+    parseDate(bookingData.reservationEndDate),
   );
 
   // ── Derive initial room layout from priceBreakdowns (source of truth) ──────

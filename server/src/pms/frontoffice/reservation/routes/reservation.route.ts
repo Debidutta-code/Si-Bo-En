@@ -11,7 +11,7 @@ const reservationController = new ReservationController();
 reservationRoute.route("/")
     .post(attachPropertyDetails({
         identifierType: "code",
-        key: "data.bookingDetails.propertyCode",
+        key: "propertyCode",
         source: "body"
     }), reservationController.createReservation.bind(reservationController));
 

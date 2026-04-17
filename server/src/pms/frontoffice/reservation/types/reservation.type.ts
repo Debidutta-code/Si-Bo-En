@@ -2,6 +2,7 @@ import { DiscountType } from "../../../../promocode/types";
 import { PromotionBrakeDown } from "../../../../booking-engine/types/pricing.type";
 import { CurrencyCode } from "../../../../tax-system/interfaces";
 import { PostingRhythm } from "../../../../add-on/interfaces";
+import { RestrictionType } from "../../../../../prisma/generated/prisma/enums";
 export type Platforms = 'web' | 'mobile' | 'desktop';
 export type BookingSource = "direct" |
   "google" |
@@ -115,12 +116,11 @@ export interface IReservation extends ICReservationR {
 
 export interface IReservationWithAllDetails extends IReservation {
   primaryGuest: IGuests;
-  priceBreakdowns: IReservationPriceBrakeDown[];
   addOns: IBookingAddon[];
-  property?: any;
-  promo?: any;
+  PricingBrakeDown?: IPricingBreakDown | null;
+  // property: any;
+  // promo: IReservationPromotion;
   reservationGuests?: IReservationGuest[];
-  reservationPromotions?: IReservationPromotion[];
 }
 
 export interface IReservationGuest {
@@ -156,7 +156,7 @@ export interface IGuests extends ICGuest {
 }
 export interface INormalizedPromotion {
   id?: string;
-  promotionType: string;
+  promotionType: ReservationPromotionType;
   promotionName?: string;
   ratePlanName?: string;
   discountValue: number;
@@ -164,7 +164,6 @@ export interface INormalizedPromotion {
   discountAmount: number;
 }
 
-// ==================== RESERVATION PROMOTION TYPES ====================
 export interface IReservationPromotionCreate {
   id?: string;
   bookingCode: string;
@@ -177,25 +176,58 @@ export interface IReservationPromotionCreate {
   type: PromotionBrakeDownType;
 }
 
-// ==================== PRICE BREAKDOWN TYPES ====================
-export interface IReservationPriceBrakeDownR {
+export interface ICPricingBreakDown {
   reservationId: string;
-  additionalGuestCharges: number;
-  baseRatePerNight: number;
-  numberOfNights: number;
-  priceAfterTax: number | number;
-  totalAmount: number | number;
-  totalTax: number | number;
-  breakdown: any; // JSON
-  dailyBreakdown: any[]; // JSON array
-  availableRooms: number;
-  requestedRooms: number;
-  tax: any[];
+  totalAmount: number;
+  amountBeforeTax: number;
+  taxedAmount: number;
+  totalAddonAmount: number;
+  totalPromotionAmount: number;
+  currentChargeableAmount: number;
+  latterpayableAmount: number;
+  promoCodeDiscount: number;
+  currencyCode: CurrencyCode;
+  loyalityDiscount: number;
 }
 
-export interface IReservationPriceBrakeDown extends IReservationPriceBrakeDownR {
+export interface IPricingBreakDown extends ICPricingBreakDown {
   id: string;
-  createdAt: Date;
+  AddonBrakeDowns?: IAddonBrakeDown[];
+  DailyPriceBrakeDown?: IDailyPriceBrakeDown[];
+  taxBrakeDown?: ITaxBrakeDown[];
+  promotionBrakeDown?: IPromotionBrakeDown[];
+}
+export interface IAddonBrakeDown {
+  id: string;
+  dailyPriceBrakeDownId?: string | null;
+  pricingBrakeDownId?: string | null;
+  addonId: string;
+  name: string;
+  amount: number;
+  quantity: number;
+  totalAmount: number;
+  currencyCode: CurrencyCode;
+  date: Date;
+  type: AddonBreakDownType;
+}
+
+export interface ICPromotionBrakeDown {
+  promotionType: ReservationPromotionType;
+  name: string
+  discountType: DiscountType
+  discountValue: number
+  currencyCode: CurrencyCode |null;
+  discountAmount: number
+  restrictionType: RestrictionType
+  type: PromotionBrakeDownType
+}
+export interface IPromotionBrakeDown extends ICPromotionBrakeDown {
+  id: string;
+
+}
+export interface IReservationPriceBrakeDown extends IPricingBreakDown {
+  id: string;
+
 }
 
 // ==================== ARI MANIPULATION TYPES ====================
@@ -297,6 +329,7 @@ export interface IReservationPromotionCreate {
   amount: number;
   currency: CurrencyCode;
   promotionType: ReservationPromotionType;
+  type: PromotionBrakeDownType;
 }
 export interface IReservationPromotionPayload {
   bookingCode: string;
@@ -306,6 +339,7 @@ export interface IReservationPromotionPayload {
   discountAmount: number;
   currency: CurrencyCode;
   promotionType: string;
+  type: PromotionBrakeDownType;
 }
 export interface IReservationPromotion extends IReservationPromotionCreate {
   id: string;
@@ -365,6 +399,7 @@ export interface ICReservationPayload {
   platforms: Platforms;
   agencyId?: string;
   ngeniusOrderRef?: string;
+  isLoyalityGuest?: boolean;
 }
 
 export interface IBankDetails {
@@ -458,25 +493,37 @@ export interface IPromotionBrakeDown {
   promotionType: ReservationPromotionType;
   restrictionType: PromotionrestrictionType;
   type: PromotionBrakeDownType;
-  currencyCode: CurrencyCode;
+  currencyCode: CurrencyCode|null;
   discountAmount: number;
   discountType: DiscountType;
   discountValue: number;
 }
-export type PromotionBrakeDownType = "auto-applied" | "user-applied";
-export type PromotionrestrictionType = "decrease" | "payLater";
-export interface IDailyPriceBrakeDown {
-  addOnBrakeDown: IAddonBreakdown[];
+export type PromotionBrakeDownType = "auto_applied" | "user_applied";
+export type PromotionrestrictionType = "decrease" | "payLater"|"increase";
+export interface ICDailyPriceBrakeDown {
+  addOnBrakeDown?: IAddonBreakdown[];
   additionalChargesAmount: number;
   baseChargesAmount: number;
   currencyCode: CurrencyCode;
-  date: string;
-  guestDistribution: { adults: number; children: number; childAges: number[] };
+  date: Date;
+  guestDistribution: any;
+  pricingBrakeDownId?: string;
   roomNumber: string;
   totalAmount: number;
 }
+export interface IDailyPriceBrakeDown extends ICDailyPriceBrakeDown {
+  id: string;
+}
+export interface ICTaxBrakeDown {
+  currencyCode: CurrencyCode
+  name: string;
+  taxedAmount: number;
+}
+export interface ITaxBrakeDown extends ICTaxBrakeDown {
+  id: string;
+}
 export type AddonBreakDownType = "included" | "selected"
-export interface IAddonBreakdown {
+export interface ICAddonBreakdown {
   addonId: string;
   amount: number;
   currencyCode: CurrencyCode;
@@ -485,6 +532,9 @@ export interface IAddonBreakdown {
   quantity: number;
   totalAmount: number;
   type: AddonBreakDownType;
+}
+export interface IAddonBreakdown extends ICAddonBreakdown {
+  id: string;
 }
 export interface IReservationPromocode {
   id: string;

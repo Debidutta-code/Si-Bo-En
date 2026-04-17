@@ -56,7 +56,7 @@ export class ReportsService {
             );
 
             // Get price breakdown
-            const priceBreakdown = reservation.priceBreakdowns[0] || null;
+            const priceBreakdown = reservation.PricingBrakeDown
 
             // Prepare data for template
             const voucherData = {
@@ -114,13 +114,17 @@ export class ReportsService {
                 })),
                 priceBreakdown: priceBreakdown ? {
                     totalAmount: Number(priceBreakdown.totalAmount),
-                    totalTax: Number(priceBreakdown.totalTax),
-                    baseRatePerNight: Number(priceBreakdown.baseRatePerNight),
-                    numberOfNights: priceBreakdown.numberOfNights,
-                    requestedRooms: priceBreakdown.requestedRooms,
-                    dailyBreakdown: priceBreakdown.dailyBreakdown ?? [],
-                    breakdown: priceBreakdown.breakdown,
-                    tax: priceBreakdown.tax ?? [],
+                    totalTax: Number(priceBreakdown.taxedAmount),
+                    baseRatePerNight: Number(priceBreakdown.DailyPriceBrakeDown.reduce((acc, curr) => acc + curr.baseChargesAmount, 0)),
+                    numberOfNights: priceBreakdown.DailyPriceBrakeDown.length,
+                    // requestedRooms: priceBreakdown.,
+                    dailyBreakdown: priceBreakdown.DailyPriceBrakeDown.map(item => ({
+                        date: item.date,
+                        baseChargesAmount: item.baseChargesAmount,
+                        totalAmount: item.totalAmount,
+                    })),
+                    breakdown: priceBreakdown,
+                    tax: priceBreakdown.taxedAmount,
                 } : null,
                 finalPrice: reservation.finalPrice,
             };
@@ -189,7 +193,7 @@ export class ReportsService {
             };
 
             // Get price breakdown
-            const priceBreakdown = reservation.priceBreakdowns[0] || null;
+            const priceBreakdown = reservation.PricingBrakeDown;
 
             // Prepare data for template
             const invoiceData = {
@@ -243,14 +247,14 @@ export class ReportsService {
                 priceBreakdown: priceBreakdown
                     ? {
                         totalAmount: Number(priceBreakdown.totalAmount),
-                        totalTax: Number(priceBreakdown.totalTax),
+                        totalTax: Number(priceBreakdown.taxedAmount),
                         baseRatePerNight: Number(
-                            priceBreakdown.baseRatePerNight
+                            priceBreakdown.DailyPriceBrakeDown.reduce((acc, curr) => acc + curr.baseChargesAmount, 0)
                         ),
-                        numberOfNights: priceBreakdown.numberOfNights,
+                        numberOfNights: priceBreakdown.DailyPriceBrakeDown.length,
                         additionalGuestCharges:
-                            priceBreakdown.additionalGuestCharges,
-                        breakdown: priceBreakdown.breakdown,
+                            priceBreakdown.DailyPriceBrakeDown.reduce((acc, curr) => acc + curr.additionalChargesAmount, 0),
+                        breakdown: priceBreakdown,
                     }
                     : null,
             };

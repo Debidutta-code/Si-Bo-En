@@ -216,6 +216,8 @@ export interface IReservation {
   roomTypeCode: string;
   ratePlanCode: string;
   bookedAt: string;
+  reservationStartDate: string;
+  reservationEndDate: string;
   checkInDate: string;
   checkOutDate: string;
   countryCode: string;

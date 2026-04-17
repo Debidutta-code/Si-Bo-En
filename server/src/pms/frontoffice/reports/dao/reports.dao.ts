@@ -18,9 +18,16 @@ export class ReportsRepository {
                         },
                     },
                     primaryGuest: true,
-                    priceBreakdowns: true,
+                    PricingBrakeDown: {
+                        include: {
+                           DailyPriceBrakeDown:true,
+                           taxBrakeDown:true,
+                           AddonBrakeDowns:true
+                        }
+                    },
+                    // priceBreakdowns: true,
                     reservationGuests: true,
-                    reservationPromotions: true,
+                    // reservationPromotions: true,
                     property: {
                         include: {
                             propertyAddress: true,
@@ -162,7 +169,7 @@ export class ReportsRepository {
                         addon: true,
                     },
                 },
-                priceBreakdowns: true,
+                // priceBreakdowns: true,
             },
         });
     }

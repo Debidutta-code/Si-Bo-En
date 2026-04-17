@@ -122,6 +122,8 @@ export class LoyaltyGuestService {
                         loyalityGuestId: existingGuest.id,
                         creationLoyaltyConfigId,
                         metaData,
+                        guestLevel:1,
+                        noOfBookings:0
                     }));
                 }
                 await Promise.all(tasks);
@@ -149,6 +151,8 @@ export class LoyaltyGuestService {
                     loyalityGuestId: newGuest.id,
                     creationLoyaltyConfigId,
                     metaData,
+                    guestLevel:1,
+                    noOfBookings:0
                 }),
             ]);
 

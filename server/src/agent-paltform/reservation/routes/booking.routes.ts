@@ -6,10 +6,10 @@ const agentBookingRouter = Router();
 const bookingController = new AgentBookingController();
 
 // Create a new booking
-agentBookingRouter.route('/create').post(
-    partnerProtected,
-    bookingController.createAgentBooking.bind(bookingController)
-);
+// agentBookingRouter.route('/create').post(
+//     partnerProtected,
+//     bookingController.createAgentBooking.bind(bookingController)
+// );
 
 // Get all bookings for the agent's agency (with filters)
 agentBookingRouter.route('/').get(

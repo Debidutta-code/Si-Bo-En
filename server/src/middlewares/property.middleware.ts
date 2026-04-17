@@ -17,6 +17,7 @@ export function attachPropertyDetails(
   return async (req: PropertyCustomRequest, res: Response, next: NextFunction) => {
     try {
       //console.log("rule", rule.key)
+      console.log("req.body", req.body)
       if (req.property?.timezone) {
         return next();
       }

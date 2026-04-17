@@ -87,7 +87,9 @@ const PaymentCallbackPage = () => {
           paymentMethod: "payment_gateway",
           selectedPromotions: currentBooking.selectedPromotions || [],
           selectedAddons: currentBooking.selectedAddons || [],
-          platforms: "web"
+          platforms: "web",
+          isLoyalityGuest: !!currentBooking.loyalityMemberEmail,  // ADD THIS
+
         };
       }
 

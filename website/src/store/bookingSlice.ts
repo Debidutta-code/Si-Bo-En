@@ -123,7 +123,7 @@ interface BookingState {
   roomName?: string;
   ratePlanCode?: string;
   guestDetails?: GuestDetail[];
-  finalPrice?: FinalPrice;
+  finalPrice?: any;
   bookingStatus?: string;
 
   numberOfRooms: number | null;
@@ -136,6 +136,7 @@ interface BookingState {
   selectedAddons?: any[];
   selectedPromotions?: any[];
   paymentMethod?:string;
+  loyalityMemberEmail?: string;
 }
 
 const initialState: BookingState = {
@@ -168,7 +169,8 @@ const initialState: BookingState = {
   bookingCode: undefined,
   PropertyDetails: undefined,
   bookingSource: "direct",
-  paymentMethod:"pay_at_hotel"
+  paymentMethod:"pay_at_hotel",
+  loyalityMemberEmail: undefined,
 };
 
 const bookingSlice = createSlice({
@@ -204,6 +206,7 @@ const bookingSlice = createSlice({
       state.senderUrl = action.payload;
     },
     setBookingSource(state, action: PayloadAction<string>) { 
+      state.bookingSource = action.payload;
     },
     clearSenderUrl(state) {
       state.senderUrl = undefined;

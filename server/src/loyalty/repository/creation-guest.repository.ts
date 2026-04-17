@@ -74,4 +74,5 @@ export class CreationGuestRepository {
             throw new Error("Failed to create property loyalty guest");
         }
     }
+    
 }

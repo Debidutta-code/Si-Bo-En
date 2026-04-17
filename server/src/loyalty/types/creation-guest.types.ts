@@ -5,7 +5,8 @@ export interface ICCreationLoyaltyGuest {
     loyalityGuestId: string;
     creationLoyaltyConfigId: string;
     metaData: any;
-    guestLevel?: number;
+    guestLevel: number;
+    noOfBookings: number;
 }
 
 export interface ICreationLoyaltyGuest extends ICCreationLoyaltyGuest {

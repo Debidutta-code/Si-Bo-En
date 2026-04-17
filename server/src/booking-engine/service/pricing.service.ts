@@ -863,20 +863,20 @@ class PromotionClass {
     public promotionPrices(country?: string): PriceBrakeDown {
         const autoAppliedMlosBrakeDown = this.calculateAutoAppliedMLOSPrices(
             this.autoAppliedMLOSData,
-            'auto-applied'
+            'auto_applied'
         );
         const autoAppliedPromotionBrakeDown =
             this.calculateAutoAppliedPromotionPrices(
                 this.autoAppliedPromotionsData,
-                'auto-applied'
+                'auto_applied'
             );
         const mlsoBrakeDown = this.calculateAutoAppliedMLOSPrices(
             this.mlos,
-            'user-applied'
+            'user_applied'
         );
         const promotionBrakeDown = this.calculateAutoAppliedPromotionPrices(
             this.promotions,
-            'user-applied'
+            'user_applied'
         );
 
         const geoPriceBrakedown = this.calculateGeoLocation(country);
@@ -925,7 +925,7 @@ class PromotionClass {
     }
     private calculateAutoAppliedMLOSPrices(
         mlos: IMLOS[],
-        type: 'user-applied' | 'auto-applied'
+        type: 'user_applied' | 'auto_applied'
     ) {
         const differenceReservationDays = this.differenceReservationDays(
             this.startDate,
@@ -974,7 +974,7 @@ class PromotionClass {
     }
     private calculateAutoAppliedPromotionPrices(
         autoAppliedPromotions: ICEbDsOftc[],
-        type: 'user-applied' | 'auto-applied'
+        type: 'user_applied' | 'auto_applied'
     ): PromotionBrakeDown[] {
         const promotionBrakeDown: PromotionBrakeDown[] = [];
         autoAppliedPromotions.forEach(promotion => {
@@ -1008,7 +1008,7 @@ class PromotionClass {
     }
     private calculateDeviceBasedPromotionPrices(
         promotion: ICEbDsOftc,
-        type: 'user-applied' | 'auto-applied'
+        type: 'user_applied' | 'auto_applied'
     ): PromotionBrakeDown | null {
         if (!this.detectedDeviceType) {
             return null;
@@ -1054,7 +1054,7 @@ class PromotionClass {
     }
     private calculateEarlyBirdPromotionPrices(
         promotion: ICEbDsOftc,
-        type: 'user-applied' | 'auto-applied'
+        type: 'user_applied' | 'auto_applied'
     ): PromotionBrakeDown | null {
         if (!promotion.advanceBookingDays) {
             return null;
@@ -1105,7 +1105,7 @@ class PromotionClass {
     }
     private calculateOfferForTonightPromotionPrices(
         promotion: ICEbDsOftc,
-        type: 'user-applied' | 'auto-applied'
+        type: 'user_applied' | 'auto_applied'
     ): PromotionBrakeDown | null {
         const checkPromotionDayApplicability =
             this.checkIfPromotionActiveForDay(promotion, this.startDate);
@@ -1202,7 +1202,7 @@ class PromotionClass {
                     discountValue: Number(geo.restrictionValue),
                     name: 'Geo Restriction',
                     restrictionType,
-                    type: 'auto-applied',
+                    type: 'auto_applied',
                 });
             } else if (geo.restrictionType === 'percentage') {
                 promotionBrakeDown.push({
@@ -1215,7 +1215,7 @@ class PromotionClass {
                     discountValue: Number(geo.restrictionValue),
                     name: 'Geo Restriction',
                     restrictionType,
-                    type: 'auto-applied',
+                    type: 'auto_applied',
                 });
             }
         });
@@ -1291,7 +1291,7 @@ class TouristTaxClass {
                         100) *
                     this.noOfBedrooms,
                 restrictionType: 'payLater',
-                type: 'auto-applied',
+                type: 'auto_applied',
             };
         } else {
             return {
@@ -1307,7 +1307,7 @@ class TouristTaxClass {
                     this.noOfRooms *
                     this.noOfBedrooms, // ← fully calculated
                 restrictionType: 'payLater',
-                type: 'auto-applied',
+                type: 'auto_applied',
             };
         }
     }

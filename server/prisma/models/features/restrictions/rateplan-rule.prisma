@@ -13,7 +13,7 @@ model RatePlanRule {
   discountType         DiscountType?          @map("discount_type")
   currencyCode         CurrencyCode           @default(AED) @map("currency_code")
   discountValue        Float?                 @map("discount_value")
-  ReservationPromotion ReservationPromotion[]
+  // ReservationPromotion ReservationPromotion[]
 
   isActive Boolean @default(true)
 

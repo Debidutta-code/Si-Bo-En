@@ -231,14 +231,14 @@ export interface AddOnBrakeDown {
 }
 export interface PromotionBrakeDown {
     id: string;
-    promotionType?: "mlos" | "normal"|"early_bird"|"device_specific"|"offer_for_tonight";
+    promotionType: "mlos" | "normal"|"early_bird"|"device_specific"|"offer_for_tonight";
     name: string;
     discountType: DiscountType;
     discountValue: number;
     currencyCode: CurrencyCode | null;
     discountAmount: number;
     restrictionType: "increase" | "decrease" | "payLater"
-    type: "user-applied" | "auto-applied"
+    type: "user_applied" | "auto_applied"
 
 }
 export interface IRoomDetails {

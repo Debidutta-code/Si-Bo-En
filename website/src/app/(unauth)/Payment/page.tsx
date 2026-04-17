@@ -309,27 +309,31 @@ const BookingReviewPage = () => {
         }
       }
       const bookingData = {
-          propertyCode: bookingDetails.PropertyCode,
-          reservationStartDate: checkIn,
-          reservationEndDate: checkOut,
-          hotelName,
-          bankDetails,
-          roomName: bookingDetails.roomName,
-          roomTypeCode,
-          guests: guests,
-          bookingUserEmail: email,
-          bookingUserPhone: bookingDetails.phone,
-          numberOfRooms: bookingDetails.numberOfRooms || 1,
-          finalPrice: finalPrice,
-          promoCode: bookingDetails.promocode,
-          currencyCode,
-          guestDetails: enrichedGuests,
-          ratePlanCode: bookingDetails.ratePlanCode,
-          paymentMethod: mapPaymentMethodToEnum(selectedPayment || ""),
-          bookingSource: bookingDetails.bookingSource,
-          selectedPromotions: bookingDetails.selectedPromotions || [],
-          selectedAddons: bookingDetails.selectedAddons || [],
-          platforms: "web"
+        propertyCode: bookingDetails.PropertyCode,
+        reservationStartDate: checkIn,
+        reservationEndDate: checkOut,
+        hotelName,
+        bankDetails,
+        roomName: bookingDetails.roomName,
+        roomTypeCode,
+        guests: guests,
+        bookingUserEmail: email,
+        bookingUserPhone: bookingDetails.phone,
+        numberOfRooms: bookingDetails.numberOfRooms || 1,
+        finalPrice: finalPrice,
+        promoCode: bookingDetails.promocode,
+        currencyCode,
+        guestDetails: enrichedGuests,
+        ratePlanCode: bookingDetails.ratePlanCode,
+        paymentMethod: mapPaymentMethodToEnum(selectedPayment || ""),
+        bookingSource: bookingDetails.bookingSource,
+        selectedPromotions: bookingDetails.selectedPromotions || [],
+        selectedAddons: bookingDetails.selectedAddons || [],
+        platforms: "web",
+        isLoyalityGuest: !!(                             // ADD THIS
+          bookingDetails.loyalityMemberEmail ||
+          localStorage.getItem(`loyalty_member_${PropertyId}`)
+        ),
       };
 
       const response = await fetch(

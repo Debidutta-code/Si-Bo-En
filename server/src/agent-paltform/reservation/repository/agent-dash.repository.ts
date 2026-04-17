@@ -127,7 +127,7 @@ export class ReservationRepository {
                             propertyAddress: true
                         }
                     },
-                    priceBreakdowns: true,
+                    // priceBreakdowns: true,
                     addOns: true,
                     promo: true
                 }
@@ -168,7 +168,7 @@ export class ReservationRepository {
                             propertyContact: true
                         }
                     },
-                    priceBreakdowns: true,
+                    // priceBreakdowns: true,
                     addOns: true
                 }
             });

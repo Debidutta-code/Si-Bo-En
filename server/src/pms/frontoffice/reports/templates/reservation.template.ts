@@ -119,7 +119,7 @@ const formatCurrency = (amount: any, currency: string): string => {
         return `${currency} ${num.toFixed(2)}`;
     }
 };
-export const generateBookingVoucherHTML = (data: BookingVoucherData): string => {
+export const generateBookingVoucherHTML = (data: any): string => {
     const { property, room, reservation, primaryGuest, addOns,
         priceBreakdown, finalPrice, reservationGuests, ratePlanName } = data;
     const formatDate = (date: Date): string =>
@@ -333,7 +333,7 @@ ${property.logo
   <div class="section">
     <div class="section-title">All Guests (${reservationGuests.length})</div>
     <div class="guest-list">
-      ${reservationGuests.map(g => `
+      ${reservationGuests.map((g: any) => `
         <div class="guest-chip ${g.type}">
           ${g.firstName} ${g.lastName}
           <span style="color:#94a3b8;"> · ${toTitleCase(g.type)}${g.age ? ` · Age ${g.age}` : ''}</span>

@@ -1113,7 +1113,11 @@ const Rooms = () => {
 
             dispatch({
               type: "booking/setFullBookingDetails",
-              payload: bookingData,
+              payload: {
+                ...bookingData,
+                isLoyalityGuest: !!loyaltyMemberEmail,        // ADD THIS
+                loyalityMemberEmail: loyaltyMemberEmail || undefined,
+              }
             });
 
             document.cookie = "can_access_payment=true; path=/; max-age=300";

@@ -29,7 +29,7 @@ export const getBookingDetails = async (bookingCode: string) => {
                 },
             },
             addOns:true,
-            priceBreakdowns:true,
+            PricingBrakeDown:true,
             primaryGuest:true,
 
         },

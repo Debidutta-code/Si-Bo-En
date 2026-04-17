@@ -28,7 +28,7 @@ model Promotion {
   property              Property               @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   room                  Room?                  @relation(fields: [roomId], references: [id], onDelete: Cascade)
   ratePlan              RatePlan               @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
-  reservationPromotions ReservationPromotion[]
+  // reservationPromotions ReservationPromotion[]
 
   @@index([propertyId, roomId, ratePlanId])
   @@map("promotion_rule")

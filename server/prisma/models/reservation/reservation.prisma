@@ -48,7 +48,7 @@ model Reservation {
   bookingStatus      BookingStatus @default(confirmed) @map("booking_status")
   cancellationReason String?       @map("cancellation_reason") @db.VarChar(255)
 
-  bookingSource BookingSource @default(direct) @map("source")
+  bookingSource    BookingSource @default(direct) @map("source")
 
   isPromoUsed      Boolean   @default(false) @map("is_promo_used")
   promoId          String?   @map("promo_id") @db.VarChar(36)
@@ -59,13 +59,13 @@ model Reservation {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   pricingBrakedownId String? @unique @map("pricing_breakdown_id")
-  PricingBrakeDown   PricingBreakdown? @relation(fields: [pricingBrakedownId], references: [id], onDelete: Cascade)
+  PricingBrakeDown      PricingBreakdown? @relation(fields: [pricingBrakedownId], references: [id], onDelete: Cascade)
   property              Property                    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
   promo                 PromoCode?                  @relation(fields: [promoId], references: [id], onDelete: Cascade)
   addOns                BookingAddon[]
-  priceBreakdowns       ReservationPriceBrakeDown[]
+  // priceBreakdowns       ReservationPriceBrakeDown[]
   agency                Agency?                     @relation(fields: [agencyId], references: [id], onDelete: Cascade)
-  reservationPromotions ReservationPromotion[]
+  // reservationPromotions ReservationPromotion[]
   payments              Payment[]
   reservationGuests     ReservationGuest[]
   reservationPromoCodes ReservationPromoCode[]
