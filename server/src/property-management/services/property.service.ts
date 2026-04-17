@@ -101,6 +101,11 @@ export class PropertyService {
     data: IUpdatePropertyData
   ) {
     try {
+      const getProperty = await PropertyDao.getProperty(propertyId);
+      if (!getProperty) {
+        return errorResponse('Property not found');
+      }
+      
       const daoRes = await Promise.all([
         PropertyDao.updatePropertyById(
           propertyId,

@@ -311,6 +311,16 @@ export class PropertyDao {
       throw new Error(`Failed to update property status: ${error?.message}`);
     }
   }
+  public static async getProperty(propertyId: string) {
+    try {
+      const property = await prisma.property.findUnique({
+        where: { id: propertyId },
+      });
+      return property;
+    } catch (error: any) {
+      throw new Error(`Failed to get property by id`);
+    }
+  }
   
 }
 

@@ -200,9 +200,8 @@ export interface IAddOn {
   updatedAt: string;
 }
 
-// ─── Reservation ──────────────────────────────────────────────────────────────
 
-export type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'modified' | 'no_show';
+export type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'modified' | 'no_show'|'checked_in'| 'checked_out';
 export type BookingSource = 'direct' | 'google' | 'trip_adviser' | 'trivago' | 'social_media' | 'agency';
 export type DeviceType = 'mobile' | 'tablet' | 'desktop';
 export type PaymentMethod = 'pay_at_hotel' | 'online' | 'bank_transfer';
