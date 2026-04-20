@@ -270,6 +270,9 @@
     "proceedToPayment": "المتابعة للدفع",
     "processing": "جارٍ المعالجة...",
     "cancel": "إلغاء",
+    "roomCharges": "إجمالي تكلفة الغرفة",
+    "discountsApplied": "إجمالي الخصومات",
+    "payLater": "الدفع في الفندق",
     "validationError": "يرجى تقديم جميع المعلومات الضرورية قبل المتابعة",
     "somethingWentWrong": "حدث خطأ ما، يرجى المحاولة مرة أخرى.",
     "errors": {
@@ -337,7 +340,9 @@
     "acceptedMethods": "طرق الدفع المقبولة",
     "promoPlaceholder": "يرجى إدخال رمز الخصم",
     "promoInvalid": "رمز الخصم غير صحيح",
-    "promoError": "حدث خطأ ما. حاول مرة أخرى!"
+    "promoError": "حدث خطأ ما. حاول مرة أخرى!",
+    "payNow": "ادفع الآن",
+    "payAtHotel": "الدفع في الفندق"
   },
   "Fikafi": {
     "preparingPayment": "جارٍ تجهيز الدفع الآمن...",

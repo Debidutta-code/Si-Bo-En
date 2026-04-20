@@ -162,9 +162,9 @@ export default function MyTripPage() {
     yLeft += 6;
     doc.text(`Property Code: ${bookingData.propertyCode || "N/A"}`, colLeftX, yLeft);
     yLeft += 6;
-    doc.text(`Room Type: ${bookingData.roomTypeCode || "N/A"}`, colLeftX, yLeft);
+    doc.text(`Room Type: ${bookingData.roomName || "N/A"}`, colLeftX, yLeft);
     yLeft += 6;
-    doc.text(`Rate Plan: ${bookingData.ratePlanCode || "N/A"}`, colLeftX, yLeft);
+    doc.text(`Rate Plan: ${bookingData.ratePlanName || "N/A"}`, colLeftX, yLeft);
 
     // --- RIGHT: STAY DETAILS ---
     doc.setTextColor(25, 85, 150);
@@ -177,9 +177,9 @@ export default function MyTripPage() {
     doc.setTextColor(50);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(10);
-    doc.text(`Check-In: ${bookingData.checkInDate ? new Date(bookingData.checkInDate).toDateString() : "N/A"}`, colRightX, yRight);
+    doc.text(`Check-In: ${bookingData.reservationStartDate ? new Date(bookingData.reservationStartDate).toDateString() : "N/A"}`, colRightX, yRight);
     yRight += 6;
-    doc.text(`Check-Out: ${bookingData.checkOutDate ? new Date(bookingData.checkOutDate).toDateString() : "N/A"}`, colRightX, yRight);
+    doc.text(`Check-Out: ${bookingData.reservationEndDate ? new Date(bookingData.reservationEndDate).toDateString() : "N/A"}`, colRightX, yRight);
     yRight += 6;
     doc.text(`Rooms: ${bookingData.finalPrice?.requestedRooms || 1}`, colRightX, yRight);
     yRight += 6;
@@ -429,19 +429,19 @@ export default function MyTripPage() {
             <div>
               <p className="text-gray-500 font-medium">{t("MyTrip.checkIn")}</p>
               <p className="text-green-700">
-                {new Date(bookingData.checkInDate).toDateString()}
+                {new Date(bookingData.reservationStartDate).toDateString()}
               </p>
             </div>
             <div>
               <p className="text-gray-500 font-medium">{t("MyTrip.checkOut")}</p>
               <p className="text-green-700">
-                {new Date(bookingData.checkOutDate).toDateString()}
+                {new Date(bookingData.reservationEndDate).toDateString()}
               </p>
             </div>
             <div>
               <p className="text-gray-500 font-medium">{t("MyTrip.roomType")}</p>
               <p>
-                <FaBed className="inline mr-1" /> {bookingData.roomTypeCode}
+                <FaBed className="inline mr-1" /> {bookingData.roomName}
               </p>
             </div>
             <div>
@@ -553,7 +553,7 @@ export default function MyTripPage() {
                   <div>
                     <p className="text-gray-500 text-sm font-medium">{t("MyTrip.checkInLabel")}</p>
                     <p className="text-green-600 font-semibold">
-                      {new Date(bookingData.checkInDate).toLocaleDateString("en-US", {
+                      {new Date(bookingData.reservationStartDate).toLocaleDateString("en-US", {
                         weekday: "short",
                         year: "numeric",
                         month: "short",
@@ -564,7 +564,7 @@ export default function MyTripPage() {
                   <div>
                     <p className="text-gray-500 text-sm font-medium">{t("MyTrip.checkOutLabel")}</p>
                     <p className="text-red-600 font-semibold">
-                      {new Date(bookingData.checkOutDate).toLocaleDateString("en-US", {
+                      {new Date(bookingData.reservationEndDate).toLocaleDateString("en-US", {
                         weekday: "short",
                         year: "numeric",
                         month: "short",
@@ -583,7 +583,7 @@ export default function MyTripPage() {
                         color: colors.buttonTextColor
                       }}
                     >
-                      {bookingData.roomTypeCode}
+                      {bookingData.roomName}
                     </span>
                   </div>
                   <div>
@@ -595,7 +595,7 @@ export default function MyTripPage() {
                   <div>
                     <p className="text-gray-500 text-sm font-medium">{t("MyTrip.ratePlan")}</p>
                     <p className="text-gray-800 font-medium">
-                      {bookingData.ratePlanCode}
+                      {bookingData.ratePlanName}
                     </p>
                   </div>
                   <div>

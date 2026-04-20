@@ -58,6 +58,9 @@ const GuestFormModal: React.FC<Props> = ({
   const [loyaltyDiscount, setLoyaltyDiscount] = useState<any>(null);
   const [verifyingLoyalty, setVerifyingLoyalty] = useState(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({});
+  const toggleSection = (key: string) =>
+    setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
   const { t } = useTranslation();
 
   // Auto-fill email if loyalty member
@@ -468,316 +471,267 @@ const GuestFormModal: React.FC<Props> = ({
             </CardContent>
           </Card>
 
-          {/* Price Details */}
           <Card className="border-2">
-            <CardHeader>
-              <div className="flex items-center gap-2">
-                <CardTitle className="text-lg">{t("GuestForm.priceDetails")}</CardTitle>
-                <div className="relative" ref={tooltipRef}>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 rounded-full"
-                    onClick={() => setShowTooltip(!showTooltip)}
-                  >
-                    <Info className="h-4 w-4" />
-                  </Button>
-
-                  {finalPrice?.dailyPriceBrakeDown && showTooltip && (
-                    <Card className="absolute top-8 left-0 z-50 w-80 shadow-xl">
-                      <CardHeader className="pb-3">
-                        <div className="flex items-center justify-between">
-                          <CardTitle className="text-sm">{t("GuestForm.dailyBreakdown")}</CardTitle>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-5 w-5"
-                            onClick={() => setShowTooltip(false)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="max-h-60 overflow-y-auto space-y-3 text-xs">
-                        {Array.isArray(finalPrice.dailyPriceBrakeDown) && (() => {
-                          // Group by roomNumber
-                          const grouped = finalPrice.dailyPriceBrakeDown.reduce(
-                            (acc: Record<string, any[]>, entry: any) => {
-                              if (!acc[entry.roomNumber]) acc[entry.roomNumber] = [];
-                              acc[entry.roomNumber].push(entry);
-                              return acc;
-                            }, {}
-                          );
-
-                          return (
-                            <>
-                              {(Object.entries(grouped) as [string, any[]][]).map(([roomNumber, days]) => (<div key={roomNumber} className="mb-3">
-                                {/* Room Header */}
-                                <div className="flex items-center justify-between bg-gray-100 rounded px-2 py-1 mb-2">
-                                  <span className="font-bold text-xs text-gray-700">🏨 {t("GuestForm.room")} {roomNumber}</span>
-                                  <span className="font-bold text-xs text-gray-700">
-                                    {getCurrencySymbol(days[0]?.currencyCode || "USD")}{" "}
-                                    {days.reduce((s: number, d: any) => s + (d.totalAmount || 0), 0).toFixed(2)}
-                                  </span>
-                                </div>
-
-                                {/* Date Rows */}
-                                {days.map((day: any, idx: number) => (
-                                  <div key={idx} className="border-b pb-2 mb-2 last:border-0 last:mb-0">
-                                    <div className="font-semibold mb-1 text-gray-700">
-                                      {new Date(day.date).toLocaleDateString("en-US", {
-                                        weekday: "short", month: "short", day: "numeric"
-                                      })}
-                                    </div>
-                                    <div className="space-y-1 pl-2">
-                                      <div className="flex justify-between">
-                                        <span>{t("GuestForm.baseRate")}</span>
-                                        <span>{getCurrencySymbol(day.currencyCode)} {(day.baseChargesAmount ?? 0).toFixed(2)}</span>
-                                      </div>
-                                      {(day.additionalChargesAmount ?? 0) > 0 && (
-                                        <div className="flex justify-between">
-                                          <span>{t("GuestForm.additional")}</span>
-                                          <span>{getCurrencySymbol(day.currencyCode)} {day.additionalChargesAmount.toFixed(2)}</span>
-                                        </div>
-                                      )}
-                                      {day.taxBrakeDown?.length > 0
-                                        ? day.taxBrakeDown.map((t: any, ti: number) => (
-                                          <div key={ti} className="flex justify-between text-gray-500">
-                                            <span>{t.name}:</span>
-                                            <span>{getCurrencySymbol(t.currencyCode)} {(t.taxedAmount ?? 0).toFixed(2)}</span>
-                                          </div>
-                                        ))
-                                        : (day.totalDailyTaxedAmount ?? 0) > 0 && (
-                                          <div className="flex justify-between text-gray-500">
-                                            <span>{t("GuestForm.taxFees")}</span>
-                                            <span>{getCurrencySymbol(day.currencyCode)} {day.totalDailyTaxedAmount.toFixed(2)}</span>
-                                          </div>
-                                        )
-                                      }
-                                      {day.addOnBrakeDown?.length > 0 && (
-                                        <div className="flex justify-between text-orange-600">
-                                          <span>{t("GuestForm.addons")}</span>
-                                          <span>
-                                            {getCurrencySymbol(day.currencyCode)}{" "}
-                                            {day.addOnBrakeDown.reduce((s: number, a: any) => s + (a.price || 0), 0).toFixed(2)}
-                                          </span>
-                                        </div>
-                                      )}
-                                      <div className="flex justify-between font-semibold pt-1 border-t">
-                                        <span>{t("GuestForm.dayTotal")}</span>
-                                        <span>{getCurrencySymbol(day.currencyCode)} {(day.totalAmount ?? 0).toFixed(2)}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                              ))}
-
-                              {/* Grand Summary */}
-                              <div className="pt-2 border-t mt-2 space-y-1">
-                                <div className="flex justify-between font-semibold">
-                                  <span>{t("GuestForm.subtotalBeforeTax")}</span>
-                                  <span>{getCurrencySymbol(finalPrice.currencyCode)}{(finalPrice.amountBeforeTax ?? 0).toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between font-semibold">
-                                  <span>{t("GuestForm.totalTax")}</span>
-                                  <span>{getCurrencySymbol(finalPrice.currencyCode)}{(finalPrice.taxedAmount ?? 0).toFixed(2)}</span>
-                                </div>
-                                <div className="flex justify-between font-bold text-sm border-t pt-1">
-                                  <span>{t("GuestForm.grandTotal")}</span>
-                                  <span>{getCurrencySymbol(finalPrice.currencyCode)}{(finalPrice.totalAmount ?? 0).toFixed(2)}</span>
-                                </div>
-                              </div>
-                            </>
-                          );
-                        })()}
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-              </div>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">{t("GuestForm.priceDetails")}</CardTitle>
             </CardHeader>
-            <CardContent>
-              {finalPrice && (
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span>{t("GuestForm.baseAmount")}</span>
-                    <span>{getCurrencySymbol(finalPrice.currencyCode)}{(finalPrice.amountBeforeTax ?? 0).toFixed(2)}</span>
-                  </div>
-                  {(finalPrice.additionalGuestCharges ?? 0) > 0 && (
-                    <div className="flex justify-between">
-                      <span>{t("GuestForm.additionalGuestCharges")}</span>
-                      <span>{getCurrencySymbol(finalPrice.currencyCode)}{(finalPrice.additionalGuestCharges).toFixed(2)}</span>
-                    </div>
-                  )}
-                  {(finalPrice.totalAddonAmount ?? 0) > 0 && (() => {
-                    const grouped = new Map<
-                      string,
-                      { name: string; quantity: number; total: number; currency: string; type: string }
-                    >();
 
-                    for (const addon of finalPrice.addonBrakeDown ?? []) {
-                      const isChild = addon.name?.includes("Child age");
+            <CardContent className="p-0">
+              {finalPrice && (() => {
 
-                      const key = isChild
-                        ? `${addon.addonId}::child`
-                        : `${addon.addonId}::${addon.type}`;
+                const cur = getCurrencySymbol(finalPrice.currencyCode);
 
-                      const baseName = isChild
-                        ? addon.name.replace(/\s*\(Child age \d+\)/, "")
-                        : addon.name;
+                const formatGuests = (g: any) => {
+                  if (!g) return '';
+                  const parts: string[] = [];
+                  if (g.adults) parts.push(`${g.adults} adult${g.adults > 1 ? 's' : ''}`);
+                  if (g.children) parts.push(`${g.children} child${g.children > 1 ? 'ren' : ''}`);
+                  return parts.join(', ');
+                };
 
-                      const displayName = isChild
-                        ? t("GuestForm.childrenAddon", { name: baseName })
-                        : baseName;
-
-                      if (grouped.has(key)) {
-                        const e = grouped.get(key)!;
-                        e.quantity += addon.quantity ?? 0;
-                        e.total += addon.totalAmount ?? 0;
-                      } else {
-                        grouped.set(key, {
-                          name: displayName,
-                          quantity: addon.quantity ?? 0,
-                          total: addon.totalAmount ?? 0,
-                          currency: addon.currencyCode || finalPrice.currencyCode,
-                          type: addon.type,
-                        });
-                      }
+                const groupedAddons = (() => {
+                  const map = new Map<string, { name: string; quantity: number; total: number; currency: string; type: string }>();
+                  for (const addon of finalPrice.addonBrakeDown ?? []) {
+                    const isChild = addon.name?.includes("Child age");
+                    const key = isChild ? `${addon.addonId}::child` : `${addon.addonId}::${addon.type}`;
+                    const baseName = isChild ? addon.name.replace(/\s*\(Child age \d+\)/, "") : addon.name;
+                    const displayName = isChild ? t("GuestForm.childrenAddon", { name: baseName }) : baseName;
+                    if (map.has(key)) {
+                      const e = map.get(key)!;
+                      e.quantity += addon.quantity ?? 0;
+                      e.total += addon.totalAmount ?? 0;
+                    } else {
+                      map.set(key, {
+                        name: displayName,
+                        quantity: addon.quantity ?? 0,
+                        total: addon.totalAmount ?? 0,
+                        currency: addon.currencyCode || finalPrice.currencyCode,
+                        type: addon.type,
+                      });
                     }
+                  }
+                  return Array.from(map.values());
+                })();
 
-                    return (
-                      <div className="border-t pt-2 mt-2">
+                const deductPromos = (finalPrice.promotionBrakeDown ?? []).filter((p: any) => p.restrictionType !== "payLater");
+                const payLaterPromos = (finalPrice.promotionBrakeDown ?? []).filter((p: any) => p.restrictionType === "payLater");
+                const totalPromoDiscount = deductPromos.reduce((s: number, p: any) => s + (p.discountAmount ?? 0), 0);
 
-                        {/* Label */}
-                        <div className="font-medium text-gray-700 mb-1">
-                          {t("GuestForm.addonsLabel")}
-                        </div>
+                const roomGroups = (finalPrice.dailyPriceBrakeDown ?? []).reduce(
+                  (acc: Record<string, any[]>, day: any) => {
+                    if (!acc[day.roomNumber]) acc[day.roomNumber] = [];
+                    acc[day.roomNumber].push(day);
+                    return acc;
+                  }, {}
+                );
+                const totalRoomAmount = (finalPrice.dailyPriceBrakeDown ?? []).reduce(
+                  (s: number, d: any) => s + (d.baseChargesAmount ?? 0), 0
+                );
 
-                        {/* Addon List */}
-                        {Array.from(grouped.values()).map((addon, i) => (
-                          <div key={`${addon.name}-${i}`} className="flex justify-between text-gray-600 pl-4">
-
-                            <span className="flex items-center gap-1.5">
-
-                              {/* Included badge */}
-                              {addon.type === "included" && (
-                                <span className="text-[10px] bg-green-100 text-green-700 px-1.5 py-0.5 rounded font-medium">
-                                  {t("GuestForm.included")}
-                                </span>
-                              )}
-
-                              {addon.name}
-                              <span className="text-gray-400">×{addon.quantity}</span>
-                            </span>
-
-                            {/* Price */}
-                            <span>
-                              {addon.total === 0 ? (
-                                <span className="text-green-600 text-xs font-medium">
-                                  {t("GuestForm.free")}
-                                </span>
-                              ) : (
-                                `${getCurrencySymbol(addon.currency)}${addon.total.toFixed(2)}`
-                              )}
-                            </span>
-                          </div>
-                        ))}
-
-                        {/* Total */}
-                        <div className="flex justify-between font-medium pt-1 border-t mt-1">
-                          <span>{t("GuestForm.totalAddons")}</span>
-                          <span>
-                            {getCurrencySymbol(finalPrice.currencyCode)}
-                            {finalPrice.totalAddonAmount.toFixed(2)}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })()}
-                  {finalPrice.promotionBrakeDown && Array.isArray(finalPrice.promotionBrakeDown) && finalPrice.promotionBrakeDown.length > 0 && (
-                    <div className="border-t pt-2 mt-2">
-                      <div className="font-medium text-gray-700 mb-1">{t("GuestForm.promotions")}</div>
-                      {finalPrice.promotionBrakeDown.map((promo: any, index: number) => {
-                        const isDiscount = promo.restrictionType === "decrease";
-                        const isSurcharge = promo.restrictionType === "increase";
-                        const isPayLater = promo.restrictionType === "payLater";
-                        return (
-                          <div
-                            key={index}
-                            className={`flex justify-between pl-4 ${isDiscount ? "text-green-600" :
-                              isSurcharge ? "text-red-500" :
-                                isPayLater ? "text-amber-600" : "text-gray-600"
-                              }`}
+                const AccordionSection = ({
+                  sectionKey,
+                  label,
+                  amount,
+                  amountClass = "",
+                  children,
+                }: {
+                  sectionKey: string;
+                  label: string;
+                  amount: string;
+                  amountClass?: string;
+                  children: React.ReactNode;
+                }) => {
+                  const isOpen = openSections[sectionKey] ?? false;
+                  return (
+                    <div className="border-b border-gray-100 last:border-b-0">
+                      <button
+                        type="button"
+                        className="w-full flex justify-between items-center px-4 py-3 hover:bg-gray-50 transition-colors text-left"
+                        onClick={() => toggleSection(sectionKey)}
+                      >
+                        <span className="text-sm font-medium text-gray-900">{label}</span>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-sm font-medium ${amountClass || "text-gray-900"}`}>{amount}</span>
+                          <svg
+                            className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isOpen ? "rotate-180" : ""}`}
+                            viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2"
                           >
-                            <span>{promo.name}:</span>
-                            <span>
-                              {isDiscount ? "-" : isSurcharge ? "+" : ""}
-                              {getCurrencySymbol(promo.currencyCode || finalPrice.currencyCode)}{(promo.discountAmount ?? 0).toFixed(2)}
-                              {isPayLater && ` ${t("GuestForm.payAtHotel")}`}
-                            </span>
-                          </div>
-                        );
-                      })}
+                            <polyline points="4,6 8,10 12,6" />
+                          </svg>
+                        </div>
+                      </button>
+                      {isOpen && (
+                        <div className="px-4 pb-3 pt-1 bg-gray-50 space-y-1.5 text-xs">
+                          {children}
+                        </div>
+                      )}
                     </div>
-                  )}
-                  {(finalPrice.loyalityDiscount ?? 0) > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>{t("GuestForm.loyaltyDiscount")}</span>
-                      <span>-${(finalPrice.loyalityDiscount).toFixed(2)}</span>
-                    </div>
-                  )}
-                  {(finalPrice.promoCodeDiscount ?? 0) > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>{t("GuestForm.promoCodeDiscount")}</span>
-                      <span>-${(finalPrice.promoCodeDiscount).toFixed(2)}</span>
-                    </div>
-                  )}
+                  );
+                };
 
-                  {finalPrice.taxBrakeDown && Array.isArray(finalPrice.taxBrakeDown) && finalPrice.taxBrakeDown.length > 0 && (
-                    <>
-                      <div className="border-t pt-2 mt-2">
-                        <div className="font-medium text-gray-700 mb-1">{t("GuestForm.taxesAndFees")}</div>
-                        {finalPrice.taxBrakeDown.map((taxItem: any, index: number) => (
-                          <div key={index} className="flex justify-between text-gray-600 pl-4">
-                            <span>{taxItem.name}:</span>
-                            <span>{getCurrencySymbol(taxItem.currencyCode || finalPrice.currencyCode)}{(taxItem.taxedAmount ?? 0).toFixed(2)}</span>
+                return (
+                  <div className="border border-gray-200 rounded-lg overflow-hidden text-sm mx-4 mb-4">
+
+                    {/* 1. Room charges */}
+                    {(finalPrice.dailyPriceBrakeDown ?? []).length > 0 && (
+                      <AccordionSection
+                        sectionKey="rooms"
+                        label={t("GuestForm.roomCharges")}
+                        amount={`${cur} ${totalRoomAmount.toFixed(2)}`}
+                      >
+                        {(Object.entries(roomGroups) as [string, any[]][]).map(([roomNumber, days]) => (
+                          <div key={roomNumber}>
+                            <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mt-2 mb-1">
+                              {t("GuestForm.room")} {roomNumber}
+                            </p>
+                            {days.map((day: any, i: number) => (
+                              <div key={i} className="flex justify-between text-gray-600 py-0.5">
+                                <span>
+                                  {new Date(day.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                                  {day.guestDistribution && ` (${formatGuests(day.guestDistribution)})`}
+                                </span>
+                                <span className="text-gray-900">{cur} {(day.baseChargesAmount ?? 0).toFixed(2)}</span>
+                              </div>
+                            ))}
                           </div>
                         ))}
-                        <div className="flex justify-between font-medium pt-1 border-t mt-1">
-                          <span>{t("GuestForm.totalTax")}</span>
-                          <span>{getCurrencySymbol(finalPrice.currencyCode)}{(finalPrice.taxedAmount || 0).toFixed(2)}</span>
-                        </div>
+                      </AccordionSection>
+                    )}
+
+                    {/* 2. Add-ons */}
+                    {groupedAddons.length > 0 && (
+                      <AccordionSection
+                        sectionKey="addons"
+                        label={t("GuestForm.addonsLabel")}
+                        amount={`${cur} ${(finalPrice.totalAddonAmount ?? 0).toFixed(2)}`}
+                      >
+                        {groupedAddons.map((addon, i) => (
+                          <div key={i} className="flex justify-between items-center py-0.5">
+                            <span className="flex items-center gap-1.5 text-gray-600 flex-wrap">
+                              {addon.name} × {addon.quantity}
+                              <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${addon.type === "included"
+                                  ? "bg-blue-50 text-blue-700"
+                                  : "bg-gray-100 text-gray-600"
+                                }`}>
+                                {addon.type}
+                              </span>
+                            </span>
+                            <span className="text-gray-900 whitespace-nowrap ml-4">
+                              {addon.total === 0
+                                ? <span className="text-green-600 font-medium">{t("GuestForm.free")}</span>
+                                : `${getCurrencySymbol(addon.currency)} ${addon.total.toFixed(2)}`
+                              }
+                            </span>
+                          </div>
+                        ))}
+                      </AccordionSection>
+                    )}
+
+                    {/* 3. Discounts */}
+                    {(deductPromos.length > 0 ||
+                      (finalPrice.loyalityDiscount ?? 0) > 0 ||
+                      (finalPrice.promoCodeDiscount ?? 0) > 0) && (
+                        <AccordionSection
+                          sectionKey="discounts"
+                          label={t("GuestForm.discountsApplied")}
+                          amount={`- ${cur} ${totalPromoDiscount.toFixed(2)}`}
+                          amountClass="text-green-700"
+                        >
+                          {deductPromos.map((promo: any, i: number) => (
+                            <div key={i} className="flex justify-between py-0.5 text-green-700">
+                              <span>{promo.name} ({promo.discountValue}%)</span>
+                              <span>- {getCurrencySymbol(promo.currencyCode || finalPrice.currencyCode)} {(promo.discountAmount ?? 0).toFixed(2)}</span>
+                            </div>
+                          ))}
+                          {(finalPrice.loyalityDiscount ?? 0) > 0 && (
+                            <div className="flex justify-between py-0.5 text-green-700">
+                              <span>{t("GuestForm.loyaltyDiscount")}</span>
+                              <span>- {cur} {finalPrice.loyalityDiscount.toFixed(2)}</span>
+                            </div>
+                          )}
+                          {(finalPrice.promoCodeDiscount ?? 0) > 0 && (
+                            <div className="flex justify-between py-0.5 text-green-700">
+                              <span>{t("GuestForm.promoCodeDiscount")}</span>
+                              <span>- {cur} {finalPrice.promoCodeDiscount.toFixed(2)}</span>
+                            </div>
+                          )}
+                        </AccordionSection>
+                      )}
+
+                    {/* 4. Taxes */}
+                    {(finalPrice.taxBrakeDown ?? []).length > 0 && (
+                      <AccordionSection
+                        sectionKey="taxes"
+                        label={t("GuestForm.taxesAndFees")}
+                        amount={`${cur} ${(finalPrice.taxedAmount ?? 0).toFixed(2)}`}
+                      >
+                        {finalPrice.taxBrakeDown.map((tax: any, i: number) => (
+                          <div key={i} className="flex justify-between py-0.5 text-gray-600">
+                            <span>{tax.name}</span>
+                            <span className="text-gray-900">
+                              {getCurrencySymbol(tax.currencyCode || finalPrice.currencyCode)} {(tax.taxedAmount ?? 0).toFixed(2)}
+                            </span>
+                          </div>
+                        ))}
+                      </AccordionSection>
+                    )}
+
+                    {/* 5. Totals — always visible, no expand */}
+                    <div className="px-4 py-4 space-y-2 bg-white">
+
+                      {/* Subtotal & tax */}
+                      <div className="flex justify-between text-sm text-gray-500">
+                        <span>{t("GuestForm.subtotalBeforeTax")}</span>
+                        <span>{cur} {(finalPrice.amountBeforeTax ?? 0).toFixed(2)}</span>
                       </div>
-                    </>
-                  )}
+                      <div className="flex justify-between text-sm text-gray-500">
+                        <span>{t("GuestForm.totalTax")}</span>
+                        <span>{cur} {(finalPrice.taxedAmount ?? 0).toFixed(2)}</span>
+                      </div>
 
-                  {(finalPrice.latterpayableAmount ?? 0) > 0 && (
-                    <div className="flex justify-between text-amber-600 border-t pt-2 mt-2">
-                      <span>{t("GuestForm.amountPaidLater")}</span>
-                      <span>{getCurrencySymbol(finalPrice.currencyCode)}{(finalPrice.latterpayableAmount).toFixed(2)}</span>
+                      {/* Pay now / Pay at hotel split — sits between tax and grand total */}
+                      {(finalPrice.latterpayableAmount ?? 0) > 0 && (
+                        <div className="pt-2 border-t border-gray-100 space-y-1.5">
+                          {/* Pay now */}
+                          <div className="flex justify-between text-sm font-medium text-green-700">
+                            <span>{t("GuestForm.amountPaidNow")}</span>
+                            <span>{cur} {(finalPrice.currentChargeableAmount ?? 0).toFixed(2)}</span>
+                          </div>
+                          {/* Pay at hotel — with itemised pay-later promos indented below */}
+                          <div className="flex justify-between text-sm font-medium text-amber-600">
+                            <span>{t("GuestForm.amountPaidLater")}</span>
+                            <span>{cur} {(finalPrice.latterpayableAmount).toFixed(2)}</span>
+                          </div>
+                          {payLaterPromos.length > 0 && (
+                            <div className="pl-3 space-y-1 pb-1">
+                              {payLaterPromos.map((promo: any, i: number) => (
+                                <div key={i} className="flex justify-between text-xs text-amber-500">
+                                  <span>
+                                    {promo.name} ({promo.discountValue}%)
+                                    <span className="ml-1 text-[10px] text-gray-400">{t("GuestForm.payLater")}</span>
+                                  </span>
+                                  <span>{cur} {(promo.discountAmount ?? 0).toFixed(2)}</span>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Grand total — always last */}
+                      <div className="flex justify-between text-base font-semibold text-gray-900 pt-2 border-t border-gray-200">
+                        <span>{t("GuestForm.grandTotal")}</span>
+                        <span style={{ color: colors.primaryColor }}>
+                          {cur} {(finalPrice.totalAmount ?? 0).toFixed(2)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-400">{t("GuestForm.includesAllTaxes")}</p>
+
                     </div>
-                  )}
 
-                  {finalPrice.currentChargeableAmount > 0 && (finalPrice.latterpayableAmount ?? 0) > 0 && (
-                    <div className="flex justify-between text-green-600 border-t pt-2 mt-2">
-                      <span>{t("GuestForm.amountPaidNow")}</span>
-                      <span>{getCurrencySymbol(finalPrice.currencyCode)}{finalPrice.currentChargeableAmount.toFixed(2)}</span>
-                    </div>
-                  )}
-
-
-                  <div className="border-t-2 pt-3 mt-2">
-                    <div className="flex justify-between items-center font-bold text-lg">
-                      <span>{t("GuestForm.grandTotal")}</span>
-                      <span style={{ color: colors.primaryColor }}>
-                        {getCurrencySymbol(finalPrice.currencyCode)}{(finalPrice.totalAmount).toFixed(2)}
-                      </span>
-                    </div>
-                    <div className="text-xs text-gray-500 mt-1">{t("GuestForm.includesAllTaxes")}</div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </CardContent>
           </Card>
 

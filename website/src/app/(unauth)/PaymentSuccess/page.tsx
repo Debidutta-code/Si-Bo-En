@@ -188,7 +188,7 @@ const PaymentSuccessPage = () => {
               {t("PaymentSuccess.confirmed.paymentDetails")}
             </h2>
             <div className="font-bold text-2xl" style={{ color: colors.primaryColor }}>
-              {currencySymbol}{totalAmount}
+              {currencySymbol}{totalAmount.toFixed(2)}
             </div>
             <p className="text-sm text-gray-500">
               {t("PaymentSuccess.confirmed.payAtHotelNote")}

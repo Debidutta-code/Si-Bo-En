@@ -312,7 +312,7 @@ export class ReservationRepository {
 
             const whereClause: any = {
                 propertyId: { in: propertyIds },
-                checkInDate: { gte: effectiveStart, lte: end },
+                reservationStartDate: { gte: effectiveStart, lte: end },
             };
             whereClause.bookingStatus = bookingStatus
                 ? bookingStatus
@@ -331,7 +331,14 @@ export class ReservationRepository {
                 orderBy: { reservationStartDate: 'asc' },
                 include: {
                     primaryGuest: true,
-                    // priceBreakdowns: true,
+                    PricingBrakeDown:{
+                        include:{
+                            AddonBrakeDowns:true,
+                            DailyPriceBrakeDown:true,
+                            taxBrakeDown:true,
+                            promotionBrakeDown:true,
+                        }
+                    },
                     addOns: true,
                     property: {
                         select: { propertyName: true, propertyCode: true },
@@ -374,7 +381,7 @@ export class ReservationRepository {
 
             const whereClause: any = {
                 propertyId: { in: propertyIds },
-                checkOutDate: { gte: effectiveStart, lte: end },
+                reservationEndDate: { gte: effectiveStart, lte: end },
             };
             whereClause.bookingStatus = bookingStatus
                 ? bookingStatus
@@ -393,7 +400,14 @@ export class ReservationRepository {
                 orderBy: { reservationEndDate: 'asc' },
                 include: {
                     primaryGuest: true,
-                    // priceBreakdowns: true,
+                    PricingBrakeDown:{
+                        include:{
+                            AddonBrakeDowns:true,
+                            DailyPriceBrakeDown:true,
+                            taxBrakeDown:true,
+                            promotionBrakeDown:true,
+                        }
+                    },
                     addOns: true,
                     property: {
                         select: { propertyName: true, propertyCode: true },

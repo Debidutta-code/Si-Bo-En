@@ -20,11 +20,11 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
     bookingCode,
     property,
     roomTypeCode,
-    checkInDate,
-    checkOutDate,
     amount,
     currencyCode,
-    hotelName
+    hotelName,
+    reservationStartDate,
+    reservationEndDate,
   } = bookingData;
   console.log("bookingdatsdfsjdfhcdsa", bookingData)
   const [reason, setReason] = useState("");
@@ -46,8 +46,8 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
             bookingCode,
             property,
             roomTypeCode,
-            checkInDate,
-            checkOutDate,
+            reservationStartDate,
+            reservationEndDate,
             amount,
             currencyCode,
             ...bookingData, // 👈 includes email, guestDetails, hotelName etc. if present
@@ -78,7 +78,7 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
 
   const refundInfo = useMemo(() => {
     const today = new Date();
-    const checkIn = new Date(checkInDate);
+    const checkIn = new Date(reservationStartDate);
     const diffDays = Math.ceil(
       (checkIn.getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
     );
@@ -86,7 +86,7 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
     if (diffDays > 5) return { label: "💯 Full refund", refund: 100 };
     if (diffDays > 1) return { label: "🔁 50% refund", refund: 50 };
     return { label: "❌ No refund", refund: 0 };
-  }, [checkInDate]);
+  }, [reservationStartDate]);
 console.log("property",property)
 
   useEffect(() => {
@@ -128,8 +128,8 @@ console.log("property",property)
             <div className="flex items-center gap-2">
               <FaCalendarAlt style={{ color: colors.primaryColor }} />
               <span>
-                {new Date(checkInDate).toDateString()} -{" "}
-                {new Date(checkOutDate).toDateString()}
+                {new Date(reservationStartDate).toDateString()} -{" "}
+                {new Date(reservationEndDate).toDateString()}
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -142,38 +142,6 @@ console.log("property",property)
           </div>
         </div>
 
-        {/* Cancellation Policy */}
-        {/* <div
-          className="border-l-4 p-4 rounded-lg"
-          style={{
-            backgroundColor: `${colors.secondaryColor}20`, // Adding 20% opacity
-            borderLeftColor: colors.primaryColor
-          }}
-        >
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-2 gap-2">
-            <h4 className="font-semibold" style={{ color: colors.primaryColor }}>
-              Moderate Cancellation Policy
-            </h4>
-            <span
-              className="text-xs px-2 py-1 rounded-full font-semibold"
-              style={{
-                backgroundColor: `${colors.secondaryColor}40`, // Adding 40% opacity
-                color: colors.buttonTextColor
-              }}
-            >
-              {refundInfo.refund}% Refund Eligible
-            </span>
-          </div>
-          <ul className="text-sm text-gray-700 list-disc pl-5 space-y-1">
-            <li>💯 Full refund: If cancelled 5+ days before check-in</li>
-            <li>🔁 50% refund: If cancelled 1–5 days before check-in</li>
-            <li>❌ No refund: If cancelled within 24 hours of check-in</li>
-          </ul>
-          <p className="text-sm text-red-600 mt-3 font-medium">
-            Your Refund Status: {refundInfo.label}
-          </p>
-        </div> */}
-
         {/* Financial Breakdown */}
         <div className="bg-gray-50 p-4 rounded-lg">
           <p className="font-medium mb-2" style={{ color: colors.primaryColor }}>{t("CancelModal.financialBreakdown")}</p>
@@ -184,18 +152,6 @@ console.log("property",property)
                 {getCurrencySymbol(currencyCode)} {amount.toLocaleString()}
               </span>
             </p>
-            {/* <p className="flex justify-between">
-              <span>Refund Amount:</span>
-              <span className="font-semibold text-green-600">
-                ${Math.round((amount * refundInfo.refund) / 100).toLocaleString()}
-              </span>
-            </p>
-            <p className="flex justify-between">
-              <span>Cancellation Fee:</span>
-              <span className="font-semibold text-red-500">
-                ${Math.round(amount - (amount * refundInfo.refund) / 100).toLocaleString()}
-              </span>
-            </p> */}
           </div>
         </div>
 
@@ -235,7 +191,7 @@ console.log("property",property)
               color: colors.buttonTextColor
             }}
           >
-            ⬅ {t("CancelModal.keepReservation")}
+            {t("CancelModal.keepReservation")}
           </button>
           <button
             onClick={handleCancellation}

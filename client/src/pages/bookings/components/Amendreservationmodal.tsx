@@ -184,8 +184,7 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
   const initialCheckIn = parseDate(reservation.reservationStartDate);
   const initialCheckOut = parseDate(reservation.reservationEndDate);
   const originalRooms =
-    reservation.priceBreakdowns?.[0]?.requestedRooms ??
-    (reservation.finalPrice as any)?.requestedRooms ??
+    reservation.finalPrice?.requestedRooms ??
     1;
 
   // ── Navigation ──
