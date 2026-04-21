@@ -36,12 +36,8 @@ const PriceDetails: React.FC<PriceDetailsProps> = ({ bookingDetails }) => {
 
   const fp = bookingDetails?.finalPrice;
   const currencyCode = fp?.currencyCode || "USD";
-  const currencySymbol = currencies.find((c) => c.code === currencyCode)?.symbol ?? currencyCode;
 
-  const formatCurrency = (amount: number) =>
-    `${currencySymbol}${new Intl.NumberFormat("en-IN", { maximumFractionDigits: 2 }).format(amount)}`;
-
-  const hasPayLater = (fp?.latterpayableAmount ?? 0) > 0;
+ const hasPayLater = (fp?.latterpayableAmount ?? 0) > 0;
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-5 max-w-sm">
@@ -55,13 +51,13 @@ const PriceDetails: React.FC<PriceDetailsProps> = ({ bookingDetails }) => {
           <div className="flex justify-between items-center text-sm">
             <span className="text-gray-600">{t("PriceDetails.payNow")}</span>
             <span className="font-semibold text-green-700">
-              {formatCurrency(fp?.currentChargeableAmount ?? 0)}
+              {currencyCode} {fp?.currentChargeableAmount.toFixed(2) || 0}
             </span>
           </div>
           <div className="flex justify-between items-center text-sm">
             <span className="text-gray-600">{t("PriceDetails.payAtHotel")}</span>
             <span className="font-semibold text-amber-600">
-              {formatCurrency(fp?.latterpayableAmount ?? 0)}
+              {currencyCode} {fp?.latterpayableAmount.toFixed(2) || 0}
             </span>
           </div>
         </div>
@@ -70,7 +66,7 @@ const PriceDetails: React.FC<PriceDetailsProps> = ({ bookingDetails }) => {
       {/* Total Amount */}
       <div className={`flex justify-between items-center text-base border-t pt-3 ${hasPayLater ? "" : "mt-0"}`}>
         <span className="font-semibold text-gray-900">{t("PriceDetails.totalAmount")}</span>
-        <span className="font-bold text-orange-600 text-xl">{formatCurrency(fp?.totalAmount || 0)}</span>
+        <span className="font-bold text-orange-600 text-xl">{currencyCode} {fp?.totalAmount.toFixed(2) || 0}</span>
       </div>
 
       {/* Secure Payment */}

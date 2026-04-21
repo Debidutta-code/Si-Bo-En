@@ -272,8 +272,7 @@ const GuestFormModal: React.FC<Props> = ({
     }
   };
 
-  const getCurrencySymbol = (code: string) =>
-    currencies.find((c) => c.code === code)?.symbol ?? code;
+
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
@@ -479,7 +478,7 @@ const GuestFormModal: React.FC<Props> = ({
             <CardContent className="p-0">
               {finalPrice && (() => {
 
-                const cur = getCurrencySymbol(finalPrice.currencyCode);
+                const cur = finalPrice.currencyCode;
 
                 const formatGuests = (g: any) => {
                   if (!g) return '';
@@ -619,7 +618,7 @@ const GuestFormModal: React.FC<Props> = ({
                             <span className="text-gray-900 whitespace-nowrap ml-4">
                               {addon.total === 0
                                 ? <span className="text-green-600 font-medium">{t("GuestForm.free")}</span>
-                                : `${getCurrencySymbol(addon.currency)} ${addon.total.toFixed(2)}`
+                                : `${cur} ${addon.total.toFixed(2)}`
                               }
                             </span>
                           </div>
@@ -640,7 +639,7 @@ const GuestFormModal: React.FC<Props> = ({
                           {deductPromos.map((promo: any, i: number) => (
                             <div key={i} className="flex justify-between py-0.5 text-green-700">
                               <span>{promo.name} ({promo.discountValue}%)</span>
-                              <span>- {getCurrencySymbol(promo.currencyCode || finalPrice.currencyCode)} {(promo.discountAmount ?? 0).toFixed(2)}</span>
+                              <span>- {(promo.currencyCode || finalPrice.currencyCode)} {(promo.discountAmount ?? 0).toFixed(2)}</span>
                             </div>
                           ))}
                           {(finalPrice.loyalityDiscount ?? 0) > 0 && (
@@ -669,7 +668,7 @@ const GuestFormModal: React.FC<Props> = ({
                           <div key={i} className="flex justify-between py-0.5 text-gray-600">
                             <span>{tax.name}</span>
                             <span className="text-gray-900">
-                              {getCurrencySymbol(tax.currencyCode || finalPrice.currencyCode)} {(tax.taxedAmount ?? 0).toFixed(2)}
+                              {tax.currencyCode || finalPrice.currencyCode} {(tax.taxedAmount ?? 0).toFixed(2)}
                             </span>
                           </div>
                         ))}

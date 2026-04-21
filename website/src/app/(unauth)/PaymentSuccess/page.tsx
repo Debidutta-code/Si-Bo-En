@@ -103,8 +103,6 @@ const PaymentSuccessPage = () => {
     finalPrice?.currencyCode ||
     finalPrice?.dailyBreakdown?.[0]?.currencyCode ||
     "USD";
-  const currencySymbol =
-    currencies.find((c) => c.code === currencyCode)?.symbol ?? currencyCode;
   return isConfirmed ? (
     <div className="min-h-screen bg-gray-100  py-8 px-4">
       <div className="max-w-5xl mx-auto bg-white shadow-xl rounded-2xl p-8 sm:p-10">
@@ -188,7 +186,7 @@ const PaymentSuccessPage = () => {
               {t("PaymentSuccess.confirmed.paymentDetails")}
             </h2>
             <div className="font-bold text-2xl" style={{ color: colors.primaryColor }}>
-              {currencySymbol}{totalAmount.toFixed(2)}
+              {currencyCode} {totalAmount.toFixed(2)}
             </div>
             <p className="text-sm text-gray-500">
               {t("PaymentSuccess.confirmed.payAtHotelNote")}

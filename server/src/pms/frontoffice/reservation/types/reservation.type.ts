@@ -35,11 +35,11 @@ export interface IBookingDetails {
   numberOfNights?: number;
   finalPrice: IFinalPrice;
   promoCode: string | null;
-  currency: CurrencyCode;
+  currencyCode: CurrencyCode;
   bookingSource: BookingSource;
   refundAmount: any
-  email: string;
-  phone: string;
+  bookingUserEmail: string;
+  bookingUserPhone: string;
   guests: {
     adults: number;
     children: number;

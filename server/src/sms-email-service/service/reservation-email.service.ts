@@ -15,6 +15,7 @@ export class ReservationEmailService {
         bookingDetails: any
     ): Promise<void> {
         try {
+            console.log('bookingDetails', bookingDetails);
             const property = await getPropertyByPropertyCode(
                 bookingDetails.propertyCode
             );
@@ -60,7 +61,7 @@ export class ReservationEmailService {
 
             // Email 1 - Customer
             await emailQueue.enqueueEmail({
-                to: bookingDetails.email,
+                to: bookingDetails.bookingUserEmail,
                 cc: [],
                 subject: 'Your Reservation Confirmation - RevChill',
                 htmlContent: htmlTemplate,
@@ -137,7 +138,7 @@ export class ReservationEmailService {
 
             // Email 1 - Customer
             await emailQueue.enqueueEmail({
-                to: bookingDetails.email,
+                to: bookingDetails.bookingUserEmail,
                 cc: [],
                 subject: 'Your Reservation Has Been Updated - RevChill',
                 htmlContent: htmlTemplate,
@@ -211,7 +212,7 @@ export class ReservationEmailService {
 
             // Email 1 - Customer
             await emailQueue.enqueueEmail({
-                to: bookingDetails.email,
+                to: bookingDetails.bookingUserEmail,
                 cc: [],
                 subject:
                     'Your Reservation Cancellation Confirmation - RevChill',

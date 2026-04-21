@@ -1042,10 +1042,10 @@ export class ReservationService {
                 refundAmount: updatedReservation.refundAmount,
                 finalPrice: updatePayload.finalPrice,
                 promoCode: null,
-                currency: updatePayload.currencyCode,
+                currencyCode: updatePayload.currencyCode,
                 bookingSource: existingReservation.bookingSource,
-                email: updatePayload.bookingUserEmail,
-                phone: updatePayload.bookingUserPhone,
+                bookingUserEmail: updatePayload.bookingUserEmail,
+                bookingUserPhone: updatePayload.bookingUserPhone,
                 guests: {
                     adults: updatePayload.rooms.reduce(
                         (sum, room) => sum + room.adults,
@@ -1637,10 +1637,10 @@ export class ReservationService {
                     promotionBrakeDown: [],
                 },
                 promoCode: null,
-                currency: reservation.currencyCode,
+                currencyCode: reservation.currencyCode,
                 bookingSource: reservation.bookingSource,
-                email: reservation.bookingUserEmail,
-                phone: reservation.bookingUserPhone || '',
+                bookingUserEmail: reservation.bookingUserEmail,
+                bookingUserPhone: reservation.bookingUserPhone || '',
                 guests: {
                     adults: Array.isArray(reservation.guests)
                         ? reservation.guests.filter(
