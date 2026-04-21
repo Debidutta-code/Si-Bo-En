@@ -32,7 +32,7 @@ export default function LoginForm() {
   const navigate = useNavigate();
 
   useEffect(() => {
-        fetchUser();
+    fetchUser();
 
     const savedCredentials = localStorage.getItem("swiftRoomsLogCred");
     if (savedCredentials) {
@@ -46,18 +46,18 @@ export default function LoginForm() {
     }
   }, []);
   const fetchUser = async () => {
-      try {
-        const axiosInstance = AxiosInstance();
-        const response = await axiosInstance.get('/user/me');
-        if (response.data.success) {
-          navigate('/app');
-        } else {
-          
-        }
-      } catch (error: any) {
-        
+    try {
+      const axiosInstance = AxiosInstance();
+      const response = await axiosInstance.get('/user/me');
+      if (response.data.success) {
+        navigate('/app');
+      } else {
+
       }
-    };
+    } catch (error: any) {
+
+    }
+  };
   const handleLogin = async () => {
     const validation = loginSchema.safeParse(loginDetails);
 
@@ -84,7 +84,7 @@ export default function LoginForm() {
           localStorage.removeItem("swiftRoomsLogCred");
         }
         toast.success("Login Successfull")
-        
+
         navigate('/app');
       } else {
         toast.error(response?.data?.message)
@@ -125,7 +125,7 @@ export default function LoginForm() {
         {/* Content */}
         <div className="relative z-10 flex flex-col justify-between p-12 text-primary-foreground w-full">
           {/* Logo & Brand */}
-         
+
 
           {/* Main Content */}
           <div className="space-y-8 animate-fade-in-delay">
@@ -139,8 +139,7 @@ export default function LoginForm() {
                 </span>
               </h2>
               <p className="text-lg leading-relaxed max-w-md">
-                Streamline operations, maximize revenue, and deliver exceptional guest experiences all in one place.
-              </p>
+                Streamline operations, maximize revenue, and deliver exceptional guest experiences all from a single, powerful platform.              </p>
             </div>
 
             {/* Features */}
@@ -150,7 +149,7 @@ export default function LoginForm() {
                 { icon: Zap, text: "Real-time analytics & insights" },
                 { icon: Building2, text: "Multi-property management" }
               ].map((feature, index) => (
-                <div 
+                <div
                   key={index}
                   className="flex items-center space-x-3 animate-slide-in-left"
                   style={{ animationDelay: `${index * 150}ms` }}
@@ -179,18 +178,18 @@ export default function LoginForm() {
         <div className="w-full max-w-md relative z-10 animate-fade-in-up">
           {/* Mobile Logo */}
           <div className="lg:hidden flex items-center justify-center mb-8">
-            <img 
-              src="/revchill.png" 
-              alt="Revchill Logo" 
+            <img
+              src="/revchill.png"
+              alt="Revchill Logo"
               className="h-16 w-auto object-contain"
             />
           </div>
 
           <Card className="border shadow-xl">
             <CardHeader className="space-y-2 text-center pb-8">
-               <img 
-                src="/revchill.png" 
-                alt="Revchill Logo" 
+              <img
+                src="/revchill.png"
+                alt="Revchill Logo"
                 className="h-12 w-auto hidden lg:block object-contain"
               />
               <CardTitle className="text-3xl font-bold">Welcome Back</CardTitle>
@@ -266,8 +265,8 @@ export default function LoginForm() {
                     onCheckedChange={(newChecked) => setRememberMe(newChecked === true)}
                     disabled={isLoading}
                   />
-                  <Label 
-                    htmlFor="remember" 
+                  <Label
+                    htmlFor="remember"
                     className="text-sm cursor-pointer select-none"
                   >
                     Remember me
