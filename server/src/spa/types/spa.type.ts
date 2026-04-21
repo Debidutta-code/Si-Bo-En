@@ -1,4 +1,4 @@
-import { ISpaSlot } from ".";
+import { ISpaDates, ISpaSlot } from ".";
 import { CurrencyCode } from "../../tax-system/interfaces";
 import { ICSpaCatrgory, ICSpaSubCategory } from "../../utils-management/types";
 
@@ -69,5 +69,5 @@ export interface ISpa extends ICSpaR {
 
 }
 export interface ISpaWSlots extends ISpa {
-    SpaSlots: ISpaSlot[];
+    SpaDates: ISpaDates[];
 }

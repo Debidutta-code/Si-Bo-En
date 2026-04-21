@@ -5,17 +5,18 @@ import { CustomRequest, PropertyCustomRequest, PropertyRequest } from "./customR
 export const getGeoLocationDetails = async (
     req: Request | CustomRequest | PropertyCustomRequest | PropertyRequest
 ) => {
+    console.log(req.headers)
     let ip = (req.headers['x-forwarded-for'] as string || req.ip || "").split(',')[0].trim();
 
     if (ip.startsWith('::ffff:')) {
         ip = ip.replace('::ffff:', '');
     }
-
-   const isLocal = !ip || ip === '::1' || ip === '127.0.0.1';
-   console.log("get to the geo location function and its nt a local call")
+    console.log("IP address extracted:", ip);
+    const isLocal = !ip || ip === '::1' || ip === '127.0.0.1';
+    console.log("get to the geo location function and its nt a local call");
 
     if (isLocal) {
-           console.log("get to the geo location function and its a local call")
+        console.log("get to the geo location function and its a local call");
         return {
             success: true,
             ip: '49.36.0.1',

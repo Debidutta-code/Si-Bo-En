@@ -95,7 +95,11 @@ export class SpaRepository {
                             email: true
                         }
                     },
-                    SpaSlots: true
+                    SpaDates:{
+                        include:{
+                            Slots:true
+                        }
+                    }
                 }
             })
         } catch (error) {
