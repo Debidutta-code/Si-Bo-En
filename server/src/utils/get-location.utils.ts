@@ -5,18 +5,20 @@ import { CustomRequest, PropertyCustomRequest, PropertyRequest } from "./customR
 export const getGeoLocationDetails = async (
     req: Request | CustomRequest | PropertyCustomRequest | PropertyRequest
 ) => {
-    console.log(req.headers)
-    let ip = (req.headers['x-forwarded-for'] as string || req.ip || "").split(',')[0].trim();
+    let ip = (req.headers['x-forwarded-for'] as string || req.ip || "")
+        .split(',')[0]
+        .trim();
 
     if (ip.startsWith('::ffff:')) {
         ip = ip.replace('::ffff:', '');
     }
-    console.log("IP address extracted:", ip);
+
     const isLocal = !ip || ip === '::1' || ip === '127.0.0.1';
-    console.log("get to the geo location function and its nt a local call");
+
+    console.log("Detected IP:", ip);
 
     if (isLocal) {
-        console.log("get to the geo location function and its a local call");
+        console.log("Local call detected");
         return {
             success: true,
             ip: '49.36.0.1',
@@ -25,18 +27,56 @@ export const getGeoLocationDetails = async (
             coordinates: [19.0760, 72.8777],
         };
     }
+
+    // ✅ 1. Try ipapi (PRIMARY)
     try {
-        const response = await axios.get(`http://ip-api.com/json/${ip}`);
-        console.log("get the geo locations", response.data)
+        console.log("Trying ipapi...");
+
+        const res = await axios.get(`https://ipapi.co/${ip}/json/`, {
+            timeout: 3000,
+        });
+
         return {
             success: true,
             ip,
-            city: response.data?.city ?? 'Unknown',
-            country: response.data?.countryCode ?? 'Unknown',
-            coordinates: [response.data?.lat ?? 0, response.data?.lon ?? 0],
+            city: res.data?.city ?? 'Unknown',
+            country: res.data?.country_code ?? 'Unknown',
+            coordinates: [res.data?.latitude ?? 0, res.data?.longitude ?? 0],
         };
-    } catch (e) {
-        console.error('Geo lookup failed:', e);
-        return { success: false, ip, city: 'Unknown', country: 'Unknown', coordinates: [0, 0] };
+
+    } catch (err) {
+        console.error("ipapi failed, trying fallback...", err);
     }
+
+    // 🔁 2. Fallback to ip-api (your current one)
+    try {
+        console.log("Trying ip-api fallback...");
+
+        const res = await axios.get(`http://ip-api.com/json/${ip}`, {
+            timeout: 3000,
+            headers: {
+                "User-Agent": "Mozilla/5.0",
+            },
+        });
+
+        return {
+            success: true,
+            ip,
+            city: res.data?.city ?? 'Unknown',
+            country: res.data?.countryCode ?? 'Unknown',
+            coordinates: [res.data?.lat ?? 0, res.data?.lon ?? 0],
+        };
+
+    } catch (err) {
+        console.error("Fallback geo lookup failed:", err);
+    }
+
+    // ❌ Final fallback
+    return {
+        success: false,
+        ip,
+        city: 'Unknown',
+        country: 'Unknown',
+        coordinates: [0, 0],
+    };
 };

@@ -131,7 +131,7 @@ export default function LoginForm() {
           <div className="space-y-8 animate-fade-in-delay">
             <div>
               <h2 className="text-4xl mt-10 font-bold mb-4 leading-tight">
-                Manage your properties
+                Manage your bookings
                 <br />
                 <span className="relative inline-block">
                   <span className="relative z-10">with confidence</span>
