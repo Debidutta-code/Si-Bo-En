@@ -12,9 +12,10 @@ export const getGeoLocationDetails = async (
     }
 
    const isLocal = !ip || ip === '::1' || ip === '127.0.0.1';
+   console.log("get to the geo location function and its nt a local call")
 
-    // Skip API call in local — return India directly
     if (isLocal) {
+           console.log("get to the geo location function and its a local call")
         return {
             success: true,
             ip: '49.36.0.1',
@@ -25,6 +26,7 @@ export const getGeoLocationDetails = async (
     }
     try {
         const response = await axios.get(`http://ip-api.com/json/${ip}`);
+        console.log("get the geo locations", response.data)
         return {
             success: true,
             ip,
