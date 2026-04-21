@@ -1,20 +1,26 @@
-export interface ICSpaDates {
-    spaModuleId: string;
+export interface ICSpaDatesS {
     date: Date;
+
 }
-export interface ISpaDates extends ICSpaDates {
+export interface ICSpaDatesR extends ICSpaDatesS {
+    spaModuleId: string;
+
+}
+export interface ISpaDates extends ICSpaDatesR {
     id: string;
     Slots: ISpaSlot[];
 }
-export interface BatchPayload{
+export interface BatchPayload {
     count: number;
 }
-export interface ICSpaSlot{
+export interface ICSpaSlotS {
     startTime: Date;
-    endTime: Date|null;
-    spaDateId: string;
+    endTime: Date | null;
     isBooked: boolean;
 }
-export interface ISpaSlot extends ICSpaSlot{
+export interface ICSpaSlotR extends ICSpaSlotS {
+    spaDateId: string;
+}
+export interface ISpaSlot extends ICSpaSlotR {
     id: string;
 }
