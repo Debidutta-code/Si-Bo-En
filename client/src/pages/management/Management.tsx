@@ -9,6 +9,7 @@ import {
   DollarSign,
   Cable,
   View,
+  Bubbles,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import type {
@@ -36,6 +37,7 @@ import RoomAmenitiesTab from "./components/RoomAmenitiesTab";
 import LoyaltyFieldsTab from "./components/LoyaltyFieldsTab";
 import PaymentIntegrationsTab from "./components/PaymentIntegrationsTab";
 import MasterIntegrationsTab from "./components/MasterIntegrationsTab";
+import Spa from "./components/Spa";
 import { getAllRoomViews } from "./services/room-view.services";
 import type { ILoader } from "../dashboard/interface";
 import RoomViewTab from "./components/RoomView";
@@ -49,6 +51,7 @@ const TABS = [
   { value: "loyalty-fields", label: "Loyalty Fields", icon: Users },
   { value: "payment-integrations", label: "Payment Integrations", icon: DollarSign },
   { value: "master-integrations", label: "Master Integrations", icon: Cable },
+  { value: "spa", label: "Spa Type", icon: Bubbles },
 ];
 
 export default function ManagementPage() {
@@ -211,6 +214,10 @@ export default function ManagementPage() {
             masterIntegrations={masterIntegrations}
             setMasterIntegrations={setMasterIntegrations}
           />
+        </TabsContent>
+
+        <TabsContent value="spa" className="mt-4">
+          <Spa />
         </TabsContent>
       </Tabs>
     </div>

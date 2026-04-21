@@ -1,4 +1,3 @@
-
 model AddOnBrakeDown {
     id                      String       @id @default(cuid())
     dailyPriceBrakeDownId   String?       @map("daily_price_breakdown_id")

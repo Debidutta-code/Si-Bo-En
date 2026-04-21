@@ -8,7 +8,7 @@ model User {
   userLevel Int     @default(0) @map("user_level")
   isDrafted Boolean @default(false) @map("is_drafted")
 
-  // Relations 1:1
+
   createdBy   User?   @relation("UserCreatedBy", fields: [createdById], references: [id])
   createdById String? @map("created_by_id")
 
@@ -34,6 +34,8 @@ model User {
   propertiesCreated Property[] @relation("PropertyCreatedBy")
   usersCreated      User[]     @relation("UserCreatedBy")
   creationsCreated  Creation[] @relation("CreationCreatedBy")
+  UserAssignedSpa   UserAssignedSpa[] @relation("UserAssignedSpa")
+  CreatedSpas      Spa[] @relation("SpaCreatedBy")
   createdAt         DateTime   @default(now())
   updatedAt         DateTime   @updatedAt
   // RecivedPayments        Payments[]         @relation("PaymentProcessedBy")

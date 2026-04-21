@@ -420,21 +420,21 @@ class BasePriceClass {
             const totalPersons = adults + children;
             const gap =
                 this.roomDetails.maxOccupancy -
-                this.roomDetails.maxOccupancy +
+                this.roomDetails.maxNumberOfAdults +
                 this.roomDetails.maxNumberOfChildren;
             if (totalPersons > this.roomDetails.maxOccupancy) {
                 throw new Error(
                     `This room has a maximum occupancy of ${this.roomDetails.maxOccupancy}.`
                 );
             }
-            if (adults > (gap < 0 ? this.roomDetails.maxNumberOfAdults : gap)) {
+            if (adults > (gap < 0 ? this.roomDetails.maxNumberOfAdults : gap + this.roomDetails.maxNumberOfAdults)) {
                 throw new Error(
                     `This room can only accommodate maximum ${gap < 0 ? this.roomDetails.maxNumberOfAdults : gap} adults.`
                 );
             }
             if (
                 children >
-                (gap < 0 ? this.roomDetails.maxNumberOfChildren : gap)
+                (gap < 0 ? this.roomDetails.maxNumberOfChildren : gap + this.roomDetails.maxNumberOfChildren)
             ) {
                 throw new Error(
                     `This room can only accommodate maximum ${gap < 0 ? this.roomDetails.maxNumberOfChildren : gap} children.`
@@ -646,7 +646,8 @@ class AddOnPriceClass {
             if (this.childAges && this.childAges.length > 0) {
                 const childAddonBreakdowns = this.calculateChildAddonPrice(
                     addon,
-                    this.childAges
+                    this.childAges,
+                    'selected'
                 );
                 addonBrakeDown.push(...childAddonBreakdowns);
             }
@@ -689,7 +690,7 @@ class AddOnPriceClass {
                         quantityForDate = this.numberOfRooms;
                         break;
                     case 'per_person_per_room':
-                        quantityForDate = this.noOfAdults * this.numberOfRooms;
+                        quantityForDate = this.noOfAdults ;
                         break;
                     default:
                         quantityForDate = 1;
@@ -712,7 +713,8 @@ class AddOnPriceClass {
             if (this.childAges && this.childAges.length > 0) {
                 const childAddonBreakdowns = this.calculateChildAddonPrice(
                     addon.addon,
-                    this.childAges
+                    this.childAges,
+                    "included"
                 );
                 addonBrakeDown.push(...childAddonBreakdowns);
             }
@@ -722,7 +724,8 @@ class AddOnPriceClass {
     }
     private calculateChildAddonPrice(
         addon: IAddOn,
-        childAges: number[]
+        childAges: number[],
+        type:"selected"|"included"
     ): AddOnBrakeDown[] {
         if (childAges.length === 0) return [];
 
@@ -758,13 +761,13 @@ class AddOnPriceClass {
                     quantityForDate = 1; // will be multiplied per child below
                     break;
                 case 'per_room':
-                    quantityForDate = this.numberOfRooms;
+                    quantityForDate = 1;
                     break;
                 case 'per_room_per_night':
-                    quantityForDate = this.numberOfRooms;
+                    quantityForDate = 1;
                     break;
                 case 'per_person_per_room':
-                    quantityForDate = this.numberOfRooms;
+                    quantityForDate = 1;
                     break;
                 default:
                     quantityForDate = 1;
@@ -808,7 +811,7 @@ class AddOnPriceClass {
                     currencyCode: addon.availability[0]
                         .currencyCode as CurrencyCode,
                     date: new Date(avail.date).toDateString(),
-                    type: 'selected',
+                    type: type,
                 });
             });
         });

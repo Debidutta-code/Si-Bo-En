@@ -15,7 +15,7 @@ export default class AccessDao {
     }
   }
 
-  public static async getAccessByRole(role: "super_admin" | "group_manager" | "hotel_manager" | "staff" | "brand_manager" | "revenue_manager" | "regional_admin") { // 👈 Role enum
+  public static async getAccessByRole(role: "super_admin" | "group_manager" | "hotel_manager" | "staff" | "brand_manager" | "revenue_manager" | "regional_admin" | "spa_manager") { // 👈 Role enum
     try {
       return await prisma.accessControl.findUnique({
         where: { role }, 
