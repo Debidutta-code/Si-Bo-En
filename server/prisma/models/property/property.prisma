@@ -50,7 +50,7 @@ model Property {
   propertyIntegrations        PropertyIntegrations[]
   bookingOffsets              BookingOffset[]
   ProblemTickets              ProblemTickets[]
-
+  Spa                         Spa[]
   @@index([createdById])
   @@index([creationId])
   @@index([propertyCode])

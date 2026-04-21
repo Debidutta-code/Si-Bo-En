@@ -7,6 +7,7 @@ import { loyaltyGuestFieldRouter } from './loyalty.route';
 import { paymentIntegrationRouter } from './payment.route';
 import { partnerIntegrationRoute } from './partner.route';
 import { roomViewRouter } from './room-view.route';
+import { spaTypeRouter } from './spa-type.route';
 
 const managementRoute = Router();
 
@@ -18,6 +19,6 @@ managementRoute.use('/payment-integrations', paymentIntegrationRouter);
 managementRoute.use('/integration-partner', partnerIntegrationRoute);
 managementRoute.use('/room-view', roomViewRouter);
 aminityRouter.use('/room', roomAminityRouteM);
-
+managementRoute.use('/spa', spaTypeRouter);
 
 export { managementRoute };

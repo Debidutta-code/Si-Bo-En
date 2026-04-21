@@ -6,6 +6,7 @@ enum Role {
   hotel_manager
   staff
   revenue_manager
+  spa_manager
 }
 
 enum geoRestrictionType {
