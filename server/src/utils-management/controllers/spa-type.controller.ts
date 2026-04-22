@@ -100,7 +100,7 @@ export class SpaSubCategoryController {
     public async getAllSpaSubCategories(req: CustomRequest, res: Response): Promise<Response> {
         try {
             const categoryId = req.query.categoryId as string | undefined;
-            const response = await this.spaSubCategoryService.getSpaSubCategories(categoryId);
+            const response = await this.spaSubCategoryService.getSpaSubCategories(categoryId ? categoryId : undefined);
             return res.status(response.success ? 200 : 400).json(response);
         } catch (error) {
             if (error instanceof Error) {

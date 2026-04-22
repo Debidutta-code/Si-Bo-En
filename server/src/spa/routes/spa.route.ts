@@ -1,0 +1,17 @@
+import { protect } from "../../middlewares/auth.middleware";
+import {SpaController} from "../controller";
+import { Router } from "express";
+import {spaSlotRouter} from "./spa-slots.route";
+
+const spaRouter = Router();
+const spaController = new SpaController();
+
+spaRouter.use("/slots", spaSlotRouter);
+spaRouter.route("/").post(protect, spaController.createSpa.bind(spaController));
+
+spaRouter.route("/property/:propertyId").get(protect, spaController.getSpaForProperty.bind(spaController));
+spaRouter.route("/:id")
+    .put(protect, spaController.updateSpa.bind(spaController))
+    .delete(protect, spaController.deleteSpa.bind(spaController));
+
+export {spaRouter}

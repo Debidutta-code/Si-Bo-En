@@ -79,9 +79,9 @@ export class SpaDatesRepo{
     }
 }
 export class SpaSlotsRepo {
-    public async createSlots(data: ICSpaSlotR[]): Promise<BatchPayload> {
+    public async createSlots(data: ICSpaSlotR): Promise<ICSpaSlotR> {
         try {
-            return await prisma.spaSlots.createMany({
+            return await prisma.spaSlots.create({
                 data: {
                     ...data
                 }

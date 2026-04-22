@@ -30,6 +30,7 @@ import { fikafiPaymentRoutes } from '../payment/routes/fikafi.routes';
 import { managementRoute } from '../utils-management/routes';
 import { uploadRouter } from '../uploads/routes';
 import { loyalityGuestRouter } from '../loyality-users/routes/loyality-user.route';
+import { spaRouter } from '../spa/routes';
 export async function initializeExpressRoutes({ app }: { app: Express }) {
     // Health check
     app.head('/status', (_, res: Response) => res.status(200).end());
@@ -63,18 +64,18 @@ export async function initializeExpressRoutes({ app }: { app: Express }) {
     apiV1Router.use('/tax-system', TaxSystemRouter);
     apiV1Router.use('/addon', AddonsRoute);
     apiV1Router.use('/pms', pmsRoute);
-    apiV1Router.use('/loyalit-guest',loyalityGuestRouter)
+    apiV1Router.use('/loyalit-guest', loyalityGuestRouter)
     apiV1Router.use('/booking-engine', BookingEngineRoutes);
     apiV1Router.use('/agency', agencyMainRouter);
     apiV1Router.use('/promotions', promotionRouter);
     apiV1Router.use('/loyalty', loyaltyRouter);
     apiV1Router.use('/fikafi', fikafiPaymentRoutes);
     apiV1Router.use('/utils-management', managementRoute);
-    apiV1Router.use("/upload",uploadRouter)
+    apiV1Router.use("/upload", uploadRouter)
     apiV1Router.use('/payment', PaymentRoutes);
     apiV1Router.use('/integrations', integrationRouter);
     apiV1Router.use('/platform', platformRouter);
-
+    apiV1Router.use('/spa', spaRouter);
     apiV1Router.use('/currency', currencyRoutes);
 
     // Handle 404 for any undefined route under /api/v1
