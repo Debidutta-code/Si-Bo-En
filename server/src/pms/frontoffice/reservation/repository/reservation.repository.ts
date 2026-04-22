@@ -271,8 +271,9 @@ export class ReservationRepository {
                         }
                     },
                     property: {
-                        select: { propertyName: true, propertyCode: true },
+                        select: {id:true, propertyName: true, propertyCode: true,propertyEmail:true,propertyContact:true,description:true,image:true },
                     },
+                    reservationPromoCodes:true,
                     reservationGuests: true,
                 },
             });
@@ -340,8 +341,10 @@ export class ReservationRepository {
                         }
                     },
                     addOns: true,
+                    reservationPromoCodes:true,
+                    reservationGuests: true,
                     property: {
-                        select: { propertyName: true, propertyCode: true },
+                        select: { id:true, propertyName: true, propertyCode: true,propertyEmail:true,propertyContact:true,description:true,image:true },
                     },
                 },
             });
@@ -409,8 +412,10 @@ export class ReservationRepository {
                         }
                     },
                     addOns: true,
+                    reservationPromoCodes:true,
+                    reservationGuests: true,
                     property: {
-                        select: { propertyName: true, propertyCode: true },
+                        select: { id:true, propertyName: true, propertyCode: true,propertyEmail:true,propertyContact:true,description:true,image:true },
                     },
                 },
             });
@@ -473,8 +478,9 @@ export class ReservationRepository {
                     },
                     addOns: true,
                     reservationGuests:true,
+                    reservationPromoCodes:true,
                     property: {
-                        select: { propertyName: true, propertyCode: true },
+                        select: { id:true, propertyName: true, propertyCode: true,propertyEmail:true,propertyContact:true,description:true,image:true },
                     },
                 },
             });
@@ -527,10 +533,19 @@ export class ReservationRepository {
                 orderBy: { checkOutDate: 'asc' },
                 include: {
                     primaryGuest: true,
-                    // priceBreakdowns: true,
+                    PricingBrakeDown:{
+                        include: {
+                            AddonBrakeDowns: true,
+                            DailyPriceBrakeDown: true,
+                            taxBrakeDown: true,
+                            promotionBrakeDown: true,
+                        }
+                    },
                     addOns: true,
+                    reservationPromoCodes:true,
+                    reservationGuests: true,
                     property: {
-                        select: { propertyName: true, propertyCode: true },
+                        select: { id:true, propertyName: true, propertyCode: true,propertyEmail:true,propertyContact:true,description:true,image:true },
                     },
                 },
             });
@@ -589,6 +604,10 @@ export class ReservationRepository {
                             promotionBrakeDown: true,
                         }
                     },
+                    reservationPromoCodes:true,
+                    property: {
+                        select: { id:true, propertyName: true, propertyCode: true,propertyEmail:true,propertyContact:true,description:true,image:true },
+                    },
                 },
             });
         } catch (error) {
@@ -630,7 +649,11 @@ export class ReservationRepository {
                             promotionBrakeDown:true,
                         }
                     },
+                    reservationPromoCodes:true,
                     reservationGuests: true,
+                    property: {
+                        select: { id:true, propertyName: true, propertyCode: true,propertyEmail:true,propertyContact:true,description:true,image:true },
+                    },
                 },
             });
         } catch (error) {

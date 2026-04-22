@@ -118,11 +118,26 @@ export interface IReservationWithAllDetails extends IReservation {
   primaryGuest: IGuests;
   addOns: IBookingAddon[];
   PricingBrakeDown?: IPricingBreakDown | null;
-  // property: any;
-  // promo: IReservationPromotion;
+  property: IPropertyDetails;
+  reservationPromoCodes?: IReservationPromoCodes[];
   reservationGuests?: IReservationGuest[];
 }
-
+export interface IReservationPromoCodes {
+  id: string;
+  reservationId: string;
+  promoCodeId: string;
+  amount: number;
+  currency: CurrencyCode;
+}
+export interface IPropertyDetails {
+  id: string
+  propertyName: string
+  propertyEmail: string
+  propertyContact: string
+  propertyCode: string
+  description: string
+  image: string[]
+}
 export interface IReservationGuest {
   id: string;
   reservationId: string;
@@ -216,7 +231,7 @@ export interface ICPromotionBrakeDown {
   name: string
   discountType: DiscountType
   discountValue: number
-  currencyCode: CurrencyCode |null;
+  currencyCode: CurrencyCode | null;
   discountAmount: number
   restrictionType: RestrictionType
   type: PromotionBrakeDownType
@@ -345,7 +360,7 @@ export interface IReservationPromotion extends IReservationPromotionCreate {
   id: string;
 }
 // ==================== ENUMS ====================
-export type ReservationStatus = "pending" | "confirmed" | "cancelled" | "modified";
+export type ReservationStatus = "pending" | "confirmed" | "cancelled" | "modified"|"expired"|"no_show"|"checked_in"|"checked_out";
 export type userIdentityCardType = "passport"
   | "drivers_license"
   | "national_id"
@@ -367,7 +382,7 @@ export interface IGuestCheckInDetails {
 
 
 
-export interface IPropertyDetails {
+export interface IPropertyDetailsFromMiddleware {
   id: string;
   propertyName: string;
   propertyCode: string;
@@ -377,10 +392,10 @@ export interface IPropertyDetails {
 }
 export interface ICReservationPayload {
   propertyCode: string;
-  reservationStartDate: Date;
-  reservationEndDate: Date;
+  reservationStartDate: Date | string;
+  reservationEndDate: Date | string;
   hotelName: string;
-  bankDetails: IBankDetails;
+  bankDetails?: IBankDetails;
   roomName: string;
   roomTypeCode: string;
   guests: IGuestdistribution;
@@ -400,6 +415,15 @@ export interface ICReservationPayload {
   agencyId?: string;
   ngeniusOrderRef?: string;
   isLoyalityGuest?: boolean;
+}
+export interface ICReservationPayloadForEmail extends ICReservationPayload {
+  numberOfNights: number;
+  bookingCode: string;
+  reservationId: string;
+  bookedAt: string;
+  bookingStatus: ReservationStatus;
+  ratePlanName: string;
+
 }
 
 export interface IBankDetails {
@@ -493,13 +517,13 @@ export interface IPromotionBrakeDown {
   promotionType: ReservationPromotionType;
   restrictionType: PromotionrestrictionType;
   type: PromotionBrakeDownType;
-  currencyCode: CurrencyCode|null;
+  currencyCode: CurrencyCode | null;
   discountAmount: number;
   discountType: DiscountType;
   discountValue: number;
 }
 export type PromotionBrakeDownType = "auto_applied" | "user_applied";
-export type PromotionrestrictionType = "decrease" | "payLater"|"increase";
+export type PromotionrestrictionType = "decrease" | "payLater" | "increase";
 export interface ICDailyPriceBrakeDown {
   addOnBrakeDown?: IAddonBreakdown[];
   additionalChargesAmount: number;

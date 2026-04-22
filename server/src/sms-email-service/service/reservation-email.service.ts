@@ -1,5 +1,5 @@
-import { IBookingDetails } from '../../pms/frontoffice/reservation/types';
-import { getPropertyByPropertyCode, getPropertyDetails } from '../utils';
+import { IBookingDetails, ICReservationPayload, ICReservationPayloadForEmail } from '../../pms/frontoffice/reservation/types';
+import { getPropertyByPropertyAndRoom } from '../utils';
 import { EmailTemplates } from '../templatesss';
 import { PropertyEmailRepository } from '../reposititory';
 import { emailQueue } from '../../index';
@@ -12,29 +12,20 @@ export class ReservationEmailService {
     }
 
     public async reservationConfirmation(
-        bookingDetails: any
+       bookingDetails:ICReservationPayloadForEmail
     ): Promise<void> {
         try {
-            console.log('bookingDetails', bookingDetails);
-            const property = await getPropertyByPropertyCode(
-                bookingDetails.propertyCode
-            );
-            if (!property) return;
-
-            const propertyDetails = await getPropertyDetails(
-                property.id,
+            const propertyDetails = await getPropertyByPropertyAndRoom(
+                bookingDetails.propertyCode,
                 bookingDetails.roomTypeCode
+
             );
-            if (!propertyDetails || !propertyDetails.propertyAddress) return;
+            if (!propertyDetails) return;
+            if (!propertyDetails || !propertyDetails.propertyAddress || !propertyDetails.propertyRooms) return;
 
-            const room = propertyDetails.propertyRooms[0];
-            if (!room) return;
 
-            const propertyEmails =
-                await this.propertyEmailRepository.getPropertyEmails(
-                    propertyDetails.id
-                );
-            const ccEmails = propertyEmails
+
+            const ccEmails = propertyDetails.propertyEmails
                 .map(e => e.email)
                 .filter(e => e !== propertyDetails.propertyEmail);
 
@@ -47,12 +38,7 @@ export class ReservationEmailService {
                     propertyEmail: propertyDetails.propertyEmail,
                     propertyCode: propertyDetails.propertyCode,
                 },
-                room: {
-                    roomName: room.roomName,
-                    roomType: room.roomType,
-                    roomView: room.roomView,
-                    maxOccupancy: room.maxOccupancy,
-                },
+                room:propertyDetails.propertyRooms[0],
                 reservation: bookingDetails,
                 propertyAddress: propertyDetails.propertyAddress,
             });
@@ -95,10 +81,10 @@ export class ReservationEmailService {
     }
 
     public async reservationUpdatedEmail(
-        bookingDetails: IBookingDetails
+        bookingDetails: ICReservationPayloadForEmail
     ): Promise<void> {
         try {
-            const propertyDetails = await getPropertyDetails(
+            const propertyDetails = await getPropertyByPropertyAndRoom(
                 bookingDetails.propertyCode,
                 bookingDetails.roomTypeCode
             );
@@ -107,11 +93,7 @@ export class ReservationEmailService {
             const room = propertyDetails.propertyRooms[0];
             if (!room) return;
 
-            const propertyEmails =
-                await this.propertyEmailRepository.getPropertyEmails(
-                    propertyDetails.id
-                );
-            const ccEmails = propertyEmails
+            const ccEmails = propertyDetails.propertyEmails
                 .map(e => e.email)
                 .filter(e => e !== propertyDetails.propertyEmail);
 
@@ -124,12 +106,7 @@ export class ReservationEmailService {
                     propertyEmail: propertyDetails.propertyEmail,
                     propertyCode: propertyDetails.propertyCode,
                 },
-                room: {
-                    roomName: room.roomName,
-                    roomType: room.roomType,
-                    roomView: room.roomView,
-                    maxOccupancy: room.maxOccupancy,
-                },
+                room: propertyDetails.propertyRooms[0],
                 reservation: bookingDetails,
                 propertyAddress: propertyDetails.propertyAddress,
             });
@@ -169,10 +146,10 @@ export class ReservationEmailService {
     }
 
     public async reservationCancelEmail(
-        bookingDetails: IBookingDetails
+        bookingDetails: ICReservationPayloadForEmail
     ): Promise<void> {
         try {
-            const propertyDetails = await getPropertyDetails(
+            const propertyDetails = await getPropertyByPropertyAndRoom(
                 bookingDetails.propertyCode,
                 bookingDetails.roomTypeCode
             );
@@ -181,11 +158,7 @@ export class ReservationEmailService {
             const room = propertyDetails.propertyRooms[0];
             if (!room) return;
 
-            const propertyEmails =
-                await this.propertyEmailRepository.getPropertyEmails(
-                    propertyDetails.id
-                );
-            const ccEmails = propertyEmails
+            const ccEmails = propertyDetails.propertyEmails
                 .map(e => e.email)
                 .filter(e => e !== propertyDetails.propertyEmail);
 
@@ -198,12 +171,7 @@ export class ReservationEmailService {
                     propertyEmail: propertyDetails.propertyEmail,
                     propertyCode: propertyDetails.propertyCode,
                 },
-                room: {
-                    roomName: room.roomName,
-                    roomType: room.roomType,
-                    roomView: room.roomView,
-                    maxOccupancy: room.maxOccupancy,
-                },
+                room: propertyDetails.propertyRooms[0],
                 reservation: bookingDetails,
                 propertyAddress: propertyDetails.propertyAddress,
             });

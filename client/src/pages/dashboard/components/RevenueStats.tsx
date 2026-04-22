@@ -13,7 +13,7 @@ interface RevenueStatsProps {
 
 export default function RevenueStats({ data, currencyCode }: RevenueStatsProps) {
   const formatCurrency = (amount: number) => {
-    const symbol = getCurrencySymbol(currencyCode);  // or import formatCurrency from utils
+    const symbol = currencyCode;  // or import formatCurrency from utils
     return `${symbol} ${amount.toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,

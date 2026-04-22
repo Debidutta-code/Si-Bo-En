@@ -15,12 +15,12 @@ import {
     ICReservationR,
     IGuestCheckInDetails,
     ICReservationPayload,
-    IPropertyDetails,
     DeviceType,
     IBookingDetails,
     IAddonBreakdown,
-    IGuestDetails,
-    ICPricingBreakDown
+    ICPricingBreakDown,
+    IPropertyDetailsFromMiddleware,
+    ICReservationPayloadForEmail
 } from '../types';
 import { prisma } from '../../../../config';
 import { IPropertyCodeAndIds } from '../../../../dashboard/types';
@@ -220,7 +220,7 @@ export class ReservationService {
 
     public async createReservation(
         payload: ICReservationPayload,
-        propertyDetails: IPropertyDetails,
+        propertyDetails: IPropertyDetailsFromMiddleware,
         countryCode: string,
         deviceType: DeviceType
     ): Promise<IApiResponse> {
@@ -424,7 +424,6 @@ export class ReservationService {
                     reservationPayload
                 );
 
-            // ── 10. promo-code usage tracking ─────────────────────
             if (promoCode && promoCodeDetails) {
                 const promoTasks: Promise<any>[] = [
                     this.reservationRepository.createReservationPromoCode({
@@ -446,7 +445,6 @@ export class ReservationService {
                 await Promise.all(promoTasks);
             }
 
-            // ── 11. reservation guests ─────────────────────────────
             if (guestDetails && guestDetails.length > 0) {
                 await this.reservationRepository.createReservationGuests(
                     reservation.id,
@@ -454,7 +452,6 @@ export class ReservationService {
                 );
             }
 
-            // ── 12. link N-Genius payment if present ───────────────
             const ngeniusOrderRef = payload?.ngeniusOrderRef;
             if (ngeniusOrderRef) {
                 const count =
@@ -473,7 +470,6 @@ export class ReservationService {
                 }
             }
 
-            // ── 13. full price breakdown (header + children + link) ──
             const priceBreakdownPayload: ICPricingBreakDown = {
                 reservationId: reservation.id,
                 totalAmount: finalPrice.totalAmount,
@@ -497,7 +493,6 @@ export class ReservationService {
                 finalPrice.promotionBrakeDown || []
             );
 
-            // ── 14. booking add-ons (flat table) ───────────────────
             if (
                 finalPrice.addonBrakeDown &&
                 finalPrice.addonBrakeDown.length > 0
@@ -525,14 +520,7 @@ export class ReservationService {
                 }
             }
 
-            // ── 15. promotions ─────────────────────────────────────
-            // Note: Promotions are now stored in the PromotionBrakeDown table
-            // (created above by createFullPricingBreakdown). The old
-            // ReservationPromotion model is deprecated.
 
-
-
-            // ── 16. ARI decrement ──────────────────────────────────
             const reservationDates = this.generateDateRange(
                 toUTCDate(reservationStartDate),
                 toUTCDate(reservationEndDate)
@@ -548,9 +536,7 @@ export class ReservationService {
                 ],
             };
 
-            // ── 17. non-blocking side-effects ──────────────────────
             const nonBlockingTasks: Promise<any>[] = [
-                // ARI decrement only when self-ARI is on and no external CM/PMS
                 ...(propertyConfig.selfAriActive && !activeIntegration
                     ? [
                         this.ariManupulationRepo.decreaseAvailableRooms(
@@ -559,22 +545,14 @@ export class ReservationService {
                     ]
                     : []),
 
-                // confirmation email
                 this.emailService.reservationConfirmation({
                     ...payload,
                     numberOfNights,
-                    guestDetails: guestDetails.map((guest: IGuestDetails) => ({
-                        type: guest.type,
-                        firstName: guest.firstName,
-                        lastName: guest.lastName,
-                        dateOfBirth: guest.dateOfBirth || '',
-                        email: bookingUserEmail,
-                        phone: bookingUserPhone,
-                    })),
                     bookingCode: reservation.bookingCode,
                     reservationId: reservation.id,
                     bookedAt: reservation.bookedAt.toISOString(),
                     bookingStatus: reservation.bookingStatus,
+                    ratePlanName:rateplan.ratePlanName
                 }),
 
                 // loyalty — pass isLoyalityGuest flag from payload
@@ -604,19 +582,19 @@ export class ReservationService {
 
 
 
-    private async getPropertyIdByCode(
-        propertyCode: string
-    ): Promise<string | null> {
-        try {
-            const property = await prisma.property.findUnique({
-                where: { propertyCode },
-                select: { id: true },
-            });
-            return property?.id || null;
-        } catch (error) {
-            return null;
-        }
-    }
+    // private async getPropertyIdByCode(
+    //     propertyCode: string
+    // ): Promise<string | null> {
+    //     try {
+    //         const property = await prisma.property.findUnique({
+    //             where: { propertyCode },
+    //             select: { id: true },
+    //         });
+    //         return property?.id || null;
+    //     } catch (error) {
+    //         return null;
+    //     }
+    // }
 
     public async getReservaltionByCode(
         reservationCode: string,
@@ -1030,62 +1008,65 @@ export class ReservationService {
                 },
             };
 
-            const emailBookingDetails: IBookingDetails = {
-                startDate: updatePayload.checkInDate,
-                endDate: updatePayload.checkOutDate,
-                propertyCode: updatePayload.propertyCode,
-                hotelName: existingReservation.hotelName || '',
-                roomTypeCode: updatePayload.roomTypeCode,
-                ratePlanCode: updatePayload.ratePlanCode,
-                numberOfRooms: updatePayload.requestedRooms,
-                numberOfNights: updateNumberOfNights,
-                refundAmount: updatedReservation.refundAmount,
-                finalPrice: updatePayload.finalPrice,
-                promoCode: null,
-                currencyCode: updatePayload.currencyCode,
-                bookingSource: existingReservation.bookingSource,
-                bookingUserEmail: updatePayload.bookingUserEmail,
-                bookingUserPhone: updatePayload.bookingUserPhone,
-                guests: {
-                    adults: updatePayload.rooms.reduce(
-                        (sum, room) => sum + room.adults,
-                        0
-                    ),
-                    children: updatePayload.rooms.reduce(
-                        (sum, room) => sum + room.children,
-                        0
-                    ),
-                    rooms: updatePayload.rooms.length,
-                },
-                guestDetails: updatePayload.guests.map(guest => ({
-                    type: guest.type,
-                    firstName: guest.firstName,
-                    lastName: guest.lastName,
-                    dateOfBirth: guest.dateOfBirth,
-                    email:
-                        guest.type === 'adult'
-                            ? updatePayload.bookingUserEmail
-                            : undefined,
-                    phone:
-                        guest.type === 'adult'
-                            ? updatePayload.bookingUserPhone
-                            : undefined,
-                })),
-                paymentMethod: existingReservation.paymentMethod,
-                bookingCode: existingReservation.bookingCode,
-                reservationId: existingReservation.id,
-                bookedAt: existingReservation.bookedAt.toISOString(),
-                bookingStatus: 'modified' as BookingStatus,
-            };
+            // const emailBookingDetails: ICReservationPayloadForEmail = {
+            //     // startDate: updatePayload.checkInDate,
+            //     // endDate: updatePayload.checkOutDate,
+            //     reservationStartDate: updatePayload.checkInDate,
+            //     reservationEndDate: updatePayload.checkOutDate,
+            //     propertyCode: updatePayload.propertyCode,
+            //     hotelName: existingReservation.hotelName || '',
+            //     roomTypeCode: updatePayload.roomTypeCode,
+            //     ratePlanCode: updatePayload.ratePlanCode,
+            //     numberOfRooms: updatePayload.requestedRooms,
+            //     numberOfNights: updateNumberOfNights,
+            //     // refundAmount: updatedReservation.refundAmount,
+            //     finalPrice: updatePayload.finalPrice,
+            //     // promoCode:updatePayload.promoCode || null,
+            //     currencyCode: updatePayload.currencyCode,
+            //     bookingSource: existingReservation.bookingSource,
+            //     bookingUserEmail: updatePayload.bookingUserEmail,
+            //     bookingUserPhone: updatePayload.bookingUserPhone,
+            //     roomName:"",
+            //     // guests: {
+            //     //     adults: updatePayload.rooms.reduce(
+            //     //         (sum, room) => sum + room.adults,
+            //     //         0
+            //     //     ),
+            //     //     children: updatePayload.rooms.reduce(
+            //     //         (sum, room) => sum + room.children,
+            //     //         0
+            //     //     ),
+            //     //     rooms: updatePayload.rooms.length,
+            //     // },
+            //     // guests: updatePayload.guests.map(guest => ({
+            //     //     type: guest.type,
+            //     //     firstName: guest.firstName,
+            //     //     lastName: guest.lastName,
+            //     //     dateOfBirth: guest.dateOfBirth,
+            //     //     // email:
+            //     //     //     guest.type === 'adult'
+            //     //     //         ? updatePayload.bookingUserEmail
+            //     //     //         : undefined,
+            //     //     // phone:
+            //     //     //     guest.type === 'adult'
+            //     //     //         ? updatePayload.bookingUserPhone
+            //     //     //         : undefined,
+            //     // })),
+            //     paymentMethod: existingReservation.paymentMethod,
+            //     bookingCode: existingReservation.bookingCode,
+            //     reservationId: existingReservation.id,
+            //     bookedAt: existingReservation.bookedAt.toISOString(),
+            //     bookingStatus: 'modified' as BookingStatus,
+            // };
 
-            this.emailService
-                .reservationUpdatedEmail(emailBookingDetails)
-                .catch(error => {
-                    console.error(
-                        'Failed to send reservation update email:',
-                        error
-                    );
-                });
+            // this.emailService
+            //     .reservationUpdatedEmail(emailBookingDetails)
+            //     .catch(error => {
+            //         console.error(
+            //             'Failed to send reservation update email:',
+            //             error
+            //         );
+            //     });
 
             return successResponse(
                 'Reservation updated successfully',
@@ -1680,7 +1661,7 @@ export class ReservationService {
             // Build non-blocking tasks array
             const cancelNonBlockingTasks: Promise<any>[] = [
                 // Cancellation email
-                this.emailService.reservationCancelEmail(emailBookingDetails),
+                // this.emailService.reservationCancelEmail(emailBookingDetails),
                 // Loyalty decrement (non-blocking)
                 this.loyalityGuestRepo.handlePostCancelLoyalty(
                     reservation.bookingUserEmail,

@@ -1,6 +1,5 @@
 import type { CurrencyCode } from '@/components/currency-code/currency-code.type';
 import { TrendingUp, TrendingDown, ThumbsUp, ThumbsDown } from 'lucide-react';
-import { getCurrencySymbol } from '../utils/currencyUtils';
 
 interface IStatisticMetric {
   current: number;
@@ -50,7 +49,7 @@ const StatCard = ({
 }) => {
 const formatValue = (value: number) => {
   if (format === 'currency') {
-    const symbol = getCurrencySymbol(currency ?? 'USD');
+    const symbol =currency ?? 'USD';
     return `${symbol} ${value.toLocaleString('en-US', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,

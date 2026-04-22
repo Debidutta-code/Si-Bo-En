@@ -1496,35 +1496,54 @@ class TaxClass {
         this.priceBrakeDown = priceBrakeDown;
     }
     public applyTax(): PriceBrakeDown {
-        if (!this.taxGroup) {
-            return {
-                ...this.priceBrakeDown,
-                taxedAmount: 0,
-                taxBrakeDown: [],
-                currentChargeableAmount: this.priceBrakeDown.amountBeforeTax,
-                totalAmount:
-                    this.priceBrakeDown.amountBeforeTax +
-                    this.priceBrakeDown.latterpayableAmount,
-            };
-        }
+    if (!this.taxGroup) {
+        return {
+            ...this.priceBrakeDown,
+            taxedAmount: 0,
+            taxBrakeDown: [],
+            currentChargeableAmount: this.priceBrakeDown.amountBeforeTax,
+            totalAmount:
+                this.priceBrakeDown.amountBeforeTax +
+                this.priceBrakeDown.latterpayableAmount,
+        };
+    }
 
-        const sortedTaxRules = [...this.taxGroup.taxGroupRules].sort(
-            (a, b) => a.taxRule.priority - b.taxRule.priority
-        );
+    const base = Number(this.priceBrakeDown.amountBeforeTax) || 0;
 
-        const base = this.priceBrakeDown.amountBeforeTax;
-        let runningTotal = base;
-        const taxBrakeDown: TaxBrakeDown[] = [];
+    // ✅ STEP 1: group by priority
+    const grouped: Record<number, any[]> = {};
 
-        sortedTaxRules.forEach(rule => {
+    this.taxGroup.taxGroupRules.forEach(rule => {
+        const p = rule.taxRule.priority;
+        if (!grouped[p]) grouped[p] = [];
+        grouped[p].push(rule);
+    });
+
+    // ✅ STEP 2: sort priorities
+    const priorities = Object.keys(grouped)
+        .map(Number)
+        .sort((a, b) => a - b);
+
+    let runningTotal = base;
+    const taxBrakeDown: TaxBrakeDown[] = [];
+
+    // ✅ STEP 3: apply group-wise
+    priorities.forEach(priority => {
+        const rules = grouped[priority];
+        let groupTaxTotal = 0;
+
+        rules.forEach(rule => {
             let taxForThisRule = 0;
-            if (rule.taxRule.type === 'fixed') {
+
+            if (rule.taxRule.type === "fixed") {
                 taxForThisRule = Number(rule.taxRule.value);
             } else {
+                // ✅ SAME BASE for same priority
                 taxForThisRule =
                     (Number(rule.taxRule.value) * runningTotal) / 100;
             }
-            runningTotal += taxForThisRule;
+
+            groupTaxTotal += taxForThisRule;
 
             taxBrakeDown.push({
                 name: rule.taxRule.name,
@@ -1533,18 +1552,19 @@ class TaxClass {
             });
         });
 
-        const taxedAmount = runningTotal - base;
-        // currentChargeableAmount = discounted base + tax (no tourist tax yet)
-        const currentChargeableAmount = runningTotal;
+        // ✅ update AFTER whole group
+        runningTotal += groupTaxTotal;
+    });
 
-        return {
-            ...this.priceBrakeDown,
-            taxedAmount,
-            taxBrakeDown,
-            currentChargeableAmount,
-            totalAmount:
-                currentChargeableAmount +
-                this.priceBrakeDown.latterpayableAmount,
-        };
-    }
+    const taxedAmount = runningTotal - base;
+
+    return {
+        ...this.priceBrakeDown,
+        taxedAmount,
+        taxBrakeDown,
+        currentChargeableAmount: runningTotal,
+        totalAmount:
+            runningTotal + this.priceBrakeDown.latterpayableAmount,
+    };
+}
 }

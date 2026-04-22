@@ -302,7 +302,7 @@ export default function Dashboard() {
               <SelectContent>
                 {currencies.map((currency) => (
                   <SelectItem key={currency.code} value={currency.code}>
-                    {currency.symbol} {currency.code}
+                    {currency.code}
                   </SelectItem>
                 ))}
               </SelectContent>

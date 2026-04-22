@@ -1,21 +1,38 @@
 import { prisma } from "../../config";
 
-export const getPropertyDetails = async (id: string,roomTypeCode:string) => {
+export const getPropertyByPropertyAndRoom = async (propertyCode:string,roomTypeCode:string) => {
     return await prisma.property.findUnique({
-        where: { id },
+        where: { propertyCode },
         include: {
             propertyAddress:true,
+            propertyEmails:true,
             propertyRooms:{
                 where:{
-                    roomType:roomTypeCode
+                    roomType:roomTypeCode,  
                 },
+                select:{
+                    id:true,
+                    roomName:true,
+                    roomType:true,
+                    roomView:true,
+                    maxOccupancy:true,
+                    image:true,
+                    description:true,
+                    numberOfBedrooms:true,
+                    roomAmenities:true,
+
+                }
             }
         },
     });
 };
 export const getPropertyByPropertyCode = async (propertyCode:string)=>{
     return await prisma.property.findUnique({
-        where :{propertyCode}
+        where :{propertyCode},
+        include:{
+            propertyAddress:true,
+            
+        }
     })
 }
 export const getBookingDetails = async (bookingCode: string) => {

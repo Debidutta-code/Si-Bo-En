@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { IAddonAnalytics, IBookingSourceAnalytics, IPaymentMethodAnalytics } from '../interface';
 import { capitalizeFirstLetter } from '@/lib/utils';
 import type { CurrencyCode } from '@/components/currency-code/currency-code.type';
-import { getCurrencySymbol } from '../utils/currencyUtils';
 
 interface AdditionalStatsProps {
   addonData: IAddonAnalytics;
@@ -20,7 +19,7 @@ export default function AdditionalStats({
   currencyCode
 }: AdditionalStatsProps) {
   const formatCurrency = (amount: number) => {
-    const symbol = getCurrencySymbol(currencyCode);
+    const symbol = currencyCode;
     return `${symbol} ${amount.toLocaleString('en-US', {
       minimumFractionDigits: 2, maximumFractionDigits: 2,
     })}`;

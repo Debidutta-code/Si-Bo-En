@@ -2,7 +2,6 @@ import { Trophy, TrendingUp, Star } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { ITopPerformingProperties } from '../interface';
 import type { CurrencyCode } from '@/components/currency-code/currency-code.type';
-import { getCurrencySymbol } from '../utils/currencyUtils';
 
 interface TopPropertiesStatsProps {
   data: ITopPerformingProperties;
@@ -11,7 +10,7 @@ interface TopPropertiesStatsProps {
 
 export default function TopPropertiesStats({ data , currencyCode }: TopPropertiesStatsProps) {
 const formatCurrency = (amount: number) => {
-    const symbol = getCurrencySymbol(currencyCode);
+    const symbol = currencyCode;
     return `${symbol} ${amount.toLocaleString('en-US', {
       minimumFractionDigits: 2, maximumFractionDigits: 2,
     })}`;

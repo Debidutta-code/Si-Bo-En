@@ -1,7 +1,7 @@
-import { IBookingDetails, IGuestDetail } from "../../pms/frontoffice/reservation/types";
+import { ICReservationPayloadForEmail, IGuestDetail } from "../../pms/frontoffice/reservation/types";
 import { CurrencyCode } from "../../tax-system/interfaces";
 import { capitalizeFirstLetter } from "../utils/capitalizefirstLetter.util";
- 
+
 interface PropertyDetails {
   propertyName: string;
   propertyEmail: string;
@@ -11,7 +11,7 @@ interface PropertyDetails {
   propertyCode: string;
   starRating?: number | null;
 }
- 
+
 interface PropertyAddress {
   addressLine1: string;
   addressLine2: string | null;
@@ -24,228 +24,130 @@ interface PropertyAddress {
   latitude: number;
   longitude: number;
 }
- 
+
 interface RoomDetails {
+  id: string;
   roomName: string;
   roomType: string;
   roomView?: string;
-  maxOccupancy?: number;
+  maxOccupancy: number;
   image?: string[];
-  description?: string;
+  description: string | null;
+  numberOfBedrooms?: number;
 }
- 
+
 interface CancellationPolicy {
-  refundPercentage?: number;   // e.g. 100 = full refund
-  deadlineDate?: string;       // ISO string
+  refundPercentage?: number;
+  deadlineDate?: string;
   description?: string;
 }
- 
+
 interface DepositPolicy {
-  depositPercentage?: number;  // e.g. 30 = 30% upfront
+  depositPercentage?: number;
   description?: string;
 }
- 
+
 interface RatePlanPolicies {
   cancellationPolicy?: CancellationPolicy | null;
   depositPolicy?: DepositPolicy | null;
 }
- 
+
 interface EmailTemplateProps {
-  reservation: IBookingDetails;
+  reservation: ICReservationPayloadForEmail;
   property: PropertyDetails;
   propertyAddress: PropertyAddress;
   room: RoomDetails;
   policies?: RatePlanPolicies;
 }
- 
-// ─── Utilities ────────────────────────────────────────────────
- 
-const RC_TEAL = "#00b5c8";
-const RC_TEAL_DARK = "#0096a8";
-const RC_TEAL_LIGHT = "#e6f9fb";
- 
-const formatCurrency = (amount: number, currency: CurrencyCode): string =>
-  new Intl.NumberFormat("en-IN", {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 2,
-  }).format(amount);
- 
-const formatDate = (d: string | Date) =>
-  new Date(d).toLocaleDateString("en-IN", {
-    weekday: "short",
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-  });
- 
-const getDay = (d: string | Date) => new Date(d).getDate();
-const getMonYr = (d: string | Date) =>
-  new Date(d).toLocaleDateString("en-IN", { month: "short", year: "numeric" });
-const getWeekday = (d: string | Date) =>
-  new Date(d).toLocaleDateString("en-IN", { weekday: "long" });
- 
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+const safeDate = (d: string | Date | undefined | null): Date | null => {
+  if (!d) return null;
+  const dt = new Date(d);
+  return isNaN(dt.getTime()) ? null : dt;
+};
 const getMapUrl = (lat: number, lng: number) =>
   `https://maps.google.com/?q=${lat},${lng}&z=15&output=embed`;
- 
-const stars = (n: number | null | undefined) => {
-  if (!n) return "";
-  return "★".repeat(Math.floor(n)) + (n % 1 >= 0.5 ? "½" : "");
-};
- 
-// ─── Shared CSS ───────────────────────────────────────────────
- 
-const baseCSS = (accentColor: string, accentDark: string, accentLight: string) => `
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
-    background:#f0f2f5;color:#1a1a2e;line-height:1.6;-webkit-font-smoothing:antialiased}
-  .wrap{background:#f0f2f5;padding:20px 0}
-  .container{max-width:640px;margin:0 auto;background:#fff;border-radius:10px;
-    overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.10)}
-  /* header */
-  .header{background:#0d1b2a;padding:20px 32px;display:flex;align-items:center;justify-content:space-between}
-  .logo img{height:28px;display:block}
-  .status-badge{font-size:11px;font-weight:700;letter-spacing:1.2px;
-    text-transform:uppercase;padding:5px 14px;border-radius:20px}
-  /* hero */
-  .hero{position:relative;height:200px;overflow:hidden}
-  .hero-img{width:100%;height:100%;object-fit:cover;display:block}
-  .hero-overlay{position:absolute;inset:0;
-    background:linear-gradient(to bottom,rgba(0,0,0,0.15) 0%,rgba(0,0,0,0.65) 100%)}
-  .hero-content{position:absolute;bottom:0;left:0;right:0;padding:20px 32px}
-  .hero-title{font-size:22px;font-weight:700;color:#fff;margin-bottom:4px}
-  .hero-sub{font-size:13px;color:rgba(255,255,255,0.75)}
-  .hero-stars{color:#f5c518;font-size:13px;margin-bottom:6px}
-  /* booking meta */
-  .meta-bar{background:#0d1b2a;padding:14px 32px;display:flex;gap:28px;flex-wrap:wrap}
-  .meta-item label{display:block;font-size:10px;letter-spacing:1.2px;
-    text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:3px}
-  .meta-item span{font-size:13px;font-weight:600;color:#fff}
-  .meta-item span.accent{color:${accentColor}}
-  /* intro */
-  .intro{padding:28px 32px 0;font-size:14px;color:#444;line-height:1.7}
-  .intro strong{color:#1a1a2e}
-  /* section */
-  .section{padding:24px 32px;border-bottom:1px solid #eee}
-  .section:last-child{border-bottom:none}
-  .section-label{font-size:10px;font-weight:700;letter-spacing:1.8px;
-    text-transform:uppercase;color:#aaa;margin-bottom:14px}
-  /* dates */
-  .dates-grid{display:grid;grid-template-columns:1fr 56px 1fr;gap:0;
-    border:1px solid #e8e8e8;border-radius:10px;overflow:hidden}
-  .date-box{padding:16px 18px}
-  .date-box-label{font-size:10px;letter-spacing:1px;text-transform:uppercase;
-    color:#aaa;margin-bottom:5px}
-  .date-box-day{font-size:26px;font-weight:700;color:${accentColor};line-height:1}
-  .date-box-myr{font-size:13px;font-weight:500;color:#333;margin-top:2px}
-  .date-box-wday{font-size:12px;color:#888;margin-top:1px}
-  .date-divider{display:flex;align-items:center;justify-content:center;
-    flex-direction:column;border-left:1px solid #eee;border-right:1px solid #eee;
-    background:#fafafa}
-  .date-divider-nights{font-size:18px;font-weight:700;color:${accentColor}}
-  .date-divider-label{font-size:10px;color:#aaa;margin-top:2px}
-  /* info rows */
-  .info-row{display:flex;justify-content:space-between;align-items:center;
-    padding:10px 0;border-bottom:1px solid #f5f5f5}
-  .info-row:last-child{border-bottom:none}
-  .info-row-label{font-size:13px;color:#888}
-  .info-row-value{font-size:13px;font-weight:600;color:#1a1a2e;text-align:right;max-width:60%}
-  /* room card */
-  .room-card{border:1px solid #e8e8e8;border-radius:10px;overflow:hidden}
-  .room-img{width:100%;height:140px;object-fit:cover;display:block;background:#c8dce8}
-  .room-info{padding:14px 18px}
-  .room-name{font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:4px}
-  .room-sub{font-size:12px;color:#888;margin-bottom:10px}
-  .tags{display:flex;gap:6px;flex-wrap:wrap}
-  .tag{font-size:11px;background:#f0f2f5;border:1px solid #e4e4e4;
-    color:#555;padding:3px 10px;border-radius:20px}
-  /* guest list */
-  .guest-item{display:flex;align-items:center;gap:12px;padding:10px 0;
-    border-bottom:1px solid #f5f5f5}
-  .guest-item:last-child{border-bottom:none}
-  .guest-avatar{width:36px;height:36px;border-radius:50%;
-    background:${accentLight};display:flex;align-items:center;justify-content:center;
-    font-size:12px;font-weight:700;color:${accentDark};flex-shrink:0}
-  .guest-name{font-size:13px;font-weight:600;color:#1a1a2e}
-  .guest-meta{font-size:11px;color:#aaa;margin-top:1px}
-  .guest-primary-badge{font-size:10px;font-weight:700;letter-spacing:0.8px;
-    text-transform:uppercase;background:${accentColor};color:#fff;
-    padding:2px 8px;border-radius:10px;margin-left:8px}
-  /* price table */
-  .price-row{display:flex;justify-content:space-between;align-items:center;
-    padding:9px 0;border-bottom:1px solid #f5f5f5;font-size:13px}
-  .price-row:last-child{border-bottom:none}
-  .price-row-label{color:#666}
-  .price-row-val{font-weight:600;color:#1a1a2e}
-  .price-row.discount .price-row-label,.price-row.discount .price-row-val{color:#16a34a}
-  .price-row.paylater .price-row-label,.price-row.paylater .price-row-val{color:#ea580c}
-  .price-divider{border:none;border-top:1px solid #ddd;margin:6px 0}
-  .price-total-row{display:flex;justify-content:space-between;align-items:center;
-    padding:12px 0 4px}
-  .price-total-label{font-size:15px;font-weight:700;color:#1a1a2e}
-  .price-total-val{font-size:18px;font-weight:700;color:${accentColor}}
-  .pay-pill{display:flex;justify-content:space-between;align-items:center;
-    background:${accentLight};border-radius:8px;padding:10px 14px;margin-top:10px}
-  .pay-pill-label{font-size:12px;font-weight:700;color:${accentDark}}
-  .pay-pill-val{font-size:13px;font-weight:700;color:${accentDark}}
-  .paylater-pill{display:flex;justify-content:space-between;align-items:center;
-    background:#fff7ed;border-radius:8px;padding:10px 14px;margin-top:8px}
-  .paylater-pill-label{font-size:12px;font-weight:700;color:#ea580c}
-  .paylater-pill-val{font-size:13px;font-weight:700;color:#ea580c}
-  /* policy boxes */
-  .policy-box{border-radius:8px;padding:14px 16px;margin-bottom:10px}
-  .policy-box.cancel{background:#f0fdf4;border:1px solid #bbf7d0}
-  .policy-box.deposit{background:#fefce8;border:1px solid #fde68a}
-  .policy-box-title{font-size:12px;font-weight:700;margin-bottom:4px}
-  .policy-box.cancel .policy-box-title{color:#15803d}
-  .policy-box.deposit .policy-box-title{color:#92400e}
-  .policy-box-text{font-size:12px;line-height:1.6}
-  .policy-box.cancel .policy-box-text{color:#166534}
-  .policy-box.deposit .policy-box-text{color:#78350f}
-  /* action buttons */
-  .actions-section{background:#f8f9fa;padding:28px 32px;
-    display:flex;gap:14px;flex-wrap:wrap;justify-content:center}
-  .action-btn{display:inline-block;text-decoration:none;padding:12px 28px;
-    border-radius:8px;font-size:13px;font-weight:700;letter-spacing:0.3px;text-align:center}
-  .action-btn-primary{background:${accentColor};color:#fff}
-  .action-btn-secondary{background:#fff;color:#555;border:1px solid #ddd}
-  .action-btn-danger{background:#fff;color:#dc2626;border:1px solid #fecaca}
-  /* map */
-  .map-wrap{border-radius:8px;overflow:hidden;border:1px solid #e8e8e8;margin-top:14px}
-  .map-frame{width:100%;height:220px;display:block;border:0}
-  /* footer */
-  .footer{background:#f0f2f5;padding:24px 32px;text-align:center;
-    font-size:12px;color:#aaa;border-top:1px solid #e8e8e8}
-  .footer a{color:${accentColor};text-decoration:none}
-  .footer-contact{font-size:13px;color:#666;margin-bottom:8px}
-  /* notes */
-  .notes-box{background:#fffbeb;border-left:3px solid #f59e0b;
-    border-radius:4px;padding:14px 16px;margin-top:16px}
-  .notes-box-title{font-size:12px;font-weight:700;color:#92400e;margin-bottom:8px}
-  .notes-box ul{padding-left:16px}
-  .notes-box ul li{font-size:12px;color:#78350f;line-height:1.8}
-  /* cancelled styles */
-  .cancelled-badge{display:inline-block;background:#dc2626;color:#fff;
-    padding:5px 14px;border-radius:20px;font-size:11px;font-weight:700;
-    letter-spacing:1.2px;text-transform:uppercase}
-  .refund-box{background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;
-    padding:16px 20px;margin-top:12px}
-  .refund-box-title{font-size:12px;font-weight:700;color:#15803d;margin-bottom:4px}
-  .refund-amount{font-size:22px;font-weight:700;color:#15803d;margin-top:6px}
-  .no-refund-box{background:#fef2f2;border:1px solid #fecaca;border-radius:8px;
-    padding:16px 20px;margin-top:12px}
-  .strikethrough{text-decoration:line-through;opacity:0.5}
-  @media only screen and (max-width:600px){
-    .container{border-radius:0}
-    .header,.section,.meta-bar,.intro,.actions-section,.footer{padding-left:18px;padding-right:18px}
-    .hero-content{padding:14px 18px}
-    .dates-grid{grid-template-columns:1fr}
-    .date-divider{display:none}
+const formatCurrency = (
+  amount: number | undefined | null,
+  currency: CurrencyCode | string | undefined | null
+): string => {
+  const safeAmount = typeof amount === "number" && isFinite(amount) ? amount : 0;
+  const safeCurrency = currency && String(currency).length === 3 ? String(currency) : "INR";
+  try {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: safeCurrency,
+      minimumFractionDigits: 2,
+    }).format(safeAmount);
+  } catch {
+    return `${safeCurrency} ${safeAmount.toFixed(2)}`;
   }
-`;
- 
-// ─── CONFIRMATION EMAIL ───────────────────────────────────────
- 
+};
+
+const formatDate = (d: string | Date | undefined | null): string => {
+  const dt = safeDate(d);
+  if (!dt) return "—";
+  return dt.toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", year: "numeric" });
+};
+
+const getDay = (d: string | Date | undefined | null) => safeDate(d)?.getDate()?.toString() ?? "—";
+const getMonYr = (d: string | Date | undefined | null) => safeDate(d)?.toLocaleDateString("en-IN", { month: "short", year: "numeric" }) ?? "";
+const getWeekday = (d: string | Date | undefined | null) => safeDate(d)?.toLocaleDateString("en-IN", { weekday: "long" }) ?? "";
+
+const starsHtml = (n: number | null | undefined) =>
+  n ? `${"★".repeat(Math.floor(n))}${n % 1 >= 0.5 ? "½" : ""}` : "";
+
+const initials = (g: IGuestDetail) =>
+  `${g.firstName?.[0] ?? ""}${g.lastName?.[0] ?? ""}`.toUpperCase();
+
+const guestLabel = (g: IGuestDetail) =>
+  g.type === "adult" ? "Adult" : g.type === "child" ? "Child" : "Infant";
+
+// ─── Policy helpers ───────────────────────────────────────────────────────────
+
+const cancellationBlock = (policies?: RatePlanPolicies): string => {
+  const cp = policies?.cancellationPolicy;
+  if (!cp) return "";
+  const text = cp.description
+    ? cp.description
+    : cp.refundPercentage !== undefined && cp.deadlineDate
+      ? `Get a <strong>${cp.refundPercentage}%</strong> refund if you cancel before <strong>${formatDate(cp.deadlineDate)}</strong>.`
+      : "";
+  if (!text) return "";
+  return `
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+         style="background-color:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;margin-bottom:9px;">
+    <tr><td style="padding:13px 15px;">
+      <div style="font-size:12px;font-weight:700;color:#15803d;margin-bottom:3px;">&#10003; Cancellation Policy</div>
+      <div style="font-size:12px;line-height:1.6;color:#166534;">${text}</div>
+    </td></tr>
+  </table>`;
+};
+
+
+const depositBlock = (policies?: RatePlanPolicies): string => {
+  const dp = policies?.depositPolicy;
+  if (!dp) return "";
+  const text = dp.description
+    ? dp.description
+    : dp.depositPercentage !== undefined
+      ? `A deposit of <strong>${dp.depositPercentage}%</strong> of the total is required to secure your booking.`
+      : "";
+  if (!text) return "";
+  return `
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+         style="background-color:#fefce8;border:1px solid #fde68a;border-radius:8px;">
+    <tr><td style="padding:13px 15px;">
+      <div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:3px;">&#9889; Deposit Required</div>
+      <div style="font-size:12px;line-height:1.6;color:#78350f;">${text}</div>
+    </td></tr>
+  </table>`;
+};
+
+// ─── Main Email Function ──────────────────────────────────────────────────────
+
 export const BookingConfirmationEmail = ({
   reservation,
   property,
@@ -253,541 +155,852 @@ export const BookingConfirmationEmail = ({
   room,
   policies,
 }: EmailTemplateProps): string => {
-  const { finalPrice, guests, guestDetails, startDate, endDate } = reservation;
-  const primaryGuest = guestDetails[0];
+
+  const { finalPrice, guests, guestDetails, reservationStartDate, reservationEndDate } = reservation;
+  const currency = reservation.currencyCode || finalPrice?.currencyCode || "INR";
+  const primaryGuest = guestDetails?.[0];
   const numberOfNights = reservation.numberOfNights || 1;
- 
-  const propertyHeroImg = property.image?.[0] || "";
-  const roomImg = room.image?.[0] || "";
- 
-  const initials = (g: IGuestDetail) =>
-    `${g.firstName[0] || ""}${g.lastName[0] || ""}`.toUpperCase();
- 
-  const guestTypeLabel = (g: IGuestDetail) => {
-    if (g.type === "adult") return "Adult";
-    if (g.type === "child") return "Child";
-    return "Infant";
-  };
- 
-  const cancellationBlock = (): string => {
-    if (!policies?.cancellationPolicy) return "";
-    const cp = policies.cancellationPolicy;
-    if (cp.description) {
-      return `<div class="policy-box cancel">
-        <div class="policy-box-title">✓ Cancellation Policy</div>
-        <div class="policy-box-text">${cp.description}</div>
-      </div>`;
-    }
-    if (cp.refundPercentage !== undefined && cp.deadlineDate) {
-      return `<div class="policy-box cancel">
-        <div class="policy-box-title">✓ Free Cancellation</div>
-        <div class="policy-box-text">
-          Get a ${cp.refundPercentage}% refund if you cancel before
-          <strong>${formatDate(cp.deadlineDate)}</strong>.
+  const propertyImg = property.image?.[0] ?? "";
+  const roomImg = room.image?.[0] ?? "";
+const lat = propertyAddress.latitude;
+const lng = propertyAddress.longitude;
+
+const mapLinkUrl = `https://maps.google.com/?q=${lat},${lng}`;
+
+
+const guestRows = (guestDetails ?? []).map((g, i) => `
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+         style="${i < (guestDetails?.length ?? 0) - 1 ? "border-bottom:1px solid #f5f5f5;padding-bottom:10px;margin-bottom:10px;" : ""}">
+    <tr>
+      <td width="40" style="vertical-align:top;padding-top:2px;">
+        <div style="width:36px;height:36px;border-radius:50%;background-color:#e0f7fa;text-align:center;line-height:36px;font-size:12px;font-weight:700;color:#0096a8;">
+          ${initials(g)}
         </div>
-      </div>`;
-    }
-    return "";
-  };
- 
-  const depositBlock = (): string => {
-    if (!policies?.depositPolicy) return "";
-    const dp = policies.depositPolicy;
-    if (dp.description) {
-      return `<div class="policy-box deposit">
-        <div class="policy-box-title">⚡ Deposit Required</div>
-        <div class="policy-box-text">${dp.description}</div>
-      </div>`;
-    }
-    if (dp.depositPercentage !== undefined) {
-      return `<div class="policy-box deposit">
-        <div class="policy-box-title">⚡ Deposit Required</div>
-        <div class="policy-box-text">
-          A deposit of <strong>${dp.depositPercentage}%</strong> of the total amount
-          is required to secure your booking.
+      </td>
+      <td style="padding-left:12px;vertical-align:top;">
+        <div style="font-size:13px;font-weight:600;color:#1a1a2e;">
+          ${g.firstName ?? ""} ${g.lastName ?? ""}
+          ${i === 0 ? `<span style="background-color:#00b5c8;color:#ffffff;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:2px 7px;border-radius:10px;margin-left:6px;display:inline-block;vertical-align:middle;">Primary</span>` : ""}
         </div>
-      </div>`;
-    }
-    return "";
-  };
- 
+        <div style="font-size:11px;color:#aaaaaa;margin-top:2px;line-height:1.5;">
+          ${guestLabel(g)}${"age" in g && (g as any).age ? ` &middot; Age ${(g as any).age}` : ""}${g.dateOfBirth ? ` &middot; DOB: ${formatDate(g.dateOfBirth)}` : ""}
+          ${i === 0 && reservation.bookingUserEmail ? `<br>${reservation.bookingUserEmail}` : ""}
+          ${i === 0 && reservation.bookingUserPhone ? ` &middot; ${reservation.bookingUserPhone}` : ""}
+        </div>
+      </td>
+    </tr>
+  </table>`).join("");
+
+  // ── Add-on rows ─────────────────────────────────────────────
+  const addonRows = (finalPrice?.totalAddonAmount ?? 0) > 0
+    ? (finalPrice?.addonBrakeDown ?? []).map((a: any) => `
+  <tr><td style="padding:8px 0;border-bottom:1px solid #f5f5f5;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td style="font-size:13px;color:#666666;">
+        ${a.name}${(a.quantity ?? 1) > 1 ? ` &times;${a.quantity}` : ""}
+        ${a.date ? `<span style="font-size:11px;color:#aaaaaa;"> &middot; ${new Date(a.date).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</span>` : ""}
+      </td>
+      <td align="right" style="font-size:13px;font-weight:600;color:#1a1a2e;">+ ${formatCurrency(a.totalAmount, currency)}</td>
+    </tr></table>
+  </td></tr>`).join("")
+    : "";
+
+  // ── Tax rows ────────────────────────────────────────────────
+  const taxRows = (finalPrice?.taxBrakeDown ?? []).map((t: any) => `
+  <tr><td style="padding:8px 0;border-bottom:1px solid #f5f5f5;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td style="font-size:13px;color:#666666;">${t.name}</td>
+      <td align="right" style="font-size:13px;font-weight:600;color:#1a1a2e;">+ ${formatCurrency(t.taxedAmount, currency)}</td>
+    </tr></table>
+  </td></tr>`).join("");
+
+  // ── Promo rows ──────────────────────────────────────────────
+  const promoRows = (finalPrice?.promotionBrakeDown ?? []).map((p: any) => {
+    const isPayLater = p.restrictionType === "payLater";
+    const label = p.discountType === "percentage"
+      ? `${p.discountValue}% off`
+      : formatCurrency(p.discountValue, currency);
+    const color = isPayLater ? "#ea580c" : "#16a34a";
+    const prefix = isPayLater ? "+" : "&minus;";
+    return `
+  <tr><td style="padding:8px 0;border-bottom:1px solid #f5f5f5;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td style="font-size:13px;color:${color};">${p.name} (${label})${isPayLater ? " &mdash; Pay Later" : ""}</td>
+      <td align="right" style="font-size:13px;font-weight:600;color:${color};">${prefix} ${formatCurrency(p.discountAmount, currency)}</td>
+    </tr></table>
+  </td></tr>`;
+  }).join("");
+
+ // ── Promo code & loyalty rows ───────────────────────────────
+  const promoCodeRow = (finalPrice?.promoCodeDiscount ?? 0) > 0 ? `
+  <tr><td style="padding:8px 0;border-bottom:1px solid #f5f5f5;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td style="font-size:13px;color:#16a34a;">Promo code discount</td>
+      <td align="right" style="font-size:13px;font-weight:600;color:#16a34a;">&minus; ${formatCurrency(finalPrice?.promoCodeDiscount, currency)}</td>
+    </tr></table>
+  </td></tr>` : "";
+
+  const loyaltyRow = (finalPrice?.loyalityDiscount ?? 0) > 0 ? `
+  <tr><td style="padding:8px 0;border-bottom:1px solid #f5f5f5;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+      <td style="font-size:13px;color:#16a34a;">Loyalty discount</td>
+      <td align="right" style="font-size:13px;font-weight:600;color:#16a34a;">&minus; ${formatCurrency(finalPrice?.loyalityDiscount, currency)}</td>
+    </tr></table>
+  </td></tr>` : "";
+
+  // ── Pay later pill ──────────────────────────────────────────
+  const payLaterPill = (finalPrice?.latterpayableAmount ?? 0) > 0 ? `
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+         style="background-color:#fff7ed;border-radius:8px;margin-top:8px;">
+    <tr><td style="padding:10px 14px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+        <td style="font-size:12px;font-weight:700;color:#ea580c;">&#8987; Amount Due at Hotel</td>
+        <td align="right" style="font-size:13px;font-weight:700;color:#ea580c;">${formatCurrency(finalPrice?.latterpayableAmount, currency)}</td>
+      </tr></table>
+    </td></tr>
+  </table>` : "";
+
+  // ── Policies section ────────────────────────────────────────
+  const cancelBlock = cancellationBlock(policies);
+  const depositBlk = depositBlock(policies);
+  const policiesSection = (cancelBlock || depositBlk) ? `
+  <tr>
+    <td style="padding:22px 32px;border-bottom:1px solid #efefef;">
+      <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#bbbbbb;margin-bottom:14px;">Policies</div>
+      ${cancelBlock}
+      ${depositBlk}
+    </td>
+  </tr>` : "";
+
+  // ── Guest count string ──────────────────────────────────────
+  const guestCountStr = [
+    (guests?.adults ?? 0) > 0 ? `${guests.adults} Adult${guests.adults !== 1 ? "s" : ""}` : "",
+    (guests?.children ?? 0) > 0 ? `${guests.children} Child${guests.children !== 1 ? "ren" : ""}` : "",
+  ].filter(Boolean).join(", ");
+
+
+
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Booking Confirmed – ${property.propertyName}</title>
-<style>${baseCSS(RC_TEAL, RC_TEAL_DARK, RC_TEAL_LIGHT)}</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="x-apple-disable-message-reformatting">
+  <title>Booking Confirmed &ndash; ${property.propertyName}</title>
+  <!--[if mso]><noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript><![endif]-->
+  <style>
+    body, table, td, a { -webkit-text-size-adjust:100%; -ms-text-size-adjust:100%; }
+    table, td { mso-table-lspace:0pt; mso-table-rspace:0pt; }
+    img { -ms-interpolation-mode:bicubic; border:0; display:block; }
+    @media only screen and (max-width:600px) {
+      .mobile-pad { padding-left:16px !important; padding-right:16px !important; }
+      .mobile-hide { display:none !important; }
+    }
+  </style>
 </head>
-<body>
-<div class="wrap">
-<div class="container">
- 
-  <!-- HEADER -->
-  <div class="header">
-    <div class="logo">
-      <img src="https://bookings.revchilltech.com/revchill-logo.png" alt="RevChill" />
-    </div>
-    <span class="status-badge" style="background:#00b5c8;color:#fff;">✓ Confirmed</span>
-  </div>
- 
-  <!-- PROPERTY HERO (property image as background) -->
-  <div class="hero">
-    ${propertyHeroImg
-      ? `<img src="${propertyHeroImg}" alt="${property.propertyName}" class="hero-img" />`
-      : `<div class="hero-img" style="background:linear-gradient(135deg,#0d1b2a,#0096a8)"></div>`}
-    <div class="hero-overlay"></div>
-    <div class="hero-content">
-      ${property.starRating ? `<div class="hero-stars">${stars(property.starRating)}</div>` : ""}
-      <div class="hero-title">${property.propertyName}</div>
-      <div class="hero-sub">${propertyAddress.city}, ${propertyAddress.state} · ${propertyAddress.country}</div>
-    </div>
-  </div>
- 
-  <!-- BOOKING META BAR -->
-  <div class="meta-bar">
-    ${reservation.bookingCode ? `<div class="meta-item"><label>Booking ID</label><span class="accent">${reservation.bookingCode}</span></div>` : ""}
-    ${reservation.bookedAt ? `<div class="meta-item"><label>Booked On</label><span>${formatDate(reservation.bookedAt)}</span></div>` : ""}
-    <div class="meta-item"><label>Payment</label><span>${reservation.paymentMethod.split("_").map(capitalizeFirstLetter).join(" ")}</span></div>
-    <div class="meta-item"><label>Source</label><span>${capitalizeFirstLetter(reservation.bookingSource)}</span></div>
-  </div>
- 
-  <!-- INTRO -->
-  <div class="intro">
-    <p>Hi <strong>${primaryGuest.firstName} ${primaryGuest.lastName}</strong>,</p>
-    <p style="margin-top:8px;">Your booking is <strong>confirmed</strong>. Please find your complete reservation details below. We look forward to welcoming you.</p>
-  </div>
- 
-  <!-- STAY DATES -->
-  <div class="section">
-    <div class="section-label">Stay Details</div>
-    <div class="dates-grid">
-      <div class="date-box">
-        <div class="date-box-label">Check-in</div>
-        <div class="date-box-day">${getDay(startDate)}</div>
-        <div class="date-box-myr">${getMonYr(startDate)}</div>
-        <div class="date-box-wday">${getWeekday(startDate)}</div>
-        <div style="font-size:11px;color:#aaa;margin-top:6px;">After 2:00 PM</div>
-      </div>
-      <div class="date-divider">
-        <div class="date-divider-nights">${numberOfNights}</div>
-        <div class="date-divider-label">night${numberOfNights > 1 ? "s" : ""}</div>
-      </div>
-      <div class="date-box">
-        <div class="date-box-label">Check-out</div>
-        <div class="date-box-day">${getDay(endDate)}</div>
-        <div class="date-box-myr">${getMonYr(endDate)}</div>
-        <div class="date-box-wday">${getWeekday(endDate)}</div>
-        <div style="font-size:11px;color:#aaa;margin-top:6px;">Before 12:00 PM</div>
-      </div>
-    </div>
-    <div style="margin-top:14px;">
-      <div class="info-row">
-        <span class="info-row-label">Guests</span>
-        <span class="info-row-value">${guests.adults} Adult${guests.adults > 1 ? "s" : ""}${guests.children > 0 ? `, ${guests.children} Child${guests.children > 1 ? "ren" : ""}` : ""}</span>
-      </div>
-      <div class="info-row">
-        <span class="info-row-label">Rooms</span>
-        <span class="info-row-value">${reservation.numberOfRooms} Room${reservation.numberOfRooms > 1 ? "s" : ""}</span>
-      </div>
-      <div class="info-row">
-        <span class="info-row-label">Rate Plan</span>
-        <span class="info-row-value">${reservation.ratePlanCode}</span>
-      </div>
-    </div>
-  </div>
- 
-  <!-- ROOM -->
-  <div class="section">
-    <div class="section-label">Room</div>
-    <div class="room-card">
-      ${roomImg
-        ? `<img src="${roomImg}" alt="${room.roomName}" class="room-img" />`
-        : `<div class="room-img" style="background:linear-gradient(135deg,#b8cce0,#7aadc8);display:flex;align-items:center;justify-content:center;font-size:32px;">🛏</div>`}
-      <div class="room-info">
-        <div class="room-name">${room.roomName}</div>
-        <div class="room-sub">${room.roomType}${room.roomView ? ` · ${room.roomView} view` : ""}${room.maxOccupancy ? ` · Max ${room.maxOccupancy} guests` : ""}</div>
-        ${room.description ? `<div style="font-size:12px;color:#777;margin-bottom:10px;line-height:1.6">${room.description}</div>` : ""}
-        <div class="tags">
-          <span class="tag">Room Only</span>
-          ${room.maxOccupancy ? `<span class="tag">Up to ${room.maxOccupancy} guests</span>` : ""}
-          ${room.roomView ? `<span class="tag">${room.roomView} view</span>` : ""}
-        </div>
-      </div>
-    </div>
-  </div>
- 
-  <!-- GUESTS -->
-  <div class="section">
-    <div class="section-label">Guest Details</div>
-    ${guestDetails.map((g, i) => `
-      <div class="guest-item">
-        <div class="guest-avatar">${initials(g)}</div>
-        <div>
-          <div class="guest-name">
-            ${g.firstName} ${g.lastName}
-            ${i === 0 ? `<span class="guest-primary-badge">Primary</span>` : ""}
-          </div>
-          <div class="guest-meta">
-            ${guestTypeLabel(g)}
-            ${g.dateOfBirth ? ` · DOB: ${formatDate(g.dateOfBirth)}` : ""}
-            ${g.age ? ` · Age: ${g.age}` : ""}
-            ${i === 0 && reservation.bookingUserEmail ? ` · ${reservation.bookingUserEmail}` : ""}
-            ${i === 0 && reservation.bookingUserPhone ? ` · ${reservation.bookingUserPhone}` : ""}
-          </div>
-        </div>
-      </div>
-    `).join("")}
-  </div>
- 
-  <!-- PROPERTY DETAILS -->
-  <div class="section">
-    <div class="section-label">Property</div>
-    <div class="info-row">
-      <span class="info-row-label">Address</span>
-      <span class="info-row-value">${propertyAddress.addressLine1}${propertyAddress.addressLine2 ? ", " + propertyAddress.addressLine2 : ""}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-row-label">City / State</span>
-      <span class="info-row-value">${propertyAddress.city}, ${propertyAddress.state} ${propertyAddress.zipCode}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-row-label">Country</span>
-      <span class="info-row-value">${propertyAddress.country}</span>
-    </div>
-    ${propertyAddress.landmark ? `<div class="info-row"><span class="info-row-label">Landmark</span><span class="info-row-value">Near ${propertyAddress.landmark}</span></div>` : ""}
-    <div class="info-row">
-      <span class="info-row-label">Contact</span>
-      <span class="info-row-value">${property.propertyContact}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-row-label">Email</span>
-      <span class="info-row-value">${property.propertyEmail}</span>
-    </div>
-    <div class="map-wrap">
-      <iframe src="${getMapUrl(propertyAddress.latitude, propertyAddress.longitude)}"
-        class="map-frame" allowfullscreen loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade"></iframe>
-    </div>
-  </div>
- 
-  <!-- PRICING -->
-  <div class="section">
-    <div class="section-label">Price Breakdown</div>
- 
-    <div class="price-row">
-      <span class="price-row-label">Room rate (${numberOfNights} night${numberOfNights > 1 ? "s" : ""} × ${reservation.numberOfRooms} room${reservation.numberOfRooms > 1 ? "s" : ""})</span>
-      <span class="price-row-val">${formatCurrency(finalPrice.amountBeforeTax, reservation.currencyCode)}</span>
-    </div>
- 
-    ${finalPrice.totalAddonAmount > 0 && finalPrice.addonBrakeDown?.length
-      ? finalPrice.addonBrakeDown.map((a: any) => `
-        <div class="price-row">
-          <span class="price-row-label">${a.name}${a.quantity > 1 ? ` ×${a.quantity}` : ""}</span>
-          <span class="price-row-val">+ ${formatCurrency(a.totalAmount, reservation.currencyCode)}</span>
-        </div>`).join("")
-      : ""}
- 
-    ${finalPrice.taxBrakeDown?.map((t: any) => `
-      <div class="price-row">
-        <span class="price-row-label">${t.name}</span>
-        <span class="price-row-val">+ ${formatCurrency(t.taxedAmount, reservation.currencyCode)}</span>
-      </div>`).join("") || ""}
- 
-    ${finalPrice.promotionBrakeDown?.map((p: any) => {
-      const isPayLater = p.restrictionType === "payLater";
-      const label = p.discountType === "percentage"
-        ? `${p.discountValue}% off`
-        : formatCurrency(p.discountValue, reservation.currencyCode);
-      return `<div class="price-row ${isPayLater ? "paylater" : "discount"}">
-        <span class="price-row-label">${p.name} (${label})</span>
-        <span class="price-row-val">${isPayLater ? "+ " : "− "}${formatCurrency(p.discountAmount, reservation.currencyCode)}</span>
-      </div>`;
-    }).join("") || ""}
- 
-    ${finalPrice.promoCodeDiscount > 0 ? `
-      <div class="price-row discount">
-        <span class="price-row-label">Promo code discount</span>
-        <span class="price-row-val">− ${formatCurrency(finalPrice.promoCodeDiscount, reservation.currencyCode)}</span>
-      </div>` : ""}
- 
-    ${finalPrice.loyalityDiscount > 0 ? `
-      <div class="price-row discount">
-        <span class="price-row-label">Loyalty discount</span>
-        <span class="price-row-val">− ${formatCurrency(finalPrice.loyalityDiscount, reservation.currencyCode)}</span>
-      </div>` : ""}
- 
-    <hr class="price-divider" />
- 
-    <div class="price-total-row">
-      <span class="price-total-label">Total Amount</span>
-      <span class="price-total-val">${formatCurrency(finalPrice.totalAmount, reservation.currencyCode)}</span>
-    </div>
- 
-    <div class="pay-pill">
-      <span class="pay-pill-label">${reservation.paymentMethod === "pay_at_hotel" ? "Pay at Hotel" : "Paid Online"}</span>
-      <span class="pay-pill-val">${formatCurrency(finalPrice.currentChargeableAmount, reservation.currencyCode)}</span>
-    </div>
- 
-    ${finalPrice.latterpayableAmount > 0 ? `
-      <div class="paylater-pill">
-        <span class="paylater-pill-label">Due at Hotel</span>
-        <span class="paylater-pill-val">${formatCurrency(finalPrice.latterpayableAmount, reservation.currencyCode)}</span>
-      </div>` : ""}
-  </div>
- 
-  <!-- POLICIES -->
-  ${policies?.cancellationPolicy || policies?.depositPolicy ? `
-  <div class="section">
-    <div class="section-label">Policies</div>
-    ${cancellationBlock()}
-    ${depositBlock()}
-  </div>` : ""}
- 
-  <!-- IMPORTANT NOTES -->
-  <div class="section">
-    <div class="notes-box">
-      <div class="notes-box-title">Important Information</div>
-      <ul>
-        <li>Please carry a valid government-issued photo ID at check-in (Passport, Aadhaar, Driving License accepted).</li>
-        <li>GST invoice can be collected directly from the property.</li>
-        <li>Payment method: ${reservation.paymentMethod.split("_").map(capitalizeFirstLetter).join(" ")}</li>
-      </ul>
-    </div>
-  </div>
- 
-  <!-- ACTION BUTTONS -->
-  <div class="actions-section">
-    <a href="https://bookings.revchilltech.com/my-trip?propertyCode=${property.propertyCode}&bookingCode=${reservation.bookingCode || ""}"
-      class="action-btn action-btn-primary">Manage My Booking</a>
-    <a href="https://bookings.revchilltech.com/cancel?propertyCode=${property.propertyCode}&bookingCode=${reservation.bookingCode || ""}"
-      class="action-btn action-btn-danger">Cancel Booking</a>
-  </div>
- 
-  <!-- FOOTER -->
-  <div class="footer">
-    <div class="footer-contact">
-      Questions? Contact <a href="mailto:${property.propertyEmail}">${property.propertyEmail}</a>
-      or call ${property.propertyContact}
-    </div>
-    <div>This is an automated email from ${property.propertyName}. Please do not reply directly.</div>
-    <div style="margin-top:10px;font-size:11px;">Powered by <strong style="color:${RC_TEAL}">RevChill</strong></div>
-  </div>
- 
-</div>
-</div>
+<body style="margin:0;padding:0;background-color:#f0f2f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f2f5;">
+  <tr>
+    <td align="center" style="padding:24px 16px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:620px;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.10);">
+
+        <!-- ── HEADER ── -->
+        <tr>
+          <td style="background-color:#0d1b2a;padding:18px 32px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td>
+                  <img src="https://extranet.revchilltech.com/revchill.png" alt="RevChill" height="36" style="height:36px;display:block;" />
+                </td>
+                <td align="right">
+                  <span style="background-color:#00b5c8;color:#ffffff;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;padding:5px 14px;border-radius:20px;display:inline-block;">&#10003; Confirmed</span>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- ── HERO IMAGE ── -->
+        <tr>
+          <td style="padding:0;position:relative;">
+            ${propertyImg
+      ? `<img src="${propertyImg}" alt="${property.propertyName}" width="620" style="width:100%;max-width:620px;height:200px;object-fit:cover;display:block;" />`
+      : `<div style="width:100%;height:200px;background:linear-gradient(135deg,#0d1b2a 0%,#0096a8 100%);display:block;"></div>`
+    }
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                   style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to bottom,rgba(0,0,0,0) 0%,rgba(0,0,0,0.68) 100%);">
+              <tr>
+                <td style="padding:20px 32px 18px;">
+                  ${property.starRating ? `<div style="color:#f5c518;font-size:13px;margin-bottom:5px;">${starsHtml(property.starRating)}</div>` : ""}
+                  <div style="font-size:21px;font-weight:700;color:#ffffff;margin-bottom:3px;text-shadow:0 1px 4px rgba(0,0,0,0.4);">${property.propertyName}</div>
+                  <div style="font-size:13px;color:rgba(255,255,255,0.75);">${propertyAddress.city}, ${propertyAddress.state} &middot; ${propertyAddress.country}</div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- ── META BAR ── -->
+        <tr>
+          <td style="background-color:#111d2e;padding:13px 32px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                ${reservation.bookingCode ? `
+                <td style="padding-right:20px;">
+                  <div style="font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,0.40);margin-bottom:3px;">Booking ID</div>
+                  <div style="font-size:12px;font-weight:600;color:#00b5c8;">${reservation.bookingCode.split("-")[1]}</div>
+                </td>` : ""}
+                ${reservation.bookedAt ? `
+                <td style="padding-right:20px;">
+                  <div style="font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,0.40);margin-bottom:3px;">Booked On</div>
+                  <div style="font-size:12px;font-weight:600;color:#ffffff;">${formatDate(reservation.bookedAt)}</div>
+                </td>` : ""}
+                <td style="padding-right:20px;">
+                  <div style="font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,0.40);margin-bottom:3px;">Payment</div>
+                  <div style="font-size:12px;font-weight:600;color:#ffffff;">${(reservation.paymentMethod ?? "").split("_").map(capitalizeFirstLetter).join(" ")}</div>
+                </td>
+                <td>
+                  <div style="font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,0.40);margin-bottom:3px;">Source</div>
+                  <div style="font-size:12px;font-weight:600;color:#ffffff;">${capitalizeFirstLetter(reservation.bookingSource ?? "direct")}</div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- ── INTRO ── -->
+        <tr>
+          <td style="padding:26px 32px 10px;">
+            <p style="margin:0;font-size:14px;color:#444444;line-height:1.75;">Hi <strong style="color:#1a1a2e;">${primaryGuest?.firstName ?? ""} ${primaryGuest?.lastName ?? ""}</strong>,</p>
+            <p style="margin:8px 0 0;font-size:14px;color:#444444;line-height:1.75;">Your booking is <strong style="color:#00b5c8;">Confirmed</strong>. All the details are below &mdash; we look forward to welcoming you.</p>
+          </td>
+        </tr>
+
+        <!-- ── STAY DETAILS ── -->
+        <tr>
+          <td style="padding:22px 32px;border-bottom:1px solid #efefef;">
+            <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#bbbbbb;margin-bottom:14px;">Stay Details</div>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                   style="border:1px solid #e8e8e8;border-radius:10px;overflow:hidden;">
+              <tr>
+                <td width="44%" style="padding:14px 16px;vertical-align:top;">
+                  <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#bbbbbb;margin-bottom:5px;">Check-in</div>
+                  <div style="font-size:28px;font-weight:700;color:#00b5c8;line-height:1;">${getDay(reservationStartDate)}</div>
+                  <div style="font-size:12px;font-weight:500;color:#333333;margin-top:2px;">${getMonYr(reservationStartDate)}</div>
+                  <div style="font-size:11px;color:#999999;margin-top:1px;">${getWeekday(reservationStartDate)}</div>
+                  <div style="font-size:10px;color:#bbbbbb;margin-top:5px;">After 2:00 PM</div>
+                </td>
+                <td width="12%" style="border-left:1px solid #eeeeee;border-right:1px solid #eeeeee;background-color:#fafafa;text-align:center;vertical-align:middle;padding:8px 0;">
+                  <div style="font-size:18px;font-weight:700;color:#00b5c8;">${numberOfNights}</div>
+                  <div style="font-size:9px;color:#bbbbbb;margin-top:1px;">night${numberOfNights > 1 ? "s" : ""}</div>
+                </td>
+                <td width="44%" style="padding:14px 16px;vertical-align:top;">
+                  <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#bbbbbb;margin-bottom:5px;">Check-out</div>
+                  <div style="font-size:28px;font-weight:700;color:#00b5c8;line-height:1;">${getDay(reservationEndDate)}</div>
+                  <div style="font-size:12px;font-weight:500;color:#333333;margin-top:2px;">${getMonYr(reservationEndDate)}</div>
+                  <div style="font-size:11px;color:#999999;margin-top:1px;">${getWeekday(reservationEndDate)}</div>
+                  <div style="font-size:10px;color:#bbbbbb;margin-top:5px;">Before 12:00 PM</div>
+                </td>
+              </tr>
+            </table>
+
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:12px;">
+              <tr><td style="padding:9px 0;border-bottom:1px solid #f5f5f5;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+                  <td style="font-size:12px;color:#999999;">Guests</td>
+                  <td align="right" style="font-size:12px;font-weight:600;color:#1a1a2e;">${guestCountStr}</td>
+                </tr></table>
+              </td></tr>
+              <tr><td style="padding:9px 0;border-bottom:1px solid #f5f5f5;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+                  <td style="font-size:12px;color:#999999;">Rooms</td>
+                  <td align="right" style="font-size:12px;font-weight:600;color:#1a1a2e;">${reservation.numberOfRooms} Room${reservation.numberOfRooms > 1 ? "s" : ""}</td>
+                </tr></table>
+              </td></tr>
+              <tr><td style="padding:9px 0;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+                  <td style="font-size:12px;color:#999999;">Rate Plan</td>
+                  <td align="right" style="font-size:12px;font-weight:600;color:#1a1a2e;">${reservation.ratePlanName ?? ""}</td>
+                </tr></table>
+              </td></tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- ── ROOM ── -->
+        <tr>
+          <td style="padding:22px 32px;border-bottom:1px solid #efefef;">
+            <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#bbbbbb;margin-bottom:14px;">Room</div>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                   style="border:1px solid #e8e8e8;border-radius:10px;overflow:hidden;">
+              ${roomImg ? `
+              <tr>
+                <td style="padding:0;">
+                  <img src="${roomImg}" alt="${room.roomName}" width="620"
+                       style="width:100%;max-width:620px;height:150px;object-fit:cover;display:block;" />
+                </td>
+              </tr>` : ""}
+              <tr>
+                <td style="padding:14px 18px;">
+                  <div style="font-size:15px;font-weight:700;color:#1a1a2e;margin-bottom:3px;">${room.roomName}</div>
+                  <div style="font-size:12px;color:#999999;margin-bottom:9px;">
+                    ${room.roomType}${room.roomView ? ` &middot; ${room.roomView} view` : ""}${room.maxOccupancy ? ` &middot; Max ${room.maxOccupancy} guests` : ""}
+                  </div>
+                  ${room.description ? `<p style="font-size:12px;color:#777777;line-height:1.6;margin-bottom:9px;">${room.description}</p>` : ""}
+                  <table role="presentation" cellpadding="0" cellspacing="4" border="0">
+                    <tr>
+                      <td><span style="font-size:11px;background:#f3f4f6;border:1px solid #e5e7eb;color:#555555;padding:3px 10px;border-radius:20px;display:inline-block;">Room Only</span></td>
+                      ${room.numberOfBedrooms ? `<td><span style="font-size:11px;background:#f3f4f6;border:1px solid #e5e7eb;color:#555555;padding:3px 10px;border-radius:20px;display:inline-block;">${room.numberOfBedrooms} Bedroom${room.numberOfBedrooms > 1 ? "s" : ""}</span></td>` : ""}
+                      ${room.roomView ? `<td><span style="font-size:11px;background:#f3f4f6;border:1px solid #e5e7eb;color:#555555;padding:3px 10px;border-radius:20px;display:inline-block;">${room.roomView} view</span></td>` : ""}
+                      ${room.maxOccupancy ? `<td><span style="font-size:11px;background:#f3f4f6;border:1px solid #e5e7eb;color:#555555;padding:3px 10px;border-radius:20px;display:inline-block;">Max ${room.maxOccupancy} guests</span></td>` : ""}
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- ── GUEST DETAILS ── -->
+        <tr>
+          <td style="padding:22px 32px;border-bottom:1px solid #efefef;">
+            <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#bbbbbb;margin-bottom:14px;">Guest Details</div>
+            ${guestRows}
+          </td>
+        </tr>
+
+        <!-- ── PROPERTY ── -->
+        <tr>
+          <td style="padding:22px 32px;border-bottom:1px solid #efefef;">
+            <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#bbbbbb;margin-bottom:14px;">Property</div>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr><td style="padding:9px 0;border-bottom:1px solid #f5f5f5;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+                  <td style="font-size:12px;color:#999999;">Address</td>
+                  <td align="right" style="font-size:12px;font-weight:600;color:#1a1a2e;">${propertyAddress.addressLine1}${propertyAddress.addressLine2 ? ", " + propertyAddress.addressLine2 : ""}</td>
+                </tr></table>
+              </td></tr>
+              <tr><td style="padding:9px 0;border-bottom:1px solid #f5f5f5;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+                  <td style="font-size:12px;color:#999999;">City &amp; State</td>
+                  <td align="right" style="font-size:12px;font-weight:600;color:#1a1a2e;">${propertyAddress.city}, ${propertyAddress.state} ${propertyAddress.zipCode}</td>
+                </tr></table>
+              </td></tr>
+              <tr><td style="padding:9px 0;border-bottom:1px solid #f5f5f5;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+                  <td style="font-size:12px;color:#999999;">Country</td>
+                  <td align="right" style="font-size:12px;font-weight:600;color:#1a1a2e;">${propertyAddress.country}</td>
+                </tr></table>
+              </td></tr>
+              ${propertyAddress.landmark ? `
+              <tr><td style="padding:9px 0;border-bottom:1px solid #f5f5f5;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+                  <td style="font-size:12px;color:#999999;">Landmark</td>
+                  <td align="right" style="font-size:12px;font-weight:600;color:#1a1a2e;">Near ${propertyAddress.landmark.replace(/\n/g, " ").trim()}</td>
+                </tr></table>
+              </td></tr>` : ""}
+              <tr><td style="padding:9px 0;border-bottom:1px solid #f5f5f5;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+                  <td style="font-size:12px;color:#999999;">Phone</td>
+                  <td align="right" style="font-size:12px;font-weight:600;color:#1a1a2e;">${property.propertyContact}</td>
+                </tr></table>
+              </td></tr>
+              <tr><td style="padding:9px 0;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+                  <td style="font-size:12px;color:#999999;">Email</td>
+                  <td align="right" style="font-size:12px;font-weight:600;">
+                    <a href="mailto:${property.propertyEmail}" style="color:#00b5c8;text-decoration:none;">${property.propertyEmail}</a>
+                  </td>
+                </tr></table>
+              </td></tr>
+            </table>
+
+            <!-- Static map (replace API key via env) -->
+           <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-top:14px;">
+  <tr>
+    <td style="border-radius:8px;background-color:#f0f9fa;border:1px solid #cceef2;">
+      <a href="${mapLinkUrl}" target="_blank"
+         style="display:inline-block;padding:11px 20px;font-size:12px;font-weight:700;color:#0096a8;text-decoration:none;letter-spacing:0.2px;">
+        &#x1F4CD;&nbsp; View Location on Google Maps &rarr;
+      </a>
+    </td>
+  </tr>
+</table>
+          </td>
+        </tr>
+
+        <!-- ── PRICE BREAKDOWN ── -->
+        <tr>
+          <td style="padding:22px 32px;border-bottom:1px solid #efefef;">
+            <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#bbbbbb;margin-bottom:14px;">Price Breakdown</div>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+
+              <!-- Base room rate -->
+              <tr><td style="padding:8px 0;border-bottom:1px solid #f5f5f5;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+                  <td style="font-size:13px;color:#666666;">Room rate (${numberOfNights} night${numberOfNights > 1 ? "s" : ""} &times; ${reservation.numberOfRooms} room${reservation.numberOfRooms > 1 ? "s" : ""})</td>
+                  <td align="right" style="font-size:13px;font-weight:600;color:#1a1a2e;">${formatCurrency(finalPrice?.amountBeforeTax, currency)}</td>
+                </tr></table>
+              </td></tr>
+
+              ${addonRows}
+              ${taxRows}
+              ${promoRows}
+              ${promoCodeRow}
+              ${loyaltyRow}
+
+              <!-- Divider -->
+              <tr><td style="padding:4px 0;"><hr style="border:none;border-top:1px solid #e0e0e0;margin:4px 0;" /></td></tr>
+
+              <!-- Total -->
+              <tr><td style="padding:8px 0 6px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+                  <td style="font-size:15px;font-weight:700;color:#1a1a2e;">Total Amount</td>
+                  <td align="right" style="font-size:19px;font-weight:700;color:#00b5c8;">${formatCurrency(finalPrice?.totalAmount, currency)}</td>
+                </tr></table>
+              </td></tr>
+            </table>
+
+            <!-- Pay pill -->
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                   style="background-color:#e0f7fa;border-radius:8px;margin-top:10px;">
+              <tr><td style="padding:10px 14px;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+                  <td style="font-size:12px;font-weight:700;color:#0096a8;">
+                    ${reservation.paymentMethod === "pay_at_hotel" ? "&#127968; Pay at Hotel" : "&#10003; Paid Online"}
+                  </td>
+                  <td align="right" style="font-size:13px;font-weight:700;color:#0096a8;">${formatCurrency(finalPrice?.currentChargeableAmount, currency)}</td>
+                </tr></table>
+              </td></tr>
+            </table>
+
+            ${payLaterPill}
+          </td>
+        </tr>
+
+        ${policiesSection}
+
+        <!-- ── IMPORTANT NOTES ── -->
+        <tr>
+          <td style="padding:22px 32px;border-bottom:1px solid #efefef;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                   style="background-color:#fffbeb;border-left:3px solid #f59e0b;border-radius:0 6px 6px 0;">
+              <tr><td style="padding:13px 15px;">
+                <div style="font-size:11px;font-weight:700;color:#92400e;margin-bottom:7px;">IMPORTANT INFORMATION</div>
+                <ul style="padding-left:16px;margin:0;">
+                  <li style="font-size:12px;color:#78350f;line-height:1.8;">Please carry a valid government-issued photo ID at check-in (Passport, Aadhaar, Driving Licence accepted).</li>
+                  <li style="font-size:12px;color:#78350f;line-height:1.8;">GST invoice can be collected directly from the property.</li>
+                  <li style="font-size:12px;color:#78350f;line-height:1.8;">Payment method: ${(reservation.paymentMethod ?? "").split("_").map(capitalizeFirstLetter).join(" ")}</li>
+                </ul>
+              </td></tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- ── ACTION BUTTONS ── -->
+        <tr>
+          <td style="background-color:#f7f8fa;padding:24px 32px;text-align:center;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
+              <tr>
+                <td style="padding-right:12px;">
+                  <a href="https://bookings.revchilltech.com/my-trip?propertyCode=${property.propertyCode}&bookingCode=${reservation.bookingCode.split("-")[1] ?? ""}"
+                     style="display:inline-block;background-color:#00b5c8;color:#ffffff;font-size:13px;font-weight:700;text-decoration:none;padding:11px 26px;border-radius:8px;letter-spacing:0.2px;">
+                    Manage My Booking
+                  </a>
+                </td>
+                <td>
+                  <a href="https://bookings.revchilltech.com/cancel?propertyCode=${property.propertyCode}&bookingCode=${reservation.bookingCode.split("-")[1] ?? ""}"
+                     style="display:inline-block;background-color:#ffffff;color:#dc2626;font-size:13px;font-weight:700;text-decoration:none;padding:11px 26px;border-radius:8px;border:1px solid #fecaca;letter-spacing:0.2px;">
+                    Cancel Booking
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- ── FOOTER ── -->
+        <tr>
+          <td style="background-color:#f3f4f6;padding:22px 32px;text-align:center;border-top:1px solid #e8e8e8;">
+            <p style="margin:0 0 6px;font-size:13px;color:#555555;">
+              Questions? <a href="mailto:${property.propertyEmail}" style="color:#00b5c8;text-decoration:none;">${property.propertyEmail}</a> &middot; ${property.propertyContact}
+            </p>
+            <p style="margin:0 0 10px;font-size:11px;color:#aaaaaa;line-height:1.6;">
+              This is an automated email from ${property.propertyName}. Please do not reply directly to this message.
+            </p>
+            <p style="margin:0;font-size:11px;color:#bbbbbb;">
+              Powered by <strong style="color:#00b5c8;">RevChill</strong>
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td>
+  </tr>
+</table>
+
 </body>
 </html>`;
 };
- 
-// ─── CANCELLATION EMAIL ───────────────────────────────────────
- 
 export const BookingCancellationEmail = ({
   reservation,
   property,
   propertyAddress,
   room,
-  policies,
 }: EmailTemplateProps): string => {
-  const { finalPrice, guests, guestDetails, startDate, endDate } = reservation;
-  const primaryGuest = guestDetails[0];
+
+  const { finalPrice, guests, guestDetails, reservationStartDate, reservationEndDate } = reservation;
+  const currency = reservation.currencyCode || finalPrice?.currencyCode || "INR";
+  const primaryGuest = guestDetails?.[0];
   const numberOfNights = reservation.numberOfNights || 1;
-  const propertyHeroImg = property.image?.[0] || "";
-  const roomImg = room.image?.[0] || "";
-  const hasRefund = reservation.refundAmount && reservation.refundAmount > 0;
- 
-  const initials = (g: IGuestDetail) =>
-    `${g.firstName[0] || ""}${g.lastName[0] || ""}`.toUpperCase();
-  const guestTypeLabel = (g: IGuestDetail) =>
-    g.type === "adult" ? "Adult" : g.type === "child" ? "Child" : "Infant";
- 
-  return `<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Booking Cancelled – ${property.propertyName}</title>
-<style>
-${baseCSS("#6b7280", "#4b5563", "#f3f4f6")}
-.header{background:#0d1b2a}
-.date-box-day{color:#6b7280 !important}
-.pay-pill{background:#f3f4f6}
-.pay-pill-label,.pay-pill-val{color:#374151}
-</style>
-</head>
-<body>
-<div class="wrap">
-<div class="container">
- 
-  <!-- HEADER -->
-  <div class="header">
-    <div class="logo">
-      <img src="https://bookings.revchilltech.com/revchill-logo.png" alt="RevChill" />
-    </div>
-    <span class="cancelled-badge">Cancelled</span>
-  </div>
- 
-  <!-- PROPERTY HERO -->
-  <div class="hero">
-    ${propertyHeroImg
-      ? `<img src="${propertyHeroImg}" alt="${property.propertyName}" class="hero-img" style="filter:grayscale(40%)" />`
-      : `<div class="hero-img" style="background:linear-gradient(135deg,#374151,#6b7280)"></div>`}
-    <div class="hero-overlay"></div>
-    <div class="hero-content">
-      ${property.starRating ? `<div class="hero-stars" style="color:#9ca3af">${stars(property.starRating)}</div>` : ""}
-      <div class="hero-title">${property.propertyName}</div>
-      <div class="hero-sub">${propertyAddress.city}, ${propertyAddress.state} · ${propertyAddress.country}</div>
-    </div>
-  </div>
- 
-  <!-- BOOKING META BAR -->
-  <div class="meta-bar">
-    ${reservation.bookingCode ? `<div class="meta-item"><label>Booking ID</label><span style="color:#9ca3af">${reservation.bookingCode}</span></div>` : ""}
-    ${reservation.bookedAt ? `<div class="meta-item"><label>Originally Booked</label><span>${formatDate(reservation.bookedAt)}</span></div>` : ""}
-    <div class="meta-item"><label>Status</label><span style="color:#ef4444">Cancelled</span></div>
-  </div>
- 
-  <!-- INTRO -->
-  <div class="intro">
-    <p>Hi <strong>${primaryGuest.firstName} ${primaryGuest.lastName}</strong>,</p>
-    <p style="margin-top:8px;">
-      We're confirming the cancellation of your booking at
-      <strong>${property.propertyName}</strong>.
-      We hope to welcome you another time.
-    </p>
-    ${hasRefund ? `
-    <div class="refund-box" style="margin-top:16px">
-      <div class="refund-box-title">Refund Initiated</div>
-      <div style="font-size:12px;color:#166534;line-height:1.6">
-        Your refund is being processed and will be credited to your original payment method within 5–7 business days.
-      </div>
-      <div class="refund-amount">${formatCurrency(reservation.refundAmount!, reservation.currencyCode)}</div>
-    </div>` : `
-    <div class="no-refund-box" style="margin-top:16px">
-      <div style="font-size:12px;font-weight:700;color:#991b1b;margin-bottom:4px">No Refund Applicable</div>
-      <div style="font-size:12px;color:#b91c1c;line-height:1.6">
-        As per the cancellation policy, no refund is applicable for this cancellation.
-      </div>
-    </div>`}
-  </div>
- 
-  <!-- CANCELLED STAY DATES -->
-  <div class="section">
-    <div class="section-label">Cancelled Reservation</div>
-    <div class="dates-grid">
-      <div class="date-box">
-        <div class="date-box-label">Check-in (Was)</div>
-        <div class="date-box-day strikethrough">${getDay(startDate)}</div>
-        <div class="date-box-myr" style="color:#aaa">${getMonYr(startDate)}</div>
-        <div class="date-box-wday">${getWeekday(startDate)}</div>
-      </div>
-      <div class="date-divider">
-        <div class="date-divider-nights" style="color:#9ca3af">${numberOfNights}</div>
-        <div class="date-divider-label">night${numberOfNights > 1 ? "s" : ""}</div>
-      </div>
-      <div class="date-box">
-        <div class="date-box-label">Check-out (Was)</div>
-        <div class="date-box-day strikethrough">${getDay(endDate)}</div>
-        <div class="date-box-myr" style="color:#aaa">${getMonYr(endDate)}</div>
-        <div class="date-box-wday">${getWeekday(endDate)}</div>
-      </div>
-    </div>
-    <div style="margin-top:14px;">
-      <div class="info-row">
-        <span class="info-row-label">Guests</span>
-        <span class="info-row-value">${guests.adults} Adult${guests.adults > 1 ? "s" : ""}${guests.children > 0 ? `, ${guests.children} Child${guests.children > 1 ? "ren" : ""}` : ""}</span>
-      </div>
-      <div class="info-row">
-        <span class="info-row-label">Room</span>
-        <span class="info-row-value">${room.roomName}</span>
-      </div>
-      <div class="info-row">
-        <span class="info-row-label">Rooms</span>
-        <span class="info-row-value">${reservation.numberOfRooms}</span>
-      </div>
-      <div class="info-row">
-        <span class="info-row-label">Booking Amount</span>
-        <span class="info-row-value">${formatCurrency(finalPrice.totalAmount, reservation.currencyCode)}</span>
-      </div>
-      ${hasRefund ? `<div class="info-row">
-        <span class="info-row-label">Refund Amount</span>
-        <span class="info-row-value" style="color:#16a34a">${formatCurrency(reservation.refundAmount!, reservation.currencyCode)}</span>
-      </div>` : ""}
-      ${reservation.bookingStatus === "cancelled" && (reservation as any).cancellationReason ? `<div class="info-row">
-        <span class="info-row-label">Reason</span>
-        <span class="info-row-value">${(reservation as any).cancellationReason}</span>
-      </div>` : ""}
-    </div>
-  </div>
- 
-  <!-- GUEST DETAILS -->
-  <div class="section">
-    <div class="section-label">Guest Details</div>
-    ${guestDetails.map((g, i) => `
-      <div class="guest-item">
-        <div class="guest-avatar" style="background:#f3f4f6;color:#6b7280">${initials(g)}</div>
-        <div>
-          <div class="guest-name">
-            ${g.firstName} ${g.lastName}
-            ${i === 0 ? `<span class="guest-primary-badge" style="background:#6b7280">Primary</span>` : ""}
-          </div>
-          <div class="guest-meta">
-            ${guestTypeLabel(g)}
-            ${g.dateOfBirth ? ` · DOB: ${formatDate(g.dateOfBirth)}` : ""}
-            ${i === 0 && reservation.bookingUserEmail ? ` · ${reservation.bookingUserEmail}` : ""}
-            ${i === 0 && reservation.bookingUserPhone ? ` · ${reservation.bookingUserPhone}` : ""}
-          </div>
+  const propertyImg = property.image?.[0] ?? "";
+  const hasRefund = (reservation.finalPrice?.totalAmount ?? 0) > 0;
+
+  const guestRows = (guestDetails ?? []).map((g, i) => `
+    <div class="g-item">
+      <div class="g-avatar" style="background:#f3f4f6;color:#6b7280">${initials(g)}</div>
+      <div style="flex:1;min-width:0">
+        <div class="g-name">
+          ${g.firstName ?? ""} ${g.lastName ?? ""}
+          ${i === 0 ? `<span class="g-badge" style="background:#6b7280">Primary</span>` : ""}
+        </div>
+        <div class="g-meta">
+          ${guestLabel(g)}${g.dateOfBirth ? ` &middot; DOB: ${formatDate(g.dateOfBirth)}` : ""}
+          ${i === 0 && reservation.bookingUserEmail ? `<br>${reservation.bookingUserEmail}` : ""}
+          ${i === 0 && reservation.bookingUserPhone ? ` &middot; ${reservation.bookingUserPhone}` : ""}
         </div>
       </div>
-    `).join("")}
-  </div>
- 
-  <!-- PROPERTY DETAILS -->
-  <div class="section">
-    <div class="section-label">Property</div>
-    <div class="info-row">
-      <span class="info-row-label">Address</span>
-      <span class="info-row-value">${propertyAddress.addressLine1}${propertyAddress.addressLine2 ? ", " + propertyAddress.addressLine2 : ""}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-row-label">City / State</span>
-      <span class="info-row-value">${propertyAddress.city}, ${propertyAddress.state} ${propertyAddress.zipCode}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-row-label">Contact</span>
-      <span class="info-row-value">${property.propertyContact}</span>
-    </div>
-    <div class="info-row">
-      <span class="info-row-label">Email</span>
-      <span class="info-row-value">${property.propertyEmail}</span>
-    </div>
-  </div>
- 
-  <!-- ACTION BUTTONS -->
-  <div class="actions-section">
-    <a href="https://bookings.revchilltech.com/?propertyCode=${property.propertyCode}"
-      class="action-btn action-btn-primary" style="background:#00b5c8">Book Again</a>
-    <a href="https://bookings.revchilltech.com/my-trip?propertyCode=${property.propertyCode}"
-      class="action-btn action-btn-secondary">My Bookings</a>
-  </div>
- 
-  <!-- FOOTER -->
-  <div class="footer">
-    <div class="footer-contact">
-      Questions about your cancellation?
-      <a href="mailto:${property.propertyEmail}">${property.propertyEmail}</a>
-      or call ${property.propertyContact}
-    </div>
-    <div>This is an automated cancellation confirmation from ${property.propertyName}. Please do not reply directly.</div>
-    <div style="margin-top:10px;font-size:11px;">Powered by <strong style="color:${RC_TEAL}">RevChill</strong></div>
-  </div>
- 
-</div>
-</div>
+    </div>`).join("");
+
+  return `<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="x-apple-disable-message-reformatting">
+  <title>Booking Cancelled – {{PROPERTY_NAME}}</title>
+  <!--[if mso]>
+  <noscript><xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml></noscript>
+  <![endif]-->
+  <style>
+    body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+    table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+    img { -ms-interpolation-mode: bicubic; border: 0; display: block; }
+    @media only screen and (max-width: 600px) {
+      .mobile-full { width: 100% !important; }
+      .mobile-pad  { padding-left: 16px !important; padding-right: 16px !important; }
+      .mobile-stack { display: block !important; width: 100% !important; }
+    }
+  </style>
+</head>
+<body style="margin:0;padding:0;background-color:#f0f2f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+
+<!-- ===================== OUTER WRAPPER ===================== -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f2f5;">
+  <tr>
+    <td align="center" style="padding:24px 16px;">
+
+      <!-- ===================== EMAIL CARD ===================== -->
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:620px;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.10);">
+
+        <!-- ── HEADER ── -->
+        <tr>
+          <td style="background-color:#0d1b2a;padding:18px 32px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td>
+                  <img src="{{LOGO_URL}}" alt="RevChill" height="36" style="height:36px;display:block;" />
+                </td>
+                <td align="right">
+                  <span style="background-color:#dc2626;color:#ffffff;font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;padding:5px 14px;border-radius:20px;display:inline-block;">Cancelled</span>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- ── HERO IMAGE (greyscale for cancellation) ── -->
+        <tr>
+          <td style="padding:0;position:relative;">
+            <!--
+              Use property image — will appear slightly muted via opacity overlay.
+              If no image available, delete this <img> tag.
+            -->
+            <img src="{{PROPERTY_IMAGE_URL}}"
+                 alt="{{PROPERTY_NAME}}"
+                 width="620"
+                 style="width:100%;max-width:620px;height:200px;object-fit:cover;display:block;opacity:0.65;" />
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                   style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(to bottom,rgba(0,0,0,0.1) 0%,rgba(0,0,0,0.72) 100%);">
+              <tr>
+                <td style="padding:20px 32px 18px;">
+                  <div style="color:#9ca3af;font-size:13px;margin-bottom:5px;">{{STAR_RATING_HTML}}</div>
+                  <div style="font-size:21px;font-weight:700;color:rgba(255,255,255,0.75);margin-bottom:3px;">{{PROPERTY_NAME}}</div>
+                  <div style="font-size:13px;color:rgba(255,255,255,0.60);">{{PROPERTY_CITY}}, {{PROPERTY_STATE}} &middot; {{PROPERTY_COUNTRY}}</div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- ── META BAR ── -->
+        <tr>
+          <td style="background-color:#111d2e;padding:13px 32px;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="padding-right:24px;">
+                  <div style="font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,0.40);margin-bottom:3px;">Booking ID</div>
+                  <div style="font-size:12px;font-weight:600;color:#9ca3af;">{{BOOKING_CODE}}</div>
+                </td>
+                <td style="padding-right:24px;">
+                  <div style="font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,0.40);margin-bottom:3px;">Originally Booked</div>
+                  <div style="font-size:12px;font-weight:600;color:#ffffff;">{{BOOKED_AT_DATE}}</div>
+                </td>
+                <td>
+                  <div style="font-size:9px;letter-spacing:1.4px;text-transform:uppercase;color:rgba(255,255,255,0.40);margin-bottom:3px;">Status</div>
+                  <div style="font-size:12px;font-weight:600;color:#ef4444;">Cancelled</div>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- ── INTRO ── -->
+        <tr>
+          <td style="padding:26px 32px 10px;">
+            <p style="margin:0;font-size:14px;color:#444444;line-height:1.75;">Hi <strong style="color:#1a1a2e;">{{GUEST_FIRST_NAME}} {{GUEST_LAST_NAME}}</strong>,</p>
+            <p style="margin:8px 0 16px;font-size:14px;color:#444444;line-height:1.75;">We&rsquo;ve confirmed the cancellation of your booking at <strong>{{PROPERTY_NAME}}</strong>. We hope to welcome you another time.</p>
+
+            <!--
+              REFUND BOX: show this green box if a refund is applicable.
+              Replace with the NO REFUND box below if not applicable. Delete whichever you don't need.
+            -->
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                   style="background-color:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;">
+              <tr>
+                <td style="padding:15px 18px;">
+                  <div style="font-size:11px;font-weight:700;color:#15803d;margin-bottom:3px;">REFUND INITIATED</div>
+                  <p style="margin:0 0 7px;font-size:12px;color:#166534;line-height:1.6;">
+                    Your refund is being processed and will be credited to your original payment method within 5&ndash;7 business days.
+                  </p>
+                  <div style="font-size:22px;font-weight:700;color:#15803d;">{{REFUND_AMOUNT}}</div>
+                </td>
+              </tr>
+            </table>
+
+            <!--
+              NO REFUND BOX: use this instead of the green box above when no refund.
+              Delete whichever block is not needed.
+            -->
+            <!--
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                   style="background-color:#fef2f2;border:1px solid #fecaca;border-radius:8px;">
+              <tr>
+                <td style="padding:15px 18px;">
+                  <div style="font-size:11px;font-weight:700;color:#991b1b;margin-bottom:3px;">NO REFUND APPLICABLE</div>
+                  <div style="font-size:12px;color:#b91c1c;line-height:1.6;">As per the cancellation policy, no refund is applicable for this cancellation.</div>
+                </td>
+              </tr>
+            </table>
+            -->
+
+          </td>
+        </tr>
+
+        <!-- ── CANCELLED RESERVATION ── -->
+        <tr>
+          <td style="padding:22px 32px;border-bottom:1px solid #efefef;">
+            <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#bbbbbb;margin-bottom:14px;">Cancelled Reservation</div>
+
+            <!-- Greyed-out date grid -->
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                   style="border:1px solid #e8e8e8;border-radius:10px;overflow:hidden;opacity:0.6;">
+              <tr>
+                <td width="44%" style="padding:14px 16px;vertical-align:top;">
+                  <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#bbbbbb;margin-bottom:5px;">Check-in (Was)</div>
+                  <div style="font-size:28px;font-weight:700;color:#9ca3af;line-height:1;text-decoration:line-through;">{{CHECKIN_DAY}}</div>
+                  <div style="font-size:12px;font-weight:500;color:#aaaaaa;margin-top:2px;">{{CHECKIN_MON_YR}}</div>
+                  <div style="font-size:11px;color:#bbbbbb;margin-top:1px;">{{CHECKIN_WEEKDAY}}</div>
+                </td>
+                <td width="12%" style="border-left:1px solid #eeeeee;border-right:1px solid #eeeeee;background-color:#fafafa;text-align:center;vertical-align:middle;padding:8px 0;">
+                  <div style="font-size:18px;font-weight:700;color:#9ca3af;">{{NUMBER_OF_NIGHTS}}</div>
+                  <div style="font-size:9px;color:#bbbbbb;margin-top:1px;">night{{NIGHTS_PLURAL}}</div>
+                </td>
+                <td width="44%" style="padding:14px 16px;vertical-align:top;">
+                  <div style="font-size:9px;letter-spacing:1px;text-transform:uppercase;color:#bbbbbb;margin-bottom:5px;">Check-out (Was)</div>
+                  <div style="font-size:28px;font-weight:700;color:#9ca3af;line-height:1;text-decoration:line-through;">{{CHECKOUT_DAY}}</div>
+                  <div style="font-size:12px;font-weight:500;color:#aaaaaa;margin-top:2px;">{{CHECKOUT_MON_YR}}</div>
+                  <div style="font-size:11px;color:#bbbbbb;margin-top:1px;">{{CHECKOUT_WEEKDAY}}</div>
+                </td>
+              </tr>
+            </table>
+
+            <!-- Info rows -->
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:12px;">
+              <tr><td style="padding:9px 0;border-bottom:1px solid #f5f5f5;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+                  <td style="font-size:12px;color:#999999;">Room</td>
+                  <td align="right" style="font-size:12px;font-weight:600;color:#1a1a2e;">{{ROOM_NAME}}</td>
+                </tr></table>
+              </td></tr>
+              <tr><td style="padding:9px 0;border-bottom:1px solid #f5f5f5;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+                  <td style="font-size:12px;color:#999999;">Guests</td>
+                  <td align="right" style="font-size:12px;font-weight:600;color:#1a1a2e;">{{GUEST_COUNT}}</td>
+                </tr></table>
+              </td></tr>
+              <tr><td style="padding:9px 0;border-bottom:1px solid #f5f5f5;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+                  <td style="font-size:12px;color:#999999;">Booking Amount</td>
+                  <td align="right" style="font-size:12px;font-weight:600;color:#1a1a2e;">{{TOTAL_AMOUNT}}</td>
+                </tr></table>
+              </td></tr>
+              <!--
+                CANCELLATION REASON: remove this row if no reason provided
+              -->
+              <tr><td style="padding:9px 0;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+                  <td style="font-size:12px;color:#999999;">Reason</td>
+                  <td align="right" style="font-size:12px;font-weight:600;color:#1a1a2e;">{{CANCELLATION_REASON}}</td>
+                </tr></table>
+              </td></tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- ── GUEST DETAILS ── -->
+        <tr>
+          <td style="padding:22px 32px;border-bottom:1px solid #efefef;">
+            <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#bbbbbb;margin-bottom:14px;">Guest Details</div>
+
+            <!-- PRIMARY GUEST -->
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
+                   style="border-bottom:1px solid #f5f5f5;padding-bottom:10px;margin-bottom:10px;">
+              <tr>
+                <td width="40" style="vertical-align:top;padding-top:2px;">
+                  <div style="width:36px;height:36px;border-radius:50%;background-color:#f3f4f6;text-align:center;line-height:36px;font-size:12px;font-weight:700;color:#6b7280;">{{GUEST1_INITIALS}}</div>
+                </td>
+                <td style="padding-left:12px;vertical-align:top;">
+                  <div style="font-size:13px;font-weight:600;color:#1a1a2e;">
+                    {{GUEST1_FIRST_NAME}} {{GUEST1_LAST_NAME}}
+                    <span style="background-color:#6b7280;color:#ffffff;font-size:9px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;padding:2px 7px;border-radius:10px;margin-left:6px;display:inline-block;vertical-align:middle;">Primary</span>
+                  </div>
+                  <div style="font-size:11px;color:#aaaaaa;margin-top:2px;line-height:1.5;">
+                    Adult &middot; {{GUEST1_EMAIL}}<br>{{GUEST1_PHONE}}
+                  </div>
+                </td>
+              </tr>
+            </table>
+
+            <!--
+              ADDITIONAL GUESTS: repeat for each extra guest. Remove if only 1 guest.
+            -->
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td width="40" style="vertical-align:top;padding-top:2px;">
+                  <div style="width:36px;height:36px;border-radius:50%;background-color:#f3f4f6;text-align:center;line-height:36px;font-size:12px;font-weight:700;color:#6b7280;">{{GUEST2_INITIALS}}</div>
+                </td>
+                <td style="padding-left:12px;vertical-align:top;">
+                  <div style="font-size:13px;font-weight:600;color:#1a1a2e;">{{GUEST2_FIRST_NAME}} {{GUEST2_LAST_NAME}}</div>
+                  <div style="font-size:11px;color:#aaaaaa;margin-top:2px;">Adult</div>
+                </td>
+              </tr>
+            </table>
+
+          </td>
+        </tr>
+
+        <!-- ── PROPERTY ── -->
+        <tr>
+          <td style="padding:22px 32px;border-bottom:1px solid #efefef;">
+            <div style="font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#bbbbbb;margin-bottom:14px;">Property</div>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr><td style="padding:9px 0;border-bottom:1px solid #f5f5f5;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+                  <td style="font-size:12px;color:#999999;">Name</td>
+                  <td align="right" style="font-size:12px;font-weight:600;color:#1a1a2e;">{{PROPERTY_NAME}}</td>
+                </tr></table>
+              </td></tr>
+              <tr><td style="padding:9px 0;border-bottom:1px solid #f5f5f5;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+                  <td style="font-size:12px;color:#999999;">Address</td>
+                  <td align="right" style="font-size:12px;font-weight:600;color:#1a1a2e;">{{PROPERTY_ADDRESS_LINE1}}</td>
+                </tr></table>
+              </td></tr>
+              <tr><td style="padding:9px 0;border-bottom:1px solid #f5f5f5;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+                  <td style="font-size:12px;color:#999999;">City &amp; State</td>
+                  <td align="right" style="font-size:12px;font-weight:600;color:#1a1a2e;">{{PROPERTY_CITY}}, {{PROPERTY_STATE}}</td>
+                </tr></table>
+              </td></tr>
+              <tr><td style="padding:9px 0;border-bottom:1px solid #f5f5f5;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+                  <td style="font-size:12px;color:#999999;">Phone</td>
+                  <td align="right" style="font-size:12px;font-weight:600;color:#1a1a2e;">{{PROPERTY_PHONE}}</td>
+                </tr></table>
+              </td></tr>
+              <tr><td style="padding:9px 0;">
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
+                  <td style="font-size:12px;color:#999999;">Email</td>
+                  <td align="right" style="font-size:12px;font-weight:600;"><a href="mailto:{{PROPERTY_EMAIL}}" style="color:#00b5c8;text-decoration:none;">{{PROPERTY_EMAIL}}</a></td>
+                </tr></table>
+              </td></tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- ── ACTION BUTTONS ── -->
+        <tr>
+          <td style="background-color:#f7f8fa;padding:24px 32px;text-align:center;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
+              <tr>
+                <td style="padding-right:12px;">
+                  <a href="https://bookings.revchilltech.com/?propertyCode={{PROPERTY_CODE}}"
+                     style="display:inline-block;background-color:#00b5c8;color:#ffffff;font-size:13px;font-weight:700;text-decoration:none;padding:11px 26px;border-radius:8px;letter-spacing:0.2px;">
+                    Book Again
+                  </a>
+                </td>
+                <td>
+                  <a href="https://bookings.revchilltech.com/my-trip?propertyCode={{PROPERTY_CODE}}"
+                     style="display:inline-block;background-color:#ffffff;color:#555555;font-size:13px;font-weight:700;text-decoration:none;padding:11px 26px;border-radius:8px;border:1px solid #dddddd;letter-spacing:0.2px;">
+                    My Bookings
+                  </a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+
+        <!-- ── FOOTER ── -->
+        <tr>
+          <td style="background-color:#f3f4f6;padding:22px 32px;text-align:center;border-top:1px solid #e8e8e8;">
+            <p style="margin:0 0 6px;font-size:13px;color:#555555;">
+              Questions about your cancellation? <a href="mailto:{{PROPERTY_EMAIL}}" style="color:#00b5c8;text-decoration:none;">{{PROPERTY_EMAIL}}</a> &middot; {{PROPERTY_PHONE}}
+            </p>
+            <p style="margin:0 0 10px;font-size:11px;color:#aaaaaa;line-height:1.6;">
+              This is an automated cancellation confirmation from {{PROPERTY_NAME}}. Please do not reply directly.
+            </p>
+            <p style="margin:0;font-size:11px;color:#bbbbbb;">
+              Powered by <strong style="color:#00b5c8;">RevChill</strong>
+            </p>
+          </td>
+        </tr>
+
+      </table>
+      <!-- /EMAIL CARD -->
+
+    </td>
+  </tr>
+</table>
+<!-- /OUTER WRAPPER -->
+
 </body>
 </html>`;
 };
- 
+
 
 // ==================== BOOKING AMENDMENT EMAIL ====================
 export const BookingAmendmentEmail = ({
@@ -796,7 +1009,7 @@ export const BookingAmendmentEmail = ({
   propertyAddress,
   room,
 }: EmailTemplateProps): string => {
-  const { finalPrice, guests, guestDetails, startDate, endDate } = reservation;
+  const { finalPrice, guests, guestDetails, reservationStartDate, reservationEndDate } = reservation;
   const primaryGuest = guestDetails[0];
   const numberOfNights = reservation.numberOfNights || 1;
 
@@ -922,15 +1135,15 @@ export const BookingAmendmentEmail = ({
           <div class="date-cards">
             <div class="date-card">
               <div class="date-label">Check-in</div>
-              <div class="date-day">${new Date(startDate).getDate()}</div>
-              <div class="date-month-year">${new Date(startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>
-              <div class="date-weekday">${new Date(startDate).toLocaleDateString('en-US', { weekday: 'long' })}</div>
+              <div class="date-day">${new Date(reservationStartDate).getDate()}</div>
+              <div class="date-month-year">${new Date(reservationStartDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>
+              <div class="date-weekday">${new Date(reservationStartDate).toLocaleDateString('en-US', { weekday: 'long' })}</div>
             </div>
             <div class="date-card">
               <div class="date-label">Check-out</div>
-              <div class="date-day">${new Date(endDate).getDate()}</div>
-              <div class="date-month-year">${new Date(endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>
-              <div class="date-weekday">${new Date(endDate).toLocaleDateString('en-US', { weekday: 'long' })}</div>
+              <div class="date-day">${new Date(reservationEndDate).getDate()}</div>
+              <div class="date-month-year">${new Date(reservationEndDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>
+              <div class="date-weekday">${new Date(reservationEndDate).toLocaleDateString('en-US', { weekday: 'long' })}</div>
             </div>
           </div>
           
@@ -964,10 +1177,10 @@ export const BookingAmendmentEmail = ({
               <div class="guest-name">${primaryGuest.firstName} ${primaryGuest.lastName}</div>
               <span class="guest-badge">Primary Guest</span>
             </div>
-            ${primaryGuest.email || primaryGuest.phone ? `
+            ${reservation.bookingUserEmail || reservation.bookingUserPhone ? `
             <div class="guest-contact">
-              ${primaryGuest.email ? `<div class="guest-contact-item">📧 ${primaryGuest.email}</div>` : ''}
-              ${primaryGuest.phone ? `<div class="guest-contact-item">📱 ${primaryGuest.phone}</div>` : ''}
+              ${reservation.bookingUserEmail ? `<div class="guest-contact-item">📧 ${reservation.bookingUserEmail}</div>` : ''}
+              ${reservation.bookingUserPhone ? `<div class="guest-contact-item">📱 ${reservation.bookingUserPhone}</div>` : ''}
             </div>
             ` : ''}
           </div>
@@ -1200,7 +1413,7 @@ export const BookingAmendmentEmail = ({
 //               We hope to welcome you in the future.
 //             </div>
 //           </div>
-          
+
 //           ${reservation.refundAmount ? `
 //           <div class="refund-notice">
 //             <div class="refund-notice-title">💰 Refund Information</div>
@@ -1210,12 +1423,12 @@ export const BookingAmendmentEmail = ({
 //             <div class="refund-amount">${formatCurrency(reservation.refundAmount, reservation.currencyCode)}</div>
 //           </div>
 //           ` : ''}
-          
+
 //           <div class="section-header" style="margin-top: 24px;">
 //             <div class="section-icon">📅</div>
 //             <h2 class="section-title">Cancelled Reservation</h2>
 //           </div>
-          
+
 //           <div class="date-cards">
 //             <div class="date-card">
 //               <div class="date-label">Check-in (Was)</div>
@@ -1230,7 +1443,7 @@ export const BookingAmendmentEmail = ({
 //               <div class="date-weekday">${new Date(endDate).toLocaleDateString('en-US', { weekday: 'long' })}</div>
 //             </div>
 //           </div>
-          
+
 //           <div class="info-grid">
 //             <div class="info-item">
 //               <span class="info-label">Duration</span>
