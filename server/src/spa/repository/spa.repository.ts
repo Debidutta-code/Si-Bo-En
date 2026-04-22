@@ -1,5 +1,5 @@
 import {prisma} from "../../config";
-import {ICSpaR,ISpa, ISpaO, ISpaWSlots, IUSpaR} from "../types";
+import {ICSpaR,ISpaO, ISpaWSlots, IUSpaR} from "../types";
 
 
 export class SpaRepository {
@@ -95,7 +95,11 @@ export class SpaRepository {
                             email: true
                         }
                     },
-                    SpaSlots: true
+                    SpaDates:{
+                        include:{
+                            Slots:true
+                        }
+                    }
                 }
             })
         } catch (error) {

@@ -43,7 +43,7 @@ export class DashBoardRepository {
             // Fetch top performing properties analytics for users with level > 1
             let topPropertiesStats: ITopPerformingProperties | undefined;
             if (userLevel && userLevel > 1) {
-                topPropertiesStats = await this.getTopPerformingProperties(propertyIdsAndCodes);
+                topPropertiesStats = await this.getTopPerformingProperties(propertyIdsAndCodes, targetCurrency);
             }
 
             const analyticsData: IAnalyticsData = {
@@ -95,7 +95,6 @@ export class DashBoardRepository {
             prisma.reservation.count({
                 where: { propertyId: { in: propertyIds } }
             }),
-            // Get all reservations with status info
             prisma.reservation.findMany({
                 where: { propertyId: { in: propertyIds } },
                 select: {
@@ -109,24 +108,22 @@ export class DashBoardRepository {
             prisma.reservation.count({
                 where: {
                     propertyId: { in: propertyIds },
-                    checkInDate: { gte: today, lt: tomorrow }
+                    reservationStartDate: { gte: today, lt: tomorrow }
                 }
             }),
             // Today's check-outs
             prisma.reservation.count({
                 where: {
                     propertyId: { in: propertyIds },
-                    checkOutDate: { gte: today, lt: tomorrow }
+                    reservationEndDate: { gte: today, lt: tomorrow }
                 }
             }),
-            // Upcoming reservations (next 7 days)
             prisma.reservation.count({
                 where: {
                     propertyId: { in: propertyIds },
-                    checkInDate: { gte: today, lte: nextWeek }
+                    reservationStartDate: { gte: today, lte: nextWeek }
                 }
             }),
-            // Last 30 days bookings
             prisma.reservation.count({
                 where: {
                     propertyId: { in: propertyIds },
@@ -776,7 +773,7 @@ export class DashBoardRepository {
         return { methodBreakdown };
     }
 
-    private async getTopPerformingProperties(propertyIdsAndCodes: IPropertyCodeAndIds[]): Promise<ITopPerformingProperties> {
+    private async getTopPerformingProperties(propertyIdsAndCodes: IPropertyCodeAndIds[], targetCurrency: CurrencyCode): Promise<ITopPerformingProperties> {
         try {
             const propertyIds = propertyIdsAndCodes.map(p => p.id);
             const today = new Date();
@@ -794,16 +791,14 @@ export class DashBoardRepository {
                 },
             });
 
-            // Group by propertyId and convert to USD
             const revenueByProperty = new Map<string, number>();
             await Promise.all(
                 confirmedReservations.map(async r => {
-                    const usd = await convertCurrency(r.amount, r.currencyCode as CurrencyCode, 'USD');
-                    revenueByProperty.set(r.propertyId, (revenueByProperty.get(r.propertyId) || 0) + usd);
+                    const converted = await convertCurrency(r.amount, r.currencyCode as CurrencyCode, targetCurrency);
+                    revenueByProperty.set(r.propertyId, (revenueByProperty.get(r.propertyId) || 0) + converted);
                 })
             );
 
-            // Bookings by property
             const bookingsByProperty = await prisma.reservation.groupBy({
                 by: ['propertyId'],
                 where: { propertyId: { in: propertyIds } },

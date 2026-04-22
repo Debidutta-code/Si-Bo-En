@@ -212,7 +212,7 @@ export default function ReservationFilters({
               <SelectContent>
                 <SelectItem value="checkin">Check-in Date</SelectItem>
                 <SelectItem value="booking">Booking Date</SelectItem>
-                <SelectItem value="modification">Modification Date</SelectItem>
+                {/* <SelectItem value="modification">Modification Date</SelectItem> */}
               </SelectContent>
             </Select>
           </div>

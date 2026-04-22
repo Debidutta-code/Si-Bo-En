@@ -35,7 +35,6 @@ const extractGuestDistribution = (
 
   if (!dailyBreakdown.length)
     return [{ adults: 1, children: 0, childAges: [] }];
-console.log(bookingData);
 
   // Group by roomNumber, keep only the FIRST date's entry per room
   const seenRooms = new Set<string>();
@@ -614,14 +613,14 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
             </div>
             <div>
               <p className="font-semibold">{t("ModifyBooking.roomDetails")}</p>
-              <p>{bookingData.roomTypeCode}</p>
+              <p>{bookingData.roomName}</p>
               <p className="text-xs text-gray-500">
                 {requestedRooms} room{requestedRooms !== 1 ? "s" : ""}
               </p>
             </div>
             <div>
               <p className="font-semibold">{t("ModifyBooking.ratePlan")}</p>
-              <p>{bookingData.ratePlanCode}</p>
+              <p>{bookingData.ratePlanName}</p>
             </div>
           </div>
 

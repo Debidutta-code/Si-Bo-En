@@ -6,7 +6,6 @@ import {
   Eye,
   Edit,
   XCircle,
-  X,
   AlertTriangle,
   EyeOff,
   FileText,
@@ -32,34 +31,34 @@ import { downloadBookingVoucher } from "../api/reservation.api";
 import toast from "react-hot-toast";
 import AmendReservationModal from "./Amendreservationmodal";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
-// ─── View Details Modal ───────────────────────────────────────────────────────
 
 interface ViewDetailsModalProps {
   reservation: IReservation | null;
   onClose: () => void;
+  onAmend: (reservation: IReservation) => void;
+  onCancel: (reservation: IReservation) => void;
 }
 
-function ViewDetailsModal({ reservation, onClose }: ViewDetailsModalProps) {
+function ViewDetailsModal({ reservation, onClose, onAmend, onCancel }: ViewDetailsModalProps) {
   if (!reservation) return null;
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-card rounded-lg shadow-xl max-w-5xl w-full max-h-[90vh] overflow-y-auto relative my-8">
-        <button
-          onClick={onClose}
-          className="sticky top-4 float-right mr-4 mt-4 p-2 hover:bg-accent rounded-md transition-colors z-10 bg-card border border-border"
-        >
-          <X className="w-5 h-5" />
-        </button>
-        <div className="p-6 pt-0">
-          <ReservationCard reservation={reservation} />
+    <Dialog open={true} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-w-5xl w-full p-0 gap-0 max-h-[90vh] overflow-y-auto [&>button]:hidden">
+        <div className="p-6">
+          <ReservationCard
+            reservation={reservation}
+            onAmend={() => { onClose(); onAmend(reservation); }}
+            onCancel={() => { onClose(); onCancel(reservation); }}
+            onClose={onClose}
+          />
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
 
-// ─── Cancel Confirmation Modal ────────────────────────────────────────────────
 
 interface CancelConfirmationModalProps {
   reservation: IReservation;
@@ -235,10 +234,8 @@ export default function ReservationsTable({
 
   const calculateRooms = (reservation: IReservation) =>
     reservation.finalPrice?.requestedRooms ??
-    reservation.priceBreakdowns?.[0]?.requestedRooms ??
     1;
 
-  // ─── Render ────────────────────────────────────────────────────────────────
 
   return (
     <>
@@ -284,8 +281,8 @@ export default function ReservationsTable({
                     <span>{calculateRooms(reservation)}</span>
                   </div>
                 </TableCell>
-                <TableCell>{formatDate(reservation.checkInDate)}</TableCell>
-                <TableCell>{formatDate(reservation.checkOutDate)}</TableCell>
+                <TableCell>{formatDate(reservation.reservationStartDate)}</TableCell>
+                <TableCell>{formatDate(reservation.reservationEndDate)}</TableCell>
                 <TableCell>{getStatusBadge(reservation.bookingStatus)}</TableCell>
                 <TableCell className="uppercase text-[12px]">{reservation.bookingSource}</TableCell>
                 <TableCell>{reservation.finalPrice?.totalAmount?.toFixed(2) ?? "—"}</TableCell>
@@ -325,11 +322,11 @@ export default function ReservationsTable({
                         </DropdownMenuItem>
                       )}
                       {
-                        reservation.bookingStatus==="checked_in" &&(
+                        reservation.bookingStatus === "checked_in" && (
                           <>
-                          <Button>
-                            Checked in Details
-                          </Button>
+                            <Button>
+                              Checked in Details
+                            </Button>
                           </>
                         )
                       }
@@ -344,7 +341,12 @@ export default function ReservationsTable({
 
       {/* View Details */}
       {activeDialog === "view" && (
-        <ViewDetailsModal reservation={selectedReservation} onClose={closeDialog} />
+        <ViewDetailsModal
+          reservation={selectedReservation}
+          onClose={closeDialog}
+          onAmend={(r) => openDialog("amend", r)}
+          onCancel={(r) => openDialog("cancel", r)}
+        />
       )}
 
       {/* Cancel */}

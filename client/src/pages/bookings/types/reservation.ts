@@ -44,12 +44,17 @@ export interface IProperty {
 }
 
 export interface ITaxBreakdown {
+  id: string;
   name: string;
   taxedAmount: number;
   currencyCode: string;
+  priceBreakDownId: string | null;
 }
 
 export interface IAddonBreakdown {
+  id: string;
+  dailyPriceBrakeDownId: string | null;
+  pricingBrakeDownId: string | null;
   date?: string;
   name: string;
   type?: 'selected' | 'included';
@@ -58,7 +63,9 @@ export interface IAddonBreakdown {
   quantity: number;
   totalAmount: number;
   currencyCode: string;
+
 }
+
 
 // ─── Guest Distribution ───────────────────────────────────────────────────────
 
@@ -73,20 +80,20 @@ export interface IGuestDistribution {
 export interface IPromotionBreakdown {
   id: string;
   name: string;
-  type: 'auto-applied' | 'user-applied' | string;
+  type: 'auto_applied' | 'user_applied';
   currencyCode: string | null;
   discountType: 'percentage' | 'fixed';
   discountValue: number;
-  promotionType: 'mlos' | 'device_specific' | 'early_bird' | 'last_minute' | string;
+  promotionType: 'mlos' | 'device_specific' | 'early_bird' | 'offer_for_tonight';
   discountAmount: number;
-  restrictionType: 'decrease' | 'increase' | string;
+  restrictionType: 'decrease' | 'increase' | 'payLater';
 }
 
 export interface IReservationPromotion {
   id: string;
   bookingCode: string;
   bookingId: string;
-  promotionType: 'mlos' | 'device_specific' | 'early_bird' | 'last_minute' | string;
+  promotionType: 'mlos' | 'device_specific' | 'early_bird' | 'offer_for_tonight';
   promotionId: string | null;
   mlosId: string | null;
   amount: number;
@@ -116,6 +123,7 @@ export interface IDailyBreakdown {
 
 /** Used inside priceBreakdowns[].dailyBreakdown */
 export interface IDailyPriceBreakdown {
+  id: string;
   date: string;
   roomNumber: string;
   totalAmount: number;
@@ -124,11 +132,10 @@ export interface IDailyPriceBreakdown {
   addOnBrakeDown: IAddonBreakdown[];
   baseChargesAmount: number;
   guestDistribution: IGuestDistribution;
-  totalDailyTaxedAmount: number;
+  pricingBrakeDownId: string;
   additionalChargesAmount: number;
 }
 
-// ─── Final Price ──────────────────────────────────────────────────────────────
 
 export interface IFinalPrice {
   taxedAmount: number;
@@ -201,7 +208,7 @@ export interface IAddOn {
 }
 
 
-export type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'modified' | 'no_show'|'checked_in'| 'checked_out';
+export type BookingStatus = 'pending' | 'confirmed' | 'cancelled' | 'modified' | 'no_show' | 'checked_in' | 'checked_out';
 export type BookingSource = 'direct' | 'google' | 'trip_adviser' | 'trivago' | 'social_media' | 'agency';
 export type DeviceType = 'mobile' | 'tablet' | 'desktop';
 export type PaymentMethod = 'pay_at_hotel' | 'online' | 'bank_transfer';
@@ -217,8 +224,8 @@ export interface IReservation {
   bookedAt: string;
   reservationStartDate: string;
   reservationEndDate: string;
-  checkInDate: string;
-  checkOutDate: string;
+  checkInDate: string | null;
+  checkOutDate: string | null;
   countryCode: string;
   timezone: string;
   deviceTypes: DeviceType;
@@ -227,6 +234,8 @@ export interface IReservation {
   bookingUserEmail: string;
   bookingUserPhone: string;
   amount: number;
+  roomName: string;
+  ratePlanName: string;
   currencyCode: string;
   finalPrice: IFinalPrice;
   paidAmount: number;
@@ -239,21 +248,37 @@ export interface IReservation {
   cancellationReason?: string | null;
   isPromoUsed: boolean;
   promoId?: string | null;
-  actualCheckInAt?: string | null;
-  actualCheckOutAt?: string | null;
   cancelledAt?: string | null;
   agencyId?: string | null;
   createdAt: string;
   updatedAt: string;
   primaryGuest: IPrimaryGuest;
   property: IProperty;
-  priceBreakdowns: IPriceBreakdown[];
-  addOns: IAddOn[];
+  PricingBrakeDown?: IPricingBreakdown | null;
+  pricingBrakedownId?: string | null;
+  platforms?: string; addOns: IAddOn[];
   reservationPromotions: IReservationPromotion[];
   reservationGuests: IReservationGuest[];
   promoCode?: string | null;
 }
-
+export interface IPricingBreakdown {
+  id: string;
+  reservationId: string;
+  totalAmount: number;
+  amountBeforeTax: number;
+  taxedAmount: number;
+  totalAddonAmount: number;
+  totalPromotionAmount: number;
+  currentChargeableAmount: number;
+  latterpayableAmount: number;
+  promoCodeDiscount: number;
+  currencyCode: string;
+  loyalityDiscount: number;
+  AddonBrakeDowns: IAddonBreakdown[];
+  DailyPriceBrakeDown: IDailyPriceBreakdown[];
+  taxBrakeDown: ITaxBreakdown[];
+  promotionBrakeDown: IPromotionBreakdown[];
+}
 
 export interface IPaginationMeta {
   currentPage: number;

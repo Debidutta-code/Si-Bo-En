@@ -15,8 +15,9 @@ import {
   Trash2,
   ChevronDown,
   ChevronUp,
+  X,
 } from "lucide-react";
-import type { IReservation } from "../types";
+import type { IGuestDistribution, IReservation } from "../types";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 
@@ -24,12 +25,14 @@ interface ReservationCardProps {
   reservation: IReservation;
   onCancel?: (reservationId: string) => void;
   onAmend?: (reservationId: string) => void;
+  onClose?: () => void;
 }
 
 export default function ReservationCard({
   reservation,
   onCancel,
   onAmend,
+  onClose,
 }: ReservationCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -72,8 +75,8 @@ export default function ReservationCard({
   };
 
   const calculateNights = () => {
-    const checkIn = new Date(reservation.checkInDate);
-    const checkOut = new Date(reservation.checkOutDate);
+    const checkIn = new Date(reservation.reservationStartDate);
+    const checkOut = new Date(reservation.reservationEndDate);
     const nights = Math.ceil(
       (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24),
     );
@@ -83,9 +86,10 @@ export default function ReservationCard({
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
       {/* Header */}
-      <div className="p-6 border-b border-gray-100">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-white p-6 border-b border-gray-100">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 mb-2 flex-wrap">
               <h3 className="text-lg font-semibold text-gray-900">
                 {reservation.bookingCode}
@@ -102,6 +106,7 @@ export default function ReservationCard({
             </p>
           </div>
 
+          {/* Action buttons - always visible in header */}
           <div className="flex items-center gap-2">
             {reservation.bookingStatus === "confirmed" && (
               <>
@@ -123,6 +128,16 @@ export default function ReservationCard({
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </>
+            )}
+            {/* Close button — only shows when inside modal */}
+            {onClose && (
+              <Button
+                onClick={() => onClose?.()}
+                variant="outline"
+                size="icon"
+              >
+                <X className="w-4 h-4" />
+              </Button>
             )}
           </div>
         </div>
@@ -171,14 +186,14 @@ export default function ReservationCard({
                 <Calendar className="w-4 h-4 flex-shrink-0" />
                 <span>
                   Check-in:{" "}
-                  <strong>{formatDate(reservation.checkInDate)}</strong>
+                  <strong>{formatDate(reservation.reservationStartDate)}</strong>
                 </span>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Calendar className="w-4 h-4 flex-shrink-0" />
                 <span>
                   Check-out:{" "}
-                  <strong>{formatDate(reservation.checkOutDate)}</strong>
+                  <strong>{formatDate(reservation.reservationEndDate)}</strong>
                 </span>
               </div>
               <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -235,195 +250,169 @@ export default function ReservationCard({
         {isExpanded && (
           <div className="mt-6 pt-6 border-t border-gray-100 space-y-4 animate-in slide-in-from-top duration-200">
             {/* Price Breakdown */}
-            {reservation.finalPrice && (
-              <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-2">
-                  Price Breakdown
-                </h4>
-                <div className="bg-gray-50 rounded-md p-4 space-y-2 text-sm">
-                  {/* Base Rate */}
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Base Rate per Night:</span>
-                    <span className="font-medium">
-                      {reservation.currencyCode}{" "}
-                      {reservation.finalPrice?.baseRatePerNight?.toFixed(2)}
-                    </span>
-                  </div>
+            {(() => {
+              const pb = reservation.PricingBrakeDown;
+              const fp = reservation.finalPrice;
+              if (!pb && !fp) return null;
 
-                  {/* Nights */}
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Number of Nights:</span>
-                    <span className="font-medium">
-                      {reservation.finalPrice?.numberOfNights}
-                    </span>
-                  </div>
+              const dailyRows = pb?.DailyPriceBrakeDown ?? fp?.dailyPriceBrakeDown ?? [];
+              const addonRows = pb?.AddonBrakeDowns ?? fp?.addonBrakeDown ?? [];
+              const taxRows = pb?.taxBrakeDown ?? fp?.taxBrakeDown ?? [];
+              const promoRows = pb?.promotionBrakeDown ?? fp?.promotionBrakeDown ?? [];
 
-                  {/* Daily Breakdown */}
-                  {reservation.finalPrice?.dailyBreakdown?.length > 0 && (
-                    <div className="pt-2 border-t border-gray-200">
-                      <p className="text-gray-700 font-medium mb-2">
-                        Daily Breakdown:
-                      </p>
-                      {reservation.finalPrice.dailyBreakdown.map(
-                        (day: any, index: number) => (
-                          <div key={index} className="pl-3 mb-2">
-                            <div className="flex justify-between text-gray-600">
-                              <span>
-                                {day.date} ({day.dayOfWeek})
+              const totalAmount = pb?.totalAmount ?? fp?.totalAmount ?? 0;
+              const amountBeforeTax = pb?.amountBeforeTax ?? fp?.amountBeforeTax ?? 0;
+              const taxedAmount = pb?.taxedAmount ?? fp?.taxedAmount ?? 0;
+              const currentChargeable = pb?.currentChargeableAmount ?? fp?.currentChargeableAmount ?? 0;
+              const laterPayable = pb?.latterpayableAmount ?? fp?.latterpayableAmount ?? 0;
+              const currency = pb?.currencyCode ?? fp?.currencyCode ?? reservation.currencyCode;
+
+              const formatGuests = (g: IGuestDistribution) => {
+                if (!g) return '';
+                const parts: string[] = [];
+                if (g.adults) parts.push(`${g.adults} adult${g.adults > 1 ? 's' : ''}`);
+                if (g.children) parts.push(`${g.children} child${g.children > 1 ? 'ren' : ''}`);
+                return parts.join(', ');
+              };
+
+              return (
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">Price Breakdown</h4>
+                  <div className="border border-gray-200 rounded-lg overflow-hidden text-sm">
+
+                    {/* Room charges */}
+                    {dailyRows.length > 0 && (
+                      <div className="p-4 border-b border-gray-100">
+                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Room charges</p>
+                        <div className="space-y-2">
+                          {dailyRows.map((day: any, i: number) => (
+                            <div key={i} className="flex justify-between">
+                              <span className="text-gray-600">
+                                Room {day.roomNumber} —{" "}
+                                {new Date(day.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                                {day.guestDistribution && ` (${formatGuests(day.guestDistribution)})`}
                               </span>
-                              <span>
-                                {reservation.currencyCode}{" "}
-                                {day.baseRate?.toFixed(2)}
-                              </span>
+                              <span className="text-gray-900">{currency} {day.baseChargesAmount?.toFixed(2)}</span>
                             </div>
-                            {/* Daily taxes */}
-                            {day.taxBrakeDown?.map((tax: any, i: number) => (
-                              <div
-                                key={i}
-                                className="flex justify-between text-gray-500 pl-3 text-xs"
-                              >
-                                <span>{tax.name}:</span>
-                                <span>
-                                  {reservation.currencyCode}{" "}
-                                  {tax.taxedAmount?.toFixed(2)}
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Add-ons */}
+                    {addonRows.length > 0 && (
+                      <div className="p-4 border-b border-gray-100">
+                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Add-ons</p>
+                        <div className="space-y-2">
+                          {addonRows.map((addon: any, i: number) => (
+                            <div key={i} className="flex justify-between items-start gap-2">
+                              <span className="text-gray-600 flex items-center gap-1 flex-wrap">
+                                {addon.name} × {addon.quantity}
+                                {addon.date && ` — ${new Date(addon.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`}
+                                <span className={`text-xs px-1.5 py-0.5 rounded ${addon.type === "included"
+                                  ? "bg-blue-50 text-blue-700"
+                                  : "bg-gray-100 text-gray-600"
+                                  }`}>
+                                  {addon.type}
+                                </span>
+                              </span>
+                              <span className="text-gray-900 whitespace-nowrap">{currency} {addon.totalAmount?.toFixed(2)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Discounts */}
+                    {promoRows.length > 0 && (
+                      <div className="p-4 border-b border-gray-100">
+                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Discounts applied</p>
+                        <div className="space-y-2">
+                          {promoRows.map((promo: any, i: number) => {
+                            const isPayLater = promo.restrictionType === "payLater";
+                            return (
+                              <div key={i} className="flex justify-between">
+                                <span className={isPayLater ? "text-gray-500" : "text-green-700"}>
+                                  {promo.name} ({promo.discountValue}%)
+                                  {isPayLater && (
+                                    <span className="ml-1 text-xs text-gray-400">pay later</span>
+                                  )}
+                                </span>
+                                <span className={isPayLater ? "text-gray-500" : "text-green-700"}>
+                                  {isPayLater ? "+" : "-"} {currency} {promo.discountAmount?.toFixed(2)}
                                 </span>
                               </div>
-                            ))}
-                            <div className="flex justify-between text-gray-700 font-medium pl-3">
-                              <span>Day Total:</span>
-                              <span>
-                                {reservation.currencyCode}{" "}
-                                {day.totalAmount?.toFixed(2)}
-                              </span>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Tax */}
+                    {taxRows.length > 0 && (
+                      <div className="p-4 border-b border-gray-100">
+                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Tax</p>
+                        <div className="space-y-2">
+                          {taxRows.map((tax: any, i: number) => (
+                            <div key={i} className="flex justify-between">
+                              <span className="text-gray-600">{tax.name}</span>
+                              <span className="text-gray-900">{currency} {tax.taxedAmount?.toFixed(2)}</span>
                             </div>
-                          </div>
-                        ),
-                      )}
-                    </div>
-                  )}
-
-                  {/* Add-ons */}
-                  {reservation.finalPrice?.addonBrakeDown?.length > 0 && (
-                    <div className="pt-2 border-t border-gray-200">
-                      <p className="text-gray-700 font-medium mb-2">Add-ons:</p>
-                      {reservation.finalPrice.addonBrakeDown.map(
-                        (addon: any, index: number) => (
-                          <div
-                            key={index}
-                            className="flex justify-between text-gray-600 pl-3"
-                          >
-                            <span>
-                              {addon.name} × {addon.quantity}
-                            </span>
-                            <span>
-                              {reservation.currencyCode}{" "}
-                              {addon.totalAmount?.toFixed(2)}
-                            </span>
-                          </div>
-                        ),
-                      )}
-                    </div>
-                  )}
-
-                  {/* Tax Summary */}
-                  {reservation.finalPrice?.taxBrakeDown?.length > 0 && (
-                    <div className="pt-2 border-t border-gray-200">
-                      <p className="text-gray-700 font-medium mb-2">
-                        Tax Summary:
-                      </p>
-                      {reservation.finalPrice.taxBrakeDown.map(
-                        (tax: any, index: number) => (
-                          <div
-                            key={index}
-                            className="flex justify-between text-gray-600 pl-3"
-                          >
-                            <span>{tax.name}:</span>
-                            <span>
-                              {reservation.currencyCode}{" "}
-                              {tax.taxedAmount?.toFixed(2)}
-                            </span>
-                          </div>
-                        ),
-                      )}
-                      <div className="flex justify-between text-gray-700 font-medium pl-3 mt-1">
-                        <span>Total Tax:</span>
-                        <span>
-                          {reservation.currencyCode}{" "}
-                          {reservation.finalPrice?.totalTaxAmount?.toFixed(2)}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Loyalty Discount */}
-                  {reservation.finalPrice?.loyalityDiscount > 0 && (
-                    <div className="flex justify-between text-green-600 pt-2 border-t border-gray-200">
-                      <span>Loyalty Discount:</span>
-                      <span>
-                        - {reservation.currencyCode}{" "}
-                        {reservation.finalPrice.loyalityDiscount?.toFixed(2)}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Promo Discount */}
-                  {reservation.finalPrice?.promoCodeDiscount > 0 && (
-                    <div className="flex justify-between text-green-600">
-                      <span>Promo Discount:</span>
-                      <span>
-                        - {reservation.currencyCode}{" "}
-                        {reservation.finalPrice.promoCodeDiscount?.toFixed(2)}
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Totals */}
-                  {/* Totals */}
-                  <div className="pt-2 border-t border-gray-200 space-y-1">
-                    {/* Add this - Addon total line */}
-                    {(reservation.finalPrice?.totalAddonAmount ?? 0) > 0 && (
-                      <div className="flex justify-between text-gray-600">
-                        <span>Add-ons Total:</span>
-                        <span>
-                          {reservation.currencyCode}{" "}
-                          {reservation.finalPrice?.totalAddonAmount?.toFixed(2)}
-                        </span>
+                          ))}
+                        </div>
                       </div>
                     )}
 
-                    {/* Add this - Tax total line */}
-                    {(reservation.finalPrice?.totalTaxAmount ?? 0) > 0 && (
-                      <div className="flex justify-between text-gray-600">
-                        <span>Total Tax:</span>
-                        <span>
-                          {reservation.currencyCode}{" "}
-                          {reservation.finalPrice?.totalTaxAmount?.toFixed(2)}
-                        </span>
+                    {/* Loyalty & Promo discounts from finalPrice */}
+                    {((fp?.loyalityDiscount ?? 0) > 0 || (fp?.promoCodeDiscount ?? 0) > 0) && (
+                      <div className="p-4 border-b border-gray-100 space-y-2">
+                        {(fp?.loyalityDiscount ?? 0) > 0 && (
+                          <div className="flex justify-between text-green-700">
+                            <span>Loyalty discount</span>
+                            <span>-{currency} {fp!.loyalityDiscount.toFixed(2)}</span>
+                          </div>
+                        )}
+                        {(fp?.promoCodeDiscount ?? 0) > 0 && (
+                          <div className="flex justify-between text-green-700">
+                            <span>Promo code discount</span>
+                            <span>-{currency} {fp!.promoCodeDiscount.toFixed(2)}</span>
+                          </div>
+                        )}
                       </div>
                     )}
 
-                    <div className="flex justify-between text-gray-600">
-                      <span>Amount (Excl. Tax):</span>
-                      <span>
-                        {reservation.currencyCode}{" "}
-                        {(
-                          (reservation.finalPrice?.totalAmount ?? 0) -
-                          (reservation.finalPrice?.totalTaxAmount ?? 0)
-                        ).toFixed(2)}
-                      </span>
+                    {/* Totals */}
+                    <div className="p-4 space-y-2">
+                      <div className="flex justify-between text-gray-600">
+                        <span>Subtotal (excl. tax)</span>
+                        <span>{currency} {amountBeforeTax.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-gray-600">
+                        <span>Tax</span>
+                        <span>{currency} {taxedAmount.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between font-medium text-gray-900 pt-2 border-t border-gray-200">
+                        <span>Total (incl. tax)</span>
+                        <span>{currency} {totalAmount.toFixed(2)}</span>
+                      </div>
+                      {laterPayable > 0 && (
+                        <>
+                          <div className="flex justify-between text-gray-600 pt-1">
+                            <span>Pay now</span>
+                            <span>{currency} {currentChargeable.toFixed(2)}</span>
+                          </div>
+                          <div className="flex justify-between text-gray-600">
+                            <span>Pay at hotel</span>
+                            <span>{currency} {laterPayable.toFixed(2)}</span>
+                          </div>
+                        </>
+                      )}
                     </div>
 
-                    <div className="flex justify-between font-bold text-gray-900 text-base pt-1 border-t border-gray-200">
-                      <span>Total (Incl. Tax):</span>
-                      <span>
-                        {reservation.currencyCode}{" "}
-                        {reservation.finalPrice?.totalAmount?.toFixed(2)}
-                      </span>
-                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Additional Information */}
             <div className="grid grid-cols-2 gap-4 text-sm">

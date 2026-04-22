@@ -7,45 +7,20 @@ interface PriceDetailsProps {
   bookingDetails: any;
 }
 
-// ── Image Links (Reliable CDN hosted SVGs) ────────────────────────────────────
-
 const VisaIcon = () => (
-  <img
-    src="https://cdn.simpleicons.org/visa/1434CB"
-    alt="Visa"
-    className="h-full w-full object-contain"
-  />
+  <img src="https://cdn.simpleicons.org/visa/1434CB" alt="Visa" className="h-full w-full object-contain" />
 );
 const MastercardIcon = () => (
-  <img
-    src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg"
-    alt="Mastercard"
-    className="h-full w-full object-contain"
-  />
+  <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="Mastercard" className="h-full w-full object-contain" />
 );
-
 const PayPalIcon = () => (
-  <img
-    src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg"
-    alt="PayPal"
-    className="h-full w-full object-contain"
-  />
+  <img src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" alt="PayPal" className="h-full w-full object-contain" />
 );
-
 const GooglePayIcon = () => (
-  <img
-    src="https://upload.wikimedia.org/wikipedia/commons/f/f2/Google_Pay_Logo.svg"
-    alt="Google Pay"
-    className="h-full w-full object-contain"
-  />
+  <img src="https://upload.wikimedia.org/wikipedia/commons/f/f2/Google_Pay_Logo.svg" alt="Google Pay" className="h-full w-full object-contain" />
 );
-
 const ApplePayIcon = () => (
-  <img
-    src="https://upload.wikimedia.org/wikipedia/commons/b/b0/Apple_Pay_logo.svg"
-    alt="Apple Pay"
-    className="h-full w-full object-contain"
-  />
+  <img src="https://upload.wikimedia.org/wikipedia/commons/b/b0/Apple_Pay_logo.svg" alt="Apple Pay" className="h-full w-full object-contain" />
 );
 
 const PAYMENT_METHODS = [
@@ -59,21 +34,14 @@ const PAYMENT_METHODS = [
 const PriceDetails: React.FC<PriceDetailsProps> = ({ bookingDetails }) => {
   const { t } = useTranslation();
 
-  const currencyCode = bookingDetails?.finalPrice?.currencyCode || "USD";
+  const fp = bookingDetails?.finalPrice;
+  const currencyCode = fp?.currencyCode || "USD";
   const currencySymbol = currencies.find((c) => c.code === currencyCode)?.symbol ?? currencyCode;
 
   const formatCurrency = (amount: number) =>
-    `${currencySymbol}${new Intl.NumberFormat("en-IN", {
-      maximumFractionDigits: 2,
-    }).format(amount)}`;
+    `${currencySymbol}${new Intl.NumberFormat("en-IN", { maximumFractionDigits: 2 }).format(amount)}`;
 
-  const getDeviceType = () => {
-    if (typeof window === "undefined") return "Desktop";
-    const width = window.innerWidth;
-    if (width < 768) return "Mobile";
-    if (width >= 768 && width < 1024) return "Tablet";
-    return "Desktop";
-  };
+  const hasPayLater = (fp?.latterpayableAmount ?? 0) > 0;
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl shadow-sm p-5 max-w-sm">
@@ -81,10 +49,28 @@ const PriceDetails: React.FC<PriceDetailsProps> = ({ bookingDetails }) => {
         {t("PriceDetails.title")}
       </h2>
 
+      {/* Pay now / Pay at hotel — only shown when a split exists */}
+      {hasPayLater && (
+        <div className="space-y-2 border-t pt-3 mb-3">
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-gray-600">{t("PriceDetails.payNow")}</span>
+            <span className="font-semibold text-green-700">
+              {formatCurrency(fp?.currentChargeableAmount ?? 0)}
+            </span>
+          </div>
+          <div className="flex justify-between items-center text-sm">
+            <span className="text-gray-600">{t("PriceDetails.payAtHotel")}</span>
+            <span className="font-semibold text-amber-600">
+              {formatCurrency(fp?.latterpayableAmount ?? 0)}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Total Amount */}
-      <div className="flex justify-between items-center text-base border-t pt-3">
+      <div className={`flex justify-between items-center text-base border-t pt-3 ${hasPayLater ? "" : "mt-0"}`}>
         <span className="font-semibold text-gray-900">{t("PriceDetails.totalAmount")}</span>
-        <span className="font-bold text-orange-600 text-xl">{formatCurrency(bookingDetails?.finalPrice?.totalAmount || 0)}</span>
+        <span className="font-bold text-orange-600 text-xl">{formatCurrency(fp?.totalAmount || 0)}</span>
       </div>
 
       {/* Secure Payment */}
