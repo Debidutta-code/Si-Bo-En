@@ -2,7 +2,8 @@ import { IApiResponse } from "../../utils";
 import { successResponse, errorResponse } from "../../utils";
 import { LoyalityLevelRepository, LoyaltyGuestRepository, propertyLoyalityRepository } from "../repository";
 import {
-    ICloyalityGuests
+    ICloyalityGuests,
+    ILoyalityLevels
 } from "../types";
 import { paginatedSuccessResponse } from "../../utils";
 import { CreationGuestRepository } from "../repository/creation-guest.repository";
@@ -122,8 +123,8 @@ export class LoyaltyGuestService {
                         loyalityGuestId: existingGuest.id,
                         creationLoyaltyConfigId,
                         metaData,
-                        guestLevel:1,
-                        noOfBookings:0
+                        guestLevel: 1,
+                        noOfBookings: 0
                     }));
                 }
                 await Promise.all(tasks);
@@ -151,8 +152,8 @@ export class LoyaltyGuestService {
                     loyalityGuestId: newGuest.id,
                     creationLoyaltyConfigId,
                     metaData,
-                    guestLevel:1,
-                    noOfBookings:0
+                    guestLevel: 1,
+                    noOfBookings: 0
                 }),
             ]);
 
@@ -171,35 +172,51 @@ export class LoyaltyGuestService {
             if (!propertyConfig) {
                 return errorResponse("No active loyalty program found for this property");
             }
-            const loyaltyGuest = await this.loyaltyGuestRepository.getLoyaltyGuestByEmail(email);
-            if (!loyaltyGuest) {
-                return errorResponse("Guest is not a loyality member")
-            }
+
             if (!propertyConfig.CreationLoyaltyConfig?.id) {
                 return errorResponse("No loyalty configuration found for this property");
             }
 
-            const [guestExistForProperty, existingCreationGuest] = await Promise.all([
-                this.creationGuestRepository.guestExistForProperty(propertyConfig.id, loyaltyGuest.id),
-                this.creationGuestRepository.checkIfGuestExist(propertyConfig.CreationLoyaltyConfig?.id, loyaltyGuest.id),
-            ]);
-
-            if (!loyaltyGuest || !guestExistForProperty || !existingCreationGuest) {
+            const loyaltyGuest = await this.loyaltyGuestRepository.getLoyaltyGuestByEmail(email);
+            if (!loyaltyGuest) {
                 return successResponse("Guest is not a loyalty member", {
                     isLoyaltyMember: false,
                     discount: null,
                 });
             }
+
+            const [guestExistForProperty, existingCreationGuest] = await Promise.all([
+                this.creationGuestRepository.guestExistForProperty(propertyConfig.id, loyaltyGuest.id),
+                this.creationGuestRepository.checkIfGuestExist(propertyConfig.CreationLoyaltyConfig.id, loyaltyGuest.id),
+            ]);
+
+            if (!guestExistForProperty || !existingCreationGuest) {
+                return successResponse("Guest is not a loyalty member", {
+                    isLoyaltyMember: false,
+                    discount: null,
+                });
+            }
+
             const currentGuestLevel = existingCreationGuest.guestLevel;
-            // Levels now live on PropertyLoyaltyConfig — fetch them
-            const discountLevel = propertyConfig.CreationLoyaltyConfig?.LoyalityLevels?.find(
-                (level: any) => level.level === currentGuestLevel
-            )?.discountPercentage;
+            const levels = propertyConfig.CreationLoyaltyConfig?.LoyalityLevels ?? [];
+
+            // Find the discount for guest's current level
+            const matchedLevel = levels.find((l: ILoyalityLevels) => l.level === currentGuestLevel);
+
+            // Fallback chain: matched level → base config discountValue → 0
+            const discountValue = matchedLevel?.discountPercentage
+                ?? propertyConfig.CreationLoyaltyConfig?.discountValue
+                ?? 0;
+
+            const discountType = propertyConfig.CreationLoyaltyConfig?.loyaltyDiscountType ?? "percentage";
+            const currencyCode = propertyConfig.CreationLoyaltyConfig?.currencyCode;
+
             return successResponse("Loyalty discount available", {
                 isLoyaltyMember: true,
                 discount: {
-                    type: "percentage",
-                    value: discountLevel,
+                    type: discountType,
+                    value: discountValue,
+                    currencyCode,
                 },
             });
         } catch (error) {

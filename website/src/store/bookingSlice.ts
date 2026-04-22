@@ -187,12 +187,24 @@ const bookingSlice = createSlice({
       };
     },
 
-    setFullBookingDetails(state, action: PayloadAction<BookingState>) {
-      return {
-        ...state,
-        ...action.payload,
-      };
-    },
+setFullBookingDetails(state, action: PayloadAction<any>) {
+  return {
+    ...state, // preserves guests, dates, PropertyCode, PropertyDetails, bookingEngineColor
+    bookingCode:        action.payload.bookingCode        ?? state.bookingCode,
+    bookingStatus:      action.payload.bookingStatus      ?? state.bookingStatus,
+    guestDetails:       action.payload.guestDetails       ?? state.guestDetails,
+    finalPrice:         action.payload.finalPrice         ?? state.finalPrice,
+    roomName:           action.payload.roomName           ?? state.roomName,
+    roomTypeCode:       action.payload.roomTypeCode       ?? state.roomTypeCode,
+    ratePlanCode:       action.payload.ratePlanCode       ?? state.ratePlanCode,
+    numberOfRooms:      action.payload.numberOfRooms      ?? state.numberOfRooms,
+    selectedAddons:     action.payload.selectedAddons     ?? state.selectedAddons,
+    selectedPromotions: action.payload.selectedPromotions ?? state.selectedPromotions,
+    paymentMethod:      action.payload.paymentMethod      ?? state.paymentMethod,
+    email:              action.payload.bookingUserEmail   ?? state.email,
+    phone:              action.payload.bookingUserPhone   ?? state.phone,
+  };
+},
     clearBookingContext() {
       return initialState;
     },

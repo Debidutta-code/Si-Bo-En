@@ -484,7 +484,7 @@ const Rooms = () => {
         return roomsArray;
       };
 
-    
+
       if (roomsArray.length === 0) {
         const totalAdults = parseInt(adults || "1");
         const totalChildren = parseInt(children || "0");
@@ -593,6 +593,9 @@ const Rooms = () => {
     };
 
     initBookingContext();
+    return () => {
+      initializedRef.current = false; // ← this is the only change needed here
+    };
   }, []);
 
   useEffect(() => {

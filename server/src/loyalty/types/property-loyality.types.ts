@@ -1,3 +1,4 @@
+import { CurrencyCode } from "../../tax-system/interfaces";
 import { ILoyalityLevels } from "./loyality-level.types";
 
 export interface ICPropertyLoyaltyConfig {
@@ -12,7 +13,7 @@ export interface ICreationLoyalityConfig{
     creationId:string;
     loyaltyDiscountType:"percentage"|"flat";
     discountValue:number;
-    currencyCode:string|null;
+    currencyCode:CurrencyCode|null;
     LoyalityLevels?:ILoyalityLevels[];
 }
 

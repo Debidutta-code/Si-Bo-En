@@ -207,12 +207,12 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
           rooms: roomsCount,
           roomsArray: Array.isArray(g.rooms)
             ? g.rooms.map((r: any) => ({
-              adults: r.adults || 0,
+              adults: r.adults || 1,
               children: r.children || 0,
               childAges: r.childAges || [],        // ✅ ensures childAges always exists
             }))
             : g.roomsArray?.map((r: any) => ({
-              adults: r.adults || 0,
+              adults: r.adults || 1,
               children: r.children || 0,
               childAges: r.childAges || [],
             })) ?? [{ adults: totalAdults, children: totalChildren, childAges: [] }],

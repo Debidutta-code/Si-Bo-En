@@ -56,6 +56,23 @@ export class LoyaltyGuestRepository {
             throw new Error("Failed to get loyalty guest by email");
         }
     }
+    public async getActiveLoyaltyConfigByPropertyId(propertyId: string) {
+        return await prisma.propertyLoyaltyConfig.findFirst({
+            where: {
+                propertyId,
+                isActive: true,
+            },
+            include: {
+                CreationLoyaltyConfig: {
+                    include: {
+                        LoyalityLevels: {         // ← THIS was missing
+                            orderBy: { level: "asc" },
+                        },
+                    },
+                },
+            },
+        });
+    }
     public async checkIfGuestExists(guestEmail: string): Promise<ILoyalityGuests | null> {
         try {
             return await prisma.loyalityGuest.findUnique({
@@ -255,51 +272,51 @@ export class LoyaltyGuestRepository {
         }
     }
     public async getPropertyLoyaltyConfigByPropertyId(
-    propertyId: string
-): Promise<{ id: string; creationLoyaltyConfigId: string; isActive: boolean } | null> {
-    try {
-        return await prisma.propertyLoyaltyConfig.findUnique({
-            where: { propertyId, isActive: true },
-            select: { id: true, creationLoyaltyConfigId: true, isActive: true },
-        });
-    } catch (error) {
-        throw new Error('Failed to fetch property loyalty config');
+        propertyId: string
+    ): Promise<{ id: string; creationLoyaltyConfigId: string; isActive: boolean } | null> {
+        try {
+            return await prisma.propertyLoyaltyConfig.findUnique({
+                where: { propertyId, isActive: true },
+                select: { id: true, creationLoyaltyConfigId: true, isActive: true },
+            });
+        } catch (error) {
+            throw new Error('Failed to fetch property loyalty config');
+        }
     }
-}
 
-private async getLoyaltyLevels(creationLoyaltyConfigId: string) {
-    try {
-        return await prisma.loyalityLevel.findMany({
-            where: { creationLoyaltyConfigId },
-            orderBy: { level: 'asc' },
-        });
-    } catch (error) {
-        throw new Error('Failed to fetch loyalty levels');
+    private async getLoyaltyLevels(creationLoyaltyConfigId: string) {
+        try {
+            return await prisma.loyalityLevel.findMany({
+                where: { creationLoyaltyConfigId },
+                orderBy: { level: 'asc' },
+            });
+        } catch (error) {
+            throw new Error('Failed to fetch loyalty levels');
+        }
     }
-}
 
-private async incrementBookingsAndMaybeUpgrade(
-    creationGuestId: string,
-    currentNoOfBookings: number,
-    currentGuestLevel: number,
-    levels: { level: number; noOfReservations: number }[]
-) {
-    try {
-        const newBookings = currentNoOfBookings + 1;
-        const nextLevel = levels.find((l) => l.level === currentGuestLevel + 1);
-        const shouldUpgrade = !!nextLevel && newBookings >= nextLevel.noOfReservations;
+    private async incrementBookingsAndMaybeUpgrade(
+        creationGuestId: string,
+        currentNoOfBookings: number,
+        currentGuestLevel: number,
+        levels: { level: number; noOfReservations: number }[]
+    ) {
+        try {
+            const newBookings = currentNoOfBookings + 1;
+            const nextLevel = levels.find((l) => l.level === currentGuestLevel + 1);
+            const shouldUpgrade = !!nextLevel && newBookings >= nextLevel.noOfReservations;
 
-        return await prisma.creationGuest.update({
-            where: { id: creationGuestId },
-            data: {
-                noOfBookings: newBookings,
-                ...(shouldUpgrade && { guestLevel: nextLevel!.level }),
-            },
-        });
-    } catch (error) {
-        throw new Error('Failed to increment loyalty bookings');
+            return await prisma.creationGuest.update({
+                where: { id: creationGuestId },
+                data: {
+                    noOfBookings: newBookings,
+                    ...(shouldUpgrade && { guestLevel: nextLevel!.level }),
+                },
+            });
+        } catch (error) {
+            throw new Error('Failed to increment loyalty bookings');
+        }
     }
-}
 
     /**
      * Post-booking loyalty handler — called after a reservation is created.
@@ -452,4 +469,4 @@ private async incrementBookingsAndMaybeUpgrade(
             console.error('handlePostCancelLoyalty error:', error);
         }
     }
-}
+}
