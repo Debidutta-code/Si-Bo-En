@@ -40,7 +40,7 @@ export class SpaController {
         try {
             const propertyId = req.params.propertyId;
             const response = await this.spaService.getSpaForProperty(propertyId);
-            return res.status(response.success ? 200 : 404).json(response);
+            return res.status(response.success ? 200 : 400).json(response);
         } catch (error) {
             if (error instanceof Error) {
                 return res.status(500).json(errorResponse("Failed to retrieve spa", error.message))
@@ -60,7 +60,7 @@ export class SpaController {
 
             }
             const response = await this.spaService.updateSpa(spaId, spaData);
-            return res.status(response.success ? 200 : 404).json(response);
+            return res.status(response.success ? 200 : 400).json(response);
         } catch (error) {
             if (error instanceof Error) {
                 return res.status(500).json(errorResponse("Failed to update spa", error.message))
@@ -75,7 +75,7 @@ export class SpaController {
                 return res.status(400).json(errorResponse("Invalid spa choosen", "Spa ID is required"));
             }
             const response = await this.spaService.deleteSpa(spaId);
-            return res.status(response.success ? 200 : 404).json(response);
+            return res.status(response.success ? 200 : 400).json(response);
         } catch (error) {
             if (error instanceof Error) {
                 return res.status(500).json(errorResponse("Failed to delete spa", error.message))

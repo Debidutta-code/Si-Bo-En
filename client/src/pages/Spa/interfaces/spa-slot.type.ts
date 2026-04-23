@@ -2,6 +2,10 @@ export interface ICSpaDatesS {
     date: Date;
 
 }
+export interface IgetInDates {
+    startDate: Date;
+    endDate: Date;
+}
 export interface ICSpaDatesR extends ICSpaDatesS {
     spaModuleId: string;
 

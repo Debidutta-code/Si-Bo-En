@@ -1,5 +1,5 @@
 import {prisma} from "../../config";
-import {ICSpaR,ISpa, ISpaO, ISpaWSlots, IUSpaR} from "../types";
+import {ICSpaR,ISpaO, ISpaWSlots, IUSpaR} from "../types";
 
 
 export class SpaRepository {
@@ -99,10 +99,23 @@ export class SpaRepository {
                         include:{
                             Slots:true
                         }
+                    },
+                    AssignedSpas:{
+                        include:{
+                            User:{
+                                select:{
+                                    id: true,
+                                    firstName: true,
+                                    lastName: true,
+                                    email: true
+                                }
+                            }
+                        }
                     }
                 }
             })
         } catch (error) {
+            console.log(error)
             throw new Error("Error occur while fetching spas for property")
         }
     }

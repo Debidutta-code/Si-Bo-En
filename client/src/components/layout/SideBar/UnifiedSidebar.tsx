@@ -127,6 +127,7 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
     { name: 'Promo Code', href: `/property/promo-code/${propertyId}`, icon: FileText, userLevels: [0, 1, 2, 3, 4] },
     { name: 'Add On', href: `/property/add-on/${propertyId}`, icon: Users, userLevels: [4, 3, 2, 1] },
     { name: 'Tax System', href: `/property/tax-system/${propertyId}`, icon: Shield, userLevels: [4] },
+    { name: 'Spa & Activities', href: `/property/spa/${propertyId}`, icon: Sun, userLevels: [0, 1, 2, 3, 4] },
   ];
   const promotionsItems = [
     { name: 'GEO', href: `/property/promotion/geo/${propertyId}`, icon: Globe, userLevels: [4, 3, 2, 1, 0] },
