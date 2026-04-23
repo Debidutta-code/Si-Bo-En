@@ -1,6 +1,6 @@
-import { ISpaDates, ISpaSlot, ISpaUser } from ".";
-import { CurrencyCode } from "../../tax-system/interfaces";
-import { ICSpaCatrgory, ICSpaSubCategory } from "../../utils-management/types";
+import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
+import type { ISpaDates, ISpaUser } from ".";
+import type { ICSpaCatrgory, ICSpaSubCategory } from "@/pages/management/types";
 
 export interface ICSpaR {
     name: string;
@@ -57,6 +57,7 @@ export interface ISpaO extends ICSpaR {
 
 }
 export interface ISpa extends ICSpaR {
+    id:string;
     Category: ICSpaCatrgory;
     SubCategory: ICSpaSubCategory;
     User: {
@@ -64,14 +65,25 @@ export interface ISpa extends ICSpaR {
         firstName: string;
         lastName: string;
         email: string;
-    }
+    };
     AssignedSpas:{
         id:string;
         User:ISpaUser
     }[];
     isActive: boolean;
-
+    createdAt: string;
 }
 export interface ISpaWSlots extends ISpa {
     SpaDates: ISpaDates[];
 }
+// export interface ISpaUser {
+//     id: string;
+//     firstName: string;
+//     lastName: string;
+//     email: string;
+// }
+
+// export interface ICSpaUserAssignment {
+//     userId: string;
+//     spaId: string;
+// }
