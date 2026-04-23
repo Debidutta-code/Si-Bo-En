@@ -116,7 +116,6 @@ const buildPromotions = (
     .map((p: any) => ({ id: p.id as string, promotionType: "normal" }));
 };
 
-// ─── Component ──────────────────────────────────────────────────────────────
 
 const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
   const { t } = useTranslation();

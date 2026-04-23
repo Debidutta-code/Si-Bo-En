@@ -613,42 +613,19 @@ export class ReservationController {
     ): Promise<Response> {
         try {
             const reservationId = req.params.reservationId;
-
-            console.log(`\n${'='.repeat(60)}`);
-            console.log(`[CANCEL API] 🚨 Cancel Reservation API HIT`);
-            console.log(
-                `[CANCEL API] 📋 reservationId param: ${reservationId}`
-            );
-            console.log(
-                `[CANCEL API] 👤 Requested by user: ${(req as any).user?.id ?? 'unknown'}`
-            );
-            console.log(
-                `[CANCEL API] ⏰ Timestamp: ${new Date().toISOString()}`
-            );
-            console.log(`${'='.repeat(60)}`);
-
+            const cancellationReason = req.body.cancellationReason;
+            
             if (!reservationId) {
-                console.warn(
-                    `[CANCEL API] ⚠️ Missing reservationId in request params`
-                );
                 return res
                     .status(400)
                     .json(errorResponse('Reservation id is required'));
             }
 
             const serRes =
-                await this.reservationService.deleteReservation(reservationId);
-
-            console.log(
-                `[CANCEL API] 📤 Service response - success: ${serRes.success}, message: ${(serRes as any).message ?? 'N/A'}`
-            );
+                await this.reservationService.deleteReservation(reservationId , cancellationReason);
 
             return res.status(serRes.success ? 200 : 400).json(serRes);
         } catch (error) {
-            console.error(
-                `[CANCEL API] ❌ Unhandled exception in cancelReservation controller:`,
-                error
-            );
             if (error instanceof Error) {
                 return res
                     .status(500)

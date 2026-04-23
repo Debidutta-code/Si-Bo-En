@@ -181,7 +181,7 @@ export class RTReservationPushService {
                 'pushCommit incomingPayload:',
                 JSON.stringify(incomingPayload, null, 2)
             );
-            const roomsArray = incomingPayload.guests.roomsArray ?? [];
+            const roomsArray = incomingPayload?.guests?.roomsArray ?? [];
             const numberOfRooms = incomingPayload.numberOfRooms;
 
             // ── FIX 1: Use baseRatePerNight (room-only, per room) not totalAmount ──
@@ -352,8 +352,8 @@ export class RTReservationPushService {
                           // Fallback: no roomsArray — build from guests totals
                           buildRoomStay(
                               {
-                                  adults: incomingPayload.guests.adults,
-                                  children: incomingPayload.guests.children,
+                                  adults: incomingPayload?.guests?.adults||1,
+                                  children: incomingPayload?.guests?.children ||0,
                               },
                               0
                           ),

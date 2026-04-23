@@ -153,6 +153,7 @@ export class AgentBookingController {
         try {
             const agentId = req.agent?.id;
             const agencyId = req.agent?.agencyId;
+            const {cancellationReason} = req.body;
 
             if (!agentId || !agencyId) {
                 return res.status(401).json(
@@ -166,10 +167,7 @@ export class AgentBookingController {
                 return res.status(400).json(errorResponse("Reservation ID is required"));
             }
 
-            // TODO: Verify that the reservation belongs to this agency before canceling
-            // You might want to add a check in the service
-
-            const serviceRes = await this.reservationService.deleteReservation(reservationId);
+            const serviceRes = await this.reservationService.deleteReservation(reservationId,cancellationReason);
 
             return res.status(serviceRes.success ? 200 : 400).json(serviceRes);
         } catch (error) {

@@ -16,7 +16,6 @@ import {
     IGuestCheckInDetails,
     ICReservationPayload,
     DeviceType,
-    IBookingDetails,
     IAddonBreakdown,
     ICPricingBreakDown,
     IPropertyDetailsFromMiddleware,
@@ -579,22 +578,6 @@ export class ReservationService {
                 : errorResponse('Failed to create reservation');
         }
     }
-
-
-
-    // private async getPropertyIdByCode(
-    //     propertyCode: string
-    // ): Promise<string | null> {
-    //     try {
-    //         const property = await prisma.property.findUnique({
-    //             where: { propertyCode },
-    //             select: { id: true },
-    //         });
-    //         return property?.id || null;
-    //     } catch (error) {
-    //         return null;
-    //     }
-    // }
 
     public async getReservaltionByCode(
         reservationCode: string,
@@ -1418,14 +1401,10 @@ export class ReservationService {
 
 
     public async deleteReservation(
-        reservationId: string
+        reservationId: string,
+        cancellationReason: string,
     ): Promise<IApiResponse> {
         try {
-            console.log(`\n${'='.repeat(60)}`);
-            console.log(`[CANCEL RESERVATION] 🟢 Starting deleteReservation`);
-            console.log(`[CANCEL RESERVATION] 📋 reservationId: ${reservationId}`);
-            console.log(`${'='.repeat(60)}`);
-
             const reservation =
                 await this.reservationRepository.getReservationById(
                     reservationId
@@ -1435,18 +1414,13 @@ export class ReservationService {
                 return errorResponse('Reservation not found');
             }
 
-            // Generate dates for ARI increase
             const reservationDates = this.generateDateRange(
                 reservation.reservationStartDate,
                 reservation.reservationEndDate
             );
-
-            // ── REFUND FLOW ───────────────────────────────────────────────────────────
             let refundResult: { success: boolean; message: string; data?: any } | null = null;
 
             try {
-                console.log(`\n[CANCEL RESERVATION] 🔍 Looking up payment record for reservationId: ${reservationId}`);
-
                 const paymentRecord = await prisma.payment.findFirst({
                     where: { reservationId },
                     select: {
@@ -1462,14 +1436,12 @@ export class ReservationService {
                                 id: true,
                                 outletId: true,
                                 isActive: true,
-                                // sameDayRefund selected via 'as any' cast below
-                                // because Prisma client may not have it yet if only db push was run
+
                             },
                         },
                     },
                 });
 
-                console.log(`[CANCEL RESERVATION] 📄 Payment record:`, JSON.stringify(paymentRecord, null, 2));
 
                 if (!paymentRecord) {
                     console.warn(`[CANCEL RESERVATION] ⚠️  No payment record found. Skipping refund.`);
@@ -1526,9 +1498,6 @@ export class ReservationService {
                     'Refund processing encountered an unexpected error. Reservation was not cancelled.'
                 );
             }
-            // ── END REFUND FLOW ───────────────────────────────────────────────────────
-
-            // ── Integration check ─────────────────────────────────────────────────────
             const delPropConfig = await prisma.propertyConfigs.findUnique({
                 where: { propertyId: reservation.propertyId },
                 select: {
@@ -1546,7 +1515,6 @@ export class ReservationService {
                         ? 'pms'
                         : null;
 
-            // ── RT pushCancel ─────────────────────────────────────────────────────────
             if (activeIntegrationTypeD) {
                 const rtConfig = await RTIntegrationDao.getRTConfig(
                     reservation.propertyId,
@@ -1578,10 +1546,10 @@ export class ReservationService {
             const cancelledReservation =
                 await this.reservationRepository.deleteReservation(
                     reservationId,
-                    actualRefundAmount
+                    actualRefundAmount,
+                    cancellationReason
                 );
 
-            // ── Email + ARI + Loyalty decrement (non-blocking) ──────────────────────────
             const cancelNumberOfNights = Math.max(
                 1,
                 Math.ceil(
@@ -1591,66 +1559,26 @@ export class ReservationService {
                 )
             );
 
-            const emailBookingDetails: IBookingDetails = {
-                startDate: reservation.reservationStartDate.toISOString(),
-                endDate: reservation.reservationEndDate.toISOString(),
+            const emailBookingDetails: ICReservationPayloadForEmail = {
+                reservationStartDate: reservation.reservationStartDate.toISOString(),
+                reservationEndDate: reservation.reservationEndDate.toISOString(),
                 propertyCode: reservation.propertyCode || '',
                 hotelName: reservation.hotelName || '',
-                refundAmount: actualRefundAmount,
+                refundAmount: cancelledReservation.refundAmount,
                 roomTypeCode: reservation.roomTypeCode || '',
                 ratePlanCode: reservation.ratePlanCode || '',
                 numberOfRooms: reservation.finalPrice?.requestedRooms || 1,
                 numberOfNights: cancelNumberOfNights,
-                finalPrice: reservation.finalPrice || {
-                    totalAmount: reservation.amount,
-                    amountBeforeTax: reservation.amount,
-                    taxedAmount: 0,
-                    totalAddonAmount: 0,
-                    totalPromotionAmount: 0,
-                    currentChargeableAmount: reservation.amount,
-                    latterpayableAmount: 0,
-                    promoCodeDiscount: 0,
-                    loyalityDiscount: 0,
-                    currencyCode: reservation.currencyCode,
-                    dailyPriceBrakeDown: [],
-                    taxBrakeDown: [],
-                    addonBrakeDown: [],
-                    promotionBrakeDown: [],
-                },
-                promoCode: null,
+                ratePlanName: reservation.ratePlanName || '',
+                platforms:reservation.platforms,
+                promoCode:reservation.promo?.code || '',
+                roomName: reservation.roomName || '',
+                finalPrice: reservation.finalPrice,
                 currencyCode: reservation.currencyCode,
                 bookingSource: reservation.bookingSource,
                 bookingUserEmail: reservation.bookingUserEmail,
                 bookingUserPhone: reservation.bookingUserPhone || '',
-                guests: {
-                    adults: Array.isArray(reservation.guests)
-                        ? reservation.guests.filter(
-                            (g: any) => g.type === 'adult'
-                        ).length
-                        : 1,
-                    children: Array.isArray(reservation.guests)
-                        ? reservation.guests.filter(
-                            (g: any) => g.type === 'child'
-                        ).length
-                        : 0,
-                    rooms: 1,
-                },
-                guestDetails: Array.isArray(reservation.guests)
-                    ? reservation.guests.map((guest: any) => ({
-                        type: guest.type,
-                        firstName: guest.firstName,
-                        lastName: guest.lastName,
-                        dateOfBirth: guest.dateOfBirth || guest.dob,
-                        email:
-                            guest.type === 'adult'
-                                ? reservation.bookingUserEmail
-                                : undefined,
-                        phone:
-                            guest.type === 'adult'
-                                ? reservation.bookingUserPhone || undefined
-                                : undefined,
-                    }))
-                    : [],
+                guestDetails:reservation.guests,
                 paymentMethod: reservation.paymentMethod,
                 bookingCode: reservation.bookingCode,
                 reservationId: reservation.id,
@@ -1661,7 +1589,7 @@ export class ReservationService {
             // Build non-blocking tasks array
             const cancelNonBlockingTasks: Promise<any>[] = [
                 // Cancellation email
-                // this.emailService.reservationCancelEmail(emailBookingDetails),
+                this.emailService.reservationCancelEmail(emailBookingDetails),
                 // Loyalty decrement (non-blocking)
                 this.loyalityGuestRepo.handlePostCancelLoyalty(
                     reservation.bookingUserEmail,

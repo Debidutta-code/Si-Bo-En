@@ -11,12 +11,12 @@ import {
   Shield,
   AlertTriangle,
   Layers,
+  FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -59,6 +59,7 @@ interface ILoader {
 interface LevelForm {
   level: number;
   discountPercentage: number;
+  noOfReservations: number;
 }
 
 const TIER_COLORS: Record<number, { bg: string; badge: string; icon: string }> = {
@@ -86,15 +87,15 @@ const getTierStyle = (level: number) =>
     icon: "text-violet-500",
   };
 
-const TIER_LABELS: Record<number, string> = {
-  1: "Bronze",
-  2: "Silver",
-  3: "Gold",
-  4: "Platinum",
-  5: "Diamond",
-};
+// const TIER_LABELS: Record<number, string> = {
+//   1: "Bronze",
+//   2: "Silver",
+//   3: "Gold",
+//   4: "Platinum",
+//   5: "Diamond",
+// };
 
-const getTierLabel = (level: number) => TIER_LABELS[level] ?? `Level ${level}`;
+const getTierLabel = (level: number) => `Level ${level}`;
 
 export default function LoyaltyLevels() {
   const { creationId } = useParams();
@@ -118,6 +119,7 @@ export default function LoyaltyLevels() {
   const [form, setForm] = useState<LevelForm>({
     level: 1,
     discountPercentage: 0,
+    noOfReservations: 1,
   });
 
   useEffect(() => {
@@ -177,7 +179,7 @@ export default function LoyaltyLevels() {
         ? Math.max(...levels.map((l) => l.level)) + 1
         : 1;
     setEditingLevel(null);
-    setForm({ level: nextLevel, discountPercentage: 0 });
+    setForm({ level: nextLevel, discountPercentage: 0 ,noOfReservations: 1});
     setIsFormOpen(true);
   };
 
@@ -186,6 +188,7 @@ export default function LoyaltyLevels() {
     setForm({
       level: level.level,
       discountPercentage: level.discountPercentage,
+      noOfReservations: level.noOfReservations,
     });
     setIsFormOpen(true);
   };
@@ -208,6 +211,7 @@ export default function LoyaltyLevels() {
         level: form.level,
         discountPercentage: form.discountPercentage,
         creationLoyaltyConfigId: programId,
+        noOfReservations: form.noOfReservations,
       };
 
       const response = editingLevel
@@ -367,9 +371,9 @@ export default function LoyaltyLevels() {
                         <CardTitle className="text-base">
                           {getTierLabel(level.level)}
                         </CardTitle>
-                        <CardDescription className="text-xs">
+                        {/* <CardDescription className="text-xs">
                           Level {level.level}
-                        </CardDescription>
+                        </CardDescription> */}
                       </div>
                     </div>
                     <Badge
@@ -382,7 +386,8 @@ export default function LoyaltyLevels() {
                 </CardHeader>
 
                 <CardContent>
-                  <div className="flex items-center gap-2 mb-4 p-3 bg-white/60 rounded-lg">
+                 <div className="flex items-center justify-between gap-2 mb-4 p-3 bg-white/60 rounded-lg">
+                   <div className="flex items-center gap-2">
                     <Percent className="w-4 h-4 text-muted-foreground shrink-0" />
                     <div>
                       <p className="text-xs text-muted-foreground leading-none mb-0.5">
@@ -393,6 +398,18 @@ export default function LoyaltyLevels() {
                       </p>
                     </div>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <FileText className="w-4 h-4 text-muted-foreground shrink-0" />
+                    <div>
+                      <p className="text-xs text-muted-foreground leading-none mb-0.5">
+                      No. of Reservations
+                    </p>
+                    <p className="text-xl font-bold leading-none">
+                      {level.noOfReservations}
+                    </p>
+                    </div>
+                  </div>
+                 </div>
 
                   <div className="flex gap-2">
                     <Button
@@ -494,6 +511,35 @@ export default function LoyaltyLevels() {
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
                   %
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="no-of-reservations">
+                Number of Reservations{" "}
+                <span className="text-muted-foreground font-normal text-xs">
+                  (0–100)
+                </span>
+              </Label>
+              <div className="relative">
+                <Input
+                  id="no-of-reservations"
+                  type="number"
+                  min={1}
+                  step={1}
+                  value={form.noOfReservations}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      noOfReservations: parseFloat(e.target.value) || 0,
+                    }))
+                  }
+                  placeholder="e.g. 10"
+                  className="pr-8"
+                />
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                  reservations
                 </span>
               </div>
             </div>

@@ -297,7 +297,6 @@ const BookingReviewPage = () => {
     }
     return g;
   });
-  console.log(bookingDetails, "bookingDetails")
   const handleConfirmBooking = async () => {
     setLoading(true);
     setError(null);
@@ -418,8 +417,6 @@ const BookingReviewPage = () => {
 
       // Resolve outletId from payment-details API response
       const outletId = bankDetails?.selectedPaymentIntegrations?.outletId ?? null;
-      console.log("🏪 [FRONTEND DEBUG] Resolved outletId from payment-details API:", outletId);
-      console.log("🔍 [FRONTEND DEBUG] bankDetails.selectedPaymentIntegrations:", JSON.stringify(bankDetails?.selectedPaymentIntegrations, null, 2));
 
       const ngeniusPayload: {
         action: "SALE";
@@ -449,7 +446,6 @@ const BookingReviewPage = () => {
         propertyCode: searchParams.get("code") || undefined,
       };
 
-      // Only include outletId if it's actually present — backend will look it up from DB otherwise
       if (outletId) {
         ngeniusPayload.outletId = outletId;
       }

@@ -42,15 +42,8 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            reason,
+            cancellationReason:reason,
             bookingCode,
-            property,
-            roomTypeCode,
-            reservationStartDate,
-            reservationEndDate,
-            amount,
-            currencyCode,
-            ...bookingData, // 👈 includes email, guestDetails, hotelName etc. if present
           }),
         }
       );
@@ -90,16 +83,13 @@ const CancelModal: FC<Props> = ({ bookingData, onClose, onCancel }) => {
 console.log("property",property)
 
   useEffect(() => {
-    // Disable background scroll
     document.body.classList.add("overflow-hidden");
 
     return () => {
-      // Re-enable scroll when modal unmounts
       document.body.classList.remove("overflow-hidden");
     };
   }, []);
-    const getCurrencySymbol = (code: string) =>
-    currencies.find((c) => c.code === code)?.symbol ?? code;
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 overflow-y-auto py-8">
       <div className="bg-white rounded-xl shadow-lg w-full max-w-xl p-6 space-y-6 relative max-h-[90vh] overflow-y-auto">
@@ -137,7 +127,7 @@ console.log("property",property)
             </div>
             <div className="flex items-center gap-2">
               <FaMoneyBill style={{ color: colors.primaryColor }} />
-              <span>{t("CancelModal.total")} {getCurrencySymbol(currencyCode)} {amount.toLocaleString()}</span>
+              <span>{t("CancelModal.total")} {currencyCode} {amount.toLocaleString()}</span>
             </div>
           </div>
         </div>
@@ -149,7 +139,7 @@ console.log("property",property)
             <p className="flex justify-between">
               <span>{t("CancelModal.originalPayment")}:</span>
               <span className="font-semibold text-gray-800">
-                {getCurrencySymbol(currencyCode)} {amount.toLocaleString()}
+                {currencyCode} {amount.toLocaleString()}
               </span>
             </p>
           </div>

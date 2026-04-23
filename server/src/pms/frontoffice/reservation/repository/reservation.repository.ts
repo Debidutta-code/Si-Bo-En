@@ -270,6 +270,16 @@ export class ReservationRepository {
                             promotionBrakeDown:true,
                         }
                     },
+                    promo:{
+                        select:{
+                            id:true,
+                            code:true,
+                            discountType:true,
+                            discountValue:true,
+                            currencyCode:true,
+                            
+                        }
+                    },
                     property: {
                         select: {id:true, propertyName: true, propertyCode: true,propertyEmail:true,propertyContact:true,description:true,image:true },
                     },
@@ -341,6 +351,16 @@ export class ReservationRepository {
                         }
                     },
                     addOns: true,
+                    promo:{
+                        select:{
+                            id:true,
+                            code:true,
+                            discountType:true,
+                            discountValue:true,
+                            currencyCode:true,
+                            
+                        }
+                    },
                     reservationPromoCodes:true,
                     reservationGuests: true,
                     property: {
@@ -412,6 +432,16 @@ export class ReservationRepository {
                         }
                     },
                     addOns: true,
+                    promo:{
+                        select:{
+                            id:true,
+                            code:true,
+                            discountType:true,
+                            discountValue:true,
+                            currencyCode:true,
+                            
+                        }
+                    },
                     reservationPromoCodes:true,
                     reservationGuests: true,
                     property: {
@@ -474,6 +504,16 @@ export class ReservationRepository {
                             DailyPriceBrakeDown: true,
                             taxBrakeDown: true,
                             promotionBrakeDown: true,
+                        }
+                    },
+                    promo:{
+                        select:{
+                            id:true,
+                            code:true,
+                            discountType:true,
+                            discountValue:true,
+                            currencyCode:true,
+                            
                         }
                     },
                     addOns: true,
@@ -544,6 +584,16 @@ export class ReservationRepository {
                     addOns: true,
                     reservationPromoCodes:true,
                     reservationGuests: true,
+                    promo:{
+                        select:{
+                            id:true,
+                            code:true,
+                            discountType:true,
+                            discountValue:true,
+                            currencyCode:true,
+                            
+                        }
+                    },
                     property: {
                         select: { id:true, propertyName: true, propertyCode: true,propertyEmail:true,propertyContact:true,description:true,image:true },
                     },
@@ -568,7 +618,8 @@ export class ReservationRepository {
 
     public async deleteReservation(
         reservationId: string,
-        refundAmount?: number
+        refundAmount?: number,
+        cancellationReason?: string
     ): Promise<IReservation> {
         try {
             return await prisma.reservation.update({
@@ -576,7 +627,8 @@ export class ReservationRepository {
                 data: {
                     bookingStatus: 'cancelled',
                     cancelledAt: new Date(),
-                    ...(refundAmount !== undefined && { refundAmount }),
+                    refundAmount:refundAmount,
+                    cancellationReason:cancellationReason,
                 },
                 include: { primaryGuest: true },
             });
@@ -602,6 +654,16 @@ export class ReservationRepository {
                             DailyPriceBrakeDown: true,
                             taxBrakeDown: true,
                             promotionBrakeDown: true,
+                        }
+                    },
+                    promo:{
+                        select:{
+                            id:true,
+                            code:true,
+                            discountType:true,
+                            discountValue:true,
+                            currencyCode:true,
+                            
                         }
                     },
                     reservationPromoCodes:true,
@@ -650,6 +712,16 @@ export class ReservationRepository {
                         }
                     },
                     reservationPromoCodes:true,
+                    promo:{
+                        select:{
+                            id:true,
+                            code:true,
+                            discountType:true,
+                            discountValue:true,
+                            currencyCode:true,
+                            
+                        }
+                    },
                     reservationGuests: true,
                     property: {
                         select: { id:true, propertyName: true, propertyCode: true,propertyEmail:true,propertyContact:true,description:true,image:true },

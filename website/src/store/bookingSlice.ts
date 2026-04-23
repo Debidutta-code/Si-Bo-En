@@ -112,7 +112,7 @@ interface BookingState {
   startDate: string;
   endDate: string;
   guests: Guests;
-  promocode:string;
+  promocode: string;
   location: string;
   roomId?: string;
   currency?: string;
@@ -135,7 +135,7 @@ interface BookingState {
   bookingSource?: string;
   selectedAddons?: any[];
   selectedPromotions?: any[];
-  paymentMethod?:string;
+  paymentMethod?: string;
   loyalityMemberEmail?: string;
 }
 
@@ -153,7 +153,7 @@ const initialState: BookingState = {
       childAges: [],
     }],
   },
-  promocode:"",
+  promocode: "",
   location: "",
   roomId: undefined,
   currency: undefined,
@@ -169,7 +169,7 @@ const initialState: BookingState = {
   bookingCode: undefined,
   PropertyDetails: undefined,
   bookingSource: "direct",
-  paymentMethod:"pay_at_hotel",
+  paymentMethod: "pay_at_hotel",
   loyalityMemberEmail: undefined,
 };
 
@@ -187,24 +187,32 @@ const bookingSlice = createSlice({
       };
     },
 
-setFullBookingDetails(state, action: PayloadAction<any>) {
-  return {
-    ...state, // preserves guests, dates, PropertyCode, PropertyDetails, bookingEngineColor
-    bookingCode:        action.payload.bookingCode        ?? state.bookingCode,
-    bookingStatus:      action.payload.bookingStatus      ?? state.bookingStatus,
-    guestDetails:       action.payload.guestDetails       ?? state.guestDetails,
-    finalPrice:         action.payload.finalPrice         ?? state.finalPrice,
-    roomName:           action.payload.roomName           ?? state.roomName,
-    roomTypeCode:       action.payload.roomTypeCode       ?? state.roomTypeCode,
-    ratePlanCode:       action.payload.ratePlanCode       ?? state.ratePlanCode,
-    numberOfRooms:      action.payload.numberOfRooms      ?? state.numberOfRooms,
-    selectedAddons:     action.payload.selectedAddons     ?? state.selectedAddons,
-    selectedPromotions: action.payload.selectedPromotions ?? state.selectedPromotions,
-    paymentMethod:      action.payload.paymentMethod      ?? state.paymentMethod,
-    email:              action.payload.bookingUserEmail   ?? state.email,
-    phone:              action.payload.bookingUserPhone   ?? state.phone,
-  };
-},
+    setFullBookingDetails(state, action: PayloadAction<any>) {
+      return {
+        ...state,
+        bookingCode: action.payload.bookingCode ?? state.bookingCode,
+        bookingStatus: action.payload.bookingStatus ?? state.bookingStatus,
+        guestDetails: action.payload.guestDetails ?? state.guestDetails,
+        finalPrice: action.payload.finalPrice ?? state.finalPrice,
+        roomName: action.payload.roomName ?? state.roomName,
+        roomTypeCode: action.payload.roomTypeCode ?? state.roomTypeCode,
+        ratePlanCode: action.payload.ratePlanCode ?? state.ratePlanCode,
+        numberOfRooms: action.payload.numberOfRooms ?? state.numberOfRooms,
+        selectedAddons: action.payload.selectedAddons ?? state.selectedAddons,
+        selectedPromotions: action.payload.selectedPromotions ?? state.selectedPromotions,
+        paymentMethod: action.payload.paymentMethod ?? state.paymentMethod,
+        loyalityMemberEmail: action.payload.loyalityMemberEmail ?? state.loyalityMemberEmail,
+
+        // ✅ Handle both shapes: API response uses bookingUserEmail, onSubmit dispatch uses email
+        email: action.payload.bookingUserEmail  // from reservation API response
+          ?? action.payload.email             // from onSubmit dispatch in Rooms.tsx
+          ?? state.email,
+
+        phone: action.payload.bookingUserPhone  // from reservation API response
+          ?? action.payload.phone             // from onSubmit dispatch in Rooms.tsx
+          ?? state.phone,
+      };
+    },
     clearBookingContext() {
       return initialState;
     },
@@ -217,7 +225,7 @@ setFullBookingDetails(state, action: PayloadAction<any>) {
     setSenderUrl(state, action: PayloadAction<string>) {
       state.senderUrl = action.payload;
     },
-    setBookingSource(state, action: PayloadAction<string>) { 
+    setBookingSource(state, action: PayloadAction<string>) {
       state.bookingSource = action.payload;
     },
     clearSenderUrl(state) {

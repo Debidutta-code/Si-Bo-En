@@ -121,6 +121,14 @@ export interface IReservationWithAllDetails extends IReservation {
   property: IPropertyDetails;
   reservationPromoCodes?: IReservationPromoCodes[];
   reservationGuests?: IReservationGuest[];
+  promo: IPromoCode | null;
+}
+interface IPromoCode {
+  id: string,
+  code: string,
+  discountType: DiscountType,
+  discountValue: number,
+  currencyCode: CurrencyCode,
 }
 export interface IReservationPromoCodes {
   id: string;
@@ -360,7 +368,7 @@ export interface IReservationPromotion extends IReservationPromotionCreate {
   id: string;
 }
 // ==================== ENUMS ====================
-export type ReservationStatus = "pending" | "confirmed" | "cancelled" | "modified"|"expired"|"no_show"|"checked_in"|"checked_out";
+export type ReservationStatus = "pending" | "confirmed" | "cancelled" | "modified" | "expired" | "no_show" | "checked_in" | "checked_out";
 export type userIdentityCardType = "passport"
   | "drivers_license"
   | "national_id"
@@ -398,7 +406,7 @@ export interface ICReservationPayload {
   bankDetails?: IBankDetails;
   roomName: string;
   roomTypeCode: string;
-  guests: IGuestdistribution;
+  guests?: IGuestdistribution;
   bookingUserEmail: string;
   bookingUserPhone: string;
   numberOfRooms: number;
@@ -409,8 +417,8 @@ export interface ICReservationPayload {
   ratePlanCode: string;
   paymentMethod: string;
   bookingSource: BookingSource;
-  selectedPromotions: ISelectedPromotions[];
-  selectedAddons: ISelectedAddons[];
+  selectedPromotions?: ISelectedPromotions[];
+  selectedAddons?: ISelectedAddons[];
   platforms: Platforms;
   agencyId?: string;
   ngeniusOrderRef?: string;
@@ -423,7 +431,8 @@ export interface ICReservationPayloadForEmail extends ICReservationPayload {
   bookedAt: string;
   bookingStatus: ReservationStatus;
   ratePlanName: string;
-
+  refundAmount?: number;
+  extraAmountToPay?: number;
 }
 
 export interface IBankDetails {
