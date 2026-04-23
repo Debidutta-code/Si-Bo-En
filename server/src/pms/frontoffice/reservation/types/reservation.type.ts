@@ -415,7 +415,7 @@ export interface ICReservationPayload {
   currencyCode: CurrencyCode;
   guestDetails: IGuestDetails[];
   ratePlanCode: string;
-  paymentMethod: string;
+  paymentMethod: PaymentMethod;
   bookingSource: BookingSource;
   selectedPromotions?: ISelectedPromotions[];
   selectedAddons?: ISelectedAddons[];
