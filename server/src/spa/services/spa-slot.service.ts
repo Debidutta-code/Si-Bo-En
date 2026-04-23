@@ -1,4 +1,4 @@
-import { IApiResponse, successResponse, errorResponse } from "../../utils";
+import { IApiResponse, successResponse, errorResponse, toUTC } from "../../utils";
 import { SpaDatesRepo, SpaSlotsRepo } from "../repository";
 import { ICSpaDatesR, ICSpaDatesS, ICSpaSlotS } from "../types/spa-slot.type";
 
@@ -63,13 +63,55 @@ export class SpaSlotsServ {
         this.spaDatesRepo = new SpaDatesRepo();
 
     }
-    public async createSpaSlots(data: ICSpaSlotS, spaDateId: string): Promise<IApiResponse> {
+    public async createSpaSlots(data: ICSpaSlotS[], spaDateId: string): Promise<IApiResponse> {
         try {
             const isDateExists = await this.spaDatesRepo.getDateById(spaDateId);
             if (!isDateExists) {
                 return errorResponse("Spa date does not exist", "Spa date not found");
             }
-            const createdSlot = await this.spaSlotsRepo.createSlots({...data, spaDateId});
+            
+            const existingSlots = isDateExists.Slots || [];
+            
+            const slotsData = data.map(slot => ({ 
+                ...slot, 
+                spaDateId,
+                startTime: toUTC(slot.startTime), 
+                endTime: slot.endTime ? toUTC(slot.endTime) : null 
+            }));
+
+            // Check for overlaps
+            for (let i = 0; i < slotsData.length; i++) {
+                const pStart = new Date(slotsData[i].startTime).getTime();
+                const pEndMatch = slotsData[i].endTime;
+                if (!pEndMatch) continue;
+                const pEnd = new Date(pEndMatch).getTime();
+
+                // Check against existing slots
+                for (const eSlot of existingSlots) {
+                    if (!eSlot.endTime) continue;
+                    const eStart = new Date(eSlot.startTime).getTime();
+                    const eEnd = new Date(eSlot.endTime).getTime();
+
+                    // Check for overlap condition: (StartA < EndB) and (EndA > StartB)
+                    if (pStart < eEnd && pEnd > eStart) {
+                        return errorResponse("Overlapping slots", "Slot time overlaps with existing slots");
+                    }
+                }
+
+                // Check against other proposed slots internally
+                for (let j = i + 1; j < slotsData.length; j++) {
+                    const oStart = new Date(slotsData[j].startTime).getTime();
+                    const oEndMatch = slotsData[j].endTime;
+                    if (!oEndMatch) continue;
+                    const oEnd = new Date(oEndMatch).getTime();
+
+                    if (pStart < oEnd && pEnd > oStart) {
+                        return errorResponse("Overlapping proposed slots", "The slots you are trying to add overlap with each other");
+                    }
+                }
+            }
+
+            const createdSlot = await this.spaSlotsRepo.createSlots(slotsData);
             return successResponse("Created spa slot successfully", createdSlot);
         } catch (error) {
             if (error instanceof Error) {
@@ -117,7 +159,7 @@ export class SpaSlotsServ {
             if (!isSlotExists) {
                 return errorResponse("Spa slot does not exist", "Spa slot not found");
             }
-            if (isSlotExists.isBooked) {
+            if (!isSlotExists.isBooked) {
                 return errorResponse("Spa slot is available", "Spa slot already booked");
             }
             const updatedSlot = await this.spaSlotsRepo.markSlotAsAvailable(id);

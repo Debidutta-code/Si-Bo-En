@@ -1,6 +1,7 @@
 import { SpaDates,SpaSlotsServ } from "../services";
 import { CustomRequest, IApiResponse, errorResponse, toUTC } from "../../utils";
 import { Response } from "express";
+import { ICSpaSlotS } from "../types";
 
 export class SpaDateController {
     private spaDateService: SpaDates;
@@ -68,13 +69,15 @@ export class SpaSlotController {
     public async createSlots(req: CustomRequest, res: Response): Promise<Response<IApiResponse>> {
         try {
             const spaDateId = req.params.id;
-            const data = req.body;
-            if (!data || !Array.isArray(data.slots) || data.slots.length === 0) {
+            const data:ICSpaSlotS[] = req.body;
+            console.log(req.body)
+            if (!data || !Array.isArray(data) || data.length === 0) {
                 return res.status(400).json(errorResponse("Slots are required for creating spa slots"));
             }
-            const response = await this.spaSlotService.createSpaSlots(data.slots, spaDateId);
+            const response = await this.spaSlotService.createSpaSlots(data, spaDateId);
             return res.status(response.success ? 200 : 400).json(response);
         } catch (error) {
+            console.log(error)
             if (error instanceof Error) {
                 return res.status(500).json(errorResponse("Failed to create spa slots", error.message));
             }

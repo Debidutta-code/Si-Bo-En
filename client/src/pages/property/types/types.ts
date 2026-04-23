@@ -149,8 +149,7 @@ export interface HotelManagerMapping {
     hotelManagers: IUnmappedUsers[];
     staffs: IUnmappedUsers[];
     revenueManagers: IUnmappedUsers[];
-    frontDesks: IUnmappedUsers[];
-    housekeeping: IUnmappedUsers[];
+    spaManagers: IUnmappedUsers[];
 }
 export interface IAssignUser {
     creationId: string;

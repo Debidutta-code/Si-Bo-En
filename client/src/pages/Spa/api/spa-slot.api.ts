@@ -55,7 +55,7 @@ export const getSpaForDateRange = async (spaId: string, dateData: IgetInDates) =
 };
 
 
-export const createSpaSlots = async (spaDateId: string, slotData: ICSpaSlotS) => {
+export const createSpaSlots = async (spaDateId: string, slotData: ICSpaSlotS[]) => {
     try {
         const response = await axiosInstance.post(`/spa/slots/slots/${spaDateId}`, slotData);
         return response.data;

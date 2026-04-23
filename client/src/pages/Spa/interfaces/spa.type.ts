@@ -1,5 +1,5 @@
 import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
-import type { ISpaDates } from ".";
+import type { ISpaDates, ISpaUser } from ".";
 import type { ICSpaCatrgory, ICSpaSubCategory } from "@/pages/management/types";
 
 export interface ICSpaR {
@@ -65,10 +65,25 @@ export interface ISpa extends ICSpaR {
         firstName: string;
         lastName: string;
         email: string;
-    }
+    };
+    AssignedSpas:{
+        id:string;
+        User:ISpaUser
+    }[];
     isActive: boolean;
     createdAt: string;
 }
 export interface ISpaWSlots extends ISpa {
     SpaDates: ISpaDates[];
 }
+// export interface ISpaUser {
+//     id: string;
+//     firstName: string;
+//     lastName: string;
+//     email: string;
+// }
+
+// export interface ICSpaUserAssignment {
+//     userId: string;
+//     spaId: string;
+// }

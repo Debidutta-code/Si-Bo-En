@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import  { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -9,36 +9,62 @@ import type { ICSpaSlotS } from '../interfaces/spa-slot.type';
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (data: ICSpaSlotS) => void;
+  onSave: (data: ICSpaSlotS[]) => void;
   selectedDate: Date | null;
+  serviceTime: number;
 }
 
-export default function SpaSlotDialog({ isOpen, onClose, onSave, selectedDate }: Props) {
-  const [start, setStart] = useState('');
-  const [end, setEnd] = useState('');
+export default function SpaSlotDialog({ isOpen, onClose, onSave, selectedDate, serviceTime }: Props) {
+  const [startTime, setStartTime] = useState('');
+  const [numberOfSlots, setNumberOfSlots] = useState(1);
 
   useEffect(() => {
     if (isOpen) {
-      setStart('');
-      setEnd('');
+      setStartTime('');
+      setNumberOfSlots(1);
     }
   }, [isOpen]);
 
   const handleSave = () => {
-    if (!start || !selectedDate) return;
+    if (!startTime || !selectedDate) return;
     
-    const [sh, sm] = start.split(':').map(Number);
-    const startTime = new Date(selectedDate);
-    startTime.setHours(sh, sm, 0, 0);
+    const [sh, sm] = startTime.split(':').map(Number);
 
-    let endTime: Date | null = null;
-    if (end) {
-      const [eh, em] = end.split(':').map(Number);
-      endTime = new Date(selectedDate);
-      endTime.setHours(eh, em, 0, 0);
+    // Create UTC-agnostic timestamps locally bypassing exact Date-offset conversions
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth();
+    const date = selectedDate.getDate();
+
+    const newSlots: ICSpaSlotS[] = [];
+
+    // The Date object creates a local browser-timezone string. 
+    // We calculate offsets carefully here if sending to the server, but since your
+    // server already does `toUTC(slot.startTime)`, we should just send standard local datetime objects.
+    let currentStart = new Date(year, month, date, sh, sm, 0, 0);
+
+    for (let i = 0; i < numberOfSlots; i++) {
+        // Calculate end time
+        const end = new Date(currentStart);
+        end.setMinutes(end.getMinutes() + serviceTime);
+        
+        // Strip the timezone offset back manually using Date.UTC string representation so
+        // that when node.js reads it on the backend, it reads exactly the digits passed without mutating the offset.
+        const startString = `${currentStart.getFullYear()}-${String(currentStart.getMonth() + 1).padStart(2,'0')}-${String(currentStart.getDate()).padStart(2,'0')}T${String(currentStart.getHours()).padStart(2,'0')}:${String(currentStart.getMinutes()).padStart(2,'0')}:00.000Z`;
+        
+        const endString = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2,'0')}-${String(end.getDate()).padStart(2,'0')}T${String(end.getHours()).padStart(2,'0')}:${String(end.getMinutes()).padStart(2,'0')}:00.000Z`;
+
+        newSlots.push({
+           // @ts-ignore
+           startTime: startString,
+           // @ts-ignore
+           endTime: endString,
+           isBooked: false
+        });
+
+        currentStart = new Date(end); // Setup for next iteration
     }
 
-    onSave({ startTime, endTime, isBooked: false });
+    onSave(newSlots);
     onClose();
   };
 
@@ -46,21 +72,28 @@ export default function SpaSlotDialog({ isOpen, onClose, onSave, selectedDate }:
     <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add Slot for {selectedDate ? format(selectedDate, 'MMM dd, yyyy') : ''}</DialogTitle>
+          <DialogTitle>Add Slots for {selectedDate ? format(selectedDate, 'MMM dd, yyyy') : ''}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4 py-4">
            <div className="space-y-2">
-             <Label>Start Time (Required)</Label>
-             <Input type="time" value={start} onChange={e => setStart(e.target.value)} required />
+             <Label>First Slot Start Time (Required)</Label>
+             <Input type="time" value={startTime} onChange={e => setStartTime(e.target.value)} required />
            </div>
            <div className="space-y-2">
-             <Label>End Time (Optional)</Label>
-             <Input type="time" value={end} onChange={e => setEnd(e.target.value)} />
+             <Label>Number of Consecutive Slots ({serviceTime} mins each)</Label>
+             <Input type="number" min={1} max={24} value={numberOfSlots} onChange={e => setNumberOfSlots(Number(e.target.value))} />
            </div>
+           {startTime && (
+               <div className="text-xs text-gray-500 mt-2 p-2 bg-gray-50 rounded">
+                   This will generate {numberOfSlots} slot(s), auto-calculating {serviceTime} minute intervals ending at {
+                      format(new Date(new Date(new Date(selectedDate || new Date()).setHours(Number(startTime.split(':')[0]), Number(startTime.split(':')[1]), 0, 0)).getTime() + numberOfSlots * serviceTime * 60000), 'p')
+                   }.
+               </div>
+           )}
         </div>
         <DialogFooter>
            <Button variant="outline" onClick={onClose}>Cancel</Button>
-           <Button onClick={handleSave} disabled={!start}>Add Slot</Button>
+           <Button onClick={handleSave} disabled={!startTime || numberOfSlots < 1}>Add Slots</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

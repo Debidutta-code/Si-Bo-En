@@ -1,11 +1,13 @@
 import  { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { MoreVertical, Plus, Edit, Trash, CalendarPlus, X } from 'lucide-react';
+import { MoreVertical, Plus, Edit, Trash, CalendarPlus, X, Eye, UserPlus } from 'lucide-react';
 import type { ILoader } from '../dashboard/interface';
 import type { ISpa, ICSpaC, IUSpaR } from './interfaces/spa.type';
 import { getSpaService, createSpaService, updateSpaService, deleteSpaService } from './services/spa.services';
 import { getAllSpaCategoryService, getAllSpaSubCategoriesService } from '../management/services/spa.services';
 import type { ISpaCategory, ISpaSubCategory } from '../management/types';
+import { getSpaUsersForPropertyService, assignSpaToUserService } from './services';
+import type { ISpaUser } from './interfaces'; // Assume this has a basic user type or we can define it inline
 
 // UI Components
 import { Button } from '@/components/ui/button';
@@ -22,6 +24,8 @@ import { currencies } from '@/components/currency-code/cuurency';
 import type { CurrencyCode } from '@/components/currency-code/currency-code.type';
 import { format } from 'date-fns';
 import SpaCalendar from './components/SpaCalendar';
+import SpaViewDialog from './components/SpaViewDialog';
+import SpaAssignUserDialog from './components/SpaAssignUserDialog';
 
 export default function Spa() {
   const { propertyId, spaId } = useParams();
@@ -31,6 +35,11 @@ export default function Spa() {
   const [spas, setSpas] = useState<ISpa[]>([]);
   const [categories, setCategories] = useState<ISpaCategory[]>([]);
   const [subCategories, setSubCategories] = useState<ISpaSubCategory[]>([]);
+  const [spaUsers, setSpaUsers] = useState<ISpaUser[]>([]);
+
+  const [isViewOpen, setIsViewOpen] = useState(false);
+  const [isAssignOpen, setIsAssignOpen] = useState(false);
+  const [selectedUserForAssign, setSelectedUserForAssign] = useState<string>("");
   
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isEditOpen, setIsEditOpen] = useState(false);
@@ -66,14 +75,16 @@ export default function Spa() {
     if (!propertyId) return;
     setLoader({ isLoading: true, message: 'Fetching Spas...' });
     try {
-      const [spaRes, catRes, subCatRes] = await Promise.all([
+      const [spaRes, catRes, subCatRes, spaUserRes] = await Promise.all([
         getSpaService(propertyId),
         getAllSpaCategoryService(),
-        getAllSpaSubCategoriesService()
+        getAllSpaSubCategoriesService(),
+        getSpaUsersForPropertyService(propertyId)
       ]);
       if (spaRes.success) setSpas(spaRes.data);
       if (catRes.success) setCategories(catRes.data);
       if (subCatRes.success) setSubCategories(subCatRes.data);
+      if (spaUserRes.success) setSpaUsers(spaUserRes.data.level0Users);
     } catch (e) {
       console.error(e);
     } finally {
@@ -168,13 +179,41 @@ export default function Spa() {
     setIsDeleteOpen(true);
   };
 
+  const openView = (spa: ISpa) => {
+    setSelectedSpa(spa);
+    setIsViewOpen(true);
+  }
+
+  const openAssign = (spa: ISpa) => {
+    setSelectedSpa(spa);
+    setSelectedUserForAssign('');
+    setIsAssignOpen(true);
+  }
+
+  const handleAssignUser = async () => {
+    if (!selectedSpa || !selectedUserForAssign) return;
+    setLoader({ isLoading: true, message: 'Assigning User...' });
+    const res = await assignSpaToUserService((selectedSpa as any).id, selectedUserForAssign);
+    if (res.success) {
+      setIsAssignOpen(false);
+      fetchData();
+    }
+    setLoader({ isLoading: false, message: '' });
+  }
+
   if (loader.isLoading) return <Loader text={loader.message} />;
 
   // Detailed Spa Slot View
   if (spaId) {
+    const spaDetails = spas.find(s => s.id === spaId);
+    
     return (
      <div className="p-4 h-[calc(100vh-4rem)] bg-gray-50/50">
-        <SpaCalendar spaId={spaId} propertyId={propertyId || ''} />
+        {spaDetails ? (
+           <SpaCalendar spaId={spaId} propertyId={propertyId || ''} spaDetails={spaDetails} />
+        ) : (
+           <Loader text="Loading Spa details..." />
+        )}
      </div>
     );
   }
@@ -337,6 +376,12 @@ export default function Spa() {
                       <DropdownMenuItem onClick={() => navigate(`/property/spa/${propertyId}/${(spa as any).id}`)}>
                         <CalendarPlus className="mr-2 h-4 w-4" /> Add Date/Slot
                       </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => openView(spa)}>
+                        <Eye className="mr-2 h-4 w-4" /> View Details
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => openAssign(spa)}>
+                        <UserPlus className="mr-2 h-4 w-4" /> Assign User
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => openEdit(spa)}>
                         <Edit className="mr-2 h-4 w-4" /> Edit
                       </DropdownMenuItem>
@@ -445,7 +490,7 @@ export default function Spa() {
             <DialogTitle>Confirm Deletion</DialogTitle>
           </DialogHeader>
           <div className="py-4 text-red-600 font-semibold">
-            Are you sure you want to delete this Spa/Activity? 
+            Are you sure you want to delete this Spa/Activity?
             Warning: Clicking delete will remove all associated slots and dates!
           </div>
           <DialogFooter>
@@ -454,6 +499,24 @@ export default function Spa() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* View Details Dialog */}
+      <SpaViewDialog 
+        isOpen={isViewOpen} 
+        onClose={() => setIsViewOpen(false)} 
+        selectedSpa={selectedSpa} 
+      />
+      
+      {/* Assign User Dialog */}
+      <SpaAssignUserDialog 
+        isOpen={isAssignOpen} 
+        onClose={() => setIsAssignOpen(false)} 
+        selectedSpa={selectedSpa} 
+        spaUsers={spaUsers}
+        selectedUserForAssign={selectedUserForAssign}
+        setSelectedUserForAssign={setSelectedUserForAssign}
+        handleAssignUser={handleAssignUser}
+      />
 
       <ImageUploadModal
         isOpen={isImageUploadOpen}

@@ -99,6 +99,18 @@ export class SpaRepository {
                         include:{
                             Slots:true
                         }
+                    },
+                    AssignedSpas:{
+                        include:{
+                            User:{
+                                select:{
+                                    id: true,
+                                    firstName: true,
+                                    lastName: true,
+                                    email: true
+                                }
+                            }
+                        }
                     }
                 }
             })

@@ -2,7 +2,7 @@ model SpaDates {
     id          String     @id @default(uuid())
     date        DateTime   @map("date")
     spaModuleId String     @map("spa_module_id")
-    spaModule   Spa        @relation(fields: [spaModuleId], references: [id])
+    spaModule   Spa        @relation(fields: [spaModuleId], references: [id],onDelete: Cascade)
     Slots       SpaSlots[]
 
     @@unique([spaModuleId, date])
@@ -16,7 +16,7 @@ model SpaSlots {
     spaDateId String   @map("spa_date_id")
     isBooked  Boolean  @map("is_booked")
 
-    spaDate SpaDates @relation(fields: [spaDateId], references: [id])
+    spaDate SpaDates @relation(fields: [spaDateId], references: [id],onDelete: Cascade)
 
     @@map("spa_slots")
 }

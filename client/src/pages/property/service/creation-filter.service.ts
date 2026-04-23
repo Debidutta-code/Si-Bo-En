@@ -192,6 +192,8 @@ export async function getUsersForMapping() {
         const frontDesks = response.data.filter((user: any) => user.role === "front_desk")
         const housekeeping = response.data.filter((user: any) => user.role === "housekeeping")
         const customAdmins = response.data.filter((user: any) => user.role === "regional_admin")
+        const spaManagers = response.data.filter((user: any) => user.role === "spa_manager")
+
         return {
             success: true,
             message: "Fetched Users Successfully",
@@ -203,7 +205,8 @@ export async function getUsersForMapping() {
                 revenueManagers,
                 frontDesks,
                 housekeeping,
-                customAdmins
+                customAdmins,
+                spaManagers
             }
         }
     } catch (error: any) {

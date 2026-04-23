@@ -72,29 +72,33 @@ export default function PropertyPage() {
     const [propertyDetails, setPropertyDetails] = useState<IPropertyCreations | null>(null);
     const [isCreationCompleted, setIsCreationCompleted] = useState<boolean>(false);
     const [isDrafted, setIsDrafted] = useState<boolean>(false);
-    const roles = [{ value: "hotel_manager", label: "Hotel Manager" }, { value: "staff", label: "Staff" },];
+    const roles = [
+        { value: "hotel_manager", label: "Hotel Manager" },
+        { value: "staff", label: "Staff" },
+        { value: "spa_manager", label: "Spa Manager" },
+
+    ];
     const [selectedRole, setSelectedRole] = useState<string>(roles[0].value);
     const [selectedUser, setSelectedUser] = useState<string>('');
     const [users, setUsers] = useState<HotelManagerMapping>({
         hotelManagers: [],
         staffs: [],
         revenueManagers: [],
-        frontDesks: [],
-        housekeeping: []
+        spaManagers: []
     });
 
     // Add loading state for user assignment
     const [isAssigningUser, setIsAssigningUser] = useState<boolean>(false);
     const [isUpdateDialogOpen, setIsUpdateDialogOpen] = useState(false);
     const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false);
-    
+
     // Integration dialog state
     const [isIntegrationDialogOpen, setIsIntegrationDialogOpen] = useState(false);
     const [selectedPartner, setSelectedPartner] = useState<IMasterPartnersWProperty | null>(null);
     const [isPropertyConfigDialogOpen, setIsPropertyConfigDialogOpen] = useState(false);
     const [isViewDetailsDialogOpen, setIsViewDetailsDialogOpen] = useState(false);
     const [isManageFieldsDialogOpen, setIsManageFieldsDialogOpen] = useState(false);
-    
+
     const [updatePropertyDetails, setUpdatePropertyDetails] = useState<IUpdateCreation>({
         id: creationDetails.id,
         name: creationDetails.name,
@@ -142,10 +146,10 @@ export default function PropertyPage() {
 
     const fetchPartners = async (propertyId: string) => {
         try {
-            if(!user||user.role!="super_admin"){
+            if (!user || user.role != "super_admin") {
                 return;
             }
-            if(!propertyId)return
+            if (!propertyId) return
             const response = await getAllPartnerIntegrationsService(propertyId);
             if (response.success) {
                 setMasterPartners(response.data);
@@ -366,7 +370,7 @@ export default function PropertyPage() {
         try {
             const newStatus = !currentStatus;
             const response = await updatePropertyIntegrationStatusService(integrationId, newStatus);
-            
+
             if (response.success) {
                 toast.success(`Integration ${newStatus ? 'activated' : 'deactivated'} successfully`);
                 // Refresh partners to show updated status
@@ -378,7 +382,7 @@ export default function PropertyPage() {
             }
         } catch (error: any) {
             toast.error(error?.message || 'Failed to update integration status');
-        }finally{
+        } finally {
             setIsIntegrating(prev => ({ ...prev, [integrationId]: false }));
         }
     };
@@ -562,7 +566,7 @@ export default function PropertyPage() {
                                     onSelect={(e) => {
                                         e.preventDefault();
                                         setIsPropertyConfigDialogOpen(true);
-                                    }} 
+                                    }}
                                     className="cursor-pointer"
                                 >
                                     <Button variant={"secondary"}>
@@ -628,8 +632,8 @@ export default function PropertyPage() {
                                                                 {user.firstName} {user.lastName} {user.email && `(${user.email})`}
                                                             </SelectItem>
                                                         ))
-                                                    ) : selectedRole === "housekeeping" && users?.housekeeping?.length > 0 ? (
-                                                        users.housekeeping.map((user) => (
+                                                    ) : selectedRole === "spa_manager" && users?.spaManagers?.length > 0 ? (
+                                                        users.spaManagers.map((user) => (
                                                             <SelectItem key={user.id} value={user.id}>
                                                                 {user.firstName} {user.lastName} {user.email && `(${user.email})`}
                                                             </SelectItem>

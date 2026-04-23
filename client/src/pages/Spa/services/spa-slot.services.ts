@@ -45,7 +45,7 @@ export const getSpaForDateRangeService = async (spaId: string, dateData: IgetInD
     }
 };
 
-export const createSpaSlotsService = async (spaDateId: string, slotData: ICSpaSlotS) => {
+export const createSpaSlotsService = async (spaDateId: string, slotData: ICSpaSlotS[]) => {
     try {
         const result = await createSpaSlots(spaDateId, slotData);
         return result;

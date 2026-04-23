@@ -1,4 +1,4 @@
-import { ISpaDates, ISpaSlot } from ".";
+import { ISpaDates, ISpaSlot, ISpaUser } from ".";
 import { CurrencyCode } from "../../tax-system/interfaces";
 import { ICSpaCatrgory, ICSpaSubCategory } from "../../utils-management/types";
 
@@ -65,6 +65,10 @@ export interface ISpa extends ICSpaR {
         lastName: string;
         email: string;
     }
+    AssignedSpas:{
+        id:string;
+        User:ISpaUser
+    }[];
     isActive: boolean;
 
 }
