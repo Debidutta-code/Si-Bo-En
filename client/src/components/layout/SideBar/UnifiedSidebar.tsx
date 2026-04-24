@@ -41,7 +41,6 @@ interface NavItem {
   isPropertySpecific?: boolean;
 }
 
-// Navigation links configuration
 const navigation: NavItem[] = [
   { name: 'Dashboard', href: '/app', icon: Home, userLevels: [0, 1, 2, 3, 4] },
   { name: 'Properties', href: '/app/property', icon: Building, userLevels: [2, 3, 4] },
@@ -51,6 +50,8 @@ const navigation: NavItem[] = [
   { name: 'Manage Members', href: '/app/members', icon: Users, userLevels: [4, 3, 2, 1] },
   { name: 'Access Control', href: '/app/access-control', icon: Shield, userLevels: [4] },
   { name: 'Utils Management', href: '/app/utils-management', icon: Wrench, userLevels: [4, 3] },
+  { name: 'Service Logs', href: '/app/service-logs', icon: Wrench, userLevels: [4] }
+
 
 ];
 
@@ -88,14 +89,12 @@ export default function UnifiedSidebar({ isSidebarOpen, toggleSidebar }: Sidebar
     }
   };
 
-  // Restore scroll position after render
   const restoreScrollPosition = () => {
     if (navRef.current) {
       navRef.current.scrollTop = scrollPosition.current;
     }
   };
 
-  // Restore scroll position after state changes
   useEffect(() => {
     restoreScrollPosition();
   }, [isManagementOpen, isRatesOpen, isRestrictionsOpen, isLoyaltyOpen, isPromotionsOpen, isAgencyOpen]);

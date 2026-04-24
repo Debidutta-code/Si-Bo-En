@@ -65,6 +65,7 @@ import BookingOffset from "./pages/booking-offset/BookingOffset.tsx";
 import CustomId from "./pages/property/custom/Custom.tsx";
 import CustomerSupport from "./pages/customer-support/CustomerSupport.tsx";
 import Spa from "./pages/Spa/Spa.tsx";
+import ServiceLog from "./pages/service-logs/ServiceLog.tsx";
 export const router = createBrowserRouter(
   createRoutesFromElements(
     <>
@@ -111,9 +112,12 @@ export const router = createBrowserRouter(
         </Route>
         <Route path="members" element={<MembersPage />} />
         <Route path="logs" element={<LogsPage />} />
+              <Route path="service-logs" element={<ServiceLog />} />
+
         <Route path="access-control" element={<AccessControlPage />} />
         <Route path="bookings" element={<Bookings />} />
         <Route path="utils-management" element={<ManagementPage />} />
+      <Route path="contact-support" element={<ContactSupport />} /> 
 
         {/* Agency Routes - Super Admin Only */}
         <Route path="agency">
@@ -210,11 +214,6 @@ export const router = createBrowserRouter(
           />
         </Route>
       </Route>
-      <Route path="members" element={<MembersPage />} />
-      <Route path="logs" element={<LogsPage />} />
-      <Route path="access-control" element={<AccessControlPage />} />
-      <Route path="bookings" element={<AccessControlPage />} />
-      <Route path="contact-support" element={<ContactSupport />} />
 
       <Route path="*" element={<NotFound />} />
     </>,

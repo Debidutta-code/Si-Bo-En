@@ -31,6 +31,7 @@ import { managementRoute } from '../utils-management/routes';
 import { uploadRouter } from '../uploads/routes';
 import { loyalityGuestRouter } from '../loyality-users/routes/loyality-user.route';
 import { spaRouter } from '../spa/routes';
+import serviceLogRouter from '../logs/routes/service-log.route';
 export async function initializeExpressRoutes({ app }: { app: Express }) {
     // Health check
     app.head('/status', (_, res: Response) => res.status(200).end());
@@ -77,6 +78,7 @@ export async function initializeExpressRoutes({ app }: { app: Express }) {
     apiV1Router.use('/platform', platformRouter);
     apiV1Router.use('/spa', spaRouter);
     apiV1Router.use('/currency', currencyRoutes);
+    apiV1Router.use('/service-logs', serviceLogRouter);
 
     // Handle 404 for any undefined route under /api/v1
     app.all('/api/v1/*', (req: Request, _res: Response, next: NextFunction) => {

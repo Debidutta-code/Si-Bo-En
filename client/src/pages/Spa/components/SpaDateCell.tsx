@@ -1,5 +1,5 @@
 import { isSameMonth, isSameDay, format, isBefore, startOfDay } from 'date-fns';
-import { Plus, Trash2, Check, X, Settings } from 'lucide-react';
+import { Plus, Trash2,  Settings } from 'lucide-react';
 import type { ISpaDates } from '../interfaces/spa-slot.type';
 
 interface Props {
@@ -10,14 +10,12 @@ interface Props {
   onRemoveSpaDate: (id: string) => void;
   onAddSlot: (d: Date, spaDateId: string) => void;
   onRemoveSlot: (id: string) => void;
-  onMarkBooked: (id: string) => void;
-  onMarkAvailable: (id: string) => void;
 }
 
 export default function SpaDateCell({
   day, currentMonth, spaDate,
   onAddSpaDate, onRemoveSpaDate, onAddSlot,
-  onRemoveSlot, onMarkBooked, onMarkAvailable
+  onRemoveSlot
 }: Props) {
   const isCurrentMonth = isSameMonth(day, currentMonth);
   const isToday = isSameDay(day, new Date());
@@ -82,31 +80,14 @@ export default function SpaDateCell({
                      {/* Hard strip out UTC offsets manually if coming straight from node */}
                      {format(new Date(String(slot.startTime).replace('Z', '')), 'h:mm a')} <span className="opacity-75 font-normal">- {format(new Date(String(slot.endTime || new Date().toISOString()).replace('Z', '')), 'h:mm a')}</span>
                    </span>
-                   <span className={`text-[9px] px-1.5 py-0.5 rounded-sm font-semibold uppercase tracking-wider ${slot.isBooked ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
+                   {/* <span className={`text-[9px] px-1.5 py-0.5 rounded-sm font-semibold uppercase tracking-wider ${slot.isBooked ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
                       {slot.isBooked ? 'Booked' : 'Avail'}
-                   </span>
+                   </span> */}
                 </div>
                 
                 {/* Hover Actions Overlay */}
                 {!isPast && (
                   <div className="absolute inset-0 bg-white/95 backdrop-blur-[1px] flex items-center justify-evenly translate-x-full group-hover/slot:translate-x-0 transition-transform duration-200">
-                    {slot.isBooked ? (
-                      <button
-                        onClick={() => onMarkAvailable(slot.id)}
-                        className="text-green-600 hover:bg-green-100 p-1 rounded"
-                        title="Mark Available"
-                      >
-                        <Check className="w-3.5 h-3.5" />
-                      </button>
-                    ) : (
-                      <button
-                        onClick={() => onMarkBooked(slot.id)}
-                        className="text-red-500 hover:bg-red-100 p-1 rounded"
-                        title="Mark Booked"
-                      >
-                        <X className="w-3.5 h-3.5" />
-                      </button>
-                    )}
                     <div className="w-px h-3 bg-gray-200" />
                     <button
                       onClick={() => onRemoveSlot(slot.id)}

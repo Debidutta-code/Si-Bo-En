@@ -33,7 +33,7 @@ model MasterIntegrationURLFields {
   masterIntegrationId String @map("master_integration_id")
 
   MasterIntegration MasterIntegrations @relation(fields: [masterIntegrationId], references: [id], onDelete: Cascade)
-
+  @@unique([masterIntegrationId, name])
   @@index([masterIntegrationId])
   @@map("master_integration_url_fields")
 }
