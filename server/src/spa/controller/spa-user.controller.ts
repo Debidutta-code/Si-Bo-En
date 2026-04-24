@@ -56,4 +56,23 @@ export class SpaUserController {
             return res.status(500).json(errorResponse("Failed to remove user from spa", "Unknown error"));
         }
     }
+    public async getSpaForUser(req: CustomRequest, res: Response): Promise<Response<IApiResponse>> {
+        try {
+            if(!req.user){
+                return res.status(401).json(errorResponse(" User information is missing","Unauthorized User"));
+            }
+            const userId = req.user.id;
+            const propertyId = req.params.propertyId;
+            if (!userId || !propertyId) {
+                return res.status(400).json(errorResponse("User ID and Property ID are required"));
+            }
+            const response = await this.spaUserService.getSpaForUser(userId, propertyId);
+            return res.status(response.success ? 200 : 400).json(response);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res.status(500).json(errorResponse("Failed to get spa for user", error.message));
+            }
+            return res.status(500).json(errorResponse("Failed to get spa for user", "Unknown error"));
+        }
+    }
 }

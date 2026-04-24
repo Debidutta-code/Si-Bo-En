@@ -9,6 +9,7 @@ import {
   AlertTriangle,
   EyeOff,
   FileText,
+  VenetianMask,
 } from "lucide-react";
 import {
   Table,
@@ -32,6 +33,7 @@ import toast from "react-hot-toast";
 import AmendReservationModal from "./Amendreservationmodal";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import SpaBookingDialog from "./SpaBooking/SpaBookingDialog";
 
 
 interface ViewDetailsModalProps {
@@ -137,7 +139,7 @@ interface ReservationsTableProps {
   onNoShow: (reservationId: string) => Promise<void>;
 }
 
-type DialogType = "view" | "amend" | "cancel" | "noShow" | null;
+type DialogType = "view" | "amend" | "cancel" | "noShow" | "spaBooking" | null;
 
 export default function ReservationsTable({
   reservations,
@@ -291,6 +293,7 @@ export default function ReservationsTable({
                 </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
+
                     <DropdownMenuTrigger asChild>
                       <button className="p-2 hover:bg-accent rounded-md transition-colors">
                         <MoreVertical className="w-5 h-5" />
@@ -300,6 +303,10 @@ export default function ReservationsTable({
                       <DropdownMenuItem onClick={() => openDialog("view", reservation)} className="cursor-pointer">
                         <Eye className="w-4 h-4 mr-3" />
                         View Details
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => openDialog("spaBooking", reservation)} className="cursor-pointer">
+                        <VenetianMask className="w-4 h-4 mr-3" />
+                        Add Spa / Activity
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleDownloadVoucher(reservation.bookingCode)} className="cursor-pointer">
                         <FileText className="w-4 h-4 mr-3" />
@@ -376,6 +383,14 @@ export default function ReservationsTable({
           reservation={selectedReservation}
           onClose={closeDialog}
           onSuccess={closeDialog}
+        />
+      )}
+
+      {/* Spa Booking */}
+      {activeDialog === "spaBooking" && selectedReservation && (
+        <SpaBookingDialog
+          reservation={selectedReservation}
+          onClose={closeDialog}
         />
       )}
     </>

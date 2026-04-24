@@ -135,7 +135,7 @@ export class SpaSlotsServ {
             return errorResponse("Failed to delete spa slots", "Unknown error");
         }
     }
-    public async markAsBooked(id: string): Promise<IApiResponse> {
+    public async markAsBooked(id: string, reservationId: string, userName: string): Promise<IApiResponse> {
         try {
             const isSlotExists = await this.spaSlotsRepo.getSlotById(id);
             if (!isSlotExists) {
@@ -144,7 +144,7 @@ export class SpaSlotsServ {
             if (isSlotExists.isBooked) {
                 return errorResponse("Spa slot is already booked", "Spa slot already booked");
             }
-            const updatedSlot = await this.spaSlotsRepo.markSlotAsBooked(id);
+            const updatedSlot = await this.spaSlotsRepo.markSlotAsBooked(id, reservationId, userName);
             return successResponse("Marked spa slot as booked successfully", updatedSlot);
         } catch (error) {
             if (error instanceof Error) {

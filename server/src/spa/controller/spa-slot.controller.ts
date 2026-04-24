@@ -102,10 +102,14 @@ export class SpaSlotController {
     public async markSlotAsBooked(req: CustomRequest, res: Response): Promise<Response<IApiResponse>> {
         try {
             const slotId = req.params.id;
+            const { reservationId, userName } = req.body;
             if (!slotId) {
                 return res.status(400).json(errorResponse("Slot ID is required"));
             }
-            const response = await this.spaSlotService.markAsBooked(slotId);
+            if (!reservationId || !userName) {
+                return res.status(400).json(errorResponse("Reservation ID and User Name are required"));
+            }
+            const response = await this.spaSlotService.markAsBooked(slotId, reservationId, userName);
             return res.status(response.success ? 200 : 400).json(response);
         } catch (error) {
             if (error instanceof Error) {

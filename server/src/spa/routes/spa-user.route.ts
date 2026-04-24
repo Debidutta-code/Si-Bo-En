@@ -15,4 +15,7 @@ userSpaRouter.route("/assign")
 userSpaRouter.route("/remove")
     .post(protect, spaUserController.removeUserFromSpa.bind(spaUserController));
 
+    userSpaRouter.route("/property/:propertyId/me")
+    .get(protect, spaUserController.getSpaForUser.bind(spaUserController));
+
 export  {userSpaRouter};

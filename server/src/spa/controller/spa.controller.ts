@@ -83,4 +83,19 @@ export class SpaController {
             return res.status(500).json(errorResponse("Failed to delete spa", "Internal Server Error"));
         }
     }
+    public async getAvailableSpaForReservation(req:CustomRequest,res:Response):Promise<Response>{
+        try {
+            const bookingCode = req.params.bookingCode;
+            if(!bookingCode) {
+                return res.status(400).json(errorResponse("Invalid booking code", "Booking code is required"));
+            }
+            const response = await this.spaService.getAvailableSpaForinDateRange(bookingCode);
+            return res.status(response.success ? 200 : 400).json(response);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res.status(500).json(errorResponse("Failed to retrieve available spas", error.message))
+            }
+            return res.status(500).json(errorResponse("Failed to retrieve available spas", "Internal Server Error"));
+        }
+    }
 }

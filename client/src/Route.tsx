@@ -64,8 +64,9 @@ import AgencyReservationsPage from "./pages/property-agencies/AgencyReservations
 import BookingOffset from "./pages/booking-offset/BookingOffset.tsx";
 import CustomId from "./pages/property/custom/Custom.tsx";
 import CustomerSupport from "./pages/customer-support/CustomerSupport.tsx";
-import Spa from "./pages/Spa/Spa.tsx";
+import Spa from "./pages/spa/Spa.tsx";
 import ServiceLog from "./pages/service-logs/ServiceLog.tsx";
+import MySpa from "./pages/spa/My-Spa.tsx";
 export const router = createBrowserRouter(
   createRoutesFromElements(
     <>
@@ -148,6 +149,7 @@ export const router = createBrowserRouter(
         <Route path="customer-support/:propertyId" element={<CustomerSupport />} />
         <Route path="spa/:propertyId" element={<Spa />} />
         <Route path="spa/:propertyId/:spaId" element={<Spa />} />
+        <Route path="spa/me/:propertyId" element={<MySpa />} />
 
         <Route
           path="cta-ctd/:propertyId"

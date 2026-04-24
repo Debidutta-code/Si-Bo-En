@@ -1,166 +1,425 @@
-// import { Link, useLocation, useNavigate } from 'react-router-dom';
-// import { cn } from '@/lib/utils';
-// import { Button } from '@/components/ui/button';
-// import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-// import {
-//   Home,
-//   FileText,
-//   Building,
-//   Users,
-//   Shield,
-//   Menu,
-//   LogOut,
-//   ChevronLeft,
-//   ChevronRight,
-//   CalendarClock,
-//   HeadsetIcon,
-//   BrushCleaning
-// } from 'lucide-react';
-// import { useAppSelector } from '@/redux/hooks';
-// import { useEffect } from 'react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import {
+  Home,
+  FileText,
+  Building,
+  Users,
+  Shield,
+  Menu,
+  LogOut,
+  ChevronLeft,
+  ChevronRight,
+  CalendarClock,
+  DollarSign,
+  Ban,
+  Wrench,
+  Tag,
+  Globe,
+  ListEndIcon,
+  Smartphone,
+  MoonIcon,
+  Pen,
+  Sun,
+  Award,
+  Briefcase,
+  ClipboardCheck,
+  // HelpCircle,
+  LayoutDashboard,
+  ScrollText,
+  Activity,
+  Network,
+  ServerCog,
+  Flower2,
+  Settings2,
+  Smile,
+} from 'lucide-react';
+import { useAppSelector } from '@/redux/hooks';
+import { useEffect, useState } from 'react';
+import createAxiosInstance from '@/components/axiosInstance';
 
-// interface NavItem {
-//   name: string;
-//   href: string;
-//   icon: React.ElementType;
-//   userLevels: number[];
-// }
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-// // Navigation links configuration
-// const navigation: NavItem[] = [
-//   { name: 'Dashboard', href: '/app', icon: Home, userLevels: [0, 1, 2, 3, 4] },
-//   { name: 'Properties', href: '/app/property', icon: Building, userLevels: [2, 3, 4] },
-//   { name: "My Property", href: `/app/property`, icon: Building, userLevels: [1, 0] },
-//   { name: "Reservations", href: "/app/bookings", icon: CalendarClock, userLevels: [0, 1, 2, 3, 4] },
-//   { name: 'Logs', href: '/app/logs', icon: FileText, userLevels: [0, 1, 2, 3, 4] },
-//   { name: 'Manage Members', href: '/app/members', icon: Users, userLevels: [4, 3, 2, 1] },
-//   { name: 'Access Control', href: '/app/access-control', icon: Shield, userLevels: [4] },
-// ];
+interface NavItem {
+  name: string;
+  href?: string;
+  icon: React.ElementType;
+  userLevels: number[];
+  children?: NavItem[];
+  priority: number;
+}
 
-// // Define the component's props interface
-// interface SidebarProps {
-//   isSidebarOpen: boolean;
-//   toggleSidebar: () => void;
-// }
+// ─── Static main navigation (no property context) ────────────────────────────
 
-// export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) {
-//   const { user } = useAppSelector((state) => state.user);
-//   const location = useLocation();
-//   const navigate = useNavigate();
-//   const handleLogout = () => {
-//     localStorage.removeItem('isAuthenticated');
-//     navigate('/');
-//   };
-//   useEffect(() => {
+const baseMainNav = (): NavItem[] => [
+  { name: 'Dashboard', href: '/app', icon: Home, userLevels: [0, 1, 2, 3, 4], priority: 0 },
+  { name: 'Properties', href: '/app/property', icon: Building, userLevels: [2, 3, 4], priority: 0 },
+  { name: 'My Property', href: '/app/property', icon: Building, userLevels: [0, 1], priority: 0 },
+  { name: 'Reservations', href: '/app/bookings', icon: CalendarClock, userLevels: [0, 1, 2, 3, 4], priority: 1 },
+  { name: 'Manage Members', href: '/app/members', icon: Users, userLevels: [1, 2, 3, 4], priority: 2 },
+  { name: 'Access Control', href: '/app/access-control', icon: Shield, userLevels: [4], priority: 3 },
+  { name: 'Utils Management', href: '/app/utils-management', icon: Wrench, userLevels: [3, 4], priority: 3 },
+  // { name: 'Contact Support', href:   '/app/contact-support', icon: HelpCircle, userLevels: [0, 1, 2, 3, 4], priority: 3 },
+  {
+    name: "Logs", icon: Activity, userLevels: [4], priority: 3, children: [
+      { name: 'Api Logs', href: '/app/logs', icon: Network, userLevels: [4], priority: 3 },
+      { name: 'Service Logs', href: '/app/service-logs', icon: ServerCog, userLevels: [4], priority: 3 },
+    ]
+  },
+];
 
-//     if (user?.role === "hotel_manager" && user?.propertyId) {
-//       if (!navigation.find(item => item.name === 'Front Desk')) {
-//         navigation.push({ name: 'Front Desk', href: `/property/${user.propertyId}/frontdesk`, icon: HeadsetIcon, userLevels: [0, 1, 2, 3, 4] })
-//       }
-//       if (!navigation.find(item => item.name === 'House Keeping')) {
-//         navigation.push({ name: 'House Keeping', href: `/property/${user.propertyId}/housekeeping`, icon: BrushCleaning, userLevels: [0, 1, 2, 3, 4] })
-//       }
-//     }
+// ─── Props ────────────────────────────────────────────────────────────────────
+
+interface SidebarProps {
+  isSidebarOpen: boolean;
+  toggleSidebar: () => void;
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) {
+  const { propertyId } = useParams<{ propertyId: string }>();
+  const { creationId } = useParams<{ creationId: string }>();
+  const { user } = useAppSelector((state) => state.user);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const [navigation, setNavigation] = useState<NavItem[]>(baseMainNav());
+  const [expandedItems, setExpandedItems] = useState<string[]>([]);
+
+  // ── Context detection ──────────────────────────────────────────────────────
+  const isPropertyRoute = !!propertyId && location.pathname.startsWith('/property/');
+  const isLevel01 = user?.userLevel === 0 || user?.userLevel === 1;
+  const isPropertyContext = isPropertyRoute || isLevel01;
+
+  const finalCreationId = creationId || propertyId || user?.creation;
+  const resolvedPropId = propertyId ?? user?.propertyId;
+
+  // ── Logout ─────────────────────────────────────────────────────────────────
+  const handleLogout = async () => {
+    try {
+      const ax = createAxiosInstance();
+      await ax.post('/auth/logout');
+    } catch { /* swallow */ }
+    navigate('/');
+  };
+
+  // ── Build Loyalty children ─────────────────────────────────────────────────
+  const loyaltyChildren = (): NavItem[] => {
+    if (isPropertyContext && resolvedPropId) {
+      return [
+        { name: 'Property Loyalty', href: `/property/loyalty/${resolvedPropId}`, icon: Award, userLevels: [0, 1, 2, 3, 4], priority: 1 },
+      ];
+    }
+    return [
+      { name: 'Configuration', href: `/app/loyalty/${finalCreationId}`, icon: LayoutDashboard, userLevels: [1, 2, 3, 4], priority: 1 },
+      { name: 'Register Form', href: `/app/loyalty/register-form/${finalCreationId}`, icon: FileText, userLevels: [1, 2, 3, 4], priority: 1 },
+      { name: 'Content Config', href: `/app/loyalty/content-config/${finalCreationId}`, icon: Users, userLevels: [1, 2, 3, 4], priority: 1 },
+      { name: 'Loyalty Guests', href: `/app/loyalty/loyalty-guests/${finalCreationId}`, icon: Shield, userLevels: [4], priority: 1 },
+      { name: 'Loyalty Levels', href: `/app/loyalty/levels/${finalCreationId}`, icon: Award, userLevels: [1, 2, 3, 4], priority: 1 },
+    ];
+  };
+
+  // ── Build Agency children ──────────────────────────────────────────────────
+  const agencyChildren = (): NavItem[] => {
+    const items: NavItem[] = [
+      { name: 'Agencies', href: `/app/agency`, icon: Briefcase, userLevels: [4], priority: 2 },
+      { name: 'Agency Applications', href: `/app/agency/applications`, icon: ClipboardCheck, userLevels: [4], priority: 2 },
+    ];
+    if (isPropertyContext && resolvedPropId) {
+      items.push({ name: 'Property Agencies', href: `/property/${resolvedPropId}/agencies`, icon: Briefcase, userLevels: [0, 1, 2, 3, 4], priority: 2 });
+    }
+    return items;
+  };
+
+  // ── Build full navigation tree ─────────────────────────────────────────────
+  const buildNavigation = (): NavItem[] => {
+    const pid = resolvedPropId;
+    const main = baseMainNav();
+
+    // Loyalty group
+    const loyaltyKids = loyaltyChildren();
+    if (loyaltyKids.length > 0 && user?.creation) {
+      main.push({ name: 'Loyalty', icon: Award, userLevels: [1, 2, 3, 4], priority: 2, children: loyaltyKids });
+    }
+
+    // Agency group
+    const agencyKids = agencyChildren().filter(i => user && i.userLevels.includes(user.userLevel));
+    if (agencyKids.length > 0) {
+      main.push({ name: 'Agency', icon: Briefcase, userLevels: [0, 1, 2, 3, 4], priority: 3, children: agencyKids });
+    }
+
+    if (isPropertyContext && pid) {
+      // C Panel (direct link)
+      main.push({ name: 'C Panel', href: `/property/booking-engine-config/${pid}`, icon: FileText, userLevels: [0, 1, 2, 3, 4], priority: 2 });
+
+      // Rates
 
 
+      // Management
+      main.push({
+        name: 'Management', icon: Building, userLevels: [0, 1, 2, 3, 4], priority: 1,
+        children: [
+          { name: 'Property Details', href: `/property/${pid}?tab=property`, icon: Building, userLevels: [0, 1, 2, 3, 4], priority: 0 },
+          { name: 'Address', href: `/property/${pid}?tab=address`, icon: Globe, userLevels: [0, 1, 2, 3, 4], priority: 0 },
+          { name: 'Amenities', href: `/property/${pid}?tab=amenities`, icon: Sun, userLevels: [0, 1, 2, 3, 4], priority: 0 },
+          { name: 'Rooms', href: `/property/${pid}?tab=rooms`, icon: Building, userLevels: [0, 1, 2, 3, 4], priority: 0 },
+          { name: 'Payment Setup', href: `/property/${pid}?tab=bank-details`, icon: DollarSign, userLevels: [0, 1, 2, 3, 4], priority: 0 },
+          { name: 'Policy', href: `/property/policy/${pid}`, icon: FileText, userLevels: [0, 1, 2, 3, 4], priority: 0 },
+          { name: 'Promo Code', href: `/property/promo-code/${pid}`, icon: Tag, userLevels: [0, 1, 2, 3, 4], priority: 0 },
+          { name: 'Add On', href: `/property/add-on/${pid}`, icon: Users, userLevels: [1, 2, 3, 4], priority: 0 },
+          { name: 'Tax System', href: `/property/tax-system/${pid}`, icon: ScrollText, userLevels: [4], priority: 0 },
+        ],
+      });
+      main.push({
+        name: 'Rates', icon: DollarSign, userLevels: [0, 1, 2, 3, 4], priority: 1,
+        children: [
+          { name: 'Rate Plan', href: `/property/rate-plan/${pid}`, icon: DollarSign, userLevels: [0, 1, 2, 3, 4], priority: 1 },
+          { name: 'Rate Allotment', href: `/property/rate-plan/map/${pid}`, icon: CalendarClock, userLevels: [0, 1, 2, 3, 4], priority: 1 },
+          { name: 'Calendar View', href: `/property/calender-view/${pid}`, icon: LayoutDashboard, userLevels: [0, 1, 2, 3, 4], priority: 1 },
+          { name: 'Inventory', href: `/property/inventory/${pid}`, icon: Building, userLevels: [0, 1, 2, 3, 4], priority: 1 },
+        ],
+      });
+      main.push({
+        name: "Spa & Activities", icon: Flower2, userLevels: [0, 1, 2, 3, 4], priority: 1,
+        children: [
+          { name: "Configure", href: `/property/spa/${pid}`, icon: Settings2, userLevels: [0, 1, 2, 3, 4], priority: 1 },
+          { name: "My spa", href: `/property/spa/me/${pid}`, icon: Smile, userLevels: [0], priority: 1 },
+        ]
+      })
+      // Promotions
+      main.push({
+        name: 'Promotions', icon: Tag, userLevels: [0, 1, 2, 3, 4], priority: 1,
+        children: [
+          { name: 'GEO', href: `/property/promotion/geo/${pid}`, icon: Globe, userLevels: [0, 1, 2, 3, 4], priority: 1 },
+          { name: 'MLOS', href: `/property/promotion/mlos/${pid}`, icon: ListEndIcon, userLevels: [0, 1, 2, 3, 4], priority: 1 },
+          { name: 'Device Specific', href: `/property/promotion/device-specific/${pid}`, icon: Smartphone, userLevels: [0, 1, 2, 3, 4], priority: 1 },
+          { name: 'Early Bird', href: `/property/promotion/early-bird/${pid}`, icon: Sun, userLevels: [0, 1, 2, 3, 4], priority: 1 },
+          { name: 'Offer For Tonight', href: `/property/promotion/offer-for-tonight/${pid}`, icon: MoonIcon, userLevels: [0, 1, 2, 3, 4], priority: 1 },
+          { name: 'Customizable Deal', href: `/property/promotion/customizable-deal/${pid}`, icon: Pen, userLevels: [0, 1, 2, 3, 4], priority: 1 },
+        ],
+      });
 
-//     if (user?.role === "front_desk" && user?.propertyId) {
-//       navigate(`/property/${user.propertyId}/frontdesk`);
-//     }
-//     if (user?.role === "housekeeping" && user?.propertyId) {
-//       navigate(`/property/${user.propertyId}/housekeeping`);
-//     }
-//   }, [user])
-//   const filteredNavigation = navigation.filter(item => user && item.userLevels.includes(user.userLevel));
+      // Restrictions
+      main.push({
+        name: 'Restrictions', icon: Ban, userLevels: [0, 1, 2, 3, 4], priority: 2,
+        children: [
+          { name: 'Start/Stop Sell', href: `/property/start-stop-sell/${pid}`, icon: Ban, userLevels: [0, 1, 2, 3, 4], priority: 2 },
+          { name: 'CTA / CTD', href: `/property/cta-ctd/${pid}`, icon: CalendarClock, userLevels: [0, 1, 2, 3, 4], priority: 2 },
+          { name: 'Booking Offset', href: `/property/booking-offset/${pid}`, icon: ScrollText, userLevels: [0, 1, 2, 3, 4], priority: 2 },
+        ],
+      });
 
-//   // Reusable component for the sidebar's content
-//   const SidebarContent = () => (
-//     <div className='flex flex-col h-full bg-white border-r w-full'>
-//       <div className="flex justify-around items-center h-16 px-2 border-b border-gray-200" >
-//         <h1 className={cn(
-//           'font-bold text-xl ml-2 whitespace-nowrap transition-opacity duration-300',
-//           isSidebarOpen ? 'block' : 'hidden'
-//         )}>
-//         </h1>
-//         {isSidebarOpen && (
-//           <img src='/swiftrooms.jpeg' alt="Swiftrooms" className='w-1/2' />
-//         )}
-//         <Button onClick={toggleSidebar} variant="ghost" size="icon" className={`hidden sm:flex justify-center items-center`}>
-//           {isSidebarOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
-//         </Button>
-//       </div>
+    }
 
-//       <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-//         {filteredNavigation.map((item) => {
-//           const targetHref = item.href === `/app/property` ? (
-//             user?.userLevel === 4 ? `/app/property/super/${user.creation}` :
-//               user?.userLevel === 3 ? `/app/property/group/${user.creation}` :
-//                 user?.userLevel === 2 ? `/app/property/brand/${user.creation}` :
-//                   user?.userLevel === 1 ? `/app/property/property/${user.creation}` :
-//                     user?.userLevel === 0 ? `/app/property/property/${user.creation}` :
-//                       item.href
-//           ) : item.href;
-//           return (
-//             <Link
-//               key={item.name}
-//               to={targetHref}
-//               title={item.name}
-//               className={cn(
-//                 'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
-//                 location.pathname === targetHref
-//                   ? 'bg-primary/10 text-primary'
-//                   : 'text-gray-700 hover:bg-gray-50',
-//                 !isSidebarOpen && 'justify-center'
-//               )}
-//             >
-//               <item.icon className='h-5 w-5 flex-shrink-0' />
-//               <span className={cn('whitespace-nowrap', !isSidebarOpen && 'hidden')}>
-//                 {item.name}
-//               </span>
-//             </Link>
-//           );
-//         })}
-//       </nav>
+    return main.sort((a, b) => a.priority - b.priority);
+  };
 
-//       <div className="p-4 border-t border-gray-200">
-//         <Button
-//           onClick={handleLogout}
-//           variant="ghost"
-//           className={cn(
-//             'w-full flex items-center gap-3 px-3 py-2 text-red-600 hover:bg-red-50',
-//             !isSidebarOpen && 'justify-center'
-//           )}
-//         >
-//           <LogOut className="h-5 w-5 flex-shrink-0" />
-//           <span className={cn('whitespace-nowrap', !isSidebarOpen && 'hidden')}>Logout</span>
-//         </Button>
-//       </div>
-//     </div>
-//   );
+  // ── Recompute nav whenever context changes ─────────────────────────────────
+  useEffect(() => {
+    setNavigation(buildNavigation());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [propertyId, isPropertyContext, user, location.pathname, finalCreationId]);
 
-//   return (
-//     <>
-//       {/* Mobile Sidebar (Slide-out Sheet) */}
-//       <div className="md:hidden">
-//         <Sheet>
-//           <SheetTrigger asChild>
-//             <Button variant="ghost" size="icon" className="fixed top-4 left-4 z-50 bg-white/50 backdrop-blur-sm">
-//               <Menu className="h-6 w-6" />
-//             </Button>
-//           </SheetTrigger>
-//           <SheetContent side="left" className="p-0 w-56">
-//             <SidebarContent />
-//           </SheetContent>
-//         </Sheet>
-//       </div>
+  // ── Auto-expand parent whose child is active ───────────────────────────────
+  useEffect(() => {
+    let activeParent: string | null = null;
+    navigation.forEach(item => {
+      if (item.children) {
+        const childActive = item.children.some(child =>
+          child.href && (
+            location.pathname === child.href ||
+            location.pathname.startsWith(child.href.split('?')[0] + '/') ||
+            // handle ?tab= links
+            (location.pathname + location.search) === child.href
+          )
+        );
+        if (childActive) activeParent = item.name;
+      }
+    });
 
-//       {/* Desktop Sidebar (Permanent Flex Item) */}
-//       <aside className={cn(
-//         'hidden md:flex flex-col   border-gray-200 transition-all duration-300 ease-in-out',
-//         isSidebarOpen ? 'w-64' : 'w-20'
-//       )}>
-//         <SidebarContent />
-//       </aside>
-//     </>
-//   );
-// }
+    setExpandedItems(prev => {
+      if (activeParent && prev[0] !== activeParent) {
+        return [activeParent];
+      }
+      return prev;
+    });
+  }, [location.pathname, location.search, navigation]);
+
+  // ── Access + userLevel filtering ───────────────────────────────────────────
+
+  const filteredNav = navigation
+    .filter(item => user && item.userLevels.includes(user.userLevel))
+    .map(item => item.children
+      ? { ...item, children: item.children.filter(c => user && c.userLevels.includes(user.userLevel)) }
+      : item
+    )
+    .filter(item => !item.children || item.children.length > 0);
+
+  // ── Resolve link paths that need dynamic substitution ─────────────────────
+  const resolvePath = (href: string | undefined): string => {
+    if (!href) return '#';
+    if (href === '/app/property') {
+      const u = user;
+      if (!u) return href;
+      if (u.userLevel === 4) return `/app/property/super/${u.creation}`;
+      if (u.userLevel === 3) return u.role === 'group_manager' ? `/app/property/group/${u.creation}` : `/app/property/regional/${u.creation}`;
+      if (u.userLevel === 2) return `/app/property/brand/${u.creation}`;
+      return `/property/${u.propertyId}`;
+    }
+    return href;
+  };
+
+  // ── Active detection ───────────────────────────────────────────────────────
+  const isActive = (item: NavItem): boolean => {
+    if (item.children) {
+      return item.children.some(c => c.href && (
+        location.pathname === c.href ||
+        (location.pathname + location.search) === c.href
+      ));
+    }
+    if (!item.href) return false;
+    const resolved = resolvePath(item.href);
+    return location.pathname === resolved || (location.pathname + location.search) === resolved;
+  };
+
+  const isChildActive = (href: string | undefined): boolean => {
+    if (!href) return false;
+    const bare = href.split('?')[0];
+    return location.pathname === bare || (location.pathname + location.search) === href;
+  };
+
+  const toggleExpand = (name: string) =>
+    setExpandedItems(prev => (prev[0] === name ? [] : [name]));
+
+  // ── Sidebar inner content ──────────────────────────────────────────────────
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full bg-white border-r w-full">
+      {/* Header */}
+      <div className="flex justify-around items-center h-16 px-2 border-b border-gray-200">
+        {isSidebarOpen && (
+          <img src="/revchill.png" alt="RevChill" className="w-1/2" />
+        )}
+        <Button onClick={toggleSidebar} variant="ghost" size="icon" className="hidden sm:flex">
+          {isSidebarOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+        </Button>
+      </div>
+
+      {/* Nav items */}
+      <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
+        {filteredNav.map(item => (
+          <div key={item.name}>
+            {item.children ? (
+              /* ── Group header (expandable) ── */
+              <>
+                <button
+                  onClick={() => toggleExpand(item.name)}
+                  title={item.name}
+                  className={cn(
+                    'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                    isActive(item) ? 'bg-primary/10 text-primary' : 'text-gray-700 hover:bg-gray-50',
+                    !isSidebarOpen && 'justify-center'
+                  )}
+                >
+                  <item.icon className="h-5 w-5 flex-shrink-0" />
+                  <span className={cn('whitespace-nowrap flex-1 text-left', !isSidebarOpen && 'hidden')}>
+                    {item.name}
+                  </span>
+                  {isSidebarOpen && (
+                    <ChevronRight
+                      className={cn(
+                        'h-4 w-4 transition-transform flex-shrink-0',
+                        expandedItems.includes(item.name) && 'rotate-90'
+                      )}
+                    />
+                  )}
+                </button>
+
+                {/* Children */}
+                {expandedItems.includes(item.name) && isSidebarOpen && (
+                  <div className="ml-4 mt-0.5 space-y-0.5">
+                    {item.children.map(child => (
+                      <Link
+                        key={child.name}
+                        to={resolvePath(child.href)}
+                        title={child.name}
+                        className={cn(
+                          'flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors',
+                          isChildActive(child.href)
+                            ? 'bg-primary/10 text-primary'
+                            : 'text-gray-600 hover:bg-gray-50'
+                        )}
+                      >
+                        <child.icon className="h-3.5 w-3.5 flex-shrink-0" />
+                        <span className="whitespace-nowrap">{child.name}</span>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </>
+            ) : (
+              /* ── Leaf link ── */
+              <Link
+                to={resolvePath(item.href)}
+                title={item.name}
+                className={cn(
+                  'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+                  isActive(item) ? 'bg-primary/10 text-primary' : 'text-gray-700 hover:bg-gray-50',
+                  !isSidebarOpen && 'justify-center'
+                )}
+              >
+                <item.icon className="h-5 w-5 flex-shrink-0" />
+                <span className={cn('whitespace-nowrap', !isSidebarOpen && 'hidden')}>
+                  {item.name}
+                </span>
+              </Link>
+            )}
+          </div>
+        ))}
+      </nav>
+
+      {/* Footer */}
+      <div className="p-3 border-t border-gray-200">
+        <Button
+          onClick={handleLogout}
+          variant="ghost"
+          className={cn(
+            'w-full flex items-center gap-3 px-3 py-2 text-red-600 hover:bg-red-50',
+            !isSidebarOpen && 'justify-center'
+          )}
+        >
+          <LogOut className="h-5 w-5 flex-shrink-0" />
+          <span className={cn('whitespace-nowrap', !isSidebarOpen && 'hidden')}>Logout</span>
+        </Button>
+      </div>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Mobile */}
+      <div className="md:hidden">
+        <Sheet>
+          <SheetTrigger asChild>
+            <Button variant="ghost" size="icon" className="fixed top-4 left-4 z-50 bg-white/50 backdrop-blur-sm">
+              <Menu className="h-6 w-6" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="p-0 w-56">
+            <SidebarContent />
+          </SheetContent>
+        </Sheet>
+      </div>
+
+      {/* Desktop */}
+      <aside className={cn(
+        'hidden md:flex flex-col border-gray-200 transition-all duration-300 ease-in-out',
+        isSidebarOpen ? 'w-56' : 'w-20'
+      )}>
+        <SidebarContent />
+      </aside>
+    </>
+  );
+}

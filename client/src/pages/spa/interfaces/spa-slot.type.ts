@@ -2,17 +2,13 @@ export interface ICSpaDatesS {
     date: Date;
 
 }
-export interface IgetInDates {
-    startDate: Date;
-    endDate: Date;
-}
 export interface ICSpaDatesR extends ICSpaDatesS {
     spaModuleId: string;
 
 }
 export interface ISpaDates extends ICSpaDatesR {
     id: string;
-    Slots: ISpaSlot[];
+    Slots: ISpaSlotsWReservation[];
 }
 export interface BatchPayload {
     count: number;
@@ -27,4 +23,16 @@ export interface ICSpaSlotR extends ICSpaSlotS {
 }
 export interface ISpaSlot extends ICSpaSlotR {
     id: string;
+}
+export interface ISpaSlotsWReservation extends ISpaSlot{
+    Reservation:{
+        bookingCode:string;
+    }|null;
+    reservationId: string;
+    userName: string;
+
+}
+export interface IMarkSlotAdAvilable{
+    isBooked: boolean;
+
 }

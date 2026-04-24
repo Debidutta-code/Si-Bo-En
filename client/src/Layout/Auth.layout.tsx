@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import Sidebar from '@/components/layout/SideBar/UnifiedSidebar';
+import Sidebar from '@/components/layout/SideBar/Sidebar';
 import Navbar from '@/components/layout/NavBar/Navbar';
 
 export default function AppLayout() {

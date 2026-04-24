@@ -1,11 +1,10 @@
 import createAxiosInstance from "@/components/axiosInstance";
-import type { ICSpaC, IUSpaR } from "../interfaces";
 
 const axiosInstance = createAxiosInstance();
 
-export const getSpa = async (propertyId: string) => {
+export const getSpaUsersForProperty = async (propertyId: string) => {
     try {
-        const response = await axiosInstance.get(`/spa/property/${propertyId}`);
+        const response = await axiosInstance.get(`/spa/users/property/${propertyId}/users`);
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {
@@ -18,9 +17,10 @@ export const getSpa = async (propertyId: string) => {
         }
     }
 };
-export const createSpa = async (spaData: ICSpaC) => {
+
+export const assignSpaToUser = async (spaId: string, userId: string) => {
     try {
-        const response = await axiosInstance.post(`/spa`, spaData);
+        const response = await axiosInstance.post(`/spa/users/assign`, { spaId, userId });
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {
@@ -33,9 +33,10 @@ export const createSpa = async (spaData: ICSpaC) => {
         }
     }
 };
-export const updateSpa = async (spaId: string, spaData: IUSpaR) => {
+
+export const removeUserFromSpa = async (spaId: string, userId: string) => {
     try {
-        const response = await axiosInstance.put(`/spa/${spaId}`, spaData);
+        const response = await axiosInstance.post(`/spa/users/remove`, { spaId, userId });
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {
@@ -48,9 +49,10 @@ export const updateSpa = async (spaId: string, spaData: IUSpaR) => {
         }
     }
 };
-export const deleteSpa = async (spaId: string) => {
+
+export const getUserSpa=async(propertyId:string)=> {
     try {
-        const response = await axiosInstance.delete(`/spa/${spaId}`);
+        const response = await axiosInstance.get(`/spa/users/property/${propertyId}/me`);
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {

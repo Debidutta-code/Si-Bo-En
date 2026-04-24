@@ -1,5 +1,5 @@
 import {prisma} from "../../config";
-import { ISpaWUser } from "../types";
+import { ISpa, ISpaWUser } from "../types";
 
 export class SpaUserRepository {
     public async getSpaUsersForProperty(propertyId: string) {
@@ -65,6 +65,59 @@ export class SpaUserRepository {
             });
         } catch (error) {
             throw new Error(`Failed to remove spa user for property`);
+        }
+    }
+    public async getSpaForUser(userId: string,propertyId:string): Promise<ISpa[]> {
+        try {
+            return await prisma.spa.findMany({
+                where: {
+                    propertyId: propertyId,
+                    AssignedSpas:{
+                        some:{
+                            userId: userId
+                        }
+                    }
+                },include:{
+                    Category: true,
+                    SubCategory: true,
+                    User:{
+                        select:{
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            email: true
+                        }
+                    },
+                    SpaDates:{
+                        include:{
+                            Slots:{
+                                include:{
+                                    Reservation:{
+                                        select:{
+                                            bookingCode:true
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    AssignedSpas:{
+                        include:{
+                            User:{
+                                select:{
+                                    id: true,
+                                    firstName: true,
+                                    lastName: true,
+                                    email: true
+                                }
+                            }
+                        }
+                    }
+                }
+
+            });
+        } catch (error) {
+            throw new Error(`Failed to get spa for user`);
         }
     }
 }

@@ -8,7 +8,7 @@ export interface ICSpaDatesR extends ICSpaDatesS {
 }
 export interface ISpaDates extends ICSpaDatesR {
     id: string;
-    Slots: ISpaSlot[];
+    Slots: ISpaSlotsWReservation[];
 }
 export interface BatchPayload {
     count: number;
@@ -23,4 +23,15 @@ export interface ICSpaSlotR extends ICSpaSlotS {
 }
 export interface ISpaSlot extends ICSpaSlotR {
     id: string;
+}
+export interface ISpaSlotsWReservation extends ISpaSlot{
+    Reservation:{
+        bookingCode:string;
+    }|null;
+}
+export interface IMarkSlotAdAvilable{
+        reservationId: string;
+    userName: string;
+    isBooked: boolean;
+
 }
