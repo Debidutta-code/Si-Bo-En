@@ -174,4 +174,18 @@ export class SpaSlotsRepo {
             throw new Error("Error occur while marking spa slot as available")
         }
     }
+    public async markSlotAsCompleted(id: string): Promise<ISpaSlot> {
+        try {
+            return await prisma.spaSlots.update({
+                where: {
+                    id
+                },
+                data: {
+                    isCompleted: true
+                }
+            })
+        } catch (error) {
+            throw new Error("Error occur while marking spa slot as completed")
+        }
+    }
 }

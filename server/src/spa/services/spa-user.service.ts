@@ -49,9 +49,9 @@ export class SpaUserService {
             return errorResponse("Failed to remove spa from user", "Unknown error");
         }
     }
-    public async getSpaForUser(userId: string,propertyId:string): Promise<IApiResponse> {
+    public async getSpaForUser(userId: string,propertyId:string,startDate:Date,endDate:Date): Promise<IApiResponse> {
         try {
-            const result = await this.spaUserRepository.getSpaForUser(userId,propertyId);
+            const result = await this.spaUserRepository.getSpaForUser(userId,propertyId,startDate,endDate);
             return successResponse("Spa for user fetched successfully", result);
         } catch (error) {
             if (error instanceof Error) {
@@ -60,4 +60,5 @@ export class SpaUserService {
             return errorResponse("Failed to get spa for user", "Unknown error");
         }
     }
+    
 }

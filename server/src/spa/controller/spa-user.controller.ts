@@ -61,12 +61,17 @@ export class SpaUserController {
             if(!req.user){
                 return res.status(401).json(errorResponse(" User information is missing","Unauthorized User"));
             }
+            const {startDate, endDate} = req.query;
             const userId = req.user.id;
             const propertyId = req.params.propertyId;
             if (!userId || !propertyId) {
                 return res.status(400).json(errorResponse("User ID and Property ID are required"));
             }
-            const response = await this.spaUserService.getSpaForUser(userId, propertyId);
+            
+            const sDate = new Date(startDate as string);
+            const eDate = new Date(endDate as string);
+
+            const response = await this.spaUserService.getSpaForUser(userId, propertyId, sDate, eDate);
             return res.status(response.success ? 200 : 400).json(response);
         } catch (error) {
             if (error instanceof Error) {

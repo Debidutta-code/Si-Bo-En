@@ -3,11 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { MoreVertical, Plus, Edit, Trash, CalendarPlus, X, Eye, UserPlus } from 'lucide-react';
 import type { ILoader } from '../dashboard/interface';
 import type { ISpa, ICSpaC, IUSpaR } from './interfaces/spa.type';
-import { getSpaService, createSpaService, updateSpaService, deleteSpaService } from './services/spa.services';
+import { getSpaService, createSpaService, updateSpaService, deleteSpaService } from './services';
 import { getAllSpaCategoryService, getAllSpaSubCategoriesService } from '../management/services/spa.services';
 import type { ISpaCategory, ISpaSubCategory } from '../management/types';
 import { getSpaUsersForPropertyService, assignSpaToUserService } from './services';
-import type { ISpaUser } from './interfaces'; // Assume this has a basic user type or we can define it inline
+import type { ISpaUser } from './interfaces'; 
 
 // UI Components
 import { Button } from '@/components/ui/button';

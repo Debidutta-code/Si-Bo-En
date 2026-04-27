@@ -4,7 +4,7 @@ import ImageSlider from '@/components/shared/ImageSlider';
 import type { ISpa } from '../interfaces';
 import { Trash2 } from 'lucide-react';
 import { useState } from 'react';
-import { removeUserFromSpaService } from '../services/spa-user.services';
+import { removeUserFromSpaService } from '../services';
 import toast from 'react-hot-toast';
 
 interface SpaViewDialogProps {

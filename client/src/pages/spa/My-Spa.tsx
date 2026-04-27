@@ -1,31 +1,41 @@
-import { useEffect, useState } from "react"
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { SpasForUserService } from "./services";
-import toast from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import type { ILoader } from "../dashboard/interface";
 import Loader from "@/components/Loader/Loader";
-import type { ISpa, ISpaDates, ISpaSlotsWReservation } from "./interfaces";
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { format } from "date-fns";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Clock, Calendar, User, UserX } from "lucide-react";
+import { SpasForUserService, markSlotAsCompletedService } from "./services";
+import type { ISpa, ISpaDates } from "./interfaces";
+import { format, startOfDay, endOfDay } from "date-fns";
+import { Calendar, Clock, UserX } from "lucide-react";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import ImageSlider from "@/components/shared/ImageSlider";
 
 export default function MySpa() {
     const { propertyId } = useParams();
     const [loader, setLoader] = useState<ILoader>({ isLoading: false, message: "" });
-  const [spas, setSpas] = useState<ISpa[]>([]);
+    const [spas, setSpas] = useState<ISpa[]>([]);
+    
+    const [dateRange, setDateRange] = useState<{ start: Date; end: Date }>({
+        start: startOfDay(new Date()),
+        end: endOfDay(new Date())
+    });
 
     useEffect(() => {
         if(propertyId) {
             fetchUserSpa(propertyId);
         }
-    }, [propertyId]);
+    }, [propertyId, dateRange]);
+    
     const fetchUserSpa = async (propertyId:string) => {
         setLoader({ isLoading: true, message: "Loading assigned spa information..." });
         try {
-            const result = await SpasForUserService(propertyId);
+            // Convert exact local time boundary to ISO string
+            const startISO = format(dateRange.start, "yyyy-MM-dd'T'HH:mm:ss");
+            const endISO = format(dateRange.end, "yyyy-MM-dd'T'HH:mm:ss");
+            
+            const result = await SpasForUserService(propertyId, startISO, endISO);
             if(result.success){
                 setSpas(result.data || []);
             }else{
@@ -34,6 +44,27 @@ export default function MySpa() {
         } catch (error) {
             toast.error("An error occurred while fetching spa information");
         }finally{
+            setLoader({ isLoading: false, message: "" });
+        }
+    };
+
+    const handleMarkCompleted = async (slotId: string) => {
+        if (!propertyId) return;
+        setLoader({ isLoading: true, message: "Marking slot as completed..." });
+        try {
+            const res = await markSlotAsCompletedService(slotId);
+            if (res.success) {
+                toast.success("Slot marked as completed");
+                const startISO = format(dateRange.start, "yyyy-MM-dd'T'HH:mm:ss");
+                const endISO = format(dateRange.end, "yyyy-MM-dd'T'HH:mm:ss");
+                const result = await SpasForUserService(propertyId, startISO, endISO);
+                if (result.success) setSpas(result.data || []);
+            } else {
+                toast.error(res.message || "Failed to mark slot as completed");
+            }
+        } catch (error) {
+            toast.error("An error occurred while marking slot as completed");
+        } finally {
             setLoader({ isLoading: false, message: "" });
         }
     };
@@ -48,9 +79,45 @@ export default function MySpa() {
 
   return (
     <div className="container mx-auto py-8">
-        <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">My Assigned Spas & Activities</h1>
-            <p className="text-gray-500 mt-2">Manage and view the schedule for the spas assigned to you.</p>
+        <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+                <h1 className="text-3xl font-bold text-gray-900">My Assigned Spas & Activities</h1>
+                <p className="text-gray-500 mt-2">Manage and view the schedule for the spas assigned to you.</p>
+            </div>
+            
+            {/* Filter */}
+            <div className="flex flex-col gap-2 bg-white p-4 border rounded-md shadow-sm">
+                <div className="flex items-center gap-3">
+                    <div className="flex flex-col">
+                        <span className="text-xs text-gray-500 mb-1">Start Date</span>
+                        <input 
+                            type="date" 
+                            className="text-sm border rounded p-1.5 focus:ring-primary focus:border-primary"
+                            value={format(dateRange.start, 'yyyy-MM-dd')}
+                            onChange={(e) => {
+                                if(e.target.value) {
+                                    setDateRange(prev => ({...prev, start: startOfDay(new Date(e.target.value))}));
+                                }
+                            }}
+                        />
+                    </div>
+                    <span className="text-gray-400 mt-5">-</span>
+                    <div className="flex flex-col">
+                        <span className="text-xs text-gray-500 mb-1">End Date</span>
+                        <input 
+                            type="date" 
+                            className="text-sm border rounded p-1.5 focus:ring-primary focus:border-primary"
+                            value={format(dateRange.end, 'yyyy-MM-dd')}
+                            onChange={(e) => {
+                                if(e.target.value) {
+                                    setDateRange(prev => ({...prev, end: endOfDay(new Date(e.target.value))}));
+                                }
+                            }}
+                            min={format(dateRange.start, 'yyyy-MM-dd')}
+                        />
+                    </div>
+                </div>
+            </div>
         </div>
 
       {loader.isLoading ? (
@@ -102,7 +169,7 @@ export default function MySpa() {
                         <CardContent className="p-0">
                             {/* @ts-ignore - SpaDates mapping assuming API sends dates aligned in this structure */}
                             {spa.SpaDates && spa.SpaDates.length > 0 ? (
-                                <Accordion type="single" collapsible className="w-full">
+                                <Accordion type="single" collapsible className="w-full">    
                                     {/* @ts-ignore */}
                                     {spa.SpaDates.map((spaDate: ISpaDates) => (
                                         <AccordionItem value={spaDate.id} key={spaDate.id} className="border-b-0 border-t px-4">
@@ -114,7 +181,7 @@ export default function MySpa() {
                                                     <div className="text-left">
                                                         <p className="font-semibold text-base">{formatDate(spaDate.date)}</p>
                                                         <p className="text-xs text-muted-foreground font-normal mt-0.5">
-                                                            {spaDate.Slots?.length || 0} slots available
+                                                          {spaDate.Slots?.length || 0} slots available
                                                         </p>
                                                     </div>
                                                 </div>
@@ -123,49 +190,51 @@ export default function MySpa() {
                                             <AccordionContent className="pt-2 pb-4">
                                                 {spaDate.Slots && spaDate.Slots.length > 0 ? (
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                        {spaDate.Slots.map((slot: ISpaSlotsWReservation) => (
-                                                            <div 
-                                                                key={slot.id} 
-                                                                className={`p-3 rounded-lg border transition-colors flex flex-col justify-between
-                                                                    ${slot.isBooked 
-                                                                        ? "bg-red-50/50 border-red-100" 
-                                                                        : "bg-green-50/50 border-green-100 hover:border-green-300"
-                                                                    }`}
-                                                            >
-                                                                <div className="flex justify-between items-center mb-2">
-                                                                    <div className="font-medium flex items-center gap-1.5">
-                                                                        <Clock className={`w-3.5 h-3.5 ${slot.isBooked ? "text-red-500" : "text-green-600"}`} />
-                                                                        {formatTime(slot.startTime)}
-                                                                        {slot.endTime && ` - ${formatTime(slot.endTime)}`}
+                                                        {spaDate.Slots.map((slot: any) => (
+                                                            <div key={slot.id} className="border p-3 rounded-lg flex flex-col justify-start gap-2 h-full">
+                                                                <div className="flex items-center justify-between">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <Clock className="w-4 h-4 text-gray-500" />
+                                                                        <span className="font-medium text-sm">
+                                                                            {formatTime(slot.startTime)} - {formatTime(slot.endTime || new Date())}
+                                                                        </span>
                                                                     </div>
-                                                                    <Badge 
-                                                                        variant={slot.isBooked ? "destructive" : "outline"}
-                                                                        className={!slot.isBooked ? "text-green-700 bg-green-50 border-green-200" : ""}
-                                                                    >
-                                                                        {slot.isBooked ? "Reserved" : "Available"}
-                                                                    </Badge>
+                                                                    {slot.isCompleted ? (
+                                                                        <Badge variant="default" className="bg-gray-100 text-gray-700 border-gray-300 hover:bg-gray-200">
+                                                                            Completed
+                                                                        </Badge>
+                                                                    ) : slot.isBooked ? (
+                                                                        <Badge variant="default" className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100">
+                                                                            Booked
+                                                                        </Badge>
+                                                                    ) : (
+                                                                        <Badge variant="outline" className="text-green-600 bg-green-50 border-green-200">
+                                                                            Available
+                                                                        </Badge>
+                                                                    )}
                                                                 </div>
-                                                                
-                                                                {slot.isBooked ? (
-                                                                    <div className="mt-1 pt-2 border-t border-red-100/50 space-y-1">
-                                                                        {/* @ts-ignore - Assuming userName and reservationId exists from schema */}
-                                                                        {slot.userName && (
-                                                                            <div className="flex items-center gap-1.5 text-sm text-red-900/80">
-                                                                                <User className="w-3.5 h-3.5" />
-                                                                                <span className="font-medium truncate">{slot.userName}</span>
-                                                                            </div>
-                                                                        )}
-                                                                        {/* @ts-ignore */}
-                                                                        {slot.reservationId && (
-                                                                            <div className="text-xs text-red-700/60 font-mono ml-5">
-                                                                                {/* @ts-ignore */}
-                                                                                Booking Code: {slot.Reservation.bookingCode.split("-")[1]}
-                                                                            </div>
-                                                                        )}
+                                                                {slot.isBooked && !slot.isCompleted && (
+                                                                    <div className="flex flex-col gap-2 mt-2 pt-2 border-t text-sm flex-grow">
+                                                                        <div className="flex flex-col gap-1 text-gray-600">
+                                                                            <span><strong>Guest:</strong> {slot.userName || "N/A"}</span>
+                                                                            {slot.Reservation?.bookingCode && <span><strong>Code:</strong> {slot.Reservation.bookingCode}</span>}
+                                                                        </div>
+                                                                        <div className="mt-auto pt-2">
+                                                                            <button 
+                                                                                onClick={() => handleMarkCompleted(slot.id)}
+                                                                                className="text-xs bg-primary text-primary-foreground px-3 py-1.5 rounded hover:bg-primary/90 transition font-medium text-center w-full"
+                                                                            >
+                                                                                Mark as Completed
+                                                                            </button>
+                                                                        </div>
                                                                     </div>
-                                                                ) : (
-                                                                    <div className="mt-1 pt-2 border-t border-green-100/50 flex flex-col justify-center items-center h-full min-h-[40px]">
-                                                                        <span className="text-xs text-green-700/70 font-medium">Slot is open for booking</span>
+                                                                )}
+                                                                {slot.isCompleted && (
+                                                                    <div className="flex flex-col gap-2 mt-2 pt-2 border-t text-sm flex-grow">
+                                                                        <div className="flex flex-col gap-1 text-gray-600">
+                                                                            <span><strong>Guest:</strong> {slot.userName || "N/A"}</span>
+                                                                            {slot.Reservation?.bookingCode && <span><strong>Code:</strong> {slot.Reservation.bookingCode}</span>}
+                                                                        </div>
                                                                     </div>
                                                                 )}
                                                             </div>

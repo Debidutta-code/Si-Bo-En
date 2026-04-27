@@ -24,9 +24,8 @@ import {
     deleteSpaSlotService,
     // markSlotAsBookedService,
     // markSlotAsAvailableService
-} from '../services/spa-slot.services';
-import type { ISpaDates, ICSpaSlotS } from '../interfaces/spa-slot.type';
-import type { ISpa } from '../interfaces/spa.type';
+} from '../services';
+import type { ISpaDates, ICSpaSlotS,ISpa } from '../interfaces';
 
 export default function SpaCalendar({ spaId, propertyId, spaDetails }: { spaId: string, propertyId: string, spaDetails: ISpa }) {
    const navigate = useNavigate();

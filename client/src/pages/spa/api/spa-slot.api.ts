@@ -118,3 +118,19 @@ export const markSlotAsAvailable = async (slotId: string) => {
         }
     }
 }
+
+export const markSlotAsCompleted = async (slotId: string) => {
+    try {
+        const response = await axiosInstance.patch(`/spa/slots/slots/${slotId}/completed`);
+        return response.data;
+    } catch (error: any) {
+        if (error?.response?.data) {
+            return error.response.data;
+        } else {
+            return {
+                success: false,
+                message: error?.message
+            }
+        }
+    }
+}

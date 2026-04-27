@@ -131,4 +131,19 @@ export class SpaSlotController {
             return res.status(500).json(errorResponse("Failed to mark spa slot as available", "Unknown error"));
         }
     }
+    public async markSlotAsCompleted(req: CustomRequest, res: Response): Promise<Response<IApiResponse>> {
+        try {
+            const slotId = req.params.id;
+            if (!slotId) {
+                return res.status(400).json(errorResponse("Slot ID is required"));
+            }
+            const response = await this.spaSlotService.markSlotAsCompleted(slotId);
+            return res.status(response.success ? 200 : 400).json(response);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res.status(500).json(errorResponse("Failed to mark spa slot as completed", error.message));
+            }
+            return res.status(500).json(errorResponse("Failed to mark spa slot as completed", "Unknown error"));
+        }
+    }
 }

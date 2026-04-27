@@ -23,6 +23,7 @@ export interface ICSpaSlotR extends ICSpaSlotS {
 }
 export interface ISpaSlot extends ICSpaSlotR {
     id: string;
+    isCompleted:boolean;
 }
 export interface ISpaSlotsWReservation extends ISpaSlot{
     Reservation:{
@@ -35,4 +36,8 @@ export interface ISpaSlotsWReservation extends ISpaSlot{
 export interface IMarkSlotAdAvilable{
     isBooked: boolean;
 
+}
+export interface IgetInDates{
+    startDate: Date;
+    endDate: Date;
 }

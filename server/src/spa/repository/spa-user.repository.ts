@@ -67,7 +67,7 @@ export class SpaUserRepository {
             throw new Error(`Failed to remove spa user for property`);
         }
     }
-    public async getSpaForUser(userId: string,propertyId:string): Promise<ISpa[]> {
+    public async getSpaForUser(userId: string,propertyId:string,startDate:Date,endDate:Date): Promise<ISpa[]> {
         try {
             return await prisma.spa.findMany({
                 where: {
@@ -89,16 +89,26 @@ export class SpaUserRepository {
                         }
                     },
                     SpaDates:{
+                        where: {
+                            date: {
+                                gte: startDate,
+                                lte: endDate
+                            }
+                        },
                         include:{
                             Slots:{
+                                
                                 include:{
                                     Reservation:{
                                         select:{
                                             bookingCode:true
                                         }
                                     }
+                                },
+                                orderBy: {
+                                    startTime: 'asc'
                                 }
-                            }
+                            },
                         }
                     },
                     AssignedSpas:{

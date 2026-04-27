@@ -20,5 +20,6 @@ spaSlotRouter.route("/slots/:id")
 // Slot Availability / Booking
 spaSlotRouter.route("/slots/:id/book").patch(protect, spaSlotController.markSlotAsBooked.bind(spaSlotController));
 spaSlotRouter.route("/slots/:id/available").patch(protect, spaSlotController.markSlotAsAvailable.bind(spaSlotController));
+spaSlotRouter.route("/slots/:id/completed").patch(protect, spaSlotController.markSlotAsCompleted.bind(spaSlotController));
 
 export { spaSlotRouter };

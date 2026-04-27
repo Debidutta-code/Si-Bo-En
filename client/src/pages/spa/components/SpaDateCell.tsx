@@ -1,6 +1,6 @@
 import { isSameMonth, isSameDay, format, isBefore, startOfDay } from 'date-fns';
 import { Plus, Trash2,  Settings } from 'lucide-react';
-import type { ISpaDates } from '../interfaces/spa-slot.type';
+import type { ISpaDates } from '../interfaces';
 
 interface Props {
   day: Date;

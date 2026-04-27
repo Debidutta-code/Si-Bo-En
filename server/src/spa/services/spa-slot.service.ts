@@ -14,7 +14,7 @@ export class SpaDates {
             if (isExistsForDates) {
                 return errorResponse("Spa already exists for this date add slots", "Spa Exist for this date");
             }
-             await this.spaDatesRepo.createDate({
+            await this.spaDatesRepo.createDate({
                 spaModuleId,
                 date
             });
@@ -69,14 +69,14 @@ export class SpaSlotsServ {
             if (!isDateExists) {
                 return errorResponse("Spa date does not exist", "Spa date not found");
             }
-            
+
             const existingSlots = isDateExists.Slots || [];
-            
-            const slotsData = data.map(slot => ({ 
-                ...slot, 
+
+            const slotsData = data.map(slot => ({
+                ...slot,
                 spaDateId,
-                startTime: toUTC(slot.startTime), 
-                endTime: slot.endTime ? toUTC(slot.endTime) : null 
+                startTime: toUTC(slot.startTime),
+                endTime: slot.endTime ? toUTC(slot.endTime) : null
             }));
 
             // Check for overlaps
@@ -170,6 +170,21 @@ export class SpaSlotsServ {
                 return errorResponse("Failed to mark spa slot as available", error.message);
             }
             return errorResponse("Failed to mark as Available", "Unknown error")
+        }
+    }
+    public async markSlotAsCompleted(id: string): Promise<IApiResponse> {
+        try {
+            const isSlotExists = await this.spaSlotsRepo.getSlotById(id);
+            if (!isSlotExists) {
+                return errorResponse("Spa slot does not exist", "Spa slot not found");
+            }
+            await this.spaSlotsRepo.markSlotAsCompleted(id);
+            return successResponse("Slot marked as completed successfully");
+        } catch (error) {
+            if (error instanceof Error) {
+                return errorResponse("Failed to mark slot as completed", error.message);
+            }
+            return errorResponse("Failed to mark slot as completed", "Unknown error");
         }
     }
 
