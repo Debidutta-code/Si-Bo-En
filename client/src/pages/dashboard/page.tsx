@@ -45,9 +45,8 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!user) return;
-    if (user?.role != "housekeeping" && user?.role != "front_desk") {
       fetchProperties();
-    }
+    
   }, [user?.role]);
 
   useEffect(() => {
