@@ -55,8 +55,8 @@ const normalizeGuests = (guests: any[]): IAmendGuest[] =>
 
 const buildInitialRoomConfigs = (reservation: any): IAmendRoom[] => {
   const breakdown =
-    reservation.priceBreakdowns?.[0]?.dailyBreakdown ??
-    reservation.finalPrice?.dailyBreakdown ??
+    reservation.priceBreakdowns?.[0]?.dailyPriceBrakeDown ??
+    reservation.finalPrice?.dailyPriceBrakeDown ??
     [];
 
   const roomMap = new Map<string, IAmendRoom>();
@@ -151,7 +151,7 @@ const StepIndicator: FC<{ current: AmendStep }> = ({ current }) => (
             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all
               ${isComplete ? "bg-primary text-primary-foreground"
                 : isActive ? "bg-primary text-primary-foreground ring-4 ring-primary/20"
-                : "bg-muted text-muted-foreground border border-border"}`}>
+                  : "bg-muted text-muted-foreground border border-border"}`}>
               {isComplete ? (
                 <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
@@ -358,7 +358,6 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
     setStep(2);
   };
 
-  // ─── Step 2 → 3 (auto-fetches price on transition) ───────────────────────
 
   const validateGuests = (): boolean => {
     const nameRegex = /^[A-Za-z\s]+$/;
@@ -366,11 +365,19 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
     let valid = true;
 
     guestForms.forEach((guest, index) => {
+      const isPrimary = index === 0 && guest.type === "adult";
       const gErr: IGuestFieldErrors = {};
-      if (!guest.firstName.trim()) { gErr.firstName = "First name is required."; valid = false; }
-      else if (!nameRegex.test(guest.firstName)) { gErr.firstName = "Only letters allowed."; valid = false; }
-      if (!guest.lastName.trim()) { gErr.lastName = "Last name is required."; valid = false; }
-      else if (!nameRegex.test(guest.lastName)) { gErr.lastName = "Only letters allowed."; valid = false; }
+
+      if (isPrimary) {
+        if (!guest.firstName.trim()) { gErr.firstName = "First name is required."; valid = false; }
+        else if (!nameRegex.test(guest.firstName)) { gErr.firstName = "Only letters allowed."; valid = false; }
+        if (!guest.lastName.trim()) { gErr.lastName = "Last name is required."; valid = false; }
+        else if (!nameRegex.test(guest.lastName)) { gErr.lastName = "Only letters allowed."; valid = false; }
+      } else {
+        if (guest.firstName.trim() && !nameRegex.test(guest.firstName)) { gErr.firstName = "Only letters allowed."; valid = false; }
+        if (guest.lastName.trim() && !nameRegex.test(guest.lastName)) { gErr.lastName = "Only letters allowed."; valid = false; }
+      }
+
       if (Object.keys(gErr).length) errors[`guest-${index}`] = gErr;
     });
 

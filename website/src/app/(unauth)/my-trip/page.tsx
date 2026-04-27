@@ -201,21 +201,15 @@ export default function MyTripPage() {
     yLeft += 10;
     doc.setTextColor(50);
     doc.setFont("helvetica", "normal");
-    // Check if guests array exists and has items
     if (bookingData.guests && bookingData.guests.length > 0) {
-      bookingData.guests.forEach((guest: any, index: number) => {
-        const guestName = `${guest.firstName || ""} ${guest.lastName || ""}`.trim();
-        const guestType = guest.type ? guest.type.charAt(0).toUpperCase() + guest.type.slice(1) : "Unknown";
-        doc.text(
-          `${index + 1}. ${guestName || "N/A"} (${guestType})`,
-          colLeftX + 5,
-          yLeft
-        );
+      const primary = bookingData.guests.find((g: any) => g.type === "adult");
+      if (primary) {
+        const guestName = `${primary.firstName || ""} ${primary.lastName || ""}`.trim();
+        doc.text(`${guestName || "N/A"} (Primary Guest)`, colLeftX + 5, yLeft);
         yLeft += 6;
-      });
+      }
     } else {
       doc.text(t("MyTrip.pdf.noGuestInfo"), colLeftX, yLeft);
-
       yLeft += 6;
     }
     yLeft += 8;
@@ -268,10 +262,10 @@ export default function MyTripPage() {
 
     addPaymentRow("Method:", paymentMethod);
     addPaymentRow("Booking Date:", bookingDate);
-    addPaymentRow("Total Amount:", `${amount} ${bookingData.currencyCode || "USD"}`, true);
-    addPaymentRow("Amount Paid:", `${paidAmount} ${bookingData.currencyCode || "USD"}`, true);
-    addPaymentRow("Extra amount to be Paid:", `${extraAmountToPay} ${bookingData.currencyCode || "USD"}`);
-    addPaymentRow("Refundable Amount:", `${refundAmount} ${bookingData.currencyCode || "USD"}`, true);
+    addPaymentRow("Total Amount:", `${amount.toFixed(2)} ${bookingData.currencyCode || "USD"}`, true);
+    addPaymentRow("Amount Paid:", `${paidAmount.toFixed(2)} ${bookingData.currencyCode || "USD"}`, true);
+    addPaymentRow("Extra amount to be Paid:", `${extraAmountToPay.toFixed(2)} ${bookingData.currencyCode || "USD"}`);
+    addPaymentRow("Refundable Amount:", `${refundAmount.toFixed(2)} ${bookingData.currencyCode || "USD"}`, true);
 
     // Add subtotal and tax breakdown if available
     if (bookingData.finalPrice) {
@@ -612,33 +606,34 @@ export default function MyTripPage() {
                   <FaUser style={{ color: colors.primaryColor }} /> {t("MyTrip.guestDetails")}
                 </h4>
                 <div className="space-y-2">
-                  {bookingData.guests.map((guest: any, index: number) => (
-                    <div
-                      key={index}
-                      className="grid grid-cols-2 gap-4 border-b pb-2 last:border-none"
-                    >
-                      <div>
-                        <p className="text-gray-500 text-sm font-medium">{t("MyTrip.name")}</p>
-                        <p className="text-gray-800 font-medium">
-                          {guest.firstName} {guest.lastName}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 text-sm font-medium">{t("MyTrip.type")}</p>
-                        <p className="text-gray-800 font-medium">
-                          {guest.type.charAt(0).toUpperCase() + guest.type.slice(1)}
-                        </p>
-                      </div>
-                      {guest.dateOfBirth && (
-                        <div className="col-span-2">
-                          <p className="text-gray-500 text-sm font-medium">{t("MyTrip.dateOfBirth")}</p>
-                          <p className="text-gray-800">
-                            {new Date(guest.dateOfBirth).toLocaleDateString()}
+                  {(() => {
+                    const primary = bookingData.guests.find((g: any) => g.type === "adult");
+                    if (!primary) return <p className="text-gray-500">{t("MyTrip.noGuestDetails")}</p>;
+                    return (
+                      <div className="grid grid-cols-2 gap-4 border-b pb-2">
+                        <div>
+                          <p className="text-gray-500 text-sm font-medium">{t("MyTrip.name")}</p>
+                          <p className="text-gray-800 font-medium">
+                            {primary.firstName} {primary.lastName}
                           </p>
                         </div>
-                      )}
-                    </div>
-                  ))}
+                        <div>
+                          <p className="text-gray-500 text-sm font-medium">{t("MyTrip.type")}</p>
+                          <p className="text-gray-800 font-medium">
+                            {primary.type.charAt(0).toUpperCase() + primary.type.slice(1)}
+                          </p>
+                        </div>
+                        {primary.dateOfBirth && (
+                          <div className="col-span-2">
+                            <p className="text-gray-500 text-sm font-medium">{t("MyTrip.dateOfBirth")}</p>
+                            <p className="text-gray-800">
+                              {new Date(primary.dateOfBirth).toLocaleDateString()}
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </div>
                 <div className="grid grid-cols-2 gap-4 mt-4">
                   <div>

@@ -990,65 +990,13 @@ export class ReservationService {
                 },
             };
 
-            // const emailBookingDetails: ICReservationPayloadForEmail = {
-            //     // startDate: updatePayload.checkInDate,
-            //     // endDate: updatePayload.checkOutDate,
-            //     reservationStartDate: updatePayload.checkInDate,
-            //     reservationEndDate: updatePayload.checkOutDate,
-            //     propertyCode: updatePayload.propertyCode,
-            //     hotelName: existingReservation.hotelName || '',
-            //     roomTypeCode: updatePayload.roomTypeCode,
-            //     ratePlanCode: updatePayload.ratePlanCode,
-            //     numberOfRooms: updatePayload.requestedRooms,
-            //     numberOfNights: updateNumberOfNights,
-            //     // refundAmount: updatedReservation.refundAmount,
-            //     finalPrice: updatePayload.finalPrice,
-            //     // promoCode:updatePayload.promoCode || null,
-            //     currencyCode: updatePayload.currencyCode,
-            //     bookingSource: existingReservation.bookingSource,
-            //     bookingUserEmail: updatePayload.bookingUserEmail,
-            //     bookingUserPhone: updatePayload.bookingUserPhone,
-            //     roomName:"",
-            //     // guests: {
-            //     //     adults: updatePayload.rooms.reduce(
-            //     //         (sum, room) => sum + room.adults,
-            //     //         0
-            //     //     ),
-            //     //     children: updatePayload.rooms.reduce(
-            //     //         (sum, room) => sum + room.children,
-            //     //         0
-            //     //     ),
-            //     //     rooms: updatePayload.rooms.length,
-            //     // },
-            //     // guests: updatePayload.guests.map(guest => ({
-            //     //     type: guest.type,
-            //     //     firstName: guest.firstName,
-            //     //     lastName: guest.lastName,
-            //     //     dateOfBirth: guest.dateOfBirth,
-            //     //     // email:
-            //     //     //     guest.type === 'adult'
-            //     //     //         ? updatePayload.bookingUserEmail
-            //     //     //         : undefined,
-            //     //     // phone:
-            //     //     //     guest.type === 'adult'
-            //     //     //         ? updatePayload.bookingUserPhone
-            //     //     //         : undefined,
-            //     // })),
-            //     paymentMethod: existingReservation.paymentMethod,
-            //     bookingCode: existingReservation.bookingCode,
-            //     reservationId: existingReservation.id,
-            //     bookedAt: existingReservation.bookedAt.toISOString(),
-            //     bookingStatus: 'modified' as BookingStatus,
-            // };
+         
 
-            // this.emailService
-            //     .reservationUpdatedEmail(emailBookingDetails)
-            //     .catch(error => {
-            //         console.error(
-            //             'Failed to send reservation update email:',
-            //             error
-            //         );
-            //     });
+         this.emailService
+                .reservationUpdatedEmail(existingReservation,updatePayload)
+                .catch((error:any) => {
+                    console.error('Failed to send reservation update email:', error);
+                });
 
             return successResponse(
                 'Reservation updated successfully',

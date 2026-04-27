@@ -443,28 +443,30 @@ export default function ReservationCard({
             </div>
 
             {/* Guest List */}
-            {reservation.guests && reservation.guests.length > 0 && (
-              <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-2">
-                  All Guests
-                </h4>
-                <div className="space-y-2">
-                  {reservation.guests.map((guest: any, index: number) => (
-                    <div
-                      key={index}
-                      className="flex items-center justify-between text-sm bg-gray-50 p-3 rounded-md"
-                    >
-                      <span className="font-medium">
-                        {guest.firstName} {guest.lastName}
-                      </span>
-                      <span className="text-gray-600 capitalize">
-                        {guest.type || guest.userType}
-                      </span>
-                    </div>
-                  ))}
+            {reservation.guests && reservation.guests.length > 0 && (() => {
+              const primary = reservation.guests.find((g: any) => g.type === "adult")
+                ?? reservation.guests[0];
+              return (
+                <div>
+                  <h4 className="text-sm font-semibold text-gray-900 mb-2">
+                    Primary Guest
+                  </h4>
+                  <div className="flex items-center justify-between text-sm bg-gray-50 p-3 rounded-md">
+                    <span className="font-medium">
+                      {primary.firstName} {primary.lastName}
+                    </span>
+                    <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full capitalize">
+                      Primary
+                    </span>
+                  </div>
+                  {reservation.guests.length > 1 && (
+                    <p className="text-xs text-muted-foreground mt-1.5 pl-1">
+                      +{reservation.guests.length - 1} additional guest{reservation.guests.length - 1 !== 1 ? "s" : ""}
+                    </p>
+                  )}
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Close Button */}
             <div className="flex justify-end pt-4">

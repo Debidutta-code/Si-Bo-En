@@ -264,7 +264,6 @@ export interface AriManupulationRooms {
   roomTypeCode: string;
   numberOfRooms: number;
 }
-// Add these interfaces to your existing types file
 
 export interface IReservationUpdatePayload {
   propertyCode: string;

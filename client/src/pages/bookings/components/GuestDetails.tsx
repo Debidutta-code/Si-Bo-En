@@ -18,13 +18,14 @@ interface IGuestCardProps {
   guest: IAmendGuest;
   index: number;
   displayIndex: number;
+  isPrimary: boolean;
   errors: IGuestFieldErrors;
   onGuestChange: (index: number, field: keyof IAmendGuest, value: string) => void;
 }
 
 // ─── GuestCard (defined OUTSIDE parent — prevents remount on every keystroke) ─
 
-const GuestCard: FC<IGuestCardProps> = ({ guest, index, displayIndex, errors, onGuestChange }) => {
+const GuestCard: FC<IGuestCardProps> = ({ guest, index, displayIndex, isPrimary, errors, onGuestChange }) => {
   const isAdult = guest.type === "adult";
 
   return (
@@ -41,6 +42,15 @@ const GuestCard: FC<IGuestCardProps> = ({ guest, index, displayIndex, errors, on
             ${isAdult ? "text-primary" : "text-muted-foreground"}`}>
             {isAdult ? "Adult" : "Child"} {displayIndex}
           </span>
+          {isPrimary ? (
+            <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full">
+              Primary Guest
+            </span>
+          ) : (
+            <span className="text-xs bg-muted text-muted-foreground border border-border px-2 py-0.5 rounded-full">
+              Optional
+            </span>
+          )}
           {guest.type === "child" && guest.age != null && (
             <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
               Age {guest.age}
@@ -62,7 +72,7 @@ const GuestCard: FC<IGuestCardProps> = ({ guest, index, displayIndex, errors, on
           {/* First Name */}
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground">
-              First Name <span className="text-destructive">*</span>
+              First Name {isPrimary && <span className="text-destructive">*</span>}
             </label>
             <input
               type="text"
@@ -82,7 +92,7 @@ const GuestCard: FC<IGuestCardProps> = ({ guest, index, displayIndex, errors, on
           {/* Last Name */}
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground">
-              Last Name <span className="text-destructive">*</span>
+              Last Name {isPrimary && <span className="text-destructive">*</span>}
             </label>
             <input
               type="text"
@@ -148,9 +158,8 @@ const GuestDetails: FC<IGuestDetailsProps> = ({
   const adultGuests = guests.filter((g) => g.type === "adult");
   const childGuests = guests.filter((g) => g.type === "child");
   const hasErrors = Object.keys(guestErrors).length > 0;
-  const allFilled = guests.every(
-    (g) => g.firstName.trim().length > 0 && g.lastName.trim().length > 0
-  );
+  const primary = guests[0];
+  const allFilled = !!primary?.firstName.trim() && !!primary?.lastName.trim();
 
   let adultCounter = 0;
   let childCounter = 0;
@@ -182,12 +191,14 @@ const GuestDetails: FC<IGuestDetailsProps> = ({
             childCounter++;
             displayIndex = childCounter;
           }
+          const isPrimary = index === 0 && guest.type === "adult";
           return (
             <GuestCard
               key={index}
               guest={guest}
               index={index}
               displayIndex={displayIndex}
+              isPrimary={isPrimary}
               errors={guestErrors[`guest-${index}`] || {}}
               onGuestChange={onGuestChange}
             />
@@ -202,8 +213,8 @@ const GuestDetails: FC<IGuestDetailsProps> = ({
         </p>
       )}
       {!allFilled && !hasErrors && (
-        <p className="text-xs text-muted-foreground text-center italic">
-          Fill in all guest names to continue.
+        <p className="text-xs text-muted-foreground text-center ">
+          Fill in the primary guest name to continue.
         </p>
       )}
 

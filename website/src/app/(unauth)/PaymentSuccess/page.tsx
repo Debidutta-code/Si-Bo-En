@@ -155,13 +155,16 @@ const PaymentSuccessPage = () => {
             </h2>
             <div className="space-y-2 text-sm text-gray-800">
               {guests && guests.length > 0 ? (
-                guests.map((guest: any, index: number) => (
-                  <div key={index}>
+                (() => {
+                  const primary = guests.find((g: any) => g.type === "adult");
+                  return primary ? (
                     <p className="font-medium">
-                      {guest.firstName} {guest.lastName}
+                      {primary.firstName} {primary.lastName}
                     </p>
-                  </div>
-                ))
+                  ) : (
+                    <p>{t("PaymentSuccess.confirmed.noGuestDetails")}</p>
+                  );
+                })()
               ) : (
                 <p>{t("PaymentSuccess.confirmed.noGuestDetails")}</p>
               )}

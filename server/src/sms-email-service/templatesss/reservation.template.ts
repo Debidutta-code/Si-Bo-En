@@ -1,4 +1,4 @@
-import { ICReservationPayloadForEmail, IGuestDetail } from "../../reservation/types";
+import { ICReservationPayloadForEmail, IGuestDetail, IReservationUpdatePayload, IReservationWithAllDetails } from "../../reservation/types";
 import { CurrencyCode } from "../../tax-system/interfaces";
 import { capitalizeFirstLetter } from "../utils/capitalizefirstLetter.util";
 
@@ -46,10 +46,14 @@ interface DepositPolicy {
   depositPercentage?: number;
   description?: string;
 }
+interface GuarenteePolicy{
+  description?: string;
+}
 
 interface RatePlanPolicies {
   cancellationPolicy?: CancellationPolicy | null;
   depositPolicy?: DepositPolicy | null;
+  guarenteePolicy?:GuarenteePolicy|null;
 }
 
 interface EmailTemplateProps {
@@ -58,6 +62,16 @@ interface EmailTemplateProps {
   propertyAddress: PropertyAddress;
   room: RoomDetails;
   policies?: RatePlanPolicies;
+}
+
+
+interface UpdateReservationPayload {
+    property: PropertyDetails;
+    propertyAddress:PropertyAddress;
+    room:RoomDetails;
+    updatedPayload:IReservationUpdatePayload;
+    reservation:IReservationWithAllDetails;
+    policies?: RatePlanPolicies;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -966,17 +980,16 @@ export const BookingCancellationEmail = ({
 };
 
 
-// ==================== BOOKING AMENDMENT EMAIL ====================
-// export const BookingAmendmentEmail = ({
-//   reservation,
-//   property,
-//   propertyAddress,
-//   room,
-// }: EmailTemplateProps): string => {
-//   const { finalPrice, guests, guestDetails, reservationStartDate, reservationEndDate } = reservation;
-//   const primaryGuest = guestDetails[0];
-//   const numberOfNights = reservation.numberOfNights || 1;
-
+export const BookingAmendmentEmail = ({
+  property,
+  propertyAddress,
+  room,
+  updatedPayload,
+}: UpdateReservationPayload): string => {
+  // const { finalPrice, guests, guestDetails, reservationStartDate, reservationEndDate } = updatedPayload;
+  // const primaryGuest = guestDetails[0];
+  // const numberOfNights = updatedPayload.numberOfNights || 1;
+return "";
 //   return `
 // <!DOCTYPE html>
 // <html lang="en">
@@ -1263,235 +1276,11 @@ export const BookingCancellationEmail = ({
 // </body>
 // </html>
 //   `;
-// };
+};
 
-// // ==================== BOOKING CANCELLATION EMAIL ====================
-// export const BookingCancellationEmail = ({
-//   reservation,
-//   property,
-//   propertyAddress,
-//   room,
-// }: EmailTemplateProps): string => {
-//   const { finalPrice, guests, guestDetails, startDate, endDate } = reservation;
-//   const primaryGuest = guestDetails[0];
-//   const numberOfNights = reservation.numberOfNights || 1;
 
-//   return `
-// <!DOCTYPE html>
-// <html lang="en">
-// <head>
-//   <meta charset="UTF-8">
-//   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-//   <title>Booking Cancelled - ${property.propertyName}</title>
-//   <style>
-//     * { margin: 0; padding: 0; box-sizing: border-box; }
-//     body { 
-//       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-//       background-color: #f8f9fa; 
-//       color: #212529;
-//       line-height: 1.6;
-//       -webkit-font-smoothing: antialiased;
-//     }
-//     .email-wrapper { background-color: #f8f9fa; padding: 20px 0; }
-//     .container { max-width: 680px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
-//     .header { background: #ffffff; padding: 30px 40px; border-bottom: 3px solid #6c757d; }
-//     .property-logo { font-size: 24px; font-weight: 700; color: #6c757d; margin-bottom: 8px; }
-//     .confirmation-title { font-size: 32px; font-weight: 700; color: #212529; margin-bottom: 8px; }
-//     .confirmation-subtitle { font-size: 16px; color: #6c757d; }
-//     .cancelled-badge { display: inline-block; background: #dc3545; color: white; padding: 8px 16px; border-radius: 6px; font-weight: 600; margin-top: 16px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; }
-//     .booking-number { display: inline-block; background: #e9ecef; color: #6c757d; padding: 8px 16px; border-radius: 6px; font-weight: 600; margin-top: 16px; font-size: 14px; margin-left: 8px; }
-//     .content { padding: 0; }
-//     .section { padding: 32px 40px; border-bottom: 1px solid #e9ecef; }
-//     .section:last-child { border-bottom: none; }
-//     .section-header { display: flex; align-items: center; margin-bottom: 20px; }
-//     .section-icon { width: 40px; height: 40px; background: #e9ecef; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 20px; margin-right: 12px; }
-//     .section-title { font-size: 20px; font-weight: 700; color: #212529; margin: 0; }
-//     .cancellation-notice { background: #fff3cd; border-left: 4px solid #ffc107; padding: 20px; border-radius: 4px; margin-bottom: 24px; }
-//     .cancellation-notice-title { font-weight: 700; font-size: 15px; color: #212529; margin-bottom: 8px; display: flex; align-items: center; }
-//     .cancellation-notice-text { font-size: 14px; color: #495057; line-height: 1.6; }
-//     .refund-notice { background: #d4edda; border-left: 4px solid #28a745; padding: 20px; border-radius: 4px; margin-top: 16px; }
-//     .refund-notice-title { font-weight: 700; font-size: 15px; color: #212529; margin-bottom: 8px; display: flex; align-items: center; }
-//     .refund-amount { font-size: 24px; font-weight: 700; color: #28a745; margin-top: 8px; }
-//     .date-cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 24px; }
-//     .date-card { background: #f8f9fa; border: 2px solid #e9ecef; border-radius: 8px; padding: 20px; text-align: center; opacity: 0.7; }
-//     .date-label { font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #6c757d; font-weight: 600; margin-bottom: 8px; }
-//     .date-day { font-size: 28px; font-weight: 700; color: #6c757d; line-height: 1; margin-bottom: 4px; text-decoration: line-through; }
-//     .date-month-year { font-size: 14px; color: #495057; font-weight: 500; }
-//     .date-weekday { font-size: 13px; color: #6c757d; margin-top: 4px; }
-//     .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 24px; }
-//     .info-item { display: flex; flex-direction: column; }
-//     .info-label { font-size: 13px; color: #6c757d; font-weight: 500; margin-bottom: 4px; }
-//     .info-value { font-size: 16px; font-weight: 600; color: #495057; }
-//     .guest-card { background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 12px; }
-//     .guest-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-//     .guest-name { font-weight: 700; font-size: 17px; color: #212529; }
-//     .guest-badge { display: inline-block; background: #6c757d; color: white; padding: 4px 12px; border-radius: 12px; font-size: 11px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.3px; }
-//     .guest-contact { font-size: 14px; color: #6c757d; margin-top: 4px; }
-//     .guest-contact-item { display: flex; align-items: center; margin-bottom: 4px; }
-//     .property-name { font-size: 24px; font-weight: 700; color: #212529; margin-bottom: 8px; }
-//     .address-card { background: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 16px; margin-top: 20px; }
-//     .address-title { font-weight: 700; font-size: 14px; color: #212529; margin-bottom: 12px; display: flex; align-items: center; }
-//     .address-line { font-size: 14px; color: #495057; line-height: 1.6; }
-//     .contact-info { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 16px; }
-//     .contact-item { font-size: 14px; color: #495057; display: flex; align-items: center; }
-//     .contact-item strong { font-weight: 600; margin-right: 4px; }
-//     .cta-section { background: #f8f9fa; text-align: center; padding: 32px 40px; }
-//     .cta-button { display: inline-block; background: #6c757d; color: white; text-decoration: none; padding: 14px 32px; border-radius: 6px; font-weight: 600; font-size: 15px; margin-top: 8px; transition: background 0.3s ease; }
-//     .cta-button:hover { background: #5a6268; }
-//     .cta-text { font-size: 15px; color: #495057; margin-bottom: 8px; }
-//     .footer { background: #f8f9fa; padding: 32px 40px; text-align: center; font-size: 13px; color: #6c757d; border-top: 1px solid #e9ecef; }
-//     .footer-links { margin-bottom: 16px; }
-//     .footer a { color: #6c757d; text-decoration: none; font-weight: 500; }
-//     .footer a:hover { text-decoration: underline; }
-//     .footer-note { margin-top: 16px; font-size: 12px; color: #adb5bd; line-height: 1.5; }
-//     @media only screen and (max-width: 600px) {
-//       .container { margin: 0; border-radius: 0; }
-//       .header, .section, .cta-section, .footer { padding: 24px 20px; }
-//       .confirmation-title { font-size: 26px; }
-//       .date-cards, .info-grid, .contact-info { grid-template-columns: 1fr; }
-//       .date-card { padding: 16px; }
-//       .property-name { font-size: 20px; }
-//       .booking-number { margin-left: 0; margin-top: 8px; display: block; width: fit-content; }
-//     }
-//   </style>
-// </head>
-// <body>
-//   <div class="email-wrapper">
-//     <div class="container">
-//       <div class="header">
-//         <div class="property-logo">${property.propertyName}</div>
-//         <h1 class="confirmation-title">Booking Cancelled</h1>
-//         <p class="confirmation-subtitle">Your reservation has been cancelled</p>
-//         <div>
-//           <span class="cancelled-badge">CANCELLED</span>
-//           ${reservation.bookingCode ? `<span class="booking-number">Booking #${reservation.bookingCode}</span>` : ''}
-//         </div>
-//       </div>
-
-//       <div class="content">
-//         <div class="section">
-//           <div class="cancellation-notice">
-//             <div class="cancellation-notice-title">⚠️ Cancellation Confirmed</div>
-//             <div class="cancellation-notice-text">
-//               We're sorry to see you go. Your booking at ${property.propertyName} has been successfully cancelled. 
-//               We hope to welcome you in the future.
-//             </div>
-//           </div>
-
-//           ${reservation.refundAmount ? `
-//           <div class="refund-notice">
-//             <div class="refund-notice-title">💰 Refund Information</div>
-//             <div class="cancellation-notice-text">
-//               Your refund is being processed and will be credited to your original payment method within 5-7 business days.
-//             </div>
-//             <div class="refund-amount">${formatCurrency(reservation.refundAmount, reservation.currencyCode)}</div>
-//           </div>
-//           ` : ''}
-
-//           <div class="section-header" style="margin-top: 24px;">
-//             <div class="section-icon">📅</div>
-//             <h2 class="section-title">Cancelled Reservation</h2>
-//           </div>
-
-//           <div class="date-cards">
-//             <div class="date-card">
-//               <div class="date-label">Check-in (Was)</div>
-//               <div class="date-day">${new Date(startDate).getDate()}</div>
-//               <div class="date-month-year">${new Date(startDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>
-//               <div class="date-weekday">${new Date(startDate).toLocaleDateString('en-US', { weekday: 'long' })}</div>
-//             </div>
-//             <div class="date-card">
-//               <div class="date-label">Check-out (Was)</div>
-//               <div class="date-day">${new Date(endDate).getDate()}</div>
-//               <div class="date-month-year">${new Date(endDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>
-//               <div class="date-weekday">${new Date(endDate).toLocaleDateString('en-US', { weekday: 'long' })}</div>
-//             </div>
-//           </div>
-
-//           <div class="info-grid">
-//             <div class="info-item">
-//               <span class="info-label">Duration</span>
-//               <span class="info-value">${numberOfNights} Night${numberOfNights > 1 ? 's' : ''}</span>
-//             </div>
-//             <div class="info-item">
-//               <span class="info-label">Guests</span>
-//               <span class="info-value">${guests.adults} Adult${guests.adults > 1 ? 's' : ''}${guests.children > 0 ? `, ${guests.children} Child${guests.children > 1 ? 'ren' : ''}` : ''}</span>
-//             </div>
-//             <div class="info-item">
-//               <span class="info-label">Room Type</span>
-//               <span class="info-value">${room.roomName}</span>
-//             </div>
-//             <div class="info-item">
-//               <span class="info-label">Number of Rooms</span>
-//               <span class="info-value">${reservation.numberOfRooms} Room${reservation.numberOfRooms > 1 ? 's' : ''}</span>
-//             </div>
-//           </div>
-//         </div>
-
-//         <div class="section">
-//           <div class="section-header">
-//             <div class="section-icon">👤</div>
-//             <h2 class="section-title">Guest Information</h2>
-//           </div>
-//           <div class="guest-card">
-//             <div class="guest-header">
-//               <div class="guest-name">${primaryGuest.firstName} ${primaryGuest.lastName}</div>
-//               <span class="guest-badge">Primary Guest</span>
-//             </div>
-//             ${primaryGuest.email || primaryGuest.phone ? `
-//             <div class="guest-contact">
-//               ${primaryGuest.email ? `<div class="guest-contact-item">📧 ${primaryGuest.email}</div>` : ''}
-//               ${primaryGuest.phone ? `<div class="guest-contact-item">📱 ${primaryGuest.phone}</div>` : ''}
-//             </div>
-//             ` : ''}
-//           </div>
-//         </div>
-
-//         <div class="section">
-//           <div class="section-header">
-//             <div class="section-icon">🏨</div>
-//             <h2 class="section-title">Property Information</h2>
-//           </div>
-//           <h3 class="property-name">${property.propertyName}</h3>
-//           <div class="address-card">
-//             <div class="address-title">📍 Location</div>
-//             <div class="address-line">${propertyAddress.addressLine1}</div>
-//             ${propertyAddress.addressLine2 ? `<div class="address-line">${propertyAddress.addressLine2}</div>` : ''}
-//             <div class="address-line">${propertyAddress.city}, ${propertyAddress.state} ${propertyAddress.zipCode}</div>
-//             <div class="address-line">${propertyAddress.country}</div>
-//           </div>
-//           <div class="contact-info">
-//             <div class="contact-item"><strong>📞</strong> ${property.propertyContact}</div>
-//             <div class="contact-item"><strong>📧</strong> ${property.propertyEmail}</div>
-//           </div>
-//         </div>
-
-//  <div class="cta-section">
-//           <p class="cta-text">Changed your mind?</p>
-//   <a href="https://bookings.revchilltech.com/my-trip?propertyCode=${property.propertyCode}" class="cta-button">
-//     Manage Booking
-//   </a>
-// </div>
-//       <div class="footer">
-//         <div class="footer-links">
-//           <p>Questions about your cancellation?</p>
-//           <p style="margin-top: 8px;">Contact us at <a href="mailto:${property.propertyEmail}">${property.propertyEmail}</a> or call ${property.propertyContact}</p>
-//         </div>
-//         <div class="footer-note">
-//           This is an automated cancellation confirmation from ${property.propertyName}.<br>
-//           Please do not reply directly to this message.
-//         </div>
-//       </div>
-//     </div>
-//   </div>
-// </body>
-// </html>
-//   `;
-// };
-
-// Export all templates
 export const EmailTemplates = {
   BookingConfirmation: BookingConfirmationEmail,
-  // BookingAmendment: BookingAmendmentEmail,
+  BookingAmendment: BookingAmendmentEmail,
   BookingCancellation: BookingCancellationEmail,
 };

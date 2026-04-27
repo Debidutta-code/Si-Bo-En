@@ -5,7 +5,8 @@
     "contactUs": "اتصل بنا",
     "partnerLogin": "تسجيل دخول الشريك",
     "myBooking": "حجزي",
-    "loyaltyGuestLogin": "تسجيل دخول ضيف الولاء"
+    "loyaltyGuestLogin": "تسجيل دخول ضيف الولاء",
+    "becomApartner":"كن شريكاً"
   },
   "Hero": {
     "title": "اعثر على مكانك القادم للزيارة",
@@ -234,6 +235,8 @@
     "loyaltyMember": "عضو الولاء",
     "emailLabel": "البريد الإلكتروني",
     "emailPlaceholder": "your@email.com",
+    "primary": "أساسي",
+    "optional": "اختياري",
     "emailConfirmation": "سيتم إرسال تأكيد حجزك هنا",
     "loyaltyDiscountPercent": "سيتم تطبيق خصم الولاء {{value}}%",
     "loyaltyDiscountFlat": "سيتم تطبيق خصم الولاء {{currency}} {{value}}",
@@ -489,6 +492,8 @@
     "nights": "ليالٍ",
     "night": "ليلة",
     "roomDetails": "تفاصيل الغرفة",
+    "primary": "أساسي",
+    "optional": "اختياري",
     "room": "غرفة",
     "rooms": "غرف",
     "ratePlan": "خطة السعر",

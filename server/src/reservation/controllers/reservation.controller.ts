@@ -170,7 +170,6 @@ export class ReservationController {
                     );
             }
 
-            //console.log("Updating reservation:", reservationCode, "with data:", JSON.stringify(updateData, null, 2));
 
             const serviceRes = await this.reservationService.updateReservation(
                 reservationCode,

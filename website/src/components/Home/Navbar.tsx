@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Menu, X } from "lucide-react";
+import { Globe, Menu, X } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import ZLogo from "../assets/revchilli.png";
@@ -19,6 +19,7 @@ const Navbar = () => {
   const [dynamicLogo, setDynamicLogo] = useState<string | null>(null);
   const pathname = usePathname();
   const isHomePage = pathname === "/";
+  const isAgencyApplicationPage = pathname === "/agency-application";
   const isRoomsPage = pathname.includes("/Rooms");
   const dispatch = useDispatch();
   const router = useRouter();
@@ -161,6 +162,22 @@ const Navbar = () => {
             </div>
 
             {/* Partner Login */}
+             {
+              !isAgencyApplicationPage && (
+                <button
+              onClick={()=>router.push("/agency-application")}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+              style={{
+                backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
+                  ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
+                  : "#F4EFE6",
+                color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
+              }}
+            >
+             <Globe size={16} /> {t("Navbar.becomApartner")}
+            </button>
+              )
+             }
             <button
               onClick={() => window.open(agenturl, "_blank")}
               className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
@@ -253,6 +270,22 @@ const Navbar = () => {
 
             {isRoomsPage && (
               <>
+               {
+                  !isAgencyApplicationPage && (
+                    <button
+                  onClick={()=>router.push("/agency-application")}
+                  className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors"
+                  style={{
+                    backgroundColor: bookingContext?.bookingEngineColor?.primaryColor
+                      ? `${bookingContext?.bookingEngineColor?.primaryColor}20`
+                      : "#F4EFE6",
+                    color: bookingContext?.bookingEngineColor?.primaryColor || "#5B543F",
+                  }}
+                >
+                 <Globe size={16} /> {t("Navbar.becomApartner")}
+                </button>
+                  )
+                }
                 <button
               onClick={() => router.push(`/login`)}
                   className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors"
@@ -269,6 +302,7 @@ const Navbar = () => {
                   </svg>
               {t("Navbar.loyaltyGuestLogin")}
                 </button>
+                
                 <button
                   onClick={() => { setIsMenuOpen(false); window.open(agenturl, "_blank"); }}
                   className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-medium transition-colors"

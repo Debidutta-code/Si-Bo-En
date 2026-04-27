@@ -5,7 +5,8 @@
     "contactUs": "Contact Us",
     "partnerLogin": "Partner Login",
     "myBooking": "My Booking",
-    "loyaltyGuestLogin": "Loyalty Guest Login"
+    "loyaltyGuestLogin": "Loyalty Guest Login",
+    "becomApartner":"Become A Partner"
   },
   "Hero": {
     "title": "Find Next Place To Visit",
@@ -234,6 +235,8 @@
     "loyaltyMember": "Loyalty Member",
     "emailLabel": "Email Address",
     "emailPlaceholder": "your@email.com",
+    "primary": "Primary",
+    "optional": "Optional",
     "emailConfirmation": "Your booking confirmation will be sent here",
     "loyaltyDiscountPercent": "{{value}}% loyalty discount will be applied",
     "loyaltyDiscountFlat": "{{currency}} {{value}} loyalty discount will be applied",
@@ -489,6 +492,8 @@
     "nights": "nights",
     "night": "night",
     "roomDetails": "Room Details",
+    "primary": "Primary",
+    "optional": "Optional",
     "room": "room",
     "rooms": "rooms",
     "ratePlan": "Rate Plan",

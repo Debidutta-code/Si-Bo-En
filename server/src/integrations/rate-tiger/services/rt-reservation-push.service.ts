@@ -212,7 +212,6 @@ export class RTReservationPushService {
                 };
             });
 
-            // ── Primary guest ──
             const primaryGuest = guestDetails[0];
             const primaryRTGuest: RTGuestDetail | null = primaryGuest
                 ? {

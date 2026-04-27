@@ -145,4 +145,22 @@ export class AgencyApplicationController {
             return res.status(500).json(errorResponse("Internal Server Error", "failed to get application by name"));
         }
     }
+    public async getAgencyApplicationById(req: CustomRequest, res: Response): Promise<Response> {
+        try {
+            const { id } = req.params;
+
+            if (!id) {
+                return res.status(400).json(errorResponse("Id is required"));
+            }
+
+            const result = await this.agencyApplicationService.getAgencyApplicationById(id);
+
+            return res.status(result.success ? 200 : 400).json(result);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res.status(500).json(errorResponse("failed to get application by id", error.message));
+            }
+            return res.status(500).json(errorResponse("Internal Server Error", "failed to get application by id"));
+        }
+    }
 }

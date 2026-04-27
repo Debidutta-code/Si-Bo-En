@@ -315,21 +315,35 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
     const nameRegex = /^[A-Za-z\s]+$/;
     let valid = true;
     guestForms.forEach((guest, index) => {
+      const isPrimary = index === 0 && guest.type === "adult";
       const gErrors: any = {};
-      if (!guest.firstName.trim()) {
-        gErrors.firstName = "First name is required.";
-        valid = false;
-      } else if (!nameRegex.test(guest.firstName)) {
-        gErrors.firstName = "Invalid Name Format";
-        valid = false;
+
+      if (isPrimary) {
+        if (!guest.firstName.trim()) {
+          gErrors.firstName = "First name is required.";
+          valid = false;
+        } else if (!nameRegex.test(guest.firstName)) {
+          gErrors.firstName = "Invalid Name Format";
+          valid = false;
+        }
+        if (!guest.lastName.trim()) {
+          gErrors.lastName = "Last name is required.";
+          valid = false;
+        } else if (!nameRegex.test(guest.lastName)) {
+          gErrors.lastName = "Invalid Name Format";
+          valid = false;
+        }
+      } else {
+        if (guest.firstName.trim() && !nameRegex.test(guest.firstName)) {
+          gErrors.firstName = "Invalid Name Format";
+          valid = false;
+        }
+        if (guest.lastName.trim() && !nameRegex.test(guest.lastName)) {
+          gErrors.lastName = "Invalid Name Format";
+          valid = false;
+        }
       }
-      if (!guest.lastName.trim()) {
-        gErrors.lastName = "Last name is required.";
-        valid = false;
-      } else if (!nameRegex.test(guest.lastName)) {
-        gErrors.lastName = "Invalid Name Format";
-        valid = false;
-      }
+
       if (Object.keys(gErrors).length) newErrors[`guest-${index}`] = gErrors;
     });
     setErrors(newErrors);
@@ -727,15 +741,28 @@ const ModifyBookingModal: FC<Props> = ({ bookingData, onClose, onUpdate }) => {
                     const typeCount = guestForms.slice(0, index + 1).filter((g) => g.type === guest.type).length;
                     return (
                       <div key={index} className="bg-white relative border border-gray-300 p-4 rounded shadow-sm">
-                        <button onClick={() => handleDeleteClick(index)} className="absolute top-4 right-3 text-red-500 hover:text-red-700">
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                        <p className="font-medium text-gray-800 mb-2">
-                          {guest.type === "adult" ? `${t("ModifyBooking.adult")} ${typeCount}` : `${t("ModifyBooking.child")} ${typeCount}`}
-                        </p>
+                        {!(index === 0 && guest.type === "adult") && (
+                          <button onClick={() => handleDeleteClick(index)} className="absolute top-4 right-3 text-red-500 hover:text-red-700">
+                            <Trash2 className="w-5 h-5" />
+                          </button>
+                        )}
+                        <div className="flex items-center gap-2 mb-2">
+                          <p className="font-medium text-gray-800">
+                            {guest.type === "adult" ? `${t("ModifyBooking.adult")} ${typeCount}` : `${t("ModifyBooking.child")} ${typeCount}`}
+                          </p>
+                          {index === 0 && guest.type === "adult" ? (
+                            <span className="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full">
+                              {t("ModifyBooking.primary")}
+                            </span>
+                          ) : (
+                            <span className="text-xs bg-gray-100 text-gray-400 border border-gray-300 px-2 py-0.5 rounded-full">
+                              {t("ModifyBooking.optional")}
+                            </span>
+                          )}
+                        </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                           <div>
-                            <label className="block text-sm font-medium mb-1 text-gray-700">{t("ModifyBooking.firstName")}</label>
+                            <label className="block text-sm font-medium mb-1 text-gray-700">{t("ModifyBooking.lastName")}</label>
                             <input
                               type="text"
                               placeholder="First Name"

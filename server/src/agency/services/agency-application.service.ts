@@ -131,7 +131,7 @@ export class AgencyApplicationService {
 
             // gt available b2b propertie
             const availableProperties = await this.agenticPropertyRepository.getPropertiesForAgent(newAgency.id);
-            
+
             if (availableProperties && availableProperties.length > 0) {
                 //  Create agentic properties 
                 const agenticProperties = await this.agenticPropertyRepository.createAgenticProperties(newAgency.id, availableProperties);
@@ -141,13 +141,13 @@ export class AgencyApplicationService {
                     await Promise.all(agenticProperties.map(async (agenticProperty: any) => {
                         try {
                             const allAvailableRoomsForAgency = await this.agenticRoomRepository.getRoomsForAgency(
-                                agenticProperty.id, 
+                                agenticProperty.id,
                                 newAgency.id
                             );
-                            
+
                             if (allAvailableRoomsForAgency && allAvailableRoomsForAgency.length > 0) {
                                 await this.agenticRoomRepository.addRoomsForAgenticProperty(
-                                    agenticProperty.id, 
+                                    agenticProperty.id,
                                     allAvailableRoomsForAgency
                                 );
                             } else {
@@ -166,12 +166,12 @@ export class AgencyApplicationService {
                 this.agencyApplicationRepository.updateCount(existingApplication.applicantEmail)
             ]);
 
-            return successResponse("Agency application approved successfully", { 
+            return successResponse("Agency application approved successfully", {
                 agency: newAgency,
                 agent: createdInitialAgent,
                 propertiesConnected: availableProperties?.length || 0,
-                updatedApplication, 
-                countIncrement 
+                updatedApplication,
+                countIncrement
             });
         } catch (error) {
             console.error("Error approving application:", error);
@@ -196,12 +196,15 @@ export class AgencyApplicationService {
         }
 
     }
-    public async getAgencyApplications(status: fAgencyApplicationStatus="all", page: number=1, limit: number=10): Promise<IApiResponse> {
+    public async getAgencyApplications(status: fAgencyApplicationStatus = "all", page: number = 1, limit: number = 10): Promise<IApiResponse> {
         try {
+            const skip = (page - 1) * limit;
             const [applications, totalCount] = await Promise.all([
-                this.agencyApplicationRepository.getApplications(status, page, limit),
+                this.agencyApplicationRepository.getApplications(status, skip, limit),
                 this.agencyApplicationRepository.getCount()
             ]);
+            console.log("applications", applications);
+            console.log("totalCount", totalCount);
             return paginatedSuccessResponse("Agency applications retrieved successfully", applications, {
                 currentPage: page,
                 totalPages: Math.ceil(totalCount / limit),
@@ -220,6 +223,20 @@ export class AgencyApplicationService {
     public async getAgencyApplicationByName(name: string): Promise<IApiResponse> {
         try {
             const application = await this.agencyApplicationRepository.getAgentApplicationsByName(name);
+            if (!application) {
+                return errorResponse("Agency application not found");
+            }
+            return successResponse("Agency application retrieved successfully", application);
+        } catch (error) {
+            if (error instanceof Error) {
+                return errorResponse("failed to retrieve agency application", error.message);
+            }
+            return errorResponse("failed to retrieve agency application");
+        }
+    }
+    public async getAgencyApplicationById(id: string): Promise<IApiResponse> {
+        try {
+            const application = await this.agencyApplicationRepository.getApplicationById(id);
             if (!application) {
                 return errorResponse("Agency application not found");
             }

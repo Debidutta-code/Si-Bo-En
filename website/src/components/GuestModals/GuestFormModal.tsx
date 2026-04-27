@@ -63,20 +63,16 @@ const GuestFormModal: React.FC<Props> = ({
     setOpenSections(prev => ({ ...prev, [key]: !prev[key] }));
   const { t } = useTranslation();
 
-  // Auto-fill email if loyalty member
   useEffect(() => {
     if (loyaltyMemberEmail && !contactInfo.email) {
       handleContactChange("email", loyaltyMemberEmail);
-      // Verify loyalty membership
       verifyLoyaltyMembership(loyaltyMemberEmail);
     }
   }, [loyaltyMemberEmail]);
 
-  // Verify loyalty membership when email changes with debouncing
   const verifyLoyaltyMembership = async (email: string) => {
     if (!email || !propertyId) return;
 
-    // Clear any existing timer
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current);
     }
@@ -150,17 +146,27 @@ const GuestFormModal: React.FC<Props> = ({
 
     // Validate each guest
     guestForms.forEach((guest, index) => {
+      const isPrimary = index === 0 && guest.type === "adult";
       const gErrors: any = {};
-      if (!guest.firstName.trim()) {
-        gErrors.firstName = t("GuestForm.errors.firstNameRequired");
-      } else if (!nameRegex.test(guest.firstName)) {
-        gErrors.firstName = t("GuestForm.errors.invalidName");
-      }
 
-      if (!guest.lastName.trim()) {
-        gErrors.lastName = t("GuestForm.errors.lastNameRequired");
-      } else if (!nameRegex.test(guest.lastName)) {
-        gErrors.lastName = t("GuestForm.errors.invalidName");
+      if (isPrimary) {
+        if (!guest.firstName.trim()) {
+          gErrors.firstName = t("GuestForm.errors.firstNameRequired");
+        } else if (!nameRegex.test(guest.firstName)) {
+          gErrors.firstName = t("GuestForm.errors.invalidName");
+        }
+        if (!guest.lastName.trim()) {
+          gErrors.lastName = t("GuestForm.errors.lastNameRequired");
+        } else if (!nameRegex.test(guest.lastName)) {
+          gErrors.lastName = t("GuestForm.errors.invalidName");
+        }
+      } else {
+        if (guest.firstName.trim() && !nameRegex.test(guest.firstName)) {
+          gErrors.firstName = t("GuestForm.errors.invalidName");
+        }
+        if (guest.lastName.trim() && !nameRegex.test(guest.lastName)) {
+          gErrors.lastName = t("GuestForm.errors.invalidName");
+        }
       }
 
       if (Object.keys(gErrors).length > 0) {
@@ -213,16 +219,18 @@ const GuestFormModal: React.FC<Props> = ({
     const isValid = validate();
 
     if (!isValid) {
-      // Scroll to first error if validation fails
-      const firstErrorKey = Object.keys(errors)[0];
-      if (firstErrorKey) {
-        const element = document.getElementById(
-          firstErrorKey.startsWith('guest-')
-            ? `first-${firstErrorKey.split('-')[1]}`
-            : firstErrorKey
-        );
-        element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
+      setErrors((prev: any) => {
+        const firstErrorKey = Object.keys(prev)[0];
+        if (firstErrorKey) {
+          const element = document.getElementById(
+            firstErrorKey.startsWith('guest-')
+              ? `first-${firstErrorKey.split('-')[1]}`
+              : firstErrorKey
+          );
+          element?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        return prev;
+      });
       return;
     }
 
@@ -303,6 +311,8 @@ const GuestFormModal: React.FC<Props> = ({
               .slice(0, index + 1)
               .filter((g) => g.type === guest.type).length;
 
+            const isPrimaryGuest = index === 0 && guest.type === "adult";
+
             return (
               <Card key={index} className="border-2 shadow-sm">
                 <CardHeader className="pb-3">
@@ -316,14 +326,22 @@ const GuestFormModal: React.FC<Props> = ({
                     <Badge variant="outline" style={{ borderColor: colors.primaryColor, color: colors.primaryColor }}>
                       {guest.type}
                     </Badge>
+                    {isPrimaryGuest ? (
+                      <Badge style={{ backgroundColor: colors.primaryColor, color: colors.buttonTextColor }}>
+                        {t("GuestForm.primary")}
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-gray-400 border-gray-300">
+                        {t("GuestForm.optional")}
+                      </Badge>
+                    )}
                   </div>
                 </CardHeader>
                 <CardContent>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor={`first-${index}`}>
-                        {t("GuestForm.firstName")} <span className="text-red-500">*</span>
-                      </Label>
+                        {t("GuestForm.firstName")} {isPrimaryGuest && <span className="text-red-500">*</span>}                      </Label>
                       <Input
                         id={`first-${index}`}
                         placeholder={t("GuestForm.firstNamePlaceholder")}
@@ -340,7 +358,7 @@ const GuestFormModal: React.FC<Props> = ({
 
                     <div className="space-y-2">
                       <Label htmlFor={`last-${index}`}>
-                        {t("GuestForm.lastName")} <span className="text-red-500">*</span>
+                        {t("GuestForm.lastName")} {isPrimaryGuest && <span className="text-red-500">*</span>}
                       </Label>
                       <Input
                         id={`last-${index}`}
@@ -609,8 +627,8 @@ const GuestFormModal: React.FC<Props> = ({
                             <span className="flex items-center gap-1.5 text-gray-600 flex-wrap">
                               {addon.name} × {addon.quantity}
                               <span className={`text-[10px] px-1.5 py-0.5 rounded font-medium ${addon.type === "included"
-                                  ? "bg-blue-50 text-blue-700"
-                                  : "bg-gray-100 text-gray-600"
+                                ? "bg-blue-50 text-blue-700"
+                                : "bg-gray-100 text-gray-600"
                                 }`}>
                                 {addon.type}
                               </span>

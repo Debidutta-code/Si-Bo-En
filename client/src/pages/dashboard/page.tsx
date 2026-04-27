@@ -45,9 +45,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!user) return;
-    if (user?.role != "housekeeping" && user?.role != "front_desk") {
-      fetchProperties();
-    }
+    fetchProperties();
   }, [user?.role]);
 
   useEffect(() => {
@@ -100,7 +98,7 @@ export default function Dashboard() {
     }
   };
 
-  const fetchAnalytics = async (propertyId?: string, propertyCode?: string, propertyName?: string, selectedCurrency?: CurrencyCode |"USD") => {
+  const fetchAnalytics = async (propertyId?: string, propertyCode?: string, propertyName?: string, selectedCurrency?: CurrencyCode | "USD") => {
     try {
       setLoader({ isLoading: true, message: "Fetching Analytics ..." });
       setError(null);
@@ -350,7 +348,7 @@ export default function Dashboard() {
         {/* Top Performing Properties */}
         {analyticsData.topPerformingProperties && (
           <TopPropertiesStats data={analyticsData.topPerformingProperties}
-          currencyCode={analyticsData.currencyCode} />
+            currencyCode={analyticsData.currencyCode} />
         )}
       </div>
     </div>
