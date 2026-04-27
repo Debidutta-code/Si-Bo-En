@@ -14,7 +14,6 @@ import { PolicyRoute } from '../policies/routes';
 import { promoCodeRoutes } from '../promocode/routes';
 import { TaxSystemRouter } from '../tax-system/routes';
 import { AddonsRoute } from '../add-on/routes';
-import { pmsRoute } from '../pms/routes';
 import { BookingEngineRoutes } from '../booking-engine/routes';
 import { dashboardRouter } from '../dashboard/routes';
 import { PaymentRoutes } from '../payment/routes';
@@ -66,7 +65,6 @@ export async function initializeExpressRoutes({ app }: { app: Express }) {
     apiV1Router.use('/promo-codes', promoCodeRoutes);
     apiV1Router.use('/tax-system', TaxSystemRouter);
     apiV1Router.use('/addon', AddonsRoute);
-    apiV1Router.use('/pms', pmsRoute);
     apiV1Router.use('/reservations', reservationRoute);
     apiV1Router.use('/reports', reportsRouter);
 
