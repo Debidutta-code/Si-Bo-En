@@ -5,7 +5,7 @@ import {
     IArrivalReport,
     IDepartureReport,
 } from '../interfaces';
-import { successResponse, errorResponse } from '../../../../utils/return';
+import { successResponse, errorResponse } from '../../utils/return';
 import { ReportsRepository } from '../dao/reports.dao';
 import { ExcelExportService } from './xl.service';
 import {

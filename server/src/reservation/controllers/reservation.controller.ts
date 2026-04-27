@@ -1,12 +1,12 @@
-import { errorResponse } from '../../../../utils/return';
+import { errorResponse } from '../../utils/return';
 import { Response, Request } from 'express';
 import {
     CustomRequest,
     PropertyRequest,
-} from '../../../../utils/customRequest';
+} from '../../utils';
 import { ReservationService } from '../services';
 import { ICReservationPayload, IGuestCheckInDetails } from '../types';
-import { getDeviceInfo, getGeoLocationDetails } from '../../../../utils';
+import { getDeviceInfo, getGeoLocationDetails } from '../../utils';
 
 export class ReservationController {
     private reservationService: ReservationService;

@@ -1,4 +1,4 @@
-import { BookingSource, BookingStatus, PaymentMethod } from "../../../pms/frontoffice/reservation/types/reservation.type";
+import { BookingSource, BookingStatus, PaymentMethod } from "../../../reservation/types/reservation.type";
 import { CurrencyCode } from "../../../tax-system/interfaces";
 
 export interface IReservationFilters {

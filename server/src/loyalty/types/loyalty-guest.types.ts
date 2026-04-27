@@ -1,4 +1,4 @@
-import { IGuests } from "../../pms/frontoffice/reservation/types";
+import { IGuests } from "../../reservation/types";
 
 export interface ICloyalityGuests {
     guestId: string | null;

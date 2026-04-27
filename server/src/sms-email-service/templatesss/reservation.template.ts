@@ -1,4 +1,4 @@
-import { ICReservationPayloadForEmail, IGuestDetail } from "../../pms/frontoffice/reservation/types";
+import { ICReservationPayloadForEmail, IGuestDetail } from "../../reservation/types";
 import { CurrencyCode } from "../../tax-system/interfaces";
 import { capitalizeFirstLetter } from "../utils/capitalizefirstLetter.util";
 

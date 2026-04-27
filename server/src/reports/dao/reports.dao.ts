@@ -1,4 +1,4 @@
-import { prisma } from '../../../../config';
+import { prisma } from '../../config';
 
 export class ReportsRepository {
     public async getReservationDetails(bookingCode: string) {

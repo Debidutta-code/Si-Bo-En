@@ -4,8 +4,7 @@ import {
     AriManupulationRepo,
     GuestRepository,
 } from '../repository';
-import { successResponse, errorResponse } from '../../../../utils/return';
-import { IApiResponse } from '../../../../utils/return.types';
+import { successResponse, errorResponse,IApiResponse } from '../../utils';
 import {
     IAriManulupulation,
     ICGuest,
@@ -21,24 +20,24 @@ import {
     IPropertyDetailsFromMiddleware,
     ICReservationPayloadForEmail
 } from '../types';
-import { prisma } from '../../../../config';
-import { IPropertyCodeAndIds } from '../../../../dashboard/types';
-import { DashUtilsRepo } from '../../../../dashboard/repository';
-import { nowUTC, toUTC, toUTCDate } from '../../../../utils';
+import { prisma } from '../../config';
+import { IPropertyCodeAndIds } from '../../dashboard/types';
+import { DashUtilsRepo } from '../../dashboard/repository';
+import { nowUTC, toUTC, toUTCDate } from '../../utils';
 import {
     BookingAddonRepository,
     // ReservationPromotionRepository,
 } from '../repository/reservation.repository';
-import { ReservationEmailService } from '../../../../sms-email-service/service';
-import { LoyaltyGuestRepository } from '../../../../loyalty/repository';
-import { RTIntegrationDao } from '../../../../integrations/rate-tiger/dao/rt-integration.dao';
-import { RTReservationPushService } from '../../../../integrations/rate-tiger/services/rt-reservation-push.service';
-import { CurrencyCode } from '../../../../tax-system/interfaces/tourist-tax.type';
+import { ReservationEmailService } from '../../sms-email-service/service';
+import { LoyaltyGuestRepository } from '../../loyalty/repository';
+import { RTIntegrationDao } from '../../integrations/rate-tiger/dao/rt-integration.dao';
+import { RTReservationPushService } from '../../integrations/rate-tiger/services/rt-reservation-push.service';
+import { CurrencyCode } from '../../tax-system/interfaces/tourist-tax.type';
 import { BookingStatus } from '../types/reservation.type';
-import { ngeniusService } from '../../../../payment/services/ngenius.service';
-import { CreationLoyalityService } from '../../../../loyalty/services';
-import { CreationGuestRepository } from '../../../../loyalty/repository/creation-guest.repository';
-import { PromoCodeRepository } from '../../../../promocode/repository/index';
+import { ngeniusService } from '../../payment/services/ngenius.service';
+import { CreationLoyalityService } from '../../loyalty/services';
+import { CreationGuestRepository } from '../../loyalty/repository/creation-guest.repository';
+import { PromoCodeRepository } from '../../promocode/repository/index';
 export class ReservationService {
     reservationRepository: ReservationRepository;
     priceBrakeDownRepo: PriceBrakeDownRepo;

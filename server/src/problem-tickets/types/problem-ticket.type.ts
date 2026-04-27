@@ -1,5 +1,5 @@
 import { IProperty } from '../../agency/types';
-import { IGuests } from '../../pms/frontoffice/reservation/types';
+import { IGuests } from '../../reservation/types';
 
 export type ticketStatus = 'open' | 'in_progress' | 'resolved' | 'closed';
 export type ticketPriority = 'low' | 'medium' | 'high' | 'urgent';

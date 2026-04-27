@@ -83,9 +83,3 @@ export interface IReservationSpa{
     reservationEndDate:Date;
     
 }
-export interface IMarkSlotAdAvilable{
-        reservationId: string;
-    userName: string;
-    isBooked: boolean;
-
-}

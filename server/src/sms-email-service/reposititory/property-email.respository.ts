@@ -1,5 +1,5 @@
 import {prisma} from "../../config";
-import { IPropertyEmails } from "../../pms/frontoffice/reservation/types/reservation.type";
+import { IPropertyEmails } from "../../reservation/types/reservation.type";
 export class PropertyEmailRepository {
     public async getPropertyEmails(propertyId: string): Promise<IPropertyEmails[]> {
         try {

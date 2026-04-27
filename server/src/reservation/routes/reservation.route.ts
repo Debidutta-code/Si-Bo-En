@@ -1,8 +1,8 @@
-import { protect } from "../../../../middlewares/auth.middleware";
+import { protect } from "../../middlewares/auth.middleware";
 import  { Router } from "express";
 
 import { ReservationController } from "../controllers";
-import { attachPropertyDetails } from "../../../../middlewares/property.middleware";
+import { attachPropertyDetails } from "../../middlewares/property.middleware";
 
 
 const reservationRoute = Router();

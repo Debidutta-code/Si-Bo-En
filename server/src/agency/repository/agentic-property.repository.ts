@@ -1,5 +1,5 @@
 import {prisma} from "../../config";
-import { IReservation } from "../../pms/frontoffice/reservation/types";
+import { IReservation } from "../../reservation/types";
 import {IAgency, IAgenticProperty, IAgenticPropertyWR, ICAgenticProperties, ICAgenticProperty, IProperty} from "../types";
 export class AgenticPropertyRepository {
    public async createAgenticProperty(data: ICAgenticProperty): Promise<IAgenticProperty> {

@@ -18,7 +18,7 @@ import {
 } from '../types';
 import { config } from '../../../config';
 import { json } from 'stream/consumers';
-import { ICReservationPayload } from '../../../pms/frontoffice/reservation/types';
+import { ICReservationPayload } from '../../../reservation/types';
 
 
 interface CachedToken {

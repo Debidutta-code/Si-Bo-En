@@ -1,7 +1,7 @@
 // In your routes file
 
 import { Router } from "express";
-import { protect } from "../../../../middlewares/auth.middleware";
+import { protect } from "../../middlewares/auth.middleware";
 import { ReportsController } from "../controllers";
 
 const reportsController = new ReportsController();

@@ -1,7 +1,6 @@
 import { Response } from 'express';
 import { ReportsService } from '../services/reports.service';
-import { errorResponse } from '../../../../utils/return';
-import { CustomRequest } from '../../../../utils/customRequest';
+import { errorResponse,CustomRequest } from '../../utils';
 import { ReportType } from '../interfaces/reports.type';
 
 export class ReportsController {

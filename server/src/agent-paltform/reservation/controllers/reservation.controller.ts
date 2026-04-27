@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { errorResponse } from "../../../utils/return";
 import { AgentRequest } from "../../utils";
-import { ReservationService } from "../../../pms/frontoffice/reservation/services";
+import { ReservationService } from "../../../reservation/services";
 
 export class AgentBookingController {
     private reservationService: ReservationService;

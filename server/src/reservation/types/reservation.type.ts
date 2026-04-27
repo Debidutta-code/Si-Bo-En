@@ -1,8 +1,8 @@
-import { DiscountType } from "../../../../promocode/types";
-import { PromotionBrakeDown } from "../../../../booking-engine/types/pricing.type";
-import { CurrencyCode } from "../../../../tax-system/interfaces";
-import { PostingRhythm } from "../../../../add-on/interfaces";
-import { RestrictionType } from "../../../../../prisma/generated/prisma/enums";
+import { DiscountType } from "../../promocode/types";
+import { PromotionBrakeDown } from "../../booking-engine/types/pricing.type";
+import { CurrencyCode } from "../../tax-system/interfaces";
+import { PostingRhythm } from "../../add-on/interfaces";
+import { RestrictionType } from "../../../prisma/generated/prisma/enums";
 export type Platforms = 'web' | 'mobile' | 'desktop';
 export type BookingSource = "direct" |
   "google" |

@@ -3,7 +3,7 @@ import { AgentRequest } from "../../utils";
 import { errorResponse } from "../../../utils";
 import { ReservationService } from "../services";
 import { IReservationFilters, ICancelReservationPayload } from "../types";
-import { BookingSource, BookingStatus } from "../../../pms/frontoffice/reservation/types/reservation.type";
+import { BookingSource, BookingStatus } from "../../../reservation/types/reservation.type";
 
 export class ReservationController {
     private reservationService: ReservationService;

@@ -1,7 +1,7 @@
 import { Router } from "express";
+import { reservationRoute } from "../../reservation/routes";
+import { reportsRouter } from "../../reports/routes/reports.route";
 
-import {reservationRoute} from "../frontoffice/reservation/routes";
-import { reportsRouter } from "../frontoffice/reports/routes/reports.route";
 const frontOfficeRoute=Router();
 
 frontOfficeRoute.use('/reservations',reservationRoute);

@@ -1,8 +1,8 @@
 
 
-import { prisma } from '../../../../config';
-import { CurrencyCode } from '../../../../tax-system/interfaces';
-import { IPaginatedResponse } from '../../../../utils/return';
+import { prisma } from '../../config';
+import { CurrencyCode } from '../../tax-system/interfaces';
+import { IPaginatedResponse } from '../../utils';
 import {
     IReservation,
     IReservationWithAllDetails,

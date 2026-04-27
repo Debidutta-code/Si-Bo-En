@@ -1,4 +1,4 @@
-import { IBookingDetails, ICReservationPayload, ICReservationPayloadForEmail } from '../../pms/frontoffice/reservation/types';
+import { IBookingDetails, ICReservationPayload, ICReservationPayloadForEmail } from '../../reservation/types';
 import { getPropertyByPropertyAndRoom } from '../utils';
 import { EmailTemplates } from '../templatesss';
 import { PropertyEmailRepository } from '../reposititory';

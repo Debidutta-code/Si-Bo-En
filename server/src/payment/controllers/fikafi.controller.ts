@@ -5,7 +5,7 @@ import { socketManager } from '../../socket';
 import { FikafiPaymentRequestBody } from "../types/fikafi.types";
 import { prisma, RedisClient } from '../../config';
 import { tryCatch } from 'bullmq';
-import { BookingStatus } from '../../pms/frontoffice/reservation/types/reservation.type';
+import { BookingStatus } from '../../reservation/types/reservation.type';
 export class FikafiPaymentController {
     public static async createPaymentLink(req: Request, res: Response) {
         try {
