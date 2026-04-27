@@ -75,3 +75,17 @@ export interface ISpa extends ICSpaR {
 export interface ISpaWSlots extends ISpa {
     SpaDates: ISpaDates[];
 }
+export interface IReservationSpa{
+    id:string;
+    propertyId:string;
+    bookingCode:string;
+    reservationStartDate:Date;
+    reservationEndDate:Date;
+    
+}
+export interface IMarkSlotAdAvilable{
+        reservationId: string;
+    userName: string;
+    isBooked: boolean;
+
+}

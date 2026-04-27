@@ -27,7 +27,6 @@ export class UserAuthRepository {
         where: { email: email }
       });
     } catch (error: any) {
-      console.log(error);
       throw new Error('Error occurred while verifying email');
     }
   }

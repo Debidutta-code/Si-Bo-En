@@ -14,8 +14,11 @@ model SpaSlots {
     startTime DateTime @map("start_time")
     endTime   DateTime? @map("end_time")
     spaDateId String   @map("spa_date_id")
-    isBooked  Boolean  @map("is_booked")
-
+    isBooked  Boolean @default(false) @map("is_booked")
+    isCompleted Boolean @default(false) @map("is_completed")
+    reservationId String? @map("reservation_id")
+    userName String? @map("user_name")
+    Reservation Reservation? @relation(fields: [reservationId], references: [id], onDelete: Cascade)
     spaDate SpaDates @relation(fields: [spaDateId], references: [id],onDelete: Cascade)
 
     @@map("spa_slots")

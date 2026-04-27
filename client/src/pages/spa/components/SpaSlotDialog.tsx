@@ -30,16 +30,12 @@ export default function SpaSlotDialog({ isOpen, onClose, onSave, selectedDate, s
     
     const [sh, sm] = startTime.split(':').map(Number);
 
-    // Create UTC-agnostic timestamps locally bypassing exact Date-offset conversions
     const year = selectedDate.getFullYear();
     const month = selectedDate.getMonth();
     const date = selectedDate.getDate();
 
     const newSlots: ICSpaSlotS[] = [];
 
-    // The Date object creates a local browser-timezone string. 
-    // We calculate offsets carefully here if sending to the server, but since your
-    // server already does `toUTC(slot.startTime)`, we should just send standard local datetime objects.
     let currentStart = new Date(year, month, date, sh, sm, 0, 0);
 
     for (let i = 0; i < numberOfSlots; i++) {
@@ -47,8 +43,6 @@ export default function SpaSlotDialog({ isOpen, onClose, onSave, selectedDate, s
         const end = new Date(currentStart);
         end.setMinutes(end.getMinutes() + serviceTime);
         
-        // Strip the timezone offset back manually using Date.UTC string representation so
-        // that when node.js reads it on the backend, it reads exactly the digits passed without mutating the offset.
         const startString = `${currentStart.getFullYear()}-${String(currentStart.getMonth() + 1).padStart(2,'0')}-${String(currentStart.getDate()).padStart(2,'0')}T${String(currentStart.getHours()).padStart(2,'0')}:${String(currentStart.getMinutes()).padStart(2,'0')}:00.000Z`;
         
         const endString = `${end.getFullYear()}-${String(end.getMonth() + 1).padStart(2,'0')}-${String(end.getDate()).padStart(2,'0')}T${String(end.getHours()).padStart(2,'0')}:${String(end.getMinutes()).padStart(2,'0')}:00.000Z`;

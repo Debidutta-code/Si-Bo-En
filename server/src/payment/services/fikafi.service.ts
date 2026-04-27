@@ -102,8 +102,8 @@ class FikafiPaymentService {
         this.baseUrl = process.env.FIKAFI_BASE_URL!;
         this.apiBaseUrl = process.env.FIKAFI_API_BASE_URL!;
 
-        console.log('🔑 Fikafi Config loaded:');
-        // console.log('  Base URL:', this.baseUrl);
+        // console.log('🔑 Fikafi Config loaded:');
+        // // console.log('  Base URL:', this.baseUrl);
 
         this.client = axios.create({
             baseURL: this.baseUrl,
@@ -130,7 +130,7 @@ class FikafiPaymentService {
     private async generateFikafiToken(): Promise<string> {
         // ← ADD: return cached token if still valid
         if (this.cachedToken && Date.now() < this.tokenExpiry) {
-            console.log('✅ Using cached Fikafi token');
+            // console.log('✅ Using cached Fikafi token');
             return this.cachedToken;
         }
 
@@ -141,11 +141,11 @@ class FikafiPaymentService {
         const tokenUrl = tokenBaseUrl!;
 
         try {
-            console.log('🔄 Generating new Fikafi token...');
+            // console.log('🔄 Generating new Fikafi token...');
 
-            console.log("TOKEN URL:", tokenUrl);
-            console.log("CLIENT ID:", clientId);
-            console.log("SECRET KEY:", key);
+            // console.log("TOKEN URL:", tokenUrl);
+            // console.log("CLIENT ID:", clientId);
+            // console.log("SECRET KEY:", key);
 
             const response = await axios.post(
                 tokenUrl,
@@ -161,7 +161,7 @@ class FikafiPaymentService {
                 }
             );
 
-            console.log('✅ Token API response:', response.data);
+            // console.log('✅ Token API response:', response.data);
 
             // 🔥 IMPORTANT: handle both possibilities
             const token =
@@ -212,7 +212,7 @@ class FikafiPaymentService {
         fikafiToken?: string
     ): Promise<FikafiServiceResponse> {
         try {
-            console.log('📤 Creating Fikafi payment link...');
+            // console.log('📤 Creating Fikafi payment link...');
 
             const body = {
                 bookingRefNum: request.bookingRefNum,
@@ -243,10 +243,10 @@ class FikafiPaymentService {
                 },
             };
 
-            console.log(
-                '📤 Fikafi request body:',
-                JSON.stringify(body, null, 2)
-            );
+            // console.log(
+            //     '📤 Fikafi request body:',
+            //     JSON.stringify(body, null, 2)
+            // );
 
             // Check if token is provided, otherwise generate a new one
             let tokenValue = fikafiToken;
@@ -267,10 +267,10 @@ class FikafiPaymentService {
                 }
             }
 
-            console.log(
-                '📤 Using Fikafi token' + (fikafiToken ? ' from frontend header' : ' (newly generated') + ':)',
-                tokenValue.substring(0, 20) + '...'
-            );
+            // console.log(
+            //     '📤 Using Fikafi token' + (fikafiToken ? ' from frontend header' : ' (newly generated') + ':)',
+            //     tokenValue.substring(0, 20) + '...'
+            // );
 
             const headers: Record<string, string> = {
                 'Content-Type': 'application/json',
@@ -289,10 +289,10 @@ class FikafiPaymentService {
 
                 const data = response.data;
 
-                console.log(
-                    '📥 Fikafi raw response:',
-                    JSON.stringify(data, null, 2)
-                );
+                // console.log(
+                //     '📥 Fikafi raw response:',
+                //     JSON.stringify(data, null, 2)
+                // );
 
                 if (data.status === false) {
                     console.error('❌ Fikafi API error:', data);
@@ -385,7 +385,7 @@ class FikafiPaymentService {
         fikafiToken?: string
     ): Promise<FikafiServiceResponse> {
         try {
-            console.log(`📤 Taking payment action: ${action} for ${bookingRefNum}`);
+            // console.log(`📤 Taking payment action: ${action} for ${bookingRefNum}`);
 
             // Get token
             let tokenValue = fikafiToken;
@@ -413,7 +413,7 @@ class FikafiPaymentService {
                 action,
             };
 
-            console.log('📤 Fikafi action request:', params);
+            // console.log('📤 Fikafi action request:', params);
 
             const response = await axios.post(
                 `${actionBaseUrl}?bookingRefNum=${bookingRefNum}&fikafiRefNum=${fikafiRefNum}&action=${action}`,
@@ -426,7 +426,7 @@ class FikafiPaymentService {
                 }
             );
 
-            console.log('📥 Fikafi action response:', JSON.stringify(response.data, null, 2));
+            // console.log('📥 Fikafi action response:', JSON.stringify(response.data, null, 2));
 
             return {
                 success: true,

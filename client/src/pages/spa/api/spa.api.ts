@@ -63,3 +63,18 @@ export const deleteSpa = async (spaId: string) => {
         }
     }
 };
+export const getAvailableSpaForReservation = async (bookingCode: string) => {
+    try {
+        const response = await axiosInstance.get(`/spa/available/${bookingCode}`);
+        return response.data;
+    } catch (error: any) {
+        if (error?.response?.data) {
+            return error.response.data;
+        } else {
+            return {
+                success: false,
+                message: error?.message
+            }
+        }
+    }
+};

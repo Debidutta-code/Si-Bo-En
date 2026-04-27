@@ -105,4 +105,19 @@ export class SpaService {
             return errorResponse("Failed to delete spa");
         }
     }
+    public async getAvailableSpaForinDateRange(bookingCode:string):Promise<IApiResponse>{
+        try {
+            const reservation = await this.spaRepository.getReservationByCode(bookingCode);
+            if(!reservation){
+                return errorResponse("Reservation not found");
+            }
+            const spas = await this.spaRepository.getAvailableSpaForinDateRange(reservation.propertyId,reservation.reservationStartDate,reservation.reservationEndDate);
+            return successResponse("Available spas retrieved successfully", spas);
+        } catch (error) {
+            if (error instanceof Error) {
+                return errorResponse("Failed to retrieve available spas", error.message);
+            }
+            return errorResponse("Failed to retrieve available spas");
+        }
+    }
 }

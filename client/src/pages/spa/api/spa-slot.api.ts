@@ -87,9 +87,9 @@ export const deleteSpaSlot = async (slotId: string) => {
     }
 }
 
-export const markSlotAsBooked = async (slotId: string) => {
+export const markSlotAsBooked = async (slotId: string, data: { reservationId: string, userName: string }) => {
     try {
-        const response = await axiosInstance.patch(`/spa/slots/slots/${slotId}/book`);
+        const response = await axiosInstance.patch(`/spa/slots/slots/${slotId}/book`, data);
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {
@@ -106,6 +106,22 @@ export const markSlotAsBooked = async (slotId: string) => {
 export const markSlotAsAvailable = async (slotId: string) => {
     try {
         const response = await axiosInstance.patch(`/spa/slots/slots/${slotId}/available`);
+        return response.data;
+    } catch (error: any) {
+        if (error?.response?.data) {
+            return error.response.data;
+        } else {
+            return {
+                success: false,
+                message: error?.message
+            }
+        }
+    }
+}
+
+export const markSlotAsCompleted = async (slotId: string) => {
+    try {
+        const response = await axiosInstance.patch(`/spa/slots/slots/${slotId}/completed`);
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {

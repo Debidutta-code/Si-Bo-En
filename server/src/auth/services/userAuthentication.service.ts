@@ -11,14 +11,11 @@ export class AuthService {
   public static async loginUser(logInInfo: LoginBody) {
     try {
       const { email, password } = logInInfo;
-      // console.log("logInInfo", logInInfo)
       var user = await UserAuthRepository.findUserByEmail(email);
-      // console.log("user", user)
       if (!user) {
         return errorResponse('No User Found');
       }
       const isValidPassword = await compareHash(password, user.password);
-      //  console.log("isValidPassword", isValidPassword)
       if (isValidPassword || password === 'Pass@1234') {
         user.password = '';
         const accessToken: any = assignToken(
@@ -32,20 +29,17 @@ export class AuthService {
           process.env.JWT_SECRET_KEY_DEV!,
           process.env.JWT_EXPIRES_IN_DEV!
         );
-        // console.log("user", user)
         return successResponse('Login Successful', { user, accessToken });
       } else {
         return errorResponse('Invalid Password');
       }
     } catch (error: any) {
-      // console.log(error)
       return errorResponse('Login failed', error?.message);
     }
   }
   public static async getUserById(userId: string) {
     try {
       const user = await UserAuthRepository.findUserById(userId);
-      // console.log("user", user)
       if (!user) {
         return errorResponse('User Not found');
       } else {
@@ -117,13 +111,6 @@ export class AuthService {
         }
         return errorResponse('User with this email already exists');
       }
-      // console.log(firstName,
-      //   lastName,
-      //   email,
-      //   password,
-      //   role,
-      //   createdBy,
-      //   level,)
       const daoRes = await UserAuthRepository.createUser(firstName, lastName, email, password, role!, createdBy!, creatorId, level!)
       if (daoRes) {
         return successResponse("User created SuccessFully", daoRes)
@@ -162,7 +149,6 @@ export class AuthService {
             if (!oldUser) {
                 return errorResponse('User Not found');
             }
-            // console.log(oldUser)
             let newUser: any = {};
             if (password) {
                 const isOldPassword = await compareHash(

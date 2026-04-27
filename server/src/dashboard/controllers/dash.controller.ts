@@ -12,7 +12,7 @@ export class DashBoardController {
 
     public async getPropertyNames(req: CustomRequest, res: Response): Promise<Response> {
         try {
-            if (!req.user?.creationId || !req.user.level) {
+            if (!req.user?.creationId || req.user.level === undefined) {
                 return res.status(400).json(errorResponse("user is not Assigned to any creation", "Creation Id Not found"));
             }
             const serRes = await this.dashboardServices.getPropertyNames(req.user.creationId, req.user.level)
@@ -44,7 +44,7 @@ export class DashBoardController {
     }
     public async getAnalytics(req: CustomRequest, res: Response): Promise<Response> {
         try {
-            if (!req.user?.creationId || !req.user.level) {
+            if (!req.user?.creationId || req.user.level === undefined) {
                 return res.status(400).json(errorResponse("user is not Assigned to any creation", "Creation Id Not found"));
             }
             const { propertyId, propertyCode, propertyName, selectedCurrency } = req.query  // ← add currencyCode

@@ -22,11 +22,10 @@ import {
     createSpaSlotsService,
     deleteSpaDateService,
     deleteSpaSlotService,
-    markSlotAsBookedService,
-    markSlotAsAvailableService
-} from '../services/spa-slot.services';
-import type { ISpaDates, ICSpaSlotS } from '../interfaces/spa-slot.type';
-import type { ISpa } from '../interfaces/spa.type';
+    // markSlotAsBookedService,
+    // markSlotAsAvailableService
+} from '../services';
+import type { ISpaDates, ICSpaSlotS,ISpa } from '../interfaces';
 
 export default function SpaCalendar({ spaId, propertyId, spaDetails }: { spaId: string, propertyId: string, spaDetails: ISpa }) {
    const navigate = useNavigate();
@@ -138,29 +137,29 @@ export default function SpaCalendar({ spaId, propertyId, spaDetails }: { spaId: 
       setSlotDeleteContext(null);
    };
 
-   const handleMarkBooked = async (id: string) => {
-      setIsLoading(true);
-      const res = await markSlotAsBookedService(id);
-      if (res?.success) {
-          toast.success('Slot marked as booked');
-          await fetchSpaDates();
-      } else {
-          toast.error(res?.message || 'Failed to mark as booked');
-      }
-      setIsLoading(false);
-   };
+  //  const handleMarkBooked = async (id: string) => {
+  //     setIsLoading(true);
+  //     const res = await markSlotAsBookedService(id);
+  //     if (res?.success) {
+  //         toast.success('Slot marked as booked');
+  //         await fetchSpaDates();
+  //     } else {
+  //         toast.error(res?.message || 'Failed to mark as booked');
+  //     }
+  //     setIsLoading(false);
+  //  };
 
-   const handleMarkAvailable = async (id: string) => {
-      setIsLoading(true);
-      const res = await markSlotAsAvailableService(id);
-      if (res?.success) {
-          toast.success('Slot marked as available');
-          await fetchSpaDates();
-      } else {
-          toast.error(res?.message || 'Failed to mark as available');
-      }
-      setIsLoading(false);
-   };
+  //  const handleMarkAvailable = async (id: string) => {
+  //     setIsLoading(true);
+  //     const res = await markSlotAsAvailableService(id);
+  //     if (res?.success) {
+  //         toast.success('Slot marked as available');
+  //         await fetchSpaDates();
+  //     } else {
+  //         toast.error(res?.message || 'Failed to mark as available');
+  //     }
+  //     setIsLoading(false);
+  //  };
 
    return (
      <div className="flex flex-col h-full bg-white rounded-xl shadow-sm border p-4">
@@ -207,8 +206,6 @@ export default function SpaCalendar({ spaId, propertyId, spaDetails }: { spaId: 
                        onRemoveSpaDate={handleRemoveSpaDate}
                        onAddSlot={handleOpenSlotDialog}
                        onRemoveSlot={handleRemoveSlot}
-                       onMarkBooked={handleMarkBooked}
-                       onMarkAvailable={handleMarkAvailable}
                      />
                  );
              })}

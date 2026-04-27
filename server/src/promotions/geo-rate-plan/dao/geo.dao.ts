@@ -6,7 +6,6 @@ export class GeoRatePlanDao {
 
   public async createGeoRatePlan(dataArray: IGeoRatePlanCreate[]): Promise<IGeoRatePlan[]> {
     try {
-      console.log("DAO received data for bulk creation:", dataArray[0].propertyId);
       const createdRecords = await prisma.$transaction(
         dataArray.map((data) =>
           prisma.geoRatePlan.create({
@@ -45,7 +44,6 @@ export class GeoRatePlanDao {
 
       return createdRecords;
     } catch (error) {
-      console.log(error)
       throw new Error('Unknown error occurred while creating geo rate plans in bulk');
     }
   }
@@ -53,7 +51,6 @@ export class GeoRatePlanDao {
     propertyId: string,
     filters?: IGeoRatePlanFilter
   ): Promise<IGeoRatePlan[]> {
-    console.log("Dao filters", filters);
     try {
       const whereClause: any = {
         propertyId,

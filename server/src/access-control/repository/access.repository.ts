@@ -10,7 +10,6 @@ export default class AccessDao {
         data,
       });
     } catch (error: any) {
-      // console.log(error?.message)
       throw new Error(`Failed to create access control: ${error.message}`);
     }
   }

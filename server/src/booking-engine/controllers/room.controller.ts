@@ -24,7 +24,6 @@ export class RoomBookingController {
         });
       }
       const geoDetails = await getGeoLocationDetails(req);
-      console.log("get the geo details", geoDetails)
       const countryCode = geoDetails.country;
       const deviceInfo = getDeviceInfo(req);
       const deviceType = deviceInfo.deviceType as "mobile" | "tablet" | "desktop";

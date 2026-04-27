@@ -1,7 +1,8 @@
 import {
     getSpaUsersForProperty,
     assignSpaToUser,
-    removeUserFromSpa
+    removeUserFromSpa,
+    getUserSpa
 } from "../api";
 
 export const getSpaUsersForPropertyService = async (propertyId: string) => {
@@ -36,6 +37,30 @@ export const removeUserFromSpaService = async (spaId: string, userId: string) =>
         return {
             success: false,
             message: "Failed to remove user from spa"
+        };
+    }
+};
+
+export const SpasForUserService = async (propertyId: string,startDate:string,endDate:string) => {
+    if(!propertyId) {
+        return {
+            success: false,
+            message: "Property details are missing"
+        };
+    }
+    if(!startDate || !endDate) {
+        return {
+            success: false,
+            message: "Start date and end date are required"
+        };
+    }
+    try {
+        const result = await getUserSpa(propertyId, startDate, endDate);
+        return result;
+    } catch (error) {
+        return {
+            success: false,
+            message: "Failed to retrieve spas for user"
         };
     }
 };

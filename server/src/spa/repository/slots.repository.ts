@@ -7,7 +7,15 @@ export class SpaDatesRepo{
                 data: {
                     ...data
                 },include: {
-                    Slots: true
+                    Slots: {
+                        include:{
+                            Reservation:{
+                                select:{
+                                    bookingCode:true
+                                }
+                            }
+                        }
+                    }
                 }
             })
         } catch (error) {
@@ -21,7 +29,15 @@ export class SpaDatesRepo{
                     id
                 },
                 include: {
-                    Slots: true
+                    Slots: {
+                        include:{
+                            Reservation:{
+                                select:{
+                                    bookingCode:true
+                                }
+                            }
+                        }
+                    }
                 }
             })
         } catch (error) {
@@ -39,7 +55,15 @@ export class SpaDatesRepo{
                     }
                 },
                 include: {
-                    Slots: true
+                    Slots: {
+                        include:{
+                            Reservation:{
+                                select:{
+                                    bookingCode:true
+                                }
+                            }
+                        }
+                    }
                 }
             })
         } catch (error) {
@@ -56,7 +80,15 @@ export class SpaDatesRepo{
                     }
                 },
                 include: {
-                    Slots: true
+                    Slots: {
+                        include:{
+                            Reservation:{
+                                select:{
+                                    bookingCode:true
+                                }
+                            }
+                        }
+                    }
                 }
             })
         } catch (error) {
@@ -80,13 +112,11 @@ export class SpaDatesRepo{
 }
 export class SpaSlotsRepo {
     public async createSlots(data: ICSpaSlotR[]): Promise<BatchPayload> {
-        console.log(data)
         try {
             return await prisma.spaSlots.createMany({
                 data: data
             })
         } catch (error) {
-            console.log(error)
             throw new Error("Error occur while creating spa slot")
         }
     }    
@@ -112,14 +142,16 @@ export class SpaSlotsRepo {
             throw new Error("Error occur while deleting spa slot")
         }
     }
-    public async markSlotAsBooked(id: string): Promise<ISpaSlot> {
+    public async markSlotAsBooked(id: string, reservationId: string, userName: string): Promise<ISpaSlot> {
         try {
             return await prisma.spaSlots.update({
                 where: {
                     id
                 },
                 data: {
-                    isBooked: true
+                    isBooked: true,
+                    reservationId,
+                    userName
                 }
             })
         } catch (error) {
@@ -133,11 +165,27 @@ export class SpaSlotsRepo {
                     id
                 },
                 data: {
-                    isBooked: false
+                    isBooked: false,
+                    reservationId: null,
+                    userName: null
                 }
             })
         } catch (error) {
             throw new Error("Error occur while marking spa slot as available")
+        }
+    }
+    public async markSlotAsCompleted(id: string): Promise<ISpaSlot> {
+        try {
+            return await prisma.spaSlots.update({
+                where: {
+                    id
+                },
+                data: {
+                    isCompleted: true
+                }
+            })
+        } catch (error) {
+            throw new Error("Error occur while marking spa slot as completed")
         }
     }
 }

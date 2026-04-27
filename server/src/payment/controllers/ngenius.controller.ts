@@ -36,7 +36,7 @@ export class NGeniusController {
   ): Promise<void> {
     try {
       const orderData: NGeniusOrderRequest = req.body;
-      console.log("📥 [BACKEND DEBUG] Received N-Genius order payload:", JSON.stringify(orderData, null, 2));
+      // console.log("📥 [BACKEND DEBUG] Received N-Genius order payload:", JSON.stringify(orderData, null, 2));
 
       if (!orderData.action || !orderData.amount) {
         res.status(400).json({ success: false, message: 'Invalid request. Action and amount are required.' });
@@ -147,9 +147,9 @@ export class NGeniusController {
       const refundStrategy: 'same_day' | 'day_after' = (req as any).refundStrategy ?? 'day_after';
       const resolvedOutletId: string | undefined = (req as any).resolvedOutletId;
 
-      console.log(`\n[REFUND CONTROLLER] 💡 Strategy: ${refundStrategy}`);
-      console.log(`[REFUND CONTROLLER] 📋 Order Reference: ${orderReference}`);
-      console.log(`[REFUND CONTROLLER] 🏪 Outlet ID: ${resolvedOutletId ?? '(not resolved)'}`);
+      // console.log(`\n[REFUND CONTROLLER] 💡 Strategy: ${refundStrategy}`);
+      // console.log(`[REFUND CONTROLLER] 📋 Order Reference: ${orderReference}`);
+      // console.log(`[REFUND CONTROLLER] 🏪 Outlet ID: ${resolvedOutletId ?? '(not resolved)'}`);
 
       if (!orderReference) {
         res.status(400).json({ success: false, message: 'orderReference is required' });
@@ -167,10 +167,10 @@ export class NGeniusController {
           return;
         }
 
-        console.log(`[REFUND CONTROLLER] ⚡ Routing to SAME-DAY refund (cancel capture + reverse auth)`);
+        // console.log(`[REFUND CONTROLLER] ⚡ Routing to SAME-DAY refund (cancel capture + reverse auth)`);
         refundResult = await ngeniusService.processSameDayRefund(orderReference, resolvedOutletId);
       } else {
-        console.log(`[REFUND CONTROLLER] 🕐 Routing to DAY-AFTER refund (standard refund API)`);
+        // console.log(`[REFUND CONTROLLER] 🕐 Routing to DAY-AFTER refund (standard refund API)`);
         refundResult = await ngeniusService.processRefund(orderReference, resolvedOutletId);
       }
 

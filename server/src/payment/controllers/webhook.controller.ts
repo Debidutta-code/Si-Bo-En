@@ -21,17 +21,17 @@ export class WebhookController {
       // }, null, 2));
 
       if (!req.body || Object.keys(req.body).length === 0) {
-        console.log('⚠️ Empty webhook payload received');
-        res.status(200).json({
-          success: false,
-          message: 'Empty webhook payload',
-        });
+        // console.log('⚠️ Empty webhook payload received');
+        // res.status(200).json({
+        //   success: false,
+        //   message: 'Empty webhook payload',
+        // });
         return;
       }
 
       // Validate webhook request
       if (!webhookService.validateWebhookRequest(req.body, req.headers)) {
-        console.log('❌ Invalid webhook payload validation failed');
+        // console.log('❌ Invalid webhook payload validation failed');
         res.status(400).json({
           success: false,
           message: 'Invalid webhook payload',
@@ -45,7 +45,7 @@ export class WebhookController {
       const secretKey = req.headers['x-webhook-secret'] as string;
 
       if (secretKey) {
-        console.log('🔐 Encrypted payload detected, decrypting...');
+        // console.log('🔐 Encrypted payload detected, decrypting...');
         // For encrypted payloads, the body will be a string
         const encryptedData = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
 

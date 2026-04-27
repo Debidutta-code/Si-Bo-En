@@ -28,7 +28,6 @@ export default class CreationService {
 
                 customCreation = await CreationRepository.getSpecificCreation(assignTo)
             }
-            console.log("Custom Creation:", customCreation)
             if (isCustom && !customCreation) {
                 return errorResponse("Custom creation not found");
             }
@@ -36,7 +35,6 @@ export default class CreationService {
 
                 superCreation = await CreationRepository.getSpecificCreation(customCreation.superId!)
             }
-            // console.log("Super Creation:", superCreation)
             if (isCustom && !superCreation) {
                 return errorResponse("Super creation not found");
             }
@@ -269,7 +267,6 @@ export default class CreationService {
         {
             try {
                 const parentCreationDetails = await CreationRepository.getSpecificCreation(parentCreationId)
-                // console.log(parentCreationDetails)
                 if (!parentCreationDetails) {
                     throw new Error("Parent Creation Not found")
                 }

@@ -126,7 +126,7 @@ export class ReservationService {
         outletId: string | undefined;
         reason: string;
     }> {
-        console.log(`\n[REFUND STRATEGY] 🔍 Resolving strategy for orderReference: ${orderReference}`);
+        // console.log(`\n[REFUND STRATEGY] 🔍 Resolving strategy for orderReference: ${orderReference}`);
 
         try {
             // ── Step 1: Check if same_day_refund column exists (migration guard) ──
@@ -138,7 +138,7 @@ export class ReservationService {
                       AND column_name = 'same_day_refund'
                 `;
                 const columnExists = Array.isArray(columnCheck) && columnCheck.length > 0;
-                console.log(`[REFUND STRATEGY] 🗄️  Column 'same_day_refund' exists in DB: ${columnExists}`);
+                // console.log(`[REFUND STRATEGY] 🗄️  Column 'same_day_refund' exists in DB: ${columnExists}`);
 
                 if (!columnExists) {
                     console.error(`[REFUND STRATEGY] ❌ MIGRATION NOT RUN!`);
@@ -162,7 +162,7 @@ export class ReservationService {
                 },
             });
 
-            console.log(`[REFUND STRATEGY] 💳 Payment found: ${payment ? 'YES' : 'NO'}`);
+            // console.log(`[REFUND STRATEGY] 💳 Payment found: ${payment ? 'YES' : 'NO'}`);
 
             if (!payment) {
                 console.warn(`[REFUND STRATEGY] ⚠️  No payment record found for orderReference: ${orderReference}`);
@@ -174,8 +174,8 @@ export class ReservationService {
                 };
             }
 
-            console.log(`[REFUND STRATEGY]    Payment ID                   : ${payment.id}`);
-            console.log(`[REFUND STRATEGY]    propertyPaymentIntegrationId : ${payment.propertyPaymentIntegrationId ?? '(null)'}`);
+            // console.log(`[REFUND STRATEGY]    Payment ID                   : ${payment.id}`);
+            // console.log(`[REFUND STRATEGY]    propertyPaymentIntegrationId : ${payment.propertyPaymentIntegrationId ?? '(null)'}`);
 
             const integration = payment.PropertyPaymentIntegration;
 
@@ -195,11 +195,11 @@ export class ReservationService {
             const strategy: 'same_day' | 'day_after' = sameDayRefund ? 'same_day' : 'day_after';
             const outletId: string = integration.outletId;
 
-            console.log(`[REFUND STRATEGY] ✅ Resolution complete:`);
-            console.log(`[REFUND STRATEGY]    Integration ID  : ${integration.id}`);
-            console.log(`[REFUND STRATEGY]    outletId        : ${outletId}`);
-            console.log(`[REFUND STRATEGY]    sameDayRefund   : ${sameDayRefund}`);
-            console.log(`[REFUND STRATEGY]    ➡️  Strategy     : ${strategy.toUpperCase()}`);
+            // console.log(`[REFUND STRATEGY] ✅ Resolution complete:`);
+            // console.log(`[REFUND STRATEGY]    Integration ID  : ${integration.id}`);
+            // console.log(`[REFUND STRATEGY]    outletId        : ${outletId}`);
+            // console.log(`[REFUND STRATEGY]    sameDayRefund   : ${sameDayRefund}`);
+            // console.log(`[REFUND STRATEGY]    ➡️  Strategy     : ${strategy.toUpperCase()}`);
 
             return {
                 strategy,
@@ -459,9 +459,9 @@ export class ReservationService {
                         reservation.id
                     );
                 if (count > 0) {
-                    console.log(
-                        `✅ Linked reservation ${reservation.id} to N-Genius payment ${ngeniusOrderRef} (${count} record(s))`
-                    );
+                    // console.log(
+                    //     `✅ Linked reservation ${reservation.id} to N-Genius payment ${ngeniusOrderRef} (${count} record(s))`
+                    // );
                 } else {
                     console.warn(
                         `⚠️ No N-Genius payment found for reference ${ngeniusOrderRef}`
@@ -1448,24 +1448,24 @@ export class ReservationService {
                 } else if (!paymentRecord.paymentIntentId) {
                     console.warn(`[CANCEL RESERVATION] ⚠️  paymentIntentId is null. Skipping refund.`);
                 } else if (paymentRecord.paymentMethod !== 'payment_gateway') {
-                    console.log(`[CANCEL RESERVATION] ⏭️  Payment method is '${paymentRecord.paymentMethod}'. Not a gateway payment — skipping refund.`);
+                    // // console.log(`[CANCEL RESERVATION] ⏭️  Payment method is '${paymentRecord.paymentMethod}'. Not a gateway payment — skipping refund.`);
                 } else {
                     // ── This IS a gateway payment — resolve strategy and refund ──────────
                     const orderReference = paymentRecord.paymentIntentId;
 
-                    console.log(`\n[CANCEL RESERVATION] 💡 Gateway payment detected. Resolving refund strategy...`);
-                    console.log(`[CANCEL RESERVATION]    orderReference : ${orderReference}`);
+                    // // console.log(`\n[CANCEL RESERVATION] 💡 Gateway payment detected. Resolving refund strategy...`);
+                    // // console.log(`[CANCEL RESERVATION]    orderReference : ${orderReference}`);
 
                     const { strategy, outletId, reason } = await this.resolveRefundStrategy(orderReference);
 
-                    console.log(`\n[CANCEL RESERVATION] 🎯 Refund strategy resolved:`);
-                    console.log(`[CANCEL RESERVATION]    strategy  : ${strategy.toUpperCase()}`);
-                    console.log(`[CANCEL RESERVATION]    outletId  : ${outletId ?? '(not resolved)'}`);
-                    console.log(`[CANCEL RESERVATION]    reason    : ${reason}`);
+                    // // console.log(`\n[CANCEL RESERVATION] 🎯 Refund strategy resolved:`);
+                    // console.log(`[CANCEL RESERVATION]    strategy  : ${strategy.toUpperCase()}`);
+                    // console.log(`[CANCEL RESERVATION]    outletId  : ${outletId ?? '(not resolved)'}`);
+                    // console.log(`[CANCEL RESERVATION]    reason    : ${reason}`);
 
                     if (strategy === 'same_day') {
                         // ── SAME-DAY: Cancel capture → Reverse authorization ──────────────
-                        console.log(`\n[CANCEL RESERVATION] ⚡ Routing to SAME-DAY refund (cancel capture + reverse auth)`);
+                        // console.log(`\n[CANCEL RESERVATION] ⚡ Routing to SAME-DAY refund (cancel capture + reverse auth)`);
 
                         if (!outletId) {
                             console.error(`[CANCEL RESERVATION] ❌ Cannot proceed with same-day refund — outletId is missing.`);
@@ -1477,11 +1477,11 @@ export class ReservationService {
                         refundResult = await ngeniusService.processSameDayRefund(orderReference, outletId);
                     } else {
                         // ── DAY-AFTER: Standard refund API ───────────────────────────────
-                        console.log(`\n[CANCEL RESERVATION] 🕐 Routing to DAY-AFTER refund (standard refund API)`);
+                        // console.log(`\n[CANCEL RESERVATION] 🕐 Routing to DAY-AFTER refund (standard refund API)`);
                         refundResult = await ngeniusService.processRefund(orderReference, outletId);
                     }
 
-                    console.log(`\n[CANCEL RESERVATION] 📥 Refund result:`, JSON.stringify(refundResult));
+                    // console.log(`\n[CANCEL RESERVATION] 📥 Refund result:`, JSON.stringify(refundResult));
 
                     if (!refundResult.success) {
                         console.error(`[CANCEL RESERVATION] ❌ Refund failed: ${refundResult.message}`);
@@ -1490,7 +1490,7 @@ export class ReservationService {
                         );
                     }
 
-                    console.log(`[CANCEL RESERVATION] ✅ Refund succeeded. Proceeding to cancel reservation in DB.`);
+                    // console.log(`[CANCEL RESERVATION] ✅ Refund succeeded. Proceeding to cancel reservation in DB.`);
                 }
             } catch (refundError) {
                 console.error(`[CANCEL RESERVATION] ❌ Unexpected error during refund:`, refundError);
@@ -1623,8 +1623,8 @@ export class ReservationService {
                 console.error('Non-blocking cancel operations failed:', error);
             });
 
-            console.log(`\n[CANCEL RESERVATION] ✅ Reservation cancelled successfully: ${reservationId}`);
-            console.log(`${'='.repeat(60)}\n`);
+            // console.log(`\n[CANCEL RESERVATION] ✅ Reservation cancelled successfully: ${reservationId}`);
+            // console.log(`${'='.repeat(60)}\n`);
 
             return successResponse('Reservation cancelled successfully', {
                 ...cancelledReservation,

@@ -76,7 +76,7 @@ export class RTReservationPushService {
         payload: RTReservationPayload,
         rtConfig: RTDynamicConfig
     ): Promise<RTReservationResponse> {
-        console.log('RT Commit payload:', JSON.stringify(payload, null, 2));
+        // console.log('RT Commit payload:', JSON.stringify(payload, null, 2));
         const makeRequest = async (token: string) =>
             axios.post(rtConfig.reservationUrl, payload, {
                 // ← DB URL
@@ -100,7 +100,7 @@ export class RTReservationPushService {
                 const response = await makeRequest(freshToken);
                 return response.data as RTReservationResponse;
             }
-            console.log(error);
+            // console.log(error);
             throw new Error(
                 `RT push failed: ${error?.response?.data?.error?.text ?? error?.message}`
             );
@@ -175,10 +175,10 @@ export class RTReservationPushService {
         try {
             const { guestDetails } = incomingPayload;
             const { finalPrice } = incomingPayload;
-            console.log(
-                'pushCommit incomingPayload:',
-                JSON.stringify(incomingPayload, null, 2)
-            );
+            // console.log(
+            //     'pushCommit incomingPayload:',
+            //     JSON.stringify(incomingPayload, null, 2)
+            // );
             const roomsArray = incomingPayload?.guests?.roomsArray ?? [];
             const numberOfRooms = incomingPayload.numberOfRooms;
 
@@ -413,13 +413,13 @@ export class RTReservationPushService {
                 payload,
                 rtConfig
             );
-            console.log(
-                'RT Commit response:',
-                JSON.stringify(response, null, 2)
-            );
+            // console.log(
+            //     'RT Commit response:',
+            //     JSON.stringify(response, null, 2)
+            // );
             return RTReservationPushService.handleRTResponse(response);
         } catch (error: any) {
-            console.log('RT Commit error:', error);
+            // console.log('RT Commit error:', error);
             return {
                 success: false,
                 message: error?.message ?? 'Unknown error in pushCommit',
@@ -434,15 +434,15 @@ export class RTReservationPushService {
         rtConfig: RTDynamicConfig // ← ADD
     ): Promise<{ success: boolean; message: string }> {
         try {
-            console.log(
-                'existingReservation',
-                JSON.stringify(existingReservation, null, 2)
-            );
-            console.log(
-                'updatePayload',
-                JSON.stringify(updatePayload, null, 2)
-            );
-            console.log('rtconfig', JSON.stringify(rtConfig, null, 2));
+            // console.log(
+            //     'existingReservation',
+            //     JSON.stringify(existingReservation, null, 2)
+            // );
+            // console.log(
+            //     'updatePayload',
+            //     JSON.stringify(updatePayload, null, 2)
+            // );
+            // console.log('rtconfig', JSON.stringify(rtConfig, null, 2));
             const guests = Array.isArray(existingReservation.guests)
                 ? existingReservation.guests
                 : [];
@@ -798,13 +798,13 @@ export class RTReservationPushService {
                 payload,
                 rtConfig
             );
-            console.log(
-                'RT Modify response:',
-                JSON.stringify(response, null, 2)
-            );
+            // console.log(
+            //     'RT Modify response:',
+            //     JSON.stringify(response, null, 2)
+            // );
             return RTReservationPushService.handleRTResponse(response);
         } catch (error: any) {
-            console.log('RT Modify error:', error);
+            // console.log('RT Modify error:', error);
             return {
                 success: false,
                 message: error?.message ?? 'Unknown error in pushModify',
@@ -852,13 +852,13 @@ export class RTReservationPushService {
                 payload,
                 rtConfig
             );
-            console.log(
-                'RT Cancel response:',
-                JSON.stringify(response, null, 2)
-            );
+            // console.log(
+            //     'RT Cancel response:',
+            //     JSON.stringify(response, null, 2)
+            // );
             return RTReservationPushService.handleRTResponse(response);
         } catch (error: any) {
-            console.log('RT Cancel error:', error);
+            //  console.log('RT Cancel error:', error);
             return {
                 success: false,
                 message: error?.message ?? 'Unknown error in pushCancel',

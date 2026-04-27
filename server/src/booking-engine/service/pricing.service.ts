@@ -1109,7 +1109,6 @@ class PromotionClass {
         promotion: ICEbDsOftc,
         type: 'user_applied' | 'auto_applied'
     ): PromotionBrakeDown | null {
-        // console.log("Checking Offer For Tonight Promotion Applicability...");
         const checkPromotionDayApplicability =
             this.checkIfPromotionActiveForDay(promotion, this.startDate);
         if (!checkPromotionDayApplicability) {
@@ -1123,7 +1122,6 @@ class PromotionClass {
             this.startDate.getTime() - todayDate.getTime() <=
                 1000 * 60 * 60 * 24 &&
             this.startDate.getTime() - todayDate.getTime() <= 0;
-        // console.log("Is Offer For Tonight Applicable:", isOfferForTonightApplicable);
         if (isOfferForTonightApplicable) {
             if (promotion.discountType == 'percentage') {
                 return {

@@ -70,14 +70,12 @@ export class SpaSlotController {
         try {
             const spaDateId = req.params.id;
             const data:ICSpaSlotS[] = req.body;
-            console.log(req.body)
             if (!data || !Array.isArray(data) || data.length === 0) {
                 return res.status(400).json(errorResponse("Slots are required for creating spa slots"));
             }
             const response = await this.spaSlotService.createSpaSlots(data, spaDateId);
             return res.status(response.success ? 200 : 400).json(response);
         } catch (error) {
-            console.log(error)
             if (error instanceof Error) {
                 return res.status(500).json(errorResponse("Failed to create spa slots", error.message));
             }
@@ -102,10 +100,14 @@ export class SpaSlotController {
     public async markSlotAsBooked(req: CustomRequest, res: Response): Promise<Response<IApiResponse>> {
         try {
             const slotId = req.params.id;
+            const { reservationId, userName } = req.body;
             if (!slotId) {
                 return res.status(400).json(errorResponse("Slot ID is required"));
             }
-            const response = await this.spaSlotService.markAsBooked(slotId);
+            if (!reservationId || !userName) {
+                return res.status(400).json(errorResponse("Reservation ID and User Name are required"));
+            }
+            const response = await this.spaSlotService.markAsBooked(slotId, reservationId, userName);
             return res.status(response.success ? 200 : 400).json(response);
         } catch (error) {
             if (error instanceof Error) {
@@ -127,6 +129,21 @@ export class SpaSlotController {
                 return res.status(500).json(errorResponse("Failed to mark spa slot as available", error.message));
             }
             return res.status(500).json(errorResponse("Failed to mark spa slot as available", "Unknown error"));
+        }
+    }
+    public async markSlotAsCompleted(req: CustomRequest, res: Response): Promise<Response<IApiResponse>> {
+        try {
+            const slotId = req.params.id;
+            if (!slotId) {
+                return res.status(400).json(errorResponse("Slot ID is required"));
+            }
+            const response = await this.spaSlotService.markSlotAsCompleted(slotId);
+            return res.status(response.success ? 200 : 400).json(response);
+        } catch (error) {
+            if (error instanceof Error) {
+                return res.status(500).json(errorResponse("Failed to mark spa slot as completed", error.message));
+            }
+            return res.status(500).json(errorResponse("Failed to mark spa slot as completed", "Unknown error"));
         }
     }
 }

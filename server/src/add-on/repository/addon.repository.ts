@@ -44,7 +44,6 @@ export default class AddonRepository {
             // The deleted addon object is the third result
             return results[2] as IAddon;
         } catch (error) {
-            // console.log("Error deleting addon:", error);
             // Re-throw a clearer error for service/controller layers
             throw new Error("Error deleting addon: dependent records may exist or database error");
         }
