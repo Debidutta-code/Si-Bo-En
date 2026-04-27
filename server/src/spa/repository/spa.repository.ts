@@ -123,7 +123,6 @@ export class SpaRepository {
                 }
             })
         } catch (error) {
-            console.log(error)
             throw new Error("Error occur while fetching spas for property")
         }
     }

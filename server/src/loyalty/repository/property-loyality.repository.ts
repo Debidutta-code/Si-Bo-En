@@ -12,7 +12,6 @@ export class propertyLoyalityRepository {
         try {
             return await prisma.propertyLoyaltyConfig.create({ data });
         } catch (error) {
-            console.log(error);
             throw new Error('Failed to create property loyalty config');
         }
     }
@@ -62,7 +61,6 @@ export class propertyLoyalityRepository {
                 }
             });
         } catch (error) {
-            console.log(error);
             throw new Error('Failed to get loyalty for property');
         }
     }

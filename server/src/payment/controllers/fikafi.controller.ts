@@ -23,7 +23,7 @@ export class FikafiPaymentController {
                 providedBookingRefNum ||
                 `BOOK-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
-            console.log('Using bookingRefNum:', bookingRefNum);
+            // console.log('Using bookingRefNum:', bookingRefNum);
 
             // Validate required fields
             if (
@@ -297,7 +297,7 @@ export class FikafiPaymentController {
                         JSON.stringify({ amount, status, confirmedAt: Date.now() }),
                         { EX: 600 } // 10 minutes TTL — enough for a reconnecting client
                     );
-                    console.log("Redis store res", res);
+                    // console.log("Redis store res", res);
                 } catch (error) {
                     console.error(`❌ Failed to set Redis key:`, error);
                 }
@@ -307,7 +307,7 @@ export class FikafiPaymentController {
                 //     { EX: 6000 }
                 // );
                 const isExists = await client.get(`payment:confirmed:${bookingRefNum}`);
-                console.log(`🔍 Redis verify read-back: ${isExists ? 'KEY EXISTS ✅' : 'KEY MISSING ❌ - write failed silently'}`);
+                // console.log(`🔍 Redis verify read-back: ${isExists ? 'KEY EXISTS ✅' : 'KEY MISSING ❌ - write failed silently'}`);
                 socketManager.emitPaymentUpdate(bookingRefNum, {
                     orderReference: bookingRefNum,
                     eventName: 'payment-confirmed',
@@ -316,12 +316,12 @@ export class FikafiPaymentController {
                     paymentDetails: { amount, status },
                 });
 
-                console.log(
-                    `✅ Socket event emitted to room: payment:${bookingRefNum}`
-                );
+                // console.log(
+                //     `✅ Socket event emitted to room: payment:${bookingRefNum}`
+                // );
             } else if (FikafiPaymentController.isPaymentFailed(status)) {
                 // Handle payment failure - expired, declined, failed, etc.
-                console.log(`❌ Payment failed for ${bookingRefNum} (status: ${status})`);
+                // console.log(`❌ Payment failed for ${bookingRefNum} (status: ${status})`);
 
                 // Map payment status to booking status
                 const statusMap: Record<string, string> = {
@@ -346,7 +346,7 @@ export class FikafiPaymentController {
                             paymentMethod: 'payment_gateway',
                         },
                     });
-                    console.log(`✅ Reservation ${bookingRefNum} marked as ${bookingStatus}`);
+                    // console.log(`✅ Reservation ${bookingRefNum} marked as ${bookingStatus}`);
                 } catch (dbError) {
                     console.error(`❌ Failed to update reservation in DB:`, dbError);
                 }
@@ -362,7 +362,7 @@ export class FikafiPaymentController {
                         }),
                         { EX: 600 }
                     );
-                    console.log(`✅ Payment failure stored in Redis for ${bookingRefNum}`);
+                    // console.log(`✅ Payment failure stored in Redis for ${bookingRefNum}`);
                 } catch (redisError) {
                     console.warn('⚠️ Redis unavailable:', redisError);
                 }
@@ -376,11 +376,11 @@ export class FikafiPaymentController {
                     paymentDetails: { amount, status },
                 });
 
-                console.log(
-                    `❌ Payment failure event emitted to room: payment:${bookingRefNum}`
-                );
+                // console.log(
+                //     `❌ Payment failure event emitted to room: payment:${bookingRefNum}`
+                // );
             } else {
-                console.log(`⏳ Payment not completed yet (status: ${status})`);
+                console.warn(`⏳ Payment not completed yet (status: ${status})`);
             }
 
             return res.status(200).json(successResponse(
@@ -420,7 +420,7 @@ export class FikafiPaymentController {
                 });
             }
 
-            console.log(`📤 Taking payment action: ${action} for booking ${bookingRefNum}, fikafi ref: ${fikafiRefNum}`);
+            // console.log(`📤 Taking payment action: ${action} for booking ${bookingRefNum}, fikafi ref: ${fikafiRefNum}`);
 
             const result = await fikafiPaymentService.takePaymentAction(
                 bookingRefNum,
@@ -440,7 +440,7 @@ export class FikafiPaymentController {
                                 paymentMethod: 'payment_gateway',
                             },
                         });
-                        console.log(`✅ Reservation ${bookingRefNum} marked as cancelled`);
+                        // console.log(`✅ Reservation ${bookingRefNum} marked as cancelled`);
                     } catch (dbError) {
                         console.error(`❌ Failed to update reservation in DB:`, dbError);
                     }

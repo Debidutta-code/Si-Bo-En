@@ -48,9 +48,9 @@ export class SocketEventHandlers {
 
         this.connectionManager.addConnection(orderReference, socket.id);
 
-        console.log(
-            `📌 Socket ${socket.id} joined room: ${room} (orderRef: ${orderReference})`
-        );
+        // console.log(
+        //     `📌 Socket ${socket.id} joined room: ${room} (orderRef: ${orderReference})`
+        // );
 
         const response: RoomJoinedResponse = {
             orderReference,
@@ -68,7 +68,7 @@ export class SocketEventHandlers {
             const redis = RedisClient.getInstance();
             const cachedSuccessRaw = await redis.get(`payment:confirmed:${orderReference}`);
             const cachedSuccess = cachedSuccessRaw ? String(cachedSuccessRaw) : null;
-            console.log(`🔍 Redis check - success key: payment:confirmed:${orderReference}, found:`, !!cachedSuccess);
+            // console.log(`🔍 Redis check - success key: payment:confirmed:${orderReference}, found:`, !!cachedSuccess);
             if (cachedSuccess) {
                 const paymentData = JSON.parse(cachedSuccess);
                 socket.emit('payment-status-update', {
@@ -82,7 +82,7 @@ export class SocketEventHandlers {
             } else {
                 const cachedFailureRaw = await redis.get(`payment:failed:${orderReference}`);
                 cachedFailure = cachedFailureRaw ? String(cachedFailureRaw) : null;
-                console.log(`🔍 Redis check - failure key: payment:failed:${orderReference}, found:`, !!cachedFailure);
+                // console.log(`🔍 Redis check - failure key: payment:failed:${orderReference}, found:`, !!cachedFailure);
                 if (cachedFailure) {
                     const failureData = JSON.parse(cachedFailure);
 
@@ -102,9 +102,9 @@ export class SocketEventHandlers {
 
         // Handle successful payment
         if (cachedSuccess) {
-            console.log(
-                `🔑 Redis cache hit (success) for ${orderReference} - emitting immediately`
-            );
+            // console.log(
+            //     `🔑 Redis cache hit (success) for ${orderReference} - emitting immediately`
+            // );
             const paymentData = JSON.parse(cachedSuccess);
 
             // Universal mapping logic to handle native statuses and Fikafi developer's statuses
@@ -162,14 +162,14 @@ export class SocketEventHandlers {
 
         this.connectionManager.removeConnection(orderReference, socket.id);
 
-        console.log(`📌 Socket ${socket.id} left room: ${room}`);
+        // console.log(`📌 Socket ${socket.id} left room: ${room}`);
     }
 
     /**
      * Handle socket disconnect
      */
     handleDisconnect(socket: Socket, reason: string): void {
-        console.log(`🔌 Client disconnected: ${socket.id} (${reason})`);
+        // console.log(`🔌 Client disconnected: ${socket.id} (${reason})`);
         this.connectionManager.removeSocketFromAll(socket.id);
     }
 
@@ -184,7 +184,7 @@ export class SocketEventHandlers {
      * Handle new connection
      */
     handleConnection(socket: Socket): void {
-        console.log(`🔌 Client connected: ${socket.id}`);
+        // console.log(`🔌 Client connected: ${socket.id}`);
 
         // Register event listeners
         socket.on(SOCKET_EVENTS.JOIN_PAYMENT_ROOM, (rawInput: string) =>

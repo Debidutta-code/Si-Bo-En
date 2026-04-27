@@ -136,61 +136,6 @@ export class LogBuilder {
     });
   }
 
-  // ── console printer ───────────────────────────
-
-  private printToConsole(): void {
-    const lc = LEVEL_COLOR[this.level];
-    console.log(
-      `\n${B}${'─'.repeat(72)}${R}\n` +
-      `${cl(`[${this.level.toUpperCase()}]`, lc)} ` +
-      `${B}${this.service}${R}${D}::${R}${B}${this.method}${R}  ` +
-      `${D}requestId=${this.requestId}${R}`
-    );
-
-    if (this.incomingData !== undefined)
-      console.log(cl('  ➤ INCOMING', LABEL_COLOR['➤ INCOMING']), pj(this.incomingData));
-
-    // Repo calls
-    this.repoCalls.forEach((call, i) => {
-      const statusLabel = call.success ? '✔ REPO' : '✘ REPO';
-      console.log(
-        cl(`\n  📦 REPO CALL [${i + 1}] ${call.repoName}::${call.method}`, LABEL_COLOR['📦 REPO CALL']) +
-        (call.durationMs != null ? D + `  (${call.durationMs}ms)` + R : '')
-      );
-      if (call.input    !== undefined) console.log(`    ${D}input   :${R}`, pj(call.input));
-      if (call.response !== undefined) console.log(`    ${cl(statusLabel, LABEL_COLOR[statusLabel])} :`, pj(call.response));
-      if (call.error)                  console.log(`    ${cl('⚠ error', LABEL_COLOR['⚠ ERROR'])} : ${call.error.message}`);
-    });
-
-    // Messages trail
-    if (this.messages.length > 0) {
-      console.log(cl('\n  💬 MESSAGES', LABEL_COLOR['💬 MESSAGES']));
-      this.messages.forEach((m, i) => {
-        const mc = LEVEL_COLOR[m.level];
-        console.log(
-          `    ${D}[${i + 1}]${R} ${cl(m.level.toUpperCase(), mc)} ${m.text}` +
-          (m.data ? `  ${D}${pj(m.data)}${R}` : '')
-        );
-      });
-    }
-
-    // Service response
-    if (this.serviceResponse !== undefined) {
-      const label = this.serviceResponse.success ? '✔ SERVICE RESP' : '✘ SERVICE RESP';
-      console.log(cl(`\n  ${label}`, LABEL_COLOR[label]), pj(this.serviceResponse));
-    }
-
-    // Top-level error
-    if (this.errorDetail) {
-      console.log(cl('  ⚠ ERROR', LABEL_COLOR['⚠ ERROR']));
-      console.log(`    message : ${this.errorDetail.message}`);
-      if (this.errorDetail.code)  console.log(`    code    : ${this.errorDetail.code}`);
-      if (this.errorDetail.stack) console.log(`    stack   :\n${D}${this.errorDetail.stack}${R}`);
-    }
-
-    if (this.meta) console.log(`${D}  meta :${R}`, pj(this.meta));
-    console.log(`${B}${'─'.repeat(72)}${R}`);
-  }
 }
 
 

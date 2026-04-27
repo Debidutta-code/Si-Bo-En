@@ -49,24 +49,26 @@ interface NavItem {
   userLevels: number[];
   children?: NavItem[];
   priority: number;
+  roles: Role[];
 }
-
+export type Role='super_admin'|'regional_admin'|'group_manager'|'brand_manager'|'hotel_manager'|'staff'|'revenue_manager'|'spa_manager'
 // ─── Static main navigation (no property context) ────────────────────────────
+// 'super_admin'|'regional_admin'|'group_manager'|'brand_manager'|'hotel_manager'|'staff'|'revenue_manager'|'spa_manager'
 
 const baseMainNav = (): NavItem[] => [
-  { name: 'Dashboard', href: '/app', icon: Home, userLevels: [0, 1, 2, 3, 4], priority: 0 },
-  { name: 'Properties', href: '/app/property', icon: Building, userLevels: [2, 3, 4], priority: 0 },
-  { name: 'My Property', href: '/app/property', icon: Building, userLevels: [0, 1], priority: 0 },
-  { name: 'Reservations', href: '/app/bookings', icon: CalendarClock, userLevels: [0, 1, 2, 3, 4], priority: 1 },
-  { name: 'Manage Members', href: '/app/members', icon: Users, userLevels: [1, 2, 3, 4], priority: 2 },
-  { name: 'Access Control', href: '/app/access-control', icon: Shield, userLevels: [4], priority: 3 },
-  { name: 'Utils Management', href: '/app/utils-management', icon: Wrench, userLevels: [3, 4], priority: 3 },
+  { name: 'Dashboard', href: '/app', icon: Home, userLevels: [0, 1, 2, 3, 4], priority: 0, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff', 'revenue_manager'] },
+  { name: 'Properties', href: '/app/property', icon: Building, userLevels: [2, 3, 4], priority: 0, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager'] },
+  { name: 'My Property', href: '/app/property', icon: Building, userLevels: [0, 1], priority: 0, roles: [ 'hotel_manager', 'staff', 'revenue_manager', 'spa_manager'] },
+  { name: 'Reservations', href: '/app/bookings', icon: CalendarClock, userLevels: [0, 1, 2, 3, 4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff', 'revenue_manager', 'spa_manager'] },
+  { name: 'Manage Members', href: '/app/members', icon: Users, userLevels: [1, 2, 3, 4], priority: 2, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager'] },
+  { name: 'Access Control', href: '/app/access-control', icon: Shield, userLevels: [4], priority: 3, roles: ['super_admin'] },
+  { name: 'Utils Management', href: '/app/utils-management', icon: Wrench, userLevels: [3, 4], priority: 3, roles: ['super_admin', 'regional_admin'] },
   // { name: 'Contact Support', href:   '/app/contact-support', icon: HelpCircle, userLevels: [0, 1, 2, 3, 4], priority: 3 },
   {
     name: "Logs", icon: Activity, userLevels: [4], priority: 3, children: [
-      { name: 'Api Logs', href: '/app/logs', icon: Network, userLevels: [4], priority: 3 },
-      { name: 'Service Logs', href: '/app/service-logs', icon: ServerCog, userLevels: [4], priority: 3 },
-    ]
+      { name: 'Api Logs', href: '/app/logs', icon: Network, userLevels: [4], priority: 3, roles: ['super_admin', ] },
+      { name: 'Service Logs', href: '/app/service-logs', icon: ServerCog, userLevels: [4], priority: 3, roles: ['super_admin'] },
+    ],roles: ['super_admin']
   },
 ];
 
@@ -110,26 +112,26 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) 
   const loyaltyChildren = (): NavItem[] => {
     if (isPropertyContext && resolvedPropId) {
       return [
-        { name: 'Property Loyalty', href: `/property/loyalty/${resolvedPropId}`, icon: Award, userLevels: [0, 1, 2, 3, 4], priority: 1 },
+        { name: 'Property Loyalty', href: `/property/loyalty/${resolvedPropId}`, icon: Award, userLevels: [0, 1, 2, 3, 4], priority: 1 , roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
       ];
     }
     return [
-      { name: 'Configuration', href: `/app/loyalty/${finalCreationId}`, icon: LayoutDashboard, userLevels: [1, 2, 3, 4], priority: 1 },
-      { name: 'Register Form', href: `/app/loyalty/register-form/${finalCreationId}`, icon: FileText, userLevels: [1, 2, 3, 4], priority: 1 },
-      { name: 'Content Config', href: `/app/loyalty/content-config/${finalCreationId}`, icon: Users, userLevels: [1, 2, 3, 4], priority: 1 },
-      { name: 'Loyalty Guests', href: `/app/loyalty/loyalty-guests/${finalCreationId}`, icon: Shield, userLevels: [4], priority: 1 },
-      { name: 'Loyalty Levels', href: `/app/loyalty/levels/${finalCreationId}`, icon: Award, userLevels: [1, 2, 3, 4], priority: 1 },
+      { name: 'Configuration', href: `/app/loyalty/${finalCreationId}`, icon: LayoutDashboard, userLevels: [1, 2, 3, 4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
+      { name: 'Register Form', href: `/app/loyalty/register-form/${finalCreationId}`, icon: FileText, userLevels: [1, 2, 3, 4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
+      { name: 'Content Config', href: `/app/loyalty/content-config/${finalCreationId}`, icon: Users, userLevels: [1, 2, 3, 4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
+      { name: 'Loyalty Guests', href: `/app/loyalty/loyalty-guests/${finalCreationId}`, icon: Shield, userLevels: [4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
+      { name: 'Loyalty Levels', href: `/app/loyalty/levels/${finalCreationId}`, icon: Award, userLevels: [1, 2, 3, 4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
     ];
   };
 
   // ── Build Agency children ──────────────────────────────────────────────────
   const agencyChildren = (): NavItem[] => {
     const items: NavItem[] = [
-      { name: 'Agencies', href: `/app/agency`, icon: Briefcase, userLevels: [4], priority: 2 },
-      { name: 'Agency Applications', href: `/app/agency/applications`, icon: ClipboardCheck, userLevels: [4], priority: 2 },
+      { name: 'Agencies', href: `/app/agency`, icon: Briefcase, userLevels: [4], priority: 2, roles: ['super_admin', ] },
+      { name: 'Agency Applications', href: `/app/agency/applications`, icon: ClipboardCheck, userLevels: [4], priority: 2, roles: ['super_admin'] },
     ];
     if (isPropertyContext && resolvedPropId) {
-      items.push({ name: 'Property Agencies', href: `/property/${resolvedPropId}/agencies`, icon: Briefcase, userLevels: [0, 1, 2, 3, 4], priority: 2 });
+      items.push({ name: 'Property Agencies', href: `/property/${resolvedPropId}/agencies`, icon: Briefcase, userLevels: [0, 1, 2, 3, 4], priority: 2, roles: ['super_admin'] });
     }
     return items;
   };
@@ -142,73 +144,73 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) 
     // Loyalty group
     const loyaltyKids = loyaltyChildren();
     if (loyaltyKids.length > 0 && user?.creation) {
-      main.push({ name: 'Loyalty', icon: Award, userLevels: [1, 2, 3, 4], priority: 2, children: loyaltyKids });
+      main.push({ name: 'Loyalty', icon: Award, userLevels: [1, 2, 3, 4], priority: 2, children: loyaltyKids , roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] });
     }
 
     // Agency group
     const agencyKids = agencyChildren().filter(i => user && i.userLevels.includes(user.userLevel));
     if (agencyKids.length > 0) {
-      main.push({ name: 'Agency', icon: Briefcase, userLevels: [0, 1, 2, 3, 4], priority: 3, children: agencyKids });
+      main.push({ name: 'Agency', icon: Briefcase, userLevels: [0, 1, 2, 3, 4], priority: 3, children: agencyKids, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] });
     }
 
     if (isPropertyContext && pid) {
-      // C Panel (direct link)
-      main.push({ name: 'C Panel', href: `/property/booking-engine-config/${pid}`, icon: FileText, userLevels: [0, 1, 2, 3, 4], priority: 2 });
+        // C Panel (direct link)
+        main.push({ name: 'C Panel', href: `/property/booking-engine-config/${pid}`, icon: FileText, userLevels: [0, 1, 2, 3, 4], priority: 2,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] });
 
       // Rates
 
 
       // Management
       main.push({
-        name: 'Management', icon: Building, userLevels: [0, 1, 2, 3, 4], priority: 1,
+        name: 'Management', icon: Building, userLevels: [0, 1, 2, 3, 4], priority: 1,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff', 'revenue_manager', 'spa_manager'] ,
         children: [
-          { name: 'Property Details', href: `/property/${pid}?tab=property`, icon: Building, userLevels: [0, 1, 2, 3, 4], priority: 0 },
-          { name: 'Address', href: `/property/${pid}?tab=address`, icon: Globe, userLevels: [0, 1, 2, 3, 4], priority: 0 },
-          { name: 'Amenities', href: `/property/${pid}?tab=amenities`, icon: Sun, userLevels: [0, 1, 2, 3, 4], priority: 0 },
-          { name: 'Rooms', href: `/property/${pid}?tab=rooms`, icon: Building, userLevels: [0, 1, 2, 3, 4], priority: 0 },
-          { name: 'Payment Setup', href: `/property/${pid}?tab=bank-details`, icon: DollarSign, userLevels: [0, 1, 2, 3, 4], priority: 0 },
-          { name: 'Policy', href: `/property/policy/${pid}`, icon: FileText, userLevels: [0, 1, 2, 3, 4], priority: 0 },
-          { name: 'Promo Code', href: `/property/promo-code/${pid}`, icon: Tag, userLevels: [0, 1, 2, 3, 4], priority: 0 },
-          { name: 'Add On', href: `/property/add-on/${pid}`, icon: Users, userLevels: [1, 2, 3, 4], priority: 0 },
-          { name: 'Tax System', href: `/property/tax-system/${pid}`, icon: ScrollText, userLevels: [4], priority: 0 },
+          { name: 'Property Details', href: `/property/${pid}?tab=property`, icon: Building, userLevels: [0, 1, 2, 3, 4], priority: 0,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff', 'revenue_manager', 'spa_manager'] },
+          { name: 'Address', href: `/property/${pid}?tab=address`, icon: Globe, userLevels: [0, 1, 2, 3, 4], priority: 0,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff', 'revenue_manager', 'spa_manager'] },
+          { name: 'Amenities', href: `/property/${pid}?tab=amenities`, icon: Sun, userLevels: [0, 1, 2, 3, 4], priority: 0 ,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff', 'revenue_manager', 'spa_manager']},
+          { name: 'Rooms', href: `/property/${pid}?tab=rooms`, icon: Building, userLevels: [0, 1, 2, 3, 4], priority: 0,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff', 'revenue_manager', 'spa_manager'] },
+          { name: 'Payment Setup', href: `/property/${pid}?tab=bank-details`, icon: DollarSign, userLevels: [0, 1, 2, 3, 4], priority: 0,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
+          { name: 'Policy', href: `/property/policy/${pid}`, icon: FileText, userLevels: [0, 1, 2, 3, 4], priority: 0 ,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff',]},
+          { name: 'Promo Code', href: `/property/promo-code/${pid}`, icon: Tag, userLevels: [0, 1, 2, 3, 4], priority: 0,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff']},
+          { name: 'Add On', href: `/property/add-on/${pid}`, icon: Users, userLevels: [1, 2, 3, 4], priority: 0,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
+          { name: 'Tax System', href: `/property/tax-system/${pid}`, icon: ScrollText, userLevels: [4], priority: 0,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
         ],
       });
       main.push({
-        name: 'Rates', icon: DollarSign, userLevels: [0, 1, 2, 3, 4], priority: 1,
+        name: 'Rates', icon: DollarSign, userLevels: [0, 1, 2, 3, 4], priority: 1,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff',] ,
         children: [
-          { name: 'Rate Plan', href: `/property/rate-plan/${pid}`, icon: DollarSign, userLevels: [0, 1, 2, 3, 4], priority: 1 },
-          { name: 'Rate Allotment', href: `/property/rate-plan/map/${pid}`, icon: CalendarClock, userLevels: [0, 1, 2, 3, 4], priority: 1 },
-          { name: 'Calendar View', href: `/property/calender-view/${pid}`, icon: LayoutDashboard, userLevels: [0, 1, 2, 3, 4], priority: 1 },
-          { name: 'Inventory', href: `/property/inventory/${pid}`, icon: Building, userLevels: [0, 1, 2, 3, 4], priority: 1 },
+          { name: 'Rate Plan', href: `/property/rate-plan/${pid}`, icon: DollarSign, userLevels: [0, 1, 2, 3, 4], priority: 1 ,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff', ] },
+          { name: 'Rate Allotment', href: `/property/rate-plan/map/${pid}`, icon: CalendarClock, userLevels: [0, 1, 2, 3, 4], priority: 1 ,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff', ] },
+          { name: 'Calendar View', href: `/property/calender-view/${pid}`, icon: LayoutDashboard, userLevels: [0, 1, 2, 3, 4], priority: 1 ,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff', ] },
+          { name: 'Inventory', href: `/property/inventory/${pid}`, icon: Building, userLevels: [0, 1, 2, 3, 4], priority: 1 ,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff', ] },
         ],
       });
       main.push({
-        name: "Spa & Activities", icon: Flower2, userLevels: [0, 1, 2, 3, 4], priority: 1,
+        name: "Spa & Activities", icon: Flower2, userLevels: [0, 1, 2, 3, 4], priority: 1,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff','spa_manager'] ,
         children: [
-          { name: "Configure", href: `/property/spa/${pid}`, icon: Settings2, userLevels: [0, 1, 2, 3, 4], priority: 1 },
-          { name: "My spa", href: `/property/spa/me/${pid}`, icon: Smile, userLevels: [0], priority: 1 },
+          { name: "Configure", href: `/property/spa/${pid}`, icon: Settings2, userLevels: [0, 1, 2, 3, 4], priority: 1 ,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff', 'spa_manager'] },
+          { name: "My spa", href: `/property/spa/me/${pid}`, icon: Smile, userLevels: [0], priority: 1,roles: [ 'spa_manager']  },
         ]
       })
       // Promotions
       main.push({
-        name: 'Promotions', icon: Tag, userLevels: [0, 1, 2, 3, 4], priority: 1,
+        name: 'Promotions', icon: Tag, userLevels: [0, 1, 2, 3, 4], priority: 1,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] ,
         children: [
-          { name: 'GEO', href: `/property/promotion/geo/${pid}`, icon: Globe, userLevels: [0, 1, 2, 3, 4], priority: 1 },
-          { name: 'MLOS', href: `/property/promotion/mlos/${pid}`, icon: ListEndIcon, userLevels: [0, 1, 2, 3, 4], priority: 1 },
-          { name: 'Device Specific', href: `/property/promotion/device-specific/${pid}`, icon: Smartphone, userLevels: [0, 1, 2, 3, 4], priority: 1 },
-          { name: 'Early Bird', href: `/property/promotion/early-bird/${pid}`, icon: Sun, userLevels: [0, 1, 2, 3, 4], priority: 1 },
-          { name: 'Offer For Tonight', href: `/property/promotion/offer-for-tonight/${pid}`, icon: MoonIcon, userLevels: [0, 1, 2, 3, 4], priority: 1 },
-          { name: 'Customizable Deal', href: `/property/promotion/customizable-deal/${pid}`, icon: Pen, userLevels: [0, 1, 2, 3, 4], priority: 1 },
+          { name: 'GEO', href: `/property/promotion/geo/${pid}`, icon: Globe, userLevels: [0, 1, 2, 3, 4], priority: 1 ,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
+          { name: 'MLOS', href: `/property/promotion/mlos/${pid}`, icon: ListEndIcon, userLevels: [0, 1, 2, 3, 4], priority: 1 ,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
+          { name: 'Device Specific', href: `/property/promotion/device-specific/${pid}`, icon: Smartphone, userLevels: [0, 1, 2, 3, 4], priority: 1,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff']  },
+          { name: 'Early Bird', href: `/property/promotion/early-bird/${pid}`, icon: Sun, userLevels: [0, 1, 2, 3, 4], priority: 1 ,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
+          { name: 'Offer For Tonight', href: `/property/promotion/offer-for-tonight/${pid}`, icon: MoonIcon, userLevels: [0, 1, 2, 3, 4], priority: 1 ,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
+          { name: 'Customizable Deal', href: `/property/promotion/customizable-deal/${pid}`, icon: Pen, userLevels: [0, 1, 2, 3, 4], priority: 1 ,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
         ],
       });
 
       // Restrictions
       main.push({
-        name: 'Restrictions', icon: Ban, userLevels: [0, 1, 2, 3, 4], priority: 2,
+        name: 'Restrictions', icon: Ban, userLevels: [0, 1, 2, 3, 4], priority: 2,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] ,
         children: [
-          { name: 'Start/Stop Sell', href: `/property/start-stop-sell/${pid}`, icon: Ban, userLevels: [0, 1, 2, 3, 4], priority: 2 },
-          { name: 'CTA / CTD', href: `/property/cta-ctd/${pid}`, icon: CalendarClock, userLevels: [0, 1, 2, 3, 4], priority: 2 },
-          { name: 'Booking Offset', href: `/property/booking-offset/${pid}`, icon: ScrollText, userLevels: [0, 1, 2, 3, 4], priority: 2 },
+          { name: 'Start/Stop Sell', href: `/property/start-stop-sell/${pid}`, icon: Ban, userLevels: [0, 1, 2, 3, 4], priority: 2,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff']  },
+          { name: 'CTA / CTD', href: `/property/cta-ctd/${pid}`, icon: CalendarClock, userLevels: [0, 1, 2, 3, 4], priority: 2,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff']  },
+          { name: 'Booking Offset', href: `/property/booking-offset/${pid}`, icon: ScrollText, userLevels: [0, 1, 2, 3, 4], priority: 2 ,roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
         ],
       });
 
@@ -217,13 +219,10 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) 
     return main.sort((a, b) => a.priority - b.priority);
   };
 
-  // ── Recompute nav whenever context changes ─────────────────────────────────
   useEffect(() => {
     setNavigation(buildNavigation());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [propertyId, isPropertyContext, user, location.pathname, finalCreationId]);
 
-  // ── Auto-expand parent whose child is active ───────────────────────────────
   useEffect(() => {
     let activeParent: string | null = null;
     navigation.forEach(item => {
@@ -248,17 +247,16 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) 
     });
   }, [location.pathname, location.search, navigation]);
 
-  // ── Access + userLevel filtering ───────────────────────────────────────────
 
   const filteredNav = navigation
     .filter(item => user && item.userLevels.includes(user.userLevel))
+    .filter(item=>user&&item.roles.includes(user.role))
     .map(item => item.children
-      ? { ...item, children: item.children.filter(c => user && c.userLevels.includes(user.userLevel)) }
+      ? { ...item, children: item.children.filter(c => user && c.userLevels.includes(user.userLevel)&&c.roles.includes(user.role)) }
       : item
     )
     .filter(item => !item.children || item.children.length > 0);
 
-  // ── Resolve link paths that need dynamic substitution ─────────────────────
   const resolvePath = (href: string | undefined): string => {
     if (!href) return '#';
     if (href === '/app/property') {
@@ -272,23 +270,24 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) 
     return href;
   };
 
-  // ── Active detection ───────────────────────────────────────────────────────
   const isActive = (item: NavItem): boolean => {
     if (item.children) {
-      return item.children.some(c => c.href && (
-        location.pathname === c.href ||
-        (location.pathname + location.search) === c.href
-      ));
+      return item.children.some(c => c.href && isChildActive(c.href));
     }
     if (!item.href) return false;
     const resolved = resolvePath(item.href);
-    return location.pathname === resolved || (location.pathname + location.search) === resolved;
+    if (resolved.includes('?')) {
+      return (location.pathname + location.search) === resolved;
+    }
+    return location.pathname === resolved;
   };
 
   const isChildActive = (href: string | undefined): boolean => {
     if (!href) return false;
-    const bare = href.split('?')[0];
-    return location.pathname === bare || (location.pathname + location.search) === href;
+    if (href.includes('?')) {
+      return (location.pathname + location.search) === href;
+    }
+    return location.pathname === href;
   };
 
   const toggleExpand = (name: string) =>

@@ -50,9 +50,9 @@ export class RTIntegrationDao {
                 });
 
             if (!propertyIntegration) {
-                console.log(
-                    `❌ No active RateTiger integration found for property ${propertyId}`
-                );
+                // console.log(
+                //     `❌ No active RateTiger integration found for property ${propertyId}`
+                // );
                 return null;
             }
 
@@ -66,9 +66,9 @@ export class RTIntegrationDao {
                 urlFields.find(f => f.name === 'Reservation')?.url ?? '';
 
             if (!authUrl || !reservationUrl) {
-                console.log(
-                    `❌ Missing Auth or Reservation URL for RateTiger integration`
-                );
+                // console.log(
+                //     `❌ Missing Auth or Reservation URL for RateTiger integration`
+                // );
                 return null;
             }
 
@@ -83,20 +83,20 @@ export class RTIntegrationDao {
                 !rateTigerPropertyCodeSecret ||
                 !rateTigerPropertyCodeSecret.value
             ) {
-                console.log(
-                    `❌ RateTiger Property Code not found for property ${propertyId}`
-                );
+                // console.log(
+                //     `❌ RateTiger Property Code not found for property ${propertyId}`
+                // );
                 return null;
             }
 
             const rateTigerPropertyCode = rateTigerPropertyCodeSecret.value;
 
-            console.log(`✅ RateTiger config found:`, {
-                propertyId,
-                rateTigerPropertyCode,
-                authUrl,
-                reservationUrl,
-            });
+            // console.log(`✅ RateTiger config found:`, {
+            //     propertyId,
+            //     rateTigerPropertyCode,
+            //     authUrl,
+            //     reservationUrl,
+            // });
 
             return {
                 authUrl,
@@ -146,17 +146,17 @@ export class RTIntegrationDao {
             });
 
             if (!secret) {
-                console.log(
-                    `❌ No property found for RT code: ${rateTigerPropertyCode}`
-                );
+                // console.log(
+                //     `❌ No property found for RT code: ${rateTigerPropertyCode}`
+                // );
                 return null;
             }
 
             const property = secret.PropertyIntegration.Property;
 
-            console.log(
-                `✅ Resolved RT code ${rateTigerPropertyCode} → propertyCode: ${property.propertyCode}`
-            );
+            // console.log(
+            //     `✅ Resolved RT code ${rateTigerPropertyCode} → propertyCode: ${property.propertyCode}`
+            // );
 
             return {
                 propertyId: property.id,

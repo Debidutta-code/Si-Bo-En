@@ -98,7 +98,6 @@ export class PricingRepository {
                 },
             });
         } catch (error) {
-            console.log(error);
             throw new Error('Failed to validate rate plan');
         }
     }

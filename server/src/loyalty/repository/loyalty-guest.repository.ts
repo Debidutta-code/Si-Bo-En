@@ -22,7 +22,7 @@ export class LoyaltyGuestRepository {
                 }
             });
         } catch (error) {
-            console.log(error);
+            // console.log(error);
             throw new Error("Failed to create guest loyalty config");
         }
     }
@@ -41,7 +41,7 @@ export class LoyaltyGuestRepository {
                 },
             })
         } catch (error) {
-            console.log(error)
+            // console.log(error)
             throw new Error("Failed to get loyalty guest by property and guest");
         }
     }
@@ -57,21 +57,26 @@ export class LoyaltyGuestRepository {
         }
     }
     public async getActiveLoyaltyConfigByPropertyId(propertyId: string) {
-        return await prisma.propertyLoyaltyConfig.findFirst({
-            where: {
-                propertyId,
-                isActive: true,
-            },
-            include: {
-                CreationLoyaltyConfig: {
-                    include: {
-                        LoyalityLevels: {         // ← THIS was missing
-                            orderBy: { level: "asc" },
+        try {
+            
+            return await prisma.propertyLoyaltyConfig.findFirst({
+                where: {
+                    propertyId,
+                    isActive: true,
+                },
+                include: {
+                    CreationLoyaltyConfig: {
+                        include: {
+                            LoyalityLevels: {         // ← THIS was missing
+                                orderBy: { level: "asc" },
+                            },
                         },
                     },
                 },
-            },
-        });
+            });
+        } catch (error) {
+            throw new Error("Failed to create loyalty config");
+        }
     }
     public async checkIfGuestExists(guestEmail: string): Promise<ILoyalityGuests | null> {
         try {
@@ -99,7 +104,6 @@ export class LoyaltyGuestRepository {
                 },
             })
         } catch (error) {
-            console.log(error)
             throw new Error("Failed to check if creation guest exists");
         }
     }

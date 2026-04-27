@@ -10,13 +10,11 @@ export class AuthController {
       if (!email || !password) {
         return res.status(400).json(errorResponse('All Fields are required'));
       }
-      // console.log("email and password", email, password)
       const response = await AuthService.loginUser({
         email,
         password,
       });
       if (response.success) {
-        // console.log(response?.data?.accessToken);
         return res
           .status(200)
           .cookie('revChillAccess', response?.data?.accessToken, {
@@ -85,8 +83,6 @@ export class AuthController {
             errorResponse("You don't have permission to create Level 3 User")
           );
       }
-      //console.log(req.body);
-      // console.log()
       const userData = {
         ...req.body,
         level:
@@ -105,7 +101,6 @@ export class AuthController {
         return res.status(400).json(newUser);
       }
     } catch (error: any) {
-      // console.log(error);
       return res.status(500).json(errorResponse('Error occur while creating user', error?.message,));
     }
   }

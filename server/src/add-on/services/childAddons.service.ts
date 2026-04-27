@@ -81,15 +81,6 @@ export class ChildAddonsService {
                 this.childAddonRepository.getChildAddons(isExist.addonId),
                 getCurrencyConverter(propertyId, data.currencyCode?data.currencyCode:"AED")
             ]);
-            console.log({
-                minAge: data.minAge,
-                maxAge: data.maxAge,
-                discountApplicable: data.discountApplicable,
-                discountType: data.discountType,
-                discountAmount: data.discountType === "flat" ? convert(data.discountAmount?data.discountAmount:0) : data.discountAmount,
-                currencyCode: data.discountType === "flat" ? baseCurrency : data.currencyCode
-            })
-            
             const daoRes = await this.childAddonRepository.updateChildAddon(id, {
                 minAge: data.minAge,
                 maxAge: data.maxAge,

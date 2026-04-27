@@ -112,13 +112,11 @@ export class SpaDatesRepo{
 }
 export class SpaSlotsRepo {
     public async createSlots(data: ICSpaSlotR[]): Promise<BatchPayload> {
-        console.log(data)
         try {
             return await prisma.spaSlots.createMany({
                 data: data
             })
         } catch (error) {
-            console.log(error)
             throw new Error("Error occur while creating spa slot")
         }
     }    

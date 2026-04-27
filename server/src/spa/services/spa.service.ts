@@ -111,7 +111,6 @@ export class SpaService {
             if(!reservation){
                 return errorResponse("Reservation not found");
             }
-            console.log(reservation);
             const spas = await this.spaRepository.getAvailableSpaForinDateRange(reservation.propertyId,reservation.reservationStartDate,reservation.reservationEndDate);
             return successResponse("Available spas retrieved successfully", spas);
         } catch (error) {

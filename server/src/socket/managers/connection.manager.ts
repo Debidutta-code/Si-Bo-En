@@ -15,7 +15,7 @@ export class ConnectionManager {
     }
     this.activeConnections.get(orderReference)!.add(socketId);
     
-    console.log(`✅ Connection added: ${socketId} -> ${orderReference}`);
+    // console.log(`✅ Connection added: ${socketId} -> ${orderReference}`);
   }
 
   /**
@@ -27,7 +27,7 @@ export class ConnectionManager {
       connections.delete(socketId);
       if (connections.size === 0) {
         this.activeConnections.delete(orderReference);
-        console.log(`🗑️ No more connections for order: ${orderReference}`);
+        // // console.log(`🗑️ No more connections for order: ${orderReference}`);
       }
     }
   }
@@ -92,6 +92,6 @@ export class ConnectionManager {
    */
   clearAll(): void {
     this.activeConnections.clear();
-    console.log('🗑️ All connections cleared');
+    // console.log('🗑️ All connections cleared');
   }
 }

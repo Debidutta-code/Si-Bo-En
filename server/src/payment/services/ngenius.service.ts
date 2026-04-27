@@ -20,7 +20,7 @@ class NGeniusService {
    */
   async getAccessToken(): Promise<NGeniusTokenResponse> {
     try {
-      console.log("inside getaccess token../..");
+      // // console.log("inside getaccess token../..");
       const url = `${NGeniusConfig.baseUrl}${NGeniusConfig.endpoints.token}`;
 
       const response = await axios.post<NGeniusTokenResponse>(
@@ -40,7 +40,7 @@ class NGeniusService {
 
       return response.data;
     } catch (error) {
-      console.log("error inside the getaccesstoken function", error);
+      // console.log("error inside the getaccesstoken function", error);
       this.handleError(error, 'Failed to get access token');
       throw error;
     }
@@ -58,9 +58,9 @@ class NGeniusService {
    * Create Order in N-Genius
    */
   async createOrder(orderData: NGeniusOrderRequest): Promise<NGeniusOrderResponse> {
-    console.log('\n========================================');
-    console.log('🛒 CREATING N-GENIUS ORDER');
-    console.log('========================================');
+    // console.log('\n========================================');
+    // console.log('🛒 CREATING N-GENIUS ORDER');
+    // console.log('========================================');
 
     try {
       const token = await this.getValidToken();
@@ -68,7 +68,7 @@ class NGeniusService {
       let targetOutletId = orderData.outletId;
 
       if (!targetOutletId && orderData.propertyCode) {
-        console.log(`[N-Genius] outletId not in payload — looking up from DB for propertyCode: ${orderData.propertyCode}`);
+        // console.log(`[N-Genius] outletId not in payload — looking up from DB for propertyCode: ${orderData.propertyCode}`);
         const property = await prisma.property.findFirst({
           where: { propertyCode: orderData.propertyCode },
         });
@@ -83,7 +83,7 @@ class NGeniusService {
 
         if (activeIntegration?.outletId) {
           targetOutletId = activeIntegration.outletId;
-          console.log(`[N-Genius] ✅ outletId resolved from DB: ${targetOutletId}`);
+          // console.log(`[N-Genius] ✅ outletId resolved from DB: ${targetOutletId}`);
         } else {
           throw new Error(`[N-Genius] No active payment integration with an outletId found for property: ${property.id}`);
         }
@@ -105,11 +105,11 @@ class NGeniusService {
       });
 
       const duration = Date.now() - startTime;
-      console.log('\n✅ ORDER CREATED SUCCESSFULLY');
-      console.log('⏱️  Response Time:', duration, 'ms');
-      console.log('🔑 Order Reference:', response.data.reference);
-      console.log('🔗 Payment URL:', response.data._links?.payment?.href);
-      console.log('========================================\n');
+      // console.log('\n✅ ORDER CREATED SUCCESSFULLY');
+      // console.log('⏱️  Response Time:', duration, 'ms');
+      // console.log('🔑 Order Reference:', response.data.reference);
+      // console.log('🔗 Payment URL:', response.data._links?.payment?.href);
+      // console.log('========================================\n');
 
       if (orderData.propertyCode) {
         try {
@@ -146,7 +146,7 @@ class NGeniusService {
                   ...(propertyPaymentIntegrationId && { propertyPaymentIntegrationId }),
                 },
               });
-              console.log(`✅ Payment record created: ${payment.id}`);
+              // console.log(`✅ Payment record created: ${payment.id}`);
             } catch (dbError) {
               console.error(`❌ Failed to create payment record:`, dbError);
             }
@@ -206,17 +206,17 @@ class NGeniusService {
     outletId: string
   ): Promise<{ success: boolean; message: string; data?: any }> {
     try {
-      console.log(`\n${'='.repeat(60)}`);
-      console.log(`🚫 [CANCEL CAPTURE] Starting capture cancellation`);
-      console.log(`📋 Order Reference : ${orderReference}`);
-      console.log(`🏪 Outlet ID       : ${outletId}`);
-      console.log(`${'='.repeat(60)}`);
+      // console.log(`\n${'='.repeat(60)}`);
+      // console.log(`🚫 [CANCEL CAPTURE] Starting capture cancellation`);
+      // console.log(`📋 Order Reference : ${orderReference}`);
+      // console.log(`🏪 Outlet ID       : ${outletId}`);
+      // console.log(`${'='.repeat(60)}`);
 
       // Step 1: Fetch order status to get payment + capture references
-      console.log(`\n[CANCEL CAPTURE - Step 1] 🔍 Fetching order status...`);
+      // console.log(`\n[CANCEL CAPTURE - Step 1] 🔍 Fetching order status...`);
       const orderStatus = await this.getOrderStatus(orderReference, outletId);
-      console.log(`[CANCEL CAPTURE - Step 1] 📥 Raw order status:`);
-      console.log(JSON.stringify(orderStatus, null, 2));
+      // console.log(`[CANCEL CAPTURE - Step 1] 📥 Raw order status:`);
+      // console.log(JSON.stringify(orderStatus, null, 2));
 
       const payments = orderStatus._embedded?.payment;
       if (!payments || payments.length === 0) {
@@ -224,10 +224,10 @@ class NGeniusService {
       }
 
       const payment = payments[0];
-      console.log(`\n[CANCEL CAPTURE - Step 2] 💳 Payment state: ${payment.state}`);
+      // console.log(`\n[CANCEL CAPTURE - Step 2] 💳 Payment state: ${payment.state}`);
 
       const captures = payment._embedded?.['cnp:capture'];
-      console.log(`[CANCEL CAPTURE - Step 2] 🗂️  Captures found: ${captures?.length ?? 0}`);
+      // console.log(`[CANCEL CAPTURE - Step 2] 🗂️  Captures found: ${captures?.length ?? 0}`);
 
       if (!captures || captures.length === 0) {
         console.warn(`[CANCEL CAPTURE - Step 2] ⚠️ No captures found. Payment state: ${payment.state}`);
@@ -239,7 +239,7 @@ class NGeniusService {
 
       // Extract the capture's self href for the DELETE request
       const captureSelfHref = (captures[0] as any)._links?.self?.href;
-      console.log(`\n[CANCEL CAPTURE - Step 3] 🔗 Capture self href: ${captureSelfHref ?? '(not found)'}`);
+      // console.log(`\n[CANCEL CAPTURE - Step 3] 🔗 Capture self href: ${captureSelfHref ?? '(not found)'}`);
 
       if (!captureSelfHref) {
         console.error(`[CANCEL CAPTURE - Step 3] ❌ capture[0]._links.self.href not found`);
@@ -248,8 +248,8 @@ class NGeniusService {
       }
 
       // Step 2: DELETE the capture
-      console.log(`\n[CANCEL CAPTURE - Step 4] 🚀 Sending DELETE to cancel capture...`);
-      console.log(`   URL: ${captureSelfHref}`);
+      // console.log(`\n[CANCEL CAPTURE - Step 4] 🚀 Sending DELETE to cancel capture...`);
+      // console.log(`   URL: ${captureSelfHref}`);
 
       const token = await this.getValidToken();
       const cancelCaptureResponse = await axios.delete(captureSelfHref, {
@@ -260,10 +260,10 @@ class NGeniusService {
         },
       });
 
-      console.log(`\n[CANCEL CAPTURE - Step 4] ✅ Capture cancelled successfully`);
-      console.log(`   HTTP Status: ${cancelCaptureResponse.status} ${cancelCaptureResponse.statusText}`);
-      console.log(`   Response:`, JSON.stringify(cancelCaptureResponse.data, null, 2));
-      console.log(`${'='.repeat(60)}\n`);
+      // console.log(`\n[CANCEL CAPTURE - Step 4] ✅ Capture cancelled successfully`);
+      // console.log(`   HTTP Status: ${cancelCaptureResponse.status} ${cancelCaptureResponse.statusText}`);
+      // console.log(`   Response:`, JSON.stringify(cancelCaptureResponse.data, null, 2));
+      // console.log(`${'='.repeat(60)}\n`);
 
       return {
         success: true,
@@ -295,17 +295,17 @@ class NGeniusService {
     outletId: string
   ): Promise<{ success: boolean; message: string; data?: any }> {
     try {
-      console.log(`\n${'='.repeat(60)}`);
-      console.log(`↩️  [REVERSE AUTH] Starting authorization reversal`);
-      console.log(`📋 Order Reference : ${orderReference}`);
-      console.log(`🏪 Outlet ID       : ${outletId}`);
-      console.log(`${'='.repeat(60)}`);
+      // console.log(`\n${'='.repeat(60)}`);
+      // console.log(`↩️  [REVERSE AUTH] Starting authorization reversal`);
+      // console.log(`📋 Order Reference : ${orderReference}`);
+      // console.log(`🏪 Outlet ID       : ${outletId}`);
+      // console.log(`${'='.repeat(60)}`);
 
       // Step 1: Fetch fresh order status to get cnp:cancel href
-      console.log(`\n[REVERSE AUTH - Step 1] 🔍 Fetching fresh order status...`);
+      // console.log(`\n[REVERSE AUTH - Step 1] 🔍 Fetching fresh order status...`);
       const orderStatus = await this.getOrderStatus(orderReference, outletId);
-      console.log(`[REVERSE AUTH - Step 1] 📥 Raw order status:`);
-      console.log(JSON.stringify(orderStatus, null, 2));
+      // console.log(`[REVERSE AUTH - Step 1] 📥 Raw order status:`);
+      // console.log(JSON.stringify(orderStatus, null, 2));
 
       const payments = orderStatus._embedded?.payment;
       if (!payments || payments.length === 0) {
@@ -313,11 +313,11 @@ class NGeniusService {
       }
 
       const payment = payments[0];
-      console.log(`\n[REVERSE AUTH - Step 2] 💳 Payment state after capture cancel: ${payment.state}`);
+      // console.log(`\n[REVERSE AUTH - Step 2] 💳 Payment state after capture cancel: ${payment.state}`);
 
       // Extract cnp:cancel href from payment._links
       const cancelHref = (payment as any)._links?.['cnp:cancel']?.href;
-      console.log(`\n[REVERSE AUTH - Step 2] 🔗 cnp:cancel href: ${cancelHref ?? '(not found)'}`);
+      // console.log(`\n[REVERSE AUTH - Step 2] 🔗 cnp:cancel href: ${cancelHref ?? '(not found)'}`);
 
       if (!cancelHref) {
         console.error(`[REVERSE AUTH - Step 2] ❌ cnp:cancel href not found`);
@@ -329,8 +329,8 @@ class NGeniusService {
       }
 
       // Step 2: PUT to the cancel endpoint (no body required)
-      console.log(`\n[REVERSE AUTH - Step 3] 🚀 Sending PUT to reverse authorization...`);
-      console.log(`   URL: ${cancelHref}`);
+      // console.log(`\n[REVERSE AUTH - Step 3] 🚀 Sending PUT to reverse authorization...`);
+      // console.log(`   URL: ${cancelHref}`);
 
       const token = await this.getValidToken();
       const reverseResponse = await axios.put(
@@ -345,11 +345,11 @@ class NGeniusService {
         }
       );
 
-      console.log(`\n[REVERSE AUTH - Step 3] ✅ Authorization reversed successfully`);
-      console.log(`   HTTP Status : ${reverseResponse.status} ${reverseResponse.statusText}`);
-      console.log(`   State       : ${reverseResponse.data?.state}`);
-      console.log(`   Response    :`, JSON.stringify(reverseResponse.data, null, 2));
-      console.log(`${'='.repeat(60)}\n`);
+      // console.log(`\n[REVERSE AUTH - Step 3] ✅ Authorization reversed successfully`);
+      // console.log(`   HTTP Status : ${reverseResponse.status} ${reverseResponse.statusText}`);
+      // console.log(`   State       : ${reverseResponse.data?.state}`);
+      // console.log(`   Response    :`, JSON.stringify(reverseResponse.data, null, 2));
+      // console.log(`${'='.repeat(60)}\n`);
 
       return {
         success: true,
@@ -380,14 +380,14 @@ class NGeniusService {
     outletId: string
   ): Promise<NGeniusRefundResponse> {
     try {
-      console.log(`\n${'='.repeat(60)}`);
-      console.log(`⚡ [SAME-DAY REFUND] Starting same-day refund flow`);
-      console.log(`📋 Order Reference : ${orderReference}`);
-      console.log(`🏪 Outlet ID       : ${outletId}`);
-      console.log(`${'='.repeat(60)}`);
+      // console.log(`\n${'='.repeat(60)}`);
+      // console.log(`⚡ [SAME-DAY REFUND] Starting same-day refund flow`);
+      // console.log(`📋 Order Reference : ${orderReference}`);
+      // console.log(`🏪 Outlet ID       : ${outletId}`);
+      // console.log(`${'='.repeat(60)}`);
 
       // Step 1: Cancel the capture
-      console.log(`\n[SAME-DAY REFUND] ▶️ Step 1: Cancelling capture...`);
+      // console.log(`\n[SAME-DAY REFUND] ▶️ Step 1: Cancelling capture...`);
       const cancelResult = await this.cancelCapture(orderReference, outletId);
 
       if (!cancelResult.success) {
@@ -398,10 +398,10 @@ class NGeniusService {
         };
       }
 
-      console.log(`[SAME-DAY REFUND] ✅ Capture cancelled. Proceeding to authorization reversal...`);
+      // console.log(`[SAME-DAY REFUND] ✅ Capture cancelled. Proceeding to authorization reversal...`);
 
       // Step 2: Reverse the authorization
-      console.log(`\n[SAME-DAY REFUND] ▶️ Step 2: Reversing authorization...`);
+      // console.log(`\n[SAME-DAY REFUND] ▶️ Step 2: Reversing authorization...`);
       const reverseResult = await this.reverseAuthorization(orderReference, outletId);
 
       if (!reverseResult.success) {
@@ -412,8 +412,8 @@ class NGeniusService {
         };
       }
 
-      console.log(`[SAME-DAY REFUND] ✅ Authorization reversed. Same-day refund complete!`);
-      console.log(`${'='.repeat(60)}\n`);
+      // console.log(`[SAME-DAY REFUND] ✅ Authorization reversed. Same-day refund complete!`);
+      // console.log(`${'='.repeat(60)}\n`);
 
       return {
         success: true,
@@ -440,15 +440,15 @@ class NGeniusService {
     outletId?: string
   ): Promise<NGeniusRefundResponse> {
     try {
-      console.log(`\n${'='.repeat(60)}`);
-      console.log(`💸 [REFUND] PROCESSING N-GENIUS DAY-AFTER REFUND`);
-      console.log(`📋 Order Reference : ${orderReference}`);
-      console.log(`🏪 Outlet ID       : ${outletId ?? '⚠️ (NOT PROVIDED)'}`);
-      console.log(`${'='.repeat(60)}`);
+      // console.log(`\n${'='.repeat(60)}`);
+      // console.log(`💸 [REFUND] PROCESSING N-GENIUS DAY-AFTER REFUND`);
+      // console.log(`📋 Order Reference : ${orderReference}`);
+      // console.log(`🏪 Outlet ID       : ${outletId ?? '⚠️ (NOT PROVIDED)'}`);
+      // console.log(`${'='.repeat(60)}`);
 
       const orderStatus = await this.getOrderStatus(orderReference, outletId);
-      console.log(`\n[REFUND - Step 1] 📥 Raw order status response:`);
-      console.log(JSON.stringify(orderStatus, null, 2));
+      // console.log(`\n[REFUND - Step 1] 📥 Raw order status response:`);
+      // console.log(JSON.stringify(orderStatus, null, 2));
 
       const payments = orderStatus._embedded?.payment;
       if (!payments || payments.length === 0) {
@@ -464,7 +464,7 @@ class NGeniusService {
       }
 
       captures.forEach((cap: any, idx: number) => {
-        console.log(`\n[REFUND] 📦 Capture[${idx}]: state=${cap.state}, cnp:refund=${cap._links?.['cnp:refund']?.href ?? '(not present)'}`);
+        // console.log(`\n[REFUND] 📦 Capture[${idx}]: state=${cap.state}, cnp:refund=${cap._links?.['cnp:refund']?.href ?? '(not present)'}`);
       });
 
       const rawCaptureHref = captures[0]._links?.['cnp:refund']?.href;
@@ -489,7 +489,7 @@ class NGeniusService {
       const refundCurrency = orderAmount.currencyCode;
       const refundAmount = orderAmount.value;
 
-      console.log(`\n[REFUND] 📦 Sending refund: ${refundAmount} ${refundCurrency} to ${refundUrl}`);
+      // console.log(`\n[REFUND] 📦 Sending refund: ${refundAmount} ${refundCurrency} to ${refundUrl}`);
 
       const token = await this.getValidToken();
       const refundResponse = await axios.post(
@@ -504,10 +504,10 @@ class NGeniusService {
         }
       );
 
-      console.log(`\n[REFUND] ✅ REFUND SUCCESSFUL`);
-      console.log(`   HTTP Status: ${refundResponse.status}`);
-      console.log(`   Response:`, JSON.stringify(refundResponse.data, null, 2));
-      console.log(`${'='.repeat(60)}\n`);
+      // console.log(`\n[REFUND] ✅ REFUND SUCCESSFUL`);
+      // console.log(`   HTTP Status: ${refundResponse.status}`);
+      // console.log(`   Response:`, JSON.stringify(refundResponse.data, null, 2));
+      // console.log(`${'='.repeat(60)}\n`);
 
       return {
         success: true,

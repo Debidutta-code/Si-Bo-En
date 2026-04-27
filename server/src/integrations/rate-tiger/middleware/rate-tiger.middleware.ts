@@ -26,7 +26,7 @@ export class RateTigerMiddleware {
       }
 
       const base64Credentials = authHeader.split(' ')[1];
-      console.log("base cred", base64Credentials);
+      // console.log("base cred", base64Credentials);
 
       const decoded = Buffer.from(base64Credentials, 'base64').toString('utf-8');
 
@@ -35,7 +35,7 @@ export class RateTigerMiddleware {
       const username = decoded.substring(0, colonIndex);
       const password = decoded.substring(colonIndex + 1);
 
-      console.log({ username, password });
+      // console.log({ username, password });
 
       // Validate credentials
       const expectedUsername = config.rateTigerUsername;

@@ -29,7 +29,7 @@ export async function resolveRefundStrategy(
       return;
     }
 
-    console.log(`\n[REFUND MIDDLEWARE] 🔍 Resolving refund strategy for order: ${orderReference}`);
+    // console.log(`\n[REFUND MIDDLEWARE] 🔍 Resolving refund strategy for order: ${orderReference}`);
 
     // Find the payment record by paymentIntentId (which stores the N-Genius order reference)
     const payment = await prisma.payment.findFirst({
@@ -59,12 +59,12 @@ export async function resolveRefundStrategy(
     const strategy = integration.sameDayRefund ? 'same_day' : 'day_after';
     const outletId = integration.outletId;
 
-    console.log(`[REFUND MIDDLEWARE] ✅ Resolved:`);
-    console.log(`   Payment ID       : ${payment.id}`);
-    console.log(`   Integration ID   : ${integration.id}`);
-    console.log(`   Outlet ID        : ${outletId}`);
-    console.log(`   sameDayRefund    : ${integration.sameDayRefund}`);
-    console.log(`   Strategy         : ${strategy}`);
+    // console.log(`[REFUND MIDDLEWARE] ✅ Resolved:`);
+    // console.log(`   Payment ID       : ${payment.id}`);
+    // console.log(`   Integration ID   : ${integration.id}`);
+    // console.log(`   Outlet ID        : ${outletId}`);
+    // console.log(`   sameDayRefund    : ${integration.sameDayRefund}`);
+    // console.log(`   Strategy         : ${strategy}`);
 
     (req as any).refundStrategy = strategy;
     (req as any).resolvedOutletId = outletId;

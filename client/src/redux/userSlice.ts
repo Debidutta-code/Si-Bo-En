@@ -1,4 +1,5 @@
 
+import type { Role } from '@/components/layout/SideBar/Sidebar';
 import { createSlice,type PayloadAction } from '@reduxjs/toolkit';
 
 // Your User interface
@@ -7,7 +8,7 @@ interface User {
   email: string;
   firstName: string;
   lastName: string;
-  role: string;
+  role: Role;
   userLevel: number;
   name?: string; 
   creation?: string;

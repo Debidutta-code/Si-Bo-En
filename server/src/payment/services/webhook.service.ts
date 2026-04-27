@@ -72,7 +72,7 @@ class WebhookService {
 
     // ✅ ADDED: Log the exact Redis key being set so we can verify it matches
     // what the frontend sends to join-payment-room
-    console.log(`🔑 Redis key being SET: payment:confirmed:${orderReference}`);
+    // console.log(`🔑 Redis key being SET: payment:confirmed:${orderReference}`);
 
     // Store payment result in Redis if terminal (success/failed) (TTL: 10 minutes)
     if (status === 'success' || status === 'failed') {
@@ -94,10 +94,10 @@ class WebhookService {
         const client = RedisClient.getInstance();
 
         await client.set(redisKey, redisValue, { EX: 600 });
-        console.log(`✅ Payment result (${status}) stored in Redis for ${orderReference}`);
+        // console.log(`✅ Payment result (${status}) stored in Redis for ${orderReference}`);
 
         const verify = await client.get(redisKey);
-        console.log(`🔍 Redis verify read-back: ${verify ? 'KEY EXISTS ✅' : 'KEY MISSING ❌ - write failed silently'}`);
+        // console.log(`🔍 Redis verify read-back: ${verify ? 'KEY EXISTS ✅' : 'KEY MISSING ❌ - write failed silently'}`);
       } catch (err: any) {
         console.error(`❌ Failed to store payment result in Redis for ${orderReference}`, err);
       }
@@ -134,10 +134,10 @@ class WebhookService {
       });
 
       if (updateResult.count > 0) {
-        console.log(`✅ Database Payment Update Successful:
-  - Order Reference: ${orderReference}
-  - Status Updated To: ${dbStatus}
-  - Records Affected: ${updateResult.count}`);
+        // console.log(`✅ Database Payment Update Successful:
+  // - Order Reference: ${orderReference}
+  // - Status Updated To: ${dbStatus}
+  // - Records Affected: ${updateResult.count}`);
       }
     } catch (error) {
       // Error logging removed as per request

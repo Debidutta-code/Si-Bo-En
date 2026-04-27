@@ -505,6 +505,10 @@ export default function Spa() {
         isOpen={isViewOpen} 
         onClose={() => setIsViewOpen(false)} 
         selectedSpa={selectedSpa} 
+        onUpdate={() => {
+          fetchData();
+          setIsViewOpen(false);
+        }}
       />
       
       {/* Assign User Dialog */}

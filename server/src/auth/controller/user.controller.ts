@@ -132,7 +132,6 @@ export class UserController {
                 propertyId,
                 level,
             } = req.body;
-            // console.log('user details', userDetails);
             if (level == 0 && !req?.permission?.canUpdateLevel0User) {
                 return res
                     .status(403)
@@ -173,7 +172,6 @@ export class UserController {
                 return res.status(400).json(updateRes);
             }
         } catch (error: any) {
-            // console.log(error)
             return res
                 .status(500)
                 .json(errorResponse('Internal Server Error', error?.message));
@@ -189,8 +187,6 @@ export class UserController {
       }
       const allRoles = await AccessService.getAllRoles()
       const roleData = allRoles.data.find((roleItem: any) => roleItem.role == role)
-      // console.log("role data", roleData)
-      // console.log(allRoles)
       if (!roleData) {
         return res.status(400).json(errorResponse('Role is not valid'));
       }

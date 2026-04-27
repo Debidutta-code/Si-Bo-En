@@ -70,14 +70,12 @@ export class SpaSlotController {
         try {
             const spaDateId = req.params.id;
             const data:ICSpaSlotS[] = req.body;
-            console.log(req.body)
             if (!data || !Array.isArray(data) || data.length === 0) {
                 return res.status(400).json(errorResponse("Slots are required for creating spa slots"));
             }
             const response = await this.spaSlotService.createSpaSlots(data, spaDateId);
             return res.status(response.success ? 200 : 400).json(response);
         } catch (error) {
-            console.log(error)
             if (error instanceof Error) {
                 return res.status(500).json(errorResponse("Failed to create spa slots", error.message));
             }

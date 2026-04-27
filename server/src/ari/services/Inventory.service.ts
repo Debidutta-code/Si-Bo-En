@@ -273,7 +273,6 @@ import { CurrencyCode } from '../../tax-system/interfaces/tourist-tax.type';
                 return errorResponse('Failed to map rate plans');
             }
         } catch (error) {
-            // console.log(error)
             if (error instanceof Error) {
                 return errorResponse(
                     'Failed to map room with rate plan',
