@@ -1,4 +1,4 @@
-import {prisma} from "../../../../config";
+import {prisma} from "../config";
 
 export const getPropertyName=async (propertyId:string):Promise<string>=>{
   const property = await prisma.property.findUnique({

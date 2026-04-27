@@ -1,4 +1,4 @@
-import {prisma} from "../../../../config";
+import {prisma} from "../config";
 
 export const getRoomType=async(roomTypeId:string)=>{
     try {

@@ -1,10 +1,10 @@
-import { prisma } from "../../../../config";
+import { prisma } from "../../config";
 import {
     GuestType,
     IAddGuestDocument,
     ICGuest,
     IGuests,
-} from "../types";
+} from "../types/guest.type";
 export class GuestRepository {
     public async createGuest(guestData: ICGuest): Promise<IGuests | Error> {
         try {

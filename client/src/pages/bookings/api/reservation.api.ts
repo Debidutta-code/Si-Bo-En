@@ -85,7 +85,7 @@ export const fetchReservations = async (filters: ReservationFilters) => {
 export const fetchArrivals = async (filters: ReservationFilters) => {
   try {
     const params = buildQueryParams(filters);
-    const response = await axiosInstance.get(`/pms/front-office/reservations/arrivals?${params.toString()}`);
+    const response = await axiosInstance.get(`/reservations/arrivals?${params.toString()}`);
     return response.data;
   } catch (error: any) {
     if (error?.response?.data) {
@@ -101,7 +101,7 @@ export const fetchArrivals = async (filters: ReservationFilters) => {
 export const fetchDepartures = async (filters: ReservationFilters) => {
   try {
     const params = buildQueryParams(filters);
-    const response = await axiosInstance.get(`/pms/front-office/reservations/departures?${params.toString()}`);
+    const response = await axiosInstance.get(`/reservations/departures?${params.toString()}`);
     return response.data;
   } catch (error: any) {
     if (error?.response?.data) {
@@ -118,7 +118,7 @@ export const fetchDepartures = async (filters: ReservationFilters) => {
 
 export const fetchReservationByCode = async (bookingCode: string) => {
   try {
-    const response = await axiosInstance.get(`/pms/front-office/reservations/${bookingCode}`);
+    const response = await axiosInstance.get(`/reservations/${bookingCode}`);
     return response.data;
   } catch (error: any) {
     if (error?.response?.data) {
@@ -133,7 +133,7 @@ export const fetchReservationByCode = async (bookingCode: string) => {
 
 export const cancelReservation = async (reservationId: string) => {
   try {
-    const response = await axiosInstance.put(`/pms/front-office/reservations/cancel/${reservationId}`);
+    const response = await axiosInstance.put(`/reservations/cancel/${reservationId}`);
     return response.data;
   } catch (error: any) {
     if (error?.response?.data) {
@@ -147,7 +147,7 @@ export const cancelReservation = async (reservationId: string) => {
 };
 export const noShowReservation = async (reservationId: string) => {
   try {
-    const response = await axiosInstance.patch(`/pms/front-office/reservations/no-show/${reservationId}`);
+    const response = await axiosInstance.patch(`/reservations/no-show/${reservationId}`);
     return response.data;
   } catch (error: any) {
     if (error?.response?.data) {
@@ -161,7 +161,7 @@ export const noShowReservation = async (reservationId: string) => {
 };
 export const amendReservation = async (reservationId: string, newCheckoutDate: string) => {
   try {
-    const response = await axiosInstance.patch(`/pms/front-office/reservations/amend/${reservationId}`, {
+    const response = await axiosInstance.patch(`/reservations/amend/${reservationId}`, {
       newCheckoutDate
     });
     return response.data;
@@ -196,7 +196,7 @@ export const fetchProperties = async () => {
 export const downloadBookingVoucher = async (bookingCode: string) => {
   try {
     const response = await axiosInstance.get(
-      `/pms/front-office/reports/booking-voucher/${bookingCode}`,
+      `/reports/booking-voucher/${bookingCode}`,
       { responseType: 'blob' }
     );
     
@@ -221,7 +221,7 @@ export const downloadBookingVoucher = async (bookingCode: string) => {
 export const downloadBookingInvoice = async (bookingCode: string) => {
   try {
     const response = await axiosInstance.get(
-      `/pms/front-office/reports/booking-invoice/${bookingCode}`,
+      `/reports/booking-invoice/${bookingCode}`,
       { responseType: 'blob' }
     );
     
@@ -251,7 +251,7 @@ export const downloadReport = async (propertyId: string, reportType: string, sta
     if (endDate) params.append('endDate', endDate);
     
     const response = await axiosInstance.get(
-      `/pms/front-office/reports/${propertyId}?${params.toString()}`,
+      `/reports/${propertyId}?${params.toString()}`,
       { responseType: 'blob' }
     );
     
@@ -285,7 +285,7 @@ export const downloadReport = async (propertyId: string, reportType: string, sta
 // Get report types
 export const fetchReportTypes = async () => {
   try {
-    const response = await axiosInstance.get('/pms/front-office/reports/types');
+    const response = await axiosInstance.get('/reports/types');
     return response.data;
   } catch (error: any) {
     return {
@@ -337,7 +337,7 @@ export const amendReservationApi = async (
 ): Promise<{ success: boolean; message?: string; data?: any }> => {
   try {
     const response = await axiosInstance.patch(
-      `/pms/front-office/reservations/update/${bookingCode}`,
+      `/reservations/update/${bookingCode}`,
       payload
     );
 

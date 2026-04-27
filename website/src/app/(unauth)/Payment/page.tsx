@@ -336,7 +336,7 @@ const BookingReviewPage = () => {
       };
 
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/pms/front-office/reservations`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations`,
         {
           method: "POST",
           headers: {

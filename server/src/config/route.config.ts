@@ -32,6 +32,8 @@ import { uploadRouter } from '../uploads/routes';
 import { loyalityGuestRouter } from '../loyality-users/routes/loyality-user.route';
 import { spaRouter } from '../spa/routes';
 import serviceLogRouter from '../logs/routes/service-log.route';
+import { reservationRoute } from '../reservation/routes';
+import { reportsRouter } from '../reports/routes/reports.route';
 export async function initializeExpressRoutes({ app }: { app: Express }) {
     // Health check
     app.head('/status', (_, res: Response) => res.status(200).end());
@@ -65,6 +67,9 @@ export async function initializeExpressRoutes({ app }: { app: Express }) {
     apiV1Router.use('/tax-system', TaxSystemRouter);
     apiV1Router.use('/addon', AddonsRoute);
     apiV1Router.use('/pms', pmsRoute);
+    apiV1Router.use('/reservations', reservationRoute);
+    apiV1Router.use('/reports', reportsRouter);
+
     apiV1Router.use('/loyalit-guest', loyalityGuestRouter)
     apiV1Router.use('/booking-engine', BookingEngineRoutes);
     apiV1Router.use('/agency', agencyMainRouter);

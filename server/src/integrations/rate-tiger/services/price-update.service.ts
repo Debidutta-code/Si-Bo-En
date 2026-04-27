@@ -1,6 +1,3 @@
-// services/price-update.service.ts
-
-import { getRatePlanName } from '../../../pms/frontoffice/room-management/utils';
 import { CurrencyCode } from '../../../tax-system/interfaces/tourist-tax.type';
 import { PriceUpdateDao } from '../dao/price-update.dao';
 import {

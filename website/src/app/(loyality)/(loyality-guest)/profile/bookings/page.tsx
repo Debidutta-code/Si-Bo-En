@@ -86,7 +86,7 @@ export default function MyBookingsPage() {
     setBookingData(null);
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/pms/front-office/reservations/BOOK-${bookingCode.trim().toUpperCase()}?propertyCode=${bookingPropertyCode.trim().toUpperCase()}`
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations/BOOK-${bookingCode.trim().toUpperCase()}?propertyCode=${bookingPropertyCode.trim().toUpperCase()}`
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? "Booking not found");
@@ -105,7 +105,7 @@ export default function MyBookingsPage() {
     setIsCheckingIn(true);
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/pms/front-office/reservations/check-in/${bookingData.bookingCode}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations/check-in/${bookingData.bookingCode}`,
         {
           method: "PATCH",
           headers: {
@@ -133,7 +133,7 @@ export default function MyBookingsPage() {
     setIsCheckingOut(true);
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/pms/front-office/reservations/check-out/${bookingData.bookingCode}`,
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations/check-out/${bookingData.bookingCode}`,
         {
           method: "PATCH",
           headers: {

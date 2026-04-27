@@ -1,4 +1,4 @@
-import { getPropertyCode } from '../../pms/frontoffice/room-management/utils/property.util';
+import { getPropertyCode } from '../../utils/property.util';
 import { toUTCDate } from '../../utils';
 import { PropertyCustomRequest } from '../../utils/customRequest';
 import { errorResponse } from '../../utils/return';

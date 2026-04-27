@@ -50,7 +50,7 @@ export default function MyTripPage() {
     setBookingData(null);
     try {
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/pms/front-office/reservations/BOOK-${bookingCode}?propertyCode=${propertyCode}`
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations/BOOK-${bookingCode}?propertyCode=${propertyCode}`
       );
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Booking not found");
@@ -90,7 +90,7 @@ export default function MyTripPage() {
       setBookingData(null);
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_URL}/pms/front-office/reservations/BOOK-${codeFromUrl}?propertyCode=${propertyCode}`
+          `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations/BOOK-${codeFromUrl}?propertyCode=${propertyCode}`
         );
         const data = await res.json();
         // //console.log(data)
