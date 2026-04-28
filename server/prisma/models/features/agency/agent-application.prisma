@@ -1,6 +1,6 @@
 model AgentApplications {
   id                       String                  @id @default(uuid())
-  applicationNoForThisUser Int                     @map("application_no_for_this_user")
+  applicationNoForThisUser Int                     @default(1) @map("application_no_for_this_user")
   status                   AgencyApplicationStatus @default(pending) @map("status")
   rejectionReason          String?                 @map("rejection_reason")
 

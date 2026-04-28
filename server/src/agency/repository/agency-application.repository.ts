@@ -54,8 +54,34 @@ export class AgencyApplicationRepository {
     public async updateApplicationStatus(email:string,newStatus:AgencyApplicationStatus,reason?:string):Promise<IAgencyApplication>{
         try {
             const updatedApplication = await prisma.agentApplications.update({
-                where: { applicantEmail: email },
+                where: { agencyEmail: email },
                 data: { status: newStatus, rejectionReason: reason }
+            });
+            return updatedApplication;
+        } catch (error) {
+            throw new Error(`Failed to update agency application status`);
+        }
+    }
+     public async updateApplication(data: ICAgencyApplication, newStatus: AgencyApplicationStatus, reason?: string): Promise<IAgencyApplication> {
+        try {
+            const updatedApplication = await prisma.agentApplications.update({
+                where: { agencyEmail: data.agencyEmail },
+                data: {
+                    status: newStatus, rejectionReason: reason,
+                    agencyName: data.agencyName,
+                    agencyType: data.agencyType,
+                    contactNo: data.contactNo,
+                    taxNo: data.taxNo,
+                    address: data.address,
+                    commissionCurrency: data.commissionCurrency,
+                    commissionType: data.commissionType,
+                    commissionValue: data.commissionValue,
+                    iataCode:data.iataCode,
+                    applicantName:data.applicantName,
+                    applicantPhone:data.applicantPhone,
+                    applicantEmail:data.applicantEmail,
+                    applicantPassword:data.applicantPassword,
+                }
             });
             return updatedApplication;
         } catch (error) {
@@ -65,7 +91,7 @@ export class AgencyApplicationRepository {
     public async lastAppliedCountByEmail(email: string): Promise<number> {
         try {
             const count = await prisma.agentApplications.findFirst({
-                where: { applicantEmail: email }
+                where: { agencyEmail: email }
             });
             if(!count){
                 return 0;
@@ -100,7 +126,7 @@ export class AgencyApplicationRepository {
     public async updateCount(email: string): Promise<void> {
         try {
             await prisma.agentApplications.update({
-                where: { applicantEmail: email },
+                where: { agencyEmail: email },
                 data: { applicationNoForThisUser: { increment: 1 } }
             });
         } catch (error) {

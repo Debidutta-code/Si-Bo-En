@@ -1,3 +1,4 @@
+import { createHash } from "../../auth/utills/bcryptHelper";
 import { successResponse, errorResponse, paginatedSuccessResponse } from "../../utils/return";
 import { IApiResponse } from "../../utils/return.types";
 import {
@@ -25,6 +26,7 @@ export class AgencyApplicationService {
     }
     public async createAgencyApplication(data: ICAgencyApplication): Promise<IApiResponse> {
         try {
+            console.log(data);
             const [existingApplication,
                 lastAppliedForm,
                 agent,
@@ -36,6 +38,11 @@ export class AgencyApplicationService {
                     this.agencyApplicationRepository.getAgentApplicationsByTaxNo(data.taxNo),
                     this.agencyApplicationRepository.getAgentApplicationsByName(data.agencyName)
                 ])
+            console.log("exist", existingApplication)
+            console.log("lastAppliedForm", lastAppliedForm)
+            console.log("agent", agent)
+            console.log("existingApplicationByTaxNo", existingApplicationByTaxNo)
+            console.log("existingApplicationByName", existingApplicationByName)
             if (existingApplication && existingApplication.status === "approved") {
                 return successResponse("Agency application with this email is already approved", existingApplication);
             }
@@ -49,9 +56,10 @@ export class AgencyApplicationService {
                 return successResponse("Agency application with this name is exists", existingApplicationByName);
             }
             if (lastAppliedForm) {
+                console.log("lastAppliedForm", lastAppliedForm)
                 const [updateCount, updateStatus] = await Promise.all([
                     this.agencyApplicationRepository.updateCount(data.agencyEmail),
-                    this.agencyApplicationRepository.updateApplicationStatus(data.agencyEmail, "pending")
+                    this.agencyApplicationRepository.updateApplication(data, "pending")
                 ]);
                 return successResponse("Agency application updated successfully", { updateCount, updateStatus });
             }
@@ -85,7 +93,7 @@ export class AgencyApplicationService {
             }
             else {
 
-                const cancelRes = await this.rejectApplication(existingApplication.applicantEmail, rejectionReason!);
+                const cancelRes = await this.rejectApplication(existingApplication.agencyEmail, rejectionReason!);
                 return cancelRes;
             }
         } catch (error) {
@@ -98,7 +106,6 @@ export class AgencyApplicationService {
     }
     private async approveApplication(existingApplication: IAgencyApplication): Promise<IApiResponse> {
         try {
-            //  Create the agency 
             const newAgency = await this.agencyRepository.createAgency({
                 agencyName: existingApplication.agencyName,
                 agencyType: existingApplication.agencyType,
@@ -115,14 +122,13 @@ export class AgencyApplicationService {
             if (!newAgency) {
                 return errorResponse("Failed to create agency");
             }
-
-            //  Create the initial Agent
+            const hashedPassword = await createHash(existingApplication.applicantPassword);
             const createdInitialAgent = await this.agentRepository.createAgent({
                 agencyId: newAgency.id,
                 agentName: existingApplication.applicantName,
                 agentEmail: existingApplication.applicantEmail,
                 agentPhone: existingApplication.applicantPhone,
-                agentPassword: existingApplication.applicantPassword
+                agentPassword: hashedPassword
             });
 
             if (!createdInitialAgent) {
@@ -161,17 +167,13 @@ export class AgencyApplicationService {
             }
 
             //  Update application status to approved
-            const [updatedApplication, countIncrement] = await Promise.all([
-                this.agencyApplicationRepository.updateApplicationStatus(existingApplication.applicantEmail, "approved"),
-                this.agencyApplicationRepository.updateCount(existingApplication.applicantEmail)
-            ]);
+            const updatedApplication = await this.agencyApplicationRepository.updateApplicationStatus(existingApplication.agencyEmail, "approved");
 
             return successResponse("Agency application approved successfully", {
                 agency: newAgency,
                 agent: createdInitialAgent,
                 propertiesConnected: availableProperties?.length || 0,
-                updatedApplication,
-                countIncrement
+                updatedApplication
             });
         } catch (error) {
             console.error("Error approving application:", error);
@@ -183,11 +185,8 @@ export class AgencyApplicationService {
     }
     private async rejectApplication(email: string, reason: string): Promise<IApiResponse> {
         try {
-            const [updatedApplication, countIncrement] = await Promise.all([
-                this.agencyApplicationRepository.updateApplicationStatus(email, "rejected", reason),
-                this.agencyApplicationRepository.updateCount(email)
-            ]);
-            return successResponse("Agency application rejected successfully", { updatedApplication, countIncrement });
+            const updatedApplication = await this.agencyApplicationRepository.updateApplicationStatus(email, "rejected", reason);
+            return successResponse("Agency application rejected successfully", { updatedApplication });
         } catch (error) {
             if (error instanceof Error) {
                 return errorResponse("failed to reject agency application", error.message);

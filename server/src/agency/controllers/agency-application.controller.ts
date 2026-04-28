@@ -64,7 +64,7 @@ export class AgencyApplicationController {
                 commissionCurrency,
                 iataCode,
                 address,
-                applicationNoForThisUser: 0,
+                applicationNoForThisUser: 1,
                 status: "pending"
             });
 

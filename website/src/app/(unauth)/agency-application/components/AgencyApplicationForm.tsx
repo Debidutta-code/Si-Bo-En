@@ -106,7 +106,7 @@ export default function AgencyApplicationForm({ onSuccess }: Props) {
               type="tel"
               value={form.applicantPhone}
               onChange={(e) => set("applicantPhone", e.target.value)}
-              placeholder="+91 98765 43210"
+              placeholder="e.g. +1 555 000 1234"
               className="h-10 bg-gray-50 border-gray-200 focus:bg-white transition-colors"
             />
           </div>

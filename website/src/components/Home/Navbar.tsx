@@ -19,7 +19,7 @@ const Navbar = () => {
   const [dynamicLogo, setDynamicLogo] = useState<string | null>(null);
   const pathname = usePathname();
   const isHomePage = pathname === "/";
-  const isAgencyApplicationPage = pathname === "/agency-application";
+  const isAgencyApplicationPage = pathname.includes("/agency-application");
   const isRoomsPage = pathname.includes("/Rooms");
   const dispatch = useDispatch();
   const router = useRouter();
