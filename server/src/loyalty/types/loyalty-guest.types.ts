@@ -4,6 +4,7 @@ export interface ICloyalityGuests {
     guestId: string | null;
     guestEmail: string;
     password: string;
+    otaGuestId: string | null;
 }
 export interface ICCloyalityGuests {
     guestId: string | null;

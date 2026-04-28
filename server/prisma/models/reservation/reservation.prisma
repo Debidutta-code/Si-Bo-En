@@ -1,35 +1,34 @@
 model Reservation {
   id String @id @default(uuid()) @map("id") @db.VarChar(36)
 
-  propertyId   String  @map("property_id") @db.VarChar(36)
+  propertyId   String @map("property_id") @db.VarChar(36)
   propertyCode String @map("property_code") @db.VarChar(50)
   hotelName    String @map("hotel_name") @db.VarChar(150)
 
-  roomName String? @map("room_name") @db.VarChar(50)
-  roomTypeCode String @map("room_type_code") @db.VarChar(50)
-  
-  ratePlanCode String @map("rate_plan_code") @db.VarChar(50)
+  roomName     String? @map("room_name") @db.VarChar(50)
+  roomTypeCode String  @map("room_type_code") @db.VarChar(50)
+
+  ratePlanCode String  @map("rate_plan_code") @db.VarChar(50)
   ratePlanName String? @map("rate_plan_name") @db.VarChar(50)
 
   bookingCode String @unique @map("booking_code") @db.VarChar(50)
 
   bookedAt DateTime @default(now()) @map("booked_at")
 
-  checkInDate    DateTime?   @map("check_in_date") @db.Date 
-  checkOutDate   DateTime?   @map("check_out_date") @db.Date
+  checkInDate  DateTime? @map("check_in_date") @db.Date
+  checkOutDate DateTime? @map("check_out_date") @db.Date
 
-  reservationStartDate DateTime @default(now())   @map("reservation_start_date") @db.Date
-  reservationEndDate   DateTime @default(now())   @map("reservation_end_date") @db.Date
+  reservationStartDate DateTime @default(now()) @map("reservation_start_date") @db.Date
+  reservationEndDate   DateTime @default(now()) @map("reservation_end_date") @db.Date
 
-  countryCode    String     @map("country_code") @db.VarChar(5)
-  timezone       String     @map("timezone") @db.VarChar(50)
-  deviceTypes    DeviceType @map("device_types")
-  platforms      Platforms @default(web) @map("platforms")
+  countryCode String     @map("country_code") @db.VarChar(5)
+  timezone    String     @map("timezone") @db.VarChar(50)
+  deviceTypes DeviceType @map("device_types")
+  platforms   Platforms  @default(web) @map("platforms")
 
-  primaryGuestId String     @map("primary_guest_id") @db.VarChar(36)
-  primaryGuest   Guests     @relation("ReservationPrimaryGuest", fields: [primaryGuestId], references: [id], onDelete: Cascade)
+  primaryGuestId String @map("primary_guest_id") @db.VarChar(36)
+  primaryGuest   Guests @relation("ReservationPrimaryGuest", fields: [primaryGuestId], references: [id], onDelete: Cascade)
 
-  
   guests           Json    @map("guests")
   bookingUserEmail String  @map("booking_user_email") @db.VarChar(150)
   bookingUserPhone String? @map("booking_user_phone") @db.VarChar(50)
@@ -48,28 +47,32 @@ model Reservation {
   bookingStatus      BookingStatus @default(confirmed) @map("booking_status")
   cancellationReason String?       @map("cancellation_reason") @db.VarChar(255)
 
-  bookingSource    BookingSource @default(direct) @map("source")
+  bookingSource BookingSource @default(direct) @map("source")
 
-  isPromoUsed      Boolean   @default(false) @map("is_promo_used")
-  promoId          String?   @map("promo_id") @db.VarChar(36)
+  isPromoUsed Boolean @default(false) @map("is_promo_used")
+  promoId     String? @map("promo_id") @db.VarChar(36)
 
-  cancelledAt      DateTime? @map("cancelled_at")
-  agencyId         String?   @map("agency_id") @db.VarChar(36)
+  cancelledAt DateTime? @map("cancelled_at")
+  agencyId    String?   @map("agency_id") @db.VarChar(36)
 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-  pricingBrakedownId String? @unique @map("pricing_breakdown_id")
-  PricingBrakeDown      PricingBreakdown? @relation(fields: [pricingBrakedownId], references: [id], onDelete: Cascade)
-  property              Property                    @relation(fields: [propertyId], references: [id], onDelete: Cascade)
-  promo                 PromoCode?                  @relation(fields: [promoId], references: [id], onDelete: Cascade)
+  //ota-guest
+  otaGuestId String?   @map("ota_guest_id") @db.VarChar(36)
+  OtaGuest   OtaGuest? @relation(fields: [otaGuestId], references: [id], onDelete: Cascade)
+
+  pricingBrakedownId    String?                @unique @map("pricing_breakdown_id")
+  PricingBrakeDown      PricingBreakdown?      @relation(fields: [pricingBrakedownId], references: [id], onDelete: Cascade)
+  property              Property               @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  promo                 PromoCode?             @relation(fields: [promoId], references: [id], onDelete: Cascade)
   addOns                BookingAddon[]
   // priceBreakdowns       ReservationPriceBrakeDown[]
-  agency                Agency?                     @relation(fields: [agencyId], references: [id], onDelete: Cascade)
+  agency                Agency?                @relation(fields: [agencyId], references: [id], onDelete: Cascade)
   // reservationPromotions ReservationPromotion[]
   payments              Payment[]
   reservationGuests     ReservationGuest[]
   reservationPromoCodes ReservationPromoCode[]
-  SpaSlot SpaSlots[]
+  SpaSlot               SpaSlots[]
+  createdAt             DateTime               @default(now()) @map("created_at")
+  updatedAt             DateTime               @updatedAt @map("updated_at")
 
   @@index([propertyCode])
   @@index([propertyId])

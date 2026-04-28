@@ -1,0 +1,16 @@
+model OtaGuest {
+  id             String           @id @default(uuid())
+  firstName      String           @map("first_name")
+  lastName       String           @map("last_name")
+  email          String           @unique @map("email")
+  password       String           @map("password")
+  phoneNumber    String?          @map("phone_number")
+  metaData       Json             @map("meta_data")
+  ProblemTickets  ProblemTickets[]
+  WishList WishList[]
+  Reviews        Review[]
+  Reservations   Reservation[]
+  LoyalityGuest  LoyalityGuest?
+  createdAt      DateTime        @default(now()) @map("created_at")
+  @@map("ota_guest")
+}

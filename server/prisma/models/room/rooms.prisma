@@ -35,7 +35,7 @@ model Room {
   updatedAt         DateTime           @updatedAt
   customizableDeals CustomizableDeal[]
   TouristTaxs       TouristTaxes[]
-
+  RoomWishList      RoomWishList[]
   @@unique([propertyId, roomType])
   @@unique([propertyId, roomName])
   @@index([propertyId])

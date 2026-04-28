@@ -15,7 +15,12 @@ export interface agentPayload{
   agentEmail:string;
   agencyId:string
 }
+export interface OtaPayload{
+  id:string;
+  email:string;
+}
 const expiresInSeconds = (days: number) => days * 24 * 60 * 60;
+const expiresInSecondsFromHours = (hours: number) => hours * 60 * 60;
 
 const assignToken = (payload: Payload, secret: string, expiresIn: string) => {
   return jwt.sign(payload, secret, {
@@ -40,5 +45,11 @@ export const assignAgentAccessToken=(agentPayload: agentPayload, secret: string,
     expiresIn: expiresInSeconds(parseInt(expiresIn?.split('d')[0]!)),
   });
 }
+export const assignOtaAccessToken=(otaPayload: OtaPayload, secret: string, expiresIn: string)=>{
+  return jwt.sign(otaPayload, secret, {
+    expiresIn: expiresInSecondsFromHours(parseInt(expiresIn?.split('h')[0]!)),
+  });
+}
+
 
 export { assignToken, decodeToken };

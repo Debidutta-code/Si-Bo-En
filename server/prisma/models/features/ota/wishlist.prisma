@@ -1,0 +1,32 @@
+model WishList {
+    id String @id @default(uuid()) @map("id")
+
+    otaGuestId   String @map("ota_guest_id")
+    propertyId   String @map("property_id")
+    propertyCode String @map("property_code")
+    propertyName String @map("property_name")
+
+    createdAt DateTime @default(now()) @map("created_at")
+
+    OtaGuest     OtaGuest       @relation(fields: [otaGuestId], references: [id])
+    Property     Property       @relation(fields: [propertyId], references: [id])
+    RoomWishList RoomWishList[]
+
+    @@unique([otaGuestId, propertyId])
+    @@map("customer_wishlist")
+}
+
+model RoomWishList {
+    id         String @id @default(uuid())
+    wishlistId String @map("wishlist_id")
+    roomId     String @map("room_id")
+    roomType   String @map("room_type")
+    roomName   String @map("room_name")
+        createdAt DateTime @default(now()) @map("created_at")
+
+    WishList   WishList @relation(fields: [wishlistId], references: [id])
+    
+    Room       Room   @relation(fields: [roomId], references: [id])
+
+    @@map("room_wishlist")
+}

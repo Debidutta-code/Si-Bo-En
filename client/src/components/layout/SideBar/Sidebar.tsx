@@ -40,7 +40,6 @@ import { useAppSelector } from '@/redux/hooks';
 import { useEffect, useState } from 'react';
 import createAxiosInstance from '@/components/axiosInstance';
 
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface NavItem {
   name: string;
@@ -52,8 +51,6 @@ interface NavItem {
   roles: Role[];
 }
 export type Role='super_admin'|'regional_admin'|'group_manager'|'brand_manager'|'hotel_manager'|'staff'|'revenue_manager'|'spa_manager'
-// ─── Static main navigation (no property context) ────────────────────────────
-// 'super_admin'|'regional_admin'|'group_manager'|'brand_manager'|'hotel_manager'|'staff'|'revenue_manager'|'spa_manager'
 
 const baseMainNav = (): NavItem[] => [
   { name: 'Dashboard', href: '/app', icon: Home, userLevels: [0, 1, 2, 3, 4], priority: 0, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff', 'revenue_manager'] },

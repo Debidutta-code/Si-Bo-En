@@ -3,6 +3,14 @@ import { createHash } from "../utills/bcryptHelper";
 export class InitializeDB {
     public async initDb() {
         try {
+            const isExists= await prisma.user.findFirst({
+                where:{
+                    role:"super_admin"
+                }
+            })
+            if(isExists){
+                throw new Error("DB already initialized")
+            }
             const password = await createHash("Admin@123")
             const userRes = await prisma.user.create({
                 data: {
@@ -247,6 +255,40 @@ export class InitializeDB {
             await prisma.accessControl.create({
                 data: {
                     role: "staff",
+                    level: 0,
+                    isActive: true,
+                    canAddInventory: true,
+                    canCreateHotel: true,
+                    canCreateLevel0User: true,
+                    canCreateLevel1User: true,
+                    canCreateMembers: true,
+                    canCreatePolicy: true,
+                    canCreateRatePlan: true,
+                    canCreateRoomAvailability: true,
+                    canDeleteLevel0User: true,
+                    canDeleteMembers: true,
+                    canDeletePolicy: true,
+                    canDeleteRatePlan: true,
+                    canMapRatePlan: true,
+                    canSeeBookingDetails: true,
+                    canUpdateBookingStatus: true,
+                    canUpdateHotel: true,
+                    canUpdateLevel0User: true,
+                    canUpdateLevel1User: true,
+                    canUpdateMembers: true,
+                    canUpdatePaymentDetails: true,
+                    canUpdatePolicy: true,
+                    canUpdateRatePlan: true,
+                    canUpdateRoomPrice: true,
+                    canViewAnalytics: true,
+                    canViewHotel: true,
+                    canViewMembers: true,
+                    canViewRatePlan: true,
+                }
+            })
+                        await prisma.accessControl.create({
+                data: {
+                    role: "spa_manager",
                     level: 0,
                     isActive: true,
                     canAddInventory: true,

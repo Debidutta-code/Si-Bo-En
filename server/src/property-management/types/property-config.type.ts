@@ -11,4 +11,6 @@ export interface IUPropertyConfig {
   selfAriActive: boolean,
   timezone: string,
   showVideo:boolean,
+  isAvailableForBooking: boolean,
+  isAvailableForOTA: boolean,
 }
