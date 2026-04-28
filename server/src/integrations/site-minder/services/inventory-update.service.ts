@@ -113,35 +113,35 @@ export class InventoryUpdateService {
                         }
                     }
 
-                    await InventoryUpdateDao.upsertInventoryAndRestrictions({
-                        propertyCode: hotelCode,
-                        roomTypeCode,
-                        ratePlanCode: ratePlanCode ?? '',
-                        date: new Date(currentDate),
-                        bookingLimit:
-                            bookingLimit !== undefined
-                                ? parseInt(bookingLimit)
-                                : undefined,
-                        isSaleStopped,
-                        isClosedToArrival,
-                        isClosedToDeparture,
-                        minAdvanceBookingDays,
-                        maxAdvanceBookingDays,
-                        minLos,
-                        maxLos,
-                    });
-                    if (
-                        minAdvanceBookingDays !== undefined ||
-                        maxAdvanceBookingDays !== undefined
-                    ) {
-                        await InventoryUpdateDao.upsertBookingOffset({
-                            propertyCode: hotelCode,
-                            ratePlanCode: ratePlanCode ?? '',
-                            date: new Date(currentDate),
-                            minAdvanceBookingDays,
-                            maxAdvanceBookingDays,
-                        });
-                    }
+                    // await InventoryUpdateDao.upsertInventoryAndRestrictions({
+                    //     propertyCode: hotelCode,
+                    //     roomTypeCode,
+                    //     ratePlanCode: ratePlanCode ?? '',
+                    //     date: new Date(currentDate),
+                    //     bookingLimit:
+                    //         bookingLimit !== undefined
+                    //             ? parseInt(bookingLimit)
+                    //             : undefined,
+                    //     isSaleStopped,
+                    //     isClosedToArrival,
+                    //     isClosedToDeparture,
+                    //     minAdvanceBookingDays,
+                    //     maxAdvanceBookingDays,
+                    //     minLos,
+                    //     maxLos,
+                    // });
+                    // if (
+                    //     minAdvanceBookingDays !== undefined ||
+                    //     maxAdvanceBookingDays !== undefined
+                    // ) {
+                    //     await InventoryUpdateDao.upsertBookingOffset({
+                    //         propertyCode: hotelCode,
+                    //         ratePlanCode: ratePlanCode ?? '',
+                    //         date: new Date(currentDate),
+                    //         minAdvanceBookingDays,
+                    //         maxAdvanceBookingDays,
+                    //     });
+                    // }
                     currentDate.setDate(currentDate.getDate() + 1);
                 }
             }

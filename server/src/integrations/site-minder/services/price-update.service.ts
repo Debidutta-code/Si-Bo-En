@@ -131,17 +131,17 @@ export class PriceUpdateService {
                     };
                 }
                 while (currentDate <= endDate) {
-                    await PriceUpdateDao.upsertCharge({
-                        propertyCode: hotelCode,
-                        roomTypeCode,
-                        ratePlanCode,
-                        ratePlanName,
-                        roomTypeName,
-                        date: new Date(currentDate),
-                        currencyCode,
-                        baseByGuestAmounts: parsedBaseAmounts,
-                        additionalGuestAmounts: parsedAdditionalAmounts,
-                    });
+                    // await PriceUpdateDao.upsertCharge({
+                    //     propertyCode: hotelCode,
+                    //     roomTypeCode,
+                    //     ratePlanCode,
+                    //     ratePlanName,
+                    //     roomTypeName,
+                    //     date: new Date(currentDate),
+                    //     currencyCode,
+                    //     baseByGuestAmounts: parsedBaseAmounts,
+                    //     additionalGuestAmounts: parsedAdditionalAmounts,
+                    // });
 
                     currentDate.setDate(currentDate.getDate() + 1);
                 }
