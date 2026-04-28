@@ -17,7 +17,8 @@ export class PropertyConfigRepo {
                     reservationResetMinutes: config.reservationResetMinutes,
                     selfAriActive: config.selfAriActive,
                     timezone: config.timezone,
-                    
+                    isAvailableForBooking: config.isAvailableForBooking,
+                    isAvailableForOTA: config.isAvailableForOTA,
                     updatedAt: new Date()
                 }
             })

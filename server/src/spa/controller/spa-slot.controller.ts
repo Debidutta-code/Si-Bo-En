@@ -1,6 +1,6 @@
 import { SpaDates,SpaSlotsServ } from "../services";
 import { CustomRequest, IApiResponse, errorResponse, toUTC } from "../../utils";
-import { Response } from "express";
+import { Response,Request } from "express";
 import { ICSpaSlotS } from "../types";
 
 export class SpaDateController {
@@ -97,7 +97,7 @@ export class SpaSlotController {
             return res.status(500).json(errorResponse("Failed to delete spa slot", "Unknown error"));
         }
     }
-    public async markSlotAsBooked(req: CustomRequest, res: Response): Promise<Response<IApiResponse>> {
+    public async markSlotAsBooked(req: Request, res: Response): Promise<Response<IApiResponse>> {
         try {
             const slotId = req.params.id;
             const { reservationId, userName } = req.body;

@@ -1,4 +1,4 @@
-import { Request as ExpressRequest } from 'express';
+import e, { Request as ExpressRequest } from 'express';
 import { Role } from './jwtHelper';
 import { IUserRolesAndAccess } from '../access-control/types/access.types';
 export interface PropertyRequest extends ExpressRequest {
@@ -44,5 +44,12 @@ export interface RateTigerRequest extends ExpressRequest {
         apiKey: string;
         propertyCode?: string;
         rtHotelCode?: string;
+    };
+}
+
+export interface IOtaCustomRequest extends ExpressRequest{
+    otaUser?: {
+        email:string;
+        id:string;
     };
 }

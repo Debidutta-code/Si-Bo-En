@@ -19,6 +19,8 @@ const config = {
     loyaltyJWTSecret: process.env.LOYALTY_GUEST_JWT_SECRETE,
     loyaltyJWTExpiresIn: process.env.LOYALTY_GUEST_JWT_EXPIRES,
 
+    otaJWTSecret: process.env.OTA_GUEST_JWT_SECRET,
+    otaJWTExpiresIn: process.env.OTA_GUEST_JWT_EXPIRES,
 
     frontendUrl: process.env.FRONTEND_URL,
     bookingEngineUrl: process.env.BOOKING_ENGINE_URL,

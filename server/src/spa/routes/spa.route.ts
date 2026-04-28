@@ -12,7 +12,7 @@ spaRouter.use("/users", userSpaRouter);
 
 spaRouter.route("/").post(protect, spaController.createSpa.bind(spaController));
 
-spaRouter.route("/property/:propertyId").get(protect, spaController.getSpaForProperty.bind(spaController));
+spaRouter.route("/property/:propertyId").get( spaController.getSpaForProperty.bind(spaController));
 spaRouter.route("/:id")
     .put(protect, spaController.updateSpa.bind(spaController))
     .delete(protect, spaController.deleteSpa.bind(spaController));

@@ -6,7 +6,7 @@ import {
     IUSpaR,
 
 } from "../types";
-import { Response } from "express";
+import { Response ,Request} from "express";
 export class SpaController {
     private spaService: SpaService;
 
@@ -36,7 +36,7 @@ export class SpaController {
             return res.status(500).json(errorResponse("Failed to create spa", "Internal Server Error"));
         }
     }
-    public async getSpaForProperty(req: CustomRequest, res: Response): Promise<Response> {
+    public async getSpaForProperty(req: Request, res: Response): Promise<Response> {
         try {
             const propertyId = req.params.propertyId;
             const response = await this.spaService.getSpaForProperty(propertyId);
@@ -83,7 +83,7 @@ export class SpaController {
             return res.status(500).json(errorResponse("Failed to delete spa", "Internal Server Error"));
         }
     }
-    public async getAvailableSpaForReservation(req:CustomRequest,res:Response):Promise<Response>{
+    public async getAvailableSpaForReservation(req:Request,res:Response):Promise<Response>{
         try {
             const bookingCode = req.params.bookingCode;
             if(!bookingCode) {

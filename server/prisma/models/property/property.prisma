@@ -51,6 +51,8 @@ model Property {
   bookingOffsets              BookingOffset[]
   ProblemTickets              ProblemTickets[]
   Spa                         Spa[]
+  Reviews                     Review[]
+  WishLists WishList[]
   @@index([createdById])
   @@index([creationId])
   @@index([propertyCode])

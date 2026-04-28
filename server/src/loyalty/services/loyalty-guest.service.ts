@@ -137,6 +137,7 @@ export class LoyaltyGuestService {
                 guestEmail: email,
                 guestId: "",
                 password: hashedPassword,
+                otaGuestId:null
             });
 
             if (!newGuest) {

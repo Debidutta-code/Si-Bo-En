@@ -20,7 +20,7 @@
     "lint:fix": "eslint --fix .",
     "test": "jest",
     "check-payment": "ts-node src/payment/check-payment.ts",
-    "db:seed": "ts-node src/scripts/seed.ts"
+    "db:seed": "ts-node src/seed/seed.ts"
   },
   "author": "Quotus",
   "license": "ISC",
