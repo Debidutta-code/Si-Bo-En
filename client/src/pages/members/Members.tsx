@@ -33,7 +33,7 @@ export default function MembersPage() {
   const fetchUsers = async () => {
     setLoading(true)
     try {
-      const res = await getUsers(1); // Assuming page 1
+      const res = await getUsers(1); 
       setUsers(res.data)
     } catch (error) {
       toast.error("Failed to fetch members")

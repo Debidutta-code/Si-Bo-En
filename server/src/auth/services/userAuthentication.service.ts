@@ -196,7 +196,7 @@ export class AuthService {
         const users = await Users.getUsersByCreationId(creationId)
         return successResponse("Users fetched successfully", users)
       }
-      const users = await Users.getUserCreatedById(userId)
+      const users = await Users.getUsersForProperty(creationId)
       return successResponse("Users fetched successfully", users)
     } catch (error: any) {
       return errorResponse("Error occur while fetching users", error?.message)

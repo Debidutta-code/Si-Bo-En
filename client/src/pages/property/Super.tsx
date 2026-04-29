@@ -36,12 +36,15 @@ export default function HotelsPage() {
         });
         if(response.data.groups.length > 0){
           setCurrentTab("group");
+          
         }
-        if(response.data.brands.length > 0 ){
+        else if(response.data.brands.length > 0 ){
           setCurrentTab("brand");
+          return
         }
-        if(response.data.properties.length > 0){
+        else if(response.data.properties.length > 0){
           setCurrentTab("property");
+          return
       }
       } else {
         toast.error(response.message || 'Failed to fetch');

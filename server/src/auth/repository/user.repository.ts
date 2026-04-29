@@ -120,10 +120,6 @@ public static async recoveryUser(email:string){
   }
 }
 
-// ================================
-// Users Class (Prisma Version)
-// ================================
-
 export class Users {
   public static async getAllUsers(isDrafted: boolean = false): Promise<IRUsers[]> {
     try {
@@ -188,11 +184,29 @@ export class Users {
     }
   }
 
-  public static async getUserCreatedById(createdById: string): Promise<IRUsers[]> {
+  // public static async getUserCreatedById(createdById: string): Promise<IRUsers[]> {
+  //   try {
+  //     return await prisma.user.findMany({
+  //       where: {
+  //         createdById: createdById,
+  //       },
+  //       select: {
+  //         firstName: true,
+  //         lastName: true,
+  //         email: true,
+  //         role: true,
+  //         id: true
+  //       },
+  //     });
+  //   } catch (error: any) {
+  //     throw new Error("Error occurred while fetching users");
+  //   }
+  // }
+  public static async getUsersForProperty(creationId: string): Promise<IRUsers[]> {
     try {
       return await prisma.user.findMany({
         where: {
-          createdById: createdById,
+          creationId: creationId,
         },
         select: {
           firstName: true,
@@ -200,10 +214,10 @@ export class Users {
           email: true,
           role: true,
           id: true
-        },
+        }
       });
     } catch (error: any) {
-      throw new Error("Error occurred while fetching users");
+      throw new Error("Error occurred while fetching users for property");
     }
   }
 
@@ -244,9 +258,6 @@ export class Users {
   }
 }
 
-// ================================
-// UtilsDao (Prisma Version)
-// ================================
 
 export class UtilsRepository {
 
@@ -282,4 +293,19 @@ export class UtilsRepository {
       throw new Error(`Failed to get role level: ${error.message}`);
     }
   }
+  // public static async groupBrands(creationId: string) {
+  //   try {
+  //     return await prisma.creation.findMany({
+  //       where: { creationId: creationId },
+  //       select: {
+  //         id: true,
+  //         name: true,
+  //         createdAt: true,
+  //         updatedAt: true,
+  //       },
+  //     });
+  //   } catch (error: any) {
+  //     throw new Error(`Failed to group brands: ${error.message}`);
+  //   }
+  // }
 }
