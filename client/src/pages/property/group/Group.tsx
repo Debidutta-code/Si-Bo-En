@@ -102,14 +102,11 @@ export default function page() {
       if (!creationId) return;
       const response = await getGroupCreationId(creationId);
       if (response.success) {
-        if (response.data.brands.length > 0) {
-          setCurrentTab("brand");
-        } else {
-          setCurrentTab("property");
-        }
+        
         setCreations(response.data);
         if (response.data.brands.length > 0) {
           setCurrentTab("brand");
+          return  
         }
         if (response.data.properties.length > 0) {
           setCurrentTab("property");

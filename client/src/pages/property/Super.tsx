@@ -122,7 +122,7 @@ export default function HotelsPage() {
       </div>
 
       <div className="flex space-x-2 border-b">
-        {(["group", "brand", "property", "regional"] as const).map((tab) => (
+        {(["regional","group", "brand", "property"] as const).map((tab) => (
 
           <Button
             key={tab}

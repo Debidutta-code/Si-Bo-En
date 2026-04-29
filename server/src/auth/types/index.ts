@@ -1,4 +1,6 @@
 import { Types } from "mongoose";
+import { EntityType, IBaseEntity } from "./creation.type";
+import { Role } from "../../utils";
 
 export interface UpdateBody {
   firstName?: string;
@@ -67,9 +69,9 @@ export interface ICreation {
 
 }
 export interface PropertyFilters {
-  superId?: string | string;
-  groupId?: string | string;
-  brandId?: string | string;
+  superId?: string;
+  groupId?: string;
+  brandId?: string;
 }
 export interface IRUsers{
   firstName: string;  
@@ -77,4 +79,44 @@ export interface IRUsers{
   email: string;
   role: string;
   id:string;
+}
+export * from "./creation.type";
+
+export interface BaseEntity{
+  id: string;
+  type: EntityType;
+  name: string;
+  images: string[];
+}
+export interface IGetCreations{
+  id: string;
+  type: EntityType;
+  name: string;
+  images: string[];
+  createdById: string;
+
+  isActive: boolean;
+  isDeleted: boolean;
+  superId: string | null;
+  groupId: string | null;
+  brandId: string | null;
+
+  createdAt: Date;
+  updatedAt: Date;
+  users: ICreationUsers[];
+  super: BaseEntity | null;
+  group: BaseEntity | null;
+  brand: BaseEntity | null;
+  propertyId:string | null;
+  groupChildren: BaseEntity[];
+  brandChildren: BaseEntity[];
+
+}
+export interface ICreationUsers {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: Role;
+  userLevel: number;
 }

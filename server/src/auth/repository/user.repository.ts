@@ -1,4 +1,4 @@
-import type { IRUsers } from "../types/index"
+import type { IBrandEntity, IGroupEntity, IRUsers } from "../types/index"
 import { prisma } from '../../config';
 
 
@@ -134,6 +134,9 @@ export class Users {
           role: true,
           id: true
         },
+        orderBy:{
+          createdAt:"desc"
+        }
       });
     } catch (error: any) {
       throw new Error("Error occurred while fetching all users");
@@ -151,6 +154,9 @@ export class Users {
         role: true,
         id: true
       },
+      orderBy:{
+          createdAt:"desc"
+        }
     });
 
   }
@@ -167,6 +173,9 @@ export class Users {
         role: true,
         id: true
       },
+      orderBy:{
+          createdAt:"desc"
+        }
     });
 
   }
@@ -184,24 +193,6 @@ export class Users {
     }
   }
 
-  // public static async getUserCreatedById(createdById: string): Promise<IRUsers[]> {
-  //   try {
-  //     return await prisma.user.findMany({
-  //       where: {
-  //         createdById: createdById,
-  //       },
-  //       select: {
-  //         firstName: true,
-  //         lastName: true,
-  //         email: true,
-  //         role: true,
-  //         id: true
-  //       },
-  //     });
-  //   } catch (error: any) {
-  //     throw new Error("Error occurred while fetching users");
-  //   }
-  // }
   public static async getUsersForProperty(creationId: string): Promise<IRUsers[]> {
     try {
       return await prisma.user.findMany({
@@ -214,6 +205,8 @@ export class Users {
           email: true,
           role: true,
           id: true
+        },orderBy:{
+          createdAt:"desc"
         }
       });
     } catch (error: any) {
@@ -234,6 +227,9 @@ export class Users {
           role: true,
           id: true
         },
+        orderBy:{
+          createdAt:"desc"
+        }
       });
     } catch (error: any) {
       throw new Error("Error occurred while fetching users by creation ID");
@@ -293,19 +289,51 @@ export class UtilsRepository {
       throw new Error(`Failed to get role level: ${error.message}`);
     }
   }
-  // public static async groupBrands(creationId: string) {
-  //   try {
-  //     return await prisma.creation.findMany({
-  //       where: { creationId: creationId },
-  //       select: {
-  //         id: true,
-  //         name: true,
-  //         createdAt: true,
-  //         updatedAt: true,
-  //       },
-  //     });
-  //   } catch (error: any) {
-  //     throw new Error(`Failed to group brands: ${error.message}`);
-  //   }
-  // }
+  public static async groupBrands(groupId: string):Promise<IGroupEntity|null> {
+    try {
+      return await prisma.creation.findUnique({
+        where: { id: groupId,type:"group" },
+        include: {
+          
+          groupChildren:true
+          
+        },
+      });
+    } catch (error: any) {
+      throw new Error(`Failed to group brands: ${error.message}`);
+    }
+  }
+  public static async getBrandProperties(brandId: string): Promise<IBrandEntity|null>  {
+    try {
+      return await prisma.creation.findUnique({
+        where: { id: brandId,type:"brand" },
+        include: {
+          brandChildren:true
+        },
+      });
+    } catch (error: any) {
+      throw new Error(`Failed to get brand properties: ${error.message}`);
+    }
+  }
+  public static async getUserForCreations(creationIds:string[]):Promise<IRUsers[]>{
+    try {
+      return await prisma.user.findMany({
+        where: {
+          creationId: { in: creationIds }
+        },
+        select: {
+          firstName: true,
+          lastName: true,
+          email: true,
+          role: true,
+          id: true
+        },
+        orderBy:{
+          createdAt:"desc"
+        }
+      });
+    } catch (error: any) {
+      throw new Error(`Failed to get users for creations: ${error.message}`);
+    }
+  }
 }

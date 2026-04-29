@@ -1,12 +1,13 @@
-import { UserAuthRepository, Users } from '../repository';
+import { UserAuthRepository, Users, UtilsRepository } from '../repository';
 import { compareHash, createHash } from '../utills/bcryptHelper';
-import { assignToken, Role } from '../utills/jwtHelper';
-import { LoginBody, RegisterBody } from '../types/index';
+import { assignToken } from '../utills/jwtHelper';
+import { IRUsers, LoginBody, RegisterBody } from '../types';
 import { Types } from 'mongoose';
 import { errorResponse, successResponse } from '../../utils/return';
 import {emailService}  from '../../sms-email-service/service';
 import CreationService from './creation.service';
 import passwordResetTokenRepository from '../../sms-email-service/reposititory/password-reset-token.repository';
+import { Role } from '../../utils';
 export class AuthService {
   public static async loginUser(logInInfo: LoginBody) {
     try {
@@ -187,13 +188,39 @@ export class AuthService {
       return errorResponse("Error occur while fetching users", error?.message)
     }
   }
-  public static async getUserCreatedById(userId: string, userRole: string, creationId: string) {
+  public static async getUserCreatedById(userId: string, userRole: Role, creationId: string) {
     try {
       if (userRole === "super_admin") {
         const users = await Users.getAllUsers()
         return successResponse("Users fetched successfully", users)
-      } else if (userRole == "group_manager" || userRole === "brand_manager") {
-        const users = await Users.getUsersByCreationId(creationId)
+      } else if (userRole == "group_manager") {
+        const brandAndProperties = await UtilsRepository.groupBrands(creationId)
+        if(!brandAndProperties) {
+          return errorResponse("No Group found");
+        }
+        const brandAndPropertyIds = brandAndProperties.groupChildren.map((item) => item.id)
+        const [users,groupManagers] = await Promise.all([
+          UtilsRepository.getUserForCreations(brandAndPropertyIds),
+          Users.getUsersForProperty(creationId)
+        ])
+        groupManagers.forEach((manager: IRUsers ) => {
+          users.push(manager)
+        })
+        return successResponse("Users fetched successfully", users)
+      }
+      if(userRole==="brand_manager"){
+        const brandProperties = await UtilsRepository.getBrandProperties(creationId);
+        if(!brandProperties) {
+          return errorResponse("No Brand found");
+        }
+        const propertyIds = brandProperties.brandChildren.map((item) => item.id);
+        const [users,brandManagers] = await Promise.all([
+          UtilsRepository.getUserForCreations(propertyIds),
+          Users.getUsersForProperty(creationId)
+        ]);
+        brandManagers.forEach((manager: IRUsers ) => {
+          users.push(manager)
+        });
         return successResponse("Users fetched successfully", users)
       }
       const users = await Users.getUsersForProperty(creationId)

@@ -21,7 +21,7 @@ siteMinderRoute.post(
 
 siteMinderRoute.post(
     '/ari',
-    withHotelCodeConversion(ARIController.handleARI)
+    ARIController.handleARI
 );
 
 export default siteMinderRoute;

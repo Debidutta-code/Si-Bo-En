@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 
-export type Role = 'super_admin' | 'group_manager' | 'hotel_manager' |'brand_manager'| 'staff' | 'revenue_manager' | 'regional_admin';
+export type Role = 'super_admin' | 'group_manager' | 'hotel_manager' |'brand_manager'| 'staff' | 'revenue_manager' | 'regional_admin'|'spa_manager';
 
 export type Payload = {
   id?:  string;

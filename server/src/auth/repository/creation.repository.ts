@@ -1,7 +1,7 @@
 // dao/CreationDao.ts
 
 import { prisma } from "../../config";
-import type { ICreation, PropertyFilters } from "../types";
+import type { ICreation, IGetCreations, PropertyFilters } from "../types";
 
 const toStringId = (id: string | any): string => {
   return typeof id === 'string' ? id : String(id);
@@ -112,7 +112,7 @@ export default class CreationDao {
         orderBy: { createdAt: 'desc' },
         include: {
           users: true,
-          createdBy: true,
+          // createdBy: true, 
           super: true,
           group: true,
           brand: true,
@@ -156,56 +156,69 @@ export default class CreationDao {
     }
   }
 
-  public static async getSpecificCreation(creationId: string): Promise<ICreation | null> {
+  public static async getSpecificCreation(creationId: string): Promise<IGetCreations | null> {
     try {
-      const creation = await prisma.creation.findUnique({
-        where: { id: toStringId(creationId) },
+      return await prisma.creation.findUnique({
+        where: { id: creationId },
         include: {
-          users: true,
-          createdBy: true,
-          super: true,
-          group: true,
-          brand: true,
-          property: true,
+          users: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              role: true,
+              userLevel: true,
+              
+            }
+          },
+          super: {
+            select: {
+              id: true,
+              name: true,
+              images: true,
+              type: true
+            }
+          },
+          group: {
+            select: {
+              id: true,
+              name: true,
+              images: true,
+              type: true
+
+            }
+          },
+          brand: {
+            select: {
+              id: true,
+              name: true,
+              images: true,
+              type: true
+
+            }
+          },
           brandChildren: {
-            include: {
-              property: true
+            select: {
+              id: true,
+              name: true,
+              images: true,
+              type: true
+
             }
           },
           groupChildren: {
-            include: {
-              property: true,
-              brandChildren: {
-                include: {
-                  property: true
-                }
-              }
-            }
-          },
-          regional: true,
-          regionalChildren: {
-            include: {
-              property:true
-            }
-          },
+            select: {
+              id: true,
+              name: true,
+              images: true,
+              type: true
 
+            }
+          }
         },
       });
 
-      if (!creation) {
-        throw new Error('Creation not found');
-      }
-
-      // Convert null values to undefined to match ICreation interface
-      const formattedCreation: ICreation = {
-        ...creation,
-        superId: creation.superId ?? undefined,
-        groupId: creation.groupId ?? undefined,
-        brandId: creation.brandId ?? undefined,
-        propertyId: creation.propertyId ?? undefined,
-      };
-
-      return formattedCreation;
     } catch (error: any) {
       throw new Error(`Failed to get specific creation: ${error.message}`);
     }

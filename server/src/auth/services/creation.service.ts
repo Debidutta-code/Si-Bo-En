@@ -57,7 +57,7 @@ export default class CreationService {
                         CreationRepository.create(type,
                             name,
                             userId,
-                            isCustom ? customCreation?.superId : undefined,
+                            isCustom ? (customCreation?.superId ?? undefined) : undefined,
                             isCustom ? usersCreation : undefined,
                             isCustom ? undefined : usersCreation,
                             undefined,
