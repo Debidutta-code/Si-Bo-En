@@ -454,7 +454,7 @@ export default function PropertyDetails({
                   Booking Engine Url
                 </span>
                 <a className="text-xs text-gray-900 font-medium text-right" target="_blank" rel="noopener noreferrer"
-                  href={`https://bookings.revchilltech.com/Rooms/?code=${propertyDetails.propertyCode}`}
+                  href={`${import.meta.env.VITE_BOOKING_ENGINE_URL}/Rooms/?code=${propertyDetails.propertyCode}`}
                 >
 
                   {`${import.meta.env.VITE_BOOKING_ENGINE_URL}/Rooms/?code=${propertyDetails.propertyCode.replace(/[A-Z0-9]/g, "*")}`}
