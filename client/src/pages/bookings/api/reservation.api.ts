@@ -69,7 +69,7 @@ const buildQueryParams = (filters: ReservationFilters): URLSearchParams => {
 export const fetchReservations = async (filters: ReservationFilters) => {
   try {
     const params = buildQueryParams(filters);
-    const response = await axiosInstance.get(`pms/front-office/reservations/date-range?${params.toString()}`);
+    const response = await axiosInstance.get(`/reservations/date-range?${params.toString()}`);
     return response.data;
   } catch (error: any) {
     if (error?.response?.data) {
