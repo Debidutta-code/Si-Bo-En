@@ -233,10 +233,7 @@ export default class CreationService {
                     if (!creation.propertyId) {
                         return successResponse('Creation found But property has not created', { creation, propertyDetails: null });
                     }
-                    let propertyDetails = await PropertyDao.getPropertyById(creation.propertyId, false)
-                    if (!propertyDetails) {
-                        propertyDetails = await PropertyDao.getPropertyById(creation.propertyId, true)
-                    }
+                    let propertyDetails = await PropertyDao.getPropertyByIdForCreation(creation.propertyId);
                     return successResponse('Creation found with property details', { creation, propertyDetails: propertyDetails });
                 }
 

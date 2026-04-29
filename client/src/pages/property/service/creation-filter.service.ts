@@ -152,8 +152,7 @@ export async function getPropertyCreationId(id: string) {
                     isActive: data.creation.isActive,
                     under: data.creation.type === "property" ? (data.creation.brand ? data.creation.brand.name : data.creation.group ? data.creation.group.name : data.creation.super.name) : "",
                     createdAt: data.creation.createdAt,
-                    level0Users: data.creation.level0Users,
-                    level1Users: data.creation.level1Users,
+                    users: data.creation.users
                 },
                 propertyDetails: {
                     id: data?.propertyDetails?.id,

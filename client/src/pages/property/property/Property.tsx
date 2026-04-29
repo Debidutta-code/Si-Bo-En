@@ -38,6 +38,9 @@ import IntegrationDialog from './components/IntegrationDialog';
 import PropertyConfigDialog from './components/PropertyConfigDialog';
 import ViewIntegrationDetailsDialog from './components/ViewIntegrationDetailsDialog';
 import ManageIntegrationFieldsDialog from './components/ManageIntegrationFieldsDialog';
+import { Award, FileText, LayoutDashboard, Shield, Users as UsersIcon } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { capitalizeFirstLetter } from '@/lib/utils';
 
 export default function PropertyPage() {
     const { user } = useAppSelector((state) => state.user);
@@ -808,6 +811,90 @@ export default function PropertyPage() {
                 )}
             </div>
 
+            {/* Assigned Members Section */}
+            <div className="bg-white p-6 rounded-lg shadow">
+                <h3 className="text-lg font-bold text-gray-900 mb-4">Assigned Members</h3>
+                {creationDetails?.users && creationDetails.users.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {creationDetails.users.map((user) => (
+                            <div key={user.id} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50">
+                                <div>
+                                    <p className="font-medium text-sm text-gray-900">{user.firstName} {user.lastName}</p>
+                                    <p className="text-xs text-gray-500">{user.email}</p>
+                                </div>
+                                <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 whitespace-nowrap ml-2">
+                                    {capitalizeFirstLetter(user.role.replaceAll("_"," "))}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-8 text-gray-500 border rounded-lg bg-gray-50 border-dashed">
+                        No users assigned to this property yet.
+                    </div>
+                )}
+            </div>
+
+            {/* Loyalty Configuration Section */}
+            {(user?.role === 'super_admin' || user?.role === 'regional_admin' || user?.role === 'group_manager' || user?.role === 'brand_manager' || user?.role === 'hotel_manager' || user?.role === 'staff') && (
+                <div className="bg-white p-6 rounded-lg shadow">
+                    <h3 className="text-lg font-bold text-gray-900 mb-4">Loyalty Configuration</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <Link to={`/app/loyalty/${creationId}`} className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                            <div className="bg-blue-100 p-2 rounded-full text-blue-600">
+                                <LayoutDashboard className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <h4 className="font-medium text-gray-900">Configuration</h4>
+                                <p className="text-xs text-gray-500">Manage general loyalty settings</p>
+                            </div>
+                        </Link>
+                        
+                        <Link to={`/app/loyalty/register-form/${creationId}`} className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                            <div className="bg-green-100 p-2 rounded-full text-green-600">
+                                <FileText className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <h4 className="font-medium text-gray-900">Register Form</h4>
+                                <p className="text-xs text-gray-500">Configure member registration</p>
+                            </div>
+                        </Link>
+
+                        <Link to={`/app/loyalty/content-config/${creationId}`} className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                            <div className="bg-purple-100 p-2 rounded-full text-purple-600">
+                                <UsersIcon className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <h4 className="font-medium text-gray-900">Content Config</h4>
+                                <p className="text-xs text-gray-500">Manage loyalty content</p>
+                            </div>
+                        </Link>
+
+                        {user?.role === 'super_admin' && (
+                            <Link to={`/app/loyalty/loyalty-guests/${creationId}`} className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                                <div className="bg-red-100 p-2 rounded-full text-red-600">
+                                    <Shield className="h-5 w-5" />
+                                </div>
+                                <div>
+                                    <h4 className="font-medium text-gray-900">Loyalty Guests</h4>
+                                    <p className="text-xs text-gray-500">View and manage guests</p>
+                                </div>
+                            </Link>
+                        )}
+
+                        <Link to={`/app/loyalty/levels/${creationId}`} className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                            <div className="bg-yellow-100 p-2 rounded-full text-yellow-600">
+                                <Award className="h-5 w-5" />
+                            </div>
+                            <div>
+                                <h4 className="font-medium text-gray-900">Loyalty Levels</h4>
+                                <p className="text-xs text-gray-500">Configure tier levels</p>
+                            </div>
+                        </Link>
+                    </div>
+                </div>
+            )}
+            
             {/* Integration Dialog */}
             <IntegrationDialog
                 isOpen={isIntegrationDialogOpen}

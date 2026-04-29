@@ -112,13 +112,7 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) 
         { name: 'Property Loyalty', href: `/property/loyalty/${resolvedPropId}`, icon: Award, userLevels: [0, 1, 2, 3, 4], priority: 1 , roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
       ];
     }
-    return [
-      { name: 'Configuration', href: `/app/loyalty/${finalCreationId}`, icon: LayoutDashboard, userLevels: [1, 2, 3, 4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
-      { name: 'Register Form', href: `/app/loyalty/register-form/${finalCreationId}`, icon: FileText, userLevels: [1, 2, 3, 4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
-      { name: 'Content Config', href: `/app/loyalty/content-config/${finalCreationId}`, icon: Users, userLevels: [1, 2, 3, 4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
-      { name: 'Loyalty Guests', href: `/app/loyalty/loyalty-guests/${finalCreationId}`, icon: Shield, userLevels: [4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
-      { name: 'Loyalty Levels', href: `/app/loyalty/levels/${finalCreationId}`, icon: Award, userLevels: [1, 2, 3, 4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
-    ];
+    return [];
   };
 
   // ── Build Agency children ──────────────────────────────────────────────────

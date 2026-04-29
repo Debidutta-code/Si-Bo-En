@@ -170,7 +170,23 @@ export class PropertyDao {
       throw new Error(`Failed to get property by ID: ${error?.message}`);
     }
   }
-
+  public static async getPropertyByIdForCreation(id:string){
+    try {
+      return await prisma.property.findUnique({
+        where: { id },
+        select:{
+          id:true,
+          propertyName:true,
+          propertyEmail:true,
+          propertyContact:true,
+          propertyCode:true,
+          isDraft:true
+        }
+      })
+    } catch (error) {
+      throw new Error("Failed to fetch property details")
+    }
+  }
   public static async updatePropertyById(
     id: string,
     data: {
