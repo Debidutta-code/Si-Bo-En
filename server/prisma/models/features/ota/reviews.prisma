@@ -7,13 +7,15 @@ model Review{
 
   otaCustomerId String @map("ota_customer_id")
 
+  reservationId String @unique @map("reservation_id")
+
   rating Float @map("rating")
   review String @map("review")
   isDeleted Boolean @default(false) @map("is_deleted")
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-
+  Reservation Reservation @relation(fields: [reservationId], references: [id])
   OtaGuest OtaGuest @relation(fields: [otaCustomerId], references: [id])
   Property Property @relation(fields: [propertyId], references: [id])
 

@@ -22,3 +22,14 @@ export interface IPropertyWishlist extends ICPropertyWishListR {
 export interface IRoomWishlistWRooms extends IPropertyWishlist {
     RoomWishList: IRoomWishlist[];
 }
+export interface IProperty{
+    id:string;
+    propertyName:string;
+    propertyCode:string;
+}
+export interface IRoom{
+    id:string;
+    roomName:string;
+    roomType:string;
+    propertyId:string;
+}
