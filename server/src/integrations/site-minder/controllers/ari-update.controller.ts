@@ -23,7 +23,7 @@ export class ARIController {
             console.log(body)
             // const propertyCode = req.rateTiger?.propertyCode;
 
-            // if (!propertyCode) {
+            // if (!propertyCode) {++
             //     return res.status(500).json({
             //         success: false,
             //         message:

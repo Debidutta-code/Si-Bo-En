@@ -62,7 +62,7 @@ import AgencyApplicationsPage from "./pages/agency/AgencyApplicationsPage.tsx";
 import PropertyAgenciesPage from "./pages/property-agencies/PropertyAgenciesPage.tsx";
 import AgencyReservationsPage from "./pages/property-agencies/AgencyReservationsPage.tsx";
 import BookingOffset from "./pages/booking-offset/BookingOffset.tsx";
-import CustomId from "./pages/property/custom/Custom.tsx";
+import CustomId from "./pages/property/Regional/Regional.tsx";
 import CustomerSupport from "./pages/customer-support/CustomerSupport.tsx";
 import Spa from "./pages/spa/Spa.tsx";
 import ServiceLog from "./pages/service-logs/ServiceLog.tsx";

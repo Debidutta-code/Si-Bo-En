@@ -215,6 +215,14 @@ export default class CreationDao {
               type: true
 
             }
+          },regionalChildren: {
+            select: {
+              id: true,
+              name: true,
+              images: true,
+              type: true
+
+            }
           }
         },
       });

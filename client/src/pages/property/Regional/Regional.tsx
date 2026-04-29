@@ -20,9 +20,12 @@ import ImageUploadModal from '@/components/property/ImageUploadModal';
 import DeleteCreationDialog from "@/components/creation/Delete-Creation.dialog";
 import type { ILoader } from '@/pages/dashboard/interface';
 import { capitalizeFirstLetter } from '@/lib/utils';
+import { useAppSelector } from '@/redux/hooks';
 
 
 export default function Custom() {
+      const user = useAppSelector((state) => state.user.user);
+    
     const { creationId } = useParams<{ creationId: string }>();
     const [customAdmins, setCustomAdmins] = useState<ICustomManagersMapping>({
         customAdmins: []
@@ -246,7 +249,7 @@ export default function Custom() {
                         <DropdownMenuItem onSelect={(e) => { e.preventDefault(); openUpdateDialog(); }} className="cursor-pointer">
                             <Button variant={"secondary"}>
 
-                                <CloudCog className="h-4 w-4 mr-2 text-gray-600" /> Update Brand
+                                <CloudCog className="h-4 w-4 mr-2 text-gray-600" /> Update Region
                             </Button>
                         </DropdownMenuItem>
 
@@ -255,15 +258,15 @@ export default function Custom() {
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-pointer">
                                     <Button variant={"secondary"}>
 
-                                        <User2Icon className='h-4 w-4 mr-2' /> Assign Brand Manager
+                                        <User2Icon className='h-4 w-4 mr-2' /> Assign Regional Manager
                                     </Button>
                                 </DropdownMenuItem>
                             </DialogTrigger>
                             <DialogContent className='sm:max-w-[425px]'>
                                 <DialogHeader>
-                                    <DialogTitle>Assign Brand Manager</DialogTitle>
+                                    <DialogTitle>Assign Regional Manager</DialogTitle>
                                     <DialogDescription>
-                                        Assign a manager to your Brand.
+                                        Assign a Regional Manager to your Region.
                                     </DialogDescription>
                                 </DialogHeader>
                                 <div className='space-y-4 py-4'>
@@ -301,10 +304,10 @@ export default function Custom() {
                         </Dialog>
 
                         <div className="px-2">
-                            <CreateEntityDialog creationType={"brand"} currentTab={currentTab} creationId={creationId ? creationId : ""} level={2} fetchProperties={fetchGroup} />
+                            <CreateEntityDialog creationType={"brand"} currentTab={currentTab} creationId={creationId ? creationId : ""} level={user?.userLevel?user.userLevel:2} fetchProperties={fetchGroup} />
                         </div>
                         <div className="px-2">
-                            <DeleteCreationDialog type={"brand"} name={customDetails.name} id={creationId ? creationId : ""} />
+                            <DeleteCreationDialog type={"region"} name={customDetails.name} id={creationId ? creationId : ""} />
                         </div>
                     </DropdownMenuContent>
 

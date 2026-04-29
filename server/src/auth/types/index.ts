@@ -110,6 +110,7 @@ export interface IGetCreations{
   propertyId:string | null;
   groupChildren: BaseEntity[];
   brandChildren: BaseEntity[];
+  regionalChildren: BaseEntity[];
 
 }
 export interface ICreationUsers {

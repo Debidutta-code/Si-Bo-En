@@ -16,7 +16,7 @@ import { deleteCreationService } from "@/pages/property/service/creation-filter.
 interface DeleteCreationDialogProps {
   name: string;
   id: string;
-  type:"group"|"brand"|"property"
+  type:"group"|"brand"|"property"|"region"
 }
 
 export default function DeleteCreationDialog({
@@ -56,7 +56,7 @@ export default function DeleteCreationDialog({
       <AlertDialogTrigger asChild>
         <Button variant="destructive" size="sm" className="text-right">
           <Trash2 className="h-4 w-4" />
-          <span className="ml-2">Delete {type === "property" ? "Property" : type === "brand" ? "Brand" : "Group"}</span>
+          <span className="ml-2">Delete {type.charAt(0).toUpperCase()}{type.slice(1)}</span>
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
@@ -81,11 +81,11 @@ export default function DeleteCreationDialog({
             </p>
           )}
           
-          {type === "brand" && (
+          {(type === "brand" ||type =="region")&& (
             <p>
               Deleting this brand will permanently remove <span className="font-semibold">{name}</span> and cascade delete:
               <ul className="list-disc list-inside ml-2 mt-1">
-                <li><span className="font-semibold">All properties under this brand</span></li>
+                <li><span className="font-semibold">All properties under this {type}</span></li>
                 <li>All rooms, rate plans, and reservations for each property</li>
                 <li>All configurations, policies, and data associated with these properties</li>
               </ul>
