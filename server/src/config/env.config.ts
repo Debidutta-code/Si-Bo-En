@@ -61,8 +61,8 @@ const config = {
     rateTigerJwtExpiresIn: 24 * 60 * 60,
     rateTigerReservationUrl: process.env.RATETIGER_RESERVATION_URL || '',
     rateTigerAuthUrl: process.env.RATETIGER_AUTHENTICATION_URL || '',
-
-
+    siteMinderUsername: process.env.SITE_MINDER_USERNAME,
+    siteMinderPassword: process.env.SITE_MINDER_PASSWORD,
 
     //currency exchange api url;
     exchangeApiUrl: process.env.EXCHANGE_API_URL || '',

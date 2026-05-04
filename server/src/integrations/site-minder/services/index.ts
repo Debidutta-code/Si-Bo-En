@@ -1,4 +1,2 @@
-export * from "./price-pull.service";
-export * from "./rate-tiger.service";
-export * from "./inventory-update.service";
-export * from "./price-update.service"
+export * from "./site-minder.availibility.service";
+export * from "./site-minder.rates.service";
