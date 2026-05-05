@@ -30,24 +30,25 @@ export function attachPropertyDetails(
         where:
           resolved.type === "id"
             ? { id: resolved.value }
-            : { propertyCode: resolved.value },
-        include: {
-          propertyConfigs: true,
-        },
+            : { propertyCode: resolved.value }
       });
 
-      if (!property ) {
+      if (!property) {
         return res
           .status(404)
-          .json(errorResponse("Property or configuration not found"));
+          .json(errorResponse("Property not found"));
       }
+
+      const propertyConfigs = await prisma.propertyConfigs.findUnique({
+        where: { propertyId: property.id }
+      });
 
       req.property = {
         id: property.id,
         propertyName: property.propertyName,
         propertyCode: property.propertyCode,
-        timezone: property.propertyConfigs?.timezone,
-        currencyCode: property.propertyConfigs?.baseCurrency,
+        timezone: propertyConfigs?.timezone,
+        currencyCode: propertyConfigs?.baseCurrency,
         creationId: property.creationId,
       };
 
