@@ -279,6 +279,29 @@ export class RoomBookingRepository {
             where: { roomId },
         });
     }
+
+    public static async getPropertyChargesForCalendar(propertyCode: string, startDate: Date, endDate: Date) {
+        return prisma.charge.findMany({
+            where: {
+                propertyCode,
+                date: {
+                    gte: startDate,
+                    lte: endDate,
+                },
+                isAvailable: true,
+                isSaleStopped: false,
+            },
+            include: {
+                baseGuestAmounts: {
+                    where: {
+                        numberOfGuests: 1,
+                        ageQualifyingCode: "10"
+                    }
+                }
+            }
+        });
+    }
+
     public static async getBookingOffset(ratePlanId: string, checkInDate: Date) {
         return prisma.bookingOffset.findFirst({
             where: {
