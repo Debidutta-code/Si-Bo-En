@@ -1,7 +1,4 @@
-.env
 dist
 node_modules
-package-lock.json
-*.env*
 .env
-dist
+package-lock.json
