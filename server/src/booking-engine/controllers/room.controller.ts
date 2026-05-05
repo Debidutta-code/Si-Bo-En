@@ -5,6 +5,28 @@ import { getGeoLocationDetails } from "../../utils/get-location.utils";
 import { getDeviceInfo } from "../../utils/device-type.util";
 
 export class RoomBookingController {
+  public static async getCalendarPrices(req: PropertyRequest, res: Response) {
+    try {
+      const { propertyCode, startDate, endDate } = req.body || {};
+
+      if (!propertyCode || !startDate || !endDate) {
+        return res.status(400).json({
+          status: "error",
+          message: "Invalid or missing propertyCode, startDate, or endDate",
+        });
+      }
+
+      const response = await RoomBookingService.getCalendarPrices(propertyCode, startDate, endDate);
+      return res.status(200).json(response);
+    } catch (error: any) {
+      return res.status(500).json({
+        status: "error",
+        message: "Internal server error",
+        error: error?.message,
+      });
+    }
+  }
+
   public static async fetchRooms(req: PropertyRequest, res: Response) {
     try {
       const { propertyCode, startDate, endDate, guests, promocode } = req.body || {};
