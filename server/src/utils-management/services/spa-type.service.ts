@@ -100,9 +100,9 @@ export class SpaSubCategoryService{
 
     public async getSpaSubCategories(categoryId?: string): Promise<IApiResponse> {
         try {
-            const result = categoryId == undefined
-                ? await this.spaSubCategoryRepo.getSubCategories()
-                : await this.spaSubCategoryRepo.getByCategoryId(categoryId);
+            const result = categoryId
+                ? await this.spaSubCategoryRepo.getByCategoryId(categoryId)
+                : await this.spaSubCategoryRepo.getSubCategories();
             return successResponse("Spa SubCategories fetched successfully", result);
         } catch (error) {
             if (error instanceof Error) {

@@ -135,11 +135,12 @@ export class SpaSubCategory{
         }
     }
     public async getByCategoryId(categoryId:string):Promise<ISpaSubCategory[]>{
-        
+        console.log("This is being called")
         try {
             return await prisma.spaSubCategory.findMany({
                 where: {
-                    categoryId: categoryId
+                    categoryId: categoryId,
+                    isActive: true
                 }
             })
         } catch (error) {
@@ -148,7 +149,11 @@ export class SpaSubCategory{
     }
     public async getSubCategories(): Promise<ISpaSubCategory[]> {
         try {
-            return await prisma.spaSubCategory.findMany();
+            return await prisma.spaSubCategory.findMany({
+                where:{
+                    isActive: true
+                }
+            });
         } catch (error) {
             throw new Error("Error occuring while fetching Spa Sub Categories")
         }
