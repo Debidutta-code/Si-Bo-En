@@ -35,7 +35,6 @@ export class RoomBookingService {
         if (!property || !property.isAvailable) {
             return { success: false, message: 'Property not available' };
         }
-        console.log("get the property details", property)
         let promoCodeData: IRoomPromoCode | null = null;
         if (payload.promocode) {
             promoCodeData = await RoomBookingRepository.getPromoCodeByPropertyAndCode(

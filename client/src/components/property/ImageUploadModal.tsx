@@ -166,7 +166,7 @@ export default function ImageUploadModal({
         uploadedUrls.push(url)
       }
       
-      toast.success(`Successfully uploaded ${uploadedUrls.length} image(s)`)
+      // toast.success(`Successfully uploaded ${uploadedUrls.length} image(s)`)
       onUploadSuccess(uploadedUrls)
       onClose()
     } catch (err: any) {
