@@ -1,0 +1,11 @@
+model RatePlanWithAddon {
+  id         String   @id @default(uuid())
+  ratePlanId String   @map("rate_plan_id")
+  addonId    String   @map("addon_id")
+  ratePlan   RatePlan @relation(fields: [ratePlanId], references: [id], onDelete: Cascade)
+  addon      Addon    @relation(fields: [addonId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@unique([ratePlanId, addonId])
+  @@map("rate_plan_with_addon")
+}

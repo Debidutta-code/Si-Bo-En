@@ -1,0 +1,56 @@
+model Creation {
+  id          String       @id @default(uuid())
+  type        CreationType
+  name        String
+  images      String[]
+  // Level users
+  level0Users User[]       @relation("Level0Users")
+  level1Users User[]       @relation("Level1Users")
+  level2Users User[]       @relation("Level2Users")
+  level3Users User[]       @relation("Level3Users")
+  level4Users User[]       @relation("Level4Users")
+
+  // Fixed self-relations with unique names
+  super         Creation?  @relation("SuperRelation", fields: [superId], references: [id])
+  superId       String?    @map("super_id")
+  superChildren Creation[] @relation("SuperRelation")
+
+  group         Creation?  @relation("GroupRelation", fields: [groupId], references: [id], onDelete: Cascade)
+  groupId       String?    @map("group_id")
+  groupChildren Creation[] @relation("GroupRelation")
+
+  brand         Creation?  @relation("BrandRelation", fields: [brandId], references: [id], onDelete: Cascade)
+  brandId       String?    @map("brand_id")
+  brandChildren Creation[] @relation("BrandRelation")
+
+  regional         Creation?  @relation("RegionalRelation", fields: [regionalId], references: [id], onDelete: Cascade)
+  regionalId       String?    @map("regional_id")
+  regionalChildren Creation[] @relation("RegionalRelation")
+  // 1:1 relation to Property
+  property         Property?
+  propertyId       String?    @unique @map("property_id")
+
+  // Users that belong to this creation
+  users User[] @relation("UserCreation")
+
+  // Creator
+  createdBy   User   @relation("CreationCreatedBy", fields: [createdById], references: [id])
+  createdById String @map("created_by_id")
+
+  isActive  Boolean  @default(true) @map("is_active")
+  isDeleted Boolean  @default(false) @map("is_deleted")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  //loyalty
+  loyaltyProgramConfig CreationLoyaltyConfig?
+
+  // Indexes
+  @@index([type])
+  @@index([createdById])
+  @@index([superId])
+  @@index([groupId])
+  @@index([brandId])
+  @@index([propertyId])
+  @@map("creations")
+}

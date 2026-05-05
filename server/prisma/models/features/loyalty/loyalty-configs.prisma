@@ -1,0 +1,81 @@
+model BasicLoyaltyProgram {
+  id               String                @id @default(uuid())
+  loyaltyProgramId String                @unique @map("loyalty_program_id")
+  LoyaltyProgram   CreationLoyaltyConfig @relation(fields: [loyaltyProgramId], references: [id], onDelete: Cascade)
+
+  isActive Boolean  @default(true) @map("is_active")
+  logo     String[]
+
+  createdAt DateTime @default(now())
+
+  @@map("basic_loyalty_programs")
+}
+
+model AdvanceLoyaltyProgram {
+  id               String                @id @default(uuid())
+  loyaltyProgramId String                @unique @map("loyalty_program_id")
+  LoyaltyProgram   CreationLoyaltyConfig @relation(fields: [loyaltyProgramId], references: [id], onDelete: Cascade)
+
+  activeInCorporateWeb    Boolean @default(true) @map("active_in_corporate_web")
+  defaultLoginMode        Boolean @default(false) @map("default_login_mode")
+  externalRegistrationUrl String? @map("external_registration_url")
+  roomLimitByBooking      Int     @default(1) @map("room_limit_by_booking")
+  blockUserFieldFromForm  Boolean @default(false) @map("block_user_field_from_form")
+
+  createdAt DateTime @default(now())
+
+  @@map("advance_loyalty_programs")
+}
+
+model LoyaltyConditions {
+  id               String                @id @default(uuid())
+  loyaltyProgramId String                @map("loyalty_program_id")
+  LoyaltyProgram   CreationLoyaltyConfig @relation(fields: [loyaltyProgramId], references: [id], onDelete: Cascade)
+
+  text      String
+  language  Languages @default(en)
+  isActive  Boolean   @default(true) @map("is_active")
+  isDeleted Boolean   @default(false) @map("is_deleted")
+
+  createdAt DateTime @default(now())
+
+  @@index([loyaltyProgramId])
+  @@map("loyalty_conditions")
+}
+
+model LoyaltySpecialCondition {
+  id               String                @id @default(uuid())
+  loyaltyProgramId String                @map("loyalty_program_id")
+  LoyaltyProgram   CreationLoyaltyConfig @relation(fields: [loyaltyProgramId], references: [id], onDelete: Cascade)
+
+  title     String
+  subTitle  String?   @map("sub_title")
+  language  Languages @default(en)
+  isActive  Boolean   @default(true) @map("is_active")
+  isDeleted Boolean   @default(false) @map("is_deleted")
+
+  createdAt DateTime @default(now())
+
+  @@index([loyaltyProgramId])
+  @@map("loyalty_special_conditions")
+}
+
+model LoyaltyProgramFieldConfig {
+  id String @id @default(uuid())
+
+  loyaltyProgramId String
+  loyaltyProgram   CreationLoyaltyConfig @relation(fields: [loyaltyProgramId], references: [id], onDelete: Cascade)
+
+  masterRegistrationFieldId String
+  MasterRegistrationField   MasterLoyaltyRegistrationFields @relation(fields: [masterRegistrationFieldId], references: [id], onDelete: Cascade)
+
+  fieldName String
+
+  visibleInRegistration Boolean @default(true)
+  visibleInCustomerForm Boolean @default(true)
+  required              Boolean @default(false)
+
+  updatedAt DateTime @default(now()) @updatedAt
+
+  @@unique([loyaltyProgramId, fieldName])
+}

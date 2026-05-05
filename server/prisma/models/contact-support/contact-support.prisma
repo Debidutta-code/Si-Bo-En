@@ -1,0 +1,25 @@
+model ProblemTickets {
+  id          String   @id @default(uuid())
+  ticketNo    String   @unique @map("ticket_no")
+  propertyId  String   @map("property_id")
+  Property    Property @relation(fields: [propertyId], references: [id])
+  subject     String
+  description String?
+
+  isDeleted Boolean        @default(false) @map("is_deleted")
+  status    TicketStatus   @default(open)
+  priority  TicketPriority @default(medium)
+
+  guestId String? @map("guest_id")
+  Guests   Guests? @relation("TicketCreatedBy", fields: [guestId], references: [id])
+
+  otaGuestId String? @map("ota_guest_id")
+  OtaGuest   OtaGuest? @relation(fields: [otaGuestId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([propertyId])
+  @@index([status])
+  @@map("problem_tickets")
+}

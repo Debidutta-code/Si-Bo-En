@@ -1,0 +1,56 @@
+model MasterPropertyCategory {
+  id                  String  @id @default(uuid())
+  categoryName        String  @unique @map("category_name")
+  categoryDescription String? @map("category_description")
+  isActive            Boolean @default(true) @map("is_active")
+
+  // Relation to properties that selected this category
+  properties PropertyCategory[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("master_property_categories")
+}
+
+model MasterPropertyType {
+  id                      String  @id @default(uuid())
+  propertyTypeName        String  @unique @map("property_type_name")
+  propertyTypeDescription String? @map("property_type_description")
+  isActive                Boolean @default(true) @map("is_active")
+
+  // Relation to properties that selected this type
+  properties PropertyType[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("master_property_types")
+}
+
+model MasterAmenity {
+  id          String      @id @default(uuid())
+  amenityName String      @unique @map("amenity_name")
+  amenityType AmenityType @map("amenity_type") // room or property
+  description String?
+  icon        String? // for UI display
+  isActive    Boolean     @default(true) @map("is_active")
+
+  createdAt                DateTime                   @default(now())
+  updatedAt                DateTime                   @updatedAt
+  PropertyAmenitySelection PropertyAmenitySelection[]
+  RoomAmenitySelection     RoomAmenitySelection[]
+
+  @@map("master_amenities")
+}
+
+model MasterRoomView {
+  id String @id @default(uuid())
+
+  viewName  String      @map("view_name")
+  isActive  Boolean     @default(true) @map("is_active")
+  metaData  Json?       @map("meta_data") // for storing additional info
+  RoomViews MRoomView[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}

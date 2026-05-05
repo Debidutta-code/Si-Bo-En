@@ -1,0 +1,20 @@
+model BookingAddon {
+  id                  String               @id @default(uuid())
+  reservationId       String
+  addonId             String
+  name                String
+  unitPrice           Float
+  quantity            Int
+  totalPrice          Float
+  currencyCode        String               @default("INR")
+  specialInstructions String?
+  date                DateTime             @default(now())
+  type                ReservationAddonType @default(included)
+
+  Reservation Reservation @relation(fields: [reservationId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  addon Addon @relation(fields: [addonId], references: [id])
+}

@@ -1,0 +1,34 @@
+model PromoCode {
+  id                String       @id @default(uuid())
+  name              String
+  code              String       @unique
+  description       String?
+  propertyId        String       @map("property_id")
+  property          Property     @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  discountType      DiscountType @map("discount_type")
+  discountValue     Float        @map("discount_value")
+  currencyCode      CurrencyCode @default(AED) @map("currency_code")
+  validFrom         DateTime     @map("valid_from")
+  validTo           DateTime     @map("valid_to")
+  minBookingAmount  Float?       @map("min_booking_amount")
+  maxDiscountAmount Float?       @map("max_discount_amount")
+
+  isApplicableForMobileApp Boolean @default(false) @map("is_applicable_for_mobile_app")
+  isApplicableForDesktop   Boolean @default(false) @map("is_applicable_for_desktop")
+  isApplicableForTablet    Boolean @default(false) @map("is_applicable_for_tablet")
+
+  usageLimit          Int?          @map("usage_limit")
+  applicableRoomTypes Json[]        @map("applicable_room_types")
+  applicableRatePlans Json[]        @map("applicable_rate_plans")
+  isActive            Boolean       @default(true) @map("is_active")
+  isDeleted           Boolean       @default(false) @map("is_deleted")
+  createdAt           DateTime      @default(now()) @map("created_at")
+  updatedAt           DateTime      @updatedAt @map("updated_at")
+  reservations        Reservation[]
+  reservationPromoCodes ReservationPromoCode[]
+
+  @@index([propertyId, code])
+  @@index([id, code])
+  @@index([propertyId, name])
+  @@map("promo_codes")
+}

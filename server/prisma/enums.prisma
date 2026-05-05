@@ -1,0 +1,418 @@
+enum Role {
+  super_admin
+  regional_admin
+  group_manager
+  brand_manager
+  hotel_manager
+  staff
+  revenue_manager
+  spa_manager
+}
+
+enum geoRestrictionType {
+  percentage
+  fixed
+  restricted
+}
+
+enum geoRestrictionTypeAction {
+  increase
+  decrease
+}
+
+enum ReservationAddonType {
+  included
+  selected
+}
+
+enum CreationType {
+  group
+  property
+  brand
+  super
+  regional
+}
+
+enum RoomView {
+  city
+  sea
+  garden
+  mountain
+  others
+}
+
+enum RoomUnit {
+  sqm
+  sqft
+}
+
+enum SmokingPolicy {
+  smoking
+  non_smoking
+  designated_area
+}
+
+enum CurrencyCode {
+  INR
+  AFN
+  ALL
+  AMD
+  ANG
+  AOA
+  AED
+  ARS
+  AUD
+  AWG
+  AZN
+  BAM
+  BBD
+  BDT
+  BGN
+  BHD
+  BIF
+  BMD
+  BND
+  BOB
+  BRL
+  BSD
+  BTN
+  BWP
+  BYN
+  BZD
+  CAD
+  CDF
+  CHF
+  CLF
+  CLP
+  CNH
+  CNY
+  COP
+  CRC
+  CUP
+  CVE
+  CZK
+  DJF
+  DKK
+  DOP
+  DZD
+  EGP
+  ERN
+  ETB
+  EUR
+  FJD
+  FKP
+  FOK
+  GBP
+  GEL
+  GGP
+  GHS
+  GIP
+  GMD
+  GNF
+  GTQ
+  GYD
+  HKD
+  HNL
+  HRK
+  HTG
+  HUF
+  IDR
+  ILS
+  IMP
+  IQD
+  IRR
+  ISK
+  JEP
+  JMD
+  JOD
+  JPY
+  KES
+  KGS
+  KHR
+  KID
+  KMF
+  KRW
+  KWD
+  KYD
+  KZT
+  LAK
+  LBP
+  LKR
+  LRD
+  LSL
+  LYD
+  MAD
+  MDL
+  MGA
+  MKD
+  MMK
+  MNT
+  MOP
+  MRU
+  MUR
+  MVR
+  MWK
+  MXN
+  MYR
+  MZN
+  NAD
+  NGN
+  NIO
+  NOK
+  NPR
+  NZD
+  OMR
+  PAB
+  PEN
+  PGK
+  PHP
+  PKR
+  PLN
+  PYG
+  QAR
+  RON
+  RSD
+  RUB
+  RWF
+  SAR
+  SBD
+  SCR
+  SDG
+  SEK
+  SGD
+  SHP
+  SLE
+  SLL
+  SOS
+  SRD
+  SSP
+  STN
+  SYP
+  SZL
+  THB
+  TJS
+  TMT
+  TND
+  TOP
+  TRY
+  TTD
+  TVD
+  TWD
+  TZS
+  UAH
+  UGX
+  USD
+  UYU
+  UZS
+  VES
+  VND
+  VUV
+  WST
+  XAF
+  XCD
+  XCG
+  XDR
+  XOF
+  XPF
+  YER
+  ZAR
+  ZMW
+  ZWG
+  ZWL
+}
+
+enum PaymentStatus {
+  confirmed
+  cancelled
+  pending
+}
+
+enum PolicyType {
+  deposit
+  guarantee
+  cancellation
+}
+
+enum DeviceType {
+  mobile
+  tablet
+  desktop
+}
+
+enum ReservationDeviceType {
+  mobile
+  tablet
+  desktop
+}
+
+enum DiscountType {
+  percentage
+  flat
+}
+
+enum BookingStatus {
+  pending
+  confirmed
+  cancelled
+  expired
+  modified
+  no_show
+  checked_in
+  checked_out
+}
+
+enum AmenityType {
+  room
+  property
+}
+
+enum TaxType {
+  percentage
+  fixed
+}
+
+enum commissionType {
+  percentage
+  fixed
+}
+
+enum AgencyType {
+  travel_agency
+  corporate
+}
+
+enum AgentCommissionType {
+  percentage
+  fixed
+}
+
+enum TaxApplicableOn {
+  room_rate
+  total_amount
+}
+
+enum AgencyApplicationStatus {
+  pending
+  approved
+  rejected
+}
+
+enum PostingRhythm {
+  per_night
+  per_person_per_night
+  per_person_per_stay
+  per_stay
+  per_person_per_room
+  per_room
+  per_room_per_night
+}
+
+enum PaymentMethod {
+  pay_at_hotel
+  net_banking
+  upi
+  payment_gateway
+}
+
+enum BookingSource {
+  direct
+  google
+  trip_adviser
+  trivago
+  social_media
+  agency
+}
+
+enum FolioStatus {
+  open
+  closed
+}
+
+enum GuestType {
+  adult
+  child
+  infant
+}
+
+enum userIdentityCardType {
+  passport
+  drivers_license
+  national_id
+  adhar_card
+  pan_card
+  others
+}
+
+enum ReservationStatus {
+  reserved
+  checked_in
+  checked_out
+  cancelled
+  no_show
+}
+
+enum LoyaltyProgramLevel {
+  basic
+  advance
+}
+
+enum Languages {
+  en
+}
+
+enum IntegrationTypes {
+  channel_manager
+  pms
+}
+
+enum ReservationPromotionType {
+  early_bird
+  mlos
+  device_specific
+  offer_for_tonight
+  normal
+}
+
+enum CommissionOrDiscount {
+  commission
+  tax
+}
+
+enum PromotionType {
+  early_bird
+  offer_for_tonight
+  device_specific
+}
+
+enum TicketStatus {
+  open
+  in_progress
+  resolved
+  closed
+}
+
+enum TicketPriority {
+  low
+  medium
+  high
+  urgent
+}
+
+enum Platforms {
+  web
+  mobile
+  desktop
+}
+enum AddOnType {
+    included
+    selected
+}
+enum RestrictionType {
+    increase
+    decrease
+    payLater
+}
+enum PromotionApplyType {
+    user_applied
+    auto_applied
+}

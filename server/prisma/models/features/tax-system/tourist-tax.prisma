@@ -1,0 +1,15 @@
+model TouristTaxes {
+  id String @id @default(uuid())
+
+  name          String? @default("Tourist Tax") //remove this ? when there is a need for db push
+  roomId        String  @unique @map("room_id")
+  discountValue Float?  @map("discount_value")
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  discountType DiscountType  @default(flat) @map("discount_type")
+  currencyCode CurrencyCode? @default(AED) @map("currency_code")
+  Room         Room          @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@map("tourist_taxes")
+}

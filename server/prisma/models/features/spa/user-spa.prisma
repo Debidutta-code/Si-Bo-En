@@ -1,0 +1,9 @@
+model UserAssignedSpa {
+    id     String @id @default(uuid())
+    userId String @map("user_id")
+    spaId  String @map("spa_id")
+    User   User   @relation("UserAssignedSpa", fields: [userId], references: [id],onDelete: Cascade)
+    Spa    Spa    @relation("SpaToUserAssignedSpa", fields: [spaId], references: [id],onDelete: Cascade)
+@@unique([userId, spaId])
+    @@map("user_assigned_spa")
+}

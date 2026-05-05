@@ -1,0 +1,2 @@
+import type { EarlyBirdPromotionWithRatePlan, CreateEarlyBirdPromotion, UpdateEarlyBirdPromotion, DiscountType, PromotionType, RoomRatePlanPair, ApplicableDays } from "./early-bird.interface";
+export type { EarlyBirdPromotionWithRatePlan, CreateEarlyBirdPromotion, UpdateEarlyBirdPromotion, DiscountType, PromotionType, RoomRatePlanPair, ApplicableDays };

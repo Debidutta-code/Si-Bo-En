@@ -1,0 +1,20 @@
+model Policy {
+  id          String     @id @default(uuid())
+  policyName  String     @map("policy_name")
+  type        PolicyType
+  description String
+  propertyId  String     @map("property_id")
+  property    Property   @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  // Reverse relations
+  usedInDepositFor      RatePlan[] @relation("RateAmountToDepositPolicy")
+  usedInCancellationFor RatePlan[] @relation("RateAmountToCancellationPolicy")
+  usedInGuaranteeFor    RatePlan[] @relation("RateAmountToGuaranteePolicy")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([type])
+  @@index([propertyId])
+  @@map("policies")
+}

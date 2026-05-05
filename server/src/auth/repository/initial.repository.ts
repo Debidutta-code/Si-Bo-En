@@ -1,0 +1,369 @@
+import { prisma } from "../../config";
+import { createHash } from "../utills/bcryptHelper";
+export class InitializeDB {
+    public async initDb() {
+        try {
+            const isExists= await prisma.user.findFirst({
+                where:{
+                    role:"super_admin"
+                }
+            })
+            if(isExists){
+                throw new Error("DB already initialized")
+            }
+            const password = await createHash("Admin@123")
+            const userRes = await prisma.user.create({
+                data: {
+                    email: "superadmin@gmail.com",
+                    //Admin@123
+                    password: password,
+                    firstName: "Super",
+                    lastName: "Admin",
+                    role: "super_admin",
+                    userLevel: 4
+                }
+            })
+            const creation = await prisma.creation.create({
+                data: {
+                    name: "Super Group",
+                    type: "super",
+                    isActive: true,
+                    isDeleted: false,
+                    createdAt: new Date(),
+                    createdBy: {
+                        connect: {
+                            id: userRes.id
+                        }
+                    }
+                }
+            })
+            await prisma.user.update({
+                where: {
+                    id: userRes.id
+                },
+                data: {
+                    creationId: creation.id
+                }
+            })
+            await prisma.accessControl.create({
+                data: {
+                    role: "super_admin",
+                    level: 4,
+                    isActive: true,
+                    canModifyAccess: true,
+                    canViewAccess: true,
+                    canAddInventory: true,
+                    canCDAmenity: true,
+                    canCDCategory: true,
+                    canCDDestinationType: true,
+                    canCDPropertyType: true,
+                    canCreateHotel: true,
+                    canCreateLevel0User: true,
+                    canCreateLevel1User: true,
+                    canCreateLevel2User: true,
+                    canCreateLevel3User: true,
+                    canCreateMembers: true,
+                    canCreateNewRole: true,
+                    canCreatePolicy: true,
+                    canCreateRatePlan: true,
+                    canCreateRoomAvailability: true,
+                    canDeleteHotel: true,
+                    canDeleteLevel0User: true,
+                    canDeleteLevel1User: true,
+                    canDeleteLevel2User: true,
+                    canDeleteLevel3User: true,
+                    canDeleteMembers: true,
+                    canDeletePolicy: true,
+                    canDeleteRatePlan: true,
+                    canDeleteRole: true,
+                    canMapRatePlan: true,
+                    canSeeBookingDetails: true,
+                    canSeeDraftedProperties: true,
+                    canUpdateBookingStatus: true,
+                    canUpdateHotel: true,
+                    canUpdateLevel0User: true,
+                    canUpdateLevel1User: true,
+                    canUpdateLevel2User: true,
+                    canUpdateLevel3User: true,
+                    canUpdateMembers: true,
+                    canUpdatePaymentDetails: true,
+                    canUpdatePolicy: true,
+                    canUpdateRatePlan: true,
+                    canUpdateRoomPrice: true,
+                    canViewAnalytics: true,
+                    canViewHotel: true,
+                    canViewLogs: true,
+                    canViewMembers: true,
+                    canViewRatePlan: true,
+                    createdAt: new Date()
+                }
+            })
+            await prisma.accessControl.create({
+                data: {
+                    role: "regional_admin",
+                    level: 3,
+                    isActive: true,
+                    canAddInventory: true,
+                    canCreateHotel: true,
+                    canCreateLevel0User: true,
+                    canCreateLevel1User: true,
+                    canCreateLevel2User: true,
+                    canCreateLevel3User: true,
+                    canCreateMembers: true,
+                    canCreatePolicy: true,
+                    canCreateRatePlan: true,
+                    canCreateRoomAvailability: true,
+                    canDeleteHotel: true,
+                    canDeleteLevel0User: true,
+                    canDeleteLevel1User: true,
+                    canDeleteLevel2User: true,
+                    canDeleteLevel3User: true,
+                    canDeleteMembers: true,
+                    canDeletePolicy: true,
+                    canDeleteRatePlan: true,
+                    canMapRatePlan: true,
+                    canSeeBookingDetails: true,
+                    canUpdateBookingStatus: true,
+                    canUpdateHotel: true,
+                    canUpdateLevel0User: true,
+                    canUpdateLevel1User: true,
+                    canUpdateLevel2User: true,
+                    canUpdateLevel3User: true,
+                    canUpdateMembers: true,
+                    canUpdatePaymentDetails: true,
+                    canUpdatePolicy: true,
+                    canUpdateRatePlan: true,
+                    canUpdateRoomPrice: true,
+                    canViewAnalytics: true,
+                    canViewHotel: true,
+                    canViewMembers: true,
+                    canViewRatePlan: true,
+                }
+            })
+            await prisma.accessControl.create({
+                data: {
+                    role: "group_manager",
+                    level: 3,
+                    isActive: true,
+                    canAddInventory: true,
+                    canCreateHotel: true,
+                    canCreateLevel0User: true,
+                    canCreateLevel1User: true,
+                    canCreateLevel2User: true,
+                    canCreateLevel3User: true,
+                    canCreateMembers: true,
+                    canCreatePolicy: true,
+                    canCreateRatePlan: true,
+                    canCreateRoomAvailability: true,
+                    canDeleteHotel: true,
+                    canDeleteLevel0User: true,
+                    canDeleteLevel1User: true,
+                    canDeleteLevel2User: true,
+                    canDeleteMembers: true,
+                    canDeletePolicy: true,
+                    canDeleteRatePlan: true,
+                    canMapRatePlan: true,
+                    canSeeBookingDetails: true,
+                    canUpdateBookingStatus: true,
+                    canUpdateHotel: true,
+                    canUpdateLevel0User: true,
+                    canUpdateLevel1User: true,
+                    canUpdateLevel2User: true,
+                    canUpdateMembers: true,
+                    canUpdatePaymentDetails: true,
+                    canUpdatePolicy: true,
+                    canUpdateRatePlan: true,
+                    canUpdateRoomPrice: true,
+                    canViewAnalytics: true,
+                    canViewHotel: true,
+                    canViewMembers: true,
+                    canViewRatePlan: true,
+                }
+            })
+            await prisma.accessControl.create({
+                data: {
+                    role: "brand_manager",
+                    level: 2,
+                    isActive: true,
+                    canAddInventory: true,
+                    canCreateHotel: true,
+                    canCreateLevel0User: true,
+                    canCreateLevel1User: true,
+                    canCreateLevel2User: true,
+                    canCreateMembers: true,
+                    canCreatePolicy: true,
+                    canCreateRatePlan: true,
+                    canCreateRoomAvailability: true,
+                    canDeleteHotel: true,
+                    canDeleteLevel0User: true,
+                    canDeleteLevel1User: true,
+                    canDeleteMembers: true,
+                    canDeletePolicy: true,
+                    canDeleteRatePlan: true,
+                    canMapRatePlan: true,
+                    canSeeBookingDetails: true,
+                    canUpdateBookingStatus: true,
+                    canUpdateHotel: true,
+                    canUpdateLevel0User: true,
+                    canUpdateLevel1User: true,
+                    canUpdateLevel2User: true,
+                    canUpdateMembers: true,
+                    canUpdatePaymentDetails: true,
+                    canUpdatePolicy: true,
+                    canUpdateRatePlan: true,
+                    canUpdateRoomPrice: true,
+                    canViewAnalytics: true,
+                    canViewHotel: true,
+                    canViewMembers: true,
+                    canViewRatePlan: true,
+                }
+            })
+            await prisma.accessControl.create({
+                data: {
+                    role: "hotel_manager",
+                    level: 1,
+                    isActive: true,
+                    canAddInventory: true,
+                    canCreateHotel: true,
+                    canCreateLevel0User: true,
+                    canCreateLevel1User: true,
+                    canCreateMembers: true,
+                    canCreatePolicy: true,
+                    canCreateRatePlan: true,
+                    canCreateRoomAvailability: true,
+                    canDeleteLevel0User: true,
+                    canDeleteMembers: true,
+                    canDeletePolicy: true,
+                    canDeleteRatePlan: true,
+                    canMapRatePlan: true,
+                    canSeeBookingDetails: true,
+                    canUpdateBookingStatus: true,
+                    canUpdateHotel: true,
+                    canUpdateLevel0User: true,
+                    canUpdateLevel1User: true,
+                    canUpdateMembers: true,
+                    canUpdatePaymentDetails: true,
+                    canUpdatePolicy: true,
+                    canUpdateRatePlan: true,
+                    canUpdateRoomPrice: true,
+                    canViewAnalytics: true,
+                    canViewHotel: true,
+                    canViewMembers: true,
+                    canViewRatePlan: true,
+                }
+            })
+            await prisma.accessControl.create({
+                data: {
+                    role: "staff",
+                    level: 0,
+                    isActive: true,
+                    canAddInventory: true,
+                    canCreateHotel: true,
+                    canCreateLevel0User: true,
+                    canCreateLevel1User: true,
+                    canCreateMembers: true,
+                    canCreatePolicy: true,
+                    canCreateRatePlan: true,
+                    canCreateRoomAvailability: true,
+                    canDeleteLevel0User: true,
+                    canDeleteMembers: true,
+                    canDeletePolicy: true,
+                    canDeleteRatePlan: true,
+                    canMapRatePlan: true,
+                    canSeeBookingDetails: true,
+                    canUpdateBookingStatus: true,
+                    canUpdateHotel: true,
+                    canUpdateLevel0User: true,
+                    canUpdateLevel1User: true,
+                    canUpdateMembers: true,
+                    canUpdatePaymentDetails: true,
+                    canUpdatePolicy: true,
+                    canUpdateRatePlan: true,
+                    canUpdateRoomPrice: true,
+                    canViewAnalytics: true,
+                    canViewHotel: true,
+                    canViewMembers: true,
+                    canViewRatePlan: true,
+                }
+            })
+                        await prisma.accessControl.create({
+                data: {
+                    role: "spa_manager",
+                    level: 0,
+                    isActive: true,
+                    canAddInventory: true,
+                    canCreateHotel: true,
+                    canCreateLevel0User: true,
+                    canCreateLevel1User: true,
+                    canCreateMembers: true,
+                    canCreatePolicy: true,
+                    canCreateRatePlan: true,
+                    canCreateRoomAvailability: true,
+                    canDeleteLevel0User: true,
+                    canDeleteMembers: true,
+                    canDeletePolicy: true,
+                    canDeleteRatePlan: true,
+                    canMapRatePlan: true,
+                    canSeeBookingDetails: true,
+                    canUpdateBookingStatus: true,
+                    canUpdateHotel: true,
+                    canUpdateLevel0User: true,
+                    canUpdateLevel1User: true,
+                    canUpdateMembers: true,
+                    canUpdatePaymentDetails: true,
+                    canUpdatePolicy: true,
+                    canUpdateRatePlan: true,
+                    canUpdateRoomPrice: true,
+                    canViewAnalytics: true,
+                    canViewHotel: true,
+                    canViewMembers: true,
+                    canViewRatePlan: true,
+                }
+            })
+            await prisma.masterLoyaltyRegistrationFields.createMany({
+                data: [
+                    {
+                        fieldName: "first_name",
+
+                    },
+                    {
+                        fieldName: "last_name",
+                    },
+                    {
+                        fieldName: "last_name",
+                    },
+                    {
+                        fieldName: "email",
+                    },
+                    {
+                        fieldName: "phone",
+                    },
+                    {
+                        fieldName: "address"
+                    },
+                    {
+                        fieldName: "city"
+                    },
+                    {
+                        fieldName: "state"
+                    },
+                    {
+                        fieldName: "zip_code"
+                    },
+                    {
+                        fieldName: "country"
+                    },
+                    {
+                        fieldName: "identification"
+                    },
+                    {
+                        fieldName: "receive_marketing_mails"
+                    }
+                ]
+            })
+            return userRes
+        } catch (error) {
+            throw new Error("Failed to init db")
+        }
+    }
+}

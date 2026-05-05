@@ -1,0 +1,14 @@
+model DailyPriceBrakeDown {
+    id                      String       @id @default(uuid())
+    pricingBrakeDownId      String       @map("pricing_breakdown_id")
+    roomNumber              String       @map("room_number")
+    guestDistribution       Json @map("guest_distribution")
+    date                    DateTime     @map("date")
+    baseChargesAmount       Float        @map("base_charges_amount")
+    additionalChargesAmount Float        @map("additional_charges_amount")
+    totalAmount             Float        @map("total_amount")
+    currencyCode            CurrencyCode @map("currency_code")
+    PricingBreakdown       PricingBreakdown @relation(fields: [pricingBrakeDownId], references: [id], onDelete: Cascade)
+    AddOnBrakeDown          AddOnBrakeDown[] 
+    @@map("daily_price_breakdown")
+}

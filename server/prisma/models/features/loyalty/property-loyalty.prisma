@@ -1,0 +1,25 @@
+model PropertyLoyaltyConfig {
+    id                 String  @id @default(uuid())
+    propertyId         String  @unique @map("property_id")
+    creationLoyaltyConfigId String @map("creation_loyalty_config_id")
+    propertyCode       String  @unique @map("property_code")
+    propertyName       String  @map("property_name")
+    Property           Property @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+    loyalityConfigLogo String? @map("loyality_config_logo")
+    isActive           Boolean @default(true) @map("is_active")
+    PropertyLoyalityGuests PropertyLoyalityGuests[]
+    CreationLoyaltyConfig CreationLoyaltyConfig @relation(fields: [creationLoyaltyConfigId], references: [id], onDelete: Cascade)
+
+    @@map("property_loyalty_configs")
+}
+
+model PropertyLoyalityGuests {
+  id                     String                @id @default(uuid())
+  propertyLoyalityId     String                @map("property_loyality_id")
+  loyalityGuestId        String                @map("loyality_guest_id")
+  PropertyLoyalityConfig PropertyLoyaltyConfig @relation(fields: [propertyLoyalityId], references: [id], onDelete: Cascade)
+  LoyalityGuest          LoyalityGuest         @relation(fields: [loyalityGuestId], references: [id], onDelete: Cascade)
+
+  @@unique([propertyLoyalityId, loyalityGuestId])
+  @@map("property_loyality_guests")
+}

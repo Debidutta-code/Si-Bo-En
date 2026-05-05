@@ -1,0 +1,19 @@
+// model ReservationPriceBrakeDown {
+//   id                     String      @id @default(uuid())
+//   reservationId          String      @map("reservation_id")
+//   Reservation            Reservation @relation(fields: [reservationId], references: [id])
+//   additionalGuestCharges Int         @default(0) @map("additional_guest_charges")
+//   baseRatePerNight       Int         @default(0) @map("base_rate_per_night")
+//   numberOfNights         Int         @default(0) @map("number_of_nights")
+//   priceAfterTax          Float       @default(0) @map("price_after_tax")
+//   totalAmount            Float       @default(0) @map("total_amount")
+//   totalTax               Float       @default(0) @map("total_tax")
+//   breakdown              Json        @map("brake_down")
+//   dailyBreakdown         Json[]      @map("daily_breakdown")
+//   createdAt              DateTime    @default(now())
+//   availableRooms         Int         @default(0) @map("available_rooms")
+//   requestedRooms         Int         @default(0) @map("requested_rooms")
+//   tax                    Json[]
+
+//   @@map("reservation_price_brake_down")
+// }

@@ -1,0 +1,10 @@
+model AddonVariant {
+  id            String           @id @default(uuid())
+  code          String           @unique
+  name          String
+  subcategoryId String
+  subCategory   AddonSubCategory @relation(fields: [subcategoryId], references: [id])
+  addons        Addon[]          @relation("AddonToVariant")
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+}

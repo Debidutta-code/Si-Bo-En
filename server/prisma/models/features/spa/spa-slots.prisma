@@ -1,0 +1,25 @@
+model SpaDates {
+    id          String     @id @default(uuid())
+    date        DateTime   @map("date")
+    spaModuleId String     @map("spa_module_id")
+    spaModule   Spa        @relation(fields: [spaModuleId], references: [id],onDelete: Cascade)
+    Slots       SpaSlots[]
+
+    @@unique([spaModuleId, date])
+    @@map("spa_dates")
+}
+
+model SpaSlots {
+    id        String   @id @default(uuid())
+    startTime DateTime @map("start_time")
+    endTime   DateTime? @map("end_time")
+    spaDateId String   @map("spa_date_id")
+    isBooked  Boolean @default(false) @map("is_booked")
+    isCompleted Boolean @default(false) @map("is_completed")
+    reservationId String? @map("reservation_id")
+    userName String? @map("user_name")
+    Reservation Reservation? @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+    spaDate SpaDates @relation(fields: [spaDateId], references: [id],onDelete: Cascade)
+
+    @@map("spa_slots")
+}

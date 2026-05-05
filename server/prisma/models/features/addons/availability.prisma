@@ -1,0 +1,14 @@
+model AddonAvailability {
+  id           String   @id @default(uuid())
+  addonId      String
+  // propertyId   String
+  date         DateTime @db.Date
+  price        Float
+  currencyCode String   @default("INR") @db.VarChar(5)
+  isAvailable  Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  addon        Addon    @relation(fields: [addonId], references: [id], onDelete: Cascade)
+
+  @@unique([addonId, date])
+}

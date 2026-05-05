@@ -1,0 +1,37 @@
+model Addon {
+  id                                String                              @id @default(uuid())
+  propertyId                        String
+  categoryId                        String?
+  subcategoryId                     String?
+  variantId                         String?
+  ratePlanId                        String?                             @map("rate_plan_id")
+  code                              String                              @unique
+  name                              String
+  postingRhythm                     PostingRhythm                       @default(per_stay)
+  description                       String?
+  isActive                          Boolean                             @default(true)
+  images                            String[]
+  createdAt                         DateTime                            @default(now())
+  updatedAt                         DateTime                            @updatedAt
+  property                          Property                            @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+  subCategory                       AddonSubCategory?                   @relation(fields: [subcategoryId], references: [id])
+  category                          AddonCategory?                      @relation(fields: [categoryId], references: [id])
+  addonVariant                      AddonVariant?                       @relation("AddonToVariant", fields: [variantId], references: [id])
+  bookingAddons                     BookingAddon[]
+  availability                      AddonAvailability[]
+  ratePlans                         RatePlanWithAddon[]
+  customizableDealsApplicableAddons CustomizableDealsApplicableAddons[]
+  ChildAddons                       ChildAddon[]
+}
+
+model ChildAddon {
+  id                 String        @id @default(uuid())
+  addonId            String
+  Addon              Addon         @relation(fields: [addonId], references: [id], onDelete: Cascade)
+  minAge             Int           @map("min_age")
+  maxAge             Int           @map("max_age")
+  discountApplicable Boolean       @default(false) @map("discount_applicable")
+  discountType       DiscountType? @default(percentage) @map("discount_type")
+  discountAmount     Float?        @default(0) @map("discount_amount")
+  currencyCode       CurrencyCode? @default(INR) @map("currency_code")
+}

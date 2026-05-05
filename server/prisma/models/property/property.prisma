@@ -1,0 +1,60 @@
+model Property {
+  id              String   @id @default(uuid())
+  propertyName    String   @map("property_name")
+  propertyEmail   String   @map("property_email")
+  propertyContact String   @map("property_contact")
+  propertyCode    String   @unique @map("property_code")
+  description     String
+  image           String[]
+  starRating      Float?   @map("star_rating")
+  isDraft         Boolean  @default(true) @map("is_draft")
+  isAvailable     Boolean  @default(true) @map("is_available")
+  isDeleted       Boolean  @default(false) @map("is_deleted")
+
+  // Relations
+  createdBy   User   @relation("PropertyCreatedBy", fields: [createdById], references: [id])
+  createdById String @map("created_by_id")
+
+  creation   Creation @relation(fields: [creationId], references: [id], onDelete: Cascade)
+  creationId String   @unique @map("creation_id")
+
+  // Embedded Data (1:1 relations)
+  propertyCategory            PropertyCategory?
+  propertyType                PropertyType?
+  propertyAddress             PropertyAddress?
+  bankDetails                 BankDetails?
+  propertyVideos              PropertyVideo?
+  bookingEngineConfig         BookingEngineConfigurations?
+  propertyConfigs             PropertyConfigs?
+  Commissions                 PropertyCommission?
+  loyaltyProgramConfig        PropertyLoyaltyConfig?
+  propertyEmails              PropertyEmails[]
+  reservations                Reservation[]
+  propertyAmenities           PropertyAmenitySelection[]
+  propertyRooms               Room[]
+  ratePlans                   RatePlan[]
+  promoCodes                  PromoCode[]
+  taxRules                    TaxRule[]                    @relation("PropertyTaxRules")
+  taxGroups                   TaxGroup[]                   @relation("PropertyTaxGroups")
+  addOns                      Addon[]
+  Guests                      Guests[]
+  Policy                      Policy[]
+  agenticProperties           AgenticProperty[]
+  geoRatePlans                GeoRatePlan[]
+  promotions                  Promotion[]
+  createdAt                   DateTime                     @default(now())
+  updatedAt                   DateTime                     @updatedAt
+  customizableDeals           CustomizableDeal[]
+  propertyPaymentIntegrations PropertyPaymentIntegration[]
+  payments                    Payment[]
+  propertyIntegrations        PropertyIntegrations[]
+  bookingOffsets              BookingOffset[]
+  ProblemTickets              ProblemTickets[]
+  Spa                         Spa[]
+  Reviews                     Review[]
+  WishLists WishList[]
+  @@index([createdById])
+  @@index([creationId])
+  @@index([propertyCode])
+  @@map("properties")
+}

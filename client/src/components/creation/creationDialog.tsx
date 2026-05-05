@@ -1,0 +1,278 @@
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { PlusCircle, X, Upload, Trash2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { capitalizeFirstLetter } from "@/lib/utils";
+import type { ICreation, INewGBP } from "@/pages/property/types/types";
+import { createEntity, getAllCustoms } from "../api/newEntity";
+import toast from "react-hot-toast";
+import ImageUploadModal from "@/components/property/ImageUploadModal";
+import { Label } from "@/components/ui/label";
+import type { ILoader } from "@/pages/dashboard/interface";
+import { useAppSelector } from "@/redux/hooks";
+const CreateEntityDialog = ({ currentTab, creationId, level, fetchProperties, creationType }:
+    {
+        currentTab: string,
+        creationId: string,
+        level: number,
+        fetchProperties: () => void,
+        creationType: "brand" | "group" | "super"
+    }
+) => {
+  const user = useAppSelector((state) => state.user.user);
+    const [customs, setCustoms] = useState<ICreation[]>([]);
+    const [selectedCustom, _setSelectedCustom] = useState<ICreation | null>(null);
+    useEffect(() => {
+        const fetchCustoms = async () => {
+            setIsLoading({
+                isLoading: true,
+                message: "Loading Customs ..."
+            });
+            try {
+                const customs = await getAllCustoms();
+                setCustoms(customs.data);
+            } catch (error) {
+                toast.error("Failed to load customs");
+            } finally {
+                setIsLoading({
+                    isLoading: false,
+                    message: ""
+                });
+            }
+        };
+        fetchCustoms();
+    }, []);
+    const [newGBP, setNewGBP] = useState<INewGBP>({
+        name: "",
+        type: "property",
+        creationId: creationId,
+        level: level,
+        images: [],
+        isCustom: false,
+        assignTo: ""
+    });
+
+    const [isLoading, setIsLoading] = useState<ILoader>({
+        isLoading: true,
+        message: "Loading Customs ..."
+    });
+    const [isImageUploadModalOpen, setIsImageUploadModalOpen] = useState(false);
+
+    const handleUploadSuccess = (uploadedUrls: string[]) => {
+        setNewGBP(prev => ({
+            ...prev,
+            images: [...prev.images, ...uploadedUrls]
+        }));
+        toast.success(`${uploadedUrls.length} image(s) uploaded successfully`);
+    };
+
+    const handleRemoveImage = (index: number) => {
+        setNewGBP(prev => ({
+            ...prev,
+            images: prev.images.filter((_, i) => i !== index)
+        }));
+    };
+
+    const handleCreate = async () => {
+        if (!newGBP.name.trim()) {
+            toast.error("Fill the name")
+            return;
+        }
+        setIsLoading({
+            isLoading: true,
+            message: `Creating ${capitalizeFirstLetter(newGBP.type)}...`
+        });
+        try {
+            const payload = { ...newGBP, isCustom: newGBP.assignTo ? true : false };
+            if(user?.role==="regional_admin"){
+                payload.assignTo = user.creation;
+                payload.isCustom = true;
+            }
+            const res = await createEntity(payload)
+            if (res.success) {
+                toast.success("Created successfully")
+                setNewGBP({
+                    name: "",
+                    type: "property",
+                    creationId: creationId,
+                    level: level,
+                    images: [],
+                    isCustom: false,
+                    assignTo: ""
+                });
+                fetchProperties();
+            } else {
+                toast.error(res.message)
+            }
+
+        } catch (error) {
+            toast.error("Failed to create ")
+
+        } finally {
+            setIsLoading({
+                isLoading: false,
+                message: ""
+            })
+        }
+    };
+
+    return (
+        <AlertDialog>
+            <AlertDialogTrigger asChild>
+                <Button variant={"secondary"}>
+                    <PlusCircle className="h-4 w-4 mr-2" />
+                    Create {capitalizeFirstLetter(currentTab)}
+                </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+
+                <AlertDialogHeader>
+                    <div className="flex w-full justify-between">
+                        <AlertDialogTitle>Create New Entity</AlertDialogTitle>
+                        <AlertDialogCancel className="rounded-full h-10 w-10 p-0">
+                            <X className="h-4 w-4" />
+                        </AlertDialogCancel>
+                    </div>
+                </AlertDialogHeader>
+
+                <div className="space-y-4 py-2">
+                    <div>
+                        <label htmlFor="entity-name" className="text-sm font-medium">
+                            Name
+                        </label>
+                        <Input
+                            id="entity-name"
+                            placeholder={`Enter ${newGBP.type} name`}
+                            value={newGBP.name}
+                            onChange={(e) => setNewGBP({ ...newGBP, name: e.target.value })}
+                            className="mt-1"
+                        />
+                    </div>
+
+                    <div>
+                        <label htmlFor="entity-type" className="text-sm font-medium">
+                            Type
+                        </label>
+                        <Select
+                            value={newGBP.type}
+                            onValueChange={(value: "group" | "brand" | "property" | "regional") =>
+                                setNewGBP({ ...newGBP, type: value, isCustom: value === "regional" })
+                            }
+                        >
+                            <SelectTrigger id="entity-type" className="mt-1">
+                                <SelectValue placeholder="Select type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {creationType === "group" && (
+                                    <>
+                                        <SelectItem value="brand">Brand</SelectItem>
+                                        <SelectItem value="property">Property</SelectItem>
+                                    </>
+                                )} {creationType === "brand" && (
+                                    <>
+                                        <SelectItem value="property">Property</SelectItem>
+                                    </>
+                                )}
+                                {creationType === "super" && (
+                                    <>
+                                        <SelectItem value="group">Group</SelectItem>
+                                        <SelectItem value="brand">Brand</SelectItem>
+                                        <SelectItem value="property">Property</SelectItem>
+                                        <SelectItem value="regional">Regional</SelectItem>
+
+                                    </>
+                                )}
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    {creationType === "super" && newGBP.type!=="regional" && (
+                        <div>
+                            <label htmlFor="entity-type" className="text-sm font-medium">
+                                Custom
+                            </label>
+                            <Select
+                                value={selectedCustom?.id}
+                                onValueChange={(value: string) =>
+                                    setNewGBP({ ...newGBP, assignTo: value })
+                                }
+                            >
+                                <SelectTrigger id="entity-type" className="mt-1">
+                                    <SelectValue placeholder="Select type" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {customs.length>0&&
+                                        customs.map((regional) => (
+                                            <SelectItem key={regional.id} value={regional.id}>
+                                                {regional.name}
+                                            </SelectItem>
+                                        ))
+                                    }
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
+                    <div>
+                        <Label className="text-sm font-medium">Images ({newGBP.images.length})</Label>
+                        <div className="mt-2">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => setIsImageUploadModalOpen(true)}
+                                className="w-full"
+                            >
+                                <Upload className="h-4 w-4 mr-2" />
+                                Upload Images
+                            </Button>
+                        </div>
+
+                        {newGBP.images.length > 0 && (
+                            <div className="mt-3 grid grid-cols-3 gap-2">
+                                {newGBP.images.map((url, index) => (
+                                    <div key={index} className="relative group">
+                                        <img
+                                            src={url}
+                                            alt={`Upload ${index + 1}`}
+                                            className="w-full h-20 object-cover rounded border"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => handleRemoveImage(index)}
+                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                                        >
+                                            <Trash2 className="h-3 w-3" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                <AlertDialogFooter>
+                    <AlertDialogCancel disabled={isLoading.isLoading}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                        onClick={(e) => {
+                            e.preventDefault();
+                            handleCreate();
+                        }}
+                        disabled={isLoading.isLoading}
+                    >
+                        {isLoading.isLoading
+                            ? `Creating...`
+                            : `Create ${capitalizeFirstLetter(newGBP.type)}`}
+                    </AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+
+            <ImageUploadModal
+                isOpen={isImageUploadModalOpen}
+                onClose={() => setIsImageUploadModalOpen(false)}
+                onUploadSuccess={handleUploadSuccess}
+            />
+        </AlertDialog>
+    );
+};
+
+export default CreateEntityDialog;

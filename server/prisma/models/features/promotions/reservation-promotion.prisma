@@ -1,0 +1,16 @@
+// model ReservationPromotion {
+//   id            String                   @id @default(uuid())
+//   bookingCode   String                   @map("booking_code")
+//   bookingId     String                   @map("booking_id")
+//   Reservation   Reservation              @relation(fields: [bookingId], references: [id])
+//   promotionType ReservationPromotionType @default(mlos) @map("promotion_type")
+//   promotionId   String?                  @map("promotion_id")
+//   mlosId        String?                  @map("mlos_id")
+//   Promotion     Promotion?               @relation(fields: [promotionId], references: [id])
+//   RatePlanRule  RatePlanRule?            @relation(fields: [mlosId], references: [id])
+//   amount        Float                    @map("amount")
+//   currency      CurrencyCode             @default(AED) @map("currency")
+//   type          PromotionApplyType        @map("type")
+
+//   @@map("reservation_promotions")
+// }
