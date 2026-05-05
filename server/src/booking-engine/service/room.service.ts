@@ -415,6 +415,55 @@ export class RoomBookingService {
             sunApplicable: promo.sunApplicable,
         };
     }
+
+    public static async getCalendarPrices(propertyCode: string, startDate: string, endDate: string) {
+        const start = toUTCDate(startDate);
+        const end = toUTCDate(endDate);
+
+        const charges = await RoomBookingRepository.getPropertyChargesForCalendar(propertyCode, start, end);
+
+        const minPricesByDate: Record<string, number> = {};
+
+        (charges as any[]).forEach((charge) => {
+            const dateKey = new Date(charge.date.getTime() - charge.date.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+
+            // Check day of week applicability
+            const dow = charge.date.getUTCDay();
+            const dowFields: Record<number, string> = {
+                0: 'sunApplicable',
+                1: 'monApplicable',
+                2: 'tueApplicable',
+                3: 'wedApplicable',
+                4: 'thuApplicable',
+                5: 'friApplicable',
+                6: 'satApplicable',
+            };
+            const dayField = dowFields[dow];
+            if (!charge[dayField]) return;
+
+            const baseAmount = charge.baseGuestAmounts[0]?.amountBeforeTax;
+
+            if (baseAmount !== undefined) {
+                if (minPricesByDate[dateKey] === undefined || baseAmount < minPricesByDate[dateKey]) {
+                    minPricesByDate[dateKey] = baseAmount;
+                }
+            }
+        });
+
+        // Fill in missing dates with 0 as requested
+        const result: Record<string, number> = {};
+        let current = new Date(start);
+        while (current <= end) {
+            const dateKey = new Date(current.getTime() - current.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+            result[dateKey] = minPricesByDate[dateKey] || 0;
+            current.setDate(current.getDate() + 1);
+        }
+
+        return {
+            success: true,
+            data: result
+        };
+    }
 }
 
 class ChargeValidator {
