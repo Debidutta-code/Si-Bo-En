@@ -78,7 +78,7 @@ export class PricingService {
                         invTypeCode,
                         toUTC(startDate),
                         toUTC(endDate),
-                        includedAddons?includedAddons:[]
+                        includedAddons ? includedAddons : []
                     ),
                     this.fetchAddons(parsedAddons),
                     this.fetchAllPromotions(promotions),
@@ -115,9 +115,9 @@ export class PricingService {
                     : Promise.resolve(null),
                 guestEmail
                     ? this.pricingRepository.findLoyaltyDiscountData(
-                          guestEmail,
-                          propertyId
-                      )
+                        guestEmail,
+                        propertyId
+                    )
                     : Promise.resolve(null),
             ]);
 
@@ -141,7 +141,7 @@ export class PricingService {
                 rooms,
                 Math.ceil(
                     (endDate.getTime() - startDate.getTime()) /
-                        (1000 * 60 * 60 * 24)
+                    (1000 * 60 * 60 * 24)
                 ),
                 adults,
                 startDate,
@@ -496,7 +496,7 @@ class BasePriceClass {
                     } else if (childBaseAmounts.length > 0) {
                         let maxChildBase =
                             childBaseAmounts[childBaseAmounts.length - 1]; // No exact match → use highest available base + charge for extras
-                            
+
                         childBasePrice = Number(maxChildBase.amountBeforeTax);
                         const extraChildren =
                             children - maxChildBase.numberOfGuests;
@@ -622,10 +622,10 @@ class AddOnPriceClass {
                 // if user provided parsedAddons, use its per-date quantity, otherwise default to 1
                 const quantityForDate = userSelectedAddon
                     ? userSelectedAddon.availability.find(
-                          a =>
-                              new Date(a.date).toISOString() ===
-                              new Date(avail.date).toISOString()
-                      )?.quantity || 1
+                        a =>
+                            new Date(a.date).toISOString() ===
+                            new Date(avail.date).toISOString()
+                    )?.quantity || 1
                     : 1;
                 const totalAmount = amount * quantityForDate;
 
@@ -690,7 +690,7 @@ class AddOnPriceClass {
                         quantityForDate = this.numberOfRooms;
                         break;
                     case 'per_person_per_room':
-                        quantityForDate = this.noOfAdults ;
+                        quantityForDate = this.noOfAdults;
                         break;
                     default:
                         quantityForDate = 1;
@@ -725,7 +725,7 @@ class AddOnPriceClass {
     private calculateChildAddonPrice(
         addon: IAddOn,
         childAges: number[],
-        type:"selected"|"included"
+        type: "selected" | "included"
     ): AddOnBrakeDown[] {
         if (childAges.length === 0) return [];
 
@@ -899,26 +899,41 @@ class PromotionClass {
             0
         );
 
-        const geoDiscountAmount = geoPriceBrakedown.reduce((sum, promo) => {
-            return promo.restrictionType === 'decrease'
-                ? sum + promo.discountAmount
-                : sum - promo.discountAmount;
-        }, 0);
+        const updatedDailyBreakdown = this.applyGeoDiscountToDailyBreakdown(geoPriceBrakedown);
 
-        const totalDiscountedAmount = visibleDiscountAmount + geoDiscountAmount;
+
+        const newAmountBeforeTax = updatedDailyBreakdown.reduce(
+            (sum, day) => sum + day.totalAmount, 0
+        );
+
+        const totalDiscountedAmount = visibleDiscountAmount + (this.priceBrakeDown.amountBeforeTax - newAmountBeforeTax);
 
         return {
             ...this.priceBrakeDown,
+            dailyPriceBrakeDown: updatedDailyBreakdown,
+            amountBeforeTax: newAmountBeforeTax,
             totalPromotionAmount: visibleDiscountAmount,
-            amountBeforeTax:
-                this.priceBrakeDown.amountBeforeTax - geoDiscountAmount,
-            totalAmount:
-                this.priceBrakeDown.totalAmount - totalDiscountedAmount,
-            currentChargeableAmount:
-                this.priceBrakeDown.currentChargeableAmount -
-                totalDiscountedAmount,
+            totalAmount: this.priceBrakeDown.totalAmount - totalDiscountedAmount,
+            currentChargeableAmount: this.priceBrakeDown.currentChargeableAmount - totalDiscountedAmount,
             promotionBrakeDown: visiblePromotionalBrakeDown,
         };
+    }
+    private applyGeoDiscountToDailyBreakdown(
+        geoPriceBrakedown: PromotionBrakeDown[]
+    ): DailyPriceBrakeDown[] {
+        if (geoPriceBrakedown.length === 0) return this.priceBrakeDown.dailyPriceBrakeDown;
+        return this.priceBrakeDown.dailyPriceBrakeDown.map(day => {
+            let adjustedTotal = day.totalAmount;
+            geoPriceBrakedown.forEach(geo => {
+                const discount = geo.discountType === 'percentage'
+                    ? (day.totalAmount * geo.discountValue) / 100
+                    : geo.discountValue;
+                adjustedTotal = geo.restrictionType === 'decrease'
+                    ? adjustedTotal - discount
+                    : adjustedTotal + discount;
+            });
+            return { ...day, totalAmount: adjustedTotal };
+        });
     }
     private differenceReservationDays(startDate: Date, endDate: Date): number {
         const msPerDay = 1000 * 60 * 60 * 24;
@@ -1072,7 +1087,7 @@ class PromotionClass {
         const todayDate = nowUTC();
         const advanceBookingDays = Math.ceil(
             (this.startDate.getTime() - todayDate.getTime()) /
-                (1000 * 60 * 60 * 24)
+            (1000 * 60 * 60 * 24)
         );
         if (advanceBookingDays >= promotion.advanceBookingDays) {
             if (promotion.discountType == 'percentage') {
@@ -1120,7 +1135,7 @@ class PromotionClass {
         const todayDate = nowUTC();
         const isOfferForTonightApplicable =
             this.startDate.getTime() - todayDate.getTime() <=
-                1000 * 60 * 60 * 24 &&
+            1000 * 60 * 60 * 24 &&
             this.startDate.getTime() - todayDate.getTime() <= 0;
         if (isOfferForTonightApplicable) {
             if (promotion.discountType == 'percentage') {
@@ -1353,7 +1368,7 @@ class PromoCodeDiscountClass {
         if (
             checkIfPromoCodeIsValid.minBookingAmount && //chck for minimum booking amount
             checkIfPromoCodeIsValid.minBookingAmount >
-                this.priceBrakedown.amountBeforeTax
+            this.priceBrakedown.amountBeforeTax
         ) {
             return this.priceBrakedown;
         }
@@ -1385,7 +1400,7 @@ class PromoCodeDiscountClass {
             if (
                 checkIfPromoCodeIsValid.maxDiscountAmount &&
                 promoCodeDiscountAmount >
-                    checkIfPromoCodeIsValid.maxDiscountAmount
+                checkIfPromoCodeIsValid.maxDiscountAmount
             ) {
                 promoCodeDiscountAmount =
                     checkIfPromoCodeIsValid.maxDiscountAmount;
@@ -1404,7 +1419,7 @@ class PromoCodeDiscountClass {
             if (
                 checkIfPromoCodeIsValid.maxDiscountAmount &&
                 promoCodeDiscountAmount >
-                    checkIfPromoCodeIsValid.maxDiscountAmount
+                checkIfPromoCodeIsValid.maxDiscountAmount
             ) {
                 promoCodeDiscountAmount =
                     checkIfPromoCodeIsValid.maxDiscountAmount;
@@ -1453,8 +1468,8 @@ class LoyalityDiscountClass {
         const matchedLevel =
             guestLevel !== null
                 ? loyalityLevels.find(
-                      (l: { level: number }) => l.level === guestLevel
-                  )
+                    (l: { level: number }) => l.level === guestLevel
+                )
                 : null;
 
         if (matchedLevel) {
@@ -1468,7 +1483,7 @@ class LoyalityDiscountClass {
             loyaltyDiscount =
                 fallback.type === 'percentage'
                     ? (this.priceBrakedown.amountBeforeTax * fallback.value) /
-                      100
+                    100
                     : fallback.value;
         }
 
@@ -1494,75 +1509,75 @@ class TaxClass {
         this.priceBrakeDown = priceBrakeDown;
     }
     public applyTax(): PriceBrakeDown {
-    if (!this.taxGroup) {
-        return {
-            ...this.priceBrakeDown,
-            taxedAmount: 0,
-            taxBrakeDown: [],
-            currentChargeableAmount: this.priceBrakeDown.amountBeforeTax,
-            totalAmount:
-                this.priceBrakeDown.amountBeforeTax +
-                this.priceBrakeDown.latterpayableAmount,
-        };
-    }
+        if (!this.taxGroup) {
+            return {
+                ...this.priceBrakeDown,
+                taxedAmount: 0,
+                taxBrakeDown: [],
+                currentChargeableAmount: this.priceBrakeDown.amountBeforeTax,
+                totalAmount:
+                    this.priceBrakeDown.amountBeforeTax +
+                    this.priceBrakeDown.latterpayableAmount,
+            };
+        }
 
-    const base = Number(this.priceBrakeDown.amountBeforeTax) || 0;
+        const base = Number(this.priceBrakeDown.amountBeforeTax) || 0;
 
-    // ✅ STEP 1: group by priority
-    const grouped: Record<number, any[]> = {};
+        // ✅ STEP 1: group by priority
+        const grouped: Record<number, any[]> = {};
 
-    this.taxGroup.taxGroupRules.forEach(rule => {
-        const p = rule.taxRule.priority;
-        if (!grouped[p]) grouped[p] = [];
-        grouped[p].push(rule);
-    });
-
-    // ✅ STEP 2: sort priorities
-    const priorities = Object.keys(grouped)
-        .map(Number)
-        .sort((a, b) => a - b);
-
-    let runningTotal = base;
-    const taxBrakeDown: TaxBrakeDown[] = [];
-
-    // ✅ STEP 3: apply group-wise
-    priorities.forEach(priority => {
-        const rules = grouped[priority];
-        let groupTaxTotal = 0;
-
-        rules.forEach(rule => {
-            let taxForThisRule = 0;
-
-            if (rule.taxRule.type === "fixed") {
-                taxForThisRule = Number(rule.taxRule.value);
-            } else {
-                // ✅ SAME BASE for same priority
-                taxForThisRule =
-                    (Number(rule.taxRule.value) * runningTotal) / 100;
-            }
-
-            groupTaxTotal += taxForThisRule;
-
-            taxBrakeDown.push({
-                name: rule.taxRule.name,
-                taxedAmount: taxForThisRule,
-                currencyCode: this.priceBrakeDown.currencyCode,
-            });
+        this.taxGroup.taxGroupRules.forEach(rule => {
+            const p = rule.taxRule.priority;
+            if (!grouped[p]) grouped[p] = [];
+            grouped[p].push(rule);
         });
 
-        // ✅ update AFTER whole group
-        runningTotal += groupTaxTotal;
-    });
+        // ✅ STEP 2: sort priorities
+        const priorities = Object.keys(grouped)
+            .map(Number)
+            .sort((a, b) => a - b);
 
-    const taxedAmount = runningTotal - base;
+        let runningTotal = base;
+        const taxBrakeDown: TaxBrakeDown[] = [];
 
-    return {
-        ...this.priceBrakeDown,
-        taxedAmount,
-        taxBrakeDown,
-        currentChargeableAmount: runningTotal,
-        totalAmount:
-            runningTotal + this.priceBrakeDown.latterpayableAmount,
-    };
-}
+        // ✅ STEP 3: apply group-wise
+        priorities.forEach(priority => {
+            const rules = grouped[priority];
+            let groupTaxTotal = 0;
+
+            rules.forEach(rule => {
+                let taxForThisRule = 0;
+
+                if (rule.taxRule.type === "fixed") {
+                    taxForThisRule = Number(rule.taxRule.value) * this.priceBrakeDown.dailyPriceBrakeDown.length;
+                } else {
+                    // ✅ SAME BASE for same priority
+                    taxForThisRule =
+                        (Number(rule.taxRule.value) * runningTotal) / 100;
+                }
+
+                groupTaxTotal += taxForThisRule;
+
+                taxBrakeDown.push({
+                    name: rule.taxRule.name,
+                    taxedAmount: taxForThisRule,
+                    currencyCode: this.priceBrakeDown.currencyCode,
+                });
+            });
+
+            // ✅ update AFTER whole group
+            runningTotal += groupTaxTotal;
+        });
+
+        const taxedAmount = runningTotal - base;
+
+        return {
+            ...this.priceBrakeDown,
+            taxedAmount,
+            taxBrakeDown,
+            currentChargeableAmount: runningTotal,
+            totalAmount:
+                runningTotal + this.priceBrakeDown.latterpayableAmount,
+        };
+    }
 }

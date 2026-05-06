@@ -40,7 +40,7 @@ export const getGeoLocationDetails = async (
             success: true,
             ip,
             city: res.data?.city ?? 'Unknown',
-            country: res.data?.country_code ?? 'Unknown',
+            country: res.data?.country_code ?? 'IN',
             coordinates: [res.data?.latitude ?? 0, res.data?.longitude ?? 0],
         };
 
@@ -63,7 +63,7 @@ export const getGeoLocationDetails = async (
             success: true,
             ip,
             city: res.data?.city ?? 'Unknown',
-            country: res.data?.countryCode ?? 'Unknown',
+            country: res.data?.countryCode ?? 'IN',
             coordinates: [res.data?.lat ?? 0, res.data?.lon ?? 0],
         };
 
@@ -76,7 +76,7 @@ export const getGeoLocationDetails = async (
         success: false,
         ip,
         city: 'Unknown',
-        country: 'Unknown',
+        country: 'IN',
         coordinates: [0, 0],
     };
 };

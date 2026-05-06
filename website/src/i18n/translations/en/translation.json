@@ -252,6 +252,8 @@
     "addons": "Addons:",
     "dayTotal": "Day Total:",
     "subtotalBeforeTax": "Subtotal (before tax):",
+    "amountToBePaidAtHotel": "Amount to be paid at the hotel:",
+    "amountAfterTax": "Amount After Tax:",
     "totalTax": "Total Tax:",
     "grandTotal": "Grand Total:",
     "baseAmount": "Base Amount (before tax):",
