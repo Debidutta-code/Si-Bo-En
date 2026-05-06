@@ -14,4 +14,6 @@ otaUserRouter.route("/verify")
     .post(userController.verifyUser.bind(userController));
 otaUserRouter.route("/password")
     .put(userController.updatePassword.bind(userController));
+    otaUserRouter.route("/login")
+    .post(userController.loginUser.bind(userController));
 export { otaUserRouter };
