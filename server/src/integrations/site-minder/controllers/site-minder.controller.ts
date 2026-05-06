@@ -3,24 +3,28 @@
 import { Request, Response } from 'express';
 import { SiteMinderParsedRequest } from '../types/site-minder.types';
 import { SiteMinderRatesService } from '../services/site-minder.rates.service';
-import { SiteMinderXmlParser } from '../utils/xml-parser';
 import { SiteMinderAvailabilityService } from '../services/site-minder.availibility.service';
+import { SiteMinderRoomsRatesService } from '../services/site-minder.rooms-rates.service';
+import { SiteMinderXmlParser } from '../utils/xml-parser';
 
 export class SiteMinderController {
-
-    /**
-     * Single endpoint for all SiteMinder pushes:
-     * - OTA_HotelRateAmountNotifRQ  (rate pricing updates)
-     * - OTA_HotelAvailNotifRQ       (availability + restrictions)
-     */
     public static async handlePush(req: Request, res: Response) {
-        // Middleware already parsed + validated credentials and attached this
         const parsed = (req as any).siteMinderParsed as SiteMinderParsedRequest;
 
         res.set('Content-Type', 'text/xml; charset=utf-8');
 
         try {
-            // ── Rates Update ──────────────────────────────────────────────────
+            // ── Rooms & Rates Pull (SiteMinder fetches your room/rate config) ──
+            if (parsed.type === 'roomsRates' && parsed.roomsRatesPayload) {
+                const xml = await SiteMinderRoomsRatesService.getRoomsRates({
+                    hotelCode: parsed.roomsRatesPayload.hotelCode,
+                    echoToken: parsed.roomsRatesPayload.echoToken,
+                    version: parsed.roomsRatesPayload.version,
+                });
+                return res.status(200).send(xml);
+            }
+
+            // ── Rates Push ────────────────────────────────────────────────────
             if (parsed.type === 'rates' && parsed.ratesPayload) {
                 const result = await SiteMinderRatesService.processRatesUpdate(
                     parsed.ratesPayload
@@ -37,7 +41,6 @@ export class SiteMinderController {
                 return res.status(result.success ? 200 : 400).send(xml);
             }
 
-            // ── Availability + Restrictions Update ────────────────────────────
             if (parsed.type === 'availability' && parsed.availPayload) {
                 const result = await SiteMinderAvailabilityService.processAvailabilityUpdate(
                     parsed.availPayload
@@ -54,7 +57,6 @@ export class SiteMinderController {
                 return res.status(result.success ? 200 : 400).send(xml);
             }
 
-            // ── Unknown message type ──────────────────────────────────────────
             const fault = SiteMinderXmlParser.buildSoapFault(
                 'SOAP-ENV:Client',
                 'Unknown or unsupported OTA message type'

@@ -1,23 +1,18 @@
-// types/siteminder.types.ts
-
-// ─── PARSED FROM XML ──────────────────────────────────────────────────────────
 
 export interface SiteMinderSecurityHeader {
     username: string;
     password: string;
 }
 
-// ─── RATE AMOUNT NOTIF (Pricing Push) ─────────────────────────────────────────
-
 export interface SiteMinderBaseByGuestAmt {
     amountAfterTax: number;
     currencyCode?: string;
-    numberOfGuests?: number;    // OBP: 1, 2, 3... up to MaxOccupancy
-    ageQualifyingCode?: string; // '10' = Adult
+    numberOfGuests?: number;
+    ageQualifyingCode?: string;
 }
 
 export interface SiteMinderAdditionalGuestAmount {
-    ageQualifyingCode: string;  // '8' = Child only (OBP)
+    ageQualifyingCode: string;
     amount: number;
     currencyCode?: string;
 }
@@ -82,6 +77,15 @@ export interface SiteMinderHotelAvailNotifRQ {
     availStatusMessages: SiteMinderAvailStatusMessage[];
 }
 
+
+export interface SiteMinderHotelAvailRQ {
+    echoToken: string;
+    timeStamp: string;
+    version: string;
+    hotelCode: string;
+}
+
+
 export interface SiteMinderError {
     type: number;
     code?: number;
@@ -110,8 +114,9 @@ export interface SiteMinderProcessResult {
 }
 
 export interface SiteMinderParsedRequest {
-    type: 'rates' | 'availability';
+    type: 'rates' | 'availability' | 'roomsRates';
     security: SiteMinderSecurityHeader;
     ratesPayload?: SiteMinderRateAmountNotifRQ;
     availPayload?: SiteMinderHotelAvailNotifRQ;
+    roomsRatesPayload?: SiteMinderHotelAvailRQ;
 }

@@ -1,5 +1,3 @@
-// services/siteminder-availability.service.ts
-
 import { SiteMinderDao } from '../dao/site-minder.dao';
 import { SiteMinderHotelAvailNotifRQ, SiteMinderProcessResult } from '../types/site-minder.types';
 
@@ -31,7 +29,6 @@ export class SiteMinderAvailabilityService {
                     restrictionStatuses,
                 } = message;
 
-                // 2. Parse MinLOS / MaxLOS
                 let minLos: number | undefined;
                 let maxLos: number | undefined;
 

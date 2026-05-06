@@ -17,7 +17,23 @@ export class SiteMinderDao {
             throw new Error("Failed to fetch property");
         }
     }
-
+    public static async getRoomMaxChildren(
+        roomTypeCode: string,
+        propertyCode: string
+    ): Promise<number> {
+        const room = await prisma.room.findFirst({
+            where: {
+                roomType: roomTypeCode,
+                property: { propertyCode },
+            },
+            select: {
+                maxOccupancy: true,
+                maxNumberOfAdults: true
+            },
+        });
+        if (!room) return 0;
+        return Math.max(0, room.maxOccupancy - room.maxNumberOfAdults);
+    }
     public static async propertyExists(propertyCode: string): Promise<boolean> {
         try {
             const property = await prisma.property.findUnique({
@@ -37,10 +53,10 @@ export class SiteMinderDao {
         try {
             const property = await prisma.property.findUnique({
                 where: { propertyCode },
-                select:{
-                    propertyConfigs:{
-                        select:{
-                            baseCurrency:true
+                select: {
+                    propertyConfigs: {
+                        select: {
+                            baseCurrency: true
                         }
                     }
                 }

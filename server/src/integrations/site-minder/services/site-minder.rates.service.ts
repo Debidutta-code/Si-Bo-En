@@ -11,7 +11,6 @@ export class SiteMinderRatesService {
         const { hotelCode, rateAmountMessages } = payload;
 
         try {
-            // 1. Validate property exists + get propertyId for currency lookup
             const property = await SiteMinderDao.getProperty(hotelCode);
             if (!property) {
                 return {
@@ -28,7 +27,6 @@ export class SiteMinderRatesService {
 
                 if (!ratePlanCode) continue;
 
-                // 2. Validate rate plan and room type exist
                 const ratePlanName = await SiteMinderDao.getRatePlanName(ratePlanCode);
                 if (!ratePlanName) {
                     return {
@@ -45,27 +43,39 @@ export class SiteMinderRatesService {
                     };
                 }
 
-                // 3. Detect incoming currency — if absent treat as base currency (no conversion)
+                // ── Currency conversion ───────────────────────────────────────
                 const incomingCurrency = rates.baseByGuestAmts.find(b => b.currencyCode)?.currencyCode as CurrencyCode | undefined;
-
-                // 4. Single Redis + DB lookup — multiplier reused for all amounts below
                 const fromCurrency = incomingCurrency ?? await getPropertyBaseCurrency(propertyId);
                 const { convert, baseCurrency } = await getCurrencyConverter(propertyId, fromCurrency);
 
-                // 5. OBP — each element is a separate occupancy level (1, 2, 3...)
-                // NumberOfGuests should always be present from SiteMinder, i+1 is just a safety fallback
+                // ── Adults — one entry per occupancy level (OBP) ──────────────
                 const finalBaseAmounts = rates.baseByGuestAmts.map((b, i) => ({
                     numberOfGuests: b.numberOfGuests ?? i + 1,
                     amountBeforeTax: convert(b.amountAfterTax),
                 }));
 
-                // 6. Extra child only in OBP (no extra adult)
-                const finalAdditionalAmounts = rates.additionalGuestAmounts?.map(a => ({
-                    ageQualifyingCode: a.ageQualifyingCode,
-                    amount: convert(a.amount),
-                })) ?? [];
+                // ── Children — multiply base child amount by child position ────
+                // SiteMinder sends ONE AdditionalGuestAmount for child (AgeQualifyingCode="8")
+                // We expand it per child slot: child1=amount, child2=amount×2, etc.
+                const childBaseAmount = rates.additionalGuestAmounts?.find(
+                    a => a.ageQualifyingCode === '8'
+                )?.amount ?? 0;
 
-                // 7. Expand date range day by day and upsert charge per date
+                const convertedChildAmount = convert(childBaseAmount);
+
+                // Get max children = maxOccupancy - maxNumberOfAdults from DB
+                const maxChildren = await SiteMinderDao.getRoomMaxChildren(roomTypeCode, hotelCode);
+
+                // Build child additional amounts — only if child amount exists and room supports children
+                const finalAdditionalAmounts = (convertedChildAmount > 0 && maxChildren > 0)
+                    ? Array.from({ length: maxChildren }, (_, i) => ({
+                        ageQualifyingCode: '8',
+                        numberOfGuests: i + 1,
+                        amount: convertedChildAmount * (i + 1), // child1=50, child2=100
+                    }))
+                    : [];
+
+                // ── Upsert per day ────────────────────────────────────────────
                 const startDate = new Date(start);
                 const endDate = new Date(end);
                 const currentDate = new Date(startDate);

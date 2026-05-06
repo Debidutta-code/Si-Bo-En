@@ -1,4 +1,4 @@
-// utils/siteminder-xml.parser.ts
+// utils/xml-parser.ts
 // Core XML ↔ JSON conversion layer for SiteMinder SOAP messages
 
 import { XMLParser, XMLBuilder } from 'fast-xml-parser';
@@ -16,6 +16,7 @@ import {
     SiteMinderRestrictionStatus,
     SiteMinderRateAmountNotifRS,
     SiteMinderHotelAvailNotifRS,
+    SiteMinderHotelAvailRQ,
 } from '../types/site-minder.types';
 
 // ─── XML PARSER CONFIG ────────────────────────────────────────────────────────
@@ -23,9 +24,8 @@ import {
 const parser = new XMLParser({
     ignoreAttributes: false,
     attributeNamePrefix: '@_',
-    removeNSPrefix: true,           // strips SOAP-ENV:, wsse:, etc.
+    removeNSPrefix: true,
     isArray: (name) => {
-        // Force these to always be arrays even if single element
         const alwaysArray = [
             'RateAmountMessage',
             'BaseByGuestAmt',
@@ -33,6 +33,7 @@ const parser = new XMLParser({
             'AvailStatusMessage',
             'LengthOfStay',
             'RestrictionStatus',
+            'RoomStay',
         ];
         return alwaysArray.includes(name);
     },
@@ -51,9 +52,6 @@ const builder = new XMLBuilder({
 
 export class SiteMinderXmlParser {
 
-    /**
-     * Parse raw SOAP XML body into structured typed object
-     */
     public static parseIncoming(rawXml: string): SiteMinderParsedRequest {
         const parsed = parser.parse(rawXml);
 
@@ -62,7 +60,6 @@ export class SiteMinderXmlParser {
             throw new Error('Invalid SOAP envelope: missing Envelope element');
         }
 
-        // ── Security Header ──
         const security = SiteMinderXmlParser.extractSecurity(envelope);
 
         const body = envelope?.Body;
@@ -70,7 +67,6 @@ export class SiteMinderXmlParser {
             throw new Error('Invalid SOAP envelope: missing Body element');
         }
 
-        // ── Determine message type ──
         if (body.OTA_HotelRateAmountNotifRQ) {
             const ratesPayload = SiteMinderXmlParser.parseRatesRQ(body.OTA_HotelRateAmountNotifRQ);
             return { type: 'rates', security, ratesPayload };
@@ -81,14 +77,19 @@ export class SiteMinderXmlParser {
             return { type: 'availability', security, availPayload };
         }
 
+        // Rooms & Rates pull — SiteMinder sends OTA_HotelAvailRQ
+        if (body.OTA_HotelAvailRQ) {
+            const roomsRatesPayload = SiteMinderXmlParser.parseRoomsRatesRQ(body.OTA_HotelAvailRQ);
+            return { type: 'roomsRates', security, roomsRatesPayload };
+        }
+
         throw new Error('Unknown OTA message type in SOAP body');
     }
 
     // ─── SECURITY HEADER ──────────────────────────────────────────────────────
 
     private static extractSecurity(envelope: any): SiteMinderSecurityHeader {
-        const usernameToken =
-            envelope?.Header?.Security?.UsernameToken;
+        const usernameToken = envelope?.Header?.Security?.UsernameToken;
 
         if (!usernameToken) {
             throw new Error('Missing SOAP Security header or UsernameToken');
@@ -110,7 +111,6 @@ export class SiteMinderXmlParser {
 
         const rateAmountMessages: SiteMinderRateAmountMessage[] = rawMessages.map((msg: any) => {
             const sac = msg?.StatusApplicationControl;
-
             const rate = SiteMinderXmlParser.parseRate(msg?.Rates?.Rate);
 
             return {
@@ -124,9 +124,6 @@ export class SiteMinderXmlParser {
             };
         });
 
-        // Detect pricing model: OBP has multiple consecutive BaseByGuestAmt with NumberOfGuests 1,2,3...
-        const pricingModel = SiteMinderXmlParser.detectPricingModel(rateAmountMessages);
-
         return {
             echoToken: rq?.['@_EchoToken'] ?? '',
             timeStamp: rq?.['@_TimeStamp'] ?? new Date().toISOString(),
@@ -139,7 +136,6 @@ export class SiteMinderXmlParser {
     private static parseRate(rate: any): SiteMinderRate {
         if (!rate) return { baseByGuestAmts: [] };
 
-        // BaseByGuestAmts
         const rawBase: any[] = rate?.BaseByGuestAmts?.BaseByGuestAmt ?? [];
         const baseByGuestAmts: SiteMinderBaseByGuestAmt[] = rawBase.map((b: any) => ({
             amountAfterTax: parseFloat(b?.['@_AmountAfterTax'] ?? 0),
@@ -150,7 +146,6 @@ export class SiteMinderXmlParser {
             ageQualifyingCode: b?.['@_AgeQualifyingCode'],
         }));
 
-        // AdditionalGuestAmounts
         const rawAdditional: any[] = rate?.AdditionalGuestAmounts?.AdditionalGuestAmount ?? [];
         const additionalGuestAmounts: SiteMinderAdditionalGuestAmount[] = rawAdditional.map((a: any) => ({
             ageQualifyingCode: a?.['@_AgeQualifyingCode'] ?? '',
@@ -167,20 +162,7 @@ export class SiteMinderXmlParser {
         };
     }
 
-    private static detectPricingModel(messages: SiteMinderRateAmountMessage[]): 'PDP' | 'OBP' {
-        for (const msg of messages) {
-            const baseAmts = msg.rates.baseByGuestAmts;
-            if (baseAmts.length >= 2) {
-                // OBP: consecutive NumberOfGuests starting from 1
-                const hasConsecutive =
-                    baseAmts[0]?.numberOfGuests === 1 &&
-                    baseAmts[1]?.numberOfGuests === 2;
-                if (hasConsecutive) return 'OBP';
-            }
-        }
-        return 'PDP';
-    }
-
+    // ─── AVAILABILITY PARSER ──────────────────────────────────────────────────
 
     private static parseAvailRQ(rq: any): SiteMinderHotelAvailNotifRQ {
         const hotelCode = rq?.AvailStatusMessages?.['@_HotelCode'];
@@ -191,7 +173,6 @@ export class SiteMinderXmlParser {
         const availStatusMessages: SiteMinderAvailStatusMessage[] = rawMessages.map((msg: any) => {
             const sac = msg?.StatusApplicationControl;
 
-            // LengthsOfStay
             const rawLos: any[] = msg?.LengthsOfStay?.LengthOfStay ?? [];
             const lengthsOfStay: SiteMinderLengthOfStay[] = rawLos.map((l: any) => ({
                 time: l?.['@_Time'] ?? '',
@@ -199,7 +180,6 @@ export class SiteMinderXmlParser {
                 minMaxMessageType: l?.['@_MinMaxMessageType'],
             }));
 
-            // RestrictionStatus
             const rawRestrictions: any[] = Array.isArray(msg?.RestrictionStatus)
                 ? msg.RestrictionStatus
                 : msg?.RestrictionStatus ? [msg.RestrictionStatus] : [];
@@ -231,11 +211,26 @@ export class SiteMinderXmlParser {
         };
     }
 
+    // ─── ROOMS & RATES PARSER ─────────────────────────────────────────────────
+
+    private static parseRoomsRatesRQ(rq: any): SiteMinderHotelAvailRQ {
+        // HotelCode is nested inside AvailRequestSegments > AvailRequestSegment > HotelSearchCriteria > Criterion > HotelRef
+        const hotelCode =
+            rq?.AvailRequestSegments?.AvailRequestSegment
+                ?.HotelSearchCriteria?.Criterion?.HotelRef?.['@_HotelCode'];
+
+        if (!hotelCode) throw new Error('Missing HotelCode in OTA_HotelAvailRQ');
+
+        return {
+            echoToken: rq?.['@_EchoToken'] ?? '',
+            timeStamp: rq?.['@_TimeStamp'] ?? new Date().toISOString(),
+            version: rq?.['@_Version'] ?? '1.0',
+            hotelCode,
+        };
+    }
+
     // ─── RESPONSE BUILDERS ────────────────────────────────────────────────────
 
-    /**
-     * Build success/error SOAP XML response for OTA_HotelRateAmountNotifRS
-     */
     public static buildRatesResponse(rs: SiteMinderRateAmountNotifRS): string {
         const body = rs.success
             ? { Success: '' }
@@ -268,9 +263,6 @@ export class SiteMinderXmlParser {
         return `<?xml version="1.0" encoding="UTF-8"?>\n` + builder.build(envelope);
     }
 
-    /**
-     * Build success/error SOAP XML response for OTA_HotelAvailNotifRS
-     */
     public static buildAvailResponse(rs: SiteMinderHotelAvailNotifRS): string {
         const body = rs.success
             ? { Success: '' }
@@ -304,8 +296,88 @@ export class SiteMinderXmlParser {
     }
 
     /**
-     * Build SOAP Fault for authentication errors
+     * Build OTA_HotelAvailRS — response to SiteMinder's rooms & rates pull
+     * OBP only: includes Occupancy element with MaxOccupancy per room type
+     * Each RoomType + RatePlan combination gets its own RoomStay element
      */
+    public static buildRoomsRatesResponse(params: {
+        echoToken: string;
+        version: string;
+        roomStays: Array<{
+            roomTypeCode: string;
+            roomTypeName: string;
+            maxOccupancy: number;
+            ratePlanCode: string;
+            ratePlanName: string;
+        }>;
+        error?: { type: number; code?: number; text: string };
+    }): string {
+        const { echoToken, version, roomStays, error } = params;
+        const timeStamp = new Date().toISOString();
+
+        let body: any;
+
+        if (error) {
+            body = {
+                Errors: {
+                    Error: {
+                        '@_Type': error.type,
+                        ...(error.code !== undefined && { '@_Code': error.code }),
+                        '#text': error.text,
+                    },
+                },
+            };
+        } else {
+            body = {
+                Success: '',
+                RoomStays: {
+                    // Each room+rate combination is its own RoomStay as per SiteMinder spec
+                    RoomStay: roomStays.map(rs => ({
+                        RoomTypes: {
+                            RoomType: {
+                                '@_RoomTypeCode': rs.roomTypeCode,
+                                RoomDescription: {
+                                    '@_Name': rs.roomTypeName,
+                                },
+                                // OBP: MaxOccupancy tells SiteMinder how many BaseByGuestAmt to send
+                                Occupancy: {
+                                    '@_AgeQualifyingCode': '10',
+                                    '@_MaxOccupancy': rs.maxOccupancy,
+                                },
+                            },
+                        },
+                        RatePlans: {
+                            RatePlan: {
+                                '@_RatePlanCode': rs.ratePlanCode,
+                                RatePlanDescription: {
+                                    '@_Name': rs.ratePlanName,
+                                },
+                            },
+                        },
+                    })),
+                },
+            };
+        }
+
+        const envelope = {
+            'SOAP-ENV:Envelope': {
+                '@_xmlns:SOAP-ENV': 'http://schemas.xmlsoap.org/soap/envelope/',
+                'SOAP-ENV:Header': '',
+                'SOAP-ENV:Body': {
+                    OTA_HotelAvailRS: {
+                        '@_xmlns': 'http://www.opentravel.org/OTA/2003/05',
+                        '@_EchoToken': echoToken,
+                        '@_TimeStamp': timeStamp,
+                        '@_Version': version,
+                        ...body,
+                    },
+                },
+            },
+        };
+
+        return `<?xml version="1.0" encoding="UTF-8"?>\n` + builder.build(envelope);
+    }
+
     public static buildSoapFault(code: string, message: string): string {
         const envelope = {
             'SOAP-ENV:Envelope': {
