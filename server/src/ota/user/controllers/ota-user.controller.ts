@@ -177,7 +177,7 @@ export class OtaUserController {
             if (!result.success) {
                 return res.status(400).json(result);
             }
-            return res.status(200).cookie("revvChillOtaAccess", result.data).json(successResponse("Login successful"));
+            return res.status(200).cookie("revvChillOtaAccess", result.data, { httpOnly: true, secure: true }).json(successResponse("Login successful"));
         } catch (error) {
             if (error instanceof Error) {
                 return res.status(500).json(errorResponse("Failed to login", error.message));
