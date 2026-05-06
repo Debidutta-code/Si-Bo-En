@@ -164,20 +164,23 @@ export class OtaUserController {
     }
     public async loginUser(req: Request, res: Response): Promise<Response<IApiResponse>> {
         try {
+
             const { email, password } = req.body;
-            const isValidEmail = this.validateEmail(email);
-            if (!isValidEmail) {
-                return res.status(400).json(errorResponse("Invalid email format", "Invalid email"));
+            const emailError = this.validateEmail(email);
+            if (emailError) {
+                return res.status(400).json(errorResponse("Invalid email format", emailError));
             }
-            const isValidPassword = this.validatePassword(password);
-            if (!isValidPassword) {
-                return res.status(400).json(errorResponse("Invalid password format", "Invalid password"));
+            const passwordError = this.validatePassword(password);
+            if (passwordError) {
+                return res.status(400).json(errorResponse("Invalid password format", passwordError));
             }
             const result = await this.userService.loginUser(email, password);
             if (!result.success) {
                 return res.status(400).json(result);
             }
-            return res.status(200).cookie("revvChillOtaAccess", result.data, { httpOnly: true, secure: true }).json(successResponse("Login successful"));
+            return res.status(200).cookie("revvChillOtaAccess", result.data, {
+                httpOnly: true,
+            }).json(successResponse("Login successful"));
         } catch (error) {
             if (error instanceof Error) {
                 return res.status(500).json(errorResponse("Failed to login", error.message));
