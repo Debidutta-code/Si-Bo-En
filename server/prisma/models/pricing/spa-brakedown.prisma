@@ -1,0 +1,9 @@
+model SpaPricing{
+    id String @id @default(uuid()) @map("id")
+    reservationId String @map("reservation_id")
+    Reservation Reservation  @relation(fields: [reservationId], references: [id], onDelete: Cascade)
+    spaSlotId String @map("spa_slot_id")
+    SpaSlot SpaSlots @relation(fields: [spaSlotId], references: [id], onDelete: Cascade)
+    price Float @map("price")
+    @@map("spa_pricing")
+}
