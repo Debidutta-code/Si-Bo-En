@@ -51,28 +51,33 @@ export class SiteMinderRatesService {
                 // ── Adults — one entry per occupancy level (OBP) ──────────────
                 const finalBaseAmounts = rates.baseByGuestAmts.map((b, i) => ({
                     numberOfGuests: b.numberOfGuests ?? i + 1,
+                    ageQualifyingCode: '10' as const,
                     amountBeforeTax: convert(b.amountAfterTax),
                 }));
 
-                // ── Children — multiply base child amount by child position ────
-                // SiteMinder sends ONE AdditionalGuestAmount for child (AgeQualifyingCode="8")
-                // We expand it per child slot: child1=amount, child2=amount×2, etc.
+                // ── Children ──────────────────────────────────────────────────
+                // SiteMinder sends ONE AdditionalGuestAmount for child (ageQualifyingCode="8")
+                // BASE:       expand per slot → child1=20, child2=40
+                // ADDITIONAL: flat single entry → 20 (base per-child rate)
                 const childBaseAmount = rates.additionalGuestAmounts?.find(
-                    a => a.ageQualifyingCode === '8'
+                    a => String(a.ageQualifyingCode) === '8'
                 )?.amount ?? 0;
 
                 const convertedChildAmount = convert(childBaseAmount);
-
-                // Get max children = maxOccupancy - maxNumberOfAdults from DB
                 const maxChildren = await SiteMinderDao.getRoomMaxChildren(roomTypeCode, hotelCode);
 
-                // Build child additional amounts — only if child amount exists and room supports children
-                const finalAdditionalAmounts = (convertedChildAmount > 0 && maxChildren > 0)
+                // Expand into base: child1=20, child2=40...
+                const childBaseAmounts = (convertedChildAmount > 0 && maxChildren > 0)
                     ? Array.from({ length: maxChildren }, (_, i) => ({
-                        ageQualifyingCode: '8',
                         numberOfGuests: i + 1,
-                        amount: convertedChildAmount * (i + 1), // child1=50, child2=100
+                        ageQualifyingCode: '8' as const,
+                        amountBeforeTax: convertedChildAmount * (i + 1),
                     }))
+                    : [];
+
+                // Flat single entry for additional
+                const childAdditionalAmounts = (convertedChildAmount > 0 && maxChildren > 0)
+                    ? [{ ageQualifyingCode: '8' as const, amount: convertedChildAmount }]
                     : [];
 
                 // ── Upsert per day ────────────────────────────────────────────
@@ -89,8 +94,8 @@ export class SiteMinderRatesService {
                         roomTypeName,
                         date: new Date(currentDate),
                         currencyCode: baseCurrency,
-                        baseByGuestAmounts: finalBaseAmounts,
-                        additionalGuestAmounts: finalAdditionalAmounts,
+                        baseByGuestAmounts: [...finalBaseAmounts, ...childBaseAmounts],
+                        additionalGuestAmounts: childAdditionalAmounts,
                     });
                     currentDate.setDate(currentDate.getDate() + 1);
                 }

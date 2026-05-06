@@ -27,12 +27,11 @@ export class SiteMinderDao {
                 property: { propertyCode },
             },
             select: {
-                maxOccupancy: true,
-                maxNumberOfAdults: true
+               maxNumberOfChildren:true
             },
         });
         if (!room) return 0;
-        return Math.max(0, room.maxOccupancy - room.maxNumberOfAdults);
+        return Math.max(0, room.maxNumberOfChildren);
     }
     public static async propertyExists(propertyCode: string): Promise<boolean> {
         try {
@@ -105,6 +104,7 @@ export class SiteMinderDao {
         baseByGuestAmounts: Array<{
             numberOfGuests: number;
             amountBeforeTax: number;
+            ageQualifyingCode: string;
         }>;
         additionalGuestAmounts: Array<{
             ageQualifyingCode: string;
@@ -141,6 +141,7 @@ export class SiteMinderDao {
                         chargeId: existing.id,
                         numberOfGuests: bg.numberOfGuests,
                         amountBeforeTax: bg.amountBeforeTax,
+                        ageQualifyingCode: bg.ageQualifyingCode,
                     })),
                 }),
                 ...(additionalGuestAmounts.length > 0
