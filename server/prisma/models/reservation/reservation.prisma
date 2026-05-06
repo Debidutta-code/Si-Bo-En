@@ -21,7 +21,7 @@ model Reservation {
   reservationStartDate DateTime @default(now()) @map("reservation_start_date") @db.Date
   reservationEndDate   DateTime @default(now()) @map("reservation_end_date") @db.Date
 
-  countryCode String     @map("country_code") @db.VarChar(5)
+  countryCode String     @map("country_code") @db.VarChar(10)
   timezone    String     @map("timezone") @db.VarChar(50)
   deviceTypes DeviceType @map("device_types")
   platforms   Platforms  @default(web) @map("platforms")
