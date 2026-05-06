@@ -5,7 +5,7 @@ import { IPromotion } from '../types';
 
 export class RoomBookingRepository {
     public static async getPropertyByCode(propertyCode: string) {
-        return prisma.property.findUnique({
+        const property = await prisma.property.findUnique({
             where: { propertyCode },
             include: {
                 propertyAddress: true,
@@ -38,7 +38,6 @@ export class RoomBookingRepository {
                         roomVideos: true,
                     },
                 },
-                propertyConfigs: true,
                 ratePlans: {
                     include: {
                         depositPolicy: true,
@@ -49,6 +48,15 @@ export class RoomBookingRepository {
                 bookingEngineConfig: true,
             },
         });
+
+        if (property) {
+            const propertyConfigs = await prisma.propertyConfigs.findUnique({
+                where: { propertyId: property.id }
+            });
+            (property as any).propertyConfigs = propertyConfigs;
+        }
+
+        return property;
     }
 
     public static async getInventoryByProperty(
@@ -279,6 +287,29 @@ export class RoomBookingRepository {
             where: { roomId },
         });
     }
+
+    public static async getPropertyChargesForCalendar(propertyCode: string, startDate: Date, endDate: Date) {
+        return prisma.charge.findMany({
+            where: {
+                propertyCode,
+                date: {
+                    gte: startDate,
+                    lte: endDate,
+                },
+                isAvailable: true,
+                isSaleStopped: false,
+            },
+            include: {
+                baseGuestAmounts: {
+                    where: {
+                        numberOfGuests: 1,
+                        ageQualifyingCode: "10"
+                    }
+                }
+            }
+        });
+    }
+
     public static async getBookingOffset(ratePlanId: string, checkInDate: Date) {
         return prisma.bookingOffset.findFirst({
             where: {

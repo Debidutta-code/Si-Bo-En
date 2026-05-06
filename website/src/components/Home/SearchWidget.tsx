@@ -12,8 +12,9 @@ import "react-datepicker/dist/react-datepicker.css";
 import "./styles/custom-datepicker.css";
 import { usePathname, useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import { setBookingContext, setSenderUrl } from "../../store/bookingSlice";
+import { setBookingContext, setCurrency, setSenderUrl } from "../../store/bookingSlice";
 import toast from "react-hot-toast";
+import { currencies } from "../currencyCode/cuurency";
 import { RootState } from "@/src/store/store";
 import React from "react";
 import { createPortal } from "react-dom";
@@ -48,6 +49,8 @@ const DatePickerWithHover = ({
   onDayMouseEnter,
   onDayMouseLeave,
   isSelectingRange,
+  prices,
+  currencyCode,
 }: {
   checkIn: Date | null;
   checkOut: Date | null;
@@ -56,14 +59,24 @@ const DatePickerWithHover = ({
   onDayMouseEnter: (date: Date) => void;
   onDayMouseLeave: () => void;
   isSelectingRange: boolean;
+  prices: Record<string, number>;
+  currencyCode?: string;
 }) => {
   const [hoverDate, setHoverDate] = useState<Date | null>(null);
 
+  const currencySign = React.useMemo(() => {
+    if (!currencyCode) return "";
+    return currencies.find((c) => c.code === currencyCode)?.symbol || currencyCode;
+  }, [currencyCode]);
+
   // Custom day component to handle hover events
   const renderDayContents = (day: number, date: Date) => {
+    const dateKey = new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    const price = prices[dateKey];
+
     return (
       <div
-        className="react-datepicker__day-wrapper"
+        className="terra-solis-day-wrapper"
         onMouseEnter={() => {
           setHoverDate(date);
           onDayMouseEnter(date);
@@ -73,7 +86,12 @@ const DatePickerWithHover = ({
           onDayMouseLeave();
         }}
       >
-        {day}
+        <span>{day}</span>
+        {price > 0 && (
+          <span className="terra-solis-day-price">
+            {currencySign} {Math.round(price)}
+          </span>
+        )}
       </div>
     );
   };
@@ -156,6 +174,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   const [selectionMode, setSelectionMode] = useState<"checkin" | "checkout">(
     "checkin",
   );
+  const [prices, setPrices] = useState<Record<string, number>>({});
 
   const bookingContext = useSelector((state: RootState) => state.booking);
 
@@ -398,6 +417,38 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
     setTemporaryCheckOut(null);
   };
 
+  const fetchCalendarPrices = async () => {
+    try {
+      const today = new Date();
+      const nextMonth = new Date(today.getFullYear(), today.getMonth() + 2, 0); // End of next month
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/calendar-prices`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          propertyCode: hotelcode,
+          startDate: today.toISOString().split('T')[0],
+          endDate: nextMonth.toISOString().split('T')[0]
+        }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setPrices(data.data);
+        if (data.currencyCode) {
+          dispatch(setCurrency(data.currencyCode));
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch calendar prices:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (isCalendarOpen) {
+      fetchCalendarPrices();
+    }
+  }, [isCalendarOpen, hotelcode]);
+
   const openCalendar = () => {
     setIsCalendarOpen(true);
     if (checkIn && checkOut) {
@@ -608,6 +659,8 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   checkIn={checkIn}
                   checkOut={checkOut}
                   temporaryCheckOut={temporaryCheckOut}
+                  prices={prices}
+                  currencyCode={bookingContext.currency}
                   onDateSelect={(date: Date) => {
                     if (selectionMode === "checkin") {
                       setCheckIn(date);
