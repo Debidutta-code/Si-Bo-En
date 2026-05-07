@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { OtaUserController } from "../controllers";
 import router from "../../../sms-email-service/routes/route";
+import { otaProtect } from "../../../middlewares/ota-user.middleware";
 
 const otaUserRouter = Router();
 const userController = new OtaUserController();
@@ -14,7 +15,7 @@ otaUserRouter.route("/login").post(userController.loginUser.bind(userController)
 otaUserRouter.route("/verify")
     .post(userController.verifyUser.bind(userController));
 otaUserRouter.route("/password")
-    .put(userController.updatePassword.bind(userController));
+    .put(otaProtect,userController.updatePassword.bind(userController));
     otaUserRouter.route("/login")
     .post(userController.loginUser.bind(userController));
 export { otaUserRouter };

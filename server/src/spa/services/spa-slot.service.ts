@@ -1,6 +1,7 @@
 import { IApiResponse, successResponse, errorResponse, toUTC } from "../../utils";
 import { SpaDatesRepo, SpaSlotsRepo } from "../repository";
 import { ICSpaDatesR, ICSpaDatesS, ICSpaSlotS } from "../types/spa-slot.type";
+import { SpaPricingService } from "./spa-pricing.service";
 
 export class SpaDates {
     private spaDatesRepo: SpaDatesRepo;
@@ -57,10 +58,12 @@ export class SpaDates {
 export class SpaSlotsServ {
     private spaSlotsRepo: SpaSlotsRepo;
     private spaDatesRepo: SpaDatesRepo;
+    private spaPricingService: SpaPricingService;
 
     constructor() {
         this.spaSlotsRepo = new SpaSlotsRepo();
         this.spaDatesRepo = new SpaDatesRepo();
+        this.spaPricingService = new SpaPricingService();
 
     }
     public async createSpaSlots(data: ICSpaSlotS[], spaDateId: string): Promise<IApiResponse> {
@@ -145,7 +148,12 @@ export class SpaSlotsServ {
                 return errorResponse("Spa slot is already booked", "Spa slot already booked");
             }
             const updatedSlot = await this.spaSlotsRepo.markSlotAsBooked(id, reservationId, userName);
-            return successResponse("Marked spa slot as booked successfully", updatedSlot);
+            const spaSlotPricing=await this.spaPricingService.createSpaPricing({
+                reservationId: reservationId,
+                spaDateId:isSlotExists.spaDateId,
+                spaSlotId:id,
+            })
+            return spaSlotPricing
         } catch (error) {
             if (error instanceof Error) {
                 return errorResponse("Failed to mark spa slot as booked", error.message);
