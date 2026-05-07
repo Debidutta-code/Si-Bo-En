@@ -1,7 +1,7 @@
 import { prisma } from "../../config";
 import { IApiResponse, successResponse, errorResponse } from "../../utils";
 import { SpaPricingRepository, SpaDatesRepo, SpaRepository } from "../repository";
-import { ICSpaPricing } from "../types";
+import { ICSpaPricing, IDSpaPricing } from "../types";
 
 export class SpaPricingService {
     private spaPricingRepository: SpaPricingRepository;
@@ -69,48 +69,34 @@ export class SpaPricingService {
             return errorResponse("Error while creating spa pricing");
         }
     }
-    public async deleteSpaPricing(data: ICSpaPricing): Promise<IApiResponse> {
+    public async deleteSpaPricing(data: IDSpaPricing): Promise<IApiResponse> {
         try {
-            const [reservation, spaDate] = await Promise.all([
-                this.spaPricingRepository.getReservationById(data.reservationId),
-                this.spaDatesRepository.getDateById(data.spaDateId)
+            const [spaPricing, reservation] = await Promise.all([
+                this.spaPricingRepository.getSpaPricingBySlotId(data.spaSlotId),
+                this.spaPricingRepository.getReservationById(data.reservationId)
             ]);
+            if (!spaPricing) {
+                return errorResponse("Spa pricing not found");
+            }
             if (!reservation) {
                 return errorResponse("Reservation not found");
             }
-            if (!spaDate) {
-                return errorResponse("Spa date not found");
+            //case for spa amount is paid and got cancelled
+            if (reservation.amount + reservation.extraAmountToPay >= reservation.paidAmount) {
+                await this.spaPricingRepository.updatePricingForPaidAndCancelled({
+                    reservationId: data.reservationId,
+                    refundableAmount:spaPricing.price,
+                    extraAmountToPay: reservation.extraAmountToPay - spaPricing.price
+                });
+            }else{// not paied and cancelled
+                await this.spaPricingRepository.updatePricingForPaidAndCancelled({
+                    reservationId: data.reservationId,
+                    refundableAmount:reservation.refundAmount,
+                    extraAmountToPay:reservation.extraAmountToPay-spaPricing.price
+                    
+                })
             }
-            const spa = await this.spaRepository.getById(spaDate.spaModuleId);
-            if (!spa) {
-                return errorResponse("Spa not found");
-            }
-            if (!spa.isActive) {
-                return errorResponse("Spa is not active");
-            }
-            if (!reservation.pricingBrakedownId) {
-                return errorResponse("Reservation pricing  not found");
-            }
-            if (spa.isInclusive) {
-                await this.spaPricingRepository.deleteSpaPricing(data.spaSlotId);
 
-            } else {
-                await Promise.all([
-
-                    this.spaPricingRepository.deleteSpaPricing(data.spaSlotId),
-
-                    this.spaPricingRepository.updateReservationPricing(
-                        {
-                            reservationId: data.reservationId,
-                            amount: reservation.amount - (spa.discountValue ? spa.discountValue : 0),
-                            extraAmountToPay: reservation.extraAmountToPay - (spa.discountValue ? spa.discountValue : 0)
-                        }
-
-
-                    )
-                ])
-
-            }
             return successResponse("Spa slot deleted successfully");
 
         } catch (error) {

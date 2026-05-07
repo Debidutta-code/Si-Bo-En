@@ -11,13 +11,22 @@ export class SpaPricingRepository {
             throw new Error("Error while adding spa slot pricing")
         }
     }
-    public async deleteSpaPricing(spaSlotId: string): Promise<void> {
+    public async deleteSpaPricing(spaSlotId: string): Promise<ISpaPricing> {
         try {
-            await prisma.spaPricing.delete({
+            return await prisma.spaPricing.delete({
                 where: { spaSlotId: spaSlotId }
             });
         } catch (error) {
             throw new Error("Error while deleting spa slot pricing");
+        }
+    }
+        public async getSpaPricingBySlotId(spaSlotId: string): Promise<ISpaPricing|null> {
+        try {
+            return await prisma.spaPricing.findUnique({
+                where: { spaSlotId: spaSlotId }
+            });
+        } catch (error) {
+            throw new Error("Error while fetching spa slot pricing");
         }
     }
     public async getReservationById(reservationId: string): Promise<ISpaReservation | null> {
@@ -29,7 +38,9 @@ export class SpaPricingRepository {
                     amount: true,
                     currencyCode: true,
                     extraAmountToPay: true,
-                    pricingBrakedownId: true
+                    pricingBrakedownId: true,
+                    refundAmount: true,
+                    paidAmount: true
                 }
             });
         } catch (error) {
@@ -42,6 +53,19 @@ export class SpaPricingRepository {
                 where: { id: reservationId },
                 data: {
                     amount: amount,
+                    extraAmountToPay: extraAmountToPay
+                }
+            });
+        } catch (error) {
+            throw new Error("Error while updating spa slot pricing");
+        }
+    }
+    public async updatePricingForPaidAndCancelled({reservationId, refundableAmount, extraAmountToPay}: {reservationId: string, refundableAmount: number, extraAmountToPay: number}): Promise<ISpaReservation> {
+        try {
+            return await prisma.reservation.update({
+                where: { id: reservationId },
+                data: {
+                    refundAmount: refundableAmount,
                     extraAmountToPay: extraAmountToPay
                 }
             });

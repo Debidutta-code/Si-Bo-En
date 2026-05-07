@@ -148,10 +148,10 @@ export class SpaSlotsServ {
                 return errorResponse("Spa slot is already booked", "Spa slot already booked");
             }
             const updatedSlot = await this.spaSlotsRepo.markSlotAsBooked(id, reservationId, userName);
-            const spaSlotPricing=await this.spaPricingService.createSpaPricing({
+            const spaSlotPricing = await this.spaPricingService.createSpaPricing({
                 reservationId: reservationId,
-                spaDateId:isSlotExists.spaDateId,
-                spaSlotId:id,
+                spaDateId: isSlotExists.spaDateId,
+                spaSlotId: id,
             })
             return spaSlotPricing
         } catch (error) {
@@ -171,6 +171,11 @@ export class SpaSlotsServ {
                 return errorResponse("Spa slot is available", "Spa slot already booked");
             }
             const updatedSlot = await this.spaSlotsRepo.markSlotAsAvailable(id);
+            const spaSlotPricing = await this.spaPricingService.createSpaPricing({
+                spaDateId: isSlotExists.spaDateId,
+                spaSlotId: id,
+            })
+
             return successResponse("Marked spa slot as available successfully", updatedSlot);
 
         } catch (error) {

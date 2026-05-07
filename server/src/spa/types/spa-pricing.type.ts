@@ -8,10 +8,17 @@ export interface ICSpaPricingR {
 export interface ISpaPricing extends ICSpaPricingR {
     id: string;
 }
+export interface ISpaPricingWithPricing extends ISpaPricing {
+}
 export interface ICSpaPricing {
     reservationId: string;
     spaSlotId: string;
     spaDateId:string;
+}
+export interface IDSpaPricing {
+    spaSlotId: string;
+    spaDateId:string;
+    reservationId: string;
 }
 
 export interface ISpaReservation{
@@ -20,4 +27,6 @@ export interface ISpaReservation{
     currencyCode: CurrencyCode;
     extraAmountToPay: number;
     pricingBrakedownId: string|null;
+    refundAmount: number;
+    paidAmount: number;
 }
