@@ -70,7 +70,7 @@ export class OtaUserController {
     }
     private validateEmail(email: string): string | null {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        return emailRegex.test(email) ? null : "Please provide a valid email address.";
+        return !emailRegex.test(email) ? "Please provide a valid email address." : null;
     }
     private validatePassword(password: string): string | null {
         const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{6,12}$/;
