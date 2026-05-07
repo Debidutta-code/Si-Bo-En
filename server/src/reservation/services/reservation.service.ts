@@ -70,7 +70,7 @@ export class ReservationService {
 
     private async generateBookingCode(propertyCode: string): Promise<string> {
         const code =
-            'BOOK' + Math.random().toString(36).substr(2, 9).toUpperCase();
+            'BOOK-' + Math.random().toString(36).substr(2, 9).toUpperCase();
         const existingReservation =
             await this.reservationRepository.getReservaltionByCode(
                 code,
