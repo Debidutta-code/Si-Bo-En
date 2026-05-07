@@ -53,7 +53,8 @@ export class RoomWishList{
                     id:true,
                     roomName:true,
                     roomType:true,
-                    propertyId:true
+                    propertyId:true,
+                    image:true
                 }
             });
         } catch (error) {

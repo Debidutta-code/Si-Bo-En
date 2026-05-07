@@ -26,6 +26,14 @@ export class PropertyWishList{
                     otaGuestId
                 },
                 include:{
+                    Property:{
+                        select:{
+                            id:true,
+                            propertyName:true,
+                            propertyCode:true,
+                            image:true
+                        }
+                    },
                     RoomWishList:true
                 }
             });
