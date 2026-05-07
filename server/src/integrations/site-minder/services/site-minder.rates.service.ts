@@ -3,6 +3,45 @@ import { CurrencyCode } from '../../../tax-system/interfaces/tourist-tax.type';
 import { SiteMinderDao } from '../dao/site-minder.dao';
 import { SiteMinderRateAmountNotifRQ, SiteMinderProcessResult } from '../types/site-minder.types';
 
+// ── Reverse tax utility ───────────────────────────────────────────────────────
+function reverseTax(
+    amountAfterTax: number,
+    rules: Array<{ priority: number; type: string; value: number }>,
+    options: { skipFixed?: boolean } = {}   // 👈 add this
+): number {
+    if (rules.length === 0) return amountAfterTax;
+
+    const grouped = new Map<number, Array<{ type: string; value: number }>>();
+
+    for (const rule of rules) {
+        if (!grouped.has(rule.priority)) grouped.set(rule.priority, []);
+        grouped.get(rule.priority)!.push(rule);
+    }
+
+    const priorities = [...grouped.keys()].sort((a, b) => b - a);
+
+    let amount = amountAfterTax;
+
+    for (const priority of priorities) {
+        const group = grouped.get(priority)!;
+
+        let percentageSum = 0;
+        let fixedSum = 0;
+
+        for (const rule of group) {
+            if (rule.type === 'percentage') {
+                percentageSum += rule.value / 100;
+            } else if (rule.type === 'fixed' && !options.skipFixed) {  // 👈 guard here
+                fixedSum += rule.value;
+            }
+        }
+
+        amount = (amount - fixedSum) / (1 + percentageSum);
+    }
+
+    return amount;
+}
+
 export class SiteMinderRatesService {
 
     public static async processRatesUpdate(
@@ -48,25 +87,27 @@ export class SiteMinderRatesService {
                 const fromCurrency = incomingCurrency ?? await getPropertyBaseCurrency(propertyId);
                 const { convert, baseCurrency } = await getCurrencyConverter(propertyId, fromCurrency);
 
+                // ── Tax rules for this rate plan (fetched once, reused for all amounts) ──
+                const taxRules = await SiteMinderDao.getActiveTaxRulesForRatePlan(
+                    ratePlanCode,
+                    hotelCode
+                );
+
                 // ── Adults — one entry per occupancy level (OBP) ──────────────
                 const finalBaseAmounts = rates.baseByGuestAmts.map((b, i) => ({
                     numberOfGuests: b.numberOfGuests ?? i + 1,
                     ageQualifyingCode: '10' as const,
-                    amountBeforeTax: convert(b.amountAfterTax),
+                    amountBeforeTax: Number(reverseTax(convert(b.amountAfterTax), taxRules).toFixed(2))
                 }));
 
-                // ── Children ──────────────────────────────────────────────────
-                // SiteMinder sends ONE AdditionalGuestAmount for child (ageQualifyingCode="8")
-                // BASE:       expand per slot → child1=20, child2=40
-                // ADDITIONAL: flat single entry → 20 (base per-child rate)
+
                 const childBaseAmount = rates.additionalGuestAmounts?.find(
                     a => String(a.ageQualifyingCode) === '8'
                 )?.amount ?? 0;
 
-                const convertedChildAmount = convert(childBaseAmount);
+                const convertedChildAmount = reverseTax(convert(childBaseAmount), taxRules, { skipFixed: true });
                 const maxChildren = await SiteMinderDao.getRoomMaxChildren(roomTypeCode, hotelCode);
 
-                // Expand into base: child1=20, child2=40...
                 const childBaseAmounts = (convertedChildAmount > 0 && maxChildren > 0)
                     ? Array.from({ length: maxChildren }, (_, i) => ({
                         numberOfGuests: i + 1,

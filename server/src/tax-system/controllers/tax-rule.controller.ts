@@ -117,12 +117,6 @@ export class TaxRuleController {
         if (taxRuleData.applicableOn !== 'room_rate' && taxRuleData.applicableOn !== 'total_amount') {
             return 'Tax Rule applicableOn must be either room_rate, service_charge or both';
         }
-        if(taxRuleData.validFrom && taxRuleData.validTo && taxRuleData.validFrom > taxRuleData.validTo){
-            return 'Tax Rule validFrom date cannot be later than validTo date';
-        }
-        if(taxRuleData.validFrom && taxRuleData.validTo && taxRuleData.validFrom === taxRuleData.validTo){
-            return 'Tax Rule validFrom date cannot be the same as validTo date';
-        }
 
         return null;
     }

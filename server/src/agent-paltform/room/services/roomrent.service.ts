@@ -125,7 +125,7 @@ export class AgentPricingService {
             const subtotalAmount = round(amountBeforeTax + totalAddonAmount);
 
             // Step 4: Priority-based tax on subtotal
-            const taxResult = this.calculateTax(ratePlan, subtotalAmount);
+            const taxResult = this.calculateTax(ratePlan, subtotalAmount,dailyBreakdown.length);
             const taxedAmount = round(taxResult.totalTax);
             const currentChargeableAmount = round(subtotalAmount + taxedAmount);
 
@@ -591,7 +591,8 @@ export class AgentPricingService {
 
     private calculateTax(
         ratePlan: IRatePlan,
-        subtotal: number
+        subtotal: number,
+        totalRoomNights:number
     ): { taxDetails: ITaxBrakeDown[]; totalTax: number } {
         if (!ratePlan.taxGroup?.taxGroupRules?.length) {
             return { taxDetails: [], totalTax: 0 };
@@ -633,7 +634,7 @@ export class AgentPricingService {
                 let taxForThisRule = 0;
 
                 if (taxRule.type === 'fixed') {
-                    taxForThisRule = Number(taxRule.value);
+                    taxForThisRule = Number(taxRule.value) * totalRoomNights;
                 } else {
                     // All same-priority rules share the SAME running base
                     taxForThisRule = (Number(taxRule.value) * runningTotal) / 100;

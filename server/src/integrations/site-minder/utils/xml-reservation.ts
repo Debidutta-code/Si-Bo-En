@@ -1,5 +1,4 @@
 // utils/site-minder-reservation-xml.builder.ts
-// Builds OTA_HotelResNotifRQ SOAP XML and parses OTA_HotelResNotifRS
 
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import { v4 as uuidv4 } from 'uuid';
@@ -10,6 +9,7 @@ const builder = new XMLBuilder({
     attributeNamePrefix: '@_',
     format: true,
     suppressEmptyNode: false,
+    attributeValueProcessor: (_name: string, val: unknown) => String(val),
 });
 
 const parser = new XMLParser({
@@ -22,9 +22,6 @@ const parser = new XMLParser({
 
 export class SiteMinderReservationXmlBuilder {
 
-    /**
-     * Build full SOAP envelope for OTA_HotelResNotifRQ
-     */
     public static buildReservationRequest(
         params: SMReservationPushParams,
         username: string,
@@ -34,77 +31,75 @@ export class SiteMinderReservationXmlBuilder {
         const timeStamp = new Date().toISOString();
 
         // ── Room Stays ────────────────────────────────────────────────────────
-        const roomStayElements = params.roomStays.map((rs, index) => ({
-            RoomTypes: {
-                RoomType: {
-                    '@_RoomTypeCode': rs.roomTypeCode,
-                    RoomDescription: {
-                        '@_Name': rs.roomTypeName,
+        const roomStayElements = params.roomStays.map((rs) => {
+            const roomRatesObj = Array.isArray(rs.roomRates) ? rs.roomRates[0] : rs.roomRates;
+            const rates = roomRatesObj?.rates ?? [];
+
+            return {
+                RoomTypes: {
+                    RoomType: {
+                        '@_RoomTypeCode': rs.roomTypeCode,
+                        RoomDescription: {
+                            '@_Name': rs.roomTypeName,
+                        },
                     },
                 },
-            },
-            RatePlans: {
-                RatePlan: {
-                    '@_RatePlanCode': rs.ratePlanCode,
-                    RatePlanDescription: rs.ratePlanName,
-                },
-            },
-            RoomRates: {
-                RoomRate: {
-                    '@_RoomTypeCode': rs.roomTypeCode,
-                    '@_RatePlanCode': rs.ratePlanCode,
-                    '@_NumberOfUnits': '1',
-                    Rates: {
-                        Rate: rs.roomRates.rates.map(rate => ({
-                            '@_UnitMultiplier': '1',
-                            '@_RateTimeUnit': 'Day',
-                            '@_EffectiveDate': rate.effectiveDate,
-                            '@_ExpireDate': rate.expireDate,
-                            Base: {
-                                '@_AmountBeforeTax': rate.amountBeforeTax,
-                                '@_AmountAfterTax': rate.amountAfterTax,
-                                '@_CurrencyCode': rate.currencyCode,
-                            },
-                        })),
+                RatePlans: {
+                    RatePlan: {
+                        '@_RatePlanCode': rs.ratePlanCode,
+                        RatePlanDescription: rs.ratePlanName,
                     },
                 },
-            },
-            GuestCounts: {
-                GuestCount: rs.guestCounts.map(gc => ({
-                    '@_AgeQualifyingCode': gc.ageQualifyingCode,
-                    '@_Count': gc.count,
-                    ...(gc.age !== undefined && { '@_Age': gc.age }),
-                })),
-            },
-            TimeSpan: {
-                '@_Start': rs.checkIn,
-                '@_End': rs.checkOut,
-            },
-            Total: {
-                '@_AmountBeforeTax': rs.totalAmountBeforeTax,
-                '@_AmountAfterTax': rs.totalAmountAfterTax,
-                '@_CurrencyCode': rs.currencyCode,
-            },
-            BasicPropertyInfo: {
-                '@_HotelCode': params.hotelCode,
-            },
-            ResGuestRPHs: {
-                ResGuestRPH: { '@_RPH': '1' },
-            },
-            ...(rs.comments && {
-                Comments: {
-                    Comment: { Text: rs.comments },
+                RoomRates: {
+                    RoomRate: {
+                        '@_RoomTypeCode': rs.roomTypeCode,
+                        '@_RatePlanCode': rs.ratePlanCode,
+                        '@_NumberOfUnits': '1',
+                        Rates: {
+                            Rate: rates.map((rate: any) => {
+                                const hasTax = rate.amountBeforeTax !== undefined
+                                    && rate.amountBeforeTax !== rate.amountAfterTax;
+                                return {
+                                    '@_UnitMultiplier': '1',
+                                    '@_RateTimeUnit': 'Day',
+                                    '@_EffectiveDate': rate.effectiveDate,
+                                    '@_ExpireDate': rate.expireDate,
+                                    Base: {
+                                        ...(hasTax && { '@_AmountBeforeTax': rate.amountBeforeTax }),
+                                        '@_AmountAfterTax': rate.amountAfterTax,
+                                        '@_CurrencyCode': rate.currencyCode,
+                                    },
+                                };
+                            }),
+                        },
+                    },
                 },
-            }),
-            ...(rs.specialRequests && rs.specialRequests.length > 0 && {
-                SpecialRequests: {
-                    SpecialRequest: rs.specialRequests.map(sr => ({
-                        '@_Name': sr.name,
-                        Text: sr.text,
+                GuestCounts: {
+                    GuestCount: rs.guestCounts.map((gc: any) => ({
+                        '@_AgeQualifyingCode': String(gc.ageQualifyingCode),
+                        '@_Count': String(gc.count),
+                        ...(gc.age !== undefined && { '@_Age': String(gc.age) }),
                     })),
                 },
-            }),
-        }));
+                TimeSpan: {
+                    '@_Start': rs.checkIn,
+                    '@_End': rs.checkOut,
+                },
+                Total: {
+                    ...(rs.totalAmountBeforeTax !== rs.totalAmountAfterTax && {
+                        '@_AmountBeforeTax': rs.totalAmountBeforeTax,
+                    }),
+                    '@_AmountAfterTax': rs.totalAmountAfterTax,
+                    '@_CurrencyCode': rs.currencyCode,
+                },
+                BasicPropertyInfo: {
+                    '@_HotelCode': params.hotelCode,
+                },
+                ResGuestRPHs: {
+                    ResGuestRPH: { '@_RPH': '1' },
+                },
+            };
+        });
 
         // ── Guest Profile ─────────────────────────────────────────────────────
         const { primaryGuest } = params;
@@ -127,15 +122,6 @@ export class SiteMinderReservationXmlBuilder {
                             ...(primaryGuest.email && {
                                 Email: primaryGuest.email,
                             }),
-                            ...(primaryGuest.address && {
-                                Address: {
-                                    ...(primaryGuest.address.line1 && { AddressLine: primaryGuest.address.line1 }),
-                                    ...(primaryGuest.address.city && { CityName: primaryGuest.address.city }),
-                                    ...(primaryGuest.address.postalCode && { PostalCode: primaryGuest.address.postalCode }),
-                                    ...(primaryGuest.address.state && { StateProv: primaryGuest.address.state }),
-                                    ...(primaryGuest.address.country && { CountryName: primaryGuest.address.country }),
-                                },
-                            }),
                         },
                     },
                 },
@@ -145,32 +131,16 @@ export class SiteMinderReservationXmlBuilder {
         // ── ResGlobalInfo Total ───────────────────────────────────────────────
         const resGlobalInfoTotal = {
             '@_CurrencyCode': params.currencyCode,
-            '@_AmountBeforeTax': params.totalAmountBeforeTax,
+            ...(params.totalAmountBeforeTax !== params.totalAmountAfterTax && {
+                '@_AmountBeforeTax': params.totalAmountBeforeTax,
+            }),
             '@_AmountAfterTax': params.totalAmountAfterTax,
-            // PAY_AT_HOTEL — includesCommission false (net amount)
-            // PREPAY — includesCommission true (gross amount)
             TPA_Extensions: {
                 Total: {
                     '@_includesCommission': params.paymentMethod === 'PREPAY' ? 'true' : 'false',
                 },
             },
         };
-
-        // ── Guarantee — only for PREPAY, PayAtHotel has no card details ───────
-        // For PAY_AT_HOTEL we send nothing in Guarantee section
-        // SiteMinder accepts reservations without payment details
-        const guarantee = params.paymentMethod === 'PREPAY'
-            ? {
-                Guarantee: {
-                    GuaranteesAccepted: {
-                        GuaranteeAccepted: {
-                            // No card details — just signal that payment was collected
-                            // Actual payment handled on your platform
-                        },
-                    },
-                },
-            }
-            : {}; // PAY_AT_HOTEL — no Guarantee element at all
 
         // ── Full Envelope ─────────────────────────────────────────────────────
         const envelope = {
@@ -219,7 +189,7 @@ export class SiteMinderReservationXmlBuilder {
                                 }),
                                 UniqueID: {
                                     '@_Type': '14',
-                                    '@_ID': params.bookingCode,
+                                    '@_ID': params.bookingCode.replace(/-/g, ''),
                                 },
                                 RoomStays: {
                                     RoomStay: roomStayElements,
@@ -231,11 +201,10 @@ export class SiteMinderReservationXmlBuilder {
                                     HotelReservationIDs: {
                                         HotelReservationID: {
                                             '@_ResID_Type': '14',
-                                            '@_ResID_Value': params.bookingCode,
+                                            '@_ResID_Value': params.bookingCode.replace(/-/g, ''),
                                         },
                                     },
                                     Total: resGlobalInfoTotal,
-                                    ...guarantee,
                                 },
                             },
                         },
@@ -247,9 +216,6 @@ export class SiteMinderReservationXmlBuilder {
         return `<?xml version="1.0" encoding="UTF-8"?>\n` + builder.build(envelope);
     }
 
-    /**
-     * Parse OTA_HotelResNotifRS SOAP XML response from SiteMinder
-     */
     public static parseReservationResponse(
         rawXml: string,
         bookingCode: string
@@ -259,7 +225,6 @@ export class SiteMinderReservationXmlBuilder {
             const rs = parsed?.Envelope?.Body?.OTA_HotelResNotifRS;
 
             if (!rs) {
-                // Check for SOAP Fault
                 const fault = parsed?.Envelope?.Body?.Fault;
                 if (fault) {
                     return {
@@ -270,7 +235,6 @@ export class SiteMinderReservationXmlBuilder {
                 return { success: false, message: 'Invalid response from SiteMinder' };
             }
 
-            // Success
             if (rs.Success !== undefined) {
                 const siteMinderResId =
                     rs?.HotelReservations?.HotelReservation
@@ -284,7 +248,6 @@ export class SiteMinderReservationXmlBuilder {
                 };
             }
 
-            // Error
             const errors = rs?.Errors?.Error;
             const errorText = Array.isArray(errors)
                 ? errors.map((e: any) => e['#text'] ?? e).join(', ')

@@ -290,6 +290,10 @@ export const PAYMENT_TO_GUARANTEE_MAP: Record<PaymentMethodType, RTGuarantee> =
 export interface ExistingReservation {
     id: string;
     bookingCode: string;
+    roomName: string;
+    ratePlanName: string;
+    reservationStartDate: string | Date;
+    reservationEndDate: string | Date;
     propertyCode: string | null;
     roomTypeCode: string | null;
     ratePlanCode: string | null;

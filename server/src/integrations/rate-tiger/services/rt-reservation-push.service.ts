@@ -19,6 +19,7 @@ import {
 import { config } from '../../../config';
 import { json } from 'stream/consumers';
 import { ICReservationPayload } from '../../../reservation/types';
+import { ServiceLogger } from '../../../logs/services/service-log.service';
 
 
 interface CachedToken {
@@ -28,8 +29,8 @@ interface CachedToken {
 
 const tokenCacheMap = new Map<string, CachedToken>();
 
-// ─── Service ──────────────────────────────────────────────────────────────────
 
+const logger = new ServiceLogger('RTReservationPushService');
 export class RTReservationPushService {
     // ── 1. Auth ───────────────────────────────────────────────────────────────
 
@@ -408,17 +409,29 @@ export class RTReservationPushService {
             };
             console.log('payload', JSON.stringify(payload, null, 2));
 
-            const response = await RTReservationPushService.pushToRT(
+            const log = logger.start('pushCommit');
+            log.setIncoming({
+                bookingCode,
+                hotelCode: rtConfig.rateTigerPropertyCode,
                 payload,
-                rtConfig
-            );
-            // console.log(
-            //     'RT Commit response:',
-            //     JSON.stringify(response, null, 2)
-            // );
-            return RTReservationPushService.handleRTResponse(response);
+            });
+
+            let response: RTReservationResponse;
+            try {
+                response = await RTReservationPushService.pushToRT(payload, rtConfig);
+            } catch (err) {
+                log.setError(err).save();
+                throw err;
+            }
+
+            const result = RTReservationPushService.handleRTResponse(response);
+            log
+                .pushMessage(result.success ? 'RT commit succeeded' : 'RT commit failed', result.success ? 'info' : 'error')
+                .setMeta({ rtResponse: response, result })
+                .save();
+
+            return result;
         } catch (error: any) {
-            // console.log('RT Commit error:', error);
             return {
                 success: false,
                 message: error?.message ?? 'Unknown error in pushCommit',
@@ -793,15 +806,29 @@ export class RTReservationPushService {
                 },
             };
 
-            const response = await RTReservationPushService.pushToRT(
+            const log = logger.start('pushModify');
+            log.setIncoming({
+                bookingCode: existingReservation.bookingCode,
+                hotelCode: rtConfig.rateTigerPropertyCode,
+                updatePayload,
                 payload,
-                rtConfig
-            );
-            // console.log(
-            //     'RT Modify response:',
-            //     JSON.stringify(response, null, 2)
-            // );
-            return RTReservationPushService.handleRTResponse(response);
+            });
+
+            let response: RTReservationResponse;
+            try {
+                response = await RTReservationPushService.pushToRT(payload, rtConfig);
+            } catch (err) {
+                log.setError(err).save();
+                throw err;
+            }
+
+            const result = RTReservationPushService.handleRTResponse(response);
+            log
+                .pushMessage(result.success ? 'RT modify succeeded' : 'RT modify failed', result.success ? 'info' : 'error')
+                .setMeta({ rtResponse: response, result })
+                .save();
+
+            return result;
         } catch (error: any) {
             // console.log('RT Modify error:', error);
             return {
@@ -847,15 +874,28 @@ export class RTReservationPushService {
                 },
             };
 
-            const response = await RTReservationPushService.pushToRT(
+            const log = logger.start('pushCancel');
+            log.setIncoming({
+                bookingCode: existingReservation.bookingCode,
+                hotelCode: rtConfig.rateTigerPropertyCode,
                 payload,
-                rtConfig
-            );
-            // console.log(
-            //     'RT Cancel response:',
-            //     JSON.stringify(response, null, 2)
-            // );
-            return RTReservationPushService.handleRTResponse(response);
+            });
+
+            let response: RTReservationResponse;
+            try {
+                response = await RTReservationPushService.pushToRT(payload, rtConfig);
+            } catch (err) {
+                log.setError(err).save();
+                throw err;
+            }
+
+            const result = RTReservationPushService.handleRTResponse(response);
+            log
+                .pushMessage(result.success ? 'RT cancel succeeded' : 'RT cancel failed', result.success ? 'info' : 'error')
+                .setMeta({ rtResponse: response, result })
+                .save();
+
+            return result;
         } catch (error: any) {
             //  console.log('RT Cancel error:', error);
             return {

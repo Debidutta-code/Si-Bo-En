@@ -10,8 +10,6 @@ export interface ICTaxRule {
     value        :number;
     applicableOn :TaxApplicableOn;
     description :string|null;
-    validFrom    :Date;
-    validTo     :Date;
     priority    :number;
     currencyCode:CurrencyCode;
 

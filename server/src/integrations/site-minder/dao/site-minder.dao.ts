@@ -316,4 +316,41 @@ export class SiteMinderDao {
             });
         }
     }
+
+    public static async getActiveTaxRulesForRatePlan(
+    ratePlanCode: string,
+    propertyCode: string
+): Promise<Array<{ priority: number; type: string; value: number }>> {
+    const ratePlan = await prisma.ratePlan.findFirst({
+        where: { 
+            ratePlanCode, 
+            property: { propertyCode } 
+        },
+        select: {
+            taxGroup: {
+                select: {
+                    isActive: true,
+                    taxGroupRules: {
+                        select: {
+                            taxRule: {
+                                select: {
+                                    priority: true,
+                                    type: true,
+                                    value: true,
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    });
+    if (!ratePlan?.taxGroup?.isActive) return [];
+
+    return ratePlan.taxGroup.taxGroupRules.map(r => ({
+        priority: r.taxRule.priority,
+        type: r.taxRule.type,
+        value: r.taxRule.value,
+    }));
+}
 }

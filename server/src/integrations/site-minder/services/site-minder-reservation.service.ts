@@ -1,5 +1,4 @@
 // services/site-minder-reservation.service.ts
-// Pushes reservations TO SiteMinder (Commit, Modify, Cancel)
 
 import axios from 'axios';
 import { config } from '../../../config';
@@ -14,47 +13,33 @@ import {
 } from '../types/site-minder-reservation.types';
 import { SiteMinderReservationXmlBuilder } from '../utils/xml-reservation';
 import { SiteMinderReservationValidation } from '../validation/reservation-validation';
+import { ServiceLogger } from '../../../logs/services/service-log.service';
 
-// SiteMinder test endpoint — replace with production during go-live
-const SM_ENDPOINT = 'https://tpi-cm-siteconn.preprod.siteminderlabs.com/reservation-gateway/services';
+const logger = new ServiceLogger('SiteMinderReservationService');
 
 export class SiteMinderReservationService {
 
-    // ─── Core HTTP push ───────────────────────────────────────────────────────
-
     private static async pushToSiteMinder(
         xml: string,
-        bookingCode: string
+        bookingCode: string,
+        smEndpoint: string
     ): Promise<SMReservationResult> {
         try {
-            const response = await axios.post(SM_ENDPOINT, xml, {
+            const response = await axios.post(smEndpoint, xml, {
                 headers: {
                     'Content-Type': 'text/xml; charset=utf-8',
                     SOAPAction: '',
                 },
                 timeout: 15000,
             });
-
-            return SiteMinderReservationXmlBuilder.parseReservationResponse(
-                response.data,
-                bookingCode
-            );
+            return SiteMinderReservationXmlBuilder.parseReservationResponse(response.data, bookingCode);
         } catch (error: any) {
-            // Axios error — try to parse the XML error body if present
             if (error?.response?.data) {
-                return SiteMinderReservationXmlBuilder.parseReservationResponse(
-                    error.response.data,
-                    bookingCode
-                );
+                return SiteMinderReservationXmlBuilder.parseReservationResponse(error.response.data, bookingCode);
             }
-            return {
-                success: false,
-                message: `SiteMinder push failed: ${error?.message ?? 'Unknown error'}`,
-            };
+            return { success: false, message: `SiteMinder push failed: ${error?.message ?? 'Unknown error'}` };
         }
     }
-
-    // ─── Date helper ──────────────────────────────────────────────────────────
 
     private static toDateString(date: string | Date): string {
         if (date instanceof Date) {
@@ -74,14 +59,11 @@ export class SiteMinderReservationService {
         return date;
     }
 
-    // ─── Build room stays from ICReservationPayload ───────────────────────────
-
     private static buildRoomStays(
         payload: ICReservationPayload,
         siteMinderHotelCode: string
     ): SMRoomStay[] {
         const { finalPrice } = payload;
-        const numberOfRooms = payload.numberOfRooms ?? 1;
         const roomsArray = payload?.guests?.roomsArray ?? [];
 
         const checkIn = SiteMinderReservationService.toDateString(payload.reservationStartDate);
@@ -91,10 +73,16 @@ export class SiteMinderReservationService {
             const roomBreakdown = finalPrice.dailyPriceBrakeDown.filter(
                 (day: any) => String(day.roomNumber) === String(roomNumber)
             );
-
             const breakdown = roomBreakdown.length > 0
                 ? roomBreakdown
                 : finalPrice.dailyPriceBrakeDown;
+
+            // Spread total tax evenly across nights
+            const numberOfNights = breakdown.length;
+            const totalTax = finalPrice.taxedAmount ?? 0;
+            const taxPerNight = numberOfNights > 0
+                ? Math.round((totalTax / numberOfNights) * 100) / 100
+                : 0;
 
             return breakdown.map((day: any) => {
                 const effectiveDate = SiteMinderReservationService.toDateString(day.date);
@@ -102,14 +90,15 @@ export class SiteMinderReservationService {
                 nextDay.setDate(nextDay.getDate() + 1);
                 const expireDate = SiteMinderReservationService.toDateString(nextDay);
 
-                const base = day.baseChargesAmount ?? day.baseRate ?? 0;
-                const tax = day.totalDailyTaxedAmount ?? 0;
+                // Use totalAmount as the before-tax base (includes base + additional charges)
+                const base = day.totalAmount ?? day.baseChargesAmount ?? day.baseRate ?? 0;
+                const afterTax = Math.round((base + taxPerNight) * 100) / 100;
 
                 return {
                     effectiveDate,
                     expireDate,
-                    amountBeforeTax: base.toFixed(2),
-                    amountAfterTax: (base + tax).toFixed(2),
+                    ...(taxPerNight > 0 && { amountBeforeTax: base.toFixed(2) }),
+                    amountAfterTax: afterTax.toFixed(2),
                     currencyCode: day.currencyCode ?? payload.currencyCode,
                 };
             });
@@ -132,9 +121,15 @@ export class SiteMinderReservationService {
             );
             const src = breakdown.length > 0 ? breakdown : finalPrice.dailyPriceBrakeDown;
 
-            const beforeTax = src.reduce((s: number, d: any) => s + (d.baseChargesAmount ?? d.baseRate ?? 0), 0);
-            const tax = src.reduce((s: number, d: any) => s + (d.totalDailyTaxedAmount ?? 0), 0);
-            return { beforeTax, afterTax: beforeTax + tax };
+            // totalAmount per day summed = amountBeforeTax for the room stay
+            const beforeTax = src.reduce((s: number, d: any) => s + (d.totalAmount ?? d.baseChargesAmount ?? d.baseRate ?? 0), 0);
+            const tax = finalPrice.taxedAmount ?? 0;
+            // afterTax = currentChargeableAmount (what guest actually pays now, excludes payLater tourist tax)
+            const afterTax = finalPrice.currentChargeableAmount ?? (beforeTax + tax);
+            return {
+                beforeTax: Math.round(beforeTax * 100) / 100,
+                afterTax: Math.round(afterTax * 100) / 100,
+            };
         };
 
         if (roomsArray.length > 0) {
@@ -143,7 +138,7 @@ export class SiteMinderReservationService {
                 const totals = getRoomTotal(roomNumber);
                 return {
                     roomTypeCode: payload.roomTypeCode,
-                    roomTypeName: payload.roomTypeCode, // use code as name if name not available
+                    roomTypeName: payload.roomTypeCode,
                     ratePlanCode: payload.ratePlanCode,
                     ratePlanName: payload.ratePlanCode,
                     roomRates: {
@@ -162,8 +157,10 @@ export class SiteMinderReservationService {
         }
 
         // Single room fallback
-        const totalBefore = (finalPrice.baseRatePerNight * (finalPrice.dailyPriceBrakeDown.length ?? 1));
-        const totalAfter = totalBefore + (finalPrice.taxedAmount ?? 0);
+        const totalBefore = finalPrice.dailyPriceBrakeDown.reduce(
+            (s: number, d: any) => s + (d.totalAmount ?? d.baseChargesAmount ?? d.baseRate ?? 0), 0
+        );
+        const totalAfter = finalPrice.currentChargeableAmount ?? (totalBefore + (finalPrice.taxedAmount ?? 0));
 
         return [{
             roomTypeCode: payload.roomTypeCode,
@@ -181,10 +178,24 @@ export class SiteMinderReservationService {
             }),
             checkIn,
             checkOut,
-            totalAmountBeforeTax: totalBefore.toFixed(2),
-            totalAmountAfterTax: totalAfter.toFixed(2),
+            totalAmountBeforeTax: Math.round(totalBefore * 100) / 100 + '',
+            totalAmountAfterTax: Math.round(totalAfter * 100) / 100 + '',
             currencyCode: payload.currencyCode,
         }];
+    }
+
+    // ─── Helper to build totals for params ───────────────────────────────────
+    private static buildTotals(payload: ICReservationPayload): { totalBeforeTax: string; totalAfterTax: string } {
+        const totalBeforeTax = payload.finalPrice.dailyPriceBrakeDown.reduce(
+            (s: number, d: any) => s + (d.totalAmount ?? d.baseChargesAmount ?? d.baseRate ?? 0), 0
+        );
+        const totalAfterTax = payload.finalPrice.currentChargeableAmount
+            ?? (totalBeforeTax + (payload.finalPrice.taxedAmount ?? 0));
+
+        return {
+            totalBeforeTax: (Math.round(totalBeforeTax * 100) / 100).toFixed(2),
+            totalAfterTax: (Math.round(totalAfterTax * 100) / 100).toFixed(2),
+        };
     }
 
     // ─── PUBLIC: Commit ───────────────────────────────────────────────────────
@@ -194,16 +205,15 @@ export class SiteMinderReservationService {
         bookingCode: string,
         siteMinderHotelCode: string,
         channelCode: string,
-        channelName: string
+        channelName: string,
+        smEndpoint: string
     ): Promise<SMReservationResult> {
         try {
             const guestDetails = payload.guestDetails?.[0];
             const paymentMethod: SMPaymentMethod =
                 payload.paymentMethod === 'pay_at_hotel' ? 'PAY_AT_HOTEL' : 'PREPAY';
 
-            const totalBeforeTax = payload.finalPrice.dailyPriceBrakeDown
-                .reduce((s: number, d: any) => s + (d.baseChargesAmount ?? d.baseRate ?? 0), 0);
-            const totalAfterTax = totalBeforeTax + (payload.finalPrice.taxedAmount ?? 0);
+            const { totalBeforeTax, totalAfterTax } = SiteMinderReservationService.buildTotals(payload);
 
             const params: SMReservationPushParams = {
                 hotelCode: siteMinderHotelCode,
@@ -222,11 +232,10 @@ export class SiteMinderReservationService {
                 },
                 currencyCode: payload.currencyCode,
                 paymentMethod,
-                totalAmountBeforeTax: totalBeforeTax.toFixed(2),
-                totalAmountAfterTax: totalAfterTax.toFixed(2),
+                totalAmountBeforeTax: totalBeforeTax,
+                totalAmountAfterTax: totalAfterTax,
             };
 
-            // Validate before pushing
             const validationError = SiteMinderReservationValidation.validate(params);
             if (validationError) {
                 return { success: false, message: validationError };
@@ -238,7 +247,23 @@ export class SiteMinderReservationService {
                 config.siteMinderPassword!
             );
 
-            return SiteMinderReservationService.pushToSiteMinder(xml, bookingCode);
+            const log = logger.start('pushCommit');
+            log.setIncoming({ bookingCode, hotelCode: siteMinderHotelCode, params, xml });
+
+            let result: SMReservationResult;
+            try {
+                result = await SiteMinderReservationService.pushToSiteMinder(xml, bookingCode, smEndpoint);
+            } catch (err) {
+                log.setError(err).save();
+                throw err;
+            }
+
+            log
+                .pushMessage(result.success ? 'SM commit succeeded' : 'SM commit failed', result.success ? 'info' : 'error')
+                .setMeta({ smResponse: result })
+                .save();
+
+            return result;
         } catch (error: any) {
             return { success: false, message: error?.message ?? 'Unknown error in pushCommit' };
         }
@@ -252,16 +277,15 @@ export class SiteMinderReservationService {
         originalCreateDateTime: string,
         siteMinderHotelCode: string,
         channelCode: string,
-        channelName: string
+        channelName: string,
+        smEndpoint: string
     ): Promise<SMReservationResult> {
         try {
             const guestDetails = payload.guestDetails?.[0];
             const paymentMethod: SMPaymentMethod =
                 payload.paymentMethod === 'pay_at_hotel' ? 'PAY_AT_HOTEL' : 'PREPAY';
 
-            const totalBeforeTax = payload.finalPrice.dailyPriceBrakeDown
-                .reduce((s: number, d: any) => s + (d.baseChargesAmount ?? d.baseRate ?? 0), 0);
-            const totalAfterTax = totalBeforeTax + (payload.finalPrice.taxedAmount ?? 0);
+            const { totalBeforeTax, totalAfterTax } = SiteMinderReservationService.buildTotals(payload);
 
             const params: SMReservationPushParams = {
                 hotelCode: siteMinderHotelCode,
@@ -281,8 +305,8 @@ export class SiteMinderReservationService {
                 },
                 currencyCode: payload.currencyCode,
                 paymentMethod,
-                totalAmountBeforeTax: totalBeforeTax.toFixed(2),
-                totalAmountAfterTax: totalAfterTax.toFixed(2),
+                totalAmountBeforeTax: totalBeforeTax,
+                totalAmountAfterTax: totalAfterTax,
             };
 
             const validationError = SiteMinderReservationValidation.validate(params);
@@ -296,7 +320,23 @@ export class SiteMinderReservationService {
                 config.siteMinderPassword!
             );
 
-            return SiteMinderReservationService.pushToSiteMinder(xml, bookingCode);
+            const log = logger.start('pushModify');
+            log.setIncoming({ bookingCode, hotelCode: siteMinderHotelCode, params, xml });
+
+            let result: SMReservationResult;
+            try {
+                result = await SiteMinderReservationService.pushToSiteMinder(xml, bookingCode, smEndpoint);
+            } catch (err) {
+                log.setError(err).save();
+                throw err;
+            }
+
+            log
+                .pushMessage(result.success ? 'SM modify succeeded' : 'SM modify failed', result.success ? 'info' : 'error')
+                .setMeta({ smResponse: result })
+                .save();
+
+            return result;
         } catch (error: any) {
             return { success: false, message: error?.message ?? 'Unknown error in pushModify' };
         }
@@ -310,16 +350,15 @@ export class SiteMinderReservationService {
         originalCreateDateTime: string,
         siteMinderHotelCode: string,
         channelCode: string,
-        channelName: string
+        channelName: string,
+        smEndpoint: string
     ): Promise<SMReservationResult> {
         try {
             const guestDetails = payload.guestDetails?.[0];
             const paymentMethod: SMPaymentMethod =
                 payload.paymentMethod === 'pay_at_hotel' ? 'PAY_AT_HOTEL' : 'PREPAY';
 
-            const totalBeforeTax = payload.finalPrice.dailyPriceBrakeDown
-                .reduce((s: number, d: any) => s + (d.baseChargesAmount ?? d.baseRate ?? 0), 0);
-            const totalAfterTax = totalBeforeTax + (payload.finalPrice.taxedAmount ?? 0);
+            const { totalBeforeTax, totalAfterTax } = SiteMinderReservationService.buildTotals(payload);
 
             const params: SMReservationPushParams = {
                 hotelCode: siteMinderHotelCode,
@@ -329,7 +368,6 @@ export class SiteMinderReservationService {
                 lastModifyDateTime: new Date().toISOString(),
                 channelCode,
                 channelName,
-                // Cancel still requires full reservation data per SiteMinder spec
                 roomStays: SiteMinderReservationService.buildRoomStays(payload, siteMinderHotelCode),
                 primaryGuest: {
                     firstName: guestDetails?.firstName ?? '',
@@ -340,8 +378,8 @@ export class SiteMinderReservationService {
                 },
                 currencyCode: payload.currencyCode,
                 paymentMethod,
-                totalAmountBeforeTax: totalBeforeTax.toFixed(2),
-                totalAmountAfterTax: totalAfterTax.toFixed(2),
+                totalAmountBeforeTax: totalBeforeTax,
+                totalAmountAfterTax: totalAfterTax,
             };
 
             const validationError = SiteMinderReservationValidation.validate(params);
@@ -355,7 +393,23 @@ export class SiteMinderReservationService {
                 config.siteMinderPassword!
             );
 
-            return SiteMinderReservationService.pushToSiteMinder(xml, bookingCode);
+            const log = logger.start('pushCancel');
+            log.setIncoming({ bookingCode, hotelCode: siteMinderHotelCode, params, xml });
+
+            let result: SMReservationResult;
+            try {
+                result = await SiteMinderReservationService.pushToSiteMinder(xml, bookingCode, smEndpoint);
+            } catch (err) {
+                log.setError(err).save();
+                throw err;
+            }
+
+            log
+                .pushMessage(result.success ? 'SM cancel succeeded' : 'SM cancel failed', result.success ? 'info' : 'error')
+                .setMeta({ smResponse: result })
+                .save();
+
+            return result;
         } catch (error: any) {
             return { success: false, message: error?.message ?? 'Unknown error in pushCancel' };
         }

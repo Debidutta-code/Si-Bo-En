@@ -1509,75 +1509,77 @@ class TaxClass {
         this.priceBrakeDown = priceBrakeDown;
     }
     public applyTax(): PriceBrakeDown {
-        if (!this.taxGroup) {
-            return {
-                ...this.priceBrakeDown,
-                taxedAmount: 0,
-                taxBrakeDown: [],
-                currentChargeableAmount: this.priceBrakeDown.amountBeforeTax,
-                totalAmount:
-                    this.priceBrakeDown.amountBeforeTax +
-                    this.priceBrakeDown.latterpayableAmount,
-            };
-        }
-
-        const base = Number(this.priceBrakeDown.amountBeforeTax) || 0;
-
-        // ✅ STEP 1: group by priority
-        const grouped: Record<number, any[]> = {};
-
-        this.taxGroup.taxGroupRules.forEach(rule => {
-            const p = rule.taxRule.priority;
-            if (!grouped[p]) grouped[p] = [];
-            grouped[p].push(rule);
-        });
-
-        // ✅ STEP 2: sort priorities
-        const priorities = Object.keys(grouped)
-            .map(Number)
-            .sort((a, b) => a - b);
-
-        let runningTotal = base;
-        const taxBrakeDown: TaxBrakeDown[] = [];
-
-        // ✅ STEP 3: apply group-wise
-        priorities.forEach(priority => {
-            const rules = grouped[priority];
-            let groupTaxTotal = 0;
-
-            rules.forEach(rule => {
-                let taxForThisRule = 0;
-
-                if (rule.taxRule.type === "fixed") {
-                    taxForThisRule = Number(rule.taxRule.value) * this.priceBrakeDown.dailyPriceBrakeDown.length;
-                } else {
-                    // ✅ SAME BASE for same priority
-                    taxForThisRule =
-                        (Number(rule.taxRule.value) * runningTotal) / 100;
-                }
-
-                groupTaxTotal += taxForThisRule;
-
-                taxBrakeDown.push({
-                    name: rule.taxRule.name,
-                    taxedAmount: taxForThisRule,
-                    currencyCode: this.priceBrakeDown.currencyCode,
-                });
-            });
-
-            // ✅ update AFTER whole group
-            runningTotal += groupTaxTotal;
-        });
-
-        const taxedAmount = runningTotal - base;
-
+    if (!this.taxGroup) {
         return {
             ...this.priceBrakeDown,
-            taxedAmount,
-            taxBrakeDown,
-            currentChargeableAmount: runningTotal,
-            totalAmount:
-                runningTotal + this.priceBrakeDown.latterpayableAmount,
+            taxedAmount: 0,
+            taxBrakeDown: [],
+            currentChargeableAmount: this.priceBrakeDown.amountBeforeTax,
+            totalAmount: this.priceBrakeDown.amountBeforeTax + this.priceBrakeDown.latterpayableAmount,
         };
     }
+
+    const base = Number(this.priceBrakeDown.amountBeforeTax) || 0;
+
+    const grouped: Record<number, any[]> = {};
+    this.taxGroup.taxGroupRules.forEach(rule => {
+        const p = rule.taxRule.priority;
+        if (!grouped[p]) grouped[p] = [];
+        grouped[p].push(rule);
+    });
+
+    const priorities = Object.keys(grouped).map(Number).sort((a, b) => a - b);
+
+    let runningTotal = base;
+    const taxBrakeDown: TaxBrakeDown[] = [];
+
+    priorities.forEach(priority => {
+        const rules = grouped[priority];
+        let groupTaxTotal = 0;
+
+        rules.forEach(rule => {
+            let taxForThisRule = 0;
+
+            if (rule.taxRule.type === "fixed") {
+                taxForThisRule = Number(rule.taxRule.value) * this.priceBrakeDown.dailyPriceBrakeDown.length;
+            } else {
+                taxForThisRule = (Number(rule.taxRule.value) * runningTotal) / 100;
+            }
+
+            // ✅ round each individual tax line
+            taxForThisRule = Number(taxForThisRule.toFixed(2));
+            groupTaxTotal += taxForThisRule;
+
+            taxBrakeDown.push({
+                name: rule.taxRule.name,
+                taxedAmount: taxForThisRule,
+                currencyCode: this.priceBrakeDown.currencyCode,
+            });
+        });
+
+        runningTotal += groupTaxTotal;
+    });
+
+    const chargeableAmount = Math.round(runningTotal);  // 320
+    const taxedAmount = Number((chargeableAmount - base).toFixed(2));
+    const totalAmount = Number((chargeableAmount + this.priceBrakeDown.latterpayableAmount).toFixed(2)); // 363.15
+
+    // ✅ round daily breakdown amounts
+    const cleanedDailyBreakdown = this.priceBrakeDown.dailyPriceBrakeDown.map(day => ({
+        ...day,
+        baseChargesAmount:       Number(day.baseChargesAmount.toFixed(2)),
+        additionalChargesAmount: Number(day.additionalChargesAmount.toFixed(2)),
+        totalAmount:             Number(day.totalAmount.toFixed(2)),
+    }));
+
+    return {
+        ...this.priceBrakeDown,
+        amountBeforeTax:         Number(base.toFixed(2)),
+        taxedAmount,
+        taxBrakeDown,
+        currentChargeableAmount: chargeableAmount,
+        totalAmount,
+        dailyPriceBrakeDown:     cleanedDailyBreakdown,
+    };
+}
 }

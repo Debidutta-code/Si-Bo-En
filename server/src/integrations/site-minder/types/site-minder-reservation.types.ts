@@ -9,10 +9,11 @@ export interface SMGuestCount {
 export interface SMRateDay {
     effectiveDate: string;
     expireDate: string;
-    amountBeforeTax: string;
+    amountBeforeTax?: string;
     amountAfterTax: string;
     currencyCode: string;
 }
+
 
 export interface SMRoomRate {
     roomTypeCode: string;

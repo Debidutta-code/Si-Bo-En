@@ -95,8 +95,6 @@ export interface ITaxRule {
     value: number;
     applicableOn: TaxApplicableOn;
     description: string | null;
-    validFrom: Date;
-    validTo: Date;
     isInclusive: boolean;
     priority: number;
 }

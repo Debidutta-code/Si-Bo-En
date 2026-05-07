@@ -934,12 +934,6 @@ export default function TaxSystem() {
                                                         </div>
                                                     </div>
                                                 )}
-                                                <div className="pt-2 border-t text-xs text-gray-500">
-                                                    <p>
-                                                        Valid: {format(new Date(rule.validFrom), "PP")}{" "}
-                                                        - {format(new Date(rule.validTo), "PP")}
-                                                    </p>
-                                                </div>
                                             </div>
                                         </CardContent>
                                     </Card>
