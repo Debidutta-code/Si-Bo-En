@@ -6,8 +6,7 @@ import toast from "react-hot-toast";
 import { RootState } from "@/src/store/store";
 import { setLoyaltyProfile } from "@/src/store/loyaltyUserSlice";
 import { PropertyLoyaltyConfig } from "@/src/store/loyaltyUserTypes";
-import { getMyProfileApi, getAvailableSpasApi } from "../api/profile.api";
-import SpaBookingDialog from "../../../../../components/loyalty/SpaBookingDialog";
+import { getMyProfileApi } from "../api/profile.api";
 
 type userIdentityCardType = "PASSPORT" | "DRIVERS_LICENSE" | "NATIONAL_ID" | "OTHER";
 
@@ -36,9 +35,6 @@ export default function MyBookingsPage() {
   const [bookingPropertyCode, setBookingPropertyCode] = useState("");
   const [bookingData, setBookingData] = useState<any | null>(null);
   const [bookingLoading, setBookingLoading] = useState(false);
-  const [isSpaDialogOpen, setIsSpaDialogOpen] = useState(false);
-  const [availableSpas, setAvailableSpas] = useState<any[]>([]);
-  const [spasLoading, setSpasLoading] = useState(false);
 
   const [isCheckinDialogOpen, setIsCheckinDialogOpen] = useState(false);
   const [checkinForm, setCheckinForm] = useState<IGuestCheckInDetails>({
@@ -92,7 +88,6 @@ export default function MyBookingsPage() {
     }
     setBookingLoading(true);
     setBookingData(null);
-    setAvailableSpas([]);
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations/BOOK-${bookingCode.trim().toUpperCase()}?propertyCode=${bookingPropertyCode.trim().toUpperCase()}`
@@ -100,21 +95,10 @@ export default function MyBookingsPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message ?? "Booking not found");
       setBookingData(data.data);
-
-      // Fetch available spas for this booking
-      setSpasLoading(true);
-      const spasRes = await getAvailableSpasApi(`BOOK-${bookingCode.trim().toUpperCase()}`);
-      if (spasRes?.success) {
-        setAvailableSpas(spasRes.data || []);
-      } else {
-        setAvailableSpas([]);
-      }
     } catch (err: any) {
       toast.error(err.message ?? "Error fetching booking");
-      setAvailableSpas([]);
     } finally {
       setBookingLoading(false);
-      setSpasLoading(false);
     }
   };
 
@@ -175,65 +159,27 @@ export default function MyBookingsPage() {
   };
 
   return (
-    <>
-      <div className="space-y-6 relative">
-        {/* ── Booking lookup */}
-        <div className="bg-white rounded-2xl p-6" style={{ border: "1px solid #f0f0f0" }}>
-          <h3 className="text-[18px] font-bold text-[#1a1a1a] mb-1">Look up a Booking</h3>
-          <p className="text-[12.5px] mb-4 text-black">
-            Enter your property code and booking number to view reservation details.
-          </p>
+    <div className="space-y-6 relative">
+      {/* ── Booking lookup */}
+      <div className="bg-white rounded-2xl p-6" style={{ border: "1px solid #f0f0f0" }}>
+        <h3 className="text-[18px] font-bold text-[#1a1a1a] mb-1">Look up a Booking</h3>
+        <p className="text-[12.5px] mb-4 text-black">
+          Enter your property code and booking number to view reservation details.
+        </p>
 
-          <div className="flex flex-col sm:flex-row gap-3">
-            {/* Property selector */}
-            <div className="flex-1 relative">
-              <select
-                value={bookingPropertyCode}
-                onChange={(e) => setBookingPropertyCode(e.target.value)}
-                className="w-full rounded-[9px] text-[13px] outline-none appearance-none transition-all cursor-pointer"
-                style={{
-                  padding: "10px 36px 10px 14px",
-                  background: "#fafafa",
-                  border: "1.5px solid #e0e0e0",
-                  color: "black",
-                  fontFamily: "'DM Sans', sans-serif",
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = "#e0e0e0";
-                  e.currentTarget.style.background = "#fff";
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = "#e0e0e0";
-                  e.currentTarget.style.background = "#fafafa";
-                }}
-              >
-                <option value="" disabled>
-                  Select a property
-                </option>
-                {allProperties.map((p) => (
-                  <option key={p.propertyId} value={p.propertyCode}>
-                    {p.propertyName}
-                  </option>
-                ))}
-              </select>
-              <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#bbb] text-[10px]">
-                ▼
-              </span>
-            </div>
-
-            {/* Booking code input */}
-            <input
-              type="text"
-              placeholder="Booking code (e.g. 12345)"
-              value={bookingCode}
-              onChange={(e) => setBookingCode(e.target.value.toUpperCase())}
-              onKeyDown={(e) => e.key === "Enter" && handleBookingSearch()}
-              className="flex-1 rounded-[9px] text-[13px] outline-none transition-all"
+        <div className="flex flex-col sm:flex-row gap-3">
+          {/* Property selector */}
+          <div className="flex-1 relative">
+            <select
+              value={bookingPropertyCode}
+              onChange={(e) => setBookingPropertyCode(e.target.value)}
+              className="w-full rounded-[9px] text-[13px] outline-none appearance-none transition-all cursor-pointer"
               style={{
-                padding: "10px 14px",
+                padding: "10px 36px 10px 14px",
                 background: "#fafafa",
                 border: "1.5px solid #e0e0e0",
-                color: "#1a1a1a",
+                color: "black",
+                fontFamily: "'DM Sans', sans-serif",
               }}
               onFocus={(e) => {
                 e.currentTarget.style.borderColor = "#e0e0e0";
@@ -243,172 +189,184 @@ export default function MyBookingsPage() {
                 e.currentTarget.style.borderColor = "#e0e0e0";
                 e.currentTarget.style.background = "#fafafa";
               }}
-            />
-
-            {/* Search button */}
-            <button
-              onClick={handleBookingSearch}
-              disabled={bookingLoading}
-              className="px-5 py-2.5 rounded-[9px] text-white text-[13px] font-medium border-none cursor-pointer disabled:opacity-60 whitespace-nowrap"
-              style={{
-                background: "linear-gradient(90deg, #0d7a87 0%,  #0d7a87 100%)",
-                boxShadow: "0 4px 12px rgba(184,145,42,0.25)",
-              }}
             >
-              {bookingLoading ? "Searching…" : "Find Booking"}
-            </button>
+              <option value="" disabled>
+                Select a property
+              </option>
+              {allProperties.map((p) => (
+                <option key={p.propertyId} value={p.propertyCode}>
+                  {p.propertyName}
+                </option>
+              ))}
+            </select>
+            <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[#bbb] text-[10px]">
+              ▼
+            </span>
           </div>
-        </div>
 
-        {/* ── Booking result */}
-        {bookingData && (
-          <div
-            className="bg-white rounded-2xl overflow-hidden"
-            style={{ border: "1px solid #f0f0f0", boxShadow: "0 4px 16px rgba(0,0,0,0.06)" }}
+          {/* Booking code input */}
+          <input
+            type="text"
+            placeholder="Booking code (e.g. 12345)"
+            value={bookingCode}
+            onChange={(e) => setBookingCode(e.target.value.toUpperCase())}
+            onKeyDown={(e) => e.key === "Enter" && handleBookingSearch()}
+            className="flex-1 rounded-[9px] text-[13px] outline-none transition-all"
+            style={{
+              padding: "10px 14px",
+              background: "#fafafa",
+              border: "1.5px solid #e0e0e0",
+              color: "#1a1a1a",
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = "#e0e0e0";
+              e.currentTarget.style.background = "#fff";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = "#e0e0e0";
+              e.currentTarget.style.background = "#fafafa";
+            }}
+          />
+
+          {/* Search button */}
+          <button
+            onClick={handleBookingSearch}
+            disabled={bookingLoading}
+            className="px-5 py-2.5 rounded-[9px] text-white text-[13px] font-medium border-none cursor-pointer disabled:opacity-60 whitespace-nowrap"
+            style={{
+              background: "linear-gradient(90deg, #0d7a87 0%,  #0d7a87 100%)",
+              boxShadow: "0 4px 12px rgba(184,145,42,0.25)",
+            }}
           >
-            <div
-              className="px-6 py-4 flex items-center justify-between"
-              style={{ background: `linear-gradient(135deg, #1fc8d8 0%, #0d7a87 100%)` }}
+            {bookingLoading ? "Searching…" : "Find Booking"}
+          </button>
+        </div>
+      </div>
+
+      {/* ── Booking result */}
+      {bookingData && (
+        <div
+          className="bg-white rounded-2xl overflow-hidden"
+          style={{ border: "1px solid #f0f0f0", boxShadow: "0 4px 16px rgba(0,0,0,0.06)" }}
+        >
+          <div
+            className="px-6 py-4 flex items-center justify-between"
+            style={{ background: `linear-gradient(135deg, #1fc8d8 0%, #0d7a87 100%)` }}
+          >
+            <div>
+              <p className="text-white font-semibold text-[15px]">🏨 {bookingData.hotelName}</p>
+              <p className="text-white/75 text-[12px] mt-0.5">
+                BOOK-{bookingData.bookingCode?.split("-")[1]}
+              </p>
+            </div>
+            <span
+              className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${bookingData.bookingStatus === "cancelled"
+                ? "bg-red-100 text-red-600"
+                : bookingData.bookingStatus === "modified"
+                  ? "bg-yellow-100 text-yellow-700"
+                  : bookingData.bookingStatus === "checkedIn"
+                    ? "bg-blue-100 text-blue-700"
+                    : bookingData.bookingStatus === "checkedOut"
+                      ? "bg-gray-100 text-gray-700"
+                      : "bg-green-100 text-green-700"
+                }`}
             >
-              <div>
-                <p className="text-white font-semibold text-[15px]">🏨 {bookingData.hotelName}</p>
-                <p className="text-white/75 text-[12px] mt-0.5">
-                  BOOK-{bookingData.bookingCode?.split("-")[1]}
+              {formatStatus(bookingData.bookingStatus)}
+            </span>
+          </div>
+
+          <div className="p-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-5">
+              {[
+                {
+                  label: "Check-in",
+                  val: bookingData.checkInDate
+                    ? new Date(bookingData.checkInDate).toDateString()
+                    : "—",
+                },
+                {
+                  label: "Check-out",
+                  val: bookingData.checkOutDate
+                    ? new Date(bookingData.checkOutDate).toDateString()
+                    : "—",
+                },
+                { label: "Room type", val: bookingData.roomTypeCode ?? "—" },
+                { label: "Rate plan", val: bookingData.ratePlanCode ?? "—" },
+                { label: "Rooms", val: bookingData.finalPrice?.requestedRooms ?? 1 },
+                {
+                  label: "Total",
+                  val: `${bookingData.currencyCode} ${Number(
+                    bookingData.finalPrice?.totalAmount ?? bookingData.amount ?? 0
+                  ).toLocaleString()}`,
+                },
+              ].map((row) => (
+                <div key={row.label}>
+                  <p
+                    className="text-[14px] font-bold text-black mb-0.5"
+                  >
+                    {row.label}
+                  </p>
+                  <p className="text-[13px] text-[#1a1a1a]">{row.val}</p>
+                </div>
+              ))}
+            </div>
+
+            {bookingData.guests?.[0] && (
+              <div className="pt-4 border-t border-[#f5f5f5]">
+                <p
+                  className="text-[11px] uppercase tracking-[0.07em] font-medium mb-1"
+                  style={{ color: "#aaa" }}
+                >
+                  Primary Guest
+                </p>
+                <p className="text-[13px] text-[#1a1a1a]">
+                  {bookingData.guests[0].firstName} {bookingData.guests[0].lastName}
                 </p>
               </div>
-              <span
-                className={`text-[11px] font-semibold px-2.5 py-1 rounded-full ${bookingData.bookingStatus === "cancelled"
-                  ? "bg-red-100 text-red-600"
-                  : bookingData.bookingStatus === "modified"
-                    ? "bg-yellow-100 text-yellow-700"
-                    : bookingData.bookingStatus === "checkedIn"
-                      ? "bg-blue-100 text-blue-700"
-                      : bookingData.bookingStatus === "checkedOut"
-                        ? "bg-gray-100 text-gray-700"
-                        : "bg-green-100 text-green-700"
-                  }`}
-              >
-                {formatStatus(bookingData.bookingStatus)}
-              </span>
-            </div>
+            )}
 
-            <div className="p-6">
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-5">
-                {[
-                  {
-                    label: "Check-in",
-                    val: bookingData.checkInDate
-                      ? new Date(bookingData.checkInDate).toDateString()
-                      : "—",
-                  },
-                  {
-                    label: "Check-out",
-                    val: bookingData.checkOutDate
-                      ? new Date(bookingData.checkOutDate).toDateString()
-                      : "—",
-                  },
-                  { label: "Room type", val: bookingData.roomTypeCode ?? "—" },
-                  { label: "Rate plan", val: bookingData.ratePlanCode ?? "—" },
-                  { label: "Rooms", val: bookingData.finalPrice?.requestedRooms ?? 1 },
-                  {
-                    label: "Total",
-                    val: `${bookingData.currencyCode} ${Number(
-                      bookingData.finalPrice?.totalAmount ?? bookingData.amount ?? 0
-                    ).toLocaleString()}`,
-                  },
-                ].map((row) => (
-                  <div key={row.label}>
-                    <p
-                      className="text-[14px] font-bold text-black mb-0.5"
-                    >
-                      {row.label}
-                    </p>
-                    <p className="text-[13px] text-[#1a1a1a]">{row.val}</p>
-                  </div>
-                ))}
+            {bookingData.bookingStatus === "confirmed" && (
+              <div className="pt-4 mt-4 border-t border-[#f5f5f5] flex justify-end">
+                <button
+                  onClick={() => setIsCheckinDialogOpen(true)}
+                  className="px-6 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity"
+                  style={{ background: "#0d7a87" }}
+                >
+                  Check In Now
+                </button>
               </div>
+            )}
 
-              {bookingData.guests?.[0] && (
-                <div className="pt-4 border-t border-[#f5f5f5]">
-                  <p
-                    className="text-[11px] uppercase tracking-[0.07em] font-medium mb-1"
-                    style={{ color: "#aaa" }}
-                  >
-                    Primary Guest
-                  </p>
-                  <p className="text-[13px] text-[#1a1a1a]">
-                    {bookingData.guests[0].firstName} {bookingData.guests[0].lastName}
-                  </p>
-                </div>
-              )}
-
-              {/* Available Spas Section */}
-              {availableSpas.length > 0 && (
-                <div className="pt-4 border-t border-[#f5f5f5]">
-                  <p className="text-[11px] uppercase tracking-[0.07em] font-medium mb-3" style={{ color: "#aaa" }}>
-                    Available Spa Services
-                  </p>
-                  <button
-                    onClick={() => setIsSpaDialogOpen(true)}
-                    className="px-6 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity"
-                    style={{ background: "#0d7a87" }}
-                  >
-                    View & Book Spa Services ({availableSpas.length} available)
-                  </button>
-                </div>
-              )}
-
-              {isSpaDialogOpen && bookingData && (
-                <SpaBookingDialog
-                  bookingCode={bookingData.bookingCode}
-                  reservationId={bookingData.id}
-                  guestName={bookingData.guests?.[0] ? `${bookingData.guests[0].firstName} ${bookingData.guests[0].lastName}` : ""}
-                  onClose={() => setIsSpaDialogOpen(false)}
-                />
-              )}
-
-              {bookingData.bookingStatus === "confirmed" && (
-                <div className="pt-4 mt-4 border-t border-[#f5f5f5] flex justify-end">
-                  <button
-                    onClick={() => setIsCheckinDialogOpen(true)}
-                    className="px-6 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity"
-                    style={{ background: "#0d7a87" }}
-                  >
-                    Check In Now
-                  </button>
-                </div>
-              )}
-
-              {bookingData.bookingStatus === "checked_in" && (
-                <div className="pt-4 mt-4 border-t border-[#f5f5f5] flex justify-end">
-                  <button
-                    onClick={() => setIsCheckoutDialogOpen(true)}
-                    className="px-6 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity"
-                    style={{ background: "#e53e3e" }}
-                  >
-                    Check Out Now
-                  </button>
-                </div>
-              )}
-            </div>
+            {bookingData.bookingStatus === "checked_in" && (
+              <div className="pt-4 mt-4 border-t border-[#f5f5f5] flex justify-end">
+                <button
+                  onClick={() => setIsCheckoutDialogOpen(true)}
+                  className="px-6 py-2 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity"
+                  style={{ background: "#e53e3e" }}
+                >
+                  Check Out Now
+                </button>
+              </div>
+            )}
           </div>
-        )}
+        </div>
+      )}
 
-        {!bookingData && !bookingLoading && (
-          <div
-            className="bg-white rounded-2xl p-8 text-center"
-            style={{ border: "1px solid #f0f0f0" }}
-          >
-            <p className="text-3xl mb-2">🔍</p>
-            <p className="text-[13px] font-medium text-[#1a1a1a] mb-1">No booking loaded yet</p>
-            <p className="text-[12px]" style={{ color: "#aaa" }}>
-              Enter your booking code above to view reservation details.
-            </p>
-          </div>
-        )}
-      </div>
+      {!bookingData && !bookingLoading && (
+        <div
+          className="bg-white rounded-2xl p-8 text-center"
+          style={{ border: "1px solid #f0f0f0" }}
+        >
+          <p className="text-3xl mb-2">🔍</p>
+          <p className="text-[13px] font-medium text-[#1a1a1a] mb-1">No booking loaded yet</p>
+          <p className="text-[12px]" style={{ color: "#aaa" }}>
+            Enter your booking code above to view reservation details.
+          </p>
+        </div>
+      )}
+
       {isCheckinDialogOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
               <h3 className="text-lg font-bold text-gray-900">Online Check-In</h3>
@@ -432,7 +390,7 @@ export default function MyBookingsPage() {
                   >
                     <option value="NATIONAL_ID">National ID</option>
                     <option value="PASSPORT">Passport</option>
-                    <option value="DRIVERS_LICENSE">Driver&apos;s License</option>
+                    <option value="DRIVERS_LICENSE">Driver's License</option>
                     <option value="OTHER">Other</option>
                   </select>
                 </div>
@@ -526,7 +484,7 @@ export default function MyBookingsPage() {
       )}
 
       {isCheckoutDialogOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl">
             <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
               <h3 className="text-lg font-bold text-gray-900">Confirm Check-Out</h3>
@@ -565,6 +523,6 @@ export default function MyBookingsPage() {
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }

@@ -120,30 +120,28 @@ export function ProfileSidebar() {
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&display=swap');
 
          /* ── Sidebar shell ──────────────────────────────────────────────── */
-          .bh-sidebar {
-            position: fixed;
-            top: 0; left: 0;
-            height: 100vh;
-            width: 260px;
-            background: #ffffff;
-            border-right: 1px solid #e8ecef;
-            display: flex;
-            flex-direction: column;
-            z-index: 40;
-            font-family: 'DM Sans', sans-serif;
-            overflow: visible;
-            transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-          }
-
-         /* ── Brand / Logo area ──────────────────────────────────────────── */
-         .bh-brand {
-           padding: 0px 24px;
-           border-bottom: 1px solid #f0f2f4;
-           flex-shrink: 0;
+         .bh-sidebar {
+           position: fixed;
+           top: 0; left: 0;
+           height: 100vh;
+           width: 260px;
+           background: #ffffff;
+           border-right: 1px solid #e8ecef;
            display: flex;
-           align-items: center;
-           min-height: 64px;
+           flex-direction: column;
+           z-index: 100;
+           font-family: 'DM Sans', sans-serif;
+           overflow-y: auto;
+           overflow: visible;
+           transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1);
          }
+
+        /* ── Brand / Logo area ──────────────────────────────────────────── */
+        .bh-brand {
+          padding: 0px 24px;
+          border-bottom: 1px solid #f0f2f4;
+          flex-shrink: 0;
+        }
         .bh-logo-text-main {
           font-size: 20px;
           font-weight: 700;
@@ -162,7 +160,7 @@ export function ProfileSidebar() {
 
         /* ── Nav body ───────────────────────────────────────────────────── */
         .bh-nav {
-          flex: auto;
+          flex: 1;
           padding: 14px 12px;
           display: flex;
           flex-direction: column;
@@ -199,11 +197,6 @@ export function ProfileSidebar() {
           font-family: 'DM Sans', sans-serif;
           text-align: left;
           line-height: 1;
-        }
-        .bh-nav-item[data-collapsed="true"] {
-          justify-content: center;
-          gap: 0;
-          padding: 10px;
         }
         .bh-nav-item:hover:not(.active) {
           background: #f4f7fa;
@@ -332,49 +325,46 @@ export function ProfileSidebar() {
         .bh-mobile-signout { display: none; }
       `}</style>
 
-      <aside
-        className="bh-sidebar"
-        style={{ width: collapsed ? 64 : 260, overflowX: "visible" }}
-        role="navigation"
-        aria-label="Main navigation"
-      >
-        {/* ── Toggle button ── */}
-        <button
-          onClick={toggle}
-          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-          className="absolute top-6 -right-4 flex items-center justify-center w-8 h-8 rounded-full bg-white border border-gray-200 shadow-sm text-gray-500 z-[51] hover:bg-teal-600 hover:text-white transition-colors duration-150"
-        >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="transition-transform duration-250"
-            style={{
-              transform: collapsed ? "rotate(0deg)" : "rotate(180deg)",
-              transition: "transform 0.25s",
-            }}
-          >
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
-        </button>
+       <aside
+         className="bh-sidebar"
+         style={{ width: collapsed ? 64 : 260 }}
+         role="navigation"
+         aria-label="Main navigation"
+       >
+         {/* ── Toggle button ── */}
+         <button
+           onClick={toggle}
+           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+           className="absolute top-2.5 -right-3 flex items-center justify-center w-6 h-6 rounded-full bg-white border border-gray-200 shadow-sm text-gray-500 z-10 hover:bg-teal-600 hover:text-white transition-colors duration-150"
+         >
+           <svg
+             width="14"
+             height="14"
+             viewBox="0 0 24 24"
+             fill="none"
+             stroke="currentColor"
+             strokeWidth="2.5"
+             strokeLinecap="round"
+             strokeLinejoin="round"
+             className="transition-transform duration-250"
+             style={{
+               transform: collapsed ? "rotate(0deg)" : "rotate(180deg)",
+               transition: "transform 0.25s",
+             }}
+           >
+             <polyline points="9 18 15 12 9 6" />
+           </svg>
+         </button>
 
         {/* ── Brand ── */}
-        <div className="bh-brand" style={{
-          padding: collapsed ? "40px" : "0px 24px",
-          minHeight: collapsed ? 0 : "auto"
-        }}>
-          {!collapsed && (dynamicLogo ? (
+        <div className="bh-brand">
+          {dynamicLogo ? (
             <div style={{ position: "relative", width: 140, height: 44 }}>
               <Image src={dynamicLogo} alt="Hotel Logo" fill style={{ objectFit: "contain" }} unoptimized />
             </div>
           ) : (
             <Image src={ZLogo} alt="Logo" width={120} height={40} style={{ objectFit: "contain" }} />
-          ))}
+          )}
         </div>
 
         {/* ── Nav ── */}
@@ -382,17 +372,7 @@ export function ProfileSidebar() {
           {NAV.map((group, gi) => (
             <div key={gi}>
               {group.section && (
-                <span
-                  className="bh-section-label"
-                  style={{
-                    opacity: collapsed ? 0 : 1,
-                    transition: "opacity 0.2s ease",
-                    overflow: "hidden",
-                    whiteSpace: "nowrap"
-                  }}
-                >
-                  {group.section}
-                </span>
+                <span className="bh-section-label">{group.section}</span>
               )}
               {group.items.map(({ href, label, Icon }) => {
                 const active = isActive(href);
@@ -402,20 +382,9 @@ export function ProfileSidebar() {
                     href={href}
                     className={`bh-nav-item${active ? " active" : ""}`}
                     aria-current={active ? "page" : undefined}
-                    title={collapsed ? label : undefined}
-                    data-collapsed={collapsed}
                   >
                     <span className="bh-nav-icon"><Icon /></span>
-                    <span
-                      style={{
-                        opacity: collapsed ? 0 : 1,
-                        transition: "opacity 0.15s ease",
-                        overflow: "hidden",
-                        whiteSpace: "nowrap"
-                      }}
-                    >
-                      {label}
-                    </span>
+                    {label}
                   </Link>
                 );
               })}
@@ -430,36 +399,26 @@ export function ProfileSidebar() {
         </nav>
 
         {/* ── User + sign out ── */}
-        <div className="bh-user" style={{ justifyContent: collapsed ? "center" : "flex-start" }}>
+        <div className="bh-user">
           <div className="bh-user-avatar">
             <IconProfile />
           </div>
-           <span
-             className="bh-user-name"
-             title={name}
-             style={{ opacity: collapsed ? 0 : 1, transition: "opacity 0.2s ease" }}
-           >
-             {name}
-           </span>
-          {!collapsed && (
-            <button
-              className="bh-signout-btn"
-              onClick={handleLogout}
-              title="Sign out"
-              aria-label="Sign out"
-            >
-              <IconSignOut />
-            </button>
-          )}
+          <span className="bh-user-name" title={name}>{name}</span>
+          <button
+            className="bh-signout-btn"
+            onClick={handleLogout}
+            title="Sign out"
+            aria-label="Sign out"
+          >
+            <IconSignOut />
+          </button>
         </div>
 
         {/* ── Footer ── */}
-        {!collapsed && (
-          <div className="bh-footer">
-            <p>© 2024 Revchill. All Rights Reserved.</p>
-            <p><a href="#">Terms and Conditions</a></p>
-          </div>
-        )}
+        <div className="bh-footer">
+          <p>© 2024 Revchill. All Rights Reserved.</p>
+          <p><a href="#">Terms and Conditions</a></p>
+        </div>
 
       </aside>
     </>
