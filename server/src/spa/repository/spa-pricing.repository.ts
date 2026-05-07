@@ -36,7 +36,7 @@ export class SpaPricingRepository {
             throw new Error("Error while fetching spa slot pricing");
         }
     }
-    public async updateReservationPricing(reservationId: string, amount: number, extraAmountToPay: number): Promise<ISpaReservation> {
+    public async updateReservationPricing({reservationId, amount, extraAmountToPay}: {reservationId: string, amount: number, extraAmountToPay: number}): Promise<ISpaReservation> {
         try {
             return await prisma.reservation.update({
                 where: { id: reservationId },

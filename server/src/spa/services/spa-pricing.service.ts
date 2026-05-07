@@ -12,7 +12,7 @@ export class SpaPricingService {
         this.spaDatesRepository = new SpaDatesRepo();
         this.spaRepository = new SpaRepository();
     }
-    public async createSpaPricing(data: ICSpaPricing) {
+    public async createSpaPricing(data: ICSpaPricing): Promise<IApiResponse> {
         try {
             const [reservation, spaDate] = await Promise.all([
                 this.spaPricingRepository.getReservationById(data.reservationId),
@@ -40,11 +40,30 @@ export class SpaPricingService {
                     pricingId: reservation.pricingBrakedownId,
                     spaSlotId: data.spaSlotId
                 })
+            }else{
+                await Promise.all([
+
+                    this.spaPricingRepository.createSpaPricing({
+                        price: spa.discountValue ? spa.discountValue : 0,
+                        pricingId: reservation.pricingBrakedownId,
+                        spaSlotId: data.spaSlotId
+                    }),
+                    this.spaPricingRepository.updateReservationPricing(
+                        {
+                            reservationId: data.reservationId,
+                            amount:reservation.amount + (spa.discountValue ? spa.discountValue : 0),
+                            extraAmountToPay: reservation.extraAmountToPay + (spa.discountValue ? spa.discountValue : 0)
+                        }
+
+
+                    )
+                ])
+
             }
-            // const result = await this.spaPricingRepository.createSpaPricing(data);
-            // return successResponse(result);
+            return successResponse("Spa pricing created successfully");
         } catch (error) {
             return errorResponse("Error while creating spa pricing");
         }
     }
+
 }
