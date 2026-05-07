@@ -57,12 +57,26 @@ export class HotelRepository {
 
         // Filtering by amenities
         if (amenities) {
-            const amenityIds = amenities.split(',');
-            where.propertyAmenities = {
-                some: {
-                    amenityId: { in: amenityIds },
-                },
-            };
+            const amenityList = amenities.split(',').map(a => a.trim()).filter(Boolean);
+            if (amenityList.length > 0) {
+                where.propertyAmenities = {
+                    some: {
+                        OR: [
+                            { amenityId: { in: amenityList } },
+                            {
+                                amenity: {
+                                    OR: amenityList.map(a => ({
+                                        amenityName: {
+                                            equals: a,
+                                            mode: 'insensitive',
+                                        },
+                                    })),
+                                },
+                            },
+                        ],
+                    },
+                };
+            }
         }
 
         // Filtering by property type
@@ -88,7 +102,12 @@ export class HotelRepository {
             if (categories.length > 0) {
                 where.propertyCategory = {
                     masterCategory: {
-                        categoryName: { in: categories },
+                        OR: categories.map(c => ({
+                            categoryName: {
+                                equals: c,
+                                mode: 'insensitive',
+                            },
+                        })),
                     },
                 };
             }
