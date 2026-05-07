@@ -10,13 +10,24 @@ import {
   PURGE,
   REGISTER,
 } from 'redux-persist';
-import storage from 'redux-persist/lib/storage'; // defaults to localStorage for web
 import roomsReducer from './roomsSlice';
 import bookingReducer from './bookingSlice';
 import userReducer from './userSlice';
 import bookingViewReducer from './bookingviewSlice';
 import loyaltyUserReducer from './loyaltyUserSlice';
 
+// ── SSR-safe storage ──────────────────────────────────────────────────────────
+const createNoopStorage = () => ({
+  getItem(_key: string) { return Promise.resolve(null); },
+  setItem(_key: string, value: unknown) { return Promise.resolve(value); },
+  removeItem(_key: string) { return Promise.resolve(); },
+});
+
+const storage =
+  typeof window !== "undefined"
+    ? require("redux-persist/lib/storage").default
+    : createNoopStorage();
+// ─────────────────────────────────────────────────────────────────────────────
 
 const bookingPersistConfig = {
   key: 'booking',
@@ -27,7 +38,7 @@ const bookingPersistConfig = {
 const persistConfig = {
   key: 'root',
   storage,
-  whitelist: ['user', 'loyaltyUser'], 
+  whitelist: ['user', 'loyaltyUser'],
 };
 
 const rootReducer = combineReducers({
@@ -52,6 +63,5 @@ export const store = configureStore({
 
 export const persistor = persistStore(store);
 
-// Infer the `RootState` and `AppDispatch` types from the store itself
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

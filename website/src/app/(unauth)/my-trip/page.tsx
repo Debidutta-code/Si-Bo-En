@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import CancelModal from "../../../components/BookingModals/CancelModal";
 import ModifyBookingModal from "@/src/components/BookingModals/ModifyBookingmodal";
 import { useEffect, useRef, useState } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { setBookingData as setBookingViewData } from "../../../store/bookingviewSlice";
 import { useSearchParams } from "next/navigation";
@@ -20,6 +20,8 @@ import {
 import { GiCancel } from "react-icons/gi";
 import { HiOutlineViewGridAdd } from "react-icons/hi";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage"; // Add this import
+import { getAvailableSpasApi } from "@/src/app/(loyality)/(loyality-guest)/profile/api/profile.api";
+import SpaBookingDialog from "@/src/components/loyalty/SpaBookingDialog";
 
 type userIdentityCardType = "PASSPORT" | "DRIVERS_LICENSE" | "NATIONAL_ID" | "OTHER";
 
@@ -35,6 +37,9 @@ export default function MyTripPage() {
   const [isCheckoutDialogOpen, setIsCheckoutDialogOpen] = useState(false);
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [isSpaDialogOpen, setIsSpaDialogOpen] = useState(false);
+  const [availableSpas, setAvailableSpas] = useState<any[]>([]);
+  const [spasLoading, setSpasLoading] = useState(false);
   const [checkinForm, setCheckinForm] = useState({
     userIdentityCardType: "NATIONAL_ID",
     identityCardNumber: "",
@@ -67,6 +72,7 @@ export default function MyTripPage() {
     }
     setLoading(true);
     setBookingData(null);
+    setAvailableSpas([]);
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations/BOOK-${bookingCode}?propertyCode=${propertyCode}`
@@ -75,6 +81,8 @@ export default function MyTripPage() {
       if (!res.ok) throw new Error(data.message || "Booking not found");
       setBookingData(data.data); // ✅ local state
       dispatch(setBookingViewData(data.data)); // ✅ global redux state
+      // Fetch available spas for this booking
+      await fetchAvailableSpas(bookingCode.trim());
       // toast.success("Booking found!");
     } catch (err: any) {
       toast.error(err.message || t("MyTrip.errorFetching"));
@@ -107,6 +115,7 @@ export default function MyTripPage() {
     const fetchFromUrl = async () => {
       setLoading(true);
       setBookingData(null);
+      setAvailableSpas([]);
       try {
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations/BOOK-${codeFromUrl}?propertyCode=${propertyCode}`
@@ -116,6 +125,8 @@ export default function MyTripPage() {
         if (!res.ok) throw new Error(data.message || "Booking not found");
         setBookingData(data.data);
         dispatch(setBookingViewData(data.data));
+        // Fetch available spas for this booking
+        await fetchAvailableSpas(codeFromUrl.trim());
         // toast.success("Booking found!");
       } catch (err: any) {
         toast.error(err.message || "Error fetching booking");
@@ -426,6 +437,22 @@ export default function MyTripPage() {
     }
   };
 
+  const fetchAvailableSpas = async (code: string) => {
+    setSpasLoading(true);
+    try {
+      const res = await getAvailableSpasApi(`BOOK-${code.trim().toUpperCase()}`);
+      if (res?.success) {
+        setAvailableSpas(res.data || []);
+      } else {
+        setAvailableSpas([]);
+      }
+    } catch (err) {
+      setAvailableSpas([]);
+    } finally {
+      setSpasLoading(false);
+    }
+  };
+
   // //console.log("bookingdata", bookingData)
 
   return (
@@ -535,6 +562,21 @@ export default function MyTripPage() {
               </p>
             </div>
           </div>
+
+          {/* Available Spas Section */}
+          {availableSpas.length > 0 && (
+            <div className="px-6 pb-2">
+              <button
+                onClick={() => setIsSpaDialogOpen(true)}
+                className="w-full px-4 py-2.5 rounded-lg text-white text-sm font-medium hover:opacity-90 transition-opacity flex items-center justify-center gap-2"
+                style={{ background: "#0d7a87" }}
+              >
+                <span>🧖</span>
+                View & Book Spa Services ({availableSpas.length} available)
+              </button>
+            </div>
+          )}
+
           <div className="flex flex-col gap-4 p-6">
             <div className="flex flex-col sm:flex-row gap-4">
               {/* View Booking Details Button */}
@@ -1214,6 +1256,15 @@ export default function MyTripPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {isSpaDialogOpen && bookingData && (
+        <SpaBookingDialog
+          bookingCode={bookingData.bookingCode}
+          reservationId={bookingData.id}
+          guestName={bookingData.guests?.[0] ? `${bookingData.guests[0].firstName} ${bookingData.guests[0].lastName}` : ""}
+          onClose={() => setIsSpaDialogOpen(false)}
+        />
       )}
     </div>
   );
