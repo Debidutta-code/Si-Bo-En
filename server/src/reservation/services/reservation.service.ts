@@ -398,7 +398,7 @@ export class ReservationService {
                 bookingUserPhone,
                 amount: finalPrice.totalAmount,
                 currencyCode,
-                finalPrice,
+                // finalPrice,
                 pricingBrakedownId: null,
                 paidAmount,
                 extraAmountToPay: finalPrice.latterpayableAmount || 0,
@@ -486,7 +486,7 @@ export class ReservationService {
                 loyalityDiscount: finalPrice.loyalityDiscount,
             };
 
-            await this.priceBrakeDownRepo.createFullPricingBreakdown(
+            const pricing=await this.priceBrakeDownRepo.createFullPricingBreakdown(
                 reservation.id,
                 priceBreakdownPayload,
                 finalPrice.dailyPriceBrakeDown || [],
@@ -567,7 +567,8 @@ export class ReservationService {
                     reservationId: reservation.id,
                     bookedAt: reservation.bookedAt.toISOString(),
                     bookingStatus: reservation.bookingStatus,
-                    ratePlanName: rateplan.ratePlanName
+                    ratePlanName: rateplan.ratePlanName,
+                    PricingBrakeDown: pricing
                 }),
 
                 // loyalty — pass isLoyalityGuest flag from payload
@@ -884,7 +885,7 @@ export class ReservationService {
                 reservationStartDate: startDate,
                 reservationEndDate: endDate,
                 amount: newAmount,
-                finalPrice: updatePayload.finalPrice,
+                // finalPrice: updatePayload.finalPrice,
                 guests: updatePayload.guests,
                 bookingUserEmail: updatePayload.bookingUserEmail,
                 bookingUserPhone: updatePayload.bookingUserPhone || null,
@@ -1000,6 +1001,7 @@ export class ReservationService {
                     },
                 });
             }
+
             const modificationSummary = {
                 reservation: updatedReservation,
                 ariChanges: {
@@ -1021,15 +1023,7 @@ export class ReservationService {
                     totalRefundAmount:
                         existingReservation.refundAmount + refundAmount,
                 },
-                dateChanges: {
-                    oldCheckIn: oldStartDate,
-                    oldCheckOut: oldEndDate,
-                    newCheckIn: startDate,
-                    newCheckOut: endDate,
-                    nightsChanged:
-                        updateNumberOfNights -
-                        (existingReservation.finalPrice?.numberOfNights || 1),
-                },
+
             };
 
 
@@ -1547,8 +1541,18 @@ export class ReservationService {
                     (24 * 60 * 60 * 1000)
                 )
             );
-
-            const emailBookingDetails: ICReservationPayloadForEmail = {
+            let cancelRequestedRooms = 1;
+            if (reservation.PricingBrakeDown && Array.isArray(reservation.PricingBrakeDown.DailyPriceBrakeDown)) {
+                const uniqueRooms = new Set();
+                reservation.PricingBrakeDown.DailyPriceBrakeDown.forEach((brk: any) => {
+                    if (brk.roomId) uniqueRooms.add(brk.roomId);
+                    else if (brk.roomCode) uniqueRooms.add(brk.roomCode);
+                });
+                if (uniqueRooms.size > 0) {
+                    cancelRequestedRooms = uniqueRooms.size;
+                }
+            }
+            const emailBookingDetails = {
                 reservationStartDate: reservation.reservationStartDate.toISOString(),
                 reservationEndDate: reservation.reservationEndDate.toISOString(),
                 propertyCode: reservation.propertyCode || '',
@@ -1556,13 +1560,13 @@ export class ReservationService {
                 refundAmount: cancelledReservation.refundAmount,
                 roomTypeCode: reservation.roomTypeCode || '',
                 ratePlanCode: reservation.ratePlanCode || '',
-                numberOfRooms: reservation.finalPrice?.requestedRooms || 1,
+                numberOfRooms: cancelRequestedRooms,
                 numberOfNights: cancelNumberOfNights,
                 ratePlanName: reservation.ratePlanName || '',
                 platforms: reservation.platforms,
                 promoCode: reservation.promo?.code || '',
                 roomName: reservation.roomName || '',
-                finalPrice: reservation.finalPrice,
+                // finalPrice: reservation.finalPrice,
                 currencyCode: reservation.currencyCode,
                 bookingSource: reservation.bookingSource,
                 bookingUserEmail: reservation.bookingUserEmail,
@@ -1573,6 +1577,7 @@ export class ReservationService {
                 reservationId: reservation.id,
                 bookedAt: reservation.bookedAt.toISOString(),
                 bookingStatus: 'cancelled' as BookingStatus,
+                PricingBrakeDown: reservation.PricingBrakeDown!
             };
 
             // Build non-blocking tasks array
@@ -1601,7 +1606,7 @@ export class ReservationService {
                             {
                                 roomTypeCode: reservation.roomTypeCode,
                                 numberOfRooms:
-                                    reservation.finalPrice?.requestedRooms,
+                                    cancelRequestedRooms,
                             },
                         ],
                     })
@@ -1641,7 +1646,17 @@ export class ReservationService {
             if (!reservation) {
                 return errorResponse('Reservation not found');
             }
-
+            let cancelRequestedRooms = 1;
+            if (reservation.PricingBrakeDown && Array.isArray(reservation.PricingBrakeDown.DailyPriceBrakeDown)) {
+                const uniqueRooms = new Set();
+                reservation.PricingBrakeDown.DailyPriceBrakeDown.forEach((brk: any) => {
+                    if (brk.roomId) uniqueRooms.add(brk.roomId);
+                    else if (brk.roomCode) uniqueRooms.add(brk.roomCode);
+                });
+                if (uniqueRooms.size > 0) {
+                    cancelRequestedRooms = uniqueRooms.size;
+                }
+            }
             const currentCheckout = reservation.reservationEndDate;
             const additionalDates = this.generateDateRange(
                 reservation.reservationStartDate,
@@ -1659,7 +1674,7 @@ export class ReservationService {
                         {
                             roomTypeCode: reservation.roomTypeCode,
                             numberOfRooms:
-                                reservation.finalPrice?.requestedRooms,
+                                cancelRequestedRooms,
                         },
                     ],
                 });

@@ -170,13 +170,17 @@ export class SpaSlotsServ {
             if (!isSlotExists.isBooked) {
                 return errorResponse("Spa slot is available", "Spa slot already booked");
             }
+            if (!isSlotExists.reservationId) {
+                return errorResponse("Spa slot is not booked yet", "Spa slot is not booked yet");
+            }
             const updatedSlot = await this.spaSlotsRepo.markSlotAsAvailable(id);
-            const spaSlotPricing = await this.spaPricingService.createSpaPricing({
+            const spaSlotPricing = await this.spaPricingService.deleteSpaPricing({
+                reservationId: isSlotExists.reservationId,
                 spaDateId: isSlotExists.spaDateId,
-                spaSlotId: id,
+                spaSlotId: isSlotExists.id
             })
 
-            return successResponse("Marked spa slot as available successfully", updatedSlot);
+            return spaSlotPricing
 
         } catch (error) {
             if (error instanceof Error) {

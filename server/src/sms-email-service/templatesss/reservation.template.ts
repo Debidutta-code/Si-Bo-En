@@ -1,4 +1,4 @@
-import { ICReservationPayloadForEmail, IGuestDetail, IReservationUpdatePayload, IReservationWithAllDetails } from "../../reservation/types";
+import { IBookingTemplate, ICReservationPayloadForEmail, IGuestDetail, IReservationUpdatePayload, IReservationWithAllDetails } from "../../reservation/types";
 import { CurrencyCode } from "../../tax-system/interfaces";
 import { capitalizeFirstLetter } from "../utils/capitalizefirstLetter.util";
 
@@ -57,7 +57,7 @@ interface RatePlanPolicies {
 }
 
 interface EmailTemplateProps {
-  reservation: ICReservationPayloadForEmail;
+  reservation: IBookingTemplate;
   property: PropertyDetails;
   propertyAddress: PropertyAddress;
   room: RoomDetails;
@@ -160,7 +160,6 @@ const depositBlock = (policies?: RatePlanPolicies): string => {
   </table>`;
 };
 
-// ─── Main Email Function ──────────────────────────────────────────────────────
 
 export const BookingConfirmationEmail = ({
   reservation,
@@ -170,8 +169,8 @@ export const BookingConfirmationEmail = ({
   policies,
 }: EmailTemplateProps): string => {
 
-  const { finalPrice, guests, guestDetails, reservationStartDate, reservationEndDate } = reservation;
-  const currency = reservation.currencyCode || finalPrice?.currencyCode || "INR";
+  const { guests, guestDetails, reservationStartDate, reservationEndDate } = reservation;
+  const currency = reservation.currencyCode || "AED";
   const primaryGuest = guestDetails?.[0];
   const numberOfNights = reservation.numberOfNights || 1;
   const propertyImg = property.image?.[0] ?? "";
@@ -206,8 +205,8 @@ export const BookingConfirmationEmail = ({
   </table>`).join("");
 
   // ── Add-on rows ─────────────────────────────────────────────
-  const addonRows = (finalPrice?.totalAddonAmount ?? 0) > 0
-    ? (finalPrice?.addonBrakeDown ?? []).map((a: any) => `
+  const addonRows = (reservation.PricingBrakeDown?.totalAddonAmount ?? 0) > 0
+    ? (reservation.PricingBrakeDown?.AddonBrakeDowns ?? []).map((a: any) => `
   <tr><td style="padding:8px 0;border-bottom:1px solid #f5f5f5;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
       <td style="font-size:13px;color:#666666;">
@@ -220,7 +219,7 @@ export const BookingConfirmationEmail = ({
     : "";
 
   // ── Tax rows ────────────────────────────────────────────────
-  const taxRows = (finalPrice?.taxBrakeDown ?? []).map((t: any) => `
+  const taxRows = (reservation.PricingBrakeDown?.taxBrakeDown ?? []).map((t: any) => `
   <tr><td style="padding:8px 0;border-bottom:1px solid #f5f5f5;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
       <td style="font-size:13px;color:#666666;">${t.name}</td>
@@ -229,7 +228,7 @@ export const BookingConfirmationEmail = ({
   </td></tr>`).join("");
 
   // ── Promo rows ──────────────────────────────────────────────
-  const promoRows = (finalPrice?.promotionBrakeDown ?? []).map((p: any) => {
+  const promoRows = (reservation.PricingBrakeDown?.promotionBrakeDown ?? []).map((p: any) => {
     const isPayLater = p.restrictionType === "payLater";
     const label = p.discountType === "percentage"
       ? `${p.discountValue}% off`
@@ -246,30 +245,30 @@ export const BookingConfirmationEmail = ({
   }).join("");
 
   // ── Promo code & loyalty rows ───────────────────────────────
-  const promoCodeRow = (finalPrice?.promoCodeDiscount ?? 0) > 0 ? `
+  const promoCodeRow = (reservation.PricingBrakeDown?.promoCodeDiscount ?? 0) > 0 ? `
   <tr><td style="padding:8px 0;border-bottom:1px solid #f5f5f5;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
       <td style="font-size:13px;color:#16a34a;">Promo code discount</td>
-      <td align="right" style="font-size:13px;font-weight:600;color:#16a34a;">&minus; ${formatCurrency(finalPrice?.promoCodeDiscount, currency)}</td>
+      <td align="right" style="font-size:13px;font-weight:600;color:#16a34a;">&minus; ${formatCurrency(reservation.PricingBrakeDown?.promoCodeDiscount, currency)}</td>
     </tr></table>
   </td></tr>` : "";
 
-  const loyaltyRow = (finalPrice?.loyalityDiscount ?? 0) > 0 ? `
+  const loyaltyRow = (reservation.PricingBrakeDown?.loyalityDiscount ?? 0) > 0 ? `
   <tr><td style="padding:8px 0;border-bottom:1px solid #f5f5f5;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
       <td style="font-size:13px;color:#16a34a;">Loyalty discount</td>
-      <td align="right" style="font-size:13px;font-weight:600;color:#16a34a;">&minus; ${formatCurrency(finalPrice?.loyalityDiscount, currency)}</td>
+      <td align="right" style="font-size:13px;font-weight:600;color:#16a34a;">&minus; ${formatCurrency(reservation.PricingBrakeDown?.loyalityDiscount, currency)}</td>
     </tr></table>
   </td></tr>` : "";
 
   // ── Pay later pill ──────────────────────────────────────────
-  const payLaterPill = (finalPrice?.latterpayableAmount ?? 0) > 0 ? `
+  const payLaterPill = (reservation.PricingBrakeDown?.latterpayableAmount ?? 0) > 0 ? `
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
          style="background-color:#fff7ed;border-radius:8px;margin-top:8px;">
     <tr><td style="padding:10px 14px;">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
         <td style="font-size:12px;font-weight:700;color:#ea580c;">&#8987; Amount Due at Hotel</td>
-        <td align="right" style="font-size:13px;font-weight:700;color:#ea580c;">${formatCurrency(finalPrice?.latterpayableAmount, currency)}</td>
+        <td align="right" style="font-size:13px;font-weight:700;color:#ea580c;">${formatCurrency(reservation.PricingBrakeDown?.latterpayableAmount, currency)}</td>
       </tr></table>
     </td></tr>
   </table>` : "";
@@ -555,7 +554,7 @@ export const BookingConfirmationEmail = ({
               <tr><td style="padding:8px 0;border-bottom:1px solid #f5f5f5;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
                   <td style="font-size:13px;color:#666666;">Room rate (${numberOfNights} night${numberOfNights > 1 ? "s" : ""} &times; ${reservation.numberOfRooms} room${reservation.numberOfRooms > 1 ? "s" : ""})</td>
-                  <td align="right" style="font-size:13px;font-weight:600;color:#1a1a2e;">${formatCurrency(finalPrice?.amountBeforeTax, currency)}</td>
+                  <td align="right" style="font-size:13px;font-weight:600;color:#1a1a2e;">${formatCurrency(reservation.PricingBrakeDown?.amountBeforeTax, currency)}</td>
                 </tr></table>
               </td></tr>
 
@@ -572,7 +571,7 @@ export const BookingConfirmationEmail = ({
               <tr><td style="padding:8px 0 6px;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
                   <td style="font-size:15px;font-weight:700;color:#1a1a2e;">Total Amount</td>
-                  <td align="right" style="font-size:19px;font-weight:700;color:#00b5c8;">${formatCurrency(finalPrice?.totalAmount, currency)}</td>
+                  <td align="right" style="font-size:19px;font-weight:700;color:#00b5c8;">${formatCurrency(reservation.PricingBrakeDown?.totalAmount, currency)}</td>
                 </tr></table>
               </td></tr>
             </table>
@@ -585,7 +584,7 @@ export const BookingConfirmationEmail = ({
                   <td style="font-size:12px;font-weight:700;color:#0096a8;">
                     ${reservation.paymentMethod === "pay_at_hotel" ? "&#127968; Pay at Hotel" : "&#10003; Paid Online"}
                   </td>
-                  <td align="right" style="font-size:13px;font-weight:700;color:#0096a8;">${formatCurrency(finalPrice?.currentChargeableAmount, currency)}</td>
+                  <td align="right" style="font-size:13px;font-weight:700;color:#0096a8;">${formatCurrency(reservation.PricingBrakeDown?.currentChargeableAmount, currency)}</td>
                 </tr></table>
               </td></tr>
             </table>
@@ -666,8 +665,8 @@ export const BookingCancellationEmail = ({
   policies,
 }: EmailTemplateProps): string => {
 
-  const { finalPrice, guestDetails, reservationStartDate, reservationEndDate } = reservation;
-  const currency = reservation.currencyCode || finalPrice?.currencyCode || "INR";
+  const {  guestDetails, reservationStartDate, reservationEndDate } = reservation;
+  const currency = reservation.currencyCode 
   const primaryGuest = guestDetails?.[0];
   const numberOfNights = reservation.numberOfNights || 1;
   const propertyImg = property.image?.[0] ?? "";
@@ -682,7 +681,7 @@ export const BookingCancellationEmail = ({
 
   // ── Derive number of rooms from finalPrice breakdown ──
   const numberOfRooms = reservation.numberOfRooms
-    ?? (finalPrice?.addonBrakeDown?.length ? 1 : 1); // fallback to 1
+    ?? (reservation.PricingBrakeDown?.AddonBrakeDowns?.length ? 1 : 1); // fallback to 1
 
   const hasRefund =
     Number(reservation?.refundAmount || 0) > 0 &&
@@ -877,7 +876,7 @@ export const BookingCancellationEmail = ({
               <tr><td style="padding:9px 0;">
                 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
                   <td style="font-size:12px;color:#999999;">Booking Amount</td>
-                  <td align="right" style="font-size:12px;font-weight:600;color:#1a1a2e;">${formatCurrency(finalPrice?.totalAmount, currency)}</td>
+                  <td align="right" style="font-size:12px;font-weight:600;color:#1a1a2e;">${formatCurrency(reservation.PricingBrakeDown?.totalAmount, currency)}</td>
                 </tr></table>
               </td></tr>
             </table>
@@ -978,7 +977,6 @@ export const BookingCancellationEmail = ({
 </body>
 </html>`;
 };
-
 
 export const BookingAmendmentEmail = ({
   property,

@@ -1,4 +1,4 @@
-import { ICReservationPayloadForEmail, IReservationUpdatePayload, IReservationWithAllDetails } from '../../reservation/types';
+import { IBookingTemplate, ICReservationPayloadForEmail, IReservationUpdatePayload, IReservationWithAllDetails } from '../../reservation/types';
 import { getPropertyByPropertyAndRoom } from '../utils';
 import { EmailTemplates } from '../templatesss';
 import { PropertyEmailRepository } from '../reposititory';
@@ -12,7 +12,7 @@ export class ReservationEmailService {
     }
 
     public async reservationConfirmation(
-        bookingDetails: ICReservationPayloadForEmail
+        bookingDetails: IBookingTemplate
     ): Promise<void> {
         try {
             const propertyDetails = await getPropertyByPropertyAndRoom(
@@ -148,7 +148,7 @@ export class ReservationEmailService {
     }
 
     public async reservationCancelEmail(
-        bookingDetails: ICReservationPayloadForEmail
+        bookingDetails: IBookingTemplate
     ): Promise<void> {
         try {
             const propertyDetails = await getPropertyByPropertyAndRoom(

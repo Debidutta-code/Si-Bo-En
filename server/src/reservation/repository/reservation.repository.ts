@@ -66,7 +66,8 @@ export class ReservationRepository {
             return await prisma.reservation.update({
                 where: { id: reservationId },
                 data: updateData,
-                include: { primaryGuest: true, 
+                include: {
+                    primaryGuest: true,
                     // priceBreakdowns: true 
                 },
             });
@@ -87,7 +88,8 @@ export class ReservationRepository {
                 const updatedReservation = await tx.reservation.update({
                     where: { id: reservationId },
                     data: updateData,
-                    include: { primaryGuest: true, 
+                    include: {
+                        primaryGuest: true,
                     },
                 });
 
@@ -260,33 +262,86 @@ export class ReservationRepository {
                 skip,
                 take: limit,
                 orderBy: { reservationStartDate: 'asc' },
-                include: {
+                select: {
+                    id: true,
+                    amount: true,
+                    agency: {
+                        select: {
+                            agencyName: true,
+                        }
+                    },
+                    bookingCode: true,
+                    bookedAt: true,
+                    bookingSource:true,
+                    bookingStatus: true,
+                    bookingUserEmail:true,
+                    bookingUserPhone:true,
+                    cancelledAt:true,
+                    cancellationReason:true,
+                    checkInDate:true,
+                    checkOutDate:true,  
+                    countryCode:true,
+                    currencyCode:true,
+                    deviceTypes:true,
+                    extraAmountToPay:true,
+                    guests: true,
+                    hotelName:true,
+                    paidAmount:true,
+                    isPromoUsed:true,
+                    OtaGuest:true,
+                    paymentImages:true,
+                    paymentMethod:true,
+                    SpaSlot:true,
+                    roomTypeCode:true,
+                    payments:true,
+                    platforms:true,
+                    Review:true,
+                    roomName:true,
+                    refundAmount:true,
+                    ratePlanName:true,
+                    ratePlanCode:true,
+                    propertyId:true,
+                    propertyCode:true,
+
+                    reservationStartDate: true,
+                    reservationEndDate: true,
                     primaryGuest: true,
                     addOns: true,
                     PricingBrakeDown: {
-                        include:{
-                            AddonBrakeDowns:true,
-                            DailyPriceBrakeDown:true,
-                            taxBrakeDown:true,
-                            promotionBrakeDown:true,
+                        include: {
+                            AddonBrakeDowns: true,
+                            DailyPriceBrakeDown: true,
+                            taxBrakeDown: true,
+                            promotionBrakeDown: true,
+                            SpaPricingBrakeDowns: true
                         }
                     },
-                    promo:{
-                        select:{
-                            id:true,
-                            code:true,
-                            discountType:true,
-                            discountValue:true,
-                            currencyCode:true,
-                            
+                    finalPrice: true,
+                    promo: {
+                        select: {
+                            id: true,
+                            code: true,
+                            discountType: true,
+                            discountValue: true,
+                            currencyCode: true,
+
                         }
                     },
+                    createdAt:true,
+                    updatedAt:true,
+                    promoId:true,
                     property: {
-                        select: {id:true, propertyName: true, propertyCode: true,propertyEmail:true,propertyContact:true,description:true,image:true },
+                        select: { id: true, propertyName: true, propertyCode: true, propertyEmail: true, propertyContact: true, description: true, image: true },
                     },
-                    reservationPromoCodes:true,
+                    agencyId:true,
+                    otaGuestId:true,
+                    primaryGuestId:true,
+                    pricingBrakedownId:true,
+                    reservationPromoCodes: true,
                     reservationGuests: true,
-                    AgencyCommission:true,
+                    AgencyCommission: true,
+                    timezone:true,
+                    // finalPrice:true
                 },
             });
 
@@ -344,30 +399,30 @@ export class ReservationRepository {
                 orderBy: { reservationStartDate: 'asc' },
                 include: {
                     primaryGuest: true,
-                    PricingBrakeDown:{
-                        include:{
-                            AddonBrakeDowns:true,
-                            DailyPriceBrakeDown:true,
-                            taxBrakeDown:true,
-                            promotionBrakeDown:true,
+                    PricingBrakeDown: {
+                        include: {
+                            AddonBrakeDowns: true,
+                            DailyPriceBrakeDown: true,
+                            taxBrakeDown: true,
+                            promotionBrakeDown: true,
                         }
                     },
                     addOns: true,
-                    promo:{
-                        select:{
-                            id:true,
-                            code:true,
-                            discountType:true,
-                            discountValue:true,
-                            currencyCode:true,
-                            
+                    promo: {
+                        select: {
+                            id: true,
+                            code: true,
+                            discountType: true,
+                            discountValue: true,
+                            currencyCode: true,
+
                         }
                     },
-                    reservationPromoCodes:true,
+                    reservationPromoCodes: true,
                     reservationGuests: true,
-                    AgencyCommission:true,
+                    AgencyCommission: true,
                     property: {
-                        select: { id:true, propertyName: true, propertyCode: true,propertyEmail:true,propertyContact:true,description:true,image:true },
+                        select: { id: true, propertyName: true, propertyCode: true, propertyEmail: true, propertyContact: true, description: true, image: true },
                     },
                 },
             });
@@ -426,30 +481,30 @@ export class ReservationRepository {
                 orderBy: { reservationEndDate: 'asc' },
                 include: {
                     primaryGuest: true,
-                    AgencyCommission:true,
-                    PricingBrakeDown:{
-                        include:{
-                            AddonBrakeDowns:true,
-                            DailyPriceBrakeDown:true,
-                            taxBrakeDown:true,
-                            promotionBrakeDown:true,
+                    AgencyCommission: true,
+                    PricingBrakeDown: {
+                        include: {
+                            AddonBrakeDowns: true,
+                            DailyPriceBrakeDown: true,
+                            taxBrakeDown: true,
+                            promotionBrakeDown: true,
                         }
                     },
                     addOns: true,
-                    promo:{
-                        select:{
-                            id:true,
-                            code:true,
-                            discountType:true,
-                            discountValue:true,
-                            currencyCode:true,
-                            
+                    promo: {
+                        select: {
+                            id: true,
+                            code: true,
+                            discountType: true,
+                            discountValue: true,
+                            currencyCode: true,
+
                         }
                     },
-                    reservationPromoCodes:true,
+                    reservationPromoCodes: true,
                     reservationGuests: true,
                     property: {
-                        select: { id:true, propertyName: true, propertyCode: true,propertyEmail:true,propertyContact:true,description:true,image:true },
+                        select: { id: true, propertyName: true, propertyCode: true, propertyEmail: true, propertyContact: true, description: true, image: true },
                     },
                 },
             });
@@ -502,7 +557,7 @@ export class ReservationRepository {
                 orderBy: { checkInDate: 'asc' },
                 include: {
                     primaryGuest: true,
-                    AgencyCommission:true,
+                    AgencyCommission: true,
                     PricingBrakeDown: {
                         include: {
                             AddonBrakeDowns: true,
@@ -511,21 +566,21 @@ export class ReservationRepository {
                             promotionBrakeDown: true,
                         }
                     },
-                    promo:{
-                        select:{
-                            id:true,
-                            code:true,
-                            discountType:true,
-                            discountValue:true,
-                            currencyCode:true,
-                            
+                    promo: {
+                        select: {
+                            id: true,
+                            code: true,
+                            discountType: true,
+                            discountValue: true,
+                            currencyCode: true,
+
                         }
                     },
                     addOns: true,
-                    reservationGuests:true,
-                    reservationPromoCodes:true,
+                    reservationGuests: true,
+                    reservationPromoCodes: true,
                     property: {
-                        select: { id:true, propertyName: true, propertyCode: true,propertyEmail:true,propertyContact:true,description:true,image:true },
+                        select: { id: true, propertyName: true, propertyCode: true, propertyEmail: true, propertyContact: true, description: true, image: true },
                     },
                 },
             });
@@ -578,8 +633,8 @@ export class ReservationRepository {
                 orderBy: { checkOutDate: 'asc' },
                 include: {
                     primaryGuest: true,
-                    AgencyCommission:true,
-                    PricingBrakeDown:{
+                    AgencyCommission: true,
+                    PricingBrakeDown: {
                         include: {
                             AddonBrakeDowns: true,
                             DailyPriceBrakeDown: true,
@@ -588,20 +643,20 @@ export class ReservationRepository {
                         }
                     },
                     addOns: true,
-                    reservationPromoCodes:true,
+                    reservationPromoCodes: true,
                     reservationGuests: true,
-                    promo:{
-                        select:{
-                            id:true,
-                            code:true,
-                            discountType:true,
-                            discountValue:true,
-                            currencyCode:true,
-                            
+                    promo: {
+                        select: {
+                            id: true,
+                            code: true,
+                            discountType: true,
+                            discountValue: true,
+                            currencyCode: true,
+
                         }
                     },
                     property: {
-                        select: { id:true, propertyName: true, propertyCode: true,propertyEmail:true,propertyContact:true,description:true,image:true },
+                        select: { id: true, propertyName: true, propertyCode: true, propertyEmail: true, propertyContact: true, description: true, image: true },
                     },
                 },
             });
@@ -633,8 +688,8 @@ export class ReservationRepository {
                 data: {
                     bookingStatus: 'cancelled',
                     cancelledAt: new Date(),
-                    refundAmount:refundAmount,
-                    cancellationReason:cancellationReason,
+                    refundAmount: refundAmount,
+                    cancellationReason: cancellationReason,
                 },
                 include: { primaryGuest: true },
             });
@@ -652,7 +707,7 @@ export class ReservationRepository {
                 where: { bookingCode: reservationCode, propertyCode },
                 include: {
                     primaryGuest: true,
-                    AgencyCommission:true,
+                    AgencyCommission: true,
                     addOns: true,
                     reservationGuests: true,
                     PricingBrakeDown: {
@@ -663,19 +718,19 @@ export class ReservationRepository {
                             promotionBrakeDown: true,
                         }
                     },
-                    promo:{
-                        select:{
-                            id:true,
-                            code:true,
-                            discountType:true,
-                            discountValue:true,
-                            currencyCode:true,
-                            
+                    promo: {
+                        select: {
+                            id: true,
+                            code: true,
+                            discountType: true,
+                            discountValue: true,
+                            currencyCode: true,
+
                         }
                     },
-                    reservationPromoCodes:true,
+                    reservationPromoCodes: true,
                     property: {
-                        select: { id:true, propertyName: true, propertyCode: true,propertyEmail:true,propertyContact:true,description:true,image:true },
+                        select: { id: true, propertyName: true, propertyCode: true, propertyEmail: true, propertyContact: true, description: true, image: true },
                     },
                 },
             });
@@ -692,7 +747,8 @@ export class ReservationRepository {
             return await prisma.reservation.update({
                 where: { id: reservationId },
                 data: { bookingStatus: status },
-                include: { primaryGuest: true, 
+                include: {
+                    primaryGuest: true,
                     // priceBreakdowns: true 
                 },
             });
@@ -709,30 +765,30 @@ export class ReservationRepository {
                 where: { id: reservationId },
                 include: {
                     primaryGuest: true,
-                    AgencyCommission:true,
+                    AgencyCommission: true,
                     addOns: true,
-                    PricingBrakeDown:{
-                        include:{
-                            AddonBrakeDowns:true,
-                            DailyPriceBrakeDown:true,
-                            taxBrakeDown:true,
-                            promotionBrakeDown:true,
+                    PricingBrakeDown: {
+                        include: {
+                            AddonBrakeDowns: true,
+                            DailyPriceBrakeDown: true,
+                            taxBrakeDown: true,
+                            promotionBrakeDown: true,
                         }
                     },
-                    reservationPromoCodes:true,
-                    promo:{
-                        select:{
-                            id:true,
-                            code:true,
-                            discountType:true,
-                            discountValue:true,
-                            currencyCode:true,
-                            
+                    reservationPromoCodes: true,
+                    promo: {
+                        select: {
+                            id: true,
+                            code: true,
+                            discountType: true,
+                            discountValue: true,
+                            currencyCode: true,
+
                         }
                     },
                     reservationGuests: true,
                     property: {
-                        select: { id:true, propertyName: true, propertyCode: true,propertyEmail:true,propertyContact:true,description:true,image:true },
+                        select: { id: true, propertyName: true, propertyCode: true, propertyEmail: true, propertyContact: true, description: true, image: true },
                     },
                 },
             });
@@ -759,7 +815,8 @@ export class ReservationRepository {
             return await prisma.reservation.update({
                 where: { id: reservationId },
                 data: { bookingStatus: 'no_show' },
-                include: { primaryGuest: true, 
+                include: {
+                    primaryGuest: true,
                     // priceBreakdowns: true 
                 },
             });
@@ -840,12 +897,17 @@ export class PriceBrakeDownRepo {
         taxBreakdowns: ICTaxBrakeDown[],
         addonBreakdowns: ICAddonBreakdown[],
         promotionBreakdowns: ICPromotionBrakeDown[]
-    ): Promise<string> {
+    ): Promise<IPricingBreakDown> {
         try {
             return await prisma.$transaction(async (tx) => {
                 // 1. Create PricingBreakdown header
                 const pricingBreakdown = await tx.pricingBreakdown.create({
                     data: header,
+                    include:{
+                        DailyPriceBrakeDown: true,
+                    taxBrakeDown:true,
+                    AddonBrakeDowns:true,
+                    }
                 });
 
                 const pricingId = pricingBreakdown.id;
@@ -908,7 +970,7 @@ export class PriceBrakeDownRepo {
                                 name: p.name,
                                 discountType: p.discountType || 'percentage',
                                 discountValue: p.discountValue || 0,
-                                currencyCode: p.currencyCode || pricingBreakdown.currencyCode ||null,
+                                currencyCode: p.currencyCode || pricingBreakdown.currencyCode || null,
                                 discountAmount: p.discountAmount || 0,
                                 restrictionType: p.restrictionType || 'decrease',
                                 type: p.type || 'auto_applied',
@@ -922,7 +984,7 @@ export class PriceBrakeDownRepo {
                     data: { pricingBrakedownId: pricingId },
                 });
 
-                return pricingId;
+                return pricingBreakdown;
             });
         } catch (error) {
             console.error('createFullPricingBreakdown error:', error);
@@ -1268,7 +1330,7 @@ export interface ICreationGuest {
 }
 
 export class LoyaltyRepository {
-        public async getCreationGuest(
+    public async getCreationGuest(
         loyalityGuestId: string,
         creationLoyaltyConfigId: string
     ): Promise<ICreationGuest | null> {
@@ -1343,8 +1405,8 @@ export class LoyaltyRepository {
         } catch (error) {
             throw error instanceof Error
                 ? new Error(
-                      `Failed to increment loyalty bookings: ${error.message}`
-                  )
+                    `Failed to increment loyalty bookings: ${error.message}`
+                )
                 : new Error('Failed to increment loyalty bookings');
         }
     }
@@ -1391,39 +1453,39 @@ export class LoyaltyRepository {
 }
 
 export class AgencyCommissionRepository {
-  public async createAgencyCommission(
-    data: IAgencyCommissionCreate
-  ): Promise<any> {
-    try {
-      return await prisma.agencyCommission.create({ data });
-    } catch (error) {
-      throw error instanceof Error
-        ? new Error(`Failed to create agency commission: ${error.message}`)
-        : new Error('Failed to create agency commission');
+    public async createAgencyCommission(
+        data: IAgencyCommissionCreate
+    ): Promise<any> {
+        try {
+            return await prisma.agencyCommission.create({ data });
+        } catch (error) {
+            throw error instanceof Error
+                ? new Error(`Failed to create agency commission: ${error.message}`)
+                : new Error('Failed to create agency commission');
+        }
     }
-  }
 
-  public async getByReservationId(reservationId: string): Promise<any | null> {
-    try {
-      return await prisma.agencyCommission.findUnique({
-        where: { reservationId },
-      });
-    } catch (error) {
-      throw error instanceof Error
-        ? new Error(`Failed to fetch agency commission: ${error.message}`)
-        : new Error('Failed to fetch agency commission');
+    public async getByReservationId(reservationId: string): Promise<any | null> {
+        try {
+            return await prisma.agencyCommission.findUnique({
+                where: { reservationId },
+            });
+        } catch (error) {
+            throw error instanceof Error
+                ? new Error(`Failed to fetch agency commission: ${error.message}`)
+                : new Error('Failed to fetch agency commission');
+        }
     }
-  }
 
-  public async deleteByReservationId(reservationId: string): Promise<any> {
-    try {
-      return await prisma.agencyCommission.deleteMany({
-        where: { reservationId },
-      });
-    } catch (error) {
-      throw error instanceof Error
-        ? new Error(`Failed to delete agency commission: ${error.message}`)
-        : new Error('Failed to delete agency commission');
+    public async deleteByReservationId(reservationId: string): Promise<any> {
+        try {
+            return await prisma.agencyCommission.deleteMany({
+                where: { reservationId },
+            });
+        } catch (error) {
+            throw error instanceof Error
+                ? new Error(`Failed to delete agency commission: ${error.message}`)
+                : new Error('Failed to delete agency commission');
+        }
     }
-  }
 }

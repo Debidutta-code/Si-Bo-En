@@ -585,7 +585,7 @@ class AddOnPriceClass {
 
         return {
             ...this.priceBrakedowns,
-            addonBrakeDown: sumAddons,
+            AddonBrakeDowns: sumAddons,
             totalAddonAmount: sumAddonsAmount,
             totalAmount: this.priceBrakedowns.totalAmount + sumAddonsAmount,
             currentChargeableAmount:
@@ -1274,7 +1274,7 @@ class TouristTaxClass {
     ): PromotionBrakeDown {
         if (touristTax.discountType === 'percentage') {
             const baseRoomCharge =
-                this.priceBrakedown.dailyPriceBrakeDown.reduce(
+                this.priceBrakedown.DailyPriceBrakeDown?.reduce(
                     (sum, day) =>
                         sum +
                         day.baseChargesAmount +

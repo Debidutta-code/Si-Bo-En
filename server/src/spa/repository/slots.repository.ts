@@ -125,7 +125,8 @@ export class SpaSlotsRepo {
             return await prisma.spaSlots.findUnique({
                 where: {
                     id
-                }
+                },
+                
             })
         } catch (error) {
             throw new Error("Error occur while fetching spa slot by id")

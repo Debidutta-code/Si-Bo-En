@@ -25,7 +25,10 @@ export class SpaPricingService {
             if (!spaDate) {
                 return errorResponse("Spa date not found");
             }
-            const spa = await this.spaRepository.getById(spaDate.spaModuleId);
+            const [spa,pricingBrakedown] = await Promise.all([
+                this.spaRepository.getById(spaDate.spaModuleId),
+                this.spaPricingRepository.getPricingBreakdown(reservation.id)
+            ]);
             if (!spa) {
                 return errorResponse("Spa not found");
             }
@@ -42,8 +45,33 @@ export class SpaPricingService {
                     spaSlotId: data.spaSlotId
                 })
             } else {
+                /*
+                if tax is not inclusive then first get the applicable tax, sort it according to priority
+                get the pricebrakedowwn, remote the old taxes,add the spa amount create new taxes and amount 
+                 */
+                const [applicableTaxes, taxRuleBrakedownDeleted] = await Promise.all([
+                    this.spaPricingRepository.getApplicableTaxes(reservation.ratePlanCode),
+                    this.spaPricingRepository.deleteTaxBrakedowns(reservation.pricingBrakedownId)
+                ]);
+                const sortedTaxRules = (applicableTaxes?.taxGroup?.taxGroupRules || []).sort((a, b) => (a.taxRule?.priority ?? 0) - (b.taxRule?.priority ?? 0));
+                const newTotalAmountBeforeTaxes = (pricingBrakedown?.amountBeforeTax ?? 0) + (spa.discountValue ? spa.discountValue : 0);
+                const newTaxBreakdown = sortedTaxRules.map(rule => {
+                    const value = rule.taxRule?.value ?? 0;
+                    const baseAmount = spa.discountValue ? spa.discountValue : 0;
+                    
+                    const taxAmount = rule.taxRule?.type === 'percentage' 
+                        ? (baseAmount * value) / 100 
+                        : value;
+                    return {
+                        currencyCode: rule.taxRule?.currencyCode!,
+                        taxedAmount: taxAmount,
+                        name: rule.taxRule?.name!,
+                        pricingBrakeDownId: reservation.pricingBrakedownId!
+                    };
+                });
+                const newTotalTaxedAmount=newTaxBreakdown.reduce((acc, curr) => acc + curr.taxedAmount, 0);
+                const newFinalAmount=newTotalAmountBeforeTaxes+newTotalTaxedAmount;
                 await Promise.all([
-
                     this.spaPricingRepository.createSpaPricing({
                         price: spa.discountValue ? spa.discountValue : 0,
                         pricingId: reservation.pricingBrakedownId,
@@ -52,17 +80,23 @@ export class SpaPricingService {
                     this.spaPricingRepository.updateReservationPricing(
                         {
                             reservationId: data.reservationId,
-                            amount: reservation.amount + (spa.discountValue ? spa.discountValue : 0),
                             extraAmountToPay: reservation.extraAmountToPay + (spa.discountValue ? spa.discountValue : 0)
                         }
-
-
-                    )
+                    ),
+                    this.spaPricingRepository.updatePriceBrakeDown({
+                        priceBrakeDownId: reservation.pricingBrakedownId,
+                        amountBeforeTax: newTotalAmountBeforeTaxes,
+                        newTotalAmount: newFinalAmount,
+                        totalSpaAmount: (pricingBrakedown?.totalSpa ?? 0) + (spa.discountValue ?? 0),
+                        taxedAmount: newTotalTaxedAmount
+                    }),
+                    await this.spaPricingRepository.createTaxBrakeDowns(newTaxBreakdown)
                 ])
 
             }
             return successResponse("Spa slot created successfully");
         } catch (error) {
+            console.log(error)
             if (error instanceof Error) {
                 return errorResponse("Error while creating spa pricing", error.message);
             }
@@ -81,25 +115,71 @@ export class SpaPricingService {
             if (!reservation) {
                 return errorResponse("Reservation not found");
             }
-            //case for spa amount is paid and got cancelled
-            if (reservation.amount + reservation.extraAmountToPay >= reservation.paidAmount) {
-                await this.spaPricingRepository.updatePricingForPaidAndCancelled({
-                    reservationId: data.reservationId,
-                    refundableAmount:spaPricing.price,
-                    extraAmountToPay: reservation.extraAmountToPay - spaPricing.price
-                });
-            }else{// not paied and cancelled
-                await this.spaPricingRepository.updatePricingForPaidAndCancelled({
-                    reservationId: data.reservationId,
-                    refundableAmount:reservation.refundAmount,
-                    extraAmountToPay:reservation.extraAmountToPay-spaPricing.price
-                    
-                })
+            if (!reservation.pricingBrakedownId) {
+                return errorResponse("Reservation pricing breakdown not found");
             }
 
-            return successResponse("Spa slot deleted successfully");
+            const pricingBrakedown = await this.spaPricingRepository.getPricingBreakdown(reservation.id);
+            if (!pricingBrakedown) {
+                return errorResponse("Pricing breakdown not found");
+            }
 
+            // Fetch applicable taxes, delete the old tax breakdowns, and delete the spa pricing record itself
+            const [applicableTaxes, _deletedTaxes, _deletedSpa] = await Promise.all([
+                this.spaPricingRepository.getApplicableTaxes(reservation.ratePlanCode),
+                this.spaPricingRepository.deleteTaxBrakedowns(reservation.pricingBrakedownId),
+                this.spaPricingRepository.deleteSpaPricing(data.spaSlotId)
+            ]);
+
+            // Recalculate amount before taxes by subtracting deleted spa pricing
+            const newTotalAmountBeforeTaxes = Math.max(0, (pricingBrakedown.amountBeforeTax ?? 0) - spaPricing.price);
+            const newTotalSpaAmount = Math.max(0, (pricingBrakedown.totalSpa ?? 0) - spaPricing.price);
+
+            const sortedTaxRules = (applicableTaxes?.taxGroup?.taxGroupRules || []).sort((a, b) => (a.taxRule?.priority ?? 0) - (b.taxRule?.priority ?? 0));
+            const newTaxBreakdown = sortedTaxRules.map(rule => {
+                const value = rule.taxRule?.value ?? 0;
+                // @ts-ignore
+                const taxAmount = rule.taxRule?.type === 'percentage' 
+                    ? (newTotalAmountBeforeTaxes * value) / 100 
+                    : value;
+                return {
+                    currencyCode: rule.taxRule?.currencyCode!,
+                    taxedAmount: taxAmount,
+                    name: rule.taxRule?.name!,
+                    pricingBrakeDownId: reservation.pricingBrakedownId!
+                };
+            });
+
+            const newTotalTaxedAmount = newTaxBreakdown.reduce((acc, curr) => acc + curr.taxedAmount, 0);
+            const newFinalAmount = newTotalAmountBeforeTaxes + newTotalTaxedAmount;
+
+            let refundableAmount = reservation.refundAmount;
+            let newExtraAmountToPay = reservation.extraAmountToPay - spaPricing.price;
+
+            //case for spa amount is paid and got cancelled
+            if (reservation.amount + reservation.extraAmountToPay >= reservation.paidAmount) {
+                refundableAmount = spaPricing.price;
+            }
+
+            await Promise.all([
+                this.spaPricingRepository.updatePricingForPaidAndCancelled({
+                    reservationId: data.reservationId,
+                    refundableAmount: refundableAmount,
+                    extraAmountToPay: Math.max(0, newExtraAmountToPay)
+                }),
+                this.spaPricingRepository.updatePriceBrakeDown({
+                    priceBrakeDownId: reservation.pricingBrakedownId,
+                    amountBeforeTax: newTotalAmountBeforeTaxes,
+                    newTotalAmount: newFinalAmount,
+                    totalSpaAmount: newTotalSpaAmount,
+                    taxedAmount: newTotalTaxedAmount
+                }),
+                this.spaPricingRepository.createTaxBrakeDowns(newTaxBreakdown)
+            ]);
+
+            return successResponse("Spa slot deleted successfully");
         } catch (error) {
+            console.log(error);
             if (error instanceof Error) {
                 return errorResponse("Error while deleting spa pricing", error.message);
             }

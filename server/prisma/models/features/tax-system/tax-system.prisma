@@ -8,7 +8,7 @@ model TaxRule {
   validFrom    DateTime        @map("valid_from")
   validTo      DateTime        @map("valid_to")
   isInclusive  Boolean         @default(false) @map("is_inclusive") // to be removed when the database reset happens
-  priority     Int             @default(0) @map("priority")
+  priority     Int             @default(1) @map("priority")
   currencyCode CurrencyCode    @default(AED) @map("currency_code")
 
   // Relations

@@ -19,6 +19,7 @@ import {
 import { IPromotion, ITouristTax } from './room.type';
 import { IBookingOffset } from '../../ari/types';
 import { CurrencyCode } from '../../tax-system/interfaces/tourist-tax.type';
+import { IAddonBrakeDown, IDailyPriceBrakeDown, IPromotionBrakeDown, ISpaPricing, ITaxBrakeDown } from '../../reservation/types';
 
 
 export interface ICustomizableDeal {
@@ -197,10 +198,11 @@ export interface PriceBrakeDown {
     latterpayableAmount: number;
     promoCodeDiscount: number;
     currencyCode: CurrencyCode;
-    dailyPriceBrakeDown: DailyPriceBrakeDown[];
-    taxBrakeDown: TaxBrakeDown[];
-    addonBrakeDown: AddOnBrakeDown[];
-    promotionBrakeDown: PromotionBrakeDown[];
+  AddonBrakeDowns?: IAddonBrakeDown[];
+  DailyPriceBrakeDown?: IDailyPriceBrakeDown[];
+  taxBrakeDown?: ITaxBrakeDown[];
+  promotionBrakeDown?: IPromotionBrakeDown[];
+  SpaPricingBrakeDowns?: ISpaPricing[];
     loyalityDiscount: number;
 }
 

@@ -1,5 +1,5 @@
 import { DiscountType } from "../../promocode/types";
-import { PromotionBrakeDown } from "../../booking-engine/types/pricing.type";
+import { PriceBrakeDown, PromotionBrakeDown } from "../../booking-engine/types/pricing.type";
 import { CurrencyCode } from "../../tax-system/interfaces";
 import { PostingRhythm } from "../../add-on/interfaces";
 import { RestrictionType } from "../../../prisma/generated/prisma/enums";
@@ -93,7 +93,6 @@ export interface ICReservationR {
   bookingUserEmail: string;
   bookingUserPhone: string | null;
   amount: number;
-  finalPrice: any;
   paidAmount: number;
   extraAmountToPay: number;
   refundAmount: number;
@@ -123,7 +122,7 @@ export interface IReservationWithAllDetails extends IReservation {
   reservationPromoCodes?: IReservationPromoCodes[];
   reservationGuests?: IReservationGuest[];
   promo: IPromoCode | null;
-  agencyCommission?: IAgencyCommissionData | null; 
+  agencyCommission?: IAgencyCommissionData | null;
 
 }
 export interface IAgencyCommissionData {
@@ -232,6 +231,15 @@ export interface IPricingBreakDown extends ICPricingBreakDown {
   DailyPriceBrakeDown?: IDailyPriceBrakeDown[];
   taxBrakeDown?: ITaxBrakeDown[];
   promotionBrakeDown?: IPromotionBrakeDown[];
+  SpaPricingBrakeDowns?: ISpaPricing[];
+  totalSpa: number;
+}
+export interface ISpaPricing {
+  id: string;
+  pricingId: string;
+  spaSlotId: string;
+  price: number;
+
 }
 export interface IAddonBrakeDown {
   id: string;
@@ -446,6 +454,41 @@ export interface ICReservationPayloadForEmail extends ICReservationPayload {
   ratePlanName: string;
   refundAmount?: number;
   extraAmountToPay?: number;
+}
+export interface IBookingTemplate {
+  propertyCode: string;
+  reservationStartDate: Date | string;
+  reservationEndDate: Date | string;
+  hotelName: string;
+  bankDetails?: IBankDetails;
+  roomName: string;
+  roomTypeCode: string;
+  guests?: IGuestdistribution;
+  bookingUserEmail: string;
+  bookingUserPhone: string;
+  numberOfRooms: number;
+  promoCode: string;
+  currencyCode: CurrencyCode;
+  guestDetails: IGuestDetails[];
+  ratePlanCode: string;
+  paymentMethod: PaymentMethod;
+  bookingSource: BookingSource;
+  selectedPromotions?: ISelectedPromotions[];
+  selectedAddons?: ISelectedAddons[];
+  platforms: Platforms;
+  agencyId?: string;
+  agentId?: string;
+  ngeniusOrderRef?: string;
+  isLoyalityGuest?: boolean;
+  numberOfNights: number;
+  bookingCode: string;
+  reservationId: string;
+  bookedAt: string;
+  bookingStatus: ReservationStatus;
+  ratePlanName: string;
+  refundAmount?: number;
+  extraAmountToPay?: number;
+  PricingBrakeDown: PriceBrakeDown;
 }
 
 export interface IBankDetails {
