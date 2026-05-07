@@ -67,7 +67,7 @@ const baseMainNav = (): NavItem[] => [
       { name: 'Api Logs', href: '/app/logs', icon: Network, userLevels: [4], priority: 3, roles: ['super_admin', ] },
       { name: 'Service Logs', href: '/app/service-logs', icon: ServerCog, userLevels: [4], priority: 3, roles: ['super_admin'] },
     ],roles: ['super_admin']
-  },
+  }
 ];
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -108,12 +108,17 @@ export default function Sidebar({ isSidebarOpen, toggleSidebar }: SidebarProps) 
 
   // ── Build Loyalty children ─────────────────────────────────────────────────
   const loyaltyChildren = (): NavItem[] => {
+    const items: NavItem[] = [
+      { name: 'Loyalty Config', href: `/app/loyalty/${finalCreationId}`, icon: Settings2, userLevels: [2, 3, 4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
+      { name: 'Register Form', href: `/app/loyalty/register-form/${finalCreationId}`, icon: FileText, userLevels: [2, 3, 4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
+      { name: 'Content Config', href: `/app/loyalty/content-config/${finalCreationId}`, icon: Pen, userLevels: [2, 3, 4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
+      { name: 'Loyalty Guests', href: `/app/loyalty/loyalty-guests/${finalCreationId}`, icon: Users, userLevels: [2, 3, 4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
+      { name: 'Levels', href: `/app/loyalty/levels/${finalCreationId}`, icon: ListEndIcon, userLevels: [2, 3, 4], priority: 1, roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
+    ];
     if (isPropertyContext && resolvedPropId) {
-      return [
-        { name: 'Property Loyalty', href: `/property/loyalty/${resolvedPropId}`, icon: Award, userLevels: [0, 1, 2, 3, 4], priority: 1 , roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] },
-      ];
+      items.push({ name: 'Property Loyalty', href: `/property/loyalty/${resolvedPropId}`, icon: Award, userLevels: [0, 1, 2, 3, 4], priority: 1 , roles: ['super_admin', 'regional_admin', 'group_manager', 'brand_manager', 'hotel_manager', 'staff'] });
     }
-    return [];
+    return items;
   };
 
   // ── Build Agency children ──────────────────────────────────────────────────
