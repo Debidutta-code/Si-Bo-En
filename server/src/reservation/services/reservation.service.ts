@@ -294,12 +294,13 @@ export class ReservationService {
                     await this.guestRepository.createGuest(newGuestPayload);
                 primaryGuestId = newGuest.id;
             }
-            this.loyalityGuestRepo
-                .addGuestTOLoyalty(bookingUserEmail, primaryGuestId)
-                .catch((err) =>
-                    console.error('loyaltyGuestRepo.addGuestTOLoyalty:', err)
-                );
-
+            if (payload.isLoyalityGuest) {
+                this.loyalityGuestRepo
+                    .addGuestTOLoyalty(bookingUserEmail, primaryGuestId)
+                    .catch((err) =>
+                        console.error('loyaltyGuestRepo.addGuestTOLoyalty:', err)
+                    );
+            }
             const bookingCode = await this.generateBookingCode(propertyCode);
             const paymentMethods = this.mapPaymentMethod(paymentMethod);
 
@@ -769,6 +770,8 @@ export class ReservationService {
                         checkOutDate: endDate,
                         amount: newAmount,
                         finalPrice: updatePayload.finalPrice,
+                        rooms: updatePayload.rooms,
+                        requestedRooms: updatePayload.requestedRooms
                     },
                     existingReservation.propertyId,
                     { name: activeIntegrationU?.name ?? 'Rate Tiger', type: activeIntegrationTypeU, integrationId: '' }

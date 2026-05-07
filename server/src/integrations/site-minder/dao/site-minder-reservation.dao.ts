@@ -45,8 +45,8 @@ public static async getSiteMinderConfig(
 
         return {
             siteMinderPropertyCode,
-            channelCode: 'SM',      // or from secrets if stored
-            channelName: 'SiteMinder',
+            channelCode: 'RVC',      // or from secrets if stored
+            channelName: 'Revchill',
             reservationUrl: propertyIntegration.MasterIntegration
                 .masterIntegrationURLFields
                 .find(f => f.name === 'Reservation')?.url ?? '',

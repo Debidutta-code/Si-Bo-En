@@ -1,5 +1,6 @@
 
 import { RateTigerDao } from '../../rate-tiger/dao'; // adjust path to your actual RateTiger dao
+import { SiteMinderDao } from '../dao';
 import { SiteMinderXmlParser } from '../utils/xml-parser';
 
 export class SiteMinderRoomsRatesService {
@@ -13,8 +14,14 @@ export class SiteMinderRoomsRatesService {
 
         try {
             // Reuse exact same dao you already have for RateTiger
-            const mappingData = await RateTigerDao.getPropertyMappingData(hotelCode);
-
+            const property = await SiteMinderDao.getProperty(hotelCode);
+            if (!property) {
+                return SiteMinderXmlParser.buildRoomsRatesResponse({
+                    echoToken, version, roomStays: [],
+                    error: { type: 3, code: 392, text: `Property ${hotelCode} not found` },
+                });
+            }
+            const mappingData = await RateTigerDao.getPropertyMappingData(property.propertyCode);
             if (!mappingData) {
                 return SiteMinderXmlParser.buildRoomsRatesResponse({
                     echoToken,

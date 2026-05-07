@@ -1,3 +1,5 @@
+import { GuestDetail } from "../../rate-tiger/types";
+
 export type SMResStatus = 'Commit' | 'Modify' | 'Cancel';
 
 export interface SMGuestCount {
@@ -66,10 +68,25 @@ export interface SMReservationPushParams {
     primaryGuest: SMGuestProfile;
     currencyCode: string;
     paymentMethod: SMPaymentMethod;
-    totalAmountBeforeTax: string;
+    totalAmountBeforeTax?: string;
     totalAmountAfterTax: string;
-}
+    addonBrakeDown?: Array<{
+        name: string;
+        amount: number;
+        totalAmount: number;
+        quantity: number;
+        currencyCode: string;
+        date: string | Date;
+    }>;
 
+    payLaterBrakeDown?: Array<{
+        name: string;
+        amount: number;
+        totalAmount: number;
+        currencyCode: string;
+    }>;
+    guestDetails?: GuestDetail[];
+}
 
 export interface SMReservationResult {
     success: boolean;

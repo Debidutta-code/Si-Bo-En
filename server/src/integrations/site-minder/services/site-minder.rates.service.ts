@@ -58,7 +58,7 @@ export class SiteMinderRatesService {
                 };
             }
 
-            const { propertyId } = property;
+            const { propertyId , propertyCode } = property;
 
             for (const message of rateAmountMessages) {
                 const { statusApplicationControl, rates } = message;
@@ -128,7 +128,7 @@ export class SiteMinderRatesService {
 
                 while (currentDate <= endDate) {
                     await SiteMinderDao.upsertCharge({
-                        propertyCode: hotelCode,
+                        propertyCode,
                         roomTypeCode,
                         ratePlanCode,
                         ratePlanName,

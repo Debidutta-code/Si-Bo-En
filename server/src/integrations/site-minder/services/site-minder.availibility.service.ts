@@ -9,19 +9,19 @@ export class SiteMinderAvailabilityService {
         const { hotelCode, availStatusMessages } = payload;
 
         try {
-            // 1. Validate property
-            const propertyExists = await SiteMinderDao.propertyExists(hotelCode);
-            if (!propertyExists) {
+            const property = await SiteMinderDao.getProperty(hotelCode);
+            if (!property) {
                 return {
                     success: false,
                     errors: [{ type: 3, code: 392, text: `Property ${hotelCode} not found` }],
                 };
             }
 
+            const { propertyCode } = property;
+
             for (const message of availStatusMessages) {
                 const {
-                    start,
-                    end,
+                    start, end,
                     invTypeCode: roomTypeCode,
                     ratePlanCode,
                     bookingLimit,
@@ -29,28 +29,29 @@ export class SiteMinderAvailabilityService {
                     restrictionStatuses,
                 } = message;
 
+                // ── MinLOS / MaxLOS ───────────────────────────────────────────
                 let minLos: number | undefined;
                 let maxLos: number | undefined;
 
                 if (lengthsOfStay && lengthsOfStay.length > 0) {
                     for (const los of lengthsOfStay) {
                         if (los.minMaxMessageType === 'SetMinLOS') {
-                            minLos = parseInt(los.time);
+                            minLos = parseInt(los.time) || 1;
                         }
                         if (los.minMaxMessageType === 'SetMaxLOS') {
-                            maxLos = parseInt(los.time);
+                            maxLos = los.time ? parseInt(los.time) : 0;
                         }
                     }
                 }
 
-                // 3. Parse restrictions
+                // ── Restrictions ──────────────────────────────────────────────
                 let isSaleStopped: boolean | undefined;
                 let isClosedToArrival: boolean | undefined;
                 let isClosedToDeparture: boolean | undefined;
 
                 if (restrictionStatuses && restrictionStatuses.length > 0) {
                     for (const r of restrictionStatuses) {
-                        if (r.restriction === 'Master') {
+                        if (!r.restriction || r.restriction === 'Master') {
                             isSaleStopped = r.status === 'Close';
                         }
                         if (r.restriction === 'Arrival') {
@@ -62,14 +63,14 @@ export class SiteMinderAvailabilityService {
                     }
                 }
 
-                // 4. Expand date range day by day
+                // ── Expand date range ─────────────────────────────────────────
                 const startDate = new Date(start);
                 const endDate = new Date(end);
                 const currentDate = new Date(startDate);
 
                 while (currentDate <= endDate) {
                     await SiteMinderDao.upsertInventoryAndRestrictions({
-                        propertyCode: hotelCode,
+                        propertyCode,
                         roomTypeCode,
                         ratePlanCode: ratePlanCode ?? '',
                         date: new Date(currentDate),
@@ -78,19 +79,18 @@ export class SiteMinderAvailabilityService {
                         isClosedToArrival,
                         isClosedToDeparture,
                     });
-
-                    // 5. Handle MinLOS/MaxLOS if present
-                    if ((minLos !== undefined || maxLos !== undefined) && ratePlanCode) {
-                        await SiteMinderDao.upsertLengthOfStay({
-                            propertyCode: hotelCode,
-                            ratePlanCode,
-                            date: new Date(currentDate),
-                            minLos,
-                            maxLos,
-                        });
-                    }
-
                     currentDate.setDate(currentDate.getDate() + 1);
+                }
+
+                if ((minLos !== undefined || maxLos !== undefined) && ratePlanCode) {
+                    await SiteMinderDao.upsertLengthOfStay({
+                        propertyCode,
+                        ratePlanCode,
+                        startDate,
+                        endDate,
+                        minLos,
+                        maxLos,
+                    });
                 }
             }
 

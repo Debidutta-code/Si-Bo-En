@@ -171,8 +171,23 @@ export class IntegrationDispatcher {
         existing: ExistingReservation,
         update: RTUpdatePayload
     ): ICReservationPayload {
+        const roomsArray = Array.isArray((update as any).rooms)
+            ? (update as any).rooms
+            : existing.finalPrice?.guests?.roomsArray ?? [];
+
+        const requestedRooms = (update as any).requestedRooms
+            ?? existing.finalPrice?.requestedRooms
+            ?? 1;
+
+        // ← ADD THIS LOG
+        console.log('[SM buildSMPayloadFromUpdate]', {
+            updateRooms: (update as any).rooms,
+            roomsArray,
+            requestedRooms,
+            updateFinalPriceDailyBreakdown: update.finalPrice?.dailyPriceBrakeDown?.length,
+        });
+
         return {
-            ...existing.finalPrice,
             propertyCode: existing.propertyCode ?? '',
             roomTypeCode: existing.roomTypeCode ?? '',
             ratePlanCode: existing.ratePlanCode ?? '',
@@ -186,11 +201,15 @@ export class IntegrationDispatcher {
             finalPrice: update.finalPrice,
             paymentMethod: existing.paymentMethod,
             guestDetails: Array.isArray(existing.guests) ? existing.guests : [],
-            guests: existing.finalPrice?.guests ?? { adults: 1, children: 0, rooms: 1, roomsArray: [] },
-            numberOfRooms: existing.finalPrice?.requestedRooms ?? 1,
+            guests: {
+                adults: (update as any).rooms?.reduce((s: number, r: any) => s + r.adults, 0) ?? existing.finalPrice?.guests?.adults ?? 1,
+                children: (update as any).rooms?.reduce((s: number, r: any) => s + r.children, 0) ?? existing.finalPrice?.guests?.children ?? 0,
+                rooms: requestedRooms,
+                roomsArray,
+            },
+            numberOfRooms: requestedRooms,
         } as any;
     }
-
     private static buildSMPayloadFromExisting(
         existing: ExistingReservation
     ): ICReservationPayload {

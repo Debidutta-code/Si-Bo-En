@@ -10,6 +10,9 @@ const builder = new XMLBuilder({
     format: true,
     suppressEmptyNode: false,
     attributeValueProcessor: (_name: string, val: unknown) => String(val),
+    unpairedTags: [],
+    processEntities: false,
+    suppressBooleanAttributes: false,
 });
 
 const parser = new XMLParser({
@@ -22,6 +25,24 @@ const parser = new XMLParser({
 
 export class SiteMinderReservationXmlBuilder {
 
+    public static toDateString(date: string | Date): string {
+        if (date instanceof Date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+        if (/^\d{4}-\d{2}-\d{2}/.test(date)) return date.split('T')[0];
+        const parsed = new Date(date);
+        if (!isNaN(parsed.getTime())) {
+            const y = parsed.getFullYear();
+            const m = String(parsed.getMonth() + 1).padStart(2, '0');
+            const d = String(parsed.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+        return date;
+    }
+
     public static buildReservationRequest(
         params: SMReservationPushParams,
         username: string,
@@ -31,7 +52,7 @@ export class SiteMinderReservationXmlBuilder {
         const timeStamp = new Date().toISOString();
 
         // ── Room Stays ────────────────────────────────────────────────────────
-        const roomStayElements = params.roomStays.map((rs) => {
+        const roomStayElements = params.roomStays.map((rs, index) => {
             const roomRatesObj = Array.isArray(rs.roomRates) ? rs.roomRates[0] : rs.roomRates;
             const rates = roomRatesObj?.rates ?? [];
 
@@ -96,37 +117,91 @@ export class SiteMinderReservationXmlBuilder {
                     '@_HotelCode': params.hotelCode,
                 },
                 ResGuestRPHs: {
-                    ResGuestRPH: { '@_RPH': '1' },
+                    // ✅ each room points to its own guest RPH
+                    ResGuestRPH: { '@_RPH': String(index + 1) },
                 },
             };
         });
 
-        // ── Guest Profile ─────────────────────────────────────────────────────
+        // ── Guest Profiles ────────────────────────────────────────────────────
         const { primaryGuest } = params;
-        const resGuestElement = {
-            '@_ResGuestRPH': '1',
-            '@_PrimaryIndicator': '1',
-            Profiles: {
-                ProfileInfo: {
-                    Profile: {
-                        '@_ProfileType': '1',
-                        Customer: {
-                            PersonName: {
-                                ...(primaryGuest.salutation && { NamePrefix: primaryGuest.salutation }),
-                                GivenName: primaryGuest.firstName,
-                                Surname: primaryGuest.lastName,
+        const allGuests = params.guestDetails ?? [];
+
+        const resGuestElements = params.roomStays.map((_rs, index) => {
+            const guest = allGuests[index];
+            // ✅ use guest name if filled, else fall back to primary guest name
+            const firstName = guest?.firstName?.trim() ? guest.firstName : primaryGuest.firstName;
+            const lastName = guest?.lastName?.trim() ? guest.lastName : primaryGuest.lastName;
+            const isPrimary = index === 0;
+
+            return {
+                '@_ResGuestRPH': String(index + 1),
+                '@_PrimaryIndicator': isPrimary ? '1' : '0',
+                Profiles: {
+                    ProfileInfo: {
+                        Profile: {
+                            '@_ProfileType': '1',
+                            Customer: {
+                                PersonName: {
+                                    ...(isPrimary && primaryGuest.salutation && {
+                                        NamePrefix: primaryGuest.salutation,
+                                    }),
+                                    GivenName: firstName,
+                                    Surname: lastName,
+                                },
+                                // ✅ phone and email only on primary guest
+                                ...(isPrimary && primaryGuest.phone && {
+                                    Telephone: { '@_PhoneNumber': primaryGuest.phone },
+                                }),
+                                ...(isPrimary && primaryGuest.email && {
+                                    Email: primaryGuest.email,
+                                }),
                             },
-                            ...(primaryGuest.phone && {
-                                Telephone: { '@_PhoneNumber': primaryGuest.phone },
-                            }),
-                            ...(primaryGuest.email && {
-                                Email: primaryGuest.email,
-                            }),
                         },
                     },
                 },
+            };
+        });
+
+        // ── Services (Addons + PayLater e.g. Tourist fee) ─────────────────────
+        const addonBrakeDown = params.addonBrakeDown ?? [];
+        const payLaterBrakeDown = params.payLaterBrakeDown ?? [];
+
+        const buildServiceElement = (item: any, isPayLater: boolean) => ({
+            '@_ServiceInventoryCode': item.name,
+            '@_Inclusive': isPayLater ? 'false' : 'true',
+            ...(!isPayLater && { '@_Quantity': String(item.quantity ?? 1) }),
+            Price: {
+                Base: {
+                    '@_AmountBeforeTax': Number(item.amount).toFixed(2),
+                    '@_AmountAfterTax': Number(item.amount).toFixed(2),
+                    '@_CurrencyCode': item.currencyCode ?? params.currencyCode,
+                },
+                Total: {
+                    '@_AmountBeforeTax': Number(item.totalAmount).toFixed(2),
+                    '@_AmountAfterTax': Number(item.totalAmount).toFixed(2),
+                    '@_CurrencyCode': item.currencyCode ?? params.currencyCode,
+                },
+                RateDescription: {
+                    Text: item.name,
+                },
             },
-        };
+            ...(!isPayLater && {
+                ServiceDetails: {
+                    TimeSpan: {
+                        '@_Start': SiteMinderReservationXmlBuilder.toDateString(item.date),
+                        '@_End': SiteMinderReservationXmlBuilder.toDateString(item.date),
+                    },
+                },
+            }),
+        });
+
+        const allServiceElements = [
+            ...addonBrakeDown.map((a: any) => buildServiceElement(a, false)),
+            ...payLaterBrakeDown.map((p: any) => buildServiceElement(p, true)),
+        ];
+
+        const serviceElements = allServiceElements.length > 0 ? allServiceElements : null;
 
         // ── ResGlobalInfo Total ───────────────────────────────────────────────
         const resGlobalInfoTotal = {
@@ -195,8 +270,14 @@ export class SiteMinderReservationXmlBuilder {
                                     RoomStay: roomStayElements,
                                 },
                                 ResGuests: {
-                                    ResGuest: resGuestElement,
+                                    // ✅ now an array, one per room
+                                    ResGuest: resGuestElements,
                                 },
+                                ...(serviceElements && {
+                                    Services: {
+                                        Service: serviceElements,
+                                    },
+                                }),
                                 ResGlobalInfo: {
                                     HotelReservationIDs: {
                                         HotelReservationID: {
@@ -221,16 +302,17 @@ export class SiteMinderReservationXmlBuilder {
         bookingCode: string
     ): SMReservationResult {
         try {
+
             const parsed = parser.parse(rawXml);
             const rs = parsed?.Envelope?.Body?.OTA_HotelResNotifRS;
 
             if (!rs) {
                 const fault = parsed?.Envelope?.Body?.Fault;
                 if (fault) {
-                    return {
-                        success: false,
-                        message: fault?.faultstring ?? 'SOAP Fault received',
-                    };
+                    const faultMsg = fault?.faultstring?.['#text']
+                        ?? fault?.faultstring
+                        ?? 'SOAP Fault received';
+                    return { success: false, message: faultMsg };
                 }
                 return { success: false, message: 'Invalid response from SiteMinder' };
             }
@@ -249,11 +331,18 @@ export class SiteMinderReservationXmlBuilder {
             }
 
             const errors = rs?.Errors?.Error;
+            const extractText = (e: any): string => {
+                if (typeof e === 'string') return e;
+                if (typeof e === 'number') return String(e);
+                return e?.['#text'] ?? e?.['_'] ?? JSON.stringify(e);
+            };
+
             const errorText = Array.isArray(errors)
-                ? errors.map((e: any) => e['#text'] ?? e).join(', ')
-                : errors?.['#text'] ?? errors ?? 'Unknown error';
+                ? errors.map(extractText).join(', ')
+                : extractText(errors) ?? 'Unknown error from SiteMinder';
 
             return { success: false, message: errorText };
+
         } catch (error: any) {
             return {
                 success: false,

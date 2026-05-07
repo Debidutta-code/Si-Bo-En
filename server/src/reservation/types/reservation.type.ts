@@ -485,7 +485,7 @@ export interface IGuestDetails {
   firstName: string;
   lastName: string;
   dateOfBirth: string;
-  salutation?: string;
+  salutation?: 'Mr.' | 'Mrs.' | 'Ms.' | 'Mstr.' | 'Miss' | 'Dr.';
 }
 export interface ISelectedAddons {
   addonCode: string;

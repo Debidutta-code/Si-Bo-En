@@ -5,16 +5,49 @@ import { CurrencyCode } from '../../../tax-system/interfaces/tourist-tax.type';
 
 export class SiteMinderDao {
 
-    public static async getProperty(propertyCode: string): Promise<{ propertyId: string } | null> {
+    public static async propertyExists(siteMinderPropertyCode: string): Promise<boolean> {
         try {
-            const property = await prisma.property.findUnique({
-                where: { propertyCode },
+            const integration = await prisma.propertyIntegrations.findFirst({
+                where: {
+                    isActive: true,
+                    propertyIntegrationSecrets: {
+                        some: {
+                            value: siteMinderPropertyCode,
+                            RequiredField: { name: 'Site Minder Property Code' },
+                        },
+                    },
+                },
                 select: { id: true },
             });
-            if (!property) return null;
-            return { propertyId: property.id };
+            return !!integration;
         } catch {
-            throw new Error("Failed to fetch property");
+            throw new Error('Failed to verify property existence');
+        }
+    }
+
+    public static async getProperty(siteMinderPropertyCode: string): Promise<{ propertyId: string; propertyCode: string } | null> {
+        try {
+            const integration = await prisma.propertyIntegrations.findFirst({
+                where: {
+                    isActive: true,
+                    propertyIntegrationSecrets: {
+                        some: {
+                            value: siteMinderPropertyCode,
+                            RequiredField: { name: 'Site Minder Property Code' },
+                        },
+                    },
+                },
+                include: {
+                    Property: { select: { id: true, propertyCode: true } }, // ← capital P
+                },
+            });
+            if (!integration) return null;
+            return {
+                propertyId: integration.Property.id,       // ← capital P
+                propertyCode: integration.Property.propertyCode, // ← capital P
+            };
+        } catch {
+            throw new Error('Failed to fetch property');
         }
     }
     public static async getRoomMaxChildren(
@@ -27,22 +60,11 @@ export class SiteMinderDao {
                 property: { propertyCode },
             },
             select: {
-               maxNumberOfChildren:true
+                maxNumberOfChildren: true
             },
         });
         if (!room) return 0;
         return Math.max(0, room.maxNumberOfChildren);
-    }
-    public static async propertyExists(propertyCode: string): Promise<boolean> {
-        try {
-            const property = await prisma.property.findUnique({
-                where: { propertyCode },
-                select: { id: true },
-            });
-            return !!property;
-        } catch {
-            throw new Error('Failed to verify property existence');
-        }
     }
 
     /**
@@ -273,11 +295,12 @@ export class SiteMinderDao {
     public static async upsertLengthOfStay(params: {
         propertyCode: string;
         ratePlanCode: string;
-        date: Date;
+        startDate: Date;
+        endDate: Date;
         minLos?: number;
         maxLos?: number;
     }): Promise<void> {
-        const { propertyCode, ratePlanCode, date, minLos, maxLos } = params;
+        const { propertyCode, ratePlanCode, startDate, endDate, minLos, maxLos } = params;
 
         const ratePlan = await prisma.ratePlan.findFirst({
             where: { ratePlanCode, property: { propertyCode } },
@@ -286,71 +309,59 @@ export class SiteMinderDao {
 
         if (!ratePlan) return;
 
-        const existingRule = await prisma.ratePlanRule.findFirst({
-            where: {
-                ratePlanId: ratePlan.id,
-                OR: [
-                    { startDate: null, endDate: null },
-                    { startDate: { lte: date }, endDate: { gte: date } },
-                ],
+        await prisma.ratePlanRule.upsert({
+            where: { ratePlanId: ratePlan.id },
+            update: {
+                startDate,
+                endDate,
+                ...(minLos !== undefined && { minLos }),
+                ...(maxLos !== undefined && { maxLos }),
             },
-            select: { id: true },
+            create: {
+                ratePlanId: ratePlan.id,
+                startDate,
+                endDate,
+                minLos: minLos ?? 1,
+                maxLos: maxLos ?? 0,
+                isActive: true,
+            },
         });
-
-        if (existingRule) {
-            await prisma.ratePlanRule.update({
-                where: { id: existingRule.id },
-                data: {
-                    ...(minLos !== undefined && { minLos }),
-                    ...(maxLos !== undefined && { maxLos }),
-                },
-            });
-        } else {
-            await prisma.ratePlanRule.create({
-                data: {
-                    ratePlanId: ratePlan.id,
-                    minLos: minLos ?? 1,
-                    maxLos: maxLos ?? 0,
-                    isActive: true,
-                },
-            });
-        }
     }
 
     public static async getActiveTaxRulesForRatePlan(
-    ratePlanCode: string,
-    propertyCode: string
-): Promise<Array<{ priority: number; type: string; value: number }>> {
-    const ratePlan = await prisma.ratePlan.findFirst({
-        where: { 
-            ratePlanCode, 
-            property: { propertyCode } 
-        },
-        select: {
-            taxGroup: {
-                select: {
-                    isActive: true,
-                    taxGroupRules: {
-                        select: {
-                            taxRule: {
-                                select: {
-                                    priority: true,
-                                    type: true,
-                                    value: true,
+        ratePlanCode: string,
+        propertyCode: string
+    ): Promise<Array<{ priority: number; type: string; value: number }>> {
+        const ratePlan = await prisma.ratePlan.findFirst({
+            where: {
+                ratePlanCode,
+                property: { propertyCode }
+            },
+            select: {
+                taxGroup: {
+                    select: {
+                        isActive: true,
+                        taxGroupRules: {
+                            select: {
+                                taxRule: {
+                                    select: {
+                                        priority: true,
+                                        type: true,
+                                        value: true,
+                                    }
                                 }
                             }
                         }
                     }
                 }
             }
-        }
-    });
-    if (!ratePlan?.taxGroup?.isActive) return [];
+        });
+        if (!ratePlan?.taxGroup?.isActive) return [];
 
-    return ratePlan.taxGroup.taxGroupRules.map(r => ({
-        priority: r.taxRule.priority,
-        type: r.taxRule.type,
-        value: r.taxRule.value,
-    }));
-}
+        return ratePlan.taxGroup.taxGroupRules.map(r => ({
+            priority: r.taxRule.priority,
+            type: r.taxRule.type,
+            value: r.taxRule.value,
+        }));
+    }
 }

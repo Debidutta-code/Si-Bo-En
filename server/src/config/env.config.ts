@@ -63,7 +63,8 @@ const config = {
     rateTigerAuthUrl: process.env.RATETIGER_AUTHENTICATION_URL || '',
     siteMinderUsername: process.env.SITE_MINDER_USERNAME,
     siteMinderPassword: process.env.SITE_MINDER_PASSWORD,
-    
+    siteMinderReservationUserName: process.env.SITE_MINDER_RESERVATION_USERNAME,
+    siteMinderReservationPassword: process.env.SITE_MINDER_RESERVATION_PASSWORD,
     //currency exchange api url;
     exchangeApiUrl: process.env.EXCHANGE_API_URL || '',
     //redis config

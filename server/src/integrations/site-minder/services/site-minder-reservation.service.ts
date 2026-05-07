@@ -1,5 +1,3 @@
-// services/site-minder-reservation.service.ts
-
 import axios from 'axios';
 import { config } from '../../../config';
 import { ICReservationPayload } from '../../../reservation/types';
@@ -30,7 +28,7 @@ export class SiteMinderReservationService {
                     'Content-Type': 'text/xml; charset=utf-8',
                     SOAPAction: '',
                 },
-                timeout: 15000,
+                timeout: 60000,
             });
             return SiteMinderReservationXmlBuilder.parseReservationResponse(response.data, bookingCode);
         } catch (error: any) {
@@ -77,22 +75,31 @@ export class SiteMinderReservationService {
                 ? roomBreakdown
                 : finalPrice.dailyPriceBrakeDown;
 
-            // Spread total tax evenly across nights
+            const allRoomsTotal = finalPrice.dailyPriceBrakeDown.reduce(
+                (s: number, d: any) => s + (d.totalAmount ?? d.baseChargesAmount ?? 0), 0
+            );
+            const thisRoomTotal = breakdown.reduce(
+                (s: number, d: any) => s + (d.totalAmount ?? d.baseChargesAmount ?? 0), 0
+            );
+
+            const roomShare = allRoomsTotal > 0 ? thisRoomTotal / allRoomsTotal : 1;
+            const roomTaxShare = roomShare * (finalPrice.taxedAmount ?? 0);
+
             const numberOfNights = breakdown.length;
-            const totalTax = finalPrice.taxedAmount ?? 0;
             const taxPerNight = numberOfNights > 0
-                ? Math.round((totalTax / numberOfNights) * 100) / 100
+                ? Math.round((roomTaxShare / numberOfNights) * 100) / 100
                 : 0;
 
+            // ✅ NO addon, NO tourist fee — those go to Services only
+
             return breakdown.map((day: any) => {
+                const base = day.totalAmount ?? day.baseChargesAmount ?? 0;
+                const afterTax = Math.round((base + taxPerNight) * 100) / 100;
+
                 const effectiveDate = SiteMinderReservationService.toDateString(day.date);
                 const nextDay = new Date(day.date);
                 nextDay.setDate(nextDay.getDate() + 1);
                 const expireDate = SiteMinderReservationService.toDateString(nextDay);
-
-                // Use totalAmount as the before-tax base (includes base + additional charges)
-                const base = day.totalAmount ?? day.baseChargesAmount ?? day.baseRate ?? 0;
-                const afterTax = Math.round((base + taxPerNight) * 100) / 100;
 
                 return {
                     effectiveDate,
@@ -106,12 +113,8 @@ export class SiteMinderReservationService {
 
         const buildGuestCounts = (room: { adults: number; children: number }): SMGuestCount[] => {
             const counts: SMGuestCount[] = [];
-            if (room.adults > 0) {
-                counts.push({ ageQualifyingCode: '10', count: room.adults });
-            }
-            if (room.children > 0) {
-                counts.push({ ageQualifyingCode: '8', count: room.children });
-            }
+            if (room.adults > 0) counts.push({ ageQualifyingCode: '10', count: room.adults });
+            if (room.children > 0) counts.push({ ageQualifyingCode: '8', count: room.children });
             return counts;
         };
 
@@ -121,14 +124,22 @@ export class SiteMinderReservationService {
             );
             const src = breakdown.length > 0 ? breakdown : finalPrice.dailyPriceBrakeDown;
 
-            // totalAmount per day summed = amountBeforeTax for the room stay
-            const beforeTax = src.reduce((s: number, d: any) => s + (d.totalAmount ?? d.baseChargesAmount ?? d.baseRate ?? 0), 0);
-            const tax = finalPrice.taxedAmount ?? 0;
-            // afterTax = currentChargeableAmount (what guest actually pays now, excludes payLater tourist tax)
-            const afterTax = finalPrice.currentChargeableAmount ?? (beforeTax + tax);
+            const allRoomsTotal = finalPrice.dailyPriceBrakeDown.reduce(
+                (s: number, d: any) => s + (d.totalAmount ?? d.baseChargesAmount ?? 0), 0
+            );
+            const beforeTax = src.reduce(
+                (s: number, d: any) => s + (d.totalAmount ?? d.baseChargesAmount ?? 0), 0
+            );
+
+            const roomShare = allRoomsTotal > 0 ? beforeTax / allRoomsTotal : 1;
+            const roomTax = roomShare * (finalPrice.taxedAmount ?? 0);
+
+            // ✅ room + tax only, NO addon, NO tourist fee
+            const afterTax = Math.round((beforeTax + roomTax) * 100) / 100;
+
             return {
                 beforeTax: Math.round(beforeTax * 100) / 100,
-                afterTax: Math.round(afterTax * 100) / 100,
+                afterTax,
             };
         };
 
@@ -160,7 +171,7 @@ export class SiteMinderReservationService {
         const totalBefore = finalPrice.dailyPriceBrakeDown.reduce(
             (s: number, d: any) => s + (d.totalAmount ?? d.baseChargesAmount ?? d.baseRate ?? 0), 0
         );
-        const totalAfter = finalPrice.currentChargeableAmount ?? (totalBefore + (finalPrice.taxedAmount ?? 0));
+        const totalAfter = Math.round((totalBefore + (finalPrice.taxedAmount ?? 0)) * 100) / 100;
 
         return [{
             roomTypeCode: payload.roomTypeCode,
@@ -178,18 +189,23 @@ export class SiteMinderReservationService {
             }),
             checkIn,
             checkOut,
-            totalAmountBeforeTax: Math.round(totalBefore * 100) / 100 + '',
-            totalAmountAfterTax: Math.round(totalAfter * 100) / 100 + '',
+            totalAmountBeforeTax: (Math.round(totalBefore * 100) / 100).toFixed(2),
+            totalAmountAfterTax: totalAfter.toFixed(2),
             currencyCode: payload.currencyCode,
         }];
     }
 
     // ─── Helper to build totals for params ───────────────────────────────────
-    private static buildTotals(payload: ICReservationPayload): { totalBeforeTax: string; totalAfterTax: string } {
+    private static buildTotals(payload: ICReservationPayload): {
+        totalBeforeTax: string;
+        totalAfterTax: string;
+    } {
         const totalBeforeTax = payload.finalPrice.dailyPriceBrakeDown.reduce(
             (s: number, d: any) => s + (d.totalAmount ?? d.baseChargesAmount ?? d.baseRate ?? 0), 0
         );
-        const totalAfterTax = payload.finalPrice.currentChargeableAmount
+
+        // ✅ Use totalAmount = room + tax + addon + tourist fee (full grand total)
+        const totalAfterTax = payload.finalPrice.totalAmount
             ?? (totalBeforeTax + (payload.finalPrice.taxedAmount ?? 0));
 
         return {
@@ -198,8 +214,20 @@ export class SiteMinderReservationService {
         };
     }
 
-    // ─── PUBLIC: Commit ───────────────────────────────────────────────────────
+    // ─── Helper to extract payLater promotions (tourist fee etc.) ────────────
+   private static getPayLaterServices(payload: ICReservationPayload): any[] {
+    const promotions = payload.finalPrice?.promotionBrakeDown ?? [];
+    return promotions
+        .filter((p: any) => p.restrictionType === 'payLater')
+        .map((p: any) => ({
+            name: p.name,                 
+            amount: p.discountAmount,      
+            totalAmount: p.discountAmount, 
+            currencyCode: p.currencyCode ?? payload.currencyCode,
+        }));
+}
 
+    // ─── PUBLIC: Commit ───────────────────────────────────────────────────────
     public static async pushCommit(
         payload: ICReservationPayload,
         bookingCode: string,
@@ -234,17 +262,19 @@ export class SiteMinderReservationService {
                 paymentMethod,
                 totalAmountBeforeTax: totalBeforeTax,
                 totalAmountAfterTax: totalAfterTax,
+                // ✅ addons + tourist fee (payLater) both go to Services
+                addonBrakeDown: payload.finalPrice?.addonBrakeDown ?? [],
+                payLaterBrakeDown: SiteMinderReservationService.getPayLaterServices(payload),
+                guestDetails: payload.guestDetails,
             };
 
             const validationError = SiteMinderReservationValidation.validate(params);
-            if (validationError) {
-                return { success: false, message: validationError };
-            }
+            if (validationError) return { success: false, message: validationError };
 
             const xml = SiteMinderReservationXmlBuilder.buildReservationRequest(
                 params,
-                config.siteMinderUsername!,
-                config.siteMinderPassword!
+                config.siteMinderReservationUserName!,
+                config.siteMinderReservationPassword!
             );
 
             const log = logger.start('pushCommit');
@@ -270,7 +300,6 @@ export class SiteMinderReservationService {
     }
 
     // ─── PUBLIC: Modify ───────────────────────────────────────────────────────
-
     public static async pushModify(
         payload: ICReservationPayload,
         bookingCode: string,
@@ -307,17 +336,17 @@ export class SiteMinderReservationService {
                 paymentMethod,
                 totalAmountBeforeTax: totalBeforeTax,
                 totalAmountAfterTax: totalAfterTax,
+                addonBrakeDown: payload.finalPrice?.addonBrakeDown ?? [],
+                payLaterBrakeDown: SiteMinderReservationService.getPayLaterServices(payload),
             };
 
             const validationError = SiteMinderReservationValidation.validate(params);
-            if (validationError) {
-                return { success: false, message: validationError };
-            }
+            if (validationError) return { success: false, message: validationError };
 
             const xml = SiteMinderReservationXmlBuilder.buildReservationRequest(
                 params,
-                config.siteMinderUsername!,
-                config.siteMinderPassword!
+                config.siteMinderReservationUserName!,
+                config.siteMinderReservationPassword!
             );
 
             const log = logger.start('pushModify');
@@ -343,7 +372,6 @@ export class SiteMinderReservationService {
     }
 
     // ─── PUBLIC: Cancel ───────────────────────────────────────────────────────
-
     public static async pushCancel(
         payload: ICReservationPayload,
         bookingCode: string,
@@ -380,17 +408,17 @@ export class SiteMinderReservationService {
                 paymentMethod,
                 totalAmountBeforeTax: totalBeforeTax,
                 totalAmountAfterTax: totalAfterTax,
+                addonBrakeDown: payload.finalPrice?.addonBrakeDown ?? [],
+                payLaterBrakeDown: SiteMinderReservationService.getPayLaterServices(payload),
             };
 
             const validationError = SiteMinderReservationValidation.validate(params);
-            if (validationError) {
-                return { success: false, message: validationError };
-            }
+            if (validationError) return { success: false, message: validationError };
 
             const xml = SiteMinderReservationXmlBuilder.buildReservationRequest(
                 params,
-                config.siteMinderUsername!,
-                config.siteMinderPassword!
+                config.siteMinderReservationUserName!,
+                config.siteMinderReservationPassword!
             );
 
             const log = logger.start('pushCancel');

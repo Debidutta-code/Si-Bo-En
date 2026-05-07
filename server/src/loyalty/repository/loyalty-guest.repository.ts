@@ -258,6 +258,7 @@ export class LoyaltyGuestRepository {
                 }
             });
         } catch (error) {
+            console.log("Error", error)
             throw new Error("Failed to get guest by email");
         }
     }

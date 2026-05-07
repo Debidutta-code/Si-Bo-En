@@ -25,7 +25,8 @@ export class SiteMinderReservationValidation {
         if (!params.primaryGuest?.lastName) return 'primaryGuest.lastName is required';
 
         // ── BookingCode format — alphanumeric only, no special chars ──────────
-        if (!/^[a-zA-Z0-9]+$/.test(params.bookingCode)) {
+        const cleanBookingCode = params.bookingCode.replace(/-/g, '');
+        if (!/^[a-zA-Z0-9]+$/.test(cleanBookingCode)) {
             return 'bookingCode must contain only alphanumeric characters (no special chars)';
         }
 
