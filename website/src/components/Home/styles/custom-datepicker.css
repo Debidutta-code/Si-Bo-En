@@ -104,9 +104,8 @@
     color: #2F2A1F !important;
     font-size: 15px !important;
     font-weight: 400 !important;
-    width: 40px !important;
-    height: 40px !important;
-    line-height: 40px !important;
+    width: 44px !important;
+    height: 44px !important;
     margin: 1px auto !important;
     border-radius: 50% !important;
     text-align: center !important;
@@ -114,6 +113,7 @@
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
+    line-height: 1.2 !important;
 }
 
 .react-datepicker__day:hover {
@@ -217,6 +217,34 @@
 /* Triangle pointer */
 .react-datepicker__triangle {
     display: none !important;
+}
+
+.terra-solis-day-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.terra-solis-day-price {
+    font-size: 9px;
+    font-weight: 500;
+    margin-top: 1px;
+    color: #7D7566;
+    opacity: 0.8;
+}
+
+.react-datepicker__day--selected .terra-solis-day-price,
+.react-datepicker__day--range-start .terra-solis-day-price,
+.react-datepicker__day--range-end .terra-solis-day-price {
+    color: #2F2A1F !important;
+    opacity: 1;
+}
+
+.react-datepicker__day--in-range .terra-solis-day-price {
+    color: #2F2A1F !important;
 }
 
 /* Custom styling for showing 2 months */
