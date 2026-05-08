@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../components/ui/dialog";
-import { getAvailableSpasApi, markSlotAsBookedApi, markSlotAsAvailableApi } from "../../app/(loyality)/(loyality-guest)/profile/api/profile.api";
+import { Dialog, DialogContent } from "../../components/ui/dialog";
+import {
+  getAvailableSpasApi,
+  markSlotAsBookedApi,
+  markSlotAsAvailableApi,
+} from "../../app/(loyality)/(loyality-guest)/profile/api/profile.api";
 import { format } from "date-fns";
-import { Button } from "../../components/ui/button";
-import { Input } from "../../components/ui/input";
-import { Label } from "../../components/ui/label";
-import { UserCheck, CalendarCheck, Clock, Calendar, X, Check, Sparkles } from "lucide-react";
+import { Check, Search, Clock, MapPin, Tag } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface SpaBookingDialogProps {
@@ -19,61 +20,136 @@ interface SpaBookingDialogProps {
 
 interface SelectedSlot {
   slotId: string;
-  label: string;
+  startTime: string;
+  endTime: string | null;
   dateLabel: string;
   spaName: string;
+  spaId: string;
 }
 
-const TEAL = "#1595A2";
+const TEAL = "#0d7a87";
 
-export default function SpaBookingDialog({ bookingCode, reservationId, guestName, onClose }: SpaBookingDialogProps) {
+export default function SpaBookingDialog({
+  bookingCode,
+  reservationId,
+  guestName,
+  onClose,
+}: SpaBookingDialogProps) {
   const [spas, setSpas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-  const [selected, setSelected] = useState<SelectedSlot | null>(null);
+
+  const [activeSpa, setActiveSpa] = useState<any | null>(null);
+  const [selectedSlot, setSelectedSlot] = useState<SelectedSlot | null>(null);
   const [cancelSlot, setCancelSlot] = useState<SelectedSlot | null>(null);
   const [userName, setUserName] = useState(guestName || "");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [confirmOpen, setConfirmOpen] = useState(false);
+
   const nameInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { fetchAvailableSpas(); }, [bookingCode]);
-  useEffect(() => { if (selected) setTimeout(() => nameInputRef.current?.focus(), 50); }, [selected]);
+  useEffect(() => {
+    if (confirmOpen) setTimeout(() => nameInputRef.current?.focus(), 50);
+  }, [confirmOpen]);
 
   const fetchAvailableSpas = async () => {
     setLoading(true);
     try {
       const res = await getAvailableSpasApi(bookingCode);
-      if (res.success && res.data) setSpas(res.data);
-      else toast.error(res.message || "Failed to fetch spas");
-    } catch { toast.error("Failed to fetch spas"); }
-    finally { setLoading(false); }
+      if (res.success && res.data) {
+        setSpas(res.data);
+        if (res.data.length > 0) setActiveSpa(res.data[0]);
+      } else {
+        toast.error(res.message || "Failed to fetch spas");
+      }
+    } catch {
+      toast.error("Failed to fetch spas");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleSelectSlot = (slot: any, spaDate: any, spaName: string) => {
-    const startLabel = format(new Date(slot.startTime), "hh:mm a");
-    const endLabel = slot.endTime ? ` – ${format(new Date(slot.endTime), "hh:mm a")}` : "";
-    const label = `${startLabel}${endLabel}`;
-    const dateLabel = format(new Date(spaDate.date), "EEEE, MMM do, yyyy");
+  // Derive unique categories from Category field
+  const categories = ["All", ...Array.from(new Set(spas.map((s) => s.Category?.name).filter(Boolean))) as string[]];
+
+  const filteredSpas = spas.filter((spa) => {
+    const matchesSearch = spa.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === "All" || spa.Category?.name === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  // Group filtered spas by Category
+  const grouped = filteredSpas.reduce((acc: Record<string, any[]>, spa) => {
+    const cat = spa.Category?.name || "Other";
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(spa);
+    return acc;
+  }, {});
+
+  const handleSpaClick = (spa: any) => {
+    setActiveSpa(spa);
+    setSelectedSlot(null);
+    setCancelSlot(null);
+    setConfirmOpen(false);
+  };
+
+  const handleSlotClick = (slot: any, spaDate: any, spa: any) => {
+    const dateLabel = format(new Date(spaDate.date.split("T")[0] + "T00:00:00"), "EEEE, dd MMM yyyy");
     if (slot.isBooked) {
       if (slot.reservationId === reservationId) {
-        setCancelSlot({ slotId: slot.id, label, dateLabel, spaName });
-        setSelected(null);
+        setCancelSlot({
+          slotId: slot.id,
+          startTime: slot.startTime,
+          endTime: slot.endTime,
+          dateLabel,
+          spaName: spa.name,
+          spaId: spa.id,
+        });
+        setSelectedSlot(null);
+        setConfirmOpen(true);
       }
       return;
     }
     setCancelSlot(null);
-    setSelected({ slotId: slot.id, label, dateLabel, spaName });
+    setSelectedSlot({
+      slotId: slot.id,
+      startTime: slot.startTime,
+      endTime: slot.endTime,
+      dateLabel,
+      spaName: spa.name,
+      spaId: spa.id,
+    });
+    setConfirmOpen(true);
   };
 
   const handleConfirmBooking = async () => {
-    if (!selected) return;
-    if (!userName.trim()) { toast.error("Please enter a guest name"); nameInputRef.current?.focus(); return; }
+    if (!selectedSlot) return;
+    if (!userName.trim()) {
+      toast.error("Please enter a guest name");
+      nameInputRef.current?.focus();
+      return;
+    }
     setSubmitting(true);
     try {
-      const res = await markSlotAsBookedApi(selected.slotId, { reservationId, userName: userName.trim() });
-      if (res.success) { toast.success("Spa slot booked!"); setSelected(null); fetchAvailableSpas(); }
-      else toast.error(res.message || "Failed to book");
-    } catch { toast.error("Failed to book spa slot"); }
-    finally { setSubmitting(false); }
+      const res = await markSlotAsBookedApi(selectedSlot.slotId, {
+        reservationId,
+        userName: userName.trim(),
+      });
+      if (res.success) {
+        toast.success("Spa slot booked!");
+        setSelectedSlot(null);
+        setConfirmOpen(false);
+        fetchAvailableSpas();
+      } else {
+        toast.error(res.message || "Failed to book");
+      }
+    } catch {
+      toast.error("Failed to book spa slot");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleCancelBooking = async () => {
@@ -81,223 +157,334 @@ export default function SpaBookingDialog({ bookingCode, reservationId, guestName
     setSubmitting(true);
     try {
       const res = await markSlotAsAvailableApi(cancelSlot.slotId);
-      if (res.success) { toast.success("Booking cancelled."); setCancelSlot(null); fetchAvailableSpas(); }
-      else toast.error(res.message || "Failed to cancel");
-    } catch { toast.error("Failed to cancel booking"); }
-    finally { setSubmitting(false); }
+      if (res.success) {
+        toast.success("Booking cancelled.");
+        setCancelSlot(null);
+        setConfirmOpen(false);
+        fetchAvailableSpas();
+      } else {
+        toast.error(res.message || "Failed to cancel");
+      }
+    } catch {
+      toast.error("Failed to cancel booking");
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  const formatTime = (iso: string) => {
+    const d = new Date(iso);
+    const hours = d.getUTCHours();
+    const minutes = d.getUTCMinutes();
+    const ampm = hours >= 12 ? "PM" : "AM";
+    const h = hours % 12 || 12;
+    const m = minutes.toString().padStart(2, "0");
+    return `${h}:${m} ${ampm}`;
+  };
+
+  // Find earliest available slot date for active spa
+  const activeSpaFirstDate = activeSpa?.SpaDates?.[0];
+  const activeSpaFirstSlot = activeSpaFirstDate?.Slots?.find((s: any) => !s.isBooked);
 
   return (
     <Dialog open={true} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="max-w-3xl w-full max-h-[90vh] overflow-y-auto p-0 gap-0 rounded-2xl">
+      <DialogContent className="max-w-4xl w-full p-0 gap-0 overflow-hidden rounded-2xl max-h-[88vh]"
+        style={{ display: "flex", flexDirection: "column", margin: "auto" }}>
 
-        {/* Header */}
-        <DialogHeader className="px-6 pt-5 pb-4 border-b border-gray-100">
-          <div className="flex items-start justify-between">
-            <div>
-              <DialogTitle className="text-[15px] font-medium text-gray-900 flex items-center gap-2">
-                <Sparkles className="h-4 w-4" style={{ color: TEAL }} />
-                Add Spa / Activity
-              </DialogTitle>
-              <p className="text-xs text-gray-400 mt-0.5">Select a time slot to reserve for your stay</p>
-            </div>
+        {/* ── Top bar ── */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 flex-shrink-0 bg-white">
+          <h2 className="text-[15px] font-semibold text-gray-900">Spa & Activities</h2>
+        </div>
+
+        {loading ? (
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-200" style={{ borderTopColor: TEAL }} />
           </div>
-        </DialogHeader>
-
-        <div className="px-6 py-5 flex flex-col gap-5">
-
-          {/* Confirm booking panel */}
-          {selected && (
-            <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-4 space-y-3">
-              <div className="flex items-center gap-2 text-sm font-medium" style={{ color: TEAL }}>
-                <CalendarCheck className="h-4 w-4" />
-                Confirm your booking
-              </div>
-              <p className="text-xs text-gray-500">
-                <span className="font-medium text-gray-800">{selected.spaName}</span>
-                {" · "}
-                {selected.dateLabel}
-                {" · "}
-                <span className="font-medium text-gray-800">{selected.label}</span>
-              </p>
-              <div className="space-y-1.5">
-                <Label htmlFor="spa-guest-name" className="flex items-center gap-1.5 text-xs text-gray-500">
-                  <UserCheck className="h-3.5 w-3.5" />
-                  Guest name
-                </Label>
-                <Input
-                  id="spa-guest-name"
-                  ref={nameInputRef}
-                  value={userName}
-                  onChange={(e) => setUserName(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") handleConfirmBooking(); }}
-                  placeholder="Enter guest name…"
-                  className="h-8 text-sm"
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  onClick={handleConfirmBooking}
-                  disabled={submitting || !userName.trim()}
-                  className="flex-1 h-8 text-xs font-medium text-white"
-                  style={{ backgroundColor: TEAL, borderColor: TEAL }}
-                >
-                  <Check className="h-3.5 w-3.5 mr-1" />
-                  {submitting ? "Booking…" : "Confirm booking"}
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => setSelected(null)} disabled={submitting} className="h-8 text-xs">
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Cancel booking panel */}
-          {cancelSlot && (
-            <div className="rounded-xl border border-red-100 bg-red-50/60 p-4 space-y-3">
-              <div className="flex items-center gap-2 text-sm font-medium text-red-600">
-                <X className="h-4 w-4" />
-                Cancel spa booking
-              </div>
-              <p className="text-xs text-gray-500">
-                <span className="font-medium text-gray-800">{cancelSlot.spaName}</span>
-                {" · "}
-                {cancelSlot.dateLabel}
-                {" · "}
-                <span className="font-medium text-gray-800">{cancelSlot.label}</span>
-              </p>
-              <div className="flex gap-2">
-                <Button size="sm" variant="destructive" onClick={handleCancelBooking} disabled={submitting} className="flex-1 h-8 text-xs">
-                  {submitting ? "Cancelling…" : "Yes, cancel booking"}
-                </Button>
-                <Button size="sm" variant="outline" onClick={() => setCancelSlot(null)} disabled={submitting} className="h-8 text-xs">
-                  Keep booking
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Legend */}
-          <div className="flex items-center gap-4 flex-wrap">
-            {[
-              { color: TEAL, label: "Available" },
-              { color: "#16a34a", label: "Your booking" },
-              { color: "#9ca3af", label: "Booked", dashed: true },
-            ].map(({ color, label, dashed }) => (
-              <div key={label} className="flex items-center gap-1.5">
-                <div className={`w-2 h-2 rounded-full`} style={{ background: color, opacity: dashed ? 0.5 : 1 }} />
-                <span className="text-[11px] text-gray-400">{label}</span>
-              </div>
-            ))}
+        ) : spas.length === 0 ? (
+          <div className="text-center py-16 text-sm text-gray-400">
+            No spas or activities available for these dates.
           </div>
+        ) : (
+          <div className="flex flex-1 overflow-hidden">
 
-          {/* Spa list */}
-          {loading ? (
-            <div className="flex justify-center items-center h-40">
-              <div className="animate-spin rounded-full h-7 w-7 border-2 border-gray-200" style={{ borderTopColor: TEAL }} />
-            </div>
-          ) : spas.length === 0 ? (
-            <div className="text-center py-12 text-sm text-gray-400">
-              No spas or activities available for these dates.
-            </div>
-          ) : (
-            <div className="flex flex-col gap-4">
-              {spas.map((spa) => (
-                <div key={spa.id} className="border border-gray-100 rounded-xl overflow-hidden">
+            {/* ── LEFT: Active spa detail ── */}
+            <div className="w-[45%] flex-shrink-0 flex flex-col overflow-y-auto border-r border-gray-100 min-w-0">
+              {activeSpa && (
+                <>
+                  {/* Detail body */}
+                  <div className="p-4 flex flex-col gap-3">
+                    {/* Image */}
+                    {activeSpa.images?.[0] ? (
+                      <img
+                        src={activeSpa.images[0]}
+                        alt={activeSpa.name}
+                        className="rounded-xl w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-300 text-4xl">🧖</div>
+                    )}
+                    {/* Category badge */}
+                    {activeSpa.Category?.name && (
+                      <span className="inline-flex self-start items-center gap-1 text-[11px] font-medium px-2.5 py-0.5 rounded-full text-white"
+                        style={{ background: TEAL }}>
+                        {activeSpa.Category.name}
+                      </span>
+                    )}
 
-                  {/* Spa header */}
-                  <div className="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-start justify-between gap-3">
-                    <div>
-                      <h3 className="text-sm font-medium text-gray-900">{spa.name}</h3>
-                      {spa.description && (
-                        <p className="text-xs text-gray-400 mt-0.5">{spa.description}</p>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-white border border-gray-200 text-gray-500 whitespace-nowrap flex-shrink-0">
-                      <Clock className="h-3 w-3" />
-                      {spa.duration ? `${spa.duration} min` : "60 min"}
-                    </div>
-                  </div>
+                    <h3 className="text-[15px] font-semibold text-gray-900">{activeSpa.name}</h3>
 
-                  {/* Dates */}
-                  <div className="p-3 flex flex-col gap-3">
-                    {spa.SpaDates?.length > 0 ? spa.SpaDates.map((spaDate: any) => (
-                      <div key={spaDate.id} className="rounded-lg border border-gray-100 overflow-hidden">
-
-                        <div className="px-3 py-2 bg-gray-50/80 border-b border-gray-100 flex items-center gap-2">
-                          <Calendar className="h-3.5 w-3.5 text-gray-400" />
-                          <span className="text-xs font-medium text-gray-500">
-                            {format(new Date(spaDate.date), "EEEE, MMM do, yyyy")}
-                          </span>
-                        </div>
-
-                        <div className="p-3 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
-                          {spaDate.Slots?.length > 0 ? spaDate.Slots.map((slot: any) => {
-                            const isSelected = selected?.slotId === slot.id;
-                            const isMyBooking = slot.isBooked && slot.reservationId === reservationId;
-
-                            let slotClass = "";
-                            let timeColor = "text-gray-700";
-                            let statusText = "Available";
-                            let statusColor = "text-gray-400";
-
-                            if (isMyBooking) {
-                              slotClass = "border-green-200 bg-green-50 hover:bg-green-100 cursor-pointer";
-                              timeColor = "text-green-700";
-                              statusText = "Your booking";
-                              statusColor = "text-green-600";
-                            } else if (slot.isBooked) {
-                              slotClass = "border-dashed border-gray-200 bg-gray-50 opacity-60 cursor-not-allowed";
-                              timeColor = "text-gray-400";
-                              statusText = slot.userName || "Booked";
-                              statusColor = "text-red-400";
-                            } else if (isSelected) {
-                              slotClass = "cursor-pointer";
-                              timeColor = "text-white";
-                              statusText = "Selected";
-                              statusColor = "text-white/80";
-                            } else {
-                              slotClass = "hover:border-teal-300 hover:bg-teal-50/50 cursor-pointer";
-                            }
-
-                            return (
-                              <button
-                                key={slot.id}
-                                type="button"
-                                disabled={submitting || (slot.isBooked && !isMyBooking)}
-                                onClick={() => handleSelectSlot(slot, spaDate, spa.name)}
-                                className={`flex flex-col items-center justify-center rounded-lg p-2 border text-xs transition-all duration-100 ${slotClass}`}
-                                style={isSelected ? { backgroundColor: TEAL, borderColor: TEAL } : {}}
-                              >
-                                <span className={`font-medium text-center leading-tight ${timeColor}`}>
-                                  {format(new Date(slot.startTime), "hh:mm a")}
-                                  {slot.endTime && (
-                                    <><br /><span className="font-normal opacity-70">
-                                      {format(new Date(slot.endTime), "hh:mm a")}
-                                    </span></>
-                                  )}
-                                </span>
-                                <span className={`text-[10px] mt-1 ${statusColor}`}>
-                                  {isMyBooking && <Check className="h-2.5 w-2.5 inline mr-0.5" />}
-                                  {statusText}
-                                </span>
-                              </button>
-                            );
-                          }) : (
-                            <p className="col-span-full text-xs text-gray-400 py-2">No slots for this date.</p>
+                    {/* Meta row */}
+                    <div className="flex flex-col gap-1.5">
+                      {activeSpa.location && (
+                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                          <MapPin className="h-3 w-3 flex-shrink-0" />
+                          {activeSpa.location}
+                          {activeSpa.serviceTime && (
+                            <span className="text-gray-300 mx-1">|</span>
+                          )}
+                          {activeSpa.serviceTime && (
+                            <>
+                              <Clock className="h-3 w-3 flex-shrink-0" />
+                              Duration: {activeSpa.serviceTime} Minutes
+                            </>
                           )}
                         </div>
+                      )}
+                      {activeSpa.discountValue && (
+                        <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                          <Tag className="h-3 w-3 flex-shrink-0" />
+                          {activeSpa.discountValue}% off · {activeSpa.currencyCode}
+                          {activeSpa.isInclusive && (
+                            <span className="ml-1 px-1.5 py-0.5 rounded bg-green-50 text-green-700 text-[10px] font-medium">Inclusive</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {activeSpa.description && (
+                      <p className="text-xs text-gray-500 leading-relaxed">
+                        <span className="font-medium text-gray-700">Description: </span>
+                        {activeSpa.description}
+                      </p>
+                    )}
+
+                    {/* Slot picker per date */}
+                    {activeSpa.SpaDates?.length > 0 && (
+                      <div className="mt-1 flex flex-col gap-3">
+                        {activeSpa.SpaDates.map((spaDate: any) => (
+                          <div key={spaDate.id}>
+                            <p className="text-[11px] font-medium text-gray-400 mb-1.5 uppercase tracking-wide">
+                              {format(new Date(spaDate.date.split("T")[0] + "T00:00:00"), "EEEE, dd MMM yyyy")}
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {spaDate.Slots?.map((slot: any) => {
+                                const isMyBooking = slot.isBooked && slot.reservationId === reservationId;
+                                const isSelected = selectedSlot?.slotId === slot.id || cancelSlot?.slotId === slot.id;
+
+                                return (
+                                  <button
+                                    key={slot.id}
+                                    type="button"
+                                    disabled={submitting || (slot.isBooked && !isMyBooking)}
+                                    onClick={() => handleSlotClick(slot, spaDate, activeSpa)}
+                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs border transition-all duration-100"
+                                    style={
+                                      isSelected
+                                        ? { backgroundColor: TEAL, borderColor: TEAL, color: "#fff" }
+                                        : isMyBooking
+                                          ? { backgroundColor: "#f0fdf4", borderColor: "#86efac", color: "#15803d" }
+                                          : slot.isBooked
+                                            ? { backgroundColor: "#f9fafb", borderColor: "#e5e7eb", color: "#9ca3af", cursor: "not-allowed", opacity: 0.6, borderStyle: "dashed" }
+                                            : { backgroundColor: "#fff", borderColor: "#e5e7eb", color: "#374151" }
+                                    }
+                                  >
+                                    {formatTime(slot.startTime)}
+                                    {slot.endTime && <span className="opacity-60">– {formatTime(slot.endTime)}</span>}
+                                    {isMyBooking && <Check className="h-3 w-3" />}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
                       </div>
-                    )) : (
-                      <p className="text-xs text-gray-400 px-1 py-2">No dates configured for this spa.</p>
+                    )}
+
+                    {/* Confirm / Cancel panel */}
+                    {confirmOpen && selectedSlot && (
+                      <div className="mt-2 rounded-xl border border-blue-100 bg-blue-50/50 p-3 space-y-2">
+                        <p className="text-xs font-medium text-gray-700">
+                          {selectedSlot.dateLabel} · {formatTime(selectedSlot.startTime)}
+                          {selectedSlot.endTime && ` – ${formatTime(selectedSlot.endTime)}`}
+                        </p>
+                        <div>
+                          <label className="text-[11px] text-gray-500 mb-1 block">Guest name</label>
+                          <input
+                            ref={nameInputRef}
+                            type="text"
+                            value={userName}
+                            onChange={(e) => setUserName(e.target.value)}
+                            onKeyDown={(e) => { if (e.key === "Enter") handleConfirmBooking(); }}
+                            placeholder="Enter guest name…"
+                            className="w-full h-8 px-2.5 text-xs rounded-lg border border-gray-200 bg-white outline-none focus:border-teal-400"
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={handleConfirmBooking}
+                            disabled={submitting || !userName.trim()}
+                            className="flex-1 h-8 rounded-lg text-white text-xs font-medium disabled:opacity-50 flex items-center justify-center gap-1"
+                            style={{ background: TEAL }}
+                          >
+                            <Check className="h-3 w-3" />
+                            {submitting ? "Booking…" : "BOOK"}
+                          </button>
+                          <button
+                            onClick={() => { setConfirmOpen(false); setSelectedSlot(null); }}
+                            disabled={submitting}
+                            className="px-3 h-8 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-50"
+                          >
+                            CANCEL
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {confirmOpen && cancelSlot && (
+                      <div className="mt-2 rounded-xl border border-red-100 bg-red-50/50 p-3 space-y-2">
+                        <p className="text-xs font-medium text-gray-700">
+                          Cancel: {cancelSlot.spaName} · {cancelSlot.dateLabel} · {formatTime(cancelSlot.startTime)}
+                        </p>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={handleCancelBooking}
+                            disabled={submitting}
+                            className="flex-1 h-8 rounded-lg text-white text-xs font-medium bg-red-500 hover:bg-red-600 disabled:opacity-50"
+                          >
+                            {submitting ? "Cancelling…" : "Yes, Cancel"}
+                          </button>
+                          <button
+                            onClick={() => { setConfirmOpen(false); setCancelSlot(null); }}
+                            className="px-3 h-8 rounded-lg text-xs border border-gray-200 text-gray-600 hover:bg-gray-50"
+                          >
+                            Keep
+                          </button>
+                        </div>
+                      </div>
                     )}
                   </div>
-                </div>
-              ))}
+                </>
+              )}
             </div>
-          )}
-        </div>
+
+            {/* ── RIGHT: Spa list ── */}
+            <div className="flex-1 flex flex-col overflow-hidden">
+
+              {/* Category tabs */}
+              <div className="flex gap-2 px-4 pt-3 pb-2 flex-shrink-0 overflow-x-auto scrollbar-none">
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setSelectedCategory(cat)}
+                    className="px-3 py-1.5 rounded-lg text-xs font-medium border transition-all"
+                    style={
+                      selectedCategory === cat
+                        ? { background: TEAL, color: "#fff", borderColor: TEAL }
+                        : { background: "#fff", color: "#6b7280", borderColor: "#e5e7eb" }
+                    }
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+
+              {/* Search */}
+              <div className="px-4 pb-2 flex-shrink-0">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50">
+                  <Search className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search"
+                    className="flex-1 text-xs bg-transparent outline-none text-gray-700 placeholder-gray-400"
+                  />
+                </div>
+              </div>
+
+              {/* Spa list grouped by category */}
+              <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-4">
+                {Object.entries(grouped).map(([categoryName, categorySpas]) => (
+                  <div key={categoryName}>
+                    <p className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide mb-2">{categoryName}</p>
+                    <div className="space-y-2">
+                      {categorySpas.map((spa) => {
+                        const isActive = activeSpa?.id === spa.id;
+                        const totalSlots = spa.SpaDates?.reduce((acc: number, d: any) => acc + (d.Slots?.length || 0), 0) || 0;
+                        const availableSlots = spa.SpaDates?.reduce((acc: number, d: any) =>
+                          acc + (d.Slots?.filter((s: any) => !s.isBooked).length || 0), 0) || 0;
+
+                        return (
+                          <button
+                            key={spa.id}
+                            onClick={() => handleSpaClick(spa)}
+                            className="w-full flex items-center gap-3 p-2.5 rounded-xl border transition-all text-left"
+                            style={
+                              isActive
+                                ? { borderColor: TEAL, backgroundColor: "#f0fafa" }
+                                : { borderColor: "#f0f0f0", backgroundColor: "#fff" }
+                            }
+                          >
+                            {/* Thumbnail */}
+                            <div className="w-14 h-14 rounded-lg overflow-hidden flex-shrink-0 bg-gray-100">
+                              {spa.images?.[0] ? (
+                                <img src={spa.images[0]} alt={spa.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-xl">🧖</div>
+                              )}
+                            </div>
+
+                            {/* Info */}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-medium text-gray-800 truncate">{spa.name}</p>
+                              <p className="text-[11px] text-gray-400">{spa.SubCategory?.name || spa.Category?.name}</p>
+                              <div className="flex items-center gap-2 mt-1">
+                                <span
+                                  className="text-[10px] px-1.5 py-0.5 rounded font-medium"
+                                  style={
+                                    spa.isInclusive
+                                      ? { background: "#f0fdf4", color: "#15803d" }
+                                      : { background: "#f5f5f5", color: "#6b7280" }
+                                  }
+                                >
+                                  {spa.isInclusive ? "Included" : "Paid"}
+                                </span>
+                                <span className="text-[10px] text-gray-400">
+                                  {availableSlots}/{totalSlots} slots free
+                                </span>
+                              </div>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+
+                {filteredSpas.length === 0 && (
+                  <div className="text-center py-8 text-xs text-gray-400">
+                    No results found. Try a different search or category.
+                  </div>
+                )}
+
+                {/* <p className="text-[11px] text-gray-400 text-center pt-2">
+                  Can&apos;t find a wellness service or activity that you would like to book?<br />
+                  Please try selecting another date or time slot on the calendar
+                </p> */}
+              </div>
+            </div>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
