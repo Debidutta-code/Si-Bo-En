@@ -18,7 +18,8 @@ import {
     IAddonBreakdown,
     ICPricingBreakDown,
     IPropertyDetailsFromMiddleware,
-    ICReservationPayloadForEmail
+    ICReservationPayloadForEmail,
+    ICReservationS
 } from '../types';
 import { prisma } from '../../config';
 import { IPropertyCodeAndIds } from '../../dashboard/types';
@@ -40,6 +41,7 @@ import { CreationLoyalityService } from '../../loyalty/services';
 import { CreationGuestRepository } from '../../loyalty/repository/creation-guest.repository';
 import { PromoCodeRepository } from '../../promocode/repository/index';
 import { AgentCommissionType } from '../../agency/types';
+import { InitialBookingStatus } from '../types/reservation-new.type';
 export class ReservationService {
     reservationRepository: ReservationRepository;
     priceBrakeDownRepo: PriceBrakeDownRepo;
@@ -106,16 +108,13 @@ export class ReservationService {
 
     private mapPaymentMethod(
         method: string
-    ): 'pay_at_hotel' | 'net_banking' | 'upi' | 'payment_gateway' {
+    ): 'pay_at_hotel'| 'payment_gateway' {
         const methodMap: Record<
             string,
-            'pay_at_hotel' | 'net_banking' | 'upi' | 'payment_gateway'
+            'pay_at_hotel' | 'payment_gateway'
         > = {
             payAtHotel: 'pay_at_hotel',
             pay_at_hotel: 'pay_at_hotel',
-            netBanking: 'net_banking',
-            net_banking: 'net_banking',
-            upi: 'upi',
             paymentGateway: 'payment_gateway',
             ngenius: 'payment_gateway',
             payment_gateway: 'payment_gateway',
@@ -221,7 +220,7 @@ export class ReservationService {
     }
 
     public async createReservation(
-        payload: ICReservationPayload,
+        payload: ICReservationS,
         propertyDetails: IPropertyDetailsFromMiddleware,
         countryCode: string,
         deviceType: DeviceType
@@ -338,7 +337,7 @@ export class ReservationService {
             );
 
             let paidAmount = 0;
-            let initialBookingStatus: 'pending' | 'confirmed' = 'confirmed';
+            let initialBookingStatus: InitialBookingStatus = 'confirmed';
 
             if (paymentMethods === 'payment_gateway') {
                 if (isFikafiPayment) {

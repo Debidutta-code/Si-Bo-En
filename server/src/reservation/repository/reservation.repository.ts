@@ -884,12 +884,6 @@ export class PriceBrakeDownRepo {
                 : new Error('Failed to create Price Brake Downs');
         }
     }
-
-    /**
-     * Creates PricingBreakdown header + all child records
-     * (DailyPriceBrakeDown, TaxBrakeDown, AddOnBrakeDown, PromotionBrakeDown)
-     * in a single transaction AND links it back to the reservation.
-     */
     public async createFullPricingBreakdown(
         reservationId: string,
         header: ICPricingBreakDown,
@@ -1311,6 +1305,82 @@ export class BookingAddonRepository {
         }
     }
 }
+export class PaymentRepository {
+        private async resolveRefundStrategy(orderReference: string): Promise<{
+            strategy: 'same_day' | 'day_after';
+            outletId: string | undefined;
+            reason: string;
+        }> {
+    
+            try {
+                // ── Step 1: Check if same_day_refund column exists (migration guard) ──
+                try {
+                    const columnCheck = await prisma .$queryRaw`
+                        SELECT column_name
+                        FROM information_schema.columns
+                        WHERE table_name = 'property_payment_integrations'
+                          AND column_name = 'same_day_refund'
+                    `;
+                    const columnExists = Array.isArray(columnCheck) && columnCheck.length > 0;
+    
+                    if (!columnExists) {
+                        return {
+                            strategy: 'same_day',
+                            outletId: undefined,
+                            reason: 'MIGRATION_NOT_RUN — defaulting to same_day',
+                        };
+                    }
+                } catch (colErr) {
+                    console.warn(`[REFUND STRATEGY] ⚠️  Could not verify column existence:`, colErr);
+                }
+    
+                const payment = await prisma.payment.findFirst({
+                    where: { paymentIntentId: orderReference },
+                    include: {
+                        PropertyPaymentIntegration: true,
+                    },
+                });
+    
+    
+                if (!payment) {
+                    return {
+                        strategy: 'same_day',
+                        outletId: undefined,
+                        reason: 'NO_PAYMENT_RECORD_FOUND — defaulting to same_day',
+                    };
+                }    
+                const integration = payment.PropertyPaymentIntegration;
+    
+                if (!integration) {
+                    return {
+                        strategy: 'same_day',
+                        outletId: undefined,
+                        reason: 'NO_INTEGRATION_LINKED — defaulting to same_day',
+                    };
+                }
+    
+                // ── Step 3: Read sameDayRefund flag ──
+                // Cast needed until Prisma client is regenerated after migration
+                const sameDayRefund: boolean = (integration as any).sameDayRefund ?? true;
+                const strategy: 'same_day' | 'day_after' = sameDayRefund ? 'same_day' : 'day_after';
+                const outletId: string = integration.outletId;
+    
+    
+                return {
+                    strategy,
+                    outletId,
+                    reason: `sameDayRefund=${sameDayRefund} from integration ${integration.id}`,
+                };
+            } catch (error) {
+                console.error(`[REFUND STRATEGY] ❌ Unexpected error:`, error);
+                return {
+                    strategy: 'same_day',
+                    outletId: undefined,
+                    reason: `ERROR_RESOLVING — defaulting to same_day: ${error instanceof Error ? error.message : 'unknown'}`,
+                };
+            }
+        }
+}
 
 export interface ILoyaltyLevel {
     id: string;
@@ -1411,11 +1481,6 @@ export class LoyaltyRepository {
         }
     }
 
-    /**
-     * Convenience method: resolves the LoyalityGuest by email, then
-     * increments + maybe upgrades.  Silently skips if the guest or
-     * CreationGuest record does not exist yet (they may not be enrolled).
-     */
     public async handlePostBookingLoyalty(
         guestEmail: string,
         creationLoyaltyConfigId: string

@@ -70,43 +70,39 @@ export interface IGuestDetail {
 }
 
 export interface ICReservationR {
+  bookingCode: string;
+  reservationStartDate: Date;
+  reservationEndDate: Date;
+  bookedAt: Date;
   propertyId: string;
   propertyCode: string;
   currencyCode: CurrencyCode;
   hotelName: string;
   roomTypeCode: string;
-  roomName: string | null;
+  roomName: string;
   ratePlanCode: string;
-  ratePlanName: string | null;
-  bookingCode: string;
-  bookedAt: Date;
-  checkInDate: Date | null;
-  checkOutDate: Date | null;
-  reservationStartDate: Date;
-  reservationEndDate: Date;
-  countryCode: string;
-  timezone: string;
-  deviceTypes: DeviceType;
-  platforms: Platforms;
+  ratePlanName: string;
   primaryGuestId: string;
-  guests: any;
+  guests: any; // List of guests
   bookingUserEmail: string;
-  bookingUserPhone: string | null;
+  bookingUserPhone: string;
   amount: number;
   paidAmount: number;
   extraAmountToPay: number;
   refundAmount: number;
-  paymentMethod: PaymentMethod;
-  paymentImages: any;
+  timezone: string;
+  countryCode: string;
   bookingStatus: BookingStatus;
-  cancellationReason: string | null;
+  deviceTypes: DeviceType;
   bookingSource: BookingSource;
-  pricingBrakedownId: string | null;
   isPromoUsed: boolean;
   promoId: string | null;
-  cancelledAt: Date | null;
   agencyId: string | null;
+  platforms: Platforms;
+
+  paymentMethod: PaymentMethod;
 }
+
 
 export interface IReservation extends ICReservationR {
   id: string;
@@ -214,15 +210,16 @@ export interface IReservationPromotionCreate {
 export interface ICPricingBreakDown {
   reservationId: string;
   totalAmount: number;
-  amountBeforeTax: number;
-  taxedAmount: number;
-  totalAddonAmount: number;
-  totalPromotionAmount: number;
-  currentChargeableAmount: number;
-  latterpayableAmount: number;
-  promoCodeDiscount: number;
-  currencyCode: CurrencyCode;
-  loyalityDiscount: number;
+  amountBeforeTax: number
+  taxedAmount: number
+  totalAddonAmount: number
+  totalPromotionAmount: number
+  currentChargeableAmount: number
+  latterpayableAmount: number
+  promoCodeDiscount: number
+  currencyCode: CurrencyCode
+  loyalityDiscount: number
+  totalSpa: number
 }
 
 export interface IPricingBreakDown extends ICPricingBreakDown {
@@ -418,7 +415,7 @@ export interface IPropertyDetailsFromMiddleware {
   timezone?: string | undefined;
   currencyCode?: string | undefined;
 }
-export interface ICReservationPayload {
+export interface ICReservationS {
   propertyCode: string;
   reservationStartDate: Date | string;
   reservationEndDate: Date | string;
@@ -440,12 +437,12 @@ export interface ICReservationPayload {
   selectedPromotions?: ISelectedPromotions[];
   selectedAddons?: ISelectedAddons[];
   platforms: Platforms;
-  agencyId?: string;
+  agencyId: string | null;
   agentId?: string;
   ngeniusOrderRef?: string;
   isLoyalityGuest?: boolean;
 }
-export interface ICReservationPayloadForEmail extends ICReservationPayload {
+export interface ICReservationPayloadForEmail extends ICReservationS {
   numberOfNights: number;
   bookingCode: string;
   reservationId: string;
