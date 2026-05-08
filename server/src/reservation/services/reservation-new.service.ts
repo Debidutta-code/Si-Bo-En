@@ -112,7 +112,7 @@ export class NewReservationService {
                 bankDetails,
             } = payload;
             const primaryGuestData = guestDetails.find(
-                (g) => g.userType === 'adult'
+                (g) => g.type === 'adult'
             );
             if (!primaryGuestData) {
                 return errorResponse('At least one adult guest is required');
@@ -143,7 +143,7 @@ export class NewReservationService {
                     email: bookingUserEmail,
                     phoneNumber: bookingUserPhone || null,
                     propertyId: propertyDetails.id,
-                    userType: primaryGuestData.userType as 'adult',
+                    type: primaryGuestData.type as 'adult',
 
                 };
                 const newGuest =
@@ -371,7 +371,7 @@ export class NewReservationService {
                 ),
                 // send email pending
             ]);
-            return successResponse("Reservation created successfully");
+            return successResponse("Reservation created successfully", { bookingCode, bookingStatus: reservation.bookingStatus });
         } catch (error) {
             if (error instanceof Error) {
                 return errorResponse("Error occurred while creating reservation", error.message);

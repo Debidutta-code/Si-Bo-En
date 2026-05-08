@@ -370,7 +370,7 @@ class BasePriceClass {
             currencyCode: dailyPriceBrakeDown[0]?.currencyCode,
             dailyPriceBrakeDown,
             taxBrakeDown: [],
-            addonBrakeDown: [],
+            addonBrakeDowns: [],
             promotionBrakeDown: [],
         };
     }
@@ -585,7 +585,7 @@ class AddOnPriceClass {
 
         return {
             ...this.priceBrakedowns,
-            AddonBrakeDowns: sumAddons,
+            addonBrakeDowns: sumAddons,
             totalAddonAmount: sumAddonsAmount,
             totalAmount: this.priceBrakedowns.totalAmount + sumAddonsAmount,
             currentChargeableAmount:
@@ -1264,7 +1264,7 @@ class TouristTaxClass {
                 this.priceBrakedown.currentChargeableAmount +
                 totalTouristCharges,
             promotionBrakeDown: [
-                ...this.priceBrakedown.promotionBrakeDown,
+                ...(this.priceBrakedown.promotionBrakeDown || []),
                 ...touristTaxes,
             ],
         };
@@ -1274,8 +1274,8 @@ class TouristTaxClass {
     ): PromotionBrakeDown {
         if (touristTax.discountType === 'percentage') {
             const baseRoomCharge =
-                this.priceBrakedown.DailyPriceBrakeDown?.reduce(
-                    (sum, day) =>
+                this.priceBrakedown.dailyPriceBrakeDown?.reduce(
+                    (sum: any, day: any) =>
                         sum +
                         day.baseChargesAmount +
                         day.additionalChargesAmount,

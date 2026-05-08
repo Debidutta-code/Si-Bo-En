@@ -19,6 +19,7 @@ import HelpBox from "@/src/components/payment/HelpBox";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage";
 import FikafiPaymentButton from "@/src/components/payment/FikafiPaymentButton";
 import { useTranslation } from "react-i18next";
+import axios from "axios";
 
 // Updated interface to match actual API response
 interface PaymentIntegrationDetail {
@@ -335,20 +336,14 @@ const BookingReviewPage = () => {
         ),
       };
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(bookingData),
-        }
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/reservations`,bookingData
+        
       );
 
-      const data = await response.json();
+      const data = await response.data
 
-      if (!response.ok) {
+      if (!data.success) {
         if (data?.errors && Array.isArray(data.errors)) {
           data.errors.forEach((err: string) => toast.error(err, { id: err }));
         } else {

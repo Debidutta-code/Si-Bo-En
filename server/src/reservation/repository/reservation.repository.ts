@@ -30,7 +30,7 @@ import {
 } from '../types/reservation.type';
 
 export class ReservationRepository {
-    public async createReservation(data: ICReservationR): Promise<{ id: string }> {
+    public async createReservation(data: ICReservationR): Promise<{ id: string ,bookingStatus: BookingStatus }> {
         try {
             const reservation = await prisma.reservation.create({
                 data: {
@@ -67,7 +67,7 @@ export class ReservationRepository {
 
                 }
             });
-            return { id: reservation.id };
+            return { id: reservation.id ,bookingStatus: reservation.bookingStatus};
         } catch (error) {
             throw this.wrap(error, 'Failed to create reservation');
         }
@@ -83,7 +83,7 @@ export class ReservationRepository {
                     reservationId,
                     firstName: guest.firstName,
                     lastName: guest.lastName,
-                    type: guest.userType,
+                    type: guest.type,
                     age: null,
 
                 })),

@@ -118,7 +118,7 @@ export interface ICGuest {
   email: string | null;
   phoneNumber: string | null;
   propertyId: string;
-  userType: "adult" | "child" | "infant";
+  type: "adult" | "child" | "infant";
 }
 export interface IGuest {
   id: string;
@@ -186,7 +186,7 @@ export interface ISpaPricing {
 
 }
 export interface IAddonBrakeDown {
-  id: string;
+  // id: string;
   dailyPriceBrakeDownId?: string | null;
   pricingBrakeDownId?: string | null;
   addonId: string;
