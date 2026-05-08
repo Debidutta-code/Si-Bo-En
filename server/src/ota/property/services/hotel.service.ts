@@ -41,18 +41,6 @@ export class HotelService {
         }
     }
 
-    public static async fetchAutocompleteHotels(filters: HotelFilterQuery) {
-        try {
-            const result = await HotelRepository.getAutocompleteHotels(filters);
-            return {
-                ...result,
-                properties: this.formatProperties(result.properties)
-            };
-        } catch (error: any) {
-            console.error("Error in HotelService.fetchAutocompleteHotels", error);
-            throw new Error(`Failed to fetch autocomplete hotels: ${error.message}`);
-        }
-    }
 
     public static async fetchAutocompleteLocations(filters: HotelFilterQuery) {
         try {
