@@ -555,15 +555,15 @@
 //                     ]
 //                     : []),
 
-//                 // this.emailService.reservationConfirmation({
-//                 //     ...payload,
-//                 //     numberOfNights,
-//                 //     bookingCode: reservation.bookingCode,
-//                 //     reservationId: reservation.id,
-//                 //     bookedAt: reservation.bookedAt.toISOString(),
-//                 //     bookingStatus: reservation.bookingStatus,
-//                 //     ratePlanName: rateplan.ratePlanName
-//                 // }),
+//                 this.emailService.reservationConfirmation({
+//                     ...payload,
+//                     numberOfNights,
+//                     bookingCode: reservation.bookingCode,
+//                     reservationId: reservation.id,
+//                     bookedAt: reservation.bookedAt.toISOString(),
+//                     bookingStatus: reservation.bookingStatus,
+//                     ratePlanName: rateplan.ratePlanName
+//                 }),
 
 //                 // loyalty — pass isLoyalityGuest flag from payload
 //                 this.loyalityGuestRepo.handlePostBookingLoyalty(

@@ -1,4 +1,5 @@
 import { AgentCommissionType } from '../../agency/types';
+import { ReservationEmailService } from '../../sms-email-service/service/reservation-email.service';
 import { DashUtilsRepo } from '../../dashboard/repository';
 import { IPropertyCodeAndIds } from '../../dashboard/types';
 import { RTIntegrationDao } from '../../integrations/rate-tiger/dao/rt-integration.dao';
@@ -53,6 +54,7 @@ export class NewReservationService {
     private dashUtils: DashUtilsRepo;
     private agencyPricingRepo: AgencyPricing;
     private paymentRepository: PaymentRepository;
+    private reservationEmailService: ReservationEmailService;
     constructor() {
         this.reservationRepository = new ReservationRepository();
         this.promoCodeRepository = new PromoCodeRepository();
@@ -65,6 +67,7 @@ export class NewReservationService {
         this.dashUtils = new DashUtilsRepo();
         this.agencyPricingRepo = new AgencyPricing();
         this.paymentRepository = new PaymentRepository();
+        this.reservationEmailService = new ReservationEmailService();
     }
     private async generateBookingCode(propertyCode: string): Promise<string> {
         const code =
@@ -200,7 +203,7 @@ export class NewReservationService {
                 1,
                 Math.ceil(
                     (reservationEnd.getTime() - reservationStart.getTime()) /
-                        (24 * 60 * 60 * 1000)
+                    (24 * 60 * 60 * 1000)
                 )
             );
 
@@ -401,8 +404,20 @@ export class NewReservationService {
                     propertyDetails.id,
                     payload.isLoyalityGuest
                 ),
-                // send email pending
+                this.reservationRepository
+                    .getReservaltionByCode(bookingCode, propertyCode)
+                    .then(fullReservation => {
+                        if (fullReservation) {
+                            this.reservationEmailService
+                                .reservationConfirmation(fullReservation as any)
+                                .catch(err =>
+                                    console.error('Confirmation email error:', err)
+                                );
+                        }
+                    })
+                    .catch(err => console.error('Failed to fetch reservation for email:', err))
             ]);
+
             return successResponse('Reservation created successfully', {
                 bookingCode,
                 bookingStatus: reservation.bookingStatus,
@@ -429,7 +444,7 @@ export class NewReservationService {
                 return;
             }
             await this.ariManupulationRepo.decreaseAvailableRooms(ari);
-        } catch (error) {}
+        } catch (error) { }
     }
     private async increaseAri(
         propertyConfig: IPropertyConfig,
@@ -440,7 +455,7 @@ export class NewReservationService {
                 return;
             }
             await this.ariManupulationRepo.increaseAvailableRooms(ari);
-        } catch (error) {}
+        } catch (error) { }
     }
     public async getReservaltionByCode(
         reservationCode: string,
@@ -499,7 +514,7 @@ export class NewReservationService {
             if (!accessResult.success) {
                 return errorResponse(
                     accessResult.message ||
-                        'Failed to get accessible properties'
+                    'Failed to get accessible properties'
                 );
             }
 
@@ -568,7 +583,7 @@ export class NewReservationService {
             if (!accessResult.success) {
                 return errorResponse(
                     accessResult.message ||
-                        'Failed to get accessible properties'
+                    'Failed to get accessible properties'
                 );
             }
 
@@ -626,7 +641,7 @@ export class NewReservationService {
             if (!accessResult.success) {
                 return errorResponse(
                     accessResult.message ||
-                        'Failed to get accessible properties'
+                    'Failed to get accessible properties'
                 );
             }
 
@@ -932,8 +947,8 @@ export class NewReservationService {
                 updatePropConfig?.channelManagerIntegrationActive
                     ? 'channel_manager'
                     : updatePropConfig?.pmsIntegrationActive
-                      ? 'pms'
-                      : null;
+                        ? 'pms'
+                        : null;
 
             if (activeIntegrationTypeU) {
                 const rtConfig = await RTIntegrationDao.getRTConfig(
@@ -983,19 +998,19 @@ export class NewReservationService {
                         const adjustment =
                             roomDifference > 0
                                 ? await this.decreaseAri(updatePropConfig, {
-                                      dates: commonDates,
-                                      numberOfRooms: Math.abs(roomDifference),
-                                      roomTypeCode: updatePayload.roomTypeCode,
-                                      propertyCode:
-                                          existingReservation.propertyCode,
-                                  })
+                                    dates: commonDates,
+                                    numberOfRooms: Math.abs(roomDifference),
+                                    roomTypeCode: updatePayload.roomTypeCode,
+                                    propertyCode:
+                                        existingReservation.propertyCode,
+                                })
                                 : await this.increaseAri(updatePropConfig, {
-                                      dates: commonDates,
-                                      numberOfRooms: Math.abs(roomDifference),
-                                      roomTypeCode: updatePayload.roomTypeCode,
-                                      propertyCode:
-                                          existingReservation.propertyCode,
-                                  });
+                                    dates: commonDates,
+                                    numberOfRooms: Math.abs(roomDifference),
+                                    roomTypeCode: updatePayload.roomTypeCode,
+                                    propertyCode:
+                                        existingReservation.propertyCode,
+                                });
                     }
                 }
                 if (datesToReserve.length > 0) {
@@ -1026,7 +1041,7 @@ export class NewReservationService {
                 1,
                 Math.ceil(
                     (endDate.getTime() - startDate.getTime()) /
-                        (24 * 60 * 60 * 1000)
+                    (24 * 60 * 60 * 1000)
                 )
             );
             const addonBrakeDown =
@@ -1132,6 +1147,8 @@ export class NewReservationService {
                     }
                 );
             }
+            await this.reservationEmailService
+                .reservationUpdatedEmail(existingReservation, updatePayload)
             return successResponse('Reservation updated successfully');
         } catch (error) {
             console.error('Error updating reservation:', error);
@@ -1352,8 +1369,8 @@ export class NewReservationService {
                 delPropConfig?.channelManagerIntegrationActive
                     ? 'channel_manager'
                     : delPropConfig?.pmsIntegrationActive
-                      ? 'pms'
-                      : null;
+                        ? 'pms'
+                        : null;
 
             if (activeIntegrationTypeD) {
                 const rtConfig = await RTIntegrationDao.getRTConfig(
@@ -1398,7 +1415,7 @@ export class NewReservationService {
                 Math.ceil(
                     (reservation.reservationEndDate.getTime() -
                         reservation.reservationStartDate.getTime()) /
-                        (24 * 60 * 60 * 1000)
+                    (24 * 60 * 60 * 1000)
                 )
             );
 
@@ -1420,7 +1437,14 @@ export class NewReservationService {
                     roomTypeCode: reservation.roomTypeCode,
                     numberOfRooms: uniqueRoomNumbersSize,
                 }),
+
             ]);
+           await this.reservationEmailService
+                .reservationCancelEmail(reservation)
+            // Send cancellation email (non-blocking)
+            this.reservationEmailService
+                .reservationCancelEmail(reservation)
+                .catch(err => console.error('Cancellation email error:', err));
 
             return successResponse('Reservation cancelled successfully', {
                 ...cancelledReservation,
