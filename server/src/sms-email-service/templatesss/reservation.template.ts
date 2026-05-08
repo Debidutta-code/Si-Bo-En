@@ -64,7 +64,6 @@
 //   policies?: RatePlanPolicies;
 // }
 
-
 // interface UpdateReservationPayload {
 //   property: PropertyDetails;
 //   propertyAddress: PropertyAddress;
@@ -140,7 +139,6 @@
 //   </table>`;
 // };
 
-
 // const depositBlock = (policies?: RatePlanPolicies): string => {
 //   const dp = policies?.depositPolicy;
 //   if (!dp) return "";
@@ -160,7 +158,6 @@
 //   </table>`;
 // };
 
-
 // export const BookingConfirmationEmail = ({
 //   reservation,
 //   property,
@@ -179,7 +176,6 @@
 //   const lng = propertyAddress.longitude;
 
 //   const mapLinkUrl = `https://maps.google.com/?q=${lat},${lng}`;
-
 
 //   const guestRows = (guestDetails ?? []).map((g, i) => `
 //   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"
@@ -290,8 +286,6 @@
 //     (guests?.adults ?? 0) > 0 ? `${guests?.adults} Adult${guests?.adults !== 1 ? "s" : ""}` : "",
 //     (guests?.children ?? 0) > 0 ? `${guests?.children} Child${guests?.children !== 1 ? "ren" : ""}` : "",
 //   ].filter(Boolean).join(", ");
-
-
 
 //   return `<!DOCTYPE html>
 // <html lang="en" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
@@ -666,7 +660,7 @@
 // }: EmailTemplateProps): string => {
 
 //   const {  guestDetails, reservationStartDate, reservationEndDate } = reservation;
-//   const currency = reservation.currencyCode 
+//   const currency = reservation.currencyCode
 //   const primaryGuest = guestDetails?.[0];
 //   const numberOfNights = reservation.numberOfNights || 1;
 //   const propertyImg = property.image?.[0] ?? "";
@@ -987,7 +981,7 @@
 // }: UpdateReservationPayload): string => {
 
 //   const finalPrice = updatedPayload.finalPrice;
-//   const guestDetails = updatedPayload.guests;           
+//   const guestDetails = updatedPayload.guests;
 //   const currency = updatedPayload.currencyCode || reservation.currencyCode || "INR";
 
 //   // ── Dates: old = reservation, new = updatedPayload ──────────────
@@ -1528,7 +1522,6 @@
 // </body>
 // </html>`;
 // };
-
 
 // export const EmailTemplates = {
 //   BookingConfirmation: BookingConfirmationEmail,

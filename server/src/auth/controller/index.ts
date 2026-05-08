@@ -1,6 +1,8 @@
-import {AuthController} from "./authentication.controller";
-import CreationController,{fetchCreationAndPropertyDetails,} from "./creation.controller";
-import {UserController} from "./user.controller";
+import { AuthController } from './authentication.controller';
+import CreationController, {
+    fetchCreationAndPropertyDetails,
+} from './creation.controller';
+import { UserController } from './user.controller';
 // import {InitDbController} from "./initial.controller"
 
 export {
@@ -9,4 +11,4 @@ export {
     fetchCreationAndPropertyDetails,
     UserController,
     // InitDbController
-}
+};

@@ -1,5 +1,3 @@
-
-
 import { AgentCommissionType } from '../../agency/types';
 import { prisma } from '../../config';
 import { CurrencyCode } from '../../tax-system/interfaces';
@@ -30,7 +28,9 @@ import {
 } from '../types/reservation.type';
 
 export class ReservationRepository {
-    public async createReservation(data: ICReservationR): Promise<{ id: string ,bookingStatus: BookingStatus }> {
+    public async createReservation(
+        data: ICReservationR
+    ): Promise<{ id: string; bookingStatus: BookingStatus }> {
         try {
             const reservation = await prisma.reservation.create({
                 data: {
@@ -64,10 +64,12 @@ export class ReservationRepository {
                     platforms: data.platforms,
                     bookingUserPhone: data.bookingUserPhone,
                     otaGuestId: data.otaGuestId,
-
-                }
+                },
             });
-            return { id: reservation.id ,bookingStatus: reservation.bookingStatus};
+            return {
+                id: reservation.id,
+                bookingStatus: reservation.bookingStatus,
+            };
         } catch (error) {
             throw this.wrap(error, 'Failed to create reservation');
         }
@@ -79,13 +81,12 @@ export class ReservationRepository {
     ) {
         try {
             return await prisma.reservationGuest.createMany({
-                data: guestDetails.map((guest) => ({
+                data: guestDetails.map(guest => ({
                     reservationId,
                     firstName: guest.firstName,
                     lastName: guest.lastName,
                     type: guest.type,
                     age: null,
-
                 })),
             });
         } catch (error) {
@@ -118,7 +119,7 @@ export class ReservationRepository {
         promotionDetails?: IReservationPromotionCreate[]
     ): Promise<IReservation> {
         try {
-            return await prisma.$transaction(async (tx) => {
+            return await prisma.$transaction(async tx => {
                 const updatedReservation = await tx.reservation.update({
                     where: { id: reservationId },
                     data: updateData,
@@ -128,15 +129,17 @@ export class ReservationRepository {
                 });
 
                 if (guestDetails && guestDetails.length > 0) {
-                    await tx.reservationGuest.deleteMany({ where: { reservationId } });
+                    await tx.reservationGuest.deleteMany({
+                        where: { reservationId },
+                    });
                     await tx.reservationGuest.createMany({
-                        data: guestDetails.map((guest) => ({
+                        data: guestDetails.map(guest => ({
                             reservationId,
                             firstName: guest.firstName,
                             lastName: guest.lastName,
                             type: guest.userType,
                             age: (guest as any).age ?? null,
-                            dateOfBirth: null
+                            dateOfBirth: null,
                         })),
                     });
                 }
@@ -150,11 +153,13 @@ export class ReservationRepository {
                 // Promotions are now managed via PromotionBrakeDown
                 // (handled by replacePricingBreakdown in the service layer).
 
-
                 return updatedReservation;
             });
         } catch (error) {
-            throw this.wrap(error, 'Failed to update reservation in transaction');
+            throw this.wrap(
+                error,
+                'Failed to update reservation in transaction'
+            );
         }
     }
 
@@ -300,7 +305,7 @@ export class ReservationRepository {
                     agency: {
                         select: {
                             agencyName: true,
-                        }
+                        },
                     },
                     bookingCode: true,
                     bookedAt: true,
@@ -345,8 +350,8 @@ export class ReservationRepository {
                             DailyPriceBrakeDown: true,
                             taxBrakeDown: true,
                             promotionBrakeDown: true,
-                            SpaPricingBrakeDowns: true
-                        }
+                            SpaPricingBrakeDowns: true,
+                        },
                     },
                     finalPrice: true,
                     promo: {
@@ -356,14 +361,21 @@ export class ReservationRepository {
                             discountType: true,
                             discountValue: true,
                             currencyCode: true,
-
-                        }
+                        },
                     },
                     createdAt: true,
                     updatedAt: true,
                     promoId: true,
                     property: {
-                        select: { id: true, propertyName: true, propertyCode: true, propertyEmail: true, propertyContact: true, description: true, image: true },
+                        select: {
+                            id: true,
+                            propertyName: true,
+                            propertyCode: true,
+                            propertyEmail: true,
+                            propertyContact: true,
+                            description: true,
+                            image: true,
+                        },
                     },
                     agencyId: true,
                     otaGuestId: true,
@@ -437,7 +449,7 @@ export class ReservationRepository {
                             DailyPriceBrakeDown: true,
                             taxBrakeDown: true,
                             promotionBrakeDown: true,
-                        }
+                        },
                     },
                     addOns: true,
                     promo: {
@@ -447,14 +459,21 @@ export class ReservationRepository {
                             discountType: true,
                             discountValue: true,
                             currencyCode: true,
-
-                        }
+                        },
                     },
                     reservationPromoCodes: true,
                     reservationGuests: true,
                     AgencyCommission: true,
                     property: {
-                        select: { id: true, propertyName: true, propertyCode: true, propertyEmail: true, propertyContact: true, description: true, image: true },
+                        select: {
+                            id: true,
+                            propertyName: true,
+                            propertyCode: true,
+                            propertyEmail: true,
+                            propertyContact: true,
+                            description: true,
+                            image: true,
+                        },
                     },
                 },
             });
@@ -520,7 +539,7 @@ export class ReservationRepository {
                             DailyPriceBrakeDown: true,
                             taxBrakeDown: true,
                             promotionBrakeDown: true,
-                        }
+                        },
                     },
                     addOns: true,
                     promo: {
@@ -530,13 +549,20 @@ export class ReservationRepository {
                             discountType: true,
                             discountValue: true,
                             currencyCode: true,
-
-                        }
+                        },
                     },
                     reservationPromoCodes: true,
                     reservationGuests: true,
                     property: {
-                        select: { id: true, propertyName: true, propertyCode: true, propertyEmail: true, propertyContact: true, description: true, image: true },
+                        select: {
+                            id: true,
+                            propertyName: true,
+                            propertyCode: true,
+                            propertyEmail: true,
+                            propertyContact: true,
+                            description: true,
+                            image: true,
+                        },
                     },
                 },
             });
@@ -596,7 +622,7 @@ export class ReservationRepository {
                             DailyPriceBrakeDown: true,
                             taxBrakeDown: true,
                             promotionBrakeDown: true,
-                        }
+                        },
                     },
                     promo: {
                         select: {
@@ -605,14 +631,21 @@ export class ReservationRepository {
                             discountType: true,
                             discountValue: true,
                             currencyCode: true,
-
-                        }
+                        },
                     },
                     addOns: true,
                     reservationGuests: true,
                     reservationPromoCodes: true,
                     property: {
-                        select: { id: true, propertyName: true, propertyCode: true, propertyEmail: true, propertyContact: true, description: true, image: true },
+                        select: {
+                            id: true,
+                            propertyName: true,
+                            propertyCode: true,
+                            propertyEmail: true,
+                            propertyContact: true,
+                            description: true,
+                            image: true,
+                        },
                     },
                 },
             });
@@ -672,7 +705,7 @@ export class ReservationRepository {
                             DailyPriceBrakeDown: true,
                             taxBrakeDown: true,
                             promotionBrakeDown: true,
-                        }
+                        },
                     },
                     addOns: true,
                     reservationPromoCodes: true,
@@ -684,11 +717,18 @@ export class ReservationRepository {
                             discountType: true,
                             discountValue: true,
                             currencyCode: true,
-
-                        }
+                        },
                     },
                     property: {
-                        select: { id: true, propertyName: true, propertyCode: true, propertyEmail: true, propertyContact: true, description: true, image: true },
+                        select: {
+                            id: true,
+                            propertyName: true,
+                            propertyCode: true,
+                            propertyEmail: true,
+                            propertyContact: true,
+                            description: true,
+                            image: true,
+                        },
                     },
                 },
             });
@@ -747,7 +787,7 @@ export class ReservationRepository {
                             phoneNumber: true,
                             propertyId: true,
                             userType: true,
-                        }
+                        },
                     },
                     AgencyCommission: true,
                     addOns: true,
@@ -758,7 +798,7 @@ export class ReservationRepository {
                             taxBrakeDown: true,
                             promotionBrakeDown: true,
                             SpaPricingBrakeDowns: true,
-                        }
+                        },
                     },
 
                     promo: {
@@ -768,12 +808,19 @@ export class ReservationRepository {
                             discountType: true,
                             discountValue: true,
                             currencyCode: true,
-
-                        }
+                        },
                     },
                     reservationPromoCodes: true,
                     property: {
-                        select: { id: true, propertyName: true, propertyCode: true, propertyEmail: true, propertyContact: true, description: true, image: true },
+                        select: {
+                            id: true,
+                            propertyName: true,
+                            propertyCode: true,
+                            propertyEmail: true,
+                            propertyContact: true,
+                            description: true,
+                            image: true,
+                        },
                     },
                 },
             });
@@ -792,7 +839,7 @@ export class ReservationRepository {
                 data: { bookingStatus: status },
                 include: {
                     primaryGuest: true,
-                    // priceBreakdowns: true 
+                    // priceBreakdowns: true
                 },
             });
         } catch (error) {
@@ -816,7 +863,7 @@ export class ReservationRepository {
                             DailyPriceBrakeDown: true,
                             taxBrakeDown: true,
                             promotionBrakeDown: true,
-                        }
+                        },
                     },
                     reservationPromoCodes: true,
                     promo: {
@@ -826,12 +873,19 @@ export class ReservationRepository {
                             discountType: true,
                             discountValue: true,
                             currencyCode: true,
-
-                        }
+                        },
                     },
                     reservationGuests: true,
                     property: {
-                        select: { id: true, propertyName: true, propertyCode: true, propertyEmail: true, propertyContact: true, description: true, image: true },
+                        select: {
+                            id: true,
+                            propertyName: true,
+                            propertyCode: true,
+                            propertyEmail: true,
+                            propertyContact: true,
+                            description: true,
+                            image: true,
+                        },
                     },
                 },
             });
@@ -860,7 +914,7 @@ export class ReservationRepository {
                 data: { bookingStatus: 'no_show' },
                 include: {
                     primaryGuest: true,
-                    // priceBreakdowns: true 
+                    // priceBreakdowns: true
                 },
             });
         } catch (error) {
@@ -872,9 +926,14 @@ export class ReservationRepository {
         bookingCode: string
     ): Promise<IReservation | null> {
         try {
-            return await prisma.reservation.findUnique({ where: { bookingCode } });
+            return await prisma.reservation.findUnique({
+                where: { bookingCode },
+            });
         } catch (error) {
-            throw this.wrap(error, 'Failed to fetch reservation by booking code');
+            throw this.wrap(
+                error,
+                'Failed to fetch reservation by booking code'
+            );
         }
     }
 
@@ -914,16 +973,16 @@ export class ReservationRepository {
 }
 
 export class PriceBrakeDownRepo {
-    public async createpriceBrakeDowns(
-        priceBrakeDowns: ICPricingBreakDown
-    ) {
+    public async createpriceBrakeDowns(priceBrakeDowns: ICPricingBreakDown) {
         try {
             return await prisma.pricingBreakdown.create({
                 data: priceBrakeDowns,
             });
         } catch (error) {
             throw error instanceof Error
-                ? new Error(`Failed to create price breakdowns: ${error.message}`)
+                ? new Error(
+                      `Failed to create price breakdowns: ${error.message}`
+                  )
                 : new Error('Failed to create Price Brake Downs');
         }
     }
@@ -936,7 +995,7 @@ export class PriceBrakeDownRepo {
         promotionBreakdowns: ICPromotionBrakeDown[]
     ): Promise<IPricingBreakDown> {
         try {
-            return await prisma.$transaction(async (tx) => {
+            return await prisma.$transaction(async tx => {
                 // 1. Create PricingBreakdown header
                 const pricingBreakdown = await tx.pricingBreakdown.create({
                     data: header,
@@ -944,7 +1003,7 @@ export class PriceBrakeDownRepo {
                         DailyPriceBrakeDown: true,
                         taxBrakeDown: true,
                         AddonBrakeDowns: true,
-                    }
+                    },
                 });
 
                 const pricingId = pricingBreakdown.id;
@@ -958,7 +1017,8 @@ export class PriceBrakeDownRepo {
                             guestDistribution: d.guestDistribution,
                             date: new Date(d.date),
                             baseChargesAmount: d.baseChargesAmount || 0,
-                            additionalChargesAmount: d.additionalChargesAmount || 0,
+                            additionalChargesAmount:
+                                d.additionalChargesAmount || 0,
                             totalAmount: d.totalAmount || 0,
                             currencyCode: d.currencyCode,
                         })),
@@ -1007,9 +1067,13 @@ export class PriceBrakeDownRepo {
                                 name: p.name,
                                 discountType: p.discountType || 'percentage',
                                 discountValue: p.discountValue || 0,
-                                currencyCode: p.currencyCode || pricingBreakdown.currencyCode || null,
+                                currencyCode:
+                                    p.currencyCode ||
+                                    pricingBreakdown.currencyCode ||
+                                    null,
                                 discountAmount: p.discountAmount || 0,
-                                restrictionType: p.restrictionType || 'decrease',
+                                restrictionType:
+                                    p.restrictionType || 'decrease',
                                 type: p.type || 'auto_applied',
                             })),
                     });
@@ -1026,7 +1090,9 @@ export class PriceBrakeDownRepo {
         } catch (error) {
             console.error('createFullPricingBreakdown error:', error);
             throw error instanceof Error
-                ? new Error(`Failed to create full pricing breakdown: ${error.message}`)
+                ? new Error(
+                      `Failed to create full pricing breakdown: ${error.message}`
+                  )
                 : new Error('Failed to create full pricing breakdown');
         }
     }
@@ -1045,7 +1111,7 @@ export class PriceBrakeDownRepo {
         promotionBreakdowns: ICPromotionBrakeDown[]
     ): Promise<string> {
         try {
-            return await prisma.$transaction(async (tx) => {
+            return await prisma.$transaction(async tx => {
                 // 1. Unlink old breakdown from reservation
                 if (oldPricingBrakedownId) {
                     await tx.reservation.update({
@@ -1073,7 +1139,8 @@ export class PriceBrakeDownRepo {
                             guestDistribution: d.guestDistribution,
                             date: new Date(d.date),
                             baseChargesAmount: d.baseChargesAmount || 0,
-                            additionalChargesAmount: d.additionalChargesAmount || 0,
+                            additionalChargesAmount:
+                                d.additionalChargesAmount || 0,
                             totalAmount: d.totalAmount || 0,
                             currencyCode: d.currencyCode,
                         })),
@@ -1121,7 +1188,8 @@ export class PriceBrakeDownRepo {
                                 discountValue: p.discountValue || 0,
                                 currencyCode: p.currencyCode || null,
                                 discountAmount: p.discountAmount || 0,
-                                restrictionType: p.restrictionType || 'decrease',
+                                restrictionType:
+                                    p.restrictionType || 'decrease',
                                 type: p.type || 'auto_applied',
                             })),
                     });
@@ -1138,12 +1206,13 @@ export class PriceBrakeDownRepo {
         } catch (error) {
             console.error('replacePricingBreakdown error:', error);
             throw error instanceof Error
-                ? new Error(`Failed to replace pricing breakdown: ${error.message}`)
+                ? new Error(
+                      `Failed to replace pricing breakdown: ${error.message}`
+                  )
                 : new Error('Failed to replace pricing breakdown');
         }
     }
 }
-
 
 export interface IPropertyConfig {
     selfAriActive: boolean;
@@ -1153,12 +1222,11 @@ export interface IPropertyConfig {
 
 export interface IActiveIntegration {
     type: 'channel_manager' | 'pms';
-    name: string;                // e.g. "Rate Tiger"
-    integrationId: string;       // propertyIntegration.id
+    name: string; // e.g. "Rate Tiger"
+    integrationId: string; // propertyIntegration.id
 }
 
 export class AriManupulationRepo {
-
     public async decreaseAvailableRooms(
         ariManupulationRooms: IAriManulupulation
     ) {
@@ -1169,12 +1237,17 @@ export class AriManupulationRepo {
                     roomTypeCode: ariManupulationRooms.roomTypeCode,
                     date: { in: ariManupulationRooms.dates },
                 },
-                data: { availability: { decrement: ariManupulationRooms.numberOfRooms } },
+                data: {
+                    availability: {
+                        decrement: ariManupulationRooms.numberOfRooms,
+                    },
+                },
             });
-
         } catch (error) {
             throw error instanceof Error
-                ? new Error(`Failed to decrease Available Rooms: ${error.message}`)
+                ? new Error(
+                      `Failed to decrease Available Rooms: ${error.message}`
+                  )
                 : new Error('Failed to decrease Available Rooms');
         }
     }
@@ -1189,16 +1262,25 @@ export class AriManupulationRepo {
                     roomTypeCode: ariManupulationRooms.roomTypeCode,
                     date: { in: ariManupulationRooms.dates },
                 },
-                data: { availability: { increment: ariManupulationRooms.numberOfRooms } },
+                data: {
+                    availability: {
+                        increment: ariManupulationRooms.numberOfRooms,
+                    },
+                },
             });
         } catch (error) {
             throw error instanceof Error
-                ? new Error(`Failed to increase Available Rooms: ${error.message}`)
+                ? new Error(
+                      `Failed to increase Available Rooms: ${error.message}`
+                  )
                 : new Error('Failed to increase Available Rooms');
         }
     }
 
-    public async getRatePlanName(ratePlanCode: string, propertyId: string): Promise<{ ratePlanName: string } | null> {
+    public async getRatePlanName(
+        ratePlanCode: string,
+        propertyId: string
+    ): Promise<{ ratePlanName: string } | null> {
         try {
             return await prisma.ratePlan.findUnique({
                 where: { ratePlanCode, propertyId },
@@ -1223,8 +1305,6 @@ export class AriManupulationRepo {
                     channelManagerIntegrationActive: true,
                 },
             });
-
-
         } catch (error) {
             throw error instanceof Error
                 ? new Error(`Failed to fetch property config: ${error.message}`)
@@ -1270,7 +1350,9 @@ export class AriManupulationRepo {
             };
         } catch (error) {
             throw error instanceof Error
-                ? new Error(`Failed to fetch active integration: ${error.message}`)
+                ? new Error(
+                      `Failed to fetch active integration: ${error.message}`
+                  )
                 : new Error('Failed to fetch active integration');
         }
     }
@@ -1313,7 +1395,9 @@ export class GuestRepository {
     }
 }
 export class BookingAddonRepository {
-    public async createBookingAddons(addons: IBookingAddonCreate[]): Promise<any> {
+    public async createBookingAddons(
+        addons: IBookingAddonCreate[]
+    ): Promise<any> {
         try {
             return await prisma.bookingAddon.createMany({ data: addons });
         } catch (error) {
@@ -1327,7 +1411,9 @@ export class BookingAddonRepository {
         reservationId: string
     ): Promise<IBookingAddon[]> {
         try {
-            return await prisma.bookingAddon.findMany({ where: { reservationId } });
+            return await prisma.bookingAddon.findMany({
+                where: { reservationId },
+            });
         } catch (error) {
             throw error instanceof Error
                 ? new Error(`Failed to fetch booking addons: ${error.message}`)
@@ -1336,13 +1422,11 @@ export class BookingAddonRepository {
     }
 }
 export class PaymentRepository {
-
     public async resolveRefundStrategy(orderReference: string): Promise<{
         strategy: 'same_day' | 'day_after';
         outletId: string | undefined;
         reason: string;
     }> {
-
         try {
             // ── Step 1: Check if same_day_refund column exists (migration guard) ──
             try {
@@ -1352,7 +1436,8 @@ export class PaymentRepository {
                         WHERE table_name = 'property_payment_integrations'
                           AND column_name = 'same_day_refund'
                     `;
-                const columnExists = Array.isArray(columnCheck) && columnCheck.length > 0;
+                const columnExists =
+                    Array.isArray(columnCheck) && columnCheck.length > 0;
 
                 if (!columnExists) {
                     return {
@@ -1362,7 +1447,10 @@ export class PaymentRepository {
                     };
                 }
             } catch (colErr) {
-                console.warn(`[REFUND STRATEGY] ⚠️  Could not verify column existence:`, colErr);
+                console.warn(
+                    `[REFUND STRATEGY] ⚠️  Could not verify column existence:`,
+                    colErr
+                );
             }
 
             const payment = await prisma.payment.findFirst({
@@ -1371,7 +1459,6 @@ export class PaymentRepository {
                     PropertyPaymentIntegration: true,
                 },
             });
-
 
             if (!payment) {
                 return {
@@ -1392,10 +1479,12 @@ export class PaymentRepository {
 
             // ── Step 3: Read sameDayRefund flag ──
             // Cast needed until Prisma client is regenerated after migration
-            const sameDayRefund: boolean = (integration as any).sameDayRefund ?? true;
-            const strategy: 'same_day' | 'day_after' = sameDayRefund ? 'same_day' : 'day_after';
+            const sameDayRefund: boolean =
+                (integration as any).sameDayRefund ?? true;
+            const strategy: 'same_day' | 'day_after' = sameDayRefund
+                ? 'same_day'
+                : 'day_after';
             const outletId: string = integration.outletId;
-
 
             return {
                 strategy,
@@ -1413,8 +1502,7 @@ export class PaymentRepository {
     }
     public async findPayment(reservationId: string) {
         try {
-            
-            return  await prisma.payment.findFirst({
+            return await prisma.payment.findFirst({
                 where: { reservationId },
                 select: {
                     id: true,
@@ -1429,18 +1517,32 @@ export class PaymentRepository {
                             id: true,
                             outletId: true,
                             isActive: true,
-    
                         },
                     },
                 },
             });
         } catch (error) {
-            throw new Error("Error occur while fetching payment details")
+            throw new Error('Error occur while fetching payment details');
         }
     }
 }
 export class AgencyPricing {
-    public async updateAgencyCommission(reservationId: string, agencyId: string, agentId: string | null, { commissionType, commissionValue, commissionAmount, commissionCurrency }: { commissionType: AgentCommissionType, commissionValue: number, commissionAmount: number, commissionCurrency: CurrencyCode }): Promise<void> {
+    public async updateAgencyCommission(
+        reservationId: string,
+        agencyId: string,
+        agentId: string | null,
+        {
+            commissionType,
+            commissionValue,
+            commissionAmount,
+            commissionCurrency,
+        }: {
+            commissionType: AgentCommissionType;
+            commissionValue: number;
+            commissionAmount: number;
+            commissionCurrency: CurrencyCode;
+        }
+    ): Promise<void> {
         try {
             await prisma.agencyCommission.upsert({
                 where: { reservationId: reservationId },
@@ -1450,7 +1552,7 @@ export class AgencyPricing {
                     commissionType: commissionType as AgentCommissionType,
                     commissionValue,
                     commissionAmount,
-                    currencyCode: commissionCurrency
+                    currencyCode: commissionCurrency,
                 },
                 create: {
                     reservationId: reservationId,
@@ -1463,8 +1565,13 @@ export class AgencyPricing {
                 },
             });
         } catch (error) {
-            console.error(`[LOYALTY PRICING] ❌ Error updating agency commission:`, error);
-            throw new Error(`Failed to update agency commission: ${error instanceof Error ? error.message : 'unknown'}`);
+            console.error(
+                `[LOYALTY PRICING] ❌ Error updating agency commission:`,
+                error
+            );
+            throw new Error(
+                `Failed to update agency commission: ${error instanceof Error ? error.message : 'unknown'}`
+            );
         }
     }
 }
@@ -1545,7 +1652,7 @@ export class LoyaltyRepository {
             const newBookings = currentNoOfBookings + 1;
 
             const nextLevel = levels.find(
-                (l) => l.level === currentGuestLevel + 1
+                l => l.level === currentGuestLevel + 1
             );
 
             const shouldUpgrade =
@@ -1561,8 +1668,8 @@ export class LoyaltyRepository {
         } catch (error) {
             throw error instanceof Error
                 ? new Error(
-                    `Failed to increment loyalty bookings: ${error.message}`
-                )
+                      `Failed to increment loyalty bookings: ${error.message}`
+                  )
                 : new Error('Failed to increment loyalty bookings');
         }
     }
@@ -1611,19 +1718,25 @@ export class AgencyCommissionRepository {
             return await prisma.agencyCommission.create({ data });
         } catch (error) {
             throw error instanceof Error
-                ? new Error(`Failed to create agency commission: ${error.message}`)
+                ? new Error(
+                      `Failed to create agency commission: ${error.message}`
+                  )
                 : new Error('Failed to create agency commission');
         }
     }
 
-    public async getByReservationId(reservationId: string): Promise<any | null> {
+    public async getByReservationId(
+        reservationId: string
+    ): Promise<any | null> {
         try {
             return await prisma.agencyCommission.findUnique({
                 where: { reservationId },
             });
         } catch (error) {
             throw error instanceof Error
-                ? new Error(`Failed to fetch agency commission: ${error.message}`)
+                ? new Error(
+                      `Failed to fetch agency commission: ${error.message}`
+                  )
                 : new Error('Failed to fetch agency commission');
         }
     }
@@ -1635,7 +1748,9 @@ export class AgencyCommissionRepository {
             });
         } catch (error) {
             throw error instanceof Error
-                ? new Error(`Failed to delete agency commission: ${error.message}`)
+                ? new Error(
+                      `Failed to delete agency commission: ${error.message}`
+                  )
                 : new Error('Failed to delete agency commission');
         }
     }

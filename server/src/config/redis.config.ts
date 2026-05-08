@@ -20,22 +20,28 @@ class RedisClient {
                 connectTimeout: 30000, // 30 seconds
                 keepAlive: true,
                 noDelay: true,
-                reconnectStrategy: (retries) => {
+                reconnectStrategy: retries => {
                     if (retries > 10) {
-                        console.error('❌ Too many Redis reconnection attempts. Stopping...');
+                        console.error(
+                            '❌ Too many Redis reconnection attempts. Stopping...'
+                        );
                         return new Error('Too many reconnection attempts');
                     }
                     const delay = Math.min(retries * 1000, 5000);
-                    console.log(`🔄 Reconnecting to Redis in ${delay}ms... (attempt ${retries})`);
+                    console.log(
+                        `🔄 Reconnecting to Redis in ${delay}ms... (attempt ${retries})`
+                    );
                     return delay;
                 },
             },
         });
 
         // Event handlers
-        client.on('error', (err) => {
+        client.on('error', err => {
             if ((err as NodeJS.ErrnoException).code === 'ECONNRESET') {
-                console.warn('⚠️  Redis connection was reset by peer. Retrying...');
+                console.warn(
+                    '⚠️  Redis connection was reset by peer. Retrying...'
+                );
                 return;
             }
             console.error('❌ Redis Client Error:', err);

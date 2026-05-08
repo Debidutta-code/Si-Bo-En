@@ -214,8 +214,6 @@ export interface IAgencyCommissionDetail {
     commissionCurrency: string;
 }
 
-
-
 export interface IDailyPriceBrakeDown {
     roomNumber: string;
     guestDistribution: {
@@ -234,18 +232,18 @@ export interface IAgentPricingResponse {
     currencyCode: CurrencyCode;
 
     // ── Top-level flat (mirrors B2C PriceBrakeDown) ───────────────────
-    totalAmount: number;               // currentChargeableAmount + latterpayableAmount
-    amountBeforeTax: number;           // base + additional guest charges
-    taxedAmount: number;               // priority-based tax on subtotal
-    totalAddonAmount: number;          // included addons total
-    totalPromotionAmount: number;      // always 0 (no promotions for agent)
-    currentChargeableAmount: number;   // subtotal + taxedAmount
-    latterpayableAmount: number;       // tourist tax — paid at property
-    loyalityDiscount: number;          // always 0
-    promoCodeDiscount: number;         // always 0
+    totalAmount: number; // currentChargeableAmount + latterpayableAmount
+    amountBeforeTax: number; // base + additional guest charges
+    taxedAmount: number; // priority-based tax on subtotal
+    totalAddonAmount: number; // included addons total
+    totalPromotionAmount: number; // always 0 (no promotions for agent)
+    currentChargeableAmount: number; // subtotal + taxedAmount
+    latterpayableAmount: number; // tourist tax — paid at property
+    loyalityDiscount: number; // always 0
+    promoCodeDiscount: number; // always 0
 
     // ── Agent-specific ────────────────────────────────────────────────
-    agencyCommissionAmount: number;    // commission on amountBeforeTax
+    agencyCommissionAmount: number; // commission on amountBeforeTax
     agencyCommission: IAgencyCommissionDetail;
 
     // ── Breakdowns ────────────────────────────────────────────────────

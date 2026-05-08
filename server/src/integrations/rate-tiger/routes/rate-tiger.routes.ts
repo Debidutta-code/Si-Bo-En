@@ -19,9 +19,6 @@ rateTigerRoute.post(
     RateTigerController.authenticate
 );
 
-rateTigerRoute.post(
-    '/ari',
-    withHotelCodeConversion(ARIController.handleARI)
-);
+rateTigerRoute.post('/ari', withHotelCodeConversion(ARIController.handleARI));
 
 export default rateTigerRoute;

@@ -1,5 +1,3 @@
-import {PromoCodeService} from "./promo-code.service";
+import { PromoCodeService } from './promo-code.service';
 
-export {
-    PromoCodeService
-}
+export { PromoCodeService };

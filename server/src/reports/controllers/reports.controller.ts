@@ -2,7 +2,7 @@ import { Response } from 'express';
 import { ReportsService } from '../services/reports.service';
 import { ReportsV2Service } from '../services/reports-v2.service';
 import { GBPService } from '../services/gbp.service';
-import { errorResponse,CustomRequest } from '../../utils';
+import { errorResponse, CustomRequest } from '../../utils';
 import { ReportType } from '../interfaces/reports.type';
 
 export class ReportsController {
@@ -19,7 +19,10 @@ export class ReportsController {
     private sendExcel(res: Response, result: any): void {
         if (result.success && result.data?.excel) {
             res.setHeader('Content-Type', result.data.contentType);
-            res.setHeader('Content-Disposition', `attachment; filename="${result.data.fileName}"`);
+            res.setHeader(
+                'Content-Disposition',
+                `attachment; filename="${result.data.fileName}"`
+            );
             res.send(result.data.excel);
             return;
         }
@@ -31,10 +34,17 @@ export class ReportsController {
         return req.user?.creationId || null;
     }
 
-    private getDateRange(req: CustomRequest): { startDate: string; endDate: string } {
+    private getDateRange(req: CustomRequest): {
+        startDate: string;
+        endDate: string;
+    } {
         const now = new Date();
-        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
-        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
+            .toISOString()
+            .split('T')[0];
+        const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+            .toISOString()
+            .split('T')[0];
         return {
             startDate: (req.query.startDate as string) || firstDay,
             endDate: (req.query.endDate as string) || lastDay,
@@ -145,15 +155,17 @@ export class ReportsController {
         }
     };
 
-
-
-
-
-    public generateV2Report = async (req: CustomRequest, res: Response): Promise<void> => {
+    public generateV2Report = async (
+        req: CustomRequest,
+        res: Response
+    ): Promise<void> => {
         try {
             const creationId = this.getCreationId(req);
-            if (!creationId) { res.status(401).json(errorResponse('Unauthorized')); return; }
-            
+            if (!creationId) {
+                res.status(401).json(errorResponse('Unauthorized'));
+                return;
+            }
+
             const { reportType } = req.query;
             if (!reportType) {
                 res.status(400).json(errorResponse('Report type is required'));
@@ -169,46 +181,113 @@ export class ReportsController {
             switch (reportType) {
                 case 'comparison':
                     result = await this.v2Service.generateComparison({
-                        creationId, startDate, endDate,
-                        groupBy: (queryParams.groupBy as 'day' | 'month' | 'year') || 'month',
-                        propertyId, brandId, groupId,
+                        creationId,
+                        startDate,
+                        endDate,
+                        groupBy:
+                            (queryParams.groupBy as 'day' | 'month' | 'year') ||
+                            'month',
+                        propertyId,
+                        brandId,
+                        groupId,
                     });
                     break;
                 case 'reservation-overview':
-                    result = await this.v2Service.generateReservationOverview({ creationId, startDate, endDate, propertyId, brandId, groupId });
+                    result = await this.v2Service.generateReservationOverview({
+                        creationId,
+                        startDate,
+                        endDate,
+                        propertyId,
+                        brandId,
+                        groupId,
+                    });
                     break;
                 case 'revenue-analytics':
-                    result = await this.v2Service.generateRevenueAnalytics({ creationId, startDate, endDate, propertyId, brandId, groupId });
+                    result = await this.v2Service.generateRevenueAnalytics({
+                        creationId,
+                        startDate,
+                        endDate,
+                        propertyId,
+                        brandId,
+                        groupId,
+                    });
                     break;
                 case 'insights':
-                    result = await this.v2Service.generateInsights({ creationId, startDate, endDate, propertyId, brandId, groupId });
+                    result = await this.v2Service.generateInsights({
+                        creationId,
+                        startDate,
+                        endDate,
+                        propertyId,
+                        brandId,
+                        groupId,
+                    });
                     break;
                 case 'top-properties':
                     result = await this.v2Service.generateTopProperties({
-                        creationId, startDate, endDate,
-                        sortBy: (queryParams.sortBy as 'revenue' | 'bookings' | 'nights') || 'revenue',
-                        propertyId, brandId, groupId,
+                        creationId,
+                        startDate,
+                        endDate,
+                        sortBy:
+                            (queryParams.sortBy as
+                                | 'revenue'
+                                | 'bookings'
+                                | 'nights') || 'revenue',
+                        propertyId,
+                        brandId,
+                        groupId,
                     });
                     break;
                 case 'all-reservations':
-                    result = await this.v2Service.generateAllReservations({ creationId, startDate, endDate, propertyId, brandId, groupId });
+                    result = await this.v2Service.generateAllReservations({
+                        creationId,
+                        startDate,
+                        endDate,
+                        propertyId,
+                        brandId,
+                        groupId,
+                    });
                     break;
                 case 'checkin-checkout':
                     result = await this.v2Service.generateCheckInOut({
-                        creationId, startDate, endDate,
-                        mode: (queryParams.mode as 'checkin' | 'checkout') || 'checkin',
-                        propertyId, brandId, groupId,
+                        creationId,
+                        startDate,
+                        endDate,
+                        mode:
+                            (queryParams.mode as 'checkin' | 'checkout') ||
+                            'checkin',
+                        propertyId,
+                        brandId,
+                        groupId,
                     });
                     break;
                 case 'status-breakdown':
-                    result = await this.v2Service.generateStatusBreakdown({ creationId, startDate, endDate, propertyId, brandId, groupId });
+                    result = await this.v2Service.generateStatusBreakdown({
+                        creationId,
+                        startDate,
+                        endDate,
+                        propertyId,
+                        brandId,
+                        groupId,
+                    });
                     break;
                 case 'loyalty-guests':
                     // Loyalty guests report does not need date range
-                    result = await this.v2Service.generateLoyaltyGuests({ creationId, propertyId, brandId, groupId });
+                    result = await this.v2Service.generateLoyaltyGuests({
+                        creationId,
+                        propertyId,
+                        brandId,
+                        groupId,
+                    });
                     break;
                 case 'payment-status':
-                    result = await this.v2Service.generatePaymentStatus({ creationId, startDate, endDate, propertyId, brandId, groupId });
+                    result = await this.v2Service.generatePaymentStatus({
+                        creationId,
+                        startDate,
+                        endDate,
+                        propertyId,
+                        brandId,
+                        groupId,
+                    });
                     break;
                 default:
                     res.status(400).json(errorResponse('Invalid report type'));
@@ -221,7 +300,10 @@ export class ReportsController {
         }
     };
 
-    public getFilterOptions = async (req: CustomRequest, res: Response): Promise<void> => {
+    public getFilterOptions = async (
+        req: CustomRequest,
+        res: Response
+    ): Promise<void> => {
         try {
             const creationId = this.getCreationId(req);
             if (!creationId) {
@@ -238,7 +320,9 @@ export class ReportsController {
 
             res.status(200).json(result);
         } catch (error) {
-            res.status(500).json(errorResponse('Failed to fetch filter options'));
+            res.status(500).json(
+                errorResponse('Failed to fetch filter options')
+            );
         }
     };
 }

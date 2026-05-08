@@ -14,64 +14,71 @@ import { prisma } from '../../config';
  * Expects req.body: { orderReference: string }
  */
 export async function resolveRefundStrategy(
-  req: Request,
-  res: Response,
-  next: NextFunction
+    req: Request,
+    res: Response,
+    next: NextFunction
 ): Promise<void> {
-  try {
-    const { orderReference } = req.body;
+    try {
+        const { orderReference } = req.body;
 
-    if (!orderReference) {
-      res.status(400).json({
-        success: false,
-        message: 'orderReference is required',
-      });
-      return;
+        if (!orderReference) {
+            res.status(400).json({
+                success: false,
+                message: 'orderReference is required',
+            });
+            return;
+        }
+
+        // console.log(`\n[REFUND MIDDLEWARE] 🔍 Resolving refund strategy for order: ${orderReference}`);
+
+        // Find the payment record by paymentIntentId (which stores the N-Genius order reference)
+        const payment = await prisma.payment.findFirst({
+            where: { paymentIntentId: orderReference },
+            include: {
+                PropertyPaymentIntegration: true,
+            },
+        });
+
+        if (!payment) {
+            console.warn(
+                `[REFUND MIDDLEWARE] ⚠️ No payment record found for orderReference: ${orderReference}`
+            );
+            // Default to day_after if no record found (safer — avoids accidental same-day reversal)
+            (req as any).refundStrategy = 'day_after';
+            (req as any).resolvedOutletId = undefined;
+            return next();
+        }
+
+        const integration = payment.PropertyPaymentIntegration;
+
+        if (!integration) {
+            console.warn(
+                `[REFUND MIDDLEWARE] ⚠️ No PropertyPaymentIntegration linked to payment: ${payment.id}`
+            );
+            (req as any).refundStrategy = 'day_after';
+            (req as any).resolvedOutletId = undefined;
+            return next();
+        }
+
+        const strategy = integration.sameDayRefund ? 'same_day' : 'day_after';
+        const outletId = integration.outletId;
+
+        // console.log(`[REFUND MIDDLEWARE] ✅ Resolved:`);
+        // console.log(`   Payment ID       : ${payment.id}`);
+        // console.log(`   Integration ID   : ${integration.id}`);
+        // console.log(`   Outlet ID        : ${outletId}`);
+        // console.log(`   sameDayRefund    : ${integration.sameDayRefund}`);
+        // console.log(`   Strategy         : ${strategy}`);
+
+        (req as any).refundStrategy = strategy;
+        (req as any).resolvedOutletId = outletId;
+
+        next();
+    } catch (error) {
+        console.error(
+            `[REFUND MIDDLEWARE] ❌ Error resolving refund strategy:`,
+            error
+        );
+        next(error);
     }
-
-    // console.log(`\n[REFUND MIDDLEWARE] 🔍 Resolving refund strategy for order: ${orderReference}`);
-
-    // Find the payment record by paymentIntentId (which stores the N-Genius order reference)
-    const payment = await prisma.payment.findFirst({
-      where: { paymentIntentId: orderReference },
-      include: {
-        PropertyPaymentIntegration: true,
-      },
-    });
-
-    if (!payment) {
-      console.warn(`[REFUND MIDDLEWARE] ⚠️ No payment record found for orderReference: ${orderReference}`);
-      // Default to day_after if no record found (safer — avoids accidental same-day reversal)
-      (req as any).refundStrategy = 'day_after';
-      (req as any).resolvedOutletId = undefined;
-      return next();
-    }
-
-    const integration = payment.PropertyPaymentIntegration;
-
-    if (!integration) {
-      console.warn(`[REFUND MIDDLEWARE] ⚠️ No PropertyPaymentIntegration linked to payment: ${payment.id}`);
-      (req as any).refundStrategy = 'day_after';
-      (req as any).resolvedOutletId = undefined;
-      return next();
-    }
-
-    const strategy = integration.sameDayRefund ? 'same_day' : 'day_after';
-    const outletId = integration.outletId;
-
-    // console.log(`[REFUND MIDDLEWARE] ✅ Resolved:`);
-    // console.log(`   Payment ID       : ${payment.id}`);
-    // console.log(`   Integration ID   : ${integration.id}`);
-    // console.log(`   Outlet ID        : ${outletId}`);
-    // console.log(`   sameDayRefund    : ${integration.sameDayRefund}`);
-    // console.log(`   Strategy         : ${strategy}`);
-
-    (req as any).refundStrategy = strategy;
-    (req as any).resolvedOutletId = outletId;
-
-    next();
-  } catch (error) {
-    console.error(`[REFUND MIDDLEWARE] ❌ Error resolving refund strategy:`, error);
-    next(error);
-  }
 }

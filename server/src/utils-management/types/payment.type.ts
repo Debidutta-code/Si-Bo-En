@@ -1,17 +1,17 @@
-export interface IMasterPaymentIntegration{
-    id:string;
-    name:string
-    isActive:boolean
+export interface IMasterPaymentIntegration {
+    id: string;
+    name: string;
+    isActive: boolean;
 }
 export interface IMasterPaymentIntegrationWithId extends IMasterPaymentIntegration {
-    propertyPaymentIntegrations:IPropertyPaymentIntegration[]
+    propertyPaymentIntegrations: IPropertyPaymentIntegration[];
 }
 export interface IPropertyPaymentIntegration {
-    id:string;
-    propertyId:string;
-    paymentIntegrationId:string;
-    isActive:boolean;
-    outletId:string;
+    id: string;
+    propertyId: string;
+    paymentIntegrationId: string;
+    isActive: boolean;
+    outletId: string;
 }
 // export interface ICMasterPaymentIntegration{
 //     name:string

@@ -1,10 +1,12 @@
-import nodemailer from "nodemailer";
-import { EmailOTPRepository } from "../reposititory";
-import { generateOTPEmailTemplate, 
-    generatePasswordResetLinkTemplate } from "../templatesss";
-import { config } from "../../config";
-import { emailQueue } from "../../index";
-import { generateLoyaltyOTPEmailTemplate } from "../templatesss/loyality-otp.tempate";
+import nodemailer from 'nodemailer';
+import { EmailOTPRepository } from '../reposititory';
+import {
+    generateOTPEmailTemplate,
+    generatePasswordResetLinkTemplate,
+} from '../templatesss';
+import { config } from '../../config';
+import { emailQueue } from '../../index';
+import { generateLoyaltyOTPEmailTemplate } from '../templatesss/loyality-otp.tempate';
 
 export class EmailService {
     private transporter: nodemailer.Transporter;
@@ -18,7 +20,7 @@ export class EmailService {
         this.senderName = config.senderName!;
 
         this.transporter = nodemailer.createTransport({
-            service: "gmail",
+            service: 'gmail',
             auth: {
                 user: config.senderEmail,
                 pass: config.senderEmailPassword,
@@ -33,14 +35,18 @@ export class EmailService {
     // Send OTP email
     async sendOTPEmail(
         email: string,
-        purpose: "email_verification" | "password_reset" | "login"
+        purpose: 'email_verification' | 'password_reset' | 'login'
     ): Promise<{ success: boolean; message: string }> {
         try {
-            const existingOTP = await this.otpRepository.getOTPStatus(email, purpose);
+            const existingOTP = await this.otpRepository.getOTPStatus(
+                email,
+                purpose
+            );
             if (existingOTP && existingOTP.remainingAttempts <= 0) {
                 return {
                     success: false,
-                    message: "Maximum OTP attempts reached. Please try again later.",
+                    message:
+                        'Maximum OTP attempts reached. Please try again later.',
                 };
             }
 
@@ -49,11 +55,15 @@ export class EmailService {
             // Save to database
             await this.otpRepository.createOTP(email, otp, purpose, 10);
 
-            const htmlContent = generateLoyaltyOTPEmailTemplate(otp, purpose, email);
+            const htmlContent = generateLoyaltyOTPEmailTemplate(
+                otp,
+                purpose,
+                email
+            );
             const subject = {
-                email_verification: "Verify Your Email - RevChill",
-                password_reset: "Reset Your Password - RevChill",
-                login: "Your Login Code - RevChill",
+                email_verification: 'Verify Your Email - RevChill',
+                password_reset: 'Reset Your Password - RevChill',
+                login: 'Your Login Code - RevChill',
             }[purpose];
 
             await emailQueue.enqueueEmail({
@@ -69,13 +79,16 @@ export class EmailService {
             });
             return {
                 success: true,
-                message: "OTP sent successfully to your email",
+                message: 'OTP sent successfully to your email',
             };
         } catch (error) {
-            console.error("Error sending OTP email:", error);
+            console.error('Error sending OTP email:', error);
             return {
                 success: false,
-                message: error instanceof Error ? error.message : "Failed to send OTP email",
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Failed to send OTP email',
             };
         }
     }
@@ -83,39 +96,49 @@ export class EmailService {
     async verifyOTP(
         email: string,
         otp: string,
-        purpose: "email_verification" | "password_reset" | "login"
+        purpose: 'email_verification' | 'password_reset' | 'login'
     ): Promise<{ success: boolean; message: string }> {
         try {
-            const otpDoc = await this.otpRepository.verifyOTP(email, otp, purpose);
+            const otpDoc = await this.otpRepository.verifyOTP(
+                email,
+                otp,
+                purpose
+            );
 
             if (!otpDoc) {
                 return {
                     success: false,
-                    message: "Invalid or expired OTP",
+                    message: 'Invalid or expired OTP',
                 };
             }
 
             return {
                 success: true,
-                message: "OTP verified successfully",
+                message: 'OTP verified successfully',
             };
         } catch (error) {
-            console.error("Error verifying OTP:", error);
+            console.error('Error verifying OTP:', error);
             return {
                 success: false,
-                message: error instanceof Error ? error.message : "Failed to verify OTP",
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Failed to verify OTP',
             };
         }
     }
 
-    async sendPasswordResetLink(email: string, resetToken: string): Promise<{ success: boolean; message: string }> {
+    async sendPasswordResetLink(
+        email: string,
+        resetToken: string
+    ): Promise<{ success: boolean; message: string }> {
         try {
             // Generate reset link
-            const frontendUrl = config.frontendUrl || "http://localhost:5173";
+            const frontendUrl = config.frontendUrl || 'http://localhost:5173';
             const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
 
             const htmlContent = generatePasswordResetLinkTemplate(resetLink);
-            const subject = "Reset Your Password - RevChill";
+            const subject = 'Reset Your Password - RevChill';
 
             await emailQueue.enqueueEmail({
                 to: email,
@@ -131,17 +154,19 @@ export class EmailService {
 
             return {
                 success: true,
-                message: "Password reset link sent successfully to your email",
+                message: 'Password reset link sent successfully to your email',
             };
         } catch (error) {
-            console.error("Error sending password reset link:", error);
+            console.error('Error sending password reset link:', error);
             return {
                 success: false,
-                message: error instanceof Error ? error.message : "Failed to send password reset link",
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Failed to send password reset link',
             };
         }
     }
-
 }
 
 export const emailService = new EmailService();

@@ -1,6 +1,11 @@
 import { differenceInDays } from 'date-fns';
 import { DateTime } from 'luxon';
-import { errorResponse, successResponse, IApiResponse, toUTCDate } from '../../../utils';
+import {
+    errorResponse,
+    successResponse,
+    IApiResponse,
+    toUTCDate,
+} from '../../../utils';
 import { AgentPricingRepository } from '../repository';
 import {
     IAgentPricingRequest,
@@ -56,70 +61,119 @@ export class AgentPricingService {
             const stayDates = this.buildStayDates(startDate, endDate);
 
             // ── Fetch ratePlan first to get its id ───────────────────────────
-            const ratePlan = await this.repository.getRatePlanWithTax(ratePlanCode);
+            const ratePlan =
+                await this.repository.getRatePlanWithTax(ratePlanCode);
             if (!ratePlan) return errorResponse('Rate plan not found');
 
             // ── B2B availability check ───────────────────────────────────────
             if (!ratePlan.b2bAvailable) {
-                return errorResponse('This rate plan is not available for B2B bookings');
+                return errorResponse(
+                    'This rate plan is not available for B2B bookings'
+                );
             }
 
             // ── Parallel fetch everything else ───────────────────────────────
-            const [agency, room, inventories, charges, bookingOffset, ratePlanRule] =
-                await Promise.all([
-                    this.repository.getAgencyDetails(agencyId),
-                    this.repository.getRoomByTypeCode(propertyCode, invTypeCode),
-                    this.repository.getInventoryForDates(propertyCode, invTypeCode, stayDates),
-                    this.repository.getChargesForDates(propertyCode, invTypeCode, ratePlanCode, stayDates),
-                    this.repository.getBookingOffset(ratePlan.id, toUTCDate(startDate)),
-                    this.repository.getRatePlanRule(ratePlan.id),
-                ]);
+            const [
+                agency,
+                room,
+                inventories,
+                charges,
+                bookingOffset,
+                ratePlanRule,
+            ] = await Promise.all([
+                this.repository.getAgencyDetails(agencyId),
+                this.repository.getRoomByTypeCode(propertyCode, invTypeCode),
+                this.repository.getInventoryForDates(
+                    propertyCode,
+                    invTypeCode,
+                    stayDates
+                ),
+                this.repository.getChargesForDates(
+                    propertyCode,
+                    invTypeCode,
+                    ratePlanCode,
+                    stayDates
+                ),
+                this.repository.getBookingOffset(
+                    ratePlan.id,
+                    toUTCDate(startDate)
+                ),
+                this.repository.getRatePlanRule(ratePlan.id),
+            ]);
 
-            if (!agency) return errorResponse('Agency not found or has been deleted');
+            if (!agency)
+                return errorResponse('Agency not found or has been deleted');
             if (!room) return errorResponse('Room type not found');
 
             // ── Inventory check ──────────────────────────────────────────────
-            const inventoryResult = this.validateInventory(inventories, stayDates, ratePlanCode, noOfRooms);
-            if (!inventoryResult.success) return errorResponse(inventoryResult.error);
+            const inventoryResult = this.validateInventory(
+                inventories,
+                stayDates,
+                ratePlanCode,
+                noOfRooms
+            );
+            if (!inventoryResult.success)
+                return errorResponse(inventoryResult.error);
             const availableRooms = inventoryResult.availableRooms;
 
             // ── Charge restrictions ──────────────────────────────────────────
-            const chargeRestrictionError = this.validateChargeRestrictions(charges, stayDates);
-            if (chargeRestrictionError) return errorResponse(chargeRestrictionError);
+            const chargeRestrictionError = this.validateChargeRestrictions(
+                charges,
+                stayDates
+            );
+            if (chargeRestrictionError)
+                return errorResponse(chargeRestrictionError);
 
             // ── Booking offset / MLOS restrictions ───────────────────────────
             const restrictionError = this.validateBookingRestrictions(
-                bookingOffset, ratePlanRule, startDate, endDate, numberOfNights
+                bookingOffset,
+                ratePlanRule,
+                startDate,
+                endDate,
+                numberOfNights
             );
             if (restrictionError) return errorResponse(restrictionError);
 
             // ── Occupancy validation per room ────────────────────────────────
-            const occupancyError = this.validateOccupancy(guestDistribution, room);
+            const occupancyError = this.validateOccupancy(
+                guestDistribution,
+                room
+            );
             if (occupancyError) return errorResponse(occupancyError);
 
             // ── PIPELINE ─────────────────────────────────────────────────────
             // Step 1: Base rate
-            const basePriceResult = this.calculateBasePriceAllRooms(charges, guestDistribution);
-            if (!basePriceResult.success) return errorResponse(basePriceResult.error!);
-            const { totalBaseAmount, totalAdditionalCharges, dailyBreakdown } = basePriceResult.data!;
+            const basePriceResult = this.calculateBasePriceAllRooms(
+                charges,
+                guestDistribution
+            );
+            if (!basePriceResult.success)
+                return errorResponse(basePriceResult.error!);
+            const { totalBaseAmount, totalAdditionalCharges, dailyBreakdown } =
+                basePriceResult.data!;
             const pureBase = round(totalBaseAmount + totalAdditionalCharges); // ← rename this
 
             // Step 2: Agency commission on base rate
             const commissionDetail = this.calculateCommission(pureBase, agency);
-            const agencyCommissionAmount = round(commissionDetail.commissionAmount);
+            const agencyCommissionAmount = round(
+                commissionDetail.commissionAmount
+            );
             const amountBeforeTax = round(pureBase + agencyCommissionAmount);
             // Step 3: Included addons — only if explicitly provided in payload
             const addonsResult =
                 includedAddons && includedAddons.length > 0
                     ? await this.calculateIncludedAddons(
-                        includedAddons,
-                        stayDates,
-                        guestDistribution,
-                        noOfRooms,
-                        numberOfNights
-                    )
+                          includedAddons,
+                          stayDates,
+                          guestDistribution,
+                          noOfRooms,
+                          numberOfNights
+                      )
                     : { addons: [], totalAmount: 0 };
-            const { addons: includedAddonDetails, totalAmount: totalAddonAmount } = addonsResult;
+            const {
+                addons: includedAddonDetails,
+                totalAmount: totalAddonAmount,
+            } = addonsResult;
 
             // subtotal = base + commission + addons
             const subtotalAmount = round(amountBeforeTax + totalAddonAmount);
@@ -137,12 +191,17 @@ export class AgentPricingService {
                 noOfRooms,
                 room.numberOfBedrooms
             );
-            const latterpayableAmount = round(touristTaxDetail?.calculatedAmount ?? 0);
+            const latterpayableAmount = round(
+                touristTaxDetail?.calculatedAmount ?? 0
+            );
 
             // Final total
-            const totalAmount = round(currentChargeableAmount + latterpayableAmount);
+            const totalAmount = round(
+                currentChargeableAmount + latterpayableAmount
+            );
 
-            const currencyCode = charges[0]?.currencyCode ?? ('USD' as CurrencyCode);
+            const currencyCode =
+                charges[0]?.currencyCode ?? ('USD' as CurrencyCode);
 
             return successResponse('Price calculated successfully', {
                 totalAmount,
@@ -171,7 +230,10 @@ export class AgentPricingService {
             });
         } catch (error) {
             if (error instanceof Error) {
-                return errorResponse('Failed to calculate pricing', error.message);
+                return errorResponse(
+                    'Failed to calculate pricing',
+                    error.message
+                );
             }
             return errorResponse('Failed to calculate pricing');
         }
@@ -195,11 +257,17 @@ export class AgentPricingService {
     // ─── Inventory Validation ─────────────────────────────────────────────────
 
     private validateInventory(
-        inventories: { availability: number; ratePlans: string[]; date: Date }[],
+        inventories: {
+            availability: number;
+            ratePlans: string[];
+            date: Date;
+        }[],
         stayDates: Date[],
         ratePlanCode: string,
         noOfRooms: number
-    ): { success: true; availableRooms: number } | { success: false; error: string } {
+    ):
+        | { success: true; availableRooms: number }
+        | { success: false; error: string } {
         if (inventories.length !== stayDates.length) {
             return {
                 success: false,
@@ -283,8 +351,9 @@ export class AgentPricingService {
         numberOfNights: number
     ): string | null {
         if (bookingOffset) {
-            const hoursUntilCheckIn = DateTime.fromJSDate(toUTCDate(startDate))
-                .diff(DateTime.now(), 'hours').hours;
+            const hoursUntilCheckIn = DateTime.fromJSDate(
+                toUTCDate(startDate)
+            ).diff(DateTime.now(), 'hours').hours;
 
             if (
                 bookingOffset.minimumAdvanceBookingOffset !== null &&
@@ -308,10 +377,16 @@ export class AgentPricingService {
                 ratePlanRule.endDate
             );
             if (withinPeriod) {
-                if (ratePlanRule.minLos !== null && numberOfNights < ratePlanRule.minLos) {
+                if (
+                    ratePlanRule.minLos !== null &&
+                    numberOfNights < ratePlanRule.minLos
+                ) {
                     return `Minimum stay for this rate plan is ${ratePlanRule.minLos} nights`;
                 }
-                if (ratePlanRule.maxLos !== null && numberOfNights > ratePlanRule.maxLos) {
+                if (
+                    ratePlanRule.maxLos !== null &&
+                    numberOfNights > ratePlanRule.maxLos
+                ) {
                     return `Maximum stay for this rate plan is ${ratePlanRule.maxLos} nights`;
                 }
             }
@@ -377,7 +452,11 @@ export class AgentPricingService {
             for (let i = 0; i < guestDistribution.length; i++) {
                 const { adults, children, childAges } = guestDistribution[i];
 
-                const result = this.calculateSingleRoomDayPrice(charge, adults, children);
+                const result = this.calculateSingleRoomDayPrice(
+                    charge,
+                    adults,
+                    children
+                );
 
                 if (result === null) {
                     return {
@@ -386,9 +465,16 @@ export class AgentPricingService {
                     };
                 }
 
-                const baseChargesAmount = round(result.adultBaseAmount + result.childBaseAmount);
-                const additionalChargesAmount = round(result.additionalAdultCharges + result.additionalChildCharges);
-                const totalAmount = round(baseChargesAmount + additionalChargesAmount);
+                const baseChargesAmount = round(
+                    result.adultBaseAmount + result.childBaseAmount
+                );
+                const additionalChargesAmount = round(
+                    result.additionalAdultCharges +
+                        result.additionalChildCharges
+                );
+                const totalAmount = round(
+                    baseChargesAmount + additionalChargesAmount
+                );
 
                 totalBaseAmount += baseChargesAmount;
                 totalAdditionalCharges += additionalChargesAmount;
@@ -429,8 +515,10 @@ export class AgentPricingService {
     } | null {
         const adultResult = this.calculateGuestTypePrice(
             adults,
-            charge.baseGuestAmounts.filter((b) => b.ageQualifyingCode === '10'),
-            charge.additionalGuestAmounts.find((a) => a.ageQualifyingCode === '10')
+            charge.baseGuestAmounts.filter(b => b.ageQualifyingCode === '10'),
+            charge.additionalGuestAmounts.find(
+                a => a.ageQualifyingCode === '10'
+            )
         );
         if (adultResult === null) return null;
 
@@ -440,8 +528,12 @@ export class AgentPricingService {
         if (children > 0) {
             const childResult = this.calculateGuestTypePrice(
                 children,
-                charge.baseGuestAmounts.filter((b) => b.ageQualifyingCode === '8'),
-                charge.additionalGuestAmounts.find((a) => a.ageQualifyingCode === '8')
+                charge.baseGuestAmounts.filter(
+                    b => b.ageQualifyingCode === '8'
+                ),
+                charge.additionalGuestAmounts.find(
+                    a => a.ageQualifyingCode === '8'
+                )
             );
             if (childResult === null) return null;
             childBaseAmount = childResult.baseAmount;
@@ -461,12 +553,17 @@ export class AgentPricingService {
         baseAmounts: IChargeBaseByGuest[],
         additionalCharge: IChargeAdditionalGuest | undefined
     ): { baseAmount: number; additionalCharges: number } | null {
-        const sorted = [...baseAmounts].sort((a, b) => a.numberOfGuests - b.numberOfGuests);
+        const sorted = [...baseAmounts].sort(
+            (a, b) => a.numberOfGuests - b.numberOfGuests
+        );
 
         // Exact match → use directly
-        const exact = sorted.find((b) => b.numberOfGuests === count);
+        const exact = sorted.find(b => b.numberOfGuests === count);
         if (exact) {
-            return { baseAmount: Number(exact.amountBeforeTax), additionalCharges: 0 };
+            return {
+                baseAmount: Number(exact.amountBeforeTax),
+                additionalCharges: 0,
+            };
         }
 
         if (sorted.length > 0) {
@@ -474,7 +571,10 @@ export class AgentPricingService {
             const extra = count - max.numberOfGuests;
 
             if (extra <= 0) {
-                return { baseAmount: Number(max.amountBeforeTax), additionalCharges: 0 };
+                return {
+                    baseAmount: Number(max.amountBeforeTax),
+                    additionalCharges: 0,
+                };
             }
 
             if (!additionalCharge) return null;
@@ -504,13 +604,22 @@ export class AgentPricingService {
     ): Promise<{ addons: IAddonBrakeDown[]; totalAmount: number }> {
         if (addonIds.length === 0) return { addons: [], totalAmount: 0 };
 
-        const addons = await this.repository.getIncludedAddons(addonIds, stayDates);
+        const addons = await this.repository.getIncludedAddons(
+            addonIds,
+            stayDates
+        );
 
         const result: IAddonBrakeDown[] = [];
         let totalAmount = 0;
 
-        const totalAdults = guestDistribution.reduce((sum, r) => sum + r.adults, 0);
-        const totalChildren = guestDistribution.reduce((sum, r) => sum + r.children, 0);
+        const totalAdults = guestDistribution.reduce(
+            (sum, r) => sum + r.adults,
+            0
+        );
+        const totalChildren = guestDistribution.reduce(
+            (sum, r) => sum + r.children,
+            0
+        );
         const totalGuests = totalAdults + totalChildren;
 
         for (const addon of addons) {
@@ -553,9 +662,9 @@ export class AgentPricingService {
                 amount: pricePerDate,
                 quantity: 1,
                 totalAmount: addonTotal,
-                currencyCode: addon.availability[0].currencyCode || "AED",
+                currencyCode: addon.availability[0].currencyCode || 'AED',
                 date: stayDates[0]?.toDateString(), // or loop per date if needed
-                type: "included"
+                type: 'included',
             });
         }
 
@@ -600,12 +709,16 @@ export class AgentPricingService {
         const now = new Date();
 
         // Step 1: filter valid rules and group by priority
-        const grouped: Record<number, typeof ratePlan.taxGroup.taxGroupRules> = {};
+        const grouped: Record<number, typeof ratePlan.taxGroup.taxGroupRules> =
+            {};
         for (const rule of ratePlan.taxGroup.taxGroupRules) {
             const { taxRule } = rule;
 
             // Skip rules outside their validity window
-            if (now < new Date(taxRule.validFrom) || now > new Date(taxRule.validTo)) {
+            if (
+                now < new Date(taxRule.validFrom) ||
+                now > new Date(taxRule.validTo)
+            ) {
                 continue;
             }
 
@@ -636,7 +749,8 @@ export class AgentPricingService {
                     taxForThisRule = Number(taxRule.value);
                 } else {
                     // All same-priority rules share the SAME running base
-                    taxForThisRule = (Number(taxRule.value) * runningTotal) / 100;
+                    taxForThisRule =
+                        (Number(taxRule.value) * runningTotal) / 100;
                 }
 
                 groupTaxTotal += taxForThisRule;
@@ -645,7 +759,7 @@ export class AgentPricingService {
                 taxDetails.push({
                     name: taxRule.name,
                     taxedAmount: round(taxForThisRule),
-                    currencyCode: taxRule.currencyCode || "USD",
+                    currencyCode: taxRule.currencyCode || 'USD',
                 });
             }
 
@@ -672,7 +786,10 @@ export class AgentPricingService {
         const calculatedAmount =
             tax.discountType === 'percentage'
                 ? (baseAmount * Number(tax.discountValue)) / 100
-                : Number(tax.discountValue) * numberOfNights * noOfRooms * noOfBedrooms;
+                : Number(tax.discountValue) *
+                  numberOfNights *
+                  noOfRooms *
+                  noOfBedrooms;
 
         return {
             id: tax.id,

@@ -5,5 +5,5 @@ import googleRouter from '../google/routes/google.routes';
 
 const platformRouter = Router();
 
-platformRouter.use("/google",googleRouter)
+platformRouter.use('/google', googleRouter);
 export default platformRouter;

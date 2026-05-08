@@ -1,1 +1,1 @@
-export * from "./problem-ticket.route";
+export * from './problem-ticket.route';

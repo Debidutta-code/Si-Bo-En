@@ -1,4 +1,8 @@
-import { CurrencyCode, TaxApplicableOn, TaxType } from "../../tax-system/interfaces";
+import {
+    CurrencyCode,
+    TaxApplicableOn,
+    TaxType,
+} from '../../tax-system/interfaces';
 
 export interface ICSpaPricingR {
     pricingId: string;
@@ -8,8 +12,7 @@ export interface ICSpaPricingR {
 export interface ISpaPricing extends ICSpaPricingR {
     id: string;
 }
-export interface ISpaPricingWithPricing extends ISpaPricing {
-}
+export interface ISpaPricingWithPricing extends ISpaPricing {}
 export interface ICSpaPricing {
     reservationId: string;
     spaSlotId: string;
@@ -29,7 +32,7 @@ export interface ISpaReservation {
     pricingBrakedownId: string | null;
     refundAmount: number;
     paidAmount: number;
-    ratePlanCode:string;
+    ratePlanCode: string;
 }
 
 export interface IRateplanTax {
@@ -44,9 +47,8 @@ export interface IRateplanTax {
                 currencyCode: CurrencyCode;
                 priority: number;
                 value: number;
-                type:TaxType
-
-            } | null
+                type: TaxType;
+            } | null;
         }[];
     } | null;
 }

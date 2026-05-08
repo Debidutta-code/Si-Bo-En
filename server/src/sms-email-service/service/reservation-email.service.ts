@@ -23,8 +23,6 @@
 //             if (!propertyDetails) return;
 //             if (!propertyDetails || !propertyDetails.propertyAddress || !propertyDetails.propertyRooms) return;
 
-
-
 //             const ccEmails = propertyDetails.propertyEmails
 //                 .map(e => e.email)
 //                 .filter(e => e !== propertyDetails.propertyEmail);

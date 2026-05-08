@@ -1,17 +1,17 @@
-import { successResponse, errorResponse } from "../../utils";
-import { IApiResponse } from "../../utils";
+import { successResponse, errorResponse } from '../../utils';
+import { IApiResponse } from '../../utils';
 import {
     LoyalityConditionRepository,
-    LoyalitySpecialConditionRepository
-} from "../repository";
+    LoyalitySpecialConditionRepository,
+} from '../repository';
 import {
     ICLoyalityCondition,
     ICLoyalitySpecialCondition,
     ILoyalityCondition,
     ILoyalitySpecialCondition,
     IULoyalityCondition,
-    IULoyalitySpecialCondition
-} from "../types";
+    IULoyalitySpecialCondition,
+} from '../types';
 
 export class LoyalityConditionService {
     private loyalityConditionRepository: LoyalityConditionRepository;
@@ -20,41 +20,59 @@ export class LoyalityConditionService {
         this.loyalityConditionRepository = new LoyalityConditionRepository();
     }
 
-    public async createConditions({ language, loyaltyProgramId, text }: ICLoyalityCondition): Promise<IApiResponse> {
+    public async createConditions({
+        language,
+        loyaltyProgramId,
+        text,
+    }: ICLoyalityCondition): Promise<IApiResponse> {
         try {
-            const condition = await this.loyalityConditionRepository.createLoyalityCondition({
-                language,
-                loyaltyProgramId,
-                text
-            });
+            const condition =
+                await this.loyalityConditionRepository.createLoyalityCondition({
+                    language,
+                    loyaltyProgramId,
+                    text,
+                });
             if (!condition) {
-                return errorResponse("Error creating loyalty condition");
+                return errorResponse('Error creating loyalty condition');
             }
-            return successResponse("Condition created successfully", condition);
+            return successResponse('Condition created successfully', condition);
         } catch (error) {
             if (error instanceof Error) {
-                return errorResponse("Failed to create loyalty condition", error.message);
+                return errorResponse(
+                    'Failed to create loyalty condition',
+                    error.message
+                );
             }
-            return errorResponse("Failed to create loyalty condition");
+            return errorResponse('Failed to create loyalty condition');
         }
     }
 
-    public async updateConditions(id: string, updateData: IULoyalityCondition): Promise<IApiResponse> {
+    public async updateConditions(
+        id: string,
+        updateData: IULoyalityCondition
+    ): Promise<IApiResponse> {
         try {
             const isExist = await this.loyalityConditionRepository.getById(id);
             if (!isExist) {
-                return errorResponse("Loyalty condition not found");
+                return errorResponse('Loyalty condition not found');
             }
-            const condition = await this.loyalityConditionRepository.updateLoyalityCondition(id, updateData);
+            const condition =
+                await this.loyalityConditionRepository.updateLoyalityCondition(
+                    id,
+                    updateData
+                );
             if (!condition) {
-                return errorResponse("Error updating loyalty condition");
+                return errorResponse('Error updating loyalty condition');
             }
-            return successResponse("Condition updated successfully", condition);
+            return successResponse('Condition updated successfully', condition);
         } catch (error) {
             if (error instanceof Error) {
-                return errorResponse("Failed to update loyalty condition", error.message);
+                return errorResponse(
+                    'Failed to update loyalty condition',
+                    error.message
+                );
             }
-            return errorResponse("Failed to update loyalty condition");
+            return errorResponse('Failed to update loyalty condition');
         }
     }
 
@@ -62,31 +80,48 @@ export class LoyalityConditionService {
         try {
             const isExist = await this.loyalityConditionRepository.getById(id);
             if (!isExist) {
-                return errorResponse("Loyalty condition not found");
+                return errorResponse('Loyalty condition not found');
             }
-            const condition = await this.loyalityConditionRepository.deleteLoyalityCondition(id);
+            const condition =
+                await this.loyalityConditionRepository.deleteLoyalityCondition(
+                    id
+                );
             if (!condition) {
-                return errorResponse("Error deleting loyalty condition");
+                return errorResponse('Error deleting loyalty condition');
             }
-            return successResponse("Condition deleted successfully", condition);
+            return successResponse('Condition deleted successfully', condition);
         } catch (error) {
             if (error instanceof Error) {
-                return errorResponse("Failed to delete loyalty condition", error.message);
+                return errorResponse(
+                    'Failed to delete loyalty condition',
+                    error.message
+                );
             }
-            return errorResponse("Failed to delete loyalty condition");
+            return errorResponse('Failed to delete loyalty condition');
         }
     }
 
-    public async getConditionsByProgramId(loyaltyProgramId: string): Promise<IApiResponse> {
+    public async getConditionsByProgramId(
+        loyaltyProgramId: string
+    ): Promise<IApiResponse> {
         try {
-            const conditions = await this.loyalityConditionRepository.getConditionsByProgramId(loyaltyProgramId);
-            
-            return successResponse("Loyalty conditions fetched successfully", conditions);
+            const conditions =
+                await this.loyalityConditionRepository.getConditionsByProgramId(
+                    loyaltyProgramId
+                );
+
+            return successResponse(
+                'Loyalty conditions fetched successfully',
+                conditions
+            );
         } catch (error) {
             if (error instanceof Error) {
-                return errorResponse("Failed to fetch loyalty conditions", error.message);
+                return errorResponse(
+                    'Failed to fetch loyalty conditions',
+                    error.message
+                );
             }
-            return errorResponse("Failed to fetch loyalty conditions");
+            return errorResponse('Failed to fetch loyalty conditions');
         }
     }
 }
@@ -95,82 +130,135 @@ export class LoyalitySpecialConditionService {
     private loyalitySpecialConditionRepository: LoyalitySpecialConditionRepository;
 
     constructor() {
-        this.loyalitySpecialConditionRepository = new LoyalitySpecialConditionRepository();
+        this.loyalitySpecialConditionRepository =
+            new LoyalitySpecialConditionRepository();
     }
 
-    public async createSpecialConditions({ loyaltyProgramId,
+    public async createSpecialConditions({
+        loyaltyProgramId,
         title,
         subTitle,
-        language }: ICLoyalitySpecialCondition): Promise<IApiResponse> {
+        language,
+    }: ICLoyalitySpecialCondition): Promise<IApiResponse> {
         try {
-            const condition = await this.loyalitySpecialConditionRepository.createLoyalitySpecialCondition({
-                loyaltyProgramId,
-                title,
-                subTitle,
-                language
-            });
+            const condition =
+                await this.loyalitySpecialConditionRepository.createLoyalitySpecialCondition(
+                    {
+                        loyaltyProgramId,
+                        title,
+                        subTitle,
+                        language,
+                    }
+                );
             if (!condition) {
-                return errorResponse("Error creating loyalty special condition");
+                return errorResponse(
+                    'Error creating loyalty special condition'
+                );
             }
-            return successResponse("Special condition created successfully", condition);
+            return successResponse(
+                'Special condition created successfully',
+                condition
+            );
         } catch (error) {
             if (error instanceof Error) {
-                return errorResponse("Failed to create loyalty special condition", error.message);
+                return errorResponse(
+                    'Failed to create loyalty special condition',
+                    error.message
+                );
             }
-            return errorResponse("Failed to create loyalty special condition");
+            return errorResponse('Failed to create loyalty special condition');
         }
     }
 
-    public async updateSpecialConditions(id: string, updateData: IULoyalitySpecialCondition): Promise<IApiResponse> {
+    public async updateSpecialConditions(
+        id: string,
+        updateData: IULoyalitySpecialCondition
+    ): Promise<IApiResponse> {
         try {
-            const isExist = await this.loyalitySpecialConditionRepository.getById(id);
+            const isExist =
+                await this.loyalitySpecialConditionRepository.getById(id);
             if (!isExist) {
-                return errorResponse("Loyalty special condition not found");
+                return errorResponse('Loyalty special condition not found');
             }
-            const condition = await this.loyalitySpecialConditionRepository.updateLoyalitySpecialCondition(id, updateData);
+            const condition =
+                await this.loyalitySpecialConditionRepository.updateLoyalitySpecialCondition(
+                    id,
+                    updateData
+                );
             if (!condition) {
-                return errorResponse("Error updating loyalty special condition");
+                return errorResponse(
+                    'Error updating loyalty special condition'
+                );
             }
-            return successResponse("Special condition updated successfully", condition);
+            return successResponse(
+                'Special condition updated successfully',
+                condition
+            );
         } catch (error) {
             if (error instanceof Error) {
-                return errorResponse("Failed to update loyalty special condition", error.message);
+                return errorResponse(
+                    'Failed to update loyalty special condition',
+                    error.message
+                );
             }
-            return errorResponse("Failed to update loyalty special condition");
+            return errorResponse('Failed to update loyalty special condition');
         }
     }
 
     public async deleteSpecialConditions(id: string): Promise<IApiResponse> {
         try {
-            const isExist = await this.loyalitySpecialConditionRepository.getById(id);
+            const isExist =
+                await this.loyalitySpecialConditionRepository.getById(id);
             if (!isExist) {
-                return errorResponse("Loyalty special condition not found");
+                return errorResponse('Loyalty special condition not found');
             }
-            const condition = await this.loyalitySpecialConditionRepository.deleteLoyalitySpecialCondition(id);
+            const condition =
+                await this.loyalitySpecialConditionRepository.deleteLoyalitySpecialCondition(
+                    id
+                );
             if (!condition) {
-                return errorResponse("Error deleting loyalty special condition");
+                return errorResponse(
+                    'Error deleting loyalty special condition'
+                );
             }
-            return successResponse("Special condition deleted successfully", condition);
+            return successResponse(
+                'Special condition deleted successfully',
+                condition
+            );
         } catch (error) {
             if (error instanceof Error) {
-                return errorResponse("Failed to delete loyalty special condition", error.message);
+                return errorResponse(
+                    'Failed to delete loyalty special condition',
+                    error.message
+                );
             }
-            return errorResponse("Failed to delete loyalty special condition");
+            return errorResponse('Failed to delete loyalty special condition');
         }
     }
 
-    public async getSpecialConditionsByProgramId(loyaltyProgramId: string): Promise<IApiResponse> {
+    public async getSpecialConditionsByProgramId(
+        loyaltyProgramId: string
+    ): Promise<IApiResponse> {
         try {
-            const conditions = await this.loyalitySpecialConditionRepository.getSpecialConditionsByProgramId(loyaltyProgramId);
+            const conditions =
+                await this.loyalitySpecialConditionRepository.getSpecialConditionsByProgramId(
+                    loyaltyProgramId
+                );
             if (!conditions || conditions.length === 0) {
-                return errorResponse("No loyalty special conditions found");
+                return errorResponse('No loyalty special conditions found');
             }
-            return successResponse("Loyalty special conditions fetched successfully", conditions);
+            return successResponse(
+                'Loyalty special conditions fetched successfully',
+                conditions
+            );
         } catch (error) {
             if (error instanceof Error) {
-                return errorResponse("Failed to fetch loyalty special conditions", error.message);
+                return errorResponse(
+                    'Failed to fetch loyalty special conditions',
+                    error.message
+                );
             }
-            return errorResponse("Failed to fetch loyalty special conditions");
+            return errorResponse('Failed to fetch loyalty special conditions');
         }
     }
 }

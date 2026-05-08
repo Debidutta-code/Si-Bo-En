@@ -55,14 +55,12 @@ export class PriceUpdateService {
 
                 // Get currency from first base amount
                 const currencyCode =
-                    (baseByGuestAmts[0]?.currencyCode as CurrencyCode) ??
-                    'AED';
+                    (baseByGuestAmts[0]?.currencyCode as CurrencyCode) ?? 'AED';
 
                 // Parse adult amounts (ageQualifyingCode '10' with numberOfGuests)
                 const adultAmounts = baseByGuestAmts
                     .filter(
-                        bg =>
-                            bg.ageQualifyingCode === '10' && bg.numberOfGuests
+                        bg => bg.ageQualifyingCode === '10' && bg.numberOfGuests
                     )
                     .map(bg => ({
                         numberOfGuests: parseInt(bg.numberOfGuests),
@@ -88,18 +86,17 @@ export class PriceUpdateService {
 
                 const parsedBaseAmounts = [...adultAmounts, ...childAmounts];
 
-                const parsedAdditionalAmounts = additionalGuestAmts.map(
-                    ag => ({
-                        ageQualifyingCode: ag.ageQualifyingCode,
-                        amount: parseFloat(ag.amount),
-                    })
-                );
+                const parsedAdditionalAmounts = additionalGuestAmts.map(ag => ({
+                    ageQualifyingCode: ag.ageQualifyingCode,
+                    amount: parseFloat(ag.amount),
+                }));
 
                 const startDate = new Date(start);
                 const endDate = new Date(end);
                 const currentDate = new Date(startDate);
-                const ratePlanName = await PriceUpdateDao.getRatePlanName(ratePlanCode);
-                if(!ratePlanName){
+                const ratePlanName =
+                    await PriceUpdateDao.getRatePlanName(ratePlanCode);
+                if (!ratePlanName) {
                     return {
                         otaRateAmountNotifRS: {
                             hotelCode,
@@ -114,8 +111,11 @@ export class PriceUpdateService {
                         },
                     };
                 }
-                const roomTypeName = await PriceUpdateDao.getRoomTypeName(roomTypeCode, hotelCode);
-                if(!roomTypeName){
+                const roomTypeName = await PriceUpdateDao.getRoomTypeName(
+                    roomTypeCode,
+                    hotelCode
+                );
+                if (!roomTypeName) {
                     return {
                         otaRateAmountNotifRS: {
                             hotelCode,

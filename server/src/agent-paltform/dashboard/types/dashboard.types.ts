@@ -1,4 +1,4 @@
-import { BookingStatus } from "../../../reservation/types/reservation.type";
+import { BookingStatus } from '../../../reservation/types/reservation.type';
 
 // ─── Backend types (used in repository/service) ───────────────────────────────
 

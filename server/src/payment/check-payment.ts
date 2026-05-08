@@ -1,5 +1,5 @@
-import { prisma } from "../config/db.config";
-import * as readline from "readline";
+import { prisma } from '../config/db.config';
+import * as readline from 'readline';
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -9,7 +9,7 @@ const rl = readline.createInterface({
 async function checkPayment() {
     // // console.log("\n--- Payment Details Lookup ---");
 
-    rl.question("Enter Payment ID or Order Reference: ", async (input) => {
+    rl.question('Enter Payment ID or Order Reference: ', async input => {
         const id = input.trim();
 
         if (!id) {
@@ -23,25 +23,22 @@ async function checkPayment() {
 
             const payment = await prisma.payment.findFirst({
                 where: {
-                    OR: [
-                        { id: id },
-                        { paymentIntentId: id }
-                    ]
+                    OR: [{ id: id }, { paymentIntentId: id }],
                 },
                 include: {
                     Property: {
                         select: {
                             propertyName: true,
-                            propertyCode: true
-                        }
+                            propertyCode: true,
+                        },
                     },
                     Reservation: {
                         select: {
                             bookingCode: true,
-                            bookingStatus: true
-                        }
-                    }
-                }
+                            bookingStatus: true,
+                        },
+                    },
+                },
             });
 
             if (payment) {
@@ -53,7 +50,7 @@ async function checkPayment() {
                 // console.log("\n❌ No payment record found for the given ID or Reference.");
             }
         } catch (error) {
-            console.error("\n❌ Database error:", error);
+            console.error('\n❌ Database error:', error);
         } finally {
             await prisma.$disconnect();
             rl.close();

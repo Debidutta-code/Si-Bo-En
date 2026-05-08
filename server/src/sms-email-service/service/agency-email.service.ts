@@ -1,15 +1,15 @@
-import { emailQueue } from "../..";
-import { templateApplicationRejected } from "../../agency/templates/agency-cancellation";
-import { templateApplicationApproved } from "../../agency/templates/agency-confirmation";
-import { templateApplicationSubmitted } from "../../agency/templates/agent-application";
-import { templateAgentDeleted } from "../../agency/templates/agent-deleted";
-import { templateAgentCreated } from "../../agency/templates/agent.created";
-import { IAgencyApplication, ICAgencyApplication } from "../../agency/types";
+import { emailQueue } from '../..';
+import { templateApplicationRejected } from '../../agency/templates/agency-cancellation';
+import { templateApplicationApproved } from '../../agency/templates/agency-confirmation';
+import { templateApplicationSubmitted } from '../../agency/templates/agent-application';
+import { templateAgentDeleted } from '../../agency/templates/agent-deleted';
+import { templateAgentCreated } from '../../agency/templates/agent.created';
+import { IAgencyApplication, ICAgencyApplication } from '../../agency/types';
 
 export class AgencyEmailService {
- 
-
-    public async applicationSubmitted(data: ICAgencyApplication): Promise<void> {
+    public async applicationSubmitted(
+        data: ICAgencyApplication
+    ): Promise<void> {
         try {
             const htmlContent = templateApplicationSubmitted(data);
             await emailQueue.enqueueEmail({
@@ -25,10 +25,13 @@ export class AgencyEmailService {
                 },
             });
         } catch (error) {
-            console.error('Error sending agency application submitted email:', error);
+            console.error(
+                'Error sending agency application submitted email:',
+                error
+            );
         }
     }
- 
+
     /**
      * Sends an approval email with partner portal credentials.
      * Sent to: agencyEmail (the applicant who becomes the initial agent)
@@ -59,10 +62,13 @@ export class AgencyEmailService {
                 },
             });
         } catch (error) {
-            console.error('Error sending agency application approved email:', error);
+            console.error(
+                'Error sending agency application approved email:',
+                error
+            );
         }
     }
- 
+
     /**
      * Sends a rejection email with the reason and guidance to reapply.
      * Sent to: agencyEmail
@@ -72,7 +78,10 @@ export class AgencyEmailService {
         rejectionReason: string
     ): Promise<void> {
         try {
-            const htmlContent = templateApplicationRejected({ application, rejectionReason });
+            const htmlContent = templateApplicationRejected({
+                application,
+                rejectionReason,
+            });
             await emailQueue.enqueueEmail({
                 to: application.agencyEmail,
                 cc: [],
@@ -86,10 +95,13 @@ export class AgencyEmailService {
                 },
             });
         } catch (error) {
-            console.error('Error sending agency application rejected email:', error);
+            console.error(
+                'Error sending agency application rejected email:',
+                error
+            );
         }
     }
- 
+
     /**
      * Sends a welcome email with login credentials when a new agent is added.
      * Sent to: agentEmail
@@ -127,7 +139,7 @@ export class AgencyEmailService {
             console.error('Error sending agent created email:', error);
         }
     }
- 
+
     /**
      * Sends a notification email when an agent account is deleted/removed.
      * Sent to: agentEmail
@@ -164,4 +176,3 @@ export class AgencyEmailService {
         }
     }
 }
- 

@@ -1,4 +1,2 @@
-import { CustomizableDealDao } from "./customizable-deal.dao";
-export{
-    CustomizableDealDao
-}
+import { CustomizableDealDao } from './customizable-deal.dao';
+export { CustomizableDealDao };

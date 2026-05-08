@@ -1,13 +1,13 @@
-import { AgencyType, AgentCommissionType } from "../types";
+import { AgencyType, AgentCommissionType } from '../types';
 
- function formatDate(date: Date): string {
+function formatDate(date: Date): string {
     return date.toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
     });
 }
- 
+
 export function formatCommission(
     type: AgentCommissionType,
     value: number,
@@ -16,13 +16,13 @@ export function formatCommission(
     if (type === 'percentage') return `${value}%`;
     return `${currency ?? ''} ${value}`.trim();
 }
- 
+
 export function agencyTypeLabel(type: AgencyType): string {
     return type === 'travel_agency' ? 'Travel Agency' : 'Corporate';
 }
- 
+
 // ─── Shared Layout Helpers ────────────────────────────────────────────────────
- 
+
 export function waveFooter(color: string, gradient: string): string {
     return `
       <tr>
@@ -55,8 +55,11 @@ export function waveFooter(color: string, gradient: string): string {
       </tr>`;
 }
 
-
-export function emailShell(bodyRows: string, footerContact: string, recipientEmail: string): string {
+export function emailShell(
+    bodyRows: string,
+    footerContact: string,
+    recipientEmail: string
+): string {
     return `<!DOCTYPE html>
 <html lang="en">
   <head>

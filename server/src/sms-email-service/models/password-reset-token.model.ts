@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 interface IPasswordResetToken extends mongoose.Document {
     email: string;
@@ -42,7 +42,7 @@ const passwordResetTokenSchema = new mongoose.Schema<IPasswordResetToken>(
 passwordResetTokenSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 3600 });
 
 const PasswordResetToken = mongoose.model<IPasswordResetToken>(
-    "PasswordResetToken",
+    'PasswordResetToken',
     passwordResetTokenSchema
 );
 

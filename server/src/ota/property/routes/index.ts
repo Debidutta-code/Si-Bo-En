@@ -1,1 +1,1 @@
-export * from "./hotel.routes";
+export * from './hotel.routes';

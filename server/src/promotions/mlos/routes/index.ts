@@ -1,4 +1,2 @@
-import { mlosRouter } from "./mlos.routes";
-export {
-    mlosRouter
-}
+import { mlosRouter } from './mlos.routes';
+export { mlosRouter };

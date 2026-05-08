@@ -20,7 +20,7 @@ export class ARIController {
     public static async handleARI(req: RateTigerRequest, res: Response) {
         try {
             const body = req.body;
-            console.log(body)
+            console.log(body);
             // const propertyCode = req.rateTiger?.propertyCode;
 
             // if (!propertyCode) {++
@@ -136,7 +136,14 @@ export class ARIController {
             //     return res.status(status).json(result);
             // }
 
-            return res.status(400).json(successResponse("Ari update recied successfully",{body,id:randomUUID()}));
+            return res
+                .status(400)
+                .json(
+                    successResponse('Ari update recied successfully', {
+                        body,
+                        id: randomUUID(),
+                    })
+                );
         } catch (error: any) {
             console.error('ARI Error:', error);
             return res.status(500).json({

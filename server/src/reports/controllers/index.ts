@@ -1,4 +1,2 @@
-import {ReportsController} from "./reports.controller";
-export {
-ReportsController
-}
+import { ReportsController } from './reports.controller';
+export { ReportsController };

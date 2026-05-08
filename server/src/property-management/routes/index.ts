@@ -1,6 +1,3 @@
-import PropertyRouter from "./index.route";
+import PropertyRouter from './index.route';
 
-
-export {
-    PropertyRouter
-}
+export { PropertyRouter };

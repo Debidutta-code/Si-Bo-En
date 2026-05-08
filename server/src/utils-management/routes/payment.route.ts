@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import { protect } from '../../middlewares/auth.middleware';
-import { checkMultiplePermissions, checkRoleBased } from '../../middlewares/checkRole.middleware';
+import {
+    checkMultiplePermissions,
+    checkRoleBased,
+} from '../../middlewares/checkRole.middleware';
 import { PaymentIntegrationController } from '../controllers';
 
 const paymentIntegrationRouter = Router();

@@ -1,11 +1,16 @@
-import { prisma } from "../../../config";
-import { IReservationFilters, IReservationResponse } from "../types";
+import { prisma } from '../../../config';
+import { IReservationFilters, IReservationResponse } from '../types';
 
 export class ReservationRepository {
     public async getReservationsByAgencyId(
         agencyId: string,
         filters: IReservationFilters
-    ): Promise<{ data: IReservationResponse[]; total: number; page: number; limit: number }> {
+    ): Promise<{
+        data: IReservationResponse[];
+        total: number;
+        page: number;
+        limit: number;
+    }> {
         try {
             const {
                 bookingStatus,
@@ -24,7 +29,7 @@ export class ReservationRepository {
                 page = 1,
                 limit = 10,
                 sortBy = 'createdAt',
-                sortOrder = 'desc'
+                sortOrder = 'desc',
             } = filters;
 
             const whereClause = {
@@ -35,21 +40,42 @@ export class ReservationRepository {
                 ...(propertyCode && { propertyCode }),
                 ...(roomTypeCode && { roomTypeCode }),
                 ...(ratePlanCode && { ratePlanCode }),
-                ...(bookingCode && { bookingCode: { contains: bookingCode, mode: 'insensitive' as const } }),
-                ...(guestEmail && { bookingUserEmail: { contains: guestEmail, mode: 'insensitive' as const } }),
-                ...(guestPhone && { bookingUserPhone: { contains: guestPhone, mode: 'insensitive' as const } }),
-                ...(checkInDateFrom || checkInDateTo ? {
-                    checkInDate: {
-                        ...(checkInDateFrom && { gte: checkInDateFrom }),
-                        ...(checkInDateTo && { lte: checkInDateTo })
-                    }
-                } : {}),
-                ...(checkOutDateFrom || checkOutDateTo ? {
-                    checkOutDate: {
-                        ...(checkOutDateFrom && { gte: checkOutDateFrom }),
-                        ...(checkOutDateTo && { lte: checkOutDateTo })
-                    }
-                } : {})
+                ...(bookingCode && {
+                    bookingCode: {
+                        contains: bookingCode,
+                        mode: 'insensitive' as const,
+                    },
+                }),
+                ...(guestEmail && {
+                    bookingUserEmail: {
+                        contains: guestEmail,
+                        mode: 'insensitive' as const,
+                    },
+                }),
+                ...(guestPhone && {
+                    bookingUserPhone: {
+                        contains: guestPhone,
+                        mode: 'insensitive' as const,
+                    },
+                }),
+                ...(checkInDateFrom || checkInDateTo
+                    ? {
+                          checkInDate: {
+                              ...(checkInDateFrom && { gte: checkInDateFrom }),
+                              ...(checkInDateTo && { lte: checkInDateTo }),
+                          },
+                      }
+                    : {}),
+                ...(checkOutDateFrom || checkOutDateTo
+                    ? {
+                          checkOutDate: {
+                              ...(checkOutDateFrom && {
+                                  gte: checkOutDateFrom,
+                              }),
+                              ...(checkOutDateTo && { lte: checkOutDateTo }),
+                          },
+                      }
+                    : {}),
             };
 
             const [total, reservations] = await Promise.all([
@@ -63,8 +89,8 @@ export class ReservationRepository {
                                 firstName: true,
                                 lastName: true,
                                 email: true,
-                                phoneNumber: true
-                            }
+                                phoneNumber: true,
+                            },
                         },
                         property: {
                             select: {
@@ -72,8 +98,8 @@ export class ReservationRepository {
                                 propertyName: true,
                                 propertyCode: true,
                                 propertyEmail: true,
-                                propertyContact: true
-                            }
+                                propertyContact: true,
+                            },
                         },
                         PricingBrakeDown: {
                             select: {
@@ -92,27 +118,29 @@ export class ReservationRepository {
                                 DailyPriceBrakeDown: true,
                                 taxBrakeDown: true,
                                 AddonBrakeDowns: true,
-                            }
+                            },
                         },
-                        AgencyCommission: true,  // 👈 added
+                        AgencyCommission: true, // 👈 added
                     },
                     skip: (page - 1) * limit,
                     take: limit,
-                    orderBy: { [sortBy]: sortOrder }
-                })
+                    orderBy: { [sortBy]: sortOrder },
+                }),
             ]);
 
             return {
                 data: reservations,
                 total,
                 page,
-                limit
+                limit,
             };
         } catch (error) {
             if (error instanceof Error) {
-                throw new Error(`Failed to fetch reservations: ${error.message}`);
+                throw new Error(
+                    `Failed to fetch reservations: ${error.message}`
+                );
             }
-            throw new Error("Failed to fetch reservations");
+            throw new Error('Failed to fetch reservations');
         }
     }
 
@@ -130,8 +158,8 @@ export class ReservationRepository {
                             firstName: true,
                             lastName: true,
                             email: true,
-                            phoneNumber: true
-                        }
+                            phoneNumber: true,
+                        },
                     },
                     property: {
                         select: {
@@ -140,8 +168,8 @@ export class ReservationRepository {
                             propertyCode: true,
                             propertyEmail: true,
                             propertyContact: true,
-                            propertyAddress: true
-                        }
+                            propertyAddress: true,
+                        },
                     },
                     PricingBrakeDown: {
                         include: {
@@ -149,20 +177,22 @@ export class ReservationRepository {
                             taxBrakeDown: true,
                             AddonBrakeDowns: true,
                             promotionBrakeDown: true,
-                        }
+                        },
                     },
                     addOns: true,
                     promo: true,
-                    AgencyCommission: true,  // 👈 added
-                }
+                    AgencyCommission: true, // 👈 added
+                },
             });
 
             return reservation as IReservationResponse | null;
         } catch (error) {
             if (error instanceof Error) {
-                throw new Error(`Failed to fetch reservation: ${error.message}`);
+                throw new Error(
+                    `Failed to fetch reservation: ${error.message}`
+                );
             }
-            throw new Error("Failed to fetch reservation");
+            throw new Error('Failed to fetch reservation');
         }
     }
 
@@ -180,8 +210,8 @@ export class ReservationRepository {
                             firstName: true,
                             lastName: true,
                             email: true,
-                            phoneNumber: true
-                        }
+                            phoneNumber: true,
+                        },
                     },
                     property: {
                         select: {
@@ -189,8 +219,8 @@ export class ReservationRepository {
                             propertyName: true,
                             propertyCode: true,
                             propertyEmail: true,
-                            propertyContact: true
-                        }
+                            propertyContact: true,
+                        },
                     },
                     PricingBrakeDown: {
                         include: {
@@ -198,19 +228,21 @@ export class ReservationRepository {
                             taxBrakeDown: true,
                             AddonBrakeDowns: true,
                             promotionBrakeDown: true,
-                        }
+                        },
                     },
                     addOns: true,
-                    AgencyCommission: true,  // 👈 added
-                }
+                    AgencyCommission: true, // 👈 added
+                },
             });
 
             return reservation as IReservationResponse | null;
         } catch (error) {
             if (error instanceof Error) {
-                throw new Error(`Failed to fetch reservation by booking code: ${error.message}`);
+                throw new Error(
+                    `Failed to fetch reservation by booking code: ${error.message}`
+                );
             }
-            throw new Error("Failed to fetch reservation by booking code");
+            throw new Error('Failed to fetch reservation by booking code');
         }
     }
 
@@ -224,30 +256,35 @@ export class ReservationRepository {
                 where: {
                     id: reservationId,
                     agencyId,
-                    bookingStatus: { not: "cancelled" }
+                    bookingStatus: { not: 'cancelled' },
                 },
                 data: {
-                    bookingStatus: "cancelled",
+                    bookingStatus: 'cancelled',
                     cancellationReason,
-                    cancelledAt: new Date()
-                }
+                    cancelledAt: new Date(),
+                },
             });
 
             if (reservation.count === 0) {
-                throw new Error("Reservation not found or already cancelled");
+                throw new Error('Reservation not found or already cancelled');
             }
 
-            const updatedReservation = await this.getReservationById(reservationId, agencyId);
+            const updatedReservation = await this.getReservationById(
+                reservationId,
+                agencyId
+            );
             if (!updatedReservation) {
-                throw new Error("Failed to fetch updated reservation");
+                throw new Error('Failed to fetch updated reservation');
             }
 
             return updatedReservation;
         } catch (error) {
             if (error instanceof Error) {
-                throw new Error(`Failed to cancel reservation: ${error.message}`);
+                throw new Error(
+                    `Failed to cancel reservation: ${error.message}`
+                );
             }
-            throw new Error("Failed to cancel reservation");
+            throw new Error('Failed to cancel reservation');
         }
     }
 
@@ -264,16 +301,25 @@ export class ReservationRepository {
                 confirmedReservations,
                 cancelledReservations,
                 pendingReservations,
-                revenueData
+                revenueData,
             ] = await Promise.all([
                 prisma.reservation.count({ where: { agencyId } }),
-                prisma.reservation.count({ where: { agencyId, bookingStatus: "confirmed" } }),
-                prisma.reservation.count({ where: { agencyId, bookingStatus: "cancelled" } }),
-                prisma.reservation.count({ where: { agencyId, bookingStatus: "pending" } }),
+                prisma.reservation.count({
+                    where: { agencyId, bookingStatus: 'confirmed' },
+                }),
+                prisma.reservation.count({
+                    where: { agencyId, bookingStatus: 'cancelled' },
+                }),
+                prisma.reservation.count({
+                    where: { agencyId, bookingStatus: 'pending' },
+                }),
                 prisma.reservation.aggregate({
-                    where: { agencyId, bookingStatus: { in: ["confirmed", "pending"] } },
-                    _sum: { amount: true }
-                })
+                    where: {
+                        agencyId,
+                        bookingStatus: { in: ['confirmed', 'pending'] },
+                    },
+                    _sum: { amount: true },
+                }),
             ]);
 
             return {
@@ -281,13 +327,15 @@ export class ReservationRepository {
                 confirmedReservations,
                 cancelledReservations,
                 pendingReservations,
-                totalRevenue: revenueData._sum.amount ?? 0
+                totalRevenue: revenueData._sum.amount ?? 0,
             };
         } catch (error) {
             if (error instanceof Error) {
-                throw new Error(`Failed to fetch reservation stats: ${error.message}`);
+                throw new Error(
+                    `Failed to fetch reservation stats: ${error.message}`
+                );
             }
-            throw new Error("Failed to fetch reservation stats");
+            throw new Error('Failed to fetch reservation stats');
         }
     }
 
@@ -306,7 +354,7 @@ export class ReservationRepository {
                 where: {
                     agencyId,
                     checkInDate: { gte: today, lte: futureDate },
-                    bookingStatus: "confirmed"
+                    bookingStatus: 'confirmed',
                 },
                 include: {
                     primaryGuest: {
@@ -315,8 +363,8 @@ export class ReservationRepository {
                             firstName: true,
                             lastName: true,
                             email: true,
-                            phoneNumber: true
-                        }
+                            phoneNumber: true,
+                        },
                     },
                     property: {
                         select: {
@@ -324,20 +372,22 @@ export class ReservationRepository {
                             propertyName: true,
                             propertyCode: true,
                             propertyEmail: true,
-                            propertyContact: true
-                        }
+                            propertyContact: true,
+                        },
                     },
                     AgencyCommission: true,
                 },
-                orderBy: { checkInDate: 'asc' }
+                orderBy: { checkInDate: 'asc' },
             });
 
             return arrivals as IReservationResponse[];
         } catch (error) {
             if (error instanceof Error) {
-                throw new Error(`Failed to fetch upcoming arrivals: ${error.message}`);
+                throw new Error(
+                    `Failed to fetch upcoming arrivals: ${error.message}`
+                );
             }
-            throw new Error("Failed to fetch upcoming arrivals");
+            throw new Error('Failed to fetch upcoming arrivals');
         }
     }
 
@@ -356,7 +406,7 @@ export class ReservationRepository {
                 where: {
                     agencyId,
                     checkOutDate: { gte: today, lte: futureDate },
-                    bookingStatus: "confirmed"
+                    bookingStatus: 'confirmed',
                 },
                 include: {
                     primaryGuest: {
@@ -365,8 +415,8 @@ export class ReservationRepository {
                             firstName: true,
                             lastName: true,
                             email: true,
-                            phoneNumber: true
-                        }
+                            phoneNumber: true,
+                        },
                     },
                     property: {
                         select: {
@@ -374,20 +424,22 @@ export class ReservationRepository {
                             propertyName: true,
                             propertyCode: true,
                             propertyEmail: true,
-                            propertyContact: true
-                        }
+                            propertyContact: true,
+                        },
                     },
-                    AgencyCommission: true,  // 👈 added
+                    AgencyCommission: true, // 👈 added
                 },
-                orderBy: { checkOutDate: 'asc' }
+                orderBy: { checkOutDate: 'asc' },
             });
 
             return departures as IReservationResponse[];
         } catch (error) {
             if (error instanceof Error) {
-                throw new Error(`Failed to fetch upcoming departures: ${error.message}`);
+                throw new Error(
+                    `Failed to fetch upcoming departures: ${error.message}`
+                );
             }
-            throw new Error("Failed to fetch upcoming departures");
+            throw new Error('Failed to fetch upcoming departures');
         }
     }
 }

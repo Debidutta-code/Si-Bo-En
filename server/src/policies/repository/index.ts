@@ -1,6 +1,3 @@
-import {PolicyRepository } from "./policies.repository";
+import { PolicyRepository } from './policies.repository';
 
-
-export { 
-    PolicyRepository
-}; 
+export { PolicyRepository };

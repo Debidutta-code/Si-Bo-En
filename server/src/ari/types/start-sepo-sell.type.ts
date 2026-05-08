@@ -11,4 +11,3 @@ export interface IstartStopSellS {
     ratePlanCode?: string;
     isSellStop: boolean;
 }
-

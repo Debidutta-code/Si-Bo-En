@@ -1,1 +1,1 @@
-export * from "./agent-auth.repository";
+export * from './agent-auth.repository';

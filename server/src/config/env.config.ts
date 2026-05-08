@@ -4,7 +4,6 @@ dotenv.config();
 const config = {
     port: process.env.PORT,
 
-
     mongoUrl: process.env.EXTRANET_MONGO_URI,
     postgresUrl: process.env.DATABASE_URL,
 
@@ -25,8 +24,9 @@ const config = {
     frontendUrl: process.env.FRONTEND_URL,
     bookingEngineUrl: process.env.BOOKING_ENGINE_URL,
 
-    allowedOrigins: process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(',') : ["*"],
-
+    allowedOrigins: process.env.ALLOWED_ORIGINS
+        ? process.env.ALLOWED_ORIGINS.split(',')
+        : ['*'],
 
     GridApiKey: process.env.SENDGRID_API_KEY,
 
@@ -49,7 +49,7 @@ const config = {
     ngenius: {
         baseUrl: process.env.NGENIUS_BASE_URL,
         apiKey: process.env.NGENIUS_API_KEY,
-        outletId: process.env.NGENIUS_OUTLET_ID,            
+        outletId: process.env.NGENIUS_OUTLET_ID,
     },
 
     rateTigerUsername: process.env.RATETIGER_USERNAME,
@@ -62,8 +62,6 @@ const config = {
     rateTigerReservationUrl: process.env.RATETIGER_RESERVATION_URL || '',
     rateTigerAuthUrl: process.env.RATETIGER_AUTHENTICATION_URL || '',
 
-
-
     //currency exchange api url;
     exchangeApiUrl: process.env.EXCHANGE_API_URL || '',
     //redis config
@@ -71,18 +69,15 @@ const config = {
     redisPort: process.env.REDIS_PORT || '6379',
     redisPassword: process.env.REDIS_PASSWORD || '',
 
-
     emailQueue: process.env.EMAIL_QUEUE || 'email-send-queue',
     deadLetterQueue: process.env.DEAD_LETTER_QUEUE || 'email-dead-queue',
-    currencyExchangeQueue: process.env.CURRENCY_EXCHANGE_QUEUE || 'currency-exchange-queue',
+    currencyExchangeQueue:
+        process.env.CURRENCY_EXCHANGE_QUEUE || 'currency-exchange-queue',
 
     //s3 bucket config
     awsRegion: process.env.AWS_REGION!,
     awsAccessKey: process.env.AWS_ACCESS_KEY!,
     awsSecretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
     awsBucketName: process.env.AWS_BUCKET_NAME!,
-
-
-
-}
+};
 export default config;

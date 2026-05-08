@@ -10,23 +10,23 @@ export const restrictionRouter = Router();
 
 // Apply restrictions (CTA/CTD)
 restrictionRouter.route('/apply').post(
-  protect,
-  checkRoleBased('canUpdateRatePlan'), // or create 'canManageRestrictions'
-  attachPropertyDetails({
-    identifierType: "code",
-    key: "propertyCode",
-    source: "body"
-  }),
-  RestrictionController.applyRestrictions
+    protect,
+    checkRoleBased('canUpdateRatePlan'), // or create 'canManageRestrictions'
+    attachPropertyDetails({
+        identifierType: 'code',
+        key: 'propertyCode',
+        source: 'body',
+    }),
+    RestrictionController.applyRestrictions
 );
 
 // Get restrictions for a property
 restrictionRouter.route('/:propertyCode').get(
-  protect,
-  attachPropertyDetails({
-    identifierType: "code",
-    key: "propertyCode",
-    source: "params"
-  }),
-  RestrictionController.getRestrictions
+    protect,
+    attachPropertyDetails({
+        identifierType: 'code',
+        key: 'propertyCode',
+        source: 'params',
+    }),
+    RestrictionController.getRestrictions
 );

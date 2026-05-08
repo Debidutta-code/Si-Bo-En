@@ -1,7 +1,10 @@
 import { Router } from 'express';
 import { protect } from '../../middlewares/auth.middleware';
-import { checkMultiplePermissions, checkRoleBased } from '../../middlewares/checkRole.middleware';
-import {  PropertyType } from '../controllers';
+import {
+    checkMultiplePermissions,
+    checkRoleBased,
+} from '../../middlewares/checkRole.middleware';
+import { PropertyType } from '../controllers';
 const propertyTypeController = new PropertyType();
 const propertyTypeRouter = Router();
 
@@ -10,7 +13,9 @@ propertyTypeRouter
     .get(
         protect,
         checkMultiplePermissions(['canCreateHotel', 'canUpdateHotel']),
-        propertyTypeController.getPropertyTypeController.bind(propertyTypeController)
+        propertyTypeController.getPropertyTypeController.bind(
+            propertyTypeController
+        )
     );
 
 propertyTypeRouter
@@ -18,7 +23,9 @@ propertyTypeRouter
     .post(
         protect,
         checkRoleBased('canCDPropertyType'),
-        propertyTypeController.createPropertyTypeController.bind(propertyTypeController)
+        propertyTypeController.createPropertyTypeController.bind(
+            propertyTypeController
+        )
     );
 
 propertyTypeRouter
@@ -26,7 +33,9 @@ propertyTypeRouter
     .delete(
         protect,
         checkRoleBased('canCDPropertyType'),
-        propertyTypeController.deletePropertyTypeController.bind(propertyTypeController)
+        propertyTypeController.deletePropertyTypeController.bind(
+            propertyTypeController
+        )
     );
 
-    export { propertyTypeRouter };
+export { propertyTypeRouter };

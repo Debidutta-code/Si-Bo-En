@@ -1,1 +1,1 @@
-export * from "./reservation-new.service"
+export * from './reservation-new.service';

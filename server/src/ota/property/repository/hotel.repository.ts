@@ -22,8 +22,8 @@ export class HotelRepository {
         const where: any = {
             isDeleted: false,
             propertyConfigs: {
-                isAvailableForOTA: true
-            }
+                isAvailableForOTA: true,
+            },
         };
 
         if (search) {
@@ -67,7 +67,10 @@ export class HotelRepository {
 
         // Filtering by property type
         if (propertyType) {
-            const types = propertyType.split(',').map(t => t.trim()).filter(Boolean);
+            const types = propertyType
+                .split(',')
+                .map(t => t.trim())
+                .filter(Boolean);
             if (types.length > 0) {
                 where.propertyType = {
                     masterPropertyType: {
@@ -84,7 +87,10 @@ export class HotelRepository {
 
         // Filtering by property category
         if (propertyCategory) {
-            const categories = propertyCategory.split(',').map(c => c.trim()).filter(Boolean);
+            const categories = propertyCategory
+                .split(',')
+                .map(c => c.trim())
+                .filter(Boolean);
             if (categories.length > 0) {
                 where.propertyCategory = {
                     masterCategory: {

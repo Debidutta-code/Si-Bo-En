@@ -1,5 +1,5 @@
-import { prisma } from "../../../config";
-import { toUTCDate } from "../../../utils";
+import { prisma } from '../../../config';
+import { toUTCDate } from '../../../utils';
 
 export class AgenticRoomRepository {
     public async agenticRooms(agenticPropertyId: string) {
@@ -7,7 +7,7 @@ export class AgenticRoomRepository {
             where: {
                 agenticPropertyId,
                 isActive: true,
-                isDeleted: false
+                isDeleted: false,
             },
             include: {
                 room: {
@@ -15,19 +15,19 @@ export class AgenticRoomRepository {
                         roomVideos: true,
                         roomAmenities: {
                             include: {
-                                amenity: true
-                            }
-                        }
-                    }
-                }
-            }
+                                amenity: true,
+                            },
+                        },
+                    },
+                },
+            },
         });
     }
 
     public async getAgenticRoomById(agenticRoomId: string) {
         return prisma.agenticRoom.findUnique({
             where: {
-                id: agenticRoomId
+                id: agenticRoomId,
             },
             include: {
                 room: {
@@ -35,12 +35,12 @@ export class AgenticRoomRepository {
                         roomVideos: true,
                         roomAmenities: {
                             include: {
-                                amenity: true
-                            }
-                        }
-                    }
-                }
-            }
+                                amenity: true,
+                            },
+                        },
+                    },
+                },
+            },
         });
     }
 

@@ -17,14 +17,18 @@ export class HotelService {
                 starRating: prop.starRating,
                 description: prop.description,
                 image: prop.image, // Array of images
-                address: prop.propertyAddress ? {
-                    city: prop.propertyAddress.city,
-                    state: prop.propertyAddress.state,
-                    country: prop.propertyAddress.country,
-                    latitude: prop.propertyAddress.latitude,
-                    longitude: prop.propertyAddress.longitude,
-                } : null,
-                propertyType: prop.propertyType?.masterPropertyType?.propertyTypeName || null,
+                address: prop.propertyAddress
+                    ? {
+                          city: prop.propertyAddress.city,
+                          state: prop.propertyAddress.state,
+                          country: prop.propertyAddress.country,
+                          latitude: prop.propertyAddress.latitude,
+                          longitude: prop.propertyAddress.longitude,
+                      }
+                    : null,
+                propertyType:
+                    prop.propertyType?.masterPropertyType?.propertyTypeName ||
+                    null,
                 amenities: prop.propertyAmenities.map((pa: any) => ({
                     id: pa.amenity.id,
                     name: pa.amenity.amenityName,
@@ -34,10 +38,10 @@ export class HotelService {
 
             return {
                 ...result,
-                properties: formattedProperties
+                properties: formattedProperties,
             };
         } catch (error: any) {
-            console.error("Error in HotelService.fetchPaginatedHotels", error);
+            console.error('Error in HotelService.fetchPaginatedHotels', error);
             throw new Error(`Failed to fetch hotels: ${error.message}`);
         }
     }

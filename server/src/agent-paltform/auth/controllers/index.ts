@@ -1,1 +1,1 @@
-export * from "./agent-auth.controller";
+export * from './agent-auth.controller';

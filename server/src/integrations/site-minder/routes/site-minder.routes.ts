@@ -19,9 +19,6 @@ siteMinderRoute.post(
     RateTigerController.authenticate
 );
 
-siteMinderRoute.post(
-    '/ari',
-    ARIController.handleARI
-);
+siteMinderRoute.post('/ari', ARIController.handleARI);
 
 export default siteMinderRoute;

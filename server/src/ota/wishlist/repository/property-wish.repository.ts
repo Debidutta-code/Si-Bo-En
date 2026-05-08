@@ -1,95 +1,110 @@
-import {prisma} from "../../../config";
-import {ICPropertyWishListR,IProperty,IPropertyWishlist,IRoomWishlistWRooms} from "../types";
+import { prisma } from '../../../config';
+import {
+    ICPropertyWishListR,
+    IProperty,
+    IPropertyWishlist,
+    IRoomWishlistWRooms,
+} from '../types';
 
-export class PropertyWishList{
-    public async createPropertyWishList(data: ICPropertyWishListR): Promise<IPropertyWishlist> {
+export class PropertyWishList {
+    public async createPropertyWishList(
+        data: ICPropertyWishListR
+    ): Promise<IPropertyWishlist> {
         try {
-            
             return await prisma.wishList.create({
                 data: {
                     propertyCode: data.propertyCode,
                     propertyName: data.propertyName,
                     createdAt: new Date(),
                     propertyId: data.propertyId,
-                    otaGuestId: data.otaGuestId
-                }
+                    otaGuestId: data.otaGuestId,
+                },
             });
         } catch (error) {
-            throw new Error("Error creating property wishlist");
+            throw new Error('Error creating property wishlist');
         }
     }
-    public async getPropertyWishListForGuest(otaGuestId: string): Promise<IRoomWishlistWRooms[]> {
+    public async getPropertyWishListForGuest(
+        otaGuestId: string
+    ): Promise<IRoomWishlistWRooms[]> {
         try {
-            
             return await prisma.wishList.findMany({
                 where: {
-                    otaGuestId
+                    otaGuestId,
                 },
-                include:{
-                    Property:{
-                        select:{
-                            id:true,
-                            propertyName:true,
-                            propertyCode:true,
-                            image:true
-                        }
+                include: {
+                    Property: {
+                        select: {
+                            id: true,
+                            propertyName: true,
+                            propertyCode: true,
+                            image: true,
+                        },
                     },
-                    RoomWishList:true
-                }
+                    RoomWishList: true,
+                },
             });
         } catch (error) {
-            throw new Error("Error fetching wishlist for user");
+            throw new Error('Error fetching wishlist for user');
         }
     }
-    public async checkIfPropertyWishListExists(otaGuestId: string, propertyId: string): Promise<IPropertyWishlist | null> {
+    public async checkIfPropertyWishListExists(
+        otaGuestId: string,
+        propertyId: string
+    ): Promise<IPropertyWishlist | null> {
         try {
             return await prisma.wishList.findUnique({
                 where: {
-                    otaGuestId_propertyId:{
+                    otaGuestId_propertyId: {
                         otaGuestId,
-                        propertyId
-                    }
-                }
+                        propertyId,
+                    },
+                },
             });
         } catch (error) {
-            throw new Error("Error checking if wishlist exists");
+            throw new Error('Error checking if wishlist exists');
         }
     }
     public async getById(id: string): Promise<IPropertyWishlist | null> {
         try {
             return await prisma.wishList.findUnique({
                 where: {
-                    id
-                }
+                    id,
+                },
             });
         } catch (error) {
-            throw new Error("Error fetching wishlist by ID");
+            throw new Error('Error fetching wishlist by ID');
         }
     }
-    public async removePropertyFromUserWishList(otaGuestId: string, propertyId: string): Promise<IPropertyWishlist | null> {
+    public async removePropertyFromUserWishList(
+        otaGuestId: string,
+        propertyId: string
+    ): Promise<IPropertyWishlist | null> {
         try {
             return await prisma.wishList.delete({
                 where: {
                     otaGuestId_propertyId: {
                         otaGuestId,
-                        propertyId
-                    }
-                }
+                        propertyId,
+                    },
+                },
             });
         } catch (error) {
-            throw new Error("Error removing property from wishlist");
+            throw new Error('Error removing property from wishlist');
         }
     }
-    public async getNoOfWishListForProperty(propertyId: string): Promise<number> {
+    public async getNoOfWishListForProperty(
+        propertyId: string
+    ): Promise<number> {
         try {
             const count = await prisma.wishList.count({
                 where: {
-                    propertyId
-                }
+                    propertyId,
+                },
             });
             return count;
         } catch (error) {
-            throw new Error("Error fetching wishlist count for property");
+            throw new Error('Error fetching wishlist count for property');
         }
     }
 
@@ -99,12 +114,10 @@ export class PropertyWishList{
                 where: {
                     id,
                     isAvailable: true,
-                }
+                },
             });
         } catch (error) {
-            throw new Error("Error fetching property by ID");
+            throw new Error('Error fetching property by ID');
         }
     }
-
 }
-

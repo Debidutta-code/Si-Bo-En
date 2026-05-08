@@ -1,5 +1,5 @@
-import { prisma } from "../../../config";
-import { IProperty } from "../types";
+import { prisma } from '../../../config';
+import { IProperty } from '../types';
 
 export class AgenticPropertyRepository {
     public async getAgenticProperties(agencyId: string): Promise<IProperty[]> {
@@ -7,8 +7,8 @@ export class AgenticPropertyRepository {
             return await prisma.property.findMany({
                 where: {
                     agenticProperties: {
-                        some: { agencyId }
-                    }
+                        some: { agencyId },
+                    },
                 },
                 include: {
                     propertyAddress: true,
@@ -17,10 +17,10 @@ export class AgenticPropertyRepository {
                     propertyType: { include: { masterPropertyType: true } },
                     propertyVideos: true,
                     propertyConfigs: true,
-                }
+                },
             });
         } catch (error) {
-            throw new Error("Failed to retrieve properties");
+            throw new Error('Failed to retrieve properties');
         }
     }
 
@@ -38,16 +38,20 @@ export class AgenticPropertyRepository {
                         include: {
                             propertyAddress: true,
                             propertyAmenities: { include: { amenity: true } },
-                            propertyCategory: { include: { masterCategory: true } },
-                            propertyType: { include: { masterPropertyType: true } },
+                            propertyCategory: {
+                                include: { masterCategory: true },
+                            },
+                            propertyType: {
+                                include: { masterPropertyType: true },
+                            },
                             propertyVideos: true,
                             propertyConfigs: true,
-                        }
-                    }
-                }
+                        },
+                    },
+                },
             });
         } catch (error) {
-            throw new Error("Failed to retrieve property");
+            throw new Error('Failed to retrieve property');
         }
     }
 
@@ -58,10 +62,10 @@ export class AgenticPropertyRepository {
                 where: {
                     id: agencyId,
                     isDeleted: false,
-                }
+                },
             });
         } catch (error) {
-            throw new Error("Failed to retrieve agency");
+            throw new Error('Failed to retrieve agency');
         }
     }
 }

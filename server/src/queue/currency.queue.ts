@@ -13,17 +13,17 @@ export class CurrencyQueue {
     private worker: Worker;
     private redisClient: ReturnType<typeof RedisClient.getInstance>;
 
-    constructor( connection:  {
-    host: string;
-    port: number;
-    password: string;
-    maxRetriesPerRequest: null;
-    connectTimeout: number;
-    retryStrategy: (times: number) => number;
-}) {
+    constructor(connection: {
+        host: string;
+        port: number;
+        password: string;
+        maxRetriesPerRequest: null;
+        connectTimeout: number;
+        retryStrategy: (times: number) => number;
+    }) {
         this.redisClient = RedisClient.getInstance();
         this.queue = new Queue(config.currencyExchangeQueue, { connection });
-        this.queue.on('error', (err) => {
+        this.queue.on('error', err => {
             console.error('❌ Currency queue connection error:', err);
         });
         this.worker = new Worker(
@@ -34,11 +34,11 @@ export class CurrencyQueue {
             { connection }
         );
 
-        this.worker.on('error', (err) => {
+        this.worker.on('error', err => {
             console.error('❌ Currency worker connection error:', err);
         });
 
-        this.worker.on('completed', (job) => {
+        this.worker.on('completed', job => {
             console.log(`✅ Currency job ${job.id} completed at ${new Date()}`);
         });
 
@@ -139,7 +139,9 @@ export class CurrencyQueue {
         }
     }
 
-    private async storeExchangeRates(rates: ExchangeRateResponse): Promise<void> {
+    private async storeExchangeRates(
+        rates: ExchangeRateResponse
+    ): Promise<void> {
         console.log('💾 Storing exchange rates in Redis...');
 
         try {
@@ -163,13 +165,27 @@ export class CurrencyQueue {
                 const hashKey = 'exchange:rates:hash';
 
                 if (rates.base_code) {
-                    await this.redisClient.hSet(hashKey, 'base', rates.base_code);
+                    await this.redisClient.hSet(
+                        hashKey,
+                        'base',
+                        rates.base_code
+                    );
                 }
 
-                await this.redisClient.hSet(hashKey, 'timestamp', timestamp.toString());
+                await this.redisClient.hSet(
+                    hashKey,
+                    'timestamp',
+                    timestamp.toString()
+                );
 
-                for (const [currency, rate] of Object.entries(rates.conversion_rates)) {
-                    await this.redisClient.hSet(hashKey, currency, rate.toString());
+                for (const [currency, rate] of Object.entries(
+                    rates.conversion_rates
+                )) {
+                    await this.redisClient.hSet(
+                        hashKey,
+                        currency,
+                        rate.toString()
+                    );
                 }
             }
 
@@ -183,7 +199,9 @@ export class CurrencyQueue {
             await this.redisClient.hSet('exchange:metadata', {
                 lastUpdate: timestamp.toString(),
                 lastUpdateDate: new Date().toISOString(),
-                currencyCount: Object.keys(rates.conversion_rates || {}).length.toString(),
+                currencyCount: Object.keys(
+                    rates.conversion_rates || {}
+                ).length.toString(),
                 baseCurrency: rates.base_code || 'N/A',
             });
 
@@ -195,7 +213,6 @@ export class CurrencyQueue {
             throw error;
         }
     }
-
 
     async getExchangeRates(): Promise<ExchangeRateResponse | null> {
         try {
@@ -226,7 +243,9 @@ export class CurrencyQueue {
 
     async getAllRatesFromHash(): Promise<Record<string, number> | null> {
         try {
-            const allRates = await this.redisClient.hGetAll('exchange:rates:hash');
+            const allRates = await this.redisClient.hGetAll(
+                'exchange:rates:hash'
+            );
             if (!allRates || Object.keys(allRates).length === 0) return null;
 
             const rates: Record<string, number> = {};
@@ -242,10 +261,15 @@ export class CurrencyQueue {
         }
     }
 
-
     async getQueueStatus() {
         const [jobCounts, schedulers] = await Promise.all([
-            this.queue.getJobCounts('active', 'waiting', 'completed', 'failed', 'delayed'),
+            this.queue.getJobCounts(
+                'active',
+                'waiting',
+                'completed',
+                'failed',
+                'delayed'
+            ),
             this.queue.getJobSchedulers(),
         ]);
 

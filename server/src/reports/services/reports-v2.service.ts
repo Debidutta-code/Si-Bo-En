@@ -1,8 +1,12 @@
 import { errorResponse, successResponse } from '../../utils/return';
-import { CreationScopeResolver, ReportsV2Repository } from '../dao/reports-v2.dao';
+import {
+    CreationScopeResolver,
+    ReportsV2Repository,
+} from '../dao/reports-v2.dao';
 import { ReportsV2ExcelService } from '.';
 
-const XLSX_CONTENT_TYPE = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+const XLSX_CONTENT_TYPE =
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 
 export class ReportsV2Service {
     private dao: ReportsV2Repository;
@@ -15,8 +19,18 @@ export class ReportsV2Service {
         this.scopeResolver = new CreationScopeResolver();
     }
 
-    private async resolveScope(creationId: string, overridePropertyId?: string, overrideBrandId?: string, overrideGroupId?: string): Promise<string[]> {
-        return this.scopeResolver.resolvePropertyIds(creationId, overridePropertyId, overrideBrandId, overrideGroupId);
+    private async resolveScope(
+        creationId: string,
+        overridePropertyId?: string,
+        overrideBrandId?: string,
+        overrideGroupId?: string
+    ): Promise<string[]> {
+        return this.scopeResolver.resolvePropertyIds(
+            creationId,
+            overridePropertyId,
+            overrideBrandId,
+            overrideGroupId
+        );
     }
 
     // ── Report 1: Comparison ──────────────────────────────────────────────────
@@ -30,10 +44,21 @@ export class ReportsV2Service {
         groupId?: string;
     }) {
         try {
-            const propertyIds = await this.resolveScope(params.creationId, params.propertyId, params.brandId, params.groupId);
-            if (!propertyIds.length) return errorResponse('No properties found for your account');
+            const propertyIds = await this.resolveScope(
+                params.creationId,
+                params.propertyId,
+                params.brandId,
+                params.groupId
+            );
+            if (!propertyIds.length)
+                return errorResponse('No properties found for your account');
 
-            const data = await this.dao.getComparisonData(propertyIds, params.startDate, params.endDate, params.groupBy || 'month');
+            const data = await this.dao.getComparisonData(
+                propertyIds,
+                params.startDate,
+                params.endDate,
+                params.groupBy || 'month'
+            );
             const excel = await this.xl.generateComparison(data);
 
             return successResponse('Comparison report generated', {
@@ -42,7 +67,10 @@ export class ReportsV2Service {
                 contentType: XLSX_CONTENT_TYPE,
             });
         } catch (error) {
-            return errorResponse('Failed to generate comparison report', error instanceof Error ? error.message : 'Unknown error');
+            return errorResponse(
+                'Failed to generate comparison report',
+                error instanceof Error ? error.message : 'Unknown error'
+            );
         }
     }
 
@@ -56,12 +84,25 @@ export class ReportsV2Service {
         groupId?: string;
     }) {
         try {
-            const propertyIds = await this.resolveScope(params.creationId, params.propertyId, params.brandId, params.groupId);
-            if (!propertyIds.length) return errorResponse('No properties found for your account');
+            const propertyIds = await this.resolveScope(
+                params.creationId,
+                params.propertyId,
+                params.brandId,
+                params.groupId
+            );
+            if (!propertyIds.length)
+                return errorResponse('No properties found for your account');
 
-            const reservations = await this.dao.getReservationOverview(propertyIds, params.startDate, params.endDate);
+            const reservations = await this.dao.getReservationOverview(
+                propertyIds,
+                params.startDate,
+                params.endDate
+            );
             const propertyNames = await this.dao.getPropertyNames(propertyIds);
-            const excel = await this.xl.generateReservationOverview(reservations, propertyNames);
+            const excel = await this.xl.generateReservationOverview(
+                reservations,
+                propertyNames
+            );
 
             return successResponse('Reservation overview generated', {
                 excel,
@@ -69,7 +110,10 @@ export class ReportsV2Service {
                 contentType: XLSX_CONTENT_TYPE,
             });
         } catch (error) {
-            return errorResponse('Failed to generate reservation overview', error instanceof Error ? error.message : 'Unknown error');
+            return errorResponse(
+                'Failed to generate reservation overview',
+                error instanceof Error ? error.message : 'Unknown error'
+            );
         }
     }
 
@@ -83,12 +127,25 @@ export class ReportsV2Service {
         groupId?: string;
     }) {
         try {
-            const propertyIds = await this.resolveScope(params.creationId, params.propertyId, params.brandId, params.groupId);
-            if (!propertyIds.length) return errorResponse('No properties found for your account');
+            const propertyIds = await this.resolveScope(
+                params.creationId,
+                params.propertyId,
+                params.brandId,
+                params.groupId
+            );
+            if (!propertyIds.length)
+                return errorResponse('No properties found for your account');
 
-            const reservations = await this.dao.getRevenueAnalytics(propertyIds, params.startDate, params.endDate);
+            const reservations = await this.dao.getRevenueAnalytics(
+                propertyIds,
+                params.startDate,
+                params.endDate
+            );
             const propertyNames = await this.dao.getPropertyNames(propertyIds);
-            const excel = await this.xl.generateRevenueAnalytics(reservations, propertyNames);
+            const excel = await this.xl.generateRevenueAnalytics(
+                reservations,
+                propertyNames
+            );
 
             return successResponse('Revenue analytics generated', {
                 excel,
@@ -96,7 +153,10 @@ export class ReportsV2Service {
                 contentType: XLSX_CONTENT_TYPE,
             });
         } catch (error) {
-            return errorResponse('Failed to generate revenue analytics', error instanceof Error ? error.message : 'Unknown error');
+            return errorResponse(
+                'Failed to generate revenue analytics',
+                error instanceof Error ? error.message : 'Unknown error'
+            );
         }
     }
 
@@ -110,12 +170,25 @@ export class ReportsV2Service {
         groupId?: string;
     }) {
         try {
-            const propertyIds = await this.resolveScope(params.creationId, params.propertyId, params.brandId, params.groupId);
-            if (!propertyIds.length) return errorResponse('No properties found for your account');
+            const propertyIds = await this.resolveScope(
+                params.creationId,
+                params.propertyId,
+                params.brandId,
+                params.groupId
+            );
+            if (!propertyIds.length)
+                return errorResponse('No properties found for your account');
 
-            const reservations = await this.dao.getInsightsData(propertyIds, params.startDate, params.endDate);
+            const reservations = await this.dao.getInsightsData(
+                propertyIds,
+                params.startDate,
+                params.endDate
+            );
             const propertyNames = await this.dao.getPropertyNames(propertyIds);
-            const excel = await this.xl.generateInsights(reservations, propertyNames);
+            const excel = await this.xl.generateInsights(
+                reservations,
+                propertyNames
+            );
 
             return successResponse('Insights report generated', {
                 excel,
@@ -123,7 +196,10 @@ export class ReportsV2Service {
                 contentType: XLSX_CONTENT_TYPE,
             });
         } catch (error) {
-            return errorResponse('Failed to generate insights report', error instanceof Error ? error.message : 'Unknown error');
+            return errorResponse(
+                'Failed to generate insights report',
+                error instanceof Error ? error.message : 'Unknown error'
+            );
         }
     }
 
@@ -138,11 +214,24 @@ export class ReportsV2Service {
         groupId?: string;
     }) {
         try {
-            const propertyIds = await this.resolveScope(params.creationId, params.propertyId, params.brandId, params.groupId);
-            if (!propertyIds.length) return errorResponse('No properties found for your account');
+            const propertyIds = await this.resolveScope(
+                params.creationId,
+                params.propertyId,
+                params.brandId,
+                params.groupId
+            );
+            if (!propertyIds.length)
+                return errorResponse('No properties found for your account');
 
-            const reservations = await this.dao.getTopPropertiesData(propertyIds, params.startDate, params.endDate);
-            const excel = await this.xl.generateTopProperties(reservations, params.sortBy || 'revenue');
+            const reservations = await this.dao.getTopPropertiesData(
+                propertyIds,
+                params.startDate,
+                params.endDate
+            );
+            const excel = await this.xl.generateTopProperties(
+                reservations,
+                params.sortBy || 'revenue'
+            );
 
             return successResponse('Top properties report generated', {
                 excel,
@@ -150,7 +239,10 @@ export class ReportsV2Service {
                 contentType: XLSX_CONTENT_TYPE,
             });
         } catch (error) {
-            return errorResponse('Failed to generate top properties report', error instanceof Error ? error.message : 'Unknown error');
+            return errorResponse(
+                'Failed to generate top properties report',
+                error instanceof Error ? error.message : 'Unknown error'
+            );
         }
     }
 
@@ -164,12 +256,25 @@ export class ReportsV2Service {
         groupId?: string;
     }) {
         try {
-            const propertyIds = await this.resolveScope(params.creationId, params.propertyId, params.brandId, params.groupId);
-            if (!propertyIds.length) return errorResponse('No properties found for your account');
+            const propertyIds = await this.resolveScope(
+                params.creationId,
+                params.propertyId,
+                params.brandId,
+                params.groupId
+            );
+            if (!propertyIds.length)
+                return errorResponse('No properties found for your account');
 
-            const reservations = await this.dao.getAllReservations(propertyIds, params.startDate, params.endDate);
+            const reservations = await this.dao.getAllReservations(
+                propertyIds,
+                params.startDate,
+                params.endDate
+            );
             const propertyNames = await this.dao.getPropertyNames(propertyIds);
-            const excel = await this.xl.generateAllReservations(reservations, propertyNames);
+            const excel = await this.xl.generateAllReservations(
+                reservations,
+                propertyNames
+            );
 
             return successResponse('All reservations report generated', {
                 excel,
@@ -177,7 +282,10 @@ export class ReportsV2Service {
                 contentType: XLSX_CONTENT_TYPE,
             });
         } catch (error) {
-            return errorResponse('Failed to generate all reservations report', error instanceof Error ? error.message : 'Unknown error');
+            return errorResponse(
+                'Failed to generate all reservations report',
+                error instanceof Error ? error.message : 'Unknown error'
+            );
         }
     }
 
@@ -192,13 +300,28 @@ export class ReportsV2Service {
         groupId?: string;
     }) {
         try {
-            const propertyIds = await this.resolveScope(params.creationId, params.propertyId, params.brandId, params.groupId);
-            if (!propertyIds.length) return errorResponse('No properties found for your account');
+            const propertyIds = await this.resolveScope(
+                params.creationId,
+                params.propertyId,
+                params.brandId,
+                params.groupId
+            );
+            if (!propertyIds.length)
+                return errorResponse('No properties found for your account');
 
             const mode = params.mode || 'checkin';
-            const reservations = await this.dao.getCheckInOutData(propertyIds, params.startDate, params.endDate, mode);
+            const reservations = await this.dao.getCheckInOutData(
+                propertyIds,
+                params.startDate,
+                params.endDate,
+                mode
+            );
             const propertyNames = await this.dao.getPropertyNames(propertyIds);
-            const excel = await this.xl.generateCheckInOut(reservations, mode, propertyNames);
+            const excel = await this.xl.generateCheckInOut(
+                reservations,
+                mode,
+                propertyNames
+            );
 
             return successResponse('Check-in/out report generated', {
                 excel,
@@ -206,7 +329,10 @@ export class ReportsV2Service {
                 contentType: XLSX_CONTENT_TYPE,
             });
         } catch (error) {
-            return errorResponse('Failed to generate check-in/out report', error instanceof Error ? error.message : 'Unknown error');
+            return errorResponse(
+                'Failed to generate check-in/out report',
+                error instanceof Error ? error.message : 'Unknown error'
+            );
         }
     }
 
@@ -220,12 +346,25 @@ export class ReportsV2Service {
         groupId?: string;
     }) {
         try {
-            const propertyIds = await this.resolveScope(params.creationId, params.propertyId, params.brandId, params.groupId);
-            if (!propertyIds.length) return errorResponse('No properties found for your account');
+            const propertyIds = await this.resolveScope(
+                params.creationId,
+                params.propertyId,
+                params.brandId,
+                params.groupId
+            );
+            if (!propertyIds.length)
+                return errorResponse('No properties found for your account');
 
-            const reservations = await this.dao.getStatusBreakdown(propertyIds, params.startDate, params.endDate);
+            const reservations = await this.dao.getStatusBreakdown(
+                propertyIds,
+                params.startDate,
+                params.endDate
+            );
             const propertyNames = await this.dao.getPropertyNames(propertyIds);
-            const excel = await this.xl.generateStatusBreakdown(reservations, propertyNames);
+            const excel = await this.xl.generateStatusBreakdown(
+                reservations,
+                propertyNames
+            );
 
             return successResponse('Status breakdown generated', {
                 excel,
@@ -233,7 +372,10 @@ export class ReportsV2Service {
                 contentType: XLSX_CONTENT_TYPE,
             });
         } catch (error) {
-            return errorResponse('Failed to generate status breakdown', error instanceof Error ? error.message : 'Unknown error');
+            return errorResponse(
+                'Failed to generate status breakdown',
+                error instanceof Error ? error.message : 'Unknown error'
+            );
         }
     }
 
@@ -245,8 +387,14 @@ export class ReportsV2Service {
         groupId?: string;
     }) {
         try {
-            const propertyIds = await this.resolveScope(params.creationId, params.propertyId, params.brandId, params.groupId);
-            if (!propertyIds.length) return errorResponse('No properties found for your account');
+            const propertyIds = await this.resolveScope(
+                params.creationId,
+                params.propertyId,
+                params.brandId,
+                params.groupId
+            );
+            if (!propertyIds.length)
+                return errorResponse('No properties found for your account');
 
             const guests = await this.dao.getLoyaltyGuests(propertyIds);
             const excel = await this.xl.generateLoyaltyGuests(guests);
@@ -257,7 +405,10 @@ export class ReportsV2Service {
                 contentType: XLSX_CONTENT_TYPE,
             });
         } catch (error) {
-            return errorResponse('Failed to generate loyalty guest report', error instanceof Error ? error.message : 'Unknown error');
+            return errorResponse(
+                'Failed to generate loyalty guest report',
+                error instanceof Error ? error.message : 'Unknown error'
+            );
         }
     }
 
@@ -271,12 +422,25 @@ export class ReportsV2Service {
         groupId?: string;
     }) {
         try {
-            const propertyIds = await this.resolveScope(params.creationId, params.propertyId, params.brandId, params.groupId);
-            if (!propertyIds.length) return errorResponse('No properties found for your account');
+            const propertyIds = await this.resolveScope(
+                params.creationId,
+                params.propertyId,
+                params.brandId,
+                params.groupId
+            );
+            if (!propertyIds.length)
+                return errorResponse('No properties found for your account');
 
-            const reservations = await this.dao.getPaymentStatus(propertyIds, params.startDate, params.endDate);
+            const reservations = await this.dao.getPaymentStatus(
+                propertyIds,
+                params.startDate,
+                params.endDate
+            );
             const propertyNames = await this.dao.getPropertyNames(propertyIds);
-            const excel = await this.xl.generatePaymentStatus(reservations, propertyNames);
+            const excel = await this.xl.generatePaymentStatus(
+                reservations,
+                propertyNames
+            );
 
             return successResponse('Payment status report generated', {
                 excel,
@@ -284,7 +448,10 @@ export class ReportsV2Service {
                 contentType: XLSX_CONTENT_TYPE,
             });
         } catch (error) {
-            return errorResponse('Failed to generate payment status report', error instanceof Error ? error.message : 'Unknown error');
+            return errorResponse(
+                'Failed to generate payment status report',
+                error instanceof Error ? error.message : 'Unknown error'
+            );
         }
     }
 }

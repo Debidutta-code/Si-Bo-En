@@ -1,1 +1,1 @@
-export * from "./agent.route";
+export * from './agent.route';

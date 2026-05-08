@@ -13,4 +13,3 @@ export interface AgentCreatedEmailParams {
     loginUrl: string;
     createdByName: string;
 }
- 

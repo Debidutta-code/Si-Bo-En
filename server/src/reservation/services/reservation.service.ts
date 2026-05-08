@@ -122,7 +122,6 @@
 //         return methodMap[method] || 'pay_at_hotel';
 //     }
 
-
 //     private async resolveRefundStrategy(orderReference: string): Promise<{
 //         strategy: 'same_day' | 'day_after';
 //         outletId: string | undefined;
@@ -533,7 +532,6 @@
 //                     );
 //                 }
 //             }
-
 
 //             const reservationDates = this.generateDateRange(
 //                 toUTCDate(reservationStartDate),
@@ -1028,8 +1026,6 @@
 //                 },
 //             };
 
-
-
 //             this.emailService
 //                 .reservationUpdatedEmail(existingReservation, updatePayload)
 //                 .catch((error: any) => {
@@ -1384,7 +1380,6 @@
 //         }
 //     }
 
-
 //     public async deleteReservation(
 //         reservationId: string,
 //         cancellationReason: string,
@@ -1426,7 +1421,6 @@
 //                         },
 //                     },
 //                 });
-
 
 //                 if (!paymentRecord) {
 //                     console.warn(`[CANCEL RESERVATION] ⚠️  No payment record found. Skipping refund.`);

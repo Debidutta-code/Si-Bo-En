@@ -6,7 +6,7 @@ import siteMinderRoute from '../site-minder/routes/site-minder.routes';
 
 const integrationRouter = Router();
 
-integrationRouter.use("/rate-tiger",rateTigerRoute)
-integrationRouter.use("/site-minder",siteMinderRoute)
+integrationRouter.use('/rate-tiger', rateTigerRoute);
+integrationRouter.use('/site-minder', siteMinderRoute);
 
 export default integrationRouter;

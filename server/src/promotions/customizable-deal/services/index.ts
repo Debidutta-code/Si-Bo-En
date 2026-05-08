@@ -1,4 +1,2 @@
-import {CustomizableDealService} from "./customizable-deal.service";
-export {
-    CustomizableDealService
-}
+import { CustomizableDealService } from './customizable-deal.service';
+export { CustomizableDealService };

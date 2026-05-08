@@ -19,7 +19,6 @@ export interface ICAdvanceLoyaltyprogram {
     externalRegistrationUrl: string | null;
     roomLimitByBooking: number;
     blockUserFieldFromForm: boolean;
-
 }
 export interface IUAdvanceLoyaltyprogram {
     activeInCorporateWeb: boolean;
@@ -28,7 +27,6 @@ export interface IUAdvanceLoyaltyprogram {
     roomLimitByBooking: number;
     blockUserFieldFromForm: boolean;
 }
-export interface IAdvanceLoyaltyprogram extends ICAdvanceLoyaltyprogram{
-    id:string;
-
+export interface IAdvanceLoyaltyprogram extends ICAdvanceLoyaltyprogram {
+    id: string;
 }

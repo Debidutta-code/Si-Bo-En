@@ -1,1 +1,1 @@
-export * from "./site-minder.routes"
+export * from './site-minder.routes';

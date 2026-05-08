@@ -1,4 +1,4 @@
-import { ICTaxRule } from "./"
+import { ICTaxRule } from './';
 
 export interface ICTaxGroup {
     name: string;
@@ -17,4 +17,4 @@ export interface ITaxGroupRule {
     id: string;
     taxGroupId: string;
     taxRuleId: string;
-} 
+}

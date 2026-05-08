@@ -5,9 +5,11 @@ This folder contains the backend API for RevChill. It’s a TypeScript + Express
 ## Top-level folders/files
 
 ### `src/`
+
 Main application source code (Express app, routes, modules, services).
 
 ### `prisma/`
+
 Prisma schema and generated artifacts for the SQL database layer.
 
 - `schema.prisma`: main Prisma schema.
@@ -16,17 +18,21 @@ Prisma schema and generated artifacts for the SQL database layer.
 - `generated/`: generated Prisma artifacts (if committed in this repo).
 
 ### `public/`
+
 Publicly served static files.
 
 - `uploads/`: uploaded assets (images/docs/etc). In production, make sure this is protected/validated and ideally backed by object storage.
 
 ### `prisma.config.ts`
+
 Prisma configuration/bootstrapping used by this project.
 
 ### `tsconfig.json`
+
 TypeScript configuration for building `src/` into `dist/`.
 
 ### `package.json`
+
 Scripts and dependencies.
 
 Common scripts:

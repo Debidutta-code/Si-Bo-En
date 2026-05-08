@@ -1,58 +1,84 @@
-import { Router } from "express";
-import { protect } from "../../middlewares/auth.middleware";
-import { checkRoleBased } from "../../middlewares/checkRole.middleware";
-import { LoyalityConditionController, LoyalitySpecialConditionController } from "../controllers";
+import { Router } from 'express';
+import { protect } from '../../middlewares/auth.middleware';
+import { checkRoleBased } from '../../middlewares/checkRole.middleware';
+import {
+    LoyalityConditionController,
+    LoyalitySpecialConditionController,
+} from '../controllers';
 
 const router = Router();
 
 // Initialize controllers
 const loyalityConditionController = new LoyalityConditionController();
-const loyalitySpecialConditionController = new LoyalitySpecialConditionController();
+const loyalitySpecialConditionController =
+    new LoyalitySpecialConditionController();
 
 // ===== Loyalty Condition Routes =====
-router.route("/")
+router
+    .route('/')
     .post(
         protect,
-        loyalityConditionController.createCondition.bind(loyalityConditionController)
+        loyalityConditionController.createCondition.bind(
+            loyalityConditionController
+        )
     );
 
-router.route("/:id")
+router
+    .route('/:id')
     .patch(
         protect,
-        loyalityConditionController.updateCondition.bind(loyalityConditionController)
+        loyalityConditionController.updateCondition.bind(
+            loyalityConditionController
+        )
     )
     .delete(
         protect,
-        loyalityConditionController.deleteCondition.bind(loyalityConditionController)
+        loyalityConditionController.deleteCondition.bind(
+            loyalityConditionController
+        )
     );
 
-router.route("/program/:loyaltyProgramId")
+router
+    .route('/program/:loyaltyProgramId')
     .get(
         protect,
-        loyalityConditionController.getConditionsByProgramId.bind(loyalityConditionController)
+        loyalityConditionController.getConditionsByProgramId.bind(
+            loyalityConditionController
+        )
     );
 
 // ===== Loyalty Special Condition Routes =====
-router.route("/special")
+router
+    .route('/special')
     .post(
         protect,
-        loyalitySpecialConditionController.createSpecialCondition.bind(loyalitySpecialConditionController)
+        loyalitySpecialConditionController.createSpecialCondition.bind(
+            loyalitySpecialConditionController
+        )
     );
 
-router.route("/special/:id")
+router
+    .route('/special/:id')
     .patch(
         protect,
-        loyalitySpecialConditionController.updateSpecialCondition.bind(loyalitySpecialConditionController)
+        loyalitySpecialConditionController.updateSpecialCondition.bind(
+            loyalitySpecialConditionController
+        )
     )
     .delete(
         protect,
-        loyalitySpecialConditionController.deleteSpecialCondition.bind(loyalitySpecialConditionController)
+        loyalitySpecialConditionController.deleteSpecialCondition.bind(
+            loyalitySpecialConditionController
+        )
     );
 
-router.route("/special/program/:loyaltyProgramId")
+router
+    .route('/special/program/:loyaltyProgramId')
     .get(
         protect,
-        loyalitySpecialConditionController.getSpecialConditionsByProgramId.bind(loyalitySpecialConditionController)
+        loyalitySpecialConditionController.getSpecialConditionsByProgramId.bind(
+            loyalitySpecialConditionController
+        )
     );
 
 export default router;

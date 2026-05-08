@@ -127,8 +127,8 @@ export interface IReportResponse {
     data: ReportData;
 }
 export interface IGuestsData {
-  adults: number;
-  children: number;
-  infants: number;
-  [key: string]: any; // For any additional fields
+    adults: number;
+    children: number;
+    infants: number;
+    [key: string]: any; // For any additional fields
 }

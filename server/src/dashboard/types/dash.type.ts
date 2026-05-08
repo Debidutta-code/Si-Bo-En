@@ -1,4 +1,4 @@
-import { CurrencyCode } from "../../tax-system/interfaces";
+import { CurrencyCode } from '../../tax-system/interfaces';
 
 export interface IPropertyCodeAndIds {
     id: string;
@@ -6,10 +6,10 @@ export interface IPropertyCodeAndIds {
     name: string;
 }
 export enum CreationType {
-    super = "super",
-    group = "group",
-    brand = "brand",
-    property = "property",
+    super = 'super',
+    group = 'group',
+    brand = 'brand',
+    property = 'property',
 }
 // Reservation Analytics Interfaces
 export interface IReservationStatusBreakdown {
@@ -195,44 +195,44 @@ export interface IAnalyticsData {
 // Add these to your existing types file
 
 export interface IComparisonPeriod {
-  current: {
-    start: Date;
-    end: Date;
-    label: string;
-  };
-  previous: {
-    start: Date;
-    end: Date;
-    label: string;
-  };
+    current: {
+        start: Date;
+        end: Date;
+        label: string;
+    };
+    previous: {
+        start: Date;
+        end: Date;
+        label: string;
+    };
 }
 
 export interface IStatisticsComparison {
-  currencyCode: CurrencyCode;
-  bookings: {
-    current: number;
-    previous: number;
-    percentageChange: number;
-  };
-  cancelledBookings: {
-    current: number;
-    previous: number;
-    percentageChange: number;
-  };
-  revenue: {
-    current: number;
-    previous: number;
-    percentageChange: number;
-  };
-  averageBookingValue: {
-    current: number;
-    previous: number;
-    percentageChange: number;
-  };
-  roomNights: {
-    current: number;
-    previous: number;
-    percentageChange: number;
-  };
-  period: IComparisonPeriod;
+    currencyCode: CurrencyCode;
+    bookings: {
+        current: number;
+        previous: number;
+        percentageChange: number;
+    };
+    cancelledBookings: {
+        current: number;
+        previous: number;
+        percentageChange: number;
+    };
+    revenue: {
+        current: number;
+        previous: number;
+        percentageChange: number;
+    };
+    averageBookingValue: {
+        current: number;
+        previous: number;
+        percentageChange: number;
+    };
+    roomNights: {
+        current: number;
+        previous: number;
+        percentageChange: number;
+    };
+    period: IComparisonPeriod;
 }

@@ -1,5 +1,3 @@
-import {PromoCodeController} from './promo-code.controller';
+import { PromoCodeController } from './promo-code.controller';
 
-export{
-    PromoCodeController
-}
+export { PromoCodeController };

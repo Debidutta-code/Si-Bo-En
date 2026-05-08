@@ -76,7 +76,7 @@ export class InventoryUpdateDao {
                 ...(isClosedToArrival !== undefined && { isClosedToArrival }),
                 ...(isClosedToDeparture !== undefined && {
                     isClosedToDeparture,
-                })
+                }),
             };
 
             if (existingCharge) {
