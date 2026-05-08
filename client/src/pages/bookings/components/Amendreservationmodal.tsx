@@ -181,11 +181,17 @@ const AmendReservationModal: FC<IAmendReservationModalProps> = ({
   onClose,
   onSuccess,
 }) => {
+  const originalRooms =
+      new Set(
+        reservation.PricingBrakeDown?.DailyPriceBrakeDown
+          ?.map((item: any) => item.roomNumber)
+          .filter(Boolean) || []
+      ).size || 1;
   const initialCheckIn = parseDate(reservation.reservationStartDate);
   const initialCheckOut = parseDate(reservation.reservationEndDate);
-  const originalRooms =
-    reservation.finalPrice?.requestedRooms ??
-    1;
+  // const originalRooms =
+  //   reservation.finalPrice?.requestedRooms ??
+  //   1;
 
   // ── Navigation ──
   const [step, setStep] = useState<AmendStep>(1);

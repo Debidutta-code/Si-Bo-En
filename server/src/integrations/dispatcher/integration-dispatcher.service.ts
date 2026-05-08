@@ -3,7 +3,7 @@ import { AriManupulationRepo } from '../../reservation/repository';
 import { RTIntegrationDao } from '../rate-tiger/dao/rt-integration.dao';
 import { RTReservationPushService } from '../rate-tiger/services/rt-reservation-push.service';
 import { SiteMinderReservationService } from '../site-minder/services/site-minder-reservation.service';
-import { ICReservationPayload } from '../../reservation/types';
+import { ICReservationS } from '../../reservation/types';
 import { ExistingReservation, RTUpdatePayload } from '../rate-tiger/types';
 import { SMIntegrationDao } from '../site-minder/dao';
 
@@ -18,7 +18,7 @@ export class IntegrationDispatcher {
 
     // ─── Commit (new reservation) ─────────────────────────────────────────────
     public static async pushCommit(
-        payload: ICReservationPayload,
+        payload: ICReservationS,
         propertyId: string,
         countryCode: string,
         bookingCode: string,
@@ -170,7 +170,7 @@ export class IntegrationDispatcher {
     private static buildSMPayloadFromUpdate(
         existing: ExistingReservation,
         update: RTUpdatePayload
-    ): ICReservationPayload {
+    ): ICReservationS {
         const roomsArray = Array.isArray((update as any).rooms)
             ? (update as any).rooms
             : existing.finalPrice?.guests?.roomsArray ?? [];
@@ -212,7 +212,7 @@ export class IntegrationDispatcher {
     }
     private static buildSMPayloadFromExisting(
         existing: ExistingReservation
-    ): ICReservationPayload {
+    ): ICReservationS {
         return {
             propertyCode: existing.propertyCode ?? '',
             roomTypeCode: existing.roomTypeCode ?? '',

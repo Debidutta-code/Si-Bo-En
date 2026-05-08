@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { config } from '../../../config';
-import { ICReservationPayload } from '../../../reservation/types';
+import { ICReservationS } from '../../../reservation/types';
 import {
     SMReservationPushParams,
     SMReservationResult,
@@ -58,7 +58,7 @@ export class SiteMinderReservationService {
     }
 
     private static buildRoomStays(
-        payload: ICReservationPayload,
+        payload: ICReservationS,
         siteMinderHotelCode: string
     ): SMRoomStay[] {
         const { finalPrice } = payload;
@@ -196,7 +196,7 @@ export class SiteMinderReservationService {
     }
 
     // ─── Helper to build totals for params ───────────────────────────────────
-    private static buildTotals(payload: ICReservationPayload): {
+    private static buildTotals(payload: ICReservationS): {
         totalBeforeTax: string;
         totalAfterTax: string;
     } {
@@ -215,7 +215,7 @@ export class SiteMinderReservationService {
     }
 
     // ─── Helper to extract payLater promotions (tourist fee etc.) ────────────
-   private static getPayLaterServices(payload: ICReservationPayload): any[] {
+   private static getPayLaterServices(payload: ICReservationS): any[] {
     const promotions = payload.finalPrice?.promotionBrakeDown ?? [];
     return promotions
         .filter((p: any) => p.restrictionType === 'payLater')
@@ -227,9 +227,8 @@ export class SiteMinderReservationService {
         }));
 }
 
-    // ─── PUBLIC: Commit ───────────────────────────────────────────────────────
     public static async pushCommit(
-        payload: ICReservationPayload,
+        payload: ICReservationS,
         bookingCode: string,
         siteMinderHotelCode: string,
         channelCode: string,
@@ -254,7 +253,6 @@ export class SiteMinderReservationService {
                 primaryGuest: {
                     firstName: guestDetails?.firstName ?? '',
                     lastName: guestDetails?.lastName ?? '',
-                    salutation: guestDetails?.salutation,
                     phone: payload.bookingUserPhone,
                     email: payload.bookingUserEmail,
                 },
@@ -301,7 +299,7 @@ export class SiteMinderReservationService {
 
     // ─── PUBLIC: Modify ───────────────────────────────────────────────────────
     public static async pushModify(
-        payload: ICReservationPayload,
+        payload: ICReservationS,
         bookingCode: string,
         originalCreateDateTime: string,
         siteMinderHotelCode: string,
@@ -328,7 +326,6 @@ export class SiteMinderReservationService {
                 primaryGuest: {
                     firstName: guestDetails?.firstName ?? '',
                     lastName: guestDetails?.lastName ?? '',
-                    salutation: guestDetails?.salutation,
                     phone: payload.bookingUserPhone,
                     email: payload.bookingUserEmail,
                 },
@@ -373,7 +370,7 @@ export class SiteMinderReservationService {
 
     // ─── PUBLIC: Cancel ───────────────────────────────────────────────────────
     public static async pushCancel(
-        payload: ICReservationPayload,
+        payload: ICReservationS,
         bookingCode: string,
         originalCreateDateTime: string,
         siteMinderHotelCode: string,
@@ -400,7 +397,6 @@ export class SiteMinderReservationService {
                 primaryGuest: {
                     firstName: guestDetails?.firstName ?? '',
                     lastName: guestDetails?.lastName ?? '',
-                    salutation: guestDetails?.salutation,
                     phone: payload.bookingUserPhone,
                     email: payload.bookingUserEmail,
                 },

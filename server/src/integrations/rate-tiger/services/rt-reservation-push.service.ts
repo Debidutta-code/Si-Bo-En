@@ -19,6 +19,7 @@ import {
 import { config } from '../../../config';
 import { json } from 'stream/consumers';
 import { ICReservationS } from '../../../reservation/types';
+import { ServiceLogger } from '../../../logs/services/service-log.service';
 
 interface CachedToken {
     token: string;
