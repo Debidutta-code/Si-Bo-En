@@ -1,13 +1,13 @@
 import { Response } from "express";
 import { errorResponse } from "../../../utils/return";
 import { AgentRequest } from "../../utils";
-import { ReservationService } from "../../../reservation/services";
+import { NewReservationService } from "../../../reservation/services";
 
 export class AgentBookingController {
-    private reservationService: ReservationService;
+    private reservationService: NewReservationService;
 
     constructor() {
-        this.reservationService = new ReservationService();
+        this.reservationService = new NewReservationService();
     }
 
     // public async createAgentBooking(req: AgentRequest, res: Response): Promise<Response> {

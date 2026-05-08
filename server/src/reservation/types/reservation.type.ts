@@ -4,6 +4,7 @@ import { CurrencyCode } from "../../tax-system/interfaces";
 import { PostingRhythm } from "../../add-on/interfaces";
 import { RestrictionType } from "../../../prisma/generated/prisma/enums";
 import { AgentCommissionType } from "../../agency/types";
+import { GuestType } from "./guest.type";
 export type Platforms = 'web' | 'mobile' | 'desktop';
 export type BookingSource = "direct" |
   "google" |
@@ -25,49 +26,7 @@ export type ReservationPromotionType = "early_bird" | "mlos" | "device_specific"
 export interface IPropertyEmails {
   email: string;
 }
-export interface IBookingDetails {
-  startDate: string;
-  endDate: string;
-  propertyCode: string;
-  hotelName: string;
-  roomTypeCode: string;
-  ratePlanCode: string;
-  numberOfRooms: number;
-  numberOfNights?: number;
-  finalPrice: IFinalPrice;
-  promoCode: string | null;
-  currencyCode: CurrencyCode;
-  bookingSource: BookingSource;
-  refundAmount: any
-  bookingUserEmail: string;
-  bookingUserPhone: string;
-  guests: {
-    adults: number;
-    children: number;
-    rooms: number;
-  };
-  guestDetails: IGuestDetail[];
-  paymentMethod: string;
-  selectedAddons?: IBookingAddonCreate[];
-  selectedPromotions?: IReservationPromotionCreate[];
-  agencyId?: string | null;
-  // Additional fields for email service
-  bookingCode?: string;
-  reservationId?: string;
-  bookedAt?: string;
-  bookingStatus?: BookingStatus;
-  ngeniusOrderRef?: string;
-}
 
-export interface IGuestDetail {
-  type: "adult" | "child" | "infant";
-  firstName: string;
-  lastName: string;
-  dateOfBirth: string;
-  age?: number | null;
-  email?: string;
-  phone?: string;
-}
 
 export interface ICReservationR {
   bookingCode: string;
@@ -79,13 +38,13 @@ export interface ICReservationR {
   currencyCode: CurrencyCode;
   hotelName: string;
   roomTypeCode: string;
-  roomName: string;
+  roomName: string | null;
   ratePlanCode: string;
-  ratePlanName: string;
+  ratePlanName: string|null;
   primaryGuestId: string;
-  guests: any; // List of guests
+  guests: any//ICGuest[]; 
   bookingUserEmail: string;
-  bookingUserPhone: string;
+  bookingUserPhone: string|null;
   amount: number;
   paidAmount: number;
   extraAmountToPay: number;
@@ -99,7 +58,7 @@ export interface ICReservationR {
   promoId: string | null;
   agencyId: string | null;
   platforms: Platforms;
-
+  otaGuestId: string | null;
   paymentMethod: PaymentMethod;
 }
 
@@ -111,12 +70,11 @@ export interface IReservation extends ICReservationR {
 }
 
 export interface IReservationWithAllDetails extends IReservation {
-  primaryGuest: IGuests;
+  primaryGuest: IGuest;
   addOns: IBookingAddon[];
   PricingBrakeDown?: IPricingBreakDown | null;
   property: IPropertyDetails;
   reservationPromoCodes?: IReservationPromoCodes[];
-  reservationGuests?: IReservationGuest[];
   promo: IPromoCode | null;
   agencyCommission?: IAgencyCommissionData | null;
 
@@ -154,15 +112,6 @@ export interface IPropertyDetails {
   description: string
   image: string[]
 }
-export interface IReservationGuest {
-  id: string;
-  reservationId: string;
-  firstName: string;
-  lastName: string;
-  type: "adult" | "child" | "infant";
-  dateOfBirth: Date | null;
-  age: number | null;
-}
 export interface ICGuest {
   firstName: string;
   lastName: string;
@@ -170,21 +119,19 @@ export interface ICGuest {
   phoneNumber: string | null;
   propertyId: string;
   userType: "adult" | "child" | "infant";
-  address: string | null;
-  city: string | null;
-  state: string | null;
-  country: string | null;
-  zipCode: string | null;
-  userIdentityCardType: string | null;
-  identityCardNumber: string | null;
-  identityCardImage: string | null;
+}
+export interface IGuest {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string|null;
+  phoneNumber: string|null;
+  propertyId: string;
+  userType: "adult" | "child" | "infant";
 }
 
-export interface IGuests extends ICGuest {
-  id: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
+
+
 export interface INormalizedPromotion {
   id?: string;
   promotionType: ReservationPromotionType;
@@ -196,7 +143,7 @@ export interface INormalizedPromotion {
 }
 
 export interface IReservationPromotionCreate {
-  id?: string;
+  // id: string;
   bookingCode: string;
   bookingId: string;
   promotionId?: string | null;
@@ -272,16 +219,13 @@ export interface IReservationPriceBrakeDown extends IPricingBreakDown {
 }
 export interface IAriManulupulation {
   propertyCode: string;
-  roomInfos: AriManupulationRooms[];
-  dates: Date[];
-}
-
-export interface AriManupulationRooms {
   roomTypeCode: string;
   numberOfRooms: number;
+  dates: Date[]
 }
 
-export interface IReservationUpdatePayload {
+
+export interface IUReservation {
   propertyCode: string;
   checkInDate: string;
   checkOutDate: string;
@@ -292,7 +236,7 @@ export interface IReservationUpdatePayload {
     childAges: number[];
   }>;
   previousRooms: number;
-  guests: IGuestDetail[];
+  guests: ICGuest[];
   roomTypeCode: string;
   ratePlanCode: string;
   amount: number;
@@ -304,7 +248,7 @@ export interface IReservationUpdatePayload {
   extraAmountToPay: number;
   refundAmount: number;
   agencyId?: string;
-  agentId?: string | null;
+  agentId: string | null;
 }
 
 export interface IReservationModification {
@@ -322,25 +266,6 @@ export interface IReservationModification {
   modifiedAt: Date;
 }
 
-export interface IUpdateReservationResult {
-  success: boolean;
-  reservation: IReservationWithAllDetails;
-  ariChanges: {
-    datesFreed: string[];
-    datesReserved: string[];
-    roomsFreed: number;
-    roomsReserved: number;
-  };
-  financialSummary: {
-    oldAmount: number;
-    newAmount: number;
-    difference: number;
-    extraAmountToPay: number;
-    refundAmount: number;
-  };
-}
-// ==================== BOOKING ADDON TYPES ====================
-// In reservation.type.ts
 export interface IBookingAddonCreate {
   reservationId: string;
   addonId: string;
@@ -430,7 +355,7 @@ export interface ICReservationS {
   finalPrice: IFinalPrice;
   promoCode: string;
   currencyCode: CurrencyCode;
-  guestDetails: IGuestDetails[];
+  guestDetails: ICGuest[];
   ratePlanCode: string;
   paymentMethod: PaymentMethod;
   bookingSource: BookingSource;
@@ -441,51 +366,7 @@ export interface ICReservationS {
   agentId?: string;
   ngeniusOrderRef?: string;
   isLoyalityGuest?: boolean;
-}
-export interface ICReservationPayloadForEmail extends ICReservationS {
-  numberOfNights: number;
-  bookingCode: string;
-  reservationId: string;
-  bookedAt: string;
-  bookingStatus: ReservationStatus;
-  ratePlanName: string;
-  refundAmount?: number;
-  extraAmountToPay?: number;
-}
-export interface IBookingTemplate {
-  propertyCode: string;
-  reservationStartDate: Date | string;
-  reservationEndDate: Date | string;
-  hotelName: string;
-  bankDetails?: IBankDetails;
-  roomName: string;
-  roomTypeCode: string;
-  guests?: IGuestdistribution;
-  bookingUserEmail: string;
-  bookingUserPhone: string;
-  numberOfRooms: number;
-  promoCode: string;
-  currencyCode: CurrencyCode;
-  guestDetails: IGuestDetails[];
-  ratePlanCode: string;
-  paymentMethod: PaymentMethod;
-  bookingSource: BookingSource;
-  selectedPromotions?: ISelectedPromotions[];
-  selectedAddons?: ISelectedAddons[];
-  platforms: Platforms;
-  agencyId?: string;
-  agentId?: string;
-  ngeniusOrderRef?: string;
-  isLoyalityGuest?: boolean;
-  numberOfNights: number;
-  bookingCode: string;
-  reservationId: string;
-  bookedAt: string;
-  bookingStatus: ReservationStatus;
-  ratePlanName: string;
-  refundAmount?: number;
-  extraAmountToPay?: number;
-  PricingBrakeDown: PriceBrakeDown;
+  otaGuestId: string | null;
 }
 
 export interface IBankDetails {
@@ -520,13 +401,13 @@ export interface IRoomArray {
   children: number;
   childAges: number[];
 }
-export interface IGuestDetails {
-  type: "adult" | "child" | "infant";
-  firstName: string;
-  lastName: string;
-  dateOfBirth: string;
-  salutation?: string;
-}
+// export interface IGuestDetails {
+//   type: "adult" | "child" | "infant";
+//   firstName: string;
+//   lastName: string;
+//   dateOfBirth: string;
+//   salutation?: string;
+// }
 export interface ISelectedAddons {
   addonCode: string;
   addonId: string;

@@ -10,5 +10,5 @@ export{
     generateWelcomeEmailTemplate,
     generatePasswordResetLinkTemplate
 }
-export * from "./reservation.template"
+// export * from "./reservation.template"
 

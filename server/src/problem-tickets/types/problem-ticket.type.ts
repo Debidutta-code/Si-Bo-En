@@ -1,5 +1,5 @@
 import { IProperty } from '../../agency/types';
-import { IGuests } from '../../reservation/types';
+import { IGuest } from '../../reservation/types';
 
 export type ticketStatus = 'open' | 'in_progress' | 'resolved' | 'closed';
 export type ticketPriority = 'low' | 'medium' | 'high' | 'urgent';
@@ -26,5 +26,5 @@ export interface IProblemTickets extends ICProblemTicketsR {
 
 export interface IProblemTicketsWithData extends IProblemTickets {
     Property: IProperty;
-    Guests: IGuests|null;
+    Guests: IGuest|null;
 }

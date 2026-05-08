@@ -1,233 +1,233 @@
-import { IBookingTemplate, ICReservationPayloadForEmail, IReservationUpdatePayload, IReservationWithAllDetails } from '../../reservation/types';
-import { getPropertyByPropertyAndRoom } from '../utils';
-import { EmailTemplates } from '../templatesss';
-import { PropertyEmailRepository } from '../reposititory';
-import { emailQueue } from '../../index';
+// import { IUReservation, IReservationWithAllDetails } from '../../reservation/types';
+// import { getPropertyByPropertyAndRoom } from '../utils';
+// // import { EmailTemplates } from '../templatesss';
+// import { PropertyEmailRepository } from '../reposititory';
+// import { emailQueue } from '../../index';
 
-export class ReservationEmailService {
-    private propertyEmailRepository: PropertyEmailRepository;
+// export class ReservationEmailService {
+//     private propertyEmailRepository: PropertyEmailRepository;
 
-    constructor() {
-        this.propertyEmailRepository = new PropertyEmailRepository();
-    }
+//     constructor() {
+//         this.propertyEmailRepository = new PropertyEmailRepository();
+//     }
 
-    public async reservationConfirmation(
-        bookingDetails: IBookingTemplate
-    ): Promise<void> {
-        try {
-            const propertyDetails = await getPropertyByPropertyAndRoom(
-                bookingDetails.propertyCode,
-                bookingDetails.roomTypeCode
+//     public async reservationConfirmation(
+//         bookingDetails: IBookingTemplate
+//     ): Promise<void> {
+//         try {
+//             const propertyDetails = await getPropertyByPropertyAndRoom(
+//                 bookingDetails.propertyCode,
+//                 bookingDetails.roomTypeCode
 
-            );
-            if (!propertyDetails) return;
-            if (!propertyDetails || !propertyDetails.propertyAddress || !propertyDetails.propertyRooms) return;
+//             );
+//             if (!propertyDetails) return;
+//             if (!propertyDetails || !propertyDetails.propertyAddress || !propertyDetails.propertyRooms) return;
 
 
 
-            const ccEmails = propertyDetails.propertyEmails
-                .map(e => e.email)
-                .filter(e => e !== propertyDetails.propertyEmail);
+//             const ccEmails = propertyDetails.propertyEmails
+//                 .map(e => e.email)
+//                 .filter(e => e !== propertyDetails.propertyEmail);
 
-            const htmlTemplate = EmailTemplates.BookingConfirmation({
-                property: {
-                    propertyName: propertyDetails.propertyName,
-                    description: propertyDetails.description,
-                    image: propertyDetails.image,
-                    propertyContact: propertyDetails.propertyContact,
-                    propertyEmail: propertyDetails.propertyEmail,
-                    propertyCode: propertyDetails.propertyCode,
-                },
-                room: propertyDetails.propertyRooms[0],
-                reservation: bookingDetails,
-                propertyAddress: propertyDetails.propertyAddress,
-            });
+//             const htmlTemplate = EmailTemplates.BookingConfirmation({
+//                 property: {
+//                     propertyName: propertyDetails.propertyName,
+//                     description: propertyDetails.description,
+//                     image: propertyDetails.image,
+//                     propertyContact: propertyDetails.propertyContact,
+//                     propertyEmail: propertyDetails.propertyEmail,
+//                     propertyCode: propertyDetails.propertyCode,
+//                 },
+//                 room: propertyDetails.propertyRooms[0],
+//                 reservation: bookingDetails,
+//                 propertyAddress: propertyDetails.propertyAddress,
+//             });
 
-            const correlationId = bookingDetails.bookingCode;
+//             const correlationId = bookingDetails.bookingCode;
 
-            // Email 1 - Customer
-            await emailQueue.enqueueEmail({
-                to: bookingDetails.bookingUserEmail,
-                cc: [],
-                subject: 'Your Reservation Confirmation - RevChill',
-                htmlContent: htmlTemplate,
-                priority: 'critical',
-                meta: {
-                    template: 'reservation_confirmation_customer',
-                    event: 'reservation_confirmation',
-                    correlationId,
-                },
-            });
+//             // Email 1 - Customer
+//             await emailQueue.enqueueEmail({
+//                 to: bookingDetails.bookingUserEmail,
+//                 cc: [],
+//                 subject: 'Your Reservation Confirmation - RevChill',
+//                 htmlContent: htmlTemplate,
+//                 priority: 'critical',
+//                 meta: {
+//                     template: 'reservation_confirmation_customer',
+//                     event: 'reservation_confirmation',
+//                     correlationId,
+//                 },
+//             });
 
-            // Email 2 - Property (with other emails in CC)
-            await emailQueue.enqueueEmail({
-                to: propertyDetails.propertyEmail,
-                cc: ccEmails,
-                subject: 'New Reservation - RevChill',
-                htmlContent: htmlTemplate,
-                priority: 'high',
-                meta: {
-                    template: 'reservation_confirmation_property',
-                    event: 'reservation_confirmation',
-                    correlationId,
-                },
-            });
-        } catch (error) {
-            console.error(
-                'Error sending reservation confirmation email:',
-                error
-            );
-        }
-    }
+//             // Email 2 - Property (with other emails in CC)
+//             await emailQueue.enqueueEmail({
+//                 to: propertyDetails.propertyEmail,
+//                 cc: ccEmails,
+//                 subject: 'New Reservation - RevChill',
+//                 htmlContent: htmlTemplate,
+//                 priority: 'high',
+//                 meta: {
+//                     template: 'reservation_confirmation_property',
+//                     event: 'reservation_confirmation',
+//                     correlationId,
+//                 },
+//             });
+//         } catch (error) {
+//             console.error(
+//                 'Error sending reservation confirmation email:',
+//                 error
+//             );
+//         }
+//     }
 
-    public async reservationUpdatedEmail(
-        existingReservation: IReservationWithAllDetails,
-        updatePayload: IReservationUpdatePayload
-    ): Promise<void> {
-        try {
-            const propertyDetails = await getPropertyByPropertyAndRoom(
-                existingReservation.propertyCode,
-                existingReservation.roomTypeCode
-            );
-            if (!propertyDetails || !propertyDetails.propertyAddress) return;
+//     public async reservationUpdatedEmail(
+//         existingReservation: IReservationWithAllDetails,
+//         updatePayload: IReservationUpdatePayload
+//     ): Promise<void> {
+//         try {
+//             const propertyDetails = await getPropertyByPropertyAndRoom(
+//                 existingReservation.propertyCode,
+//                 existingReservation.roomTypeCode
+//             );
+//             if (!propertyDetails || !propertyDetails.propertyAddress) return;
 
-            const room = propertyDetails.propertyRooms[0];
-            if (!room) return;
+//             const room = propertyDetails.propertyRooms[0];
+//             if (!room) return;
 
-            const ccEmails = propertyDetails.propertyEmails
-                .map(e => e.email)
-                .filter(e => e !== propertyDetails.propertyEmail);
+//             const ccEmails = propertyDetails.propertyEmails
+//                 .map(e => e.email)
+//                 .filter(e => e !== propertyDetails.propertyEmail);
 
-            const htmlTemplate = EmailTemplates.BookingAmendment({
-                property: {
-                    propertyName: propertyDetails.propertyName,
-                    description: propertyDetails.description,
-                    image: propertyDetails.image,
-                    propertyContact: propertyDetails.propertyContact,
-                    propertyEmail: propertyDetails.propertyEmail,
-                    propertyCode: propertyDetails.propertyCode,
-                },
-                room: propertyDetails.propertyRooms[0],
-                updatedPayload: updatePayload,
-                reservation: existingReservation,
-                propertyAddress: propertyDetails.propertyAddress,
-            });
+//             const htmlTemplate = EmailTemplates.BookingAmendment({
+//                 property: {
+//                     propertyName: propertyDetails.propertyName,
+//                     description: propertyDetails.description,
+//                     image: propertyDetails.image,
+//                     propertyContact: propertyDetails.propertyContact,
+//                     propertyEmail: propertyDetails.propertyEmail,
+//                     propertyCode: propertyDetails.propertyCode,
+//                 },
+//                 room: propertyDetails.propertyRooms[0],
+//                 updatedPayload: updatePayload,
+//                 reservation: existingReservation,
+//                 propertyAddress: propertyDetails.propertyAddress,
+//             });
 
-            const correlationId = existingReservation.bookingCode;
+//             const correlationId = existingReservation.bookingCode;
 
-            // Email 1 - Customer
-            await emailQueue.enqueueEmail({
-                to: existingReservation.bookingUserEmail,
-                cc: [],
-                subject: 'Your Reservation Has Been Updated - RevChill',
-                htmlContent: htmlTemplate,
-                priority: 'high',
-                meta: {
-                    template: 'reservation_updated_customer',
-                    event: 'reservation_updated',
-                    correlationId,
-                },
-            });
+//             // Email 1 - Customer
+//             await emailQueue.enqueueEmail({
+//                 to: existingReservation.bookingUserEmail,
+//                 cc: [],
+//                 subject: 'Your Reservation Has Been Updated - RevChill',
+//                 htmlContent: htmlTemplate,
+//                 priority: 'high',
+//                 meta: {
+//                     template: 'reservation_updated_customer',
+//                     event: 'reservation_updated',
+//                     correlationId,
+//                 },
+//             });
 
-            // Email 2 - Property (with other emails in CC)
-            await emailQueue.enqueueEmail({
-                to: propertyDetails.propertyEmail,
-                cc: ccEmails,
-                subject: 'Reservation Updated - RevChill',
-                htmlContent: htmlTemplate,
-                priority: 'normal',
-                meta: {
-                    template: 'reservation_updated_property',
-                    event: 'reservation_updated',
-                    correlationId,
-                },
-            });
-        } catch (error) {
-            console.error('Error sending reservation updated email:', error);
-        }
-    }
+//             // Email 2 - Property (with other emails in CC)
+//             await emailQueue.enqueueEmail({
+//                 to: propertyDetails.propertyEmail,
+//                 cc: ccEmails,
+//                 subject: 'Reservation Updated - RevChill',
+//                 htmlContent: htmlTemplate,
+//                 priority: 'normal',
+//                 meta: {
+//                     template: 'reservation_updated_property',
+//                     event: 'reservation_updated',
+//                     correlationId,
+//                 },
+//             });
+//         } catch (error) {
+//             console.error('Error sending reservation updated email:', error);
+//         }
+//     }
 
-    public async reservationCancelEmail(
-        bookingDetails: IBookingTemplate
-    ): Promise<void> {
-        try {
-            const propertyDetails = await getPropertyByPropertyAndRoom(
-                bookingDetails.propertyCode,
-                bookingDetails.roomTypeCode
-            );
-            if (!propertyDetails || !propertyDetails.propertyAddress) return;
+//     public async reservationCancelEmail(
+//         bookingDetails: IBookingTemplate
+//     ): Promise<void> {
+//         try {
+//             const propertyDetails = await getPropertyByPropertyAndRoom(
+//                 bookingDetails.propertyCode,
+//                 bookingDetails.roomTypeCode
+//             );
+//             if (!propertyDetails || !propertyDetails.propertyAddress) return;
 
-            const room = propertyDetails.propertyRooms[0];
-            if (!room) return;
-            const cancelNumberOfNights = this.calculateNights(
-                new Date(bookingDetails.reservationStartDate),
-                new Date(bookingDetails.reservationEndDate)
-            );
-            const ccEmails = propertyDetails.propertyEmails
-                .map(e => e.email)
-                .filter(e => e !== propertyDetails.propertyEmail);
+//             const room = propertyDetails.propertyRooms[0];
+//             if (!room) return;
+//             const cancelNumberOfNights = this.calculateNights(
+//                 new Date(bookingDetails.reservationStartDate),
+//                 new Date(bookingDetails.reservationEndDate)
+//             );
+//             const ccEmails = propertyDetails.propertyEmails
+//                 .map(e => e.email)
+//                 .filter(e => e !== propertyDetails.propertyEmail);
 
-            const htmlTemplate = EmailTemplates.BookingCancellation({
-                property: {
-                    propertyName: propertyDetails.propertyName,
-                    description: propertyDetails.description,
-                    image: propertyDetails.image,
-                    propertyContact: propertyDetails.propertyContact,
-                    propertyEmail: propertyDetails.propertyEmail,
-                    propertyCode: propertyDetails.propertyCode,
-                },
-                room: propertyDetails.propertyRooms[0],
-                reservation: {
-                    ...bookingDetails,
-                    numberOfNights: cancelNumberOfNights,
-                },
-                propertyAddress: propertyDetails.propertyAddress,
-            });
+//             const htmlTemplate = EmailTemplates.BookingCancellation({
+//                 property: {
+//                     propertyName: propertyDetails.propertyName,
+//                     description: propertyDetails.description,
+//                     image: propertyDetails.image,
+//                     propertyContact: propertyDetails.propertyContact,
+//                     propertyEmail: propertyDetails.propertyEmail,
+//                     propertyCode: propertyDetails.propertyCode,
+//                 },
+//                 room: propertyDetails.propertyRooms[0],
+//                 reservation: {
+//                     ...bookingDetails,
+//                     numberOfNights: cancelNumberOfNights,
+//                 },
+//                 propertyAddress: propertyDetails.propertyAddress,
+//             });
 
-            const correlationId = bookingDetails.bookingCode;
+//             const correlationId = bookingDetails.bookingCode;
 
-            // Email 1 - Customer
-            await emailQueue.enqueueEmail({
-                to: bookingDetails.bookingUserEmail,
-                cc: [],
-                subject:
-                    'Your Reservation Cancellation Confirmation - RevChill',
-                htmlContent: htmlTemplate,
-                priority: 'high',
-                meta: {
-                    template: 'reservation_cancel_customer',
-                    event: 'reservation_cancel',
-                    correlationId,
-                },
-            });
+//             // Email 1 - Customer
+//             await emailQueue.enqueueEmail({
+//                 to: bookingDetails.bookingUserEmail,
+//                 cc: [],
+//                 subject:
+//                     'Your Reservation Cancellation Confirmation - RevChill',
+//                 htmlContent: htmlTemplate,
+//                 priority: 'high',
+//                 meta: {
+//                     template: 'reservation_cancel_customer',
+//                     event: 'reservation_cancel',
+//                     correlationId,
+//                 },
+//             });
 
-            // Email 2 - Property (with other emails in CC)
-            await emailQueue.enqueueEmail({
-                to: propertyDetails.propertyEmail,
-                cc: ccEmails,
-                subject: 'Reservation Cancelled - RevChill',
-                htmlContent: htmlTemplate,
-                priority: 'normal',
-                meta: {
-                    template: 'reservation_cancel_property',
-                    event: 'reservation_cancel',
-                    correlationId,
-                },
-            });
-        } catch (error) {
-            console.error(
-                'Error sending reservation cancellation email:',
-                error
-            );
-        }
-    }
-    private calculateNights(startDate: Date, endDate: Date): number {
-    return Math.max(
-        1,
-        Math.ceil(
-            (endDate.getTime() - startDate.getTime()) /
-            (24 * 60 * 60 * 1000)
-        )
-    );
-}
-}
+//             // Email 2 - Property (with other emails in CC)
+//             await emailQueue.enqueueEmail({
+//                 to: propertyDetails.propertyEmail,
+//                 cc: ccEmails,
+//                 subject: 'Reservation Cancelled - RevChill',
+//                 htmlContent: htmlTemplate,
+//                 priority: 'normal',
+//                 meta: {
+//                     template: 'reservation_cancel_property',
+//                     event: 'reservation_cancel',
+//                     correlationId,
+//                 },
+//             });
+//         } catch (error) {
+//             console.error(
+//                 'Error sending reservation cancellation email:',
+//                 error
+//             );
+//         }
+//     }
+//     private calculateNights(startDate: Date, endDate: Date): number {
+//     return Math.max(
+//         1,
+//         Math.ceil(
+//             (endDate.getTime() - startDate.getTime()) /
+//             (24 * 60 * 60 * 1000)
+//         )
+//     );
+// }
+// }

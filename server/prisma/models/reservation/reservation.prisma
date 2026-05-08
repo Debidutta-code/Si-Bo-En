@@ -1,17 +1,17 @@
 model Reservation {
-  id String @id @default(uuid()) @map("id") @db.VarChar(36)
+  id String @id @default(uuid()) @map("id")
 
-  propertyId   String @map("property_id") @db.VarChar(36)
-  propertyCode String @map("property_code") @db.VarChar(50)
-  hotelName    String @map("hotel_name") @db.VarChar(150)
+  propertyId   String @map("property_id") 
+  propertyCode String @map("property_code")
+  hotelName    String @map("hotel_name")
 
-  roomName     String? @map("room_name") @db.VarChar(50)
-  roomTypeCode String  @map("room_type_code") @db.VarChar(50)
+  roomName     String? @default("-") @map("room_name")
+  roomTypeCode String  @map("room_type_code")
 
-  ratePlanCode String  @map("rate_plan_code") @db.VarChar(50)
-  ratePlanName String? @map("rate_plan_name") @db.VarChar(50)
+  ratePlanCode String  @map("rate_plan_code")
+  ratePlanName String? @default("-") @map("rate_plan_name")
 
-  bookingCode String @unique @map("booking_code") @db.VarChar(50)
+  bookingCode String @unique @map("booking_code") 
 
   bookedAt DateTime @default(now()) @map("booked_at")
 
@@ -21,17 +21,17 @@ model Reservation {
   reservationStartDate DateTime @default(now()) @map("reservation_start_date") @db.Date
   reservationEndDate   DateTime @default(now()) @map("reservation_end_date") @db.Date
 
-  countryCode String     @map("country_code") @db.VarChar(10)
-  timezone    String     @map("timezone") @db.VarChar(50)
+  countryCode String     @map("country_code") 
+  timezone    String     @map("timezone") 
   deviceTypes DeviceType @map("device_types")
   platforms   Platforms  @default(web) @map("platforms")
 
-  primaryGuestId String @map("primary_guest_id") @db.VarChar(36)
+  primaryGuestId String @map("primary_guest_id") 
   primaryGuest   Guests @relation("ReservationPrimaryGuest", fields: [primaryGuestId], references: [id], onDelete: Cascade)
 
   guests           Json    @map("guests")
-  bookingUserEmail String  @map("booking_user_email") @db.VarChar(150)
-  bookingUserPhone String? @map("booking_user_phone") @db.VarChar(50)
+  bookingUserEmail String  @map("booking_user_email")
+  bookingUserPhone String? @map("booking_user_phone")
 
   amount       Float        @map("amount")
   currencyCode CurrencyCode @default(AED) @map("currency_code")
@@ -45,18 +45,18 @@ model Reservation {
   paymentImages Json?         @map("payment_images")
 
   bookingStatus      BookingStatus @default(confirmed) @map("booking_status")
-  cancellationReason String?       @map("cancellation_reason") @db.VarChar(255)
+  cancellationReason String?       @map("cancellation_reason")
 
   bookingSource BookingSource @default(direct) @map("source")
 
   isPromoUsed Boolean @default(false) @map("is_promo_used")
-  promoId     String? @map("promo_id") @db.VarChar(36)
+  promoId     String? @map("promo_id") 
 
   cancelledAt DateTime? @map("cancelled_at")
-  agencyId    String?   @map("agency_id") @db.VarChar(36)
+  agencyId    String?   @map("agency_id") 
 
   //ota-guest
-  otaGuestId String?   @map("ota_guest_id") @db.VarChar(36)
+  otaGuestId String?   @map("ota_guest_id") 
   OtaGuest   OtaGuest? @relation(fields: [otaGuestId], references: [id], onDelete: Cascade)
 
   pricingBrakedownId    String?                @unique @map("pricing_breakdown_id")
@@ -65,9 +65,7 @@ model Reservation {
   promo                 PromoCode?             @relation(fields: [promoId], references: [id], onDelete: Cascade)
   addOns                BookingAddon[]
   AgencyCommission AgencyCommission?
-  // priceBreakdowns       ReservationPriceBrakeDown[]
   agency                Agency?                @relation(fields: [agencyId], references: [id], onDelete: Cascade)
-  // reservationPromotions ReservationPromotion[]
   payments              Payment[]
   reservationGuests     ReservationGuest[]
   reservationPromoCodes ReservationPromoCode[]

@@ -4,15 +4,15 @@ import {
     CustomRequest,
     PropertyRequest,
 } from '../../utils';
-import { ReservationService } from '../services';
-import { ICReservationPayload, IGuestCheckInDetails } from '../types';
+import { NewReservationService } from '../services';
+import {  ICReservationS, IGuestCheckInDetails } from '../types';
 import { getDeviceInfo, getGeoLocationDetails } from '../../utils';
 
 export class ReservationController {
-    private reservationService: ReservationService;
+    private reservationService: NewReservationService;
 
     constructor() {
-        this.reservationService = new ReservationService();
+        this.reservationService = new NewReservationService();
     }
 
     public async createReservation(
@@ -20,7 +20,7 @@ export class ReservationController {
         res: Response
     ): Promise<Response> {
         try {
-            const data: ICReservationPayload = req.body;
+            const data: ICReservationS = req.body;
             if (!data) {
                 return res.status(400).json(errorResponse('Invalid payload'));
             }

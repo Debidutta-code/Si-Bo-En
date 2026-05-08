@@ -18,7 +18,7 @@ import {
 } from '../types';
 import { config } from '../../../config';
 import { json } from 'stream/consumers';
-import { ICReservationPayload } from '../../../reservation/types';
+import { ICReservationS } from '../../../reservation/types';
 
 
 interface CachedToken {
@@ -167,7 +167,7 @@ export class RTReservationPushService {
     }
 
     public static async pushCommit(
-        incomingPayload: ICReservationPayload,
+        incomingPayload: ICReservationS,
         countryCode: string,
         bookingCode: string,
         rtConfig: RTDynamicConfig
@@ -186,7 +186,6 @@ export class RTReservationPushService {
             const totalTaxPerRoom =
                 (finalPrice.taxedAmount ?? 0) / numberOfRooms;
 
-            // ── Rates: include both amountBeforeTax and amountAfterTax ──
             const ratesPerRoom = finalPrice.dailyPriceBrakeDown.map(day => {
                 const effectiveDate = RTReservationPushService.toDateString(
                     day.date
@@ -219,7 +218,7 @@ export class RTReservationPushService {
                     guestID: '1',
                     profileType: '1',
                     personName: {
-                        salutation: primaryGuest?.salutation ?? '',
+                        salutation:  '',//debug here if rt push failed
                         firstName: primaryGuest.firstName,
                         middleName: '',
                         surName: primaryGuest.lastName,

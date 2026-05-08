@@ -198,11 +198,11 @@ export interface PriceBrakeDown {
     latterpayableAmount: number;
     promoCodeDiscount: number;
     currencyCode: CurrencyCode;
-  AddonBrakeDowns?: IAddonBrakeDown[];
-  DailyPriceBrakeDown?: IDailyPriceBrakeDown[];
-  taxBrakeDown?: ITaxBrakeDown[];
-  promotionBrakeDown?: IPromotionBrakeDown[];
-  SpaPricingBrakeDowns?: ISpaPricing[];
+    addonBrakeDowns?: IAddonBrakeDown[];
+    dailyPriceBrakeDown?: IDailyPriceBrakeDown[];
+    taxBrakeDown?: ITaxBrakeDown[];
+    promotionBrakeDown?: IPromotionBrakeDown[];
+    // spaPricingBrakeDowns?: ISpaPricing[];
     loyalityDiscount: number;
 }
 
