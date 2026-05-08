@@ -1,5 +1,5 @@
-import { IBookingAddon } from "../interfaces";
-import {prisma} from "../../config";
+import { IBookingAddon } from '../interfaces';
+import { prisma } from '../../config';
 export default class BookingAddOnRepository {
     public static async createBookingAddon(
         bookingId: string,
@@ -15,7 +15,7 @@ export default class BookingAddOnRepository {
         try {
             return await prisma.bookingAddon.create({
                 data: {
-                    reservationId:bookingId,
+                    reservationId: bookingId,
                     addonId,
                     name,
                     unitPrice,
@@ -23,29 +23,31 @@ export default class BookingAddOnRepository {
                     totalPrice,
                     currencyCode,
                     specialInstructions,
-                    date
-                }
-            })
+                    date,
+                },
+            });
         } catch (error) {
-            throw new Error("Failed to create Booking Add on ")
+            throw new Error('Failed to create Booking Add on ');
         }
     }
-    public static async updateBookingAddOnByBookingId(bookingId: string, updateBody: Partial<IBookingAddon>): Promise<IBookingAddon | null> {
+    public static async updateBookingAddOnByBookingId(
+        bookingId: string,
+        updateBody: Partial<IBookingAddon>
+    ): Promise<IBookingAddon | null> {
         try {
             return await prisma.bookingAddon.update({
                 where: { id: bookingId },
-                data: updateBody
-            }) 
+                data: updateBody,
+            });
         } catch (error) {
-            throw new Error("Failed to Update Booking addon")
+            throw new Error('Failed to Update Booking addon');
         }
     }
     public static async deleteBookingAddOnById(id: string): Promise<any> {
         try {
-            return await prisma.bookingAddon.delete({ where: { id: id } })
+            return await prisma.bookingAddon.delete({ where: { id: id } });
         } catch (error) {
-            throw new Error("Failed to delete Addon")
+            throw new Error('Failed to delete Addon');
         }
     }
-
 }

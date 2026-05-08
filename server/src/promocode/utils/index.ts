@@ -1,5 +1,2 @@
-import { property, isPropertyExists } from "./property.utils";
-export {
-    property,
-    isPropertyExists,
-};
+import { property, isPropertyExists } from './property.utils';
+export { property, isPropertyExists };

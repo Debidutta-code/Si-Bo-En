@@ -1,4 +1,2 @@
-import {CustomizableDealController} from "./customizable-deal.controller";
-export {
-    CustomizableDealController
-}
+import { CustomizableDealController } from './customizable-deal.controller';
+export { CustomizableDealController };

@@ -1,9 +1,15 @@
 import { emailQueue } from '../../index';
-import { IAgencyApplication, ICAgencyApplication, AgencyType, AgentCommissionType } from '../types';
- import { emailShell, agencyTypeLabel } from './email.shell';
+import {
+    IAgencyApplication,
+    ICAgencyApplication,
+    AgencyType,
+    AgentCommissionType,
+} from '../types';
+import { emailShell, agencyTypeLabel } from './email.shell';
 
-
- export function templateApplicationSubmitted(data: ICAgencyApplication): string {
+export function templateApplicationSubmitted(
+    data: ICAgencyApplication
+): string {
     const body = `
       <!-- Recipient -->
       <tr>
@@ -61,11 +67,15 @@ import { IAgencyApplication, ICAgencyApplication, AgencyType, AgentCommissionTyp
                     <td style="padding:5px 0;font-size:13px;color:#64748B;"><strong>Tax Number:</strong></td>
                     <td style="padding:5px 0;font-size:13px;color:#1E293B;">${data.taxNo}</td>
                   </tr>
-                  ${data.iataCode ? `
+                  ${
+                      data.iataCode
+                          ? `
                   <tr>
                     <td style="padding:5px 0;font-size:13px;color:#64748B;"><strong>IATA Code:</strong></td>
                     <td style="padding:5px 0;font-size:13px;color:#1E293B;">${data.iataCode}</td>
-                  </tr>` : ''}
+                  </tr>`
+                          : ''
+                  }
                   <tr>
                     <td style="padding:5px 0;font-size:13px;color:#64748B;"><strong>Applicant Name:</strong></td>
                     <td style="padding:5px 0;font-size:13px;color:#1E293B;">${data.applicantName}</td>
@@ -116,13 +126,13 @@ import { IAgencyApplication, ICAgencyApplication, AgencyType, AgentCommissionTyp
           </p>
         </td>
       </tr>`;
- 
+
     const footer = `
       <p style="margin:0 0 8px 0;font-size:13px;color:#666666;font-weight:bold;">Need Help?</p>
       <p style="margin:0 0 15px 0;font-size:12px;color:#666666;">
         Email: <a href="mailto:partnerships@revchill.com" style="color:#4A90E2;text-decoration:none;">partnerships@revchill.com</a> |
         Support: <a href="mailto:support@revchill.com" style="color:#4A90E2;text-decoration:none;">support@revchill.com</a>
       </p>`;
- 
+
     return emailShell(body, footer, data.agencyEmail);
 }

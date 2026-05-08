@@ -1,4 +1,4 @@
-import { IAgency } from "./agency.type";
+import { IAgency } from './agency.type';
 
 export interface ICAgents {
     agencyId: string;
@@ -9,9 +9,9 @@ export interface ICAgents {
 }
 export interface IAgents extends ICAgents {
     id: string;
-    
+
     isDeleted: boolean;
 }
 export interface IAgentsWA extends IAgents {
-    agency:IAgency
+    agency: IAgency;
 }

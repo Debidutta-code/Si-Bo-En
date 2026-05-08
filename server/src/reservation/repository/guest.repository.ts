@@ -1,80 +1,95 @@
-import { prisma } from "../../config";
+import { prisma } from '../../config';
 import {
     GuestType,
     IAddGuestDocument,
     ICGuest,
     IGuests,
-} from "../types/guest.type";
+} from '../types/guest.type';
 export class GuestRepository {
     public async createGuest(guestData: ICGuest): Promise<IGuests | Error> {
         try {
-            return await prisma.guests.create({ data: guestData })
+            return await prisma.guests.create({ data: guestData });
         } catch (error) {
             if (error instanceof Error) {
-                throw new Error(error.message)
+                throw new Error(error.message);
             }
-            throw new Error("Failed to create Guest")
+            throw new Error('Failed to create Guest');
         }
     }
-    public async createNNumberOfGuests(guestData: ICGuest[]): Promise<IGuests[] | Error> {
+    public async createNNumberOfGuests(
+        guestData: ICGuest[]
+    ): Promise<IGuests[] | Error> {
         try {
             return await prisma.$transaction(
-                guestData.map((item) => prisma.guests.create({ data: item }))
-            )
+                guestData.map(item => prisma.guests.create({ data: item }))
+            );
         } catch (error) {
             if (error instanceof Error) {
-                throw new Error(error.message)
+                throw new Error(error.message);
             }
-            throw new Error("Failed to create Guest")
+            throw new Error('Failed to create Guest');
         }
     }
-    public async getGuestByEmail(guestEmail: string): Promise<IGuests | null | Error> {
+    public async getGuestByEmail(
+        guestEmail: string
+    ): Promise<IGuests | null | Error> {
         try {
-            return await prisma.guests.findFirst({ where: { email: guestEmail } })
+            return await prisma.guests.findFirst({
+                where: { email: guestEmail },
+            });
         } catch (error) {
             if (error instanceof Error) {
-                throw new Error(error.message)
+                throw new Error(error.message);
             }
-            throw new Error("Failed to fetch Guest")
+            throw new Error('Failed to fetch Guest');
         }
     }
-    public async findGuestById(id: string): Promise<IGuests | null > {
+    public async findGuestById(id: string): Promise<IGuests | null> {
         try {
-            return await prisma.guests.findUnique({ where: { id } })
+            return await prisma.guests.findUnique({ where: { id } });
         } catch (error) {
             if (error instanceof Error) {
-                throw new Error(error.message)
+                throw new Error(error.message);
             }
-            throw new Error("Failed to fetch Guest")
+            throw new Error('Failed to fetch Guest');
         }
     }
     //add document to guest
-    public async addDocumentToGuests(guestId: string, guestDocument: IAddGuestDocument): Promise<IGuests | Error> {
+    public async addDocumentToGuests(
+        guestId: string,
+        guestDocument: IAddGuestDocument
+    ): Promise<IGuests | Error> {
         try {
             return await prisma.guests.update({
-                where: { id: guestId }, data: {
+                where: { id: guestId },
+                data: {
                     userIdentityCardType: guestDocument.userIdentityCardType,
                     identityCardNumber: guestDocument.identityCardNumber,
                     identityCardImage: guestDocument.identityCardImage,
-                }
-            })
+                },
+            });
         } catch (error) {
             if (error instanceof Error) {
-                throw new Error(error.message)
+                throw new Error(error.message);
             }
-            throw new Error("Failed to add Document to guest")
+            throw new Error('Failed to add Document to guest');
         }
     }
-    public async updateGuestData(guestId: string, guestData: ICGuest): Promise<IGuests | Error> {
+    public async updateGuestData(
+        guestId: string,
+        guestData: ICGuest
+    ): Promise<IGuests | Error> {
         try {
-            return await prisma.guests.update({ where: { id: guestId }, data: guestData })
+            return await prisma.guests.update({
+                where: { id: guestId },
+                data: guestData,
+            });
         } catch (error) {
             if (error instanceof Error) {
-                throw new Error(error.message)
+                throw new Error(error.message);
             }
-            throw new Error("Failed to update guest")
+            throw new Error('Failed to update guest');
         }
-
     }
 
     // public async getTotalReservationsForAGuest(guestEmail: string): Promise<number | Error> {
@@ -94,28 +109,29 @@ export class GuestRepository {
     // }
     public async removeGuest(id: string): Promise<IGuests | Error> {
         try {
-            return await prisma.guests.delete({ where: { id } })
+            return await prisma.guests.delete({ where: { id } });
         } catch (error) {
             if (error instanceof Error) {
-                throw new Error(error.message)
+                throw new Error(error.message);
             }
-            throw new Error("Failed to remove guest")
+            throw new Error('Failed to remove guest');
         }
     }
-    public async getGuestsForProperty(propertyId:string):Promise<IGuests[]|any|Error>{
+    public async getGuestsForProperty(
+        propertyId: string
+    ): Promise<IGuests[] | any | Error> {
         try {
             return await prisma.guests.findMany({
-                where:{
-                    propertyId:propertyId
+                where: {
+                    propertyId: propertyId,
                 },
-                                orderBy: { createdAt: 'desc' },
-
-            })
+                orderBy: { createdAt: 'desc' },
+            });
         } catch (error) {
             if (error instanceof Error) {
-                throw new Error(error.message)
+                throw new Error(error.message);
             }
-            throw new Error("Failed to getuest By Property")
+            throw new Error('Failed to getuest By Property');
         }
     }
 }

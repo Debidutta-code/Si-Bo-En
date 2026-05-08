@@ -1,9 +1,10 @@
-import {prisma} from "../../config";
-import { ICMasterRoomView, IMasterRoomView } from "../types";
-export class MasterRoomView{
-    public async createRoomView(data: ICMasterRoomView): Promise<IMasterRoomView> {
+import { prisma } from '../../config';
+import { ICMasterRoomView, IMasterRoomView } from '../types';
+export class MasterRoomView {
+    public async createRoomView(
+        data: ICMasterRoomView
+    ): Promise<IMasterRoomView> {
         try {
-            
             const roomView = await prisma.masterRoomView.create({
                 data: {
                     viewName: data.viewName.toLocaleLowerCase(),
@@ -14,17 +15,19 @@ export class MasterRoomView{
             });
             return roomView;
         } catch (error) {
-            throw new Error("Error creating room view");
+            throw new Error('Error creating room view');
         }
     }
-    public async getRoomViewByName(name:string): Promise<IMasterRoomView | null> {
+    public async getRoomViewByName(
+        name: string
+    ): Promise<IMasterRoomView | null> {
         try {
             const roomView = await prisma.masterRoomView.findFirst({
-                where: { viewName:name },
+                where: { viewName: name },
             });
             return roomView;
         } catch (error) {
-            throw new Error("Error fetching room view");
+            throw new Error('Error fetching room view');
         }
     }
     public async getRoomViewById(id: string): Promise<IMasterRoomView | null> {
@@ -34,10 +37,13 @@ export class MasterRoomView{
             });
             return roomView;
         } catch (error) {
-            throw new Error("Error fetching room view");
+            throw new Error('Error fetching room view');
         }
     }
-    public async updateRoomView(id: string, data: ICMasterRoomView): Promise<IMasterRoomView | null> {
+    public async updateRoomView(
+        id: string,
+        data: ICMasterRoomView
+    ): Promise<IMasterRoomView | null> {
         try {
             const roomView = await prisma.masterRoomView.update({
                 where: { id },
@@ -49,7 +55,7 @@ export class MasterRoomView{
             });
             return roomView;
         } catch (error) {
-            throw new Error("Error updating room view");
+            throw new Error('Error updating room view');
         }
     }
     public async deleteRoomView(id: string): Promise<IMasterRoomView | null> {
@@ -59,7 +65,7 @@ export class MasterRoomView{
             });
             return roomView;
         } catch (error) {
-            throw new Error("Error deleting room view");
+            throw new Error('Error deleting room view');
         }
     }
     public async getAllRoomViews(): Promise<IMasterRoomView[]> {
@@ -67,7 +73,7 @@ export class MasterRoomView{
             const roomViews = await prisma.masterRoomView.findMany();
             return roomViews;
         } catch (error) {
-            throw new Error("Error fetching all room views");
+            throw new Error('Error fetching all room views');
         }
     }
 }

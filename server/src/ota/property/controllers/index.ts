@@ -1,5 +1,3 @@
-import { HotelController } from "./hotel.controller";
+import { HotelController } from './hotel.controller';
 
-export {
-    HotelController,
-}
+export { HotelController };

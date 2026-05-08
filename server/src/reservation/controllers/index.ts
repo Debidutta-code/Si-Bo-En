@@ -1,4 +1,2 @@
-import {ReservationController} from "./reservation.controller";
-export{
-    ReservationController
-}
+import { ReservationController } from './reservation.controller';
+export { ReservationController };

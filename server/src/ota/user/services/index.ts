@@ -1,1 +1,1 @@
-export * from "./ota-user.service";
+export * from './ota-user.service';

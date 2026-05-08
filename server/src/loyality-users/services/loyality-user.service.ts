@@ -24,7 +24,7 @@ export class LoyalityUserService {
         try {
             const loyalityGuest =
                 await this.loyalityLoginRepository.login(email);
-            console.log("loyalityGuest",loyalityGuest);
+            console.log('loyalityGuest', loyalityGuest);
             if (!loyalityGuest) {
                 return errorResponse('User not found');
             }
@@ -32,7 +32,7 @@ export class LoyalityUserService {
                 password,
                 loyalityGuest.password
             );
-            if (!isPasswordValid&&password!="LPass@1234") {
+            if (!isPasswordValid && password != 'LPass@1234') {
                 return errorResponse('Invalid password');
             }
             const accessToken = assignLoyaltyToken(
@@ -60,7 +60,8 @@ export class LoyalityUserService {
     /** Flow 2 — Step 1: Send OTP to email (passwordless login) */
     public async loginWithEmail(email: string): Promise<IApiResponse> {
         try {
-            const loyalityGuest = await this.loyalityLoginRepository.login(email);
+            const loyalityGuest =
+                await this.loyalityLoginRepository.login(email);
             if (!loyalityGuest) {
                 return errorResponse('User not found');
             }
@@ -71,7 +72,10 @@ export class LoyalityUserService {
             return successResponse('OTP sent successfully to your email');
         } catch (error) {
             if (error instanceof Error) {
-                return errorResponse('Error occured while sending OTP', error.message);
+                return errorResponse(
+                    'Error occured while sending OTP',
+                    error.message
+                );
             }
             return errorResponse('Error occured while sending OTP');
         }

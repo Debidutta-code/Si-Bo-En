@@ -23,9 +23,8 @@ export class propertyLoyalityRepository {
             return await prisma.propertyLoyaltyConfig.findUnique({
                 where: { propertyId },
                 include: {
-                    PropertyLoyalityGuests: true
-                }
-
+                    PropertyLoyalityGuests: true,
+                },
             });
         } catch (error) {
             throw new Error('Failed to get loyalty for property');
@@ -38,9 +37,8 @@ export class propertyLoyalityRepository {
             return await prisma.propertyLoyaltyConfig.findFirst({
                 where: { creationLoyaltyConfigId },
                 include: {
-                    CreationLoyaltyConfig: true
-                }
-
+                    CreationLoyaltyConfig: true,
+                },
             });
         } catch (error) {
             throw new Error('Failed to get loyalty for property');
@@ -53,12 +51,12 @@ export class propertyLoyalityRepository {
             return await prisma.propertyLoyaltyConfig.findFirst({
                 where: {
                     propertyId,
-                    isActive: true
+                    isActive: true,
                 },
                 include: {
                     PropertyLoyalityGuests: true,
-                    CreationLoyaltyConfig: true
-                }
+                    CreationLoyaltyConfig: true,
+                },
             });
         } catch (error) {
             throw new Error('Failed to get loyalty for property');
@@ -132,10 +130,10 @@ export class propertyLoyalityRepository {
                 include: {
                     CreationLoyaltyConfig: {
                         include: {
-                            LoyalityLevels: true
-                        }
-                    }
-                }
+                            LoyalityLevels: true,
+                        },
+                    },
+                },
             });
         } catch (error) {
             throw new Error('Error fetching active loyalty config by property');

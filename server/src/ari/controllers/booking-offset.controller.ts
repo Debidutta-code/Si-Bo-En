@@ -106,7 +106,7 @@ export class BookingOffsetController {
             }
             const result = await this.bookingOffsetService.getBookingOffsets(
                 propertyId,
-                ratePlanId as string || null,
+                (ratePlanId as string) || null,
                 startDate ? toUTCDate(startDate as string) : null,
                 endDate ? toUTCDate(endDate as string) : null
             );

@@ -147,9 +147,15 @@ export class LoyalityUserController {
             return res.status(result.success ? 200 : 404).json(result);
         } catch (error) {
             if (error instanceof Error) {
-                return res.status(500).json(errorResponse('Error fetching profile', error.message));
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse('Error fetching profile', error.message)
+                    );
             }
-            return res.status(500).json(errorResponse('Error fetching profile'));
+            return res
+                .status(500)
+                .json(errorResponse('Error fetching profile'));
         }
     }
 

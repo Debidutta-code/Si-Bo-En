@@ -1,6 +1,9 @@
 import { Router } from 'express';
 import { protect } from '../../middlewares/auth.middleware';
-import { checkMultiplePermissions, checkRoleBased } from '../../middlewares/checkRole.middleware';
+import {
+    checkMultiplePermissions,
+    checkRoleBased,
+} from '../../middlewares/checkRole.middleware';
 import { RoomAminityController } from '../controllers';
 
 const roomAminityController = new RoomAminityController();

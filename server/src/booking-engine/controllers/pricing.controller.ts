@@ -31,7 +31,7 @@ export class PricingController {
                 promoCode,
                 includedAddons,
                 childAges,
-                guestDistribution
+                guestDistribution,
             } = req.body;
 
             const propertyId = req.property?.id;
@@ -64,7 +64,6 @@ export class PricingController {
             const adults = Number(noOfAdults);
             const children = Number(noOfChildren);
             const rooms = Number(noOfRooms);
-
 
             if (adults < 1) {
                 return res
@@ -110,7 +109,7 @@ export class PricingController {
                 promotions ? promotions : [],
                 parsedAddons ? parsedAddons : [],
                 promoCode,
-                includedAddons ? includedAddons : [],
+                includedAddons ? includedAddons : []
             );
 
             return res.status(response.success ? 200 : 400).json(response);

@@ -95,8 +95,8 @@ class FikafiPaymentService {
     private client: AxiosInstance;
     private baseUrl: string;
     private apiBaseUrl: string;
-    private cachedToken: string | null = null;  // ← ADD
-    private tokenExpiry: number = 0;             // ← ADD
+    private cachedToken: string | null = null; // ← ADD
+    private tokenExpiry: number = 0; // ← ADD
 
     constructor() {
         this.baseUrl = process.env.FIKAFI_BASE_URL!;
@@ -151,13 +151,13 @@ class FikafiPaymentService {
                 tokenUrl,
                 {
                     clientId,
-                    key
+                    key,
                 },
                 {
                     headers: {
-                        "Content-Type": "application/json"
+                        'Content-Type': 'application/json',
                     },
-                    timeout: 30000   // increase to 30s
+                    timeout: 30000, // increase to 30s
                 }
             );
 
@@ -175,7 +175,7 @@ class FikafiPaymentService {
 
             // ← ADD: cache token for 55 minutes
             this.cachedToken = token;
-            this.tokenExpiry = Date.now() + (55 * 60 * 1000);
+            this.tokenExpiry = Date.now() + 55 * 60 * 1000;
 
             return token;
         } catch (error: any) {
@@ -238,7 +238,8 @@ class FikafiPaymentService {
                     failed_url: request.returnURL?.failed_url || '',
                 },
                 webhook: {
-                    payment_details_url: request.webhook.payment_details_url || undefined,
+                    payment_details_url:
+                        request.webhook.payment_details_url || undefined,
                     payment_event_url: request.webhook.payment_event_url,
                 },
             };
@@ -358,11 +359,11 @@ class FikafiPaymentService {
             const response = await apiClient.get('/getPaymentStatus', {
                 params: {
                     bookingRefNum,
-                    fikafiRefNum
+                    fikafiRefNum,
                 },
                 headers: {
-                    'Authorization': `Bearer ${tokenValue}`,
-                }
+                    Authorization: `Bearer ${tokenValue}`,
+                },
             });
             return response.data;
         } catch (error: any) {
@@ -396,7 +397,8 @@ class FikafiPaymentService {
                 } else {
                     return {
                         success: false,
-                        error: tokenResponse.error || 'Failed to generate token',
+                        error:
+                            tokenResponse.error || 'Failed to generate token',
                     };
                 }
             }
@@ -434,10 +436,16 @@ class FikafiPaymentService {
                 data: response.data,
             };
         } catch (error: any) {
-            console.error(`❌ Payment action error:`, error.response?.data || error.message);
+            console.error(
+                `❌ Payment action error:`,
+                error.response?.data || error.message
+            );
             return {
                 success: false,
-                error: error.response?.data?.message || error.message || 'Failed to take payment action',
+                error:
+                    error.response?.data?.message ||
+                    error.message ||
+                    'Failed to take payment action',
             };
         }
     }

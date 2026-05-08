@@ -1,5 +1,3 @@
-import {PoliciesServices} from "./policies.services"
+import { PoliciesServices } from './policies.services';
 
-export {
-    PoliciesServices
-};
+export { PoliciesServices };

@@ -1,1 +1,1 @@
-export * from "./hotel.type";
+export * from './hotel.type';

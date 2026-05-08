@@ -1,13 +1,13 @@
-import { CurrencyCode } from "../../tax-system/interfaces/tourist-tax.type";
+import { CurrencyCode } from '../../tax-system/interfaces/tourist-tax.type';
 
-export type AgencyApplicationStatus = "pending" | "approved" | "rejected";
-export type fAgencyApplicationStatus = "all" | AgencyApplicationStatus;
-export type AgencyType = "travel_agency" | "corporate";
-export type AgentCommissionType = "percentage" | "fixed";
+export type AgencyApplicationStatus = 'pending' | 'approved' | 'rejected';
+export type fAgencyApplicationStatus = 'all' | AgencyApplicationStatus;
+export type AgencyType = 'travel_agency' | 'corporate';
+export type AgentCommissionType = 'percentage' | 'fixed';
 export interface ICAgencyApplication {
     applicationNoForThisUser: number;
     status: AgencyApplicationStatus;
-    
+
     applicantEmail: string;
     applicantName: string;
     applicantPhone: string;
@@ -20,7 +20,7 @@ export interface ICAgencyApplication {
     taxNo: string;
     commissionType: AgentCommissionType;
     commissionValue: number;
-    commissionCurrency: CurrencyCode|null;
+    commissionCurrency: CurrencyCode | null;
     iataCode: string;
     address: string;
 }

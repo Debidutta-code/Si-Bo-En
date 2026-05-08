@@ -1,8 +1,8 @@
-import { successResponse, errorResponse } from "../../utils/return";
-import { TaxRuleService } from "../services";
-import { Request, Response } from "express";
-import { CustomRequest } from "../../utils/customRequest";
-import { ICTaxRule } from "../interfaces";
+import { successResponse, errorResponse } from '../../utils/return';
+import { TaxRuleService } from '../services';
+import { Request, Response } from 'express';
+import { CustomRequest } from '../../utils/customRequest';
+import { ICTaxRule } from '../interfaces';
 export class TaxRuleController {
     taxRuleService: TaxRuleService;
     constructor() {
@@ -13,7 +13,9 @@ export class TaxRuleController {
             const propertyId = req.query.propertyId as string;
             const { taxRuleData }: { taxRuleData: ICTaxRule } = req.body;
             if (!propertyId) {
-                return res.status(400).json(errorResponse('Property ID is required'));
+                return res
+                    .status(400)
+                    .json(errorResponse('Property ID is required'));
             }
             const validationError = this.validateTaxRuleData(taxRuleData);
             if (validationError) {
@@ -21,28 +23,35 @@ export class TaxRuleController {
             }
             const serviceRes = await this.taxRuleService.createTaxRule(
                 propertyId,
-                {...taxRuleData,priority: taxRuleData.priority ? taxRuleData.priority : 1}
+                {
+                    ...taxRuleData,
+                    priority: taxRuleData.priority ? taxRuleData.priority : 1,
+                }
             );
             const status = serviceRes.success ? 200 : 400;
             return res.status(status).json(serviceRes);
-        }
-        catch (error: any) {
+        } catch (error: any) {
             return res
                 .status(500)
                 .json(errorResponse('Internal Server Error', error?.message));
         }
     }
-    public async getTaxRulesByPropertyIdController(req: CustomRequest, res: Response) {
+    public async getTaxRulesByPropertyIdController(
+        req: CustomRequest,
+        res: Response
+    ) {
         try {
             const propertyId = req.params.propertyId;
             if (!propertyId) {
-                return res.status(400).json(errorResponse('Property ID is required'));
+                return res
+                    .status(400)
+                    .json(errorResponse('Property ID is required'));
             }
-            const serviceRes = await this.taxRuleService.getTaxRulesByPropertyId(propertyId);
+            const serviceRes =
+                await this.taxRuleService.getTaxRulesByPropertyId(propertyId);
             const status = serviceRes.success ? 200 : 400;
             return res.status(status).json(serviceRes);
-        }
-        catch (error: any) {
+        } catch (error: any) {
             return res
                 .status(500)
                 .json(errorResponse('Internal Server Error', error?.message));
@@ -53,10 +62,14 @@ export class TaxRuleController {
             const taxRuleId = req.params.taxRuleId;
             const taxRuleData: ICTaxRule = req.body;
             if (!taxRuleId) {
-                return res.status(400).json(errorResponse('Tax Rule ID is required'));
+                return res
+                    .status(400)
+                    .json(errorResponse('Tax Rule ID is required'));
             }
             if (!taxRuleData) {
-                return res.status(400).json(errorResponse('Tax Rule data is required'));
+                return res
+                    .status(400)
+                    .json(errorResponse('Tax Rule data is required'));
             }
             const validationError = this.validateTaxRuleData(taxRuleData);
             if (validationError) {
@@ -78,9 +91,12 @@ export class TaxRuleController {
         try {
             const taxRuleId = req.params.taxRuleId;
             if (!taxRuleId) {
-                return res.status(400).json(errorResponse('Tax Rule ID is required'));
+                return res
+                    .status(400)
+                    .json(errorResponse('Tax Rule ID is required'));
             }
-            const serviceRes = await this.taxRuleService.deleteTaxRule(taxRuleId);
+            const serviceRes =
+                await this.taxRuleService.deleteTaxRule(taxRuleId);
             const status = serviceRes.success ? 200 : 400;
             return res.status(status).json(serviceRes);
         } catch (error: any) {
@@ -114,7 +130,10 @@ export class TaxRuleController {
         if (taxRuleData.type === 'percentage' && taxRuleData.value > 100) {
             return 'Tax Rule percentage value cannot be greater than 100';
         }
-        if (taxRuleData.applicableOn !== 'room_rate' && taxRuleData.applicableOn !== 'total_amount') {
+        if (
+            taxRuleData.applicableOn !== 'room_rate' &&
+            taxRuleData.applicableOn !== 'total_amount'
+        ) {
             return 'Tax Rule applicableOn must be either room_rate, service_charge or both';
         }
 

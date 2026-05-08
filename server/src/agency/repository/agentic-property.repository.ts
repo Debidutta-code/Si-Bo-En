@@ -1,123 +1,150 @@
-import {prisma} from "../../config";
-import { IReservation } from "../../reservation/types";
-import {IAgency, IAgenticProperty, IAgenticPropertyWR, ICAgenticProperties, ICAgenticProperty, IProperty} from "../types";
+import { prisma } from '../../config';
+import { IReservation } from '../../reservation/types';
+import {
+    IAgency,
+    IAgenticProperty,
+    IAgenticPropertyWR,
+    ICAgenticProperties,
+    ICAgenticProperty,
+    IProperty,
+} from '../types';
 export class AgenticPropertyRepository {
-   public async createAgenticProperty(data: ICAgenticProperty): Promise<IAgenticProperty> {
-    try {
+    public async createAgenticProperty(
+        data: ICAgenticProperty
+    ): Promise<IAgenticProperty> {
+        try {
             return await prisma.agenticProperty.create({
                 data,
-            
             });
         } catch (error) {
             throw new Error(`Failed to create property`);
         }
     }
-    public async getAgenticPropertyByProperty(agencyId:string,propertyId:string):Promise<IAgenticProperty|null>{
+    public async getAgenticPropertyByProperty(
+        agencyId: string,
+        propertyId: string
+    ): Promise<IAgenticProperty | null> {
         try {
             return await prisma.agenticProperty.findFirst({
                 where: {
                     agencyId: agencyId,
-                    propertyId: propertyId
-                }
+                    propertyId: propertyId,
+                },
             });
         } catch (error) {
-            throw new Error(`Failed to get property by agency and property ID: ${agencyId}, ${propertyId}`);
+            throw new Error(
+                `Failed to get property by agency and property ID: ${agencyId}, ${propertyId}`
+            );
         }
     }
-    public async getAgenticPropertyById(id: string): Promise<IAgenticPropertyWR | null> {
+    public async getAgenticPropertyById(
+        id: string
+    ): Promise<IAgenticPropertyWR | null> {
         try {
             return await prisma.agenticProperty.findUnique({
                 where: { id },
-                include:{
-                    AgenticRooms:{
-                        where:{
-                            isDeleted:false
-                        }
-                    }
-                }
+                include: {
+                    AgenticRooms: {
+                        where: {
+                            isDeleted: false,
+                        },
+                    },
+                },
             });
         } catch (error) {
             throw new Error(`Failed to get property by ID: ${id}`);
         }
     }
 
-    public async updateAgenticProperty(id: string, isActive:boolean): Promise<IAgenticProperty | null> {
+    public async updateAgenticProperty(
+        id: string,
+        isActive: boolean
+    ): Promise<IAgenticProperty | null> {
         try {
-            
-            return   await prisma.agenticProperty.update({
+            return await prisma.agenticProperty.update({
                 where: { id },
-                data: { isActive }
+                data: { isActive },
             });
         } catch (error) {
             throw new Error(`Failed to update property: ${id}`);
         }
     }
 
-    public async deleteAgenticProperty(id: string): Promise<IAgenticProperty | null> {
+    public async deleteAgenticProperty(
+        id: string
+    ): Promise<IAgenticProperty | null> {
         try {
             return await prisma.agenticProperty.update({
                 where: { id },
-                data: { isDeleted: true,     }
+                data: { isDeleted: true },
             });
         } catch (error) {
             throw new Error(`Failed to delete property: ${id}`);
         }
     }
-    public async recoverDeletedAgenticProperty(id: string): Promise<IAgenticProperty | null> {
+    public async recoverDeletedAgenticProperty(
+        id: string
+    ): Promise<IAgenticProperty | null> {
         try {
             return await prisma.agenticProperty.update({
                 where: { id },
-                data: { isDeleted: false }
+                data: { isDeleted: false },
             });
         } catch (error) {
             throw new Error(`Failed to recover property: ${id}`);
         }
     }
-    public async getReservationsByAgents(agencyId:string,propertyId:string,skip:number=0,take:number=10): Promise<IReservation[] | null> {
+    public async getReservationsByAgents(
+        agencyId: string,
+        propertyId: string,
+        skip: number = 0,
+        take: number = 10
+    ): Promise<IReservation[] | null> {
         try {
-
             return await prisma.reservation.findMany({
                 where: {
                     agencyId,
-                    propertyId
+                    propertyId,
                 },
                 skip,
-                take
+                take,
             });
         } catch (error) {
             throw new Error(`Failed to get reservations by agents`);
         }
     }
-    public async countAllReservations(agencyId:string,propertyCode:string): Promise<number> {
+    public async countAllReservations(
+        agencyId: string,
+        propertyCode: string
+    ): Promise<number> {
         try {
-            
             const count = await prisma.agenticProperty.count({
                 where: {
                     agencyId,
-                    propertyCode
-                }
+                    propertyCode,
+                },
             });
             return count > 0 ? count : 0;
         } catch (error) {
             throw new Error(`Failed to count all reservations`);
         }
     }
-    public async getAvailableProperties():Promise<IProperty[]>{
+    public async getAvailableProperties(): Promise<IProperty[]> {
         try {
             return await prisma.property.findMany({
                 where: {
-                    propertyConfigs:{
-                        isB2bAvailable:true
+                    propertyConfigs: {
+                        isB2bAvailable: true,
                     },
-                    isDraft:false,  // ✅ Get published properties (not drafts)
-                    isDeleted:false,
-                    isAvailable:true
+                    isDraft: false, // ✅ Get published properties (not drafts)
+                    isDeleted: false,
+                    isAvailable: true,
                 },
                 select: {
                     id: true,
                     propertyCode: true,
-                    propertyName: true
-                }
+                    propertyName: true,
+                },
             });
         } catch (error) {
             throw new Error(`Failed to get available properties`);
@@ -128,78 +155,90 @@ export class AgenticPropertyRepository {
             return await prisma.property.findMany({
                 where: {
                     propertyConfigs: {
-                        isB2bAvailable: true
+                        isB2bAvailable: true,
                     },
-                    isDraft: true,  // ✅ Get published properties (not drafts)
+                    isDraft: true, // ✅ Get published properties (not drafts)
                     isDeleted: false,
                     isAvailable: true,
                     agenticProperties: {
                         none: {
                             agencyId: agencyId,
-                            isDeleted: false 
-                        }
-                    }
+                            isDeleted: false,
+                        },
+                    },
                 },
                 select: {
                     id: true,
                     propertyCode: true,
-                    propertyName: true
-                }
+                    propertyName: true,
+                },
             });
         } catch (error) {
             throw new Error(`Failed to get properties for agent: ${agencyId}`);
         }
     }
-    public async createAgenticProperties(agencyId: string, propertyIds: ICAgenticProperties[]): Promise<any> {
+    public async createAgenticProperties(
+        agencyId: string,
+        propertyIds: ICAgenticProperties[]
+    ): Promise<any> {
         try {
-            return  await prisma.agenticProperty.createMany({
+            return await prisma.agenticProperty.createMany({
                 data: propertyIds.map(({ id, propertyCode, propertyName }) => ({
                     agencyId,
                     propertyId: id,
                     propertyCode,
                     propertyName,
-                    isActive: true
-                }))
+                    isActive: true,
+                })),
             });
-            
         } catch (error) {
-            throw new Error(`Failed to create agentic properties for agency: ${agencyId}`);
+            throw new Error(
+                `Failed to create agentic properties for agency: ${agencyId}`
+            );
         }
     }
-    public async disconnectProperty(agencyId:string,agenticPropertyId:string): Promise<IAgency | null> {
+    public async disconnectProperty(
+        agencyId: string,
+        agenticPropertyId: string
+    ): Promise<IAgency | null> {
         try {
             return await prisma.agency.update({
                 where: { id: agencyId },
                 data: {
-                    AgenticProperties:{
-                        disconnect:{
-                            id:agenticPropertyId
-                        }
-                    }
-                }
+                    AgenticProperties: {
+                        disconnect: {
+                            id: agenticPropertyId,
+                        },
+                    },
+                },
             });
         } catch (error) {
             throw new Error(`Failed to disconnect property`);
         }
     }
-    public async connectProperty(agencyId:string,agenticPropertyId:string): Promise<IAgency | null> {
+    public async connectProperty(
+        agencyId: string,
+        agenticPropertyId: string
+    ): Promise<IAgency | null> {
         try {
             return await prisma.agency.update({
                 where: { id: agencyId },
                 data: {
-                    AgenticProperties:{
-                        connect:{
-                            id:agenticPropertyId
-                        }
-                    }
-                }
+                    AgenticProperties: {
+                        connect: {
+                            id: agenticPropertyId,
+                        },
+                    },
+                },
             });
         } catch (error) {
             throw new Error(`Failed to connect property`);
         }
     }
-    
-    public async getAgenciesByPropertyId(propertyId: string): Promise<IAgency[]> {
+
+    public async getAgenciesByPropertyId(
+        propertyId: string
+    ): Promise<IAgency[]> {
         try {
             return await prisma.agency.findMany({
                 where: {
@@ -207,28 +246,30 @@ export class AgenticPropertyRepository {
                     AgenticProperties: {
                         some: {
                             propertyId: propertyId,
-                            isDeleted: false
-                        }
-                    }
+                            isDeleted: false,
+                        },
+                    },
                 },
                 include: {
                     AgenticProperties: {
                         where: {
                             propertyId: propertyId,
-                            isDeleted: false
+                            isDeleted: false,
                         },
                         include: {
                             AgenticRooms: {
                                 where: {
-                                    isDeleted: false
-                                }
-                            }
-                        }
-                    }
-                }
+                                    isDeleted: false,
+                                },
+                            },
+                        },
+                    },
+                },
             });
         } catch (error) {
-            throw new Error(`Failed to get agencies by property ID: ${propertyId}`);
+            throw new Error(
+                `Failed to get agencies by property ID: ${propertyId}`
+            );
         }
     }
 }

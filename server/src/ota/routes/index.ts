@@ -1,1 +1,1 @@
-export * from "./ota.route";
+export * from './ota.route';

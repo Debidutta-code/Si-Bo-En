@@ -1,5 +1,3 @@
-import { HotelRepository } from "./hotel.repository";
+import { HotelRepository } from './hotel.repository';
 
-export {
-    HotelRepository,
-}
+export { HotelRepository };

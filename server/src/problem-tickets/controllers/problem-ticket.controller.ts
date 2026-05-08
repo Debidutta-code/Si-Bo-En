@@ -1,5 +1,4 @@
-
-import { Response,Request } from 'express';
+import { Response, Request } from 'express';
 import { ProblemTicketService } from '../services';
 import { ICProblemTicketsC, ticketPriority, ticketStatus } from '../types';
 import { CustomRequest, errorResponse } from '../../utils';
@@ -9,10 +8,7 @@ export class ProblemTicketController {
     constructor() {
         this.problemTicketService = new ProblemTicketService();
     }
-    public async createTicket(
-        req: Request,
-        res: Response
-    ): Promise<Response> {
+    public async createTicket(req: Request, res: Response): Promise<Response> {
         try {
             const data: ICProblemTicketsC = req.body;
             const guestId = req.query?.id as string;
@@ -45,10 +41,7 @@ export class ProblemTicketController {
             return res.status(500).json(error);
         }
     }
-    public async updateTicket(
-        req: Request,
-        res: Response
-    ): Promise<Response> {
+    public async updateTicket(req: Request, res: Response): Promise<Response> {
         try {
             const id = req.params.id;
             if (!id) {
@@ -81,10 +74,7 @@ export class ProblemTicketController {
             return res.status(500).json(error);
         }
     }
-    public async deleteTicket(
-        req: Request,
-        res: Response
-    ): Promise<Response> {
+    public async deleteTicket(req: Request, res: Response): Promise<Response> {
         try {
             const id = req.params.id;
             if (!id) {
@@ -136,8 +126,8 @@ export class ProblemTicketController {
         res: Response
     ): Promise<Response> {
         try {
-            const propertyId=req.params.propertyId;
-            const {limit,page}=req.query;
+            const propertyId = req.params.propertyId;
+            const { limit, page } = req.query;
             const tickets =
                 await this.problemTicketService.getTicketsForProperty(
                     propertyId,
@@ -155,7 +145,7 @@ export class ProblemTicketController {
     ): Promise<Response> {
         try {
             const id = req.params.id;
-            const status:ticketStatus = req.body.status;
+            const status: ticketStatus = req.body.status;
             if (!id) {
                 return res
                     .status(400)
@@ -166,7 +156,10 @@ export class ProblemTicketController {
                         )
                     );
             }
-            const ticket = await this.problemTicketService.updateTicketStatus(id,status);
+            const ticket = await this.problemTicketService.updateTicketStatus(
+                id,
+                status
+            );
             return res.status(200).json(ticket);
         } catch (error) {
             return res.status(500).json(error);
@@ -178,24 +171,31 @@ export class ProblemTicketController {
     ): Promise<Response> {
         try {
             const id = req.params.id;
-            const priority:ticketPriority = req.body.priority;
+            const priority: ticketPriority = req.body.priority;
             if (!id) {
-                return res.status(400).json(
-                    errorResponse(
-                        'Ticket details are missing in order to update the ticket',
-                        'Ticket id is missing while updating the ticket'
-                    )
-                );
+                return res
+                    .status(400)
+                    .json(
+                        errorResponse(
+                            'Ticket details are missing in order to update the ticket',
+                            'Ticket id is missing while updating the ticket'
+                        )
+                    );
             }
             if (!priority) {
-                return res.status(400).json(
-                    errorResponse(
-                        'Ticket details are missing in order to update the ticket',
-                        'Ticket priority is missing while updating the ticket'
-                    )
-                );
+                return res
+                    .status(400)
+                    .json(
+                        errorResponse(
+                            'Ticket details are missing in order to update the ticket',
+                            'Ticket priority is missing while updating the ticket'
+                        )
+                    );
             }
-            const ticket = await this.problemTicketService.updateTicketPriority(id,priority);
+            const ticket = await this.problemTicketService.updateTicketPriority(
+                id,
+                priority
+            );
             return res.status(200).json(ticket);
         } catch (error) {
             return res.status(500).json(error);

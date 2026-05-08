@@ -16,10 +16,8 @@ import {
     TaxApplicableOn,
     TaxType,
 } from '../../tax-system/interfaces/tax-rule.type';
-import { IPromotion, ITouristTax } from './room.type';
 import { IBookingOffset } from '../../ari/types';
 import { CurrencyCode } from '../../tax-system/interfaces/tourist-tax.type';
-
 
 export interface ICustomizableDeal {
     id: string;
@@ -169,8 +167,7 @@ export interface ISelectedAddonsS {
     availability: {
         date: Date;
         quantity: number;
-    }[]
-
+    }[];
 }
 export interface ISelectedAddonsR {
     addOnId: string;
@@ -182,8 +179,7 @@ export interface IIncludedAddons {
 }
 export interface ISelectedPromotion {
     id: string;
-    promotionType: "mlos" | "normal"
-
+    promotionType: 'mlos' | 'normal';
 }
 export interface PriceBrakeDown {
     totalAmount: number;
@@ -195,10 +191,11 @@ export interface PriceBrakeDown {
     latterpayableAmount: number;
     promoCodeDiscount: number;
     currencyCode: CurrencyCode;
-    dailyPriceBrakeDown: DailyPriceBrakeDown[];
-    taxBrakeDown: TaxBrakeDown[];
-    addonBrakeDown: AddOnBrakeDown[];
-    promotionBrakeDown: PromotionBrakeDown[];
+    addonBrakeDowns?: AddOnBrakeDown[];
+    dailyPriceBrakeDown?: DailyPriceBrakeDown[];
+    taxBrakeDown?: TaxBrakeDown[];
+    promotionBrakeDown?: PromotionBrakeDown[];
+    // spaPricingBrakeDowns?: ISpaPricing[];
     loyalityDiscount: number;
 }
 
@@ -229,15 +226,19 @@ export interface AddOnBrakeDown {
 }
 export interface PromotionBrakeDown {
     id: string;
-    promotionType: "mlos" | "normal"|"early_bird"|"device_specific"|"offer_for_tonight";
+    promotionType:
+        | 'mlos'
+        | 'normal'
+        | 'early_bird'
+        | 'device_specific'
+        | 'offer_for_tonight';
     name: string;
     discountType: DiscountType;
     discountValue: number;
     currencyCode: CurrencyCode | null;
     discountAmount: number;
-    restrictionType: "increase" | "decrease" | "payLater"
-    type: "user_applied" | "auto_applied"
-
+    restrictionType: 'increase' | 'decrease' | 'payLater';
+    type: 'user_applied' | 'auto_applied';
 }
 export interface IRoomDetails {
     adults: number;

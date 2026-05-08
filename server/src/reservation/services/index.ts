@@ -1,5 +1,1 @@
-import {ReservationService} from "./reservation.service";
-
-export {
-    ReservationService
-}
+export * from './reservation-new.service';

@@ -237,7 +237,6 @@ export interface IReservation {
   roomName: string;
   ratePlanName: string;
   currencyCode: string;
-  finalPrice: IFinalPrice;
   paidAmount: number;
   extraAmountToPay: number;
   refundAmount: number;
@@ -273,13 +272,22 @@ export interface IPricingBreakdown {
   latterpayableAmount: number;
   promoCodeDiscount: number;
   currencyCode: string;
+  totalSpa:number;
   loyalityDiscount: number;
   AddonBrakeDowns: IAddonBreakdown[];
   DailyPriceBrakeDown: IDailyPriceBreakdown[];
   taxBrakeDown: ITaxBreakdown[];
   promotionBrakeDown: IPromotionBreakdown[];
-}
+    SpaPricingBrakeDowns?: ISpaPricing[];
 
+}
+export interface ISpaPricing {
+  id: string;
+  pricingId: string;
+  spaSlotId: string;
+  price: number;
+
+}
 export interface IPaginationMeta {
   currentPage: number;
   totalPages: number;

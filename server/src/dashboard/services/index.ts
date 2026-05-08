@@ -1,5 +1,3 @@
-import { DashBoardServices } from "./dash.service";
+import { DashBoardServices } from './dash.service';
 
-export {
-    DashBoardServices
-}
+export { DashBoardServices };

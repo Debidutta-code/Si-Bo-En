@@ -1,7 +1,7 @@
-import { getCurrencyConverter } from "../../../currency-maping/utils";
-import { errorResponse, IApiResponse, successResponse } from "../../../utils";
-import { MLOSDao } from "../dao";
-import { IMLOSCreate, } from "../interfaces";
+import { getCurrencyConverter } from '../../../currency-maping/utils';
+import { errorResponse, IApiResponse, successResponse } from '../../../utils';
+import { MLOSDao } from '../dao';
+import { IMLOSCreate } from '../interfaces';
 
 export class MLOSService {
     private mlosDao: MLOSDao;
@@ -12,43 +12,63 @@ export class MLOSService {
 
     public async createRatePlanRule(data: IMLOSCreate): Promise<IApiResponse> {
         try {
-            const ratePlanExists = await this.mlosDao.ratePlanExists(data.ratePlanId);
+            const ratePlanExists = await this.mlosDao.ratePlanExists(
+                data.ratePlanId
+            );
             if (!ratePlanExists) {
                 return errorResponse('MLOS already exists for this rateplan');
             }
             const propertyId = ratePlanExists.propertyId;
 
-            const [existingRule, { convert, baseCurrency }] = await Promise.all([
-                this.mlosDao.getRatePlanRuleByRatePlanId(data.ratePlanId),
-                getCurrencyConverter(propertyId, data.currencyCode)
-            ]);
+            const [existingRule, { convert, baseCurrency }] = await Promise.all(
+                [
+                    this.mlosDao.getRatePlanRuleByRatePlanId(data.ratePlanId),
+                    getCurrencyConverter(propertyId, data.currencyCode),
+                ]
+            );
             if (existingRule) {
-                return errorResponse('Rate plan rule already exists for this rate plan. Please update the existing rule instead.');
+                return errorResponse(
+                    'Rate plan rule already exists for this rate plan. Please update the existing rule instead.'
+                );
             }
 
             const response = await this.mlosDao.createRatePlanRule({
                 ...data,
-                currencyCode: data.discountType === "flat" ? baseCurrency : data.currencyCode,
-                discountValue: data.discountType === "flat" ? convert(Number(data.discountValue)) : data.discountValue
+                currencyCode:
+                    data.discountType === 'flat'
+                        ? baseCurrency
+                        : data.currencyCode,
+                discountValue:
+                    data.discountType === 'flat'
+                        ? convert(Number(data.discountValue))
+                        : data.discountValue,
             });
 
             if (response) {
-                return successResponse('Rate plan rule created successfully', response);
+                return successResponse(
+                    'Rate plan rule created successfully',
+                    response
+                );
             } else {
                 return errorResponse('Failed to create rate plan rule');
             }
         } catch (error) {
-
             if (error instanceof Error) {
-                return errorResponse('Failed to create rate plan rule', error?.message);
+                return errorResponse(
+                    'Failed to create rate plan rule',
+                    error?.message
+                );
             }
             return errorResponse('Failed to create rate plan rule');
         }
     }
 
-    public async getRatePlanRuleByRatePlanId(ratePlanId: string): Promise<IApiResponse> {
+    public async getRatePlanRuleByRatePlanId(
+        ratePlanId: string
+    ): Promise<IApiResponse> {
         try {
-            const rule = await this.mlosDao.getRatePlanRuleByRatePlanId(ratePlanId);
+            const rule =
+                await this.mlosDao.getRatePlanRuleByRatePlanId(ratePlanId);
 
             if (!rule) {
                 return errorResponse('Rate plan rule not found');
@@ -68,27 +88,39 @@ export class MLOSService {
         updateData: IMLOSCreate
     ): Promise<IApiResponse> {
         try {
-            const existingRule = await this.mlosDao.getRatePlanRuleByRatePlanId(ratePlanId);
+            const existingRule =
+                await this.mlosDao.getRatePlanRuleByRatePlanId(ratePlanId);
             if (!existingRule) {
                 return errorResponse('Rate plan rule does not exist');
             }
-            const ratePlanExists = await this.mlosDao.ratePlanExists(existingRule.ratePlanId);
+            const ratePlanExists = await this.mlosDao.ratePlanExists(
+                existingRule.ratePlanId
+            );
             if (!ratePlanExists) {
                 return errorResponse('Rate plan does not exist');
             }
-            const { convert, baseCurrency } = await getCurrencyConverter(ratePlanExists.propertyId, updateData.currencyCode);
-
-            const response = await this.mlosDao.updateRatePlanRule(
-                ratePlanId,
-                {
-                    ...updateData,
-                    currencyCode: updateData.discountType === "flat" ? baseCurrency : updateData.currencyCode,
-                    discountValue: updateData.discountType === "flat" ? convert(Number(updateData.discountValue)) : updateData.discountValue
-                }
+            const { convert, baseCurrency } = await getCurrencyConverter(
+                ratePlanExists.propertyId,
+                updateData.currencyCode
             );
 
+            const response = await this.mlosDao.updateRatePlanRule(ratePlanId, {
+                ...updateData,
+                currencyCode:
+                    updateData.discountType === 'flat'
+                        ? baseCurrency
+                        : updateData.currencyCode,
+                discountValue:
+                    updateData.discountType === 'flat'
+                        ? convert(Number(updateData.discountValue))
+                        : updateData.discountValue,
+            });
+
             if (response) {
-                return successResponse('Rate plan rule updated successfully', response);
+                return successResponse(
+                    'Rate plan rule updated successfully',
+                    response
+                );
             } else {
                 return errorResponse('Failed to update rate plan rule');
             }
@@ -102,7 +134,8 @@ export class MLOSService {
 
     public async deleteRatePlanRule(ratePlanId: string) {
         try {
-            const existingRule = await this.mlosDao.getRatePlanRuleByRatePlanId(ratePlanId);
+            const existingRule =
+                await this.mlosDao.getRatePlanRuleByRatePlanId(ratePlanId);
             if (!existingRule) {
                 return errorResponse('Rate plan rule does not exist');
             }
@@ -110,7 +143,10 @@ export class MLOSService {
             const response = await this.mlosDao.deleteRatePlanRule(ratePlanId);
 
             if (response) {
-                return successResponse('Rate plan rule deleted successfully', response);
+                return successResponse(
+                    'Rate plan rule deleted successfully',
+                    response
+                );
             } else {
                 return errorResponse('Failed to delete rate plan rule');
             }
@@ -123,11 +159,18 @@ export class MLOSService {
     }
     public async getRatePlanRulesByPropertyId(propertyId: string) {
         try {
-            const rules = await this.mlosDao.getRatePlanRulesByPropertyId(propertyId);
+            const rules =
+                await this.mlosDao.getRatePlanRulesByPropertyId(propertyId);
 
-            return successResponse('Rate plan rules fetched successfully', rules);
+            return successResponse(
+                'Rate plan rules fetched successfully',
+                rules
+            );
         } catch (error: any) {
-            return errorResponse('Failed to fetch rate plan rules', error?.message);
+            return errorResponse(
+                'Failed to fetch rate plan rules',
+                error?.message
+            );
         }
     }
 }

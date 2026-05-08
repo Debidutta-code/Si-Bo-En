@@ -1,11 +1,15 @@
-import axios from "axios";
-import { Request } from "express";
-import { CustomRequest, PropertyCustomRequest, PropertyRequest } from "./customRequest";
+import axios from 'axios';
+import { Request } from 'express';
+import {
+    CustomRequest,
+    PropertyCustomRequest,
+    PropertyRequest,
+} from './customRequest';
 
 export const getGeoLocationDetails = async (
     req: Request | CustomRequest | PropertyCustomRequest | PropertyRequest
 ) => {
-    let ip = (req.headers['x-forwarded-for'] as string || req.ip || "")
+    let ip = ((req.headers['x-forwarded-for'] as string) || req.ip || '')
         .split(',')[0]
         .trim();
 
@@ -15,22 +19,22 @@ export const getGeoLocationDetails = async (
 
     const isLocal = !ip || ip === '::1' || ip === '127.0.0.1';
 
-    console.log("Detected IP:", ip);
+    console.log('Detected IP:', ip);
 
     if (isLocal) {
-        console.log("Local call detected");
+        console.log('Local call detected');
         return {
             success: true,
             ip: '49.36.0.1',
             city: 'Mumbai',
             country: 'IN',
-            coordinates: [19.0760, 72.8777],
+            coordinates: [19.076, 72.8777],
         };
     }
 
     // ✅ 1. Try ipapi (PRIMARY)
     try {
-        console.log("Trying ipapi...");
+        console.log('Trying ipapi...');
 
         const res = await axios.get(`https://ipapi.co/${ip}/json/`, {
             timeout: 3000,
@@ -43,19 +47,18 @@ export const getGeoLocationDetails = async (
             country: res.data?.country_code ?? 'IN',
             coordinates: [res.data?.latitude ?? 0, res.data?.longitude ?? 0],
         };
-
     } catch (err) {
-        console.error("ipapi failed, trying fallback...", err);
+        console.error('ipapi failed, trying fallback...', err);
     }
 
     // 🔁 2. Fallback to ip-api (your current one)
     try {
-        console.log("Trying ip-api fallback...");
+        console.log('Trying ip-api fallback...');
 
         const res = await axios.get(`http://ip-api.com/json/${ip}`, {
             timeout: 3000,
             headers: {
-                "User-Agent": "Mozilla/5.0",
+                'User-Agent': 'Mozilla/5.0',
             },
         });
 
@@ -66,9 +69,8 @@ export const getGeoLocationDetails = async (
             country: res.data?.countryCode ?? 'IN',
             coordinates: [res.data?.lat ?? 0, res.data?.lon ?? 0],
         };
-
     } catch (err) {
-        console.error("Fallback geo lookup failed:", err);
+        console.error('Fallback geo lookup failed:', err);
     }
 
     // ❌ Final fallback

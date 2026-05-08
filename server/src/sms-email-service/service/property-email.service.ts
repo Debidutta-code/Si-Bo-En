@@ -1,3 +1,1 @@
-export class PropertyEmailService{
-    
-}
+export class PropertyEmailService {}

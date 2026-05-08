@@ -79,6 +79,7 @@ export class PricingService {
                         toUTC(startDate),
                         toUTC(endDate),
                         includedAddons ? includedAddons : []
+                        includedAddons ? includedAddons : []
                     ),
                     this.fetchAddons(parsedAddons),
                     this.fetchAllPromotions(promotions),
@@ -370,7 +371,7 @@ class BasePriceClass {
             currencyCode: dailyPriceBrakeDown[0]?.currencyCode,
             dailyPriceBrakeDown,
             taxBrakeDown: [],
-            addonBrakeDown: [],
+            addonBrakeDowns: [],
             promotionBrakeDown: [],
         };
     }
@@ -427,14 +428,21 @@ class BasePriceClass {
                     `This room has a maximum occupancy of ${this.roomDetails.maxOccupancy}.`
                 );
             }
-            if (adults > (gap < 0 ? this.roomDetails.maxNumberOfAdults : gap + this.roomDetails.maxNumberOfAdults)) {
+            if (
+                adults >
+                (gap < 0
+                    ? this.roomDetails.maxNumberOfAdults
+                    : gap + this.roomDetails.maxNumberOfAdults)
+            ) {
                 throw new Error(
                     `This room can only accommodate maximum ${gap < 0 ? this.roomDetails.maxNumberOfAdults : gap} adults.`
                 );
             }
             if (
                 children >
-                (gap < 0 ? this.roomDetails.maxNumberOfChildren : gap + this.roomDetails.maxNumberOfChildren)
+                (gap < 0
+                    ? this.roomDetails.maxNumberOfChildren
+                    : gap + this.roomDetails.maxNumberOfChildren)
             ) {
                 throw new Error(
                     `This room can only accommodate maximum ${gap < 0 ? this.roomDetails.maxNumberOfChildren : gap} children.`
@@ -496,6 +504,7 @@ class BasePriceClass {
                     } else if (childBaseAmounts.length > 0) {
                         let maxChildBase =
                             childBaseAmounts[childBaseAmounts.length - 1]; // No exact match → use highest available base + charge for extras
+
 
                         childBasePrice = Number(maxChildBase.amountBeforeTax);
                         const extraChildren =
@@ -585,7 +594,7 @@ class AddOnPriceClass {
 
         return {
             ...this.priceBrakedowns,
-            addonBrakeDown: sumAddons,
+            addonBrakeDowns: sumAddons,
             totalAddonAmount: sumAddonsAmount,
             totalAmount: this.priceBrakedowns.totalAmount + sumAddonsAmount,
             currentChargeableAmount:
@@ -691,6 +700,7 @@ class AddOnPriceClass {
                         break;
                     case 'per_person_per_room':
                         quantityForDate = this.noOfAdults;
+                        quantityForDate = this.noOfAdults;
                         break;
                     default:
                         quantityForDate = 1;
@@ -714,7 +724,7 @@ class AddOnPriceClass {
                 const childAddonBreakdowns = this.calculateChildAddonPrice(
                     addon.addon,
                     this.childAges,
-                    "included"
+                    'included'
                 );
                 addonBrakeDown.push(...childAddonBreakdowns);
             }
@@ -1279,7 +1289,7 @@ class TouristTaxClass {
                 this.priceBrakedown.currentChargeableAmount +
                 totalTouristCharges,
             promotionBrakeDown: [
-                ...this.priceBrakedown.promotionBrakeDown,
+                ...(this.priceBrakedown.promotionBrakeDown || []),
                 ...touristTaxes,
             ],
         };
@@ -1289,8 +1299,8 @@ class TouristTaxClass {
     ): PromotionBrakeDown {
         if (touristTax.discountType === 'percentage') {
             const baseRoomCharge =
-                this.priceBrakedown.dailyPriceBrakeDown.reduce(
-                    (sum, day) =>
+                this.priceBrakedown.dailyPriceBrakeDown?.reduce(
+                    (sum: any, day: any) =>
                         sum +
                         day.baseChargesAmount +
                         day.additionalChargesAmount,
@@ -1519,7 +1529,7 @@ class TaxClass {
         };
     }
 
-    const base = Number(this.priceBrakeDown.amountBeforeTax) || 0;
+        const base = Number(this.priceBrakeDown.amountBeforeTax) || 0;
 
     const grouped: Record<number, any[]> = {};
     this.taxGroup.taxGroupRules.forEach(rule => {
@@ -1530,15 +1540,15 @@ class TaxClass {
 
     const priorities = Object.keys(grouped).map(Number).sort((a, b) => a - b);
 
-    let runningTotal = base;
-    const taxBrakeDown: TaxBrakeDown[] = [];
+        let runningTotal = base;
+        const taxBrakeDown: TaxBrakeDown[] = [];
 
     priorities.forEach(priority => {
         const rules = grouped[priority];
         let groupTaxTotal = 0;
 
-        rules.forEach(rule => {
-            let taxForThisRule = 0;
+            rules.forEach(rule => {
+                let taxForThisRule = 0;
 
             if (rule.taxRule.type === "fixed") {
                 taxForThisRule = Number(rule.taxRule.value) * this.priceBrakeDown.dailyPriceBrakeDown.length;
@@ -1550,12 +1560,12 @@ class TaxClass {
             taxForThisRule = Number(taxForThisRule.toFixed(2));
             groupTaxTotal += taxForThisRule;
 
-            taxBrakeDown.push({
-                name: rule.taxRule.name,
-                taxedAmount: taxForThisRule,
-                currencyCode: this.priceBrakeDown.currencyCode,
+                taxBrakeDown.push({
+                    name: rule.taxRule.name,
+                    taxedAmount: taxForThisRule,
+                    currencyCode: this.priceBrakeDown.currencyCode,
+                });
             });
-        });
 
         runningTotal += groupTaxTotal;
     });

@@ -1,2 +1,1 @@
-
-export * from "./geo.interface";
+export * from './geo.interface';

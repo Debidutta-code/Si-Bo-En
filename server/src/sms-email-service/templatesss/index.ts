@@ -1,14 +1,13 @@
 import {
     generateOTPEmailTemplate,
-    generateWelcomeEmailTemplate
-} from "./email-verification-otp.templates";
+    generateWelcomeEmailTemplate,
+} from './email-verification-otp.templates';
 
-import { generatePasswordResetLinkTemplate } from "./password-reset-link.template";
+import { generatePasswordResetLinkTemplate } from './password-reset-link.template';
 
-export{
+export {
     generateOTPEmailTemplate,
     generateWelcomeEmailTemplate,
-    generatePasswordResetLinkTemplate
-}
+    generatePasswordResetLinkTemplate,
+};
 export * from "./reservation.template"
-

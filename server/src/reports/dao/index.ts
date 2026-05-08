@@ -1,1 +1,1 @@
-export * from "./gbp.repository";
+export * from './gbp.repository';

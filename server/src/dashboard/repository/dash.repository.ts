@@ -1,6 +1,6 @@
-import { prisma } from "../../config";
-import { convertCurrency } from "../../currency-maping/utils";
-import { CurrencyCode } from "../../tax-system/interfaces";
+import { prisma } from '../../config';
+import { convertCurrency } from '../../currency-maping/utils';
+import { CurrencyCode } from '../../tax-system/interfaces';
 import {
     IPropertyCodeAndIds,
     IAnalyticsData,
@@ -13,16 +13,18 @@ import {
     IPaymentMethodAnalytics,
     ITopPerformingProperties,
     IStatisticsComparison,
-    IComparisonPeriod
-} from "../types";
+    IComparisonPeriod,
+} from '../types';
 
 export class DashBoardRepository {
-
-
-    public async getAnalyticsData(propertyIdsAndCodes: IPropertyCodeAndIds[], userLevel?: number, currencyCode?: CurrencyCode) {
+    public async getAnalyticsData(
+        propertyIdsAndCodes: IPropertyCodeAndIds[],
+        userLevel?: number,
+        currencyCode?: CurrencyCode
+    ) {
         try {
             const propertyIds = propertyIdsAndCodes.map(p => p.id);
-            const targetCurrency = currencyCode || "USD"
+            const targetCurrency = currencyCode || 'USD';
 
             const [
                 reservationStats,
@@ -30,20 +32,23 @@ export class DashBoardRepository {
                 guestStats,
                 addonStats,
                 bookingSourceStats,
-                paymentMethodStats
+                paymentMethodStats,
             ] = await Promise.all([
                 this.getReservationAnalytics(propertyIds),
-                this.getRevenueAnalytics(propertyIds, targetCurrency),  // <-- pass it
+                this.getRevenueAnalytics(propertyIds, targetCurrency), // <-- pass it
                 this.getGuestAnalytics(propertyIds),
-                this.getAddonAnalytics(propertyIds, targetCurrency),    // <-- pass it
+                this.getAddonAnalytics(propertyIds, targetCurrency), // <-- pass it
                 this.getBookingSourceAnalytics(propertyIds, targetCurrency), // <-- pass it
-                this.getPaymentMethodAnalytics(propertyIds, targetCurrency)  // <-- pass it
+                this.getPaymentMethodAnalytics(propertyIds, targetCurrency), // <-- pass it
             ]);
 
             // Fetch top performing properties analytics for users with level > 1
             let topPropertiesStats: ITopPerformingProperties | undefined;
             if (userLevel && userLevel > 1) {
-                topPropertiesStats = await this.getTopPerformingProperties(propertyIdsAndCodes, targetCurrency);
+                topPropertiesStats = await this.getTopPerformingProperties(
+                    propertyIdsAndCodes,
+                    targetCurrency
+                );
             }
 
             const analyticsData: IAnalyticsData = {
@@ -53,7 +58,7 @@ export class DashBoardRepository {
                 guest: guestStats,
                 addon: addonStats,
                 bookingSource: bookingSourceStats,
-                paymentMethod: paymentMethodStats
+                paymentMethod: paymentMethodStats,
             };
 
             if (topPropertiesStats) {
@@ -62,13 +67,16 @@ export class DashBoardRepository {
 
             return {
                 success: true,
-                data: analyticsData
+                data: analyticsData,
             };
         } catch (error) {
             return {
                 success: false,
-                message: error instanceof Error ? error.message : "Unknown error occurred",
-                data: null
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Unknown error occurred',
+                data: null,
             };
         }
     }
@@ -76,12 +84,16 @@ export class DashBoardRepository {
     /**
      * Reservation & Booking Analytics
      */
-    private async getReservationAnalytics(propertyIds: string[]): Promise<IReservationAnalytics> {
+    private async getReservationAnalytics(
+        propertyIds: string[]
+    ): Promise<IReservationAnalytics> {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
         const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
-        const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
+        const thirtyDaysAgo = new Date(
+            today.getTime() - 30 * 24 * 60 * 60 * 1000
+        );
 
         const [
             totalReservations,
@@ -89,47 +101,47 @@ export class DashBoardRepository {
             todayCheckIns,
             todayCheckOuts,
             upcomingReservations,
-            recentBookings
+            recentBookings,
         ] = await Promise.all([
             // Total reservations
             prisma.reservation.count({
-                where: { propertyId: { in: propertyIds } }
+                where: { propertyId: { in: propertyIds } },
             }),
             prisma.reservation.findMany({
                 where: { propertyId: { in: propertyIds } },
                 select: {
                     bookingStatus: true,
-                    reservationStartDate:true,
-                    reservationEndDate:true,
-                    guests: true
-                }
+                    reservationStartDate: true,
+                    reservationEndDate: true,
+                    guests: true,
+                },
             }),
             // Today's check-ins
             prisma.reservation.count({
                 where: {
                     propertyId: { in: propertyIds },
-                    reservationStartDate: { gte: today, lt: tomorrow }
-                }
+                    reservationStartDate: { gte: today, lt: tomorrow },
+                },
             }),
             // Today's check-outs
             prisma.reservation.count({
                 where: {
                     propertyId: { in: propertyIds },
-                    reservationEndDate: { gte: today, lt: tomorrow }
-                }
+                    reservationEndDate: { gte: today, lt: tomorrow },
+                },
             }),
             prisma.reservation.count({
                 where: {
                     propertyId: { in: propertyIds },
-                    reservationStartDate: { gte: today, lte: nextWeek }
-                }
+                    reservationStartDate: { gte: today, lte: nextWeek },
+                },
             }),
             prisma.reservation.count({
                 where: {
                     propertyId: { in: propertyIds },
-                    createdAt: { gte: thirtyDaysAgo }
-                }
-            })
+                    createdAt: { gte: thirtyDaysAgo },
+                },
+            }),
         ]);
 
         // Calculate status breakdown
@@ -144,12 +156,15 @@ export class DashBoardRepository {
             }
         });
 
-        const statusBreakdown = Array.from(statusMap.entries()).map(([status, count]) => ({
-            status,
-            count
-        }));
+        const statusBreakdown = Array.from(statusMap.entries()).map(
+            ([status, count]) => ({
+                status,
+                count,
+            })
+        );
 
-        const cancellationRate = totalReservations > 0 ? (cancelled / totalReservations) * 100 : 0;
+        const cancellationRate =
+            totalReservations > 0 ? (cancelled / totalReservations) * 100 : 0;
 
         // Calculate additional metrics
         let totalStayDays = 0;
@@ -158,7 +173,9 @@ export class DashBoardRepository {
         reservations.forEach(reservation => {
             const checkIn = new Date(reservation.reservationStartDate);
             const checkOut = new Date(reservation.reservationEndDate);
-            const stayDuration = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+            const stayDuration = Math.ceil(
+                (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)
+            );
             totalStayDays += stayDuration;
 
             // Parse guests JSON to count
@@ -172,8 +189,14 @@ export class DashBoardRepository {
             }
         });
 
-        const averageStayDuration = totalReservations > 0 ? (totalStayDays / totalReservations).toFixed(2) : '0';
-        const averageGuestsPerBooking = totalReservations > 0 ? (totalGuests / totalReservations).toFixed(2) : '0';
+        const averageStayDuration =
+            totalReservations > 0
+                ? (totalStayDays / totalReservations).toFixed(2)
+                : '0';
+        const averageGuestsPerBooking =
+            totalReservations > 0
+                ? (totalGuests / totalReservations).toFixed(2)
+                : '0';
 
         return {
             totalReservations,
@@ -185,20 +208,41 @@ export class DashBoardRepository {
             averageStayDuration,
             averageGuestsPerBooking,
             totalGuests,
-            last30DaysBookings: recentBookings
+            last30DaysBookings: recentBookings,
         };
     }
 
     /**
      * Revenue Analytics - Based on Reservation amounts
      */
-    private async getRevenueAnalytics(propertyIds: string[], targetCurrency: CurrencyCode): Promise<IRevenueAnalytics> {
+    private async getRevenueAnalytics(
+        propertyIds: string[],
+        targetCurrency: CurrencyCode
+    ): Promise<IRevenueAnalytics> {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const thisMonthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-        const thisWeekStart = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-        const lastMonthStart = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-        const lastMonthEnd = new Date(today.getFullYear(), today.getMonth(), 0, 23, 59, 59, 999);
+        const thisMonthStart = new Date(
+            today.getFullYear(),
+            today.getMonth(),
+            1
+        );
+        const thisWeekStart = new Date(
+            today.getTime() - 7 * 24 * 60 * 60 * 1000
+        );
+        const lastMonthStart = new Date(
+            today.getFullYear(),
+            today.getMonth() - 1,
+            1
+        );
+        const lastMonthEnd = new Date(
+            today.getFullYear(),
+            today.getMonth(),
+            0,
+            23,
+            59,
+            59,
+            999
+        );
 
         // Fetch raw reservations with currency instead of aggregating directly
         const allConfirmed = await prisma.reservation.findMany({
@@ -214,9 +258,17 @@ export class DashBoardRepository {
             },
         });
 
-        const sumInUSD = async (rows: { amount: number; currencyCode: string }[]) => {
+        const sumInUSD = async (
+            rows: { amount: number; currencyCode: string }[]
+        ) => {
             const converted = await Promise.all(
-                rows.map(r => convertCurrency(r.amount, r.currencyCode as CurrencyCode, targetCurrency))
+                rows.map(r =>
+                    convertCurrency(
+                        r.amount,
+                        r.currencyCode as CurrencyCode,
+                        targetCurrency
+                    )
+                )
             );
             return converted.reduce((a, b) => a + b, 0);
         };
@@ -232,10 +284,17 @@ export class DashBoardRepository {
             sumInUSD(allConfirmed.filter(r => r.createdAt >= today)),
             sumInUSD(allConfirmed.filter(r => r.createdAt >= thisWeekStart)),
             sumInUSD(allConfirmed.filter(r => r.createdAt >= thisMonthStart)),
-            sumInUSD(allConfirmed.filter(r => r.createdAt >= lastMonthStart && r.createdAt <= lastMonthEnd)),
+            sumInUSD(
+                allConfirmed.filter(
+                    r =>
+                        r.createdAt >= lastMonthStart &&
+                        r.createdAt <= lastMonthEnd
+                )
+            ),
         ]);
 
-        const avgRevenuePerBooking = allConfirmed.length > 0 ? totalRevenue / allConfirmed.length : 0;
+        const avgRevenuePerBooking =
+            allConfirmed.length > 0 ? totalRevenue / allConfirmed.length : 0;
 
         // Payment status breakdown
         const allReservations = await prisma.reservation.findMany({
@@ -250,7 +309,8 @@ export class DashBoardRepository {
 
         const statusGroups = new Map<string, typeof allReservations>();
         for (const r of allReservations) {
-            if (!statusGroups.has(r.bookingStatus)) statusGroups.set(r.bookingStatus, []);
+            if (!statusGroups.has(r.bookingStatus))
+                statusGroups.set(r.bookingStatus, []);
             statusGroups.get(r.bookingStatus)!.push(r);
         }
 
@@ -273,28 +333,42 @@ export class DashBoardRepository {
 
         const pendingAmount = (
             await Promise.all(
-                pendingRows.map(r =>
-                    convertCurrency(r.extraAmountToPay, r.currencyCode as CurrencyCode, targetCurrency) // ✅
+                pendingRows.map(
+                    r =>
+                        convertCurrency(
+                            r.extraAmountToPay,
+                            r.currencyCode as CurrencyCode,
+                            targetCurrency
+                        ) // ✅
                 )
             )
         ).reduce((a, b) => a + b, 0);
 
         const thisMonthAmount = monthRevenue;
         const lastMonthAmount = lastMonthRevenue;
-        const monthOverMonthGrowth = lastMonthAmount > 0
-            ? ((thisMonthAmount - lastMonthAmount) / lastMonthAmount * 100).toFixed(2)
-            : '0';
+        const monthOverMonthGrowth =
+            lastMonthAmount > 0
+                ? (
+                      ((thisMonthAmount - lastMonthAmount) / lastMonthAmount) *
+                      100
+                  ).toFixed(2)
+                : '0';
 
         const totalRooms = await prisma.room.aggregate({
             where: { propertyId: { in: propertyIds } },
             _sum: { totalRoom: true },
         });
 
-        const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+        const daysInMonth = new Date(
+            today.getFullYear(),
+            today.getMonth() + 1,
+            0
+        ).getDate();
         const totalRoomCount = totalRooms._sum.totalRoom || 0;
-        const revPAR = totalRoomCount > 0 && daysInMonth > 0
-            ? thisMonthAmount / (totalRoomCount * daysInMonth)
-            : 0;
+        const revPAR =
+            totalRoomCount > 0 && daysInMonth > 0
+                ? thisMonthAmount / (totalRoomCount * daysInMonth)
+                : 0;
 
         // Last 7 days trend
         const last7DaysTrend = await Promise.all(
@@ -428,22 +502,50 @@ export class DashBoardRepository {
         selectedDate: Date,
         currencyCode: CurrencyCode
     ): Promise<IStatisticsComparison> {
-        const targetCurrency = currencyCode
-        const periods = this.calculateComparisonPeriods(comparisonType, selectedDate);
+        const targetCurrency = currencyCode;
+        const periods = this.calculateComparisonPeriods(
+            comparisonType,
+            selectedDate
+        );
 
         const [currentPeriodData, previousPeriodData] = await Promise.all([
-            this.getStatisticsForPeriod(propertyIds, periods.current.start, periods.current.end, targetCurrency),   // ✅ pass it
-            this.getStatisticsForPeriod(propertyIds, periods.previous.start, periods.previous.end, targetCurrency)  // ✅ pass it
+            this.getStatisticsForPeriod(
+                propertyIds,
+                periods.current.start,
+                periods.current.end,
+                targetCurrency
+            ), // ✅ pass it
+            this.getStatisticsForPeriod(
+                propertyIds,
+                periods.previous.start,
+                periods.previous.end,
+                targetCurrency
+            ), // ✅ pass it
         ]);
 
         return {
             currencyCode: targetCurrency, // ✅ expose to frontend
-            bookings: this.calculateChange(currentPeriodData.bookings, previousPeriodData.bookings),
-            cancelledBookings: this.calculateChange(currentPeriodData.cancelledBookings, previousPeriodData.cancelledBookings),
-            revenue: this.calculateChange(currentPeriodData.revenue, previousPeriodData.revenue),
-            averageBookingValue: this.calculateChange(currentPeriodData.averageBookingValue, previousPeriodData.averageBookingValue),
-            roomNights: this.calculateChange(currentPeriodData.roomNights, previousPeriodData.roomNights),
-            period: periods
+            bookings: this.calculateChange(
+                currentPeriodData.bookings,
+                previousPeriodData.bookings
+            ),
+            cancelledBookings: this.calculateChange(
+                currentPeriodData.cancelledBookings,
+                previousPeriodData.cancelledBookings
+            ),
+            revenue: this.calculateChange(
+                currentPeriodData.revenue,
+                previousPeriodData.revenue
+            ),
+            averageBookingValue: this.calculateChange(
+                currentPeriodData.averageBookingValue,
+                previousPeriodData.averageBookingValue
+            ),
+            roomNights: this.calculateChange(
+                currentPeriodData.roomNights,
+                previousPeriodData.roomNights
+            ),
+            period: periods,
         };
     }
 
@@ -451,65 +553,86 @@ export class DashBoardRepository {
         propertyIds: string[],
         startDate: Date,
         endDate: Date,
-        targetCurrency: CurrencyCode  // ✅ added param
+        targetCurrency: CurrencyCode // ✅ added param
     ) {
         const [bookingsData, revenueRows, roomNightsData] = await Promise.all([
             prisma.reservation.findMany({
                 where: {
                     propertyId: { in: propertyIds },
-                    createdAt: { gte: startDate, lte: endDate }
+                    createdAt: { gte: startDate, lte: endDate },
                 },
                 select: {
                     bookingStatus: true,
                     amount: true,
-                    reservationStartDate:true,
-                    reservationEndDate:true,
-                    
-                }
+                    reservationStartDate: true,
+                    reservationEndDate: true,
+                },
             }),
             prisma.reservation.findMany({
                 where: {
                     propertyId: { in: propertyIds },
                     bookingStatus: 'confirmed',
-                    createdAt: { gte: startDate, lte: endDate }
+                    createdAt: { gte: startDate, lte: endDate },
                 },
-                select: { amount: true, currencyCode: true }
+                select: { amount: true, currencyCode: true },
             }),
             prisma.reservation.findMany({
                 where: {
                     propertyId: { in: propertyIds },
                     bookingStatus: 'confirmed',
-                    createdAt: { gte: startDate, lte: endDate }
+                    createdAt: { gte: startDate, lte: endDate },
                 },
-                select: { reservationStartDate: true, reservationEndDate: true }
-            })
+                select: {
+                    reservationStartDate: true,
+                    reservationEndDate: true,
+                },
+            }),
         ]);
 
         const totalBookings = bookingsData.length;
-        const cancelledBookings = bookingsData.filter(b => b.bookingStatus === 'cancelled').length;
+        const cancelledBookings = bookingsData.filter(
+            b => b.bookingStatus === 'cancelled'
+        ).length;
 
         const revenue = (
             await Promise.all(
-                revenueRows.map(r =>
-                    convertCurrency(r.amount, r.currencyCode as CurrencyCode, targetCurrency) // ✅ was hardcoded 'USD'
+                revenueRows.map(
+                    r =>
+                        convertCurrency(
+                            r.amount,
+                            r.currencyCode as CurrencyCode,
+                            targetCurrency
+                        ) // ✅ was hardcoded 'USD'
                 )
             )
         ).reduce((a, b) => a + b, 0);
 
         const confirmedBookings = revenueRows.length;
-        const averageBookingValue = confirmedBookings > 0 ? revenue / confirmedBookings : 0;
+        const averageBookingValue =
+            confirmedBookings > 0 ? revenue / confirmedBookings : 0;
 
         const roomNights = roomNightsData.reduce((total, booking) => {
             const checkIn = new Date(booking.reservationStartDate);
             const checkOut = new Date(booking.reservationEndDate);
-            const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+            const nights = Math.ceil(
+                (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)
+            );
             return total + nights;
         }, 0);
 
-        return { bookings: totalBookings, cancelledBookings, revenue, averageBookingValue, roomNights };
+        return {
+            bookings: totalBookings,
+            cancelledBookings,
+            revenue,
+            averageBookingValue,
+            roomNights,
+        };
     }
 
-    private calculateComparisonPeriods(type: 'date' | 'month' | 'year', selectedDate: Date): IComparisonPeriod {
+    private calculateComparisonPeriods(
+        type: 'date' | 'month' | 'year',
+        selectedDate: Date
+    ): IComparisonPeriod {
         const current = { start: new Date(), end: new Date(), label: '' };
         const previous = { start: new Date(), end: new Date(), label: '' };
 
@@ -530,16 +653,54 @@ export class DashBoardRepository {
             previous.label = 'Yesterday';
         } else if (type === 'month') {
             // Selected month vs previous month
-            current.start = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1);
-            current.end = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0, 23, 59, 59, 999);
-            current.label = current.start.toLocaleString('default', { month: 'long', year: 'numeric' });
+            current.start = new Date(
+                selectedDate.getFullYear(),
+                selectedDate.getMonth(),
+                1
+            );
+            current.end = new Date(
+                selectedDate.getFullYear(),
+                selectedDate.getMonth() + 1,
+                0,
+                23,
+                59,
+                59,
+                999
+            );
+            current.label = current.start.toLocaleString('default', {
+                month: 'long',
+                year: 'numeric',
+            });
 
-            previous.start = new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1);
-            previous.end = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 0, 23, 59, 59, 999);
-            previous.label = previous.start.toLocaleString('default', { month: 'long', year: 'numeric' });
+            previous.start = new Date(
+                selectedDate.getFullYear(),
+                selectedDate.getMonth() - 1,
+                1
+            );
+            previous.end = new Date(
+                selectedDate.getFullYear(),
+                selectedDate.getMonth(),
+                0,
+                23,
+                59,
+                59,
+                999
+            );
+            previous.label = previous.start.toLocaleString('default', {
+                month: 'long',
+                year: 'numeric',
+            });
         } else {
             // 12 months ending in selected month vs previous 12 months
-            current.end = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0, 23, 59, 59, 999);
+            current.end = new Date(
+                selectedDate.getFullYear(),
+                selectedDate.getMonth() + 1,
+                0,
+                23,
+                59,
+                59,
+                999
+            );
             current.start = new Date(current.end);
             current.start.setMonth(current.start.getMonth() - 11);
             current.start.setDate(1);
@@ -559,22 +720,26 @@ export class DashBoardRepository {
         return { current, previous };
     }
 
-
     private calculateChange(current: number, previous: number) {
-        const percentageChange = previous > 0
-            ? ((current - previous) / previous) * 100
-            : current > 0 ? 100 : 0;
+        const percentageChange =
+            previous > 0
+                ? ((current - previous) / previous) * 100
+                : current > 0
+                  ? 100
+                  : 0;
 
         return {
             current,
             previous,
-            percentageChange: Number(percentageChange.toFixed(2))
+            percentageChange: Number(percentageChange.toFixed(2)),
         };
     }
     /**
      * Guest Analytics
      */
-    private async getGuestAnalytics(propertyIds: string[]): Promise<IGuestAnalytics> {
+    private async getGuestAnalytics(
+        propertyIds: string[]
+    ): Promise<IGuestAnalytics> {
         const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
 
         const [
@@ -583,105 +748,134 @@ export class DashBoardRepository {
             repeatGuests,
             countryBreakdown,
             recentGuests,
-            verifiedGuests
+            verifiedGuests,
         ] = await Promise.all([
             prisma.guests.count({
-                where: { propertyId: { in: propertyIds } }
+                where: { propertyId: { in: propertyIds } },
             }),
             prisma.guests.groupBy({
                 by: ['userType'],
                 where: { propertyId: { in: propertyIds } },
-                _count: true
+                _count: true,
             }),
             prisma.guests.groupBy({
                 by: ['email'],
                 where: {
                     propertyId: { in: propertyIds },
-                    email: { not: null }
+                    email: { not: null },
                 },
                 _count: true,
-                having: { email: { _count: { gt: 1 } } }
+                having: { email: { _count: { gt: 1 } } },
             }),
             prisma.guests.groupBy({
                 by: ['country'],
                 where: {
                     propertyId: { in: propertyIds },
-                    country: { not: null }
+                    country: { not: null },
                 },
                 _count: true,
                 orderBy: { _count: { country: 'desc' } },
-                take: 10
+                take: 10,
             }),
             prisma.guests.count({
                 where: {
                     propertyId: { in: propertyIds },
-                    createdAt: { gte: thirtyDaysAgo }
-                }
+                    createdAt: { gte: thirtyDaysAgo },
+                },
             }),
             prisma.guests.count({
                 where: {
                     propertyId: { in: propertyIds },
-                    identityCardNumber: { not: null }
-                }
-            })
+                    identityCardNumber: { not: null },
+                },
+            }),
         ]);
 
         return {
             totalGuests,
-            guestTypeBreakdown: guestTypeBreakdown.map(g => ({ type: g.userType, count: g._count })),
+            guestTypeBreakdown: guestTypeBreakdown.map(g => ({
+                type: g.userType,
+                count: g._count,
+            })),
             repeatGuestsCount: repeatGuests.length,
-            repeatGuestRate: totalGuests > 0 ? ((repeatGuests.length / totalGuests) * 100).toFixed(2) : '0',
-            topCountries: countryBreakdown.map(c => ({ country: c.country || 'Unknown', count: c._count })),
+            repeatGuestRate:
+                totalGuests > 0
+                    ? ((repeatGuests.length / totalGuests) * 100).toFixed(2)
+                    : '0',
+            topCountries: countryBreakdown.map(c => ({
+                country: c.country || 'Unknown',
+                count: c._count,
+            })),
             recentGuests,
             verifiedGuests,
-            verificationRate: totalGuests > 0 ? ((verifiedGuests / totalGuests) * 100).toFixed(2) : '0'
+            verificationRate:
+                totalGuests > 0
+                    ? ((verifiedGuests / totalGuests) * 100).toFixed(2)
+                    : '0',
         };
     }
 
-    private async getAddonAnalytics(propertyIds: string[], targetCurrency: CurrencyCode): Promise<IAddonAnalytics> {
+    private async getAddonAnalytics(
+        propertyIds: string[],
+        targetCurrency: CurrencyCode
+    ): Promise<IAddonAnalytics> {
         const [allAddons, addonCount] = await Promise.all([
             prisma.bookingAddon.findMany({
                 where: {
                     Reservation: {
-                        propertyId: { in: propertyIds }
-                    }
+                        propertyId: { in: propertyIds },
+                    },
                 },
                 select: {
                     addonId: true,
                     name: true,
                     totalPrice: true,
                     currencyCode: true,
-                }
+                },
             }),
             prisma.bookingAddon.count({
                 where: {
                     Reservation: {
-                        propertyId: { in: propertyIds }
-                    }
-                }
-            })
+                        propertyId: { in: propertyIds },
+                    },
+                },
+            }),
         ]);
 
         // Convert all addon prices to USD
         const allAddonsInUSD = await Promise.all(
             allAddons.map(async a => ({
                 ...a,
-                totalPriceUSD: await convertCurrency(a.totalPrice, a.currencyCode as CurrencyCode, targetCurrency)
+                totalPriceUSD: await convertCurrency(
+                    a.totalPrice,
+                    a.currencyCode as CurrencyCode,
+                    targetCurrency
+                ),
             }))
         );
 
         // Total addon revenue in USD
-        const totalAddonRevenue = allAddonsInUSD.reduce((sum, a) => sum + a.totalPriceUSD, 0);
+        const totalAddonRevenue = allAddonsInUSD.reduce(
+            (sum, a) => sum + a.totalPriceUSD,
+            0
+        );
 
         // Group by addonId for popular addons
-        const addonGroups = new Map<string, { name: string; revenue: number; count: number }>();
+        const addonGroups = new Map<
+            string,
+            { name: string; revenue: number; count: number }
+        >();
         for (const a of allAddonsInUSD) {
             const existing = addonGroups.get(a.addonId);
             if (existing) {
                 existing.revenue += a.totalPriceUSD;
                 existing.count += 1;
             } else {
-                addonGroups.set(a.addonId, { name: a.name, revenue: a.totalPriceUSD, count: 1 });
+                addonGroups.set(a.addonId, {
+                    name: a.name,
+                    revenue: a.totalPriceUSD,
+                    count: 1,
+                });
             }
         }
 
@@ -702,7 +896,10 @@ export class DashBoardRepository {
         };
     }
 
-    private async getBookingSourceAnalytics(propertyIds: string[], targetCurrency: CurrencyCode): Promise<IBookingSourceAnalytics> {
+    private async getBookingSourceAnalytics(
+        propertyIds: string[],
+        targetCurrency: CurrencyCode
+    ): Promise<IBookingSourceAnalytics> {
         const rows = await prisma.reservation.findMany({
             where: { propertyId: { in: propertyIds } },
             select: {
@@ -714,29 +911,38 @@ export class DashBoardRepository {
 
         const sourceGroups = new Map<string, typeof rows>();
         for (const r of rows) {
-            if (!sourceGroups.has(r.bookingSource)) sourceGroups.set(r.bookingSource, []);
+            if (!sourceGroups.has(r.bookingSource))
+                sourceGroups.set(r.bookingSource, []);
             sourceGroups.get(r.bookingSource)!.push(r);
         }
 
         const sourceBreakdown = await Promise.all(
-            Array.from(sourceGroups.entries()).map(async ([source, sourceRows]) => ({
-                source,
-                count: sourceRows.length,
-                revenue: (
-                    await Promise.all(
-                        sourceRows.map(r =>
-                            convertCurrency(r.amount, r.currencyCode as CurrencyCode, targetCurrency)
+            Array.from(sourceGroups.entries()).map(
+                async ([source, sourceRows]) => ({
+                    source,
+                    count: sourceRows.length,
+                    revenue: (
+                        await Promise.all(
+                            sourceRows.map(r =>
+                                convertCurrency(
+                                    r.amount,
+                                    r.currencyCode as CurrencyCode,
+                                    targetCurrency
+                                )
+                            )
                         )
-                    )
-                ).reduce((a, b) => a + b, 0),
-            }))
+                    ).reduce((a, b) => a + b, 0),
+                })
+            )
         );
 
         return { sourceBreakdown };
     }
 
-
-    private async getPaymentMethodAnalytics(propertyIds: string[], targetCurrency: CurrencyCode): Promise<IPaymentMethodAnalytics> {
+    private async getPaymentMethodAnalytics(
+        propertyIds: string[],
+        targetCurrency: CurrencyCode
+    ): Promise<IPaymentMethodAnalytics> {
         const rows = await prisma.reservation.findMany({
             where: {
                 propertyId: { in: propertyIds },
@@ -752,28 +958,38 @@ export class DashBoardRepository {
         // Group by paymentMethod
         const methodGroups = new Map<string, typeof rows>();
         for (const r of rows) {
-            if (!methodGroups.has(r.paymentMethod)) methodGroups.set(r.paymentMethod, []);
+            if (!methodGroups.has(r.paymentMethod))
+                methodGroups.set(r.paymentMethod, []);
             methodGroups.get(r.paymentMethod)!.push(r);
         }
 
         const methodBreakdown = await Promise.all(
-            Array.from(methodGroups.entries()).map(async ([method, methodRows]) => ({
-                method,
-                count: methodRows.length,
-                amount: (
-                    await Promise.all(
-                        methodRows.map(r =>
-                            convertCurrency(r.paidAmount, r.currencyCode as CurrencyCode, targetCurrency)
+            Array.from(methodGroups.entries()).map(
+                async ([method, methodRows]) => ({
+                    method,
+                    count: methodRows.length,
+                    amount: (
+                        await Promise.all(
+                            methodRows.map(r =>
+                                convertCurrency(
+                                    r.paidAmount,
+                                    r.currencyCode as CurrencyCode,
+                                    targetCurrency
+                                )
+                            )
                         )
-                    )
-                ).reduce((a, b) => a + b, 0),
-            }))
+                    ).reduce((a, b) => a + b, 0),
+                })
+            )
         );
 
         return { methodBreakdown };
     }
 
-    private async getTopPerformingProperties(propertyIdsAndCodes: IPropertyCodeAndIds[], targetCurrency: CurrencyCode): Promise<ITopPerformingProperties> {
+    private async getTopPerformingProperties(
+        propertyIdsAndCodes: IPropertyCodeAndIds[],
+        targetCurrency: CurrencyCode
+    ): Promise<ITopPerformingProperties> {
         try {
             const propertyIds = propertyIdsAndCodes.map(p => p.id);
             const today = new Date();
@@ -794,8 +1010,15 @@ export class DashBoardRepository {
             const revenueByProperty = new Map<string, number>();
             await Promise.all(
                 confirmedReservations.map(async r => {
-                    const converted = await convertCurrency(r.amount, r.currencyCode as CurrencyCode, targetCurrency);
-                    revenueByProperty.set(r.propertyId, (revenueByProperty.get(r.propertyId) || 0) + converted);
+                    const converted = await convertCurrency(
+                        r.amount,
+                        r.currencyCode as CurrencyCode,
+                        targetCurrency
+                    );
+                    revenueByProperty.set(
+                        r.propertyId,
+                        (revenueByProperty.get(r.propertyId) || 0) + converted
+                    );
                 })
             );
 
@@ -821,7 +1044,9 @@ export class DashBoardRepository {
                 _sum: { availability: true },
             });
 
-            const propertyMap = new Map(propertyIdsAndCodes.map(p => [p.id, p]));
+            const propertyMap = new Map(
+                propertyIdsAndCodes.map(p => [p.id, p])
+            );
 
             // Top by revenue
             const topByRevenue = Array.from(revenueByProperty.entries())
@@ -855,11 +1080,15 @@ export class DashBoardRepository {
             const topByOccupancy = roomsByProperty
                 .map(r => {
                     const prop = propertyMap.get(r.propertyId);
-                    const inventory = inventoryByProperty.find(i => i.propertyCode === prop?.code);
+                    const inventory = inventoryByProperty.find(
+                        i => i.propertyCode === prop?.code
+                    );
                     const totalRooms = r._sum.totalRoom || 0;
-                    const available = inventory?._sum.availability || totalRooms;
+                    const available =
+                        inventory?._sum.availability || totalRooms;
                     const occupied = totalRooms - available;
-                    const occupancyRate = totalRooms > 0 ? (occupied / totalRooms) * 100 : 0;
+                    const occupancyRate =
+                        totalRooms > 0 ? (occupied / totalRooms) * 100 : 0;
                     return {
                         propertyId: r.propertyId,
                         propertyCode: prop?.code || '',
@@ -883,7 +1112,12 @@ export class DashBoardRepository {
 export class DashUtilsRepo {
     public async getPropertyIdsAndCodesForLevel4(creationId: string) {
         try {
-            const propertyData: Array<{ id: string; code: string, name: string, currencyCode: CurrencyCode }> = [];
+            const propertyData: Array<{
+                id: string;
+                code: string;
+                name: string;
+                currencyCode: CurrencyCode;
+            }> = [];
 
             const level4Creation = await prisma.creation.findUnique({
                 where: {
@@ -897,10 +1131,10 @@ export class DashUtilsRepo {
                             propertyName: true,
                             propertyConfigs: {
                                 select: {
-                                    baseCurrency: true
-                                }
-                            }
-                        }
+                                    baseCurrency: true,
+                                },
+                            },
+                        },
                     },
                     superChildren: {
                         where: {
@@ -915,11 +1149,10 @@ export class DashUtilsRepo {
                                     propertyName: true,
                                     propertyConfigs: {
                                         select: {
-                                            baseCurrency: true
-                                        }
-                                    }
-
-                                }
+                                            baseCurrency: true,
+                                        },
+                                    },
+                                },
                             },
                             // Everything under group (level 3) is in groupChildren
                             groupChildren: {
@@ -935,10 +1168,10 @@ export class DashUtilsRepo {
                                             propertyName: true,
                                             propertyConfigs: {
                                                 select: {
-                                                    baseCurrency: true
-                                                }
-                                            }
-                                        }
+                                                    baseCurrency: true,
+                                                },
+                                            },
+                                        },
                                     },
                                     // Everything under brand (level 2) is in brandChildren
                                     brandChildren: {
@@ -954,10 +1187,10 @@ export class DashUtilsRepo {
                                                     propertyName: true,
                                                     propertyConfigs: {
                                                         select: {
-                                                            baseCurrency: true
-                                                        }
-                                                    }
-                                                }
+                                                            baseCurrency: true,
+                                                        },
+                                                    },
+                                                },
                                             },
                                             // Level 1 properties
                                             groupChildren: {
@@ -973,58 +1206,64 @@ export class DashUtilsRepo {
                                                             propertyName: true,
                                                             propertyConfigs: {
                                                                 select: {
-                                                                    baseCurrency: true
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
+                                                                    baseCurrency: true,
+                                                                },
+                                                            },
+                                                        },
+                                                    },
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
                             },
                             brandChildren: {
                                 where: { isActive: true, isDeleted: false },
                                 include: {
                                     property: {
                                         select: {
-                                            id: true, propertyCode: true, propertyName: true,
+                                            id: true,
+                                            propertyCode: true,
+                                            propertyName: true,
                                             propertyConfigs: {
                                                 select: {
-                                                    baseCurrency: true
-                                                }
-                                            }
-                                        }
+                                                    baseCurrency: true,
+                                                },
+                                            },
+                                        },
                                     },
                                     groupChildren: {
-                                        where: { isActive: true, isDeleted: false },
+                                        where: {
+                                            isActive: true,
+                                            isDeleted: false,
+                                        },
                                         include: {
                                             property: {
                                                 select: {
-                                                    id: true, propertyCode: true, propertyName: true,
+                                                    id: true,
+                                                    propertyCode: true,
+                                                    propertyName: true,
                                                     propertyConfigs: {
                                                         select: {
-                                                            baseCurrency: true
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                }
+                                                            baseCurrency: true,
+                                                        },
+                                                    },
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
             });
 
             if (!level4Creation) {
                 return {
                     success: false,
-                    message: "Creation not found or inactive",
-                    data: []
+                    message: 'Creation not found or inactive',
+                    data: [],
                 };
             }
             // Collect property from level 4 itself (if exists)
@@ -1033,7 +1272,8 @@ export class DashUtilsRepo {
                     id: level4Creation.property.id,
                     code: level4Creation.property.propertyCode,
                     name: level4Creation.property.propertyName,
-                    currencyCode: (level4Creation.property.propertyConfigs?.baseCurrency ?? 'USD') as CurrencyCode
+                    currencyCode: (level4Creation.property.propertyConfigs
+                        ?.baseCurrency ?? 'USD') as CurrencyCode,
                 });
             }
 
@@ -1045,7 +1285,8 @@ export class DashUtilsRepo {
                         id: superChild.property.id,
                         code: superChild.property.propertyCode,
                         name: superChild.property.propertyName,
-                        currencyCode: (superChild.property.propertyConfigs?.baseCurrency ?? "USD") as CurrencyCode
+                        currencyCode: (superChild.property.propertyConfigs
+                            ?.baseCurrency ?? 'USD') as CurrencyCode,
                     });
                 }
 
@@ -1057,7 +1298,8 @@ export class DashUtilsRepo {
                             id: groupChild.property.id,
                             code: groupChild.property.propertyCode,
                             name: groupChild.property.propertyName,
-                            currencyCode: (groupChild.property.propertyConfigs?.baseCurrency ?? "USD") as CurrencyCode
+                            currencyCode: (groupChild.property.propertyConfigs
+                                ?.baseCurrency ?? 'USD') as CurrencyCode,
                         });
                     }
 
@@ -1069,7 +1311,9 @@ export class DashUtilsRepo {
                                 id: brandChild.property.id,
                                 code: brandChild.property.propertyCode,
                                 name: brandChild.property.propertyName,
-                                currencyCode: (brandChild.property.propertyConfigs?.baseCurrency ?? "USD") as CurrencyCode
+                                currencyCode: (brandChild.property
+                                    .propertyConfigs?.baseCurrency ??
+                                    'USD') as CurrencyCode,
                             });
                         }
 
@@ -1080,7 +1324,9 @@ export class DashUtilsRepo {
                                     id: level1.property.id,
                                     code: level1.property.propertyCode,
                                     name: level1.property.propertyName,
-                                    currencyCode: (level1.property.propertyConfigs?.baseCurrency ?? "USD") as CurrencyCode
+                                    currencyCode: (level1.property
+                                        .propertyConfigs?.baseCurrency ??
+                                        'USD') as CurrencyCode,
                                 });
                             }
                         }
@@ -1093,7 +1339,8 @@ export class DashUtilsRepo {
                             id: brandChild.property.id,
                             code: brandChild.property.propertyCode,
                             name: brandChild.property.propertyName,
-                            currencyCode: (brandChild.property.propertyConfigs?.baseCurrency ?? "USD") as CurrencyCode
+                            currencyCode: (brandChild.property.propertyConfigs
+                                ?.baseCurrency ?? 'USD') as CurrencyCode,
                         });
                     }
                     for (const level1 of brandChild.groupChildren) {
@@ -1102,33 +1349,40 @@ export class DashUtilsRepo {
                                 id: level1.property.id,
                                 code: level1.property.propertyCode,
                                 name: level1.property.propertyName,
-                                currencyCode: (level1.property.propertyConfigs?.baseCurrency ?? "USD") as CurrencyCode
+                                currencyCode: (level1.property.propertyConfigs
+                                    ?.baseCurrency ?? 'USD') as CurrencyCode,
                             });
                         }
                     }
                 }
             }
 
-
             return {
                 success: true,
-                message: "Properties fetched successfully",
+                message: 'Properties fetched successfully',
                 data: propertyData,
-                count: propertyData.length
+                count: propertyData.length,
             };
-
         } catch (error) {
-            console.error("Error fetching properties for level 4:", error);
+            console.error('Error fetching properties for level 4:', error);
             return {
                 success: false,
-                message: error instanceof Error ? error.message : "Unknown error occurred",
-                data: []
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Unknown error occurred',
+                data: [],
             };
         }
     }
     public async getPropertyIdsAndCodesForLevel3(creationId: string) {
         try {
-            const propertyData: Array<{ id: string; code: string; name: string, currencyCode: CurrencyCode }> = [];
+            const propertyData: Array<{
+                id: string;
+                code: string;
+                name: string;
+                currencyCode: CurrencyCode;
+            }> = [];
 
             const level3Creation = await prisma.creation.findUnique({
                 where: {
@@ -1142,10 +1396,10 @@ export class DashUtilsRepo {
                             propertyName: true,
                             propertyConfigs: {
                                 select: {
-                                    baseCurrency: true
-                                }
-                            }
-                        }
+                                    baseCurrency: true,
+                                },
+                            },
+                        },
                     },
                     // Everything under group (level 3) is in groupChildren
                     groupChildren: {
@@ -1161,10 +1415,10 @@ export class DashUtilsRepo {
                                     propertyName: true,
                                     propertyConfigs: {
                                         select: {
-                                            baseCurrency: true
-                                        }
-                                    }
-                                }
+                                            baseCurrency: true,
+                                        },
+                                    },
+                                },
                             },
                             // Everything under brand (level 2) is in brandChildren
                             brandChildren: {
@@ -1180,10 +1434,10 @@ export class DashUtilsRepo {
                                             propertyName: true,
                                             propertyConfigs: {
                                                 select: {
-                                                    baseCurrency: true
-                                                }
-                                            }
-                                        }
+                                                    baseCurrency: true,
+                                                },
+                                            },
+                                        },
                                     },
                                     // Level 1 properties
                                     groupChildren: {
@@ -1199,26 +1453,25 @@ export class DashUtilsRepo {
                                                     propertyName: true,
                                                     propertyConfigs: {
                                                         select: {
-                                                            baseCurrency: true
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                }
+                                                            baseCurrency: true,
+                                                        },
+                                                    },
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
             });
 
             if (!level3Creation) {
                 return {
                     success: false,
-                    message: "Creation not found or inactive",
-                    data: []
+                    message: 'Creation not found or inactive',
+                    data: [],
                 };
             }
             // Collect property from level 3 itself (if exists)
@@ -1227,7 +1480,8 @@ export class DashUtilsRepo {
                     id: level3Creation.property.id,
                     code: level3Creation.property.propertyCode,
                     name: level3Creation.property.propertyName,
-                    currencyCode: level3Creation.property.propertyConfigs?.baseCurrency as CurrencyCode
+                    currencyCode: level3Creation.property.propertyConfigs
+                        ?.baseCurrency as CurrencyCode,
                 });
             }
 
@@ -1239,7 +1493,8 @@ export class DashUtilsRepo {
                         id: groupChild.property.id,
                         code: groupChild.property.propertyCode,
                         name: groupChild.property.propertyName,
-                        currencyCode: groupChild.property.propertyConfigs?.baseCurrency as CurrencyCode
+                        currencyCode: groupChild.property.propertyConfigs
+                            ?.baseCurrency as CurrencyCode,
                     });
                 }
 
@@ -1251,7 +1506,8 @@ export class DashUtilsRepo {
                             id: brandChild.property.id,
                             code: brandChild.property.propertyCode,
                             name: brandChild.property.propertyName,
-                            currencyCode: brandChild.property.propertyConfigs?.baseCurrency as CurrencyCode
+                            currencyCode: brandChild.property.propertyConfigs
+                                ?.baseCurrency as CurrencyCode,
                         });
                     }
 
@@ -1262,7 +1518,8 @@ export class DashUtilsRepo {
                                 id: level1.property.id,
                                 code: level1.property.propertyCode,
                                 name: level1.property.propertyName,
-                                currencyCode: level1.property.propertyConfigs?.baseCurrency as CurrencyCode
+                                currencyCode: level1.property.propertyConfigs
+                                    ?.baseCurrency as CurrencyCode,
                             });
                         }
                     }
@@ -1271,22 +1528,29 @@ export class DashUtilsRepo {
 
             return {
                 success: true,
-                message: "Properties fetched successfully",
+                message: 'Properties fetched successfully',
                 data: propertyData,
-                count: propertyData.length
+                count: propertyData.length,
             };
-
         } catch (error) {
             return {
                 success: false,
-                message: error instanceof Error ? error.message : "Unknown error occurred",
-                data: []
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Unknown error occurred',
+                data: [],
             };
         }
     }
     public async getPropertyIdsAndCodesForLevel2(creationId: string) {
         try {
-            const propertyData: Array<{ id: string; code: string, name: string, currencyCode: CurrencyCode }> = [];
+            const propertyData: Array<{
+                id: string;
+                code: string;
+                name: string;
+                currencyCode: CurrencyCode;
+            }> = [];
 
             const level2Creation = await prisma.creation.findUnique({
                 where: {
@@ -1301,10 +1565,10 @@ export class DashUtilsRepo {
                             propertyName: true,
                             propertyConfigs: {
                                 select: {
-                                    baseCurrency: true
-                                }
-                            }
-                        }
+                                    baseCurrency: true,
+                                },
+                            },
+                        },
                     },
                     // Everything under brand (level 2) is in brandChildren
                     brandChildren: {
@@ -1320,10 +1584,10 @@ export class DashUtilsRepo {
                                     propertyName: true,
                                     propertyConfigs: {
                                         select: {
-                                            baseCurrency: true
-                                        }
-                                    }
-                                }
+                                            baseCurrency: true,
+                                        },
+                                    },
+                                },
                             },
                             // Level 1 properties
                             groupChildren: {
@@ -1339,23 +1603,23 @@ export class DashUtilsRepo {
                                             propertyName: true,
                                             propertyConfigs: {
                                                 select: {
-                                                    baseCurrency: true
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+                                                    baseCurrency: true,
+                                                },
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                },
             });
 
             if (!level2Creation) {
                 return {
                     success: false,
-                    message: "Creation not found or inactive",
-                    data: []
+                    message: 'Creation not found or inactive',
+                    data: [],
                 };
             }
             // Collect property from level 2 itself (if exists)
@@ -1364,7 +1628,8 @@ export class DashUtilsRepo {
                     id: level2Creation.property.id,
                     code: level2Creation.property.propertyCode,
                     name: level2Creation.property.propertyName,
-                    currencyCode: (level2Creation.property.propertyConfigs?.baseCurrency ?? "USD") as CurrencyCode
+                    currencyCode: (level2Creation.property.propertyConfigs
+                        ?.baseCurrency ?? 'USD') as CurrencyCode,
                 });
             }
 
@@ -1376,7 +1641,8 @@ export class DashUtilsRepo {
                         id: brandChild.property.id,
                         code: brandChild.property.propertyCode,
                         name: brandChild.property.propertyName,
-                        currencyCode: brandChild.property.propertyConfigs?.baseCurrency as CurrencyCode
+                        currencyCode: brandChild.property.propertyConfigs
+                            ?.baseCurrency as CurrencyCode,
                     });
                 }
 
@@ -1387,7 +1653,8 @@ export class DashUtilsRepo {
                             id: level1.property.id,
                             code: level1.property.propertyCode,
                             name: level1.property.propertyName,
-                            currencyCode: level1.property.propertyConfigs?.baseCurrency as CurrencyCode
+                            currencyCode: level1.property.propertyConfigs
+                                ?.baseCurrency as CurrencyCode,
                         });
                     }
                 }
@@ -1395,16 +1662,18 @@ export class DashUtilsRepo {
 
             return {
                 success: true,
-                message: "Properties fetched successfully",
+                message: 'Properties fetched successfully',
                 data: propertyData,
-                count: propertyData.length
+                count: propertyData.length,
             };
-
         } catch (error) {
             return {
                 success: false,
-                message: error instanceof Error ? error.message : "Unknown error occurred",
-                data: []
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Unknown error occurred',
+                data: [],
             };
         }
     }
@@ -1412,8 +1681,9 @@ export class DashUtilsRepo {
         try {
             const propertyCreation = await prisma.creation.findUnique({
                 where: {
-                    id: creationId
-                }, include: {
+                    id: creationId,
+                },
+                include: {
                     property: {
                         select: {
                             id: true,
@@ -1421,30 +1691,41 @@ export class DashUtilsRepo {
                             propertyName: true,
                             propertyConfigs: {
                                 select: {
-                                    baseCurrency: true
-                                }
-                            }
-                        }
-                    }
-                }
-            })
+                                    baseCurrency: true,
+                                },
+                            },
+                        },
+                    },
+                },
+            });
             return {
                 success: true,
-                message: "",
-                data: [{ id: propertyCreation?.property?.id, code: propertyCreation?.property?.propertyCode, name: propertyCreation?.property?.propertyName, currencyCode: propertyCreation?.property?.propertyConfigs?.baseCurrency as CurrencyCode }]
-            }
+                message: '',
+                data: [
+                    {
+                        id: propertyCreation?.property?.id,
+                        code: propertyCreation?.property?.propertyCode,
+                        name: propertyCreation?.property?.propertyName,
+                        currencyCode: propertyCreation?.property
+                            ?.propertyConfigs?.baseCurrency as CurrencyCode,
+                    },
+                ],
+            };
         } catch (error) {
             return {
                 success: false,
-                message: error instanceof Error ? error.message : "Unknown error occurred",
-                data: []
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Unknown error occurred',
+                data: [],
             };
         }
     }
     public async getCreationByCreationId(creationId: string) {
         const creation = await prisma.creation.findUnique({
             where: { id: creationId },
-            select: { type: true }
+            select: { type: true },
         });
         return creation;
     }

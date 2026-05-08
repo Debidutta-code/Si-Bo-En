@@ -1,21 +1,23 @@
 model PricingBreakdown {
-    id                      String       @id @default(uuid())
-    reservationId           String     @unique  @map("reservation_id")
-    totalAmount             Float        @map("total_amount")
-    amountBeforeTax         Float        @map("amount_before_tax")
-    taxedAmount             Float        @map("taxed_amount")
-    totalAddonAmount        Float        @map("total_addon_amount")
-    totalPromotionAmount    Float        @map("total_promotion_amount")
-    currentChargeableAmount Float        @map("current_chargeable_amount")
-    latterpayableAmount     Float        @map("latterpayable_amount")
-    promoCodeDiscount       Float        @map("promo_code_discount")
-    currencyCode            CurrencyCode @map("currency_code")
-    loyalityDiscount        Float        @map("loyality_discount")
+    id                      String                @id @default(uuid())
+    reservationId           String                @unique @map("reservation_id")
+    totalAmount             Float                 @map("total_amount")
+    amountBeforeTax         Float                 @map("amount_before_tax")
+    taxedAmount             Float                 @map("taxed_amount")
+    totalAddonAmount        Float                 @map("total_addon_amount")
+    totalPromotionAmount    Float                 @map("total_promotion_amount")
+    currentChargeableAmount Float                 @map("current_chargeable_amount")
+    latterpayableAmount     Float                 @map("latterpayable_amount")
+    promoCodeDiscount       Float                 @map("promo_code_discount")
+    currencyCode            CurrencyCode          @map("currency_code")
+    loyalityDiscount        Float                 @map("loyality_discount")
+    totalSpa                Float                 @default(0) @map("total_spa_tax")
     Reservation             Reservation?
     DailyPriceBrakeDown     DailyPriceBrakeDown[]
     taxBrakeDown            TaxBrakeDown[]
     AddonBrakeDowns         AddOnBrakeDown[]
     promotionBrakeDown      PromotionBrakeDown[]
     SpaPricingBrakeDowns    SpaPricing[]
+
     @@map("pricing_breakdown")
 }

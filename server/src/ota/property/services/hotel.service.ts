@@ -36,7 +36,7 @@ export class HotelService {
                 properties: this.formatProperties(result.properties)
             };
         } catch (error: any) {
-            console.error("Error in HotelService.fetchPaginatedHotels", error);
+            console.error('Error in HotelService.fetchPaginatedHotels', error);
             throw new Error(`Failed to fetch hotels: ${error.message}`);
         }
     }

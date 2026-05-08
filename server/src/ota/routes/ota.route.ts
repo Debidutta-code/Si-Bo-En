@@ -14,4 +14,4 @@ otaRouter.use("/properties", hotelRouter);
 otaRouter.use("/reservations", ReservationRouter);
 
 
-export { otaRouter }
+export { otaRouter };

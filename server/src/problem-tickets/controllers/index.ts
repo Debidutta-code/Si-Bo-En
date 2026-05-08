@@ -1,1 +1,1 @@
-export * from "./problem-ticket.controller";
+export * from './problem-ticket.controller';
