@@ -1,10 +1,12 @@
+import { AgentCommissionType } from "../../agency/types";
 import { RTIntegrationDao } from "../../integrations/rate-tiger/dao/rt-integration.dao";
 import { RTReservationPushService } from "../../integrations/rate-tiger/services/rt-reservation-push.service";
 import { LoyaltyGuestRepository } from "../../loyalty/repository";
 import { PromoCodeRepository } from "../../promocode/repository";
+import { CurrencyCode } from "../../tax-system/interfaces";
 import { IApiResponse, successResponse, errorResponse, paginatedSuccessResponse, toUTCDate } from "../../utils";
-import { AgencyCommissionRepository, AriManupulationRepo, GuestRepository, ReservationRepository } from "../repository";
-import { DeviceType, ICGuest, ICPricingBreakDown, ICReservationS, IPropertyDetailsFromMiddleware } from "../types";
+import { AgencyCommissionRepository, AriManupulationRepo, BookingAddonRepository, GuestRepository, PriceBrakeDownRepo, ReservationRepository } from "../repository";
+import { DeviceType, IAddonBreakdown, IAriManulupulation, IBookingAddonCreate, ICGuest, ICPricingBreakDown, ICReservationS, IPropertyDetailsFromMiddleware } from "../types";
 export class NewReservationService {
     private reservationRepository: ReservationRepository;
     private promoCodeRepository: PromoCodeRepository;
@@ -12,6 +14,9 @@ export class NewReservationService {
     private loyalityGuestRepo: LoyaltyGuestRepository;
     private ariManupulationRepo: AriManupulationRepo;
     private agencyCommissionRepository: AgencyCommissionRepository;
+    private priceBrakeDownRepo: PriceBrakeDownRepo;
+    private bookingAddonRepository: BookingAddonRepository;
+
     constructor() {
         this.reservationRepository = new ReservationRepository();
         this.promoCodeRepository = new PromoCodeRepository();
@@ -19,6 +24,8 @@ export class NewReservationService {
         this.loyalityGuestRepo = new LoyaltyGuestRepository();
         this.ariManupulationRepo = new AriManupulationRepo();
         this.agencyCommissionRepository = new AgencyCommissionRepository();
+        this.priceBrakeDownRepo=new PriceBrakeDownRepo();
+        this.bookingAddonRepository = new BookingAddonRepository();
     }
     private async generateBookingCode(propertyCode: string): Promise<string> {
         const code =
@@ -292,6 +299,7 @@ export class NewReservationService {
                 promoCodeDiscount: finalPrice.promoCodeDiscount,
                 currencyCode: finalPrice.currencyCode,
                 loyalityDiscount: finalPrice.loyalityDiscount,
+                totalSpa:0
             };
 
             await this.priceBrakeDownRepo.createFullPricingBreakdown(
@@ -342,6 +350,20 @@ export class NewReservationService {
                     );
                 }
             }
+            const reservationDates = this.generateDateRange(
+                            toUTCDate(reservationStartDate),
+                            toUTCDate(reservationEndDate)
+                        );
+                        const ariPayload: IAriManulupulation = {
+                            propertyCode,
+                            dates: reservationDates,
+                            roomInfos: [
+                                {
+                                    roomTypeCode,
+                                    numberOfRooms: finalPrice.requestedRooms || 1,
+                                },
+                            ],
+                        };
             return successResponse("Reservation created successfully");
         } catch (error) {
             if (error instanceof Error) {
