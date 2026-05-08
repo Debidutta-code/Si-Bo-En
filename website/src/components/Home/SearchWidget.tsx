@@ -19,6 +19,7 @@ import { RootState } from "@/src/store/store";
 import React from "react";
 import { createPortal } from "react-dom";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage";
+import CalendarPriceSkeleton from "../ui/custom/loader/CalendarPriceSkeleton";
 
 interface Room {
   adults: number;
