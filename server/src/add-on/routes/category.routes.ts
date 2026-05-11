@@ -1,24 +1,23 @@
 import { Router } from 'express';
 import { CategoryController } from '../controllers';
-
-const router = Router();
+import { attachPropertyDetails } from '../../middlewares/property.middleware';
+import { protect } from '../../middlewares/auth.middleware';
+const categoryRouter = Router();
 const categoryController = new CategoryController();
 
-router.post('/', categoryController.createCategory);
+categoryRouter.use(protect);
+categoryRouter.route("/")
+    .post(attachPropertyDetails({
+        identifierType:"id",
+        key:"id",
+        source:"query"
+    }),categoryController.createCategory.bind(categoryController))
+    .get(categoryController.getAllCategories.bind(categoryController));
 
-router.get('/', categoryController.getAllCategories);
+categoryRouter.route('/:categoryId')
+    .get(categoryController.getCategoryById.bind(categoryController))
+    .put(categoryController.updateCategory.bind(categoryController))
+    .delete(categoryController.deleteCategory.bind(categoryController));
 
-router.get('/:categoryId', categoryController.getCategoryById);
 
-router.put('/:categoryId', categoryController.updateCategory);
-
-router.post(
-    '/:categoryId/subcategories',
-    categoryController.addSubCategoryToCategory
-);
-router.delete(
-    '/:categoryId/subcategories/:subcategoryId',
-    categoryController.removeSubCategoryFromCategory
-);
-
-export { router as CategoryRoutes };
+export { categoryRouter };

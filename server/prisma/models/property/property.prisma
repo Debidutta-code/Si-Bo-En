@@ -52,7 +52,11 @@ model Property {
   ProblemTickets              ProblemTickets[]
   Spa                         Spa[]
   Reviews                     Review[]
-  WishLists WishList[]
+  AddonCategories             AddonCategory[]
+  AddonSubCategories          AddonSubCategory[]
+  AddonVariants               AddonVariant[]
+  WishLists                   WishList[]
+
   @@index([createdById])
   @@index([creationId])
   @@index([propertyCode])

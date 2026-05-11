@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { CategoryService } from '../services';
 import { successResponse, errorResponse } from '../../utils/return';
+import { CustomRequest, PropertyCustomRequest } from '../../utils';
 export class CategoryController {
     private categoryService: CategoryService;
 
@@ -8,17 +9,17 @@ export class CategoryController {
         this.categoryService = new CategoryService();
     }
 
-    /**
-     * Create a new category
-     */
-    createCategory = async (req: Request, res: Response) => {
+    public async createCategory(req: PropertyCustomRequest, res: Response) {
         try {
             const { name } = req.body;
-
-            const category = await this.categoryService.createCategory(name);
+            const id  = req.property?.id;
+            if (!id) {
+                return res.status(400).json(errorResponse('Property detail is required for creating category'));
+            }
+            const category = await this.categoryService.createCategory(name, id);
 
             return res.status(category.success ? 201 : 400).json(category);
-        } catch (error: any) {
+        } catch (error) {
             if (error instanceof Error) {
                 return res
                     .status(500)
@@ -41,15 +42,26 @@ export class CategoryController {
         }
     };
 
-    /**
-     * Get all categories
-     */
-    getAllCategories = async (req: Request, res: Response) => {
+    public async getAllCategories(req: CustomRequest, res: Response) {
         try {
-            const categories = await this.categoryService.getAllCategories();
+            const id = req.query?.id as string;
+            if (!id) {
+                return res.status(400).json(errorResponse('Property detail is required for fetching categories'));
+            }
+            const categories = await this.categoryService.getAllCategories(id);
 
             return res.status(categories.success ? 200 : 400).json(categories);
-        } catch (error: any) {
+        } catch (error) {
+            if (error instanceof Error) {
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse(
+                            'Failed to fetch categories',
+                            error.message
+                        )
+                    );
+            }
             return res
                 .status(500)
                 .json(
@@ -61,10 +73,7 @@ export class CategoryController {
         }
     };
 
-    /**
-     * Get category by ID
-     */
-    getCategoryById = async (req: Request, res: Response) => {
+    public async getCategoryById(req: CustomRequest, res: Response) {
         try {
             const { categoryId } = req.params;
 
@@ -72,7 +81,7 @@ export class CategoryController {
                 await this.categoryService.getCategoryById(categoryId);
 
             return res.status(category.success ? 200 : 400).json(category);
-        } catch (error: any) {
+        } catch (error) {
             if (error instanceof Error) {
                 return res
                     .status(500)
@@ -92,10 +101,7 @@ export class CategoryController {
         }
     };
 
-    /**
-     * Update category
-     */
-    updateCategory = async (req: Request, res: Response) => {
+    public async updateCategory(req: CustomRequest, res: Response) {
         try {
             const { categoryId } = req.params;
             const updateData = req.body;
@@ -112,7 +118,7 @@ export class CategoryController {
             );
 
             return res.status(category.success ? 200 : 400).json(category);
-        } catch (error: any) {
+        } catch (error) {
             if (error instanceof Error) {
                 return res
                     .status(500)
@@ -135,41 +141,19 @@ export class CategoryController {
         }
     };
 
-    /**
-     * Add subcategory to category
-     */
-    addSubCategoryToCategory = async (req: Request, res: Response) => {
+    public async deleteCategory(req: CustomRequest, res: Response) {
         try {
             const { categoryId } = req.params;
-            const { subcategoryId } = req.body;
 
-            if (!subcategoryId) {
-                return res
-                    .status(400)
-                    .json(errorResponse('Subcategory ID is required'));
-            }
-
-            const category =
-                await this.categoryService.addSubCategoryToCategory(
-                    categoryId,
-                    subcategoryId
-                );
+            const category = await this.categoryService.deleteCategory(categoryId);
 
             return res.status(category.success ? 200 : 400).json(category);
-        } catch (error: any) {
-            console.error(
-                'Failed to add subcategory to category at Controller Layer:',
-                error
-            );
-
+        } catch (error) {
             if (error instanceof Error) {
                 return res
                     .status(500)
                     .json(
-                        errorResponse(
-                            'Failed to add subcategory to category',
-                            error.message
-                        )
+                        errorResponse('Failed to delete category', error.message)
                     );
             }
 
@@ -177,52 +161,10 @@ export class CategoryController {
                 .status(500)
                 .json(
                     errorResponse(
-                        'Failed to add subcategory to category',
-                        'Unable to add subcategory to category at this moment'
+                        'Failed to delete category',
+                        'Unable to delete category at this moment'
                     )
                 );
         }
-    };
-
-    /**
-     * Remove subcategory from category
-     */
-    removeSubCategoryFromCategory = async (req: Request, res: Response) => {
-        try {
-            const { categoryId, subcategoryId } = req.params;
-
-            const category =
-                await this.categoryService.removeSubCategoryFromCategory(
-                    categoryId,
-                    subcategoryId
-                );
-
-            return res.status(category.success ? 200 : 400).json(category);
-        } catch (error: any) {
-            console.error(
-                'Failed to remove subcategory from category at Controller Layer:',
-                error
-            );
-
-            if (error instanceof Error) {
-                return res
-                    .status(500)
-                    .json(
-                        errorResponse(
-                            'Failed to remove subcategory from category',
-                            error.message
-                        )
-                    );
-            }
-
-            return res
-                .status(500)
-                .json(
-                    errorResponse(
-                        'Failed to remove subcategory from category',
-                        'Unable to remove subcategory from category at this moment'
-                    )
-                );
-        }
-    };
+    }
 }

@@ -14,3 +14,8 @@ export interface IUPropertyConfig {
     isAvailableForBooking: boolean;
     isAvailableForOTA: boolean;
 }
+export interface IPropertyConfig extends IUPropertyConfig {
+    id: string;
+    createdAt: Date;
+    updatedAt: Date;
+}

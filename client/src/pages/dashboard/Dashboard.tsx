@@ -50,31 +50,35 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (allProperties.length > 0 || !selectedProperty.id) {
-      fetchStatistics(selectedProperty?.id, selectedProperty?.code, selectedProperty?.name, selectedCurrency);
-      fetchAnalytics(selectedProperty?.id, selectedProperty?.code, selectedProperty?.name, selectedCurrency)
+      if(!comparisonType)return
+      fetchStatistics(selectedCurrency, selectedProperty?.id, selectedProperty?.code, selectedProperty?.name,);
+      fetchAnalytics(selectedCurrency, selectedProperty?.id, selectedProperty?.code, selectedProperty?.name,)
     }
-  }, [comparisonType, selectedDate, selectedProperty.id, selectedCurrency]);
+  }, [comparisonType,selectedCurrency]);
 
   const handlePropertyChange = (propertyId: string) => {
     if (propertyId === "all") {
-      // Reset to show all properties
       setSelectedProperty({ id: "", code: "", name: "", currencyCode: "USD" });
-      fetchAnalytics();
-      fetchStatistics();
+      setSelectedCurrency("USD")
+      fetchAnalytics(selectedCurrency);
+      fetchStatistics(selectedCurrency);
     } else {
       const property = allProperties.find(p => p.id === propertyId);
       if (property) {
         setSelectedProperty(property);
-        fetchAnalytics(property?.id, property?.code, property?.name, property?.currencyCode);
-        fetchStatistics(property?.id, property?.code, property?.name, property?.currencyCode);
+        setSelectedCurrency(property.currencyCode)
+        fetchAnalytics(property.currencyCode, property.id, property.code, property.name,);
+        fetchStatistics(property.currencyCode, property.id, property.code, property.name);
       }
     }
   };
 
-  const fetchStatistics = async (propertyId?: string, propertyCode?: string, propertyName?: string, selectedCurrency?: CurrencyCode | "USD") => {
+  const fetchStatistics = async (selectedCurrency: CurrencyCode, propertyId?: string, propertyCode?: string, propertyName?: string) => {
+    console.log(selectedCurrency)
+    if (!selectedCurrency) return
     try {
       setError(null);
-
+      console.log(selectedCurrency)
       const response = await fetchStatisticsComparisonService(
         comparisonType,
         selectedDate.toISOString(),
@@ -98,8 +102,9 @@ export default function Dashboard() {
     }
   };
 
-  const fetchAnalytics = async (propertyId?: string, propertyCode?: string, propertyName?: string, selectedCurrency?: CurrencyCode | "USD") => {
+  const fetchAnalytics = async (selectedCurrency: CurrencyCode, propertyId?: string, propertyCode?: string, propertyName?: string,) => {
     try {
+      if (!selectedCurrency) return
       setLoader({ isLoading: true, message: "Fetching Analytics ..." });
       setError(null);
 
@@ -107,7 +112,7 @@ export default function Dashboard() {
 
       if (response.success && response.data) {
         setAnalyticsData(response.data.analytics);
-        toast.success("Analytics fetched successfully");
+        toast.success("Analytics fetched successfully", { id: "analytics-success" });
       } else {
         setError(response.message || "Failed to fetch analytics");
         toast.error(response.message || "Failed to fetch analytics");
@@ -142,9 +147,8 @@ export default function Dashboard() {
 
         setSelectedCurrency(resolvedCurrency); // for future renders
 
-        // Pass resolved currency directly — don't rely on state
-        await fetchAnalytics(undefined, undefined, undefined, resolvedCurrency);
-        await fetchStatistics(undefined, undefined, undefined, resolvedCurrency);
+        await fetchAnalytics(resolvedCurrency, undefined, undefined, undefined,);
+        await fetchStatistics(resolvedCurrency, undefined, undefined, undefined,);
       } else {
         setError(response.message || "Failed to fetch properties");
         toast.error(response.message || "Failed to fetch properties");
@@ -177,8 +181,8 @@ export default function Dashboard() {
           <p className="text-red-700 mb-4">{error}</p>
           <button
             onClick={() => {
-              fetchAnalytics();
-              fetchStatistics();
+              fetchAnalytics(selectedCurrency);
+              fetchStatistics(selectedCurrency);
             }}
             className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold py-2 px-4 rounded transition-colors"
           >
@@ -196,8 +200,8 @@ export default function Dashboard() {
           <p className="text-muted-foreground mb-4">No analytics data available</p>
           <button
             onClick={() => {
-              fetchAnalytics();
-              fetchStatistics(); // 🆕 NEW
+              fetchAnalytics(selectedCurrency);
+              fetchStatistics(selectedCurrency); // 🆕 NEW
             }}
             className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition-colors"
           >
@@ -308,11 +312,11 @@ export default function Dashboard() {
             <Button
               onClick={() => {
                 if (selectedProperty.id) {
-                  fetchAnalytics(selectedProperty.id, selectedProperty.code, selectedProperty.name, selectedCurrency);
-                  fetchStatistics(selectedProperty.id, selectedProperty.code, selectedProperty.name, selectedCurrency); // 🆕 NEW
+                  fetchAnalytics(selectedCurrency, selectedProperty.id, selectedProperty.code, selectedProperty.name,);
+                  fetchStatistics(selectedCurrency, selectedProperty.id, selectedProperty.code, selectedProperty.name,); // 🆕 NEW
                 } else {
-                  fetchAnalytics(undefined, undefined, undefined, selectedCurrency);
-                  fetchStatistics(undefined, undefined, undefined, selectedCurrency); // 🆕 NEW
+                  fetchAnalytics(selectedCurrency);
+                  fetchStatistics(selectedCurrency);
                 }
               }}
               variant={"terciary"}

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import DataTable from '@/components/shared/DataTable';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { User, Mail, Edit } from 'lucide-react';
+import { User, Mail, Edit, Trash2 } from 'lucide-react';
 import { z } from 'zod';
 import { getRoles, getUsers, createUser, deleteUserById, updateUserById } from "./api/index"
 import type { IUser, IRoleAccess, ICreateUser } from "./types/types"
@@ -33,7 +33,7 @@ export default function MembersPage() {
   const fetchUsers = async () => {
     setLoading(true)
     try {
-      const res = await getUsers(1); 
+      const res = await getUsers(1);
       setUsers(res.data)
     } catch (error) {
       toast.error("Failed to fetch members")
@@ -198,7 +198,6 @@ export default function MembersPage() {
 
 
   const confirmDeleteUser = async () => {
-    // console.log(userToDelete)
     if (!userToDelete) {
       toast.error("User Not Found")
       return
@@ -271,14 +270,17 @@ export default function MembersPage() {
           >
             <Edit className="h-4 w-4" />
           </Button>
-          <DeleteConfirmationDialog
-            user={row}
-            isOpen={isDeleteDialogOpen}
-            onOpenChange={setIsDeleteDialogOpen}
-            onConfirm={confirmDeleteUser}
-            loading={loading}
-            setUserToDelete={setUserToDelete}
-          />
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-red-600 hover:text-red-700"
+            onClick={() => {
+              setUserToDelete(row);
+              setIsDeleteDialogOpen(true);
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
         </div>
       )
     }
@@ -315,12 +317,19 @@ export default function MembersPage() {
       {/* Edit User Dialog */}
       <EditMemberDialog
         user={editingUser}
-        roles={roles}
         isOpen={isEditDialogOpen}
         onOpenChange={setIsEditDialogOpen}
         onSubmit={handleUpdateUser}
         errors={errors}
         loading={loading}
+      />
+      <DeleteConfirmationDialog
+        user={userToDelete}
+        isOpen={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={confirmDeleteUser}
+        loading={loading}
+        setUserToDelete={setUserToDelete}
       />
 
       {/* Members Table */}

@@ -2,9 +2,9 @@ import createAxiosInstance from "@/components/axiosInstance";
 import type { IAddonCategoryCreate,IAddonCategoryUpdate } from "../interface";
 const axiosInstance = createAxiosInstance();
 
-export const fetchAddonCategories = async () => {
+export const fetchAddonCategories = async (propertyId: string) => {
     try {
-        const response = await axiosInstance.get('/addon/categories');
+        const response = await axiosInstance.get(`/addon/categories/?id=${propertyId}`);
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {
@@ -17,9 +17,9 @@ export const fetchAddonCategories = async () => {
         }
     }
 }
-export const createAddonCategory = async (categoryData: IAddonCategoryCreate) => {
+export const createAddonCategory = async (categoryData: IAddonCategoryCreate, propertyId: string) => {
     try {
-        const response = await axiosInstance.post('/addon/categories', categoryData);
+        const response = await axiosInstance.post(`/addon/categories?id=${propertyId}`, categoryData);
         return response.data;
     }
     catch (error: any) {

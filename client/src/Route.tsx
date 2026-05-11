@@ -8,7 +8,7 @@ import {
 import AuthLayout from "./Layout/Auth.layout.tsx";
 import PropertyLayout from "./Layout/Property.layout.tsx";
 import Login from "@/pages/login/page.tsx";
-import Dashboard from "./pages/dashboard/page.tsx";
+import Dashboard from "./pages/dashboard/Dashboard.tsx";
 import Property from "@/pages/property/Super.tsx";
 import MembersPage from "./pages/members/Members.tsx";
 import LogsPage from "./pages/logs/page.tsx";
