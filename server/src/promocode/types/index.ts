@@ -1,8 +1,7 @@
-import type { ICreatePromoCode, DiscountType,IRPromoCode } from "./promo-code.type";
-
-
-export type {
+import type {
     ICreatePromoCode,
     DiscountType,
-    IRPromoCode
-};
+    IRPromoCode,
+} from './promo-code.type';
+
+export type { ICreatePromoCode, DiscountType, IRPromoCode };

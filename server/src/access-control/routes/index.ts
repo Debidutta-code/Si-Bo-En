@@ -1,5 +1,3 @@
-import AccessControlRoutes from "./access.route"
+import AccessControlRoutes from './access.route';
 
-export {
-    AccessControlRoutes
-}
+export { AccessControlRoutes };

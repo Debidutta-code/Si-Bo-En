@@ -1,8 +1,8 @@
 export interface ICLoyaltyField {
-    loyaltyProgramId: string
-    masterRegistrationFieldId: string
+    loyaltyProgramId: string;
+    masterRegistrationFieldId: string;
 
-    fieldName: string
+    fieldName: string;
 
     visibleInRegistration: boolean;
     visibleInCustomerForm: boolean;
@@ -12,7 +12,7 @@ export interface ILoyaltyField extends ICLoyaltyField {
     id: string;
 }
 export interface IULoyaltyField {
-        fieldName: string
+    fieldName: string;
 
     visibleInRegistration: boolean;
     visibleInCustomerForm: boolean;

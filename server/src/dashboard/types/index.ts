@@ -27,9 +27,8 @@ import {
     IRoomTypeOccupancy,
     IComparisonPeriod,
     IStatisticsComparison,
-    CreationType
-} from "./dash.type";
-
+    CreationType,
+} from './dash.type';
 
 export {
     IPropertyCodeAndIds,
@@ -60,5 +59,5 @@ export {
     IRoomTypeOccupancy,
     IComparisonPeriod,
     IStatisticsComparison,
-    CreationType
-}
+    CreationType,
+};

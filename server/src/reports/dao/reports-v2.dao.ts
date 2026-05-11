@@ -27,7 +27,9 @@ export class CreationScopeResolver {
                         propertyId: { not: null },
                         ...(overrideGroupId && { groupId: overrideGroupId }),
                         ...(overrideBrandId && { brandId: overrideBrandId }),
-                        ...(overridePropertyId && { propertyId: overridePropertyId }),
+                        ...(overridePropertyId && {
+                            propertyId: overridePropertyId,
+                        }),
                     },
                     select: { propertyId: true },
                 });
@@ -40,7 +42,9 @@ export class CreationScopeResolver {
                         propertyId: { not: null },
                         regionalId: creation.id,
                         ...(overrideBrandId && { brandId: overrideBrandId }),
-                        ...(overridePropertyId && { propertyId: overridePropertyId }),
+                        ...(overridePropertyId && {
+                            propertyId: overridePropertyId,
+                        }),
                     },
                     select: { propertyId: true },
                 });
@@ -53,7 +57,9 @@ export class CreationScopeResolver {
                         propertyId: { not: null },
                         groupId: creation.id,
                         ...(overrideBrandId && { brandId: overrideBrandId }),
-                        ...(overridePropertyId && { propertyId: overridePropertyId }),
+                        ...(overridePropertyId && {
+                            propertyId: overridePropertyId,
+                        }),
                     },
                     select: { propertyId: true },
                 });
@@ -65,7 +71,9 @@ export class CreationScopeResolver {
                         type: 'property',
                         propertyId: { not: null },
                         brandId: creation.id,
-                        ...(overridePropertyId && { propertyId: overridePropertyId }),
+                        ...(overridePropertyId && {
+                            propertyId: overridePropertyId,
+                        }),
                     },
                     select: { propertyId: true },
                 });
@@ -155,7 +163,12 @@ export class ReportsV2Repository {
             },
             include: {
                 primaryGuest: {
-                    select: { firstName: true, lastName: true, email: true, phoneNumber: true },
+                    select: {
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        phoneNumber: true,
+                    },
                 },
             },
             orderBy: { reservationStartDate: 'asc' },
@@ -269,10 +282,17 @@ export class ReportsV2Repository {
             },
             include: {
                 primaryGuest: {
-                    select: { firstName: true, lastName: true, email: true, phoneNumber: true },
+                    select: {
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        phoneNumber: true,
+                    },
                 },
-                addOns: { select: { name: true, totalPrice: true, quantity: true } },
-                agency: { select: { agencyName:true } },
+                addOns: {
+                    select: { name: true, totalPrice: true, quantity: true },
+                },
+                agency: { select: { agencyName: true } },
             },
             orderBy: { bookedAt: 'desc' },
         });
@@ -297,7 +317,12 @@ export class ReportsV2Repository {
             },
             include: {
                 primaryGuest: {
-                    select: { firstName: true, lastName: true, email: true, phoneNumber: true },
+                    select: {
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        phoneNumber: true,
+                    },
                 },
             },
             orderBy: { [dateField]: 'asc' },
@@ -376,10 +401,19 @@ export class ReportsV2Repository {
                     select: { firstName: true, lastName: true, email: true },
                 },
                 payments: {
-                    select: { amount: true, status: true, paymentMethod: true, createdAt: true },
+                    select: {
+                        amount: true,
+                        status: true,
+                        paymentMethod: true,
+                        createdAt: true,
+                    },
                 },
                 AgencyCommission: {
-                    select: { commissionAmount: true, commissionValue: true, commissionType: true },
+                    select: {
+                        commissionAmount: true,
+                        commissionValue: true,
+                        commissionType: true,
+                    },
                 },
             },
             orderBy: { bookedAt: 'desc' },
@@ -387,13 +421,17 @@ export class ReportsV2Repository {
     }
 
     // ── Property name map helper ───────────────────────────────────────────────
-    public async getPropertyNames(propertyIds: string[]): Promise<Map<string, string>> {
+    public async getPropertyNames(
+        propertyIds: string[]
+    ): Promise<Map<string, string>> {
         const props = await prisma.property.findMany({
             where: { id: { in: propertyIds } },
             select: { id: true, propertyName: true, propertyCode: true },
         });
         const map = new Map<string, string>();
-        props.forEach(p => map.set(p.id, `${p.propertyName} (${p.propertyCode})`));
+        props.forEach(p =>
+            map.set(p.id, `${p.propertyName} (${p.propertyCode})`)
+        );
         return map;
     }
 }

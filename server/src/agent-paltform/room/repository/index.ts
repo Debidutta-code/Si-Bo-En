@@ -1,2 +1,2 @@
-import {AgentPricingRepository} from "./roomrent.repository";
-export {AgentPricingRepository}
+import { AgentPricingRepository } from './roomrent.repository';
+export { AgentPricingRepository };

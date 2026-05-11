@@ -1,7 +1,9 @@
-import {prisma} from "../../config";
-import { IPropertyEmails } from "../../reservation/types/reservation.type";
+import { prisma } from '../../config';
+import { IPropertyEmails } from '../../reservation/types/reservation.type';
 export class PropertyEmailRepository {
-    public async getPropertyEmails(propertyId: string): Promise<IPropertyEmails[]> {
+    public async getPropertyEmails(
+        propertyId: string
+    ): Promise<IPropertyEmails[]> {
         try {
             return await prisma.propertyEmails.findMany({
                 where: { propertyId },
@@ -9,8 +11,7 @@ export class PropertyEmailRepository {
                     email: true,
                 },
             });
-        }
-        catch (error) {
+        } catch (error) {
             throw new Error(`Error fetching property emails`);
         }
     }

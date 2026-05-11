@@ -1,14 +1,21 @@
-import { EmailVerificationOTP } from "../models";
+import { EmailVerificationOTP } from '../models';
 
 export class EmailOTPRepository {
-    async createOTP(email: string, otp: string, purpose: string, expiresInMinutes: number = 10) {
+    async createOTP(
+        email: string,
+        otp: string,
+        purpose: string,
+        expiresInMinutes: number = 10
+    ) {
         try {
             await EmailVerificationOTP.updateMany(
                 { email, purpose, isUsed: false },
                 { isUsed: true }
             );
 
-            const expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000);
+            const expiresAt = new Date(
+                Date.now() + expiresInMinutes * 60 * 1000
+            );
 
             const otpDoc = await EmailVerificationOTP.create({
                 email,
@@ -21,7 +28,9 @@ export class EmailOTPRepository {
 
             return otpDoc;
         } catch (error) {
-            throw new Error(`Failed to create OTP: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            throw new Error(
+                `Failed to create OTP: ${error instanceof Error ? error.message : 'Unknown error'}`
+            );
         }
     }
 
@@ -52,7 +61,9 @@ export class EmailOTPRepository {
 
             return otpDoc;
         } catch (error) {
-            throw new Error(`Failed to verify OTP: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            throw new Error(
+                `Failed to verify OTP: ${error instanceof Error ? error.message : 'Unknown error'}`
+            );
         }
     }
 
@@ -63,7 +74,9 @@ export class EmailOTPRepository {
             });
             return result.deletedCount;
         } catch (error) {
-            throw new Error(`Failed to delete expired OTPs: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            throw new Error(
+                `Failed to delete expired OTPs: ${error instanceof Error ? error.message : 'Unknown error'}`
+            );
         }
     }
 
@@ -87,7 +100,9 @@ export class EmailOTPRepository {
                 remainingAttempts: 5 - otpDoc.attempts,
             };
         } catch (error) {
-            throw new Error(`Failed to get OTP status: ${error instanceof Error ? error.message : 'Unknown error'}`);
+            throw new Error(
+                `Failed to get OTP status: ${error instanceof Error ? error.message : 'Unknown error'}`
+            );
         }
     }
 }

@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import { fikafiPaymentService } from '../services/fikafi.service';
 import { errorResponse, PropertyRequest, successResponse } from '../../utils';
 import { socketManager } from '../../socket';
-import { FikafiPaymentRequestBody } from "../types/fikafi.types";
+import { FikafiPaymentRequestBody } from '../types/fikafi.types';
 import { prisma, RedisClient } from '../../config';
 import { tryCatch } from 'bullmq';
 import { BookingStatus } from '../../reservation/types/reservation.type';
@@ -33,12 +33,16 @@ export class FikafiPaymentController {
                 !webhook
             ) {
                 console.error('❌ Validation failed: Missing required fields');
-                return res.status(400).json(errorResponse("Missing required fields"));
+                return res
+                    .status(400)
+                    .json(errorResponse('Missing required fields'));
             }
 
             // Validate guest details
             if (!guestDetails.guestName || !guestDetails.email) {
-                return res.status(400).json(errorResponse("Guest name and email are required"));
+                return res
+                    .status(400)
+                    .json(errorResponse('Guest name and email are required'));
             }
 
             // Validate booking details
@@ -52,7 +56,9 @@ export class FikafiPaymentController {
                 console.error(
                     '❌ Validation failed: Booking details incomplete'
                 );
-                return res.status(400).json(errorResponse("Incomplete booking details"));
+                return res
+                    .status(400)
+                    .json(errorResponse('Incomplete booking details'));
             }
 
             // Validate payment details
@@ -63,7 +69,9 @@ export class FikafiPaymentController {
                 !paymentDetails.validity ||
                 !paymentDetails.payments?.length
             ) {
-                return res.status(400).json(errorResponse("Incomplete payment details"));
+                return res
+                    .status(400)
+                    .json(errorResponse('Incomplete payment details'));
             }
 
             const result = await fikafiPaymentService.createPaymentLink(
@@ -87,31 +95,42 @@ export class FikafiPaymentController {
             );
 
             if (result.success && result.data) {
-                return res.status(200).json(successResponse(
-                    'Payment link created successfully',
-                    {
+                return res.status(200).json(
+                    successResponse('Payment link created successfully', {
                         bookingRefNum,
                         paymentLink: result.data.paymentLink,
                         paymentId: result.data.referenceNumber,
                         status: result.data.status,
-                    }
-                ));
+                    })
+                );
             } else {
-                return res.status(400).json(errorResponse(
-                    'Failed to create payment link'
-                ));
+                return res
+                    .status(400)
+                    .json(errorResponse('Failed to create payment link'));
             }
         } catch (error) {
             if (error instanceof Error) {
-                return res.status(500).json(errorResponse("Error creating Fikafi payment link", error.message))
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse(
+                            'Error creating Fikafi payment link',
+                            error.message
+                        )
+                    );
             }
-            return res.status(500).json(errorResponse("Error creating Fikafi payment link"));
+            return res
+                .status(500)
+                .json(errorResponse('Error creating Fikafi payment link'));
         }
     }
 
     public static async getPaymentStatus(req: Request, res: Response) {
         try {
-            const { bookingRefNum, fikafiRefNum } = req.query as { bookingRefNum?: string; fikafiRefNum?: string };
+            const { bookingRefNum, fikafiRefNum } = req.query as {
+                bookingRefNum?: string;
+                fikafiRefNum?: string;
+            };
 
             if (!bookingRefNum || !fikafiRefNum) {
                 return res.status(400).json({
@@ -120,18 +139,34 @@ export class FikafiPaymentController {
                 });
             }
 
-            const result =
-                await fikafiPaymentService.getPaymentStatus(bookingRefNum, fikafiRefNum);
+            const result = await fikafiPaymentService.getPaymentStatus(
+                bookingRefNum,
+                fikafiRefNum
+            );
 
-            return res.status(200).json(successResponse("Payment status fetched successfully", result));
-        }
-        catch (error) {
+            return res
+                .status(200)
+                .json(
+                    successResponse(
+                        'Payment status fetched successfully',
+                        result
+                    )
+                );
+        } catch (error) {
             if (error instanceof Error) {
-                return res.status(500).json(errorResponse("Error fetching payment status", error.message))
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse(
+                            'Error fetching payment status',
+                            error.message
+                        )
+                    );
             }
-            return res.status(500).json(errorResponse("Error fetching payment status"));
+            return res
+                .status(500)
+                .json(errorResponse('Error fetching payment status'));
         }
-
     }
 
     public static async generateFromReservation(
@@ -145,7 +180,9 @@ export class FikafiPaymentController {
             const fikafiToken = req.headers['x-fikafi-token'] as string;
 
             if (!reservationId) {
-                return res.status(400).json(errorResponse("Reservation ID is required"));
+                return res
+                    .status(400)
+                    .json(errorResponse('Reservation ID is required'));
             }
 
             const reservation = await prisma.reservation.findUnique({
@@ -161,14 +198,16 @@ export class FikafiPaymentController {
             });
 
             if (!reservation) {
-                return res.status(404).json(errorResponse("Reservation not found"));
+                return res
+                    .status(404)
+                    .json(errorResponse('Reservation not found'));
             }
 
             const checkInDate = new Date(reservation.reservationStartDate);
             const checkOutDate = new Date(reservation.reservationEndDate);
             const numberOfNights = Math.ceil(
                 (checkOutDate.getTime() - checkInDate.getTime()) /
-                (1000 * 60 * 60 * 24)
+                    (1000 * 60 * 60 * 24)
             );
 
             const fikafiRequest = {
@@ -222,24 +261,42 @@ export class FikafiPaymentController {
                     },
                 });
 
-                return res.status(200).json(successResponse(
-                    'Payment link generated successfully',
-                    {
+                return res.status(200).json(
+                    successResponse('Payment link generated successfully', {
                         paymentLink: result.data.paymentLink,
                         paymentId: result.data.referenceNumber,
                         status: result.data.status,
-                    }
-                ));
-
-
+                    })
+                );
             } else {
-                return res.status(400).json(errorResponse("Failed to generate payment link", result.error || '', result.code));
+                return res
+                    .status(400)
+                    .json(
+                        errorResponse(
+                            'Failed to generate payment link',
+                            result.error || '',
+                            result.code
+                        )
+                    );
             }
         } catch (error) {
             if (error instanceof Error) {
-                return res.status(500).json(errorResponse("Error generating Fikafi payment link from reservation", error.message))
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse(
+                            'Error generating Fikafi payment link from reservation',
+                            error.message
+                        )
+                    );
             }
-            return res.status(500).json(errorResponse("Error generating Fikafi payment link from reservation"));
+            return res
+                .status(500)
+                .json(
+                    errorResponse(
+                        'Error generating Fikafi payment link from reservation'
+                    )
+                );
         }
     }
 
@@ -256,16 +313,25 @@ export class FikafiPaymentController {
                 payload.bookingRef ||
                 payload.ref;
             const status =
-                payload.payment?.status || payload.status || payload.paymentStatus || payload.state;
+                payload.payment?.status ||
+                payload.status ||
+                payload.paymentStatus ||
+                payload.state;
             const amount =
-                payload.payment?.amount ?? payload.amount ?? payload.totalAmount ?? payload.paymentAmount;
-
+                payload.payment?.amount ??
+                payload.amount ??
+                payload.totalAmount ??
+                payload.paymentAmount;
 
             if (!bookingRefNum) {
                 console.error(
                     '❌ No booking reference found in webhook payload'
                 );
-                return res.status(400).json(errorResponse("bookingRefNum/referenceNumber missing"));
+                return res
+                    .status(400)
+                    .json(
+                        errorResponse('bookingRefNum/referenceNumber missing')
+                    );
             }
             // success check - handle various status formats
             const isPaid =
@@ -289,12 +355,25 @@ export class FikafiPaymentController {
                         },
                     });
                 } catch (dbError) {
-                    return res.status(500).json(errorResponse("Failed to connect to db", dbError instanceof Error ? dbError.message : 'Unknown error'));
+                    return res
+                        .status(500)
+                        .json(
+                            errorResponse(
+                                'Failed to connect to db',
+                                dbError instanceof Error
+                                    ? dbError.message
+                                    : 'Unknown error'
+                            )
+                        );
                 }
                 try {
                     const res = await client.set(
                         `payment:confirmed:${bookingRefNum}`,
-                        JSON.stringify({ amount, status, confirmedAt: Date.now() }),
+                        JSON.stringify({
+                            amount,
+                            status,
+                            confirmedAt: Date.now(),
+                        }),
                         { EX: 600 } // 10 minutes TTL — enough for a reconnecting client
                     );
                     // console.log("Redis store res", res);
@@ -306,7 +385,9 @@ export class FikafiPaymentController {
                 //     JSON.stringify({ amount, status, confirmedAt: Date.now() }),
                 //     { EX: 6000 }
                 // );
-                const isExists = await client.get(`payment:confirmed:${bookingRefNum}`);
+                const isExists = await client.get(
+                    `payment:confirmed:${bookingRefNum}`
+                );
                 // console.log(`🔍 Redis verify read-back: ${isExists ? 'KEY EXISTS ✅' : 'KEY MISSING ❌ - write failed silently'}`);
                 socketManager.emitPaymentUpdate(bookingRefNum, {
                     orderReference: bookingRefNum,
@@ -325,17 +406,18 @@ export class FikafiPaymentController {
 
                 // Map payment status to booking status
                 const statusMap: Record<string, string> = {
-                    'Expired': 'expired',
-                    'EXPIRED': 'expired',
-                    'Declined': 'cancelled',
-                    'DECLINED': 'cancelled',
-                    'Failed': 'cancelled',
-                    'FAILED': 'cancelled',
-                    'failed': 'cancelled',
-                    'Timeout': 'cancelled',
-                    'TIMEOUT': 'cancelled',
+                    Expired: 'expired',
+                    EXPIRED: 'expired',
+                    Declined: 'cancelled',
+                    DECLINED: 'cancelled',
+                    Failed: 'cancelled',
+                    FAILED: 'cancelled',
+                    failed: 'cancelled',
+                    Timeout: 'cancelled',
+                    TIMEOUT: 'cancelled',
                 };
-                const bookingStatus = (statusMap[status] || 'cancelled') as BookingStatus;
+                const bookingStatus = (statusMap[status] ||
+                    'cancelled') as BookingStatus;
 
                 // Update reservation status to indicate payment failure
                 try {
@@ -348,7 +430,10 @@ export class FikafiPaymentController {
                     });
                     // console.log(`✅ Reservation ${bookingRefNum} marked as ${bookingStatus}`);
                 } catch (dbError) {
-                    console.error(`❌ Failed to update reservation in DB:`, dbError);
+                    console.error(
+                        `❌ Failed to update reservation in DB:`,
+                        dbError
+                    );
                 }
 
                 // Store failure in Redis (TTL: 10 minutes)
@@ -357,7 +442,10 @@ export class FikafiPaymentController {
                         `payment:failed:${bookingRefNum}`,
                         JSON.stringify({
                             status,
-                            message: FikafiPaymentController.getFailureMessage(status),
+                            message:
+                                FikafiPaymentController.getFailureMessage(
+                                    status
+                                ),
                             failedAt: Date.now(),
                         }),
                         { EX: 600 }
@@ -380,24 +468,32 @@ export class FikafiPaymentController {
                 //     `❌ Payment failure event emitted to room: payment:${bookingRefNum}`
                 // );
             } else {
-                console.warn(`⏳ Payment not completed yet (status: ${status})`);
+                console.warn(
+                    `⏳ Payment not completed yet (status: ${status})`
+                );
             }
 
-            return res.status(200).json(successResponse(
-                'Payment event processed successfully',
-            ));
+            return res
+                .status(200)
+                .json(successResponse('Payment event processed successfully'));
         } catch (error) {
             if (error instanceof Error) {
-                return res.status(500).json(errorResponse("Failed to handle payment", error.message))
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse('Failed to handle payment', error.message)
+                    );
             }
-            return res.status(500).json(errorResponse("Failed to handle payment"));
+            return res
+                .status(500)
+                .json(errorResponse('Failed to handle payment'));
         }
     }
 
     /**
      * Take action on a failed/expired payment
      * POST /api/v1/fikafi/payment-action
-     * 
+     *
      * Body: { bookingRefNum, fikafiRefNum, action: 'resend' | 'cancel' }
      */
     public static async takePaymentAction(req: Request, res: Response) {
@@ -408,7 +504,8 @@ export class FikafiPaymentController {
             if (!bookingRefNum || !fikafiRefNum || !action) {
                 return res.status(400).json({
                     success: false,
-                    message: 'bookingRefNum, fikafiRefNum, and action are required',
+                    message:
+                        'bookingRefNum, fikafiRefNum, and action are required',
                 });
             }
 
@@ -442,16 +539,23 @@ export class FikafiPaymentController {
                         });
                         // console.log(`✅ Reservation ${bookingRefNum} marked as cancelled`);
                     } catch (dbError) {
-                        console.error(`❌ Failed to update reservation in DB:`, dbError);
+                        console.error(
+                            `❌ Failed to update reservation in DB:`,
+                            dbError
+                        );
                     }
                 }
 
                 // Emit socket event for the action result
                 socketManager.emitPaymentUpdate(bookingRefNum, {
                     orderReference: bookingRefNum,
-                    eventName: action === 'resend' ? 'payment-resent' : 'payment-cancelled',
+                    eventName:
+                        action === 'resend'
+                            ? 'payment-resent'
+                            : 'payment-cancelled',
                     status: action === 'resend' ? 'pending' : 'failed',
-                    message: result.message || `Payment ${action} action completed`,
+                    message:
+                        result.message || `Payment ${action} action completed`,
                 });
 
                 return res.status(200).json({
@@ -522,10 +626,18 @@ export class FikafiPaymentController {
             });
         } catch (error) {
             if (error instanceof Error) {
-                return res.status(500).json(errorResponse("Failed to fetch reservation by code", error.message))
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse(
+                            'Failed to fetch reservation by code',
+                            error.message
+                        )
+                    );
             }
-            return res.status(500).json(errorResponse("Failed to fetch reservation by code"));
-
+            return res
+                .status(500)
+                .json(errorResponse('Failed to fetch reservation by code'));
         }
     }
 
@@ -546,9 +658,18 @@ export class FikafiPaymentController {
             }
         } catch (error) {
             if (error instanceof Error) {
-                return res.status(500).json(errorResponse("Failed to fetch reservation by code", error.message))
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse(
+                            'Failed to fetch reservation by code',
+                            error.message
+                        )
+                    );
             }
-            return res.status(500).json(errorResponse("Failed to generate Fikafi token"));
+            return res
+                .status(500)
+                .json(errorResponse('Failed to generate Fikafi token'));
         }
     }
 
@@ -581,20 +702,20 @@ export class FikafiPaymentController {
      */
     private static getFailureMessage(status: string): string {
         const messages: Record<string, string> = {
-            'Expired': 'Payment request has expired',
-            'EXPIRED': 'Payment request has expired',
-            'Declined': 'Payment was declined by the bank',
-            'DECLINED': 'Payment was declined by the bank',
-            'Failed': 'Payment failed',
-            'FAILED': 'Payment failed',
-            'failed': 'Payment failed',
-            'CANCELLED': 'Payment was cancelled',
-            'Cancelled': 'Payment was cancelled',
-            'cancelled': 'Payment was cancelled',
-            'Timeout': 'Payment request timed out',
-            'TIMEOUT': 'Payment request timed out',
-            'error': 'An error occurred during payment',
-            'ERROR': 'An error occurred during payment',
+            Expired: 'Payment request has expired',
+            EXPIRED: 'Payment request has expired',
+            Declined: 'Payment was declined by the bank',
+            DECLINED: 'Payment was declined by the bank',
+            Failed: 'Payment failed',
+            FAILED: 'Payment failed',
+            failed: 'Payment failed',
+            CANCELLED: 'Payment was cancelled',
+            Cancelled: 'Payment was cancelled',
+            cancelled: 'Payment was cancelled',
+            Timeout: 'Payment request timed out',
+            TIMEOUT: 'Payment request timed out',
+            error: 'An error occurred during payment',
+            ERROR: 'An error occurred during payment',
         };
         return messages[status] || `Payment failed: ${status}`;
     }

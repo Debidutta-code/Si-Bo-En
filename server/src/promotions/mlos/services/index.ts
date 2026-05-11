@@ -1,4 +1,2 @@
-import { MLOSService } from "./mlos.service";
-export{
-    MLOSService
-}
+import { MLOSService } from './mlos.service';
+export { MLOSService };

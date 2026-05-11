@@ -1,15 +1,12 @@
 import puppeteer from 'puppeteer';
 
-
 import { successResponse, errorResponse } from '../../utils/return';
 import { ReportsRepository } from '../dao/reports.dao';
 import {
     generateBookingInvoiceHTML,
     generateBookingVoucherHTML,
 } from '../templates';
-import {
-    IGuestsData
-} from '../interfaces/reports.type';
+import { IGuestsData } from '../interfaces/reports.type';
 
 export class ReportsService {
     private reportsRepository: ReportsRepository;
@@ -46,7 +43,7 @@ export class ReportsService {
             );
 
             // Get price breakdown
-            const priceBreakdown = reservation.PricingBrakeDown
+            const priceBreakdown = reservation.PricingBrakeDown;
 
             // Prepare data for template
             const voucherData = {
@@ -58,15 +55,20 @@ export class ReportsService {
                     description: property.description,
                     image: property.image,
                     // ── Use logo from booking engine config ───────────────────────
-                    logo: property.bookingEngineConfig?.logo ?? property.image?.[0] ?? null,
-                    primaryColor: property.bookingEngineConfig?.primaryColor ?? '#1e293b',
+                    logo:
+                        property.bookingEngineConfig?.logo ??
+                        property.image?.[0] ??
+                        null,
+                    primaryColor:
+                        property.bookingEngineConfig?.primaryColor ?? '#1e293b',
                     starRating: property.starRating,
                     propertyAddress: property.propertyAddress,
                     propertyAmenities: property.propertyAmenities,
                 },
                 room: reservation.room ?? null,
                 // ── Pass ratePlanName ─────────────────────────────────────────────
-                ratePlanName: reservation.ratePlanName ?? reservation.ratePlanCode,
+                ratePlanName:
+                    reservation.ratePlanName ?? reservation.ratePlanCode,
                 reservation: {
                     bookingCode: reservation.bookingCode,
                     checkInDate: reservation.reservationStartDate,
@@ -84,15 +86,19 @@ export class ReportsService {
                     paymentMethod: reservation.paymentMethod,
                 },
                 reservationGuests: reservation.reservationGuests ?? [],
-                primaryGuest: reservation.primaryGuest ? {
-                    firstName: reservation.primaryGuest.firstName,
-                    lastName: reservation.primaryGuest.lastName,
-                    email: reservation.primaryGuest.email,
-                    phoneNumber: reservation.primaryGuest.phoneNumber,
-                    userType: reservation.primaryGuest.userType,
-                    userIdentityCardType: reservation.primaryGuest.userIdentityCardType,
-                    identityCardNumber: reservation.primaryGuest.identityCardNumber,
-                } : null,
+                primaryGuest: reservation.primaryGuest
+                    ? {
+                          firstName: reservation.primaryGuest.firstName,
+                          lastName: reservation.primaryGuest.lastName,
+                          email: reservation.primaryGuest.email,
+                          phoneNumber: reservation.primaryGuest.phoneNumber,
+                          userType: reservation.primaryGuest.userType,
+                          userIdentityCardType:
+                              reservation.primaryGuest.userIdentityCardType,
+                          identityCardNumber:
+                              reservation.primaryGuest.identityCardNumber,
+                      }
+                    : null,
                 addOns: reservation.addOns.map(addon => ({
                     name: addon.name,
                     quantity: addon.quantity,
@@ -102,20 +108,29 @@ export class ReportsService {
                     type: addon.type,
                     images: addon.addon?.images ?? [],
                 })),
-                priceBreakdown: priceBreakdown ? {
-                    totalAmount: Number(priceBreakdown.totalAmount),
-                    totalTax: Number(priceBreakdown.taxedAmount),
-                    baseRatePerNight: Number(priceBreakdown.DailyPriceBrakeDown.reduce((acc, curr) => acc + curr.baseChargesAmount, 0)),
-                    numberOfNights: priceBreakdown.DailyPriceBrakeDown.length,
-                    // requestedRooms: priceBreakdown.,
-                    dailyBreakdown: priceBreakdown.DailyPriceBrakeDown.map(item => ({
-                        date: item.date,
-                        baseChargesAmount: item.baseChargesAmount,
-                        totalAmount: item.totalAmount,
-                    })),
-                    breakdown: priceBreakdown,
-                    tax: priceBreakdown.taxedAmount,
-                } : null,
+                priceBreakdown: priceBreakdown
+                    ? {
+                          totalAmount: Number(priceBreakdown.totalAmount),
+                          totalTax: Number(priceBreakdown.taxedAmount),
+                          baseRatePerNight: Number(
+                              priceBreakdown.DailyPriceBrakeDown.reduce(
+                                  (acc, curr) => acc + curr.baseChargesAmount,
+                                  0
+                              )
+                          ),
+                          numberOfNights:
+                              priceBreakdown.DailyPriceBrakeDown.length,
+                          // requestedRooms: priceBreakdown.,
+                          dailyBreakdown:
+                              priceBreakdown.DailyPriceBrakeDown.map(item => ({
+                                  date: item.date,
+                                  baseChargesAmount: item.baseChargesAmount,
+                                  totalAmount: item.totalAmount,
+                              })),
+                          breakdown: priceBreakdown,
+                          tax: priceBreakdown.taxedAmount,
+                      }
+                    : null,
                 finalPrice: reservation.finalPrice,
             };
             // Generate HTML
@@ -218,16 +233,16 @@ export class ReportsService {
                 },
                 primaryGuest: reservation.primaryGuest
                     ? {
-                        firstName: reservation.primaryGuest.firstName,
-                        lastName: reservation.primaryGuest.lastName,
-                        email: reservation.primaryGuest.email,
-                        phoneNumber: reservation.primaryGuest.phoneNumber,
-                        userType: reservation.primaryGuest.userType,
-                        userIdentityCardType:
-                            reservation.primaryGuest.userIdentityCardType,
-                        identityCardNumber:
-                            reservation.primaryGuest.identityCardNumber,
-                    }
+                          firstName: reservation.primaryGuest.firstName,
+                          lastName: reservation.primaryGuest.lastName,
+                          email: reservation.primaryGuest.email,
+                          phoneNumber: reservation.primaryGuest.phoneNumber,
+                          userType: reservation.primaryGuest.userType,
+                          userIdentityCardType:
+                              reservation.primaryGuest.userIdentityCardType,
+                          identityCardNumber:
+                              reservation.primaryGuest.identityCardNumber,
+                      }
                     : null,
                 addOns: reservation.addOns.map(addon => ({
                     name: addon.name,
@@ -236,16 +251,24 @@ export class ReportsService {
                 })),
                 priceBreakdown: priceBreakdown
                     ? {
-                        totalAmount: Number(priceBreakdown.totalAmount),
-                        totalTax: Number(priceBreakdown.taxedAmount),
-                        baseRatePerNight: Number(
-                            priceBreakdown.DailyPriceBrakeDown.reduce((acc, curr) => acc + curr.baseChargesAmount, 0)
-                        ),
-                        numberOfNights: priceBreakdown.DailyPriceBrakeDown.length,
-                        additionalGuestCharges:
-                            priceBreakdown.DailyPriceBrakeDown.reduce((acc, curr) => acc + curr.additionalChargesAmount, 0),
-                        breakdown: priceBreakdown,
-                    }
+                          totalAmount: Number(priceBreakdown.totalAmount),
+                          totalTax: Number(priceBreakdown.taxedAmount),
+                          baseRatePerNight: Number(
+                              priceBreakdown.DailyPriceBrakeDown.reduce(
+                                  (acc, curr) => acc + curr.baseChargesAmount,
+                                  0
+                              )
+                          ),
+                          numberOfNights:
+                              priceBreakdown.DailyPriceBrakeDown.length,
+                          additionalGuestCharges:
+                              priceBreakdown.DailyPriceBrakeDown.reduce(
+                                  (acc, curr) =>
+                                      acc + curr.additionalChargesAmount,
+                                  0
+                              ),
+                          breakdown: priceBreakdown,
+                      }
                     : null,
             };
 
@@ -291,6 +314,4 @@ export class ReportsService {
             );
         }
     }
-
-
 }

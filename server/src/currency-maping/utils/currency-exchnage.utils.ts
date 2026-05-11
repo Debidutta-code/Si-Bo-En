@@ -1,4 +1,4 @@
-import {RedisClient,prisma} from '../../config';
+import { RedisClient, prisma } from '../../config';
 import { CurrencyCode } from '../../tax-system/interfaces/tourist-tax.type';
 
 const getRateFromHash = async (currency: CurrencyCode): Promise<number> => {
@@ -26,12 +26,17 @@ export const convertCurrency = async (
     return Math.round(converted * 100) / 100;
 };
 
-export const getPropertyBaseCurrency = async (propertyId: string): Promise<CurrencyCode> => {
+export const getPropertyBaseCurrency = async (
+    propertyId: string
+): Promise<CurrencyCode> => {
     const config = await prisma.propertyConfigs.findUnique({
         where: { propertyId },
         select: { baseCurrency: true },
     });
-    if (!config) throw new Error(`PropertyConfig not found for propertyId: ${propertyId}`);
+    if (!config)
+        throw new Error(
+            `PropertyConfig not found for propertyId: ${propertyId}`
+        );
     return config.baseCurrency;
 };
 
@@ -41,11 +46,13 @@ export const convertToPropertyCurrency = async (
     propertyId: string
 ): Promise<{ convertedAmount: number; baseCurrency: CurrencyCode }> => {
     const baseCurrency = await getPropertyBaseCurrency(propertyId);
-    const convertedAmount = await convertCurrency(amount, fromCurrency, baseCurrency);
+    const convertedAmount = await convertCurrency(
+        amount,
+        fromCurrency,
+        baseCurrency
+    );
     return { convertedAmount, baseCurrency };
 };
-
-
 
 export const getCurrencyConverter = async (
     propertyId: string,
@@ -71,8 +78,9 @@ export const getCurrencyConverter = async (
     const multiplier = toRate / fromRate;
 
     return {
-        convert: (amount: number) => Math.round(amount * multiplier * 100) / 100,
+        convert: (amount: number) =>
+            Math.round(amount * multiplier * 100) / 100,
         baseCurrency,
-        multiplier, 
+        multiplier,
     };
 };

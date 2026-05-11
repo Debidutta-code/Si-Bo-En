@@ -1,1 +1,1 @@
-export * from "./agent.middleware"
+export * from './agent.middleware';

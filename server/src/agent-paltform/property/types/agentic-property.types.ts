@@ -3,8 +3,8 @@ export interface IPropertyConfigs {
     showVideo: boolean;
     commission: boolean;
     timezone: string;
-    isB2bAvailable: boolean;       // ← ADDED
-    isB2cAvailable: boolean;       // ← ADDED
+    isB2bAvailable: boolean; // ← ADDED
+    isB2cAvailable: boolean; // ← ADDED
 }
 
 export interface IProperty {
@@ -15,7 +15,7 @@ export interface IProperty {
     propertyCode: string;
     description: string;
     image: string[];
-    propertyAddress: IPropertyAddress | null;  // ← removed ?
+    propertyAddress: IPropertyAddress | null; // ← removed ?
     propertyAmenities: IPropertyAmenities[];
     propertyCategory: IPropertyCategory | null;
     propertyType: IPropertyType | null;

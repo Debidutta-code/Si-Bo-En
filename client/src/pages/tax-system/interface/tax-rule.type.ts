@@ -12,13 +12,11 @@ export interface ITaxRule {
     value: number;
     applicableOn: TaxApplicableOn;
     description: string | null;
-    validFrom: Date;
-    validTo: Date;
     priority: number;
     propertyId: string;
     createdAt: Date;
     updatedAt: Date;
-        currencyCode: CurrencyCode;
+    currencyCode: CurrencyCode;
 
     taxGroupRules?: {
         id: string;
@@ -37,8 +35,6 @@ export interface ICTaxRule {
     value: number;
     applicableOn: TaxApplicableOn;
     description?: string;
-    validFrom: Date;
-    validTo: Date;
     priority: number;
     currencyCode: CurrencyCode;
 }
@@ -49,8 +45,6 @@ export interface IUTaxRule {
     value: number;
     applicableOn: TaxApplicableOn;
     description: string;
-    validFrom: Date;
-    validTo: Date;
     priority: number;
     currencyCode: CurrencyCode;
 }

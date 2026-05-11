@@ -47,9 +47,9 @@ export interface RateTigerRequest extends ExpressRequest {
     };
 }
 
-export interface IOtaCustomRequest extends ExpressRequest{
+export interface IOtaCustomRequest extends ExpressRequest {
     otaUser?: {
-        email:string;
-        id:string;
+        email: string;
+        id: string;
     };
 }

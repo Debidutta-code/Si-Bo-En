@@ -1,5 +1,3 @@
-import {dashboardRouter} from "./dash.route";
+import { dashboardRouter } from './dash.route';
 
-export{
-    dashboardRouter
-}
+export { dashboardRouter };

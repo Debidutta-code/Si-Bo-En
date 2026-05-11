@@ -10,6 +10,7 @@ otaRouter.use("/users", otaUserRouter);
 otaRouter.use("/wishlist", wishlistRouter);
 otaRouter.use("/reviews", reviewRouter);
 otaRouter.use("/properties", hotelRouter);
+// otaRouter.use("/reservations", ReservationRouter);
 
 
-export { otaRouter }
+export { otaRouter };

@@ -1,4 +1,4 @@
-import { IAgenticRoom } from ".";
+import { IAgenticRoom } from '.';
 
 export interface ICAgenticProperty {
     agencyId: string;
@@ -6,9 +6,8 @@ export interface ICAgenticProperty {
     propertyCode: string;
     propertyName: string;
     isActive: boolean;
-
 }
-export interface ICAgenticProperties{
+export interface ICAgenticProperties {
     id: string;
     propertyCode: string;
     propertyName: string;
@@ -19,9 +18,8 @@ export interface IAgenticProperty extends ICAgenticProperty {
 }
 export interface IAgenticPropertyWR extends IAgenticProperty {
     AgenticRooms: IAgenticRoom[];
-
 }
-export interface IProperty{
+export interface IProperty {
     id: string;
     propertyCode: string;
     propertyName: string;

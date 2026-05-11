@@ -9,7 +9,6 @@ export interface ICRoomWishListR {
     roomId: string;
     roomType: string;
     roomName: string;
-
 }
 export interface IRoomWishlist extends ICRoomWishListR {
     id: string;
@@ -23,17 +22,16 @@ export interface IRoomWishlistWRooms extends IPropertyWishlist {
     Property: IProperty;
     RoomWishList: IRoomWishlist[];
 }
-export interface IProperty{
-    id:string;
-    propertyName:string;
-    propertyCode:string;
-        image:string[];
-
+export interface IProperty {
+    id: string;
+    propertyName: string;
+    propertyCode: string;
+    image: string[];
 }
-export interface IRoom{
-    id:string;
-    roomName:string;
-    roomType:string;
-    image:string[];
-    propertyId:string;
+export interface IRoom {
+    id: string;
+    roomName: string;
+    roomType: string;
+    image: string[];
+    propertyId: string;
 }

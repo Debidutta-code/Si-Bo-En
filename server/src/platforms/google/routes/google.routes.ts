@@ -9,7 +9,10 @@ googleRouter.get('/hotel-list.xml', GoogleFeedsController.getHotelListFeed);
 
 googleRouter.get('/price-availability.xml', GoogleFeedsController.getPriceFeed);
 
-googleRouter.get('/landing-pages.xml', GoogleFeedsController.getLandingPageFeed);
+googleRouter.get(
+    '/landing-pages.xml',
+    GoogleFeedsController.getLandingPageFeed
+);
 
 googleRouter.get('/status', GoogleFeedsController.getFeedStatus);
 

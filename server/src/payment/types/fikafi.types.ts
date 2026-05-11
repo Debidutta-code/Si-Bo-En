@@ -55,4 +55,3 @@ export interface FikafiWebhookPayload {
     bookingRefNum?: string;
     eventType?: string;
 }
-

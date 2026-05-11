@@ -1,1 +1,1 @@
-export * from "./childAddon.repository";
+export * from './childAddon.repository';

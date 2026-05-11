@@ -1,8 +1,14 @@
-
 import { prisma } from '../../config';
 import { toUTC } from '../../utils';
-import type { ICreateInventoryRepo, IIdInventory, IWeekdayCharges, IWeekdayAdditionalCharges, IAdditionalGuestAmount, ICharges } from "../types"
-import { formatDate, localMidnight, parseDdMmYyyy } from "../utils/date"
+import type {
+    ICreateInventoryRepo,
+    IIdInventory,
+    IWeekdayCharges,
+    IWeekdayAdditionalCharges,
+    IAdditionalGuestAmount,
+    ICharges,
+} from '../types';
+import { formatDate, localMidnight, parseDdMmYyyy } from '../utils/date';
 
 class InventoryRepository {
     public async getInventoryDao(
@@ -108,7 +114,9 @@ class InventoryRepository {
         }
     }
 
-    public async createInventory(repoData: ICreateInventoryRepo[]): Promise<boolean> {
+    public async createInventory(
+        repoData: ICreateInventoryRepo[]
+    ): Promise<boolean> {
         try {
             await Promise.all(
                 repoData.map(item => {
@@ -140,10 +148,15 @@ class InventoryRepository {
 
             // ── Step 1: Upsert all charges in parallel ────────────────────────────
             const upsertedCharges = await Promise.all(
-                payload.map((chargeData) => {
+                payload.map(chargeData => {
                     const {
-                        propertyCode, ratePlanCode, ratePlanName,
-                        roomTypeCode, roomTypeName, currencyCode, date,
+                        propertyCode,
+                        ratePlanCode,
+                        ratePlanName,
+                        roomTypeCode,
+                        roomTypeName,
+                        currencyCode,
+                        date,
                     } = chargeData;
 
                     return prisma.charge.upsert({
@@ -156,16 +169,26 @@ class InventoryRepository {
                             },
                         },
                         create: {
-                            propertyCode, ratePlanCode, ratePlanName,
-                            roomTypeCode, roomTypeName,
+                            propertyCode,
+                            ratePlanCode,
+                            ratePlanName,
+                            roomTypeCode,
+                            roomTypeName,
                             currencyCode: currencyCode.toUpperCase() as any,
                             date: new Date(date.toString()),
                         },
                         update: {
-                            ratePlanName, roomTypeName,
+                            ratePlanName,
+                            roomTypeName,
                             currencyCode: currencyCode.toUpperCase() as any,
                         },
-                        select: { id: true, propertyCode: true, ratePlanCode: true, roomTypeCode: true, date: true },
+                        select: {
+                            id: true,
+                            propertyCode: true,
+                            ratePlanCode: true,
+                            roomTypeCode: true,
+                            date: true,
+                        },
                     });
                 })
             );
@@ -174,8 +197,12 @@ class InventoryRepository {
             const chargeIds = upsertedCharges.map(c => c.id);
 
             await Promise.all([
-                prisma.chargeBaseByGuest.deleteMany({ where: { chargeId: { in: chargeIds } } }),
-                prisma.chargeAdditionalGuest.deleteMany({ where: { chargeId: { in: chargeIds } } }),
+                prisma.chargeBaseByGuest.deleteMany({
+                    where: { chargeId: { in: chargeIds } },
+                }),
+                prisma.chargeAdditionalGuest.deleteMany({
+                    where: { chargeId: { in: chargeIds } },
+                }),
             ]);
 
             // ── Step 3: Re-insert all nested records in bulk ──────────────────────
@@ -198,7 +225,9 @@ class InventoryRepository {
 
             await Promise.all([
                 prisma.chargeBaseByGuest.createMany({ data: baseGuestData }),
-                prisma.chargeAdditionalGuest.createMany({ data: additionalGuestData }),
+                prisma.chargeAdditionalGuest.createMany({
+                    data: additionalGuestData,
+                }),
             ]);
 
             // ── Step 4: Update inventory ratePlans array ──────────────────────────
@@ -228,7 +257,6 @@ class InventoryRepository {
                 message: `Added/Updated ${upsertedCharges.length} charge records and updated rate plans for rooms`,
                 recordsCreated: upsertedCharges.length,
             };
-
         } catch (error: any) {
             console.error('Error mapping rate plans:', error);
             throw new Error(error.message);
@@ -261,23 +289,29 @@ class InventoryRepository {
                     propertyCode,
                     roomTypeCode,
                     availability: {
-                        gt: 0  // Only dates with availability > 0
-                    }
+                        gt: 0, // Only dates with availability > 0
+                    },
                 },
                 select: {
                     date: true,
-                    availability: true
-                }
+                    availability: true,
+                },
             });
 
             // Get dates that have inventory with availability > 0 (as ISO strings)
-            const availableDateStrings = inventories.map(inv => inv.date.toISOString().split('T')[0]);
+            const availableDateStrings = inventories.map(
+                inv => inv.date.toISOString().split('T')[0]
+            );
 
             // Find missing dates (dates without inventory or with 0 availability)
-            const missingDateStrings = allDateStrings.filter(dateStr => !availableDateStrings.includes(dateStr));
+            const missingDateStrings = allDateStrings.filter(
+                dateStr => !availableDateStrings.includes(dateStr)
+            );
 
             // Convert back to Date objects for return
-            const availableDates = [...new Set(availableDateStrings)].map(ds => new Date(ds));
+            const availableDates = [...new Set(availableDateStrings)].map(
+                ds => new Date(ds)
+            );
             const missingDates = missingDateStrings.map(ds => new Date(ds));
 
             return {
@@ -285,14 +319,15 @@ class InventoryRepository {
                 missingDates,
                 totalDates: allDateStrings.length,
                 availableCount: availableDates.length,
-                missingCount: missingDates.length
+                missingCount: missingDates.length,
             };
         } catch (error) {
-            throw new Error("Error checking inventory availability");
+            throw new Error('Error checking inventory availability');
         }
     }
 
-    public async getRoomAvailability(propertyCode: string,
+    public async getRoomAvailability(
+        propertyCode: string,
         roomTypeCode: string
     ) {
         try {
@@ -300,12 +335,11 @@ class InventoryRepository {
                 where: {
                     propertyCode,
                     roomTypeCode,
-
                 },
                 select: {
                     date: true,
-                    availability: true
-                }
+                    availability: true,
+                },
             });
             return inventories;
         } catch (error: any) {

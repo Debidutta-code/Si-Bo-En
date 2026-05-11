@@ -139,7 +139,8 @@ export class RoomController {
                 return res.status(400).json(errorResponse('Room id not found'));
             }
             const roomData = req.body;
-            const { maxOccupancy, maxNumberOfAdults, maxNumberOfChildren } = roomData;
+            const { maxOccupancy, maxNumberOfAdults, maxNumberOfChildren } =
+                roomData;
             if (maxNumberOfAdults > maxOccupancy) {
                 return res
                     .status(400)

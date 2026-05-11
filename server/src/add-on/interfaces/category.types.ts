@@ -3,7 +3,7 @@ export interface ICCategory {
     code: string;
 }
 export interface IAddOnCategory extends ICCategory {
-id: string;
-createdAt: Date;
-updatedAt: Date;
+    id: string;
+    createdAt: Date;
+    updatedAt: Date;
 }

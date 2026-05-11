@@ -1,1 +1,1 @@
-export * from "./review.route";
+export * from './review.route';

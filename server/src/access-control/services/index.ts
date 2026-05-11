@@ -1,5 +1,3 @@
-import {AccessService} from "./access.service"
+import { AccessService } from './access.service';
 
-export {
-    AccessService
-}
+export { AccessService };

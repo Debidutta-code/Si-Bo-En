@@ -15,19 +15,29 @@ export const loyaltyProtect = async (
 ) => {
     const token = req.cookies?.loyaltyToken;
     if (!token) {
-        return res.status(401).json(errorResponse('Not authenticated. Please log in.'));
+        return res
+            .status(401)
+            .json(errorResponse('Not authenticated. Please log in.'));
     }
     try {
         const decoded = await decodeToken(token, config.loyaltyJWTSecret!);
         if (!decoded || !decoded.id || !decoded.email) {
-            return res.status(401).json(errorResponse('Invalid loyalty token. Please log in again.'));
+            return res
+                .status(401)
+                .json(
+                    errorResponse('Invalid loyalty token. Please log in again.')
+                );
         }
         req.loyaltyUser = { id: decoded.id, email: decoded.email };
         next();
     } catch (error: any) {
         if (error?.name === 'TokenExpiredError') {
-            return res.status(401).json(errorResponse('Session expired. Please log in again.'));
+            return res
+                .status(401)
+                .json(errorResponse('Session expired. Please log in again.'));
         }
-        return res.status(401).json(errorResponse('Invalid token. Please log in again.'));
+        return res
+            .status(401)
+            .json(errorResponse('Invalid token. Please log in again.'));
     }
 };

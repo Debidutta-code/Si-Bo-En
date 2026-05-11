@@ -44,6 +44,7 @@
     "cmdk": "^1.1.1",
     "countries-states-cities": "^1.0.6",
     "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
     "dayjs": "^1.11.19",
     "embla-carousel-react": "^8.6.0",
     "input-otp": "^1.4.2",

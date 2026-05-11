@@ -19,15 +19,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { Calendar } from "@/components/ui/calendar";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/components/ui/popover";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
 import type { ICTaxRule, ITaxRule, TaxType, TaxApplicableOn } from "../interface";
 import { currencies } from "@/components/currency-code/cuurency";
 import type { CurrencyCode } from "@/components/currency-code/currency-code.type";
@@ -53,14 +44,10 @@ export default function TaxRuleDialog({
         value: 0,
         applicableOn: "room_rate",
         description: "",
-        validFrom: new Date(),
-        validTo: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
         priority: 0,
         currencyCode: "AED",
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [fromDateOpen, setFromDateOpen] = useState(false);
-    const [toDateOpen, setToDateOpen] = useState(false);
     // Update form data when taxRule or mode changes
     useEffect(() => {
         if (open) {
@@ -71,8 +58,6 @@ export default function TaxRuleDialog({
                     value: taxRule.value,
                     applicableOn: taxRule.applicableOn,
                     description: taxRule.description || "",
-                    validFrom: new Date(taxRule.validFrom),
-                    validTo: new Date(taxRule.validTo),
                     priority: taxRule.priority,
                     currencyCode: taxRule.currencyCode,
                 });
@@ -83,9 +68,7 @@ export default function TaxRuleDialog({
                     value: 0,
                     applicableOn: "room_rate",
                     description: "",
-                    validFrom: new Date(),
-                    validTo: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
-                    priority: 0,
+                    priority: 1,
                     currencyCode: "AED",
                 });
             }
@@ -115,8 +98,6 @@ export default function TaxRuleDialog({
                 value: 0,
                 applicableOn: "room_rate",
                 description: "",
-                validFrom: new Date(),
-                validTo: new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
                 priority: 0,
                 currencyCode: "AED",
             });
@@ -253,79 +234,6 @@ export default function TaxRuleDialog({
                         <p className="text-xs text-gray-500">
                             Higher priority taxes are calculated first
                         </p>
-                    </div>
-
-                    {/* Date Range */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                            <Label>Valid From *</Label>
-                            <Popover open={fromDateOpen} onOpenChange={setFromDateOpen}>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        variant="outline"
-                                        className={cn(
-                                            "w-full justify-start text-left font-normal",
-                                            !formData.validFrom && "text-muted-foreground"
-                                        )}
-                                    >
-                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {formData.validFrom ? (
-                                            format(formData.validFrom, "PPP")
-                                        ) : (
-                                            <span>Pick a date</span>
-                                        )}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                    <Calendar
-                                        mode="single"
-                                        selected={formData.validFrom}
-                                        onSelect={(date) => {
-
-                                            date && setFormData({ ...formData, validFrom: date });
-                                            setFromDateOpen(false);
-                                        }}
-                                        initialFocus
-                                    />
-                                </PopoverContent>
-                            </Popover>
-                        </div>
-
-                        <div className="space-y-2">
-                            <Label>Valid To *</Label>
-                            <Popover open={toDateOpen} onOpenChange={setToDateOpen}>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        variant="outline"
-                                        className={cn(
-                                            "w-full justify-start text-left font-normal",
-                                            !formData.validTo && "text-muted-foreground"
-                                        )}
-                                    >
-                                        <CalendarIcon className="mr-2 h-4 w-4" />
-                                        {formData.validTo ? (
-                                            format(formData.validTo, "PPP")
-                                        ) : (
-                                            <span>Pick a date</span>
-                                        )}
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent className="w-auto p-0" align="start">
-                                    <Calendar
-                                        mode="single"
-                                        selected={formData.validTo}
-                                        onSelect={(date) => {
-                                            date && setFormData({ ...formData, validTo: date });
-                                            setToDateOpen(false);
-                                        }}
-                                        initialFocus
-                                        disabled={(date) =>
-                                            formData.validFrom ? date < formData.validFrom : false
-                                        }
-                                    />
-                                </PopoverContent>
-                            </Popover>
-                        </div>
                     </div>
 
                     {/* Description */}

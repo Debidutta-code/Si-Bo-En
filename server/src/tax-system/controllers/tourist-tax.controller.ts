@@ -1,8 +1,8 @@
-import { successResponse, errorResponse } from "../../utils/return";
-import { TouristTaxService } from "../services/tourist-tax.service";
-import { Request, Response } from "express";
-import { CustomRequest } from "../../utils/customRequest";
-import { ICTouristTax } from "../interfaces";
+import { successResponse, errorResponse } from '../../utils/return';
+import { TouristTaxService } from '../services/tourist-tax.service';
+import { Request, Response } from 'express';
+import { CustomRequest } from '../../utils/customRequest';
+import { ICTouristTax } from '../interfaces';
 
 export class TouristTaxController {
     touristTaxService: TouristTaxService;
@@ -17,7 +17,9 @@ export class TouristTaxController {
             const touristTaxData: ICTouristTax = req.body;
 
             if (!propertyId) {
-                return res.status(400).json(errorResponse('Property ID is required'));
+                return res
+                    .status(400)
+                    .json(errorResponse('Property ID is required'));
             }
 
             const validationError = this.validateTouristTaxData(touristTaxData);
@@ -39,15 +41,23 @@ export class TouristTaxController {
         }
     }
 
-    public async getTouristTaxesByPropertyIdController(req: CustomRequest, res: Response) {
+    public async getTouristTaxesByPropertyIdController(
+        req: CustomRequest,
+        res: Response
+    ) {
         try {
             const propertyId = req.params.propertyId;
 
             if (!propertyId) {
-                return res.status(400).json(errorResponse('Property ID is required'));
+                return res
+                    .status(400)
+                    .json(errorResponse('Property ID is required'));
             }
 
-            const serviceRes = await this.touristTaxService.getTouristTaxesByPropertyId(propertyId);
+            const serviceRes =
+                await this.touristTaxService.getTouristTaxesByPropertyId(
+                    propertyId
+                );
 
             const status = serviceRes.success ? 200 : 400;
             return res.status(status).json(serviceRes);
@@ -64,14 +74,21 @@ export class TouristTaxController {
             const touristTaxData: ICTouristTax = req.body;
 
             if (!touristTaxId) {
-                return res.status(400).json(errorResponse('Tourist Tax ID is required'));
+                return res
+                    .status(400)
+                    .json(errorResponse('Tourist Tax ID is required'));
             }
 
             if (!touristTaxData || Object.keys(touristTaxData).length === 0) {
-                return res.status(400).json(errorResponse('Tourist Tax data is required'));
+                return res
+                    .status(400)
+                    .json(errorResponse('Tourist Tax data is required'));
             }
 
-            const validationError = this.validateTouristTaxData(touristTaxData as ICTouristTax, true);
+            const validationError = this.validateTouristTaxData(
+                touristTaxData as ICTouristTax,
+                true
+            );
             if (validationError) {
                 return res.status(400).json(errorResponse(validationError));
             }
@@ -95,10 +112,13 @@ export class TouristTaxController {
             const touristTaxId = req.params.touristTaxId;
 
             if (!touristTaxId) {
-                return res.status(400).json(errorResponse('Tourist Tax ID is required'));
+                return res
+                    .status(400)
+                    .json(errorResponse('Tourist Tax ID is required'));
             }
 
-            const serviceRes = await this.touristTaxService.deleteTouristTax(touristTaxId);
+            const serviceRes =
+                await this.touristTaxService.deleteTouristTax(touristTaxId);
 
             const status = serviceRes.success ? 200 : 400;
             return res.status(status).json(serviceRes);
@@ -117,25 +137,29 @@ export class TouristTaxController {
             return 'Room type is required for creating a tourist tax';
         }
 
-        if (touristTaxData.discountType &&
+        if (
+            touristTaxData.discountType &&
             touristTaxData.discountType !== 'flat' &&
-            touristTaxData.discountType !== 'percentage') {
+            touristTaxData.discountType !== 'percentage'
+        ) {
             return 'Discount type must be either flat or percentage';
         }
 
-        if (touristTaxData.discountValue !== undefined &&
-            touristTaxData.discountValue !== null) {
+        if (
+            touristTaxData.discountValue !== undefined &&
+            touristTaxData.discountValue !== null
+        ) {
             if (touristTaxData.discountValue < 0) {
                 return 'Discount value cannot be negative';
             }
 
-            if (touristTaxData.discountType === 'percentage' &&
-                touristTaxData.discountValue > 100) {
+            if (
+                touristTaxData.discountType === 'percentage' &&
+                touristTaxData.discountValue > 100
+            ) {
                 return 'Discount percentage value cannot be greater than 100';
             }
         }
-
-
 
         return null;
     }

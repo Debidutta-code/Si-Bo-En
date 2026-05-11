@@ -50,9 +50,6 @@ const validateTaxRuleData = (taxRuleData: ICTaxRule) => {
     if (!taxRuleData.applicableOn || (taxRuleData.applicableOn !== "room_rate" && taxRuleData.applicableOn !== "total_amount")) {
         return { success: false, message: "Tax rule applicableOn must be either 'room_rate' or 'total_amount'." }
     }
-    if (taxRuleData.validFrom >= taxRuleData.validTo) {
-        return { success: false, message: "Tax rule validFrom date must be earlier than validTo date." }
-    }
     if (taxRuleData.priority < 0 || taxRuleData.priority > 5) {
         return { success: false, message: "Tax rule priority must be in between 0 and 5." }
     }

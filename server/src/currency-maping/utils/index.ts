@@ -1,1 +1,1 @@
-export * from "./currency-exchnage.utils";
+export * from './currency-exchnage.utils';

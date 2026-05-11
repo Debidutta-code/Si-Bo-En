@@ -1,4 +1,4 @@
-import { IAgency } from "../../../agency/types";
+import { IAgency } from '../../../agency/types';
 
 export interface ICAgents {
     agencyId: string;
@@ -8,11 +8,11 @@ export interface ICAgents {
 }
 export interface IAgents extends ICAgents {
     id: string;
-    
+
     isDeleted: boolean;
 }
 export interface IAgentsWA extends IAgents {
-    agency:IAgency
+    agency: IAgency;
 }
 export interface IAgentsWOP extends IAgents {
     agencyId: string;
@@ -21,11 +21,11 @@ export interface IAgentsWOP extends IAgents {
     agentPhone: string;
     agentPassword: string;
     id: string;
-        agency:IAgency
+    agency: IAgency;
 
     isDeleted: boolean;
 }
-export interface IAgentLogin{
-    email:string;
-    password:string;
+export interface IAgentLogin {
+    email: string;
+    password: string;
 }

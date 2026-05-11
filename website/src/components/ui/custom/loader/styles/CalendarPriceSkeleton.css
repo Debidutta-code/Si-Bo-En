@@ -1,0 +1,65 @@
+/* ─── CalendarPriceSkeleton.css ─────────────────────────────────────────────
+   Shimmer placeholder shown under each calendar day number while the
+   /calendar-prices API call is in-flight.
+   The real price label (terra-solis-day-price) swaps in once data arrives.
+──────────────────────────────────────────────────────────────────────────── */
+
+/* Wrapper — mirrors .terra-solis-day-wrapper layout */
+.cps-day-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  gap: 3px;
+}
+
+/* Day number — same visual weight as the real calendar */
+.cps-day-number {
+  font-size: 15px;
+  line-height: 1.2;
+  color: inherit;
+}
+
+/* Shimmer pill that sits where the price label will appear */
+.cps-price-shimmer {
+  display: block;
+  width: 30px;
+  height: 8px;
+  border-radius: 3px;
+  overflow: hidden;
+  background: linear-gradient(
+    90deg,
+    #e8e0d0 25%,
+    #f4efe6 50%,
+    #e8e0d0 75%
+  );
+  background-size: 400px 100%;
+  animation: cps-shimmer 1.4s infinite linear;
+}
+
+@keyframes cps-shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+
+/* ── Stagger each cell's animation so the shimmer feels organic ─────────── */
+/* Applied via nth-child on the parent .react-datepicker__day elements.
+   SearchWidget adds a .cps-stagger-N class to each rendered day cell.       */
+.cps-stagger-0  .cps-price-shimmer { animation-delay: 0ms; }
+.cps-stagger-1  .cps-price-shimmer { animation-delay: 40ms; }
+.cps-stagger-2  .cps-price-shimmer { animation-delay: 80ms; }
+.cps-stagger-3  .cps-price-shimmer { animation-delay: 120ms; }
+.cps-stagger-4  .cps-price-shimmer { animation-delay: 160ms; }
+.cps-stagger-5  .cps-price-shimmer { animation-delay: 200ms; }
+.cps-stagger-6  .cps-price-shimmer { animation-delay: 240ms; }
+
+/* ── Reduced-motion: replace animation with a static muted fill ─────────── */
+@media (prefers-reduced-motion: reduce) {
+  .cps-price-shimmer {
+    animation: none;
+    background: #e8e0d0;
+    opacity: 0.6;
+  }
+}

@@ -1,14 +1,20 @@
-export const generateOTPEmailTemplate = (otp: string, purpose: string, email?: string): string => {
-    const purposeText = {
-        email_verification: "Email Verification",
-        password_reset: "Password Reset",
-        login: "Login Verification",
-    }[purpose] || "Verification";
+export const generateOTPEmailTemplate = (
+    otp: string,
+    purpose: string,
+    email?: string
+): string => {
+    const purposeText =
+        {
+            email_verification: 'Email Verification',
+            password_reset: 'Password Reset',
+            login: 'Login Verification',
+        }[purpose] || 'Verification';
 
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-    const resetLink = purpose === "password_reset" && email 
-        ? `${frontendUrl}/forgot-password?email=${encodeURIComponent(email)}&otp=${otp}&verified=true`
-        : "";
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const resetLink =
+        purpose === 'password_reset' && email
+            ? `${frontendUrl}/forgot-password?email=${encodeURIComponent(email)}&otp=${otp}&verified=true`
+            : '';
 
     return `
         <!DOCTYPE html>
@@ -106,7 +112,9 @@ export const generateOTPEmailTemplate = (otp: string, purpose: string, email?: s
                     <p>You requested a ${purposeText.toLowerCase()}. ${resetLink ? 'Click the button below to reset your password:' : 'Please use the following OTP code:'}</p>
                 </div>
                 
-                ${resetLink ? `
+                ${
+                    resetLink
+                        ? `
                 <div class="button-container">
                     <a href="${resetLink}" class="reset-button">Reset Password</a>
                 </div>
@@ -115,7 +123,9 @@ export const generateOTPEmailTemplate = (otp: string, purpose: string, email?: s
                     <p style="margin: 10px 0;">- OR -</p>
                     <p style="font-size: 14px; color: #666;">Use the OTP code below</p>
                 </div>
-                ` : ''}
+                `
+                        : ''
+                }
                 
                 <div class="otp-box">
                     ${otp}

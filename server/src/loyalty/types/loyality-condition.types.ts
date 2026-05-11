@@ -16,20 +16,18 @@ export interface IULoyalityCondition {
     isActive: boolean;
 }
 
-
 export interface ICLoyalitySpecialCondition {
     loyaltyProgramId: string;
     title: string;
     subTitle: string | null;
     language: Languages;
-
 }
 export interface ILoyalitySpecialCondition extends ICLoyalitySpecialCondition {
     id: string;
     isActive: boolean;
     isDeleted: boolean;
 }
-export interface IULoyalitySpecialCondition{
+export interface IULoyalitySpecialCondition {
     title: string;
     subTitle: string | null;
     language: Languages;

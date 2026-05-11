@@ -1,38 +1,23 @@
-import { Router } from "express";
-import { CategoryController } from "../controllers";
+import { Router } from 'express';
+import { CategoryController } from '../controllers';
 
 const router = Router();
 const categoryController = new CategoryController();
 
-router.post(
-    "/",
-    categoryController.createCategory
-);
+router.post('/', categoryController.createCategory);
 
-router.get(
-    "/",
-    categoryController.getAllCategories
-);
+router.get('/', categoryController.getAllCategories);
 
+router.get('/:categoryId', categoryController.getCategoryById);
 
-router.get(
-    "/:categoryId",
-    categoryController.getCategoryById
-);
-
-
-router.put(
-    "/:categoryId",
-    categoryController.updateCategory
-);
-
+router.put('/:categoryId', categoryController.updateCategory);
 
 router.post(
-    "/:categoryId/subcategories",
+    '/:categoryId/subcategories',
     categoryController.addSubCategoryToCategory
 );
 router.delete(
-    "/:categoryId/subcategories/:subcategoryId",
+    '/:categoryId/subcategories/:subcategoryId',
     categoryController.removeSubCategoryFromCategory
 );
 

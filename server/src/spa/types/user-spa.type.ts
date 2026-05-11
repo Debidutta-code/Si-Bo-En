@@ -1,7 +1,6 @@
 export interface ICUserAssignedSpa {
     userId: string;
     spaId: string;
-    
 }
 export interface ISpaUser {
     id: string;
@@ -9,6 +8,6 @@ export interface ISpaUser {
     lastName: string;
     email: string;
 }
-export interface ISpaWUser extends ICUserAssignedSpa{
-   User: ISpaUser;
+export interface ISpaWUser extends ICUserAssignedSpa {
+    User: ISpaUser;
 }

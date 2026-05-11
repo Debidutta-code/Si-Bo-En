@@ -1,9 +1,9 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
 interface IEmailVerificationOTP extends mongoose.Document {
     email: string;
     otp: string;
-    purpose: "email_verification" | "password_reset" | "login";
+    purpose: 'email_verification' | 'password_reset' | 'login';
     expiresAt: Date;
     isUsed: boolean;
     attempts: number;
@@ -26,7 +26,7 @@ const emailVerificationOTPSchema = new mongoose.Schema<IEmailVerificationOTP>(
         },
         purpose: {
             type: String,
-            enum: ["email_verification", "password_reset", "login"],
+            enum: ['email_verification', 'password_reset', 'login'],
             required: true,
         },
         expiresAt: {
@@ -53,7 +53,7 @@ emailVerificationOTPSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 emailVerificationOTPSchema.index({ email: 1, purpose: 1, isUsed: 1 });
 
 const EmailVerificationOTP = mongoose.model<IEmailVerificationOTP>(
-    "EmailVerificationOTP",
+    'EmailVerificationOTP',
     emailVerificationOTPSchema
 );
 

@@ -295,7 +295,7 @@ export interface IRoom {
     totalRoom: number;
     floor: number;
     roomView: RoomView;
-    roomSize: number;              // ← was any
+    roomSize: number; // ← was any
     roomUnit: RoomUnit;
     smokingPolicy: SmokingPolicy;
     maxOccupancy: number;

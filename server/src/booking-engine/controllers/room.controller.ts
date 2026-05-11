@@ -1,45 +1,23 @@
-import { Response } from "express";
-import { RoomBookingService } from "../service";
-import { PropertyRequest } from "../../utils";
-import { getGeoLocationDetails } from "../../utils/get-location.utils";
-import { getDeviceInfo } from "../../utils/device-type.util";
+import { Response } from 'express';
+import { RoomBookingService } from '../service';
+import { PropertyRequest } from '../../utils';
+import { getGeoLocationDetails } from '../../utils/get-location.utils';
+import { getDeviceInfo } from '../../utils/device-type.util';
 
 export class RoomBookingController {
-  public static async fetchRooms(req: PropertyRequest, res: Response) {
+  public static async getCalendarPrices(req: PropertyRequest, res: Response) {
     try {
-      const { propertyCode, startDate, endDate, guests, promocode } = req.body || {};
+      const { propertyCode, startDate, endDate } = req.body || {};
 
-      if (
-        !propertyCode ||
-        !startDate ||
-        !endDate ||
-        !guests ||
-        typeof guests.adults !== "number" ||
-        typeof guests.children !== "number" ||
-        typeof guests.rooms !== "number"
-      ) {
+      if (!propertyCode || !startDate || !endDate) {
         return res.status(400).json({
           status: "error",
-          message: "Invalid or missing request payload",
+          message: "Invalid or missing propertyCode, startDate, or endDate",
         });
       }
-      const geoDetails = await getGeoLocationDetails(req);
-      const countryCode = geoDetails.country;
-      const deviceInfo = getDeviceInfo(req);
-      const deviceType = deviceInfo.deviceType as "mobile" | "tablet" | "desktop";
 
-      const response = await RoomBookingService.fetchRooms({
-        propertyCode,
-        startDate,
-        endDate,
-        guests,
-        countryCode,
-        deviceType,
-        promocode,
-      });
-      const status = response.success ? 200 : 400;
-      return res.status(status).json(response);
-
+      const response = await RoomBookingService.getCalendarPrices(propertyCode, startDate, endDate);
+      return res.status(200).json(response);
     } catch (error: any) {
       return res.status(500).json({
         status: "error",
@@ -48,4 +26,50 @@ export class RoomBookingController {
       });
     }
   }
+
+  public static async fetchRooms(req: PropertyRequest, res: Response) {
+    try {
+      const { propertyCode, startDate, endDate, guests, promocode } = req.body || {};
+
+            if (
+                !propertyCode ||
+                !startDate ||
+                !endDate ||
+                !guests ||
+                typeof guests.adults !== 'number' ||
+                typeof guests.children !== 'number' ||
+                typeof guests.rooms !== 'number'
+            ) {
+                return res.status(400).json({
+                    status: 'error',
+                    message: 'Invalid or missing request payload',
+                });
+            }
+            const geoDetails = await getGeoLocationDetails(req);
+            const countryCode = geoDetails.country;
+            const deviceInfo = getDeviceInfo(req);
+            const deviceType = deviceInfo.deviceType as
+                | 'mobile'
+                | 'tablet'
+                | 'desktop';
+
+            const response = await RoomBookingService.fetchRooms({
+                propertyCode,
+                startDate,
+                endDate,
+                guests,
+                countryCode,
+                deviceType,
+                promocode,
+            });
+            const status = response.success ? 200 : 400;
+            return res.status(status).json(response);
+        } catch (error: any) {
+            return res.status(500).json({
+                status: 'error',
+                message: 'Internal server error',
+                error: error?.message,
+            });
+        }
+    }
 }

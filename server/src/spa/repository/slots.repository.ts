@@ -1,112 +1,128 @@
-import { prisma } from "../../config";
-import { BatchPayload, ICSpaSlotR, ISpaSlot,ICSpaDatesR,ISpaDates } from "../types";
-export class SpaDatesRepo{
+import { prisma } from '../../config';
+import {
+    BatchPayload,
+    ICSpaSlotR,
+    ISpaSlot,
+    ICSpaDatesR,
+    ISpaDates,
+} from '../types';
+export class SpaDatesRepo {
     public async createDate(data: ICSpaDatesR): Promise<ISpaDates> {
         try {
             return await prisma.spaDates.create({
                 data: {
-                    ...data
-                },include: {
+                    ...data,
+                },
+                include: {
                     Slots: {
-                        include:{
-                            Reservation:{
-                                select:{
-                                    bookingCode:true
-                                }
-                            }
-                        }
-                    }
-                }
-            })
+                        include: {
+                            Reservation: {
+                                select: {
+                                    bookingCode: true,
+                                },
+                            },
+                        },
+                    },
+                },
+            });
         } catch (error) {
-            throw new Error("Error occur while creating spa date")
+            throw new Error('Error occur while creating spa date');
         }
     }
     public async getDateById(id: string): Promise<ISpaDates | null> {
         try {
             return await prisma.spaDates.findUnique({
                 where: {
-                    id
+                    id,
                 },
                 include: {
                     Slots: {
-                        include:{
-                            Reservation:{
-                                select:{
-                                    bookingCode:true
-                                }
-                            }
-                        }
-                    }
-                }
-            })
+                        include: {
+                            Reservation: {
+                                select: {
+                                    bookingCode: true,
+                                },
+                            },
+                        },
+                    },
+                },
+            });
         } catch (error) {
-            throw new Error("Error occur while fetching spa date by id")
+            throw new Error('Error occur while fetching spa date by id');
         }
     }
-    public async getForDateRange(spaModuleId: string, startDate: Date, endDate: Date): Promise<ISpaDates[]> {
+    public async getForDateRange(
+        spaModuleId: string,
+        startDate: Date,
+        endDate: Date
+    ): Promise<ISpaDates[]> {
         try {
             return await prisma.spaDates.findMany({
                 where: {
                     spaModuleId,
                     date: {
                         gte: startDate,
-                        lte: endDate
-                    }
+                        lte: endDate,
+                    },
                 },
                 include: {
                     Slots: {
-                        include:{
-                            Reservation:{
-                                select:{
-                                    bookingCode:true
-                                }
-                            }
-                        }
-                    }
-                }
-            })
+                        include: {
+                            Reservation: {
+                                select: {
+                                    bookingCode: true,
+                                },
+                            },
+                        },
+                    },
+                },
+            });
         } catch (error) {
-            throw new Error("Error occur while fetching spa dates for date range")
+            throw new Error(
+                'Error occur while fetching spa dates for date range'
+            );
         }
     }
-    public async getSpaForDate(spaModuleId: string,date: Date): Promise<ISpaDates | null> {
+    public async getSpaForDate(
+        spaModuleId: string,
+        date: Date
+    ): Promise<ISpaDates | null> {
         try {
             return await prisma.spaDates.findFirst({
                 where: {
                     spaModuleId,
-                    date:{
-                        equals: date
-                    }
+                    date: {
+                        equals: date,
+                    },
                 },
                 include: {
                     Slots: {
-                        include:{
-                            Reservation:{
-                                select:{
-                                    bookingCode:true
-                                }
-                            }
-                        }
-                    }
-                }
-            })
+                        include: {
+                            Reservation: {
+                                select: {
+                                    bookingCode: true,
+                                },
+                            },
+                        },
+                    },
+                },
+            });
         } catch (error) {
-            throw new Error("Error occur while fetching spa for date")
+            throw new Error('Error occur while fetching spa for date');
         }
     }
     public async deleteDate(id: string): Promise<ICSpaDatesR> {
         try {
             return await prisma.spaDates.delete({
                 where: {
-                    id
-                },include:{
-                    Slots: true
-                }
-                    
-            })
+                    id,
+                },
+                include: {
+                    Slots: true,
+                },
+            });
         } catch (error) {
-            throw new Error("Error occur while deleting spa date")
+            throw new Error('Error occur while deleting spa date');
         }
     }
 }
@@ -114,78 +130,82 @@ export class SpaSlotsRepo {
     public async createSlots(data: ICSpaSlotR[]): Promise<BatchPayload> {
         try {
             return await prisma.spaSlots.createMany({
-                data: data
-            })
+                data: data,
+            });
         } catch (error) {
-            throw new Error("Error occur while creating spa slot")
+            throw new Error('Error occur while creating spa slot');
         }
-    }    
+    }
     public async getSlotById(id: string): Promise<ISpaSlot | null> {
         try {
             return await prisma.spaSlots.findUnique({
                 where: {
-                    id
-                }
-            })
+                    id,
+                },
+            });
         } catch (error) {
-            throw new Error("Error occur while fetching spa slot by id")
+            throw new Error('Error occur while fetching spa slot by id');
         }
     }
     public async deleteSlot(id: string): Promise<ISpaSlot> {
         try {
             return await prisma.spaSlots.delete({
                 where: {
-                    id
-                }
-            })
+                    id,
+                },
+            });
         } catch (error) {
-            throw new Error("Error occur while deleting spa slot")
+            throw new Error('Error occur while deleting spa slot');
         }
     }
-    public async markSlotAsBooked(id: string, reservationId: string, userName: string): Promise<ISpaSlot> {
+    public async markSlotAsBooked(
+        id: string,
+        reservationId: string,
+        userName: string
+    ): Promise<ISpaSlot> {
         try {
             return await prisma.spaSlots.update({
                 where: {
-                    id
+                    id,
                 },
                 data: {
                     isBooked: true,
                     reservationId,
-                    userName
-                }
-            })
+                    userName,
+                },
+            });
         } catch (error) {
-            throw new Error("Error occur while marking spa slot as booked")
+            throw new Error('Error occur while marking spa slot as booked');
         }
     }
     public async markSlotAsAvailable(id: string): Promise<ISpaSlot> {
         try {
             return await prisma.spaSlots.update({
                 where: {
-                    id
+                    id,
                 },
                 data: {
                     isBooked: false,
                     reservationId: null,
-                    userName: null
-                }
-            })
+                    userName: null,
+                },
+            });
         } catch (error) {
-            throw new Error("Error occur while marking spa slot as available")
+            throw new Error('Error occur while marking spa slot as available');
         }
     }
     public async markSlotAsCompleted(id: string): Promise<ISpaSlot> {
         try {
             return await prisma.spaSlots.update({
                 where: {
-                    id
+                    id,
                 },
                 data: {
-                    isCompleted: true
-                }
-            })
+                    isCompleted: true,
+                },
+            });
         } catch (error) {
-            throw new Error("Error occur while marking spa slot as completed")
+            throw new Error('Error occur while marking spa slot as completed');
         }
     }
 }

@@ -120,22 +120,48 @@ const formatCurrency = (amount: any, currency: string): string => {
     }
 };
 export const generateBookingVoucherHTML = (data: any): string => {
-    const { property, room, reservation, primaryGuest, addOns,
-        priceBreakdown, finalPrice, reservationGuests, ratePlanName } = data;
+    const {
+        property,
+        room,
+        reservation,
+        primaryGuest,
+        addOns,
+        priceBreakdown,
+        finalPrice,
+        reservationGuests,
+        ratePlanName,
+    } = data;
     const formatDate = (date: Date): string =>
-        new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        new Date(date).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        });
 
-    const formatCurrency = (amount: number, currency: string = 'EUR'): string => {
-        const symbols: Record<string, string> = { INR: '₹', USD: '$', EUR: '€', GBP: '£' };
+    const formatCurrency = (
+        amount: number,
+        currency: string = 'EUR'
+    ): string => {
+        const symbols: Record<string, string> = {
+            INR: '₹',
+            USD: '$',
+            EUR: '€',
+            GBP: '£',
+        };
         return `${symbols[currency] || currency} ${Number(amount).toFixed(2)}`;
     };
 
     const formatPaymentMethod = (method: string): string =>
-        method.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        method
+            .split('_')
+            .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+            .join(' ');
 
     const checkIn = new Date(reservation.checkInDate);
     const checkOut = new Date(reservation.checkOutDate);
-    const nights = Math.ceil((checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24));
+    const nights = Math.ceil(
+        (checkOut.getTime() - checkIn.getTime()) / (1000 * 60 * 60 * 24)
+    );
 
     const guests = Array.isArray(reservation.guests) ? reservation.guests : [];
     const adults = guests.filter((g: any) => g.type === 'adult');
@@ -145,11 +171,12 @@ export const generateBookingVoucherHTML = (data: any): string => {
     const paidAmount = Number(reservation.paidAmount);
     const balance = totalAmount - paidAmount;
     const taxAmount = priceBreakdown ? Number(priceBreakdown.totalTax) : 0;
-    const baseAmount = finalPrice?.amountBeforeTax ?? (totalAmount - taxAmount);
+    const baseAmount = finalPrice?.amountBeforeTax ?? totalAmount - taxAmount;
     const addonAmount = finalPrice?.totalAddonAmount ?? 0;
     const promoDiscount = finalPrice?.totalPromotionAmount ?? 0;
     const laterPayable = finalPrice?.latterpayableAmount ?? 0;
-    const currentChargeable = finalPrice?.currentChargeableAmount ?? totalAmount;
+    const currentChargeable =
+        finalPrice?.currentChargeableAmount ?? totalAmount;
 
     // Group daily breakdown by date for clean display
     const dailyByDate: Record<string, any[]> = {};
@@ -262,10 +289,11 @@ export const generateBookingVoucherHTML = (data: any): string => {
   <!-- ── HEADER ── -->
 <div class="header" style="align-items:center;">
     <div>
-${property.logo
-            ? `<img src="${property.logo}" style="height:80px;width:auto;max-width:220px;object-fit:contain;margin-bottom:8px;" alt="logo"/>`
-            : `<div style="width:56px;height:56px;background:${property.primaryColor};border-radius:7px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:700;">${property.propertyName.charAt(0)}</div>`
-        }   <div class="prop-name">${property.propertyName}</div>
+${
+    property.logo
+        ? `<img src="${property.logo}" style="height:80px;width:auto;max-width:220px;object-fit:contain;margin-bottom:8px;" alt="logo"/>`
+        : `<div style="width:56px;height:56px;background:${property.primaryColor};border-radius:7px;margin-bottom:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px;font-weight:700;">${property.propertyName.charAt(0)}</div>`
+}   <div class="prop-name">${property.propertyName}</div>
       ${property.starRating ? `<div class="stars">${'★'.repeat(property.starRating)}${'☆'.repeat(5 - property.starRating)}</div>` : ''}
       <div class="prop-contact">
         ${property.propertyAddress ? `<div>${property.propertyAddress.addressLine1}, ${property.propertyAddress.city}, ${property.propertyAddress.state}</div>` : ''}
@@ -314,7 +342,9 @@ ${property.logo
 
     <div class="section">
       <div class="section-title">Primary Guest</div>
-      ${primaryGuest ? `
+      ${
+          primaryGuest
+              ? `
         <div class="info-grid">
           <div class="info-item" style="grid-column:1/-1;">
             <div class="info-label">Name</div>
@@ -324,33 +354,49 @@ ${property.logo
           ${primaryGuest.phoneNumber ? `<div class="info-item"><div class="info-label">Phone</div><div class="info-value">${primaryGuest.phoneNumber}</div></div>` : ''}
           <div class="info-item"><div class="info-label">Type</div><div class="info-value">${toTitleCase(primaryGuest.userType)}</div></div>
         </div>
-      ` : '<div style="color:#94a3b8;font-size:11px;">No guest info available</div>'}
+      `
+              : '<div style="color:#94a3b8;font-size:11px;">No guest info available</div>'
+      }
     </div>
   </div>
 
   <!-- ── ALL GUESTS ── -->
-  ${reservationGuests && reservationGuests.length > 0 ? `
+  ${
+      reservationGuests && reservationGuests.length > 0
+          ? `
   <div class="section">
     <div class="section-title">All Guests (${reservationGuests.length})</div>
     <div class="guest-list">
-      ${reservationGuests.map((g: any) => `
+      ${reservationGuests
+          .map(
+              (g: any) => `
         <div class="guest-chip ${g.type}">
           ${g.firstName} ${g.lastName}
           <span style="color:#94a3b8;"> · ${toTitleCase(g.type)}${g.age ? ` · Age ${g.age}` : ''}</span>
         </div>
-      `).join('')}
+      `
+          )
+          .join('')}
     </div>
   </div>
-  ` : ''}
+  `
+          : ''
+  }
 
   <!-- ── ROOM ── -->
-${room ? `
+${
+    room
+        ? `
 <div class="section">
   <div class="section-title">Your Room</div>
   <div style="border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;display:flex;gap:0;">
-    ${room.image?.[0] ? `
+    ${
+        room.image?.[0]
+            ? `
       <img src="${room.image[0]}" style="width:200px;height:140px;object-fit:cover;flex-shrink:0;" alt="${room.roomName}"/>
-    ` : ''}
+    `
+            : ''
+    }
     <div style="padding:14px 16px;flex:1;">
       <div style="font-size:15px;font-weight:700;color:#1e293b;margin-bottom:4px;">
         ${room.roomName} <span style="font-size:10px;color:#94a3b8;font-weight:400;">(${room.roomType})</span>
@@ -362,53 +408,69 @@ ${room ? `
     </div>
   </div>
 </div>
-` : ''}
+`
+        : ''
+}
 
   <!-- ── ADD-ONS ── -->
-${finalPrice?.addonBrakeDown && finalPrice.addonBrakeDown.length > 0 ? (() => {
-    const addonNames = [...new Set(finalPrice.addonBrakeDown.map((a: any) => a.name))];
+${
+    finalPrice?.addonBrakeDown && finalPrice.addonBrakeDown.length > 0
+        ? (() => {
+              const addonNames = [
+                  ...new Set(finalPrice.addonBrakeDown.map((a: any) => a.name)),
+              ];
 
-    const dates = [...new Set(finalPrice.addonBrakeDown.map((a: any) => a.date))];
-    const lookup: Record<string, any> = {};
-    for (const item of finalPrice.addonBrakeDown) {
-        lookup[`${item.name}||${item.date}`] = item;
-    }
+              const dates = [
+                  ...new Set(finalPrice.addonBrakeDown.map((a: any) => a.date)),
+              ];
+              const lookup: Record<string, any> = {};
+              for (const item of finalPrice.addonBrakeDown) {
+                  lookup[`${item.name}||${item.date}`] = item;
+              }
 
-    const imageMap: Record<string, string> = {};
-    for (const a of addOns) {
-        if (a.images?.[0] && !imageMap[a.name]) {
-            imageMap[a.name] = a.images[0];
-        }
-    }
+              const imageMap: Record<string, string> = {};
+              for (const a of addOns) {
+                  if (a.images?.[0] && !imageMap[a.name]) {
+                      imageMap[a.name] = a.images[0];
+                  }
+              }
 
-    return `
+              return `
     <div class="section">
       <div class="section-title">Meals & Add-Ons</div>
       <table style="width:100%;border-collapse:collapse;font-size:10px;">
         <thead>
           <tr style="background:#1e293b;">
             <th style="padding:8px 10px;text-align:left;color:#fff;font-size:9px;font-weight:700;text-transform:uppercase;">Item</th>
-            ${dates.map((date: any) => `
+            ${dates
+                .map(
+                    (date: any) => `
               <th style="padding:8px 10px;text-align:center;color:#fff;font-size:9px;font-weight:700;text-transform:uppercase;">${date}</th>
-            `).join('')}
+            `
+                )
+                .join('')}
             <th style="padding:8px 10px;text-align:right;color:#fff;font-size:9px;font-weight:700;text-transform:uppercase;">Total</th>
           </tr>
         </thead>
         <tbody>
-          ${addonNames.map((name: any, i: number) => {
-              const firstItem = finalPrice.addonBrakeDown.find((a: any) => a.name === name);
-              const rowTotal = dates.reduce((s: number, date: any) => {
-                  const item = lookup[`${name}||${date}`];
-                  return s + (item ? Number(item.totalAmount) : 0);
-              }, 0);
+          ${addonNames
+              .map((name: any, i: number) => {
+                  const firstItem = finalPrice.addonBrakeDown.find(
+                      (a: any) => a.name === name
+                  );
+                  const rowTotal = dates.reduce((s: number, date: any) => {
+                      const item = lookup[`${name}||${date}`];
+                      return s + (item ? Number(item.totalAmount) : 0);
+                  }, 0);
 
-              return `
+                  return `
               <tr style="border-bottom:1px solid #f1f5f9;background:${i % 2 === 0 ? '#fff' : '#fafafa'};">
                 <td style="padding:8px 10px;">
                   <div style="display:flex;align-items:center;gap:8px;">
-                    ${imageMap[name]
-                      ? `<img src="${imageMap[name]}" style="width:28px;height:28px;object-fit:cover;border-radius:4px;flex-shrink:0;" alt="${name}"/>`
-                      : `<div style="width:28px;height:28px;background:#e2e8f0;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;">🍽</div>`
+                    ${
+                        imageMap[name]
+                            ? `<img src="${imageMap[name]}" style="width:28px;height:28px;object-fit:cover;border-radius:4px;flex-shrink:0;" alt="${name}"/>`
+                            : `<div style="width:28px;height:28px;background:#e2e8f0;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;">🍽</div>`
                     }
                     <div>
                       <div style="font-weight:600;color:#1e293b;">${name}</div>
@@ -418,32 +480,41 @@ ${finalPrice?.addonBrakeDown && finalPrice.addonBrakeDown.length > 0 ? (() => {
                     </div>
                   </div>
                 </td>
-                ${dates.map((date: any) => {
-                    const item = lookup[`${name}||${date}`];
-                    return `
+                ${dates
+                    .map((date: any) => {
+                        const item = lookup[`${name}||${date}`];
+                        return `
                     <td style="padding:8px 10px;text-align:center;color:${item ? '#1e293b' : '#cbd5e1'};">
-                      ${item
-                        ? `<div style="font-weight:600;">${formatCurrency(item.totalAmount, item.currencyCode)}</div>
+                      ${
+                          item
+                              ? `<div style="font-weight:600;">${formatCurrency(item.totalAmount, item.currencyCode)}</div>
                            <div style="font-size:9px;color:#94a3b8;">${formatCurrency(item.amount, item.currencyCode)} × ${item.quantity}</div>`
-                        : `—`
+                              : `—`
                       }
                     </td>
                     `;
-                }).join('')}
+                    })
+                    .join('')}
                 <td style="padding:8px 10px;text-align:right;font-weight:700;color:#2563eb;">
                   ${formatCurrency(rowTotal, reservation.currencyCode)}
                 </td>
               </tr>
               `;
-          }).join('')}
+              })
+              .join('')}
           <tr style="background:#f8fafc;border-top:2px solid #e2e8f0;">
             <td style="padding:8px 10px;font-weight:700;color:#1e293b;">Grand Total</td>
-            ${dates.map((date: any) => {
-                const dateTotal = finalPrice.addonBrakeDown
-                    .filter((a: any) => a.date === date)
-                    .reduce((s: number, a: any) => s + Number(a.totalAmount), 0);
-                return `<td style="padding:8px 10px;text-align:center;font-weight:700;color:#2563eb;">${formatCurrency(dateTotal, reservation.currencyCode)}</td>`;
-            }).join('')}
+            ${dates
+                .map((date: any) => {
+                    const dateTotal = finalPrice.addonBrakeDown
+                        .filter((a: any) => a.date === date)
+                        .reduce(
+                            (s: number, a: any) => s + Number(a.totalAmount),
+                            0
+                        );
+                    return `<td style="padding:8px 10px;text-align:center;font-weight:700;color:#2563eb;">${formatCurrency(dateTotal, reservation.currencyCode)}</td>`;
+                })
+                .join('')}
             <td style="padding:8px 10px;text-align:right;font-weight:700;color:#2563eb;">
               ${formatCurrency(finalPrice.totalAddonAmount, reservation.currencyCode)}
             </td>
@@ -452,25 +523,41 @@ ${finalPrice?.addonBrakeDown && finalPrice.addonBrakeDown.length > 0 ? (() => {
       </table>
     </div>
     `;
-})() : ''}
+          })()
+        : ''
+}
   <!-- ── NIGHTLY BREAKDOWN ── -->
-  ${Object.keys(dailyByDate).length > 0 ? `
+  ${
+      Object.keys(dailyByDate).length > 0
+          ? `
   <div class="section">
     <div class="section-title">Nightly Price Breakdown</div>
-    ${Object.entries(dailyByDate).map(([date, rooms]) => `
+    ${Object.entries(dailyByDate)
+        .map(
+            ([date, rooms]) => `
   <div class="day-block">
     <div class="day-header">
       <span>${date}</span>
-      <span>${formatCurrency(rooms.reduce((s, r) => s + Number(r.totalAmount), 0), reservation.currencyCode)} total</span>
+      <span>${formatCurrency(
+          rooms.reduce((s, r) => s + Number(r.totalAmount), 0),
+          reservation.currencyCode
+      )} total</span>
     </div>
-    ${rooms.map(r => `
+    ${rooms
+        .map(
+            r => `
       <div class="day-row">
         <span class="day-row-label">
           Room ${r.roomNumber} · ${r.guestDistribution.adults} adult${r.guestDistribution.adults > 1 ? 's' : ''}
-          ${r.guestDistribution.children > 0
-                ? ` + ${r.guestDistribution.children} child${r.guestDistribution.childAges?.length
-                    ? ` (${r.guestDistribution.childAges.join(', ')}yr)` : ''}`
-                : ''}
+          ${
+              r.guestDistribution.children > 0
+                  ? ` + ${r.guestDistribution.children} child${
+                        r.guestDistribution.childAges?.length
+                            ? ` (${r.guestDistribution.childAges.join(', ')}yr)`
+                            : ''
+                    }`
+                  : ''
+          }
         </span>
         <span class="day-row-value">${formatCurrency(r.totalAmount, r.currencyCode)}</span>
       </div>
@@ -481,39 +568,61 @@ ${finalPrice?.addonBrakeDown && finalPrice.addonBrakeDown.length > 0 ? (() => {
           Tax: ${formatCurrency(r.totalDailyTaxedAmount, r.currencyCode)}
         </span>
       </div>
-    `).join('')}
+    `
+        )
+        .join('')}
   </div>
-`).join('')}
+`
+        )
+        .join('')}
   </div>
-  ` : ''}
+  `
+          : ''
+  }
 
   <!-- ── PROMOTIONS ── -->
-${finalPrice?.promotionBrakeDown && finalPrice.promotionBrakeDown.length > 0 ? `
+${
+    finalPrice?.promotionBrakeDown && finalPrice.promotionBrakeDown.length > 0
+        ? `
 <div class="section">
   <div class="section-title">Promotions Applied</div>
   <div style="display:flex;flex-wrap:wrap;gap:8px;">
-    ${finalPrice.promotionBrakeDown.map((p: any) => `
+    ${finalPrice.promotionBrakeDown
+        .map(
+            (p: any) => `
       <div style="background:#faf5ff;border:1px solid #d8b4fe;border-radius:6px;padding:8px 14px;display:flex;align-items:center;gap:10px;">
         <span style="font-weight:700;color:#6d28d9;font-size:11px;">🏷 ${p.name}</span>
         <span style="font-size:11px;color:#7c3aed;font-weight:600;">Saved: ${formatCurrency(p.discountAmount, finalPrice.currencyCode)}</span>
         ${p.restrictionType === 'payLater' ? `<span style="font-size:9px;color:#d97706;font-weight:600;background:#fef3c7;border:1px solid #fcd34d;border-radius:4px;padding:1px 6px;">Pay at hotel</span>` : ''}
       </div>
-    `).join('')}
+    `
+        )
+        .join('')}
   </div>
 </div>
-` : ''}
+`
+        : ''
+}
 
   <!-- ── TAX BREAKDOWN ── -->
-  ${priceBreakdown?.tax && priceBreakdown.tax.length > 0 ? `
+  ${
+      priceBreakdown?.tax && priceBreakdown.tax.length > 0
+          ? `
   <div class="section">
     <div class="section-title">Tax Details</div>
     <div class="tax-list">
-      ${priceBreakdown.tax.map((t: any) => `
+      ${priceBreakdown.tax
+          .map(
+              (t: any) => `
         <div class="tax-chip">${t.name}: ${formatCurrency(t.taxedAmount, t.currencyCode)}</div>
-      `).join('')}
+      `
+          )
+          .join('')}
     </div>
   </div>
-  ` : ''}
+  `
+          : ''
+  }
 
   <!-- ── FINANCIAL SUMMARY ── -->
   <div class="section">
@@ -523,34 +632,50 @@ ${finalPrice?.promotionBrakeDown && finalPrice.promotionBrakeDown.length > 0 ? `
         <span>Room Charges (before tax)</span>
         <span>${formatCurrency(baseAmount, reservation.currencyCode)}</span>
       </div>
-      ${addonAmount > 0 ? `
+      ${
+          addonAmount > 0
+              ? `
       <div class="sum-row">
         <span>Add-Ons Total</span>
         <span>${formatCurrency(addonAmount, reservation.currencyCode)}</span>
-      </div>` : ''}
+      </div>`
+              : ''
+      }
       <div class="sum-row">
         <span>Taxes & Fees</span>
         <span>${formatCurrency(taxAmount, reservation.currencyCode)}</span>
       </div>
-      ${promoDiscount > 0 ? `
+      ${
+          promoDiscount > 0
+              ? `
       <div class="sum-row promo">
         <span>Promotion Discount</span>
         <span>- ${formatCurrency(promoDiscount, reservation.currencyCode)}</span>
-      </div>` : ''}
+      </div>`
+              : ''
+      }
       <div class="sum-row total">
         <span>Total Amount</span>
         <span>${formatCurrency(finalPrice?.currentChargeableAmount, reservation.currencyCode)}</span>
       </div>
-      ${paidAmount > 0 ? `
+      ${
+          paidAmount > 0
+              ? `
       <div class="sum-row paid">
         <span>Amount Paid</span>
         <span>${formatCurrency(paidAmount, reservation.currencyCode)}</span>
-      </div>` : ''}
-      ${laterPayable > 0 ? `
+      </div>`
+              : ''
+      }
+      ${
+          laterPayable > 0
+              ? `
       <div class="sum-row later">
         <span>Pay at Hotel (later)</span>
         <span>${formatCurrency(laterPayable, reservation.currencyCode)}</span>
-      </div>` : ''}
+      </div>`
+              : ''
+      }
       <div class="sum-row balance" style="color:${balance > 0 ? '#dc2626' : '#166534'};">
         <span>${balance > 0 ? 'Balance Due' : balance < 0 ? 'Refund' : 'Fully Paid'}</span>
         <span>${formatCurrency(Math.abs(balance), reservation.currencyCode)}</span>
@@ -560,12 +685,16 @@ ${finalPrice?.promotionBrakeDown && finalPrice.promotionBrakeDown.length > 0 ? `
 
 
   <!-- ── NOTICE ── -->
-  ${balance > 0 ? `
+  ${
+      balance > 0
+          ? `
   <div class="notice">
     ⚠ <strong>Payment Reminder:</strong> ${formatCurrency(balance, reservation.currencyCode)} is due.
     ${laterPayable > 0 ? `${formatCurrency(laterPayable, reservation.currencyCode)} is payable at the hotel.` : 'Please settle before check-in.'}
   </div>
-  ` : ''}
+  `
+          : ''
+  }
 
   <!-- ── FOOTER ── -->
   <div class="footer">

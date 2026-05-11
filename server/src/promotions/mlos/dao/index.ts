@@ -1,4 +1,2 @@
-import { MLOSDao } from "./mlos.dao";
-export {
-    MLOSDao
-}
+import { MLOSDao } from './mlos.dao';
+export { MLOSDao };

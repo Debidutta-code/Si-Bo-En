@@ -1,1 +1,1 @@
-export * from "./mlos.interface";
+export * from './mlos.interface';

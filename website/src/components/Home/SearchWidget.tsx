@@ -12,12 +12,15 @@ import "react-datepicker/dist/react-datepicker.css";
 import "./styles/custom-datepicker.css";
 import { usePathname, useRouter } from "next/navigation";
 import { useDispatch, useSelector } from "react-redux";
-import { setBookingContext, setSenderUrl } from "../../store/bookingSlice";
+import { setBookingContext, setCurrency, setSenderUrl } from "../../store/bookingSlice";
 import toast from "react-hot-toast";
+import { currencies } from "../currencyCode/cuurency";
 import { RootState } from "@/src/store/store";
 import React from "react";
 import { createPortal } from "react-dom";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage";
+import CalendarPriceSkeleton from "../ui/custom/loader/CalendarPriceSkeleton";
+
 interface Room {
   adults: number;
   children: number;
@@ -48,6 +51,9 @@ const DatePickerWithHover = ({
   onDayMouseEnter,
   onDayMouseLeave,
   isSelectingRange,
+  prices,
+  currencyCode,
+  isPricesLoading,
 }: {
   checkIn: Date | null;
   checkOut: Date | null;
@@ -56,14 +62,30 @@ const DatePickerWithHover = ({
   onDayMouseEnter: (date: Date) => void;
   onDayMouseLeave: () => void;
   isSelectingRange: boolean;
+  prices: Record<string, number>;
+  currencyCode?: string;
+  isPricesLoading: boolean;
 }) => {
   const [hoverDate, setHoverDate] = useState<Date | null>(null);
 
+  const currencySign = React.useMemo(() => {
+    if (!currencyCode) return "";
+    return currencies.find((c) => c.code === currencyCode)?.symbol || currencyCode;
+  }, [currencyCode]);
+
   // Custom day component to handle hover events
   const renderDayContents = (day: number, date: Date) => {
+    const dateKey = new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    const price = prices[dateKey];
+
+    // show skeleton pill while prices are loading
+    if (isPricesLoading) {
+      return <CalendarPriceSkeleton day={day} />;
+    }
+
     return (
       <div
-        className="react-datepicker__day-wrapper"
+        className="terra-solis-day-wrapper"
         onMouseEnter={() => {
           setHoverDate(date);
           onDayMouseEnter(date);
@@ -73,7 +95,12 @@ const DatePickerWithHover = ({
           onDayMouseLeave();
         }}
       >
-        {day}
+        <span>{day}</span>
+        {price > 0 && (
+          <span className="terra-solis-day-price">
+            {currencyCode} {Math.round(price)}
+          </span>
+        )}
       </div>
     );
   };
@@ -149,7 +176,6 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   const [checkIn, setCheckIn] = useState<Date | null>(today);
   const [checkOut, setCheckOut] = useState<Date | null>(tomorrow);
   const [promocode, setPromocode] = useState<string>("")
-  const [location, setLocation] = useState<string>("")
   const [loading, setLoading] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [temporaryCheckOut, setTemporaryCheckOut] = useState<Date | null>(null);
@@ -157,6 +183,8 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   const [selectionMode, setSelectionMode] = useState<"checkin" | "checkout">(
     "checkin",
   );
+  const [prices, setPrices] = useState<Record<string, number>>({});
+  const [isPricesLoading, setIsPricesLoading] = useState(false);
 
   const bookingContext = useSelector((state: RootState) => state.booking);
 
@@ -181,9 +209,6 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
       }
       if (bookingContext.promocode) {
         setPromocode(bookingContext.promocode);
-      }
-      if (bookingContext.location) {
-        setLocation(bookingContext.location);
       }
       if (bookingContext.guests) {
         const g = bookingContext.guests;
@@ -333,25 +358,24 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
         : typeof guestInfo.rooms === "number"
           ? guestInfo.rooms
           : 1;
-     const toLocalDateString = (date: Date) => {
-       const y = date.getFullYear();
-       const m = String(date.getMonth() + 1).padStart(2, "0");
-       const d = String(date.getDate()).padStart(2, "0");
-       return `${y}-${m}-${d}`;
-     };
-     const isPropertiesPage = PathName.includes('/Properties');
-     const payload = {
-       PropertyCode: hotelcode,
-       startDate: toLocalDateString(checkIn),
-       endDate: toLocalDateString(checkOut),
-       guests: guestInfo,
-       location: isPropertiesPage ? location : (bookingContext.location || ""),
-       numberOfRooms: roomsCount,
-       promocode: promocodeRef.current, // ✅ always fresh, no stale closure
-       bookingSource: bookingContext.bookingSource || "direct",
-       paymentMethod: bookingContext.paymentMethod || "pay_at_hotel",
-       hotelName: bookingContext.hotelName || "",
-     };
+    const toLocalDateString = (date: Date) => {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      return `${y}-${m}-${d}`;
+    };
+    const payload = {
+      PropertyCode: hotelcode,
+      startDate: toLocalDateString(checkIn),
+      endDate: toLocalDateString(checkOut),
+      guests: guestInfo,
+      location: bookingContext.location || "",
+      numberOfRooms: roomsCount,
+      promocode: promocodeRef.current, // ✅ always fresh, no stale closure
+      bookingSource: bookingContext.bookingSource || "direct",
+      paymentMethod: bookingContext.paymentMethod || "pay_at_hotel",
+      hotelName: bookingContext.hotelName || "",
+    };
 
     // Update Redux (Rooms page reads this directly on client-side navigation)
     dispatch(setBookingContext(payload));
@@ -402,6 +426,41 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   const handleDateMouseLeave = () => {
     setTemporaryCheckOut(null);
   };
+
+  const fetchCalendarPrices = async () => {
+    setIsPricesLoading(true);
+    try {
+      const today = new Date();
+      const nextMonth = new Date(today.getFullYear(), today.getMonth() + 2, 0); // End of next month
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/calendar-prices`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          propertyCode: hotelcode,
+          startDate: today.toISOString().split('T')[0],
+          endDate: nextMonth.toISOString().split('T')[0]
+        }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setPrices(data.data);
+        if (data.currencyCode) {
+          dispatch(setCurrency(data.currencyCode));
+        }
+      }
+    } catch (error) {
+      console.error("Failed to fetch calendar prices:", error);
+    } finally {
+      setIsPricesLoading(false); // ← ADD
+    }
+  };
+
+  useEffect(() => {
+    if (isCalendarOpen) {
+      fetchCalendarPrices();
+    }
+  }, [isCalendarOpen, hotelcode]);
 
   const openCalendar = () => {
     setIsCalendarOpen(true);
@@ -477,47 +536,16 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
       <div className="w-full bg-[#F4EFE6] border-b border-[#D4CABA]">
         <div className="mx-auto px-4 sm:px-6 py-3 flex justify-center">
           {/* Widget Row */}
-           <div className="flex flex-col lg:flex-row items-stretch lg:items-center gap-3 lg:gap-4 xl:gap-6 w-full max-w-[1100px]">
-            {/* Location Field - Only on Properties page, shown first */}
-            {PathName.includes('/properties') && (
-              <div
-                className="bg-white border-2 rounded-xl lg:rounded-[40px] px-4 lg:px-5 xl:px-8 py-3 lg:py-3 xl:py-4 flex items-center gap-3 shadow-sm flex-1 lg:flex-initial"
-                style={{ borderColor: secondaryColor }}
-              >
-                {/* Pin icon */}
-                <div className="flex-shrink-0">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
-                    stroke={primaryColor} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                    <circle cx="12" cy="10" r="3" />
-                  </svg>
-                </div>
-
-                {/* Text */}
-                <div className="flex flex-col min-w-0">
-                  <p className="text-[9px] tracking-[0.15em] font-medium mb-1" style={{ color: primaryColor }}>
-                    LOCATION
-                  </p>
-                  <input
-                    type="text"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    placeholder="Where to?"
-                    className="text-sm font-semibold bg-transparent focus:outline-none placeholder-[#9B8B6F] w-full leading-none"
-                    style={{ color: primaryColor }}
-                  />
-                </div>
-              </div>
-            )}
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-3 lg:gap-4 xl:gap-6 w-full max-w-[900px]">
 
             {/* Date Selector */}
             <div
               onClick={openCalendar}
-              className="bg-white border-2 rounded-xl lg:rounded-[40px] px-4 lg:px-5 xl:px-6 py-3 lg:py-3 xl:py-4 flex items-center gap-3 lg:gap-6 shadow-sm cursor-pointer hover:border-[#7D7566] transition-colors flex-1 lg:flex-initial"
+              className="bg-white border-2 rounded-xl lg:rounded-[40px] px-4 lg:px-6 py-3 lg:py-4 flex items-center gap-3 lg:gap-6 shadow-sm cursor-pointer hover:border-[#7D7566] transition-colors flex-1 lg:flex-initial"
               style={{ borderColor: secondaryColor }}
             >
-               {/* Check-in */}
-               <div className="text-center flex-1 min-w-[70px] lg:min-w-[80px]">
+              {/* Check-in */}
+              <div className="text-center flex-1 min-w-[70px] lg:min-w-[100px]">
                 <p className="text-[9px] tracking-[0.15em] font-medium mb-1" style={{ color: primaryColor }}>
                   {t("SearchWidget.checkIn")}
                 </p>
@@ -534,8 +562,8 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                 ›
               </div>
 
-               {/* Check-out */}
-               <div className="text-center flex-1 min-w-[70px] lg:min-w-[80px]">
+              {/* Check-out */}
+              <div className="text-center flex-1 min-w-[70px] lg:min-w-[100px]">
                 <p className="text-[9px] tracking-[0.15em] font-medium mb-1" style={{ color: primaryColor }}>
                   {t("SearchWidget.checkOut")}
                 </p>
@@ -553,7 +581,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
             {/* Occupancy */}
             <button
               onClick={() => setIsGuestSelectorOpen(true)}
-              className="bg-white border rounded-xl px-4 lg:px-5 xl:px-6 py-3 lg:py-3 xl:py-4 hover:bg-[#FAFAF8] transition-colors shadow-sm w-full md:w-auto"
+              className="bg-white border rounded-xl px-4 py-3 hover:bg-[#FAFAF8] transition-colors shadow-sm w-full md:w-auto"
               style={{ borderColor: secondaryColor }}
             >
               <p className="text-[9px] tracking-[0.15em] font-medium mb-2" style={{ color: primaryColor }}>
@@ -600,28 +628,28 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
               </div>
             </button>
 
-             {/* Promo Code */}
-             <div className="flex flex-col min-w-0 xl:min-w-[150px] px-4 lg:px-5 xl:px-6 py-3 lg:py-3 xl:py-4">
-               <input
-                 type="text"
-                 value={promocode}
-                 onChange={(e) => {
-                   setPromocode(e.target.value.toUpperCase());
-                   promocodeRef.current = e.target.value.toUpperCase(); // ✅ sync immediately, no useEffect lag
-                 }}
-                 placeholder={t("SearchWidget.promoCode")}
-                 className="bg-transparent border-b-2 pb-2 text-[10px] tracking-[0.15em] placeholder-[#9B8B6F] focus:outline-none transition-colors w-full"
-                 style={{ borderColor: secondaryColor, color: "black" }}
-               />
-             </div>
+            {/* Promo Code */}
+            <div className="flex flex-col min-w-[130px] xl:min-w-[180px]">
+              <input
+                type="text"
+                value={promocode}
+                onChange={(e) => {
+                  setPromocode(e.target.value.toUpperCase());
+                  promocodeRef.current = e.target.value.toUpperCase(); // ✅ sync immediately, no useEffect lag
+                }}
+                placeholder={t("SearchWidget.promoCode")}
+                className="bg-transparent border-b-2 pb-2 text-[10px] tracking-[0.15em] placeholder-[#9B8B6F] focus:outline-none transition-colors w-full"
+                style={{ borderColor: secondaryColor, color: "black" }}
+              />
+            </div>
 
-             {/* Book Button */}
-             <button
-               onClick={handleSearch}
-               disabled={loading}
-               className="w-full md:w-auto px-5 lg:px-6 xl:px-10 py-3 xl:py-4 rounded-full text-xs lg:text-[11px] font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm hover:opacity-90 whitespace-nowrap"
-               style={{ backgroundColor: secondaryColor, color: buttonTextColor }}
-             >
+            {/* Book Button */}
+            <button
+              onClick={handleSearch}
+              disabled={loading}
+              className="w-full md:w-auto px-6 lg:px-10 py-3 lg:py-4 rounded-full text-xs lg:text-[11px] font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm hover:opacity-90 whitespace-nowrap"
+              style={{ backgroundColor: secondaryColor,color:buttonTextColor }}
+            >
               {loading ? t("SearchWidget.loading") : t("SearchWidget.bookNow")}
             </button>
           </div>
@@ -644,6 +672,9 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   checkIn={checkIn}
                   checkOut={checkOut}
                   temporaryCheckOut={temporaryCheckOut}
+                  prices={prices}
+                  isPricesLoading={isPricesLoading} // ← ADD
+                  currencyCode={bookingContext.currency}
                   onDateSelect={(date: Date) => {
                     if (selectionMode === "checkin") {
                       setCheckIn(date);

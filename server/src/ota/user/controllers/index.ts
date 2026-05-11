@@ -1,1 +1,1 @@
-export * from "./ota-user.controller";
+export * from './ota-user.controller';

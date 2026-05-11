@@ -1,5 +1,3 @@
-import {PolicyController} from "./Policy.controller"
+import { PolicyController } from './Policy.controller';
 
-export {
-    PolicyController
-};
+export { PolicyController };

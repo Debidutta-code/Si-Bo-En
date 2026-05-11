@@ -118,7 +118,7 @@ export const generateBookingInvoiceHTML = (
     const balance = totalAmount - paidAmount;
     const taxAmount = priceBreakdown ? Number(priceBreakdown.totalTax) : 0;
     const amountBeforeTax = totalAmount - taxAmount;
-    
+
     // Calculate nights
     const checkIn = new Date(reservation.checkInDate);
     const checkOut = new Date(reservation.checkOutDate);
@@ -127,8 +127,15 @@ export const generateBookingInvoiceHTML = (
     );
 
     // Parse guests from JSON
-    const guestsData = reservation.guests || { adults: 1, children: 0, infants: 0 };
-    const totalGuests = (guestsData.adults || 0) + (guestsData.children || 0) + (guestsData.infants || 0);
+    const guestsData = reservation.guests || {
+        adults: 1,
+        children: 0,
+        infants: 0,
+    };
+    const totalGuests =
+        (guestsData.adults || 0) +
+        (guestsData.children || 0) +
+        (guestsData.infants || 0);
 
     return `
 <!DOCTYPE html>

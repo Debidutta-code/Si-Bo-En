@@ -1,1 +1,1 @@
-export type AmenityType = "room" | "property";
+export type AmenityType = 'room' | 'property';

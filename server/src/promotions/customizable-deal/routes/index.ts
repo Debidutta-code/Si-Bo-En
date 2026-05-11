@@ -1,4 +1,2 @@
-import customizableDealRouter from "./customizable-deal.route";
-export {
-customizableDealRouter
-}
+import customizableDealRouter from './customizable-deal.route';
+export { customizableDealRouter };

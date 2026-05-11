@@ -1,48 +1,34 @@
-import { Router } from "express";
-import { SubCategoryController } from "../controllers";
+import { Router } from 'express';
+import { SubCategoryController } from '../controllers';
 
 const router = Router();
 const subCategoryController = new SubCategoryController();
 
-router.post(
-    "/",
-    subCategoryController.createSubCategory
-);
+router.post('/', subCategoryController.createSubCategory);
 
-router.get(
-    "/",
-    subCategoryController.getAllSubCategories
-);
+router.get('/', subCategoryController.getAllSubCategories);
 
-router.get(
-    "/:subcategoryId",
-    subCategoryController.getSubCategoryById
-);
+router.get('/:subcategoryId', subCategoryController.getSubCategoryById);
 
-
-router.put(
-    "/:subcategoryId",
-    subCategoryController.updateSubCategory
-);
+router.put('/:subcategoryId', subCategoryController.updateSubCategory);
 
 router.post(
-    "/:subcategoryId/variants",
+    '/:subcategoryId/variants',
     subCategoryController.addVariantToSubCategory
 );
 
-
 router.post(
-    "/:subcategoryId/addons",
+    '/:subcategoryId/addons',
     subCategoryController.addAddonToSubCategory
 );
 
 router.delete(
-    "/:subcategoryId/variants/:variantId",
+    '/:subcategoryId/variants/:variantId',
     subCategoryController.removeVariantFromSubCategory
 );
 
 router.delete(
-    "/:subcategoryId/addons/:addonId",
+    '/:subcategoryId/addons/:addonId',
     subCategoryController.removeAddonFromSubCategory
 );
 

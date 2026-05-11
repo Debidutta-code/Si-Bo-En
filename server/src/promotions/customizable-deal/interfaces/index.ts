@@ -1,1 +1,1 @@
-export * from "./customizable-deal.type";
+export * from './customizable-deal.type';

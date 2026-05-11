@@ -9,9 +9,9 @@ import {
 import { toUTC } from '../../utils';
 import { getCurrencyConverter } from '../../currency-maping/utils';
 import { CurrencyCode } from '../../tax-system/interfaces/tourist-tax.type';
- class InventoryServices {
-    inventoryDao :InventoryDao;
-    constructor(){
+class InventoryServices {
+    inventoryDao: InventoryDao;
+    constructor() {
         this.inventoryDao = new InventoryDao();
     }
     public async getInventoryServices(
@@ -44,11 +44,14 @@ import { CurrencyCode } from '../../tax-system/interfaces/tourist-tax.type';
     }
     public async getAllRoomTypeService(hotelCode: string) {
         try {
-            const property = await this.inventoryDao.isPropertyExists(hotelCode);
+            const property =
+                await this.inventoryDao.isPropertyExists(hotelCode);
             if (!property) {
                 return errorResponse('Property not found');
             }
-            const roomTypes = await this.inventoryDao.getAllRoomTypeDao(property.id);
+            const roomTypes = await this.inventoryDao.getAllRoomTypeDao(
+                property.id
+            );
             if (!roomTypes) {
                 return errorResponse('No Room found under this property');
             }
@@ -66,7 +69,8 @@ import { CurrencyCode } from '../../tax-system/interfaces/tourist-tax.type';
         pushFromCalender?: boolean
     ) {
         try {
-            const property = await this.inventoryDao.isPropertyExists(propertyCode);
+            const property =
+                await this.inventoryDao.isPropertyExists(propertyCode);
             if (!property) {
                 return errorResponse('Property not found');
             }
@@ -111,7 +115,8 @@ import { CurrencyCode } from '../../tax-system/interfaces/tourist-tax.type';
                     availability: availableRooms,
                 });
             }
-            const response = await this.inventoryDao.createInventory(invTOCreated);
+            const response =
+                await this.inventoryDao.createInventory(invTOCreated);
             if (response) {
                 return successResponse(
                     'Availability added/updated successfully',
@@ -143,7 +148,7 @@ import { CurrencyCode } from '../../tax-system/interfaces/tourist-tax.type';
         try {
             const [room, { convert, baseCurrency }] = await Promise.all([
                 this.inventoryDao.getRoom(propertyId, roomTypeCode),
-                getCurrencyConverter(propertyId, currencyCode)
+                getCurrencyConverter(propertyId, currencyCode),
             ]);
 
             if (!room) {
@@ -213,7 +218,7 @@ import { CurrencyCode } from '../../tax-system/interfaces/tourist-tax.type';
                     const firstMissing = inventoryCheck.missingDates[0];
                     const lastMissing =
                         inventoryCheck.missingDates[
-                        inventoryCheck.missingDates.length - 1
+                            inventoryCheck.missingDates.length - 1
                         ];
 
                     return successResponse(
@@ -282,16 +287,28 @@ import { CurrencyCode } from '../../tax-system/interfaces/tourist-tax.type';
             return errorResponse('Failed to map room with rate plan');
         }
     }
-    public async getRoomAvailabilityService(propertyCode: string, roomType: string) {
+    public async getRoomAvailabilityService(
+        propertyCode: string,
+        roomType: string
+    ) {
         try {
-            const response = await this.inventoryDao.getRoomAvailability(propertyCode, roomType);
+            const response = await this.inventoryDao.getRoomAvailability(
+                propertyCode,
+                roomType
+            );
             if (response) {
-                return successResponse('Date based availability fetched successfully', response);
+                return successResponse(
+                    'Date based availability fetched successfully',
+                    response
+                );
             } else {
                 return errorResponse('Failed to fetch date based availability');
             }
         } catch (error: any) {
-            return errorResponse('Failed to fetch date based availability', error?.message);
+            return errorResponse(
+                'Failed to fetch date based availability',
+                error?.message
+            );
         }
     }
 }

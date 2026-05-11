@@ -5,40 +5,38 @@ import { IPromotion } from '../types';
 
 export class RoomBookingRepository {
     public static async getPropertyByCode(propertyCode: string) {
-        return prisma.property.findUnique({
+        const property = await prisma.property.findUnique({
             where: { propertyCode },
             include: {
                 propertyAddress: true,
-                
+
                 propertyAmenities: {
                     include: { amenity: true },
                 },
                 loyaltyProgramConfig: {
                     where: { isActive: true },
-                include:{
-                    CreationLoyaltyConfig:{
-                        include:{
-                            BasicLoyaltyProgram:true,
-                            loyaltyConditions:true,
-                            loyaltySpecialConditions:true,
-                            LoyaltyProgramFieldConfig:true,
-                            AdvanceLoyaltyProgram:true,
-                            PropertyLoyaltyConfig:true,
-                        }
+                    include: {
+                        CreationLoyaltyConfig: {
+                            include: {
+                                BasicLoyaltyProgram: true,
+                                loyaltyConditions: true,
+                                loyaltySpecialConditions: true,
+                                LoyaltyProgramFieldConfig: true,
+                                AdvanceLoyaltyProgram: true,
+                                PropertyLoyaltyConfig: true,
+                            },
+                        },
                     },
-
-                }
                 },
                 propertyVideos: true,
                 propertyRooms: {
-                    orderBy:[{ priority: 'asc' }],
+                    orderBy: [{ priority: 'asc' }],
                     where: { isDeleted: false, available: true },
                     include: {
                         roomAmenities: { include: { amenity: true } },
                         roomVideos: true,
                     },
                 },
-                propertyConfigs: true,
                 ratePlans: {
                     include: {
                         depositPolicy: true,
@@ -49,6 +47,15 @@ export class RoomBookingRepository {
                 bookingEngineConfig: true,
             },
         });
+
+        if (property) {
+            const propertyConfigs = await prisma.propertyConfigs.findUnique({
+                where: { propertyId: property.id }
+            });
+            (property as any).propertyConfigs = propertyConfigs;
+        }
+
+        return property;
     }
 
     public static async getInventoryByProperty(
@@ -65,7 +72,10 @@ export class RoomBookingRepository {
             },
         });
     }
-    public static async getPromoCodeByPropertyAndCode(propertyId: string, code: string) {
+    public static async getPromoCodeByPropertyAndCode(
+        propertyId: string,
+        code: string
+    ) {
         return prisma.promoCode.findUnique({
             where: { code, propertyId, isDeleted: false },
         });
@@ -155,7 +165,7 @@ export class RoomBookingRepository {
         checkInDate: Date,
         today: Date,
         numberOfNights: number
-    ):Promise<IPromotion[]|null> {
+    ): Promise<IPromotion[] | null> {
         const checkInUTC = toUTCDate(checkInDate);
         const todayUTC = toUTCDate(today);
         const dayOfWeek = checkInUTC.getDay();
@@ -171,8 +181,6 @@ export class RoomBookingRepository {
         };
 
         const dayField = dayApplicability[dayOfWeek];
-
-
 
         return prisma.promotion.findMany({
             where: {
@@ -221,7 +229,7 @@ export class RoomBookingRepository {
         ratePlanId: string,
         checkInDate: Date,
         deviceType: string
-    ):Promise<IPromotion|null> {
+    ): Promise<IPromotion | null> {
         const checkInUTC = toUTCDate(checkInDate);
         const todayUTC = toUTCDate(new Date());
         const dayOfWeek = checkInUTC.getDay();
@@ -279,6 +287,29 @@ export class RoomBookingRepository {
             where: { roomId },
         });
     }
+
+    public static async getPropertyChargesForCalendar(propertyCode: string, startDate: Date, endDate: Date) {
+        return prisma.charge.findMany({
+            where: {
+                propertyCode,
+                date: {
+                    gte: startDate,
+                    lte: endDate,
+                },
+                isAvailable: true,
+                isSaleStopped: false,
+            },
+            include: {
+                baseGuestAmounts: {
+                    where: {
+                        numberOfGuests: 1,
+                        ageQualifyingCode: "10"
+                    }
+                }
+            }
+        });
+    }
+
     public static async getBookingOffset(ratePlanId: string, checkInDate: Date) {
         return prisma.bookingOffset.findFirst({
             where: {

@@ -1,6 +1,6 @@
-import { prisma } from "../../config";
-import { ILoyalityGuests } from "../../loyalty/types";
-import { ILoginResponseR } from "../types";
+import { prisma } from '../../config';
+import { ILoyalityGuests } from '../../loyalty/types';
+import { ILoginResponseR } from '../types';
 
 export class LoyalityLoginRepository {
     public async login(email: string): Promise<ILoginResponseR | null> {
@@ -14,18 +14,21 @@ export class LoyalityLoginRepository {
                 },
             });
         } catch (error) {
-            throw new Error("Error occur while finding user");
+            throw new Error('Error occur while finding user');
         }
     }
 
-    public async updatePassword(email: string, hashedPassword: string): Promise<ILoyalityGuests> {
+    public async updatePassword(
+        email: string,
+        hashedPassword: string
+    ): Promise<ILoyalityGuests> {
         try {
             return await prisma.loyalityGuest.update({
                 where: { guestEmail: email },
                 data: { password: hashedPassword },
             });
         } catch (error) {
-            throw new Error("Error occur while finding user");
+            throw new Error('Error occur while finding user');
         }
     }
 
@@ -43,18 +46,18 @@ export class LoyalityLoginRepository {
                                     LoyaltyProgramFieldConfig: true,
                                     loyaltyConditions: true,
                                     loyaltySpecialConditions: true,
-                                    LoyalityLevels:true,
-                                    PropertyLoyaltyConfig:{
-                                        include:{
-                                            Property:{
-                                               select:{
-                                                id:true,
-                                                propertyCode:true,
-                                                propertyName:true,
-                                               }
-                                            }
-                                        }
-                                    }
+                                    LoyalityLevels: true,
+                                    PropertyLoyaltyConfig: {
+                                        include: {
+                                            Property: {
+                                                select: {
+                                                    id: true,
+                                                    propertyCode: true,
+                                                    propertyName: true,
+                                                },
+                                            },
+                                        },
+                                    },
                                 },
                             },
                         },
@@ -63,7 +66,7 @@ export class LoyalityLoginRepository {
                 },
             });
         } catch (error) {
-            throw new Error("Error occur while finding user");
+            throw new Error('Error occur while finding user');
         }
     }
 }

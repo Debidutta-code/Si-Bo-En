@@ -1,7 +1,7 @@
-import { Router } from "express";
-import { protect } from "../../middlewares/auth.middleware";
-import { checkRoleBased } from "../../middlewares/checkRole.middleware";
-import { CreationLoyalityController } from "../controllers";
+import { Router } from 'express';
+import { protect } from '../../middlewares/auth.middleware';
+import { checkRoleBased } from '../../middlewares/checkRole.middleware';
+import { CreationLoyalityController } from '../controllers';
 
 const router = Router();
 
@@ -9,36 +9,52 @@ const router = Router();
 const creationLoyalityController = new CreationLoyalityController();
 
 // ===== Creation Loyalty Routes =====
-router.route("/")
+router
+    .route('/')
     .post(
         protect,
-        creationLoyalityController.createCreationLoyality.bind(creationLoyalityController)
+        creationLoyalityController.createCreationLoyality.bind(
+            creationLoyalityController
+        )
     );
 
-router.route("/:creationLoyalityId")
+router
+    .route('/:creationLoyalityId')
     .get(
         protect,
-        creationLoyalityController.getCreationLoyalityById.bind(creationLoyalityController)
+        creationLoyalityController.getCreationLoyalityById.bind(
+            creationLoyalityController
+        )
     )
     .patch(
         protect,
-        creationLoyalityController.updateCreationLoyality.bind(creationLoyalityController)
+        creationLoyalityController.updateCreationLoyality.bind(
+            creationLoyalityController
+        )
     )
     .delete(
         protect,
-        creationLoyalityController.deleteLoyality.bind(creationLoyalityController)
+        creationLoyalityController.deleteLoyality.bind(
+            creationLoyalityController
+        )
     );
 
-router.route("/by-creation/:creationId")
+router
+    .route('/by-creation/:creationId')
     .get(
         protect,
-        creationLoyalityController.getLoyalityByCreation.bind(creationLoyalityController)
+        creationLoyalityController.getLoyalityByCreation.bind(
+            creationLoyalityController
+        )
     );
 
-router.route("/with-property/:creationId")
+router
+    .route('/with-property/:creationId')
     .get(
         protect,
-        creationLoyalityController.getAllCreationLoyalityWithProperty.bind(creationLoyalityController)
+        creationLoyalityController.getAllCreationLoyalityWithProperty.bind(
+            creationLoyalityController
+        )
     );
 
 export default router;

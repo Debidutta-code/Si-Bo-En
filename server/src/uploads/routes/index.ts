@@ -1,1 +1,1 @@
-export * from "./upload.router"
+export * from './upload.router';

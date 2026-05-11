@@ -1,1 +1,1 @@
-export * from "./rate-tiger.routes"
+export * from './rate-tiger.routes';
