@@ -25,9 +25,7 @@ export class ReportsRepository {
                             AddonBrakeDowns: true,
                         },
                     },
-                    // priceBreakdowns: true,
                     reservationGuests: true,
-                    // reservationPromotions: true,
                     property: {
                         include: {
                             propertyAddress: true,
@@ -51,7 +49,6 @@ export class ReportsRepository {
 
             if (!reservation) return null;
 
-            // ── Fetch room images ─────────────────────────────────────────────
             const room = reservation.roomTypeCode
                 ? await prisma.room.findFirst({
                       where: {
@@ -70,7 +67,6 @@ export class ReportsRepository {
                   })
                 : null;
 
-            // ── Fetch rate plan name ──────────────────────────────────────────
             const ratePlan = reservation.ratePlanCode
                 ? await prisma.ratePlan.findUnique({
                       where: { ratePlanCode: reservation.ratePlanCode },
