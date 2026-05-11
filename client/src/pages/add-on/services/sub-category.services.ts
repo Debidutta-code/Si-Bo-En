@@ -5,7 +5,7 @@ import {createAddonSubCategory,
 } from "../api";
 import type { IAddonSubCategoryCreate,IAddonSubCategoryUpdate } from "../interface";
 
-export const createSubCategoryService = async (data:IAddonSubCategoryCreate) => {
+export const createSubCategoryService = async (data: IAddonSubCategoryCreate, propertyId: string) => {
     try {
         if(!data.name || data.name.trim() === "") {
             return { success: false, message: "Sub-category name is required." };
@@ -13,7 +13,10 @@ export const createSubCategoryService = async (data:IAddonSubCategoryCreate) => 
         if(!data.categoryId || data.categoryId.trim() === "") {
             return { success: false, message: "Category ID is required." };
         }
-        const response = await createAddonSubCategory(data);
+        if(!propertyId || propertyId.trim() === "") {
+            return { success: false, message: "Property ID is required." };
+        }
+        const response = await createAddonSubCategory(data, propertyId);
         return response;
     }
     catch (error) {
@@ -37,9 +40,13 @@ export const updateSubCategoryService = async (subCategoryId:string, data:IAddon
         return { success: false, message: "Failed to update sub-category."};
     }
 }
-export const fetchSubCategoriesService = async () => {
+export const fetchSubCategoriesService = async (propertyId: string) => {
     try {
-        const response = await fetchAddonSubCategories();
+        if(!propertyId || propertyId.trim() === "") {
+            return { success: false, message: "Property detail is required." };
+        }
+
+        const response = await fetchAddonSubCategories(propertyId);
         return response;
     } catch (error) {
         return { success: false, message: "Failed to fetch sub-categories."};

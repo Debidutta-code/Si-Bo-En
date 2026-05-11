@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { VariantService } from '../services';
 import { generateAddOnVariantCode } from '../utils';
 import { successResponse, errorResponse } from '../../utils/return';
+import { CustomRequest, PropertyCustomRequest } from '../../utils';
 
 export class VariantController {
     private variantService: VariantService;
@@ -10,21 +11,21 @@ export class VariantController {
         this.variantService = new VariantService();
     }
 
-    /**
-     * Create a new variant
-     */
-    createVariant = async (req: Request, res: Response) => {
+    public async createVariant(req: PropertyCustomRequest, res: Response) {
         try {
             let { name, subcategoryId } = req.body;
-
-            // Generate code from backend if not provided
+            const id = req.property?.id;
+            if (!id) {
+                return res.status(400).json(errorResponse('Property detail is required for creating category'));
+            }
 
             const code = await generateAddOnVariantCode();
 
             const variant = await this.variantService.createVariant(
                 code,
                 name,
-                subcategoryId
+                subcategoryId,
+                id
             );
 
             return res.status(variant.success ? 201 : 400).json(variant);
@@ -53,12 +54,13 @@ export class VariantController {
         }
     };
 
-    /**
-     * Get all variants
-     */
-    getAllVariants = async (req: Request, res: Response) => {
+    public async getAllVariants(req: CustomRequest, res: Response) {
         try {
-            const variants = await this.variantService.getAllVariants();
+            const propertyId = req.query.id as string;
+            if(!propertyId){
+                return res.status(400).json(errorResponse('Property detail is required for fetching variants'));
+            }
+            const variants = await this.variantService.getAllVariants(propertyId);
 
             return res.status(variants.success ? 200 : 400).json(variants);
         } catch (error: any) {
@@ -78,22 +80,14 @@ export class VariantController {
         }
     };
 
-    /**
-     * Get variant by ID
-     */
-    getVariantById = async (req: Request, res: Response) => {
+    public async getVariantById(req: CustomRequest, res: Response) {
         try {
             const { variantId } = req.params;
 
             const variant = await this.variantService.getVariantById(variantId);
 
             return res.status(variant.success ? 200 : 400).json(variant);
-        } catch (error: any) {
-            console.error(
-                'Failed to fetch variant at Controller Layer:',
-                error
-            );
-
+        } catch (error) {
             if (error instanceof Error) {
                 return res
                     .status(500)
@@ -113,10 +107,7 @@ export class VariantController {
         }
     };
 
-    /**
-     * Get variants by subcategory ID
-     */
-    getVariantsBySubCategoryId = async (req: Request, res: Response) => {
+    public async getVariantsBySubCategoryId(req: CustomRequest, res: Response) {
         try {
             const { subcategoryId } = req.params;
 
@@ -126,12 +117,7 @@ export class VariantController {
                 );
 
             return res.status(variants.success ? 200 : 400).json(variants);
-        } catch (error: any) {
-            console.error(
-                'Failed to fetch variants by subcategory at Controller Layer:',
-                error
-            );
-
+        } catch (error) {
             if (error instanceof Error) {
                 return res
                     .status(500)
@@ -154,10 +140,7 @@ export class VariantController {
         }
     };
 
-    /**
-     * Update variant
-     */
-    updateVariant = async (req: Request, res: Response) => {
+    public async updateVariant(req: CustomRequest, res: Response) {
         try {
             const { variantId } = req.params;
             const updateData = req.body;
@@ -179,12 +162,7 @@ export class VariantController {
             );
 
             return res.status(variant.success ? 200 : 400).json(variant);
-        } catch (error: any) {
-            console.error(
-                'Failed to update variant at Controller Layer:',
-                error
-            );
-
+        } catch (error) {
             if (error instanceof Error) {
                 return res
                     .status(500)
@@ -204,22 +182,14 @@ export class VariantController {
         }
     };
 
-    /**
-     * Delete variant
-     */
-    deleteVariant = async (req: Request, res: Response) => {
+    public async deleteVariant(req: CustomRequest, res: Response) {
         try {
             const { variantId } = req.params;
 
             const variant = await this.variantService.deleteVariant(variantId);
 
             return res.status(variant.success ? 200 : 400).json(variant);
-        } catch (error: any) {
-            console.error(
-                'Failed to delete variant at Controller Layer:',
-                error
-            );
-
+        } catch (error) {
             if (error instanceof Error) {
                 return res
                     .status(500)
@@ -239,97 +209,5 @@ export class VariantController {
         }
     };
 
-    /**
-     * Add addon to variant
-     */
-    addAddonToVariant = async (req: Request, res: Response) => {
-        try {
-            const { variantId } = req.params;
-            const { addonId } = req.body;
 
-            if (!addonId) {
-                return res
-                    .status(400)
-                    .json(
-                        errorResponse(
-                            'Addon ID is required',
-                            'Addon ID is required'
-                        )
-                    );
-            }
-
-            const variant = await this.variantService.addAddonToVariant(
-                variantId,
-                addonId
-            );
-
-            return res.status(variant.success ? 200 : 400).json(variant);
-        } catch (error: any) {
-            console.error(
-                'Failed to add addon to variant at Controller Layer:',
-                error
-            );
-
-            if (error instanceof Error) {
-                return res
-                    .status(500)
-                    .json(
-                        errorResponse(
-                            'Failed to add addon to variant',
-                            error.message
-                        )
-                    );
-            }
-
-            return res
-                .status(500)
-                .json(
-                    errorResponse(
-                        'Failed to add addon to variant',
-                        'Unable to add addon to variant at this moment'
-                    )
-                );
-        }
-    };
-
-    /**
-     * Remove addon from variant
-     */
-    removeAddonFromVariant = async (req: Request, res: Response) => {
-        try {
-            const { variantId, addonId } = req.params;
-
-            const variant = await this.variantService.removeAddonFromVariant(
-                variantId,
-                addonId
-            );
-
-            return res.status(variant.success ? 200 : 400).json(variant);
-        } catch (error: any) {
-            console.error(
-                'Failed to remove addon from variant at Controller Layer:',
-                error
-            );
-
-            if (error instanceof Error) {
-                return res
-                    .status(500)
-                    .json(
-                        errorResponse(
-                            'Failed to remove addon from variant',
-                            error.message
-                        )
-                    );
-            }
-
-            return res
-                .status(500)
-                .json(
-                    errorResponse(
-                        'Failed to remove addon from variant',
-                        'Unable to remove addon from variant at this moment'
-                    )
-                );
-        }
-    };
 }

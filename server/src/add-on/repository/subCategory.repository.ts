@@ -1,42 +1,46 @@
 import { prisma } from '../../config';
-import { ICSubCategory, IAddonSubCategory } from '../interfaces';
+import { ICSubCategory, IAddonSubCategory, IUSubCategory } from '../interfaces';
 export default class SubCategoryRepository {
-    public static async createSubCategory(
+    public async createSubCategory(
         code: string,
         name: string,
-        categoryId: string
+        categoryId: string,
+        propertyId: string
     ): Promise<IAddonSubCategory> {
         try {
             return await prisma.addonSubCategory.create({
-                data: { code, name, categoryId },
+                data: { code, name, categoryId, propertyId },
             });
         } catch (error) {
             throw new Error('Error creating subcategory');
         }
     }
-    public static async getAllSubCategories(): Promise<IAddonSubCategory[]> {
+    public async getAllSubCategories(propertyId: string): Promise<IAddonSubCategory[]> {
         try {
             return await prisma.addonSubCategory.findMany({
+                where: { propertyId },
                 include: { addons: true, variants: true },
             });
         } catch (error) {
             throw new Error('Error fetching subcategories');
         }
     }
-    public static async updateSubCategory(
+    public async updateSubCategory(
         subCategoryId: string,
-        updateData: Partial<ICSubCategory>
+        updateData: IUSubCategory
     ): Promise<IAddonSubCategory | null> {
         try {
             return await prisma.addonSubCategory.update({
                 where: { id: subCategoryId },
-                data: updateData,
+                data: {
+                    name: updateData.name,
+                },
             });
         } catch (error) {
             throw new Error('Error updating subcategory');
         }
     }
-    public static async getSubCategoryById(
+    public async getSubCategoryById(
         subCategoryId: string
     ): Promise<IAddonSubCategory | null> {
         try {
@@ -47,56 +51,13 @@ export default class SubCategoryRepository {
             throw new Error('Error fetching subcategory by ID');
         }
     }
-    public static addVariantToSubCategory(
-        subCategoryId: string,
-        variantId: string
-    ): Promise<IAddonSubCategory | null> {
+    public async deleteSubCategory(subCategoryId: string): Promise<IAddonSubCategory | null> {
         try {
-            return prisma.addonSubCategory.update({
+            return await prisma.addonSubCategory.delete({
                 where: { id: subCategoryId },
-                data: { variants: { connect: { id: variantId } } },
             });
         } catch (error) {
-            throw new Error('Error adding variant to subcategory');
-        }
-    }
-    public static addAddonToSubCategory(
-        subCategoryId: string,
-        addonId: string
-    ): Promise<IAddonSubCategory | null> {
-        try {
-            return prisma.addonSubCategory.update({
-                where: { id: subCategoryId },
-                data: { addons: { connect: { id: addonId } } },
-            });
-        } catch (error) {
-            throw new Error('Error adding addon to subcategory');
-        }
-    }
-    public static removeVariantFromSubCategory(
-        subCategoryId: string,
-        variantId: string
-    ): Promise<IAddonSubCategory | null> {
-        try {
-            return prisma.addonSubCategory.update({
-                where: { id: subCategoryId },
-                data: { variants: { disconnect: { id: variantId } } },
-            });
-        } catch (error) {
-            throw new Error('Error removing variant from subcategory');
-        }
-    }
-    public static removeAddonFromSubCategory(
-        subCategoryId: string,
-        addonId: string
-    ): Promise<IAddonSubCategory | null> {
-        try {
-            return prisma.addonSubCategory.update({
-                where: { id: subCategoryId },
-                data: { addons: { disconnect: { id: addonId } } },
-            });
-        } catch (error) {
-            throw new Error('Error removing addon from subcategory');
+            throw new Error('Error deleting subcategory');
         }
     }
 }

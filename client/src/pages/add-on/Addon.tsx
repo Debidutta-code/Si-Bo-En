@@ -224,8 +224,9 @@ export default function AddOns() {
   };
 
   const fetchCategories = async () => {
+    if(!propertyId)return
     try {
-      const response = await fetchCategoriesService();
+      const response = await fetchCategoriesService(propertyId);
       if (response.success) {
         setCategories(response.data || []);
       }
@@ -235,8 +236,10 @@ export default function AddOns() {
   };
 
   const fetchSubCategories = async () => {
+        if(!propertyId)return
+
     try {
-      const response = await fetchSubCategoriesService();
+      const response = await fetchSubCategoriesService(propertyId);
       if (response.success) {
         setSubCategories(response.data || []);
       }
@@ -246,8 +249,10 @@ export default function AddOns() {
   };
 
   const fetchVariants = async () => {
+        if(!propertyId)return
+
     try {
-      const response = await fetchVariantsService();
+      const response = await fetchVariantsService(propertyId);
       if (response.success) {
         setVariants(response.data || []);
       }
@@ -344,9 +349,10 @@ export default function AddOns() {
   };
 
   const handleCreateCategory = async (data: IAddonCategoryCreate) => {
+    if(!propertyId)return
     setLoader({ isLoading: true, message: "Creating category..." });
     try {
-      const response = await createCategoryService(data);
+      const response = await createCategoryService(data,propertyId);
       if (response.success) {
         toast.success(response.message || "Category created successfully");
         setCategoryDialog({ open: false, mode: "create", category: null });
@@ -411,9 +417,10 @@ export default function AddOns() {
   };
 
   const handleCreateSubCategory = async (data: IAddonSubCategoryCreate) => {
+    if(!propertyId)return
     setLoader({ isLoading: true, message: "Creating subcategory..." });
     try {
-      const response = await createSubCategoryService(data);
+      const response = await createSubCategoryService(data,propertyId);
       if (response.success) {
         toast.success(response.message || "Subcategory created successfully");
         setSubCategoryDialog({
@@ -486,9 +493,10 @@ export default function AddOns() {
   };
 
   const handleCreateVariant = async (data: IAddonVariantCreate) => {
+    if(!propertyId)return
     setLoader({ isLoading: true, message: "Creating variant..." });
     try {
-      const response = await createVariantService(data);
+      const response = await createVariantService(data,propertyId);
       if (response.success) {
         toast.success(response.message || "Variant created successfully");
         setVariantDialog({ open: false, mode: "create", variant: null });

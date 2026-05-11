@@ -1,64 +1,44 @@
 import SubCategoryRepository from '../repository/subCategory.repository';
 import CategoryAddonRepository from '../repository/categoryAddon.repository';
-import { IAddonSubCategory } from '../interfaces';
+import { IAddonSubCategory, IUSubCategory } from '../interfaces';
 import { successResponse, errorResponse } from '../../utils/return';
 import { IApiResponse } from '../../utils/return.types';
 export class SubCategoryService {
-    /**
-     * Create a new addon subcategory
-     */
-    async createSubCategory(
+    private subCategoryRepository: SubCategoryRepository;
+    private categoryAddonRepository: CategoryAddonRepository;
+
+    constructor() {
+        this.subCategoryRepository = new SubCategoryRepository();
+        this.categoryAddonRepository = new CategoryAddonRepository();
+    }
+    public async createSubCategory(
         code: string,
         name: string,
-        categoryId: string
+        categoryId: string,
+        propertyId: string
     ): Promise<IApiResponse> {
         try {
             // Check if category exists
             const category =
-                await CategoryAddonRepository.getCategoryById(categoryId);
+                await this.categoryAddonRepository.getCategoryById(categoryId);
             if (!category) {
                 return errorResponse(
                     'Category not found',
                     'Category not found'
                 );
             }
-
-            // Check if subcategory with same code already exists
-            const existingSubCategories =
-                await SubCategoryRepository.getAllSubCategories();
-            const exists = existingSubCategories.some(
-                subCat => subCat.code === code
-            );
-
-            if (exists) {
-                return errorResponse(
-                    'Subcategory with this code already exists',
-                    'Subcategory with this code already exists'
-                );
-            }
-
-            const subCategory = await SubCategoryRepository.createSubCategory(
+            const subCategory = await this.subCategoryRepository.createSubCategory(
                 code,
                 name,
-                categoryId
-            );
-            if (!subCategory.id) {
-                return errorResponse(
-                    'Failed to create subcategory',
-                    'Failed to create subcategory'
-                );
-            }
-            // Add subcategory to category
-            await CategoryAddonRepository.addSubCategoryToCategory(
                 categoryId,
-                subCategory.id
+                propertyId
             );
 
             return successResponse(
                 'Subcategory created successfully',
                 subCategory
             );
-        } catch (error: any) {
+        } catch (error) {
             if (error instanceof Error) {
                 return errorResponse(
                     'Failed to create subcategory',
@@ -72,18 +52,15 @@ export class SubCategoryService {
         }
     }
 
-    /**
-     * Get all subcategories
-     */
-    async getAllSubCategories(): Promise<IApiResponse> {
+    public async getAllSubCategories(propertyId: string): Promise<IApiResponse> {
         try {
             const subCategories =
-                await SubCategoryRepository.getAllSubCategories();
+                await this.subCategoryRepository.getAllSubCategories(propertyId);
             return successResponse(
                 'Subcategories fetched successfully',
                 subCategories
             );
-        } catch (error: any) {
+        } catch (error) {
             if (error instanceof Error) {
                 return errorResponse(
                     'Failed to fetch subcategories',
@@ -97,13 +74,10 @@ export class SubCategoryService {
         }
     }
 
-    /**
-     * Get subcategory by ID
-     */
-    async getSubCategoryById(subCategoryId: string): Promise<IApiResponse> {
+    public async getSubCategoryById(subCategoryId: string): Promise<IApiResponse> {
         try {
             const subCategory =
-                await SubCategoryRepository.getSubCategoryById(subCategoryId);
+                await this.subCategoryRepository.getSubCategoryById(subCategoryId);
             if (!subCategory) {
                 return errorResponse(
                     'Subcategory not found',
@@ -115,7 +89,7 @@ export class SubCategoryService {
                 'Subcategory fetched successfully',
                 subCategory
             );
-        } catch (error: any) {
+        } catch (error) {
             if (error instanceof Error) {
                 return errorResponse(
                     'Failed to fetch subcategory',
@@ -129,17 +103,14 @@ export class SubCategoryService {
         }
     }
 
-    /**
-     * Update subcategory
-     */
-    async updateSubCategory(
+    public async updateSubCategory(
         subCategoryId: string,
-        updateData: Partial<IAddonSubCategory>
+        updateData: IUSubCategory
     ): Promise<IApiResponse> {
         try {
             // Check if subcategory exists
             const existingSubCategory =
-                await SubCategoryRepository.getSubCategoryById(subCategoryId);
+                await this.subCategoryRepository.getSubCategoryById(subCategoryId);
             if (!existingSubCategory) {
                 return errorResponse(
                     'Subcategory not found',
@@ -147,42 +118,10 @@ export class SubCategoryService {
                 );
             }
 
-            // If updating code, check for duplicates
-            if (
-                updateData.code &&
-                updateData.code !== existingSubCategory.code
-            ) {
-                const allSubCategories =
-                    await SubCategoryRepository.getAllSubCategories();
-                const codeExists = allSubCategories.some(
-                    subCat =>
-                        subCat.code === updateData.code &&
-                        subCat.id !== subCategoryId
-                );
-
-                if (codeExists) {
-                    return errorResponse(
-                        'Subcategory with this code already exists',
-                        'Subcategory with this code already exists'
-                    );
-                }
-            }
-
-            // If updating categoryId, validate it exists
-            if (updateData.categoryId) {
-                const category = await CategoryAddonRepository.getCategoryById(
-                    updateData.categoryId.toString()
-                );
-                if (!category) {
-                    return errorResponse(
-                        'Category not found',
-                        'Category not found'
-                    );
-                }
-            }
+         
 
             const updatedSubCategory =
-                await SubCategoryRepository.updateSubCategory(
+                await this.subCategoryRepository.updateSubCategory(
                     subCategoryId,
                     updateData
                 );
@@ -197,7 +136,7 @@ export class SubCategoryService {
                 'Subcategory updated successfully',
                 updatedSubCategory
             );
-        } catch (error: any) {
+        } catch (error) {
             if (error instanceof Error) {
                 return errorResponse(
                     'Failed to update subcategory',
@@ -210,158 +149,39 @@ export class SubCategoryService {
             );
         }
     }
-
-    /**
-     * Add variant to subcategory
-     */
-    async addVariantToSubCategory(
-        subCategoryId: string,
-        variantId: string
-    ): Promise<IApiResponse> {
+    public async deleteSubCategory(subCategoryId: string): Promise<IApiResponse> {
         try {
-            const subCategory =
-                await SubCategoryRepository.addVariantToSubCategory(
-                    subCategoryId,
-                    variantId
-                );
-
-            if (!subCategory) {
+            const existingSubCategory =
+                await this.subCategoryRepository.getSubCategoryById(subCategoryId);
+            if (!existingSubCategory) {
                 return errorResponse(
-                    'Failed to add variant to subcategory',
-                    'Failed to add variant to subcategory'
+                    'Subcategory not found',
+                    'Subcategory not found'
+                );
+            }
+
+            const deletedSubCategory =
+                await this.subCategoryRepository.deleteSubCategory(subCategoryId);
+            if (!deletedSubCategory) {
+                return errorResponse(
+                    'Failed to delete subcategory',
+                    'Failed to delete subcategory'
                 );
             }
 
             return successResponse(
-                'Variant added to subcategory successfully',
-                subCategory
+                'Subcategory deleted successfully',
+                deletedSubCategory
             );
-        } catch (error: any) {
+        } catch (error) {
             if (error instanceof Error) {
                 return errorResponse(
-                    'Failed to add variant to subcategory',
+                    'Failed to delete subcategory',
                     error.message
                 );
             }
             return errorResponse(
-                'Failed to add variant to subcategory',
-                'Unknown error'
-            );
-        }
-    }
-
-    /**
-     * Add addon to subcategory
-     */
-    async addAddonToSubCategory(
-        subCategoryId: string,
-        addonId: string
-    ): Promise<IApiResponse> {
-        try {
-            const subCategory =
-                await SubCategoryRepository.addAddonToSubCategory(
-                    subCategoryId,
-                    addonId
-                );
-
-            if (!subCategory) {
-                return errorResponse(
-                    'Failed to add addon to subcategory',
-                    'Failed to add addon to subcategory'
-                );
-            }
-
-            return successResponse(
-                'Addon added to subcategory successfully',
-                subCategory
-            );
-        } catch (error: any) {
-            if (error instanceof Error) {
-                return errorResponse(
-                    'Failed to add addon to subcategory',
-                    error.message
-                );
-            }
-            return errorResponse(
-                'Failed to add addon to subcategory',
-                'Unknown error'
-            );
-        }
-    }
-
-    /**
-     * Remove variant from subcategory
-     */
-    async removeVariantFromSubCategory(
-        subCategoryId: string,
-        variantId: string
-    ): Promise<IApiResponse> {
-        try {
-            const subCategory =
-                await SubCategoryRepository.removeVariantFromSubCategory(
-                    subCategoryId,
-                    variantId
-                );
-
-            if (!subCategory) {
-                return errorResponse(
-                    'Failed to remove variant from subcategory',
-                    'Failed to remove variant from subcategory'
-                );
-            }
-
-            return successResponse(
-                'Variant removed from subcategory successfully',
-                subCategory
-            );
-        } catch (error: any) {
-            if (error instanceof Error) {
-                return errorResponse(
-                    'Failed to remove variant from subcategory',
-                    error.message
-                );
-            }
-            return errorResponse(
-                'Failed to remove variant from subcategory',
-                'Unknown error'
-            );
-        }
-    }
-
-    /**
-     * Remove addon from subcategory
-     */
-    async removeAddonFromSubCategory(
-        subCategoryId: string,
-        addonId: string
-    ): Promise<IApiResponse> {
-        try {
-            const subCategory =
-                await SubCategoryRepository.removeAddonFromSubCategory(
-                    subCategoryId,
-                    addonId
-                );
-
-            if (!subCategory) {
-                return errorResponse(
-                    'Failed to remove addon from subcategory',
-                    'Failed to remove addon from subcategory'
-                );
-            }
-
-            return successResponse(
-                'Addon removed from subcategory successfully',
-                subCategory
-            );
-        } catch (error: any) {
-            if (error instanceof Error) {
-                return errorResponse(
-                    'Failed to remove addon from subcategory',
-                    error.message
-                );
-            }
-            return errorResponse(
-                'Failed to remove addon from subcategory',
+                'Failed to delete subcategory',
                 'Unknown error'
             );
         }
