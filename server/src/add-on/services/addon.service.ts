@@ -7,9 +7,12 @@ import { IApiResponse } from '../../utils/return.types';
 import { deleteFileByUrl } from '../../utils/delete-images.utils';
 
 export class AddonService {
-    /**
-     * Create a new addon
-     */
+private subcategoryRepo: SubCategoryRepository;
+private variantRepo: VariantRepository;
+constructor() {
+    this.subcategoryRepo = new SubCategoryRepository();
+    this.variantRepo = new VariantRepository();
+}
     async createAddon(addonData: ICAddon): Promise<IApiResponse> {
         try {
             if (!addonData.propertyId) {
@@ -25,19 +28,17 @@ export class AddonService {
             }
 
             if (addonData.subcategoryId) {
-                // Check if subcategory exists
                 const subCategory =
-                    await SubCategoryRepository.getSubCategoryById(
-                        addonData.subcategoryId.toString()
+                    await this.subcategoryRepo.getSubCategoryById(
+                        addonData.subcategoryId
                     );
                 if (!subCategory) {
                     return errorResponse('Subcategory not found');
                 }
             }
             if (addonData.variantId) {
-                // Check if variant exists
-                const variant = await VariantRepository.getVariantById(
-                    addonData.variantId.toString()
+                const variant = await this.variantRepo.getVariantById(
+                    addonData.variantId
                 );
                 if (!variant) {
                     return errorResponse('Variant not found');
@@ -46,21 +47,7 @@ export class AddonService {
 
             const addon = await AddonRepository.createAddon(addonData);
 
-            // Add addon to subcategory if provided
-            if (addonData.subcategoryId && addon.id) {
-                await SubCategoryRepository.addAddonToSubCategory(
-                    addonData.subcategoryId.toString(),
-                    addon.id
-                );
-            }
-
-            // Add addon to variant if provided
-            if (addonData.variantId && addon.id) {
-                await VariantRepository.addAddonToVariant(
-                    addonData.variantId.toString(),
-                    addon.id
-                );
-            }
+            
 
             return successResponse('Addon created successfully', addon);
         } catch (error: any) {
@@ -172,30 +159,7 @@ export class AddonService {
                 }
             }
 
-            // Validate optional references if being updated
-            if (updateData.subcategoryId) {
-                const subCategory =
-                    await SubCategoryRepository.getSubCategoryById(
-                        updateData.subcategoryId.toString()
-                    );
-                if (!subCategory) {
-                    return errorResponse(
-                        'Subcategory not found',
-                        'Subcategory not found'
-                    );
-                }
-            }
-            if (updateData.variantId) {
-                const variant = await VariantRepository.getVariantById(
-                    updateData.variantId.toString()
-                );
-                if (!variant) {
-                    return errorResponse(
-                        'Variant not found',
-                        'Variant not found'
-                    );
-                }
-            }
+           
 
             const updatedAddon = await AddonRepository.updateAddon(
                 addonId,
@@ -227,21 +191,7 @@ export class AddonService {
                 return errorResponse('Addon not found', 'Addon not found');
             }
 
-            // Remove addon from subcategory if it was associated
-            if (addon.subcategoryId) {
-                await SubCategoryRepository.removeAddonFromSubCategory(
-                    addon.subcategoryId.toString(),
-                    addonId
-                );
-            }
-
-            // Remove addon from variant if it was associated
-            if (addon.variantId) {
-                await VariantRepository.removeAddonFromVariant(
-                    addon.variantId.toString(),
-                    addonId
-                );
-            }
+          
 
             return successResponse('Addon deleted successfully', addon);
         } catch (error: any) {

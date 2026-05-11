@@ -1,12 +1,12 @@
 import { prisma } from '../../config';
 
-const generateCode = (): string => {
+const generateCode = (prefix: string): string => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let result = '';
     for (let i = 0; i < 6; i++) {
         result += chars.charAt(Math.floor(Math.random() * chars.length));
     }
-    return result;
+    return `prefix-${result}`;
 };
 
 export async function generateAddOnCategoryCode() {
@@ -14,7 +14,7 @@ export async function generateAddOnCategoryCode() {
     let exists = true;
 
     while (exists) {
-        code = generateCode();
+        code = generateCode("CAT");
         const existing = await prisma.addonCategory.findUnique({
             where: { code: code },
         });
@@ -29,7 +29,7 @@ export async function generateAddOnSubCategoryCode() {
     let exists = true;
 
     while (exists) {
-        code = generateCode();
+        code = generateCode("SUB");
         const existing = await prisma.addonSubCategory.findUnique({
             where: { code: code },
         });
@@ -44,7 +44,7 @@ export async function generateAddOnVariantCode() {
     let exists = true;
 
     while (exists) {
-        code = generateCode();
+        code = generateCode("VAR");
         const existing = await prisma.addonVariant.findUnique({
             where: { code: code },
         });
@@ -59,7 +59,7 @@ export async function generateAddOnCode() {
     let exists = true;
 
     while (exists) {
-        code = generateCode();
+        code = generateCode("ADDON");
         const existing = await prisma.addon.findUnique({
             where: { code: code },
         });

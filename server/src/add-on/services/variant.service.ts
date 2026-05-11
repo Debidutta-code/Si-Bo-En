@@ -1,22 +1,27 @@
 import VariantRepository from '../repository/variant.repository';
 import SubCategoryRepository from '../repository/subCategory.repository';
-import { IAddonVariant } from '../interfaces';
+import { IAddonVariant, IUVariant } from '../interfaces';
 import { successResponse, errorResponse } from '../../utils/return';
 import { IApiResponse } from '../../utils/return.types';
 
 export class VariantService {
-    /**
-     * Create a new addon variant
-     */
-    async createVariant(
+    private variantRepository: VariantRepository;
+    private subCategoryRepository: SubCategoryRepository;
+
+    constructor() {
+        this.variantRepository = new VariantRepository();
+        this.subCategoryRepository = new SubCategoryRepository();
+    }
+
+    public async createVariant(
         code: string,
         name: string,
-        subcategoryId: string
+        subcategoryId: string,
+        propertyId: string
     ): Promise<IApiResponse> {
         try {
-            // Check if subcategory exists
             const subCategory =
-                await SubCategoryRepository.getSubCategoryById(subcategoryId);
+                await this.subCategoryRepository.getSubCategoryById(subcategoryId);
             if (!subCategory) {
                 return errorResponse(
                     'Subcategory not found',
@@ -24,31 +29,12 @@ export class VariantService {
                 );
             }
 
-            // Check if variant with same code already exists
-            const existingVariants = await VariantRepository.getAllVariants();
-            const exists = existingVariants.some(
-                variant => variant.code === code
-            );
-
-            if (exists) {
-                return errorResponse(
-                    'Variant with this code already exists',
-                    'Variant with this code already exists'
-                );
-            }
-
-            const variant = await VariantRepository.createVariant(
+            const variant = await this.variantRepository.createVariant(
                 code,
                 name,
-                subcategoryId
-            );
-
-            // Add variant to subcategory
-            await SubCategoryRepository.addVariantToSubCategory(
                 subcategoryId,
-                variant.id!
+                propertyId
             );
-
             return successResponse('Variant created successfully', variant);
         } catch (error: any) {
             if (error instanceof Error) {
@@ -57,13 +43,9 @@ export class VariantService {
             return errorResponse('Failed to create variant', 'Unknown error');
         }
     }
-
-    /**
-     * Get all variants
-     */
-    async getAllVariants(): Promise<IApiResponse> {
+    public async getAllVariants(propertyId: string): Promise<IApiResponse> {
         try {
-            const variants = await VariantRepository.getAllVariants();
+            const variants = await this.variantRepository.getAllVariants(propertyId);
             return successResponse('Variants fetched successfully', variants);
         } catch (error: any) {
             if (error instanceof Error) {
@@ -73,12 +55,9 @@ export class VariantService {
         }
     }
 
-    /**
-     * Get variant by ID
-     */
-    async getVariantById(variantId: string): Promise<IApiResponse> {
+    public async getVariantById(variantId: string): Promise<IApiResponse> {
         try {
-            const variant = await VariantRepository.getVariantById(variantId);
+            const variant = await this.variantRepository.getVariantById(variantId);
             if (!variant) {
                 return errorResponse('Variant not found', 'Variant not found');
             }
@@ -91,15 +70,12 @@ export class VariantService {
             return errorResponse('Failed to fetch variant', 'Unknown error');
         }
     }
-    /**
-     * Get variants by subcategory ID
-     */
-    async getVariantsBySubCategoryId(
+    public async getVariantsBySubCategoryId(
         subcategoryId: string
     ): Promise<IApiResponse> {
         try {
             const variants =
-                await VariantRepository.getVariantsBySubCategoryId(
+                await this.variantRepository.getBySubCategoryId(
                     subcategoryId
                 );
             return successResponse('Variants fetched successfully', variants);
@@ -117,53 +93,18 @@ export class VariantService {
         }
     }
 
-    /**
-     * Update variant
-     */
     async updateVariant(
         variantId: string,
-        updateData: Partial<IAddonVariant>
+        updateData: IUVariant
     ): Promise<IApiResponse> {
         try {
             // Check if variant exists
             const existingVariant =
-                await VariantRepository.getVariantById(variantId);
+                await this.variantRepository.getVariantById(variantId);
             if (!existingVariant) {
                 return errorResponse('Variant not found', 'Variant not found');
             }
-
-            // If updating code, check for duplicates
-            if (updateData.code && updateData.code !== existingVariant.code) {
-                const allVariants = await VariantRepository.getAllVariants();
-                const codeExists = allVariants.some(
-                    variant =>
-                        variant.code === updateData.code &&
-                        variant.id?.toString() !== variantId
-                );
-
-                if (codeExists) {
-                    return errorResponse(
-                        'Variant with this code already exists',
-                        'Variant with this code already exists'
-                    );
-                }
-            }
-
-            // If updating subcategoryId, validate it exists
-            if (updateData.subcategoryId) {
-                const subCategory =
-                    await SubCategoryRepository.getSubCategoryById(
-                        updateData.subcategoryId.toString()
-                    );
-                if (!subCategory) {
-                    return errorResponse(
-                        'Subcategory not found',
-                        'Subcategory not found'
-                    );
-                }
-            }
-
-            const updatedVariant = await VariantRepository.updateVariant(
+            const updatedVariant = await this.variantRepository.updateVariant(
                 variantId,
                 updateData
             );
@@ -186,21 +127,12 @@ export class VariantService {
         }
     }
 
-    /**
-     * Delete variant
-     */
     async deleteVariant(variantId: string): Promise<IApiResponse> {
         try {
-            const variant = await VariantRepository.deleteVariant(variantId);
+            const variant = await this.variantRepository.deleteVariant(variantId);
             if (!variant) {
                 return errorResponse('Variant not found', 'Variant not found');
             }
-
-            // Remove variant from subcategory
-            await SubCategoryRepository.removeVariantFromSubCategory(
-                variant.subcategoryId.toString(),
-                variantId
-            );
 
             return successResponse('Variant deleted successfully', variant);
         } catch (error: any) {
@@ -211,79 +143,4 @@ export class VariantService {
         }
     }
 
-    /**
-     * Add addon to variant
-     */
-    async addAddonToVariant(
-        variantId: string,
-        addonId: string
-    ): Promise<IApiResponse> {
-        try {
-            const variant = await VariantRepository.addAddonToVariant(
-                variantId,
-                addonId
-            );
-
-            if (!variant) {
-                return errorResponse(
-                    'Failed to add addon to variant',
-                    'Failed to add addon to variant'
-                );
-            }
-
-            return successResponse(
-                'Addon added to variant successfully',
-                variant
-            );
-        } catch (error: any) {
-            if (error instanceof Error) {
-                return errorResponse(
-                    'Failed to add addon to variant',
-                    error.message
-                );
-            }
-            return errorResponse(
-                'Failed to add addon to variant',
-                'Unknown error'
-            );
-        }
-    }
-
-    /**
-     * Remove addon from variant
-     */
-    async removeAddonFromVariant(
-        variantId: string,
-        addonId: string
-    ): Promise<IApiResponse> {
-        try {
-            const variant = await VariantRepository.removeAddonFromVariant(
-                variantId,
-                addonId
-            );
-
-            if (!variant) {
-                return errorResponse(
-                    'Failed to remove addon from variant',
-                    'Failed to remove addon from variant'
-                );
-            }
-
-            return successResponse(
-                'Addon removed from variant successfully',
-                variant
-            );
-        } catch (error: any) {
-            if (error instanceof Error) {
-                return errorResponse(
-                    'Failed to remove addon from variant',
-                    error.message
-                );
-            }
-            return errorResponse(
-                'Failed to remove addon from variant',
-                'Unknown error'
-            );
-        }
-    }
 }

@@ -2,9 +2,9 @@ import createAxiosInstance from "@/components/axiosInstance";
 import type { IAddonSubCategoryCreate ,IAddonSubCategoryUpdate} from "../interface";
 const axiosInstance = createAxiosInstance();
 
-export const fetchAddonSubCategories = async () => {
+export const fetchAddonSubCategories = async (propertyId: string) => {
     try {
-        const response = await axiosInstance.get('/addon/sub-categories');
+        const response = await axiosInstance.get(`/addon/sub-categories?id=${propertyId}`);
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {
@@ -17,9 +17,9 @@ export const fetchAddonSubCategories = async () => {
         }
     }
 }
-export const createAddonSubCategory = async (subCategoryData: IAddonSubCategoryCreate) => {
+export const createAddonSubCategory = async (subCategoryData: IAddonSubCategoryCreate, propertyId: string) => {
     try {
-        const response = await axiosInstance.post('/addon/sub-categories', subCategoryData);
+        const response = await axiosInstance.post(`/addon/sub-categories?id=${propertyId}`, subCategoryData);
         return response.data;
     }
     catch (error: any) {

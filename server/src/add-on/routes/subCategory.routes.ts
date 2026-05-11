@@ -1,35 +1,22 @@
 import { Router } from 'express';
 import { SubCategoryController } from '../controllers';
+import { protect } from '../../middlewares/auth.middleware';
+import { attachPropertyDetails } from '../../middlewares/property.middleware';
 
-const router = Router();
+const subcategoryRouter = Router();
 const subCategoryController = new SubCategoryController();
+subcategoryRouter.use(protect);
+subcategoryRouter.route("/")
+    .post(attachPropertyDetails({
+        identifierType: "id",
+        key: "id",
+        source: "query"
+    }), subCategoryController.createSubCategory.bind(subCategoryController))
+    .get(subCategoryController.getAllSubCategories.bind(subCategoryController));
 
-router.post('/', subCategoryController.createSubCategory);
+subcategoryRouter.route('/:subcategoryId')
+    .get(subCategoryController.getSubCategoryById.bind(subCategoryController))
+    .put(subCategoryController.updateSubCategory.bind(subCategoryController))
+    .delete(subCategoryController.deleteSubCategory.bind(subCategoryController));
 
-router.get('/', subCategoryController.getAllSubCategories);
-
-router.get('/:subcategoryId', subCategoryController.getSubCategoryById);
-
-router.put('/:subcategoryId', subCategoryController.updateSubCategory);
-
-router.post(
-    '/:subcategoryId/variants',
-    subCategoryController.addVariantToSubCategory
-);
-
-router.post(
-    '/:subcategoryId/addons',
-    subCategoryController.addAddonToSubCategory
-);
-
-router.delete(
-    '/:subcategoryId/variants/:variantId',
-    subCategoryController.removeVariantFromSubCategory
-);
-
-router.delete(
-    '/:subcategoryId/addons/:addonId',
-    subCategoryController.removeAddonFromSubCategory
-);
-
-export { router as SubCategoryRoutes };
+export { subcategoryRouter };
