@@ -31,6 +31,7 @@ export const LoyaltyProgramBanner = ({
   onShowSignUpModalChange,
   onSignUpSuccess,
   onLogoutSuccess,
+  onDiscountVerified,
 }: {
   loyaltyProgram: IPropertyLoyalityWithLoyality | null;
   primaryColor: string;
@@ -38,6 +39,7 @@ export const LoyaltyProgramBanner = ({
   onShowSignUpModalChange?: (show: boolean) => void;
   onSignUpSuccess?: (email: string) => void;
   onLogoutSuccess?: () => void;
+  onDiscountVerified?: (discount: { type: string; value: number; currencyCode: string }) => void;
 }) => {
   const { t } = useTranslation();
   const [internalShowSignUpModal, setInternalShowSignUpModal] = useState(false);
@@ -83,6 +85,7 @@ export const LoyaltyProgramBanner = ({
             // Valid loyalty member
             setIsRegistered(true);
             setRegisteredEmail(loyaltyMemberEmail);
+            onDiscountVerified?.(data.data.discount);
             setDiscountInfo(data.data.discount);
           } else {
             // Not a valid loyalty member, clear localStorage
@@ -240,30 +243,19 @@ export const LoyaltyProgramBanner = ({
     }
   };
 
-  const getDiscountDisplay = () => {
-    // If user is registered and we have discount info from backend, use that
-    if (isRegistered && discountInfo) {
-      if (discountInfo.type === "percentage") {
-        return `${discountInfo.value}% OFF`;
-      } else {
-        return `${discountInfo.currencyCode} ${discountInfo.value} OFF`;
-      }
+  const getDiscountDisplay = (isPreLogin = false) => {
+    if (!isPreLogin && isRegistered && discountInfo) {
+      if (discountInfo.type === "percentage") return `${discountInfo.value}% OFF`;
+      return `${discountInfo.currencyCode} ${discountInfo.value} OFF`;
     }
-
-    // Otherwise, check if we have a property-specific discount
-    if (
-      loyaltyProgram.discountPercentage !== null &&
-      loyaltyProgram.discountPercentage !== undefined
-    ) {
-      return `${loyaltyProgram.discountPercentage}% OFF`;
+    // Pre-login or not registered — show "Upto X% OFF"
+    if (loyaltyProgram.discountPercentage !== null && loyaltyProgram.discountPercentage !== undefined) {
+      return `Upto ${loyaltyProgram.discountPercentage}% OFF`;
     }
-
-    // Fall back to the default from program config
     if (program.loyaltyDiscountType === "percentage") {
-      return `${program.discountValue}% OFF`;
-    } else {
-      return `${program.currencyCode} ${program.discountValue} OFF`;
+      return `Upto ${program.discountValue}% OFF`;
     }
+    return `Upto ${program.currencyCode} ${program.discountValue} OFF`;
   };
 
   return (
@@ -538,14 +530,14 @@ export const LoyaltyProgramBanner = ({
                     className="w-full text-sm"
                   />
                 </div>
-                
+
 
                 {/* Dynamic Fields */}
                 {program.LoyaltyProgramFieldConfig &&
                   program.LoyaltyProgramFieldConfig.filter(
                     (field) =>
                       field.visibleInRegistration &&
-                      field.fieldName.toLowerCase() !== "email" 
+                      field.fieldName.toLowerCase() !== "email"
                   ).length > 0 && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {program.LoyaltyProgramFieldConfig.filter(

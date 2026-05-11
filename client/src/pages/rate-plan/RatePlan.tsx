@@ -454,10 +454,7 @@ export default function RatePlan() {
                         <div className={`h-2 w-2 rounded-full ${ratePlan.b2cAvailable ? 'bg-primary' : 'bg-gray-300'}`} />
                         <span className="text-xs text-gray-600">B2C</span>
                       </div>
-                      <div className="flex items-center gap-1.5">
-                        <div className={`h-2 w-2 rounded-full ${ratePlan.roomOnlyVisible ? 'bg-primary' : 'bg-gray-300'}`} />
-                        <span className="text-xs text-gray-600">Room Only</span>
-                      </div>
+
                     </div>
 
                     {/* Policy and Tax Status Grid */}

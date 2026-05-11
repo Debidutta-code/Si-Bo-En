@@ -83,7 +83,7 @@ interface FinalPrice {
   currencyCode: string;
   dailyPriceBrakeDown: any[];
   taxBrakeDown: any[];
-  addonBrakeDown: any[];
+  addonBrakeDowns: any[];
   promotionBrakeDown: any[];
   // Computed backward-compat fields (added by normalizePriceBrakeDown)
   numberOfNights: number;
@@ -169,6 +169,9 @@ const Rooms = () => {
     phoneNumber: "",
   });
   const [price, setPrice] = useState<number | null>(null);
+  const [loyaltyDiscountInfo, setLoyaltyDiscountInfo] = useState<{
+  type: string; value: number; currencyCode: string;
+} | null>(null);
   const [errorRooms, setErrorRooms] = useState<string | null>(null);
   // const [loadingRooms, setLoadingRooms] = useState<boolean>(false);
   const [loadingBookNow, setLoadingBookNow] = useState<string | null>(null);
@@ -882,6 +885,7 @@ const Rooms = () => {
                     primaryColor={primaryColor}
                     onSignUpSuccess={(email) => setLoyaltyMemberEmail(email)}
                     onLogoutSuccess={() => setLoyaltyMemberEmail("")}
+                    onDiscountVerified={setLoyaltyDiscountInfo}
                   />
                 </div>
               )}
@@ -893,6 +897,7 @@ const Rooms = () => {
                   loyaltyProgram={loyaltyProgram!}
                   primaryColor={primaryColor}
                   showSignUpModal={showLoyaltySignup}
+                  onDiscountVerified={setLoyaltyDiscountInfo}
                   onShowSignUpModalChange={setShowLoyaltySignup}
                   toggleOn={!!loyaltyMemberEmail}
                   onToggleChange={(isOn) => {
@@ -962,6 +967,7 @@ const Rooms = () => {
                               selectedBoardType={selectedBoardType}
                               loyaltyMemberEmail={loyaltyMemberEmail}
                               loyalty={loyaltyProgram}
+                              loyaltyDiscountInfo={loyaltyDiscountInfo}
                               onUnlockLoyalty={() => {
                                 setShowLoyaltySignup(true);
                               }}

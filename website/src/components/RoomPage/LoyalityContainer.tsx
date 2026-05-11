@@ -19,6 +19,7 @@ export const LoyaltyContainer = ({
   loyaltyProgram,
   primaryColor,
   showSignUpModal: externalShowSignUpModal,
+  onDiscountVerified,
   onShowSignUpModalChange,
   onToggleChange,
   toggleOn,
@@ -27,6 +28,7 @@ export const LoyaltyContainer = ({
   primaryColor: string;
   showSignUpModal?: boolean;
   onShowSignUpModalChange?: (show: boolean) => void;
+  onDiscountVerified?: (discount: { type: string; value: number; currencyCode: string }) => void;
   onToggleChange?: (isOn: boolean) => void;
   toggleOn?: boolean;
 }) => {
@@ -99,9 +101,9 @@ export const LoyaltyContainer = ({
 
           if (response.ok && data.success && data.data?.isLoyaltyMember) {
             setIsRegistered(true);
+            console.log("Loyalty member", data);
             setRegisteredEmail(loyaltyMemberEmail);
             setDiscountInfo(data.data.discount);
-            // Auto-enable toggle if already a member
             setIsToggleOn(true);
             onToggleChange?.(true);
           } else {
@@ -216,22 +218,20 @@ export const LoyaltyContainer = ({
     }
   };
 
-  const getDiscountDisplay = () => {
-    if (isRegistered && discountInfo) {
-      return discountInfo.type === "percentage"
-        ? `${discountInfo.value}%`
-        : `${discountInfo.currencyCode} ${discountInfo.value}`;
-    }
-    if (
-      loyaltyProgram.discountPercentage !== null &&
-      loyaltyProgram.discountPercentage !== undefined
-    ) {
-      return `${loyaltyProgram.discountPercentage}%`;
-    }
-    return program.loyaltyDiscountType === "percentage"
-      ? `${program.discountValue}%`
-      : `${program.currencyCode} ${program.discountValue}`;
-  };
+ const getDiscountDisplay = (isPreLogin = false) => {
+  if (!isPreLogin && isRegistered && discountInfo) {
+    if (discountInfo.type === "percentage") return `${discountInfo.value}% OFF`;
+    return `${discountInfo.currencyCode} ${discountInfo.value} OFF`;
+  }
+  // Pre-login or not registered — show "Upto X% OFF"
+  if (loyaltyProgram.discountPercentage !== null && loyaltyProgram.discountPercentage !== undefined) {
+    return `Upto ${loyaltyProgram.discountPercentage}% OFF`;
+  }
+  if (program.loyaltyDiscountType === "percentage") {
+    return `Upto ${program.discountValue}% OFF`;
+  }
+  return `Upto ${program.currencyCode} ${program.discountValue} OFF`;
+};
 
   // Only show where isDeleted is false AND isActive is true
   const activeConditions = (program.loyaltyConditions || []).filter(

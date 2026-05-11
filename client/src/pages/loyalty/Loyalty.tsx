@@ -25,6 +25,7 @@ import BasicConfigTab from "./components/BasicConfigTab";
 // import AdvancedConfigTab from "./components/AdvancedConfigTab";
 import AddPropertyToLoyalty from "./components/AddPropertyToLoyalty";
 import { fetchPropertiesByCreationIdService } from "../dashboard/services/dash.service";
+import BackButton from "@/components/shared/BackButton";
 
 interface Property {
   id: string;
@@ -335,6 +336,7 @@ export default function Loyalty() {
 
   return (
     <div className="container mx-auto p-4 md:p-6 lg:p-8">
+      <BackButton />
       <div className="mb-6">
         <h1 className="text-2xl md:text-3xl font-bold">Loyalty Program Configuration</h1>
         <p className="text-muted-foreground mt-2">

@@ -840,7 +840,7 @@ export default function PropertyPage() {
                 <div className="bg-white p-6 rounded-lg shadow">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Loyalty Configuration</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <Link to={`/app`} className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                        <Link to={`/app/loyalty/${creationId}`} className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                             <div className="bg-blue-100 p-2 rounded-full text-blue-600">
                                 <LayoutDashboard className="h-5 w-5" />
                             </div>
