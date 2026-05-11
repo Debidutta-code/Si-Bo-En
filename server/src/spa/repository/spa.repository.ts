@@ -170,7 +170,11 @@ export class SpaRepository {
                                         },
                                     },
                                 },
+                                orderBy: {
+                                    startTime: 'asc',
+                                },
                             },
+                            
                         },
                     },
                     AssignedSpas: {
