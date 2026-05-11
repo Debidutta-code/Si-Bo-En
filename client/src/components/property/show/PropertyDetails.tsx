@@ -6,7 +6,7 @@ import toast from "react-hot-toast";
 import { type IPropertyDetails, type IPropertyEmail } from "../types/types";
 import { getPropertyDetails } from "../api/show/propertyDetails";
 import { Button } from "../../ui/button";
-import { PenTool, X, AlertCircle, CheckCircle, Mail, Phone, Tag, House, Plus, Pencil, Trash2, MailPlus, Copy, Edit2 } from "lucide-react";
+import { PenTool, X, AlertCircle, CheckCircle, Mail, Phone, Tag, House, Plus, Pencil, Trash2, MailPlus, Copy, Settings } from "lucide-react";
 import ExpandableDescription from "@/components/ExplandableDescription";
 import {
   AlertDialog,
@@ -37,9 +37,8 @@ import {
   getPropertyEmails,
   updatePropertyEmail,
 } from "../api/create/propertyEmails.apis";
-import PropertyConfigDialog from "@/pages/property/property/components/PropertyConfigDialog";
-import type { IUPropertyConfig } from "@/pages/property/property/types";
 import { useAppSelector } from "@/redux/hooks";
+import { useNavigate } from "react-router-dom";
 
 export default function PropertyDetails({
   propertyId,
@@ -78,6 +77,8 @@ export default function PropertyDetails({
     },
     image: [],
     propertyEmails: [],
+    creationId: "",
+    
   });
   // Property emails state
   const [propertyEmails, setPropertyEmails] = useState<IPropertyEmail[]>([]);
@@ -91,19 +92,7 @@ export default function PropertyDetails({
   const [editEmailLoading, setEditEmailLoading] = useState(false);
   const [deleteEmailId, setDeleteEmailId] = useState<string | null>(null);
   const [deleteEmailLoading, setDeleteEmailLoading] = useState(false);
-  const [isConfigOpen, setIsConfigOpen] = useState(false);
-  const [propertyConfig, setPropertyConfig] = useState<IUPropertyConfig>({
-    channelManagerIntegrationActive: false,
-    pmsIntegrationActive: false,
-    selfAriActive: false,
-    isB2bAvailable: false,
-    isB2cAvailable: true,
-    commission: false,
-    showVideo: false,
-    reservationResetMinutes: 0,
-    timezone: "Asia/Kolkata",
-    baseCurrency: "AED"
-  });
+  const navigate = useNavigate();
   const user = useAppSelector((state) => state.user.user);
   useEffect(() => {
     if (!propertyId) {
@@ -113,7 +102,7 @@ export default function PropertyDetails({
     fetchPropertyDetails(propertyId);
     fetchEmails(propertyId);
   }, [propertyId]);
-
+console.log(propertyDetails,"propertyDetails.creationId")
   const fetchEmails = async (propId: string) => {
     setEmailsLoading(true);
     try {
@@ -206,18 +195,7 @@ export default function PropertyDetails({
           propertyType: data.propertyType,
           image: data.image,
           propertyEmails: data.propertyEmails || [],
-        });
-        setPropertyConfig({
-          channelManagerIntegrationActive: data.propertyConfigs?.channelManagerIntegrationActive || false,
-          pmsIntegrationActive: data.propertyConfigs?.pmsIntegrationActive || false,
-          selfAriActive: data.propertyConfigs?.selfAriActive || false,
-          isB2bAvailable: data.propertyConfigs?.isB2bAvailable || false,
-          isB2cAvailable: data.propertyConfigs?.isB2cAvailable || false,
-          commission: data.propertyConfigs?.commission || false,
-          showVideo: data.propertyConfigs?.showVideo || false,
-          reservationResetMinutes: data.propertyConfigs?.reservationResetMinutes || 0,
-          timezone: data.propertyConfigs?.timezone || "Asia/Kolkata",
-          baseCurrency: data.propertyConfigs?.baseCurrency || "AED"
+          creationId: data.creationId,
         });
       } else {
         throw new Error(response.message || "Failed to fetch property details");
@@ -341,31 +319,13 @@ export default function PropertyDetails({
           {(user?.userLevel === 0 || user?.userLevel === 1) && (
             <Button
               className="ml-4 shadow-sm hover:shadow-md transition-shadow bg-primary hover:bg-primary/90"
-              onClick={() => setIsConfigOpen(true)}
+              onClick={() => navigate(`/app/property/property/${propertyDetails?.creationId}`)}
             >
-              <Edit2 className="h-4 w-4 mr-2" />
+              <Settings className="h-4 w-4 mr-2" />
               Property Configuration
             </Button>
           )}
 
-          <PropertyConfigDialog
-            isOpen={isConfigOpen}
-            onClose={() => setIsConfigOpen(false)}
-            propertyConfig={propertyConfig}
-            setPropertyConfig={setPropertyConfig}
-            masterPartners={[]} // TODO: pass actual partners
-            onIntegrate={(partner) => console.log("Integrate", partner)}
-            onToggleStatus={(id, status) => console.log(id, status)}
-            onViewDetails={(partner) => console.log(partner)}
-            onManageFields={(partner) => console.log(partner)}
-            onSave={() => {
-              console.log("Saving config:", propertyConfig);
-              setIsConfigOpen(false);
-            }}
-            isSaving={false}
-            userLevel={4}
-            isLoading={{}}
-          />
         </div>
       </div>
 

@@ -242,7 +242,7 @@ export default function PropertyPage() {
     };
 
     const handleEditProperty = () => {
-        navigate(`/property/${propertyDetails?.id}`);
+        navigate(`/property/${propertyDetails?.id}?creationId=${creationId}`);
     };
 
     // Reset dialog state when dialog closes
@@ -823,7 +823,7 @@ export default function PropertyPage() {
                                     <p className="text-xs text-gray-500">{user.email}</p>
                                 </div>
                                 <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 whitespace-nowrap ml-2">
-                                    {capitalizeFirstLetter(user.role.replaceAll("_"," "))}
+                                    {capitalizeFirstLetter(user.role.replaceAll("_", " "))}
                                 </span>
                             </div>
                         ))}
@@ -840,7 +840,7 @@ export default function PropertyPage() {
                 <div className="bg-white p-6 rounded-lg shadow">
                     <h3 className="text-lg font-bold text-gray-900 mb-4">Loyalty Configuration</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        <Link to={`/app/loyalty/${creationId}`} className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                        <Link to={`/app`} className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                             <div className="bg-blue-100 p-2 rounded-full text-blue-600">
                                 <LayoutDashboard className="h-5 w-5" />
                             </div>
@@ -849,7 +849,7 @@ export default function PropertyPage() {
                                 <p className="text-xs text-gray-500">Manage general loyalty settings</p>
                             </div>
                         </Link>
-                        
+
                         <Link to={`/app/loyalty/register-form/${creationId}`} className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                             <div className="bg-green-100 p-2 rounded-full text-green-600">
                                 <FileText className="h-5 w-5" />
@@ -894,7 +894,7 @@ export default function PropertyPage() {
                     </div>
                 </div>
             )}
-            
+
             {/* Integration Dialog */}
             <IntegrationDialog
                 isOpen={isIntegrationDialogOpen}

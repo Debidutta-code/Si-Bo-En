@@ -24,6 +24,15 @@ export class propertyLoyalityRepository {
                 where: { propertyId },
                 include: {
                     PropertyLoyalityGuests: true,
+                    CreationLoyaltyConfig: {
+                        include:{
+                            AdvanceLoyaltyProgram:true,
+                            BasicLoyaltyProgram:true,
+                        }
+                    },
+                    
+                    
+                    
                 },
             });
         } catch (error) {
@@ -114,6 +123,7 @@ export class propertyLoyalityRepository {
         try {
             return await prisma.propertyLoyaltyConfig.findMany({
                 where: { propertyId },
+                include: { CreationLoyaltyConfig: true }
                 // include: { loyalityLevels: true },
             });
         } catch (error) {

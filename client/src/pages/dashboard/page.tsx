@@ -308,11 +308,11 @@ export default function Dashboard() {
             <Button
               onClick={() => {
                 if (selectedProperty.id) {
-                  fetchAnalytics(selectedProperty.id, selectedProperty.code, selectedProperty.name);
-                  fetchStatistics(selectedProperty.id, selectedProperty.code, selectedProperty.name); // 🆕 NEW
+                  fetchAnalytics(selectedProperty.id, selectedProperty.code, selectedProperty.name, selectedCurrency);
+                  fetchStatistics(selectedProperty.id, selectedProperty.code, selectedProperty.name, selectedCurrency); // 🆕 NEW
                 } else {
-                  fetchAnalytics();
-                  fetchStatistics(); // 🆕 NEW
+                  fetchAnalytics(undefined, undefined, undefined, selectedCurrency);
+                  fetchStatistics(undefined, undefined, undefined, selectedCurrency); // 🆕 NEW
                 }
               }}
               variant={"terciary"}

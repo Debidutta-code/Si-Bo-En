@@ -24,8 +24,8 @@ import { useAppSelector } from '@/redux/hooks';
 
 
 export default function Custom() {
-      const user = useAppSelector((state) => state.user.user);
-    
+    const user = useAppSelector((state) => state.user.user);
+
     const { creationId } = useParams<{ creationId: string }>();
     const [customAdmins, setCustomAdmins] = useState<ICustomManagersMapping>({
         customAdmins: []
@@ -304,7 +304,7 @@ export default function Custom() {
                         </Dialog>
 
                         <div className="px-2">
-                            <CreateEntityDialog creationType={"brand"} currentTab={currentTab} creationId={creationId ? creationId : ""} level={user?.userLevel?user.userLevel:2} fetchProperties={fetchGroup} />
+                            <CreateEntityDialog creationType={"brand"} currentTab={currentTab} creationId={creationId ? creationId : ""} level={user?.userLevel ? user.userLevel : 2} fetchProperties={fetchGroup} />
                         </div>
                         <div className="px-2">
                             <DeleteCreationDialog type={"region"} name={customDetails.name} id={creationId ? creationId : ""} />
@@ -438,7 +438,7 @@ export default function Custom() {
                                         onClick={() => {
                                             item.type != "property" ?
                                                 navigate(`/app/property/${currentTab}/${item.id}`) :
-                                                navigate(`/property/${item.propertyId}`)
+                                                navigate(`/property/${item.propertyId}?creationId=${item.id}`)
                                         }}
                                     >
                                         View Details

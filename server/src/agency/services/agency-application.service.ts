@@ -324,8 +324,7 @@ export class AgencyApplicationService {
                 ),
                 this.agencyApplicationRepository.getCount(),
             ]);
-            console.log('applications', applications);
-            console.log('totalCount', totalCount);
+
             return paginatedSuccessResponse(
                 'Agency applications retrieved successfully',
                 applications,
