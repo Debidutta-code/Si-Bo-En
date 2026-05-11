@@ -83,9 +83,8 @@ export class UserAuthRepository {
 
     public static async deleteUser(userId: string) {
         try {
-            return await prisma.user.update({
+            return await prisma.user.delete({
                 where: { id: userId },
-                data: { isDrafted: true },
             });
         } catch (error: any) {
             throw new Error(`Failed to delete user: ${error.message}`);

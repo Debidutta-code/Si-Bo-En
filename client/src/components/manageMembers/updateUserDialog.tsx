@@ -13,11 +13,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Eye, EyeOff } from 'lucide-react';
 import { z } from 'zod';
-import type { IUser, ICreateUser, IRoleAccess } from '../../pages/members/types/types';
+import type { IUser, ICreateUser } from '../../pages/members/types/types';
 
 interface EditMemberDialogProps {
   user: IUser | null;
-  roles: IRoleAccess[];
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (formData: ICreateUser) => Promise<void>;
@@ -27,7 +26,6 @@ interface EditMemberDialogProps {
 
 export default function EditMemberDialog({
   user,
-  // roles,
   isOpen,
   onOpenChange,
   onSubmit,

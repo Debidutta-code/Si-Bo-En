@@ -1,6 +1,6 @@
 import { successResponse, errorResponse } from '../../utils/return';
 import { IApiResponse } from '../../utils/return.types';
-import { RoomDao, RoomAmenityDao } from '../repository';
+import { RoomDao, RoomAmenityDao, PropertyConfigRepo, PropertyDao } from '../repository';
 import { RatePlanRepository } from '../../ari/repository/ratePlan.repository';
 import { ICRoom } from '../types';
 import { deleteFileByUrl } from '../../utils/delete-images.utils';
@@ -14,7 +14,7 @@ export class RoomService {
 
     public async create(roomData: ICRoom): Promise<IApiResponse> {
         try {
-            const [roomByName, roomByCode, roomsByProperty] = await Promise.all(
+            const [roomByName, roomByCode, roomsByProperty,draftedProperty,unDraftedProperty] = await Promise.all(
                 [
                     this.roomDao.findByRoomName(
                         roomData.propertyId,
@@ -28,6 +28,9 @@ export class RoomService {
                         roomData.propertyId,
                         false
                     ),
+                    PropertyDao.getPropertyById(roomData.propertyId,false),
+                    PropertyDao.getPropertyById(roomData.propertyId,true)
+
                 ]
             );
             if (roomByName || roomByCode) {
@@ -35,7 +38,7 @@ export class RoomService {
                     `Room with Name ${roomData.roomName} or Type ${roomData.roomType} already exists for this property`
                 );
             }
-            if (roomsByProperty.length > 0) {
+            if (draftedProperty && roomsByProperty.length > 0) {
                 return errorResponse(
                     'Complete Property setup to create multiple rooms'
                 );
