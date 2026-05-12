@@ -113,23 +113,27 @@ export default class CreationDao {
             return await prisma.creation.findMany({
                 where: {},
                 orderBy: { createdAt: 'desc' },
-                include: {
-                    users: {
+                select: {
+                    id: true,
+                    type: true,
+                    name: true,
+                    images: true,
+                    superId: true,
+                    groupId: true,
+                    brandId: true,
+                    regionalId: true,
+                    propertyId: true,
+                    createdById: true,
+                    isActive: true,
+                    isDeleted: true,
+                    createdAt: true,
+                    updatedAt: true,
+                    property: {
                         select: {
                             id: true,
-                            firstName: true,
-                            lastName: true,
-                            email: true,
-                            role: true,
-                            userLevel: true,
+                            isDraft: true,
                         },
                     },
-                    super: true,
-                    group: true,
-                    brand: true,
-                    property: true,
-                    regional: true,
-                    regionalChildren: true,
                 },
             });
         } catch (error: any) {
