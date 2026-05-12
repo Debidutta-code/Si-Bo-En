@@ -48,6 +48,9 @@ const DatePickerWithHover = ({
   onDayMouseEnter,
   onDayMouseLeave,
   isSelectingRange,
+  prices,
+  hotelcode,
+  setPrices,
 }: {
   checkIn: Date | null;
   checkOut: Date | null;
@@ -56,14 +59,20 @@ const DatePickerWithHover = ({
   onDayMouseEnter: (date: Date) => void;
   onDayMouseLeave: () => void;
   isSelectingRange: boolean;
+  prices: Record<string, number>;
+  hotelcode: string;
+  setPrices: React.Dispatch<React.SetStateAction<Record<string, number>>>;
 }) => {
   const [hoverDate, setHoverDate] = useState<Date | null>(null);
 
   // Custom day component to handle hover events
   const renderDayContents = (day: number, date: Date) => {
+    const dateKey = new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+    const price = prices[dateKey];
+
     return (
       <div
-        className="react-datepicker__day-wrapper"
+        className="terra-solis-day-wrapper"
         onMouseEnter={() => {
           setHoverDate(date);
           onDayMouseEnter(date);
@@ -73,7 +82,12 @@ const DatePickerWithHover = ({
           onDayMouseLeave();
         }}
       >
-        {day}
+        <span>{day}</span>
+        {price > 0 && (
+          <span className="terra-solis-day-price">
+            {Math.round(price)}
+          </span>
+        )}
       </div>
     );
   };
@@ -113,6 +127,30 @@ const DatePickerWithHover = ({
       popperClassName="terra-solis-popper"
       dayClassName={getDayClassName}
       renderDayContents={renderDayContents}
+      onMonthChange={(date) => {
+        const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
+        const endOfDisplayedRange = new Date(date.getFullYear(), date.getMonth() + 2, 0);
+        const fetchPrices = async (startDate: Date, endDate: Date) => {
+          try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/calendar-prices`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                propertyCode: hotelcode,
+                startDate: startDate.toISOString().split('T')[0],
+                endDate: endDate.toISOString().split('T')[0]
+              }),
+            });
+            const data = await response.json();
+            if (data.success) {
+              setPrices(prev => ({ ...prev, ...data.data }));
+            }
+          } catch (error) {
+            console.error("Failed to fetch calendar prices:", error);
+          }
+        };
+        fetchPrices(startOfMonth, endOfDisplayedRange);
+      }}
     />
   );
 };
@@ -156,6 +194,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
   const [selectionMode, setSelectionMode] = useState<"checkin" | "checkout">(
     "checkin",
   );
+  const [prices, setPrices] = useState<Record<string, number>>({});
 
   const bookingContext = useSelector((state: RootState) => state.booking);
 
@@ -415,6 +454,34 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
     }
   };
 
+  const fetchCalendarPrices = async (startDate: Date, endDate: Date) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/calendar-prices`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          propertyCode: hotelcode,
+          startDate: startDate.toISOString().split('T')[0],
+          endDate: endDate.toISOString().split('T')[0]
+        }),
+      });
+      const data = await response.json();
+      if (data.success) {
+        setPrices(prev => ({ ...prev, ...data.data }));
+      }
+    } catch (error) {
+      console.error("Failed to fetch calendar prices:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (isCalendarOpen) {
+      const today = new Date();
+      const endOfNextMonth = new Date(today.getFullYear(), today.getMonth() + 2, 0);
+      fetchCalendarPrices(today, endOfNextMonth);
+    }
+  }, [isCalendarOpen, hotelcode]);
+
   const closeCalendar = () => {
     setIsCalendarOpen(false);
     setTemporaryCheckOut(null);
@@ -608,6 +675,9 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   checkIn={checkIn}
                   checkOut={checkOut}
                   temporaryCheckOut={temporaryCheckOut}
+                  prices={prices}
+                  hotelcode={hotelcode}
+                  setPrices={setPrices}
                   onDateSelect={(date: Date) => {
                     if (selectionMode === "checkin") {
                       setCheckIn(date);

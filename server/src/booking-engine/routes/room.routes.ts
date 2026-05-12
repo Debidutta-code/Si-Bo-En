@@ -10,5 +10,11 @@ BookingEngineRoutes.post("/fetch-rooms",
         key: "propertyCode",
         source: "body"
     }), RoomBookingController.fetchRooms);
+BookingEngineRoutes.post("/calendar-prices",
+    attachPropertyDetails({
+        identifierType: "code",
+        key: "propertyCode",
+        source: "body"
+    }), RoomBookingController.getCalendarPrices);
 BookingEngineRoutes.use("/pricing", pricingRouter);
  
