@@ -650,14 +650,14 @@ class AddOnPriceClass {
             });
 
             // calculate child addon prices if childAges exist
-            if (this.childAges && this.childAges.length > 0) {
-                const childAddonBreakdowns = this.calculateChildAddonPrice(
-                    addon,
-                    this.childAges,
-                    'selected'
-                );
-                addonBrakeDown.push(...childAddonBreakdowns);
-            }
+            // if (this.childAges && this.childAges.length > 0) {
+            //     const childAddonBreakdowns = this.calculateChildAddonPrice(
+            //         addon,
+            //         this.childAges,
+            //         'selected'
+            //     );
+            //     addonBrakeDown.push(...childAddonBreakdowns);
+            // }
         });
 
         return addonBrakeDown;
