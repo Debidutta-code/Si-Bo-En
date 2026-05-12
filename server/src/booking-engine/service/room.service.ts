@@ -47,7 +47,6 @@ export class RoomBookingService {
         if (!property || !property.isAvailable) {
             return { success: false, message: 'Property not available' };
         }
-        console.log("get the property details", property)
         let promoCodeData: IRoomPromoCode | null = null;
         if (payload.promocode) {
             promoCodeData =
@@ -121,6 +120,14 @@ export class RoomBookingService {
                 )
             );
             rooms.push(...roomResults.filter((r): r is IRoom => r !== null));
+            rooms.sort((a, b) => {
+                const aPriority = a.priority;
+                const bPriority = b.priority;
+                if (aPriority !== bPriority) return aPriority - bPriority;
+                const aMin = Math.min(...a.roomPrice.map(rp => rp.totalAmount));
+                const bMin = Math.min(...b.roomPrice.map(rp => rp.totalAmount));
+                return aMin - bMin;
+            });
         }
         return {
             success: true,
@@ -191,6 +198,7 @@ export class RoomBookingService {
             roomType: room.roomType,
             roomSize: Number(room.roomSize),
             roomUnit: room.roomUnit,
+            priority: room.priority,
             roomView: room.roomView,
             maxOccupancy: room.maxOccupancy,
             description: room.description || '',
@@ -255,12 +263,12 @@ export class RoomBookingService {
             ) as Promise<IRoomRatePlanRule | null>,
             deviceType
                 ? (RoomBookingRepository.getDeviceSpecificPromotion(
-                      property.id,
-                      room.id,
-                      ratePlan.id,
-                      checkInDate,
-                      deviceType
-                  ) as Promise<IRoomPromotionData | null>)
+                    property.id,
+                    room.id,
+                    ratePlan.id,
+                    checkInDate,
+                    deviceType
+                ) as Promise<IRoomPromotionData | null>)
                 : Promise.resolve(null),
             RoomBookingRepository.getTouristTax(
                 room.id
@@ -1076,9 +1084,9 @@ class RoomTouristTaxCalculator {
             touristTaxData.discountType === 'percentage'
                 ? baseAmount * (Number(touristTaxData.discountValue) / 100)
                 : Number(touristTaxData.discountValue) *
-                  numberOfNights *
-                  numberOfRooms *
-                  numberOfBedrooms;
+                numberOfNights *
+                numberOfRooms *
+                numberOfBedrooms;
 
         return {
             id: touristTaxData.id,
@@ -1151,24 +1159,24 @@ class RoomAddonCalculator {
                 images: addon.images || [],
                 category: addon.category
                     ? {
-                          id: addon.category.id,
-                          name: addon.category.name,
-                          code: addon.category.code,
-                      }
+                        id: addon.category.id,
+                        name: addon.category.name,
+                        code: addon.category.code,
+                    }
                     : null,
                 subCategory: addon.subCategory
                     ? {
-                          id: addon.subCategory.id,
-                          name: addon.subCategory.name,
-                          code: addon.subCategory.code,
-                      }
+                        id: addon.subCategory.id,
+                        name: addon.subCategory.name,
+                        code: addon.subCategory.code,
+                    }
                     : null,
                 addonVariant: addon.addonVariant
                     ? {
-                          id: addon.addonVariant.id,
-                          name: addon.addonVariant.name,
-                          code: addon.addonVariant.code,
-                      }
+                        id: addon.addonVariant.id,
+                        name: addon.addonVariant.name,
+                        code: addon.addonVariant.code,
+                    }
                     : null,
             });
         }

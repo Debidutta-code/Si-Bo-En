@@ -11,6 +11,7 @@ export interface IPropertyDetails {
   propertyEmail: string;
   propertyContact: string;
   propertyCode: string;
+  creationId: string;
   propertyCategory: {
     masterCategory: {
 

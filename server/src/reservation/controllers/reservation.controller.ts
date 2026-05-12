@@ -4,6 +4,8 @@ import { CustomRequest, PropertyRequest } from '../../utils';
 import { NewReservationService } from '../services';
 import { ICReservationS, IGuestCheckInDetails } from '../types';
 import { getDeviceInfo, getGeoLocationDetails } from '../../utils';
+import { decodeToken } from '../../utils/jwtHelper';
+import { config } from '../../config';
 
 export class ReservationController {
     private reservationService: NewReservationService;
@@ -140,6 +142,57 @@ export class ReservationController {
             );
             return res.status(serRes.success ? 200 : 400).json(serRes);
         } catch (error) {
+            if (error instanceof Error) {
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse(
+                            'Failed to fetch Reservation',
+                            error.message
+                        )
+                    );
+            }
+            return res.status(500).json(errorResponse('Internal server Error'));
+        }
+    }
+
+    public async getReservationByGuestId(
+        req: Request,
+        res: Response
+    ): Promise<Response> {
+        try {
+            let token;
+            if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+                token = req.headers.authorization.split(' ')[1];
+            } else if (req.cookies && req.cookies.revvChillOtaAccess) {
+                token = req.cookies.revvChillOtaAccess;
+            }
+
+            if (!token) {
+                return res.status(401).json(errorResponse('Authorization failed, Login again'));
+            }
+
+            const decoded = await decodeToken(token, config.otaJWTSecret!);
+
+            if (!decoded || !decoded.id) {
+                return res.status(401).json(errorResponse('Authorization failed, Login again'));
+            }
+
+            const guestId = decoded.id;
+
+            const serRes = await this.reservationService.getReservationsByGuestId(guestId);
+            return res.status(serRes.success ? 200 : 400).json(serRes);
+        } catch (error: any) {
+            if (error instanceof Error && error.name === 'TokenExpiredError') {
+                return res
+                    .status(401)
+                    .json(errorResponse('Authorization failed, Login again to continue', error.message));
+            } else if (error instanceof Error && error.name === 'JsonWebTokenError') {
+                return res
+                    .status(401)
+                    .json(errorResponse('Invalid Token, Login again to continue', error.message));
+            }
+
             if (error instanceof Error) {
                 return res
                     .status(500)

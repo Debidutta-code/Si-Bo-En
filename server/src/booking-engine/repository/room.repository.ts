@@ -14,7 +14,7 @@ export class RoomBookingRepository {
                     include: { amenity: true },
                 },
                 loyaltyProgramConfig: {
-                    where: { isActive: true },
+                    where: { isActive: true, CreationLoyaltyConfig: { BasicLoyaltyProgram: { isActive: true } } },
                     include: {
                         CreationLoyaltyConfig: {
                             include: {

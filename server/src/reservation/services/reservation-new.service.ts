@@ -1280,6 +1280,29 @@ export class NewReservationService {
             return errorResponse('Failed to update reservation status');
         }
     }
+    public async getReservationsByGuestId(
+        guestId: string
+    ): Promise<IApiResponse> {
+        try {
+            const reservations =
+                await this.reservationRepository.getReservationsByGuestId(
+                    guestId
+                );
+
+            return successResponse(
+                'Reservations fetched successfully',
+                reservations
+            );
+        } catch (error) {
+            if (error instanceof Error) {
+                return errorResponse(
+                    'Failed to fetch reservations',
+                    error.message
+                );
+            }
+            return errorResponse('Failed to fetch reservations');
+        }
+    }
     public async deleteReservation(
         reservationId: string,
         cancellationReason: string
@@ -1439,7 +1462,8 @@ export class NewReservationService {
                 }),
 
             ]);
-           await this.reservationEmailService
+
+            await this.reservationEmailService
                 .reservationCancelEmail(reservation)
             // Send cancellation email (non-blocking)
             this.reservationEmailService

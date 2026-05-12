@@ -696,7 +696,7 @@ export default function page() {
                     onClick={() => {
                       item.type != "property"
                         ? navigate(`/app/property/${currentTab}/${item.id}`)
-                        : navigate(`/property/${item.property?.id}`);
+                        : navigate(`/property/${item.property?.id}?creationId=${item.id}`);
                     }}
                   >
                     View Details

@@ -80,6 +80,7 @@ export interface IPropertyRoom {
     id: string;
     roomName: string;
     roomType: string;
+    priority: number;
     totalRoom: number;
     floor: number;
     roomView: string;
@@ -314,6 +315,7 @@ export interface IRoom {
     id: string;
     roomName: string;
     roomType: string;
+    priority: number;
     roomSize: number;
     maxOccupancy: number;
     roomUnit: string;

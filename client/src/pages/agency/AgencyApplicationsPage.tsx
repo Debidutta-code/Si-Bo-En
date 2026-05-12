@@ -227,7 +227,7 @@ if (loading.isLoading) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Application #</TableHead>
+                <TableHead>Application Id</TableHead>
                 <TableHead>Applicant Name</TableHead>
                 <TableHead>Agency Name</TableHead>
                 <TableHead>Email</TableHead>
@@ -247,7 +247,7 @@ if (loading.isLoading) {
                 filteredApplications.map((application) => (
                   <TableRow key={application.id}>
                     <TableCell className="font-medium">
-                      #{application.applicationNoForThisUser}
+                      {application.id}
                     </TableCell>
                     <TableCell>{application.applicantName}</TableCell>
                     <TableCell>{application.agencyName}</TableCell>

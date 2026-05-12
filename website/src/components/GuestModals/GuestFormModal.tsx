@@ -507,7 +507,7 @@ const GuestFormModal: React.FC<Props> = ({
 
                 const groupedAddons = (() => {
                   const map = new Map<string, { name: string; quantity: number; total: number; currency: string; type: string }>();
-                  for (const addon of finalPrice.addonBrakeDown ?? []) {
+                  for (const addon of finalPrice.addonBrakeDowns ?? []) {
                     const isChild = addon.name?.includes("Child age");
                     const key = isChild ? `${addon.addonId}::child` : `${addon.addonId}::${addon.type}`;
                     const baseName = isChild ? addon.name.replace(/\s*\(Child age \d+\)/, "") : addon.name;

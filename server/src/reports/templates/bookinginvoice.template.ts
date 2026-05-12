@@ -70,7 +70,7 @@ interface BookingInvoiceData {
 
 export const generateBookingInvoiceHTML = (
     data: BookingInvoiceData
-): string => {
+): any => {
     const { property, reservation, primaryGuest, addOns, priceBreakdown } =
         data;
 

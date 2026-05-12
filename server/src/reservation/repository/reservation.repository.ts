@@ -829,6 +829,51 @@ export class ReservationRepository {
         }
     }
 
+    public async getReservationsByGuestId(
+        guestId: string
+    ): Promise<IReservationWithAllDetails[]> {
+        try {
+            return await prisma.reservation.findMany({
+                where: {
+                    OR: [
+                        { otaGuestId: guestId },
+                        { primaryGuestId: guestId }
+                    ]
+                },
+                orderBy: { reservationStartDate: 'desc' },
+                include: {
+                    primaryGuest: true,
+                    AgencyCommission:true,
+                    addOns: true,
+                    reservationGuests: true,
+                    PricingBrakeDown: {
+                        include: {
+                            AddonBrakeDowns: true,
+                            DailyPriceBrakeDown: true,
+                            taxBrakeDown: true,
+                            promotionBrakeDown: true,
+                        }
+                    },
+                    promo:{
+                        select:{
+                            id:true,
+                            code:true,
+                            discountType:true,
+                            discountValue:true,
+                            currencyCode:true,
+                        }
+                    },
+                    reservationPromoCodes:true,
+                    property: {
+                        select: { id:true, propertyName: true, propertyCode: true,propertyEmail:true,propertyContact:true,description:true,image:true },
+                    },
+                },
+            });
+        } catch (error) {
+            throw this.wrap(error, 'Failed to fetch reservations by guest ID');
+        }
+    }
+
     public async updateReservationStatus(
         reservationId: string,
         status: BookingStatus

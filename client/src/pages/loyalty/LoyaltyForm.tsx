@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import {  Save, Plus } from "lucide-react";
 import { toast } from "react-hot-toast";
 import Loader from "@/components/Loader/Loader";
+import BackButton from "@/components/shared/BackButton";
 
 interface ILoader {
   isLoading: boolean;
@@ -231,8 +232,8 @@ export default function LoyaltyForm() {
   }
 
   return (
-    <div className="container mx-auto p-4 md:p-6 lg:p-8">
-
+    <div className="container mx-auto p-4 md:p-6 lg:p-8 space-y-2 ">
+          <BackButton/>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div>

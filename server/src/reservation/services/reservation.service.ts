@@ -601,6 +601,47 @@
 //                     propertyCode
 //                 );
 
+// if (!reservation) {
+//     return errorResponse('Reservation not found');
+// }
+// return successResponse(
+//     'Reservation fetched successfully',
+//     reservation
+// );
+//         } catch (error) {
+//     if (error instanceof Error) {
+//         return errorResponse(
+//             'Failed to fetch reservation',
+//             error.message
+//         );
+//     }
+//     return errorResponse('Failed to fetch reservation');
+// }
+//     }
+
+//     public async getReservationsByGuestId(
+//     guestId: string
+// ): Promise < IApiResponse > {
+//     try {
+//         const reservations =
+//             await this.reservationRepository.getReservationsByGuestId(
+//                 guestId
+//             );
+
+//         return successResponse(
+//             'Reservations fetched successfully',
+//             reservations
+//         );
+//     } catch(error) {
+//         if (error instanceof Error) {
+//             return errorResponse(
+//                 'Failed to fetch reservations',
+//                 error.message
+//             );
+//         }
+//         return errorResponse('Failed to fetch reservations');
+//     }
+// }
 //             if (!reservation) {
 //                 return errorResponse('Reservation not found');
 //             }

@@ -287,13 +287,15 @@ export class LoyaltyGuestRepository {
         guestEmailId: string
     ): Promise<ILoyalityGuests | null> {
         try {
+            // ✅ Only update if the loyalty guest record exists
+            const existing = await prisma.loyalityGuest.findUnique({
+                where: { guestEmail: email },
+            });
+            if (!existing) return null;
+
             return await prisma.loyalityGuest.update({
-                where: {
-                    guestEmail: email,
-                },
-                data: {
-                    guestId: guestEmailId,
-                },
+                where: { guestEmail: email },
+                data: { guestId: guestEmailId },
             });
         } catch (error) {
             throw new Error('Failed to get guest by email');

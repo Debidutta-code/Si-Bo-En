@@ -224,8 +224,8 @@ export default function ChildAddonDialog({
                       <div
                         key={child.id}
                         className={`flex items-center justify-between p-3 rounded-lg border transition-colors ${editingChildAddon?.id === child.id
-                            ? "border-primary bg-primary/5"
-                            : "border-gray-200 hover:bg-gray-50"
+                          ? "border-primary bg-primary/5"
+                          : "border-gray-200 hover:bg-gray-50"
                           }`}
                       >
                         <div className="flex items-center gap-3">
@@ -356,10 +356,11 @@ export default function ChildAddonDialog({
                       htmlFor="discount-applicable"
                       className="text-sm font-medium"
                     >
-                      Discount Applicable
+                      Custom Pricing Rules
                     </Label>
+
                     <p className="text-xs text-gray-500 mt-0.5">
-                      Apply a discount for this age group
+                      Apply discounts or make this age group free of charge
                     </p>
                   </div>
                   <Switch
@@ -470,7 +471,7 @@ export default function ChildAddonDialog({
                         )
 
                       }
-                      
+
                     </div>
                   </div>
                 )}
