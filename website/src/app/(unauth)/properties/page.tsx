@@ -119,11 +119,6 @@ const Properties = () => {
       setError("Please select check-in and check-out dates.");
       return;
     }
-    // if (!query.location || query.location.trim() === "") {
-    //   setError("Please enter a location (city).");
-    //   return;
-    // }
-
     setLoading(true);
     setError(null);
 
@@ -139,7 +134,7 @@ const Properties = () => {
         body.city = city;
       }
 
-      const url = selectedBrandId
+      const url = selectedBrandId !="all"
         ? `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/group-search/brand/${selectedBrandId}`
         : `${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/group-search/${groupId}`;
 
@@ -156,8 +151,6 @@ const Properties = () => {
       }
 
       let props = data.data || [];
-      // Filter out properties where propertyCode looks like a UUID (internal IDs).
-      // These are not valid booking codes and would cause errors when navigating to /Rooms.
       const uuidRegex = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/;
       props = props.filter((p: any) => !uuidRegex.test(p.propertyCode || ""));
 
@@ -251,7 +244,7 @@ const Properties = () => {
             onChange={(e) => setSelectedBrandId(e.target.value || null)}
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-[#0E5C60] cursor-pointer"
           >
-            <option value="">All Properties</option>
+            <option value="all">All Properties</option>
             {brands.map((brand: any) => (
               <option key={brand.brandId} value={brand.brandId}>
                 {brand.brandName}
