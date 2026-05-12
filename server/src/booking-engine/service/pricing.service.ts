@@ -762,27 +762,26 @@ class AddOnPriceClass {
                     quantityForDate = 1;
                     break;
                 case 'per_stay':
-                    quantityForDate = index === 0 ? 1 : 0;
+                    quantityForDate = 1;
                     break;
                 case 'per_person_per_night':
-                    quantityForDate = this.childAges?.length || 0;
+                    quantityForDate = 1; // will be multiplied per child below
                     break;
                 case 'per_person_per_stay':
-                    quantityForDate = index === 0 ? this.childAges?.length || 0 : 0;
+                    quantityForDate = 1; // will be multiplied per child below
                     break;
                 case 'per_room':
-                    quantityForDate = index === 0 ? this.numberOfRooms : 0;
+                    quantityForDate = 1;
                     break;
                 case 'per_room_per_night':
-                    quantityForDate = this.numberOfRooms;
+                    quantityForDate = 1;
                     break;
                 case 'per_person_per_room':
-                    quantityForDate = index === 0 ? this.childAges?.length || 0 : 0;
+                    quantityForDate = 1;
                     break;
                 default:
                     quantityForDate = 1;
             }
-
 
             childAges.forEach(age => {
                 const childAddon = addon.ChildAddons?.find(
