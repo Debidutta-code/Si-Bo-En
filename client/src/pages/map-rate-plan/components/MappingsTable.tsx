@@ -173,7 +173,6 @@ export default function MappingsTable({
                             </div>
 
                             {/* Backend Pagination */}
-                            {totalPages > 1 && (
                                 <Pagination
                                     currentPage={currentPage}
                                     totalPages={totalPages}
@@ -181,7 +180,6 @@ export default function MappingsTable({
                                     itemsPerPage={20}
                                     totalItems={totalItems}
                                 />
-                            )}
                         </>
                     ) : (
                         <div className="text-center py-12">
