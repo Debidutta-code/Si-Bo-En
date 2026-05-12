@@ -455,10 +455,13 @@ export class RoomBookingService {
 
         // Fill in missing dates with 0 as requested
         const result: Record<string, number> = {};
+
         let current = new Date(start);
-        while (current <= end) {
+        const endKey = new Date(end.getTime() - end.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+        while (true) {
             const dateKey = new Date(current.getTime() - current.getTimezoneOffset() * 60000).toISOString().split('T')[0];
             result[dateKey] = minPricesByDate[dateKey] || 0;
+            if (dateKey === endKey) break;
             current.setDate(current.getDate() + 1);
         }
 
