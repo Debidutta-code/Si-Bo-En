@@ -115,9 +115,9 @@ export class PricingService {
                     : Promise.resolve(null),
                 guestEmail
                     ? this.pricingRepository.findLoyaltyDiscountData(
-                          guestEmail,
-                          propertyId
-                      )
+                        guestEmail,
+                        propertyId
+                    )
                     : Promise.resolve(null),
             ]);
 
@@ -141,7 +141,7 @@ export class PricingService {
                 rooms,
                 Math.ceil(
                     (endDate.getTime() - startDate.getTime()) /
-                        (1000 * 60 * 60 * 24)
+                    (1000 * 60 * 60 * 24)
                 ),
                 adults,
                 startDate,
@@ -629,10 +629,10 @@ class AddOnPriceClass {
                 // if user provided parsedAddons, use its per-date quantity, otherwise default to 1
                 const quantityForDate = userSelectedAddon
                     ? userSelectedAddon.availability.find(
-                          a =>
-                              new Date(a.date).toISOString() ===
-                              new Date(avail.date).toISOString()
-                      )?.quantity || 1
+                        a =>
+                            new Date(a.date).toISOString() ===
+                            new Date(avail.date).toISOString()
+                    )?.quantity || 1
                     : 1;
                 const totalAmount = amount * quantityForDate;
 
@@ -674,7 +674,7 @@ class AddOnPriceClass {
         this.addonsWithRatePlans.forEach(addon => {
             if (addon.addon.availability.length === 0) return;
 
-            addon.addon.availability.forEach(avail => {
+            addon.addon.availability.forEach((avail, index) => {
                 const amount = Number(avail.price);
                 let quantityForDate = 1;
                 switch (addon.addon.postingRhythm) {
@@ -682,26 +682,29 @@ class AddOnPriceClass {
                         quantityForDate = 1;
                         break;
                     case 'per_stay':
-                        quantityForDate = 1;
+                        quantityForDate = index === 0 ? 1 : 0;
                         break;
                     case 'per_person_per_night':
                         quantityForDate = this.noOfAdults;
                         break;
                     case 'per_person_per_stay':
-                        quantityForDate = this.noOfAdults;
+                        quantityForDate = index === 0 ? this.noOfAdults : 0;
                         break;
                     case 'per_room':
-                        quantityForDate = this.numberOfRooms;
+                        quantityForDate = index === 0 ? this.numberOfRooms : 0;
                         break;
                     case 'per_room_per_night':
                         quantityForDate = this.numberOfRooms;
                         break;
                     case 'per_person_per_room':
-                        quantityForDate = this.noOfAdults;
+                        quantityForDate = index === 0 ? this.noOfAdults : 0;
                         break;
                     default:
                         quantityForDate = 1;
                 }
+
+                if (quantityForDate === 0) return;
+
                 const totalAmount = amount * quantityForDate;
                 addonBrakeDown.push({
                     addonId: addon.addon.id,
@@ -750,7 +753,7 @@ class AddOnPriceClass {
         // produce per-date child addon entries
         const addonBrakeDown: AddOnBrakeDown[] = [];
 
-        availableEntries.forEach(avail => {
+        availableEntries.forEach((avail, index) => {
             const amount = Number(avail.price);
             // determine quantity per date based on posting rhythm
             let quantityForDate = 1;
@@ -759,26 +762,27 @@ class AddOnPriceClass {
                     quantityForDate = 1;
                     break;
                 case 'per_stay':
-                    quantityForDate = 1;
+                    quantityForDate = index === 0 ? 1 : 0;
                     break;
                 case 'per_person_per_night':
-                    quantityForDate = 1; // will be multiplied per child below
+                    quantityForDate = this.noOfAdults;
                     break;
                 case 'per_person_per_stay':
-                    quantityForDate = 1; // will be multiplied per child below
+                    quantityForDate = index === 0 ? this.noOfAdults : 0;
                     break;
                 case 'per_room':
-                    quantityForDate = 1;
+                    quantityForDate = index === 0 ? this.numberOfRooms : 0;
                     break;
                 case 'per_room_per_night':
-                    quantityForDate = 1;
+                    quantityForDate = this.numberOfRooms;
                     break;
                 case 'per_person_per_room':
-                    quantityForDate = 1;
+                    quantityForDate = index === 0 ? this.noOfAdults : 0;
                     break;
                 default:
                     quantityForDate = 1;
             }
+
 
             childAges.forEach(age => {
                 const childAddon = addon.ChildAddons?.find(
@@ -789,7 +793,7 @@ class AddOnPriceClass {
 
                 if (childAddon) {
                     if (!childAddon.discountApplicable) {
-                        childPrice = 0;
+                        childPrice = amount;
                     } else if (
                         childAddon.discountApplicable &&
                         childAddon.discountType &&
@@ -1079,7 +1083,7 @@ class PromotionClass {
         const todayDate = nowUTC();
         const advanceBookingDays = Math.ceil(
             (this.startDate.getTime() - todayDate.getTime()) /
-                (1000 * 60 * 60 * 24)
+            (1000 * 60 * 60 * 24)
         );
         if (advanceBookingDays >= promotion.advanceBookingDays) {
             if (promotion.discountType == 'percentage') {
@@ -1127,7 +1131,7 @@ class PromotionClass {
         const todayDate = nowUTC();
         const isOfferForTonightApplicable =
             this.startDate.getTime() - todayDate.getTime() <=
-                1000 * 60 * 60 * 24 &&
+            1000 * 60 * 60 * 24 &&
             this.startDate.getTime() - todayDate.getTime() <= 0;
         if (isOfferForTonightApplicable) {
             if (promotion.discountType == 'percentage') {
@@ -1360,7 +1364,7 @@ class PromoCodeDiscountClass {
         if (
             checkIfPromoCodeIsValid.minBookingAmount && //chck for minimum booking amount
             checkIfPromoCodeIsValid.minBookingAmount >
-                this.priceBrakedown.amountBeforeTax
+            this.priceBrakedown.amountBeforeTax
         ) {
             return this.priceBrakedown;
         }
@@ -1392,7 +1396,7 @@ class PromoCodeDiscountClass {
             if (
                 checkIfPromoCodeIsValid.maxDiscountAmount &&
                 promoCodeDiscountAmount >
-                    checkIfPromoCodeIsValid.maxDiscountAmount
+                checkIfPromoCodeIsValid.maxDiscountAmount
             ) {
                 promoCodeDiscountAmount =
                     checkIfPromoCodeIsValid.maxDiscountAmount;
@@ -1411,7 +1415,7 @@ class PromoCodeDiscountClass {
             if (
                 checkIfPromoCodeIsValid.maxDiscountAmount &&
                 promoCodeDiscountAmount >
-                    checkIfPromoCodeIsValid.maxDiscountAmount
+                checkIfPromoCodeIsValid.maxDiscountAmount
             ) {
                 promoCodeDiscountAmount =
                     checkIfPromoCodeIsValid.maxDiscountAmount;
@@ -1460,8 +1464,8 @@ class LoyalityDiscountClass {
         const matchedLevel =
             guestLevel !== null
                 ? loyalityLevels.find(
-                      (l: { level: number }) => l.level === guestLevel
-                  )
+                    (l: { level: number }) => l.level === guestLevel
+                )
                 : null;
 
         if (matchedLevel) {
@@ -1475,7 +1479,7 @@ class LoyalityDiscountClass {
             loyaltyDiscount =
                 fallback.type === 'percentage'
                     ? (this.priceBrakedown.amountBeforeTax * fallback.value) /
-                      100
+                    100
                     : fallback.value;
         }
 

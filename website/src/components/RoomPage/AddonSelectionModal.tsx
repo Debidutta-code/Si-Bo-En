@@ -189,9 +189,6 @@ const AddonSelectionModal: React.FC<AddonSelectionModalProps> = ({
                                                         <h5 className="font-bold text-sm text-gray-900 leading-tight">
                                                             {addon.name}
                                                         </h5>
-                                                        <span className="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded-full font-semibold whitespace-nowrap">
-                                                            {convertText(addon.postingRhythm)}
-                                                        </span>
                                                     </div>
 
                                                     {addon.description && (
