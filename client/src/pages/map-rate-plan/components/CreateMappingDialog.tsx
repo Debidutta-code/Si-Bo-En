@@ -220,12 +220,12 @@ export default function CreateMappingDialog({
             return;
         }
 
-        const combinedBase = [...localForm.adultsBase, ...localForm.childrenBase];
-        const hasInvalidAmount = combinedBase.some((item) => parseFloat(String(item.amountBeforeTax)) <= 0);
-        if (hasInvalidAmount) {
-            toast.error("All base guest amounts must be greater than 0");
-            return;
-        }
+        // const combinedBase = [...localForm.adultsBase, ...localForm.childrenBase];
+        // const hasInvalidAmount = combinedBase.some((item) => parseFloat(String(item.amountBeforeTax)) <= 0);
+        // if (hasInvalidAmount) {
+        //     toast.error("All base guest amounts must be greater than 0");
+        //     return;
+        // }
         setIsSubmitting(true);
         try {
             const payload: ICreateCharges = {
