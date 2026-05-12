@@ -3,7 +3,7 @@ model LoyalityGuest {
 
   guestEmail String  @unique @map("guest_email")
   guestId    String? @map("guest_id")
-  password   String  @map("password")
+  password   String @default(" ") @map("password")
   otaGuestId String? @unique @map("ota_guest_id")  // ← add @unique for 1-to-1
 
   guest                  Guests?                  @relation(fields: [guestId], references: [id], onDelete: Cascade)
