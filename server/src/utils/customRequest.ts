@@ -53,3 +53,7 @@ export interface IOtaCustomRequest extends ExpressRequest {
         id: string;
     };
 }
+
+export interface IOtaReservationRequest extends IOtaCustomRequest, PropertyRequest {
+
+}
