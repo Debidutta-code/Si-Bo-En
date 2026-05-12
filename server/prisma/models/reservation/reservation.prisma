@@ -6,7 +6,7 @@ model Reservation {
   hotelName    String @map("hotel_name")
 
   roomName     String? @default("-") @map("room_name")
-  roomTypeCode String  @map("room_type_code")
+  roomTypeCode String @default("-")  @map("room_type_code")
 
   ratePlanCode String  @map("rate_plan_code")
   ratePlanName String? @default("-") @map("rate_plan_name")
