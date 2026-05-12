@@ -765,10 +765,10 @@ class AddOnPriceClass {
                     quantityForDate = index === 0 ? 1 : 0;
                     break;
                 case 'per_person_per_night':
-                    quantityForDate = this.noOfAdults;
+                    quantityForDate = this.childAges?.length || 0;
                     break;
                 case 'per_person_per_stay':
-                    quantityForDate = index === 0 ? this.noOfAdults : 0;
+                    quantityForDate = index === 0 ? this.childAges?.length || 0 : 0;
                     break;
                 case 'per_room':
                     quantityForDate = index === 0 ? this.numberOfRooms : 0;
@@ -777,7 +777,7 @@ class AddOnPriceClass {
                     quantityForDate = this.numberOfRooms;
                     break;
                 case 'per_person_per_room':
-                    quantityForDate = index === 0 ? this.noOfAdults : 0;
+                    quantityForDate = index === 0 ? this.childAges?.length || 0 : 0;
                     break;
                 default:
                     quantityForDate = 1;
