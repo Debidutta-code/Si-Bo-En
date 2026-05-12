@@ -288,4 +288,20 @@ export class RoomBookingRepository {
             },
         });
     }
+
+    public static async getPropertyChargesForCalendar(propertyCode: string, startDate: Date, endDate: Date) {
+        return prisma.charge.findMany({
+            where: {
+                propertyCode,
+                date: {
+                    gte: startDate,
+                    lte: endDate,
+                },
+                isAvailable: true,
+            },
+            include: {
+                baseGuestAmounts: true,
+            },
+        });
+    }
 }
