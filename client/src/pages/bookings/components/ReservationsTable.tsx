@@ -9,7 +9,7 @@ import {
   AlertTriangle,
   EyeOff,
   FileText,
-  VenetianMask,
+  // VenetianMask,
 } from "lucide-react";
 import {
   Table,
@@ -308,10 +308,10 @@ export default function ReservationsTable({
                         <Eye className="w-4 h-4 mr-3" />
                         View Details
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => openDialog("spaBooking", reservation)} className="cursor-pointer">
+                      {/* <DropdownMenuItem onClick={() => openDialog("spaBooking", reservation)} className="cursor-pointer">
                         <VenetianMask className="w-4 h-4 mr-3" />
                         Add Spa / Activity
-                      </DropdownMenuItem>
+                      </DropdownMenuItem> */}
                       <DropdownMenuItem onClick={() => handleDownloadVoucher(reservation.bookingCode)} className="cursor-pointer">
                         <FileText className="w-4 h-4 mr-3" />
                         Download Voucher
