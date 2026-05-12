@@ -1,6 +1,6 @@
 import { errorResponse } from '../../utils/return';
 import { Response, Request } from 'express';
-import { CustomRequest, PropertyRequest } from '../../utils';
+import { CustomRequest, PropertyRequest, IOtaReservationRequest } from '../../utils';
 import { NewReservationService } from '../services';
 import { ICReservationS, IGuestCheckInDetails } from '../types';
 import { getDeviceInfo, getGeoLocationDetails } from '../../utils';
@@ -111,6 +111,138 @@ export class ReservationController {
             return res
                 .status(500)
                 .json(errorResponse('Failed to create reservation'));
+        }
+    }
+
+    public async createOtaReservation(
+        req: IOtaReservationRequest,
+        res: Response
+    ): Promise<Response> {
+        try {
+            let token;
+            if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+                token = req.headers.authorization.split(' ')[1];
+            } else if (req.cookies && req.cookies.revvChillOtaAccess) {
+                token = req.cookies.revvChillOtaAccess;
+            }
+
+            if (!token) {
+                return res.status(401).json(errorResponse('Authorization failed, Login again'));
+            }
+
+            const decoded = await decodeToken(token, config.otaJWTSecret!);
+
+            if (!decoded || !decoded.id) {
+                return res.status(401).json(errorResponse('Authorization failed, Login again'));
+            }
+
+            const guestId = decoded.id;
+
+            const data: ICReservationS = req.body;
+            if (!data) {
+                return res.status(400).json(errorResponse('Invalid payload'));
+            }
+            if (!data.propertyCode) {
+                return res
+                    .status(400)
+                    .json(errorResponse('Property code is required'));
+            }
+            if (!data.reservationStartDate) {
+                return res
+                    .status(400)
+                    .json(errorResponse('Check-in date is required'));
+            }
+            if (!data.reservationEndDate) {
+                return res
+                    .status(400)
+                    .json(errorResponse('Check-out date is required'));
+            }
+            if (!data.guests) {
+                return res
+                    .status(400)
+                    .json(errorResponse('Guests details is required'));
+            }
+            if (!data.numberOfRooms) {
+                return res
+                    .status(400)
+                    .json(errorResponse('Number of rooms is required'));
+            }
+            if (!data.ratePlanCode) {
+                return res
+                    .status(400)
+                    .json(errorResponse('Rate plan code is required'));
+            }
+            if (!data.roomTypeCode) {
+                return res
+                    .status(400)
+                    .json(errorResponse('Room type code is required'));
+            }
+            if (!data.guestDetails) {
+                return res
+                    .status(400)
+                    .json(errorResponse('Guest details is required'));
+            }
+            if (!data.finalPrice) {
+                return res
+                    .status(400)
+                    .json(errorResponse('Final price is required'));
+            }
+            if (!data.bookingSource) {
+                return res
+                    .status(400)
+                    .json(errorResponse('Booking source is required'));
+            }
+            if (!data.paymentMethod) {
+                return res
+                    .status(400)
+                    .json(errorResponse('Payment method is required'));
+            }
+
+            data.otaGuestId = guestId;
+
+            const PropertyDetails = req.property;
+            if (!PropertyDetails) {
+                return res
+                    .status(400)
+                    .json(errorResponse('Property details is required'));
+            }
+            const geoLocation = await getGeoLocationDetails(req as any);
+            const countryCode = geoLocation?.country;
+            const { deviceType } = getDeviceInfo(req as any);
+
+            const serviceRes = await this.reservationService.createReservation(
+                data,
+                PropertyDetails,
+                countryCode,
+                deviceType
+            );
+
+            return res.status(serviceRes.success ? 200 : 400).json(serviceRes);
+        } catch (error: any) {
+            console.error('Controller error:', error);
+            if (error instanceof Error && error.name === 'TokenExpiredError') {
+                return res
+                    .status(401)
+                    .json(errorResponse('Authorization failed, Login again to continue', error.message));
+            } else if (error instanceof Error && error.name === 'JsonWebTokenError') {
+                return res
+                    .status(401)
+                    .json(errorResponse('Invalid Token, Login again to continue', error.message));
+            }
+
+            if (error instanceof Error) {
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse(
+                            'Failed to create OTA reservation',
+                            error.message
+                        )
+                    );
+            }
+            return res
+                .status(500)
+                .json(errorResponse('Failed to create OTA reservation'));
         }
     }
 

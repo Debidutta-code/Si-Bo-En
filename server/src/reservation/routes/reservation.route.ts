@@ -16,14 +16,14 @@ reservationRoute.route('/').post(
     reservationController.createReservation.bind(reservationController)
 );
 
+
 reservationRoute.route("/date-range")
     .get(protect, reservationController.getAllReservations.bind(reservationController));
 reservationRoute.route("/arrivals")
     .get(protect, reservationController.getArrivalsForADate.bind(reservationController));
 reservationRoute.route("/departures")
     .get(protect, reservationController.getDeparturesForADate.bind(reservationController));
-reservationRoute.route("/guest/bookings")
-    .get(reservationController.getReservationByGuestId.bind(reservationController));
+
 reservationRoute.route("/cancel/:reservationId")
     .put(reservationController.cancelReservation.bind(reservationController));
 reservationRoute.route("/available-rooms/:bookingCode")
