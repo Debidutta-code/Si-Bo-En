@@ -119,25 +119,10 @@ export class ReservationController {
         res: Response
     ): Promise<Response> {
         try {
-            let token;
-            if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
-                token = req.headers.authorization.split(' ')[1];
-            } else if (req.cookies && req.cookies.revvChillOtaAccess) {
-                token = req.cookies.revvChillOtaAccess;
+            const guestId = req.otaUser?.id;
+            if(!guestId) {
+                return res.status(401).json(errorResponse('Login to continue to reservation'));
             }
-
-            if (!token) {
-                return res.status(401).json(errorResponse('Authorization failed, Login again'));
-            }
-
-            const decoded = await decodeToken(token, config.otaJWTSecret!);
-
-            if (!decoded || !decoded.id) {
-                return res.status(401).json(errorResponse('Authorization failed, Login again'));
-            }
-
-            const guestId = decoded.id;
-
             const data: ICReservationS = req.body;
             if (!data) {
                 return res.status(400).json(errorResponse('Invalid payload'));
