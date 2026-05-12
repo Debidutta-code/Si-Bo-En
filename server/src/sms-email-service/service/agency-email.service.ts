@@ -8,7 +8,7 @@ import { IAgencyApplication, ICAgencyApplication } from '../../agency/types';
 
 export class AgencyEmailService {
     public async applicationSubmitted(
-        data: ICAgencyApplication
+        data: ICAgencyApplication & { id: string } // ← add id here
     ): Promise<void> {
         try {
             const htmlContent = templateApplicationSubmitted(data);

@@ -111,18 +111,25 @@ export class AgencyApplicationRepository {
         }
     }
     public async lastAppliedCountByEmail(email: string): Promise<number> {
-        try {
-            const count = await prisma.agentApplications.findFirst({
-                where: { agencyEmail: email },
-            });
-            if (!count) {
-                return 0;
-            }
-            return count?.applicationNoForThisUser;
-        } catch (error) {
-            throw new Error(`Failed to retrieve last applied count by email`);
+    try {
+        const record = await prisma.agentApplications.findFirst({
+            where: { agencyEmail: email },
+            select: { applicationNoForThisUser: true },
+        });
+ 
+        // No prior application found — this is a first-time applicant
+        if (!record) {
+            return 0;
         }
+ 
+        // Guard against null/undefined field (e.g. older rows before the column was added)
+        return record.applicationNoForThisUser ?? 0;
+    } catch (error) {
+        // Log but don't throw — a count failure should not block application creation
+        console.error('lastAppliedCountByEmail failed, defaulting to 0:', error);
+        return 0;
     }
+}
     public async getAgentApplicationsByTaxNo(
         taxNo: string
     ): Promise<IAgencyApplication | null> {

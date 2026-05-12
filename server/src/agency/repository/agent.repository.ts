@@ -1,90 +1,71 @@
 import { prisma } from '../../config';
-import { ICAgents, IAgents, IAgentsWA } from '../types';
+import { IAgents, ICAgents } from '../types';
 
 export class AgentRepository {
-    public async createAgent(data: ICAgents): Promise<IAgents> {
-        try {
-            return await prisma.agents.create({
-                data,
-            });
-        } catch (error) {
-            throw new Error(`Failed to create agent`);
-        }
-    }
     public async getAgentByEmail(email: string): Promise<IAgents | null> {
         try {
             return await prisma.agents.findUnique({
                 where: { agentEmail: email },
             });
         } catch (error) {
-            throw new Error(`Failed to get agent by email: ${email}`);
-        }
-    }
-    public async getAgentById(id: string): Promise<IAgentsWA | null> {
-        try {
-            return await prisma.agents.findUnique({
-                where: { id },
-                include: {
-                    agency: true,
-                },
-            });
-        } catch (error) {
-            throw new Error(`Failed to get agent by ID: ${id}`);
+            throw new Error(`Failed to get agent by email`);
         }
     }
 
-    public async updateAgent(
-        id: string,
-        data: ICAgents
-    ): Promise<IAgents | null> {
+    // ← NEW: fetch by primary key (id), used in deleteAgent before deleting
+    public async getAgentById(id: string): Promise<IAgents | null> {
         try {
-            return await prisma.agents.update({
-                where: { id },
-                data,
-            });
+            return await prisma.agents.findUnique({ where: { id } });
         } catch (error) {
-            throw new Error(`Failed to update agent: ${id}`);
+            throw new Error(`Failed to get agent by id`);
         }
     }
 
-    public async deleteAgent(id: string): Promise<IAgents | null> {
+    public async createAgent(data: ICAgents): Promise<IAgents> {
         try {
-            return await prisma.agents.update({
-                where: { id },
-                data: { isDeleted: true },
-            });
+            return await prisma.agents.create({ data });
         } catch (error) {
-            throw new Error(`Failed to delete agent: ${id}`);
+            throw new Error(`Failed to create agent`);
         }
     }
+
+    public async updateAgent(id: string, data: ICAgents): Promise<IAgents> {
+        try {
+            return await prisma.agents.update({ where: { id }, data });
+        } catch (error) {
+            throw new Error(`Failed to update agent`);
+        }
+    }
+
+    public async deleteAgent(id: string): Promise<void> {
+        try {
+            await prisma.agents.delete({ where: { id } });
+        } catch (error) {
+            throw new Error(`Failed to delete agent`);
+        }
+    }
+
     public async getAgencies(
         agencyId: string,
-        skip: number = 0,
-        take: number = 10
-    ): Promise<IAgentsWA[]> {
+        skip: number,
+        take: number
+    ): Promise<IAgents[]> {
         try {
             return await prisma.agents.findMany({
                 where: { agencyId },
                 skip,
                 take,
-                include: {
-                    agency: true,
-                },
             });
         } catch (error) {
-            throw new Error(`Failed to get agencies for agent: ${agencyId}`);
+            throw new Error(`Failed to get agents`);
         }
     }
+
     public async getAgentsCount(agencyId: string): Promise<number> {
         try {
-            const count = await prisma.agents.count({
-                where: { agencyId },
-            });
-            return count;
+            return await prisma.agents.count({ where: { agencyId } });
         } catch (error) {
-            throw new Error(
-                `Failed to get agents count for agency: ${agencyId}`
-            );
+            throw new Error(`Failed to get agents count`);
         }
     }
 }
