@@ -54,6 +54,7 @@ const DatePickerWithHover = ({
   prices,
   currencyCode,
   isPricesLoading,
+  onMonthChange, // ← CHANGED: added prop
 }: {
   checkIn: Date | null;
   checkOut: Date | null;
@@ -65,6 +66,7 @@ const DatePickerWithHover = ({
   prices: Record<string, number>;
   currencyCode?: string;
   isPricesLoading: boolean;
+  onMonthChange: (date: Date) => void; // ← CHANGED: added prop type
 }) => {
   const [hoverDate, setHoverDate] = useState<Date | null>(null);
 
@@ -140,6 +142,7 @@ const DatePickerWithHover = ({
       popperClassName="terra-solis-popper"
       dayClassName={getDayClassName}
       renderDayContents={renderDayContents}
+      onMonthChange={onMonthChange} // ← CHANGED: wired up
     />
   );
 };
@@ -427,24 +430,27 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
     setTemporaryCheckOut(null);
   };
 
-  const fetchCalendarPrices = async () => {
+  // ← CHANGED: accepts optional start/end so month navigation can pass its own range
+  const fetchCalendarPrices = async (fromDate?: Date, toDate?: Date) => {
     setIsPricesLoading(true);
     try {
-      const today = new Date();
-      const nextMonth = new Date(today.getFullYear(), today.getMonth() + 2, 0); // End of next month
+      const start = fromDate ?? new Date();
+      // Default: cover the two months currently shown (start month + next month)
+      const end = toDate ?? new Date(start.getFullYear(), start.getMonth() + 2, 1);
 
       const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/booking-engine/calendar-prices`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           propertyCode: hotelcode,
-          startDate: today.toISOString().split('T')[0],
-          endDate: nextMonth.toISOString().split('T')[0]
+          startDate: start.toISOString().split('T')[0],
+          endDate: end.toISOString().split('T')[0],
         }),
       });
       const data = await response.json();
       if (data.success) {
-        setPrices(data.data);
+        // ← CHANGED: merge into existing prices so previously loaded months stay visible
+        setPrices((prev) => ({ ...prev, ...data.data }));
         if (data.currencyCode) {
           dispatch(setCurrency(data.currencyCode));
         }
@@ -452,15 +458,26 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
     } catch (error) {
       console.error("Failed to fetch calendar prices:", error);
     } finally {
-      setIsPricesLoading(false); // ← ADD
+      setIsPricesLoading(false);
     }
   };
 
   useEffect(() => {
     if (isCalendarOpen) {
+      // Initial load: today → end of next month (same as before)
       fetchCalendarPrices();
     }
   }, [isCalendarOpen, hotelcode]);
+
+  // ← CHANGED: called by DatePicker's onMonthChange; `date` is the first visible month
+  const handleMonthChange = (date: Date) => {
+    const isTwoMonths = typeof window !== 'undefined' && window.innerWidth >= 640;
+    // Start of the navigated-to month
+    const start = new Date(date.getFullYear(), date.getMonth(), 1);
+    // End of that month (single) or end of next month (dual view)
+    const end = new Date(date.getFullYear(), date.getMonth() + (isTwoMonths ? 2 : 1), 1);
+    fetchCalendarPrices(start, end);
+  };
 
   const openCalendar = () => {
     setIsCalendarOpen(true);
@@ -504,25 +521,6 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
       router.push("/");
     }
   };
-
-  // const getContrastTextColor = (bgColor: string) => {
-  //   // Convert hex to RGB
-  //   const hex = bgColor.replace("#", "");
-  //   const r = parseInt(hex.substring(0, 2), 16);
-  //   const g = parseInt(hex.substring(2, 4), 16);
-  //   const b = parseInt(hex.substring(4, 6), 16);
-
-  //   // Calculate luminance
-  //   const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-
-  //   // Return black or white based on luminance
-  //   return luminance > 0.5 ? "#2F2A1F" : "#FFFFFF";
-  // };
-
-  // // Calculate button text color - use provided buttonTextColor or get contrast color
-  // const calculatedButtonTextColor =
-  //   buttonTextColor || getContrastTextColor(secondaryColor);
-
 
   return (
     <>
@@ -648,7 +646,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
               onClick={handleSearch}
               disabled={loading}
               className="w-full md:w-auto px-6 lg:px-10 py-3 lg:py-4 rounded-full text-xs lg:text-[11px] font-semibold tracking-[0.15em] disabled:opacity-60 transition-all shadow-sm hover:opacity-90 whitespace-nowrap"
-              style={{ backgroundColor: secondaryColor,color:buttonTextColor }}
+              style={{ backgroundColor: secondaryColor, color: buttonTextColor }}
             >
               {loading ? t("SearchWidget.loading") : t("SearchWidget.bookNow")}
             </button>
@@ -673,7 +671,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   checkOut={checkOut}
                   temporaryCheckOut={temporaryCheckOut}
                   prices={prices}
-                  isPricesLoading={isPricesLoading} // ← ADD
+                  isPricesLoading={isPricesLoading}
                   currencyCode={bookingContext.currency}
                   onDateSelect={(date: Date) => {
                     if (selectionMode === "checkin") {
@@ -703,6 +701,7 @@ const SearchWidget: React.FC<SearchWidgetProps> = ({ onSearchStart }) => {
                   }}
                   onDayMouseLeave={() => setTemporaryCheckOut(null)}
                   isSelectingRange={isSelectingRange}
+                  onMonthChange={handleMonthChange} // ← CHANGED: passed down
                 />
               </div>
             </div>
