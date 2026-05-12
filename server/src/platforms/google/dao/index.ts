@@ -1,1 +1,1 @@
-export * from "./google.dao"
+export * from './google.dao';

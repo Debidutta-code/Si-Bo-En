@@ -1,10 +1,16 @@
-import { AgentCreatedEmailParams } from "../types/template.types";
-import { emailShell } from "./email.shell";
-
+import { AgentCreatedEmailParams } from '../types/template.types';
+import { emailShell } from './email.shell';
 
 export function templateAgentCreated(params: AgentCreatedEmailParams): string {
-    const { agentName, agentEmail, agentPassword, agencyName, loginUrl, createdByName } = params;
- 
+    const {
+        agentName,
+        agentEmail,
+        agentPassword,
+        agencyName,
+        loginUrl,
+        createdByName,
+    } = params;
+
     const body = `
       <!-- Recipient -->
       <tr>
@@ -90,12 +96,12 @@ export function templateAgentCreated(params: AgentCreatedEmailParams): string {
           </p>
         </td>
       </tr>`;
- 
+
     const footer = `
       <p style="margin:0 0 8px 0;font-size:13px;color:#666666;font-weight:bold;">Need Assistance?</p>
       <p style="margin:0 0 15px 0;font-size:12px;color:#666666;">
         Support: <a href="mailto:support@revchill.com" style="color:#4A90E2;text-decoration:none;">support@revchill.com</a>
       </p>`;
- 
+
     return emailShell(body, footer, agentEmail);
 }

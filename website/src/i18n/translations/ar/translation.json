@@ -252,6 +252,8 @@
     "addons": "الإضافات:",
     "dayTotal": "إجمالي اليوم:",
     "subtotalBeforeTax": "المجموع قبل الضريبة:",
+    "amountToBePaidAtHotel": "المبلغ المطلوب دفعه في الفندق:",
+    "amountAfterTax": "المبلغ بعد الضريبة:",
     "totalTax": "إجمالي الضريبة:",
     "grandTotal": "الإجمالي الكلي:",
     "baseAmount": "المبلغ الأساسي (قبل الضريبة):",

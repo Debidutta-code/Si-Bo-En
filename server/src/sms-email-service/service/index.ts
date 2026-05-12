@@ -1,11 +1,4 @@
-import {
-    EmailService,
+import { EmailService, emailService } from './email-verification-otp.service';
+export { EmailService, emailService };
 
-    emailService
-} from "./email-verification-otp.service";
-export{
-EmailService,
-emailService
-}
-
-export * from "./reservation-email.service";
+// export * from "./reservation-email.service";

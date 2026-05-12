@@ -2,13 +2,13 @@ import { CurrencyCode } from '../../../tax-system/interfaces/tourist-tax.type';
 
 export interface IBaseByGuest {
     numberOfGuests: number;
-    amountBeforeTax: number;       // ← was any
-    ageQualifyingCode: string;     // ← ADDED ('10' = adult, '8' = child)
+    amountBeforeTax: number; // ← was any
+    ageQualifyingCode: string; // ← ADDED ('10' = adult, '8' = child)
 }
 
 export interface IChargeAdditionalGuest {
     ageQualifyingCode: string;
-    amount: number;                // ← was any
+    amount: number; // ← was any
 }
 
 export interface ICharges {
@@ -20,14 +20,14 @@ export interface ICharges {
     currencyCode: CurrencyCode;
     date: Date;
     isAvailable: boolean;
-    isSaleStopped: boolean;        // ← ADDED
-    monApplicable: boolean;        // ← ADDED
-    tueApplicable: boolean;        // ← ADDED
-    wedApplicable: boolean;        // ← ADDED
-    thuApplicable: boolean;        // ← ADDED
-    friApplicable: boolean;        // ← ADDED
-    satApplicable: boolean;        // ← ADDED
-    sunApplicable: boolean;        // ← ADDED
+    isSaleStopped: boolean; // ← ADDED
+    monApplicable: boolean; // ← ADDED
+    tueApplicable: boolean; // ← ADDED
+    wedApplicable: boolean; // ← ADDED
+    thuApplicable: boolean; // ← ADDED
+    friApplicable: boolean; // ← ADDED
+    satApplicable: boolean; // ← ADDED
+    sunApplicable: boolean; // ← ADDED
     isClosedToArrival: boolean;
     isClosedToDeparture: boolean;
     restrictionNotes: string | null;

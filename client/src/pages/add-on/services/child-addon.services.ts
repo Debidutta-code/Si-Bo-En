@@ -91,10 +91,10 @@ export const updateChildAddonService = async (childAddonId: string, childAddonDa
                     }
 
                 }
-                if(!childAddonData.currencyCode){
+                if(!childAddonData.currencyCode && childAddonData.discountType==="flat"){
                     return{
                         success:false,
-                        message:"Currency code is required for flat discount type"
+                        message:"Currency code is required for fixed discount type"
                     }
                 }
             }

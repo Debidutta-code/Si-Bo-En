@@ -1,4 +1,3 @@
-
 export interface RTReservationSuccessResponse {
     hotelReservation: {
         hotelCode: string;
@@ -183,7 +182,7 @@ export interface DailyBreakdown {
     ratePlanCode: string;
     baseRate: number;
     additionalCharges: number;
-    totalDailyTaxedAmount:number;
+    totalDailyTaxedAmount: number;
     totalPerRoom: number;
     totalForAllRooms: number;
     currencyCode: string;
@@ -209,7 +208,7 @@ export interface RTDynamicConfig {
 }
 
 export interface GuestDetail {
-    type: 'adult' | 'child';
+    type: 'adult' | 'child' | 'infant';
     firstName: string;
     lastName: string;
     dateOfBirth?: string;
@@ -246,15 +245,15 @@ export interface BookingDetails {
     finalPrice: FinalPrice;
     selectedAddons: SelectedAddon[];
     guestDetails: GuestDetail[];
-guests: {
-    adults: number;
-    children: number;
-    rooms: number;
-    roomsArray: Array<{       // ← ADD
+    guests: {
         adults: number;
         children: number;
-    }>;
-};
+        rooms: number;
+        roomsArray: Array<{       // ← ADD
+            adults: number;
+            children: number;
+        }>;
+    };
 }
 
 export interface IncomingBookingPayload {
@@ -279,17 +278,21 @@ export type PaymentMethodType =
     | 'payment_gateway';
 
 export const PAYMENT_TO_GUARANTEE_MAP: Record<PaymentMethodType, RTGuarantee> =
-    {
-        pay_at_hotel: { guaranteeType: 'None' },
-        net_banking: { guaranteeType: 'PrePay' },
-        upi: { guaranteeType: 'PrePay' },
-        payment_gateway: { guaranteeType: 'PrePay' },
-    };
+{
+    pay_at_hotel: { guaranteeType: 'None' },
+    net_banking: { guaranteeType: 'PrePay' },
+    upi: { guaranteeType: 'PrePay' },
+    payment_gateway: { guaranteeType: 'PrePay' },
+};
 
 // CHANGE TO:
 export interface ExistingReservation {
     id: string;
     bookingCode: string;
+    roomName: string;
+    ratePlanName: string;
+    reservationStartDate: string | Date;
+    reservationEndDate: string | Date;
     propertyCode: string | null;
     roomTypeCode: string | null;
     ratePlanCode: string | null;
@@ -300,11 +303,11 @@ export interface ExistingReservation {
     checkOutDate: Date;
     amount: number;
     guests: GuestDetail[];
-    bookingUserEmail: string;          // ← from DB: booking_user_email
-    bookingUserPhone: string | null;   // ← from DB: booking_user_phone
-    countryCode: string;               // ← from DB: country_code
-    hotelName: string | null;          // ← already in DB, add while we're here
-    paymentMethod: string;             // ← already in DB, add while we're here
+    bookingUserEmail: string; // ← from DB: booking_user_email
+    bookingUserPhone: string | null; // ← from DB: booking_user_phone
+    countryCode: string; // ← from DB: country_code
+    hotelName: string | null; // ← already in DB, add while we're here
+    paymentMethod: string; // ← already in DB, add while we're here
     finalPrice: {
         requestedRooms?: number;
         totalTax?: number;
@@ -326,4 +329,10 @@ export interface RTUpdatePayload {
         totalTax?: number;
         [key: string]: any;
     };
+    rooms?: Array<{
+        adults: number;
+        children: number;
+        childAges: number[];
+    }>;
+    requestedRooms?: number;
 }

@@ -1,14 +1,20 @@
-export const generateLoyaltyOTPEmailTemplate = (otp: string, purpose: string, email?: string): string => {
-    const purposeText = {
-        email_verification: "Email Verification",
-        password_reset: "Password Reset",
-        login: "Login Verification",
-    }[purpose] || "Verification";
+export const generateLoyaltyOTPEmailTemplate = (
+    otp: string,
+    purpose: string,
+    email?: string
+): string => {
+    const purposeText =
+        {
+            email_verification: 'Email Verification',
+            password_reset: 'Password Reset',
+            login: 'Login Verification',
+        }[purpose] || 'Verification';
 
-    const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-    const resetLink = purpose === "password_reset" && email 
-        ? `${frontendUrl}/forgot-password?email=${encodeURIComponent(email)}&otp=${otp}&verified=true`
-        : "";
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+    const resetLink =
+        purpose === 'password_reset' && email
+            ? `${frontendUrl}/forgot-password?email=${encodeURIComponent(email)}&otp=${otp}&verified=true`
+            : '';
 
     return `
         <!DOCTYPE html>

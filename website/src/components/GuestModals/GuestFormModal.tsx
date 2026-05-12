@@ -7,7 +7,6 @@ import { Label } from "../ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Badge } from "../ui/badge";
 import { useBookingStorage } from "@/src/hooks/useBookingStorage";
-import { currencies } from "../currencyCode/cuurency";
 import { useTranslation } from "react-i18next";
 
 interface Guest {
@@ -508,7 +507,7 @@ const GuestFormModal: React.FC<Props> = ({
 
                 const groupedAddons = (() => {
                   const map = new Map<string, { name: string; quantity: number; total: number; currency: string; type: string }>();
-                  for (const addon of finalPrice.addonBrakeDown ?? []) {
+                  for (const addon of finalPrice.addonBrakeDowns ?? []) {
                     const isChild = addon.name?.includes("Child age");
                     const key = isChild ? `${addon.addonId}::child` : `${addon.addonId}::${addon.type}`;
                     const baseName = isChild ? addon.name.replace(/\s*\(Child age \d+\)/, "") : addon.name;
@@ -542,7 +541,7 @@ const GuestFormModal: React.FC<Props> = ({
                   }, {}
                 );
                 const totalRoomAmount = (finalPrice.dailyPriceBrakeDown ?? []).reduce(
-                  (s: number, d: any) => s + (d.baseChargesAmount ?? 0), 0
+                  (s: number, d: any) => s + (d.totalAmount ?? 0), 0
                 );
 
                 const AccordionSection = ({
@@ -607,7 +606,7 @@ const GuestFormModal: React.FC<Props> = ({
                                   {new Date(day.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
                                   {day.guestDistribution && ` (${formatGuests(day.guestDistribution)})`}
                                 </span>
-                                <span className="text-gray-900">{cur} {(day.baseChargesAmount ?? 0).toFixed(2)}</span>
+                                <span className="text-gray-900">{cur} {(day.totalAmount ?? 0).toFixed(2)}</span>
                               </div>
                             ))}
                           </div>
@@ -705,7 +704,10 @@ const GuestFormModal: React.FC<Props> = ({
                         <span>{t("GuestForm.totalTax")}</span>
                         <span>{cur} {(finalPrice.taxedAmount ?? 0).toFixed(2)}</span>
                       </div>
-
+                      <div className="flex justify-between text-sm text-gray-500">
+                        <span>{t("GuestForm.amountAfterTax")}</span>
+                        <span>{cur} {(finalPrice.currentChargeableAmount ?? 0).toFixed(2)}</span>
+                      </div>
                       {/* Pay now / Pay at hotel split — sits between tax and grand total */}
                       {(finalPrice.latterpayableAmount ?? 0) > 0 && (
                         <div className="pt-2 border-t border-gray-100 space-y-1.5">
@@ -715,17 +717,17 @@ const GuestFormModal: React.FC<Props> = ({
                             <span>{cur} {(finalPrice.currentChargeableAmount ?? 0).toFixed(2)}</span>
                           </div>
                           {/* Pay at hotel — with itemised pay-later promos indented below */}
-                          <div className="flex justify-between text-sm font-medium text-amber-600">
-                            <span>{t("GuestForm.amountPaidLater")}</span>
+                          <div className="flex justify-between text-sm font-medium text-blue-700">
+                            <span>{t("GuestForm.amountToBePaidAtHotel")}</span>
                             <span>{cur} {(finalPrice.latterpayableAmount).toFixed(2)}</span>
                           </div>
                           {payLaterPromos.length > 0 && (
                             <div className="pl-3 space-y-1 pb-1">
                               {payLaterPromos.map((promo: any, i: number) => (
-                                <div key={i} className="flex justify-between text-xs text-amber-500">
+                                <div key={i} className="flex justify-between text-xs text-blue-500">
                                   <span>
-                                    {promo.name} ({promo.discountValue}%)
-                                    <span className="ml-1 text-[10px] text-gray-400">{t("GuestForm.payLater")}</span>
+                                    {promo.name} ({promo.discountValue}{promo.discountType === 'percentage' ? '%' : ''})
+                                    <span className="ml-1 text-[10px] text-gray-800">{t("GuestForm.payLater")}</span>
                                   </span>
                                   <span>{cur} {(promo.discountAmount ?? 0).toFixed(2)}</span>
                                 </div>

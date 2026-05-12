@@ -1,13 +1,13 @@
 import { prisma } from '../../config';
-import {
-    IAddOn,
-    IRatePlan,
-    ISelectedAddonsR,
-} from '../types';
+import { IAddOn, IRatePlan, ISelectedAddonsR } from '../types';
 import { IMLOS } from '../../promotions/mlos/interfaces';
 import { ICEbDsOftc } from '../../promotions/eb-ds-oftc/interfaces';
 import { IPromoCode } from '../../ari/types/promoCode.type';
-import { IPropertyLoyaltyConfig, ITCreationLoyality, ILoyaltyDiscountData } from '../../loyalty/types';
+import {
+    IPropertyLoyaltyConfig,
+    ITCreationLoyality,
+    ILoyaltyDiscountData,
+} from '../../loyalty/types';
 
 export class PricingRepository {
     public async validateRatePlan(
@@ -29,12 +29,6 @@ export class PricingRepository {
                     taxGroup: {
                         include: {
                             taxGroupRules: {
-                                where: {
-                                    taxRule: {
-                                        validFrom: { lte: startDate },
-                                        validTo: { gte: endDate },
-                                    },
-                                },
                                 include: {
                                     taxRule: true,
                                 },
@@ -46,7 +40,6 @@ export class PricingRepository {
                             addonId: {
                                 in: includedAddons,
                             },
-
                         },
                         include: {
                             addon: {
@@ -59,7 +52,7 @@ export class PricingRepository {
                                             },
                                         },
                                     },
-                                    ChildAddons: true
+                                    ChildAddons: true,
                                 },
                             },
                         },
@@ -89,7 +82,7 @@ export class PricingRepository {
                         },
                     },
                     geoRatePlans: true,
-                    
+
                     // customizableDeals:{
                     //     include:{
                     //         CustomizableDealsApplicableAddons:true
@@ -101,7 +94,7 @@ export class PricingRepository {
             throw new Error('Failed to validate rate plan');
         }
     }
-    
+
     public async getMlos(mlosId: string[]): Promise<IMLOS[] | null> {
         try {
             return await prisma.ratePlanRule.findMany({
@@ -143,9 +136,8 @@ export class PricingRepository {
                                     date: { in: singleAdd.dates },
                                 },
                             },
-                            ChildAddons: true
+                            ChildAddons: true,
                         },
-
                     });
                 })
             );
@@ -173,7 +165,7 @@ export class PricingRepository {
                         {
                             OR: [
                                 { validTo: null },
-                                { validTo: { gte: startDate } },// debug here if the the problem arries with promotions
+                                { validTo: { gte: startDate } }, // debug here if the the problem arries with promotions
                             ],
                         },
                     ],
@@ -232,9 +224,9 @@ export class PricingRepository {
             const isLoyalityGuest = await prisma.creationGuest.findFirst({
                 where: {
                     // propertyId,
-                    creationLoyaltyConfigId:propertyId,
+                    creationLoyaltyConfigId: propertyId,
                     LoyalityGuest: {
-                        guestEmail
+                        guestEmail,
                     },
                 },
             });
@@ -298,7 +290,10 @@ export class PricingRepository {
                 },
             });
 
-            if (!loyalityGuest || loyalityGuest.PropertyLoyalityGuests.length === 0) {
+            if (
+                !loyalityGuest ||
+                loyalityGuest.PropertyLoyalityGuests.length === 0
+            ) {
                 return null; // not enrolled in any program for this property
             }
 
@@ -323,7 +318,9 @@ export class PricingRepository {
                     creationConfig.discountValue != null
                         ? {
                               value: creationConfig.discountValue,
-                              type: (creationConfig.loyaltyDiscountType as 'percentage' | 'flat'),
+                              type: creationConfig.loyaltyDiscountType as
+                                  | 'percentage'
+                                  | 'flat',
                           }
                         : null,
             };

@@ -3,7 +3,6 @@ import { config, RedisClient } from '../config';
 import { sendEmail } from '../sms-email-service/utils';
 import { DeadLetterPayload, EmailJobData, EmailJobPriority } from '.';
 
-
 interface PermanentFailureRecord {
     originalJobId: string | undefined;
     payload: DeadLetterPayload;
@@ -11,11 +10,10 @@ interface PermanentFailureRecord {
     failedAt: string;
 }
 
-
 const QUEUE_NAMES = {
     critical: 'email-critical', // OTP, password reset, alerts
-    normal: 'email-normal',     // transactional, account emails
-    bulk: 'email-bulk',         // newsletters, marketing
+    normal: 'email-normal', // transactional, account emails
+    bulk: 'email-bulk', // newsletters, marketing
     deadLetter: config.deadLetterQueue,
 } as const;
 
@@ -25,12 +23,10 @@ const CONCURRENCY = {
     bulk: 1, //  prevents starvation
 } as const;
 
-const AGING_INTERVAL_MS = 2 * 60 * 1000;       // run aging check every 2 min
+const AGING_INTERVAL_MS = 2 * 60 * 1000; // run aging check every 2 min
 const STARVATION_THRESHOLD_MS = 10 * 60 * 1000; // escalate if waiting > 10 min
 
-
 export class EmailQueue {
-
     // Separate queues per priority tier
     private criticalQueue: Queue;
     private normalQueue: Queue;
@@ -57,20 +53,36 @@ export class EmailQueue {
     }) {
         this.redisClient = RedisClient.getInstance();
 
-
         this.criticalQueue = this.createQueue(QUEUE_NAMES.critical, connection);
-        this.normalQueue   = this.createQueue(QUEUE_NAMES.normal,   connection);
-        this.bulkQueue     = this.createQueue(QUEUE_NAMES.bulk,     connection);
-        this.deadLetterQueue = this.createQueue(QUEUE_NAMES.deadLetter, connection);
-
+        this.normalQueue = this.createQueue(QUEUE_NAMES.normal, connection);
+        this.bulkQueue = this.createQueue(QUEUE_NAMES.bulk, connection);
+        this.deadLetterQueue = this.createQueue(
+            QUEUE_NAMES.deadLetter,
+            connection
+        );
 
         const emailProcessor = async (job: Job<EmailJobData>) => {
             await this.processEmailJob(job);
         };
 
-        this.criticalWorker  = this.createEmailWorker(QUEUE_NAMES.critical,  emailProcessor, CONCURRENCY.critical,  connection);
-        this.normalWorker    = this.createEmailWorker(QUEUE_NAMES.normal,    emailProcessor, CONCURRENCY.normal,    connection);
-        this.bulkWorker      = this.createEmailWorker(QUEUE_NAMES.bulk,      emailProcessor, CONCURRENCY.bulk,      connection);
+        this.criticalWorker = this.createEmailWorker(
+            QUEUE_NAMES.critical,
+            emailProcessor,
+            CONCURRENCY.critical,
+            connection
+        );
+        this.normalWorker = this.createEmailWorker(
+            QUEUE_NAMES.normal,
+            emailProcessor,
+            CONCURRENCY.normal,
+            connection
+        );
+        this.bulkWorker = this.createEmailWorker(
+            QUEUE_NAMES.bulk,
+            emailProcessor,
+            CONCURRENCY.bulk,
+            connection
+        );
 
         this.deadLetterWorker = new Worker(
             QUEUE_NAMES.deadLetter,
@@ -85,12 +97,9 @@ export class EmailQueue {
         this.startAgingWorker();
     }
 
-    private createQueue(
-        name: string,
-        connection: object
-    ): Queue {
+    private createQueue(name: string, connection: object): Queue {
         const queue = new Queue(name, { connection });
-        queue.on('error', (err) => {
+        queue.on('error', err => {
             console.error(`❌ Queue [${name}] connection error:`, err);
         });
         return queue;
@@ -102,18 +111,25 @@ export class EmailQueue {
         concurrency: number,
         connection: object
     ): Worker {
-        const worker = new Worker(queueName, processor, { connection, concurrency });
+        const worker = new Worker(queueName, processor, {
+            connection,
+            concurrency,
+        });
 
-        worker.on('error', (err) => {
+        worker.on('error', err => {
             console.error(`❌ Worker [${queueName}] error:`, err);
         });
 
-        worker.on('completed', (job) => {
-            console.log(`✅ [${queueName}] Job ${job.id} completed at ${new Date().toISOString()}`);
+        worker.on('completed', job => {
+            console.log(
+                `✅ [${queueName}] Job ${job.id} completed at ${new Date().toISOString()}`
+            );
         });
 
         worker.on('failed', async (job, err) => {
-            console.error(`❌ [${queueName}] Job ${job?.id} failed: ${err.message}`);
+            console.error(
+                `❌ [${queueName}] Job ${job?.id} failed: ${err.message}`
+            );
 
             if (job && job.attemptsMade >= (job.opts.attempts ?? 5)) {
                 await this.moveToDeadLetter(job, err);
@@ -167,21 +183,30 @@ export class EmailQueue {
         return job;
     }
 
-
     private async processEmailJob(job: Job<EmailJobData>): Promise<void> {
         const data = job.data;
 
         if (!data?.to || !data?.subject || !data?.htmlContent) {
-            throw new Error('Invalid email job payload — missing required fields');
+            throw new Error(
+                'Invalid email job payload — missing required fields'
+            );
         }
 
-        const ok = await sendEmail(data.to, data.cc ?? [], data.subject, data.htmlContent);
+        const ok = await sendEmail(
+            data.to,
+            data.cc ?? [],
+            data.subject,
+            data.htmlContent
+        );
         if (!ok) {
             throw new Error('sendEmail returned false');
         }
     }
 
-    private async moveToDeadLetter(job: Job<EmailJobData>, err: Error): Promise<void> {
+    private async moveToDeadLetter(
+        job: Job<EmailJobData>,
+        err: Error
+    ): Promise<void> {
         try {
             const payload: DeadLetterPayload = {
                 originalJobId: job.id,
@@ -192,45 +217,65 @@ export class EmailQueue {
             };
 
             await this.deadLetterQueue.add('dead-email', payload, {
-                delay: 60 * 60 * 1000, 
-                attempts: 2,            
+                delay: 60 * 60 * 1000,
+                attempts: 2,
                 backoff: { type: 'exponential', delay: 10000 },
                 removeOnComplete: true,
                 removeOnFail: true,
             });
 
-            console.warn(`⚠️ Job ${job.id} moved to dead-letter queue after ${job.attemptsMade} attempts`);
+            console.warn(
+                `⚠️ Job ${job.id} moved to dead-letter queue after ${job.attemptsMade} attempts`
+            );
         } catch (dlErr) {
-            console.error(`❌ Failed to move job ${job.id} to dead-letter:`, dlErr);
+            console.error(
+                `❌ Failed to move job ${job.id} to dead-letter:`,
+                dlErr
+            );
         }
     }
 
-    private async processDeadLetterJob(job: Job<DeadLetterPayload>): Promise<void> {
+    private async processDeadLetterJob(
+        job: Job<DeadLetterPayload>
+    ): Promise<void> {
         const { data, originalJobId } = job.data;
 
-        console.log(`🔁 Final retry for dead-letter job (original: ${originalJobId})`);
+        console.log(
+            `🔁 Final retry for dead-letter job (original: ${originalJobId})`
+        );
 
         if (!data?.to || !data?.subject || !data?.htmlContent) {
-            throw new Error('Invalid dead-letter payload — missing required fields');
+            throw new Error(
+                'Invalid dead-letter payload — missing required fields'
+            );
         }
 
-        const ok = await sendEmail(data.to, data.cc ?? [], data.subject, data.htmlContent);
+        const ok = await sendEmail(
+            data.to,
+            data.cc ?? [],
+            data.subject,
+            data.htmlContent
+        );
         if (!ok) {
             throw new Error('Final retry failed — sendEmail returned false');
         }
     }
 
     private attachDeadLetterWorkerListeners(): void {
-        this.deadLetterWorker.on('error', (err) => {
+        this.deadLetterWorker.on('error', err => {
             console.error('❌ Dead-letter worker error:', err);
         });
 
-        this.deadLetterWorker.on('completed', (job) => {
-            console.log(`✅ Dead-letter job ${job.id} succeeded on final retry`);
+        this.deadLetterWorker.on('completed', job => {
+            console.log(
+                `✅ Dead-letter job ${job.id} succeeded on final retry`
+            );
         });
 
         this.deadLetterWorker.on('failed', async (job, err) => {
-            console.error(`🗑️  Dead-letter job ${job?.id} exhausted all retries: ${err.message}`);
+            console.error(
+                `🗑️  Dead-letter job ${job?.id} exhausted all retries: ${err.message}`
+            );
             await this.persistPermanentFailure(job, err);
         });
     }
@@ -246,7 +291,10 @@ export class EmailQueue {
             failedAt: new Date().toISOString(),
         };
 
-        console.error('🚨 PERMANENT EMAIL FAILURE — manual intervention required:', JSON.stringify(record, null, 2));
+        console.error(
+            '🚨 PERMANENT EMAIL FAILURE — manual intervention required:',
+            JSON.stringify(record, null, 2)
+        );
     }
 
     // ─── Aging Worker ─────────────────────────────────────────────────────────
@@ -262,7 +310,7 @@ export class EmailQueue {
                     if (ageMs > STARVATION_THRESHOLD_MS) {
                         console.warn(
                             `⏫ Escalating starved bulk job ${job.id} ` +
-                            `(waited ${Math.round(ageMs / 1000)}s) → normal queue`
+                                `(waited ${Math.round(ageMs / 1000)}s) → normal queue`
                         );
 
                         await this.normalQueue.add('send-email', job.data, {
@@ -283,21 +331,46 @@ export class EmailQueue {
 
     async getEmailQueueStatus() {
         const [critical, normal, bulk] = await Promise.all([
-            this.criticalQueue.getJobCounts('active', 'waiting', 'completed', 'failed', 'delayed', 'paused'),
-            this.normalQueue.getJobCounts(  'active', 'waiting', 'completed', 'failed', 'delayed', 'paused'),
-            this.bulkQueue.getJobCounts(    'active', 'waiting', 'completed', 'failed', 'delayed', 'paused'),
+            this.criticalQueue.getJobCounts(
+                'active',
+                'waiting',
+                'completed',
+                'failed',
+                'delayed',
+                'paused'
+            ),
+            this.normalQueue.getJobCounts(
+                'active',
+                'waiting',
+                'completed',
+                'failed',
+                'delayed',
+                'paused'
+            ),
+            this.bulkQueue.getJobCounts(
+                'active',
+                'waiting',
+                'completed',
+                'failed',
+                'delayed',
+                'paused'
+            ),
         ]);
 
         return {
             [QUEUE_NAMES.critical]: critical,
-            [QUEUE_NAMES.normal]:   normal,
-            [QUEUE_NAMES.bulk]:     bulk,
+            [QUEUE_NAMES.normal]: normal,
+            [QUEUE_NAMES.bulk]: bulk,
         };
     }
 
     async getDeadLetterQueueStatus() {
         const jobCounts = await this.deadLetterQueue.getJobCounts(
-            'active', 'waiting', 'delayed', 'completed', 'failed'
+            'active',
+            'waiting',
+            'delayed',
+            'completed',
+            'failed'
         );
         return { queue: QUEUE_NAMES.deadLetter, jobCounts };
     }

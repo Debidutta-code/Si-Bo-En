@@ -1,56 +1,61 @@
-import { ICCategory,IAddOnCategory } from "../interfaces";
-import {prisma} from "../../config"
+import { ICCategory, IAddOnCategory, IUCategory } from '../interfaces';
+import { prisma } from '../../config';
 
-export default class CategoryAddonRepository{
-    public static async createCategory(categoryName: string, categoryCode: string) :Promise<IAddOnCategory>{
+export default class CategoryAddonRepository {
+    public async createCategory(
+        categoryName: string,
+        categoryCode: string,
+        propertyId: string | null
+    ): Promise<IAddOnCategory> {
         try {
-            return await prisma.addonCategory.create({ data: { name: categoryName, code: categoryCode } });
+            return await prisma.addonCategory.create({
+                data: { name: categoryName, code: categoryCode, propertyId: propertyId },
+            });
         } catch (error) {
-            throw new Error("Error creating category");
+            throw new Error('Error creating category');
         }
     }
-    public static async getAllCategories(): Promise<IAddOnCategory[]> {
+    public async getAllCategories(propertyId: string): Promise<IAddOnCategory[]> {
         try {
-            return await prisma.addonCategory.findMany({});
+            return await prisma.addonCategory.findMany({ where: { propertyId } });
         } catch (error) {
-            throw new Error("Error fetching categories");
+            throw new Error('Error fetching categories');
         }
     }
-    public static async updateCategory(categoryId: string, updateData: ICCategory): Promise<IAddOnCategory | null> {
+    public async updateCategory(
+        categoryId: string,
+        updateData: IUCategory
+    ): Promise<IAddOnCategory | null> {
         try {
             return await prisma.addonCategory.update({
                 where: { id: categoryId },
-                data: updateData
+                data: {
+                    name: updateData.name,
+                },
             });
         } catch (error) {
-            throw new Error("Error updating category");
+            throw new Error('Error updating category');
         }
     }
-    public static async getCategoryById(categoryId: string): Promise<IAddOnCategory | null> {
+    public async getCategoryById(
+        categoryId: string
+    ): Promise<IAddOnCategory | null> {
         try {
-            return await prisma.addonCategory.findUnique({ where: { id: categoryId } ,include:{subcategories:true}});
-        } catch (error) {
-            throw new Error("Error fetching category by ID");
-        }   
-    }
-    public static addSubCategoryToCategory(categoryId: string, subCategoryId: string): Promise<IAddOnCategory | null> {
-        try {
-            return prisma.addonCategory.update({
+            return await prisma.addonCategory.findUnique({
                 where: { id: categoryId },
-                data: { subcategories: { connect: { id: subCategoryId } } }
+                include: { subcategories: true },
             });
         } catch (error) {
-            throw new Error("Error adding subcategory to category");
+            throw new Error('Error fetching category by ID');
         }
     }
-    public static removeSubCategoryFromCategory(categoryId: string, subCategoryId: string): Promise<IAddOnCategory | null> {
+    public async deleteCategory(categoryId: string): Promise<IAddOnCategory | null> {
         try {
-            return prisma.addonCategory.update({
+            return await prisma.addonCategory.delete({
                 where: { id: categoryId },
-                data: { subcategories: { disconnect: { id: subCategoryId } } }
             });
         } catch (error) {
-            throw new Error("Error removing subcategory from category");
+            throw new Error('Error deleting category');
         }
     }
 }

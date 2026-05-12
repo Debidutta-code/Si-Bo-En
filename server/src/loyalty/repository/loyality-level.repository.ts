@@ -1,13 +1,10 @@
-import { prisma } from "../../config/db.config";
-import {
-    ICLoyalityLevels,
-    ILoyalityLevels
-} from "../types";
+import { prisma } from '../../config/db.config';
+import { ICLoyalityLevels, ILoyalityLevels } from '../types';
 
 export class LoyalityLevelRepository {
     public async create(data: ICLoyalityLevels): Promise<ILoyalityLevels> {
         try {
-            const loyaltyLevel = await prisma.loyalityLevel.create({ data });            
+            const loyaltyLevel = await prisma.loyalityLevel.create({ data });
             return loyaltyLevel;
         } catch (error) {
             // console.log(error);
@@ -15,10 +12,12 @@ export class LoyalityLevelRepository {
         }
     }
 
-    public async findAllByPropertyConfigId(propertyLoyaltyConfigId: string): Promise<ILoyalityLevels[]> {
+    public async findAllByPropertyConfigId(
+        propertyLoyaltyConfigId: string
+    ): Promise<ILoyalityLevels[]> {
         try {
             return await prisma.loyalityLevel.findMany({
-                where: { creationLoyaltyConfigId:propertyLoyaltyConfigId }
+                where: { creationLoyaltyConfigId: propertyLoyaltyConfigId },
             });
         } catch (error) {
             throw new Error(`Failed to retrieve loyalty levels`);
@@ -33,7 +32,10 @@ export class LoyalityLevelRepository {
         }
     }
 
-    public async update(id: string, data: Partial<ICLoyalityLevels>): Promise<ILoyalityLevels | null> {
+    public async update(
+        id: string,
+        data: Partial<ICLoyalityLevels>
+    ): Promise<ILoyalityLevels | null> {
         try {
             return await prisma.loyalityLevel.update({ where: { id }, data });
         } catch (error) {
@@ -48,5 +50,4 @@ export class LoyalityLevelRepository {
             throw new Error(`Failed to delete loyalty level`);
         }
     }
-
 }

@@ -1,21 +1,23 @@
-import { BankDetailsDao } from "./bankDetails.repository";
-import { UserDao } from "./hierarchy.repository";
+import { BankDetailsDao } from './bankDetails.repository';
+import { UserDao } from './hierarchy.repository';
 import {
     PropertyDao,
     PropertyAddressDao,
     PropertyAmenityDao,
-} from "./property.repository";
-import {PropertyConfigRepo} from "./property-config.repository"
-import { RoomAmenityDao, RoomDao } from "./room.repository";
+} from './property.repository';
+import { PropertyConfigRepo } from './property-config.repository';
+import { RoomAmenityDao, RoomDao } from './room.repository';
 import {
     PropertyAmenitySelectionDao,
     PropertyCategorySelectionDao,
     PropertyTypeSelectionDao,
-    
-} from "./types.repository";
-export { PropertyVideoRepository, RoomVideoRepository } from "./vedio.repository";
+} from './types.repository';
+export {
+    PropertyVideoRepository,
+    RoomVideoRepository,
+} from './vedio.repository';
 
-export{
+export {
     BankDetailsDao,
     UserDao,
     PropertyDao,
@@ -27,6 +29,6 @@ export{
     PropertyCategorySelectionDao,
     PropertyTypeSelectionDao,
     PropertyConfigRepo,
-}
-export * from "./property-integration.repository";
-export * from "./propertyEmails.repository";
+};
+export * from './property-integration.repository';
+export * from './propertyEmails.repository';

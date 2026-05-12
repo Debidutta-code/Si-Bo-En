@@ -34,6 +34,7 @@ import type { ILoyalityCondition, ILoyalitySpecialCondition } from "./interfaces
 import { getLoyaltyProgramByCreationId } from "./services/loyality-program.service";
 import type { ILoader } from "../dashboard/interface";
 import Loader from "@/components/Loader/Loader";
+import BackButton from "@/components/shared/BackButton";
 
 export default function LoyaltyContent() {
   const { creationId } = useParams();
@@ -303,6 +304,8 @@ if (isLoading.isLoading) {
 
   return (
     <div className="p-6 space-y-6">
+      <BackButton />
+
       <Tabs defaultValue="conditions" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="conditions">Terms & Conditions</TabsTrigger>

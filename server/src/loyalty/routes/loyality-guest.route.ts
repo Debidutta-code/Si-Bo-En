@@ -1,51 +1,62 @@
-import { Router } from "express";
-import { protect } from "../../middlewares/auth.middleware";
-import { checkRoleBased } from "../../middlewares/checkRole.middleware";
-import { LoyaltyGuestController } from "../controllers";
-import { attachPropertyDetails } from "../../middlewares/property.middleware";
+import { Router } from 'express';
+import { protect } from '../../middlewares/auth.middleware';
+import { checkRoleBased } from '../../middlewares/checkRole.middleware';
+import { LoyaltyGuestController } from '../controllers';
+import { attachPropertyDetails } from '../../middlewares/property.middleware';
 
 const router = Router();
 
 // Initialize controller
 const loyaltyGuestController = new LoyaltyGuestController();
 
-
-router.route("/:id")
+router
+    .route('/:id')
     .delete(
         protect,
         loyaltyGuestController.deleteLoyaltyGuest.bind(loyaltyGuestController)
     );
 
-router.route("/property/:propertyId")
+router
+    .route('/property/:propertyId')
     .get(
         protect,
-        loyaltyGuestController.getLoyaltyGuestsForProperty.bind(loyaltyGuestController)
+        loyaltyGuestController.getLoyaltyGuestsForProperty.bind(
+            loyaltyGuestController
+        )
     );
 
-router.route("/creation/:creationLoyaltyId")
+router
+    .route('/creation/:creationLoyaltyId')
     .get(
         protect,
-        loyaltyGuestController.getLoyaltyGuestsForCreation.bind(loyaltyGuestController)
+        loyaltyGuestController.getLoyaltyGuestsForCreation.bind(
+            loyaltyGuestController
+        )
     );
 
-router.route("/register")
-    .post(
-        attachPropertyDetails({
-            identifierType:"id",
-            key:"propertyId",
-            source:"body"
-        }),
-        loyaltyGuestController.registerGuestFromBookingEngine.bind(loyaltyGuestController)
-    );
+router.route('/register').post(
+    attachPropertyDetails({
+        identifierType: 'id',
+        key: 'propertyId',
+        source: 'body',
+    }),
+    loyaltyGuestController.registerGuestFromBookingEngine.bind(
+        loyaltyGuestController
+    )
+);
 
-router.route("/check-discount")
+router
+    .route('/check-discount')
     .post(
         loyaltyGuestController.checkLoyaltyDiscount.bind(loyaltyGuestController)
     );
 
-router.route("/by-email/:propertyId/:email")
+router
+    .route('/by-email/:propertyId/:email')
     .get(
-        loyaltyGuestController.getLoyaltyGuestByEmail.bind(loyaltyGuestController)
+        loyaltyGuestController.getLoyaltyGuestByEmail.bind(
+            loyaltyGuestController
+        )
     );
 
 export default router;

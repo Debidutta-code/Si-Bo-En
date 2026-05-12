@@ -1,18 +1,18 @@
 import { IProperty } from '../../agency/types';
-import { IGuests } from '../../reservation/types';
+import { IGuest } from '../../reservation/types';
 
 export type ticketStatus = 'open' | 'in_progress' | 'resolved' | 'closed';
 export type ticketPriority = 'low' | 'medium' | 'high' | 'urgent';
 export interface ICProblemTicketsC {
     propertyId: string;
     subject: string;
-    description: string|null;
+    description: string | null;
 }
 export interface ICProblemTicketsS {
     propertyId: string;
     subject: string;
-    description: string|null;
-    guestId: string|null;
+    description: string | null;
+    guestId: string | null;
 }
 export interface ICProblemTicketsR extends ICProblemTicketsS {
     ticketNo: string;
@@ -26,5 +26,5 @@ export interface IProblemTickets extends ICProblemTicketsR {
 
 export interface IProblemTicketsWithData extends IProblemTickets {
     Property: IProperty;
-    Guests: IGuests|null;
+    Guests: IGuest | null;
 }

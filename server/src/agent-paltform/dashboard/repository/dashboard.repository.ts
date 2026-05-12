@@ -1,4 +1,4 @@
-import { prisma } from "../../../config";
+import { prisma } from '../../../config';
 import {
     IAgentAnalyticsData,
     IAgentReservationAnalytics,
@@ -9,16 +9,29 @@ import {
     IAgentDashboardFilters,
     IStoredGuest,
     IAgencyProperty,
-} from "../types";
-import { BookingStatus } from "../../../reservation/types/reservation.type";
+} from '../types';
+import { BookingStatus } from '../../../reservation/types/reservation.type';
 
-interface IAnalyticsSuccess  { success: true;  data: IAgentAnalyticsData; }
-interface IAnalyticsError    { success: false; message: string; data: null; }
-interface IPropertiesSuccess { success: true;  data: IAgencyProperty[]; }
-interface IPropertiesError   { success: false; message: string; data: never[]; }
+interface IAnalyticsSuccess {
+    success: true;
+    data: IAgentAnalyticsData;
+}
+interface IAnalyticsError {
+    success: false;
+    message: string;
+    data: null;
+}
+interface IPropertiesSuccess {
+    success: true;
+    data: IAgencyProperty[];
+}
+interface IPropertiesError {
+    success: false;
+    message: string;
+    data: never[];
+}
 
 export class AgentDashboardRepository {
-
     private buildBaseWhere(
         agencyId: string,
         agentId: string,
@@ -27,12 +40,14 @@ export class AgentDashboardRepository {
         return {
             agencyId,
             AgencyCommission: { is: { agentId } },
-            ...(filters?.propertyId    && { propertyId:    filters.propertyId }),
-            ...(filters?.bookingStatus && { bookingStatus: filters.bookingStatus as BookingStatus }),
+            ...(filters?.propertyId && { propertyId: filters.propertyId }),
+            ...(filters?.bookingStatus && {
+                bookingStatus: filters.bookingStatus as BookingStatus,
+            }),
             ...((filters?.startDate || filters?.endDate) && {
                 bookedAt: {
                     ...(filters.startDate && { gte: filters.startDate }),
-                    ...(filters.endDate   && { lte: filters.endDate }),
+                    ...(filters.endDate && { lte: filters.endDate }),
                 },
             }),
         };
@@ -63,17 +78,20 @@ export class AgentDashboardRepository {
             return {
                 success: true,
                 data: {
-                    reservation:        reservationStats,
-                    revenue:            revenueStats,
-                    guest:              guestStats,
-                    bookingSource:      bookingSourceStats,
+                    reservation: reservationStats,
+                    revenue: revenueStats,
+                    guest: guestStats,
+                    bookingSource: bookingSourceStats,
                     propertiesBreakdown,
                 },
             };
         } catch (error) {
             return {
                 success: false,
-                message: error instanceof Error ? error.message : "Unknown error occurred",
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Unknown error occurred',
                 data: null,
             };
         }
@@ -82,10 +100,10 @@ export class AgentDashboardRepository {
     private async getReservationAnalytics(
         baseWhere: ReturnType<AgentDashboardRepository['buildBaseWhere']>
     ): Promise<IAgentReservationAnalytics> {
-        const today     = new Date();
+        const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const tomorrow  = new Date(today.getTime() + 24 * 60 * 60 * 1000);
-        const in30Days  = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
+        const tomorrow = new Date(today.getTime() + 24 * 60 * 60 * 1000);
+        const in30Days = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000);
         const ago30Days = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
 
         const [
@@ -105,11 +123,17 @@ export class AgentDashboardRepository {
             }),
 
             prisma.reservation.count({
-                where: { ...baseWhere, reservationStartDate: { gte: today, lt: tomorrow } },
+                where: {
+                    ...baseWhere,
+                    reservationStartDate: { gte: today, lt: tomorrow },
+                },
             }),
 
             prisma.reservation.count({
-                where: { ...baseWhere, reservationEndDate: { gte: today, lt: tomorrow } },
+                where: {
+                    ...baseWhere,
+                    reservationEndDate: { gte: today, lt: tomorrow },
+                },
             }),
 
             prisma.reservation.count({
@@ -125,13 +149,20 @@ export class AgentDashboardRepository {
             }),
         ]);
 
-        const confirmedReservations = statusCounts.find(s => s.bookingStatus === 'confirmed')?._count._all ?? 0;
-        const pendingReservations   = statusCounts.find(s => s.bookingStatus === 'pending')?._count._all   ?? 0;
-        const cancelledReservations = statusCounts.find(s => s.bookingStatus === 'cancelled')?._count._all ?? 0;
+        const confirmedReservations =
+            statusCounts.find(s => s.bookingStatus === 'confirmed')?._count
+                ._all ?? 0;
+        const pendingReservations =
+            statusCounts.find(s => s.bookingStatus === 'pending')?._count
+                ._all ?? 0;
+        const cancelledReservations =
+            statusCounts.find(s => s.bookingStatus === 'cancelled')?._count
+                ._all ?? 0;
 
-        const cancellationRate = totalReservations > 0
-            ? (cancelledReservations / totalReservations) * 100
-            : 0;
+        const cancellationRate =
+            totalReservations > 0
+                ? (cancelledReservations / totalReservations) * 100
+                : 0;
 
         return {
             totalReservations,
@@ -151,55 +182,59 @@ export class AgentDashboardRepository {
         agentId: string,
         baseWhere: ReturnType<AgentDashboardRepository['buildBaseWhere']>
     ): Promise<IAgentRevenueAnalytics> {
-        const [revenueData, paymentMethodBreakdown, commissionData] = await Promise.all([
-            prisma.reservation.aggregate({
-                where: baseWhere,
-                _sum: {
-                    amount:           true,
-                    paidAmount:       true,
-                    extraAmountToPay: true,
-                    refundAmount:     true,
-                },
-                _avg: { amount: true },
-            }),
+        const [revenueData, paymentMethodBreakdown, commissionData] =
+            await Promise.all([
+                prisma.reservation.aggregate({
+                    where: baseWhere,
+                    _sum: {
+                        amount: true,
+                        paidAmount: true,
+                        extraAmountToPay: true,
+                        refundAmount: true,
+                    },
+                    _avg: { amount: true },
+                }),
 
-            prisma.reservation.groupBy({
-                by: ['paymentMethod'],
-                where: baseWhere,
-                _sum:   { amount: true },
-                _count: { _all: true },
-            }),
+                prisma.reservation.groupBy({
+                    by: ['paymentMethod'],
+                    where: baseWhere,
+                    _sum: { amount: true },
+                    _count: { _all: true },
+                }),
 
-            // ── agent's actual commission earned ──
-            prisma.agencyCommission.aggregate({
-                where: { agentId, agencyId },
-                _sum: { commissionAmount: true },
-                _avg: { commissionAmount: true },
-            }),
-        ]);
+                // ── agent's actual commission earned ──
+                prisma.agencyCommission.aggregate({
+                    where: { agentId, agencyId },
+                    _sum: { commissionAmount: true },
+                    _avg: { commissionAmount: true },
+                }),
+            ]);
 
-        const revenueByPaymentMethod: IAgentRevenueAnalytics['revenueByPaymentMethod'] = {
-            pay_at_hotel:    0,
-            net_banking:     0,
-            upi:             0,
-            payment_gateway: 0,
-        };
+        const revenueByPaymentMethod: IAgentRevenueAnalytics['revenueByPaymentMethod'] =
+            {
+                pay_at_hotel: 0,
+                net_banking: 0,
+                upi: 0,
+                payment_gateway: 0,
+            };
 
         paymentMethodBreakdown.forEach(pm => {
-            const method = pm.paymentMethod as keyof typeof revenueByPaymentMethod;
+            const method =
+                pm.paymentMethod as keyof typeof revenueByPaymentMethod;
             if (method in revenueByPaymentMethod) {
                 revenueByPaymentMethod[method] = pm._sum?.amount ?? 0;
             }
         });
 
         return {
-            totalRevenue:               revenueData._sum?.amount          ?? 0,
-            paidAmount:                 revenueData._sum?.paidAmount       ?? 0,
-            pendingAmount:              revenueData._sum?.extraAmountToPay ?? 0,
-            refundedAmount:             revenueData._sum?.refundAmount     ?? 0,
-            averageBookingValue:        revenueData._avg?.amount           ?? 0,
-            totalCommissionEarned:      commissionData._sum?.commissionAmount ?? 0,
-            averageCommissionPerBooking: commissionData._avg?.commissionAmount ?? 0,
+            totalRevenue: revenueData._sum?.amount ?? 0,
+            paidAmount: revenueData._sum?.paidAmount ?? 0,
+            pendingAmount: revenueData._sum?.extraAmountToPay ?? 0,
+            refundedAmount: revenueData._sum?.refundAmount ?? 0,
+            averageBookingValue: revenueData._avg?.amount ?? 0,
+            totalCommissionEarned: commissionData._sum?.commissionAmount ?? 0,
+            averageCommissionPerBooking:
+                commissionData._avg?.commissionAmount ?? 0,
             revenueByPaymentMethod,
         };
     }
@@ -213,9 +248,9 @@ export class AgentDashboardRepository {
         });
 
         let totalGuests = 0;
-        let adults      = 0;
-        let children    = 0;
-        let infants     = 0;
+        let adults = 0;
+        let children = 0;
+        let infants = 0;
         const guestEmails = new Set<string>();
 
         reservations.forEach(reservation => {
@@ -227,8 +262,8 @@ export class AgentDashboardRepository {
 
             guestsData.forEach(guest => {
                 const guestType = guest.type ?? guest.userType ?? '';
-                if (guestType === 'adult')       adults++;
-                else if (guestType === 'child')  children++;
+                if (guestType === 'adult') adults++;
+                else if (guestType === 'child') children++;
                 else if (guestType === 'infant') infants++;
                 if (guest.email) guestEmails.add(guest.email);
             });
@@ -253,12 +288,17 @@ export class AgentDashboardRepository {
         });
 
         const analytics: IAgentBookingSourceAnalytics = {
-            direct: 0, google: 0, trip_adviser: 0,
-            trivago: 0, social_media: 0, agency: 0,
+            direct: 0,
+            google: 0,
+            trip_adviser: 0,
+            trivago: 0,
+            social_media: 0,
+            agency: 0,
         };
 
         bookingSources.forEach(source => {
-            const key = source.bookingSource as keyof IAgentBookingSourceAnalytics;
+            const key =
+                source.bookingSource as keyof IAgentBookingSourceAnalytics;
             if (key in analytics) analytics[key] = source._count._all;
         });
 
@@ -275,8 +315,8 @@ export class AgentDashboardRepository {
                 by: ['propertyId', 'propertyCode', 'hotelName'],
                 where: baseWhere,
                 _count: { _all: true },
-                _sum:   { amount: true },
-                _avg:   { amount: true },
+                _sum: { amount: true },
+                _avg: { amount: true },
             }),
 
             // ── per-property commission for this agent ──
@@ -301,17 +341,20 @@ export class AgentDashboardRepository {
         const commissionMap = new Map<string, number>();
         commissionPerProperty.forEach(c => {
             const pid = c.reservation.propertyId;
-            commissionMap.set(pid, (commissionMap.get(pid) ?? 0) + c.commissionAmount);
+            commissionMap.set(
+                pid,
+                (commissionMap.get(pid) ?? 0) + c.commissionAmount
+            );
         });
 
         return propertiesData.map(p => ({
-            propertyId:          p.propertyId,
-            propertyName:        p.hotelName    ?? 'Unknown',
-            propertyCode:        p.propertyCode ?? 'N/A',
-            totalReservations:   p._count._all,
-            totalRevenue:        p._sum?.amount  ?? 0,
-            averageBookingValue: p._avg?.amount  ?? 0,
-            totalCommission:     commissionMap.get(p.propertyId) ?? 0,
+            propertyId: p.propertyId,
+            propertyName: p.hotelName ?? 'Unknown',
+            propertyCode: p.propertyCode ?? 'N/A',
+            totalReservations: p._count._all,
+            totalRevenue: p._sum?.amount ?? 0,
+            averageBookingValue: p._avg?.amount ?? 0,
+            totalCommission: commissionMap.get(p.propertyId) ?? 0,
         }));
     }
 
@@ -321,13 +364,20 @@ export class AgentDashboardRepository {
         try {
             const properties = await prisma.agenticProperty.findMany({
                 where: { agencyId, isActive: true, isDeleted: false },
-                select: { propertyId: true, propertyCode: true, propertyName: true },
+                select: {
+                    propertyId: true,
+                    propertyCode: true,
+                    propertyName: true,
+                },
             });
             return { success: true, data: properties };
         } catch (error) {
             return {
                 success: false,
-                message: error instanceof Error ? error.message : "Failed to fetch properties",
+                message:
+                    error instanceof Error
+                        ? error.message
+                        : 'Failed to fetch properties',
                 data: [],
             };
         }

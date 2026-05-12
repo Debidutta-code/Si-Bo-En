@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { getAvailableSpaForReservation } from "../../../spa/api/spa.api";
 import { markSlotAsBooked, markSlotAsAvailable } from "../../../spa/api/spa-slot.api";
 import type { IReservation } from "../../types";
-import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,7 +31,6 @@ export default function SpaBookingDialog({ reservation, onClose }: SpaBookingDia
   const [selected, setSelected] = useState<SelectedSlot | null>(null);
   // The booked slot the user wants to cancel
   const [cancelSlot, setCancelSlot] = useState<SelectedSlot | null>(null);
-  // Guest name input value
   const [guestName, setGuestName] = useState(
     `${reservation.primaryGuest?.firstName ?? ""} ${reservation.primaryGuest?.lastName ?? ""}`.trim()
   );
@@ -67,11 +66,27 @@ export default function SpaBookingDialog({ reservation, onClose }: SpaBookingDia
 
   /** User taps a free slot → store it and show name input */
   const handleSelectSlot = (slot: any, spaDate: any, spaName: string) => {
-    const startLabel = format(new Date(slot.startTime), "hh:mm a");
-    const endLabel = slot.endTime ? ` – ${format(new Date(slot.endTime), "hh:mm a")}` : "";
-    const label = `${startLabel}${endLabel}`;
-    const dateLabel = format(new Date(spaDate.date), "EEEE, MMM do, yyyy");
+    const startLabel = formatInTimeZone(
+  slot.startTime,
+  "UTC",
+  "hh:mm a"
+);
 
+const endLabel = slot.endTime
+  ? ` – ${formatInTimeZone(
+      slot.endTime,
+      "UTC",
+      "hh:mm a"
+    )}`
+  : "";
+
+const label = `${startLabel}${endLabel}`;
+
+const dateLabel = formatInTimeZone(
+  spaDate.date,
+  "UTC",
+  "EEEE, MMM do, yyyy"
+);
     if (slot.isBooked) {
       if (slot.reservationId === reservation.id) {
         setCancelSlot({
@@ -270,15 +285,20 @@ export default function SpaBookingDialog({ reservation, onClose }: SpaBookingDia
                         className="bg-card rounded-md shadow-sm border border-border overflow-hidden"
                       >
                         <div className="bg-muted px-4 py-2 border-b border-border font-medium flex justify-between items-center">
-                          <span>{format(new Date(spaDate.date), "EEEE, MMM do, yyyy")}</span>
-                        </div>
+                          <span>
+                            {formatInTimeZone(
+                              spaDate.date,
+                              "UTC",
+                              "EEEE, MMM do, yyyy"
+                            )}
+                          </span>                        </div>
 
                         <div className="p-4 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
                           {spaDate.Slots && spaDate.Slots.length > 0 ? (
                             spaDate.Slots.map((slot: any) => {
                               const isSelected = selected?.slotId === slot.id;
                               const isMyBooking = slot.isBooked && slot.reservationId === reservation.id;
-                              
+
                               return (
                                 <button
                                   key={slot.id}
@@ -290,16 +310,17 @@ export default function SpaBookingDialog({ reservation, onClose }: SpaBookingDia
                                     isMyBooking
                                       ? "bg-green-100 text-green-800 border-green-300 hover:bg-green-200 cursor-pointer"
                                       : slot.isBooked
-                                      ? "bg-muted text-muted-foreground opacity-70 cursor-not-allowed border-dashed"
-                                      : isSelected
-                                      ? "bg-primary text-primary-foreground border-primary ring-2 ring-primary ring-offset-1 shadow-md"
-                                      : "bg-primary/10 hover:bg-primary/20 text-primary border-primary/30 cursor-pointer",
+                                        ? "bg-muted text-muted-foreground opacity-70 cursor-not-allowed border-dashed"
+                                        : isSelected
+                                          ? "bg-primary text-primary-foreground border-primary ring-2 ring-primary ring-offset-1 shadow-md"
+                                          : "bg-primary/10 hover:bg-primary/20 text-primary border-primary/30 cursor-pointer",
                                   ].join(" ")}
                                 >
                                   <span className="font-semibold block mb-1">
-                                    {format(new Date(slot.startTime), "hh:mm a")}
+                                    {formatInTimeZone(slot.startTime, "UTC", "hh:mm a")}
+
                                     {slot.endTime &&
-                                      ` – ${format(new Date(slot.endTime), "hh:mm a")}`}
+                                      ` – ${formatInTimeZone(slot.endTime, "UTC", "hh:mm a")}`}
                                   </span>
                                   {isMyBooking ? (
                                     <span className="text-[10px] text-green-700 font-medium">
@@ -307,7 +328,7 @@ export default function SpaBookingDialog({ reservation, onClose }: SpaBookingDia
                                     </span>
                                   ) : slot.isBooked ? (
                                     <span className="text-[10px] text-red-500 font-medium">
-                                      {slot.userName ? `${slot.userName}` : "Booked"}
+                                      {"Booked"}
                                     </span>
                                   ) : isSelected ? (
                                     <span className="text-[10px] font-medium">Selected ✓</span>

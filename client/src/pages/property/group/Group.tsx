@@ -43,7 +43,6 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { assignUserToProperty } from "../api/api";
-import { handleDialogOpenChange } from "../utills/handleDialogOpenChange";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -58,7 +57,7 @@ import DeleteCreationDialog from "@/components/creation/Delete-Creation.dialog";
 
 export default function page() {
   const { creationId } = useParams<{ creationId: string }>();
-
+  const [addMemberDialogOpen,setAddMemberDialogOpen]=useState<boolean>(false)
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(true);
   const [creations, setCreations] = useState<IGroupCreations>({
@@ -122,6 +121,7 @@ export default function page() {
   };
   useEffect(() => {
     fetchGroup();
+    fetchUsers()
   }, [creationId]);
   const getCurrentData = (): ICreation[] => {
     switch (currentTab) {
@@ -169,6 +169,7 @@ export default function page() {
         toast.success("User assigned successfully");
         // Reset form
         setSelectedUser("");
+        setAddMemberDialogOpen(false)
         // You might want to refresh the property data or user list here
       } else {
         toast.error(response.message || "Failed to assign user");
@@ -426,9 +427,8 @@ export default function page() {
             </DropdownMenuItem>
 
             <Dialog
-              onOpenChange={() =>
-                handleDialogOpenChange(true, fetchUsers, setSelectedUser)
-              }
+              onOpenChange={setAddMemberDialogOpen}
+              open={addMemberDialogOpen}
             >
               <DialogTrigger asChild>
                 <DropdownMenuItem
@@ -696,7 +696,7 @@ export default function page() {
                     onClick={() => {
                       item.type != "property"
                         ? navigate(`/app/property/${currentTab}/${item.id}`)
-                        : navigate(`/property/${item.property?.id}`);
+                        : navigate(`/property/${item.property?.id}?creationId=${item.id}`);
                     }}
                   >
                     View Details

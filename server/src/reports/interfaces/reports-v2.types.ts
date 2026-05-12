@@ -20,7 +20,6 @@ export interface IExcelResponse {
     contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 }
 
-
 export type ComparisonGroupBy = 'day' | 'month' | 'year';
 
 export interface IComparisonParams extends IBaseReportParams {
@@ -44,7 +43,6 @@ export interface IComparisonReport {
     rows: IComparisonRow[];
 }
 
-
 export interface IReservationOverviewRow {
     bookingCode: string;
     propertyName: string;
@@ -67,7 +65,6 @@ export interface IReservationOverviewReport {
     total: number;
     rows: IReservationOverviewRow[];
 }
-
 
 export interface IRevenuePropertySummary {
     propertyId: string;
@@ -103,7 +100,6 @@ export interface IRevenueAnalyticsReport {
     detailRows: IRevenueDetailRow[];
 }
 
-
 export interface IInsightRow {
     propertyName: string;
     device: string;
@@ -130,7 +126,6 @@ export interface IInsightsReport {
     rows: IInsightRow[];
 }
 
-
 export type TopPropertiesSortBy = 'revenue' | 'bookings' | 'nights';
 
 export interface ITopPropertyRow {
@@ -148,7 +143,6 @@ export interface ITopPropertiesReport {
     sortBy: TopPropertiesSortBy;
     rows: ITopPropertyRow[];
 }
-
 
 export interface IAllReservationRow {
     bookingCode: string;
@@ -213,7 +207,6 @@ export interface ICheckInOutReport {
     rows: ICheckInOutRow[];
 }
 
-
 export interface IStatusBreakdownRow {
     status: string;
     count: number;
@@ -255,7 +248,6 @@ export interface ILoyaltyGuestReport {
     rows: ILoyaltyGuestRow[];
 }
 
-
 export interface IPaymentStatusRow {
     bookingCode: string;
     propertyName: string;
@@ -289,7 +281,6 @@ export interface IPaymentStatusReport {
     summary: IPaymentStatusSummary;
     rows: IPaymentStatusRow[];
 }
-
 
 export interface IWatermarkData {
     downloadedBy: string;

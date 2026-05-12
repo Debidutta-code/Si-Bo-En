@@ -1,5 +1,3 @@
-import {reservationRoute} from "./reservation.route";
+import { reservationRoute } from './reservation.route';
 
-export{
-    reservationRoute
-}
+export { reservationRoute };

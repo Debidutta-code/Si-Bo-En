@@ -12,6 +12,7 @@ export const globalActivityLogger = (req: Request, res: Response, next: NextFunc
     '/favicon.ico',
     '/api/activities',
     '/api/v1/booking-engine/fetch-rooms',
+    '/api/v1/booking-engine/calendar-prices',
     '/room/inv-setup'
   ];
   

@@ -1,10 +1,17 @@
-import { BookingSource, BookingStatus, PaymentMethod } from "../../../reservation/types/reservation.type";
-import { CurrencyCode } from "../../../tax-system/interfaces";
-import { AddonBreakDownType, ReservationPromotionType } from "../../../reservation/types/reservation.type";
-import { RestrictionType } from "../../../../prisma/generated/prisma/enums";
-import { DiscountType } from "../../../promocode/types";
-import { AgentCommissionType } from "../../../agency/types";
-import { IAgentFinalPrice } from "./reservation.types";
+import {
+    BookingSource,
+    BookingStatus,
+    PaymentMethod,
+} from '../../../reservation/types/reservation.type';
+import { CurrencyCode } from '../../../tax-system/interfaces';
+import {
+    AddonBreakDownType,
+    ReservationPromotionType,
+} from '../../../reservation/types/reservation.type';
+import { RestrictionType } from '../../../../prisma/generated/prisma/enums';
+import { DiscountType } from '../../../promocode/types';
+import { AgentCommissionType } from '../../../agency/types';
+import { IAgentFinalPrice } from './reservation.types';
 
 // ─── Filters ────────────────────────────────────────────────────────────────
 

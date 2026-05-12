@@ -1,4 +1,2 @@
-import {AgentPricingController} from "./roomrent.controller";
-export {
-    AgentPricingController
-}
+import { AgentPricingController } from './roomrent.controller';
+export { AgentPricingController };

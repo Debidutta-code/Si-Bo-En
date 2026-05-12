@@ -1,48 +1,50 @@
-import { Router } from "express";
-import { ReservationController } from "../controllers";
-import { partnerProtected } from "../../middleware";
+import { Router } from 'express';
+import { ReservationController } from '../controllers';
+import { partnerProtected } from '../../middleware';
 
 const agentReservationRouter = Router();
 const reservationController = new ReservationController();
 
 agentReservationRouter.get(
-    "/",
+    '/',
     partnerProtected,
     reservationController.getReservations.bind(reservationController)
 );
 
 agentReservationRouter.get(
-    "/stats",
+    '/stats',
     partnerProtected,
     reservationController.getReservationStats.bind(reservationController)
 );
 
 agentReservationRouter.get(
-    "/arrivals",
+    '/arrivals',
     partnerProtected,
     reservationController.getUpcomingArrivals.bind(reservationController)
 );
 
 agentReservationRouter.get(
-    "/departures",
+    '/departures',
     partnerProtected,
     reservationController.getUpcomingDepartures.bind(reservationController)
 );
 
 agentReservationRouter.get(
-    "/:reservationId",
+    '/:reservationId',
     partnerProtected,
     reservationController.getReservationById.bind(reservationController)
 );
 
 agentReservationRouter.get(
-    "/booking-code/:bookingCode",
+    '/booking-code/:bookingCode',
     partnerProtected,
-    reservationController.getReservationByBookingCode.bind(reservationController)
+    reservationController.getReservationByBookingCode.bind(
+        reservationController
+    )
 );
 
 agentReservationRouter.patch(
-    "/:reservationId/cancel",
+    '/:reservationId/cancel',
     partnerProtected,
     reservationController.cancelReservation.bind(reservationController)
 );

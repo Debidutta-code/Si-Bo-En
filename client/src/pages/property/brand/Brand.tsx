@@ -12,7 +12,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { handleDialogOpenChange } from '../utills/handleDialogOpenChange';
 import { User2Icon, MoreVertical, CloudCog, Upload, Trash2, Settings } from 'lucide-react';
 import { assignUserToProperty } from '../api/api';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -26,6 +25,7 @@ export default function page() {
     const [brandManagers, setBrandManagers] = useState<IBrandManagersMapping>({
         brandManagers: []
     })
+    const [assignBrandManagerDialogOpen, setAssignBrandManagerDialogOpen] = useState<boolean>(false)
     const [isAssigningUser, setIsAssigningUser] = useState<boolean>(false)
     const [selectedUser, setSelectedUser] = useState<string>("")
     const navigate = useNavigate();
@@ -49,12 +49,7 @@ export default function page() {
         isActive: true
     });
     const currentTab = "property"
-    const getTabDisplayName = (tab: string): string => {
-        const pluralMap: { [key: string]: string } = {
-            property: "properties"
-        };
-        return pluralMap[tab] || tab;
-    };
+
     const fetchGroup = async () => {
         try {
 
@@ -63,7 +58,6 @@ export default function page() {
             if (response.success) {
                 setCreations(response.data.properties)
                 setBrandDetails(response.data.brandData)
-                // toast.success("Brand/Property fetched successfully")
             } else {
                 toast.error(response.message || "Failed to fetch")
             }
@@ -73,16 +67,7 @@ export default function page() {
             setIsLoading(false)
         }
     };
-    useEffect(() => {
-        fetchGroup();
-    }, [creationId])
-    if (isLoading) {
-        return (
-            <div className='min-h-screen w-full flex justify-center items-center'>
-                <Loader text={`Loading your Brands/Properties ...`} />
-            </div>
-        );
-    }
+
     const fetchUsers = async () => {
         try {
             const response = await getUsersForMapping();
@@ -98,6 +83,7 @@ export default function page() {
             toast.error("Failed to fetch users");
         }
     }
+
     const handleAddMember = async () => {
         if (!selectedUser) {
             toast.error("Please select a user");
@@ -173,6 +159,27 @@ export default function page() {
             toast.error('Failed to update brand');
         }
     };
+
+    useEffect(() => {
+        fetchGroup();
+        fetchUsers()
+    }, [creationId])
+
+    const getTabDisplayName = (tab: string): string => {
+        const pluralMap: { [key: string]: string } = {
+            property: "properties"
+        };
+        return pluralMap[tab] || tab;
+    };
+
+    if (isLoading) {
+        return (
+            <div className='min-h-screen w-full flex justify-center items-center'>
+                <Loader text={`Loading your Brands/Properties ...`} />
+            </div>
+        );
+    }
+    
     return (
         <div className="space-y-6 p-4">
             <BackButton />
@@ -285,10 +292,10 @@ export default function page() {
                             </Button>
                         </DropdownMenuItem>
 
-                        <Dialog onOpenChange={() => handleDialogOpenChange(true, fetchUsers, setSelectedUser)}>
+                        <Dialog onOpenChange={() => setAssignBrandManagerDialogOpen} open={assignBrandManagerDialogOpen}>
                             <DialogTrigger asChild>
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-pointer">
-                                    <Button variant={"secondary"}>
+                                    <Button variant={"secondary"} onClick={() => { setAssignBrandManagerDialogOpen(true) }}>
 
                                         <User2Icon className='h-4 w-4 mr-2' /> Assign Brand Manager
                                     </Button>
@@ -472,7 +479,7 @@ export default function page() {
                                         onClick={() => {
                                             item.type != "property" ?
                                                 navigate(`/app/property/${currentTab}/${item.id}`) :
-                                                navigate(`/property/${item.property?.id}`)
+                                                navigate(`/property/${item.property?.id}?creationId=${item.id}`)
                                         }}
                                     >
                                         View Details

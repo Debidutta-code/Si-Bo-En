@@ -1,5 +1,5 @@
-import { CurrencyCode } from "../../tax-system/interfaces";
-import { ILoyalityLevels } from "./loyality-level.types";
+import { CurrencyCode } from '../../tax-system/interfaces';
+import { ILoyalityLevels } from './loyality-level.types';
 
 export interface ICPropertyLoyaltyConfig {
     creationLoyaltyConfigId: string;
@@ -8,13 +8,13 @@ export interface ICPropertyLoyaltyConfig {
     propertyName: string;
     loyalityConfigLogo: string | null;
 }
-export interface ICreationLoyalityConfig{
-    id:string;
-    creationId:string;
-    loyaltyDiscountType:"percentage"|"flat";
-    discountValue:number;
-    currencyCode:CurrencyCode|null;
-    LoyalityLevels?:ILoyalityLevels[];
+export interface ICreationLoyalityConfig {
+    id: string;
+    creationId: string;
+    loyaltyDiscountType: 'percentage' | 'flat';
+    discountValue: number;
+    currencyCode: CurrencyCode | null;
+    LoyalityLevels?: ILoyalityLevels[];
 }
 
 export interface IPropertyLoyaltyConfig extends ICPropertyLoyaltyConfig {

@@ -78,7 +78,7 @@ export class PricingService {
                         invTypeCode,
                         toUTC(startDate),
                         toUTC(endDate),
-                        includedAddons?includedAddons:[]
+                        includedAddons ? includedAddons : []
                     ),
                     this.fetchAddons(parsedAddons),
                     this.fetchAllPromotions(promotions),
@@ -115,9 +115,9 @@ export class PricingService {
                     : Promise.resolve(null),
                 guestEmail
                     ? this.pricingRepository.findLoyaltyDiscountData(
-                          guestEmail,
-                          propertyId
-                      )
+                        guestEmail,
+                        propertyId
+                    )
                     : Promise.resolve(null),
             ]);
 
@@ -141,7 +141,7 @@ export class PricingService {
                 rooms,
                 Math.ceil(
                     (endDate.getTime() - startDate.getTime()) /
-                        (1000 * 60 * 60 * 24)
+                    (1000 * 60 * 60 * 24)
                 ),
                 adults,
                 startDate,
@@ -370,7 +370,7 @@ class BasePriceClass {
             currencyCode: dailyPriceBrakeDown[0]?.currencyCode,
             dailyPriceBrakeDown,
             taxBrakeDown: [],
-            addonBrakeDown: [],
+            addonBrakeDowns: [],
             promotionBrakeDown: [],
         };
     }
@@ -427,14 +427,21 @@ class BasePriceClass {
                     `This room has a maximum occupancy of ${this.roomDetails.maxOccupancy}.`
                 );
             }
-            if (adults > (gap < 0 ? this.roomDetails.maxNumberOfAdults : gap + this.roomDetails.maxNumberOfAdults)) {
+            if (
+                adults >
+                (gap < 0
+                    ? this.roomDetails.maxNumberOfAdults
+                    : gap + this.roomDetails.maxNumberOfAdults)
+            ) {
                 throw new Error(
                     `This room can only accommodate maximum ${gap < 0 ? this.roomDetails.maxNumberOfAdults : gap} adults.`
                 );
             }
             if (
                 children >
-                (gap < 0 ? this.roomDetails.maxNumberOfChildren : gap + this.roomDetails.maxNumberOfChildren)
+                (gap < 0
+                    ? this.roomDetails.maxNumberOfChildren
+                    : gap + this.roomDetails.maxNumberOfChildren)
             ) {
                 throw new Error(
                     `This room can only accommodate maximum ${gap < 0 ? this.roomDetails.maxNumberOfChildren : gap} children.`
@@ -496,7 +503,7 @@ class BasePriceClass {
                     } else if (childBaseAmounts.length > 0) {
                         let maxChildBase =
                             childBaseAmounts[childBaseAmounts.length - 1]; // No exact match → use highest available base + charge for extras
-                            
+
                         childBasePrice = Number(maxChildBase.amountBeforeTax);
                         const extraChildren =
                             children - maxChildBase.numberOfGuests;
@@ -585,7 +592,7 @@ class AddOnPriceClass {
 
         return {
             ...this.priceBrakedowns,
-            addonBrakeDown: sumAddons,
+            addonBrakeDowns: sumAddons,
             totalAddonAmount: sumAddonsAmount,
             totalAmount: this.priceBrakedowns.totalAmount + sumAddonsAmount,
             currentChargeableAmount:
@@ -622,10 +629,10 @@ class AddOnPriceClass {
                 // if user provided parsedAddons, use its per-date quantity, otherwise default to 1
                 const quantityForDate = userSelectedAddon
                     ? userSelectedAddon.availability.find(
-                          a =>
-                              new Date(a.date).toISOString() ===
-                              new Date(avail.date).toISOString()
-                      )?.quantity || 1
+                        a =>
+                            new Date(a.date).toISOString() ===
+                            new Date(avail.date).toISOString()
+                    )?.quantity || 1
                     : 1;
                 const totalAmount = amount * quantityForDate;
 
@@ -643,14 +650,14 @@ class AddOnPriceClass {
             });
 
             // calculate child addon prices if childAges exist
-            if (this.childAges && this.childAges.length > 0) {
-                const childAddonBreakdowns = this.calculateChildAddonPrice(
-                    addon,
-                    this.childAges,
-                    'selected'
-                );
-                addonBrakeDown.push(...childAddonBreakdowns);
-            }
+            // if (this.childAges && this.childAges.length > 0) {
+            //     const childAddonBreakdowns = this.calculateChildAddonPrice(
+            //         addon,
+            //         this.childAges,
+            //         'selected'
+            //     );
+            //     addonBrakeDown.push(...childAddonBreakdowns);
+            // }
         });
 
         return addonBrakeDown;
@@ -667,7 +674,7 @@ class AddOnPriceClass {
         this.addonsWithRatePlans.forEach(addon => {
             if (addon.addon.availability.length === 0) return;
 
-            addon.addon.availability.forEach(avail => {
+            addon.addon.availability.forEach((avail, index) => {
                 const amount = Number(avail.price);
                 let quantityForDate = 1;
                 switch (addon.addon.postingRhythm) {
@@ -675,26 +682,29 @@ class AddOnPriceClass {
                         quantityForDate = 1;
                         break;
                     case 'per_stay':
-                        quantityForDate = 1;
+                        quantityForDate = index === 0 ? 1 : 0;
                         break;
                     case 'per_person_per_night':
                         quantityForDate = this.noOfAdults;
                         break;
                     case 'per_person_per_stay':
-                        quantityForDate = this.noOfAdults;
+                        quantityForDate = index === 0 ? this.noOfAdults : 0;
                         break;
                     case 'per_room':
-                        quantityForDate = this.numberOfRooms;
+                        quantityForDate = index === 0 ? this.numberOfRooms : 0;
                         break;
                     case 'per_room_per_night':
                         quantityForDate = this.numberOfRooms;
                         break;
                     case 'per_person_per_room':
-                        quantityForDate = this.noOfAdults ;
+                        quantityForDate = index === 0 ? this.noOfAdults : 0;
                         break;
                     default:
                         quantityForDate = 1;
                 }
+
+                if (quantityForDate === 0) return;
+
                 const totalAmount = amount * quantityForDate;
                 addonBrakeDown.push({
                     addonId: addon.addon.id,
@@ -714,7 +724,7 @@ class AddOnPriceClass {
                 const childAddonBreakdowns = this.calculateChildAddonPrice(
                     addon.addon,
                     this.childAges,
-                    "included"
+                    'included'
                 );
                 addonBrakeDown.push(...childAddonBreakdowns);
             }
@@ -725,7 +735,7 @@ class AddOnPriceClass {
     private calculateChildAddonPrice(
         addon: IAddOn,
         childAges: number[],
-        type:"selected"|"included"
+        type: 'selected' | 'included'
     ): AddOnBrakeDown[] {
         if (childAges.length === 0) return [];
 
@@ -743,7 +753,7 @@ class AddOnPriceClass {
         // produce per-date child addon entries
         const addonBrakeDown: AddOnBrakeDown[] = [];
 
-        availableEntries.forEach(avail => {
+        availableEntries.forEach((avail, index) => {
             const amount = Number(avail.price);
             // determine quantity per date based on posting rhythm
             let quantityForDate = 1;
@@ -752,26 +762,27 @@ class AddOnPriceClass {
                     quantityForDate = 1;
                     break;
                 case 'per_stay':
-                    quantityForDate = 1;
+                    quantityForDate = index === 0 ? 1 : 0;
                     break;
                 case 'per_person_per_night':
-                    quantityForDate = 1; // will be multiplied per child below
+                    quantityForDate = this.noOfAdults;
                     break;
                 case 'per_person_per_stay':
-                    quantityForDate = 1; // will be multiplied per child below
+                    quantityForDate = index === 0 ? this.noOfAdults : 0;
                     break;
                 case 'per_room':
-                    quantityForDate = 1;
+                    quantityForDate = index === 0 ? this.numberOfRooms : 0;
                     break;
                 case 'per_room_per_night':
-                    quantityForDate = 1;
+                    quantityForDate = this.numberOfRooms;
                     break;
                 case 'per_person_per_room':
-                    quantityForDate = 1;
+                    quantityForDate = index === 0 ? this.noOfAdults : 0;
                     break;
                 default:
                     quantityForDate = 1;
             }
+
 
             childAges.forEach(age => {
                 const childAddon = addon.ChildAddons?.find(
@@ -782,7 +793,7 @@ class AddOnPriceClass {
 
                 if (childAddon) {
                     if (!childAddon.discountApplicable) {
-                        childPrice = 0;
+                        childPrice = amount;
                     } else if (
                         childAddon.discountApplicable &&
                         childAddon.discountType &&
@@ -1072,7 +1083,7 @@ class PromotionClass {
         const todayDate = nowUTC();
         const advanceBookingDays = Math.ceil(
             (this.startDate.getTime() - todayDate.getTime()) /
-                (1000 * 60 * 60 * 24)
+            (1000 * 60 * 60 * 24)
         );
         if (advanceBookingDays >= promotion.advanceBookingDays) {
             if (promotion.discountType == 'percentage') {
@@ -1120,7 +1131,7 @@ class PromotionClass {
         const todayDate = nowUTC();
         const isOfferForTonightApplicable =
             this.startDate.getTime() - todayDate.getTime() <=
-                1000 * 60 * 60 * 24 &&
+            1000 * 60 * 60 * 24 &&
             this.startDate.getTime() - todayDate.getTime() <= 0;
         if (isOfferForTonightApplicable) {
             if (promotion.discountType == 'percentage') {
@@ -1264,7 +1275,7 @@ class TouristTaxClass {
                 this.priceBrakedown.currentChargeableAmount +
                 totalTouristCharges,
             promotionBrakeDown: [
-                ...this.priceBrakedown.promotionBrakeDown,
+                ...(this.priceBrakedown.promotionBrakeDown || []),
                 ...touristTaxes,
             ],
         };
@@ -1274,8 +1285,8 @@ class TouristTaxClass {
     ): PromotionBrakeDown {
         if (touristTax.discountType === 'percentage') {
             const baseRoomCharge =
-                this.priceBrakedown.dailyPriceBrakeDown.reduce(
-                    (sum, day) =>
+                this.priceBrakedown.dailyPriceBrakeDown?.reduce(
+                    (sum: any, day: any) =>
                         sum +
                         day.baseChargesAmount +
                         day.additionalChargesAmount,
@@ -1353,7 +1364,7 @@ class PromoCodeDiscountClass {
         if (
             checkIfPromoCodeIsValid.minBookingAmount && //chck for minimum booking amount
             checkIfPromoCodeIsValid.minBookingAmount >
-                this.priceBrakedown.amountBeforeTax
+            this.priceBrakedown.amountBeforeTax
         ) {
             return this.priceBrakedown;
         }
@@ -1385,7 +1396,7 @@ class PromoCodeDiscountClass {
             if (
                 checkIfPromoCodeIsValid.maxDiscountAmount &&
                 promoCodeDiscountAmount >
-                    checkIfPromoCodeIsValid.maxDiscountAmount
+                checkIfPromoCodeIsValid.maxDiscountAmount
             ) {
                 promoCodeDiscountAmount =
                     checkIfPromoCodeIsValid.maxDiscountAmount;
@@ -1404,7 +1415,7 @@ class PromoCodeDiscountClass {
             if (
                 checkIfPromoCodeIsValid.maxDiscountAmount &&
                 promoCodeDiscountAmount >
-                    checkIfPromoCodeIsValid.maxDiscountAmount
+                checkIfPromoCodeIsValid.maxDiscountAmount
             ) {
                 promoCodeDiscountAmount =
                     checkIfPromoCodeIsValid.maxDiscountAmount;
@@ -1453,8 +1464,8 @@ class LoyalityDiscountClass {
         const matchedLevel =
             guestLevel !== null
                 ? loyalityLevels.find(
-                      (l: { level: number }) => l.level === guestLevel
-                  )
+                    (l: { level: number }) => l.level === guestLevel
+                )
                 : null;
 
         if (matchedLevel) {
@@ -1468,7 +1479,7 @@ class LoyalityDiscountClass {
             loyaltyDiscount =
                 fallback.type === 'percentage'
                     ? (this.priceBrakedown.amountBeforeTax * fallback.value) /
-                      100
+                    100
                     : fallback.value;
         }
 
@@ -1494,75 +1505,74 @@ class TaxClass {
         this.priceBrakeDown = priceBrakeDown;
     }
     public applyTax(): PriceBrakeDown {
-    if (!this.taxGroup) {
-        return {
-            ...this.priceBrakeDown,
-            taxedAmount: 0,
-            taxBrakeDown: [],
-            currentChargeableAmount: this.priceBrakeDown.amountBeforeTax,
-            totalAmount:
-                this.priceBrakeDown.amountBeforeTax +
-                this.priceBrakeDown.latterpayableAmount,
-        };
-    }
+        if (!this.taxGroup) {
+            return {
+                ...this.priceBrakeDown,
+                taxedAmount: 0,
+                taxBrakeDown: [],
+                currentChargeableAmount: this.priceBrakeDown.amountBeforeTax,
+                totalAmount:
+                    this.priceBrakeDown.amountBeforeTax +
+                    this.priceBrakeDown.latterpayableAmount,
+            };
+        }
 
-    const base = Number(this.priceBrakeDown.amountBeforeTax) || 0;
+        const base = Number(this.priceBrakeDown.amountBeforeTax) || 0;
 
-    // ✅ STEP 1: group by priority
-    const grouped: Record<number, any[]> = {};
+        // ✅ STEP 1: group by priority
+        const grouped: Record<number, any[]> = {};
 
-    this.taxGroup.taxGroupRules.forEach(rule => {
-        const p = rule.taxRule.priority;
-        if (!grouped[p]) grouped[p] = [];
-        grouped[p].push(rule);
-    });
-
-    // ✅ STEP 2: sort priorities
-    const priorities = Object.keys(grouped)
-        .map(Number)
-        .sort((a, b) => a - b);
-
-    let runningTotal = base;
-    const taxBrakeDown: TaxBrakeDown[] = [];
-
-    // ✅ STEP 3: apply group-wise
-    priorities.forEach(priority => {
-        const rules = grouped[priority];
-        let groupTaxTotal = 0;
-
-        rules.forEach(rule => {
-            let taxForThisRule = 0;
-
-            if (rule.taxRule.type === "fixed") {
-                taxForThisRule = Number(rule.taxRule.value);
-            } else {
-                // ✅ SAME BASE for same priority
-                taxForThisRule =
-                    (Number(rule.taxRule.value) * runningTotal) / 100;
-            }
-
-            groupTaxTotal += taxForThisRule;
-
-            taxBrakeDown.push({
-                name: rule.taxRule.name,
-                taxedAmount: taxForThisRule,
-                currencyCode: this.priceBrakeDown.currencyCode,
-            });
+        this.taxGroup.taxGroupRules.forEach(rule => {
+            const p = rule.taxRule.priority;
+            if (!grouped[p]) grouped[p] = [];
+            grouped[p].push(rule);
         });
 
-        // ✅ update AFTER whole group
-        runningTotal += groupTaxTotal;
-    });
+        // ✅ STEP 2: sort priorities
+        const priorities = Object.keys(grouped)
+            .map(Number)
+            .sort((a, b) => a - b);
 
-    const taxedAmount = runningTotal - base;
+        let runningTotal = base;
+        const taxBrakeDown: TaxBrakeDown[] = [];
 
-    return {
-        ...this.priceBrakeDown,
-        taxedAmount,
-        taxBrakeDown,
-        currentChargeableAmount: runningTotal,
-        totalAmount:
-            runningTotal + this.priceBrakeDown.latterpayableAmount,
-    };
-}
+        // ✅ STEP 3: apply group-wise
+        priorities.forEach(priority => {
+            const rules = grouped[priority];
+            let groupTaxTotal = 0;
+
+            rules.forEach(rule => {
+                let taxForThisRule = 0;
+
+                if (rule.taxRule.type === 'fixed') {
+                    taxForThisRule = Number(rule.taxRule.value);
+                } else {
+                    // ✅ SAME BASE for same priority
+                    taxForThisRule =
+                        (Number(rule.taxRule.value) * runningTotal) / 100;
+                }
+
+                groupTaxTotal += taxForThisRule;
+
+                taxBrakeDown.push({
+                    name: rule.taxRule.name,
+                    taxedAmount: taxForThisRule,
+                    currencyCode: this.priceBrakeDown.currencyCode,
+                });
+            });
+
+            // ✅ update AFTER whole group
+            runningTotal += groupTaxTotal;
+        });
+
+        const taxedAmount = runningTotal - base;
+
+        return {
+            ...this.priceBrakeDown,
+            taxedAmount,
+            taxBrakeDown,
+            currentChargeableAmount: runningTotal,
+            totalAmount: runningTotal + this.priceBrakeDown.latterpayableAmount,
+        };
+    }
 }

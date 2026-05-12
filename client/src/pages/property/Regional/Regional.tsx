@@ -12,7 +12,6 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { handleDialogOpenChange } from '../utills/handleDialogOpenChange';
 import { User2Icon, MoreVertical, CloudCog, Upload, Trash2, Settings } from 'lucide-react';
 import { assignUserToProperty } from '../api/api';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -25,7 +24,7 @@ import { useAppSelector } from '@/redux/hooks';
 
 export default function Custom() {
       const user = useAppSelector((state) => state.user.user);
-    
+    const [assignRegionalManagerDialogOpen,setAddignRegionalManagerDialogOpen]=useState<boolean>(false);
     const { creationId } = useParams<{ creationId: string }>();
     const [customAdmins, setCustomAdmins] = useState<ICustomManagersMapping>({
         customAdmins: []
@@ -91,6 +90,7 @@ export default function Custom() {
     };
     useEffect(() => {
         fetchGroup();
+        fetchUsers()
     }, [creationId])
     if (loader.isLoading) {
         return (
@@ -253,10 +253,10 @@ export default function Custom() {
                             </Button>
                         </DropdownMenuItem>
 
-                        <Dialog onOpenChange={() => handleDialogOpenChange(true, fetchUsers, setSelectedUser)}>
+                        <Dialog onOpenChange={() => setAddignRegionalManagerDialogOpen} open={assignRegionalManagerDialogOpen}>
                             <DialogTrigger asChild>
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-pointer">
-                                    <Button variant={"secondary"}>
+                                    <Button variant={"secondary"} onClick={()=>setAddignRegionalManagerDialogOpen(true)}>
 
                                         <User2Icon className='h-4 w-4 mr-2' /> Assign Regional Manager
                                     </Button>
@@ -304,7 +304,7 @@ export default function Custom() {
                         </Dialog>
 
                         <div className="px-2">
-                            <CreateEntityDialog creationType={"brand"} currentTab={currentTab} creationId={creationId ? creationId : ""} level={user?.userLevel?user.userLevel:2} fetchProperties={fetchGroup} />
+                            <CreateEntityDialog creationType={"brand"} currentTab={currentTab} creationId={creationId ? creationId : ""} level={user?.userLevel ? user.userLevel : 2} fetchProperties={fetchGroup} />
                         </div>
                         <div className="px-2">
                             <DeleteCreationDialog type={"region"} name={customDetails.name} id={creationId ? creationId : ""} />
@@ -438,7 +438,7 @@ export default function Custom() {
                                         onClick={() => {
                                             item.type != "property" ?
                                                 navigate(`/app/property/${currentTab}/${item.id}`) :
-                                                navigate(`/property/${item.propertyId}`)
+                                                navigate(`/property/${item.propertyId}?creationId=${item.id}`)
                                         }}
                                     >
                                         View Details

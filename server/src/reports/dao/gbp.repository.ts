@@ -1,17 +1,18 @@
-import { prisma } from "../../config";
-import { ICreation, IGroups, IBrands, IProperties } from "../interfaces";
+import { prisma } from '../../config';
+import { ICreation, IGroups, IBrands, IProperties } from '../interfaces';
 
 export class GBPRepository {
-
-    public async getCreationDetails(creationId: string): Promise<ICreation | null> {
+    public async getCreationDetails(
+        creationId: string
+    ): Promise<ICreation | null> {
         try {
             const creation = await prisma.creation.findUnique({
                 where: { id: creationId },
-                select: { id: true, name: true, type: true }
+                select: { id: true, name: true, type: true },
             });
             return creation as ICreation | null;
         } catch (error) {
-            throw new Error("Error occurred while fetching creation details");
+            throw new Error('Error occurred while fetching creation details');
         }
     }
 
@@ -26,28 +27,28 @@ export class GBPRepository {
         try {
             const [groups, brands, properties] = await Promise.all([
                 prisma.creation.findMany({
-                    where: { type: "group" },
-                    select: { id: true, name: true }
+                    where: { type: 'group' },
+                    select: { id: true, name: true },
                 }),
                 prisma.creation.findMany({
-                    where: { type: "brand" },
-                    select: { id: true, name: true, groupId: true }
+                    where: { type: 'brand' },
+                    select: { id: true, name: true, groupId: true },
                 }),
                 prisma.creation.findMany({
-                    where: { type: "property", propertyId: { not: null } },
+                    where: { type: 'property', propertyId: { not: null } },
                     select: {
                         id: true,
                         name: true,
                         groupId: true,
                         brandId: true,
-                        property: { select: { id: true, propertyName: true } }
-                    }
-                })
+                        property: { select: { id: true, propertyName: true } },
+                    },
+                }),
             ]);
 
             return { groups, brands, properties };
         } catch (error) {
-            throw new Error("Error occurred while fetching super children");
+            throw new Error('Error occurred while fetching super children');
         }
     }
 
@@ -61,8 +62,8 @@ export class GBPRepository {
         try {
             // 1. Get brands directly under this group
             const brands = await prisma.creation.findMany({
-                where: { type: "brand", groupId: creationId },
-                select: { id: true, name: true, groupId: true }
+                where: { type: 'brand', groupId: creationId },
+                select: { id: true, name: true, groupId: true },
             });
 
             const brandIds = brands.map(b => b.id);
@@ -70,25 +71,27 @@ export class GBPRepository {
             // 2. Get properties: direct under group OR under group's brands
             const properties = await prisma.creation.findMany({
                 where: {
-                    type: "property",
+                    type: 'property',
                     propertyId: { not: null },
                     OR: [
                         { groupId: creationId },
-                        ...(brandIds.length > 0 ? [{ brandId: { in: brandIds } }] : [])
-                    ]
+                        ...(brandIds.length > 0
+                            ? [{ brandId: { in: brandIds } }]
+                            : []),
+                    ],
                 },
                 select: {
                     id: true,
                     name: true,
                     groupId: true,
                     brandId: true,
-                    property: { select: { id: true, propertyName: true } }
-                }
+                    property: { select: { id: true, propertyName: true } },
+                },
             });
 
             return { brands, properties };
         } catch (error) {
-            throw new Error("Error occurred while fetching group children");
+            throw new Error('Error occurred while fetching group children');
         }
     }
 
@@ -100,19 +103,23 @@ export class GBPRepository {
     }> {
         try {
             const properties = await prisma.creation.findMany({
-                where: { type: "property", brandId: creationId, propertyId: { not: null } },
+                where: {
+                    type: 'property',
+                    brandId: creationId,
+                    propertyId: { not: null },
+                },
                 select: {
                     id: true,
                     name: true,
                     groupId: true,
                     brandId: true,
-                    property: { select: { id: true, propertyName: true } }
-                }
+                    property: { select: { id: true, propertyName: true } },
+                },
             });
 
             return { properties };
         } catch (error) {
-            throw new Error("Error occurred while fetching brand children");
+            throw new Error('Error occurred while fetching brand children');
         }
     }
 }

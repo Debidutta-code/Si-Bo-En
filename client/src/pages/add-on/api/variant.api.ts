@@ -2,9 +2,9 @@ import createAxiosInstance from "@/components/axiosInstance";
 import type { IAddonVariantCreate,IAddonVariantUpdate} from "../interface"
 const axiosInstance = createAxiosInstance();
 
-export const fetchAddonVariants = async () => {
+export const fetchAddonVariants = async (propertyId: string) => {
     try {
-        const response = await axiosInstance.get('/addon/variants');
+        const response = await axiosInstance.get(`/addon/variants?id=${propertyId}`);
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {
@@ -17,9 +17,9 @@ export const fetchAddonVariants = async () => {
         }
     }
 }
-export const createAddonVariant = async (variantData: IAddonVariantCreate) => {
+export const createAddonVariant = async (variantData: IAddonVariantCreate, propertyId: string) => {
     try {
-        const response = await axiosInstance.post('/addon/variants', variantData);
+        const response = await axiosInstance.post(`/addon/variants?id=${propertyId}`, variantData);
         return response.data;
     } catch (error: any) {
         if (error?.response?.data) {

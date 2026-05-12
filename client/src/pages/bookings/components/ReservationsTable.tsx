@@ -9,7 +9,7 @@ import {
   AlertTriangle,
   EyeOff,
   FileText,
-  VenetianMask,
+  // VenetianMask,
 } from "lucide-react";
 import {
   Table,
@@ -233,10 +233,14 @@ export default function ReservationsTable({
       </span>
     );
   };
-
-  const calculateRooms = (reservation: IReservation) =>
-    reservation.finalPrice?.requestedRooms ??
-    1;
+  const getNoOfRooms = (reservation: IReservation) => {
+    const uniqueRoomNumbersSize = new Set(
+      reservation.PricingBrakeDown?.DailyPriceBrakeDown
+        ?.map((item: any) => item.roomNumber)
+        .filter(Boolean) || []
+    ).size || 1;
+    return uniqueRoomNumbersSize;
+  };
 
 
   return (
@@ -280,16 +284,16 @@ export default function ReservationsTable({
                       <rect x="3" y="3" width="18" height="18" rx="2" />
                       <path d="M9 3v18" />
                     </svg>
-                    <span>{calculateRooms(reservation)}</span>
+                    <span>{getNoOfRooms(reservation)}</span>
                   </div>
                 </TableCell>
                 <TableCell>{formatDate(reservation.reservationStartDate)}</TableCell>
                 <TableCell>{formatDate(reservation.reservationEndDate)}</TableCell>
                 <TableCell>{getStatusBadge(reservation.bookingStatus)}</TableCell>
                 <TableCell className="uppercase text-[12px]">{reservation.bookingSource}</TableCell>
-                <TableCell>{reservation.finalPrice?.totalAmount?.toFixed(2) ?? "—"}</TableCell>
+                <TableCell>{reservation.PricingBrakeDown?.totalAmount?.toFixed(2) ?? reservation.amount?.toFixed(2) ?? "—"}</TableCell>
                 <TableCell>
-                  {((reservation.finalPrice?.totalAmount ?? 0) - (reservation.finalPrice?.taxedAmount ?? 0)).toFixed(2)}
+                  {((reservation.PricingBrakeDown?.totalAmount ?? reservation.amount ?? 0) - (reservation.PricingBrakeDown?.taxedAmount ?? 0)).toFixed(2)}
                 </TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
@@ -304,10 +308,10 @@ export default function ReservationsTable({
                         <Eye className="w-4 h-4 mr-3" />
                         View Details
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => openDialog("spaBooking", reservation)} className="cursor-pointer">
+                      {/* <DropdownMenuItem onClick={() => openDialog("spaBooking", reservation)} className="cursor-pointer">
                         <VenetianMask className="w-4 h-4 mr-3" />
                         Add Spa / Activity
-                      </DropdownMenuItem>
+                      </DropdownMenuItem> */}
                       <DropdownMenuItem onClick={() => handleDownloadVoucher(reservation.bookingCode)} className="cursor-pointer">
                         <FileText className="w-4 h-4 mr-3" />
                         Download Voucher

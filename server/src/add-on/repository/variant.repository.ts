@@ -1,69 +1,72 @@
-import {prisma} from "../../config";
-import {ICVariant,IAddonVariant}  from "../interfaces"
-export default class VariantRepository{
-    public static async createVariant(code:string,name:string,subCategoryId:string): Promise<IAddonVariant> {
+import { prisma } from '../../config';
+import { ICVariant, IAddonVariant } from '../interfaces';
+export default class VariantRepository {
+    public async createVariant(
+        code: string,
+        name: string,
+        subCategoryId: string,
+        propertyId: string
+    ): Promise<IAddonVariant> {
         try {
-            return await prisma.addonVariant.create({ data: { code, name, subcategoryId: subCategoryId } });
+            return await prisma.addonVariant.create({
+                data: { code, name, subcategoryId: subCategoryId, propertyId: propertyId },
+            });
         } catch (error) {
-            throw new Error("Error creating variant");
+            throw new Error('Error creating variant');
         }
     }
-    public static async getAllVariants(): Promise<IAddonVariant[]> {
+    public async getAllVariants(propertyId: string): Promise<IAddonVariant[]> {
         try {
-            return await prisma.addonVariant.findMany();
+            return await prisma.addonVariant.findMany({ where: { propertyId } });
         } catch (error) {
-            throw new Error("Error fetching variants");
+            throw new Error('Error fetching variants');
         }
     }
-    public static async updateVariant(variantId: string, updateData: Partial<ICVariant>): Promise<IAddonVariant | null> {
+    public async updateVariant(
+        variantId: string,
+        updateData: Partial<ICVariant>
+    ): Promise<IAddonVariant | null> {
         try {
             return await prisma.addonVariant.update({
                 where: { id: variantId },
-                data: updateData
+                data: updateData,
             });
         } catch (error) {
-            throw new Error("Error updating variant");
+            throw new Error('Error updating variant');
         }
     }
-    public static async getVariantById(variantId: string): Promise<IAddonVariant | null> {
+    public async getVariantById(
+        variantId: string
+    ): Promise<IAddonVariant | null> {
         try {
-            return await prisma.addonVariant.findUnique({ where: { id: variantId } });
-        } catch (error) {
-            throw new Error("Error fetching variant by ID");
-        }
-    }
-    public static async deleteVariant(variantId: string): Promise<IAddonVariant | null> {
-        try {
-            return await prisma.addonVariant.delete({ where: { id: variantId } });
-        } catch (error) {
-            throw new Error("Error deleting variant");
-        }
-    }
-    public static async getVariantsBySubCategoryId(subCategoryId: string): Promise<IAddonVariant[]> {
-        try {
-            return await prisma.addonVariant.findMany({ where: { subcategoryId: subCategoryId } });
-        } catch (error) {
-            throw new Error("Error fetching variants by subcategory ID");
-        }
-    }
-    public static async addAddonToVariant(variantId: string, addonId: string): Promise<IAddonVariant | null> {
-        try {
-            return await prisma.addonVariant.update({
+            return await prisma.addonVariant.findUnique({
                 where: { id: variantId },
-                data: { addons: { connect: { id: addonId } } }
             });
         } catch (error) {
-            throw new Error("Error adding addon to variant");
+            throw new Error('Error fetching variant by ID');
         }
     }
-    public static async removeAddonFromVariant(variantId: string, addonId: string): Promise<IAddonVariant | null> {
+    public async getBySubCategoryId(
+        subCategoryId: string
+    ): Promise<IAddonVariant[]> {
         try {
-            return await prisma.addonVariant.update({
-                where: { id: variantId },
-                data: { addons: { disconnect: { id: addonId } } }
+            return await prisma.addonVariant.findMany({
+                where: { subcategoryId: subCategoryId },
             });
         } catch (error) {
-            throw new Error("Error removing addon from variant");
+            throw new Error('Error fetching variants by subcategory ID');
         }
     }
+    public async deleteVariant(
+        variantId: string
+    ): Promise<IAddonVariant | null> {
+        try {
+            return await prisma.addonVariant.delete({
+                where: { id: variantId },
+            });
+        } catch (error) {
+            throw new Error('Error deleting variant');
+        }
+    }
+
 }

@@ -20,6 +20,6 @@ model SpaSlots {
     userName String? @map("user_name")
     Reservation Reservation? @relation(fields: [reservationId], references: [id], onDelete: Cascade)
     spaDate SpaDates @relation(fields: [spaDateId], references: [id],onDelete: Cascade)
-
+    spaPricing SpaPricing?
     @@map("spa_slots")
 }

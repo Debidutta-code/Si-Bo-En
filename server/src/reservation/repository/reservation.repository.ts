@@ -1,5 +1,4 @@
-
-
+import { AgentCommissionType } from '../../agency/types';
 import { prisma } from '../../config';
 import { CurrencyCode } from '../../tax-system/interfaces';
 import { IPaginatedResponse } from '../../utils';
@@ -16,21 +15,61 @@ import {
     ICPromotionBrakeDown,
     IPricingBreakDown,
     IAgencyCommissionCreate,
+    ICGuest,
+    IGuest,
 } from '../types';
 import {
     BookingStatus,
     IBookingAddon,
     IBookingAddonCreate,
-    IGuestDetail,
     IPropertyEmails,
     IReservationPromotion,
     IReservationPromotionCreate,
 } from '../types/reservation.type';
 
 export class ReservationRepository {
-    public async createReservation(data: ICReservationR): Promise<IReservation> {
+    public async createReservation(
+        data: ICReservationR
+    ): Promise<{ id: string; bookingStatus: BookingStatus }> {
         try {
-            return await prisma.reservation.create({ data });
+            const reservation = await prisma.reservation.create({
+                data: {
+                    bookingCode: data.bookingCode,
+                    reservationStartDate: data.reservationStartDate,
+                    reservationEndDate: data.reservationEndDate,
+                    amount: data.amount,
+                    bookingUserEmail: data.bookingUserEmail,
+                    countryCode: data.countryCode,
+                    deviceTypes: data.deviceTypes,
+                    guests: data.guests as any,
+                    hotelName: data.hotelName,
+                    propertyCode: data.propertyCode,
+                    ratePlanCode: data.ratePlanCode,
+                    roomTypeCode: data.roomTypeCode,
+                    timezone: data.timezone,
+                    bookedAt: new Date(),
+                    agencyId: data.agencyId,
+                    primaryGuestId: data.primaryGuestId,
+                    createdAt: new Date(),
+                    propertyId: data.propertyId,
+                    bookingSource: data.bookingSource,
+                    extraAmountToPay: data.extraAmountToPay,
+                    refundAmount: data.refundAmount,
+                    roomName: data.roomName,
+                    isPromoUsed: data.isPromoUsed,
+                    promoId: data.promoId,
+                    currencyCode: data.currencyCode,
+                    ratePlanName: data.ratePlanName,
+                    paidAmount: data.paidAmount,
+                    platforms: data.platforms,
+                    bookingUserPhone: data.bookingUserPhone,
+                    otaGuestId: data.otaGuestId,
+                },
+            });
+            return {
+                id: reservation.id,
+                bookingStatus: reservation.bookingStatus,
+            };
         } catch (error) {
             throw this.wrap(error, 'Failed to create reservation');
         }
@@ -38,19 +77,16 @@ export class ReservationRepository {
 
     public async createReservationGuests(
         reservationId: string,
-        guestDetails: IGuestDetail[]
+        guestDetails: ICGuest[]
     ) {
         try {
             return await prisma.reservationGuest.createMany({
-                data: guestDetails.map((guest) => ({
+                data: guestDetails.map(guest => ({
                     reservationId,
                     firstName: guest.firstName,
                     lastName: guest.lastName,
                     type: guest.type,
-                    age: guest.age ?? null,
-                    dateOfBirth: guest.dateOfBirth
-                        ? new Date(guest.dateOfBirth)
-                        : null,
+                    age: null,
                 })),
             });
         } catch (error) {
@@ -66,8 +102,8 @@ export class ReservationRepository {
             return await prisma.reservation.update({
                 where: { id: reservationId },
                 data: updateData,
-                include: { primaryGuest: true, 
-                    // priceBreakdowns: true 
+                include: {
+                    primaryGuest: true,
                 },
             });
         } catch (error) {
@@ -78,31 +114,32 @@ export class ReservationRepository {
     public async updateReservationWithTransaction(
         reservationId: string,
         updateData: Partial<ICReservationR>,
-        guestDetails?: IGuestDetail[],
+        guestDetails?: IGuest[],
         addonDetails?: IBookingAddonCreate[],
         promotionDetails?: IReservationPromotionCreate[]
     ): Promise<IReservation> {
         try {
-            return await prisma.$transaction(async (tx) => {
+            return await prisma.$transaction(async tx => {
                 const updatedReservation = await tx.reservation.update({
                     where: { id: reservationId },
                     data: updateData,
-                    include: { primaryGuest: true, 
+                    include: {
+                        primaryGuest: true,
                     },
                 });
 
                 if (guestDetails && guestDetails.length > 0) {
-                    await tx.reservationGuest.deleteMany({ where: { reservationId } });
+                    await tx.reservationGuest.deleteMany({
+                        where: { reservationId },
+                    });
                     await tx.reservationGuest.createMany({
-                        data: guestDetails.map((guest) => ({
+                        data: guestDetails.map(guest => ({
                             reservationId,
                             firstName: guest.firstName,
                             lastName: guest.lastName,
-                            type: guest.type,
+                            type: guest.userType,
                             age: (guest as any).age ?? null,
-                            dateOfBirth: guest.dateOfBirth
-                                ? new Date(guest.dateOfBirth)
-                                : null,
+                            dateOfBirth: null,
                         })),
                     });
                 }
@@ -116,11 +153,13 @@ export class ReservationRepository {
                 // Promotions are now managed via PromotionBrakeDown
                 // (handled by replacePricingBreakdown in the service layer).
 
-
                 return updatedReservation;
             });
         } catch (error) {
-            throw this.wrap(error, 'Failed to update reservation in transaction');
+            throw this.wrap(
+                error,
+                'Failed to update reservation in transaction'
+            );
         }
     }
 
@@ -260,33 +299,93 @@ export class ReservationRepository {
                 skip,
                 take: limit,
                 orderBy: { reservationStartDate: 'asc' },
-                include: {
+                select: {
+                    id: true,
+                    amount: true,
+                    agency: {
+                        select: {
+                            agencyName: true,
+                        },
+                    },
+                    bookingCode: true,
+                    bookedAt: true,
+                    bookingSource: true,
+                    bookingStatus: true,
+                    bookingUserEmail: true,
+                    bookingUserPhone: true,
+                    cancelledAt: true,
+                    cancellationReason: true,
+                    checkInDate: true,
+                    checkOutDate: true,
+                    countryCode: true,
+                    currencyCode: true,
+                    deviceTypes: true,
+                    extraAmountToPay: true,
+                    guests: true,
+                    hotelName: true,
+                    paidAmount: true,
+                    isPromoUsed: true,
+                    OtaGuest: true,
+                    paymentImages: true,
+                    paymentMethod: true,
+                    SpaSlot: true,
+                    roomTypeCode: true,
+                    payments: true,
+                    platforms: true,
+                    Review: true,
+                    roomName: true,
+                    refundAmount: true,
+                    ratePlanName: true,
+                    ratePlanCode: true,
+                    propertyId: true,
+                    propertyCode: true,
+
+                    reservationStartDate: true,
+                    reservationEndDate: true,
                     primaryGuest: true,
                     addOns: true,
                     PricingBrakeDown: {
-                        include:{
-                            AddonBrakeDowns:true,
-                            DailyPriceBrakeDown:true,
-                            taxBrakeDown:true,
-                            promotionBrakeDown:true,
-                        }
+                        include: {
+                            AddonBrakeDowns: true,
+                            DailyPriceBrakeDown: true,
+                            taxBrakeDown: true,
+                            promotionBrakeDown: true,
+                            SpaPricingBrakeDowns: true,
+                        },
                     },
-                    promo:{
-                        select:{
-                            id:true,
-                            code:true,
-                            discountType:true,
-                            discountValue:true,
-                            currencyCode:true,
-                            
-                        }
+                    finalPrice: true,
+                    promo: {
+                        select: {
+                            id: true,
+                            code: true,
+                            discountType: true,
+                            discountValue: true,
+                            currencyCode: true,
+                        },
                     },
+                    createdAt: true,
+                    updatedAt: true,
+                    promoId: true,
                     property: {
-                        select: {id:true, propertyName: true, propertyCode: true,propertyEmail:true,propertyContact:true,description:true,image:true },
+                        select: {
+                            id: true,
+                            propertyName: true,
+                            propertyCode: true,
+                            propertyEmail: true,
+                            propertyContact: true,
+                            description: true,
+                            image: true,
+                        },
                     },
-                    reservationPromoCodes:true,
+                    agencyId: true,
+                    otaGuestId: true,
+                    primaryGuestId: true,
+                    pricingBrakedownId: true,
+                    reservationPromoCodes: true,
                     reservationGuests: true,
-                    AgencyCommission:true,
+                    AgencyCommission: true,
+                    timezone: true,
+                    // finalPrice:true
                 },
             });
 
@@ -344,30 +443,37 @@ export class ReservationRepository {
                 orderBy: { reservationStartDate: 'asc' },
                 include: {
                     primaryGuest: true,
-                    PricingBrakeDown:{
-                        include:{
-                            AddonBrakeDowns:true,
-                            DailyPriceBrakeDown:true,
-                            taxBrakeDown:true,
-                            promotionBrakeDown:true,
-                        }
+                    PricingBrakeDown: {
+                        include: {
+                            AddonBrakeDowns: true,
+                            DailyPriceBrakeDown: true,
+                            taxBrakeDown: true,
+                            promotionBrakeDown: true,
+                        },
                     },
                     addOns: true,
-                    promo:{
-                        select:{
-                            id:true,
-                            code:true,
-                            discountType:true,
-                            discountValue:true,
-                            currencyCode:true,
-                            
-                        }
+                    promo: {
+                        select: {
+                            id: true,
+                            code: true,
+                            discountType: true,
+                            discountValue: true,
+                            currencyCode: true,
+                        },
                     },
-                    reservationPromoCodes:true,
+                    reservationPromoCodes: true,
                     reservationGuests: true,
-                    AgencyCommission:true,
+                    AgencyCommission: true,
                     property: {
-                        select: { id:true, propertyName: true, propertyCode: true,propertyEmail:true,propertyContact:true,description:true,image:true },
+                        select: {
+                            id: true,
+                            propertyName: true,
+                            propertyCode: true,
+                            propertyEmail: true,
+                            propertyContact: true,
+                            description: true,
+                            image: true,
+                        },
                     },
                 },
             });
@@ -426,30 +532,37 @@ export class ReservationRepository {
                 orderBy: { reservationEndDate: 'asc' },
                 include: {
                     primaryGuest: true,
-                    AgencyCommission:true,
-                    PricingBrakeDown:{
-                        include:{
-                            AddonBrakeDowns:true,
-                            DailyPriceBrakeDown:true,
-                            taxBrakeDown:true,
-                            promotionBrakeDown:true,
-                        }
+                    AgencyCommission: true,
+                    PricingBrakeDown: {
+                        include: {
+                            AddonBrakeDowns: true,
+                            DailyPriceBrakeDown: true,
+                            taxBrakeDown: true,
+                            promotionBrakeDown: true,
+                        },
                     },
                     addOns: true,
-                    promo:{
-                        select:{
-                            id:true,
-                            code:true,
-                            discountType:true,
-                            discountValue:true,
-                            currencyCode:true,
-                            
-                        }
+                    promo: {
+                        select: {
+                            id: true,
+                            code: true,
+                            discountType: true,
+                            discountValue: true,
+                            currencyCode: true,
+                        },
                     },
-                    reservationPromoCodes:true,
+                    reservationPromoCodes: true,
                     reservationGuests: true,
                     property: {
-                        select: { id:true, propertyName: true, propertyCode: true,propertyEmail:true,propertyContact:true,description:true,image:true },
+                        select: {
+                            id: true,
+                            propertyName: true,
+                            propertyCode: true,
+                            propertyEmail: true,
+                            propertyContact: true,
+                            description: true,
+                            image: true,
+                        },
                     },
                 },
             });
@@ -502,30 +615,37 @@ export class ReservationRepository {
                 orderBy: { checkInDate: 'asc' },
                 include: {
                     primaryGuest: true,
-                    AgencyCommission:true,
+                    AgencyCommission: true,
                     PricingBrakeDown: {
                         include: {
                             AddonBrakeDowns: true,
                             DailyPriceBrakeDown: true,
                             taxBrakeDown: true,
                             promotionBrakeDown: true,
-                        }
+                        },
                     },
-                    promo:{
-                        select:{
-                            id:true,
-                            code:true,
-                            discountType:true,
-                            discountValue:true,
-                            currencyCode:true,
-                            
-                        }
+                    promo: {
+                        select: {
+                            id: true,
+                            code: true,
+                            discountType: true,
+                            discountValue: true,
+                            currencyCode: true,
+                        },
                     },
                     addOns: true,
-                    reservationGuests:true,
-                    reservationPromoCodes:true,
+                    reservationGuests: true,
+                    reservationPromoCodes: true,
                     property: {
-                        select: { id:true, propertyName: true, propertyCode: true,propertyEmail:true,propertyContact:true,description:true,image:true },
+                        select: {
+                            id: true,
+                            propertyName: true,
+                            propertyCode: true,
+                            propertyEmail: true,
+                            propertyContact: true,
+                            description: true,
+                            image: true,
+                        },
                     },
                 },
             });
@@ -578,30 +698,37 @@ export class ReservationRepository {
                 orderBy: { checkOutDate: 'asc' },
                 include: {
                     primaryGuest: true,
-                    AgencyCommission:true,
-                    PricingBrakeDown:{
+                    AgencyCommission: true,
+                    PricingBrakeDown: {
                         include: {
                             AddonBrakeDowns: true,
                             DailyPriceBrakeDown: true,
                             taxBrakeDown: true,
                             promotionBrakeDown: true,
-                        }
+                        },
                     },
                     addOns: true,
-                    reservationPromoCodes:true,
+                    reservationPromoCodes: true,
                     reservationGuests: true,
-                    promo:{
-                        select:{
-                            id:true,
-                            code:true,
-                            discountType:true,
-                            discountValue:true,
-                            currencyCode:true,
-                            
-                        }
+                    promo: {
+                        select: {
+                            id: true,
+                            code: true,
+                            discountType: true,
+                            discountValue: true,
+                            currencyCode: true,
+                        },
                     },
                     property: {
-                        select: { id:true, propertyName: true, propertyCode: true,propertyEmail:true,propertyContact:true,description:true,image:true },
+                        select: {
+                            id: true,
+                            propertyName: true,
+                            propertyCode: true,
+                            propertyEmail: true,
+                            propertyContact: true,
+                            description: true,
+                            image: true,
+                        },
                     },
                 },
             });
@@ -633,8 +760,8 @@ export class ReservationRepository {
                 data: {
                     bookingStatus: 'cancelled',
                     cancelledAt: new Date(),
-                    refundAmount:refundAmount,
-                    cancellationReason:cancellationReason,
+                    refundAmount: refundAmount,
+                    cancellationReason: cancellationReason,
                 },
                 include: { primaryGuest: true },
             });
@@ -650,6 +777,70 @@ export class ReservationRepository {
         try {
             return await prisma.reservation.findUnique({
                 where: { bookingCode: reservationCode, propertyCode },
+                include: {
+                    primaryGuest: {
+                        select: {
+                            id: true,
+                            firstName: true,
+                            lastName: true,
+                            email: true,
+                            phoneNumber: true,
+                            propertyId: true,
+                            userType: true,
+                        },
+                    },
+                    AgencyCommission: true,
+                    addOns: true,
+                    PricingBrakeDown: {
+                        include: {
+                            AddonBrakeDowns: true,
+                            DailyPriceBrakeDown: true,
+                            taxBrakeDown: true,
+                            promotionBrakeDown: true,
+                            SpaPricingBrakeDowns: true,
+                        },
+                    },
+
+                    promo: {
+                        select: {
+                            id: true,
+                            code: true,
+                            discountType: true,
+                            discountValue: true,
+                            currencyCode: true,
+                        },
+                    },
+                    reservationPromoCodes: true,
+                    property: {
+                        select: {
+                            id: true,
+                            propertyName: true,
+                            propertyCode: true,
+                            propertyEmail: true,
+                            propertyContact: true,
+                            description: true,
+                            image: true,
+                        },
+                    },
+                },
+            });
+        } catch (error) {
+            throw this.wrap(error, 'Failed to fetch reservation by code');
+        }
+    }
+
+    public async getReservationsByGuestId(
+        guestId: string
+    ): Promise<IReservationWithAllDetails[]> {
+        try {
+            return await prisma.reservation.findMany({
+                where: {
+                    OR: [
+                        { otaGuestId: guestId },
+                        { primaryGuestId: guestId }
+                    ]
+                },
+                orderBy: { reservationStartDate: 'desc' },
                 include: {
                     primaryGuest: true,
                     AgencyCommission:true,
@@ -670,7 +861,6 @@ export class ReservationRepository {
                             discountType:true,
                             discountValue:true,
                             currencyCode:true,
-                            
                         }
                     },
                     reservationPromoCodes:true,
@@ -680,7 +870,7 @@ export class ReservationRepository {
                 },
             });
         } catch (error) {
-            throw this.wrap(error, 'Failed to fetch reservation by code');
+            throw this.wrap(error, 'Failed to fetch reservations by guest ID');
         }
     }
 
@@ -692,8 +882,9 @@ export class ReservationRepository {
             return await prisma.reservation.update({
                 where: { id: reservationId },
                 data: { bookingStatus: status },
-                include: { primaryGuest: true, 
-                    // priceBreakdowns: true 
+                include: {
+                    primaryGuest: true,
+                    // priceBreakdowns: true
                 },
             });
         } catch (error) {
@@ -709,30 +900,37 @@ export class ReservationRepository {
                 where: { id: reservationId },
                 include: {
                     primaryGuest: true,
-                    AgencyCommission:true,
+                    AgencyCommission: true,
                     addOns: true,
-                    PricingBrakeDown:{
-                        include:{
-                            AddonBrakeDowns:true,
-                            DailyPriceBrakeDown:true,
-                            taxBrakeDown:true,
-                            promotionBrakeDown:true,
-                        }
+                    PricingBrakeDown: {
+                        include: {
+                            AddonBrakeDowns: true,
+                            DailyPriceBrakeDown: true,
+                            taxBrakeDown: true,
+                            promotionBrakeDown: true,
+                        },
                     },
-                    reservationPromoCodes:true,
-                    promo:{
-                        select:{
-                            id:true,
-                            code:true,
-                            discountType:true,
-                            discountValue:true,
-                            currencyCode:true,
-                            
-                        }
+                    reservationPromoCodes: true,
+                    promo: {
+                        select: {
+                            id: true,
+                            code: true,
+                            discountType: true,
+                            discountValue: true,
+                            currencyCode: true,
+                        },
                     },
                     reservationGuests: true,
                     property: {
-                        select: { id:true, propertyName: true, propertyCode: true,propertyEmail:true,propertyContact:true,description:true,image:true },
+                        select: {
+                            id: true,
+                            propertyName: true,
+                            propertyCode: true,
+                            propertyEmail: true,
+                            propertyContact: true,
+                            description: true,
+                            image: true,
+                        },
                     },
                 },
             });
@@ -759,8 +957,9 @@ export class ReservationRepository {
             return await prisma.reservation.update({
                 where: { id: reservationId },
                 data: { bookingStatus: 'no_show' },
-                include: { primaryGuest: true, 
-                    // priceBreakdowns: true 
+                include: {
+                    primaryGuest: true,
+                    // priceBreakdowns: true
                 },
             });
         } catch (error) {
@@ -772,9 +971,14 @@ export class ReservationRepository {
         bookingCode: string
     ): Promise<IReservation | null> {
         try {
-            return await prisma.reservation.findUnique({ where: { bookingCode } });
+            return await prisma.reservation.findUnique({
+                where: { bookingCode },
+            });
         } catch (error) {
-            throw this.wrap(error, 'Failed to fetch reservation by booking code');
+            throw this.wrap(
+                error,
+                'Failed to fetch reservation by booking code'
+            );
         }
     }
 
@@ -814,25 +1018,19 @@ export class ReservationRepository {
 }
 
 export class PriceBrakeDownRepo {
-    public async createpriceBrakeDowns(
-        priceBrakeDowns: ICPricingBreakDown
-    ) {
+    public async createpriceBrakeDowns(priceBrakeDowns: ICPricingBreakDown) {
         try {
             return await prisma.pricingBreakdown.create({
                 data: priceBrakeDowns,
             });
         } catch (error) {
             throw error instanceof Error
-                ? new Error(`Failed to create price breakdowns: ${error.message}`)
+                ? new Error(
+                      `Failed to create price breakdowns: ${error.message}`
+                  )
                 : new Error('Failed to create Price Brake Downs');
         }
     }
-
-    /**
-     * Creates PricingBreakdown header + all child records
-     * (DailyPriceBrakeDown, TaxBrakeDown, AddOnBrakeDown, PromotionBrakeDown)
-     * in a single transaction AND links it back to the reservation.
-     */
     public async createFullPricingBreakdown(
         reservationId: string,
         header: ICPricingBreakDown,
@@ -840,12 +1038,17 @@ export class PriceBrakeDownRepo {
         taxBreakdowns: ICTaxBrakeDown[],
         addonBreakdowns: ICAddonBreakdown[],
         promotionBreakdowns: ICPromotionBrakeDown[]
-    ): Promise<string> {
+    ): Promise<IPricingBreakDown> {
         try {
-            return await prisma.$transaction(async (tx) => {
+            return await prisma.$transaction(async tx => {
                 // 1. Create PricingBreakdown header
                 const pricingBreakdown = await tx.pricingBreakdown.create({
                     data: header,
+                    include: {
+                        DailyPriceBrakeDown: true,
+                        taxBrakeDown: true,
+                        AddonBrakeDowns: true,
+                    },
                 });
 
                 const pricingId = pricingBreakdown.id;
@@ -859,7 +1062,8 @@ export class PriceBrakeDownRepo {
                             guestDistribution: d.guestDistribution,
                             date: new Date(d.date),
                             baseChargesAmount: d.baseChargesAmount || 0,
-                            additionalChargesAmount: d.additionalChargesAmount || 0,
+                            additionalChargesAmount:
+                                d.additionalChargesAmount || 0,
                             totalAmount: d.totalAmount || 0,
                             currencyCode: d.currencyCode,
                         })),
@@ -908,9 +1112,13 @@ export class PriceBrakeDownRepo {
                                 name: p.name,
                                 discountType: p.discountType || 'percentage',
                                 discountValue: p.discountValue || 0,
-                                currencyCode: p.currencyCode || pricingBreakdown.currencyCode ||null,
+                                currencyCode:
+                                    p.currencyCode ||
+                                    pricingBreakdown.currencyCode ||
+                                    null,
                                 discountAmount: p.discountAmount || 0,
-                                restrictionType: p.restrictionType || 'decrease',
+                                restrictionType:
+                                    p.restrictionType || 'decrease',
                                 type: p.type || 'auto_applied',
                             })),
                     });
@@ -922,12 +1130,14 @@ export class PriceBrakeDownRepo {
                     data: { pricingBrakedownId: pricingId },
                 });
 
-                return pricingId;
+                return pricingBreakdown;
             });
         } catch (error) {
             console.error('createFullPricingBreakdown error:', error);
             throw error instanceof Error
-                ? new Error(`Failed to create full pricing breakdown: ${error.message}`)
+                ? new Error(
+                      `Failed to create full pricing breakdown: ${error.message}`
+                  )
                 : new Error('Failed to create full pricing breakdown');
         }
     }
@@ -946,7 +1156,7 @@ export class PriceBrakeDownRepo {
         promotionBreakdowns: ICPromotionBrakeDown[]
     ): Promise<string> {
         try {
-            return await prisma.$transaction(async (tx) => {
+            return await prisma.$transaction(async tx => {
                 // 1. Unlink old breakdown from reservation
                 if (oldPricingBrakedownId) {
                     await tx.reservation.update({
@@ -974,7 +1184,8 @@ export class PriceBrakeDownRepo {
                             guestDistribution: d.guestDistribution,
                             date: new Date(d.date),
                             baseChargesAmount: d.baseChargesAmount || 0,
-                            additionalChargesAmount: d.additionalChargesAmount || 0,
+                            additionalChargesAmount:
+                                d.additionalChargesAmount || 0,
                             totalAmount: d.totalAmount || 0,
                             currencyCode: d.currencyCode,
                         })),
@@ -1022,7 +1233,8 @@ export class PriceBrakeDownRepo {
                                 discountValue: p.discountValue || 0,
                                 currencyCode: p.currencyCode || null,
                                 discountAmount: p.discountAmount || 0,
-                                restrictionType: p.restrictionType || 'decrease',
+                                restrictionType:
+                                    p.restrictionType || 'decrease',
                                 type: p.type || 'auto_applied',
                             })),
                     });
@@ -1039,12 +1251,13 @@ export class PriceBrakeDownRepo {
         } catch (error) {
             console.error('replacePricingBreakdown error:', error);
             throw error instanceof Error
-                ? new Error(`Failed to replace pricing breakdown: ${error.message}`)
+                ? new Error(
+                      `Failed to replace pricing breakdown: ${error.message}`
+                  )
                 : new Error('Failed to replace pricing breakdown');
         }
     }
 }
-
 
 export interface IPropertyConfig {
     selfAriActive: boolean;
@@ -1054,32 +1267,32 @@ export interface IPropertyConfig {
 
 export interface IActiveIntegration {
     type: 'channel_manager' | 'pms';
-    name: string;                // e.g. "Rate Tiger"
-    integrationId: string;       // propertyIntegration.id
+    name: string; // e.g. "Rate Tiger"
+    integrationId: string; // propertyIntegration.id
 }
 
 export class AriManupulationRepo {
-    // ── existing ──────────────────────────────────────────────
-
     public async decreaseAvailableRooms(
         ariManupulationRooms: IAriManulupulation
     ) {
         try {
-            return await prisma.$transaction(async (tx) => {
-                for (const room of ariManupulationRooms.roomInfos) {
-                    await tx.inventory.updateMany({
-                        where: {
-                            propertyCode: ariManupulationRooms.propertyCode,
-                            roomTypeCode: room.roomTypeCode,
-                            date: { in: ariManupulationRooms.dates },
-                        },
-                        data: { availability: { decrement: room.numberOfRooms } },
-                    });
-                }
+            await prisma.inventory.updateMany({
+                where: {
+                    propertyCode: ariManupulationRooms.propertyCode,
+                    roomTypeCode: ariManupulationRooms.roomTypeCode,
+                    date: { in: ariManupulationRooms.dates },
+                },
+                data: {
+                    availability: {
+                        decrement: ariManupulationRooms.numberOfRooms,
+                    },
+                },
             });
         } catch (error) {
             throw error instanceof Error
-                ? new Error(`Failed to decrease Available Rooms: ${error.message}`)
+                ? new Error(
+                      `Failed to decrease Available Rooms: ${error.message}`
+                  )
                 : new Error('Failed to decrease Available Rooms');
         }
     }
@@ -1088,26 +1301,31 @@ export class AriManupulationRepo {
         ariManupulationRooms: IAriManulupulation
     ) {
         try {
-            return await prisma.$transaction(async (tx) => {
-                for (const room of ariManupulationRooms.roomInfos) {
-                    await tx.inventory.updateMany({
-                        where: {
-                            propertyCode: ariManupulationRooms.propertyCode,
-                            roomTypeCode: room.roomTypeCode,
-                            date: { in: ariManupulationRooms.dates },
-                        },
-                        data: { availability: { increment: room.numberOfRooms } },
-                    });
-                }
+            await prisma.inventory.updateMany({
+                where: {
+                    propertyCode: ariManupulationRooms.propertyCode,
+                    roomTypeCode: ariManupulationRooms.roomTypeCode,
+                    date: { in: ariManupulationRooms.dates },
+                },
+                data: {
+                    availability: {
+                        increment: ariManupulationRooms.numberOfRooms,
+                    },
+                },
             });
         } catch (error) {
             throw error instanceof Error
-                ? new Error(`Failed to increase Available Rooms: ${error.message}`)
+                ? new Error(
+                      `Failed to increase Available Rooms: ${error.message}`
+                  )
                 : new Error('Failed to increase Available Rooms');
         }
     }
 
-    public async getRatePlanName(ratePlanCode: string, propertyId: string) {
+    public async getRatePlanName(
+        ratePlanCode: string,
+        propertyId: string
+    ): Promise<{ ratePlanName: string } | null> {
         try {
             return await prisma.ratePlan.findUnique({
                 where: { ratePlanCode, propertyId },
@@ -1122,9 +1340,9 @@ export class AriManupulationRepo {
 
     public async getPropertyConfig(
         propertyId: string
-    ): Promise<IPropertyConfig> {
+    ): Promise<IPropertyConfig | null> {
         try {
-            const config = await prisma.propertyConfigs.findUnique({
+            return await prisma.propertyConfigs.findUnique({
                 where: { propertyId },
                 select: {
                     selfAriActive: true,
@@ -1132,13 +1350,6 @@ export class AriManupulationRepo {
                     channelManagerIntegrationActive: true,
                 },
             });
-
-            return {
-                selfAriActive: config?.selfAriActive ?? true,
-                pmsIntegrationActive: config?.pmsIntegrationActive ?? false,
-                channelManagerIntegrationActive:
-                    config?.channelManagerIntegrationActive ?? false,
-            };
         } catch (error) {
             throw error instanceof Error
                 ? new Error(`Failed to fetch property config: ${error.message}`)
@@ -1184,7 +1395,9 @@ export class AriManupulationRepo {
             };
         } catch (error) {
             throw error instanceof Error
-                ? new Error(`Failed to fetch active integration: ${error.message}`)
+                ? new Error(
+                      `Failed to fetch active integration: ${error.message}`
+                  )
                 : new Error('Failed to fetch active integration');
         }
     }
@@ -1227,7 +1440,9 @@ export class GuestRepository {
     }
 }
 export class BookingAddonRepository {
-    public async createBookingAddons(addons: IBookingAddonCreate[]): Promise<any> {
+    public async createBookingAddons(
+        addons: IBookingAddonCreate[]
+    ): Promise<any> {
         try {
             return await prisma.bookingAddon.createMany({ data: addons });
         } catch (error) {
@@ -1241,7 +1456,9 @@ export class BookingAddonRepository {
         reservationId: string
     ): Promise<IBookingAddon[]> {
         try {
-            return await prisma.bookingAddon.findMany({ where: { reservationId } });
+            return await prisma.bookingAddon.findMany({
+                where: { reservationId },
+            });
         } catch (error) {
             throw error instanceof Error
                 ? new Error(`Failed to fetch booking addons: ${error.message}`)
@@ -1249,7 +1466,160 @@ export class BookingAddonRepository {
         }
     }
 }
+export class PaymentRepository {
+    public async resolveRefundStrategy(orderReference: string): Promise<{
+        strategy: 'same_day' | 'day_after';
+        outletId: string | undefined;
+        reason: string;
+    }> {
+        try {
+            // ── Step 1: Check if same_day_refund column exists (migration guard) ──
+            try {
+                const columnCheck = await prisma.$queryRaw`
+                        SELECT column_name
+                        FROM information_schema.columns
+                        WHERE table_name = 'property_payment_integrations'
+                          AND column_name = 'same_day_refund'
+                    `;
+                const columnExists =
+                    Array.isArray(columnCheck) && columnCheck.length > 0;
 
+                if (!columnExists) {
+                    return {
+                        strategy: 'same_day',
+                        outletId: undefined,
+                        reason: 'MIGRATION_NOT_RUN — defaulting to same_day',
+                    };
+                }
+            } catch (colErr) {
+                console.warn(
+                    `[REFUND STRATEGY] ⚠️  Could not verify column existence:`,
+                    colErr
+                );
+            }
+
+            const payment = await prisma.payment.findFirst({
+                where: { paymentIntentId: orderReference },
+                include: {
+                    PropertyPaymentIntegration: true,
+                },
+            });
+
+            if (!payment) {
+                return {
+                    strategy: 'same_day',
+                    outletId: undefined,
+                    reason: 'NO_PAYMENT_RECORD_FOUND — defaulting to same_day',
+                };
+            }
+            const integration = payment.PropertyPaymentIntegration;
+
+            if (!integration) {
+                return {
+                    strategy: 'same_day',
+                    outletId: undefined,
+                    reason: 'NO_INTEGRATION_LINKED — defaulting to same_day',
+                };
+            }
+
+            // ── Step 3: Read sameDayRefund flag ──
+            // Cast needed until Prisma client is regenerated after migration
+            const sameDayRefund: boolean =
+                (integration as any).sameDayRefund ?? true;
+            const strategy: 'same_day' | 'day_after' = sameDayRefund
+                ? 'same_day'
+                : 'day_after';
+            const outletId: string = integration.outletId;
+
+            return {
+                strategy,
+                outletId,
+                reason: `sameDayRefund=${sameDayRefund} from integration ${integration.id}`,
+            };
+        } catch (error) {
+            console.error(`[REFUND STRATEGY] ❌ Unexpected error:`, error);
+            return {
+                strategy: 'same_day',
+                outletId: undefined,
+                reason: `ERROR_RESOLVING — defaulting to same_day: ${error instanceof Error ? error.message : 'unknown'}`,
+            };
+        }
+    }
+    public async findPayment(reservationId: string) {
+        try {
+            return await prisma.payment.findFirst({
+                where: { reservationId },
+                select: {
+                    id: true,
+                    paymentIntentId: true,
+                    paymentMethod: true,
+                    status: true,
+                    amount: true,
+                    currency: true,
+                    propertyPaymentIntegrationId: true,
+                    PropertyPaymentIntegration: {
+                        select: {
+                            id: true,
+                            outletId: true,
+                            isActive: true,
+                        },
+                    },
+                },
+            });
+        } catch (error) {
+            throw new Error('Error occur while fetching payment details');
+        }
+    }
+}
+export class AgencyPricing {
+    public async updateAgencyCommission(
+        reservationId: string,
+        agencyId: string,
+        agentId: string | null,
+        {
+            commissionType,
+            commissionValue,
+            commissionAmount,
+            commissionCurrency,
+        }: {
+            commissionType: AgentCommissionType;
+            commissionValue: number;
+            commissionAmount: number;
+            commissionCurrency: CurrencyCode;
+        }
+    ): Promise<void> {
+        try {
+            await prisma.agencyCommission.upsert({
+                where: { reservationId: reservationId },
+                update: {
+                    agencyId: agencyId,
+                    agentId: agentId || null,
+                    commissionType: commissionType as AgentCommissionType,
+                    commissionValue,
+                    commissionAmount,
+                    currencyCode: commissionCurrency,
+                },
+                create: {
+                    reservationId: reservationId,
+                    agencyId: agencyId,
+                    agentId: agentId || null,
+                    commissionType: commissionType as AgentCommissionType,
+                    commissionValue,
+                    commissionAmount,
+                    currencyCode: commissionCurrency,
+                },
+            });
+        } catch (error) {
+            console.error(
+                `[LOYALTY PRICING] ❌ Error updating agency commission:`,
+                error
+            );
+            throw new Error(
+                `Failed to update agency commission: ${error instanceof Error ? error.message : 'unknown'}`
+            );
+        }
+    }
+}
 export interface ILoyaltyLevel {
     id: string;
     level: number;
@@ -1268,7 +1638,7 @@ export interface ICreationGuest {
 }
 
 export class LoyaltyRepository {
-        public async getCreationGuest(
+    public async getCreationGuest(
         loyalityGuestId: string,
         creationLoyaltyConfigId: string
     ): Promise<ICreationGuest | null> {
@@ -1327,7 +1697,7 @@ export class LoyaltyRepository {
             const newBookings = currentNoOfBookings + 1;
 
             const nextLevel = levels.find(
-                (l) => l.level === currentGuestLevel + 1
+                l => l.level === currentGuestLevel + 1
             );
 
             const shouldUpgrade =
@@ -1349,11 +1719,6 @@ export class LoyaltyRepository {
         }
     }
 
-    /**
-     * Convenience method: resolves the LoyalityGuest by email, then
-     * increments + maybe upgrades.  Silently skips if the guest or
-     * CreationGuest record does not exist yet (they may not be enrolled).
-     */
     public async handlePostBookingLoyalty(
         guestEmail: string,
         creationLoyaltyConfigId: string
@@ -1391,39 +1756,47 @@ export class LoyaltyRepository {
 }
 
 export class AgencyCommissionRepository {
-  public async createAgencyCommission(
-    data: IAgencyCommissionCreate
-  ): Promise<any> {
-    try {
-      return await prisma.agencyCommission.create({ data });
-    } catch (error) {
-      throw error instanceof Error
-        ? new Error(`Failed to create agency commission: ${error.message}`)
-        : new Error('Failed to create agency commission');
+    public async createAgencyCommission(
+        data: IAgencyCommissionCreate
+    ): Promise<any> {
+        try {
+            return await prisma.agencyCommission.create({ data });
+        } catch (error) {
+            throw error instanceof Error
+                ? new Error(
+                      `Failed to create agency commission: ${error.message}`
+                  )
+                : new Error('Failed to create agency commission');
+        }
     }
-  }
 
-  public async getByReservationId(reservationId: string): Promise<any | null> {
-    try {
-      return await prisma.agencyCommission.findUnique({
-        where: { reservationId },
-      });
-    } catch (error) {
-      throw error instanceof Error
-        ? new Error(`Failed to fetch agency commission: ${error.message}`)
-        : new Error('Failed to fetch agency commission');
+    public async getByReservationId(
+        reservationId: string
+    ): Promise<any | null> {
+        try {
+            return await prisma.agencyCommission.findUnique({
+                where: { reservationId },
+            });
+        } catch (error) {
+            throw error instanceof Error
+                ? new Error(
+                      `Failed to fetch agency commission: ${error.message}`
+                  )
+                : new Error('Failed to fetch agency commission');
+        }
     }
-  }
 
-  public async deleteByReservationId(reservationId: string): Promise<any> {
-    try {
-      return await prisma.agencyCommission.deleteMany({
-        where: { reservationId },
-      });
-    } catch (error) {
-      throw error instanceof Error
-        ? new Error(`Failed to delete agency commission: ${error.message}`)
-        : new Error('Failed to delete agency commission');
+    public async deleteByReservationId(reservationId: string): Promise<any> {
+        try {
+            return await prisma.agencyCommission.deleteMany({
+                where: { reservationId },
+            });
+        } catch (error) {
+            throw error instanceof Error
+                ? new Error(
+                      `Failed to delete agency commission: ${error.message}`
+                  )
+                : new Error('Failed to delete agency commission');
+        }
     }
-  }
 }

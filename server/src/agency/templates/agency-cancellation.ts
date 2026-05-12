@@ -1,12 +1,15 @@
-import { IAgencyApplication } from "../types";
-import { agencyTypeLabel, emailShell } from "./email.shell";
+import { IAgencyApplication } from '../types';
+import { agencyTypeLabel, emailShell } from './email.shell';
 
 interface RejectionEmailParams {
     application: IAgencyApplication;
     rejectionReason: string;
 }
- 
-export function templateApplicationRejected({ application, rejectionReason }: RejectionEmailParams): string {
+
+export function templateApplicationRejected({
+    application,
+    rejectionReason,
+}: RejectionEmailParams): string {
     const body = `
       <!-- Recipient -->
       <tr>
@@ -113,12 +116,12 @@ export function templateApplicationRejected({ application, rejectionReason }: Re
           </p>
         </td>
       </tr>`;
- 
+
     const footer = `
       <p style="margin:0 0 8px 0;font-size:13px;color:#666666;font-weight:bold;">Contact Our Partnership Team</p>
       <p style="margin:0 0 15px 0;font-size:12px;color:#666666;">
         Email: <a href="mailto:partnerships@revchill.com" style="color:#4A90E2;text-decoration:none;">partnerships@revchill.com</a>
       </p>`;
- 
+
     return emailShell(body, footer, application.agencyEmail);
 }

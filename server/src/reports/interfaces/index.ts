@@ -4,7 +4,7 @@ import {
     IArrivalReportData,
     IDepartureReport,
     IDepartureReportData,
-    IGenerateReportRequest
+    IGenerateReportRequest,
 } from './reports.type';
 export {
     IReservationReportData,
@@ -12,7 +12,7 @@ export {
     IArrivalReportData,
     IDepartureReport,
     IDepartureReportData,
-    IGenerateReportRequest
+    IGenerateReportRequest,
 };
 
 // V2 report interfaces — full type definitions for all 10 reports

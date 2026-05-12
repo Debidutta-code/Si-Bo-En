@@ -44,7 +44,7 @@ import { capitalizeFirstLetter } from '@/lib/utils';
 
 export default function PropertyPage() {
     const { user } = useAppSelector((state) => state.user);
-
+    const [addMemberDialogOpen,setAddMemberDialogOpen]=useState<boolean>(false)
     const { creationId } = useParams<{ creationId: string }>();
     const [propertyConfig, setPropertyConfig] = useState<IUPropertyConfig>({
         channelManagerIntegrationActive: false,
@@ -242,16 +242,16 @@ export default function PropertyPage() {
     };
 
     const handleEditProperty = () => {
-        navigate(`/property/${propertyDetails?.id}`);
+        navigate(`/property/${propertyDetails?.id}?creationId=${creationId}`);
     };
 
     // Reset dialog state when dialog closes
-    const handleDialogOpenChange = (open: boolean) => {
-        if (!open) {
-            setSelectedRole(roles[0].value);
-            setSelectedUser('');
-        }
-    };
+    // const handleDialogOpenChange = (open: boolean) => {
+    //     if (!open) {
+    //         setSelectedRole(roles[0].value);
+    //         setSelectedUser('');
+    //     }
+    // };
 
     const handleAddMember = async () => {
         if (!selectedUser) {
@@ -278,7 +278,8 @@ export default function PropertyPage() {
                 toast.success("User assigned successfully");
                 // Reset form
                 setSelectedUser('');
-                // You might want to refresh the property data or user list here
+                setAddMemberDialogOpen(false);
+                initialFetch();
             } else {
                 toast.error(response.message || "Failed to assign user");
             }
@@ -578,10 +579,14 @@ export default function PropertyPage() {
                                 </DropdownMenuItem>
                             )}
 
-                            <Dialog onOpenChange={handleDialogOpenChange}>
+                            <Dialog onOpenChange={setAddMemberDialogOpen} open={addMemberDialogOpen} >
                                 <DialogTrigger asChild>
                                     <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="cursor-pointer">
-                                        <Button variant={"secondary"}>
+                                        <Button variant={"secondary"}
+                                        onClick={()=>{
+                                            setAddMemberDialogOpen(true)
+                                        }}
+                                        >
                                             <User2Icon className='h-4 w-4 mr-2' /> Add Members
                                         </Button>
                                     </DropdownMenuItem>
@@ -823,7 +828,7 @@ export default function PropertyPage() {
                                     <p className="text-xs text-gray-500">{user.email}</p>
                                 </div>
                                 <span className="inline-flex items-center rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 whitespace-nowrap ml-2">
-                                    {capitalizeFirstLetter(user.role.replaceAll("_"," "))}
+                                    {capitalizeFirstLetter(user.role.replaceAll("_", " "))}
                                 </span>
                             </div>
                         ))}
@@ -849,7 +854,7 @@ export default function PropertyPage() {
                                 <p className="text-xs text-gray-500">Manage general loyalty settings</p>
                             </div>
                         </Link>
-                        
+
                         <Link to={`/app/loyalty/register-form/${creationId}`} className="flex items-center gap-3 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                             <div className="bg-green-100 p-2 rounded-full text-green-600">
                                 <FileText className="h-5 w-5" />
@@ -894,7 +899,7 @@ export default function PropertyPage() {
                     </div>
                 </div>
             )}
-            
+
             {/* Integration Dialog */}
             <IntegrationDialog
                 isOpen={isIntegrationDialogOpen}

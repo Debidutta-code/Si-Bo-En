@@ -50,6 +50,8 @@ interface RoomCardProps {
   loyaltyMemberEmail?: string;
   loyalty: IPropertyLoyalityWithLoyality | null;
   onUnlockLoyalty?: () => void;
+  loyaltyDiscountInfo?: { type: string; value: number; currencyCode: string } | null;
+
 }
 
 // Helper to get dates between check-in and check-out (excluding checkout date)
@@ -119,6 +121,7 @@ const RoomCard: React.FC<RoomCardProps> = ({
   loyaltyMemberEmail,
   loyalty,
   onUnlockLoyalty,
+  loyaltyDiscountInfo,
 }) => {
   const { t } = useTranslation();
   // const { currency: selectedCurrency } = useSelector((state: RootState) => state.booking);
@@ -843,13 +846,24 @@ const RoomCard: React.FC<RoomCardProps> = ({
                           : rawLabel;
 
                     const comboBase = combo.totalAmount || 0;
-                    const comboAfterLoyalty =
-                      comboBase -
-                      (loyalty?.discountPercentage !== null && loyalty?.discountPercentage !== undefined
-                        ? (comboBase * loyalty.discountPercentage) / 100
+
+                    // Loyalty discount applies to room price only, not included addons
+                    const includedAddonsTotal = combo.addons?.reduce(
+                      (sum: number, a: any) => sum + (a.price || 0), 0
+                    ) ?? 0;
+                    const roomOnlyPrice = comboBase - includedAddonsTotal;
+
+                    const loyaltyDiscountOnRoom = isLoyaltyMember && loyaltyDiscountInfo
+                      ? (loyaltyDiscountInfo.type === "percentage"
+                        ? (roomOnlyPrice * loyaltyDiscountInfo.value) / 100
+                        : loyaltyDiscountInfo.value)
+                      : (loyalty?.discountPercentage !== null && loyalty?.discountPercentage !== undefined
+                        ? (roomOnlyPrice * loyalty.discountPercentage) / 100
                         : loyaltyDiscount?.loyaltyDiscountType === "percentage"
-                          ? (comboBase * loyaltyDiscount.discountValue) / 100
+                          ? (roomOnlyPrice * loyaltyDiscount.discountValue) / 100
                           : loyaltyDiscount?.discountValue || 0);
+
+                    const comboAfterLoyalty = comboBase - loyaltyDiscountOnRoom;
                     const isComboExpanded = expandedCombo === `${ratePlanCode}-${combo.comboLabel}`;
 
                     return (
@@ -890,18 +904,19 @@ const RoomCard: React.FC<RoomCardProps> = ({
                               </button>
                             )}
 
-                            {/* Price */}
                             <div className="text-right">
-                              {/* {(isLoyaltyMember || (!isLoyaltyMember && loyaltyProgram)) && loyaltyDiscountAmount > 0 && (
+                              {isLoyaltyMember && loyaltyDiscountInfo && (
                                 <div className="flex items-center gap-1 justify-end">
                                   <span className="text-[9px] sm:text-[10px] text-gray-400 line-through">
                                     {currency} {comboBase.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                   </span>
                                   <span className="px-1 py-0.5 bg-green-500 text-white text-[9px] font-bold rounded">
-                                    -{loyaltyDiscountPercentage}%
+                                    -{loyaltyDiscountInfo.type === "percentage"
+                                      ? `${loyaltyDiscountInfo.value}%`
+                                      : `${loyaltyDiscountInfo.currencyCode} ${loyaltyDiscountInfo.value}`}
                                   </span>
                                 </div>
-                              )} */}
+                              )}
                               <span className="text-sm sm:text-base font-bold text-gray-900">
                                 {currency}{" "}
                                 {(isLoyaltyMember ? comboAfterLoyalty : comboBase).toLocaleString(undefined, {

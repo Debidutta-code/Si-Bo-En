@@ -20,59 +20,180 @@ export class CreationScopeResolver {
 
         switch (creation.type) {
             case 'super': {
-                // Super: all properties in the system
-                propertyCreations = await prisma.creation.findMany({
-                    where: {
-                        type: 'property',
-                        propertyId: { not: null },
-                        ...(overrideGroupId && { groupId: overrideGroupId }),
-                        ...(overrideBrandId && { brandId: overrideBrandId }),
-                        ...(overridePropertyId && { propertyId: overridePropertyId }),
-                    },
-                    select: { propertyId: true },
-                });
+                // Super: all properties in the system, optionally scoped by
+                // group → brand → property override chain.
+                if (overridePropertyId) {
+                    // Narrowest filter wins — overridePropertyId is the Creation.id (PK)
+                    propertyCreations = await prisma.creation.findMany({
+                        where: {
+                            type: 'property',
+                            id: overridePropertyId,
+                        },
+                        select: { propertyId: true },
+                    });
+                } else if (overrideBrandId) {
+                    // Filter by a specific brand (brand owns its properties via brandId)
+                    propertyCreations = await prisma.creation.findMany({
+                        where: {
+                            type: 'property',
+                            propertyId: { not: null },
+                            brandId: overrideBrandId,
+                        },
+                        select: { propertyId: true },
+                    });
+                } else if (overrideGroupId) {
+                    // Filter by a specific group: properties directly under the group
+                    // OR under any brand that belongs to the group
+                    const groupBrands = await prisma.creation.findMany({
+                        where: { type: 'brand', groupId: overrideGroupId },
+                        select: { id: true },
+                    });
+                    const groupBrandIds = groupBrands.map(b => b.id);
+
+                    propertyCreations = await prisma.creation.findMany({
+                        where: {
+                            type: 'property',
+                            propertyId: { not: null },
+                            OR: [
+                                { groupId: overrideGroupId },
+                                ...(groupBrandIds.length > 0
+                                    ? [{ brandId: { in: groupBrandIds } }]
+                                    : []),
+                            ],
+                        },
+                        select: { propertyId: true },
+                    });
+                } else {
+                    // No override — return all properties
+                    propertyCreations = await prisma.creation.findMany({
+                        where: {
+                            type: 'property',
+                            propertyId: { not: null },
+                        },
+                        select: { propertyId: true },
+                    });
+                }
                 break;
             }
             case 'regional': {
-                propertyCreations = await prisma.creation.findMany({
-                    where: {
-                        type: 'property',
-                        propertyId: { not: null },
-                        regionalId: creation.id,
-                        ...(overrideBrandId && { brandId: overrideBrandId }),
-                        ...(overridePropertyId && { propertyId: overridePropertyId }),
-                    },
-                    select: { propertyId: true },
-                });
+                if (overridePropertyId) {
+                    propertyCreations = await prisma.creation.findMany({
+                        where: {
+                            type: 'property',
+                            id: overridePropertyId,
+                            regionalId: creation.id,
+                        },
+                        select: { propertyId: true },
+                    });
+                } else if (overrideBrandId) {
+                    propertyCreations = await prisma.creation.findMany({
+                        where: {
+                            type: 'property',
+                            propertyId: { not: null },
+                            regionalId: creation.id,
+                            brandId: overrideBrandId,
+                        },
+                        select: { propertyId: true },
+                    });
+                } else {
+                    propertyCreations = await prisma.creation.findMany({
+                        where: {
+                            type: 'property',
+                            propertyId: { not: null },
+                            regionalId: creation.id,
+                        },
+                        select: { propertyId: true },
+                    });
+                }
                 break;
             }
             case 'group': {
-                propertyCreations = await prisma.creation.findMany({
-                    where: {
-                        type: 'property',
-                        propertyId: { not: null },
-                        groupId: creation.id,
-                        ...(overrideBrandId && { brandId: overrideBrandId }),
-                        ...(overridePropertyId && { propertyId: overridePropertyId }),
-                    },
-                    select: { propertyId: true },
-                });
+                // Properties can belong to a group either:
+                //   (a) directly via groupId = creation.id
+                //   (b) via a brand that belongs to the group (brandId = one of group's brands)
+                // When filtering by brand, look for properties of that brand only
+                // (brand must belong to this group for security).
+                if (overridePropertyId) {
+                    // Direct property override — still validate it belongs to this group scope
+                    const groupBrands = await prisma.creation.findMany({
+                        where: { type: 'brand', groupId: creation.id },
+                        select: { id: true },
+                    });
+                    const groupBrandIds = groupBrands.map(b => b.id);
+
+                    propertyCreations = await prisma.creation.findMany({
+                        where: {
+                            type: 'property',
+                            id: overridePropertyId,
+                            OR: [
+                                { groupId: creation.id },
+                                ...(groupBrandIds.length > 0
+                                    ? [{ brandId: { in: groupBrandIds } }]
+                                    : []),
+                            ],
+                        },
+                        select: { propertyId: true },
+                    });
+                } else if (overrideBrandId) {
+                    // Filter to a specific brand's properties (brand must belong to this group)
+                    propertyCreations = await prisma.creation.findMany({
+                        where: {
+                            type: 'property',
+                            propertyId: { not: null },
+                            brandId: overrideBrandId,
+                            // Validate brand belongs to this group
+                            brand: { groupId: creation.id },
+                        },
+                        select: { propertyId: true },
+                    });
+                } else {
+                    // No override — get all properties in this group scope (direct + via brands)
+                    const groupBrands = await prisma.creation.findMany({
+                        where: { type: 'brand', groupId: creation.id },
+                        select: { id: true },
+                    });
+                    const groupBrandIds = groupBrands.map(b => b.id);
+
+                    propertyCreations = await prisma.creation.findMany({
+                        where: {
+                            type: 'property',
+                            propertyId: { not: null },
+                            OR: [
+                                { groupId: creation.id },
+                                ...(groupBrandIds.length > 0
+                                    ? [{ brandId: { in: groupBrandIds } }]
+                                    : []),
+                            ],
+                        },
+                        select: { propertyId: true },
+                    });
+                }
                 break;
             }
             case 'brand': {
-                propertyCreations = await prisma.creation.findMany({
-                    where: {
-                        type: 'property',
-                        propertyId: { not: null },
-                        brandId: creation.id,
-                        ...(overridePropertyId && { propertyId: overridePropertyId }),
-                    },
-                    select: { propertyId: true },
-                });
+                if (overridePropertyId) {
+                    propertyCreations = await prisma.creation.findMany({
+                        where: {
+                            type: 'property',
+                            id: overridePropertyId,
+                            brandId: creation.id,
+                        },
+                        select: { propertyId: true },
+                    });
+                } else {
+                    propertyCreations = await prisma.creation.findMany({
+                        where: {
+                            type: 'property',
+                            propertyId: { not: null },
+                            brandId: creation.id,
+                        },
+                        select: { propertyId: true },
+                    });
+                }
                 break;
             }
             case 'property': {
-                // Level 0/1 — always fixed to their property
+                // Property-level users are always fixed to their own property
                 if (creation.propertyId) {
                     return [creation.propertyId];
                 }
@@ -155,7 +276,12 @@ export class ReportsV2Repository {
             },
             include: {
                 primaryGuest: {
-                    select: { firstName: true, lastName: true, email: true, phoneNumber: true },
+                    select: {
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        phoneNumber: true,
+                    },
                 },
             },
             orderBy: { reservationStartDate: 'asc' },
@@ -269,10 +395,17 @@ export class ReportsV2Repository {
             },
             include: {
                 primaryGuest: {
-                    select: { firstName: true, lastName: true, email: true, phoneNumber: true },
+                    select: {
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        phoneNumber: true,
+                    },
                 },
-                addOns: { select: { name: true, totalPrice: true, quantity: true } },
-                agency: { select: { agencyName:true } },
+                addOns: {
+                    select: { name: true, totalPrice: true, quantity: true },
+                },
+                agency: { select: { agencyName: true } },
             },
             orderBy: { bookedAt: 'desc' },
         });
@@ -297,7 +430,12 @@ export class ReportsV2Repository {
             },
             include: {
                 primaryGuest: {
-                    select: { firstName: true, lastName: true, email: true, phoneNumber: true },
+                    select: {
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        phoneNumber: true,
+                    },
                 },
             },
             orderBy: { [dateField]: 'asc' },
@@ -376,10 +514,19 @@ export class ReportsV2Repository {
                     select: { firstName: true, lastName: true, email: true },
                 },
                 payments: {
-                    select: { amount: true, status: true, paymentMethod: true, createdAt: true },
+                    select: {
+                        amount: true,
+                        status: true,
+                        paymentMethod: true,
+                        createdAt: true,
+                    },
                 },
                 AgencyCommission: {
-                    select: { commissionAmount: true, commissionValue: true, commissionType: true },
+                    select: {
+                        commissionAmount: true,
+                        commissionValue: true,
+                        commissionType: true,
+                    },
                 },
             },
             orderBy: { bookedAt: 'desc' },
@@ -387,13 +534,17 @@ export class ReportsV2Repository {
     }
 
     // ── Property name map helper ───────────────────────────────────────────────
-    public async getPropertyNames(propertyIds: string[]): Promise<Map<string, string>> {
+    public async getPropertyNames(
+        propertyIds: string[]
+    ): Promise<Map<string, string>> {
         const props = await prisma.property.findMany({
             where: { id: { in: propertyIds } },
             select: { id: true, propertyName: true, propertyCode: true },
         });
         const map = new Map<string, string>();
-        props.forEach(p => map.set(p.id, `${p.propertyName} (${p.propertyCode})`));
+        props.forEach(p =>
+            map.set(p.id, `${p.propertyName} (${p.propertyCode})`)
+        );
         return map;
     }
 }

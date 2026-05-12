@@ -1,45 +1,40 @@
-import { prisma } from "../../config";
+import { prisma } from '../../config';
 export class PropertyEmailsRepository {
     public async create(propertyId: string, email: string) {
         try {
-
             return await prisma.propertyEmails.create({
                 data: {
                     propertyId,
-                    email
-                }
-            })
+                    email,
+                },
+            });
         } catch (error) {
-            throw new Error("Failed to create property email: ");
+            throw new Error('Failed to create property email: ');
         }
     }
     public async update(id: string, email: string) {
         try {
-
             return await prisma.propertyEmails.update({
                 where: {
-                    id
+                    id,
                 },
                 data: {
-                    email
-                }
-            })
+                    email,
+                },
+            });
         } catch (error) {
-            throw new Error("Failed to update property email");
-
+            throw new Error('Failed to update property email');
         }
     }
     public async delete(id: string) {
         try {
-
             return await prisma.propertyEmails.delete({
                 where: {
-                    id
-                }
-            })
+                    id,
+                },
+            });
         } catch (error) {
-            throw new Error("Failed to delete property email");
-
+            throw new Error('Failed to delete property email');
         }
     }
     public async getByEmail(propertyId: string, email: string) {
@@ -48,35 +43,34 @@ export class PropertyEmailsRepository {
                 where: {
                     propertyId_email: {
                         propertyId,
-                        email
-                    }
-                }
-            })
-            
+                        email,
+                    },
+                },
+            });
         } catch (error) {
-            throw new Error("Failed to get property email by email");
+            throw new Error('Failed to get property email by email');
         }
     }
     public async getById(id: string) {
         try {
             return await prisma.propertyEmails.findUnique({
                 where: {
-                    id
-                }
-            })
+                    id,
+                },
+            });
         } catch (error) {
-            throw new Error("Failed to get property email by id");
+            throw new Error('Failed to get property email by id');
         }
     }
     public async getByPropertyId(propertyId: string) {
         try {
             return await prisma.propertyEmails.findMany({
                 where: {
-                    propertyId
-                }
-            })
+                    propertyId,
+                },
+            });
         } catch (error) {
-            throw new Error("Failed to get property emails by property id");
+            throw new Error('Failed to get property emails by property id');
         }
     }
 }

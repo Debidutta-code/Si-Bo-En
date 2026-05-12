@@ -1,4 +1,4 @@
-import { IGuests } from "../../reservation/types";
+import { IGuest } from '../../reservation/types';
 
 export interface ICloyalityGuests {
     guestId: string | null;
@@ -16,9 +16,7 @@ export interface ILoyalityGuests extends ICloyalityGuests {
     createdAt: Date;
 }
 export interface ILoyalityGuestsWDP extends ILoyalityGuests {
-
-    guest: IGuests | null;
-
+    guest: IGuest | null;
 }
 export interface IGetLoyaltyGuestsForCreation {
     LoyalityGuest: ILoyalityGuestsWDP | null;

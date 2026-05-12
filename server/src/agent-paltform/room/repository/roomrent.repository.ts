@@ -11,8 +11,9 @@ import {
 } from '../types';
 
 export class AgentPricingRepository {
-
-    public async getAgencyDetails(agencyId: string): Promise<IAgencyDetails | null> {
+    public async getAgencyDetails(
+        agencyId: string
+    ): Promise<IAgencyDetails | null> {
         try {
             const agency = await prisma.agency.findUnique({
                 where: {
@@ -42,15 +43,17 @@ export class AgentPricingRepository {
         }
     }
 
-    public async getRatePlanWithTax(ratePlanCode: string): Promise<IRatePlan | null> {
+    public async getRatePlanWithTax(
+        ratePlanCode: string
+    ): Promise<IRatePlan | null> {
         try {
-            return await prisma.ratePlan.findUnique({
+            return (await prisma.ratePlan.findUnique({
                 where: { ratePlanCode },
                 select: {
                     id: true,
                     ratePlanCode: true,
                     ratePlanName: true,
-                    b2bAvailable: true,          // ← B2B gate
+                    b2bAvailable: true, // ← B2B gate
                     taxGroup: {
                         include: {
                             taxGroupRules: {
@@ -73,7 +76,7 @@ export class AgentPricingRepository {
                         },
                     },
                 },
-            }) as IRatePlan | null;
+            })) as IRatePlan | null;
         } catch (error) {
             throw new Error('Failed to fetch rate plan details');
         }
@@ -84,7 +87,7 @@ export class AgentPricingRepository {
         roomTypeCode: string
     ): Promise<IRoom | null> {
         try {
-            return await prisma.room.findFirst({
+            return (await prisma.room.findFirst({
                 where: {
                     property: {
                         propertyCode: propertyCode,
@@ -96,7 +99,7 @@ export class AgentPricingRepository {
                 include: {
                     TouristTaxs: true,
                 },
-            }) as IRoom | null;
+            })) as IRoom | null;
         } catch (error) {
             throw new Error('Failed to fetch room details');
         }
@@ -108,14 +111,14 @@ export class AgentPricingRepository {
         dates: Date[]
     ): Promise<IInventory[]> {
         try {
-            return await prisma.inventory.findMany({
+            return (await prisma.inventory.findMany({
                 where: {
                     propertyCode,
                     roomTypeCode,
                     date: { in: dates },
                     availability: { gt: 0 },
                 },
-            }) as IInventory[];
+            })) as IInventory[];
         } catch (error) {
             throw new Error('Failed to check inventory availability');
         }
@@ -128,7 +131,7 @@ export class AgentPricingRepository {
         dates: Date[]
     ): Promise<ICharge[]> {
         try {
-            return await prisma.charge.findMany({
+            return (await prisma.charge.findMany({
                 where: {
                     propertyCode,
                     roomTypeCode,
@@ -142,7 +145,7 @@ export class AgentPricingRepository {
                     additionalGuestAmounts: true,
                 },
                 orderBy: { date: 'asc' },
-            }) as ICharge[];
+            })) as ICharge[];
         } catch (error) {
             throw new Error('Failed to fetch charge details');
         }
@@ -153,26 +156,28 @@ export class AgentPricingRepository {
         checkInDate: Date
     ): Promise<IBookingOffset | null> {
         try {
-            return await prisma.bookingOffset.findFirst({
+            return (await prisma.bookingOffset.findFirst({
                 where: {
                     ratePlanId,
                     date: checkInDate,
                     isActive: true,
                 },
-            }) as IBookingOffset | null;
+            })) as IBookingOffset | null;
         } catch (error) {
             throw new Error('Failed to fetch booking offset');
         }
     }
 
-    public async getRatePlanRule(ratePlanId: string): Promise<IRatePlanRule | null> {
+    public async getRatePlanRule(
+        ratePlanId: string
+    ): Promise<IRatePlanRule | null> {
         try {
-            return await prisma.ratePlanRule.findFirst({
+            return (await prisma.ratePlanRule.findFirst({
                 where: {
                     ratePlanId,
                     isActive: true,
                 },
-            }) as IRatePlanRule | null;
+            })) as IRatePlanRule | null;
         } catch (error) {
             throw new Error('Failed to fetch rate plan rule');
         }
@@ -183,7 +188,7 @@ export class AgentPricingRepository {
         dates: Date[]
     ): Promise<IAddonWithAvailability[]> {
         try {
-            return await prisma.addon.findMany({
+            return (await prisma.addon.findMany({
                 where: {
                     id: { in: addonIds },
                     isActive: true,
@@ -197,7 +202,7 @@ export class AgentPricingRepository {
                         orderBy: { date: 'asc' },
                     },
                 },
-            }) as IAddonWithAvailability[];
+            })) as IAddonWithAvailability[];
         } catch (error) {
             throw new Error('Failed to fetch included addons');
         }

@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import CurrencyController from '../controllers/currency.controller';
-import { currencyQueue } from '../../index'; 
+import { currencyQueue } from '../../index';
 
 const router = Router();
 

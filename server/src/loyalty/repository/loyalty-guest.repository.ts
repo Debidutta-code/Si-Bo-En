@@ -1,9 +1,15 @@
-import { prisma } from "../../config";
-import { ILoyalityGuests, ICloyalityGuests, IGetLoyaltyGuestsForCreation } from "../types";
-import { ICreationLoyaltyGuestWDP } from "../types/creation-guest.types";
-import { CreationGuestRepository } from "./creation-guest.repository";
+import { prisma } from '../../config';
+import {
+    ILoyalityGuests,
+    ICloyalityGuests,
+    IGetLoyaltyGuestsForCreation,
+} from '../types';
+import { ICreationLoyaltyGuestWDP } from '../types/creation-guest.types';
+import { CreationGuestRepository } from './creation-guest.repository';
 export class LoyaltyGuestRepository {
-    public async createGuestsLoyaltyConfig(guestLoyaltyConfigData: ICloyalityGuests): Promise<any> {
+    public async createGuestsLoyaltyConfig(
+        guestLoyaltyConfigData: ICloyalityGuests
+    ): Promise<any> {
         try {
             const guestId = guestLoyaltyConfigData.guestId
                 ? String(guestLoyaltyConfigData.guestId)
@@ -18,15 +24,17 @@ export class LoyaltyGuestRepository {
                 data: {
                     ...guestLoyaltyConfigData,
                     guestId: guestExists ? guestId : null,
-
-                }
+                },
             });
         } catch (error) {
             // console.log(error);
-            throw new Error("Failed to create guest loyalty config");
+            throw new Error('Failed to create guest loyalty config');
         }
     }
-    public async getLoyaltyGuestByPropertyAndGuest(propertyId: string, guestEmail: string): Promise<IGetLoyaltyGuestsForCreation | null> {
+    public async getLoyaltyGuestByPropertyAndGuest(
+        propertyId: string,
+        guestEmail: string
+    ): Promise<IGetLoyaltyGuestsForCreation | null> {
         try {
             return await prisma.creationGuest.findFirst({
                 where: {
@@ -35,30 +43,33 @@ export class LoyaltyGuestRepository {
                 },
                 include: {
                     LoyalityGuest: {
-                        include: { guest: true }
+                        include: { guest: true },
                     },
                     CreationLoyaltyConfig: true,
                 },
-            })
+            });
         } catch (error) {
             // console.log(error)
-            throw new Error("Failed to get loyalty guest by property and guest");
+            throw new Error(
+                'Failed to get loyalty guest by property and guest'
+            );
         }
     }
-    public async getLoyaltyGuestByEmail(guestEmail: string): Promise<ILoyalityGuests | null> {
+    public async getLoyaltyGuestByEmail(
+        guestEmail: string
+    ): Promise<ILoyalityGuests | null> {
         try {
             return await prisma.loyalityGuest.findUnique({
                 where: {
-                    guestEmail
+                    guestEmail,
                 },
             });
         } catch (error) {
-            throw new Error("Failed to get loyalty guest by email");
+            throw new Error('Failed to get loyalty guest by email');
         }
     }
     public async getActiveLoyaltyConfigByPropertyId(propertyId: string) {
         try {
-            
             return await prisma.propertyLoyaltyConfig.findFirst({
                 where: {
                     propertyId,
@@ -67,29 +78,35 @@ export class LoyaltyGuestRepository {
                 include: {
                     CreationLoyaltyConfig: {
                         include: {
-                            LoyalityLevels: {         // ← THIS was missing
-                                orderBy: { level: "asc" },
+                            LoyalityLevels: {
+                                // ← THIS was missing
+                                orderBy: { level: 'asc' },
                             },
                         },
                     },
                 },
             });
         } catch (error) {
-            throw new Error("Failed to create loyalty config");
+            throw new Error('Failed to create loyalty config');
         }
     }
-    public async checkIfGuestExists(guestEmail: string): Promise<ILoyalityGuests | null> {
+    public async checkIfGuestExists(
+        guestEmail: string
+    ): Promise<ILoyalityGuests | null> {
         try {
             return await prisma.loyalityGuest.findUnique({
                 where: {
-                    guestEmail
-                }
+                    guestEmail,
+                },
             });
         } catch (error) {
-            throw new Error("Failed to check if guest exists");
+            throw new Error('Failed to check if guest exists');
         }
     }
-    public async checkIfCreationGuestExists(creationLoyaltyConfigId: string, loyalityGuestId: string): Promise<ICreationLoyaltyGuestWDP | null> {
+    public async checkIfCreationGuestExists(
+        creationLoyaltyConfigId: string,
+        loyalityGuestId: string
+    ): Promise<ICreationLoyaltyGuestWDP | null> {
         try {
             return await prisma.creationGuest.findFirst({
                 where: {
@@ -98,26 +115,30 @@ export class LoyaltyGuestRepository {
                 },
                 include: {
                     LoyalityGuest: {
-                        include: { guest: true }
+                        include: { guest: true },
                     },
                     CreationLoyaltyConfig: true,
                 },
-            })
+            });
         } catch (error) {
-            throw new Error("Failed to check if creation guest exists");
+            throw new Error('Failed to check if creation guest exists');
         }
     }
-    public async getLoyalityGuestsForProperty(propertyId: string, skip: number = 0, take: number = 10): Promise<ICreationLoyaltyGuestWDP[]> {
+    public async getLoyalityGuestsForProperty(
+        propertyId: string,
+        skip: number = 0,
+        take: number = 10
+    ): Promise<ICreationLoyaltyGuestWDP[]> {
         try {
             return await prisma.creationGuest.findMany({
                 where: {
-                    creationLoyaltyConfigId: propertyId
+                    creationLoyaltyConfigId: propertyId,
                 },
                 include: {
                     LoyalityGuest: {
                         include: {
                             guest: true,
-                        }
+                        },
                     },
                     // Property: {
                     //     select: {
@@ -128,39 +149,47 @@ export class LoyaltyGuestRepository {
                     // }
                 },
                 skip,
-                take
+                take,
             });
         } catch (error) {
-            throw new Error("Failed to get loyalty guests for property");
+            throw new Error('Failed to get loyalty guests for property');
         }
     }
-    public async totalLoyalityGuestsForProperty(propertyId: string): Promise<number> {
+    public async totalLoyalityGuestsForProperty(
+        propertyId: string
+    ): Promise<number> {
         try {
             return await prisma.propertyLoyalityGuests.count({
                 where: {
-                    propertyLoyalityId: propertyId
-                }
+                    propertyLoyalityId: propertyId,
+                },
             });
         } catch (error) {
-            throw new Error("Failed to count loyalty guests for property");
+            throw new Error('Failed to count loyalty guests for property');
         }
     }
-    public async getTotalLoyalityGuests(creationLoyaltyConfigId: string): Promise<number> {
+    public async getTotalLoyalityGuests(
+        creationLoyaltyConfigId: string
+    ): Promise<number> {
         try {
             return await prisma.creationGuest.count({
                 where: {
-                    creationLoyaltyConfigId
-                }
+                    creationLoyaltyConfigId,
+                },
             });
         } catch (error) {
-            throw new Error("Failed to count total loyalty guests");
+            throw new Error('Failed to count total loyalty guests');
         }
     }
-    public async getLoyalityGuestForCreation(creationLoyaltyConfigId: string, skip: number = 0, take: number = 10): Promise<ICreationLoyaltyGuestWDP[]> {
+    public async getLoyalityGuestForCreation(
+        creationLoyaltyConfigId: string,
+        skip: number = 0,
+        take: number = 10
+    ): Promise<ICreationLoyaltyGuestWDP[]> {
         try {
             return await prisma.creationGuest.findMany({
                 where: {
-                    creationLoyaltyConfigId: creationLoyaltyConfigId
+                    creationLoyaltyConfigId: creationLoyaltyConfigId,
                 },
                 include: {
                     // Property: {
@@ -176,48 +205,53 @@ export class LoyaltyGuestRepository {
                             loyaltyDiscountType: true,
                             discountValue: true,
                             currencyCode: true,
-                            createdAt: true
-                        }
+                            createdAt: true,
+                        },
                     },
                     LoyalityGuest: {
                         include: {
-                            guest: true
-                        }
-                    }
-
+                            guest: true,
+                        },
+                    },
                 },
                 skip,
-                take
+                take,
             });
         } catch (error) {
-            console.log(error)
-            throw new Error("Failed to get loyalty guest for creation");
+            console.log(error);
+            throw new Error('Failed to get loyalty guest for creation');
         }
     }
-    public async deleteLoyaltyGuestById(loyaltyGuestId: string): Promise<ILoyalityGuests | null> {
+    public async deleteLoyaltyGuestById(
+        loyaltyGuestId: string
+    ): Promise<ILoyalityGuests | null> {
         try {
             return await prisma.loyalityGuest.delete({
                 where: {
-                    id: loyaltyGuestId
-                }
+                    id: loyaltyGuestId,
+                },
             });
         } catch (error) {
-            throw new Error("Failed to delete loyalty guest by id");
+            throw new Error('Failed to delete loyalty guest by id');
         }
     }
 
-    public async createGuestsLoyaltyConfigFromBookingEngine(data: ICloyalityGuests): Promise<ILoyalityGuests> {
+    public async createGuestsLoyaltyConfigFromBookingEngine(
+        data: ICloyalityGuests
+    ): Promise<ILoyalityGuests> {
         try {
             return await prisma.loyalityGuest.create({
                 data: {
                     guestEmail: data.guestEmail,
                     guestId: data.guestId || undefined,
                     password: data.password,
-                }
+                },
             });
         } catch (error) {
-            console.error("Error creating loyalty guest:", error);
-            throw new Error("Failed to create guest loyalty config from booking engine");
+            console.error('Error creating loyalty guest:', error);
+            throw new Error(
+                'Failed to create guest loyalty config from booking engine'
+            );
         }
     }
 
@@ -226,62 +260,79 @@ export class LoyaltyGuestRepository {
             return await prisma.propertyLoyaltyConfig.findUnique({
                 where: { propertyId, isActive: true },
                 include: {
-                    CreationLoyaltyConfig: true
-                }
+                    CreationLoyaltyConfig: true,
+                },
             });
         } catch (error) {
-            throw new Error("Failed to get property loyalty config");
+            throw new Error('Failed to get property loyalty config');
         }
     }
     public async addGuest(guestId: string): Promise<ILoyalityGuests | null> {
         try {
             return await prisma.loyalityGuest.update({
                 where: {
-                    id: guestId
-                }, data: {
-                    guestId
-                }
-            })
+                    id: guestId,
+                },
+                data: {
+                    guestId,
+                },
+            });
         } catch (error) {
-            throw new Error("Failed to add guest")
+            throw new Error('Failed to add guest');
         }
     }
 
-    public async addGuestTOLoyalty(email: string, guestEmailId: string): Promise<ILoyalityGuests | null> {
+    public async addGuestTOLoyalty(
+        email: string,
+        guestEmailId: string
+    ): Promise<ILoyalityGuests | null> {
         try {
+            // ✅ Only update if the loyalty guest record exists
+            const existing = await prisma.loyalityGuest.findUnique({
+                where: { guestEmail: email },
+            });
+            if (!existing) return null;
+
             return await prisma.loyalityGuest.update({
-                where: {
-                    guestEmail: email
-                },
-                data: {
-                    guestId: guestEmailId
-                }
+                where: { guestEmail: email },
+                data: { guestId: guestEmailId },
             });
         } catch (error) {
-            throw new Error("Failed to get guest by email");
+            throw new Error('Failed to get guest by email');
         }
     }
-    public async updateGuest(email: string, password: string): Promise<ILoyalityGuests | null> {
+    public async updateGuest(
+        email: string,
+        password: string
+    ): Promise<ILoyalityGuests | null> {
         try {
             return await prisma.loyalityGuest.update({
                 where: {
-                    guestEmail: email
+                    guestEmail: email,
                 },
                 data: {
-                    password: password
-                }
+                    password: password,
+                },
             });
         } catch (error) {
-            throw new Error("Failed to update guest");
+            throw new Error('Failed to update guest');
         }
     }
     public async getPropertyLoyaltyConfigByPropertyId(
         propertyId: string
-    ): Promise<{ id: string; creationLoyaltyConfigId: string; isActive: boolean } | null> {
+    ): Promise<{
+        id: string;
+        creationLoyaltyConfigId: string;
+        isActive: boolean;
+    } | null> {
         try {
             return await prisma.propertyLoyaltyConfig.findUnique({
                 where: { propertyId, isActive: true },
-                select: { id: true, creationLoyaltyConfigId: true, isActive: true },
+                select: {
+                    id: true,
+                    creationLoyaltyConfigId: true,
+                    isActive: true,
+                },
             });
         } catch (error) {
             throw new Error('Failed to fetch property loyalty config');
@@ -307,8 +358,11 @@ export class LoyaltyGuestRepository {
     ) {
         try {
             const newBookings = currentNoOfBookings + 1;
-            const nextLevel = levels.find((l) => l.level === currentGuestLevel + 1);
-            const shouldUpgrade = !!nextLevel && newBookings >= nextLevel.noOfReservations;
+            const nextLevel = levels.find(
+                l => l.level === currentGuestLevel + 1
+            );
+            const shouldUpgrade =
+                !!nextLevel && newBookings >= nextLevel.noOfReservations;
 
             return await prisma.creationGuest.update({
                 where: { id: creationGuestId },
@@ -351,10 +405,13 @@ export class LoyaltyGuestRepository {
             const creationGuestRepo = new CreationGuestRepository();
 
             // 2. Get PropertyLoyaltyConfig for this property
-            const propertyLoyaltyConfig = await this.getPropertyLoyaltyConfigByPropertyId(propertyId);
-            if (!propertyLoyaltyConfig || !propertyLoyaltyConfig.isActive) return;
+            const propertyLoyaltyConfig =
+                await this.getPropertyLoyaltyConfigByPropertyId(propertyId);
+            if (!propertyLoyaltyConfig || !propertyLoyaltyConfig.isActive)
+                return;
 
-            const propertyCreationConfigId = propertyLoyaltyConfig.creationLoyaltyConfigId;
+            const propertyCreationConfigId =
+                propertyLoyaltyConfig.creationLoyaltyConfigId;
 
             // 3. Find LoyalityGuest by email
             const loyalityGuest = await prisma.loyalityGuest.findUnique({
@@ -363,10 +420,11 @@ export class LoyaltyGuestRepository {
             if (!loyalityGuest) return;
 
             // 4. Ensure PropertyLoyalityGuests link exists
-            const alreadyLinkedToProperty = await creationGuestRepo.guestExistForProperty(
-                propertyLoyaltyConfig.id,
-                loyalityGuest.id
-            );
+            const alreadyLinkedToProperty =
+                await creationGuestRepo.guestExistForProperty(
+                    propertyLoyaltyConfig.id,
+                    loyalityGuest.id
+                );
             if (!alreadyLinkedToProperty) {
                 await creationGuestRepo.createPropertyLoyaltyGuest({
                     propertyLoyalityId: propertyLoyaltyConfig.id,
@@ -382,7 +440,9 @@ export class LoyaltyGuestRepository {
 
             if (creationGuest) {
                 // 5a. SAME creationLoyaltyConfigId — increment bookings + check upgrade
-                const levels = await this.getLoyaltyLevels(propertyCreationConfigId);
+                const levels = await this.getLoyaltyLevels(
+                    propertyCreationConfigId
+                );
 
                 await this.incrementBookingsAndMaybeUpgrade(
                     creationGuest.id,
@@ -425,10 +485,13 @@ export class LoyaltyGuestRepository {
             const creationGuestRepo = new CreationGuestRepository();
 
             // 1. Get PropertyLoyaltyConfig for this property
-            const propertyLoyaltyConfig = await this.getPropertyLoyaltyConfigByPropertyId(propertyId);
-            if (!propertyLoyaltyConfig || !propertyLoyaltyConfig.isActive) return;
+            const propertyLoyaltyConfig =
+                await this.getPropertyLoyaltyConfigByPropertyId(propertyId);
+            if (!propertyLoyaltyConfig || !propertyLoyaltyConfig.isActive)
+                return;
 
-            const propertyCreationConfigId = propertyLoyaltyConfig.creationLoyaltyConfigId;
+            const propertyCreationConfigId =
+                propertyLoyaltyConfig.creationLoyaltyConfigId;
 
             // 2. Find LoyalityGuest by email
             const loyalityGuest = await prisma.loyalityGuest.findUnique({
@@ -445,20 +508,30 @@ export class LoyaltyGuestRepository {
 
             // 4. Decrement noOfBookings + check if should downgrade
             const newBookings = creationGuest.noOfBookings - 1;
-            const levels = await this.getLoyaltyLevels(propertyCreationConfigId);
+            const levels = await this.getLoyaltyLevels(
+                propertyCreationConfigId
+            );
 
             // Find the current level definition
-            const currentLevelDef = levels.find((l) => l.level === creationGuest.guestLevel);
+            const currentLevelDef = levels.find(
+                l => l.level === creationGuest.guestLevel
+            );
 
             // Check if the guest should be downgraded:
             // If newBookings is now below the threshold for their current level, downgrade
             let newLevel = creationGuest.guestLevel;
-            if (currentLevelDef && newBookings < currentLevelDef.noOfReservations) {
+            if (
+                currentLevelDef &&
+                newBookings < currentLevelDef.noOfReservations
+            ) {
                 // Find the highest level where threshold is still met
-                const qualifiedLevels = levels.filter((l) => newBookings >= l.noOfReservations);
-                newLevel = qualifiedLevels.length > 0
-                    ? qualifiedLevels[qualifiedLevels.length - 1].level
-                    : 1;
+                const qualifiedLevels = levels.filter(
+                    l => newBookings >= l.noOfReservations
+                );
+                newLevel =
+                    qualifiedLevels.length > 0
+                        ? qualifiedLevels[qualifiedLevels.length - 1].level
+                        : 1;
             }
 
             await prisma.creationGuest.update({

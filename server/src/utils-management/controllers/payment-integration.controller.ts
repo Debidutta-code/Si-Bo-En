@@ -68,7 +68,7 @@ export class PaymentIntegrationController {
         req: CustomRequest,
         res: Response
     ) {
-         try {
+        try {
             const serRes =
                 await PaymentIntegrationService.getMasterPaymentIntegrations();
             if (serRes.success) {

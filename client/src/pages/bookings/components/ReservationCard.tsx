@@ -252,20 +252,19 @@ export default function ReservationCard({
             {/* Price Breakdown */}
             {(() => {
               const pb = reservation.PricingBrakeDown;
-              const fp = reservation.finalPrice;
-              if (!pb && !fp) return null;
+              if (!pb) return null;
 
-              const dailyRows = pb?.DailyPriceBrakeDown ?? fp?.dailyPriceBrakeDown ?? [];
-              const addonRows = pb?.AddonBrakeDowns ?? fp?.addonBrakeDown ?? [];
-              const taxRows = pb?.taxBrakeDown ?? fp?.taxBrakeDown ?? [];
-              const promoRows = pb?.promotionBrakeDown ?? fp?.promotionBrakeDown ?? [];
+              const dailyRows = pb?.DailyPriceBrakeDown ?? [];
+              const addonRows = pb?.AddonBrakeDowns ?? [];
+              const taxRows = pb?.taxBrakeDown ?? [];
+              const promoRows = pb?.promotionBrakeDown ?? [];
 
-              const totalAmount = pb?.totalAmount ?? fp?.totalAmount ?? 0;
-              const amountBeforeTax = pb?.amountBeforeTax ?? fp?.amountBeforeTax ?? 0;
-              const taxedAmount = pb?.taxedAmount ?? fp?.taxedAmount ?? 0;
-              const currentChargeable = pb?.currentChargeableAmount ?? fp?.currentChargeableAmount ?? 0;
-              const laterPayable = pb?.latterpayableAmount ?? fp?.latterpayableAmount ?? 0;
-              const currency = pb?.currencyCode ?? fp?.currencyCode ?? reservation.currencyCode;
+              const totalAmount = pb?.totalAmount ?? 0;
+              const amountBeforeTax = pb?.amountBeforeTax ?? 0;
+              const taxedAmount = pb?.taxedAmount ?? 0;
+              const currentChargeable = pb?.currentChargeableAmount ?? 0;
+              const laterPayable = pb?.latterpayableAmount ?? 0;
+              const currency = pb?.currencyCode ?? reservation.currencyCode;
 
               const formatGuests = (g: IGuestDistribution) => {
                 if (!g) return '';
@@ -363,19 +362,36 @@ export default function ReservationCard({
                       </div>
                     )}
 
-                    {/* Loyalty & Promo discounts from finalPrice */}
-                    {((fp?.loyalityDiscount ?? 0) > 0 || (fp?.promoCodeDiscount ?? 0) > 0) && (
+                    {/* Spa Charges */}
+                    {(pb.SpaPricingBrakeDowns && pb.SpaPricingBrakeDowns.length > 0) && (
+                      <div className="p-4 border-b border-gray-100">
+                        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-3">Spa Charges</p>
+                        <div className="space-y-2">
+                          {pb.SpaPricingBrakeDowns.map((spa: any, i: number) => (
+                            <div key={i} className="flex justify-between items-start gap-2">
+                              <span className="text-gray-600">
+                                Spa Booking {spa.spaSlotId ? `(Slot ${spa.spaSlotId.slice(-4)})` : ''}
+                              </span>
+                              <span className="text-gray-900 whitespace-nowrap">{currency} {spa.price?.toFixed(2)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Loyalty & Promo discounts */}
+                    {((pb?.loyalityDiscount ?? 0) > 0 || (pb?.promoCodeDiscount ?? 0) > 0) && (
                       <div className="p-4 border-b border-gray-100 space-y-2">
-                        {(fp?.loyalityDiscount ?? 0) > 0 && (
+                        {(pb?.loyalityDiscount ?? 0) > 0 && (
                           <div className="flex justify-between text-green-700">
                             <span>Loyalty discount</span>
-                            <span>-{currency} {fp!.loyalityDiscount.toFixed(2)}</span>
+                            <span>-{currency} {pb.loyalityDiscount.toFixed(2)}</span>
                           </div>
                         )}
-                        {(fp?.promoCodeDiscount ?? 0) > 0 && (
+                        {(pb?.promoCodeDiscount ?? 0) > 0 && (
                           <div className="flex justify-between text-green-700">
                             <span>Promo code discount</span>
-                            <span>-{currency} {fp!.promoCodeDiscount.toFixed(2)}</span>
+                            <span>-{currency} {pb.promoCodeDiscount.toFixed(2)}</span>
                           </div>
                         )}
                       </div>

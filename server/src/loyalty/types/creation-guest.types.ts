@@ -1,5 +1,5 @@
-import { ILoyalityGuests, ILoyalityGuestsWDP } from ".";
-import { CurrencyCode } from "../../tax-system/interfaces";
+import { ILoyalityGuests, ILoyalityGuestsWDP } from '.';
+import { CurrencyCode } from '../../tax-system/interfaces';
 
 export interface ICCreationLoyaltyGuest {
     loyalityGuestId: string;

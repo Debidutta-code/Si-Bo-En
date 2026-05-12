@@ -1,6 +1,6 @@
-import { CurrencyCode } from "../../tax-system/interfaces/tourist-tax.type";
+import { CurrencyCode } from '../../tax-system/interfaces/tourist-tax.type';
 
-export type DiscountType = "percentage" | "flat";
+export type DiscountType = 'percentage' | 'flat';
 
 export interface ICreatePromoCode {
     name: string;
@@ -9,10 +9,10 @@ export interface ICreatePromoCode {
     propertyId: string;
     discountType: DiscountType;
     discountValue: number;
-    currencyCode:CurrencyCode;
+    currencyCode: CurrencyCode;
     validFrom: Date;
     validTo: Date;
-    minBookingAmount: number |null;
+    minBookingAmount: number | null;
     maxDiscountAmount: number | null;
 
     isApplicableForMobileApp?: boolean;
@@ -55,8 +55,6 @@ export interface IRPromoCode {
     createdAt: Date;
     updatedAt: Date;
 }
-
-
 
 export interface ICReservationPromoCode {
     reservationId: string;

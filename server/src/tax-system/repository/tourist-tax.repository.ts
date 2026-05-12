@@ -1,15 +1,13 @@
-import { prisma } from "../../config";
-import { ICTouristTax, IGetTouristTax } from "../interfaces";
+import { prisma } from '../../config';
+import { ICTouristTax, IGetTouristTax } from '../interfaces';
 const mapTouristTax = (tax: any): IGetTouristTax => ({
     ...tax,
-    discountValue: tax.discountValue
-
+    discountValue: tax.discountValue,
 });
 export class TouristTaxRepository {
-
     public async createTouristTax(
         roomId: string,
-        touristTaxData: ICTouristTax,
+        touristTaxData: ICTouristTax
     ): Promise<IGetTouristTax> {
         try {
             const createdTouristTax = await prisma.touristTaxes.create({
@@ -19,10 +17,10 @@ export class TouristTaxRepository {
                     discountType: touristTaxData.discountType,
                     discountValue:
                         touristTaxData.discountValue !== undefined &&
-                            touristTaxData.discountValue !== null
+                        touristTaxData.discountValue !== null
                             ? touristTaxData.discountValue
                             : null,
-                    currencyCode: touristTaxData.currencyCode ?? "USD",
+                    currencyCode: touristTaxData.currencyCode ?? 'USD',
                 },
                 include: {
                     Room: {
@@ -31,9 +29,9 @@ export class TouristTaxRepository {
                             roomName: true,
                             roomType: true,
                             propertyId: true,
-                        }
-                    }
-                }
+                        },
+                    },
+                },
             });
             return mapTouristTax(createdTouristTax);
         } catch (error) {
@@ -41,13 +39,15 @@ export class TouristTaxRepository {
         }
     }
 
-    public async getTouristTaxesByPropertyId(propertyId: string): Promise<IGetTouristTax[]> {
+    public async getTouristTaxesByPropertyId(
+        propertyId: string
+    ): Promise<IGetTouristTax[]> {
         try {
             const touristTaxes = await prisma.touristTaxes.findMany({
                 where: {
                     Room: {
-                        propertyId: propertyId
-                    }
+                        propertyId: propertyId,
+                    },
                 },
                 include: {
                     Room: {
@@ -55,12 +55,12 @@ export class TouristTaxRepository {
                             id: true,
                             roomName: true,
                             roomType: true,
-                        }
-                    }
+                        },
+                    },
                 },
                 orderBy: {
-                    createdAt: 'desc'
-                }
+                    createdAt: 'desc',
+                },
             });
             return touristTaxes.map(mapTouristTax);
         } catch (error) {
@@ -68,7 +68,9 @@ export class TouristTaxRepository {
         }
     }
 
-    public async getTouristTaxById(touristTaxId: string): Promise<IGetTouristTax | null> {
+    public async getTouristTaxById(
+        touristTaxId: string
+    ): Promise<IGetTouristTax | null> {
         try {
             const touristTax = await prisma.touristTaxes.findUnique({
                 where: { id: touristTaxId },
@@ -79,9 +81,9 @@ export class TouristTaxRepository {
                             roomName: true,
                             roomType: true,
                             propertyId: true,
-                        }
-                    }
-                }
+                        },
+                    },
+                },
             });
             return touristTax;
         } catch (error) {
@@ -136,9 +138,9 @@ export class TouristTaxRepository {
                             id: true,
                             roomName: true,
                             roomType: true,
-                        }
-                    }
-                }
+                        },
+                    },
+                },
             });
             return mapTouristTax(updatedTouristTax);
         } catch (error) {
@@ -146,7 +148,9 @@ export class TouristTaxRepository {
         }
     }
 
-    public async deleteTouristTax(touristTaxId: string): Promise<IGetTouristTax | Error> {
+    public async deleteTouristTax(
+        touristTaxId: string
+    ): Promise<IGetTouristTax | Error> {
         try {
             const deletedTouristTax = await prisma.touristTaxes.delete({
                 where: { id: touristTaxId },
@@ -156,9 +160,9 @@ export class TouristTaxRepository {
                             id: true,
                             roomName: true,
                             roomType: true,
-                        }
-                    }
-                }
+                        },
+                    },
+                },
             });
             return mapTouristTax(deletedTouristTax);
         } catch (error) {

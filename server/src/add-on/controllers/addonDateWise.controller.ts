@@ -1,8 +1,8 @@
-import { Request, Response } from "express";
-import { AddonDateWiseService } from "../services";
-import { successResponse, errorResponse } from "../../utils/return";
-import { ICreateAddonAvailability } from "../interfaces";
-import { PropertyCustomRequest } from "../../utils";
+import { Request, Response } from 'express';
+import { AddonDateWiseService } from '../services';
+import { successResponse, errorResponse } from '../../utils/return';
+import { ICreateAddonAvailability } from '../interfaces';
+import { PropertyCustomRequest } from '../../utils';
 export class AddonDateWiseController {
     private addonDateWiseService: AddonDateWiseService;
 
@@ -15,7 +15,8 @@ export class AddonDateWiseController {
      */
     createAddonDateWise = async (req: Request, res: Response) => {
         try {
-            const { addonId, currencyCode, to, isAvailable, price, from } = req.body;
+            const { addonId, currencyCode, to, isAvailable, price, from } =
+                req.body;
             const addOnArr: ICreateAddonAvailability[] = [];
 
             // Convert startDate and endDate to Date objects
@@ -38,16 +39,30 @@ export class AddonDateWiseController {
             }
 
             // Create all addon date-wise entries
-            const result = await this.addonDateWiseService.createAddonDateWise(addOnArr);
+            const result =
+                await this.addonDateWiseService.createAddonDateWise(addOnArr);
 
             return res.status(result.success ? 201 : 400).json(result);
         } catch (error: any) {
-
             if (error instanceof Error) {
-                return res.status(500).json(errorResponse("Failed to create addon date-wise availability", error.message));
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse(
+                            'Failed to create addon date-wise availability',
+                            error.message
+                        )
+                    );
             }
 
-            return res.status(500).json(errorResponse("Failed to create addon date-wise availability", "Unable to create addon date-wise availability at this moment"));
+            return res
+                .status(500)
+                .json(
+                    errorResponse(
+                        'Failed to create addon date-wise availability',
+                        'Unable to create addon date-wise availability at this moment'
+                    )
+                );
         }
     };
 
@@ -58,16 +73,30 @@ export class AddonDateWiseController {
         try {
             const { addonId } = req.params;
 
-            const result = await this.addonDateWiseService.getAddOnDateWiseById(addonId);
+            const result =
+                await this.addonDateWiseService.getAddOnDateWiseById(addonId);
 
             return res.status(result.success ? 200 : 400).json(result);
         } catch (error: any) {
-
             if (error instanceof Error) {
-                return res.status(500).json(errorResponse("Failed to get addon date-wise availability", error.message));
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse(
+                            'Failed to get addon date-wise availability',
+                            error.message
+                        )
+                    );
             }
 
-            return res.status(500).json(errorResponse("Failed to get addon date-wise availability", "Unable to get addon date-wise availability at this moment"));
+            return res
+                .status(500)
+                .json(
+                    errorResponse(
+                        'Failed to get addon date-wise availability',
+                        'Unable to get addon date-wise availability at this moment'
+                    )
+                );
         }
     };
     updateAddonByAddonId = async (req: Request, res: Response) => {
@@ -75,20 +104,36 @@ export class AddonDateWiseController {
             const { addonId } = req.params;
             const { price, currencyCode, isAvailable } = req.body;
 
-            const result = await this.addonDateWiseService.updateAddonByAddonId(addonId, {
-                price,
-                currencyCode,
-                isAvailable
-            });
+            const result = await this.addonDateWiseService.updateAddonByAddonId(
+                addonId,
+                {
+                    price,
+                    currencyCode,
+                    isAvailable,
+                }
+            );
 
             return res.status(result.success ? 200 : 400).json(result);
         } catch (error: any) {
-
             if (error instanceof Error) {
-                return res.status(500).json(errorResponse("Failed to update addon availability", error.message));
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse(
+                            'Failed to update addon availability',
+                            error.message
+                        )
+                    );
             }
 
-            return res.status(500).json(errorResponse("Failed to update addon availability", "Unable to update addon availability at this moment"));
+            return res
+                .status(500)
+                .json(
+                    errorResponse(
+                        'Failed to update addon availability',
+                        'Unable to update addon availability at this moment'
+                    )
+                );
         }
     };
     updateAddonForSingleDate = async (req: Request, res: Response) => {
@@ -96,21 +141,39 @@ export class AddonDateWiseController {
             const { id } = req.params;
             const { price, currencyCode, isAvailable } = req.body;
 
-            const result = await this.addonDateWiseService.updateAddonForSingleDate(id, {
-                price,
-                currencyCode,
-                isAvailable
-            });
+            const result =
+                await this.addonDateWiseService.updateAddonForSingleDate(id, {
+                    price,
+                    currencyCode,
+                    isAvailable,
+                });
 
             return res.status(result.success ? 200 : 400).json(result);
         } catch (error: any) {
-            console.error("Failed to update addon for single date at Controller Layer:", error);
+            console.error(
+                'Failed to update addon for single date at Controller Layer:',
+                error
+            );
 
             if (error instanceof Error) {
-                return res.status(500).json(errorResponse("Failed to update addon availability", error.message));
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse(
+                            'Failed to update addon availability',
+                            error.message
+                        )
+                    );
             }
 
-            return res.status(500).json(errorResponse("Failed to update addon availability", "Unable to update addon availability at this moment"));
+            return res
+                .status(500)
+                .json(
+                    errorResponse(
+                        'Failed to update addon availability',
+                        'Unable to update addon availability at this moment'
+                    )
+                );
         }
     };
 
@@ -121,16 +184,30 @@ export class AddonDateWiseController {
         try {
             const { addonId } = req.params;
 
-            const result = await this.addonDateWiseService.deleteAddonByAddonId(addonId);
+            const result =
+                await this.addonDateWiseService.deleteAddonByAddonId(addonId);
 
             return res.status(result.success ? 200 : 400).json(result);
         } catch (error: any) {
-
             if (error instanceof Error) {
-                return res.status(500).json(errorResponse("Failed to delete addon availability", error.message));
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse(
+                            'Failed to delete addon availability',
+                            error.message
+                        )
+                    );
             }
 
-            return res.status(500).json(errorResponse("Failed to delete addon availability", "Unable to delete addon availability at this moment"));
+            return res
+                .status(500)
+                .json(
+                    errorResponse(
+                        'Failed to delete addon availability',
+                        'Unable to delete addon availability at this moment'
+                    )
+                );
         }
     };
 
@@ -138,16 +215,32 @@ export class AddonDateWiseController {
         try {
             const { id } = req.params;
 
-            const result = await this.addonDateWiseService.deleteAddonForParticularDate(id);
+            const result =
+                await this.addonDateWiseService.deleteAddonForParticularDate(
+                    id
+                );
 
             return res.status(result.success ? 200 : 400).json(result);
         } catch (error: any) {
-
             if (error instanceof Error) {
-                return res.status(500).json(errorResponse("Failed to delete addon availability", error.message));
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse(
+                            'Failed to delete addon availability',
+                            error.message
+                        )
+                    );
             }
 
-            return res.status(500).json(errorResponse("Failed to delete addon availability", "Unable to delete addon availability at this moment"));
+            return res
+                .status(500)
+                .json(
+                    errorResponse(
+                        'Failed to delete addon availability',
+                        'Unable to delete addon availability at this moment'
+                    )
+                );
         }
     };
 
@@ -157,24 +250,46 @@ export class AddonDateWiseController {
             const date = String(req.query.date || '');
 
             if (!propertyId || !date) {
-                return res.status(400).json(errorResponse("Property ID and date are required"));
+                return res
+                    .status(400)
+                    .json(errorResponse('Property ID and date are required'));
             }
 
-            const result = await this.addonDateWiseService.getAddonsByDate(propertyId, date);
+            const result = await this.addonDateWiseService.getAddonsByDate(
+                propertyId,
+                date
+            );
 
             return res.status(result.success ? 200 : 400).json(result);
         } catch (error: any) {
             if (error instanceof Error) {
-                return res.status(500).json(errorResponse("Failed to get addons for date", error.message));
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse(
+                            'Failed to get addons for date',
+                            error.message
+                        )
+                    );
             }
-            return res.status(500).json(errorResponse("Failed to get addons for date", "Unable to fetch addons for date at this moment"));
+            return res
+                .status(500)
+                .json(
+                    errorResponse(
+                        'Failed to get addons for date',
+                        'Unable to fetch addons for date at this moment'
+                    )
+                );
         }
     };
 
     /**
      * Get available addons for a property within a date range
      */
-    getAvailableAddonsByDateRange = async (req: PropertyCustomRequest, res: Response) => {
+    getAvailableAddonsByDateRange = async (
+        req: PropertyCustomRequest,
+        res: Response
+    ) => {
         try {
             // Property ID is resolved from propertyCode by the middleware
             const propertyId = req.property?.id;
@@ -183,29 +298,52 @@ export class AddonDateWiseController {
             const ratePlanCode = String(req.query.ratePlanCode);
 
             if (!propertyId) {
-                return res.status(400).json(errorResponse("Property not found"));
+                return res
+                    .status(400)
+                    .json(errorResponse('Property not found'));
             }
 
             if (!startDate || !endDate) {
-                return res.status(400).json(errorResponse("Start date and end date are required"));
+                return res
+                    .status(400)
+                    .json(
+                        errorResponse('Start date and end date are required')
+                    );
             }
 
             if (!ratePlanCode) {
-                return res.status(400).json(errorResponse("Rate plan code is required"));
+                return res
+                    .status(400)
+                    .json(errorResponse('Rate plan code is required'));
             }
-            const result = await this.addonDateWiseService.getAvailableAddonsByDateRange(
-                propertyId,
-                startDate,
-                endDate,
-                ratePlanCode
-            );
+            const result =
+                await this.addonDateWiseService.getAvailableAddonsByDateRange(
+                    propertyId,
+                    startDate,
+                    endDate,
+                    ratePlanCode
+                );
 
             return res.status(result.success ? 200 : 400).json(result);
         } catch (error: any) {
             if (error instanceof Error) {
-                return res.status(500).json(errorResponse("Failed to get available addons", error.message));
+                return res
+                    .status(500)
+                    .json(
+                        errorResponse(
+                            'Failed to get available addons',
+                            error.message
+                        )
+                    );
             }
-            return res.status(500).json(errorResponse("Failed to get available addons", "Unable to fetch available addons at this moment"));
+            return res
+                .status(500)
+                .json(
+                    errorResponse(
+                        'Failed to get available addons',
+                        'Unable to fetch available addons at this moment'
+                    )
+                );
         }
     };
 }

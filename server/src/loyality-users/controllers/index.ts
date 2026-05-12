@@ -1,1 +1,1 @@
-export * from "./loyality-user.controller";
+export * from './loyality-user.controller';

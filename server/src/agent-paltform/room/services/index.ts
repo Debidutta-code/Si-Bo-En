@@ -1,4 +1,2 @@
-import {AgentPricingService} from "./roomrent.service";
-export {
-    AgentPricingService
-}
+import { AgentPricingService } from './roomrent.service';
+export { AgentPricingService };

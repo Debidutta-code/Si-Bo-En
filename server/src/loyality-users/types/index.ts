@@ -1,1 +1,1 @@
-export * from "./loyality-users.type";
+export * from './loyality-users.type';

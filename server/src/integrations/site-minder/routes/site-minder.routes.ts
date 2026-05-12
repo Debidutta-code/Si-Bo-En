@@ -1,27 +1,15 @@
-// routes/ratetiger.routes.ts
+// routes/siteminder.routes.ts
 
 import { Router } from 'express';
-import { RateTigerMiddleware } from '../middleware/rate-tiger.middleware';
-import {
-    InventoryUpdateController,
-    PricePullController,
-    RateTigerController,
-} from '../controllers';
-import { ARIController } from '../controllers/ari-update.controller';
-import { withHotelCodeConversion } from '../utils/hotel-code.handler';
+import { SiteMinderMiddleware } from '../middleware/site-minder.middleware';
+import { SiteMinderController } from '../controllers';
 
 const siteMinderRoute = Router();
 
-// Authentication endpoint
-siteMinderRoute.post(
-    '/authenticate',
-    RateTigerMiddleware.validateAuthCredentials,
-    RateTigerController.authenticate
-);
-
 siteMinderRoute.post(
     '/ari',
-    ARIController.handleARI
+    SiteMinderMiddleware.validateSoapCredentials,
+    SiteMinderController.handlePush
 );
 
 export default siteMinderRoute;

@@ -1,144 +1,151 @@
 // middleware/ratetiger.middleware.ts
 
-import {  Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { RateTigerTokenPayload } from '../types';
 import { RateTigerRequest } from '../../../utils';
 import { config } from '../../../config';
 
 export class RateTigerMiddleware {
- public static validateAuthCredentials(
-    req: RateTigerRequest,
-    res: Response,
-    next: NextFunction
-  ) {
-    try {
-      // ✅ Check both — BasicAuth (RT standard) and Authorization (fallback for testing)
-      const authHeader = 
-        (req.headers['basicauth'] as string) ?? 
-        (req.headers['authorization'] as string);
-      
-      if (!authHeader || !authHeader.startsWith('Basic ')) {
-        return res.status(401).json({
-          success: false,
-          message: 'Missing or invalid Authorization header'
-        });
-      }
+    public static validateAuthCredentials(
+        req: RateTigerRequest,
+        res: Response,
+        next: NextFunction
+    ) {
+        try {
+            // ✅ Check both — BasicAuth (RT standard) and Authorization (fallback for testing)
+            const authHeader =
+                (req.headers['basicauth'] as string) ??
+                (req.headers['authorization'] as string);
 
-      const base64Credentials = authHeader.split(' ')[1];
-      // console.log("base cred", base64Credentials);
+            if (!authHeader || !authHeader.startsWith('Basic ')) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Missing or invalid Authorization header',
+                });
+            }
 
-      const decoded = Buffer.from(base64Credentials, 'base64').toString('utf-8');
+            const base64Credentials = authHeader.split(' ')[1];
+            // console.log("base cred", base64Credentials);
 
-      // ✅ Safe split — handles passwords containing ':'
-      const colonIndex = decoded.indexOf(':');
-      const username = decoded.substring(0, colonIndex);
-      const password = decoded.substring(colonIndex + 1);
+            const decoded = Buffer.from(base64Credentials, 'base64').toString(
+                'utf-8'
+            );
 
-      // console.log({ username, password });
+            // ✅ Safe split — handles passwords containing ':'
+            const colonIndex = decoded.indexOf(':');
+            const username = decoded.substring(0, colonIndex);
+            const password = decoded.substring(colonIndex + 1);
 
-      // Validate credentials
-      const expectedUsername = config.rateTigerUsername;
-      const expectedPassword = config.rateTigerPassword;
+            // console.log({ username, password });
 
-      if (!expectedUsername || !expectedPassword) {
-        return res.status(500).json({
-          success: false,
-          message: 'RateTiger credentials not configured on server'
-        });
-      }
+            // Validate credentials
+            const expectedUsername = config.rateTigerUsername;
+            const expectedPassword = config.rateTigerPassword;
 
-      if (username !== expectedUsername || password !== expectedPassword) {
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid RateTiger credentials'
-        });
-      }
+            if (!expectedUsername || !expectedPassword) {
+                return res.status(500).json({
+                    success: false,
+                    message: 'RateTiger credentials not configured on server',
+                });
+            }
 
-      // Validate request body
-      const { 'API-Key': apiKey, partner_id: partnerId } = req.body;
+            if (
+                username !== expectedUsername ||
+                password !== expectedPassword
+            ) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Invalid RateTiger credentials',
+                });
+            }
 
-      if (!apiKey || !partnerId) {
-        return res.status(400).json({
-          success: false,
-          message: 'Missing API-Key or partner_id in request body'
-        });
-      }
+            // Validate request body
+            const { 'API-Key': apiKey, partner_id: partnerId } = req.body;
 
-      // Validate against configured values
-      const expectedApiKey = config.rateTigerApiKey;
-      const expectedPartnerId = config.rateTigerPartnerId;
+            if (!apiKey || !partnerId) {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Missing API-Key or partner_id in request body',
+                });
+            }
 
-      if (apiKey !== expectedApiKey || partnerId !== expectedPartnerId) {
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid API-Key or partner_id'
-        });
-      }
+            // Validate against configured values
+            const expectedApiKey = config.rateTigerApiKey;
+            const expectedPartnerId = config.rateTigerPartnerId;
 
-      next();
-    } catch (error) {
-      next(error);
+            if (apiKey !== expectedApiKey || partnerId !== expectedPartnerId) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Invalid API-Key or partner_id',
+                });
+            }
+
+            next();
+        } catch (error) {
+            next(error);
+        }
     }
-  }
 
-  public static validateBearerToken(
-    req: RateTigerRequest,
-    res: Response,
-    next: NextFunction
-  ) {
-    try {
-      const apiKey = req.headers['api-key'] as string;
-      
-      if (!apiKey) {
-        return res.status(401).json({
-          success: false,
-          message: 'Missing API-Key header'
-        });
-      }
+    public static validateBearerToken(
+        req: RateTigerRequest,
+        res: Response,
+        next: NextFunction
+    ) {
+        try {
+            const apiKey = req.headers['api-key'] as string;
 
-      // Validate API-Key
-      const expectedApiKey = config.rateTigerApiKey;
-      if (apiKey !== expectedApiKey) {
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid API-Key'
-        });
-      }
+            if (!apiKey) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Missing API-Key header',
+                });
+            }
 
-      // Check Authorization header
-      const authHeader = req.headers.authorization;
-      
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
-        return res.status(401).json({
-          success: false,
-          message: 'Missing or invalid Authorization header'
-        });
-      }
+            // Validate API-Key
+            const expectedApiKey = config.rateTigerApiKey;
+            if (apiKey !== expectedApiKey) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Invalid API-Key',
+                });
+            }
 
-      const token = authHeader.split(' ')[1];
+            // Check Authorization header
+            const authHeader = req.headers.authorization;
 
-      // Verify JWT token
-      const jwtSecret = config.rateTigerJwtSecret || 'your-secret-key';
-      
-      const decoded = jwt.verify(token, jwtSecret) as RateTigerTokenPayload;
+            if (!authHeader || !authHeader.startsWith('Bearer ')) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Missing or invalid Authorization header',
+                });
+            }
 
-      // Attach decoded data to request
-      req.rateTiger = {
-        partnerId: decoded.partnerId,
-        apiKey: decoded.apiKey
-      };
+            const token = authHeader.split(' ')[1];
 
-      next();
-    } catch (error) {
-      if (error instanceof jwt.JsonWebTokenError) {
-        return res.status(401).json({
-          success: false,
-          message: 'Invalid or expired token'
-        });
-      }
-      next(error);
+            // Verify JWT token
+            const jwtSecret = config.rateTigerJwtSecret || 'your-secret-key';
+
+            const decoded = jwt.verify(
+                token,
+                jwtSecret
+            ) as RateTigerTokenPayload;
+
+            // Attach decoded data to request
+            req.rateTiger = {
+                partnerId: decoded.partnerId,
+                apiKey: decoded.apiKey,
+            };
+
+            next();
+        } catch (error) {
+            if (error instanceof jwt.JsonWebTokenError) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Invalid or expired token',
+                });
+            }
+            next(error);
+        }
     }
-  }
-
 }
