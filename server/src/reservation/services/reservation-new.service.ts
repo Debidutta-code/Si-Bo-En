@@ -33,7 +33,8 @@ import {
     IAddonBreakdown,
     IAriManulupulation,
     IBookingAddonCreate,
-    ICGuest,
+    ICReservationGuest,
+    ICPrimaryGuest,
     ICPricingBreakDown,
     ICReservationR,
     ICReservationS,
@@ -166,13 +167,13 @@ export class NewReservationService {
             if (existingGuest) {
                 primaryGuestId = existingGuest.id;
             } else {
-                const newGuestPayload: ICGuest = {
+                const newGuestPayload: ICPrimaryGuest = {
                     firstName: primaryGuestData.firstName,
                     lastName: primaryGuestData.lastName,
                     email: bookingUserEmail,
                     phoneNumber: bookingUserPhone || null,
                     propertyId: propertyDetails.id,
-                    type: primaryGuestData.type as 'adult',
+                    userType: primaryGuestData.type as 'adult',
                 };
                 const newGuest =
                     await this.guestRepository.createGuest(newGuestPayload);
@@ -304,12 +305,10 @@ export class NewReservationService {
                     );
                 }
             }
-            if (guestDetails && guestDetails.length > 0) {
-                await this.reservationRepository.createReservationGuests(
-                    reservation.id,
-                    guestDetails
-                );
-            }
+            await this.reservationRepository.createReservationGuests(
+                reservation.id,
+                guestDetails
+            );
             const ngeniusOrderRef = payload?.ngeniusOrderRef;
             if (ngeniusOrderRef) {
                 const count =
@@ -332,15 +331,21 @@ export class NewReservationService {
                 loyalityDiscount: finalPrice.loyalityDiscount,
                 totalSpa: 0,
             };
+            await Promise.all([
 
-            await this.priceBrakeDownRepo.createFullPricingBreakdown(
-                reservation.id,
-                priceBreakdownPayload,
-                finalPrice.dailyPriceBrakeDown || [],
-                finalPrice.taxBrakeDown || [],
-                finalPrice.addonBrakeDown || [],
-                finalPrice.promotionBrakeDown || []
-            );
+                await this.priceBrakeDownRepo.createFullPricingBreakdown(
+                    reservation.id,
+                    priceBreakdownPayload,
+                    finalPrice.dailyPriceBrakeDown || [],
+                    finalPrice.taxBrakeDown || [],
+                    finalPrice.addonBrakeDown || [],
+                    finalPrice.promotionBrakeDown || []
+                ),
+                await this.reservationRepository.createReservationGuests(
+                    reservation.id,
+                    guestDetails
+                )
+            ])
             if (agencyId && finalPrice.agencyCommission) {
                 const {
                     commissionType,

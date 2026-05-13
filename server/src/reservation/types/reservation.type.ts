@@ -82,7 +82,7 @@ export interface IReservation extends ICReservationR {
 }
 
 export interface IReservationWithAllDetails extends IReservation {
-    primaryGuest: IGuest;
+    primaryGuest: IPrimaryGuest;
     addOns: IBookingAddon[];
     PricingBrakeDown?: IPricingBreakDown | null;
     property: IPropertyDetails;
@@ -123,7 +123,7 @@ export interface IPropertyDetails {
     description: string;
     image: string[];
 }
-export interface ICGuest {
+export interface ICReservationGuest {
     firstName: string;
     lastName: string;
     email: string | null;
@@ -131,14 +131,22 @@ export interface ICGuest {
     propertyId: string;
     type: 'adult' | 'child' | 'infant';
 }
-export interface IGuest {
-    id: string;
+
+export interface ICPrimaryGuest {
     firstName: string;
     lastName: string;
     email: string | null;
     phoneNumber: string | null;
     propertyId: string;
     userType: 'adult' | 'child' | 'infant';
+}
+export interface IPrimaryGuest extends ICPrimaryGuest {
+    id: string;
+
+}
+
+export interface IReservationGuest extends ICReservationGuest{
+    id:string
 }
 
 export interface INormalizedPromotion {
@@ -241,7 +249,7 @@ export interface IUReservation {
         childAges: number[];
     }>;
     previousRooms: number;
-    guests: ICGuest[];
+    guests: ICReservationGuest[];
     roomTypeCode: string;
     ratePlanCode: string;
     amount: number;
@@ -366,7 +374,7 @@ export interface ICReservationS {
     finalPrice: IFinalPrice;
     promoCode: string;
     currencyCode: CurrencyCode;
-    guestDetails: ICGuest[];
+    guestDetails: ICReservationGuest[];
     ratePlanCode: string;
     paymentMethod: PaymentMethod;
     bookingSource: BookingSource;

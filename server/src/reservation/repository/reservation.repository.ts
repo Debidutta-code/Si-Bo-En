@@ -15,13 +15,15 @@ import {
     ICPromotionBrakeDown,
     IPricingBreakDown,
     IAgencyCommissionCreate,
-    ICGuest,
-    IGuest,
+    ICReservationGuest,
+    IPrimaryGuest,
+    IReservationGuest
 } from '../types';
 import {
     BookingStatus,
     IBookingAddon,
     IBookingAddonCreate,
+    ICPrimaryGuest,
     IPropertyEmails,
     IReservationPromotion,
     IReservationPromotionCreate,
@@ -77,7 +79,7 @@ export class ReservationRepository {
 
     public async createReservationGuests(
         reservationId: string,
-        guestDetails: ICGuest[]
+        guestDetails: ICReservationGuest[]
     ) {
         try {
             return await prisma.reservationGuest.createMany({
@@ -114,7 +116,7 @@ export class ReservationRepository {
     public async updateReservationWithTransaction(
         reservationId: string,
         updateData: Partial<ICReservationR>,
-        guestDetails?: IGuest[],
+        guestDetails?: IReservationGuest[],
         addonDetails?: IBookingAddonCreate[],
         promotionDetails?: IReservationPromotionCreate[]
     ): Promise<IReservation> {
@@ -137,7 +139,7 @@ export class ReservationRepository {
                             reservationId,
                             firstName: guest.firstName,
                             lastName: guest.lastName,
-                            type: guest.userType,
+                            type: guest.type,
                             age: (guest as any).age ?? null,
                             dateOfBirth: null,
                         })),
@@ -1413,9 +1415,16 @@ export class GuestRepository {
         }
     }
 
-    public async createGuest(data: any) {
+    public async createGuest(data: ICPrimaryGuest) {
         try {
-            return await prisma.guests.create({ data });
+            return await prisma.guests.create({ data:{
+                firstName: data.firstName,
+                lastName: data.lastName,
+                email: data.email,
+                phoneNumber: data.phoneNumber,
+                propertyId: data.propertyId,
+                userType: data.userType,
+            } });
         } catch (error) {
             throw error instanceof Error
                 ? new Error(`Failed to create guest: ${error.message}`)
