@@ -5,9 +5,6 @@ import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { RootState } from "@/src/store/store";
 
-
-
-// ─── Layout ───────────────────────────────────────────────────────────────────
 export default function LoyaltyGuestLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const isLoggedIn = useSelector((state: RootState) => (state as any).loyaltyUser?.isLoggedIn);

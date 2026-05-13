@@ -218,7 +218,6 @@ export default function ReservationsTable({
     status?.toLowerCase().replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
   const getStatusBadge = (status: string) => {
-    const statusLower = status?.toLowerCase() || "";
     const variants: Record<string, string> = {
       confirmed: "bg-green-100 text-green-800",
       reserved: "bg-blue-100 text-blue-800",
@@ -228,7 +227,7 @@ export default function ReservationsTable({
       no_show: "bg-red-100 text-red-800",
     };
     return (
-      <span className={`inline-flex px-1 py-0 text-[10px] font-medium rounded uppercase ${variants[statusLower] || "bg-muted text-muted-foreground"}`}>
+      <span className={`inline-flex px-1 py-0 text-[10px] font-medium rounded  ${variants[status] || "bg-muted text-muted-foreground"}`}>
         {formatStatusLabel(status)}
       </span>
     );

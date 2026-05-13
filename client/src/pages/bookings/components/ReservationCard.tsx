@@ -16,10 +16,12 @@ import {
   ChevronDown,
   ChevronUp,
   X,
+  Eye,
 } from "lucide-react";
 import type { IGuestDistribution, IReservation } from "../types";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
+import PrimaryGuestDetailsDialog from "./primaryGuest";
 
 interface ReservationCardProps {
   reservation: IReservation;
@@ -34,7 +36,8 @@ export default function ReservationCard({
   onAmend,
   onClose,
 }: ReservationCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
+  const [isGuestDetailsOpen, setIsGuestDetailsOpen] = useState<boolean>(false);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -82,6 +85,8 @@ export default function ReservationCard({
     );
     return nights;
   };
+  const formatStatusLabel = (status: string) =>
+    status?.toLowerCase().replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
@@ -92,13 +97,13 @@ export default function ReservationCard({
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 mb-2 flex-wrap">
               <h3 className="text-lg font-semibold text-gray-900">
-                {reservation.bookingCode}
+                {reservation.bookingCode.split("-")[1]}
               </h3>
               <span
                 className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(reservation.bookingStatus)}`}
               >
                 {getStatusIcon(reservation.bookingStatus)}
-                {reservation.bookingStatus.toUpperCase()}
+                {formatStatusLabel(reservation.bookingStatus)}
               </span>
             </div>
             <p className="text-sm text-gray-600">
@@ -464,9 +469,20 @@ export default function ReservationCard({
                 ?? reservation.guests[0];
               return (
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-900 mb-2">
-                    Primary Guest
-                  </h4>
+                  <div className="flex items-center justify-between mb-2">
+                    <h4 className="text-sm font-semibold text-gray-900">
+                      Primary Guest
+                    </h4>
+                    {reservation.bookingStatus === "checked_in" && (
+                      <button
+                        onClick={() => setIsGuestDetailsOpen(true)}
+                        className="text-gray-600 hover:text-primary transition-colors"
+                        title="View guest details"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                   <div className="flex items-center justify-between text-sm bg-gray-50 p-3 rounded-md">
                     <span className="font-medium">
                       {primary.firstName} {primary.lastName}
@@ -483,6 +499,13 @@ export default function ReservationCard({
                 </div>
               );
             })()}
+
+            {/* Guest Details Modal */}
+            <PrimaryGuestDetailsDialog
+              isOpen={isGuestDetailsOpen}
+              onOpenChange={setIsGuestDetailsOpen}
+              primaryGuest={reservation.primaryGuest || null}
+            />
 
             {/* Close Button */}
             <div className="flex justify-end pt-4">
