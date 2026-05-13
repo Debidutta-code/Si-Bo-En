@@ -1216,20 +1216,18 @@ export class NewReservationService {
                         guestDetails
                     ),
                 ]);
-
             return successResponse(
                 'Reservation checked in successfully',
                 updatedReservation
             );
         } catch (error) {
             if (error instanceof Error) {
-                return Promise.reject(
-                    new Error(
-                        `Failed to check out reservation: ${error.message}`
-                    )
+                return errorResponse(
+                    'Failed to check out reservation',
+                    error.message
                 );
             }
-            return Promise.reject(new Error('Failed to check out reservation'));
+            return errorResponse('Failed to check out reservation');
         }
     }
     public async noShowReservation(

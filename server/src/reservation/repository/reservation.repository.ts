@@ -1430,7 +1430,17 @@ export class GuestRepository {
         try {
             return await prisma.guests.update({
                 where: { id: guestId },
-                data: { ...details },
+                data: { 
+                    address: details.address,
+                    city: details.city,
+                    country: details.country,
+                    identityCardImage: details.identityCardImage,
+                    identityCardNumber: details.identityCardNumber,
+                    userIdentityCardType: details.userIdentityCardType,
+                    state: details.state,
+                    zipCode: details.zipCode,
+
+                 },
             });
         } catch (error) {
             throw error instanceof Error

@@ -325,7 +325,7 @@ export type ReservationStatus =
     | 'checked_in'
     | 'checked_out';
 export type userIdentityCardType =
-    | 'passport'
+    'passport'
     | 'drivers_license'
     | 'national_id'
     | 'adhar_card'
@@ -333,14 +333,14 @@ export type userIdentityCardType =
     | 'others';
 
 export interface IGuestCheckInDetails {
-    address?: string;
-    city?: string;
-    state?: string;
-    country?: string;
-    zipCode?: string;
+    address: string;
+    city: string;
+    state: string;
+    country: string;
+    zipCode: string;
     userIdentityCardType: userIdentityCardType;
     identityCardNumber: string;
-    identityCardImage?: string;
+    identityCardImage: string;
 }
 
 export interface IPropertyDetailsFromMiddleware {
