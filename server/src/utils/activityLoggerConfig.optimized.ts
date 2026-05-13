@@ -1643,7 +1643,22 @@ export const ACTIVITY_LOGGER_ROUTES: RoutePattern[] = [
             ),
             shouldLog: logOnlySuccess,
         },
-    },
+    }, {
+        pattern: /\/api\/v1\/integrations\/site-minder\/ari$/,
+        method: 'POST',
+        config: {
+            ...createSimpleConfig(
+                ActivityAction.UPDATE,
+                ActivityEntity.INVENTORY,
+                success =>
+                    success
+                        ? 'SiteMinder ARI update processed successfully'
+                        : 'Failed to process SiteMinder ARI update',
+                ['integration', 'site-minder', 'ari', 'update']
+            ),
+            shouldLog: logOnlySuccess,
+        },
+    }
 ];
 
 export const ALL_ACTIVITY_LOGGER_ROUTES = ACTIVITY_LOGGER_ROUTES;
